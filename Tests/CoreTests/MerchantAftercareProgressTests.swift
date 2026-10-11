@@ -149,7 +149,8 @@ final class MerchantAftercareProgressTests: XCTestCase {
         }
         let requests = await transport.requests
         XCTAssertEqual(requests.count, 1)
-        XCTAssertEqual(requests.first?.httpMethod, "GET")
+        // The source detail read is POST; read-only behavior does not imply GET.
+        XCTAssertEqual(requests.first?.httpMethod, "POST")
         XCTAssertEqual(requests.first?.url?.path, "/api/merchant/aftercare/detail")
         XCTAssertFalse(service.canExecuteSyntheticMutation)
     }

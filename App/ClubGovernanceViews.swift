@@ -87,7 +87,54 @@ struct ClubGovernanceFormRoute: Identifiable {
     var seed: [String: ClubGovernanceValue] = [:]
 }
 
+/// A leaderboard row may open only the existing public profile reader. This
+/// ephemeral route never substitutes CRM data or grants profile-read permission.
+struct ClubLeaderboardMemberRoute: Hashable, Identifiable {
+    let id = UUID()
+    let memberID: Int
+    let context: ClubGovernanceReadContext
+    let snapshotGeneration: UInt64
+    private let source: ClubGovernanceSnapshot
+    private let profileIdentity: SocialAccountIdentity
+    private let profileRevision: UInt64
+    private let profileReaderIdentity: ObjectIdentifier
+    private let squareReaderIdentity: ObjectIdentifier
+    private let squareScope: UUID
+
+    @MainActor init?(row: ClubGovernanceValue, snapshot: ClubGovernanceSnapshot,
+          context: ClubGovernanceReadContext, snapshotGeneration: UInt64,
+          profile: ClubEnrollmentProfileContext) {
+        guard context.operation == .leaderboard, context.accepts(snapshot),
+              let viewer = context.identity, viewer.isSignedIn,
+              let clubID = context.scope.clubID, clubID > 0,
+              snapshot.permissions?.allows(ClubGovernanceRead.leaderboard.permission, scope: context.scope) == true,
+              profile.reader.isConfigured,
+              profile.reader.identity.accountID == viewer.accountID,
+              profile.reader.identity.epoch == viewer.epoch,
+              let memberID = row["memberId"].int, (1...9_007_199_254_740_991).contains(memberID),
+              row["clubId"] == .null || row["clubId"].int == clubID,
+              let rows = snapshot.value.array, rows.contains(row),
+              rows.filter({ $0["memberId"].int == memberID }).count == 1 else { return nil }
+        self.memberID = memberID; self.context = context; self.snapshotGeneration = snapshotGeneration
+        source = snapshot; profileIdentity = profile.reader.identity
+        profileRevision = profile.reader.presentationRevision
+        profileReaderIdentity = ObjectIdentifier(profile.reader)
+        squareReaderIdentity = ObjectIdentifier(profile.squareReader); squareScope = profile.squareReader.scope
+    }
+    @MainActor func isCurrent(snapshot: ClubGovernanceSnapshot?, context: ClubGovernanceReadContext,
+                   snapshotGeneration: UInt64, profile: ClubEnrollmentProfileContext) -> Bool {
+        self.context == context && self.snapshotGeneration == snapshotGeneration && snapshot == source &&
+        profile.reader.isConfigured && profile.reader.identity == profileIdentity &&
+        profile.reader.presentationRevision == profileRevision &&
+        ObjectIdentifier(profile.reader) == profileReaderIdentity &&
+        ObjectIdentifier(profile.squareReader) == squareReaderIdentity && profile.squareReader.scope == squareScope
+    }
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
+
 struct ClubGovernanceReadView: View {
+    @Environment(\.clubEnrollmentProfile) private var leaderboardProfile
     @Environment(\.clubOpsTimeFactory) private var opsTimeFactory
     @Environment(\.clubCustomerTopics) private var customerTopics
     @Environment(\.clubGovernanceFeed) private var feedContext
@@ -101,6 +148,7 @@ struct ClubGovernanceReadView: View {
     @State private var snapshotContext: ClubGovernanceReadContext?
     @State private var snapshotGeneration: UInt64 = 0
     @State private var customerTopic: ClubCustomerHistoryTopicRoute?
+    @State private var leaderboardMember: ClubLeaderboardMemberRoute?
     @State private var feedClub: ClubFeedClubRoute?
     @State private var feedMediaScope = UUID()
     private var readContext: ClubGovernanceReadContext {
@@ -166,6 +214,20 @@ struct ClubGovernanceReadView: View {
         }
         .navigationTitle(title)
         .sheet(item: $editor) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }
+        .navigationDestination(item: $leaderboardMember) { target in
+            Group {
+                if let profile = leaderboardProfile, current(target) {
+                    SocialPublicProfileView(memberID: target.memberID, reader: profile.reader,
+                        squareReader: profile.squareReader, actions: profile.actions)
+                        .id(target.id)
+                } else { Color.clear }
+            }
+            // This destination remains active while the leaderboard is covered.
+            // Retire the route here as well, instead of leaving an empty pushed page.
+            .onChange(of: current(target), initial: true) { _, valid in
+                if !valid, leaderboardMember?.id == target.id { leaderboardMember = nil }
+            }
+        }
         .navigationDestination(item: $customerTopic) { target in
             if let destination = customerTopics.destination, current(target) {
                 destination(target.topicID).id(target.id)
@@ -220,6 +282,7 @@ struct ClubGovernanceReadView: View {
         generation &+= 1; let revision = generation; let expected = identity; let context = readContext
         snapshot = nil; failure = nil; loading = true
         snapshotContext = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID()
+        leaderboardMember = nil
         guard expected?.isSignedIn == true else { loading = false; failure = .signedOut; return }
         var options: [String: ClubGovernanceValue] = [:]
         if operation == .customers { options = ["filter": .string(filter), "keyword": .string(keyword)] }
@@ -244,6 +307,25 @@ struct ClubGovernanceReadView: View {
     @MainActor private func invalidateRead() {
         if operation == .customers { customerKeywordDebounce.cancel() }
         generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID(); coordinator.cancelReview()
+        leaderboardMember = nil
+    }
+    private func current(_ target: ClubLeaderboardMemberRoute) -> Bool {
+        guard operation == .leaderboard, identity == access.identity, access.isConfigured,
+              snapshotContext == readContext, let profile = leaderboardProfile else { return false }
+        return target.isCurrent(snapshot: snapshot, context: readContext,
+            snapshotGeneration: snapshotGeneration, profile: profile)
+    }
+    private func leaderboardMemberRoute(_ row: ClubGovernanceValue) -> ClubLeaderboardMemberRoute? {
+        guard operation == .leaderboard, let snapshot, snapshotContext == readContext,
+              identity == access.identity, access.isConfigured, let profile = leaderboardProfile else { return nil }
+        return .init(row: row, snapshot: snapshot, context: readContext,
+            snapshotGeneration: snapshotGeneration, profile: profile)
+    }
+    private func selectLeaderboardMember(_ target: ClubLeaderboardMemberRoute) {
+        // A queued tap from a covered/retired source cannot start a new push.
+        // Once pushed, the immutable accepted snapshot keeps the destination alive.
+        guard leaderboardMember == nil, snapshotGeneration == generation, current(target) else { return }
+        leaderboardMember = target
     }
     private func current(_ target: ClubFeedClubRoute) -> Bool {
         identity == access.identity && access.isConfigured && snapshotContext == readContext &&
@@ -429,6 +511,12 @@ struct ClubGovernanceReadView: View {
                             Label("topic.detail", systemImage: "chevron.right.circle")
                         }
                     }.accessibilityIdentifier("club.gov.customer.topic.\(target.topicID)")
+                } else if let target = leaderboardMemberRoute(row) {
+                    ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields, showUnknown: true)
+                    Button { selectLeaderboardMember(target) } label: {
+                        Label("social.profile", systemImage: "person.crop.circle")
+                    }.buttonStyle(.borderless)
+                        .accessibilityIdentifier("club.gov.leaderboard.profile.\(target.memberID)")
                 } else {
                     ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields, showUnknown: operation == .leaderboard || operation == .occurrences)
                 }

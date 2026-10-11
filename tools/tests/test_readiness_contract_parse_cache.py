@@ -985,3 +985,36 @@ class AlbumChapterActorCompileAdmissionTests(unittest.TestCase):
             return [ast.dump(n, include_attributes=False) for n in ast.walk(ast.parse(text))
                     if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr.startswith('assert')]
         self.assertEqual(assertions(adapted), assertions(prefix))
+
+
+# Fixed predecessor source/fixture assertions use their exact published e2b root.
+# The 7 parser and 2 member-copy tests above retain the actual current runner.
+from tools import club_customer_directory_admission as _club_history
+_CLUB_PARSE_HISTORY = _club_history.club_original_current_context(R)
+_CLUB_PARSE_TESTS = _CLUB_PARSE_HISTORY.load('tools/tests/test_readiness_contract_parse_cache.py')
+
+
+def _club_bind_historical_parse_class(case):
+    from functools import wraps
+    for name, original in tuple(vars(case).items()):
+        if name.startswith('test_') and callable(original):
+            def bind(function):
+                @wraps(function)
+                def checked(*args, **kwargs):
+                    with _club_history.club_authenticated_transaction():
+                        _CLUB_PARSE_HISTORY.verify()
+                        try:
+                            return function(*args, **kwargs)
+                        finally:
+                            _CLUB_PARSE_HISTORY.verify()
+                return checked
+            setattr(case, name, bind(original))
+    return case
+
+
+ReadinessParseCacheSourceChainTests = _club_bind_historical_parse_class(_CLUB_PARSE_TESTS.ReadinessParseCacheSourceChainTests)
+UnifiedRepairCurrentInputTests = _club_bind_historical_parse_class(_CLUB_PARSE_TESTS.UnifiedRepairCurrentInputTests)
+NativeNavigationCompileAdmissionTests = _club_bind_historical_parse_class(_CLUB_PARSE_TESTS.NativeNavigationCompileAdmissionTests)
+DescriptionInitializationCompileAdmissionTests = _club_bind_historical_parse_class(_CLUB_PARSE_TESTS.DescriptionInitializationCompileAdmissionTests)
+SocialReaderKeyActorCompileAdmissionTests = _club_bind_historical_parse_class(_CLUB_PARSE_TESTS.SocialReaderKeyActorCompileAdmissionTests)
+AlbumChapterActorCompileAdmissionTests = _club_bind_historical_parse_class(_CLUB_PARSE_TESTS.AlbumChapterActorCompileAdmissionTests)

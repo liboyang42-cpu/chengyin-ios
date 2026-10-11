@@ -18,7 +18,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = '5f319703db67d07817cacf26e7fbb51494fd821b1a4b91b1447250303d0a093c'
+CONTRACT_SHA256 = '5d1e4e47191b9b7febe3afe813d2e97ed5579f96878d4935af8c98179bc54f34'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'
@@ -145,9 +145,9 @@ def validate_current(directory, profile_path, root=ROOT):
     if digest(Path(profile_path).read_bytes()) != c['unchanged_profile_sha256']:
         raise ValueError('Old profile, floors or historical observations changed')
     keys, classes = inventory(directory)
-    if (len(keys) != 736 or len(classes) != 163
+    if (len(keys) != 742 or len(classes) != 164
             or canonical(keys) != c['current_inventory_sha256']):
-        raise ValueError('Current 736 complete methods are not preserved')
+        raise ValueError('Current 742 complete methods are not preserved')
     for relative, expected in c['followon_support_sha256'].items():
         if digest(entry_projection().historical_entry_bytes(root, relative)) != expected:
             raise ValueError('Follow-on source or cost adapter changed: ' + relative)
@@ -204,9 +204,10 @@ def validate_current(directory, profile_path, root=ROOT):
         raise ValueError('Direction-only story helper added work or changed other semantics')
     if (c['new_over900_exceptions'] != {CHINESE: 948, CURRENT_REVIEW: 946, 'ProjectStoryImageFlowTests.testChosenStoryImageAppliesOnlyAfterUploadAndRestoresIntoExactPreparedOrder': 905, RELEASE_RECOVERY: 944, COVER_RECOVERY: 942, 'ApprovedTopicFrozenCoverPublicationFlowTests.testApprovedCoverConfirmationAndUnknownPublicationRestoreOriginalManifest': 940, 'ProjectStoryAudioRecoveryFlowTests.testChineseMaximumTextUnknownUploadChecksSameRequestWithoutSecondUpload': 980}
             or c['preserved_historical_exceptions'] != {CHINESE: 908, CURRENT_REVIEW: 906, RELEASE_RECOVERY: 904, COVER_RECOVERY: 902}
-            or c['added_total_seconds'] != 523.948 or c['deadline_seconds'] != 1800
+            or c['added_total_seconds'] != 1713.948 or c['deadline_seconds'] != 1800
             or c['startup_reserve_seconds'] != 300 or c['shard_count'] != 79):
         raise ValueError('Exception scope, added work, reserve or deadline changed')
+    validate_club_leaderboard_budget(c, directory, root)
     return c
 
 
@@ -258,6 +259,8 @@ def weights(directory=ROOT / 'Tests/AppUITests', profile_path=ROOT / 'tools/ui_d
     for name, expected in c['prior_class_seconds'].items():
         if not math.isclose(before.get(name, -1), expected, abs_tol=1e-9):
             raise ValueError('Historical class cost changed before readiness accounting')
+    if not math.isclose(before.get('ClubGovernanceFlowTests', -1), 626.149, abs_tol=1e-9):
+        raise ValueError('Original whole club class floor changed')
     result = dict(before)
     result['ProjectEditFlowTests'] = before['ProjectEditFlowTests'] - 150 + 40
     result['ProjectEditReviewReadinessFlowTests'] = 150 + 40
@@ -271,8 +274,9 @@ def weights(directory=ROOT / 'Tests/AppUITests', profile_path=ROOT / 'tools/ui_d
     result['OwnedCouponCodeJourneyUITests'] = before['OwnedCouponCodeJourneyUITests'] + 20
     result['ApprovedTopicFrozenCoverPublicationFlowTests'] = before['ApprovedTopicFrozenCoverPublicationFlowTests'] + 32
     result['SquareWorkspaceFlowTests'] = 19.197 + 110 + 120
+    result['ClubLeaderboardMemberFlowTests'] = validate_club_leaderboard_budget(c, directory, root)
     if ({name: result[name] for name in c['candidate_class_seconds']} != c['candidate_class_seconds']
-            or not math.isclose(sum(result.values()) - sum(before.values()), 523.948, abs_tol=1e-7)):
+            or not math.isclose(sum(result.values()) - sum(before.values()), 1713.948, abs_tol=1e-7)):
         raise ValueError('New full-method work was omitted or an old cost decreased')
     return result
 
@@ -290,12 +294,60 @@ def report(root=ROOT):
     if max(loads) + 300 > 1800:
         raise ValueError('A complete class/shard exceeds the unchanged deadline and reserve')
     return {'status': c['status'], 'active_ci_runner_modified': True, 'apple_executed': False,
-            'method_count': 736, 'class_count': len(costs), 'shard_count': 79,
+            'method_count': 742, 'class_count': len(costs), 'shard_count': 79,
             'candidate_class_seconds': c['candidate_class_seconds'],
-            'added_total_seconds': 523.948, 'total_seconds': sum(costs.values()),
+            'added_total_seconds': 1713.948, 'total_seconds': sum(costs.values()),
             'maximum_shard_seconds': max(loads), 'maximum_with_startup_reserve_seconds': max(loads) + 300,
             'deadline_seconds': 1800, 'startup_reserve_seconds': 300,
             'shards': [{'index': index, 'classes': group, 'seconds': loads[index]} for index, group in enumerate(groups)]}
+
+# P045 complete-method budgets. These source-bound allowances are UNMEASURED.
+_CLUB_BUDGET = {'status': 'UNMEASURED_RECONSTRUCTED_SOURCE_BOUND_PROPOSAL', 'measured': False, 'complete_class_seconds': 1190, 'explicit_wait_seconds': 177, 'held_response_counter_wait_calls': 8, 'maximum_swipes_per_reveal': 10, 'maximum_viewport_evaluations_per_reveal': 11, 'source_sha256': {'App/ClubGovernanceFixtureHost.swift': 'd609654803739171fc756d9f6b6fd1e542e7597be86cab73068ae053d807d4af', 'Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift': '742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d', 'Tests/AppUITests/ClubGovernanceFlowTests.swift': '4d41464ed772a0c371669e5dd55c8a06700b5980e2cb6f17e6ece58a7d1ce7ee', 'Tests/AppUITests/FailureScreenshot.swift': '705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49'}, 'methods': {'testLeaderboardMemberPublicProfileBackAndReopen': {'declaration_sha256': '78b021023aaba4bf2506416fbd86eb728dd6846953d79e430030323ccdf81ead', 'measured': False, 'explicit_wait_seconds': 40, 'reveal_calls_with_loop_expansion': 3, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 10, 'unrounded_complete_seconds': 260, 'complete_seconds': 260}, 'testLeaderboardAccountSwitchRetiresVisiblePublicProfile': {'declaration_sha256': '6fa4c2645c06bb0971749d1f42548aa93c22742f47f50a3f03930c58ecbafa56', 'measured': False, 'explicit_wait_seconds': 30, 'reveal_calls_with_loop_expansion': 2, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 10, 'unrounded_complete_seconds': 210, 'complete_seconds': 210}, 'testLeaderboardSwitchDuringProfileLoadRejectsLatePresentation': {'declaration_sha256': 'abe2d9f80518c935f1e032e7a6874878981ccca61a97a6a4a902dc9d8059f569', 'measured': False, 'explicit_wait_seconds': 62, 'reveal_calls_with_loop_expansion': 2, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 20, 'unrounded_complete_seconds': 252, 'complete_seconds': 260}, 'testLeaderboardMissingProfileReaderKeepsReadOnlyFacts': {'declaration_sha256': 'fb19942e35e3eb799ac3f88cc5b833201f5cf298d96ecf189937e55e91e06f12', 'measured': False, 'explicit_wait_seconds': 15, 'reveal_calls_with_loop_expansion': 1, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 10, 'unrounded_complete_seconds': 155, 'complete_seconds': 160}, 'testLeaderboardMismatchedProfileAccountCannotOpenMember': {'declaration_sha256': '87a0023eb5865cd1f94c8cbca0b097cfeee4b6379961ad47a9be4ff9c180322b', 'measured': False, 'explicit_wait_seconds': 15, 'reveal_calls_with_loop_expansion': 1, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 5, 'unrounded_complete_seconds': 150, 'complete_seconds': 150}, 'testLeaderboardMissingMemberIDCannotCreateDestination': {'declaration_sha256': '5da76474f68766c8a27acba8ab14af319ee12551d1acfccc746d93cf471d3b1b', 'measured': False, 'explicit_wait_seconds': 15, 'reveal_calls_with_loop_expansion': 1, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 5, 'unrounded_complete_seconds': 150, 'complete_seconds': 150}}}
+
+
+def validate_club_leaderboard_budget(c, directory, root):
+    budget = c.get('club_leaderboard_member_budget')
+    if budget != _CLUB_BUDGET:
+        raise ValueError('Unreviewed complete club leaderboard budget')
+    root, directory = Path(root), Path(directory)
+    if directory.absolute() != (root / 'Tests/AppUITests').absolute():
+        raise ValueError('Club budget must read the supplied actual current UI directory')
+    for relative, expected in budget['source_sha256'].items():
+        path = directory / Path(relative).name if relative.startswith('Tests/AppUITests/') else root / relative
+        if digest(path.read_bytes()) != expected:
+            raise ValueError('Changed club whole-method budget source: ' + relative)
+    text = (directory / 'ClubLeaderboardMemberFlowTests.swift').read_text()
+    if len(re.findall(r'(?m)^    func testLeaderboard\w+\(', text)) != 6:
+        raise ValueError('Changed complete club UI method inventory')
+    expected_waits = [40, 30, 62, 15, 15, 15]
+    expected_reveals = [3, 2, 2, 1, 1, 1]
+    expected_ax = [10, 10, 20, 10, 5, 5]
+    expected_caps = [260, 210, 260, 160, 150, 150]
+    costs = []
+    for i, (name, row) in enumerate(budget['methods'].items()):
+        match = re.search(r'(?m)^    func ' + re.escape(name) + r'\b[\s\S]*?^    }', text)
+        if match is None or digest(match.group().encode()) != row['declaration_sha256']:
+            raise ValueError('Changed complete club method declaration: ' + name)
+        wait, reveals, ax = expected_waits[i], expected_reveals[i], expected_ax[i]
+        # 90 covers launch/reset/termination and failure capture; each reveal
+        # charges all eleven viewport evaluations and up to ten gestures.
+        unrounded = 90 + wait + reveals * 40 + ax
+        complete = math.ceil(unrounded / 10) * 10
+        if (row['measured'] is not False or row['explicit_wait_seconds'] != wait
+                or row['reveal_calls_with_loop_expansion'] != reveals
+                or row['lifecycle_and_failure_seconds'] != 90
+                or row['per_reveal_seconds'] != 40 or row['direct_ax_allowance_seconds'] != ax
+                or row['unrounded_complete_seconds'] != unrounded
+                or row['complete_seconds'] != complete or complete != expected_caps[i]
+                or complete > 900):
+            raise ValueError('Club full-method work was undercharged')
+        costs.append(complete)
+    if (sum(costs) != 1190 or sum(expected_waits) != 177
+            or text.count('        waitLeaderboardCounter(') != 8
+            or budget['complete_class_seconds'] != 1190
+            or budget['measured'] is not False):
+        raise ValueError('Club full-class allowance or held-request waits changed')
+    return 1190
 
 
 atexit.register(lambda: [life.cleanup() for life in _lives])

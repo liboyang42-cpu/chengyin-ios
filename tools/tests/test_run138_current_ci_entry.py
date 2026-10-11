@@ -12,12 +12,16 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from tools import ci_gates, run_ui_shard as runner
-from tools import run138_editor_readiness as current
-from tools import run138_current_source_projection as entry
+from tools import club_customer_directory_admission as _club_history
+_CLUB_E2B = _club_history.club_original_current_context(Path(__file__).resolve().parents[2])
+# Bind before function definitions so their unchanged inner imports stay local.
+__builtins__ = _CLUB_E2B.builtins
+ci_gates = _CLUB_E2B.load('tools/ci_gates.py')
+runner = _CLUB_E2B.load('tools/run_ui_shard.py')
+current = _CLUB_E2B.load('tools/run138_editor_readiness.py')
+entry = _CLUB_E2B.load('tools/run138_current_source_projection.py')
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = _CLUB_E2B.root
 UI = ROOT / 'Tests/AppUITests'
 PROFILE = ROOT / 'tools/ui_duration_weights.json'
 
@@ -268,6 +272,9 @@ class CurrentCIEntryTests(unittest.TestCase):
                 changed['ui-tests']['outputs']['shard_79'] = digest
             with self.subTest(mode=mode), self.assertRaises(ValueError):
                 ci_gates.aggregate(changed, commit)
+
+
+CurrentCIEntryTests = _club_history.club_authenticated_test_case(CurrentCIEntryTests)
 
 
 if __name__ == '__main__':

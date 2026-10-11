@@ -9,7 +9,11 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from tools import run138_editor_readiness as layer
+from tools import club_customer_directory_admission as _club_history
+_CLUB_E2B = _club_history.club_original_current_context(Path(__file__).resolve().parents[2])
+# Bind before function definitions so their unchanged inner imports stay local.
+__builtins__ = _CLUB_E2B.builtins
+layer = _CLUB_E2B.load('tools/run138_editor_readiness.py')
 
 ROOT = layer.ROOT
 UI = ROOT / 'Tests/AppUITests'
@@ -166,6 +170,9 @@ class Run138EditorReadinessPlanningTests(unittest.TestCase):
             for changed in [raw + b'\n', b'', raw.replace(b'projectEdit', b'changedEdit', 1) if b'projectEdit' in raw else raw + b' ']:
                 with self.subTest(path=relative), self.assertRaises(ValueError):
                     layer.original_source(relative, changed)
+
+
+Run138EditorReadinessPlanningTests = _club_history.club_authenticated_test_case(Run138EditorReadinessPlanningTests)
 
 
 if __name__ == '__main__':

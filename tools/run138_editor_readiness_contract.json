@@ -174,7 +174,8 @@
     "WeChatAppAuthFlowTests.swift": "d5c4b559ba35a52da62527695761a638bb8dfe512f45f73d0010cfa63a1b7942",
     "WorkshopCreatorPendingEntryFlowTests.swift": "f83f768726e0b11f63b7ebf013db5da842c12fb06196b19e77f37ba64f0eb9e1",
     "WorkshopCreatorPendingRecoveryFlowTests.swift": "a347e744e54c6e8b6673e9e6db0e3a99f954d037e1dabac98793caa8bfe52150",
-    "WorkshopCreatorPendingReviewFlowTests.swift": "ae5e2dfa18f2225abc36507c7fea871dde1ae327567b56ff796aebac14bbe53c"
+    "WorkshopCreatorPendingReviewFlowTests.swift": "ae5e2dfa18f2225abc36507c7fea871dde1ae327567b56ff796aebac14bbe53c",
+    "ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d"
   },
   "previous_ui_sources": {
     "SquareWorkspaceFlowTests.swift": "022582bc90e5cc85a88b272eefe5af66e69c2bcf1caad4f4e244542c71e92831",
@@ -346,11 +347,11 @@
     "ApprovedTopicReviewRequestFlowTests.swift": "1f1e787a1beb9d46675f2662fd61890b0f2d90926bf6bc3d228bf2af3efe8a6b",
     "ClubEnrollmentFlowTests.swift": "fb6bf952ef69e09eb0aef75153752a5515d62e9d27f32048726849b3f9a8ea24"
   },
-  "current_inventory_sha256": "b08f57c6c161695b87aab2c50dc52a41c7edd85232ee4aa9f72ba6a514f334e1",
+  "current_inventory_sha256": "09fc5a8e8563e2a3763358fe5c00fd9f2753e14b271281f7f1db34273fc6b282",
   "previous_inventory_sha256": "3eff90afa8092ff9d54db78c792fd362da4392c0d479231b84bd31f627b54216",
-  "method_count": 736,
+  "method_count": 742,
   "class_count_before": 162,
-  "class_count_after": 163,
+  "class_count_after": 164,
   "helper_copy_sha256": "74ae59e50a36d4781536dc66dd42f2854f931450a158294c5f3f80d83916959c",
   "method_costs": {
     "ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation": {
@@ -490,9 +491,10 @@
     "ProjectStoryAudioRecoveryFlowTests": 980,
     "OwnedCouponCodeJourneyUITests": 380,
     "ApprovedTopicFrozenCoverPublicationFlowTests": 940,
-    "SquareWorkspaceFlowTests": 249.197
+    "SquareWorkspaceFlowTests": 249.197,
+    "ClubLeaderboardMemberFlowTests": 1190
   },
-  "added_total_seconds": 523.948,
+  "added_total_seconds": 1713.948,
   "shard_count": 79,
   "deadline_seconds": 1800,
   "startup_reserve_seconds": 300,
@@ -512,7 +514,7 @@
     "basis": "Same existing gap reveal and tap, same bounded helper, default direction corrected at fresh chapter entry; no new action or wait."
   },
   "entry_contract_sha256": "f9a2475bbd7230951b7b2d9efa87130f502b935ddb1bf44f68b5fd9ead0a3cd2",
-  "entry_projection_module_sha256": "3980907d0a3d33e40f229c6f856ac78024b18498ea7c3f4dcd28d34862f8b280",
+  "entry_projection_module_sha256": "c516a6952473bd0a0b958631f1751bf23085b35dc1b7dae3c3afa2afd3a4709e",
   "ui52_method_costs": {
     "MerchantMarketingUITests.testNormalMerchantWorkbenchOpensDormantMarketingInBothLanguages": {
       "prior_complete_method_seconds": 114.954,
@@ -882,7 +884,7 @@
     },
     "Questify.xcodeproj/project.pbxproj": {
       "before_sha256": "0497d3ffb5b6dfd9c3aa0cd67a27594cfcb412fcda57fa3ac5ec63d8cc462ed1",
-      "after_sha256": "211fe2e6ded15704a582d9340bb45d198620afe118b2add40d60679820b64f65",
+      "after_sha256": "2d0abd951c8eb897fbbf4423cc57ca96f6e0f8c9956fbd131ec2b2212be346e0",
       "hunks": [
         {
           "before": "\t\t\"F2C416E5BF616602CFE89B81\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"588CE027521446DF6EC81070\";\n\t\t};\n\t\t\"74E41CC929B3EEB9D9C0C251\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n",
@@ -1743,6 +1745,30 @@
         {
           "before": "\t\t\t\t\"EBEC019FDEAE55ACE06179C2\",\n\t\t\t\t\"EF9ECDC20F32FC34BCA977BC\",\n",
           "after": "\t\t\t\t\"EBEC019FDEAE55ACE06179C2\",\n\t\t\t\t\"7FEA355EA4D0539C58BA2CC1\",\n\t\t\t\t\"EF9ECDC20F32FC34BCA977BC\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"8868167DA4A98880863F9204\",\n\t\t\t\t\"C369D61C6A0ECB181C2E1823\",\n\t\t\t\t\"969B84ABF190D767FA122BDC\",\n\t\t\t\t\"B5FAD248055D67F2B870C927\",\n\t\t\t\t\"D14EC09D8C0A1ED493DF92B6\",\n\t\t\t\t\"1863BB15752019995CA2BE3B\",\n\t\t\t\t\"8824DF056F23156C76AEAF1C\",\n\t\t\t\t\"CD97FCB0544EB7FA377432B7\",\n\t\t\t\t\"26699B8414DE1D0539AD4D72\",\n\t\t\t\t\"216B5A273E82F5B1744E1114\",\n",
+          "after": "\t\t\t\t\"8868167DA4A98880863F9204\",\n\t\t\t\t\"C369D61C6A0ECB181C2E1823\",\n\t\t\t\t\"969B84ABF190D767FA122BDC\",\n\t\t\t\t\"B5FAD248055D67F2B870C927\",\n\t\t\t\t\"D14EC09D8C0A1ED493DF92B6\",\n\t\t\t\t\"F82477FB77509CFCA7356DBC\",\n\t\t\t\t\"1863BB15752019995CA2BE3B\",\n\t\t\t\t\"8824DF056F23156C76AEAF1C\",\n\t\t\t\t\"CD97FCB0544EB7FA377432B7\",\n\t\t\t\t\"26699B8414DE1D0539AD4D72\",\n\t\t\t\t\"216B5A273E82F5B1744E1114\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"D3A484982C28ACB469E8898C\",\n\t\t\t\t\"A6F02311300305D58EE71ED7\",\n\t\t\t\t\"79F801E58C3ACDAAB42C5F82\",\n\t\t\t\t\"525EE1679C85AA5272DE7DF4\",\n\t\t\t\t\"547DD20422C04B364B7AAC62\",\n\t\t\t\t\"8388C7D38F87D95825320119\",\n\t\t\t\t\"018EB28B372D646C14C562F8\",\n\t\t\t\t\"50DC4B290A84A7AE25F40550\",\n\t\t\t\t\"FB8064E66CBB5F22E226652C\",\n\t\t\t\t\"9E2827EE563E975CA1B065BF\",\n",
+          "after": "\t\t\t\t\"D3A484982C28ACB469E8898C\",\n\t\t\t\t\"A6F02311300305D58EE71ED7\",\n\t\t\t\t\"79F801E58C3ACDAAB42C5F82\",\n\t\t\t\t\"525EE1679C85AA5272DE7DF4\",\n\t\t\t\t\"547DD20422C04B364B7AAC62\",\n\t\t\t\t\"FF92266D75B4923B2A3045B4\",\n\t\t\t\t\"8388C7D38F87D95825320119\",\n\t\t\t\t\"018EB28B372D646C14C562F8\",\n\t\t\t\t\"50DC4B290A84A7AE25F40550\",\n\t\t\t\t\"FB8064E66CBB5F22E226652C\",\n\t\t\t\t\"9E2827EE563E975CA1B065BF\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"46CD4A0B669C3C58687261E8\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"D14EC09D8C0A1ED493DF92B6\";\n\t\t};\n\t\t\"1863BB15752019995CA2BE3B\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ClubManagementFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n",
+          "after": "\t\t};\n\t\t\"46CD4A0B669C3C58687261E8\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"D14EC09D8C0A1ED493DF92B6\";\n\t\t};\n\t\t\"F82477FB77509CFCA7356DBC\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"594DC82085301CB700352374\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"F82477FB77509CFCA7356DBC\";\n\t\t};\n\t\t\"1863BB15752019995CA2BE3B\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ClubManagementFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n"
+        },
+        {
+          "before": "\t\t\t\t\"8FF43D5CB78CCDFC2B87CE7D\",\n\t\t\t\t\"512A5B0105AA404DC0158805\",\n\t\t\t\t\"C576F7F13FC08517EE0A5DC7\",\n\t\t\t\t\"226FFC5C482B8A4EFFFC910A\",\n\t\t\t\t\"46CD4A0B669C3C58687261E8\",\n\t\t\t\t\"4AAFC5D9A23E675D35871DFD\",\n\t\t\t\t\"DCCA8E4FA2F309E362E4F683\",\n\t\t\t\t\"564A8CB5C9A67CD373328ADC\",\n\t\t\t\t\"52FF66CC7ACCC57B1C1EEA8C\",\n\t\t\t\t\"E340EF4A342DF078FF3B47B3\",\n",
+          "after": "\t\t\t\t\"8FF43D5CB78CCDFC2B87CE7D\",\n\t\t\t\t\"512A5B0105AA404DC0158805\",\n\t\t\t\t\"C576F7F13FC08517EE0A5DC7\",\n\t\t\t\t\"226FFC5C482B8A4EFFFC910A\",\n\t\t\t\t\"46CD4A0B669C3C58687261E8\",\n\t\t\t\t\"594DC82085301CB700352374\",\n\t\t\t\t\"4AAFC5D9A23E675D35871DFD\",\n\t\t\t\t\"DCCA8E4FA2F309E362E4F683\",\n\t\t\t\t\"564A8CB5C9A67CD373328ADC\",\n\t\t\t\t\"52FF66CC7ACCC57B1C1EEA8C\",\n\t\t\t\t\"E340EF4A342DF078FF3B47B3\",\n"
+        },
+        {
+          "before": "\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"7FEA355EA4D0539C58BA2CC1\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"547DD20422C04B364B7AAC62\";\n\t\t};\n\t\t\"8388C7D38F87D95825320119\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ClubStoryNavigationTests.swift\";\n",
+          "after": "\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"7FEA355EA4D0539C58BA2CC1\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"547DD20422C04B364B7AAC62\";\n\t\t};\n\t\t\"FF92266D75B4923B2A3045B4\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"8655F31ED79CD238FA54AED2\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"FF92266D75B4923B2A3045B4\";\n\t\t};\n\t\t\"8388C7D38F87D95825320119\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ClubStoryNavigationTests.swift\";\n"
+        },
+        {
+          "before": "\t\t\t\t\"1AB02342F699B5B61FC7A236\",\n\t\t\t\t\"78DC09D3AB80ACC96A1F884A\",\n\t\t\t\t\"44CE67A5CC5852ABF791D64C\",\n\t\t\t\t\"EBEC019FDEAE55ACE06179C2\",\n\t\t\t\t\"7FEA355EA4D0539C58BA2CC1\",\n\t\t\t\t\"EF9ECDC20F32FC34BCA977BC\",\n\t\t\t\t\"A6C5B38B6813011CDAE2A1B1\",\n\t\t\t\t\"1CC4808D9FEF86AE36533F86\",\n\t\t\t\t\"239333F2EA8D03BA7D88FFB5\",\n\t\t\t\t\"3640D66558E9B18BC593979D\",\n",
+          "after": "\t\t\t\t\"1AB02342F699B5B61FC7A236\",\n\t\t\t\t\"78DC09D3AB80ACC96A1F884A\",\n\t\t\t\t\"44CE67A5CC5852ABF791D64C\",\n\t\t\t\t\"EBEC019FDEAE55ACE06179C2\",\n\t\t\t\t\"7FEA355EA4D0539C58BA2CC1\",\n\t\t\t\t\"8655F31ED79CD238FA54AED2\",\n\t\t\t\t\"EF9ECDC20F32FC34BCA977BC\",\n\t\t\t\t\"A6C5B38B6813011CDAE2A1B1\",\n\t\t\t\t\"1CC4808D9FEF86AE36533F86\",\n\t\t\t\t\"239333F2EA8D03BA7D88FFB5\",\n\t\t\t\t\"3640D66558E9B18BC593979D\",\n"
         }
       ]
     },
@@ -4130,7 +4156,7 @@
     },
     "App/ClubGovernanceViews.swift": {
       "before_sha256": "bff35ca70073f32a548aa10a3741f8e64e82dcb9542117a97c06a22f1d724e4a",
-      "after_sha256": "f29b604938d53c1d397f1da93961eae1672a80b45b05bc3016501667dc6533ff",
+      "after_sha256": "f2627459cef73093e661749570d94d9d60453a95cc0f18a89168cbc85f89a351",
       "hunks": [
         {
           "before": "import SwiftUI\n\n/// Mount independently of legacy isOwner/viewerIsAdmin. access/me decides each row.\nstruct ClubGovernanceEntryButton: View {\n",
@@ -4151,6 +4177,30 @@
         {
           "before": "        }\n        if revision == generation { loading = false }\n    }\n    private func invalidateRead() {\n        generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID(); coordinator.cancelReview()\n    }\n    private func current(_ target: ClubFeedClubRoute) -> Bool {\n",
           "after": "        }\n        if revision == generation { loading = false }\n    }\n    @MainActor private func invalidateRead() {\n        if operation == .customers { customerKeywordDebounce.cancel() }\n        generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID(); coordinator.cancelReview()\n    }\n    private func current(_ target: ClubFeedClubRoute) -> Bool {\n"
+        },
+        {
+          "before": "    let operation: ClubGovernanceMutation\n    let scope: ClubGovernanceScope\n    var seed: [String: ClubGovernanceValue] = [:]\n}\n\nstruct ClubGovernanceReadView: View {\n    @Environment(\\.clubOpsTimeFactory) private var opsTimeFactory\n    @Environment(\\.clubCustomerTopics) private var customerTopics\n    @Environment(\\.clubGovernanceFeed) private var feedContext\n    @Environment(\\.clubStoryTemplates) private var storyTemplates\n    let operation: ClubGovernanceRead\n",
+          "after": "    let operation: ClubGovernanceMutation\n    let scope: ClubGovernanceScope\n    var seed: [String: ClubGovernanceValue] = [:]\n}\n\n/// A leaderboard row may open only the existing public profile reader. This\n/// ephemeral route never substitutes CRM data or grants profile-read permission.\nstruct ClubLeaderboardMemberRoute: Hashable, Identifiable {\n    let id = UUID()\n    let memberID: Int\n    let context: ClubGovernanceReadContext\n    let snapshotGeneration: UInt64\n    private let source: ClubGovernanceSnapshot\n    private let profileIdentity: SocialAccountIdentity\n    private let profileRevision: UInt64\n    private let profileReaderIdentity: ObjectIdentifier\n    private let squareReaderIdentity: ObjectIdentifier\n    private let squareScope: UUID\n\n    @MainActor init?(row: ClubGovernanceValue, snapshot: ClubGovernanceSnapshot,\n          context: ClubGovernanceReadContext, snapshotGeneration: UInt64,\n          profile: ClubEnrollmentProfileContext) {\n        guard context.operation == .leaderboard, context.accepts(snapshot),\n              let viewer = context.identity, viewer.isSignedIn,\n              let clubID = context.scope.clubID, clubID > 0,\n              snapshot.permissions?.allows(ClubGovernanceRead.leaderboard.permission, scope: context.scope) == true,\n              profile.reader.isConfigured,\n              profile.reader.identity.accountID == viewer.accountID,\n              profile.reader.identity.epoch == viewer.epoch,\n              let memberID = row[\"memberId\"].int, (1...9_007_199_254_740_991).contains(memberID),\n              row[\"clubId\"] == .null || row[\"clubId\"].int == clubID,\n              let rows = snapshot.value.array, rows.contains(row),\n              rows.filter({ $0[\"memberId\"].int == memberID }).count == 1 else { return nil }\n        self.memberID = memberID; self.context = context; self.snapshotGeneration = snapshotGeneration\n        source = snapshot; profileIdentity = profile.reader.identity\n        profileRevision = profile.reader.presentationRevision\n        profileReaderIdentity = ObjectIdentifier(profile.reader)\n        squareReaderIdentity = ObjectIdentifier(profile.squareReader); squareScope = profile.squareReader.scope\n    }\n    @MainActor func isCurrent(snapshot: ClubGovernanceSnapshot?, context: ClubGovernanceReadContext,\n                   snapshotGeneration: UInt64, profile: ClubEnrollmentProfileContext) -> Bool {\n        self.context == context && self.snapshotGeneration == snapshotGeneration && snapshot == source &&\n        profile.reader.isConfigured && profile.reader.identity == profileIdentity &&\n        profile.reader.presentationRevision == profileRevision &&\n        ObjectIdentifier(profile.reader) == profileReaderIdentity &&\n        ObjectIdentifier(profile.squareReader) == squareReaderIdentity && profile.squareReader.scope == squareScope\n    }\n    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }\n    func hash(into hasher: inout Hasher) { hasher.combine(id) }\n}\n\nstruct ClubGovernanceReadView: View {\n    @Environment(\\.clubEnrollmentProfile) private var leaderboardProfile\n    @Environment(\\.clubOpsTimeFactory) private var opsTimeFactory\n    @Environment(\\.clubCustomerTopics) private var customerTopics\n    @Environment(\\.clubGovernanceFeed) private var feedContext\n    @Environment(\\.clubStoryTemplates) private var storyTemplates\n    let operation: ClubGovernanceRead\n"
+        },
+        {
+          "before": "    let coordinator: ClubGovernanceCoordinator\n    @State private var snapshot: ClubGovernanceSnapshot?\n    @State private var snapshotContext: ClubGovernanceReadContext?\n    @State private var snapshotGeneration: UInt64 = 0\n    @State private var customerTopic: ClubCustomerHistoryTopicRoute?\n    @State private var feedClub: ClubFeedClubRoute?\n    @State private var feedMediaScope = UUID()\n    private var readContext: ClubGovernanceReadContext {\n        .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : max(customerTopics.viewerRevision, storyTemplates.viewerRevision),\n              authorizationGeneration: access.authorizationGeneration,\n",
+          "after": "    let coordinator: ClubGovernanceCoordinator\n    @State private var snapshot: ClubGovernanceSnapshot?\n    @State private var snapshotContext: ClubGovernanceReadContext?\n    @State private var snapshotGeneration: UInt64 = 0\n    @State private var customerTopic: ClubCustomerHistoryTopicRoute?\n    @State private var leaderboardMember: ClubLeaderboardMemberRoute?\n    @State private var feedClub: ClubFeedClubRoute?\n    @State private var feedMediaScope = UUID()\n    private var readContext: ClubGovernanceReadContext {\n        .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : max(customerTopics.viewerRevision, storyTemplates.viewerRevision),\n              authorizationGeneration: access.authorizationGeneration,\n"
+        },
+        {
+          "before": "            }\n            if !loading { Button(\"club.gov.refresh\") { Task { await load() } }.accessibilityIdentifier(\"club.gov.refresh\") }\n        }\n        .navigationTitle(title)\n        .sheet(item: $editor) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }\n        .navigationDestination(item: $customerTopic) { target in\n            if let destination = customerTopics.destination, current(target) {\n                destination(target.topicID).id(target.id)\n            }\n        }\n",
+          "after": "            }\n            if !loading { Button(\"club.gov.refresh\") { Task { await load() } }.accessibilityIdentifier(\"club.gov.refresh\") }\n        }\n        .navigationTitle(title)\n        .sheet(item: $editor) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }\n        .navigationDestination(item: $leaderboardMember) { target in\n            Group {\n                if let profile = leaderboardProfile, current(target) {\n                    SocialPublicProfileView(memberID: target.memberID, reader: profile.reader,\n                        squareReader: profile.squareReader, actions: profile.actions)\n                        .id(target.id)\n                } else { Color.clear }\n            }\n            // This destination remains active while the leaderboard is covered.\n            // Retire the route here as well, instead of leaving an empty pushed page.\n            .onChange(of: current(target), initial: true) { _, valid in\n                if !valid, leaderboardMember?.id == target.id { leaderboardMember = nil }\n            }\n        }\n        .navigationDestination(item: $customerTopic) { target in\n            if let destination = customerTopics.destination, current(target) {\n                destination(target.topicID).id(target.id)\n            }\n        }\n"
+        },
+        {
+          "before": "    @MainActor private func load() async {\n        if operation == .customers { customerKeywordDebounce.cancel() }\n        generation &+= 1; let revision = generation; let expected = identity; let context = readContext\n        snapshot = nil; failure = nil; loading = true\n        snapshotContext = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID()\n        guard expected?.isSignedIn == true else { loading = false; failure = .signedOut; return }\n        var options: [String: ClubGovernanceValue] = [:]\n        if operation == .customers { options = [\"filter\": .string(filter), \"keyword\": .string(keyword)] }\n        if operation == .topicCustomers { options = topicCustomerFilter.options }\n        if operation == .leaderboard { options = [\"sortBy\": .string(sort)] }\n",
+          "after": "    @MainActor private func load() async {\n        if operation == .customers { customerKeywordDebounce.cancel() }\n        generation &+= 1; let revision = generation; let expected = identity; let context = readContext\n        snapshot = nil; failure = nil; loading = true\n        snapshotContext = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID()\n        leaderboardMember = nil\n        guard expected?.isSignedIn == true else { loading = false; failure = .signedOut; return }\n        var options: [String: ClubGovernanceValue] = [:]\n        if operation == .customers { options = [\"filter\": .string(filter), \"keyword\": .string(keyword)] }\n        if operation == .topicCustomers { options = topicCustomerFilter.options }\n        if operation == .leaderboard { options = [\"sortBy\": .string(sort)] }\n"
+        },
+        {
+          "before": "        if revision == generation { loading = false }\n    }\n    @MainActor private func invalidateRead() {\n        if operation == .customers { customerKeywordDebounce.cancel() }\n        generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID(); coordinator.cancelReview()\n    }\n    private func current(_ target: ClubFeedClubRoute) -> Bool {\n        identity == access.identity && access.isConfigured && snapshotContext == readContext &&\n        feedContext.destination != nil &&\n        target.isCurrent(snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration)\n",
+          "after": "        if revision == generation { loading = false }\n    }\n    @MainActor private func invalidateRead() {\n        if operation == .customers { customerKeywordDebounce.cancel() }\n        generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID(); coordinator.cancelReview()\n        leaderboardMember = nil\n    }\n    private func current(_ target: ClubLeaderboardMemberRoute) -> Bool {\n        guard operation == .leaderboard, identity == access.identity, access.isConfigured,\n              snapshotContext == readContext, let profile = leaderboardProfile else { return false }\n        return target.isCurrent(snapshot: snapshot, context: readContext,\n            snapshotGeneration: snapshotGeneration, profile: profile)\n    }\n    private func leaderboardMemberRoute(_ row: ClubGovernanceValue) -> ClubLeaderboardMemberRoute? {\n        guard operation == .leaderboard, let snapshot, snapshotContext == readContext,\n              identity == access.identity, access.isConfigured, let profile = leaderboardProfile else { return nil }\n        return .init(row: row, snapshot: snapshot, context: readContext,\n            snapshotGeneration: snapshotGeneration, profile: profile)\n    }\n    private func selectLeaderboardMember(_ target: ClubLeaderboardMemberRoute) {\n        // A queued tap from a covered/retired source cannot start a new push.\n        // Once pushed, the immutable accepted snapshot keeps the destination alive.\n        guard leaderboardMember == nil, snapshotGeneration == generation, current(target) else { return }\n        leaderboardMember = target\n    }\n    private func current(_ target: ClubFeedClubRoute) -> Bool {\n        identity == access.identity && access.isConfigured && snapshotContext == readContext &&\n        feedContext.destination != nil &&\n        target.isCurrent(snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration)\n"
+        },
+        {
+          "before": "                        VStack(alignment: .leading, spacing: 8) {\n                            ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields)\n                            Label(\"topic.detail\", systemImage: \"chevron.right.circle\")\n                        }\n                    }.accessibilityIdentifier(\"club.gov.customer.topic.\\(target.topicID)\")\n                } else {\n                    ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields, showUnknown: operation == .leaderboard || operation == .occurrences)\n                }\n                if operation == .customers, let id = row[\"memberId\"].int { link(.customer, .init(clubID: scope.clubID, memberID: id)) }\n                if [.topics, .eventTopics].contains(operation), let id = row[\"id\"].int {\n",
+          "after": "                        VStack(alignment: .leading, spacing: 8) {\n                            ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields)\n                            Label(\"topic.detail\", systemImage: \"chevron.right.circle\")\n                        }\n                    }.accessibilityIdentifier(\"club.gov.customer.topic.\\(target.topicID)\")\n                } else if let target = leaderboardMemberRoute(row) {\n                    ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields, showUnknown: true)\n                    Button { selectLeaderboardMember(target) } label: {\n                        Label(\"social.profile\", systemImage: \"person.crop.circle\")\n                    }.buttonStyle(.borderless)\n                        .accessibilityIdentifier(\"club.gov.leaderboard.profile.\\(target.memberID)\")\n                } else {\n                    ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields, showUnknown: operation == .leaderboard || operation == .occurrences)\n                }\n                if operation == .customers, let id = row[\"memberId\"].int { link(.customer, .init(clubID: scope.clubID, memberID: id)) }\n                if [.topics, .eventTopics].contains(operation), let id = row[\"id\"].int {\n"
         }
       ]
     },
@@ -4243,6 +4293,20 @@
         {
           "before": "        var chapterID: String { editor.draft.chapters[0].id }\n",
           "after": "        @MainActor var chapterID: String { editor.draft.chapters[0].id }\n"
+        }
+      ]
+    },
+    "App/ClubGovernanceFixtureHost.swift": {
+      "before_sha256": "b96349c1d79b57a6af146a1cb58e175f22ae8bc1326317215e0776bd6d00efd2",
+      "after_sha256": "d609654803739171fc756d9f6b6fd1e542e7597be86cab73068ae053d807d4af",
+      "hunks": [
+        {
+          "before": "#if DEBUG\nimport SwiftUI\n\n@MainActor struct ClubGovernanceFixtureHost: View {\n    @StateObject private var store = ClubGovernanceFixtureStore()\n    var body: some View {\n        if ProcessInfo.processInfo.arguments.contains(\"--club-story-scenario\") { ClubStoryFixtureHost() }\n        else if ProcessInfo.processInfo.arguments.contains(\"--club-feed-scenario\") { ClubFeedFixtureHost() }\n        else { legacyBody }\n    }\n    private var legacyBody: some View {\n        NavigationStack {\n            List {\n                Text(\"club.gov.synthetic\").accessibilityIdentifier(\"club.gov.synthetic\")\n",
+          "after": "#if DEBUG\nimport SwiftUI\nimport Observation\n\n@MainActor struct ClubGovernanceFixtureHost: View {\n    @StateObject private var store = ClubGovernanceFixtureStore()\n    var body: some View {\n        if ProcessInfo.processInfo.arguments.contains(\"--club-story-scenario\") { ClubStoryFixtureHost() }\n        else if ProcessInfo.processInfo.arguments.contains(\"--club-feed-scenario\") { ClubFeedFixtureHost() }\n        else if ProcessInfo.processInfo.arguments.contains(\"--club-leaderboard-scenario\") {\n            VStack(spacing: 4) {\n                Button(\"club.gov.switchAccount\") { store.switchAccount() }\n                    .accessibilityIdentifier(\"club.gov.leaderboard.fixture.switch\")\n                if store.profileReader.holdsProfileResponses {\n                    HStack {\n                        Text(verbatim: String(store.profileReader.startedCount))\n                            .accessibilityIdentifier(\"club.gov.leaderboard.fixture.profileStarted\")\n                        Text(verbatim: String(store.profileReader.pendingCount))\n                            .accessibilityIdentifier(\"club.gov.leaderboard.fixture.profilePending\")\n                        Text(verbatim: String(store.profileReader.returnedCount))\n                            .accessibilityIdentifier(\"club.gov.leaderboard.fixture.profileReturned\")\n                        Text(verbatim: store.profileReader.returnedAccountID.map(String.init) ?? \"none\")\n                            .accessibilityIdentifier(\"club.gov.leaderboard.fixture.returnedAccount\")\n                        Text(verbatim: store.profileReader.returnedMemberID.map(String.init) ?? \"none\")\n                            .accessibilityIdentifier(\"club.gov.leaderboard.fixture.returnedMember\")\n                    }\n                    Button(\"Release held profile\") { store.profileReader.releasePendingProfiles() }\n                        .disabled(store.profileReader.pendingCount == 0)\n                        .accessibilityIdentifier(\"club.gov.leaderboard.fixture.releaseProfile\")\n                }\n                legacyBody\n            }\n        } else { legacyBody }\n    }\n    private var legacyBody: some View {\n        NavigationStack {\n            List {\n                Text(\"club.gov.synthetic\").accessibilityIdentifier(\"club.gov.synthetic\")\n"
+        },
+        {
+          "before": "                    } label: { Text(LocalizedStringKey(\"club.gov.\" + operation.rawValue)) }.accessibilityIdentifier(\"club.gov.fixture.\" + operation.rawValue)\n                }\n                Button(\"club.gov.switchAccount\") { store.switchAccount() }.accessibilityIdentifier(\"club.gov.switchAccount\")\n                Button(\"club.gov.simulateUnknown\") { store.access.writeFailure = .unknown(message: nil) }.accessibilityIdentifier(\"club.gov.simulateUnknown\")\n            }.accessibilityIdentifier(\"club.gov.fixture.root\").navigationTitle(\"club.gov.workspace\")\n        }\n    }\n}\n@MainActor private final class ClubGovernanceFixtureStore: ObservableObject {\n    let access = ClubGovernanceFixtureAccess()\n    lazy var coordinator = ClubGovernanceCoordinator(access: access)\n    @Published var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 1)\n    init() {\n        var value = ClubGovernanceFixtures.value(.topicOverview).object ?? [:]\n        var chapters = value[\"chaptersList\"]?.array ?? []\n        if var chapter = chapters.first?.object {\n            chapter[\"name\"] = .string(\"Fixture chapter\"); chapters[0] = .object(chapter)\n        }\n        value[\"chaptersList\"] = .array(chapters); access.overrideValue[.topicOverview] = .object(value)\n    }\n    func switchAccount() {\n        let replacement = ClubReadIdentity(accountID: 799, epoch: (identity?.epoch ?? 0) + 1)\n        access.identity = replacement; access.readFailure = .forbidden; coordinator.cancelReview(); identity = replacement\n    }\n}\n#endif\n",
+          "after": "                    } label: { Text(LocalizedStringKey(\"club.gov.\" + operation.rawValue)) }.accessibilityIdentifier(\"club.gov.fixture.\" + operation.rawValue)\n                }\n                Button(\"club.gov.switchAccount\") { store.switchAccount() }.accessibilityIdentifier(\"club.gov.switchAccount\")\n                Button(\"club.gov.simulateUnknown\") { store.access.writeFailure = .unknown(message: nil) }.accessibilityIdentifier(\"club.gov.simulateUnknown\")\n            }.accessibilityIdentifier(\"club.gov.fixture.root\").navigationTitle(\"club.gov.workspace\")\n        }.environment(\\.clubEnrollmentProfile, store.leaderboardProfile)\n    }\n}\n@MainActor private final class ClubGovernanceFixtureStore: ObservableObject {\n    let access = ClubGovernanceFixtureAccess()\n    let profileReader: ClubLeaderboardFixtureProfileReader\n    let squareReader = SquareFixtureReader()\n    private let leaderboardScenario: String?\n    var leaderboardProfile: ClubEnrollmentProfileContext? {\n        guard leaderboardScenario != \"missingProfile\" else { return nil }\n        return .init(reader: profileReader, squareReader: squareReader)\n    }\n    lazy var coordinator = ClubGovernanceCoordinator(access: access)\n    @Published var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 1)\n    init() {\n        let arguments = ProcessInfo.processInfo.arguments\n        let index = arguments.firstIndex(of: \"--club-leaderboard-scenario\")\n        leaderboardScenario = index.flatMap { arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil }\n        profileReader = ClubLeaderboardFixtureProfileReader(holdsProfileResponses: leaderboardScenario == \"heldProfile\")\n        profileReader.identity = .init(accountID: leaderboardScenario == \"wrongProfileAccount\" ? 702 : 701, epoch: 1)\n        if leaderboardScenario == \"missingMemberID\" {\n            access.overrideValue[.leaderboard] = .array([.object([\"nickname\": .string(\"Unroutable fixture member\")])])\n        }\n        var value = ClubGovernanceFixtures.value(.topicOverview).object ?? [:]\n        var chapters = value[\"chaptersList\"]?.array ?? []\n        if var chapter = chapters.first?.object {\n            chapter[\"name\"] = .string(\"Fixture chapter\"); chapters[0] = .object(chapter)\n        }\n        value[\"chaptersList\"] = .array(chapters); access.overrideValue[.topicOverview] = .object(value)\n    }\n    func switchAccount() {\n        let replacement = ClubReadIdentity(accountID: 799, epoch: (identity?.epoch ?? 0) + 1)\n        profileReader.identity = .init(accountID: replacement.accountID, epoch: replacement.epoch)\n        access.identity = replacement; access.readFailure = .forbidden; coordinator.cancelReview(); identity = replacement\n    }\n}\n\n/// Offline-only race fixture. A profile response captures the requesting account\n/// before suspension and intentionally ignores cancellation until the UI releases\n/// it. This proves retirement of an actual late success, without wall-clock races.\n@MainActor @Observable private final class ClubLeaderboardFixtureProfileReader: SocialAccountReading {\n    var identity = SocialAccountIdentity(accountID: 701, epoch: 1)\n    let isConfigured = true\n    let isOfflineExample = true\n    let holdsProfileResponses: Bool\n    private(set) var startedCount = 0\n    private(set) var returnedCount = 0\n    private(set) var returnedAccountID: Int?\n    private(set) var returnedMemberID: Int?\n    private struct PendingProfile {\n        let response: SocialPublicProfile\n        let continuation: CheckedContinuation<SocialPublicProfile, Never>\n    }\n    private var pending: [UUID: PendingProfile] = [:]\n    var pendingCount: Int { pending.count }\n    private let fallback = SocialAccountFixtureReader(.content)\n    init(holdsProfileResponses: Bool) { self.holdsProfileResponses = holdsProfileResponses }\n    func publicProfile(memberID: Int) async throws -> SocialPublicProfile {\n        guard holdsProfileResponses else {\n            fallback.identity = identity\n            return try await fallback.publicProfile(memberID: memberID)\n        }\n        let captured = identity, requestID = UUID()\n        let bytes = try JSONSerialization.data(withJSONObject: [\"id\": memberID,\n            \"nickname\": \"Held profile from account \\(captured.accountID ?? 0)\"])\n        let response = try JSONDecoder().decode(SocialPublicProfile.self, from: bytes)\n        startedCount += 1\n        let released = await withCheckedContinuation { (continuation: CheckedContinuation<SocialPublicProfile, Never>) in\n            pending[requestID] = .init(response: response, continuation: continuation)\n        }\n        // Do not check cancellation here: the production View must reject this\n        // old response after the cancelled source task resumes successfully.\n        returnedAccountID = captured.accountID; returnedMemberID = memberID; returnedCount += 1\n        return released\n    }\n    func releasePendingProfiles() {\n        let waiting = pending\n        pending.removeAll()\n        for request in waiting.values { request.continuation.resume(returning: request.response) }\n    }\n    func informationList() async throws -> [SocialInformation] {\n        fallback.identity = identity; return try await fallback.informationList()\n    }\n    func information(id: Int) async throws -> SocialInformation {\n        fallback.identity = identity; return try await fallback.information(id: id)\n    }\n    func invitationHistory(page: Int) async throws -> SocialInviteHistory {\n        fallback.identity = identity; return try await fallback.invitationHistory(page: page)\n    }\n}\n\n#endif\n"
         }
       ]
     }
@@ -4747,28 +4811,36 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "d3db1c20d6e14093b561efb17d082e263497a66108002981103f8198b0a52db5",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "1bba68b7e87c0cd351de5e4cb5ef664262cc8619007b07e09c1bfd89fced7033",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
     "Tests/ContractChecks/test_club_customer_permissions.py": "773186689d0583d41d6ab75298e4b815e86dc688a2ce5043cdba43d0a5b2ffba",
     "docs/club-customer-permissions.md": "f32d0102eeb5bb2bc696b139389a5e674140623f7597973ffce5468629cd1f10",
     "Tests/ContractChecks/test_club_customer_directory_remote_admission.py": "09b5c57129442da635c71ff664b9a8c22ff0d694184592b86058312eb073e11e",
-    "tools/club_customer_directory_admission.py": "7187f18779f4f44286b50bff6da7bea0ac27cc982eb04dc9ed330df25b959def",
-    "Tests/ContractChecks/test_club_customer_keyword_debounce.py": "262ed2f2d1151dbe6994048cc21e76b98799fc34a68caeba59c08947508c8e6c",
+    "tools/club_customer_directory_admission.py": "ef2da9507d75bfc71735486e62ce389136f2cdc5b79e86ff992c18acd1c250ee",
+    "Tests/ContractChecks/test_club_customer_keyword_debounce.py": "099ace7f23e8d42292beb5034535b391547eee1c9ae8782cb3f5c96e106a3235",
     "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift": "2c3cfc1da3d145221e13d9561c1bfb9166b58c84807bfd93034fcaff44b303a5",
     "docs/club-customer-keyword-debounce.md": "1fa12a8011cb1b2c3d7425dcd8f1f8ca07f27be08adb8a545c1be98f97806f0e",
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "997a6c2b4de05fa45fa022a72efb781cf634c79e1531c5c0fcae460a3cc2e91c",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "46b0c678f1ef183359f1b92605a52791d7e560dccb5400824fdfc59abf909e21",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
     "Tests/ContractChecks/test_roam_route_replay.py": "83d0cb05ce9ec6289354c960494e6923b78a2825f6c244ec08b6693dfbe8c5c3",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "dee696f738a6e58095168e15faf4f174cb4f41f6f52e8acf1045b488fcc2d461"
+    "Tests/ContractChecks/test_category_roam_registration.py": "a5caad0314e31af6be9d29898e81479aa36f86d995f81a1eed7b6f397851af90",
+    "Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift": "91a1011295933822da752baaf3912cc8e36551bbe58597352dff171bf8c96222",
+    "Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
+    "Tests/ContractChecks/test_club_leaderboard_member_navigation.py": "8bb2ae59ba2ce84b4a1f86c17309605b5999c7d785b363450e9d32eb6e7e00a7",
+    "tools/tests/test_run138_editor_readiness.py": "41c8ef267af079cfa92af51a2cee751b23173e851e381d9a7738b15872f80f49",
+    "tools/tests/test_run138_current_ci_entry.py": "9b26d1739824a0801174876cd72007cf17fa39e3605e988ba7a39ea3750d1f0e",
+    "tools/tests/test_creator_history_fixture_rejection.py": "f01c504f715ee961df19de807a27e4321420c43e130631d68fb1924323fec85b",
+    "tools/run138_current_source_projection.py": "c516a6952473bd0a0b958631f1751bf23085b35dc1b7dae3c3afa2afd3a4709e",
+    "tools/tests/test_readiness_contract_parse_cache.py": "a05486842d224477efc0c91a25c0fb9458858295eb069869c37923903613f3b0"
   },
   "current_method_replacements": {
     "MerchantContentFlowTests.testCityClaimWithdrawalReviewUsesSourcePOIAndCanCancel": {
@@ -4778,6 +4850,89 @@
       "current_scenario_observed_seconds": null,
       "budget_increase_authorized": false,
       "note": "The historical source is restored before old class-cost planning;31.05 is retained as an engineering allowance, not a measured result for the corrected scenario."
+    }
+  },
+  "club_leaderboard_member_budget": {
+    "status": "UNMEASURED_RECONSTRUCTED_SOURCE_BOUND_PROPOSAL",
+    "measured": false,
+    "complete_class_seconds": 1190,
+    "explicit_wait_seconds": 177,
+    "held_response_counter_wait_calls": 8,
+    "maximum_swipes_per_reveal": 10,
+    "maximum_viewport_evaluations_per_reveal": 11,
+    "source_sha256": {
+      "App/ClubGovernanceFixtureHost.swift": "d609654803739171fc756d9f6b6fd1e542e7597be86cab73068ae053d807d4af",
+      "Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
+      "Tests/AppUITests/ClubGovernanceFlowTests.swift": "4d41464ed772a0c371669e5dd55c8a06700b5980e2cb6f17e6ece58a7d1ce7ee",
+      "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49"
+    },
+    "methods": {
+      "testLeaderboardMemberPublicProfileBackAndReopen": {
+        "declaration_sha256": "78b021023aaba4bf2506416fbd86eb728dd6846953d79e430030323ccdf81ead",
+        "measured": false,
+        "explicit_wait_seconds": 40,
+        "reveal_calls_with_loop_expansion": 3,
+        "lifecycle_and_failure_seconds": 90,
+        "per_reveal_seconds": 40,
+        "direct_ax_allowance_seconds": 10,
+        "unrounded_complete_seconds": 260,
+        "complete_seconds": 260
+      },
+      "testLeaderboardAccountSwitchRetiresVisiblePublicProfile": {
+        "declaration_sha256": "6fa4c2645c06bb0971749d1f42548aa93c22742f47f50a3f03930c58ecbafa56",
+        "measured": false,
+        "explicit_wait_seconds": 30,
+        "reveal_calls_with_loop_expansion": 2,
+        "lifecycle_and_failure_seconds": 90,
+        "per_reveal_seconds": 40,
+        "direct_ax_allowance_seconds": 10,
+        "unrounded_complete_seconds": 210,
+        "complete_seconds": 210
+      },
+      "testLeaderboardSwitchDuringProfileLoadRejectsLatePresentation": {
+        "declaration_sha256": "abe2d9f80518c935f1e032e7a6874878981ccca61a97a6a4a902dc9d8059f569",
+        "measured": false,
+        "explicit_wait_seconds": 62,
+        "reveal_calls_with_loop_expansion": 2,
+        "lifecycle_and_failure_seconds": 90,
+        "per_reveal_seconds": 40,
+        "direct_ax_allowance_seconds": 20,
+        "unrounded_complete_seconds": 252,
+        "complete_seconds": 260
+      },
+      "testLeaderboardMissingProfileReaderKeepsReadOnlyFacts": {
+        "declaration_sha256": "fb19942e35e3eb799ac3f88cc5b833201f5cf298d96ecf189937e55e91e06f12",
+        "measured": false,
+        "explicit_wait_seconds": 15,
+        "reveal_calls_with_loop_expansion": 1,
+        "lifecycle_and_failure_seconds": 90,
+        "per_reveal_seconds": 40,
+        "direct_ax_allowance_seconds": 10,
+        "unrounded_complete_seconds": 155,
+        "complete_seconds": 160
+      },
+      "testLeaderboardMismatchedProfileAccountCannotOpenMember": {
+        "declaration_sha256": "87a0023eb5865cd1f94c8cbca0b097cfeee4b6379961ad47a9be4ff9c180322b",
+        "measured": false,
+        "explicit_wait_seconds": 15,
+        "reveal_calls_with_loop_expansion": 1,
+        "lifecycle_and_failure_seconds": 90,
+        "per_reveal_seconds": 40,
+        "direct_ax_allowance_seconds": 5,
+        "unrounded_complete_seconds": 150,
+        "complete_seconds": 150
+      },
+      "testLeaderboardMissingMemberIDCannotCreateDestination": {
+        "declaration_sha256": "5da76474f68766c8a27acba8ab14af319ee12551d1acfccc746d93cf471d3b1b",
+        "measured": false,
+        "explicit_wait_seconds": 15,
+        "reveal_calls_with_loop_expansion": 1,
+        "lifecycle_and_failure_seconds": 90,
+        "per_reveal_seconds": 40,
+        "direct_ax_allowance_seconds": 5,
+        "unrounded_complete_seconds": 150,
+        "complete_seconds": 150
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
 name: Targeted native diagnostics
-# Authorized standard-runner split. Both nonempty current71 partitions must pass
+# Authorized standard-runner split. All three nonempty current87 partitions must pass
 # on this exact SHA/run/attempt; this does not grant release or deployment admission.
 on:
   push:
@@ -23,13 +23,15 @@ jobs:
     continue-on-error: false
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 3
       matrix:
-        partition: [core-app, ui-legacy]
+        partition: [core-app, ui-legacy, ui-club]
         include:
           - partition: core-app
             result_group: app-unit
           - partition: ui-legacy
+            result_group: ui
+          - partition: ui-club
             result_group: ui
     env:
       PYTHONDONTWRITEBYTECODE: '1'
@@ -40,7 +42,7 @@ jobs:
         with:
           fetch-depth: 2
           persist-credentials: false
-      - name: Validate all historical controls and current71 source identities
+      - name: Validate all historical controls and current87 source identities
         run: |
           python3 -B tools/run_targeted_native.py preflight --output "$RUNNER_TEMP/native-targeted-preflight.json" --start-file "$RUNNER_TEMP/native-targeted-start"
       - name: Build fresh products and run exact partition methods
@@ -60,12 +62,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: native-schema-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
+          name: native-schema-87-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
           path: |
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/manifest.json
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-version.txt
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-summary-help.txt
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-tests-help.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-summary-schema.json
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-tests-schema.json
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-devices.json
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-runtimes.json
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-summary.json
@@ -73,11 +77,31 @@ jobs:
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-version.txt.stderr.txt
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-summary-help.txt.stderr.txt
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-tests-help.txt.stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-summary-schema.json.stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-tests-schema.json.stderr.txt
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-devices.json.stderr.txt
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-runtimes.json.stderr.txt
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-summary.json.stderr.txt
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-tests.json.stderr.txt
           if-no-files-found: error
+          retention-days: 1
+          overwrite: false
+      - name: Preserve bounded initial inventory and Core failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-command-87-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
+          path: |
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/core.xml
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/core-stdout.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/core-stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/core-command.json
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/inventory-devices.json
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/inventory-devices.stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/inventory-runtimes.json
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/inventory-runtimes.stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/inventory-manifest.json
+          if-no-files-found: warn
           retention-days: 1
           overwrite: false
       - name: Record immutable artifact upload start
@@ -88,7 +112,7 @@ jobs:
         if: ${{ always() && steps.report.outcome == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: native-targeted-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
+          name: native-targeted-87-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
           path: ${{ runner.temp }}/native-evidence-${{ matrix.partition }}/*
           if-no-files-found: error
           retention-days: 1
@@ -117,8 +141,8 @@ jobs:
       - name: Download only this SHA run attempt evidence
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          pattern: native-targeted-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-*
+          pattern: native-targeted-87-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-*
           path: ${{ runner.temp }}/native-targeted-artifacts
           merge-multiple: false
-      - name: Reparse exact71 and verify same-run identities
-        run: python3 -B tools/run_targeted_native.py aggregate --start-file "$RUNNER_TEMP/native-download-start" --artifacts "$RUNNER_TEMP/native-targeted-artifacts" --needs-result "$MATRIX_RESULT" --output "$RUNNER_TEMP/native-targeted-71-receipt.json" --summary "$GITHUB_STEP_SUMMARY"
+      - name: Reparse exact87 and verify same-run identities
+        run: python3 -B tools/run_targeted_native.py aggregate --start-file "$RUNNER_TEMP/native-download-start" --artifacts "$RUNNER_TEMP/native-targeted-artifacts" --needs-result "$MATRIX_RESULT" --output "$RUNNER_TEMP/native-targeted-87-receipt.json" --summary "$GITHUB_STEP_SUMMARY"

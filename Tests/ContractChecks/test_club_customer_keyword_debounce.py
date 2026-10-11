@@ -2,7 +2,9 @@
 from pathlib import Path
 import hashlib
 import unittest
-ROOT = Path(__file__).resolve().parents[2]
+from tools import club_customer_directory_admission as _club_history
+_CLUB_LIVE_ROOT = Path(__file__).resolve().parents[2]
+ROOT = _club_history.club_keyword_context(_CLUB_LIVE_ROOT)
 PATH = 'App/ClubGovernanceViews.swift'
 BASE_SHA = 'bff35ca70073f32a548aa10a3741f8e64e82dcb9542117a97c06a22f1d724e4a'
 CURRENT_SHA = 'f29b604938d53c1d397f1da93961eae1672a80b45b05bc3016501667dc6533ff'
@@ -25,6 +27,7 @@ def restore(raw):
     if digest(result) != BASE_SHA: raise ValueError('Complete baseline not restored')
     return result
 
+@_club_history.club_authenticated_keyword_test_case
 class ClubCustomerKeywordDebounceContracts(unittest.TestCase):
     def source(self): return (ROOT / PATH).read_text()
     def test_exact_source_restores_the_complete_published_base(self):

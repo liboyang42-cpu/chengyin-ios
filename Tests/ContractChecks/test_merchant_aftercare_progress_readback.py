@@ -6,6 +6,9 @@ refunded tuple before projecting it into every MerchantAftercareResponseVO.from.
 The row decision/createTime are historical; these three outcome mirrors are not.
 Service blob: e81d7e573cb5d92a805e4ca608d9a6d423a53147.
 ResponseVO blob: 21939cb11620919c120f8a1fbb14a5c0a1221b4d.
+Detail read is POST in both the mini-program index.js (blob
+924cbbffa876fc060f6ef99a419e6b75d3012281) and ApiMerchantAftercareController
+(blob be97f358f8a2edd0d71f3d9ee564ecfedb9adaa6) at this same revision.
 """
 from pathlib import Path
 import re
@@ -41,6 +44,27 @@ def assert_readback_guard(test, source):
     # Validation may reject a conflicting mirror, but cannot derive a new outcome.
     test.assertIn('funds: Funds { processing == .refunded ? .confirmed : .unconfirmed }', code)
     test.assertNotRegex(helper, r'\b(?:self\.|funds\s*=|processing\s*=|opinion\s*=)(?!=)')
+
+
+READ_TRANSPORT_ASSERTIONS = (
+    'XCTFail("Conflicting response outcome must not become an authorized refund document")',
+    'XCTAssertEqual(error as? MerchantBusinessFailure, .malformed)',
+    'XCTAssertEqual(requests.count, 1)',
+    'XCTAssertEqual(requests.first?.httpMethod, "POST")',
+    'XCTAssertEqual(requests.first?.url?.path, "/api/merchant/aftercare/detail")',
+    'XCTAssertFalse(service.canExecuteSyntheticMutation)',
+)
+
+
+def assert_read_transport_contract(test, source):
+    # Scope to the contradictory-outcome test, not assertions in another method.
+    method = source.split('func testReadTransportRejectsContradictoryOutcomeWithoutMutation()', 1)[1]
+    method = without_comments(method.split('\n    func ', 1)[0])
+    for assertion in READ_TRANSPORT_ASSERTIONS:
+        test.assertIn(assertion, method)
+    test.assertIn('fields["processing"] = .string("REFUNDED")', method)
+    test.assertIn('row["refunded"] = .bool(false)', method)
+    test.assertIn('try await service.document(.refund(.init(62001)), access: access, token: "synthetic-token")', method)
 
 
 class MerchantAftercareProgressReadbackContracts(unittest.TestCase):
@@ -88,7 +112,25 @@ class MerchantAftercareProgressReadbackContracts(unittest.TestCase):
         self.assertIn('XCTAssertEqual(value.responses.first?.decision, .reject)', source)
         self.assertIn('XCTAssertEqual(value.responses.first?.decision, .agree)', source)
         self.assertIn('XCTAssertNil(value.responses.first?.occurredAt)', source)
-        self.assertIn('XCTAssertEqual(requests.first?.httpMethod, "GET")', source)
+        assert_read_transport_contract(self, source)
+
+    def test_read_transport_contract_rejects_wrong_method_and_missing_or_commented_assertions(self):
+        source = TESTS.read_text()
+        start = source.index("func testReadTransportRejectsContradictoryOutcomeWithoutMutation()")
+        end = source.index("\n    func ", start)
+        method = source[start:end]
+        mutations = [('wrong_http_method',
+                      'XCTAssertEqual(requests.first?.httpMethod, "POST")',
+                      'XCTAssertEqual(requests.first?.httpMethod, "GET")')]
+        for assertion in READ_TRANSPORT_ASSERTIONS:
+            mutations.append(('missing:' + assertion, assertion, ''))
+            mutations.append(('commented:' + assertion, assertion, '// ' + assertion))
+        for name, original, replacement in mutations:
+            with self.subTest(mutation=name):
+                self.assertEqual(method.count(original), 1)
+                changed = source[:start] + method.replace(original, replacement, 1) + source[end:]
+                with self.assertRaises((AssertionError, IndexError)):
+                    assert_read_transport_contract(self, changed)
 
     def test_document_validation_remains_before_render_and_has_no_money_side_effect(self):
         document = (ROOT / 'Core/MerchantBusinessDocuments.swift').read_text()

@@ -260,5 +260,11 @@ class CreatorFixtureRejectionTests(unittest.TestCase):
         self.assertEqual(gate._fixture_rejection_category_preimage(raw), expected)
 
 
+# Only the original structure assertion describes the complete e2b predecessor.
+# All thirteen other methods keep their actual current gate and ROOT.
+from tools import club_customer_directory_admission as _club_history
+CreatorFixtureRejectionTests = _club_history.club_bind_creator_rejection_structure(CreatorFixtureRejectionTests)
+
+
 if __name__ == '__main__':
     unittest.main()
