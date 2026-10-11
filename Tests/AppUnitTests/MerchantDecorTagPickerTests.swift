@@ -64,4 +64,37 @@ import XCTest
         XCTAssertTrue(reopened.draft.contains("天台")); XCTAssertTrue(reopened.draft.contains("unknown legacy"))
         XCTAssertEqual(reader.saveCount, 1)
     }
+    func testSemicolonTagApplyCancelAndReopenPreserveExactLabels() async throws {
+        let (document, reader) = try await harness(tags: ["old;label", "duplicate", "duplicate"])
+        let before = document.coordinator.draft
+        let cancelled = try XCTUnwrap(MerchantDecorTagPickerModel(document: document))
+        try cancelled.draft.addCustom("cancel;tag"); cancelled.cancel()
+        XCTAssertFalse(cancelled.apply()); XCTAssertEqual(document.coordinator.draft, before)
+        let picker = try XCTUnwrap(MerchantDecorTagPickerModel(document: document))
+        try picker.draft.addCustom("alpha;beta")
+        guard case .decor(var expected) = before else { return XCTFail() }
+        expected.tags.append("alpha;beta")
+        XCTAssertTrue(picker.apply()); XCTAssertEqual(document.coordinator.draft, .decor(expected))
+        let reopened = try XCTUnwrap(MerchantDecorTagPickerModel(document: document))
+        XCTAssertTrue(MerchantDecorTagDraft.equal(reopened.draft.selected, expected.tags))
+        XCTAssertTrue(reopened.apply()); XCTAssertEqual(document.coordinator.draft, .decor(expected))
+        XCTAssertEqual(reader.saveCount, 0)
+    }
+    func testDuplicateOverLimitHistoricalTagsStayUnchangedOnOpenCancelAndInvalidOwner() async throws {
+        let historical = ["alpha;beta", "duplicate", "duplicate", "a long historical custom label"]
+            + (0..<9).map { "tag-\($0)" }
+        let (document, reader) = try await harness(tags: historical)
+        let before = document.coordinator.draft
+        let picker = try XCTUnwrap(MerchantDecorTagPickerModel(document: document))
+        XCTAssertTrue(MerchantDecorTagDraft.equal(picker.draft.selected, historical))
+        XCTAssertFalse(picker.apply()); picker.cancel()
+        XCTAssertEqual(document.coordinator.draft, before); XCTAssertFalse(document.coordinator.isDirty)
+        let stale = try XCTUnwrap(MerchantDecorTagPickerModel(document: document))
+        stale.draft.remove(at: 1)
+        reader.switchAccount()
+        XCTAssertFalse(stale.apply()); XCTAssertEqual(document.coordinator.draft, before)
+        XCTAssertTrue(MerchantDecorTagDraft.equal(picker.draft.selected, historical))
+        XCTAssertEqual(reader.saveCount, 0)
+    }
+
 }

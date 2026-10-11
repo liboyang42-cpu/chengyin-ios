@@ -49,4 +49,24 @@ final class MerchantDecorTagDraftTests: XCTestCase {
         draft.remove(at: 0); XCTAssertTrue(draft.selected.isEmpty); XCTAssertTrue(draft.canApply)
         draft.remove(at: 5); XCTAssertTrue(draft.selected.isEmpty)
     }
+    func testSemicolonCustomLabelRemainsOneLiteralTag() throws {
+        var draft = MerchantDecorTagDraft(selected: ["old"])
+        try draft.addCustom(" alpha;beta ")
+        XCTAssertTrue(MerchantDecorTagDraft.equal(draft.selected, ["old", "alpha;beta"]))
+        try draft.addCustom("alpha;beta")
+        XCTAssertEqual(draft.selected.count, 2)
+        XCTAssertTrue(draft.contains("alpha;beta")); XCTAssertFalse(draft.contains("alpha"))
+    }
+    func testHistoricalLabelsRemainByteExactUntilExplicitRemoval() {
+        let historical = ["alpha;beta", "duplicate", "duplicate", "e\u{0301}", "é",
+                          " a long historical value beyond sixteen units "] + (0..<8).map { "tag-\($0)" }
+        var draft = MerchantDecorTagDraft(selected: historical)
+        XCTAssertTrue(MerchantDecorTagDraft.equal(draft.selected, historical)); XCTAssertFalse(draft.canApply)
+        draft.remove(at: 1)
+        var expected = historical; expected.remove(at: 1)
+        XCTAssertTrue(MerchantDecorTagDraft.equal(draft.selected, expected)); XCTAssertFalse(draft.canApply)
+        draft.remove(at: 1); expected.remove(at: 1)
+        XCTAssertTrue(MerchantDecorTagDraft.equal(draft.selected, expected)); XCTAssertTrue(draft.canApply)
+    }
+
 }

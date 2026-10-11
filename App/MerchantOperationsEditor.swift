@@ -77,10 +77,10 @@ struct MerchantOperationsEditor: View {
                 MerchantFeaturedActivityPicker(document: model)
             }
             Section("merchant.operations.tags") {
-                TextField("merchant.operations.tags", text: Binding(get: { currentDecor?.tags.joined(separator: ";") ?? "" }, set: { raw in
-                    guard var value = currentDecor else { return }; value.tags = raw.components(separatedBy: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }; model.edit(.decor(value))
-                }), axis: .vertical).accessibilityIdentifier("merchant.operations.field.tags")
-                Text("merchant.operations.tagsHint").font(.footnote).foregroundStyle(.secondary)
+                ForEach(Array(value.tags.enumerated()), id: \.offset) { index, tag in
+                    Text(verbatim: tag)
+                        .accessibilityIdentifier("merchant.operations.tags.value." + String(index))
+                }
                 MerchantDecorTagEditor(model: model)
             }
             mediaSection("merchant.operations.cover", field: .coverImage)

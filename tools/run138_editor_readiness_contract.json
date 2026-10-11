@@ -1954,7 +1954,7 @@
     },
     "App/MerchantOperationsEditor.swift": {
       "before_sha256": "2b9a71ae8f0462dd244b6e577db7f640292372c14e21ebefd7d65abdc9987c76",
-      "after_sha256": "3e1a134db3355e63c068fcb4ff5dbb5abc7d7ac00488c6548d9a054339e80e1f",
+      "after_sha256": "3656f645fdac72a57fc05caeafc71a61bdcb1728d7c5da0196ce7d0fa184fbbe",
       "hunks": [
         {
           "before": "            Section(\"merchant.operations.decor\") {\n                decorField(\"merchant.operations.slogan\", \\.slogan, \"slogan\")\n                decorField(\"merchant.operations.cityRole\", \\.cityRole, \"cityRole\")\n                Text(\"merchant.operations.decorPreserved\").font(.footnote).foregroundStyle(.secondary)\n                if let category = value.categoryID { LabeledContent(\"merchant.operations.category\", value: String(category)) }\n                if let type = value.featuredType, let id = value.featuredID { LabeledContent(\"merchant.operations.featured\", value: \"\\(type) / \\(id)\") }\n            }\n            Section(\"merchant.operations.tags\") {\n                TextField(\"merchant.operations.tags\", text: Binding(get: { currentDecor?.tags.joined(separator: \";\") ?? \"\" }, set: { raw in\n                    guard var value = currentDecor else { return }; value.tags = raw.components(separatedBy: \";\").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }; model.edit(.decor(value))\n                }), axis: .vertical).accessibilityIdentifier(\"merchant.operations.field.tags\")\n                Text(\"merchant.operations.tagsHint\").font(.footnote).foregroundStyle(.secondary)\n            }\n            mediaSection(\"merchant.operations.cover\", field: .coverImage)\n        case .gallery(let value):\n",
@@ -1971,6 +1971,10 @@
         {
           "before": "                    }\n                }\n                Section(\"merchant.operations.frozenDraft\") {\n                    ForEach(confirmation.draft.reviewLines) { line in\n                        VStack(alignment: .leading, spacing: 6) {\n                            Text(LocalizedStringKey(line.key)).font(.caption).foregroundStyle(.secondary)\n",
           "after": "                    }\n                }\n                Section(\"merchant.operations.frozenDraft\") {\n                    if case .cooperation(let value) = confirmation.draft, value.clearsCapacity {\n                        Text(\"merchant.coopCapacityClear.review\").fixedSize(horizontal: false, vertical: true)\n                            .accessibilityIdentifier(\"merchant.coopCapacityClear.review\")\n                    }\n                    if case .decor(let value) = confirmation.draft, value.featuredType == 1, let id = value.featuredID, id > 0 {\n                        LabeledContent(\"merchant.featuredPicker.reviewActivity\", value: String(id))\n                        Text(\"merchant.featuredPicker.finalValidation\").font(.footnote)\n                    }\n                    if case .decor(let value) = confirmation.draft, value.featuredType == 0, value.featuredID == nil {\n                        Text(\"merchant.featuredClear.review\").fixedSize(horizontal: false, vertical: true)\n                            .accessibilityIdentifier(\"merchant.featuredClear.review\")\n                    }\n                    ForEach(confirmation.draft.reviewLines) { line in\n                        VStack(alignment: .leading, spacing: 6) {\n                            Text(LocalizedStringKey(line.key)).font(.caption).foregroundStyle(.secondary)\n"
+        },
+        {
+          "before": "            Section(\"merchant.operations.tags\") {\n                TextField(\"merchant.operations.tags\", text: Binding(get: { currentDecor?.tags.joined(separator: \";\") ?? \"\" }, set: { raw in\n                    guard var value = currentDecor else { return }; value.tags = raw.components(separatedBy: \";\").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }; model.edit(.decor(value))\n                }), axis: .vertical).accessibilityIdentifier(\"merchant.operations.field.tags\")\n                Text(\"merchant.operations.tagsHint\").font(.footnote).foregroundStyle(.secondary)\n                MerchantDecorTagEditor(model: model)\n            }\n",
+          "after": "            Section(\"merchant.operations.tags\") {\n                ForEach(Array(value.tags.enumerated()), id: \\.offset) { index, tag in\n                    Text(verbatim: tag)\n                        .accessibilityIdentifier(\"merchant.operations.tags.value.\" + String(index))\n                }\n                MerchantDecorTagEditor(model: model)\n            }\n"
         }
       ]
     },
@@ -4110,7 +4114,7 @@
     "Resources/PublicMerchantHomeBusinessStateLocalizations.fragment.json": "d8c48d36728d76379dce0081d89d10a7f01c3998054694737adc0993f7091bb1",
     "Resources/RoamMerchantBusinessStateLocalizations.fragment.json": "c29d22a62855432d1087dd64b38f71ba269576e67872e0c8963a33ffddbbc40a",
     "Resources/RoamPlayerProfileLocalizations.fragment.json": "ea000abba5ad7c52be3a98c43d287edbdfb793dc83b3513067fed30542e314da",
-    "Tests/AppUnitTests/MerchantDecorTagPickerTests.swift": "caaae8dab10e8a9d69500cf1243d1b31311f0b8d4eda568a2dfc58c7ab10d0cc",
+    "Tests/AppUnitTests/MerchantDecorTagPickerTests.swift": "8f6e488cbdb80d6c62ebd1aa62c280aadbd9c2b9e69b0f62dd17c1ad435a703e",
     "Tests/AppUnitTests/MerchantFeaturedActivityPickerTests.swift": "365d642bce203b55306b25a19e036d93415620359106fb7b5ca602bcd92ec40d",
     "Tests/AppUnitTests/MerchantFeaturedClearControlTests.swift": "143ec2c52bfc4ea4b6e039a97cd2a4e98abcf51714e3506474d4b3572374edcf",
     "Tests/AppUnitTests/MerchantOnboardingHoursSessionTests.swift": "100d074053ca07f0f0bf93175c6d804cefdf53f14f4c526020d8545ca0ea3461",
@@ -4126,12 +4130,12 @@
     "Tests/AppUnitTests/RoamRouteTopicDestinationViewTests.swift": "0159bf3f470940d9e1af80184a11ba2db6da48eb052096f759e28486820180ff",
     "Tests/AppUnitTests/ShopNPCQuestionReuseTests.swift": "ed9f7d2fab7f212a5073c5fcd109ad369affbb1553ef1c5db3e62dd34fee8dac",
     "Tests/AppUnitTests/ShopNPCScriptedGuideTests.swift": "24ad7c83c0ccb2aae9997f85b345d5ca229e1c4b8736fe3387549f9de39f85e3",
-    "Tests/ContractChecks/test_merchant_decor_tag_picker.py": "491182e97a8e53e1b3372c130d1a1f7857c10804302578a624c706d473e2fec7",
+    "Tests/ContractChecks/test_merchant_decor_tag_picker.py": "ce4a480162243e0e8b497fcc13fe6e08c8d28f00c3574e956f4ae4c6260ff1b5",
     "Tests/ContractChecks/test_merchant_featured_activity_picker.py": "3849b7a5fb2bf009a5ad851bac6decf0953296242d037962eb39ec5ca5677335",
     "Tests/ContractChecks/test_merchant_featured_clear.py": "07bc2218ecb371c7bd6fa4092d17d91457022b6b462feeb4e6452b35e3aa2da0",
     "Tests/ContractChecks/test_merchant_onboarding_hours_editor.py": "3d9b7982fa7917db4cb0d544a9e67f48b5c4a803717590b91c89f1e562bd9842",
     "Tests/ContractChecks/test_shop_npc_interruption.py": "5badac23fa4f9bb3e013a678529cccec474ebc2d4ae14dabc4ce914d0d36f6dd",
-    "Tests/CoreTests/MerchantDecorTagDraftTests.swift": "5e90fd3657fd322477dc3c28347fb0efc3e33553ae39ef4bf990308bf445de86",
+    "Tests/CoreTests/MerchantDecorTagDraftTests.swift": "407e2da4496c3d3a81a1017a84220a41636631c3dfa6867805d510412e0cc3af",
     "Tests/CoreTests/MerchantFeaturedActivityOptionsTests.swift": "826f05b68ca7717dda30618208557be155cd64e371e858e797b75061920430e3",
     "Tests/CoreTests/MerchantFeaturedClearContractTests.swift": "9a23003881b0108365340703c0c431b54d02d0152020a842b5c61f08e2cb237e",
     "Tests/CoreTests/MerchantOnboardingContractTests.swift": "5e494f6fa6d4d19e8ee9b45ac7a2e45fa2a084825c61c9820299c1a6feb2fe95",
@@ -4147,7 +4151,7 @@
     "Tests/CoreTests/RoamRouteTopicDestinationTests.swift": "a45df380e2f434533f1b6fe27ec99522c1d8ad7595222754e243a3d5143075de",
     "Tests/CoreTests/ShopNPCQuestionReuseTests.swift": "7ae0b85a619a3540f5caf9366b3f95f4076e9c3be8abe4f09ac2dab669f11386",
     "Tests/CoreTests/ShopNPCScriptedGuideTests.swift": "f93cce07ca7843b4e1ccbe2c156b97532fc251b754768253f716af43856757c7",
-    "docs/merchant-decor-tag-picker/implementation.md": "5d7d4a190a5b0146433d7e7d077789ce99fad2669f0a44798a067e7f1702b141",
+    "docs/merchant-decor-tag-picker/implementation.md": "1d320a30163c369a222815a565bb1bc8ab4675b7905de465a205e50a95297539",
     "docs/merchant-featured-activity-picker/implementation.md": "47e84b63997ce000d3222f6744eb0a0786c9c82f45980874797534e469f0d6d1",
     "docs/merchant-featured-clear/implementation.md": "9582146ce7e0b2fbb31d7cae7b5cdd3055e7483eea843b210a2dd7564a02aa17",
     "docs/merchant-onboarding-hours/implementation.md": "03cf5f4c005a884b34fe73000e473ca737bcd7a4771254ad1169c459571b3f1f",
@@ -4475,7 +4479,7 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "81041b1c2ba2e328284555841f3b14b0e3630ed78f1190f701a86016ab558d84",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "7da17371272409260ed364f7c1aed5d2777380039fd8a9354b3b084266d25b30",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30"
   },
