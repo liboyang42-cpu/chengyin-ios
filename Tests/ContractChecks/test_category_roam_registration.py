@@ -319,7 +319,7 @@ class CategoryRoamRegistrationContracts(unittest.TestCase):
 
 
 # Exact discovery/Roam layer on the frozen club R2 floor.
-ADMISSION_FINGERPRINT = '8a197e11d1c30659e41d5c3e6eadf050a83efb7994557c1817ba3e858f18b8ee'
+ADMISSION_FINGERPRINT = '8def02e4117425200af2964a8bbf0ba333867cceb42a669ad0d6ed4a0cf33800'
 CATEGORY_TEMPLATE_OFFSET = 65180
 CURRENT_APPROVED_PATHS = ['App/GlobalSearchView.swift',
  'Core/SearchMapReading.swift',
@@ -7780,6 +7780,7 @@ def checked_current(raw, root):
     require(digest(raw).encode() == pins[0], 'Unknown complete current contract')
     value = json.loads(raw)
     require(encode(value) == raw, 'Noncanonical/duplicate current contract')
+    album_current_inputs(value, root)
     actor_current_inputs(value, root)
     description_current_inputs(value, root)
     require(digest((root / SELF_PATH).read_bytes()) == IMPLEMENTATION_SHA256,
@@ -7870,10 +7871,15 @@ def _profile_parent_inputs(root):
         files = {str(p.relative_to(root)) for p in members if p.is_file()}
         current_raw = (ROOT / CONTRACT_PATH).read_bytes()
         incoming = {path: (root / path).read_bytes() for path in files}
-        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH, ACTOR_LEAF_PATH}:
-            # All 53 physical current inputs precede every predecessor/cache reuse.
+        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH, ACTOR_LEAF_PATH, ALBUM_LEAF_PATH}:
+            # All 54 physical current inputs precede every predecessor/cache reuse.
             for path, data in incoming.items():
-                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 53-file fixture: ' + path)
+                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 54-file fixture: ' + path)
+        elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH, ACTOR_LEAF_PATH}:
+            # Exactly published bb5/53; missing-current54 is never backfilled.
+            for path, data in incoming.items():
+                expected = album_predecessor_fixture_source(path, (ROOT / path).read_bytes(), current_raw)
+                require(data == expected, 'Changed/mixed historical bb5/53 fixture: ' + path)
         elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH}:
             # Exactly published 42/52; missing-current53 is never backfilled.
             for path, data in incoming.items():
@@ -8814,14 +8820,14 @@ ACTOR_CATEGORY_PREFIX_HUNKS = [{'before': '    require(digest((root / NATIVE_PRO
 def _actor_category_preimage(raw):
     marker = b'\n# Exact 42 social ReaderKey actor predecessor layer.\n'
     suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
-    require(digest(raw) == IMPLEMENTATION_SHA256, 'Changed complete actor admission source')
+    require(digest(raw) == ALBUM_PRE_SHA256[SELF_PATH], 'Changed complete actor admission source')
     require(raw.count(marker) == 1 and raw.endswith(suffix), 'Unknown actor layer source boundary')
     prefix, _ = raw.split(marker, 1)
     for hunk in reversed(ACTOR_CATEGORY_PREFIX_HUNKS):
         after, before = hunk['after'].encode(), hunk['before'].encode()
         require(prefix.count(after) == 1, 'Missing/repeated actor source interface span')
         prefix = prefix.replace(after, before, 1)
-    slot = b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+    slot = b"ADMISSION_FINGERPRINT = '" + ALBUM_PRE_FINGERPRINT.encode() + b"'"
     require(prefix.count(slot) == 1, 'Unknown actor admission fingerprint slot')
     old = prefix.replace(slot, b"ADMISSION_FINGERPRINT = '" + ACTOR_PRE_FINGERPRINT.encode() + b"'", 1) + suffix
     require(digest(old) == ACTOR_PRE_SHA256[SELF_PATH], 'Complete published 42 admission source not restored')
@@ -8830,6 +8836,9 @@ def _actor_category_preimage(raw):
 
 def actor_predecessor_source(path, raw):
     """Exact complete published 42 bytes; never a current-input admission bypass."""
+    if path in ACTOR_PRE_SHA256 and digest(raw) == ACTOR_PRE_SHA256[path]:
+        return raw  # Explicit exact 42 historical input.
+    raw = album_predecessor_source(path, raw)
     if path not in ACTOR_PRE_SHA256:
         return raw
     if digest(raw) == ACTOR_PRE_SHA256[path]:
@@ -8843,7 +8852,7 @@ def actor_predecessor_source(path, raw):
     elif path == SELF_PATH:
         old = _actor_category_preimage(raw)
     elif path == PROFILE_PATH:
-        slot = b"DISCOVERY_HELPER_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+        slot = b"DISCOVERY_HELPER_FINGERPRINT = '" + ALBUM_PRE_FINGERPRINT.encode() + b"'"
         require(raw.count(slot) == 1, 'Unknown actor profile source pin')
         old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = '" + ACTOR_PRE_FINGERPRINT.encode() + b"'", 1)
     elif path == RUNNER_PATH:
@@ -8854,7 +8863,7 @@ def actor_predecessor_source(path, raw):
     elif path == CATEGORY_GATE:
         import base64, zlib
         normalized, source = _decoded_external_template(raw)
-        require(source == (ROOT / SELF_PATH).read_bytes(), 'Unknown actor complete external template')
+        require(source == album_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), 'Unknown actor complete external template')
         old_source = _actor_category_preimage(source)
         encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()
         first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
@@ -8869,32 +8878,30 @@ def actor_predecessor_source(path, raw):
 
 
 def actor_current_inputs(value, root=ROOT):
-    """Re-read all actual actor boundary bytes before any predecessor or cache."""
+    """Authenticate actual album inputs before checking exact published bb5 bytes."""
     root = Path(root)
     require(not root.is_symlink(), 'Actor current root is a symlink')
+    actual = (root / CONTRACT_PATH).read_bytes()
+    album_current_inputs(json.loads(actual), root)
+    value = album_predecessor_contract(value, root)
+    raw = encode(value)
+    require(digest(raw) == ALBUM_PRE_CONTRACT_SHA256, 'Changed or mixed actual actor contract')
     contents = {}
     for path in ACTOR_PRE_SHA256:
         file = root / path
-        parts = Path(path).parts
-        require(all(not (root / Path(*parts[:end])).is_symlink() for end in range(1, len(parts) + 1)),
-                'Symlink component in actor current input: ' + path)
         require(not file.is_symlink() and file.is_file() and file.resolve().is_relative_to(root.resolve()),
                 'Missing, escaped or symlinked actor current input: ' + path)
-        contents[path] = file.read_bytes()
-    contract_file = root / CONTRACT_PATH
-    require(not contract_file.is_symlink() and contract_file.is_file()
-            and contract_file.resolve().is_relative_to(root.resolve()), 'Invalid actual actor contract input')
-    raw = contract_file.read_bytes()
-    require(encode(value) == raw, 'Changed or mixed actual actor contract')
+        contents[path] = album_predecessor_source(path, file.read_bytes())
     runner = contents[RUNNER_PATH]
     native_current_readiness_source(runner)
     pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", runner)
     require(len(pins) == 1 and pins[0].decode() == digest(raw), 'Unknown complete actor contract pin')
     module = contents[SELF_PATH]
-    require(digest(module) == IMPLEMENTATION_SHA256, 'Loaded actor admission differs from current bytes')
-    validate_external_source_template(root, module)
-    slot = b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
-    require(module.count(slot) == 1 and digest(module.replace(slot, b"ADMISSION_FINGERPRINT = '<SELF>'", 1)) == ADMISSION_FINGERPRINT,
+    require(digest(module) == ALBUM_PRE_SHA256[SELF_PATH], 'Loaded actor admission differs from exact bb5 bytes')
+    _, template = _decoded_external_template(contents[CATEGORY_GATE])
+    require(template == module, 'Exact bb5 actor external source template differs')
+    slot = b"ADMISSION_FINGERPRINT = '" + ALBUM_PRE_FINGERPRINT.encode() + b"'"
+    require(module.count(slot) == 1 and digest(module.replace(slot, b"ADMISSION_FINGERPRINT = '<SELF>'", 1)) == ALBUM_PRE_FINGERPRINT,
             'Changed complete actor admission fingerprint')
     require(value['feature_batch_sources'].get(ACTOR_LEAF_PATH) == ACTOR_LEAF_ROW,
             'Unknown exact actor initialization inverse')
@@ -8931,6 +8938,7 @@ def actor_predecessor_contract(value, root=ROOT):
     value = copy.deepcopy(value)
     if digest(encode(value)) == ACTOR_PRE_CONTRACT_SHA256:
         return value  # Exact historical-only contract; checked_current requires current bytes.
+    value = album_predecessor_contract(value, root)
     actor_current_inputs(value, root)
     require(value['feature_batch_sources'].pop(ACTOR_LEAF_PATH) == ACTOR_LEAF_ROW,
             'Missing complete actor inverse row')
@@ -8960,6 +8968,357 @@ def actor_predecessor_fixture_helper(root=ROOT):
     contents = actor_current_inputs(value, root)
     raw = actor_predecessor_source(ACTOR_HELPER_PATH, contents[ACTOR_HELPER_PATH])
     require(digest(raw) == ACTOR_PRE_SHA256[ACTOR_HELPER_PATH], 'Unknown 42 fixture helper input')
+    wanted = {'SOURCE_EDITS', 'ADDED_SUPPORT', 'CONTRACT_PATH', 'EVOLUTION_SOURCES', 'EVOLUTION_SUPPORT', 'FLOOR_INPUTS'}
+    values = {}
+    for node in ast.parse(raw).body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            name = node.targets[0].id
+            if name in wanted:
+                require(name not in values, 'Repeated historical fixture helper input: ' + name)
+                values[name] = ast.literal_eval(node.value)
+    require(set(values) == wanted, 'Incomplete historical fixture helper inputs')
+    return SimpleNamespace(**values)
+
+# Exact bb5 album chapter actor predecessor layer.
+ALBUM_PRE_CONTRACT_SHA256 = '5510daa8a177c8cc51a4459f3db5a4ee53cfda0a48c4cbff5dc8af5b0113d3e3'
+ALBUM_PRE_FINGERPRINT = '8a197e11d1c30659e41d5c3e6eadf050a83efb7994557c1817ba3e858f18b8ee'
+ALBUM_LEAF_PATH = 'Tests/AppUnitTests/ProjectAlbumImageAuthorTests.swift'
+ALBUM_HELPER_PATH = 'tools/club_customer_directory_admission.py'
+ALBUM_LEAF_ROW = {'before_sha256': '3d3c8ef9236f3d5a0c2b99c9eb6ce2b57c3afc36aaabdd701d1597855f024257',
+ 'after_sha256': '5c74526f40c44327ec68254de76bd4c316e976b5aa1f6a409502774402699054',
+ 'hunks': [{'before': '        var chapterID: String { editor.draft.chapters[0].id }\n',
+            'after': '        @MainActor var chapterID: String { editor.draft.chapters[0].id }\n'}]}
+ALBUM_HELPER_ROW = {'before_sha256': '7b2bba4759677e0091b5149a7fc46096280b95ac2b7e94cd77481a24570afb35',
+ 'after_sha256': '7187f18779f4f44286b50bff6da7bea0ac27cc982eb04dc9ed330df25b959def',
+ 'hunks': [{'before': "FLOOR_INPUTS = ('App/SocialGuideTemplateSection.swift',\n",
+            'after': "FLOOR_INPUTS = ('Tests/AppUnitTests/ProjectAlbumImageAuthorTests.swift',\n"
+                     " 'App/SocialGuideTemplateSection.swift',\n"}]}
+ALBUM_PRE_SHA256 = {'Tests/AppUnitTests/ProjectAlbumImageAuthorTests.swift': '3d3c8ef9236f3d5a0c2b99c9eb6ce2b57c3afc36aaabdd701d1597855f024257',
+ 'tools/club_customer_directory_admission.py': '7b2bba4759677e0091b5149a7fc46096280b95ac2b7e94cd77481a24570afb35',
+ 'Tests/ContractChecks/test_category_roam_registration.py': '693a1f0f3a559838578313f26d2bb3cfeda675161378c81d72f1b084dc206c2f',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': '18b2f038512301a8932a399e818179f09964595a77f10e8e990f20d0a2594189',
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': 'b00adbb5175612d05428065ac8d027027a930ce95c97ad6be36a091356d46d2c',
+ 'tools/run138_editor_readiness.py': '62e0ca8a7285198b4b59cefeaeb592759325d55e7669aaaabe88a75f070dbc44'}
+ALBUM_PRE_SUPPORT = {'Tests/AppUnitTests/ProjectAlbumImageAuthorTests.swift': '3d3c8ef9236f3d5a0c2b99c9eb6ce2b57c3afc36aaabdd701d1597855f024257',
+ 'tools/club_customer_directory_admission.py': '7b2bba4759677e0091b5149a7fc46096280b95ac2b7e94cd77481a24570afb35',
+ 'Tests/ContractChecks/test_category_roam_registration.py': '693a1f0f3a559838578313f26d2bb3cfeda675161378c81d72f1b084dc206c2f',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': '18b2f038512301a8932a399e818179f09964595a77f10e8e990f20d0a2594189',
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': 'b00adbb5175612d05428065ac8d027027a930ce95c97ad6be36a091356d46d2c'}
+ALBUM_CATEGORY_PREFIX_HUNKS = [{'before': 'def actor_predecessor_source(path, raw):\n'
+            '    """Exact complete published 42 bytes; never a current-input admission bypass."""\n',
+  'after': 'def actor_predecessor_source(path, raw):\n'
+           '    """Exact complete published 42 bytes; never a current-input admission bypass."""\n'
+           '    if path in ACTOR_PRE_SHA256 and digest(raw) == ACTOR_PRE_SHA256[path]:\n'
+           '        return raw  # Explicit exact 42 historical input.\n'
+           '    raw = album_predecessor_source(path, raw)\n'},
+ {'before': "    require(digest(raw) == IMPLEMENTATION_SHA256, 'Changed complete actor admission source')\n",
+  'after': "    require(digest(raw) == ALBUM_PRE_SHA256[SELF_PATH], 'Changed complete actor admission "
+           "source')\n"},
+ {'before': '    slot = b"ADMISSION_FINGERPRINT = \'" + ADMISSION_FINGERPRINT.encode() + b"\'"\n'
+            "    require(prefix.count(slot) == 1, 'Unknown actor admission fingerprint slot')\n",
+  'after': '    slot = b"ADMISSION_FINGERPRINT = \'" + ALBUM_PRE_FINGERPRINT.encode() + b"\'"\n'
+           "    require(prefix.count(slot) == 1, 'Unknown actor admission fingerprint slot')\n"},
+ {'before': '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + ADMISSION_FINGERPRINT.encode() + b"\'"\n'
+            "        require(raw.count(slot) == 1, 'Unknown actor profile source pin')\n",
+  'after': '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + ALBUM_PRE_FINGERPRINT.encode() + b"\'"\n'
+           "        require(raw.count(slot) == 1, 'Unknown actor profile source pin')\n"},
+ {'before': "        require(source == (ROOT / SELF_PATH).read_bytes(), 'Unknown actor complete external "
+            "template')\n",
+  'after': '        require(source == album_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), '
+           "'Unknown actor complete external template')\n"},
+ {'before': '    actor_current_inputs(value, root)\n'
+            "    require(value['feature_batch_sources'].pop(ACTOR_LEAF_PATH) == ACTOR_LEAF_ROW,\n",
+  'after': '    value = album_predecessor_contract(value, root)\n'
+           '    actor_current_inputs(value, root)\n'
+           "    require(value['feature_batch_sources'].pop(ACTOR_LEAF_PATH) == ACTOR_LEAF_ROW,\n"},
+ {'before': 'def actor_current_inputs(value, root=ROOT):\n'
+            '    """Re-read all actual actor boundary bytes before any predecessor or cache."""\n'
+            '    root = Path(root)\n'
+            "    require(not root.is_symlink(), 'Actor current root is a symlink')\n"
+            '    contents = {}\n'
+            '    for path in ACTOR_PRE_SHA256:\n'
+            '        file = root / path\n'
+            '        parts = Path(path).parts\n'
+            '        require(all(not (root / Path(*parts[:end])).is_symlink() for end in range(1, len(parts) '
+            '+ 1)),\n'
+            "                'Symlink component in actor current input: ' + path)\n"
+            '        require(not file.is_symlink() and file.is_file() and '
+            'file.resolve().is_relative_to(root.resolve()),\n'
+            "                'Missing, escaped or symlinked actor current input: ' + path)\n"
+            '        contents[path] = file.read_bytes()\n'
+            '    contract_file = root / CONTRACT_PATH\n'
+            '    require(not contract_file.is_symlink() and contract_file.is_file()\n'
+            "            and contract_file.resolve().is_relative_to(root.resolve()), 'Invalid actual actor "
+            "contract input')\n"
+            '    raw = contract_file.read_bytes()\n'
+            "    require(encode(value) == raw, 'Changed or mixed actual actor contract')\n"
+            '    runner = contents[RUNNER_PATH]\n'
+            '    native_current_readiness_source(runner)\n'
+            '    pins = re.findall(rb"(?m)^CONTRACT_SHA256 = \'([0-9a-f]{64})\'$", runner)\n'
+            "    require(len(pins) == 1 and pins[0].decode() == digest(raw), 'Unknown complete actor "
+            "contract pin')\n"
+            '    module = contents[SELF_PATH]\n'
+            "    require(digest(module) == IMPLEMENTATION_SHA256, 'Loaded actor admission differs from "
+            "current bytes')\n"
+            '    validate_external_source_template(root, module)\n'
+            '    slot = b"ADMISSION_FINGERPRINT = \'" + ADMISSION_FINGERPRINT.encode() + b"\'"\n'
+            '    require(module.count(slot) == 1 and digest(module.replace(slot, b"ADMISSION_FINGERPRINT = '
+            '\'<SELF>\'", 1)) == ADMISSION_FINGERPRINT,\n'
+            "            'Changed complete actor admission fingerprint')\n"
+            "    require(value['feature_batch_sources'].get(ACTOR_LEAF_PATH) == ACTOR_LEAF_ROW,\n"
+            "            'Unknown exact actor initialization inverse')\n"
+            "    require(digest(contents[ACTOR_LEAF_PATH]) == ACTOR_LEAF_ROW['after_sha256'],\n"
+            "            'Old or changed current actor initializer')\n"
+            "    require(digest(contents[ACTOR_HELPER_PATH]) == ACTOR_HELPER_ROW['after_sha256'],\n"
+            "            'Old or changed current actor fixture producer')\n"
+            "    require(value['entry_projection_module_sha256'] == ACTOR_PROJECTION_ROW['after_sha256'],\n"
+            "            'Unknown exact current review projection pin')\n"
+            "    require(digest(contents[ACTOR_PROJECTION_PATH]) == ACTOR_PROJECTION_ROW['after_sha256'],\n"
+            "            'Old or changed current review projection source')\n"
+            '    require(digest(actor_predecessor_source(ACTOR_PROJECTION_PATH, '
+            "contents[ACTOR_PROJECTION_PATH])) == ACTOR_PROJECTION_ROW['before_sha256'],\n"
+            "            'Complete published 42 review projection not restored')\n"
+            '    for path, expected in ACTOR_PRE_SUPPORT.items():\n'
+            "        require(value['feature_batch_support_sha256'].get(path) == digest(contents[path]),\n"
+            "                'Changed current actor support: ' + path)\n"
+            '        require(digest(actor_predecessor_source(path, contents[path])) == expected,\n'
+            "                'Unknown complete actor support predecessor: ' + path)\n"
+            '    require(digest(actor_predecessor_source(RUNNER_PATH, runner)) == '
+            'ACTOR_PRE_SHA256[RUNNER_PATH],\n'
+            "            'Changed complete actor readiness implementation')\n"
+            '    predecessor = copy.deepcopy(value)\n'
+            "    require(predecessor['feature_batch_sources'].pop(ACTOR_LEAF_PATH) == ACTOR_LEAF_ROW,\n"
+            "            'Missing actual actor inverse row')\n"
+            '    for path, expected in ACTOR_PRE_SUPPORT.items():\n'
+            "        predecessor['feature_batch_support_sha256'][path] = expected\n"
+            "    predecessor['entry_projection_module_sha256'] = ACTOR_PROJECTION_ROW['before_sha256']\n"
+            '    require(digest(encode(predecessor)) == ACTOR_PRE_CONTRACT_SHA256,\n'
+            "            'Actual actor contract does not restore complete published 42 bytes')\n"
+            '    return contents',
+  'after': 'def actor_current_inputs(value, root=ROOT):\n'
+           '    """Authenticate actual album inputs before checking exact published bb5 bytes."""\n'
+           '    root = Path(root)\n'
+           "    require(not root.is_symlink(), 'Actor current root is a symlink')\n"
+           '    actual = (root / CONTRACT_PATH).read_bytes()\n'
+           '    album_current_inputs(json.loads(actual), root)\n'
+           '    value = album_predecessor_contract(value, root)\n'
+           '    raw = encode(value)\n'
+           "    require(digest(raw) == ALBUM_PRE_CONTRACT_SHA256, 'Changed or mixed actual actor contract')\n"
+           '    contents = {}\n'
+           '    for path in ACTOR_PRE_SHA256:\n'
+           '        file = root / path\n'
+           '        require(not file.is_symlink() and file.is_file() and '
+           'file.resolve().is_relative_to(root.resolve()),\n'
+           "                'Missing, escaped or symlinked actor current input: ' + path)\n"
+           '        contents[path] = album_predecessor_source(path, file.read_bytes())\n'
+           '    runner = contents[RUNNER_PATH]\n'
+           '    native_current_readiness_source(runner)\n'
+           '    pins = re.findall(rb"(?m)^CONTRACT_SHA256 = \'([0-9a-f]{64})\'$", runner)\n'
+           "    require(len(pins) == 1 and pins[0].decode() == digest(raw), 'Unknown complete actor contract "
+           "pin')\n"
+           '    module = contents[SELF_PATH]\n'
+           "    require(digest(module) == ALBUM_PRE_SHA256[SELF_PATH], 'Loaded actor admission differs from "
+           "exact bb5 bytes')\n"
+           '    _, template = _decoded_external_template(contents[CATEGORY_GATE])\n'
+           "    require(template == module, 'Exact bb5 actor external source template differs')\n"
+           '    slot = b"ADMISSION_FINGERPRINT = \'" + ALBUM_PRE_FINGERPRINT.encode() + b"\'"\n'
+           '    require(module.count(slot) == 1 and digest(module.replace(slot, b"ADMISSION_FINGERPRINT = '
+           '\'<SELF>\'", 1)) == ALBUM_PRE_FINGERPRINT,\n'
+           "            'Changed complete actor admission fingerprint')\n"
+           "    require(value['feature_batch_sources'].get(ACTOR_LEAF_PATH) == ACTOR_LEAF_ROW,\n"
+           "            'Unknown exact actor initialization inverse')\n"
+           "    require(digest(contents[ACTOR_LEAF_PATH]) == ACTOR_LEAF_ROW['after_sha256'],\n"
+           "            'Old or changed current actor initializer')\n"
+           "    require(digest(contents[ACTOR_HELPER_PATH]) == ACTOR_HELPER_ROW['after_sha256'],\n"
+           "            'Old or changed current actor fixture producer')\n"
+           "    require(value['entry_projection_module_sha256'] == ACTOR_PROJECTION_ROW['after_sha256'],\n"
+           "            'Unknown exact current review projection pin')\n"
+           "    require(digest(contents[ACTOR_PROJECTION_PATH]) == ACTOR_PROJECTION_ROW['after_sha256'],\n"
+           "            'Old or changed current review projection source')\n"
+           '    require(digest(actor_predecessor_source(ACTOR_PROJECTION_PATH, '
+           "contents[ACTOR_PROJECTION_PATH])) == ACTOR_PROJECTION_ROW['before_sha256'],\n"
+           "            'Complete published 42 review projection not restored')\n"
+           '    for path, expected in ACTOR_PRE_SUPPORT.items():\n'
+           "        require(value['feature_batch_support_sha256'].get(path) == digest(contents[path]),\n"
+           "                'Changed current actor support: ' + path)\n"
+           '        require(digest(actor_predecessor_source(path, contents[path])) == expected,\n'
+           "                'Unknown complete actor support predecessor: ' + path)\n"
+           '    require(digest(actor_predecessor_source(RUNNER_PATH, runner)) == '
+           'ACTOR_PRE_SHA256[RUNNER_PATH],\n'
+           "            'Changed complete actor readiness implementation')\n"
+           '    predecessor = copy.deepcopy(value)\n'
+           "    require(predecessor['feature_batch_sources'].pop(ACTOR_LEAF_PATH) == ACTOR_LEAF_ROW,\n"
+           "            'Missing actual actor inverse row')\n"
+           '    for path, expected in ACTOR_PRE_SUPPORT.items():\n'
+           "        predecessor['feature_batch_support_sha256'][path] = expected\n"
+           "    predecessor['entry_projection_module_sha256'] = ACTOR_PROJECTION_ROW['before_sha256']\n"
+           '    require(digest(encode(predecessor)) == ACTOR_PRE_CONTRACT_SHA256,\n'
+           "            'Actual actor contract does not restore complete published 42 bytes')\n"
+           '    return contents'},
+ {'before': '        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | '
+            'set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH, ACTOR_LEAF_PATH}:\n'
+            '            # All 53 physical current inputs precede every predecessor/cache reuse.\n'
+            '            for path, data in incoming.items():\n'
+            "                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 53-file "
+            "fixture: ' + path)\n"
+            '        elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | '
+            'set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH}:',
+  'after': '        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | '
+           'set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH, ACTOR_LEAF_PATH, ALBUM_LEAF_PATH}:\n'
+           '            # All 54 physical current inputs precede every predecessor/cache reuse.\n'
+           '            for path, data in incoming.items():\n'
+           "                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 54-file "
+           "fixture: ' + path)\n"
+           '        elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | '
+           'set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH, ACTOR_LEAF_PATH}:\n'
+           '            # Exactly published bb5/53; missing-current54 is never backfilled.\n'
+           '            for path, data in incoming.items():\n'
+           '                expected = album_predecessor_fixture_source(path, (ROOT / path).read_bytes(), '
+           'current_raw)\n'
+           "                require(data == expected, 'Changed/mixed historical bb5/53 fixture: ' + path)\n"
+           '        elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | '
+           'set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH}:'},
+ {'before': "    require(encode(value) == raw, 'Noncanonical/duplicate current contract')\n",
+  'after': "    require(encode(value) == raw, 'Noncanonical/duplicate current contract')\n"
+           '    album_current_inputs(value, root)\n'}]
+
+def _album_category_preimage(raw):
+    marker = b'\n# Exact bb5 album chapter actor predecessor layer.\n'
+    suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
+    require(digest(raw) == IMPLEMENTATION_SHA256, 'Changed complete album admission source')
+    require(raw.count(marker) == 1 and raw.endswith(suffix), 'Unknown album layer source boundary')
+    prefix, _ = raw.split(marker, 1)
+    for hunk in reversed(ALBUM_CATEGORY_PREFIX_HUNKS):
+        after, before = hunk['after'].encode(), hunk['before'].encode()
+        require(prefix.count(after) == 1, 'Missing/repeated album source interface span')
+        prefix = prefix.replace(after, before, 1)
+    slot = b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+    require(prefix.count(slot) == 1, 'Unknown album admission fingerprint slot')
+    old = prefix.replace(slot, b"ADMISSION_FINGERPRINT = '" + ALBUM_PRE_FINGERPRINT.encode() + b"'", 1) + suffix
+    require(digest(old) == ALBUM_PRE_SHA256[SELF_PATH], 'Complete published bb5 admission source not restored')
+    return old
+
+
+def album_predecessor_source(path, raw):
+    """Exact complete published bb5 bytes; never a current-input admission bypass."""
+    if path not in ALBUM_PRE_SHA256:
+        return raw
+    if digest(raw) == ALBUM_PRE_SHA256[path]:
+        return raw  # Explicit historical-only interface; current checks require new bytes.
+    if path == ALBUM_LEAF_PATH:
+        old = _inverse_exact(raw, ALBUM_LEAF_ROW, path)
+    elif path == ALBUM_HELPER_PATH:
+        old = _inverse_exact(raw, ALBUM_HELPER_ROW, path)
+    elif path == SELF_PATH:
+        old = _album_category_preimage(raw)
+    elif path == PROFILE_PATH:
+        slot = b"DISCOVERY_HELPER_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+        require(raw.count(slot) == 1, 'Unknown album profile source pin')
+        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = '" + ALBUM_PRE_FINGERPRINT.encode() + b"'", 1)
+    elif path == RUNNER_PATH:
+        native_current_readiness_source(raw)
+        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", raw)
+        require(len(pins) == 1, 'Unknown album readiness pin')
+        old = raw.replace(pins[0], ALBUM_PRE_CONTRACT_SHA256.encode(), 1)
+    elif path == CATEGORY_GATE:
+        import base64, zlib
+        normalized, source = _decoded_external_template(raw)
+        require(source == (ROOT / SELF_PATH).read_bytes(), 'Unknown album complete external template')
+        old_source = _album_category_preimage(source)
+        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()
+        first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
+        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\n'
+        suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
+        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\n' + b''.join(
+            ('    ' + repr(encoded[i:i+80]) + '\n').encode() for i in range(0, len(encoded), 80)) + b')\n' + last + suffix
+    else:
+        raise AssertionError('Unreviewed album predecessor path')
+    require(digest(old) == ALBUM_PRE_SHA256[path], 'Complete published bb5 source not restored: ' + path)
+    return old
+
+
+def album_current_inputs(value, root=ROOT):
+    """Re-read all actual album boundary bytes before any predecessor or cache."""
+    root = Path(root)
+    require(not root.is_symlink(), 'Album current root is a symlink')
+    contents = {}
+    for path in ALBUM_PRE_SHA256:
+        file = root / path
+        parts = Path(path).parts
+        require(all(not (root / Path(*parts[:end])).is_symlink() for end in range(1, len(parts) + 1)),
+                'Symlink component in album current input: ' + path)
+        require(not file.is_symlink() and file.is_file() and file.resolve().is_relative_to(root.resolve()),
+                'Missing, escaped or symlinked album current input: ' + path)
+        contents[path] = file.read_bytes()
+    contract_file = root / CONTRACT_PATH
+    require(not contract_file.is_symlink() and contract_file.is_file()
+            and contract_file.resolve().is_relative_to(root.resolve()), 'Invalid actual album contract input')
+    raw = contract_file.read_bytes()
+    require(encode(value) == raw, 'Changed or mixed actual album contract')
+    runner = contents[RUNNER_PATH]
+    native_current_readiness_source(runner)
+    pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", runner)
+    require(len(pins) == 1 and pins[0].decode() == digest(raw), 'Unknown complete album contract pin')
+    module = contents[SELF_PATH]
+    require(digest(module) == IMPLEMENTATION_SHA256, 'Loaded album admission differs from current bytes')
+    validate_external_source_template(root, module)
+    slot = b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+    require(module.count(slot) == 1 and digest(module.replace(slot, b"ADMISSION_FINGERPRINT = '<SELF>'", 1)) == ADMISSION_FINGERPRINT,
+            'Changed complete album admission fingerprint')
+    require(value['feature_batch_sources'].get(ALBUM_LEAF_PATH) == ALBUM_LEAF_ROW,
+            'Unknown exact album initialization inverse')
+    require(digest(contents[ALBUM_LEAF_PATH]) == ALBUM_LEAF_ROW['after_sha256'],
+            'Old or changed current album initializer')
+    require(digest(contents[ALBUM_HELPER_PATH]) == ALBUM_HELPER_ROW['after_sha256'],
+            'Old or changed current album fixture producer')
+    for path, expected in ALBUM_PRE_SUPPORT.items():
+        require(value['feature_batch_support_sha256'].get(path) == digest(contents[path]),
+                'Changed current album support: ' + path)
+        require(digest(album_predecessor_source(path, contents[path])) == expected,
+                'Unknown complete album support predecessor: ' + path)
+    require(digest(album_predecessor_source(RUNNER_PATH, runner)) == ALBUM_PRE_SHA256[RUNNER_PATH],
+            'Changed complete album readiness implementation')
+    predecessor = copy.deepcopy(value)
+    require(predecessor['feature_batch_sources'].pop(ALBUM_LEAF_PATH) == ALBUM_LEAF_ROW,
+            'Missing actual album inverse row')
+    for path, expected in ALBUM_PRE_SUPPORT.items():
+        predecessor['feature_batch_support_sha256'][path] = expected
+    require(digest(encode(predecessor)) == ALBUM_PRE_CONTRACT_SHA256,
+            'Actual album contract does not restore complete published bb5 bytes')
+    return contents
+
+
+def album_predecessor_contract(value, root=ROOT):
+    """Admit actual new bytes, then restore the entire immutable bb5 contract."""
+    value = copy.deepcopy(value)
+    if digest(encode(value)) == ALBUM_PRE_CONTRACT_SHA256:
+        return value  # Exact historical-only contract; checked_current requires current bytes.
+    album_current_inputs(value, root)
+    require(value['feature_batch_sources'].pop(ALBUM_LEAF_PATH) == ALBUM_LEAF_ROW,
+            'Missing complete album inverse row')
+    for path, expected in ALBUM_PRE_SUPPORT.items():
+        value['feature_batch_support_sha256'][path] = expected
+    require(digest(encode(value)) == ALBUM_PRE_CONTRACT_SHA256,
+            'Complete published bb5 readiness contract not restored')
+    return value
+
+
+def album_predecessor_fixture_source(path, raw, current_contract):
+    """Build genuine published bb5/53 inputs, never fill a missing current54 file."""
+    if path == CONTRACT_PATH:
+        require(raw == current_contract, 'Mixed album current fixture contract')
+        return encode(album_predecessor_contract(json.loads(raw)))
+    return album_predecessor_source(path, raw)
+
+
+def album_predecessor_fixture_helper(root=ROOT):
+    """Expose only six literal fixture inputs from the authenticated bb5 helper."""
+    from types import SimpleNamespace
+    root = Path(root)
+    value = json.loads((root / CONTRACT_PATH).read_bytes())
+    contents = album_current_inputs(value, root)
+    raw = album_predecessor_source(ALBUM_HELPER_PATH, contents[ALBUM_HELPER_PATH])
+    require(digest(raw) == ALBUM_PRE_SHA256[ALBUM_HELPER_PATH], 'Unknown bb5 fixture helper input')
     wanted = {'SOURCE_EDITS', 'ADDED_SUPPORT', 'CONTRACT_PATH', 'EVOLUTION_SOURCES', 'EVOLUTION_SUPPORT', 'FLOOR_INPUTS'}
     values = {}
     for node in ast.parse(raw).body:

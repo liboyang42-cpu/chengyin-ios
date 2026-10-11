@@ -20,7 +20,7 @@ import XCTest
     private struct Context {
         let owner: Owner, storage: Storage, source: ProjectStoryImageSynthetic
         let baseline: ProjectEditDraft, editor: ProjectEditModel, controller: ProjectStoryImagePresentation
-        var chapterID: String { editor.draft.chapters[0].id }
+        @MainActor var chapterID: String { editor.draft.chapters[0].id }
         let albumID = "album-é"
     }
     private func makeEditor(_ draft: ProjectEditDraft, _ owner: Owner, _ storage: Storage, _ source: ProjectStoryImageSynthetic) -> ProjectEditModel {

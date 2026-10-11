@@ -4235,6 +4235,16 @@
           "after": "        @MainActor init(_ reader: any DiscoveryReading) {\n"
         }
       ]
+    },
+    "Tests/AppUnitTests/ProjectAlbumImageAuthorTests.swift": {
+      "before_sha256": "3d3c8ef9236f3d5a0c2b99c9eb6ce2b57c3afc36aaabdd701d1597855f024257",
+      "after_sha256": "5c74526f40c44327ec68254de76bd4c316e976b5aa1f6a409502774402699054",
+      "hunks": [
+        {
+          "before": "        var chapterID: String { editor.draft.chapters[0].id }\n",
+          "after": "        @MainActor var chapterID: String { editor.draft.chapters[0].id }\n"
+        }
+      ]
     }
   },
   "feature_batch_support_sha256": {
@@ -4644,7 +4654,7 @@
     "Tests/CoreTests/MerchantStationSubmissionCodeTests.swift": "94d873644a8bd56b0cd2a542f5eaea1439dcd0bf8ed8655ce4e593c6285dec74",
     "App/ProjectAlbumImageAuthorField.swift": "fbd96a41b489657b9cb2ebe8b7432c42ec651e664a873586a60eebd2dddbf140",
     "Resources/ProjectAlbumImageAuthor.xcstrings": "904b6503a2caafe93f84c2aa8a7e80421ae5eabfd3a1e57efe5c15b73b0ed314",
-    "Tests/AppUnitTests/ProjectAlbumImageAuthorTests.swift": "3d3c8ef9236f3d5a0c2b99c9eb6ce2b57c3afc36aaabdd701d1597855f024257",
+    "Tests/AppUnitTests/ProjectAlbumImageAuthorTests.swift": "5c74526f40c44327ec68254de76bd4c316e976b5aa1f6a409502774402699054",
     "Tests/CoreTests/ProjectStoryImageTests.swift": "f46146ad3d5753e048e5cebe804bf5a43e6412831ba3be3768d2a3806ff52d70",
     "Core/ProjectAlbumPhotoOrder.swift": "0452569cd7e948cac2324e3945efbf808f36544ce366dd3ce723b30f8b63e3d2",
     "Resources/ProjectAlbumPhotoOrder.xcstrings": "729e82299ae8b134207632793b5bae3dea2e8fa97bf4b0b2ec08b3104ccdd664",
@@ -4737,28 +4747,28 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "18b2f038512301a8932a399e818179f09964595a77f10e8e990f20d0a2594189",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "19dfe4cddfd919622e48ce26c626664570e0e4d3547ce085ff2e5cf3b356c8db",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
     "Tests/ContractChecks/test_club_customer_permissions.py": "773186689d0583d41d6ab75298e4b815e86dc688a2ce5043cdba43d0a5b2ffba",
     "docs/club-customer-permissions.md": "f32d0102eeb5bb2bc696b139389a5e674140623f7597973ffce5468629cd1f10",
     "Tests/ContractChecks/test_club_customer_directory_remote_admission.py": "09b5c57129442da635c71ff664b9a8c22ff0d694184592b86058312eb073e11e",
-    "tools/club_customer_directory_admission.py": "7b2bba4759677e0091b5149a7fc46096280b95ac2b7e94cd77481a24570afb35",
+    "tools/club_customer_directory_admission.py": "7187f18779f4f44286b50bff6da7bea0ac27cc982eb04dc9ed330df25b959def",
     "Tests/ContractChecks/test_club_customer_keyword_debounce.py": "262ed2f2d1151dbe6994048cc21e76b98799fc34a68caeba59c08947508c8e6c",
     "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift": "2c3cfc1da3d145221e13d9561c1bfb9166b58c84807bfd93034fcaff44b303a5",
     "docs/club-customer-keyword-debounce.md": "1fa12a8011cb1b2c3d7425dcd8f1f8ca07f27be08adb8a545c1be98f97806f0e",
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "b00adbb5175612d05428065ac8d027027a930ce95c97ad6be36a091356d46d2c",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "83d2acef192141428f63f08289dd8d1f4899eae9eb8d04e5044427c7064589bd",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
     "Tests/ContractChecks/test_roam_route_replay.py": "83d0cb05ce9ec6289354c960494e6923b78a2825f6c244ec08b6693dfbe8c5c3",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "693a1f0f3a559838578313f26d2bb3cfeda675161378c81d72f1b084dc206c2f"
+    "Tests/ContractChecks/test_category_roam_registration.py": "74d2da07e15f74ebc17e5f02a1f48d43e650830ed650879fa5c4751ddcfbc191"
   },
   "current_method_replacements": {
     "MerchantContentFlowTests.testCityClaimWithdrawalReviewUsesSourcePOIAndCanCancel": {

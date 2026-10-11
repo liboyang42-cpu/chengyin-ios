@@ -616,7 +616,8 @@ class SocialReaderKeyActorCompileAdmissionTests(unittest.TestCase):
         self.assertEqual(len(paths), 53)
         for path in paths:
             file = root / path; file.parent.mkdir(parents=True, exist_ok=True)
-            file.write_bytes((R / path).read_bytes())
+            file.write_bytes(repair.album_predecessor_fixture_source(
+                path, (R / path).read_bytes(), self.raw()))
         return root, paths
 
     def test_exact_actor_hunk_changes_only_reader_key_initializer(self):
@@ -631,7 +632,7 @@ class SocialReaderKeyActorCompileAdmissionTests(unittest.TestCase):
         self.assertEqual(source, old.replace(row['hunks'][0]['before'].encode(), row['hunks'][0]['after'].encode(), 1))
 
     def test_complete_actor_contract_restores_exact_42_and_every_older_floor(self):
-        value = json.loads(self.raw()); old = repair.actor_predecessor_contract(value)
+        value = repair.album_predecessor_contract(json.loads(self.raw())); old = repair.actor_predecessor_contract(value)
         self.assertEqual(repair.digest(repair.encode(old)), '6fa7fd18b5000d3843f4c5809d58cd97f0b40dd0b3b41ad933583aa6250522e4')
         self.assertEqual(len(value['feature_batch_sources']), 135)
         self.assertEqual(len(old['feature_batch_sources']), 134)
@@ -758,7 +759,7 @@ class SocialReaderKeyActorCompileAdmissionTests(unittest.TestCase):
         with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
 
     def test_current53_helper_and_explicit_historical52_helper_are_separate(self):
-        from tools import club_customer_directory_admission as club
+        club = repair.album_predecessor_fixture_helper(R)
         def paths(helper):
             return set(helper.SOURCE_EDITS) | set(helper.ADDED_SUPPORT) | {helper.CONTRACT_PATH, repair.RUNNER_PATH} | set(helper.EVOLUTION_SOURCES) | set(helper.EVOLUTION_SUPPORT) | set(helper.FLOOR_INPUTS)
         current_paths = paths(club); old = repair.actor_predecessor_fixture_helper(R)
@@ -803,3 +804,184 @@ class SocialReaderKeyActorCompileAdmissionTests(unittest.TestCase):
                 methods.append((node.name, ''.join(lines[start-1:node.end_lineno])))
         self.assertEqual(len(methods), 40)
         self.assertEqual(repair.digest(json.dumps(methods, ensure_ascii=True, separators=(',', ':')).encode()), 'f88736ab97604bbe3aeb8d63e91d4434e8114febe2b4d82720d8652e183d44e4')
+
+
+ALBUM_TEST_INPUT_HUNKS = [{'before': '            file.write_bytes((R / path).read_bytes())\n        return root, paths\n',
+  'after': '            file.write_bytes(repair.album_predecessor_fixture_source(\n'
+           '                path, (R / path).read_bytes(), self.raw()))\n'
+           '        return root, paths\n'},
+ {'before': '    def test_complete_actor_contract_restores_exact_42_and_every_older_floor(self):\n'
+            '        value = json.loads(self.raw()); old = repair.actor_predecessor_contract(value)\n',
+  'after': '    def test_complete_actor_contract_restores_exact_42_and_every_older_floor(self):\n'
+           '        value = repair.album_predecessor_contract(json.loads(self.raw())); old = '
+           'repair.actor_predecessor_contract(value)\n'},
+ {'before': '    def test_current53_helper_and_explicit_historical52_helper_are_separate(self):\n'
+            '        from tools import club_customer_directory_admission as club\n',
+  'after': '    def test_current53_helper_and_explicit_historical52_helper_are_separate(self):\n'
+           '        club = repair.album_predecessor_fixture_helper(R)\n'}]
+class AlbumChapterActorCompileAdmissionTests(unittest.TestCase):
+    """Actual current54 precedes exact bb5/53, 42/52, 7b51, c2af49 and 47."""
+    def raw(self):
+        return (R / repair.CONTRACT_PATH).read_bytes()
+
+    def fixture(self):
+        life = tempfile.TemporaryDirectory(prefix='album-current54-')
+        self.addCleanup(life.cleanup)
+        root = Path(life.name)
+        paths = set(repair.PROFILE_CONTEXT_INPUTS) | set(repair.REPAIR_LEAF_PATHS) | set(repair.NATIVE_CURRENT_INPUTS) | {repair.DESCRIPTION_LEAF_PATH, repair.ACTOR_LEAF_PATH, repair.ALBUM_LEAF_PATH}
+        self.assertEqual(len(paths), 54)
+        for path in paths:
+            file = root / path; file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_bytes((R / path).read_bytes())
+        return root, paths
+
+    def test_complete_album_contract_restores_exact_bb5_and_every_older_floor(self):
+        value = json.loads(self.raw()); old = repair.album_predecessor_contract(value)
+        self.assertEqual(repair.digest(repair.encode(old)), '5510daa8a177c8cc51a4459f3db5a4ee53cfda0a48c4cbff5dc8af5b0113d3e3')
+        self.assertEqual(len(value['feature_batch_sources']), 136)
+        self.assertEqual(len(old['feature_batch_sources']), 135)
+        self.assertEqual(len(value['feature_batch_support_sha256']), 521)
+        self.assertNotIn(repair.ALBUM_LEAF_PATH, old['feature_batch_sources'])
+        self.assertEqual(value['node_description_sources'], old['node_description_sources'])
+        for reader, expected in [(repair.actor_predecessor_contract, '6fa7fd18b5000d3843f4c5809d58cd97f0b40dd0b3b41ad933583aa6250522e4'),
+                                 (repair.description_predecessor_contract, '9c26993734c6ba8d4623165187cb0cfcebc1ff20e3c9209da7a2982099ee2cb6'),
+                                 (repair.native_predecessor_contract, 'd3fedafc9efe917220f4c52cb4c82d742f840a7307546da35e4da130a80d7fdb'),
+                                 (repair.repair_predecessor_contract, 'b72d9b1024daadb5273a4de24c0175d42c04516b1f89c6c53c0f9c40dd7a77b6')]:
+            self.assertEqual(repair.digest(repair.encode(reader(value))), expected)
+
+    def test_complete_album_source_interfaces_restore_exact_bb5_bytes(self):
+        for path, expected in repair.ALBUM_PRE_SHA256.items():
+            source = (R / path).read_bytes()
+            self.assertEqual(repair.digest(repair.album_predecessor_source(path, source)), expected)
+            for mutant in (source + b'\n', source.replace(b'\n', b'\r\n'), bytes([source[0] ^ 1]) + source[1:]):
+                with self.subTest(path=path), self.assertRaises((AssertionError, ValueError)):
+                    repair.album_predecessor_source(path, mutant)
+
+    def test_album_hunk_missing_duplicate_and_off_hunk_bytes_fail_closed(self):
+        path = repair.ALBUM_LEAF_PATH; source = (R / path).read_bytes()
+        hunk = repair.ALBUM_LEAF_ROW['hunks'][0]['after'].encode()
+        for mutant in (source.replace(hunk, b'', 1), source + hunk,
+                       source.replace(b'@MainActor var', b'@MainActor  var', 1),
+                       source.replace(b'editor.draft.chapters[0].id', b'editor.draft.chapters[1].id', 1)):
+            with self.assertRaises(AssertionError): repair.album_predecessor_source(path, mutant)
+
+    def test_old_album_leaf_and_coherent_contract_runner_repins_never_admit(self):
+        path = R / repair.ALBUM_LEAF_PATH; source = path.read_bytes(); raw = self.raw()
+        runnerpath = R / repair.RUNNER_PATH; runner = runnerpath.read_bytes()
+        repair.checked_current(raw, R)
+        for mutant in (repair.album_predecessor_source(repair.ALBUM_LEAF_PATH, source),
+                       bytes([source[0] ^ 1]) + source[1:]):
+            value = json.loads(raw)
+            value['feature_batch_sources'][repair.ALBUM_LEAF_PATH]['after_sha256'] = repair.digest(mutant)
+            value['feature_batch_support_sha256'][repair.ALBUM_LEAF_PATH] = repair.digest(mutant)
+            changed = repair.encode(value)
+            replacements = {path: mutant, R / repair.CONTRACT_PATH: changed,
+                            runnerpath: runner.replace(repair.digest(raw).encode(), repair.digest(changed).encode(), 1)}
+            original = Path.read_bytes
+            with patch.object(Path, 'read_bytes', lambda p: replacements[p] if p in replacements else original(p)):
+                with self.assertRaises((AssertionError, ValueError)): repair.checked_current(changed, R)
+
+    def test_current54_all_physical_reads_precede_history_and_missing_leaf_is_not_53(self):
+        root, paths = self.fixture(); raw = self.raw(); original = Path.read_bytes; reads = []
+        def read(path):
+            if path.is_relative_to(root): reads.append(str(path.relative_to(root)))
+            return original(path)
+        with patch.object(Path, 'read_bytes', read): repair._profile_parent_inputs(root)
+        self.assertEqual(set(reads), paths); self.assertEqual(len(reads), 54)
+        (root / repair.ALBUM_LEAF_PATH).unlink()
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        for path in paths - {repair.ALBUM_LEAF_PATH}:
+            (root / path).write_bytes(repair.album_predecessor_fixture_source(path, (R / path).read_bytes(), raw))
+        repair.profile_history_inputs(raw, root, 'history')
+        self.assertEqual({str(p.relative_to(root)) for p in root.rglob('*') if p.is_file()}, paths - {repair.ALBUM_LEAF_PATH})
+
+    def test_warm_current54_rejects_same_stat_crlf_cr_old_missing_symlink_and_extra(self):
+        root, _ = self.fixture(); raw = self.raw()
+        repair.profile_history_inputs(raw, root, 'history')
+        file = root / repair.ALBUM_LEAF_PATH; source = file.read_bytes(); stamp = file.stat()
+        for mutant in (bytes([source[0] ^ 1]) + source[1:], source.replace(b'\n', b'\r\n'),
+                       source.replace(b'\n', b'\r'), repair.album_predecessor_source(repair.ALBUM_LEAF_PATH, source)):
+            file.write_bytes(mutant); os.utime(file, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+            with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        file.unlink()
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        file.symlink_to(R / repair.ALBUM_LEAF_PATH)
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        file.unlink(); file.write_bytes(source); (root / 'unknown-input').write_text('unreviewed')
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+
+    def test_current54_helper_and_explicit_historical53_helper_are_separate(self):
+        from tools import club_customer_directory_admission as club
+        def paths(helper):
+            return set(helper.SOURCE_EDITS) | set(helper.ADDED_SUPPORT) | {helper.CONTRACT_PATH, repair.RUNNER_PATH} | set(helper.EVOLUTION_SOURCES) | set(helper.EVOLUTION_SUPPORT) | set(helper.FLOOR_INPUTS)
+        current_paths = paths(club); old = repair.album_predecessor_fixture_helper(R)
+        self.assertEqual(len(current_paths), 54); self.assertEqual(len(paths(old)), 53)
+        self.assertEqual(current_paths - paths(old), {repair.ALBUM_LEAF_PATH})
+        self.assertEqual(repair.digest(repair.album_predecessor_source(repair.ALBUM_HELPER_PATH, (R / repair.ALBUM_HELPER_PATH).read_bytes())), '7b2bba4759677e0091b5149a7fc46096280b95ac2b7e94cd77481a24570afb35')
+
+    def test_bb5_contract_is_historical_only_and_cannot_enter_checked_current(self):
+        raw = self.raw(); value = json.loads(raw)
+        old = repair.encode(repair.album_predecessor_contract(value))
+        with self.assertRaises((AssertionError, ValueError)): repair.checked_current(old, R)
+        mixed = json.loads(raw); mixed['feature_batch_sources'].pop(repair.ALBUM_LEAF_PATH)
+        with self.assertRaises((AssertionError, ValueError)): repair.album_predecessor_contract(mixed)
+
+    def test_direct_current_reader_rejects_foreign_rows_even_with_exact_historical_argument(self):
+        raw = self.raw(); value = json.loads(raw)
+        old = repair.album_predecessor_contract(value)
+        runnerpath = R / repair.RUNNER_PATH; runner = runnerpath.read_bytes()
+        changed_value = json.loads(raw); changed_value['unreviewed_album_boundary'] = True
+        changed = repair.encode(changed_value)
+        replacements = {R / repair.CONTRACT_PATH: changed,
+                        runnerpath: runner.replace(repair.digest(raw).encode(), repair.digest(changed).encode(), 1)}
+        original = Path.read_bytes
+        with patch.object(Path, 'read_bytes', lambda p: replacements[p] if p in replacements else original(p)):
+            for operation in (lambda: repair.album_current_inputs(changed_value, R),
+                              lambda: repair.description_current_inputs(old, R),
+                              lambda: repair.album_predecessor_fixture_helper(R)):
+                with self.assertRaises((AssertionError, ValueError)): operation()
+
+    def test_exact_album_hunk_preserves_all_nine_swift_tests_and_assertions(self):
+        import re
+        path = repair.ALBUM_LEAF_PATH; source = (R / path).read_bytes()
+        row = repair.ALBUM_LEAF_ROW
+        self.assertEqual(row['before_sha256'], '3d3c8ef9236f3d5a0c2b99c9eb6ce2b57c3afc36aaabdd701d1597855f024257')
+        self.assertEqual(row['after_sha256'], '5c74526f40c44327ec68254de76bd4c316e976b5aa1f6a409502774402699054')
+        self.assertEqual(row['hunks'], [{'before': '        var chapterID: String { editor.draft.chapters[0].id }\n',
+                                        'after': '        @MainActor var chapterID: String { editor.draft.chapters[0].id }\n'}])
+        old = repair.album_predecessor_source(path, source)
+        self.assertEqual(repair.digest(old), row['before_sha256'])
+        self.assertEqual(source, old.replace(row['hunks'][0]['before'].encode(), row['hunks'][0]['after'].encode(), 1))
+        self.assertEqual(len(re.findall(rb'(?m)^    func test', source)), 9)
+        self.assertEqual(source[source.index(b'    func test'):], old[old.index(b'    func test'):])
+        self.assertEqual([line for line in source.splitlines() if b'XCTAssert' in line],
+                         [line for line in old.splitlines() if b'XCTAssert' in line])
+
+    def test_projection_and_node_description_contract_members_remain_exact(self):
+        value = json.loads(self.raw()); old = repair.album_predecessor_contract(value)
+        projection = 'tools/run138_current_source_projection.py'
+        self.assertEqual(repair.digest((R / projection).read_bytes()), '3980907d0a3d33e40f229c6f856ac78024b18498ea7c3f4dcd28d34862f8b280')
+        self.assertEqual(value['entry_projection_module_sha256'], old['entry_projection_module_sha256'])
+        self.assertEqual(value['node_description_sources'], old['node_description_sources'])
+        self.assertEqual(repair.album_predecessor_source(projection, (R / projection).read_bytes()), (R / projection).read_bytes())
+
+    def test_all_original_54_methods_and_assertions_restore_exactly(self):
+        import ast
+        source = (R / 'tools/tests/test_readiness_contract_parse_cache.py').read_text()
+        prefix = source.split('\n\nALBUM_TEST_INPUT_HUNKS = ', 1)[0]
+        adapted = prefix
+        for row in reversed(ALBUM_TEST_INPUT_HUNKS):
+            self.assertEqual(prefix.count(row['after']), 1)
+            prefix = prefix.replace(row['after'], row['before'], 1)
+        self.assertEqual(repair.digest(prefix.encode()), 'b6e48dc88dc38df042e12e7a55d9ffe45773a20e098c380064baf0d3abf262a8')
+        lines = prefix.splitlines(True); methods = []
+        for node in ast.walk(ast.parse(prefix)):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith('test_'):
+                start = min([node.lineno] + [d.lineno for d in node.decorator_list])
+                methods.append((node.name, ''.join(lines[start-1:node.end_lineno])))
+        self.assertEqual(len(methods), 54)
+        self.assertEqual(repair.digest(json.dumps(methods, ensure_ascii=True, separators=(',', ':')).encode()), '3d20a7b91f754887e6da0734f1e94a2ec2b5b87093b20ece6692c59ce2931d9f')
+        def assertions(text):
+            return [ast.dump(n, include_attributes=False) for n in ast.walk(ast.parse(text))
+                    if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr.startswith('assert')]
+        self.assertEqual(assertions(adapted), assertions(prefix))
