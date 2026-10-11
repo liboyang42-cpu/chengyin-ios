@@ -4212,9 +4212,43 @@ def pathfix_test_inputs(selection, current):
     return old, root
 
 
-PATHFIX_TOOLS = TOOLS
-PATHFIX_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')
-PATHFIX_SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))
+def casefold_test_inputs(selection, current):
+    """Authenticate current3, then copy a bounded physical published54 view."""
+    runner.validate_casefold_selection(selection, current)
+    restored = runner.casefold_predecessor_sources(selection, current)
+    old = runner.casefold_predecessor_selection(selection)
+    contract = runner.read_json(current / 'tools/run138_editor_readiness_contract.json')
+    paths = set(runner.BOUND_SOURCES) | set(runner.CREATOR_PATHS) | set(runner.REPAIR_PATHS)
+    for values in (runner.STATIC_REPAIR_PATHS, runner.PATHS, runner.NATIVE_PATHS,
+                   runner.PORTABLE_PATHS, runner.DESCRIPTION_PATHS, runner.SOCIAL_PATHS,
+                   runner.PATHFIX_PATHS): paths.update(values)
+    paths.update(contract['feature_batch_sources'])
+    paths.update(contract['feature_batch_support_sha256'])
+    paths.add('tools/run138_current_source_projection.py')
+    temporary = tempfile.TemporaryDirectory(prefix='targeted-published54-inputs-')
+    atexit.register(temporary.cleanup)
+    root = Path(temporary.name)
+    for relative in sorted(paths):
+        source = current / relative
+        parts = Path(relative).parts
+        if (any((current / Path(*parts[:i])).is_symlink() for i in range(1, len(parts) + 1))
+                or not source.is_file()
+                or not source.resolve(strict=True).is_relative_to(current.resolve(strict=True))):
+            raise ValueError('Missing or linked published54 fixture input: ' + relative)
+        raw = source.read_bytes()
+        if relative in restored: raw = restored[relative]
+        destination = root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(raw)
+    return old, root
+
+
+CASEFOLD_TOOLS = TOOLS
+CASEFOLD_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')
+CASEFOLD_SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))
+runner.validate_casefold_selection(CASEFOLD_SELECTION, CASEFOLD_SOURCE)
+PATHFIX_SELECTION, PATHFIX_SOURCE = casefold_test_inputs(CASEFOLD_SELECTION, CASEFOLD_SOURCE)
+PATHFIX_TOOLS = PATHFIX_SOURCE / 'tools'
 runner.validate_pathfix_selection(PATHFIX_SELECTION, PATHFIX_SOURCE)
 SOCIAL_SELECTION, SOCIAL_SOURCE = pathfix_test_inputs(PATHFIX_SELECTION, PATHFIX_SOURCE)
 SOCIAL_TOOLS = SOCIAL_SOURCE / 'tools'
@@ -7542,7 +7576,7 @@ class XctestrunPathTemplateTests(unittest.TestCase):
         self.root = Path(temporary.name)
 
     def _products(self, name):
-        products = self.root / name
+        products = Path(tempfile.mkdtemp(prefix='case-', dir=self.root)) / name
         products.mkdir(parents=True)
         return products
 
@@ -7869,6 +7903,271 @@ class AlbumGetterActorBoundary(unittest.TestCase):
                  mock.patch.object(runner, 'PATHFIX_SELECTION_SHA256', runner.hashlib.sha256(runner.encode(value).encode()).hexdigest()), \
                  self.assertRaises(ValueError):
                 runner.pathfix_predecessor_selection(value)
+
+CASEFOLD183_IDENTITIES = ('SelectionAndCommands.test_actual_bound_source_and_all_65_declarations', 'SelectionAndCommands.test_original_29_methods_are_preserved_and_only_16_added', 'SelectionAndCommands.test_per_method_source_binding_rejects_missing_swapped_duplicate_and_wrong_target', 'SelectionAndCommands.test_repinned_changed_method_and_duplicate_source_declaration_fail', 'SelectionAndCommands.test_duplicate_declaration_is_not_a_unique_method', 'SelectionAndCommands.test_nonboolean_version_and_exact_contract', 'SelectionAndCommands.test_changed_source_hash_and_missing_guard_rejected', 'SelectionAndCommands.test_empty_duplicate_target_and_wildcard_selectors_rejected', 'SelectionAndCommands.test_core_filter_is_exact_set_without_full_suite_fallback', 'SelectionAndCommands.test_every_xcode_method_has_its_own_exact_filter', 'SelectionAndCommands.test_workflow_remains_additive_standard_and_independent', 'SelectionAndCommands.test_original_gates_project_schemes_and_product_sources_are_unchanged', 'ReviewedCompileRepair.test_complete_predecessors_and_unrelated_contract_semantics_are_preserved', 'ReviewedCompileRepair.test_real_central_projection_accepts_current_support_and_exact_inverse', 'ReviewedCompileRepair.test_repair_inverse_rejects_off_hunk_changes_even_with_rehashed_postimage', 'Results.test_xunit_reads_all_forty_four_real_cases', 'Results.test_core_transcript_proves_execution_beyond_swiftpm_xunit', 'Results.test_xunit_failures_skips_and_unknown_status_cannot_pass', 'Results.test_modern_xcresult_exact_target_and_method_set', 'Results.test_xcresult_missing_wrong_target_bad_identifier_and_unknown_schema', 'Results.test_target_url_binding_must_not_override_wrong_bundle', 'Results.test_zero_omitted_extra_duplicate_failed_skipped_timeout_and_cancel_fail', 'Results.test_hidden_repetitions_and_xunit_summary_disagreement_fail', 'Results.test_summary_counts_actual_device_and_no_boolean_counts', 'RuntimeBoundaries.test_single_installed_iphone_and_no_automatic_other_device', 'RuntimeBoundaries.test_run_requires_hosted_mac_exact_repo_branch_and_event', 'RuntimeBoundaries.test_process_exit_is_real_and_timeout_never_passes', 'RuntimeBoundaries.test_core_build_is_once_before_exact_execution_and_failure_stops', 'RuntimeBoundaries.test_core_capture_keeps_stderr_live_and_limits_only_evidence', 'RuntimeBoundaries.test_every_cleanup_wait_is_bounded_even_after_kill', 'RuntimeBoundaries.test_product_target_selection_supports_only_safe_testhost_tokens', 'RuntimeBoundaries.test_product_directory_alias_returns_canonical_safe_run', 'RuntimeBoundaries.test_ambiguous_products_and_extra_target_fail', 'RuntimeBoundaries.test_inventory_detects_product_mutation_and_escaping_links', 'RuntimeBoundaries.test_scope_requires_exact_sha_base_and_nineteen_exact_statuses', 'RuntimeBoundaries.test_duplicate_json_keys_rejected', 'RuntimeBoundaries.test_missing_receipt_reports_not_run', 'ReceiptIdentity.test_exact_same_run_sha_tree_configuration_and_65_results', 'ReceiptIdentity.test_report_revalidates_real_exported_files_not_just_receipt_counts', 'ReceiptIdentity.test_other_run_attempt_sha_tree_selection_or_workflow_rejected', 'ReceiptIdentity.test_missing_or_wrong_configuration_toolchain_simulator_or_group_rejected', 'CreatorCurrentTreeAndCounts.test_every_creator_current_tree_mode_blob_and_presence_is_exact', 'CreatorCurrentTreeAndCounts.test_receipt_counts_are_real_integers_and_outer_fields_are_exact', 'Creator65Contract.test_original_45_exact_bindings_plus_independent_20_are_exactly_65', 'Creator65Contract.test_each_of_the_65_methods_has_one_declaration_in_its_exact_source', 'Creator65Contract.test_each_new_method_rejects_repinned_replacement_or_wrong_source', 'Creator65Contract.test_each_new_declaration_is_checked_before_creator_image_validation', 'Creator65Contract.test_new_source_binding_cannot_be_dropped_even_after_outer_repin', 'Creator65Contract.test_core_44_requires_both_complete_independent_execution_streams', 'Creator65Contract.test_old_45_receipt_cannot_be_upgraded_by_renaming_or_recounting', 'Creator65Contract.test_each_new_method_is_required_in_the_65_receipt', 'Creator65Contract.test_creator_15_and_diagnostic_4_have_exact_independent_statuses', 'Creator65Contract.test_all_creator_current_bytes_sha_and_git_blobs_are_independently_bound', 'Creator65Contract.test_creator_missing_duplicate_reordered_and_changed_rows_reject_outer_repin', 'Creator65Contract.test_every_creator_path_rejects_changed_real_current_bytes', 'Creator65Contract.test_added_files_cannot_be_rehashed_or_claim_predecessors_or_hunks', 'Creator65Contract.test_modified_creator_inverse_requires_complete_predecessor', 'Creator65Contract.test_creator_baseline_requires_each_modified_blob_and_all_four_additions_absent', 'Creator65Contract.test_each_creator_current_sha_and_blob_check_remains_active_after_inner_repin', 'Creator65Contract.test_each_creator_current_file_must_exist_as_a_regular_checkout_file', 'Creator65Contract.test_added_file_null_predecessor_and_empty_hunks_are_independently_enforced', 'ShallowCheckoutBoundaries.test_current_bytes_validate_without_history_but_real_run_scope_requires_it', 'ShallowCheckoutBoundaries.test_real_git_witness_proves_predecessors_and_addition_absence_without_parent_history', 'StaticRepairBinding.test_exact_published_base_nine_paths_and_old_domains_remain_separate', 'StaticRepairBinding.test_complete_current_payload_inverts_to_independent_b75_bytes', 'StaticRepairBinding.test_manifest_cannot_widen_or_change_under_outer_repin', 'StaticRepairBinding.test_every_payload_checks_real_bytes_sha_blob_and_regular_file', 'StaticRepairBinding.test_inverse_rejects_rehashed_off_hunk_and_fabricated_addition_predecessors', 'StaticRepairBinding.test_actual_parent_nine_path_scope_and_receipt_cannot_claim_old_scope', 'StaticRepairBinding.test_each_baseline_and_current_tree_mode_blob_and_addition_absence', 'StaticRepairBinding.test_real_git_subset_witness_binds_b75_payload_and_current_mode_blobs', 'PublishedParentBridge.test_exact_eight_path_parent_bridge_preserves_old_source_domains', 'PublishedParentBridge.test_current_to_true_parent_to_b75_inverses_match_every_historical_source', 'PublishedParentBridge.test_parent_bridge_rejects_repinned_missing_reordered_or_expanded_inputs', 'PublishedParentBridge.test_each_parent_inverse_rejects_rehashed_off_hunk_and_changed_real_sources', 'PublishedParentBridge.test_every_real_parent_bridge_tree_mode_blob_and_presence_is_exact', 'PublishedParentBridge.test_parent_history_and_receipts_cannot_relabel_b75_as_current_parent', 'FixedPublicCreatorRead.test_present_exact_object_never_fetches_or_inspects_network_configuration', 'FixedPublicCreatorRead.test_missing_object_uses_one_whitelisted_bounded_noninteractive_public_read', 'FixedPublicCreatorRead.test_offline_timeout_or_unreadable_config_fail_closed_without_retry', 'FixedPublicCreatorRead.test_existing_or_fetched_wrong_tree_parent_or_duplicate_parent_is_rejected', 'FixedPublicCreatorRead.test_credential_redirect_include_and_auth_configuration_never_reach_fetch', 'FixedPublicCreatorRead.test_public_target_cannot_be_generalized_by_changing_fixed_identity', 'NativeC2afBoundary.test_original83_complete_method_sources_are_unchanged', 'NativeC2afBoundary.test_new14_old15_history34_history19_and_original65_remain_separate', 'NativeC2afBoundary.test_all_eleven_physical_postimages_restore_exact_complete_c2af_sources', 'NativeC2afBoundary.test_no_v5_missing_unknown_or_expanded_current_layer_is_accepted', 'NativeC2afBoundary.test_rehashed_rows_cannot_change_independent_predecessors_or_inverse_shape', 'NativeC2afBoundary.test_each_current_source_rejects_missing_alias_stale_bytes_and_same_stat_mutation', 'NativeC2afBoundary.test_navigation_crlf_cr_and_rehashed_off_hunk_changes_fail_complete_inverse', 'NativeC2afBoundary.test_incomplete_or_forged_predecessor_maps_cannot_feed_historical_checks', 'NativeC2afBoundary.test_native_receipt_requires_current_c2af_layer_before_original65_receipt_checks', 'NativeC2afBoundary.test_all_fourteen_actual_tree_modes_blobs_and_presence_are_mandatory', 'NativeC2afBoundary.test_exact_scope_rejects_wrong_or_missing_parent_and_each_historical_layer', 'NativeC2afBoundary.test_real_git_subset_tree_witness_is_separate_from_mocked_scope_transport', 'FixedPublicRepairRead.test_present_exact_3393_never_fetches', 'FixedPublicRepairRead.test_missing_3393_uses_only_separate_fixed_public_bounded_fetch', 'FixedPublicRepairRead.test_3393_network_failures_and_credential_configuration_refuse_without_retry', 'FixedPublicRepairRead.test_3393_fixed_identity_wrong_tree_parent_merge_and_missing_headers_fail', 'PortableDiagnosticBoundary.test_complete_original83_sources_reject_body_decorator_comment_missing_duplicate_and_line_endings', 'PortableDiagnosticBoundary.test_exact_f04_selection_source_and_four_path_layer_are_mandatory', 'PortableDiagnosticBoundary.test_all_four_actual_current_files_and_both_tree_authorities_are_strict', 'PortableDiagnosticBoundary.test_entry_test_inverse_preserves_exact_f04_and_rejects_old_current_or_off_hunk', 'PortableDiagnosticBoundary.test_new4_and_published14_15_34_19_scope_cannot_be_relabelled', 'PortableDiagnosticBoundary.test_portable_receipt_requires_new_identity_before_original65_checks', 'FixedPublicNativeRead.test_present_c2af_never_fetches', 'FixedPublicNativeRead.test_missing_c2af_is_one_exact_bounded_public_read', 'FixedPublicNativeRead.test_bad_c2af_identity_config_timeout_and_parent_fail_closed', 'DescriptionRepairBoundary.test_complete_original108_methods_and_decorators_are_byte_identical', 'DescriptionRepairBoundary.test_original108_binding_rejects_body_decorator_comment_omission_duplicates_and_newlines', 'DescriptionRepairBoundary.test_new11_old4_native14_15_34_19_and_original65_stay_separate', 'DescriptionRepairBoundary.test_all_eight_current_payloads_restore_exact_complete_7b_bytes', 'DescriptionRepairBoundary.test_selection_missing_unknown_reordered_and_historical_layers_fail', 'DescriptionRepairBoundary.test_each_of_eleven_current_files_rejects_missing_old_and_same_stat_bytes', 'DescriptionRepairBoundary.test_leaf_and_ancestor_symbolic_links_inside_or_outside_root_are_rejected', 'DescriptionRepairBoundary.test_each_payload_rejects_coherently_repinned_off_hunk_postimage', 'DescriptionRepairBoundary.test_inverse_predecessor_hash_blob_hunks_and_complete_path_set_are_independent', 'DescriptionRepairBoundary.test_every_before_and_current_tree_requires_all_eleven_exact_modes_blobs_and_types', 'DescriptionRepairBoundary.test_new11_scope_authenticates_old4_native14_and_all_older_domains', 'DescriptionRepairBoundary.test_scope_rejects_wrong_parent_extra_parent_modes_each_history_and_dirty_checkout', 'DescriptionRepairBoundary.test_description_receipt_requires_new_identity_and_still_requires_all65_actual_results', 'FixedPublicPortableRead.test_present_exact_f04_never_fetches_or_reads_network_configuration', 'FixedPublicPortableRead.test_missing_f04_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicPortableRead.test_f04_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicPortableRead.test_f04_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicPortableRead.test_existing_or_fetched_f04_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicPortableRead.test_fixed_f04_public_object_identity_cannot_be_generalized', 'SocialActorBoundary.test_complete_original127_methods_and_decorators_are_byte_identical', 'SocialActorBoundary.test_original127_binding_rejects_body_decorator_comment_omission_duplicates_and_newlines', 'SocialActorBoundary.test_new15_old11_old4_native14_15_34_19_and_original65_stay_separate', 'SocialActorBoundary.test_all_twelve_current_payloads_restore_exact_complete_42_bytes', 'SocialActorBoundary.test_selection_missing_unknown_reordered_and_historical_layers_fail', 'SocialActorBoundary.test_each_of_fifteen_current_files_rejects_missing_old_and_same_stat_bytes', 'SocialActorBoundary.test_leaf_and_ancestor_symbolic_links_inside_or_outside_root_are_rejected', 'SocialActorBoundary.test_each_payload_rejects_coherently_repinned_off_hunk_postimage', 'SocialActorBoundary.test_inverse_predecessor_hash_blob_hunks_and_complete_path_set_are_independent', 'SocialActorBoundary.test_every_before_and_current_tree_requires_all_fifteen_exact_modes_blobs_and_types', 'SocialActorBoundary.test_new15_scope_authenticates_old11_old4_native14_and_all_older_domains', 'SocialActorBoundary.test_scope_rejects_wrong_parent_extra_parent_modes_each_history_and_dirty_checkout', 'SocialActorBoundary.test_social_receipt_requires_new_identity_and_still_requires_all65_actual_results', 'SocialActorBoundary.test_actor_leaf_is_only_initializer_annotation_and_equatable_identity_bytes_are_unchanged', 'SocialActorBoundary.test_merchant_single_test_leaf_matches_reviewed_complete_after_and_exact42_before', 'SocialActorBoundary.test_historical_inputs_copy_bytes_without_aliasing_any_current_checkout_file', 'SocialActorBoundary.test_new_performance_control_cannot_claim_any_historical_predecessor', 'FixedPublicDescriptionRead.test_present_exact_7b_never_fetches_or_reads_network_configuration', 'FixedPublicDescriptionRead.test_missing_7b_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicDescriptionRead.test_7b_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicDescriptionRead.test_7b_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicDescriptionRead.test_existing_or_fetched_7b_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicDescriptionRead.test_fixed_7b_public_object_identity_cannot_be_generalized', 'PathTemplateDiagnosticBoundary.test_original150_complete_method_bytes_and_decorators_are_unchanged', 'PathTemplateDiagnosticBoundary.test_original150_source_identity_rejects_body_comment_missing_and_duplicate_method', 'PathTemplateDiagnosticBoundary.test_complete_bb5_predecessor_json_and_test_bytes_are_fixed', 'PathTemplateDiagnosticBoundary.test_all_three_current_raw_files_reject_missing_old_same_size_mtime_and_links_after_warm', 'PathTemplateDiagnosticBoundary.test_noncanonical_selection_bytes_and_unknown_or_missing_layer_are_rejected', 'PathTemplateDiagnosticBoundary.test_missing_foreign_source_never_falls_back_to_loaded_healthy_root', 'PathTemplateDiagnosticBoundary.test_parent_directory_symlink_is_rejected_even_for_byte_identical_inputs', 'PathTemplateDiagnosticBoundary.test_historical_fixture_has_no_hardlink_into_real_current_source', 'PathTemplateDiagnosticBoundary.test_coherent_outer_repin_cannot_change_before_blobs_or_any_historical_selection_byte', 'PathTemplateDiagnosticBoundary.test_exact_new3_scope_preserves_all_published_fifteen_and_older_layers', 'PathTemplateDiagnosticBoundary.test_scope_rejects_new_parent_merge_mode_missing_extra_and_every_old_scope', 'PathTemplateDiagnosticBoundary.test_receipt_requires_pathfix_and_every_old_identity_and_all65_real_results', 'XctestrunPathTemplateTests.test_plain_and_double_underscore_product_root_aliases', 'XctestrunPathTemplateTests.test_literal_token_product_roots_are_not_reexpanded', 'XctestrunPathTemplateTests.test_double_underscore_product_children_and_absolute_paths', 'XctestrunPathTemplateTests.test_nested_host_tokens_preserve_literal_physical_root_names', 'XctestrunPathTemplateTests.test_unknown_template_tokens_reject_existing_literal_paths', 'XctestrunPathTemplateTests.test_missing_empty_and_recursive_host_tokens_reject', 'XctestrunPathTemplateTests.test_relative_and_missing_product_fields_reject', 'XctestrunPathTemplateTests.test_parent_and_absolute_sibling_escapes_reject', 'XctestrunPathTemplateTests.test_product_links_stay_inside_root_and_run_links_reject', 'XctestrunPathTemplateTests.test_multiple_runs_extra_targets_and_no_match_reject', 'XctestrunPathTemplateTests.test_non_token_double_underscore_names_remain_literal', 'FixedPublicSocialRead.test_present_exact_42_never_fetches_or_reads_network_configuration', 'FixedPublicSocialRead.test_missing_42_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicSocialRead.test_42_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicSocialRead.test_42_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicSocialRead.test_existing_or_fetched_42_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicSocialRead.test_fixed_42_public_object_identity_cannot_be_generalized', 'AlbumGetterActorBoundary.test_all179_previously_reviewed_method_bytes_remain_exact', 'AlbumGetterActorBoundary.test_exact_eight_payloads_restore_bb5_and_keep_all_other_files_out', 'AlbumGetterActorBoundary.test_only_actor_annotation_changes_and_all_nine_swift_methods_stay_intact', 'AlbumGetterActorBoundary.test_payload_rows_cannot_omit_duplicate_reorder_or_coherently_replace_preimages')
+CASEFOLD183_SOURCE_SHA256 = '297bd7f3787356f47b92d2d7a98a7ce20223a6049b652effa6d578b187a4f58d'
+def casefold_original183_blocks(raw):
+    lines = raw.splitlines(True)
+    found = {}
+    for cls in ast.parse(raw).body:
+        if not isinstance(cls, ast.ClassDef): continue
+        for node in cls.body:
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)): continue
+            key = cls.name + '.' + node.name
+            if key not in CASEFOLD183_IDENTITIES: continue
+            if key in found: raise ValueError('Duplicate original183 method')
+            first = min([node.lineno] + [d.lineno for d in node.decorator_list])
+            found[key] = b''.join(lines[first - 1:node.end_lineno]).decode()
+    if (len(found) != 183 or set(found) != set(CASEFOLD183_IDENTITIES)
+            or runner.hashlib.sha256(runner.encode(found).encode()).hexdigest() != CASEFOLD183_SOURCE_SHA256):
+        raise ValueError('Changed complete original183 method bytes')
+    return found
+
+
+class CasefoldFixtureBoundary(unittest.TestCase):
+    def fixture(self):
+        temporary = tempfile.TemporaryDirectory(prefix='casefold-current-three-')
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        for path in runner.CASEFOLD_PATHS:
+            output = root / path
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_bytes((CASEFOLD_SOURCE / path).read_bytes())
+        return root
+
+    def test_all183_complete_method_bytes_decorators_and_comments_remain_unchanged(self):
+        old = runner.casefold_predecessor_sources(CASEFOLD_SELECTION, CASEFOLD_SOURCE)[runner.CASEFOLD_PATHS[2]]
+        current = (CASEFOLD_SOURCE / runner.CASEFOLD_PATHS[2]).read_bytes()
+        self.assertEqual(casefold_original183_blocks(old), casefold_original183_blocks(current))
+        first = next(iter(casefold_original183_blocks(old).values())).encode()
+        for changed in (current.replace(first, b'', 1), current.replace(first, first + b'\n' + first, 1),
+                        current.replace(first, first.replace(b'\n', b'\n        # changed source\n', 1), 1)):
+            with self.assertRaises(ValueError): casefold_original183_blocks(changed)
+
+    def test_actual_identical_and_case_variant_names_have_independent_parents(self):
+        fixture = XctestrunPathTemplateTests()
+        fixture.setUp(); self.addCleanup(fixture.doCleanups)
+        names = ('name__unfinished', 'name__UNFINISHED', 'double__underscore__path', 'name__unfinished')
+        roots = [fixture._products(name) for name in names]
+        self.assertEqual([p.name for p in roots], list(names))
+        self.assertEqual(len({str(p.parent).casefold() for p in roots}), len(names))
+        for path in roots:
+            self.assertTrue(path.is_dir())
+            self.assertTrue(path.resolve().is_relative_to(fixture.root.resolve()))
+        for path in roots[:3]:
+            run = fixture._write_run(path, fixture._plain(path, path.name))
+            self.assertEqual(runner.select_xctestrun(path, 'QuestifyUITests'), run.resolve())
+
+    def test_simulated_casefold_directory_collision_rejects_old_layout_not_isolated_helper(self):
+        """Explicit casefold simulation over real files; not a claim about host FS semantics."""
+        fixture = XctestrunPathTemplateTests()
+        fixture.setUp(); self.addCleanup(fixture.doCleanups)
+        original_mkdir = Path.mkdir
+        def casefold_mkdir(path, *args, **kwargs):
+            if path.parent.is_dir():
+                for sibling in path.parent.iterdir():
+                    if sibling.name.casefold() == path.name.casefold() and sibling.name != path.name:
+                        raise FileExistsError('Simulated case-insensitive directory alias: ' + str(path))
+            return original_mkdir(path, *args, **kwargs)
+        old = fixture.root / 'old-layout'; old.mkdir()
+        with mock.patch.object(Path, 'mkdir', casefold_mkdir):
+            (old / 'name__unfinished').mkdir()
+            with self.assertRaises(FileExistsError): (old / 'name__UNFINISHED').mkdir()
+            fresh = [fixture._products(name) for name in ('name__unfinished', 'name__UNFINISHED', 'double__underscore__path')]
+            self.assertEqual(len({str(p.parent).casefold() for p in fresh}), 3)
+            for path in fresh:
+                run = fixture._write_run(path, fixture._plain(path, path.name))
+                self.assertEqual(runner.select_xctestrun(path, 'QuestifyUITests'), run.resolve())
+        # A broken allocator that reuses one parent reproduces the same failure.
+        coalesced = fixture.root / 'coalesced'; coalesced.mkdir()
+        with mock.patch.object(tempfile, 'mkdtemp', return_value=str(coalesced)), mock.patch.object(Path, 'mkdir', casefold_mkdir):
+            fixture._products('name__unfinished')
+            with self.assertRaises(FileExistsError): fixture._products('name__UNFINISHED')
+
+    def test_selector_complete_function_and_original_literal_cases_remain_fixed(self):
+        raw = (CASEFOLD_SOURCE / runner.CASEFOLD_PATHS[0]).read_bytes()
+        node = next(n for n in ast.parse(raw).body if isinstance(n, ast.FunctionDef) and n.name == 'select_xctestrun')
+        source = b''.join(raw.splitlines(True)[node.lineno - 1:node.end_lineno])
+        self.assertEqual(runner.hashlib.sha256(source).hexdigest(), '2690b28488e15a9887d624e7aae6e28dccc4a2e748a16a45479cda57b68dc361')
+        method = casefold_original183_blocks((CASEFOLD_SOURCE / runner.CASEFOLD_PATHS[2]).read_bytes())[
+            'XctestrunPathTemplateTests.test_non_token_double_underscore_names_remain_literal']
+        self.assertIn("('name__unfinished', 'name__UNFINISHED', 'double__underscore__path')", method)
+        self.assertIn("self.assertEqual(runner.select_xctestrun(products, 'QuestifyUITests'), run.resolve())", method)
+
+    def test_current_three_raw_missing_old_same_stat_symlink_and_foreign_root_rejected(self):
+        root = self.fixture()
+        runner.casefold_current_inputs(CASEFOLD_SELECTION, root)
+        old = runner.casefold_predecessor_sources(CASEFOLD_SELECTION, root)
+        for relative in runner.CASEFOLD_PATHS:
+            path = root / relative; raw = path.read_bytes(); stat = path.stat()
+            path.write_bytes(bytes([raw[0] ^ 1]) + raw[1:]); os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+            with self.subTest(path=relative, mode='same-stat'), self.assertRaises(ValueError):
+                runner.casefold_current_inputs(CASEFOLD_SELECTION, root)
+            path.unlink()
+            with self.subTest(path=relative, mode='missing'), self.assertRaises((ValueError, OSError)):
+                runner.casefold_current_inputs(CASEFOLD_SELECTION, root)
+            path.symlink_to(CASEFOLD_SOURCE / relative)
+            with self.subTest(path=relative, mode='symlink'), self.assertRaises(ValueError):
+                runner.casefold_current_inputs(CASEFOLD_SELECTION, root)
+            path.unlink(); path.write_bytes(raw)
+            if relative != runner.CASEFOLD_PATHS[0]:
+                path.write_bytes(old[relative])
+                with self.subTest(path=relative, mode='old'), self.assertRaises(ValueError):
+                    runner.casefold_current_inputs(CASEFOLD_SELECTION, root)
+                path.write_bytes(raw)
+        with tempfile.TemporaryDirectory() as missing:
+            with self.assertRaises((ValueError, OSError)):
+                runner.validate_casefold_selection(CASEFOLD_SELECTION, Path(missing))
+
+    def test_exact_raw_json_and_coherent_before_repin_cannot_forge_predecessor(self):
+        root = self.fixture(); path = root / runner.CASEFOLD_PATHS[1]; raw = path.read_bytes()
+        for variant in (raw + b'\n', raw.replace(b'\n', b'\r\n'), json.dumps(CASEFOLD_SELECTION).encode()):
+            path.write_bytes(variant)
+            with self.assertRaises(ValueError): runner.casefold_current_inputs(CASEFOLD_SELECTION, root)
+        for mode in ('before', 'old-field'):
+            changed = copy.deepcopy(CASEFOLD_SELECTION)
+            if mode == 'before': changed['casefold_fixture_repair']['diagnostic_before_blobs'][runner.CASEFOLD_PATHS[0]] = '0' * 40
+            else: changed['unexpected_historical_key'] = True
+            encoded = (json.dumps(changed, indent=2, ensure_ascii=True) + '\n').encode(); path.write_bytes(encoded)
+            with mock.patch.object(runner, 'CASEFOLD_LAYER', changed['casefold_fixture_repair']), \
+                 mock.patch.object(runner, 'CASEFOLD_SELECTION_SHA256', runner.hashlib.sha256(runner.encode(changed).encode()).hexdigest()), \
+                 mock.patch.object(runner, 'CASEFOLD_SELECTION_RAW_SHA256', runner.hashlib.sha256(encoded).hexdigest()), self.assertRaises(ValueError):
+                runner.casefold_current_inputs(changed, root)
+
+    def test_published54_complete_before_images_and_old_domain_do_not_admit_new_layer(self):
+        incoming = runner.casefold_predecessor_sources(CASEFOLD_SELECTION, CASEFOLD_SOURCE)
+        for path in runner.CASEFOLD_PATHS[1:]:
+            self.assertEqual(runner.blob_id(incoming[path]), runner.CASEFOLD_BEFORE_BLOBS[path])
+            self.assertEqual(incoming[path], (PATHFIX_SOURCE / path).read_bytes())
+        self.assertEqual(runner.validate_casefold_selection(CASEFOLD_SELECTION, CASEFOLD_SOURCE), CASEFOLD_SELECTION)
+        with self.assertRaises(ValueError): runner.validate_pathfix_selection(CASEFOLD_SELECTION, CASEFOLD_SOURCE)
+        with self.assertRaises(ValueError): runner.validate_casefold_selection(PATHFIX_SELECTION, PATHFIX_SOURCE)
+        self.assertEqual(CASEFOLD_SELECTION['groups'], PATHFIX_SELECTION['groups'])
+        self.assertEqual(len(runner.CASEFOLD_PATHS), 3)
+
+    def test_bounded_published54_fixture_never_hardlinks_current_sources(self):
+        for relative in (*runner.CASEFOLD_PATHS, 'App/ProjectThoughtDefinitionsEditor.swift', 'Tests/AppUnitTests/ProjectAlbumImageAuthorTests.swift'):
+            current = CASEFOLD_SOURCE / relative; historical = PATHFIX_SOURCE / relative
+            self.assertFalse(os.path.samefile(current, historical))
+            self.assertEqual(current.stat().st_nlink, 1)
+            self.assertEqual(historical.stat().st_nlink, 1)
+
+    def test_receipt_requires_new_identity_every_old_layer_and_all65_actual_methods(self):
+        receipt, expected = ReceiptIdentity().receipt()
+        receipt.update(native_base_commit=runner.NATIVE_BASE_COMMIT, native_base_tree=runner.NATIVE_BASE_TREE,
+                       native_selection=runner.NATIVE_NAME, portable_base_commit=runner.PORTABLE_BASE_COMMIT,
+                       portable_base_tree=runner.PORTABLE_BASE_TREE, portable_selection=runner.PORTABLE_LAYER['name'],
+                       description_base_commit=runner.DESCRIPTION_BASE_COMMIT, description_base_tree=runner.DESCRIPTION_BASE_TREE,
+                       description_selection=runner.DESCRIPTION_LAYER['name'], social_base_commit=runner.SOCIAL_BASE_COMMIT,
+                       social_base_tree=runner.SOCIAL_BASE_TREE, social_selection=runner.SOCIAL_LAYER['name'],
+                       pathfix_base_commit=runner.PATHFIX_BASE_COMMIT, pathfix_base_tree=runner.PATHFIX_BASE_TREE,
+                       pathfix_selection=runner.PATHFIX_NAME)
+        with self.assertRaises(ValueError): runner.validate_casefold_pass_receipt(receipt, expected, CASEFOLD_SELECTION)
+        receipt.update(casefold_base_commit=runner.CASEFOLD_BASE_COMMIT, casefold_base_tree=runner.CASEFOLD_BASE_TREE,
+                       casefold_selection=runner.CASEFOLD_NAME)
+        runner.validate_casefold_pass_receipt(receipt, expected, CASEFOLD_SELECTION)
+        for key in ('casefold_base_commit', 'casefold_base_tree', 'casefold_selection', 'pathfix_base_commit',
+                    'social_base_commit', 'description_base_commit', 'portable_base_commit', 'native_base_commit'):
+            changed = copy.deepcopy(receipt); changed[key] = 'wrong'
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                runner.validate_casefold_pass_receipt(changed, expected, CASEFOLD_SELECTION)
+        changed = copy.deepcopy(receipt); changed['groups']['core']['actual'] = []
+        with self.assertRaises(ValueError): runner.validate_casefold_pass_receipt(changed, expected, CASEFOLD_SELECTION)
+
+
+class FixedPublicPathfixRead(unittest.TestCase):
+    """Mocked public-read boundaries only; these tests perform no network fetch."""
+    def headers(self):
+        return 'tree ' + runner.PATHFIX_BASE_TREE + '\nparent ' + runner.SOCIAL_BASE_COMMIT + '\n\nSynthetic bb5 metadata'
+
+    def present(self, command, root):
+        if command[1:3] == ['cat-file', '-e']: return ''
+        if command == ['git', 'cat-file', '-p', runner.PATHFIX_BASE_COMMIT]: return self.headers()
+        raise AssertionError(command)
+
+    def missing(self, command, root):
+        if command[1:3] == ['cat-file', '-e']: raise ValueError('Synthetic missing fixed bb5 object')
+        return self.present(command, root)
+
+    def test_present_exact_bb5_never_fetches_or_reads_network_configuration(self):
+        with mock.patch.object(runner, 'checked', side_effect=self.present), mock.patch.object(runner, 'execute') as execute:
+            runner.ensure_pathfix_commit(CASEFOLD_SOURCE)
+        execute.assert_not_called()
+
+    def test_missing_bb5_uses_one_exact_bounded_noninteractive_public_read_without_credentials(self):
+        environment = {'GITHUB_TOKEN': 'synthetic-not-a-secret', 'GH_TOKEN': 'synthetic-not-a-secret',
+                       'GIT_CONFIG_COUNT': '1', 'GIT_CONFIG_KEY_0': 'http.extraHeader',
+                       'GIT_CONFIG_VALUE_0': 'synthetic-not-a-secret', 'GIT_SSH_COMMAND': 'unexpected',
+                       'HTTP_PROXY': 'http://example.invalid', 'HTTPS_PROXY': 'http://example.invalid'}
+        with mock.patch.dict(os.environ, environment), mock.patch.object(runner, 'checked', side_effect=self.missing), \
+             mock.patch.object(runner, 'execute', side_effect=[(0, b'core.bare\n'), (0, b'')]) as execute:
+            runner.ensure_pathfix_commit(CASEFOLD_SOURCE)
+        self.assertEqual(execute.call_count, 2)
+        config, fetch = execute.call_args_list
+        self.assertEqual(config.args[0], ['git', 'config', '--local', '--includes', '--name-only', '--list'])
+        self.assertEqual(config.args[2], 10)
+        self.assertEqual(fetch.args[0], ['git', '-c', 'credential.helper=', '-c', 'core.askPass=',
+                                       '-c', 'http.extraHeader=', '-c', 'http.followRedirects=false',
+                                       '-c', 'protocol.allow=never', '-c', 'protocol.https.allow=always',
+                                       'fetch', '--no-tags', '--no-write-fetch-head', '--depth=1', '--no-recurse-submodules',
+                                       'https://github.com/liboyang42-cpu/chengyin-ios.git',
+                                       'bb5d22fdd7c14d3fa747c4048babb8ebd6e659db'])
+        self.assertEqual(fetch.args[2:4], (60, True))
+        safe = fetch.kwargs['env']
+        self.assertEqual(set(safe), {'PATH', 'LANG', 'HOME', 'GIT_TERMINAL_PROMPT', 'GIT_CONFIG_NOSYSTEM',
+                                     'GIT_CONFIG_GLOBAL', 'GIT_ASKPASS', 'SSH_ASKPASS'})
+        self.assertEqual(safe['GIT_TERMINAL_PROMPT'], '0')
+        self.assertEqual(safe['GIT_CONFIG_GLOBAL'], '/dev/null')
+        self.assertEqual(safe['GIT_CONFIG_NOSYSTEM'], '1')
+        self.assertEqual(safe['HOME'], '/dev/null')
+        self.assertEqual(config.kwargs['env'], safe)
+        self.assertFalse(set(environment) & set(safe))
+
+    def test_bb5_credential_redirect_include_and_auth_configuration_fail_before_fetch(self):
+        keys = ('credential.helper', 'credential.https://github.com.username', 'http.extraheader',
+                'http.https://github.com/.extraheader', 'http.proxy', 'url.ssh://example.invalid.insteadof',
+                'include.path', 'includeif.gitdir:work.path', 'core.askpass', 'extensions.worktreeconfig')
+        for key in keys:
+            with self.subTest(key=key), mock.patch.object(runner, 'checked', side_effect=self.missing), \
+                 mock.patch.object(runner, 'execute', return_value=(0, (key + '\n').encode())) as execute, self.assertRaises(ValueError):
+                runner.ensure_pathfix_commit(CASEFOLD_SOURCE)
+            self.assertEqual(execute.call_count, 1)
+
+    def test_bb5_unreadable_config_offline_and_timeout_fail_closed_without_retry(self):
+        for mode in ('config', 'offline', 'timeout'):
+            outputs = [(1, b'')] if mode == 'config' else [(0, b'core.bare\n'), (124 if mode == 'timeout' else 1, b'')]
+            with self.subTest(mode=mode), mock.patch.object(runner, 'checked', side_effect=self.missing), \
+                 mock.patch.object(runner, 'execute', side_effect=outputs) as execute, self.assertRaises(ValueError):
+                runner.ensure_pathfix_commit(CASEFOLD_SOURCE)
+            self.assertEqual(execute.call_count, 1 if mode == 'config' else 2)
+
+    def test_existing_or_fetched_bb5_wrong_tree_parent_merge_or_missing_headers_fail(self):
+        bad_headers = (self.headers().replace(runner.PATHFIX_BASE_TREE, '0' * 40),
+                       self.headers().replace(runner.SOCIAL_BASE_COMMIT, runner.BASE_COMMIT),
+                       self.headers().replace('\n\n', '\nparent ' + 'f' * 40 + '\n\n'),
+                       self.headers().replace('tree ' + runner.PATHFIX_BASE_TREE + '\n', ''),
+                       self.headers().replace('parent ' + runner.SOCIAL_BASE_COMMIT + '\n', ''),
+                       self.headers().replace('\nparent ', '\ntree ' + runner.PATHFIX_BASE_TREE + '\nparent ', 1))
+        for existing in (True, False):
+            for bad in bad_headers:
+                def read(command, root):
+                    if command[1:3] == ['cat-file', '-e']:
+                        if existing: return ''
+                        raise ValueError('Synthetic missing bb5')
+                    return bad
+                with self.subTest(existing=existing, headers=bad), mock.patch.object(runner, 'checked', side_effect=read), \
+                     mock.patch.object(runner, 'execute', side_effect=[(0, b'core.bare\n'), (0, b'')]) as execute, self.assertRaises(ValueError):
+                    runner.ensure_pathfix_commit(CASEFOLD_SOURCE)
+                self.assertEqual(execute.call_count, 0 if existing else 2)
+
+    def test_fixed_bb5_public_object_identity_cannot_be_generalized(self):
+        for key in ('PATHFIX_BASE_COMMIT', 'PATHFIX_BASE_TREE'):
+            with self.subTest(key=key), mock.patch.object(runner, key, '0' * 40), \
+                 mock.patch.object(runner, 'checked') as read, mock.patch.object(runner, 'execute') as execute, self.assertRaises(ValueError):
+                runner.ensure_pathfix_commit(CASEFOLD_SOURCE)
+            read.assert_not_called(); execute.assert_not_called()
+
+
 
 if __name__ == '__main__':
     unittest.main()

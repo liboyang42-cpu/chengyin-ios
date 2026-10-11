@@ -2491,5 +2491,21 @@
         ]
       }
     ]
+  },
+  "casefold_fixture_repair": {
+    "version": 1,
+    "name": "casefold-isolated-diagnostic-fixture-v1",
+    "base_commit": "54f708eb260ad20cdf0fb6355cc4eaedb967019a",
+    "base_tree": "aaac274fb90e59672b2320287028598b812fb6c2",
+    "allowed_changes": [
+      "M\ttools/run_targeted_native.py",
+      "M\ttools/targeted_native_selection.json",
+      "M\ttools/tests/test_targeted_native.py"
+    ],
+    "diagnostic_before_blobs": {
+      "tools/run_targeted_native.py": "8dcd2b1e3c441636c82b909aaffae72dcf8e6e2e",
+      "tools/targeted_native_selection.json": "e120ebf6f4d6e805f3e522e92733ea142d926c8e",
+      "tools/tests/test_targeted_native.py": "d1188358769bd7115577a33c3ac167f8fc29227d"
+    }
   }
 }
