@@ -155,6 +155,7 @@ class Results(unittest.TestCase):
             with self.subTest(transcript=transcript[:90]), self.assertRaises(ValueError):
                 runner.validate_core_evidence(xml, transcript, methods, 0)
         self.assertIn('--verbose', runner.core_command(SELECTION['groups'][0], '/tmp/result.xml'))
+        self.assertIn('--skip-build', runner.core_command(SELECTION['groups'][0], '/tmp/result.xml'))
 
     def test_xunit_failures_skips_and_unknown_status_cannot_pass(self):
         for child in ['<failure/>', '<error/>', '<skipped/>']:
@@ -236,6 +237,46 @@ class RuntimeBoundaries(unittest.TestCase):
         code, _ = runner.execute([sys.executable, '-c', 'import time; time.sleep(60)'], SOURCE, .03, True)
         self.assertEqual(code, 124)
         with self.assertRaises(ValueError): runner.execute(['not-run'], SOURCE, 0)
+
+    def test_core_build_is_once_before_exact_execution_and_failure_stops(self):
+        class StopAfterCore(Exception):
+            pass
+        identity = {'source_sha': 'a' * 40, 'source_tree': 'b' * 40}
+        environment = {'GITHUB_RUN_ID': '123', 'GITHUB_RUN_ATTEMPT': '1', 'GITHUB_WORKFLOW_SHA': 'a' * 40}
+        for code in [0, 1, 124]:
+            with tempfile.TemporaryDirectory() as temporary:
+                job = runner.Diagnostic(TOOLS.parent, Path(temporary), SELECTION)
+                order = []
+                def command(args, seconds, capture=False):
+                    order.append(('build', args, seconds, capture))
+                    return code, b''
+                def collect(group, args, seconds, result):
+                    order.append(('test', args, seconds))
+                    raise StopAfterCore()
+                with mock.patch.object(runner, 'runtime_environment'), mock.patch.object(runner, 'verify_scope', return_value=identity), mock.patch.dict(os.environ, environment), mock.patch.object(job, 'toolchain', return_value={}), mock.patch.object(job, 'command', side_effect=command), mock.patch.object(job, 'collect', side_effect=collect):
+                    with self.assertRaises(StopAfterCore if code == 0 else ValueError): job.run()
+                self.assertEqual(order[0], ('build', ['swift', 'build', '--build-tests'], 720, False))
+                self.assertEqual([item[0] for item in order], ['build', 'test'] if code == 0 else ['build'])
+                self.assertEqual(job.receipt['groups']['core']['build_returncode'], code)
+                if code == 0:
+                    self.assertEqual(order[1][1], runner.core_command(SELECTION['groups'][0], Path(temporary) / 'core.xml'))
+                    self.assertEqual(order[1][2], 180)
+                self.assertEqual(job.receipt['groups']['core']['actual_count'], 0)
+
+    def test_core_capture_keeps_stderr_live_and_limits_only_evidence(self):
+        process = mock.Mock(); process.returncode = 0
+        process.communicate.return_value = (b'small XCTest transcript', None)
+        with mock.patch.object(runner.subprocess, 'Popen', return_value=process) as popen:
+            self.assertEqual(runner.execute(['swift', 'test', '--skip-build'], SOURCE, 5, 'stdout'),
+                             (0, b'small XCTest transcript'))
+            self.assertEqual(popen.call_args.kwargs['stdout'], subprocess.PIPE)
+            self.assertIsNone(popen.call_args.kwargs['stderr'])
+        process.communicate.return_value = (b'x' * (runner.LIMIT + 1), None)
+        with mock.patch.object(runner.subprocess, 'Popen', return_value=process), self.assertRaises(ValueError):
+            runner.execute(['fake'], SOURCE, 5, 'stdout')
+        source = (TOOLS / 'run_targeted_native.py').read_text()
+        self.assertIn("self.command(['swift', 'build', '--build-tests'], 720)", source)
+        self.assertIn("self.collect(groups['core'], core_command(groups['core'], core), 180, core)", source)
 
     def test_every_cleanup_wait_is_bounded_even_after_kill(self):
         process = mock.Mock(); process.pid = 10
@@ -332,6 +373,7 @@ class ReceiptIdentity(unittest.TestCase):
              'groups': {g['name']: {'status': 'PASS', 'expected': g['methods'], 'actual_count': len(g['methods']), 'returncode': 0,
                                    'actual': [{'method': m, 'status': 'Passed'} for m in g['methods']]} for g in SELECTION['groups']},
              'products': {}}
+        r['groups']['core']['build_returncode'] = 0
         for name, config in [('ui', 'Debug/iphonesimulator/unsigned/ONLY_ACTIVE_ARCH=NO'), ('app-unit', 'Debug/iphonesimulator/isolated-entitlement-section/adhoc-host')]:
             r['products'][name] = {'configuration': config, 'files': 3, 'sha256': 'd' * 64, 'xctestrun_sha256': 'e' * 64}
         for group in SELECTION['groups']:
@@ -382,9 +424,10 @@ class ReceiptIdentity(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError): runner.validate_pass_receipt(receipt, identity, SELECTION)
 
     def test_missing_or_wrong_configuration_toolchain_simulator_or_group_rejected(self):
-        for mode in ['config', 'toolchain', 'simulator', 'count', 'group', 'product-sha', 'archive', 'manifest-sha', 'result-sha']:
+        for mode in ['config', 'toolchain', 'simulator', 'count', 'group', 'product-sha', 'archive', 'manifest-sha', 'result-sha', 'core-build']:
             receipt, identity = self.receipt()
-            if mode == 'config': receipt['products']['ui']['configuration'] = 'Release/iphoneos'
+            if mode == 'core-build': receipt['groups']['core']['build_returncode'] = 1
+            elif mode == 'config': receipt['products']['ui']['configuration'] = 'Release/iphoneos'
             elif mode == 'toolchain': del receipt['toolchain']['sdk_version']
             elif mode == 'simulator': receipt['simulator']['name'] = 'iPad'
             elif mode == 'count': receipt['actual_count'] = 0

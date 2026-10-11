@@ -126,7 +126,7 @@ def execute(command, cwd, timeout, capture=False):
     require(timeout > 0, 'Diagnostic deadline exhausted')
     process = subprocess.Popen([str(x) for x in command], cwd=cwd, start_new_session=True,
                                stdout=subprocess.PIPE if capture else None,
-                               stderr=subprocess.PIPE if capture else None)
+                               stderr=subprocess.PIPE if capture is True else None)
     timed_out = False
     try:
         stdout, stderr = process.communicate(timeout=timeout)
@@ -187,7 +187,7 @@ def core_command(group, output):
         target, cls, method = identifier.split('/')
         alternatives.append(re.escape(target + '.' + cls + '/' + method))
     require(bool(alternatives), 'Empty Core selection')
-    return ['swift', 'test', '--verbose', '--parallel', '--num-workers', '1', '--filter',
+    return ['swift', 'test', '--skip-build', '--verbose', '--parallel', '--num-workers', '1', '--filter',
             '^(?:' + '|'.join(alternatives) + ')$', '--xunit-output', str(output)]
 
 
@@ -412,13 +412,17 @@ class Diagnostic:
     def collect(self, group, command, seconds, result):
         entry = self.receipt['groups'][group['name']]
         entry['status'] = 'RUNNING'; self.save()
-        code, transcript = self.command(command, seconds, group['kind'] == 'swift')
+        code, transcript = self.command(command, seconds, 'stdout' if group['kind'] == 'swift' else False)
         entry['returncode'] = code
         try:
             if group['kind'] == 'swift':
                 transcript_path = self.output / 'core-stdout.txt'
                 transcript_path.write_bytes(transcript)
                 entry['transcript_sha256'] = digest(transcript_path)
+                # Emit only bounded XCTest identity/outcome lines, not compiler verbosity.
+                for line in transcript.decode('utf-8', errors='replace').splitlines():
+                    if line.startswith('Test Case '):
+                        print(line, flush=True)
                 rows = validate_core_evidence(result.read_bytes(), transcript, group['methods'], code)
                 entry['result_sha256'] = digest(result)
             else:
@@ -452,7 +456,14 @@ class Diagnostic:
         self.save()
         groups = {g['name']: g for g in self.selection['groups']}
         core = self.output / 'core.xml'
-        self.collect(groups['core'], core_command(groups['core'], core), 720, core)
+        # Build once with normal live output; verbose compilation can exceed the
+        # evidence bound. The exact test execution then reuses these products.
+        require(not (self.root / '.build').exists(), 'Preexisting Core products are forbidden')
+        self.receipt['groups']['core']['status'] = 'RUNNING'; self.save()
+        code, _ = self.command(['swift', 'build', '--build-tests'], 720)
+        self.receipt['groups']['core']['build_returncode'] = code; self.save()
+        require(code == 0, 'Core build-for-testing failed')
+        self.collect(groups['core'], core_command(groups['core'], core), 180, core)
         devices = json.loads(self.read(['xcrun', 'simctl', 'list', 'devices', 'available', '--json']))
         simulator = choose_simulator(devices); self.receipt['simulator'] = simulator; self.save()
         derived = self.output / 'ui-build'
@@ -513,6 +524,8 @@ def validate_pass_receipt(receipt, expected, selection):
         actual = receipt['groups'][group['name']]
         require(actual.get('status') == 'PASS' and actual.get('expected') == group['methods'] and actual.get('actual_count') == len(group['methods']), 'Wrong group result count')
         validate_outcomes(actual.get('actual'), group['methods'], actual.get('returncode'))
+        if group['kind'] == 'swift':
+            require(type(actual.get('build_returncode')) is int and actual['build_returncode'] == 0, 'Core build did not succeed')
         for key in (['result_sha256', 'transcript_sha256'] if group['kind'] == 'swift' else ['summary_sha256', 'tests_sha256']):
             require(re.fullmatch('[a-f0-9]{64}', actual.get(key, '')) is not None, 'Missing executed-result digest')
     products = receipt.get('products', {})
