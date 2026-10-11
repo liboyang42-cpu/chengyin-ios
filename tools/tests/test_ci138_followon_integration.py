@@ -12,15 +12,16 @@ import unittest
 from unittest.mock import patch
 
 from tools import club_customer_directory_admission as _club_history
-_CLUB_E2B = _club_history.club_original_current_context(Path(__file__).resolve().parents[2])
-# Use the same verified fixture context as copied_inputs and its contracts.
-__builtins__ = _CLUB_E2B.builtins
+with _club_history.club_authenticated_transaction(Path(__file__).resolve().parents[2]):
+    _CLUB_E2B = _club_history.club_original_current_context(Path(__file__).resolve().parents[2])
+    # Use the same verified fixture context as copied_inputs and its contracts.
+    __builtins__ = _CLUB_E2B.builtins
 
-followons = _CLUB_E2B.load('tools/ci138_followon_projection.py')
-entry = _CLUB_E2B.load('tools/run138_current_source_projection.py')
-readiness = _CLUB_E2B.load('tools/run138_editor_readiness.py')
-run129 = _CLUB_E2B.load('tools/run129_repair_planning.py')
-copied_inputs = _CLUB_E2B.load('tools/tests/test_run138_editor_readiness.py').copied_inputs
+    followons = _CLUB_E2B.load('tools/ci138_followon_projection.py')
+    entry = _CLUB_E2B.load('tools/run138_current_source_projection.py')
+    readiness = _CLUB_E2B.load('tools/run138_editor_readiness.py')
+    run129 = _CLUB_E2B.load('tools/run129_repair_planning.py')
+    copied_inputs = _CLUB_E2B.load('tools/tests/test_run138_editor_readiness.py').copied_inputs
 
 
 ROOT = readiness.ROOT
@@ -45,6 +46,11 @@ def component_inputs():
 
 
 class CI138FollowonIntegrationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.enterClassContext(_club_history.club_authenticated_transaction(Path(__file__).resolve().parents[2]))
+
     def setUp(self):
         self.enterContext(_club_history.club_authenticated_transaction(Path(__file__).resolve().parents[2]))
 

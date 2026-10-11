@@ -46,7 +46,9 @@ import XCTest
     func testExactEarnedNameIsNotReplacedByAThresholdOrCatalogue() throws {
         let record = try record(["medal": "  城市漫游 · Café 🏅  "])
         let value = try XCTUnwrap(RoamMedalShareSelection(record: record, kind: .journey))
-        XCTAssertEqual(Array(value.card.name.utf8), Array("  城市漫游 · Café 🏅  ".utf8))
+        // History decoding normalizes outer whitespace before the share projection.
+        XCTAssertEqual(record.medal, "城市漫游 · Café 🏅")
+        XCTAssertEqual(Array(value.card.name.utf8), Array(try XCTUnwrap(record.medal).utf8))
         XCTAssertEqual(value.card.recordedAt, Date(timeIntervalSince1970: 1700000000))
     }
     func testCardProjectionExcludesAllLocationMediaAndAccountFields() throws {
