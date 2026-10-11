@@ -51,7 +51,13 @@ import Observation
                     NavigationLink {
                         ClubGovernanceReadView(operation: operation, scope: ClubGovernanceFixtures.scope, identity: store.identity, access: store.access, coordinator: store.coordinator)
                             .accessibilityIdentifier("club.gov.fixture.destination." + operation.rawValue)
-                            .toolbar { ToolbarItem(placement: .bottomBar) { Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount") } }
+                            .toolbar {
+                                // Leaderboard scenarios already expose a fixed switch above the stack.
+                                // A duplicate floating bottom bar can intercept the member-row tap.
+                                if !ProcessInfo.processInfo.arguments.contains("--club-leaderboard-scenario") {
+                                    ToolbarItem(placement: .bottomBar) { Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount") }
+                                }
+                            }
                     } label: { Text(LocalizedStringKey("club.gov." + operation.rawValue)) }.accessibilityIdentifier("club.gov.fixture." + operation.rawValue)
                 }
                 Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount")

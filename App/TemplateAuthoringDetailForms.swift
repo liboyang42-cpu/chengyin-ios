@@ -160,6 +160,17 @@ import SwiftUI
                     LabeledContent("templateStory.imageCount", value: "\(beat.imgs.count) / \(TemplateAuthoringStory.maximumImagesPerBeat)")
                         .accessibilityIdentifier("templateStory.beat.\(index).imageCount")
                     if beat.imgs.count > TemplateAuthoringStory.maximumImagesPerBeat { Text("templateStory.historicalImages").font(.caption).foregroundStyle(.secondary) }
+                    ForEach(Array(beat.imgs.enumerated()), id: \.offset) { imageIndex, reference in
+                        HStack(alignment: .top) {
+                            Text(verbatim: reference).font(.caption).textSelection(.enabled)
+                            Spacer()
+                            Button("templateStory.removeImage", role: .destructive,
+                                   action: editor.removeImageAction(beat.id, at: imageIndex))
+                                .buttonStyle(.borderless)
+                                .accessibilityIdentifier("templateStory.beat.\(index).removeImage.\(imageIndex)")
+                                .accessibilityLabel(Text("templateStory.removeImageNumber \(imageIndex + 1)"))
+                        }
+                    }
                     TemplateMediaReviewFields(controller: media, beatID: beat.id, accessibilityPrefix: "templateMedia.open.beat.\(index)")
                 }
             }.onDelete { editor.remove($0) }.onMove { editor.move($0, to: $1) }
@@ -169,6 +180,7 @@ import SwiftUI
             .navigationTitle("templateAuthor.storyTimeline")
             .toolbar { EditButton().disabled(!editor.canEdit) }
             .onAppear { editor.load(); media.reload() }
+            .onDisappear { editor.retire() }
             .onDisappear { media.retire() }
             .modifier(TemplateMediaReviewPresentation(controller: media))
     }

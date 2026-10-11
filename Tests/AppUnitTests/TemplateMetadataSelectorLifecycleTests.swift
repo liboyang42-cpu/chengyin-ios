@@ -176,6 +176,112 @@ import Combine
         reopenedModel.prepare(.saveDraft); XCTAssertNotNil(reopenedModel.review)
         XCTAssertFalse(editor.select(reader.options[0])); XCTAssertEqual(reopenedModel.draft.players, "  old  ")
     }
+    func testVenueOpenCancelPreservesNilEmptyAndHistoricalBytesWithoutWrites() throws {
+        for raw in [nil, "", "  custom venue  ", "Cafe\u{301}", "博物馆 "] as [String?] {
+            var seed = TemplateAuthoringDraft(title: "Venue"); seed.usageLocation = raw
+            let (model, owner, store) = try setup(seed)
+            let editor = TemplateAuthoringVenueEditor(model: model), generation = model.metadataGeneration
+            XCTAssertTrue(editor.canEdit)
+            XCTAssertEqual(editor.savedRawValue.map { Data($0.utf8) }, raw.map { Data($0.utf8) })
+            XCTAssertNil(editor.selected)
+            XCTAssertEqual(editor.hasHistoricalValue, raw?.isEmpty == false)
+            editor.close()
+            XCTAssertFalse(editor.select(.museum)); XCTAssertNil(editor.savedRawValue)
+            XCTAssertEqual(model.metadataGeneration, generation)
+            XCTAssertEqual(model.draft, seed); XCTAssertEqual(model.coordinator.draft, seed)
+            XCTAssertEqual(model.draft.usageLocation.map { Data($0.utf8) }, raw.map { Data($0.utf8) })
+            XCTAssertNil(try store.active(session: XCTUnwrap(owner.value)))
+            XCTAssertFalse(model.coordinator.canSubmit)
+        }
+    }
+    func testEveryVenueSelectionChangesOnlyItsFieldAndSurvivesLocalSaveRestore() throws {
+        for preset in TemplateVenuePreset.allCases {
+            var seed = TemplateAuthoringSyntheticFixtures.compoundDraft()
+            seed.usageLocation = " Historical venue "; seed.players = " 3-5 "; seed.categoryId = 73
+            let (model, owner, store) = try setup(seed)
+            let editor = TemplateAuthoringVenueEditor(model: model)
+            XCTAssertTrue(editor.select(preset)); XCTAssertFalse(editor.canRead)
+            var expected = seed; expected.usageLocation = preset.storedValue
+            XCTAssertEqual(model.draft, expected); XCTAssertEqual(model.coordinator.draft, expected)
+            XCTAssertFalse(editor.select(.park)); XCTAssertEqual(model.draft, expected)
+            model.save(); model.leave()
+            let reopened = TemplateAuthoringCoordinator(store: store, currentSession: { owner.value })
+            reopened.open(); reopened.restoreDraft()
+            XCTAssertEqual(reopened.draft, expected); XCTAssertFalse(reopened.canSubmit)
+            XCTAssertNil(try store.pending(session: XCTUnwrap(owner.value), identity: reopened.identity))
+        }
+    }
+    func testCurrentVenueSelectionIsNoopAndFreshPresentationCanSelectAgain() throws {
+        var seed = TemplateAuthoringDraft(title: "Venue"); seed.usageLocation = "博物馆"
+        let (model, _, _) = try setup(seed), generation = model.metadataGeneration
+        let editor = TemplateAuthoringVenueEditor(model: model)
+        XCTAssertEqual(editor.selected, .museum); XCTAssertFalse(editor.hasHistoricalValue)
+        XCTAssertTrue(editor.select(.museum)); XCTAssertEqual(model.metadataGeneration, generation)
+        XCTAssertEqual(model.draft, seed); XCTAssertEqual(model.coordinator.draft, seed)
+        XCTAssertFalse(editor.select(.park))
+        let fresh = TemplateAuthoringVenueEditor(model: model)
+        XCTAssertTrue(fresh.select(.park)); XCTAssertEqual(model.coordinator.draft.usageLocation, "公园绿地")
+    }
+    func testVenueCallbacksRetireAcrossDraftAndSessionChanges() throws {
+        for action in ["reload", "leave", "discard", "replace", "draftABA", "account", "epoch", "role", "logout", "sessionABA"] {
+            var seed = TemplateAuthoringDraft(title: "Venue"); seed.usageLocation = "Historical"
+            let (model, owner, _) = try setup(seed)
+            let editor = TemplateAuthoringVenueEditor(model: model)
+            switch action {
+            case "reload": model.load()
+            case "leave": model.leave()
+            case "discard": model.discard()
+            case "replace": model.draft.description = "Other draft bytes"
+            case "draftABA": model.draft.usageLocation = "Other"; model.changed(); model.draft = seed; model.changed()
+            case "account": owner.value = try session(902)
+            case "epoch": owner.value = try session(epoch: 2)
+            case "role": owner.value = try session(role: "merchant")
+            case "sessionABA": owner.value = try session(902); model.load(); owner.value = try session(); model.load()
+            default: owner.value = nil
+            }
+            let after = model.draft
+            XCTAssertFalse(editor.canRead, action); XCTAssertNil(editor.savedRawValue, action)
+            XCTAssertFalse(editor.select(.museum), action); XCTAssertEqual(model.draft, after, action)
+        }
+    }
+    func testVenueStaleCanonicalEquivalentBytesAreRejectedBeforeParentChangeCallback() throws {
+        var seed = TemplateAuthoringDraft(title: "Venue"); seed.usageLocation = "Cafe\u{301}"
+        let (model, _, _) = try setup(seed), editor = TemplateAuthoringVenueEditor(model: model)
+        model.draft.usageLocation = "Caf\u{e9}"
+        XCTAssertEqual(model.draft, seed) // Swift String equality is canonical, the venue lease must be byte-exact.
+        XCTAssertFalse(editor.canRead); XCTAssertFalse(editor.select(.museum))
+        XCTAssertEqual(model.draft.usageLocation.map { Data($0.utf8) }, Data("Caf\u{e9}".utf8))
+    }
+    func testVenueRestoreAndReviewBlockOldSelectors() throws {
+        var seed = TemplateAuthoringDraft(title: "Venue"); seed.usageLocation = "  saved venue  "
+        let (model, owner, store) = try setup(seed); model.save()
+        let reopened = TemplateAuthoringCoordinator(store: store, currentSession: { owner.value })
+        let restored = TemplateAuthoringModel(coordinator: reopened); restored.load()
+        let old = TemplateAuthoringVenueEditor(model: restored)
+        XCTAssertFalse(old.canEdit); restored.restore(); XCTAssertFalse(old.select(.museum))
+        XCTAssertEqual(restored.draft.usageLocation, seed.usageLocation)
+        let beforeReview = TemplateAuthoringVenueEditor(model: restored)
+        restored.prepare(.saveDraft); XCTAssertNotNil(restored.review)
+        XCTAssertFalse(beforeReview.select(.museum))
+        let duringReview = TemplateAuthoringVenueEditor(model: restored)
+        XCTAssertFalse(duringReview.select(.museum)); XCTAssertEqual(restored.draft.usageLocation, seed.usageLocation)
+    }
+    func testVenueBusyAndUnknownSubmissionKeepCurrentSavedTextReadOnly() async throws {
+        let (model, _, _) = try setup(), editor = TemplateAuthoringVenueEditor(model: model)
+        model.busy = true; XCTAssertFalse(editor.select(.museum)); XCTAssertNil(model.draft.usageLocation)
+        let owner = try session()
+        let coordinator = TemplateAuthoringCoordinator(adapter: .init(transport: TemplateAuthoringSyntheticTransport(scenario: .uncertain)),
+            store: .init(storage: TemplateAuthoringMemoryStorage()), currentSession: { owner })
+        var seed = TemplateAuthoringSyntheticFixtures.compoundDraft(); seed.usageLocation = "博物馆"
+        coordinator.open(seed: seed)
+        let locked = TemplateAuthoringModel(coordinator: coordinator); locked.load()
+        locked.prepare(.publish); await locked.confirm(try XCTUnwrap(locked.review))
+        XCTAssertTrue(coordinator.locked)
+        let retained = TemplateAuthoringVenueEditor(model: locked)
+        XCTAssertEqual(retained.savedRawValue, "博物馆"); XCTAssertFalse(retained.canEdit)
+        XCTAssertFalse(retained.select(.park)); XCTAssertEqual(locked.draft.usageLocation, "博物馆")
+    }
+
     func testLateCategory401AfterDiscardCannotExpireIdentity() async throws {
         let (model, _, _) = try setup(), reader = MetadataSelectorFixtureReader()
         var pending: CheckedContinuation<[DiscoveryCategory], Error>?

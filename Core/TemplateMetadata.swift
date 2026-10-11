@@ -3,6 +3,29 @@ import Foundation
 import FoundationNetworking
 #endif
 
+/// P036's local venue presets. Localized labels are never serialized as venue values.
+/// Unrecognized historical text remains owned by the draft until an explicit selection.
+public enum TemplateVenuePreset: String, CaseIterable, Identifiable {
+    case scenicArea, park, shoppingDistrict, historicTown, museum, campus, indoorVenue
+    public var id: String { rawValue }
+    public var labelKey: String { "templateVenue." + rawValue }
+    public var storedValue: String {
+        switch self {
+        case .scenicArea: return "景区"
+        case .park: return "公园绿地"
+        case .shoppingDistrict: return "商圈街区"
+        case .historicTown: return "古镇老街"
+        case .museum: return "博物馆"
+        case .campus: return "校园"
+        case .indoorVenue: return "室内场馆"
+        }
+    }
+    public init?(storedValue: String) {
+        guard let value = Self.allCases.first(where: { $0.storedValue.utf8.elementsEqual(storedValue.utf8) }) else { return nil }
+        self = value
+    }
+}
+
 /// Only the two dictionaries used by the basic template metadata selectors.
 public enum TemplateMetadataKind: String, CaseIterable, Hashable {
     case players = "app_template_players"

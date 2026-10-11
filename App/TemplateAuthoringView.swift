@@ -278,7 +278,7 @@ import SwiftUI
                 TemplateAuthoringField("description", text: $model.draft.description, multiline: true)
                 TemplateAuthoringMetadataFields(model: model, reader: metadataReader)
                 TemplateAuthoringField("difficulty", text: model.optional(\.difficulty))
-                TemplateAuthoringField("usageLocation", text: model.optional(\.usageLocation))
+                TemplateAuthoringVenueField(model: model)
                 TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
                 TemplateAuthoringField("categoryId", text: model.number(\.categoryId))
                 TemplateAuthoringRuleFields(model: model)

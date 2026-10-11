@@ -63,6 +63,22 @@ import SwiftUI
             }
         })
     }
+    /// Capture the visible occurrence and lease, not an index resolved after another edit.
+    func removeImageAction(_ beatID: UUID, at index: Int) -> () -> Void {
+        let stamp = generation
+        let removal = TemplateStoryImageRemoval(index: index,
+            images: beats.first(where: { $0.id == beatID })?.imgs ?? [])
+        return { [weak self] in
+            guard let self, self.generation == stamp, self.canEdit else { return }
+            self.apply { rows in
+                guard let row = rows.firstIndex(where: { $0.id == beatID }),
+                      let images = removal.applying(to: rows[row].imgs) else { return }
+                rows[row].imgs = images
+            }
+        }
+    }
+    /// Retire callbacks from a dismissed timeline without changing any draft bytes.
+    func retire() { generation += 1 }
     func add() { apply { $0.append(.init()) } }
     func remove(_ offsets: IndexSet) {
         guard offsets.allSatisfy({ beats.indices.contains($0) }), offsets.count < beats.count else { return }

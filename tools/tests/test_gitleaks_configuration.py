@@ -112,7 +112,9 @@ class GitleaksConfigurationTests(unittest.TestCase):
                           f"{commit}:{path}:{rule}:{int(line) + 1}"):
                 with self.subTest(other=other):
                     self.assertNotIn(other, entries)
-        self.assertFalse((ROOT / ".gitleaks.toml").exists())
+        self.assertTrue((ROOT / ".gitleaks.toml").is_file())
+        self.assertEqual(hashlib.sha256((ROOT / ".gitleaks.toml").read_bytes()).hexdigest(),
+                         '5bece171dd5c06a703bf989d3e7ba7799310384284ac7eb70396746dfe10eca4')
 
     def test_new_prose_exception_is_exact_and_new_text_is_not_ignored(self):
         commit, path, rule, line = COVERAGE_PROSE_FINDING.split(":")
@@ -165,7 +167,9 @@ class GitleaksConfigurationTests(unittest.TestCase):
         self.assertIn('https://coupon-runtime.example/native', fixture)
         self.assertIn('makeTransport: { self }', fixture)
         self.assertNotIn('URLSession', fixture)
-        self.assertFalse((ROOT / ".gitleaks.toml").exists())
+        self.assertTrue((ROOT / ".gitleaks.toml").is_file())
+        self.assertEqual(hashlib.sha256((ROOT / ".gitleaks.toml").read_bytes()).hexdigest(),
+                         '5bece171dd5c06a703bf989d3e7ba7799310384284ac7eb70396746dfe10eca4')
 
     def test_scan_stays_read_only_and_pinned(self):
         workflow = (ROOT / ".github/workflows/native-ios.yml").read_text()

@@ -26,5 +26,13 @@
   "templateStory.summaryBoundary": {
     "en": "The summary cutoff splits a Unicode character that Swift cannot preserve exactly. Full text is kept in the draft; adjust text near the 500 UTF-16-unit boundary before preparing a request.",
     "zh-Hans": "摘要截断点拆分了Swift无法完整保留的Unicode字符。全文仍保留在草稿中；请调整500个UTF-16单位附近的文本后再准备请求。"
+  },
+  "templateStory.removeImage": {
+    "en": "Remove image",
+    "zh-Hans": "移除图片"
+  },
+  "templateStory.removeImageNumber %lld": {
+    "en": "Remove image %lld",
+    "zh-Hans": "移除第 %lld 张图片"
   }
 }

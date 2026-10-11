@@ -58,7 +58,7 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
         source = self.source()
         self.assertIn('@Environment(\\.clubEnrollmentProfile) private var leaderboardProfile', source)
         self.assertIn('SocialPublicProfileView(memberID: target.memberID, reader: profile.reader,', source)
-        self.assertIn('squareReader: profile.squareReader, actions: profile.actions)', source)
+        self.assertIn('squareReader: profile.squareReader, actions: profile.actions,', source)
         self.assertIn('static let defaultValue: ClubEnrollmentProfileContext? = nil', (ROOT / 'App/ClubEnrollmentView.swift').read_text())
         self.assertIn('enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader', (ROOT / 'App/AppSession.swift').read_text())
     def test_duplicate_selection_and_covered_destination_recheck_current_scope(self):
@@ -108,6 +108,26 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
         self.assertLess(switch.index('profileReader.identity ='), switch.index('identity = replacement'))
         self.assertIn('.environment(\\.clubEnrollmentProfile, store.leaderboardProfile)', source)
         self.assertTrue(source.startswith('#if DEBUG'))
+    def test_leaderboard_fixture_omits_duplicate_floating_switch_bar(self):
+        source = (ROOT / 'App/ClubGovernanceFixtureHost.swift').read_text()
+        entries = source.split('ForEach([ClubGovernanceRead.customers', 1)[1].split('} label:', 1)[0]
+        toolbar = entries.split('.toolbar {', 1)[1]
+        self.assertIn('if !ProcessInfo.processInfo.arguments.contains("--club-leaderboard-scenario") {', toolbar)
+        self.assertIn('ToolbarItem(placement: .bottomBar)', toolbar)
+        self.assertEqual(source.count('.accessibilityIdentifier("club.gov.leaderboard.fixture.switch")'), 1)
+
+    def test_public_profile_rechecks_parent_route_at_read_boundaries(self):
+        destination = self.source().split('.navigationDestination(item: $leaderboardMember)', 1)[1].split('.navigationDestination(item: $customerTopic)', 1)[0]
+        self.assertIn('isCurrent: { current(target) }', destination)
+        source = (ROOT / 'App/SocialPublicProfileView.swift').read_text()
+        self.assertIn('var isCurrent: @MainActor () -> Bool = { true }', source)
+        load = source.split('SocialReadScreen(reader: reader, requestKey:', 1)[1].split('}) { profile in', 1)[0]
+        guard = 'guard isCurrent() else { throw CancellationError() }'
+        self.assertEqual(load.count(guard), 2)
+        self.assertLess(load.index(guard), load.index('try await reader.publicProfile(memberID: memberID)'))
+        self.assertLess(load.index('try await reader.publicProfile(memberID: memberID)'), load.rindex(guard))
+        self.assertLess(load.rindex(guard), load.index('return loaded'))
+
     def test_route_models_and_real_view_tests_are_distinguished(self):
         unit = (ROOT / 'Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift').read_text()
         ui = (ROOT / 'Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift').read_text()

@@ -224,3 +224,106 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
         }
     }
 }
+
+/// Local-only selection has no dictionary dependency, request, or publishing authority.
+/// One presentation owns one captured draft. Its callbacks never follow a replacement draft.
+@MainActor final class TemplateAuthoringVenueEditor: ObservableObject {
+    private let model: TemplateAuthoringModel
+    private let session: TemplateAuthoringSession?
+    private let identity: TemplateAuthoringIdentity
+    private let modelGeneration: UUID
+    private let originalDraft: TemplateAuthoringDraft
+    @Published private(set) var active = true
+
+    init(model: TemplateAuthoringModel) {
+        self.model = model; session = model.coordinator.session
+        identity = model.coordinator.identity; modelGeneration = model.metadataGeneration
+        originalDraft = model.draft
+    }
+    var canRead: Bool {
+        active && model.canReadMetadataDraft && session != nil && session == model.coordinator.session &&
+        identity == model.coordinator.identity && modelGeneration == model.metadataGeneration &&
+        originalDraft == model.draft &&
+        originalDraft.usageLocation.map({ Data($0.utf8) }) == model.draft.usageLocation.map({ Data($0.utf8) })
+    }
+    var canEdit: Bool { canRead && model.canEdit && !model.busy && model.coordinator.review == nil && model.draft.id == nil }
+    var savedRawValue: String? { canRead ? originalDraft.usageLocation : nil }
+    var selected: TemplateVenuePreset? { savedRawValue.flatMap(TemplateVenuePreset.init(storedValue:)) }
+    var hasHistoricalValue: Bool { savedRawValue?.isEmpty == false && selected == nil }
+    func close() { active = false }
+    @discardableResult func select(_ preset: TemplateVenuePreset) -> Bool {
+        guard canEdit else { return false }
+        // Tapping the current choice dismisses without normalizing or saving anything.
+        if selected != preset {
+            model.draft.usageLocation = preset.storedValue
+            model.changed()
+        }
+        close(); return true
+    }
+}
+
+@MainActor struct TemplateAuthoringVenueField: View {
+    private struct Presentation: Identifiable { let id = UUID() }
+    @ObservedObject var model: TemplateAuthoringModel
+    @State private var presented: Presentation?
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Button { presented = Presentation() } label: {
+                LabeledContent {
+                    if model.canReadMetadataDraft, let raw = model.draft.usageLocation, !raw.isEmpty {
+                        if let preset = TemplateVenuePreset(storedValue: raw) { Text(LocalizedStringKey(preset.labelKey)) }
+                        else { Text(verbatim: raw) }
+                    } else { Text("templateMetadata.choose") }
+                } label: { Text("templateAuthor.field.usageLocation") }
+                    .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .disabled(!model.canEdit || model.busy || model.coordinator.review != nil)
+            .accessibilityIdentifier("templateVenue.open")
+        }
+        .sheet(item: $presented) { presentation in
+            NavigationStack { TemplateAuthoringVenueSelector(model: model).id(presentation.id) }
+        }
+    }
+}
+
+@MainActor private struct TemplateAuthoringVenueSelector: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var model: TemplateAuthoringModel
+    @StateObject private var editor: TemplateAuthoringVenueEditor
+    init(model: TemplateAuthoringModel) {
+        self.model = model; _editor = StateObject(wrappedValue: .init(model: model))
+    }
+    var body: some View {
+        List {
+            if editor.canRead {
+                Section("templateMetadata.saved") {
+                    if let raw = editor.savedRawValue { Text(verbatim: raw).accessibilityIdentifier("templateVenue.savedRaw") }
+                    else { Text("templateMetadata.unset") }
+                    if editor.hasHistoricalValue { Text("templateVenue.historical").font(.caption).foregroundStyle(.secondary) }
+                }
+                Section {
+                    ForEach(TemplateVenuePreset.allCases) { preset in
+                        Button { if editor.select(preset) { dismiss() } } label: {
+                            HStack {
+                                Text(LocalizedStringKey(preset.labelKey))
+                                Spacer()
+                                if editor.selected == preset { Image(systemName: "checkmark").accessibilityHidden(true) }
+                            }.frame(minHeight: 44).contentShape(Rectangle())
+                        }
+                        .disabled(!editor.canEdit)
+                        .accessibilityIdentifier("templateVenue.option." + preset.id)
+                        .accessibilityAddTraits(editor.selected == preset ? .isSelected : [])
+                    }
+                }
+            } else { Text("templateMetadata.unavailable").accessibilityIdentifier("templateVenue.unavailable") }
+        }
+        .navigationTitle("templateAuthor.field.usageLocation")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("templateAuthor.cancel") { editor.close(); dismiss() }.accessibilityIdentifier("templateVenue.cancel")
+            }
+        }
+        .onDisappear { editor.close() }
+    }
+}

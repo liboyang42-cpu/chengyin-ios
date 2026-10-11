@@ -11,12 +11,27 @@ struct ProfileEditReloadConfirmation: Identifiable {
     fileprivate let draft: ProfileEditDraft
 }
 
+/// A local navigation decision, never permission to save or retry a write.
+struct ProfileEditExitConfirmation: Identifiable {
+    let id = UUID()
+    fileprivate let identity: ProfileReadIdentity
+    fileprivate let viewerRevision: UInt64?
+    fileprivate let generation: Int
+    fileprivate let modelRevision: Int
+    fileprivate let contextRevision: UInt64
+    fileprivate let snapshot: ProfileEditSnapshot
+    fileprivate let draft: ProfileEditDraft
+    fileprivate let writeWasLocked: Bool
+}
+
 @MainActor
 final class ProfileEditModel: ObservableObject {
     let coordinator: ProfileEditCoordinator
     @Published var draft = ProfileEditDraft() { didSet { avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }
     @Published var confirmation: ProfileEditConfirmation?
     @Published private(set) var reloadConfirmation: ProfileEditReloadConfirmation?
+    @Published private(set) var exitConfirmation: ProfileEditExitConfirmation?
+    private var exitCommitted = false
     @Published private(set) var busy = false
     @Published private(set) var revision = 0
     let avatarEditorID = UUID()
@@ -56,7 +71,7 @@ final class ProfileEditModel: ObservableObject {
             coordinator.identity == scope.identity && coordinator.viewerRevision == scope.viewerRevision
     }
     func avatarTarget(source: ProfileAvatarUploadClient) -> ProfileAvatarTarget? {
-        guard avatarActive, !busy, confirmation == nil, reloadConfirmation == nil, draft.avatarReplacement == nil,
+        guard avatarActive, !busy, confirmation == nil, reloadConfirmation == nil, exitConfirmation == nil, draft.avatarReplacement == nil,
               let snapshot = coordinator.snapshot,
               let scope = coordinator.avatarScope(source: source, editorID: avatarEditorID, lifetimeID: avatarLifetimeID) else { return nil }
         return try? .init(scope: scope, snapshot: snapshot, draft: draft, draftRevision: avatarDraftRevision)
@@ -70,7 +85,7 @@ final class ProfileEditModel: ObservableObject {
         draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs)
     }
     func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }
-    func retireAvatar() { avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
+    func retireAvatar() { cancelExit(); avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
     func activateAvatar() { avatarActive = true }
     private func avatarSaveValidity(for captured: ProfileEditDraft) -> ProfileAvatarSaveValidity? {
         guard let replacement = captured.avatarReplacement else { return nil }
@@ -81,9 +96,54 @@ final class ProfileEditModel: ObservableObject {
                 ProfileAvatarExact.draft(self.draft) == fingerprint
         }
     }
+    /// Disable unreviewed modal dismissal while local changes or an operation exist.
+    /// The explicit Back action remains available after an unknown save has settled.
+    var blocksInteractiveExit: Bool { !exitCommitted && (hasUnsavedDraft || busy || coordinator.isBusy) }
+    var canRequestExit: Bool {
+        !exitCommitted && !busy && !coordinator.isBusy && confirmation == nil
+            && coordinator.confirmation == nil && reloadConfirmation == nil && !avatarPresentationActive
+    }
+    func cancelExit() { exitConfirmation = nil }
+    /// True means the caller may dismiss now; false either presents a review or blocks
+    /// a competing operation. Nothing in this path dispatches a read or a write.
+    @discardableResult func requestExit() -> Bool {
+        synchronizeContext()
+        guard canRequestExit else { return false }
+        cancelExit()
+        guard hasUnsavedDraft else { return commitExit() }
+        guard let identity = coordinator.identity, let snapshot = coordinator.snapshot else { return false }
+        exitConfirmation = .init(identity: identity, viewerRevision: coordinator.viewerRevision,
+            generation: generation, modelRevision: revision, contextRevision: reloadContextRevision,
+            snapshot: snapshot, draft: draft, writeWasLocked: coordinator.isLocked)
+        return false
+    }
+    private func canExit(_ value: ProfileEditExitConfirmation) -> Bool {
+        guard canRequestExit, coordinator.identity == value.identity,
+              coordinator.viewerRevision == value.viewerRevision, generation == value.generation,
+              revision == value.modelRevision, reloadContextRevision == value.contextRevision,
+              coordinator.isLocked == value.writeWasLocked,
+              Self.sameDraft(draft, value.draft), let snapshot = coordinator.snapshot else { return false }
+        return Self.sameSnapshot(snapshot, value.snapshot)
+    }
+    /// Validate and consume synchronously, so a stale or repeated dialog action cannot
+    /// navigate a newer editor. The coordinator's pending-write lock is never cleared.
+    @discardableResult func confirmExit(_ value: ProfileEditExitConfirmation) -> Bool {
+        guard exitConfirmation?.id == value.id else { return false }
+        guard canExit(value) else { cancelExit(); return false }
+        return commitExit()
+    }
+    private func commitExit() -> Bool {
+        guard !exitCommitted else { return false }
+        exitCommitted = true
+        retireReload(); retireAvatar()
+        coordinator.leaveScreen()
+        draft = .init()
+        return true
+    }
     func cancelReload() { reloadConfirmation = nil }
-    func retireReload() { reloadContextRevision &+= 1; cancelReload() }
+    func retireReload() { reloadContextRevision &+= 1; cancelReload(); cancelExit() }
     func requestReload() async {
+        guard !exitCommitted else { return }
         synchronizeContext()
         guard !busy, !coordinator.isBusy, confirmation == nil, coordinator.confirmation == nil else { return }
         retireReload()
@@ -123,12 +183,16 @@ final class ProfileEditModel: ObservableObject {
         coordinator.synchronizeSession()
     }
     func resetAndLoad() async {
+        // A committed exit ends this model's lifetime. Only a new navigation
+        // destination/model may reopen; a delayed or cancelled .task may not.
+        guard !exitCommitted, !Task.isCancelled else { return }
         retireReload(); retireAvatar(); activateAvatar()
         generation += 1; draft = .init(); confirmation = nil; busy = false
         coordinator.synchronizeSession()
         await load()
     }
     func load() async {
+        guard !exitCommitted else { return }
         retireReload()
         synchronizeContext()
         guard !busy else { return }
@@ -150,6 +214,7 @@ final class ProfileEditModel: ObservableObject {
         return true
     }
     func prepare() async {
+        guard !exitCommitted else { return }
         retireReload()
         synchronizeContext()
         let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision
@@ -161,6 +226,7 @@ final class ProfileEditModel: ObservableObject {
         if coordinator.messageKey == "profile.edit.changed", let snapshot = coordinator.snapshot { draft = snapshot.draft }
     }
     func save(_ value: ProfileEditConfirmation) async {
+        guard !exitCommitted else { return }
         retireReload()
         synchronizeContext()
         let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision
@@ -179,12 +245,14 @@ struct ProfileEditView: View {
     private enum Field: Hashable { case name, introduction }
     @FocusState private var focusedField: Field?
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var model: ProfileEditModel
     let sessionRevision: UInt64
     let categoryReader: (any DiscoveryReading)?
     let avatarDependencies: ProfileAvatarDependencies?
     @State private var showPreferences = false
     @State private var showReloadConfirmation = false
+    @State private var showExitConfirmation = false
     private var selectedPreferences: [Int] {
         model.draft.routePreferenceIDs ?? (model.coordinator.snapshot?.tagIds ?? "").split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
     }
@@ -232,6 +300,28 @@ struct ProfileEditView: View {
         }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
         .appNavigationTitle("profile.edit.title")
+        .navigationBarBackButtonHidden(true)
+        .interactiveDismissDisabled(model.blocksInteractiveExit)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    focusedField = nil
+                    if model.requestExit() { dismiss() }
+                } label: { Label("action.back", systemImage: "chevron.left") }
+                .disabled(!model.canRequestExit)
+                .accessibilityIdentifier("profile.exitDiscard.back")
+                .confirmationDialog("profile.exitDiscard.title", isPresented: $showExitConfirmation,
+                                    titleVisibility: .visible, presenting: model.exitConfirmation) { value in
+                    Button("profile.exitDiscard.confirm", role: .destructive) {
+                        if model.confirmExit(value) { dismiss() }
+                    }.accessibilityIdentifier("profile.exitDiscard.confirm")
+                    Button("action.cancel", role: .cancel) { model.cancelExit() }
+                } message: { _ in Text("profile.exitDiscard.message") }
+            }
+        }
+        .onChange(of: model.exitConfirmation?.id) { _, id in showExitConfirmation = id != nil }
+        .onChange(of: showExitConfirmation) { _, showing in if !showing { model.cancelExit() } }
+        .onChange(of: showPreferences) { _, _ in model.cancelExit() }
         .confirmationDialog("profile.reloadDiscard.title", isPresented: $showReloadConfirmation,
                             titleVisibility: .visible, presenting: model.reloadConfirmation) { value in
             Button("profile.reloadDiscard.confirm", role: .destructive) { _ = model.confirmReload(value) }

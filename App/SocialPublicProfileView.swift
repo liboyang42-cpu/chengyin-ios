@@ -5,13 +5,21 @@ import SwiftUI
     let reader: any SocialAccountReading
     let squareReader: any SquareReading
     var actions: SocialActionCoordinator? = nil
+    var isCurrent: @MainActor () -> Bool = { true }
     private enum Tab: String, CaseIterable { case posts, achievements, about }
     @State private var tab = Tab.posts
     var body: some View {
         List {
             if memberID <= 0 { Text("social.incompleteLink") }
             else {
-                SocialReadScreen(reader: reader, requestKey: "profile-\(memberID)", load: { try await reader.publicProfile(memberID: memberID) }) { profile in
+                SocialReadScreen(reader: reader, requestKey: "profile-\(memberID)", load: {
+                    // A scoped parent may retire before SwiftUI unmounts this screen.
+                    // Do not start a replacement-account read for that old route.
+                    guard isCurrent() else { throw CancellationError() }
+                    let loaded = try await reader.publicProfile(memberID: memberID)
+                    guard isCurrent() else { throw CancellationError() }
+                    return loaded
+                }) { profile in
                     Section {
                         if let name = profile.nickname { Text(verbatim: name).font(.title2.bold()) }
                         else { Text("square.unknownAuthor").font(.title2.bold()) }

@@ -218,7 +218,8 @@ struct ClubGovernanceReadView: View {
             Group {
                 if let profile = leaderboardProfile, current(target) {
                     SocialPublicProfileView(memberID: target.memberID, reader: profile.reader,
-                        squareReader: profile.squareReader, actions: profile.actions)
+                        squareReader: profile.squareReader, actions: profile.actions,
+                        isCurrent: { current(target) })
                         .id(target.id)
                 } else { Color.clear }
             }

@@ -162,3 +162,65 @@ public struct RoamRouteReplayState {
         generation = UUID(); phase = .completed; visibleSegments = nil
     }
 }
+
+/// P128 local share projection only. Historical records remain unchanged.
+/// Saved tracks are simplified, so clip by polyline length rather than sample count.
+public enum RoamShareRoutePrivacy {
+    public static let endpointFraction = 0.1
+
+    public static func clippedTrack(_ track: [RoamHistoryPoint]) -> [RoamHistoryPoint] {
+        guard track.count >= 2 else { return [] }
+        var lengths: [Double] = []
+        for index in 1..<track.count {
+            let a = track[index - 1], b = track[index]
+            // A schematic cannot safely interpolate a longitude wrap. Hide it rather than
+            // drawing a trans-world segment or returning the original endpoints.
+            guard abs(b.lng - a.lng) <= 180 else { return [] }
+            lengths.append(RoamExperienceMath.distanceMeters(a.coordinate, b.coordinate))
+        }
+        let total = lengths.reduce(0, +)
+        guard total.isFinite, total > 0 else { return [] }
+        let start = total * endpointFraction, end = total - start
+        var travelled = 0.0
+        var result: [RoamHistoryPoint] = []
+        for index in 1..<track.count {
+            let length = lengths[index - 1], next = travelled + length
+            if length > 0, next > start, travelled < end {
+                let a = track[index - 1], b = track[index]
+                func interpolate(_ distance: Double) -> RoamHistoryPoint? {
+                    let fraction = min(1, max(0, (distance - travelled) / length))
+                    guard let coordinate = RoamCoordinate(
+                        latitude: a.lat + (b.lat - a.lat) * fraction,
+                        longitude: a.lng + (b.lng - a.lng) * fraction
+                    ) else { return nil }
+                    return RoamHistoryPoint(coordinate: coordinate)
+                }
+                if result.isEmpty {
+                    guard let point = interpolate(max(start, travelled)) else { return [] }
+                    result.append(point)
+                }
+                guard let point = interpolate(min(end, next)) else { return [] }
+                result.append(point)
+            }
+            travelled = next
+            if travelled >= end { break }
+        }
+        guard result.count >= 2 else { return [] }
+        // Interpolation may round back to an original endpoint for adjacent Doubles.
+        // A nominal 10% calculation is not evidence that the exported endpoint moved.
+        let startInset = RoamExperienceMath.distanceMeters(track[0].coordinate, result[0].coordinate)
+        let endInset = RoamExperienceMath.distanceMeters(track[track.count - 1].coordinate, result[result.count - 1].coordinate)
+        guard startInset.isFinite, startInset > 0, endInset.isFinite, endInset > 0 else { return [] }
+        var retainedLength = 0.0
+        for index in 1..<result.count {
+            retainedLength += RoamExperienceMath.distanceMeters(result[index - 1].coordinate, result[index].coordinate)
+        }
+        guard retainedLength.isFinite, retainedLength > 0 else { return [] }
+        return result
+    }
+
+    public static func sketch(for record: RoamHistoryRecord) -> RoamRouteSketch {
+        // POIs could independently reveal the removed home/work endpoint. Do not export them.
+        RoamRouteSketch(track: clippedTrack(record.track), places: [])
+    }
+}

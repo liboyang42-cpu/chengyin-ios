@@ -111,6 +111,32 @@ final class TemplateMetadataTests: XCTestCase {
         }
     }
 
+    func testVenuePresetsKeepSourceOrderAndExactChineseWireValues() throws {
+        let expected = ["景区", "公园绿地", "商圈街区", "古镇老街", "博物馆", "校园", "室内场馆"]
+        XCTAssertEqual(TemplateVenuePreset.allCases.map(\.storedValue), expected)
+        XCTAssertEqual(Set(TemplateVenuePreset.allCases.map(\.id)).count, 7)
+        for preset in TemplateVenuePreset.allCases {
+            XCTAssertEqual(TemplateVenuePreset(storedValue: preset.storedValue), preset)
+            var draft = TemplateAuthoringDraft(title: "Venue")
+            draft.usageLocation = preset.storedValue
+            let payload = try TemplateAuthoringContract.payload(draft)
+            XCTAssertEqual(payload["usageLocation"], .string(preset.storedValue))
+            XCTAssertEqual(try JSONDecoder().decode(TemplateAuthoringDraft.self,
+                from: JSONEncoder().encode(draft)).usageLocation, preset.storedValue)
+        }
+        // Venues are local choices, not an added dictionary or remote read grant.
+        XCTAssertEqual(TemplateMetadataKind.allCases.count, 2)
+    }
+    func testVenueMatchingNeverTrimsTranslatesOrReplacesUnknownHistoricalValues() throws {
+        for raw in ["", " ", "Museum", "博物馆 ", " 博物馆", "博物馆\n", "自定义场所", "Cafe\u{301}"] {
+            XCTAssertNil(TemplateVenuePreset(storedValue: raw), raw)
+            var draft = TemplateAuthoringDraft(title: "Historical venue"); draft.usageLocation = raw
+            let restored = try JSONDecoder().decode(TemplateAuthoringDraft.self, from: JSONEncoder().encode(draft))
+            XCTAssertEqual(restored.usageLocation.map { Data($0.utf8) }, Data(raw.utf8))
+            XCTAssertEqual(try TemplateAuthoringContract.payload(restored)["usageLocation"]?.string.map { Data($0.utf8) }, Data(raw.utf8))
+        }
+    }
+
     private final class Wire: HTTPTransport {
         var json: String
         var status: Int
