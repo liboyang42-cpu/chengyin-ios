@@ -1,6 +1,6 @@
 name: Targeted native diagnostics
-# First execution is this narrowly scoped push. GitHub only registers manual
-# dispatch after this file exists on the default branch; no main change is implied.
+# Authorized standard-runner split. Both nonempty current71 partitions must pass
+# on this exact SHA/run/attempt; this does not grant release or deployment admission.
 on:
   push:
     branches: [migration/native-ios]
@@ -17,26 +17,108 @@ concurrency:
   cancel-in-progress: true
 jobs:
   targeted:
-    name: native-targeted-diagnostic
+    name: native-targeted-${{ matrix.partition }}
     runs-on: macos-26
-    # Upper bound, not an expected duration or a replacement for required gates.
     timeout-minutes: 45
+    continue-on-error: false
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        partition: [core-app, ui-legacy]
+        include:
+          - partition: core-app
+            result_group: app-unit
+          - partition: ui-legacy
+            result_group: ui
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
+      - name: Record job-entry clock before checkout
+        run: python3 -c 'import time,os,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"],"native-targeted-start").write_text(str(time.monotonic()))'
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 2
           persist-credentials: false
-      - name: Validate fixed selection and diagnostic controls
+      - name: Validate all historical controls and current71 source identities
         run: |
-          # Corrections can move the reviewed base beyond checkout depth two.
-          # Fetch only that exact public commit; do not widen checkout or scope.
-          GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch --no-tags --depth=1 https://github.com/liboyang42-cpu/chengyin-ios.git 45b728c7d48cf7969ac864e5693322d45e79394a
-          python3 -B -m unittest discover -s tools/tests -p test_targeted_native.py -v
-          python3 -B tools/run_targeted_native.py validate
-      - name: Run exact selected native methods on one simulator
-        run: python3 -B tools/run_targeted_native.py run --output "$RUNNER_TEMP/native-targeted"
-      - name: Report exact-SHA selected results, including incomplete runs
+          python3 -B tools/run_targeted_native.py preflight --output "$RUNNER_TEMP/native-targeted-preflight.json" --start-file "$RUNNER_TEMP/native-targeted-start"
+      - name: Build fresh products and run exact partition methods
+        run: python3 -B tools/run_targeted_native.py run-partition --partition '${{ matrix.partition }}' --preflight "$RUNNER_TEMP/native-targeted-preflight.json" --output "$RUNNER_TEMP/native-targeted-${{ matrix.partition }}"
+      - name: Re-extract and validate bounded partition evidence
+        id: report
         if: always()
-        run: python3 -B tools/run_targeted_native.py report --output "$RUNNER_TEMP/native-targeted" --summary "$GITHUB_STEP_SUMMARY"
+        run: |
+          python3 -c 'import time,os,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"],"native-report-start").write_text(str(time.monotonic()))'
+          set +e
+          python3 -B tools/run_targeted_native.py report-partition --partition '${{ matrix.partition }}' --output "$RUNNER_TEMP/native-targeted-${{ matrix.partition }}" --evidence "$RUNNER_TEMP/native-evidence-${{ matrix.partition }}" --summary "$GITHUB_STEP_SUMMARY"
+          status=$?
+          set -e
+          python3 -B tools/run_targeted_native.py record-observation --phase report-command --start-file "$RUNNER_TEMP/native-report-start" --returncode "$status" --summary "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+      - name: Preserve bounded raw schema diagnostics even when admission fails
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-schema-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
+          path: |
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/manifest.json
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-version.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-summary-help.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-tests-help.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-devices.json
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-runtimes.json
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-summary.json
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-tests.json
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-version.txt.stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-summary-help.txt.stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-tests-help.txt.stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-devices.json.stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-runtimes.json.stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-summary.json.stderr.txt
+            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-tests.json.stderr.txt
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
+      - name: Record immutable artifact upload start
+        if: ${{ always() && steps.report.outcome == 'success' }}
+        run: python3 -c 'import time,os,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"],"native-upload-start").write_text(str(time.monotonic()))'
+      - name: Upload only allowlisted receipt and raw result evidence
+        id: upload
+        if: ${{ always() && steps.report.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-targeted-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
+          path: ${{ runner.temp }}/native-evidence-${{ matrix.partition }}/*
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
+      - name: Record completed artifact upload observation
+        if: ${{ always() && steps.upload.outcome == 'success' }}
+        run: python3 -B tools/run_targeted_native.py record-observation --phase artifact-upload --start-file "$RUNNER_TEMP/native-upload-start" --returncode 0 --summary "$GITHUB_STEP_SUMMARY"
+  aggregate:
+    name: native-targeted-diagnostic
+    needs: [targeted]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      MATRIX_RESULT: ${{ needs.targeted.result }}
+    steps:
+      - name: Require every matrix worker to succeed
+        run: test "$MATRIX_RESULT" = success
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Record artifact download start
+        run: python3 -c 'import time,os,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"],"native-download-start").write_text(str(time.monotonic()))'
+      - name: Download only this SHA run attempt evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: native-targeted-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-*
+          path: ${{ runner.temp }}/native-targeted-artifacts
+          merge-multiple: false
+      - name: Reparse exact71 and verify same-run identities
+        run: python3 -B tools/run_targeted_native.py aggregate --start-file "$RUNNER_TEMP/native-download-start" --artifacts "$RUNNER_TEMP/native-targeted-artifacts" --needs-result "$MATRIX_RESULT" --output "$RUNNER_TEMP/native-targeted-71-receipt.json" --summary "$GITHUB_STEP_SUMMARY"

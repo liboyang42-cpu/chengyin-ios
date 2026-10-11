@@ -90,6 +90,7 @@ public struct MerchantAftercareProgress: Equatable {
             let id = try row.mbInt("id", minimum: 1)
             guard seen.insert(id).inserted, try row.mbInt("refundId", minimum: 1) == refundID,
                   let decision = Decision(rawValue: try row.mbRequiredText("decision")) else { throw MerchantBusinessFailure.malformed }
+            try Self.validateResponseReadback(row, processing: processing, opinion: opinion)
             let actor = try Self.text(row, "actorRoleCode")
             let known = ["MERCHANT_OWNER", "MERCHANT_MANAGER", "MERCHANT_CHECKIN", "MERCHANT_MARKETING", "MERCHANT_FINANCE"]
             let actorKey = "merchant.aftercareProgress.actor." + (actor.flatMap { known.contains($0) ? $0 : nil } ?? "unknown")
@@ -103,6 +104,21 @@ public struct MerchantAftercareProgress: Equatable {
             // Signed URLs, member IDs and request IDs are deliberately not copied.
             return Response(id: id, decision: decision, actorKey: actorKey, content: try Self.text(row, "content"),
                             occurredAt: try Self.timestamp(row, "createTime"), evidence: evidence)
+        }
+    }
+    /// detailVO supplies the same current outcome to every response, not the outcome
+    /// at the historical decision time. Older payloads may omit these mirror fields;
+    /// provided values must be typed and consistent before any progress is shown.
+    /// A mirror only validates the detail; it never supplies a missing outcome.
+    private static func validateResponseReadback(_ row: MerchantBusinessObject, processing: Processing, opinion: Opinion) throws {
+        if let value = row["processing"] {
+            guard value.string == processing.rawValue else { throw MerchantBusinessFailure.malformed }
+        }
+        if let value = row["merchantOpinion"] {
+            guard value.string == opinion.rawValue else { throw MerchantBusinessFailure.malformed }
+        }
+        if let value = row["refunded"] {
+            guard value.bool == (processing == .refunded) else { throw MerchantBusinessFailure.malformed }
         }
     }
     private static func text(_ fields: MerchantBusinessObject, _ key: String) throws -> String? {

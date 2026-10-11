@@ -4274,9 +4274,12 @@ def byteperf_test_inputs(selection, current):
     return old, root
 
 
-BYTEPERF_TOOLS = TOOLS
-BYTEPERF_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')
-BYTEPERF_SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))
+MERCHANT_SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))
+MERCHANT_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')
+runner.validate_merchant_selection(MERCHANT_SELECTION, MERCHANT_SOURCE)
+BYTEPERF_SOURCE = runner.merchant_history_root(MERCHANT_SELECTION, MERCHANT_SOURCE)
+BYTEPERF_TOOLS = BYTEPERF_SOURCE / 'tools'
+BYTEPERF_SELECTION = runner.merchant_predecessor_selection(MERCHANT_SELECTION)
 runner.validate_byteperf_selection(BYTEPERF_SELECTION, BYTEPERF_SOURCE)
 CASEFOLD_SELECTION, CASEFOLD_SOURCE = byteperf_test_inputs(BYTEPERF_SELECTION, BYTEPERF_SOURCE)
 CASEFOLD_TOOLS = CASEFOLD_SOURCE / 'tools'
@@ -8440,6 +8443,1049 @@ class FixedPublicCasefoldRead(unittest.TestCase):
             read.assert_not_called(); execute.assert_not_called()
 
 
+
+# MERCHANT_READBACK_TESTS_BEGIN
+class MerchantReadbackBoundary(unittest.TestCase):
+    def fixture(self):
+        temporary = tempfile.TemporaryDirectory(prefix='merchant-current-six-')
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        for relative in runner.MERCHANT_PATHS:
+            path = root / relative; path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes((MERCHANT_SOURCE / relative).read_bytes())
+        return root
+
+    def receipt(self):
+        r, expected = ReceiptIdentity().receipt()
+        for prefix, commit, tree, name in (
+            ('native', runner.NATIVE_BASE_COMMIT, runner.NATIVE_BASE_TREE, runner.NATIVE_NAME),
+            ('portable', runner.PORTABLE_BASE_COMMIT, runner.PORTABLE_BASE_TREE, runner.PORTABLE_LAYER['name']),
+            ('description', runner.DESCRIPTION_BASE_COMMIT, runner.DESCRIPTION_BASE_TREE, runner.DESCRIPTION_LAYER['name']),
+            ('social', runner.SOCIAL_BASE_COMMIT, runner.SOCIAL_BASE_TREE, runner.SOCIAL_LAYER['name']),
+            ('pathfix', runner.PATHFIX_BASE_COMMIT, runner.PATHFIX_BASE_TREE, runner.PATHFIX_NAME),
+            ('casefold', runner.CASEFOLD_BASE_COMMIT, runner.CASEFOLD_BASE_TREE, runner.CASEFOLD_NAME),
+            ('byteperf', runner.BYTEPERF_BASE_COMMIT, runner.BYTEPERF_BASE_TREE, runner.BYTEPERF_NAME),
+            ('merchant', runner.MERCHANT_BASE_COMMIT, runner.MERCHANT_BASE_TREE, runner.MERCHANT_NAME)):
+            r.update({prefix + '_base_commit': commit, prefix + '_base_tree': tree, prefix + '_selection': name})
+        r.update(selection=runner.MERCHANT_NAME, expected_count=71, actual_count=71)
+        methods = MERCHANT_SELECTION['groups'][0]['methods']
+        r['groups']['core'].update(expected=methods, actual_count=50,
+                                  actual=[{'method': m, 'status': 'Passed'} for m in methods])
+        return r, expected
+
+    def test_original212_complete_methods_and_full_predecessor_files_are_exact(self):
+        current = (MERCHANT_SOURCE / runner.PATHS[3]).read_bytes()
+        old = runner.merchant_test_preimage(current)
+        def blocks(raw):
+            lines = raw.splitlines(True); result = {}
+            for cls in ast.parse(raw).body:
+                if not isinstance(cls, ast.ClassDef) or cls.name in {'MerchantReadbackBoundary', 'Split71PartitionProtocol'}: continue
+                for node in cls.body:
+                    if isinstance(node, ast.FunctionDef) and node.name.startswith('test_'):
+                        key = cls.name + '.' + node.name
+                        self.assertNotIn(key, result)
+                        start = min([node.lineno] + [d.lineno for d in node.decorator_list])
+                        result[key] = b''.join(lines[start - 1:node.end_lineno])
+            return result
+        self.assertEqual(len(blocks(old)), 212); self.assertEqual(blocks(current), blocks(old))
+        self.assertEqual(runner.hashlib.sha256(old).hexdigest(), runner.BYTEPERF_TEST_SHA256)
+        current_runner = (MERCHANT_SOURCE / runner.PATHS[2]).read_bytes()
+        prior_runner = runner.merchant_runner_preimage(current_runner)
+        self.assertEqual(runner.blob_id(prior_runner), runner.MERCHANT_BEFORE[runner.PATHS[2]]['blob'])
+        for raw, inverse in ((current, runner.merchant_test_preimage), (current_runner, runner.merchant_runner_preimage)):
+            with self.assertRaises(ValueError): inverse(b'# off-hunk\n' + raw)
+            with self.assertRaises(ValueError): inverse(raw.replace(b'\n', b'\r\n'))
+
+    def test_exact_current71_retains_all65_and_six_real_new_source_bindings(self):
+        self.assertEqual(runner.validate_merchant_selection(MERCHANT_SELECTION, MERCHANT_SOURCE), MERCHANT_SELECTION)
+        old = runner.merchant_predecessor_selection(MERCHANT_SELECTION)
+        self.assertEqual(old, BYTEPERF_SELECTION)
+        self.assertEqual([len(g['methods']) for g in MERCHANT_SELECTION['groups']], [50, 14, 7])
+        before = {m for g in old['groups'] for m in g['methods']}
+        after = {m for g in MERCHANT_SELECTION['groups'] for m in g['methods']}
+        self.assertEqual(len(before), 65); self.assertEqual(after - before, set(runner.MERCHANT_METHODS))
+        self.assertEqual(before - after, set())
+        self.assertEqual(len(runner.MERCHANT_PATHS), 7)
+        self.assertEqual(runner.MERCHANT_BASE_COMMIT, '7bf858c23374b808c6d932367f96e97d09e9d799')
+        self.assertEqual(runner.MERCHANT_BASE_TREE, '94f43a19209607d403b47f3cdada1cfadf9c9aba')
+
+    def test_old_defaults_reject_current71_and_current_rejects_old65(self):
+        with self.assertRaises(ValueError): runner.validate_byteperf_selection(MERCHANT_SELECTION, MERCHANT_SOURCE)
+        with self.assertRaises(ValueError): runner.validate_merchant_selection(BYTEPERF_SELECTION, MERCHANT_SOURCE)
+        with self.assertRaises((ValueError, OSError)): runner.validate_merchant_selection(MERCHANT_SELECTION, self.fixture())
+
+    def test_each_new_method_missing_duplicate_extra_wrong_source_and_old_recount_reject(self):
+        for method in runner.MERCHANT_METHODS:
+            for kind in ('missing', 'duplicate', 'extra', 'source'):
+                value = copy.deepcopy(MERCHANT_SELECTION); group = value['groups'][0]
+                if kind == 'missing': group['methods'].remove(method)
+                elif kind == 'duplicate': group['methods'].append(method)
+                elif kind == 'extra': group['methods'].append(method + 'Invented')
+                else: next(r for r in group['method_sources'] if r['method'] == method)['source'] = 'Tests/CoreTests/ProfileEditTests.swift'
+                with self.subTest(method=method, kind=kind), self.assertRaises(ValueError):
+                    runner.merchant_predecessor_selection(value)
+        for key in ('merchant_readback', 'bounded_byte_transform_repair', 'casefold_fixture_repair'):
+            value = copy.deepcopy(MERCHANT_SELECTION); del value[key]
+            with self.assertRaises(ValueError): runner.merchant_predecessor_selection(value)
+
+    def test_warm_current_six_reject_same_stat_missing_symlink_and_hardlink_aliases(self):
+        root = self.fixture(); runner.merchant_current_inputs(MERCHANT_SELECTION, root)
+        for relative in runner.MERCHANT_PATHS:
+            path = root / relative; raw = path.read_bytes(); stat = path.stat()
+            path.write_bytes(bytes([raw[0] ^ 1]) + raw[1:]); os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+            with self.subTest(path=relative), self.assertRaises(ValueError): runner.merchant_current_inputs(MERCHANT_SELECTION, root)
+            path.unlink()
+            with self.assertRaises((ValueError, OSError)): runner.merchant_current_inputs(MERCHANT_SELECTION, root)
+            path.symlink_to(MERCHANT_SOURCE / relative)
+            with self.assertRaises(ValueError): runner.merchant_current_inputs(MERCHANT_SELECTION, root)
+            path.unlink(); path.write_bytes(raw)
+            alias = root / 'alias'; os.link(path, alias)
+            with self.assertRaises(ValueError): runner.merchant_current_inputs(MERCHANT_SELECTION, root)
+            alias.unlink()
+        runner.merchant_current_inputs(MERCHANT_SELECTION, root)
+
+    def test_root_and_ancestor_links_and_noncanonical_json_fail(self):
+        root = self.fixture(); parent = root / 'linked'; parent.symlink_to(root, target_is_directory=True)
+        with self.assertRaises(ValueError): runner.merchant_current_inputs(MERCHANT_SELECTION, parent)
+        parent.unlink()
+        folder = root / 'Core'; folder.rename(root / 'actual-core'); folder.symlink_to(root / 'actual-core', target_is_directory=True)
+        with self.assertRaises(ValueError): runner.merchant_current_inputs(MERCHANT_SELECTION, root)
+        root = self.fixture(); path = root / runner.PATHS[1]; raw = path.read_bytes()
+        for changed in (raw + b'\n', raw.replace(b'\n', b'\r\n'), json.dumps(MERCHANT_SELECTION).encode()):
+            path.write_bytes(changed)
+            with self.assertRaises(ValueError): runner.merchant_current_inputs(MERCHANT_SELECTION, root)
+
+    def test_projection_is_explicit_readonly_same_root_and_reauthenticates_after_warm(self):
+        root = self.fixture(); view = runner.merchant_history_root(MERCHANT_SELECTION, root)
+        self.assertEqual(os.fspath(view), str(root)); self.assertEqual(view.resolve(), root.resolve())
+        self.assertEqual(runner.read_json(view / runner.PATHS[1]), BYTEPERF_SELECTION)
+        self.assertEqual(runner.digest(view / runner.PATHS[3]), runner.BYTEPERF_TEST_SHA256)
+        self.assertEqual((view / runner.PATHS[2]).read_bytes(), (root / runner.PATHS[2]).read_bytes())
+        with self.assertRaises(ValueError): view / '/tmp/outside'
+        with self.assertRaises(ValueError): view / '../outside'
+        with self.assertRaises(ValueError): (view / runner.PATHS[1]).open('wb')
+        for path in view.overrides:
+            real = root / path; raw = real.read_bytes(); st = real.stat()
+            real.write_bytes(raw[:-1] + b' '); os.utime(real, ns=(st.st_atime_ns, st.st_mtime_ns))
+            with self.assertRaises(ValueError): (view / path).read_bytes()
+            real.write_bytes(raw)
+
+    def test_coherent_payload_repin_cannot_replace_complete_predecessor_or_frozen_postimage(self):
+        root = self.fixture()
+        for index, row in enumerate(runner.MERCHANT_LAYER['payload']):
+            path = root / row['path']; raw = path.read_bytes(); changed = raw + b'\n# off-hunk\n'; path.write_bytes(changed)
+            selection = copy.deepcopy(MERCHANT_SELECTION); layer = selection['merchant_readback']; target = layer['payload'][index]
+            target['after_sha256'] = runner.hashlib.sha256(changed).hexdigest(); target['after_blob'] = runner.blob_id(changed)
+            with mock.patch.object(runner, 'MERCHANT_LAYER', layer), mock.patch.object(runner, 'MERCHANT_SELECTION_SHA256', runner.hashlib.sha256(runner.encode(selection).encode()).hexdigest()), self.assertRaises(ValueError):
+                runner.merchant_current_inputs(selection, root)
+            path.write_bytes(raw)
+        for key in ('MERCHANT_SELECTION_RAW_SHA256', 'MERCHANT_TEST_SHA256', 'MERCHANT_LAYER_SHA256'):
+            with mock.patch.object(runner, key, '0' * 64), self.assertRaises(ValueError): runner.merchant_current_inputs(MERCHANT_SELECTION, root)
+
+    def test_current_core_filter_selects_all50_and_each_new_method_exactly(self):
+        group = MERCHANT_SELECTION['groups'][0]; command = runner.core_command(group, Path('synthetic.xml'))
+        pattern = command[command.index('--filter') + 1]
+        self.assertEqual(len(group['methods']), 50)
+        for method in group['methods']:
+            target, cls, name = method.split('/'); exact = target + '.' + cls + '/' + name
+            self.assertIsNotNone(re.fullmatch(pattern, exact)); self.assertIsNone(re.fullmatch(pattern, exact + 'Extra'))
+        self.assertIn('--skip-build', command); self.assertNotIn('.*', pattern)
+
+    def test_core50_requires_both_real_streams_and_every_new_method(self):
+        methods = MERCHANT_SELECTION['groups'][0]['methods']
+        xml = Creator65Contract.xml(methods)
+        transcript = core_transcript(methods)
+        self.assertEqual(len(runner.validate_core_evidence(xml, transcript, methods, 0)), 50)
+        for method in runner.MERCHANT_METHODS:
+            missing = [m for m in methods if m != method]
+            for actual_xml, actual_transcript in ((Creator65Contract.xml(missing), transcript), (xml, core_transcript(missing))):
+                with self.subTest(method=method), self.assertRaises(ValueError):
+                    runner.validate_core_evidence(actual_xml, actual_transcript, methods, 0)
+        for returncode in (1, 124, -15):
+            with self.assertRaises(ValueError): runner.validate_core_evidence(xml, transcript, methods, returncode)
+
+    def test_current71_receipt_rejects_old65_missing_each_new_and_forged_counter(self):
+        r, expected = self.receipt(); runner.validate_merchant_pass_receipt(r, expected, MERCHANT_SELECTION)
+        for method in runner.MERCHANT_METHODS:
+            changed = copy.deepcopy(r)
+            changed['groups']['core']['actual'] = [x for x in changed['groups']['core']['actual'] if x['method'] != method]
+            with self.subTest(method=method), self.assertRaises(ValueError): runner.validate_merchant_pass_receipt(changed, expected, MERCHANT_SELECTION)
+        for key in ('expected_count', 'actual_count'):
+            for value in (65, 70, True, '71'):
+                changed = copy.deepcopy(r); changed[key] = value
+                with self.assertRaises(ValueError): runner.validate_merchant_pass_receipt(changed, expected, MERCHANT_SELECTION)
+        changed = copy.deepcopy(r); changed['groups']['core']['actual'] = changed['groups']['core']['actual'][:44]
+        with self.assertRaises(ValueError): runner.validate_merchant_pass_receipt(changed, expected, MERCHANT_SELECTION)
+
+    def test_receipt_preserves_every_historical_identity_and_result_digest_requirement(self):
+        r, expected = self.receipt()
+        for key in [k for k in r if k.endswith(('_base_commit', '_base_tree', '_selection'))] + list(expected):
+            changed = copy.deepcopy(r); changed[key] = 'wrong'
+            with self.subTest(key=key), self.assertRaises(ValueError): runner.validate_merchant_pass_receipt(changed, expected, MERCHANT_SELECTION)
+        for field in ('build_returncode', 'result_sha256', 'transcript_sha256'):
+            changed = copy.deepcopy(r); del changed['groups']['core'][field]
+            with self.assertRaises(ValueError): runner.validate_merchant_pass_receipt(changed, expected, MERCHANT_SELECTION)
+        for status in ('Failed', 'Skipped', 'Unknown'):
+            changed = copy.deepcopy(r); changed['groups']['core']['actual'][0]['status'] = status
+            with self.assertRaises(ValueError): runner.validate_merchant_pass_receipt(changed, expected, MERCHANT_SELECTION)
+        changed = copy.deepcopy(r); changed['groups']['core']['actual'].append(changed['groups']['core']['actual'][0])
+        with self.assertRaises(ValueError): runner.validate_merchant_pass_receipt(changed, expected, MERCHANT_SELECTION)
+
+    def test_current_receipt_initialization_is71_and_legacy_initialization_stays65(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            current = runner.MerchantDiagnostic(MERCHANT_SOURCE, Path(tmp), MERCHANT_SELECTION)
+            legacy = runner.Diagnostic(BYTEPERF_SOURCE, Path(tmp), BYTEPERF_SELECTION)
+            self.assertEqual(current.receipt['expected_count'], 71); self.assertEqual(current.receipt['actual_count'], 0)
+            self.assertEqual(legacy.receipt['expected_count'], 65)
+            self.assertEqual(len(current.receipt['groups']['core']['expected']), 50)
+
+    def tree_records(self, before):
+        if before: return {p: ['100644', 'blob', v['blob']] for p, v in runner.MERCHANT_BEFORE.items()}
+        return {p: ['100644', 'blob', runner.blob_id((MERCHANT_SOURCE / p).read_bytes())] for p in runner.MERCHANT_PATHS}
+
+    def test_each_before_and_after_tree_path_mode_type_blob_and_addition_absence(self):
+        for before in (True, False):
+            records = self.tree_records(before)
+            with mock.patch.object(runner, 'merchant_tree_entries', return_value=records):
+                self.assertEqual(runner.verify_merchant_tree(MERCHANT_SOURCE, 'synthetic-revision', before=before), records)
+            for path in records:
+                for field, value in ((0, '100755'), (0, '120000'), (1, 'tree'), (2, '0' * 40)):
+                    changed = copy.deepcopy(records); changed[path][field] = value
+                    with mock.patch.object(runner, 'merchant_tree_entries', return_value=changed), self.assertRaises(ValueError):
+                        runner.verify_merchant_tree(MERCHANT_SOURCE, 'synthetic-revision', before=before)
+                changed = copy.deepcopy(records); del changed[path]
+                with mock.patch.object(runner, 'merchant_tree_entries', return_value=changed), self.assertRaises(ValueError):
+                    runner.verify_merchant_tree(MERCHANT_SOURCE, 'synthetic-revision', before=before)
+            changed = copy.deepcopy(records); changed['unexpected'] = ['100644', 'blob', 'a' * 40]
+            with mock.patch.object(runner, 'merchant_tree_entries', return_value=changed), self.assertRaises(ValueError):
+                runner.verify_merchant_tree(MERCHANT_SOURCE, 'synthetic-revision', before=before)
+
+    def full_tree_records(self, before):
+        records = self.tree_records(before)
+        for path in runner.MERCHANT_PATHS:
+            for parent in Path(path).parents:
+                if str(parent) != '.': records[str(parent)] = ['040000', 'tree', 'd' * 40]
+        records['untouched.txt'] = ['100644', 'blob', 'c' * 40]
+        return records
+
+    def transport(self, command, root):
+        if command == ['git', 'rev-parse', 'HEAD']: return 'a' * 40
+        if command == ['git', 'rev-parse', 'HEAD^{tree}']: return runner.merchant_tree_id(self.full_tree_records(False))
+        if command == ['git', 'cat-file', '-p', 'a' * 40]: return 'tree ' + runner.merchant_tree_id(self.full_tree_records(False)) + '\nparent ' + runner.MERCHANT_BASE_COMMIT + '\n\nSynthetic candidate'
+        if command == ['git', 'rev-parse', runner.MERCHANT_BASE_COMMIT + '^{tree}']: return runner.MERCHANT_BASE_TREE
+        if command[1] == 'diff': return '\n'.join(runner.MERCHANT_LAYER['allowed_changes'])
+        if command[1] == 'status': return ''
+        if command[1] == 'ls-tree':
+            before = (command[5] if '-t' in command else command[4]) == runner.MERCHANT_BASE_COMMIT
+            records = self.tree_records(before) if '--' in command else self.full_tree_records(before)
+            return '\0'.join(' '.join(v) + '\t' + p for p, v in records.items()) + '\0'
+        raise AssertionError(command)
+
+    def test_scope_exact_six_full_trees_githubsha_parent_and_dirty_guards(self):
+        with mock.patch.dict(os.environ, {'GITHUB_SHA': 'a' * 40}), mock.patch.object(runner, 'checked', side_effect=self.transport), mock.patch.object(runner, 'verify_merchant_published_history', return_value={'old_chain': 'synthetic'}) as history:
+            self.assertEqual(runner.verify_merchant_scope(MERCHANT_SOURCE, MERCHANT_SELECTION)['source_tree'], runner.merchant_tree_id(self.full_tree_records(False)))
+            history.assert_called_once()
+        for kind in ('witness', 'merge', 'tree', 'extra', 'missing', 'status', 'dirty', 'offscope-mode', 'empty-tree', 'head-tree'):
+            def changed(command, root):
+                value = self.transport(command, root)
+                if command[1:3] == ['cat-file', '-p']:
+                    if kind == 'witness': return value.replace(runner.MERCHANT_BASE_COMMIT, '88d46ef18331bdb8176f62421399ef468366f233')
+                    if kind == 'merge': return value.replace('\n\n', '\nparent ' + 'f' * 40 + '\n\n')
+                if command == ['git', 'rev-parse', runner.MERCHANT_BASE_COMMIT + '^{tree}'] and kind == 'tree': return '0' * 40
+                if command[1] == 'diff':
+                    if kind == 'extra': return value + '\nM\tApp/Unrelated.swift'
+                    if kind == 'missing': return '\n'.join(value.splitlines()[1:])
+                    if kind == 'status': return value.replace('A\t', 'M\t')
+                if command[1] == 'status' and kind == 'dirty': return ' M Core/Unrelated.swift'
+                if command[1] == 'ls-tree' and '--' not in command and command[5] == 'a' * 40 and kind == 'empty-tree': return value + '040000 tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\textra-empty\0'
+                if command == ['git', 'rev-parse', 'HEAD^{tree}'] and kind == 'head-tree': return 'e' * 40
+                if command[1] == 'ls-tree' and '--' not in command and command[5] == 'a' * 40 and kind == 'offscope-mode': return value.replace('100644 blob ' + 'c' * 40, '100755 blob ' + 'c' * 40)
+                return value
+            with self.subTest(kind=kind), mock.patch.dict(os.environ, {'GITHUB_SHA': 'a' * 40}), mock.patch.object(runner, 'checked', side_effect=changed), mock.patch.object(runner, 'verify_merchant_published_history', return_value={}), self.assertRaises(ValueError):
+                runner.verify_merchant_scope(MERCHANT_SOURCE, MERCHANT_SELECTION)
+
+    def test_missing_real_parent_fails_without_fetch_or_alternate_object_acquisition(self):
+        with mock.patch.object(runner, 'checked', side_effect=ValueError('Synthetic missing actual7bf')), mock.patch.object(runner, 'execute') as execution, mock.patch.object(runner, 'ensure_casefold_commit') as ensure, self.assertRaises(ValueError):
+            runner.verify_merchant_published_history(MERCHANT_SOURCE, MERCHANT_SELECTION)
+        execution.assert_not_called(); ensure.assert_not_called()
+
+    def test_report_missing_receipt_stays_not_run_without_scope_or_execution(self):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch('builtins.print') as output, mock.patch.object(runner, 'verify_merchant_scope') as scope:
+            runner.merchant_report(Path(tmp), None, MERCHANT_SOURCE)
+            self.assertIn('NOT_RUN', output.call_args.args[0]); scope.assert_not_called()
+
+    def test_report_revalidates_current50_xml_transcript_and_every_exported_result(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp); receipt, expected = self.receipt()
+            expected['selection_sha256'] = runner.digest(MERCHANT_SOURCE / runner.PATHS[1]); receipt['selection_sha256'] = expected['selection_sha256']
+            methods = MERCHANT_SELECTION['groups'][0]['methods']
+            (output / 'core.xml').write_bytes(Creator65Contract.xml(methods))
+            (output / 'core-stdout.txt').write_bytes(core_transcript(methods))
+            receipt['groups']['core']['result_sha256'] = runner.digest(output / 'core.xml')
+            receipt['groups']['core']['transcript_sha256'] = runner.digest(output / 'core-stdout.txt')
+            for group in MERCHANT_SELECTION['groups'][1:]:
+                for part, data in [('summary', summary(len(group['methods']))), ('tests', xctests(group['methods'], group['target']))]:
+                    file = output / (group['name'] + '-' + part + '.json'); runner.write_json(file, data)
+                    receipt['groups'][group['name']][part + '_sha256'] = runner.digest(file)
+            runner.write_json(output / 'receipt.json', receipt)
+            env = {key: expected[field] for key, field in [('GITHUB_SHA','source_sha'), ('GITHUB_WORKFLOW_SHA','workflow_sha'), ('GITHUB_RUN_ID','run_id'), ('GITHUB_RUN_ATTEMPT','run_attempt')]}
+            with mock.patch.dict(os.environ, env), mock.patch.object(runner, 'checked', return_value=expected['source_tree']), mock.patch.object(runner, 'verify_merchant_scope'), mock.patch('builtins.print'):
+                runner.merchant_report(output, output / 'summary', MERCHANT_SOURCE)
+                self.assertIn('71 / 71', (output / 'summary').read_text())
+                for name in ('core.xml', 'core-stdout.txt', 'app-unit-tests.json', 'ui-summary.json'):
+                    path = output / name; raw = path.read_bytes(); path.write_bytes(raw + b' ')
+                    with self.subTest(file=name), self.assertRaises(ValueError): runner.merchant_report(output, None, MERCHANT_SOURCE)
+                    path.write_bytes(raw)
+
+    def history_transport(self, command, root):
+        if command[1:3] == ['cat-file', '-e']: return ''
+        if command == ['git', 'cat-file', '-p', runner.MERCHANT_BASE_COMMIT]:
+            return 'tree ' + runner.MERCHANT_BASE_TREE + '\nparent ' + runner.BYTEPERF_BASE_COMMIT + '\n\nSynthetic published7bf'
+        if command == ['git', 'cat-file', '-p', runner.BYTEPERF_BASE_COMMIT]: return 'tree ' + runner.BYTEPERF_BASE_TREE + '\nparent ' + runner.CASEFOLD_BASE_COMMIT + '\n\nSynthetic c3a'
+        if command == ['git', 'cat-file', '-p', runner.CASEFOLD_BASE_COMMIT]: return 'tree ' + runner.CASEFOLD_BASE_TREE + '\nparent ' + runner.PATHFIX_BASE_COMMIT + '\n\nSynthetic54f'
+        if command == ['git', 'rev-parse', runner.BYTEPERF_BASE_COMMIT + '^{tree}']: return runner.BYTEPERF_BASE_TREE
+        if command[1] == 'diff':
+            self.assertEqual(command, ['git', 'diff', '--name-status', '--no-renames', runner.BYTEPERF_BASE_COMMIT, runner.MERCHANT_BASE_COMMIT])
+            return '\n'.join(runner.BYTEPERF_LAYER['allowed_changes'])
+        if command[1] == 'ls-tree':
+            if '-r' in command:
+                self.assertEqual(command[4], runner.MERCHANT_BASE_COMMIT)
+                rows = {p: ['100644', 'blob', runner.blob_id((BYTEPERF_SOURCE / p).read_bytes())] for p in runner.BYTEPERF_PATHS}
+                rows[runner.PATHS[2]][2] = runner.MERCHANT_BEFORE[runner.PATHS[2]]['blob']
+            else:
+                self.assertEqual(command[3], runner.BYTEPERF_BASE_COMMIT)
+                rows = {p: ['100644', 'blob', oid] for p, oid in runner.BYTEPERF_BEFORE_BLOBS.items()}
+                rows.update({r['path']: ['100644', 'blob', r['before_blob']] for r in runner.BYTEPERF_LAYER['payload'] if r['status'] == 'M'})
+            return '\0'.join(' '.join(v) + '\t' + p for p, v in rows.items()) + '\0'
+        raise AssertionError(command)
+
+    def test_published7bf_nine_path_bridge_reaches_exact_c3_history_without_network(self):
+        with mock.patch.object(runner, 'checked', side_effect=self.history_transport) as read, mock.patch.object(runner, 'verify_casefold_scope', return_value={'historical': 'synthetic'}) as history, mock.patch.object(runner, 'execute') as execute:
+            actual = runner.verify_merchant_published_history(MERCHANT_SOURCE, MERCHANT_SELECTION)
+        self.assertEqual(actual['byteperf_base_commit'], runner.BYTEPERF_BASE_COMMIT)
+        self.assertEqual(history.call_count, 1)
+        view, old = history.call_args.args
+        self.assertIsInstance(view, runner.MerchantHistoryPath); self.assertEqual(view.root, MERCHANT_SOURCE)
+        self.assertEqual(old, runner.byteperf_predecessor_selection(BYTEPERF_SELECTION))
+        self.assertEqual(history.call_args.kwargs, {'published_revision': runner.BYTEPERF_BASE_COMMIT})
+        probes = [c.args[0][-1] for c in read.call_args_list if c.args[0][1:3] == ['cat-file', '-e']]
+        self.assertIn(runner.MERCHANT_BASE_COMMIT + '^{commit}', probes)
+        self.assertIn(runner.MERCHANT_BASE_COMMIT + '^{tree}', probes)
+        self.assertEqual(len(probes), 10); execute.assert_not_called()
+
+    def test_published_bridge_rejects_wrong_headers_diff_every_mode_blob_and_old_chain(self):
+        for kind in ('parent', 'merge', 'tree', 'c3tree', 'missing', 'extra', 'status'):
+            def changed(command, root):
+                raw = self.history_transport(command, root)
+                if command[1:3] == ['cat-file', '-p']:
+                    if kind == 'parent': return raw.replace(runner.BYTEPERF_BASE_COMMIT, runner.CASEFOLD_BASE_COMMIT)
+                    if kind == 'merge': return raw.replace('\n\n', '\nparent ' + 'a' * 40 + '\n\n')
+                    if kind == 'tree': return raw.replace(runner.MERCHANT_BASE_TREE, '0' * 40)
+                if command[1] == 'rev-parse' and kind == 'c3tree': return '0' * 40
+                if command[1] == 'diff':
+                    if kind == 'missing': return '\n'.join(raw.splitlines()[1:])
+                    if kind == 'extra': return raw + '\nM\tunexpected'
+                    if kind == 'status': return raw.replace('A\t', 'M\t')
+                return raw
+            with self.subTest(kind=kind), mock.patch.object(runner, 'checked', side_effect=changed), mock.patch.object(runner, 'verify_casefold_scope') as history, self.assertRaises(ValueError):
+                runner.verify_merchant_published_history(MERCHANT_SOURCE, MERCHANT_SELECTION)
+            history.assert_not_called()
+        for before in (True, False):
+            paths = list(runner.BYTEPERF_BEFORE_BLOBS) + [r['path'] for r in runner.BYTEPERF_LAYER['payload'] if r['status'] == 'M'] if before else list(runner.BYTEPERF_PATHS)
+            for path in paths:
+                for field, replacement in ((0, '100755'), (1, 'tree'), (2, '0' * 40)):
+                    def changed(command, root):
+                        raw = self.history_transport(command, root)
+                        if command[1] == 'ls-tree' and ('-r' not in command) == before:
+                            rows = raw.split('\0')
+                            for index, row in enumerate(rows):
+                                if row.endswith('\t' + path):
+                                    meta, name = row.split('\t'); parts = meta.split(' '); parts[field] = replacement
+                                    rows[index] = ' '.join(parts) + '\t' + name
+                            return '\0'.join(rows)
+                        return raw
+                    with self.subTest(before=before, path=path, field=field), mock.patch.object(runner, 'checked', side_effect=changed), mock.patch.object(runner, 'verify_casefold_scope') as history, self.assertRaises(ValueError):
+                        runner.verify_merchant_published_history(MERCHANT_SOURCE, MERCHANT_SELECTION)
+                    history.assert_not_called()
+        with mock.patch.object(runner, 'checked', side_effect=self.history_transport), mock.patch.object(runner, 'verify_casefold_scope', side_effect=ValueError('Synthetic corrupt older layer')), self.assertRaises(ValueError):
+            runner.verify_merchant_published_history(MERCHANT_SOURCE, MERCHANT_SELECTION)
+
+    def test_present_commit_missing_tree_stops_before_any_legacy_fetch_helper(self):
+        def read(command, root):
+            self.assertEqual(command[1:3], ['cat-file', '-e'])
+            if command[-1].endswith('^{tree}'): raise ValueError('Synthetic missing tree')
+            return ''
+        with mock.patch.object(runner, 'checked', side_effect=read), mock.patch.object(runner, 'execute') as execute, mock.patch.object(runner, 'verify_casefold_scope') as history, self.assertRaises(ValueError):
+            runner.verify_merchant_published_history(MERCHANT_SOURCE, MERCHANT_SELECTION)
+        execute.assert_not_called(); history.assert_not_called()
+
+    def test_complete_tree_reconstruction_authenticates_empty_trees_and_directory_modes(self):
+        self.assertEqual(runner.merchant_tree_id({}), '4b825dc642cb6eb9a060e54bf8d69288fbee4904')
+        leaf = runner.blob_id(b'synthetic')
+        nested = b'100644 item\0' + bytes.fromhex(leaf)
+        nested_id = runner.hashlib.sha1(b'tree ' + str(len(nested)).encode() + b'\0' + nested).hexdigest()
+        raw = b'40000 folder\0' + bytes.fromhex(nested_id)
+        expected = runner.hashlib.sha1(b'tree ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+        entries = {'folder': ['040000', 'tree', nested_id], 'folder/item': ['100644', 'blob', leaf]}
+        self.assertEqual(runner.merchant_tree_id(entries), expected)
+        changed = copy.deepcopy(entries); changed['empty'] = ['040000', 'tree', '4b825dc642cb6eb9a060e54bf8d69288fbee4904']
+        self.assertNotEqual(runner.merchant_tree_id(changed), expected)
+        del changed['folder']
+        with self.assertRaises(ValueError): runner.merchant_tree_id(changed)
+
+    def test_cli_alias_source_root_is_rejected_before_normalizing_it_away(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            alias = Path(tmp) / 'alias'; alias.symlink_to(MERCHANT_SOURCE, target_is_directory=True)
+            with mock.patch.object(sys, 'argv', ['runner', 'validate', '--source-root', str(alias)]), self.assertRaises(ValueError): runner.main()
+
+
+    def c3_headers(self):
+        return 'tree ' + runner.BYTEPERF_BASE_TREE + '\nparent ' + runner.CASEFOLD_BASE_COMMIT + '\n\nSynthetic exact c3'
+
+    def c3_present(self, command, root):
+        if command[1:3] == ['cat-file', '-e']: return ''
+        self.assertEqual(command, ['git', 'cat-file', '-p', runner.BYTEPERF_BASE_COMMIT])
+        return self.c3_headers()
+
+    def test_c3_present_never_fetches_and_fixed_target_cannot_be_generalized(self):
+        with mock.patch.object(runner, 'checked', side_effect=self.c3_present), mock.patch.object(runner, 'execute') as execute:
+            runner.ensure_merchant_c3_commit(MERCHANT_SOURCE)
+        execute.assert_not_called()
+        for key in ('BYTEPERF_BASE_COMMIT', 'BYTEPERF_BASE_TREE'):
+            with mock.patch.object(runner, key, '0' * 40), mock.patch.object(runner, 'checked') as read, mock.patch.object(runner, 'execute') as execute, self.assertRaises(ValueError):
+                runner.ensure_merchant_c3_commit(MERCHANT_SOURCE)
+            read.assert_not_called(); execute.assert_not_called()
+
+    def test_c3_missing_commit_or_tree_fetches_one_exact_public_object_with_safe_environment(self):
+        poison = {'GITHUB_TOKEN':'synthetic', 'GH_TOKEN':'synthetic', 'GIT_CONFIG_COUNT':'1',
+                  'GIT_CONFIG_KEY_0':'http.extraHeader', 'GIT_CONFIG_VALUE_0':'synthetic',
+                  'HTTP_PROXY':'http://example.invalid', 'HTTPS_PROXY':'http://example.invalid',
+                  'GIT_SSH_COMMAND':'unexpected', 'GIT_OBJECT_DIRECTORY':'unexpected'}
+        for missing in ('commit', 'tree'):
+            fetched = []
+            def read(command, root):
+                if command[-1] == runner.BYTEPERF_BASE_COMMIT + '^{' + missing + '}' and not fetched:
+                    raise ValueError('Synthetic missing c3 ' + missing)
+                return self.c3_present(command, root)
+            def execute(command, root, *args, **kwargs):
+                if 'fetch' in command: fetched.append(command)
+                return (0, b'core.bare\n') if command[1] == 'config' else (0, b'')
+            with self.subTest(missing=missing), mock.patch.dict(os.environ, poison), mock.patch.object(runner, 'checked', side_effect=read), mock.patch.object(runner, 'execute', side_effect=execute) as execution:
+                runner.ensure_merchant_c3_commit(MERCHANT_SOURCE)
+            self.assertEqual(execution.call_count, 2); config, fetch = execution.call_args_list
+            self.assertEqual(config.args[0], ['git','config','--local','--includes','--name-only','--list'])
+            self.assertEqual(config.args[2:4], (10, True))
+            self.assertEqual(fetch.args[0], ['git','-c','credential.helper=','-c','core.askPass=',
+                '-c','http.extraHeader=','-c','http.followRedirects=false','-c','protocol.allow=never',
+                '-c','protocol.https.allow=always','fetch','--no-tags','--no-write-fetch-head',
+                '--depth=1','--no-recurse-submodules','https://github.com/liboyang42-cpu/chengyin-ios.git',
+                'c3a914cd53c0ab60e6d19fc24588d85679dcaa1c'])
+            self.assertEqual(fetch.args[2:4], (60, True))
+            safe = fetch.kwargs['env']
+            self.assertEqual(set(safe), {'PATH','LANG','HOME','GIT_TERMINAL_PROMPT','GIT_CONFIG_NOSYSTEM','GIT_CONFIG_GLOBAL','GIT_ASKPASS','SSH_ASKPASS'})
+            self.assertEqual(safe['HOME'], '/dev/null'); self.assertEqual(safe['GIT_CONFIG_GLOBAL'], '/dev/null')
+            self.assertEqual(safe['GIT_TERMINAL_PROMPT'], '0'); self.assertEqual(safe['GIT_CONFIG_NOSYSTEM'], '1')
+            self.assertEqual(config.kwargs['env'], safe); self.assertFalse(set(safe) & set(poison))
+
+    def test_c3_unsafe_configuration_stops_before_fetch(self):
+        keys = ('credential.helper','credential.https://github.com.username','http.extraheader',
+                'http.https://github.com/.extraheader','http.proxy','url.ssh://example.invalid.insteadof',
+                'include.path','includeif.gitdir:work.path','core.askpass','extensions.worktreeconfig')
+        for key in keys:
+            with self.subTest(key=key), mock.patch.object(runner, 'checked', side_effect=ValueError('Synthetic missing c3')), mock.patch.object(runner, 'execute', return_value=(0,(key+'\n').encode())) as execute, self.assertRaises(ValueError):
+                runner.ensure_merchant_c3_commit(MERCHANT_SOURCE)
+            self.assertEqual(execute.call_count, 1)
+
+    def test_c3_config_network_timeout_and_success_without_objects_fail_without_retry(self):
+        for outputs in ([(1,b'')], [(0,b'core.bare\n'),(1,b'')], [(0,b'core.bare\n'),(124,b'')], [(0,b'core.bare\n'),(0,b'')]):
+            with self.subTest(outputs=outputs), mock.patch.object(runner, 'checked', side_effect=ValueError('Synthetic missing object')), mock.patch.object(runner, 'execute', side_effect=outputs) as execute, self.assertRaises(ValueError):
+                runner.ensure_merchant_c3_commit(MERCHANT_SOURCE)
+            self.assertEqual(execute.call_count, len(outputs))
+
+    def test_c3_wrong_tree_parent_merge_duplicate_or_missing_headers_are_rejected(self):
+        headers = self.c3_headers()
+        variants = (headers.replace(runner.BYTEPERF_BASE_TREE, '0'*40),
+                    headers.replace(runner.CASEFOLD_BASE_COMMIT, runner.PATHFIX_BASE_COMMIT),
+                    headers.replace('\n\n', '\nparent '+'f'*40+'\n\n'),
+                    headers.replace('tree '+runner.BYTEPERF_BASE_TREE+'\n',''),
+                    headers.replace('parent '+runner.CASEFOLD_BASE_COMMIT+'\n',''),
+                    headers.replace('\nparent ', '\ntree '+runner.BYTEPERF_BASE_TREE+'\nparent '))
+        for bad in variants:
+            def read(command, root): return '' if command[1:3] == ['cat-file','-e'] else bad
+            with self.subTest(headers=bad), mock.patch.object(runner, 'checked', side_effect=read), mock.patch.object(runner, 'execute') as execute, self.assertRaises(ValueError):
+                runner.ensure_merchant_c3_commit(MERCHANT_SOURCE)
+            execute.assert_not_called()
+
+
+    def test_schema_commands_use_exact_observed_result_paths_and_nine_bounded_reads(self):
+        paths = {'app-unit': Path('/synthetic/current-app.xcresult'), 'ui': Path('/synthetic/current-ui.xcresult')}
+        rows = runner.merchant_schema_commands(paths)
+        self.assertEqual(len(rows), 9)
+        self.assertEqual(rows[0][1], ['xcrun','xcresulttool','--version'])
+        self.assertEqual(rows[3][1], ['xcrun','simctl','list','devices','available','--json'])
+        self.assertEqual(rows[4][1], ['xcrun','simctl','list','runtimes','--json'])
+        for filename, command, bound in rows[5:]:
+            group = 'app-unit' if filename.startswith('app-unit') else 'ui'
+            self.assertEqual(command[command.index('--path') + 1], str(paths[group]))
+            self.assertEqual(bound, 10 * 1024 * 1024)
+        self.assertEqual([limit for _, _, limit in rows[:5]], [1024*1024]*3+[2*1024*1024]*2)
+
+    def test_schema_without_actual_result_is_not_run_and_never_invents_a_default_path(self):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(runner, 'merchant_capture_command') as command:
+            out = Path(tmp); original = {'status':'FAIL','actual_count':0}; saved = copy.deepcopy(original)
+            result = runner.merchant_capture_schema(out, out, {}, original)
+            self.assertEqual(result['status'], 'NOT_RUN'); self.assertEqual(original, saved)
+            command.assert_not_called()
+            self.assertEqual(list((out/'schema-evidence').iterdir()), [out/'schema-evidence/manifest.json'])
+
+    def test_schema_raw_bytes_metadata_and_receipt_authority_stay_separate(self):
+        raw = b' {"synthetic_schema_fixture":true,"devicesAndConfigurations":[]} \n'
+        def capture(command, root, seconds, limit):
+            self.assertLessEqual(seconds, 30); self.assertLessEqual(limit, 10*1024*1024)
+            return {'argv':command,'status':'CAPTURED','returncode':0,'wall_seconds':0.01,
+                    'observed_bytes':{'stdout':len(raw),'stderr':0},'truncated':{'stdout':False,'stderr':False},
+                    'stdout':raw,'stderr':b''}
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(runner, 'merchant_capture_command', side_effect=capture) as command:
+            out=Path(tmp); paths={g:out/(g+'-actual.xcresult') for g in ('app-unit','ui')}
+            for p in paths.values():p.mkdir()
+            receipt={'status':'FAIL','source_sha':'a'*40,'actual_count':0}; saved=copy.deepcopy(receipt)
+            result=runner.merchant_capture_schema(out,out,paths,receipt)
+            self.assertEqual(result['status'],'CAPTURED');self.assertFalse(result['native_test_result_authority'])
+            self.assertEqual(command.call_count,9);self.assertEqual(receipt,saved)
+            self.assertLessEqual(result['retained_bytes'],48*1024*1024)
+            for row in result['items']:
+                self.assertEqual((out/'schema-evidence'/row['stdout']['file']).read_bytes(),raw)
+                self.assertEqual(row['stdout']['sha256'],runner.hashlib.sha256(raw).hexdigest())
+                self.assertEqual(row['returncode'],0);self.assertEqual(row['stderr']['byte_count'],0)
+            with self.assertRaises(ValueError):runner.merchant_capture_schema(out,out,paths,receipt)
+
+    def test_schema_time_budget_missing_results_links_and_command_failures_are_explicit(self):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(runner, 'merchant_capture_command') as command:
+            out=Path(tmp); path=out/'actual.xcresult';path.mkdir()
+            result=runner.merchant_capture_schema(out,out,{'app-unit':path},{},seconds=0)
+            command.assert_not_called();self.assertEqual(result['status'],'PARTIAL_OR_FAILED')
+            self.assertTrue(all(r['status']=='NOT_RUN' for r in result['items']))
+        with tempfile.TemporaryDirectory() as tmp:
+            out=Path(tmp); real=out/'actual.xcresult';real.mkdir();link=out/'linked.xcresult';link.symlink_to(real,target_is_directory=True)
+            result=runner.merchant_capture_schema(out,out,{'app-unit':link},{})
+            self.assertEqual(result['status'],'NOT_RUN')
+        failed={'argv':['synthetic'],'status':'EXIT_NONZERO','returncode':1,'wall_seconds':0,
+                'observed_bytes':{'stdout':0,'stderr':7},'truncated':{'stdout':False,'stderr':False},'stdout':b'','stderr':b'failure'}
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(runner,'merchant_capture_command',side_effect=lambda *args:copy.deepcopy(failed)):
+            out=Path(tmp);p=out/'actual.xcresult';p.mkdir()
+            result=runner.merchant_capture_schema(out,out,{'app-unit':p},{})
+            self.assertEqual(result['status'],'PARTIAL_OR_FAILED');self.assertTrue(any(r['status']=='EXIT_NONZERO' for r in result['items']))
+
+    def test_schema_streaming_limits_and_timeout_are_real_local_process_controls(self):
+        # These Python processes test capture mechanics; they are not Apple evidence.
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            normal=runner.merchant_capture_command([sys.executable,'-c','import sys;sys.stdout.buffer.write(b"  raw\\n")'],root,2,1024)
+            self.assertEqual(normal['status'],'CAPTURED');self.assertEqual(normal['stdout'],b'  raw\n')
+            large=runner.merchant_capture_command([sys.executable,'-c','import sys;sys.stdout.buffer.write(b"x"*200000)'],root,2,64)
+            self.assertEqual(large['status'],'SIZE_LIMIT');self.assertTrue(large['truncated']['stdout']);self.assertEqual(len(large['stdout']),64)
+            slow=runner.merchant_capture_command([sys.executable,'-c','import time;time.sleep(30)'],root,0.9,1024)
+            self.assertEqual(slow['status'],'TIMEOUT');self.assertLess(slow['wall_seconds'],1.5)
+            error=runner.merchant_capture_command([sys.executable,'-c','import sys;sys.stderr.write("error");sys.exit(2)'],root,2,1024)
+            self.assertEqual(error['status'],'EXIT_NONZERO');self.assertEqual(error['returncode'],2);self.assertEqual(error['stderr'],b'error')
+
+    def test_schema_capture_never_rewrites_test_status_and_respects_cancellation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            job=runner.MerchantDiagnostic(MERCHANT_SOURCE,Path(tmp),MERCHANT_SELECTION)
+            with mock.patch.object(runner.Diagnostic,'run',side_effect=ValueError('Native failure')),mock.patch.object(job,'capture_schema') as capture,self.assertRaisesRegex(ValueError,'Native failure'):
+                job.run()
+            capture.assert_called_once()
+            with mock.patch.object(runner.Diagnostic,'run',side_effect=KeyboardInterrupt),mock.patch.object(job,'capture_schema') as capture,self.assertRaises(KeyboardInterrupt):job.run()
+            capture.assert_not_called()
+            job.receipt['status']='PASS';before=copy.deepcopy(job.receipt)
+            with mock.patch.object(runner,'merchant_capture_schema',side_effect=OSError('Synthetic evidence disk error')),mock.patch('builtins.print') as printed:job.capture_schema()
+            self.assertEqual(job.receipt,before);self.assertIn('APPLE_SCHEMA_EVIDENCE_CAPTURE_FAILED',printed.call_args.args[0])
+
+    def test_schema_workflow_is_exact_split_allowlist_and_old_no_artifact_domain_restored(self):
+        workflow=(MERCHANT_SOURCE/runner.MERCHANT_WORKFLOW_PATH).read_text()
+        old=(BYTEPERF_SOURCE/runner.MERCHANT_WORKFLOW_PATH).read_text()
+        self.assertNotIn('upload-artifact',old)
+        self.assertEqual(runner.hashlib.sha256(old.encode()).hexdigest(),runner.MERCHANT_BEFORE[runner.MERCHANT_WORKFLOW_PATH]['sha256'])
+        self.assertEqual(workflow.count('uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'),2)
+        raw=workflow.split('      - name: Preserve bounded raw schema diagnostics even when admission fails\n',1)[1].split('      - name: Record immutable artifact upload start\n',1)[0]
+        self.assertIn('if: always()',raw);self.assertIn('retention-days: 1',raw);self.assertIn('overwrite: false',raw)
+        names=['manifest.json','xcresult-version.txt','xcresult-summary-help.txt','xcresult-tests-help.txt','simulator-devices.json','simulator-runtimes.json','${{ matrix.result_group }}-summary.json','${{ matrix.result_group }}-tests.json']
+        names += [n+'.stderr.txt' for n in names[1:]]
+        paths=re.findall(r'^            (.+)$',raw,re.M)
+        self.assertEqual(paths,['${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/'+n for n in names])
+        for forbidden in ('*','.app','.ipa','archive','secrets.','permissions:','timeout-minutes:','jobs:','workflow_dispatch:','continue-on-error: true'):
+            self.assertNotIn(forbidden,raw)
+        self.assertEqual(workflow.count('timeout-minutes: 45'),1)
+        self.assertIn('partition: [core-app, ui-legacy]',workflow);self.assertIn('max-parallel: 2',workflow)
+        self.assertIn('native-schema-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}',workflow)
+
+# BEGIN SPLIT71 PARTITION TESTS
+class Split71PartitionProtocol(unittest.TestCase):
+    """Synthetic local protocol controls, never native/Apple execution evidence."""
+    r = runner
+
+    @classmethod
+    def setUpClass(cls):
+        cls.selection=cls.r.read_json(MERCHANT_SOURCE/'tools/targeted_native_selection.json')
+
+    def fixture(self):
+        r=self.r; selection=self.selection
+        identity={'repository':'liboyang42-cpu/chengyin-ios','ref':'refs/heads/migration/native-ios','event':'push',
+            'source_sha':'a'*40,'source_tree':'b'*40,'workflow_sha':'a'*40,'run_id':'123','run_attempt':'2',
+            'selection_sha256':r.MERCHANT_SELECTION_RAW_SHA256,'partition_table_sha256':r.split71_hash(selection['merchant_readback']['split']['partitions']),
+            'source_archive_sha256':'d'*64}
+        toolchain={'xcode':'Xcode fixture','developer':'/Applications/Xcode.app','swift':'Swift fixture','sdk_version':'26.5','sdk_path':'/SDK/fixture'}
+        artifacts={}
+        for number,partition in enumerate(r.SPLIT71_PARTITIONS,1):
+            groups=r.split71_groups(selection,partition);simulator={'udid':str(number)*8+'-'+str(number)*4+'-'+str(number)*4+'-'+str(number)*4+'-'+str(number)*12,'name':'iPhone Fixture','runtime':'com.apple.CoreSimulator.SimRuntime.iOS-26-5'}
+            receipt=dict(identity,version=2,scope='split71-partition-only',status='PASS',partition=partition,
+                artifact_name=r.split71_artifact_name(identity,partition),toolchain=toolchain,simulator=simulator,
+                runner_image={'ImageOS':'macos26','ImageVersion':'fixture1','RUNNER_ARCH':'ARM64'},groups={})
+            device={'deviceId':simulator['udid'],'deviceName':simulator['name'],'architecture':'arm64','modelName':'iPhone Fixture','platform':'iOS Simulator','osVersion':'26.5','osBuildNumber':'fixture-build'}
+            config={'configurationId':'1','configurationName':'Test Scheme Action'}
+            runtime={'identifier':simulator['runtime'],'name':'iOS 26.5','version':'26.5','buildversion':'fixture-build'}
+            receipt['simulator_runtime']=runtime;receipt['xcresulttool_version']='xcresulttool version fixture'
+            docs={'xcresult-version.txt':b'xcresulttool version fixture\n',
+                  'simulator-devices.json':(r.encode({'devices':{simulator['runtime']:[dict(name=simulator['name'],udid=simulator['udid'],isAvailable=True)]}})+'\n').encode(),
+                  'simulator-runtimes.json':(r.encode({'runtimes':[dict(runtime,isAvailable=True)]})+'\n').encode()}
+            fields={'deviceId','deviceName','architecture','modelName','platform','osVersion','osBuildNumber'}
+            schemas={'Device':{'type':'object','properties':{key:{'type':'string'} for key in fields},'required':list(fields)},
+                'DeviceAndConfigurationSummary':{'properties':dict(device={'$ref':'#/schemas/Device'},testPlanConfiguration={'$ref':'#/schemas/Configuration'},**{key:{'type':'integer'} for key in ('passedTests','failedTests','skippedTests','expectedFailures')})},
+                'Tests':{'required':['devices','testPlanConfigurations','testNodes'],'properties':{key:{'type':'array','items':{'$ref':'#/schemas/Device' if key=='devices' else '#/schemas/Configuration'}} for key in ('devices','testPlanConfigurations','testNodes')}}}
+            for kind in ('summary','tests'):docs['xcresult-'+kind+'-help.txt']=('SYNTHETIC LOCAL SCHEMA FIXTURE\nCommand output structure (JSON Schema):\n'+r.encode({'schemas':schemas})+'\n').encode()
+            for group in groups:
+                methods=group['methods'];rows=[{'method':m,'status':'Passed'} for m in methods]
+                receipt['groups'][group['name']]={'status':'PASS','expected':methods,'actual_count':len(methods),'actual':rows,'returncode':0}
+                if group['kind']=='swift':
+                    cases=[];transcript=[]
+                    for method in methods:
+                        target,klass,test=method.split('/')
+                        cases.append('<testcase classname="'+target+'.'+klass+'" name="'+test+'"/>')
+                        transcript.extend(["Test Case '-["+target+'.'+klass+' '+test+"]' started.","Test Case '-["+target+'.'+klass+' '+test+"]' passed (0.1 seconds)."])
+                    docs['core.xml']=('<testsuite tests="50">'+''.join(cases)+'</testsuite>').encode()
+                    docs['core-stdout.txt']=('\n'.join(transcript)+'\n').encode()
+                else:
+                    docs[group['name']+'-tests.json']=(r.encode({'devices':[device],'testPlanConfigurations':[config],'testNodes':[{'nodeType':'Test Suite','name':group['target'],'children':[{'nodeType':'Test Case','nodeIdentifier':m,'result':'Passed'} for m in methods]}]})+'\n').encode()
+                    docs[group['name']+'-summary.json']=(r.encode({'totalTestCount':len(methods),'passedTests':len(methods),'failedTests':0,'skippedTests':0,'expectedFailures':0,'result':'Passed','testFailures':[],'devicesAndConfigurations':[{'device':device,'testPlanConfiguration':config,'passedTests':len(methods),'failedTests':0,'skippedTests':0,'expectedFailures':0}]})+'\n').encode()
+            total=sum(len(g['methods']) for g in groups);receipt.update(expected_count=total,actual_count=total)
+            name='app-unit' if partition=='core-app' else 'ui';run='fixture.xctestrun'
+            ledger=[[run,'file','c'*64]]
+            product={'configuration':r.SPLIT71_CONFIGS[name],'xctestrun':run,'xctestrun_sha256':'c'*64}
+            if name=='app-unit':
+                manifest={'commit':identity['source_sha'],'purpose':'isolated-simulator-app-unit','toolchain':{k:toolchain[k] for k in ('xcode','developer')},'targets':{'QuestifyAppUnitTests':run},'source_archive_sha256':'d'*64}
+                raw=(r.encode(manifest)+'\n').encode();docs['app-unit-manifest.json']=raw
+                ledger.append(['questify-test-products.json','file',r.hashlib.sha256(raw).hexdigest()]);product['manifest']=manifest
+            else:
+                docs['ui-config.json']=(r.encode({'QuestifyAPIBaseURL':'','CFBundleSupportedPlatforms':['iPhoneSimulator'],'embedded_mobileprovision':False})+'\n').encode()
+                docs['ui-info.plist']=plistlib.dumps({'QuestifyAPIBaseURL':'','CFBundleSupportedPlatforms':['iPhoneSimulator']})
+                ledger.append(['Debug-iphonesimulator/Questify.app/Info.plist','file',r.hashlib.sha256(docs['ui-info.plist']).hexdigest()])
+                ledger.sort()
+            product.update(files=len(ledger),sha256=r.split71_hash(ledger));receipt['products']={name:product}
+            receipt['products_before']=copy.deepcopy(receipt['products']);receipt['products_after']=copy.deepcopy(receipt['products'])
+            receipt['source_before']={k:identity[k] for k in ('source_sha','source_tree')};receipt['source_after']=dict(receipt['source_before'])
+            ledgers={name:ledger}
+            if partition=='core-app':
+                core_ledger=[['Contents/MacOS/QuestifyCorePackageTests','file','e'*64]]
+                receipt['products']['core']={'configuration':r.SPLIT71_CONFIGS['core'],'bundle':'QuestifyCorePackageTests.xctest','files':1,'sha256':r.split71_hash(core_ledger)}
+                receipt['products_before']=copy.deepcopy(receipt['products']);receipt['products_after']=copy.deepcopy(receipt['products'])
+                ledgers['core']=core_ledger
+            docs['products-ledger.json']=(r.encode(ledgers)+'\n').encode()
+            phase_names=['checkout-initialization']+sorted(r.split71_phase_names(partition)-{'checkout-initialization','report'})+['report']
+            phases={name:{'started_monotonic':float(index+1),'ended_monotonic':float(index+2),'wall_seconds':1.0,'returncode':0} for index,name in enumerate(phase_names)}
+            receipt['worker_clock']=r.split71_worker_clock(phases)
+            docs['phase-times.json']=(r.encode(phases)+'\n').encode()
+            result='/synthetic/'+partition+'/'+('app-unit' if partition=='core-app' else 'ui')+'.xcresult'
+            receipt['result_bundle_path']=result;items=[]
+            for filename,command,limit in r.split71_schema_rows(partition,Path(result)):
+                docs[filename+'.stderr.txt']=b''
+                row={'argv':command,'status':'CAPTURED','returncode':0,'wall_seconds':0.1,'observed_bytes':{},'truncated':{'stdout':False,'stderr':False},'file':filename}
+                for stream in ('stdout','stderr'):
+                    name=filename if stream=='stdout' else filename+'.stderr.txt';raw=docs[name]
+                    row[stream]={'file':name,'byte_count':len(raw),'sha256':r.hashlib.sha256(raw).hexdigest()};row['observed_bytes'][stream]=len(raw)
+                items.append(row)
+            manifest={'version':2,'purpose':'raw-apple-tool-schema-evidence-only','native_test_result_authority':False,'partition':partition,'status':'CAPTURED','identity':identity,'result_bundle_path':result,'limits':{'total_seconds':90,'item_seconds':30,'total_bytes':48*1024*1024,'stderr_item_bytes':64*1024},'items':items,'retained_bytes':sum(row['stdout']['byte_count']+row['stderr']['byte_count'] for row in items),'wall_seconds':1.0}
+            docs['schema-manifest.json']=(r.encode(manifest)+'\n').encode()
+            self.seal(receipt,docs);artifacts[receipt['artifact_name']]=docs
+        return identity,artifacts
+
+    def seal(self,receipt,docs):
+        if 'schema-manifest.json' in docs:
+            manifest=self.r.split71_json(docs['schema-manifest.json']);retained=0
+            for item in manifest['items']:
+                for stream in ('stdout','stderr'):
+                    row=item[stream];raw=docs[row['file']];retained+=len(raw)
+                    row.update(byte_count=len(raw),sha256=self.r.hashlib.sha256(raw).hexdigest());item['observed_bytes'][stream]=len(raw)
+            manifest['retained_bytes']=retained;docs['schema-manifest.json']=(self.r.encode(manifest)+'\n').encode()
+        receipt['evidence_sha256']={n:self.r.hashlib.sha256(v).hexdigest() for n,v in docs.items() if n!='receipt.json'}
+        docs['receipt.json']=(self.r.encode(receipt)+'\n').encode()
+
+    def change_receipt(self,docs,change):
+        receipt=self.r.split71_json(docs['receipt.json']);change(receipt);self.seal(receipt,docs)
+
+    def rejects(self,identity,artifacts,needs='success'):
+        with self.assertRaises((ValueError,KeyError,TypeError)):
+            self.r.aggregate_split71(self.selection,identity,artifacts,needs)
+
+    def test_exact_two_partitions_union71_reparses_all_raw_results(self):
+        identity,artifacts=self.fixture();result=self.r.aggregate_split71(self.selection,identity,artifacts,'success')
+        self.assertEqual((result['actual_count'],result['counts']),(71,{'core':50,'app-unit':14,'ui':7}))
+        self.assertEqual(len({row['method'] for row in result['actual']}),71)
+
+    def test_every_new6_core_omission_rejected_even_after_rehash(self):
+        self.assertEqual(len(runner.MERCHANT_METHODS),6)
+        for method in runner.MERCHANT_METHODS:
+            identity,artifacts=self.fixture();docs=next(iter(artifacts.values()))
+            target,klass,name=method.split('/')
+            docs['core.xml']=docs['core.xml'].replace(('<testcase classname="'+target+'.'+klass+'" name="'+name+'"/>').encode(),b'')
+            docs['core-stdout.txt']=b'\n'.join(line for line in docs['core-stdout.txt'].splitlines() if (klass+' '+name+']').encode() not in line)
+            self.seal(self.r.split71_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
+
+    def test_legacy65_receipt_cannot_impersonate_split71(self):
+        identity,artifacts=self.fixture();docs=next(iter(artifacts.values()))
+        self.change_receipt(docs,lambda r:r.update(version=1,scope='selected-native-diagnostic-only',actual_count=65,expected_count=65))
+        self.rejects(identity,artifacts)
+
+    def test_missing_extra_duplicate_partition_and_wrong_artifact_names_rejected(self):
+        for mode in ('missing','extra','wrong-name','duplicate-partition'):
+            with self.subTest(mode=mode):
+                identity,artifacts=self.fixture();first=next(iter(artifacts))
+                if mode=='missing':artifacts.pop(first)
+                elif mode=='extra':artifacts['alien']=artifacts[first]
+                elif mode=='wrong-name':artifacts[first+'-other']=artifacts.pop(first)
+                else:self.change_receipt(artifacts[first],lambda r:r.update(partition='ui-legacy'))
+                self.rejects(identity,artifacts)
+
+    def test_matrix_cancel_skip_failure_unknown_and_nonstring_success_rejected(self):
+        for outcome in ('cancelled','skipped','failure','in_progress','',True,None):
+            identity,artifacts=self.fixture();self.rejects(identity,artifacts,outcome)
+
+    def test_cross_sha_run_attempt_tree_workflow_selection_and_repository_rejected(self):
+        identity,original=self.fixture()
+        for field in identity:
+            with self.subTest(field=field):
+                artifacts=copy.deepcopy(original);docs=next(iter(artifacts.values()))
+                self.change_receipt(docs,lambda r:r.update({field:'wrong'}));self.rejects(identity,artifacts)
+
+    def test_wrong_group_same_total_substitution_duplicate_and_zero_results_rejected(self):
+        for mode in ('wrong-target','substitute','duplicate','zero'):
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split71_artifact_name(identity,'ui-legacy')]
+            data=self.r.split71_json(docs['ui-tests.json']);nodes=data['testNodes'][0]['children']
+            if mode=='wrong-target':data['testNodes'][0]['name']='QuestifyAppUnitTests'
+            elif mode=='substitute':nodes[0]['nodeIdentifier']='QuestifyUITests/Other/testOther'
+            elif mode=='duplicate':nodes[0]=copy.deepcopy(nodes[1])
+            else:data['testNodes'][0]['children']=[]
+            docs['ui-tests.json']=(self.r.encode(data)+'\n').encode();receipt=self.r.split71_json(docs['receipt.json']);self.seal(receipt,docs)
+            self.rejects(identity,artifacts)
+
+    def test_raw_json_tampering_and_rehashed_failure_skip_incomplete_rejected(self):
+        for status in ('Failed','Skipped','Not Run','Unknown'):
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split71_artifact_name(identity,'ui-legacy')]
+            data=self.r.split71_json(docs['ui-tests.json']);data['testNodes'][0]['children'][0]['result']=status
+            docs['ui-tests.json']=(self.r.encode(data)+'\n').encode()
+            self.rejects(identity,artifacts)
+            self.seal(self.r.split71_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
+
+    def test_nonzero_or_boolean_test_build_and_summary_counts_rejected(self):
+        for value in (1,124,False,True,'0'):
+            identity,artifacts=self.fixture();docs=next(iter(artifacts.values()))
+            self.change_receipt(docs,lambda r:r['groups']['app-unit'].update(returncode=value));self.rejects(identity,artifacts)
+        for field in ('totalTestCount','passedTests','failedTests','skippedTests','expectedFailures'):
+            identity,artifacts=self.fixture();docs=next(iter(artifacts.values()))
+            summary=self.r.split71_json(docs['app-unit-summary.json']);summary[field]=False
+            docs['app-unit-summary.json']=(self.r.encode(summary)+'\n').encode();self.seal(self.r.split71_json(docs['receipt.json']),docs)
+            self.rejects(identity,artifacts)
+        identity,artifacts=self.fixture();docs=next(iter(artifacts.values()))
+        phases=self.r.split71_json(docs['phase-times.json']);phases['app-build']['returncode']=1
+        docs['phase-times.json']=(self.r.encode(phases)+'\n').encode();self.seal(self.r.split71_json(docs['receipt.json']),docs)
+        self.rejects(identity,artifacts)
+
+    def test_wrong_device_and_reused_device_toolchain_runtime_image_rejected(self):
+        for mode in ('device','same-device','runtime','toolchain','image'):
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split71_artifact_name(identity,'ui-legacy')]
+            receipt=self.r.split71_json(docs['receipt.json'])
+            if mode=='device':receipt['simulator']['udid']='4'*8+'-'+'4'*4+'-'+'4'*4+'-'+'4'*4+'-'+'4'*12
+            elif mode=='same-device':
+                prior=self.r.split71_json(next(iter(artifacts.values()))['receipt.json']);receipt['simulator']['udid']=prior['simulator']['udid']
+                summary=self.r.split71_json(docs['ui-summary.json']);summary['devicesAndConfigurations'][0]['device']['deviceId']=receipt['simulator']['udid'];docs['ui-summary.json']=(self.r.encode(summary)+'\n').encode()
+            elif mode=='runtime':receipt['simulator']['runtime']='com.apple.CoreSimulator.SimRuntime.iOS-26-4'
+            elif mode=='toolchain':receipt['toolchain']['swift']='other'
+            else:receipt['runner_image']['ImageVersion']='other'
+            self.seal(receipt,docs);self.rejects(identity,artifacts)
+
+    def test_products_manifest_archive_and_before_after_changes_rejected(self):
+        for mode in ('products','archive','manifest','before','after','source-after','configuration','ledger','xctestrun'):
+            with self.subTest(mode=mode):
+                identity,artifacts=self.fixture();docs=next(iter(artifacts.values()));receipt=self.r.split71_json(docs['receipt.json'])
+                if mode=='products':receipt['products']={}
+                elif mode=='archive':receipt['source_archive_sha256']='f'*64
+                elif mode=='manifest':receipt['products']['app-unit']['manifest']['commit']='f'*40
+                elif mode=='before':receipt['products_before']={}
+                elif mode=='after':receipt['products_after']={}
+                elif mode=='source-after':receipt['source_after']['source_tree']='f'*40
+                elif mode=='configuration':receipt['products']['app-unit']['configuration']='Release/device'
+                elif mode=='xctestrun':receipt['products']['app-unit']['xctestrun']='other.xctestrun'
+                else:
+                    ledger=self.r.split71_json(docs['products-ledger.json']);ledger['app-unit'][0][2]='0'*64;docs['products-ledger.json']=(self.r.encode(ledger)+'\n').encode()
+                self.seal(receipt,docs);self.rejects(identity,artifacts)
+
+    def test_unknown_missing_negative_nan_and_inconsistent_phase_rejected(self):
+        for mode in ('unknown','missing','negative','nan','inconsistent','boolean'):
+            identity,artifacts=self.fixture();docs=next(iter(artifacts.values()));phases=self.r.split71_json(docs['phase-times.json'])
+            if mode=='unknown':phases['free-budget']=phases['boot']
+            elif mode=='missing':phases.pop('python-validation')
+            elif mode=='negative':phases['boot']['wall_seconds']=-1
+            elif mode=='nan':phases['boot']['wall_seconds']=float('nan')
+            elif mode=='boolean':phases['boot']['wall_seconds']=True
+            else:phases['boot']['wall_seconds']=2
+            docs['phase-times.json']=(self.r.encode(phases)+'\n').encode();self.seal(self.r.split71_json(docs['receipt.json']),docs)
+            self.rejects(identity,artifacts)
+
+    def test_current_selection_budget_partition_or_old_declaration_changes_rejected(self):
+        for key,value in [('global_total',65),('global_counts',{'core':44,'app-unit':14,'ui':7}),('budget_seconds',{}),('admission','NOT_AUTHORIZED')]:
+            selection=copy.deepcopy(self.selection);selection['merchant_readback']['split'][key]=value
+            with self.assertRaises(ValueError):self.r.split71_layer(selection)
+        old=self.r.merchant_test_preimage((MERCHANT_SOURCE/self.r.PATHS[3]).read_bytes())
+        self.assertEqual(self.r.hashlib.sha256(old).hexdigest(),self.r.BYTEPERF_TEST_SHA256)
+
+    def test_ui_raw_plist_must_match_product_inventory_and_safe_configuration(self):
+        for mode in ('changed-bytes','live-api','wrong-platform','provisioned'):
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split71_artifact_name(identity,'ui-legacy')]
+            receipt=self.r.split71_json(docs['receipt.json']);ledger=self.r.split71_json(docs['products-ledger.json'])
+            info=plistlib.loads(docs['ui-info.plist'])
+            if mode=='live-api':info['QuestifyAPIBaseURL']='https://live.invalid'
+            elif mode=='wrong-platform':info['CFBundleSupportedPlatforms']=['iPhoneOS']
+            elif mode=='changed-bytes':info['extra']='changed'
+            else:ledger['ui'].append(['Debug-iphonesimulator/Questify.app/embedded.mobileprovision','file','f'*64])
+            docs['ui-info.plist']=plistlib.dumps(info)
+            if mode!='changed-bytes':
+                for row in ledger['ui']:
+                    if row[0].endswith('/Info.plist'):row[2]=self.r.hashlib.sha256(docs['ui-info.plist']).hexdigest()
+                ledger['ui'].sort();product=receipt['products']['ui'];product.update(files=len(ledger['ui']),sha256=self.r.split71_hash(ledger['ui']))
+                receipt['products_before']=copy.deepcopy(receipt['products']);receipt['products_after']=copy.deepcopy(receipt['products'])
+                docs['products-ledger.json']=(self.r.encode(ledger)+'\n').encode()
+            self.seal(receipt,docs);self.rejects(identity,artifacts)
+
+    def test_device_schema_rejects_note_spoof_mixed_device_wrong_os_and_fabricated_runtime(self):
+        for mode in ('note','mixed-device','wrong-os','runtime','tests-device','tests-configuration','unknown-schema'):
+            with self.subTest(mode=mode):
+                identity,artifacts=self.fixture();docs=artifacts[self.r.split71_artifact_name(identity,'ui-legacy')]
+                receipt=self.r.split71_json(docs['receipt.json']);summary=self.r.split71_json(docs['ui-summary.json']);tests=self.r.split71_json(docs['ui-tests.json'])
+                if mode=='note':
+                    summary['devicesAndConfigurations'][0]['device']['deviceId']='foreign';summary['note']=receipt['simulator']['udid']
+                elif mode=='mixed-device':summary['devicesAndConfigurations'].append(copy.deepcopy(summary['devicesAndConfigurations'][0]))
+                elif mode=='wrong-os':summary['devicesAndConfigurations'][0]['device']['osVersion']='1.0'
+                elif mode=='runtime':receipt['simulator']['runtime']='com.apple.CoreSimulator.SimRuntime.iOS-invented'
+                elif mode=='tests-device':tests['devices'][0]['deviceId']='foreign'
+                elif mode=='tests-configuration':tests['testPlanConfigurations'][0]['configurationId']='other'
+                else:docs['xcresult-summary-help.txt']=b'unknown schema'
+                docs['ui-summary.json']=(self.r.encode(summary)+'\n').encode();docs['ui-tests.json']=(self.r.encode(tests)+'\n').encode()
+                self.seal(receipt,docs);self.rejects(identity,artifacts)
+
+    def test_core_product_binary_ledger_mutation_is_rejected(self):
+        identity,artifacts=self.fixture();docs=next(iter(artifacts.values()));ledger=self.r.split71_json(docs['products-ledger.json'])
+        ledger['core'][0][2]='f'*64;docs['products-ledger.json']=(self.r.encode(ledger)+'\n').encode()
+        self.seal(self.r.split71_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
+
+    def test_fixed_history_read_is_bounded_sanitized_and_rejects_other_revision(self):
+        r=self.r;root=MERCHANT_SOURCE;revision=next(iter(r.SPLIT71_PUBLIC_OBJECTS));tree=r.SPLIT71_PUBLIC_OBJECTS[revision]
+        with mock.patch.object(r,'checked',side_effect=['',tree]),mock.patch.object(r,'execute') as execute:
+            r.split71_ensure_public_object(root,revision);execute.assert_not_called()
+        calls=[]
+        def execute(command,where,timeout,capture=False,env=None):
+            calls.append((command,timeout,env));return 0,b''
+        with mock.patch.object(r,'checked',side_effect=[ValueError('missing'),'',tree]),mock.patch.object(r,'execute',side_effect=execute):
+            r.split71_ensure_public_object(root,revision)
+        command,timeout,environment=calls[-1]
+        self.assertEqual(timeout,60);self.assertEqual(command[-2:],['https://github.com/liboyang42-cpu/chengyin-ios.git',revision])
+        self.assertEqual(environment['HOME'],'/dev/null');self.assertEqual(environment['GIT_CONFIG_GLOBAL'],'/dev/null')
+        self.assertFalse(any(k in environment for k in ('GIT_CONFIG_COUNT','HTTPS_PROXY','GITHUB_TOKEN','SSH_AUTH_SOCK')))
+        self.assertIn('http.followRedirects=false',command);self.assertIn('--depth=1',command)
+        with self.assertRaises(ValueError):r.split71_ensure_public_object(root,'0'*40)
+        with mock.patch.object(r,'checked',side_effect=ValueError('missing')),mock.patch.object(r,'execute',return_value=(0,b'http.extraheader\n')),self.assertRaises(ValueError):
+            r.split71_ensure_public_object(root,revision)
+
+    def test_summary_overall_failure_or_nonempty_failure_list_rejected_after_rehash(self):
+        for field,value in [('result','Failed'),('result','Unknown'),('result',None),('testFailures',[{'failureText':'contradictory'}])]:
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split71_artifact_name(identity,'ui-legacy')]
+            summary=self.r.split71_json(docs['ui-summary.json']);summary[field]=value
+            docs['ui-summary.json']=(self.r.encode(summary)+'\n').encode();self.seal(self.r.split71_json(docs['receipt.json']),docs)
+            self.rejects(identity,artifacts)
+
+    def test_worker_clock_cannot_hide_overhead_overlap_or_exceed_worker_cap(self):
+        for mode in ('overhead','overlap','cap'):
+            identity,artifacts=self.fixture();docs=next(iter(artifacts.values()));receipt=self.r.split71_json(docs['receipt.json'])
+            phases=self.r.split71_json(docs['phase-times.json'])
+            if mode=='overhead':receipt['worker_clock']['unclassified_overhead_seconds']=-1
+            elif mode=='overlap':
+                phases['boot']=dict(phases['app-test']);receipt['worker_clock']=self.r.split71_worker_clock(phases)
+            else:
+                phases['report']['ended_monotonic']+=3000;phases['report']['wall_seconds']+=3000;receipt['worker_clock']=self.r.split71_worker_clock(phases)
+            docs['phase-times.json']=(self.r.encode(phases)+'\n').encode();self.seal(receipt,docs);self.rejects(identity,artifacts)
+
+    def test_fixed_two_worker_authorization_does_not_admit_changed_contract(self):
+        self.r.split71_require_admission(self.selection)
+        selection=copy.deepcopy(self.selection);selection['merchant_readback']['split']['peak_macos_jobs']=3
+        with self.assertRaises(ValueError):self.r.split71_require_admission(selection)
+
+    def test_method_commands_have_only_exact_whole_identities_and_original_timeouts(self):
+        for part in self.r.SPLIT71_PARTITIONS:
+            for group in self.r.split71_groups(self.selection,part):
+                if group['kind']=='swift':continue
+                command=self.r.xcode_test_command(group,Path('/products/run.xctestrun'),'a',Path('/results'))
+                self.assertEqual([x[14:] for x in command if x.startswith('-only-testing:')],group['methods'])
+                self.assertEqual(command[command.index('-maximum-test-execution-time-allowance')+1],'120' if group['name']=='app-unit' else '900')
+        budget=self.selection['merchant_readback']['split']['budget_seconds'];self.assertEqual(budget['ui-legacy-test'],1000);self.assertEqual(budget['app-test'],360)
+
+    def test_evidence_allowlist_refuses_symlinks_extra_products_and_duplicate_json_keys(self):
+        identity,artifacts=self.fixture();docs=next(iter(artifacts.values()))
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            for name,raw in docs.items():(root/name).write_bytes(raw)
+            self.assertEqual(self.r.split71_read_evidence(root,'core-app'),docs)
+            (root/'Questify.app').mkdir()
+            with self.assertRaises(ValueError):self.r.split71_read_evidence(root,'core-app')
+            (root/'Questify.app').rmdir();(root/'core.xml').unlink();(root/'core.xml').symlink_to(root/'receipt.json')
+            with self.assertRaises(ValueError):self.r.split71_read_evidence(root,'core-app')
+        with self.assertRaises(ValueError):self.r.split71_json(b'{"a":1,"a":2}')
+
+    def test_current_workflow_uses_fixed_matrix_bounded_same_attempt_artifacts_and_no_permissions_expansion(self):
+        raw=(MERCHANT_SOURCE/'.github/workflows/native-targeted.yml').read_text()
+        for text in ('partition: [core-app, ui-legacy]','fail-fast: false','max-parallel: 2','continue-on-error: false','needs: [targeted]','if: always()','retention-days: 1','overwrite: false','merge-multiple: false','fetch-depth: 2','persist-credentials: false','contents: read'):
+            self.assertIn(text,raw)
+        self.assertIn('native-targeted-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-',raw)
+        for text in ('permissions: write','id-token:','secrets.','token:','continue-on-error: true','merge-multiple: true'):
+            self.assertNotIn(text,raw)
+
+
+    def test_split_acquisition_requires_only_its_seven_exact_raw_commands_and_keeps_unsupported_bytes(self):
+        for partition in self.r.SPLIT71_PARTITIONS:
+            with self.subTest(partition=partition),tempfile.TemporaryDirectory() as tmp:
+                output=Path(tmp);group='app-unit' if partition=='core-app' else 'ui';result=output/(group+'.xcresult');result.mkdir()
+                calls=[];raw=b'  UNSUPPORTED RAW SCHEMA\n\x00\xff'
+                def capture(command,root,seconds,limit):
+                    calls.append((command,seconds,limit))
+                    return {'argv':command,'status':'CAPTURED','returncode':0,'wall_seconds':0.0,'observed_bytes':{'stdout':len(raw),'stderr':0},'truncated':{'stdout':False,'stderr':False},'stdout':raw,'stderr':b''}
+                with mock.patch.object(self.r,'merchant_capture_command',side_effect=capture):
+                    manifest=self.r.split71_capture_schema(output,output,partition,{group:result},{})
+                self.assertEqual(manifest['status'],'CAPTURED');self.assertIs(manifest['native_test_result_authority'],False)
+                self.assertEqual(len(calls),7);self.assertTrue(all(0<row[1]<=30 for row in calls))
+                names=[r[0] for r in self.r.split71_schema_rows(partition,result)]
+                self.assertEqual([r['file'] for r in manifest['items']],names)
+                self.assertEqual({p.name for p in (output/'schema-evidence').iterdir()},set(names)|{n+'.stderr.txt' for n in names}|{'manifest.json'})
+                self.assertEqual((output/'schema-evidence'/'xcresult-summary-help.txt').read_bytes(),raw)
+                self.assertNotIn('ui-' if group=='app-unit' else 'app-unit-',' '.join(names))
+
+    def test_split_acquisition_manifest_rejects_failure_timeout_truncation_identity_path_and_scope_even_after_rehash(self):
+        for mode in ('failure','timeout','truncation','nonzero','boolean','identity','partition','path','extra','missing','total-time','item-time','budget','authority'):
+            with self.subTest(mode=mode):
+                identity,artifacts=self.fixture();docs=next(iter(artifacts.values()));receipt=self.r.split71_json(docs['receipt.json'])
+                manifest=self.r.split71_json(docs['schema-manifest.json'])
+                if mode=='failure':manifest['status']='PARTIAL_OR_FAILED'
+                elif mode=='timeout':manifest['items'][0]['status']='TIMEOUT'
+                elif mode=='truncation':manifest['items'][0]['truncated']['stdout']=True
+                elif mode=='nonzero':manifest['items'][0]['returncode']=1
+                elif mode=='boolean':manifest['items'][0]['returncode']=False
+                elif mode=='identity':manifest['identity']['run_attempt']='1'
+                elif mode=='partition':manifest['partition']='ui-legacy'
+                elif mode=='path':manifest['result_bundle_path']='/foreign/ui.xcresult'
+                elif mode=='extra':manifest['items'].append(copy.deepcopy(manifest['items'][0]))
+                elif mode=='missing':manifest['items'].pop()
+                elif mode=='total-time':manifest['wall_seconds']=91
+                elif mode=='item-time':manifest['items'][0]['wall_seconds']=31
+                elif mode=='budget':manifest['limits']['total_seconds']=100
+                else:manifest['native_test_result_authority']=True
+                docs['schema-manifest.json']=(self.r.encode(manifest)+'\n').encode();self.seal(receipt,docs)
+                self.rejects(identity,artifacts)
+
+    def test_split_acquisition_missing_bundle_expired_budget_and_aliased_path_never_become_complete(self):
+        for mode in ('missing','expired','link','foreign'):
+            with self.subTest(mode=mode),tempfile.TemporaryDirectory() as tmp:
+                output=Path(tmp);result=output/'app-unit.xcresult'
+                if mode!='missing':result.mkdir()
+                if mode=='link':
+                    real=output/'real.xcresult';result.rename(real);result.symlink_to(real,target_is_directory=True)
+                if mode=='foreign':result=output/'foreign'/'app-unit.xcresult';result.mkdir(parents=True)
+                def capture(command,root,seconds,limit):
+                    return {'argv':command,'status':'CAPTURED','returncode':0,'wall_seconds':0.0,'observed_bytes':{'stdout':2,'stderr':0},'truncated':{'stdout':False,'stderr':False},'stdout':b'{}','stderr':b''}
+                with mock.patch.object(self.r,'merchant_capture_command',side_effect=capture) as call:
+                    manifest=self.r.split71_capture_schema(output,output,'core-app',{'app-unit':result},{},seconds=0 if mode=='expired' else 90)
+                self.assertEqual(manifest['status'],'PARTIAL_OR_FAILED')
+                self.assertEqual(call.call_count,0 if mode=='expired' else 5)
+                self.assertTrue(all(item['status']=='NOT_RUN' for item in manifest['items'][-2:]))
+
+    def test_split_test_execution_cannot_mark_pass_before_actual_schema_admission(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output=Path(tmp);preflight=output/'preflight.json'
+            phases={name:{'started_monotonic':1.0,'ended_monotonic':2.0,'wall_seconds':1.0,'returncode':0} for name in ('checkout-initialization','python-validation','source-validation')}
+            self.r.write_json(preflight,phases)
+            job=self.r.Split71Diagnostic(MERCHANT_SOURCE,output,self.selection,'ui-legacy',preflight)
+            group=self.r.split71_groups(self.selection,'ui-legacy')[0];result=output/'ui.xcresult'
+            command=self.r.xcode_test_command(group,Path('/synthetic/run.xctestrun'),'fixture',result)
+            with mock.patch.object(job,'command',return_value=(0,b'')):
+                job.collect(group,command,1000,result)
+            self.assertEqual(job.receipt['groups']['ui']['status'],'EXECUTED_UNVALIDATED')
+            self.assertEqual(job.receipt['groups']['ui']['actual_count'],0)
+            self.assertEqual(job.receipt['status'],'INCOMPLETE')
+            self.assertEqual(job.schema_result_paths,{'ui':result})
+            with mock.patch.object(job,'execute_partition',side_effect=KeyboardInterrupt),mock.patch.object(job,'capture_schema') as capture,self.assertRaises(KeyboardInterrupt):job.run()
+            capture.assert_not_called()
+            with mock.patch.object(job,'execute_partition',side_effect=ValueError('unauthenticated')),mock.patch.object(job,'capture_schema') as capture,self.assertRaises(ValueError):job.run()
+            capture.assert_not_called()
+
+    def report_fixture(self):
+        identity,artifacts=self.fixture();partition='ui-legacy';docs=artifacts[self.r.split71_artifact_name(identity,partition)]
+        temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup);root=Path(temporary.name)
+        output=root/'output';output.mkdir();capture=output/'schema-evidence';capture.mkdir();result=output/'ui.xcresult';result.mkdir()
+        receipt=self.r.split71_json(docs['receipt.json']);receipt.update(status='EXECUTED',result_bundle_path=str(result))
+        manifest=self.r.split71_json(docs['schema-manifest.json']);manifest['result_bundle_path']=str(result)
+        commands={name:command for name,command,_ in self.r.split71_schema_rows(partition,result)}
+        for item in manifest['items']:item['argv']=commands[item['file']]
+        docs['schema-manifest.json']=(self.r.encode(manifest)+'\n').encode()
+        phases=self.r.split71_json(docs['phase-times.json']);shift=self.r.time.monotonic()-100
+        for phase in phases.values():phase['started_monotonic']+=shift;phase['ended_monotonic']+=shift
+        phases.pop('report');docs['phase-times.json']=(self.r.encode(phases)+'\n').encode()
+        self.seal(receipt,docs)
+        capture_names={r[0] for r in self.r.split71_schema_rows(partition,result)}
+        capture_names|={n+'.stderr.txt' for n in tuple(capture_names)}
+        for name,raw in docs.items():
+            if name=='schema-manifest.json':(capture/'manifest.json').write_bytes(raw)
+            elif name in capture_names:(capture/name).write_bytes(raw)
+            else:(output/name).write_bytes(raw)
+        return identity,output,root/'evidence',docs
+
+    def test_unknown_raw_help_is_retained_but_no_pass_evidence_is_written(self):
+        identity,output,evidence,docs=self.report_fixture()
+        manifest=self.r.split71_json((output/'schema-evidence'/'manifest.json').read_bytes())
+        raw=b'RAW CURRENT APPLE TOOL HELP: unsupported\n'
+        (output/'schema-evidence'/'xcresult-summary-help.txt').write_bytes(raw)
+        row=next(r for r in manifest['items'] if r['file']=='xcresult-summary-help.txt')
+        old=row['stdout']['byte_count'];row['stdout'].update(byte_count=len(raw),sha256=self.r.hashlib.sha256(raw).hexdigest());row['observed_bytes']['stdout']=len(raw)
+        manifest['retained_bytes']+=len(raw)-old;self.r.write_json(output/'schema-evidence'/'manifest.json',manifest)
+        with mock.patch.object(self.r,'split71_identity',return_value=identity),mock.patch.object(self.r,'merchant_capture_command') as command,self.assertRaisesRegex(ValueError,'Unknown xcresulttool schema-help format'):
+            self.r.split71_report(output,evidence,self.selection,MERCHANT_SOURCE)
+        command.assert_not_called();self.assertFalse(evidence.exists())
+        self.assertEqual((output/'schema-evidence'/'xcresult-summary-help.txt').read_bytes(),raw)
+        self.assertEqual(self.r.read_json(output/'receipt.json')['status'],'EXECUTED')
+
+    def test_report_reextracts_both_current_result_documents_before_pass_and_rejects_changed_result(self):
+        for changed in (False,True):
+            with self.subTest(changed=changed):
+                identity,output,evidence,docs=self.report_fixture();calls=[]
+                def capture(command,root,seconds,limit):
+                    calls.append(command);kind=command[4];raw=docs['ui-'+kind+'.json']
+                    if changed and kind=='tests':raw=b'{}'
+                    return {'status':'CAPTURED','returncode':0,'stdout':raw}
+                with mock.patch.object(self.r,'split71_identity',return_value=identity),mock.patch.object(self.r,'merchant_capture_command',side_effect=capture):
+                    if changed:
+                        with self.assertRaisesRegex(ValueError,'Re-extracted xcresult differs'):self.r.split71_report(output,evidence,self.selection,MERCHANT_SOURCE)
+                        self.assertFalse(evidence.exists())
+                    else:
+                        self.r.split71_report(output,evidence,self.selection,MERCHANT_SOURCE)
+                        actual=self.r.split71_read_evidence(evidence,'ui-legacy');receipt=self.r.split71_json(actual['receipt.json'])
+                        self.assertEqual(len(self.r.validate_split71_partition(receipt,identity,self.selection,actual)),7)
+                self.assertEqual([c[4] for c in calls],['summary','tests'])
+
+# MERCHANT_READBACK_TESTS_END
 
 if __name__ == '__main__':
     unittest.main()

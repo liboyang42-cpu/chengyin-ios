@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "name": "shelf-profile-merchant-creator-unified-repair-v5",
+  "name": "merchant-aftercare-readback-native-v1",
   "base_commit": "3393ec85076a7a4e246e94e98ddf81f6b73ede2f",
   "base_tree": "7dd9461bafbe546e1c5ef5eaacc750267b416b2f",
   "repository": "liboyang42-cpu/chengyin-ios",
@@ -12,6 +12,12 @@
       "target": "QuestifyCoreTests",
       "scheme": null,
       "methods": [
+        "QuestifyCoreTests/MerchantAftercareProgressTests/testContradictoryResponseReadbackRejectsBothDirectionsAtDocumentBoundary",
+        "QuestifyCoreTests/MerchantAftercareProgressTests/testOmittedResponseReadbackNeverCreatesFundsOrHistoricalState",
+        "QuestifyCoreTests/MerchantAftercareProgressTests/testProvidedResponseReadbackRejectsNullUnknownAndWrongTypes",
+        "QuestifyCoreTests/MerchantAftercareProgressTests/testReadTransportRejectsContradictoryOutcomeWithoutMutation",
+        "QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackCannotReplaceMissingCurrentOutcome",
+        "QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackMatchesCurrentSnapshotAcrossEveryStateAndOpinion",
         "QuestifyCoreTests/MerchantDecorTagDraftTests/testHistoricalLabelsRemainByteExactUntilExplicitRemoval",
         "QuestifyCoreTests/MerchantDecorTagDraftTests/testSemicolonCustomLabelRemainsOneLiteralTag",
         "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testAcknowledgedWriteReadbackFailureKeepsLockUntilReadOnlyRetry",
@@ -58,6 +64,30 @@
         "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testTransientRefreshRetainsStatesWithRowsAndRetryReplacesBoth"
       ],
       "method_sources": [
+        {
+          "method": "QuestifyCoreTests/MerchantAftercareProgressTests/testContradictoryResponseReadbackRejectsBothDirectionsAtDocumentBoundary",
+          "source": "Tests/CoreTests/MerchantAftercareProgressTests.swift"
+        },
+        {
+          "method": "QuestifyCoreTests/MerchantAftercareProgressTests/testOmittedResponseReadbackNeverCreatesFundsOrHistoricalState",
+          "source": "Tests/CoreTests/MerchantAftercareProgressTests.swift"
+        },
+        {
+          "method": "QuestifyCoreTests/MerchantAftercareProgressTests/testProvidedResponseReadbackRejectsNullUnknownAndWrongTypes",
+          "source": "Tests/CoreTests/MerchantAftercareProgressTests.swift"
+        },
+        {
+          "method": "QuestifyCoreTests/MerchantAftercareProgressTests/testReadTransportRejectsContradictoryOutcomeWithoutMutation",
+          "source": "Tests/CoreTests/MerchantAftercareProgressTests.swift"
+        },
+        {
+          "method": "QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackCannotReplaceMissingCurrentOutcome",
+          "source": "Tests/CoreTests/MerchantAftercareProgressTests.swift"
+        },
+        {
+          "method": "QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackMatchesCurrentSnapshotAcrossEveryStateAndOpinion",
+          "source": "Tests/CoreTests/MerchantAftercareProgressTests.swift"
+        },
         {
           "method": "QuestifyCoreTests/MerchantDecorTagDraftTests/testHistoricalLabelsRemainByteExactUntilExplicitRemoval",
           "source": "Tests/CoreTests/MerchantDecorTagDraftTests.swift"
@@ -362,7 +392,7 @@
       ]
     }
   ],
-  "coverage_boundary": "65 selected methods: all prior 45 (original shelf Core10/AppUnit12/UI7, profile Core12, merchant Core2/AppUnit2) plus Creator state Core20. No new Creator state-label, localization, accessibility or visual UI execution coverage. Full required native gates, device/live acceptance and physical-device Keychain coverage remain separate. All groups require fresh same-SHA builds and a new same-run receipt.",
+  "coverage_boundary": "71 selected methods: complete prior65 plus six MerchantAftercareProgress current-detail readback Core tests. Source selection is not Apple execution or production refund acceptance. Full required native gates, device/live acceptance and physical-device Keychain coverage remain separate. All groups require fresh same-SHA builds and a new same-run receipt.",
   "source_files": [
     {
       "path": ".github/workflows/native-ios.yml",
@@ -479,6 +509,18 @@
     {
       "path": "Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift",
       "sha256": "b2b199d73b7045d4c3de9ce7bc0ea41b10bfc233c6b9c180438fd415d5c99b87"
+    },
+    {
+      "path": "Core/MerchantAftercareProgress.swift",
+      "sha256": "0c72f702c6c23d49a7e6bc0abdd73e8aad8ba9d62908f105e20107db5eee1349"
+    },
+    {
+      "path": "Tests/CoreTests/MerchantAftercareProgressTests.swift",
+      "sha256": "d05581c0a0b601f7b72025a6d8f0f6c70427b6b508984227910ba8ab9b70ab4f"
+    },
+    {
+      "path": "Tests/ContractChecks/test_merchant_aftercare_progress_readback.py",
+      "sha256": "fa785ce529334168f0837bbd5b0541ed42180ae1978cd7f7b1e67f4c97d7ec19"
     }
   ],
   "reviewed_repairs": [
@@ -2642,5 +2684,230 @@
         "hunks": []
       }
     ]
+  },
+  "merchant_readback": {
+    "version": 1,
+    "name": "merchant-aftercare-readback-native-v1",
+    "base_commit": "7bf858c23374b808c6d932367f96e97d09e9d799",
+    "base_tree": "94f43a19209607d403b47f3cdada1cfadf9c9aba",
+    "allowed_changes": [
+      "M\tCore/MerchantAftercareProgress.swift",
+      "M\tTests/CoreTests/MerchantAftercareProgressTests.swift",
+      "A\tTests/ContractChecks/test_merchant_aftercare_progress_readback.py",
+      "M\ttools/run_targeted_native.py",
+      "M\ttools/targeted_native_selection.json",
+      "M\ttools/tests/test_targeted_native.py",
+      "M\t.github/workflows/native-targeted.yml"
+    ],
+    "before": {
+      "Core/MerchantAftercareProgress.swift": {
+        "sha256": "dd946498b7de1ce00e1b5024802f0228239aed75b000a4aac4cc1f88625c0377",
+        "blob": "23d62da8bcc7c9f58fbd36a5f1d1e277c60d4848"
+      },
+      "Tests/CoreTests/MerchantAftercareProgressTests.swift": {
+        "sha256": "80b0176f7f6db572248b1357fcac0942b648447d54695f29ee1611a1cd300c63",
+        "blob": "8cacaf673a7637a71476804fc794ce540861d3c7"
+      },
+      "tools/run_targeted_native.py": {
+        "sha256": "a7f3d0009b6a114d2b346dd7e257bf1f774dd454fe77033efb0ab54ac0736276",
+        "blob": "d75c5f72ffe07dcafb266df7ccd1086a3643e5d6"
+      },
+      "tools/targeted_native_selection.json": {
+        "sha256": "b6973842c59ad96ff4443e1920f0c34c6cdcaf06bf4e92d9477d53d46938aa71",
+        "blob": "6de594b602ac5e93ae7b40a7dcd3113aee0062ba"
+      },
+      "tools/tests/test_targeted_native.py": {
+        "sha256": "d5aa2b42d5eb98b91252097d48c4841b0a90071bb29bd78d8cdb136b28da9d42",
+        "blob": "15a2707b605dc9bcf9d5a39a1b938a1f992b8d4e"
+      },
+      ".github/workflows/native-targeted.yml": {
+        "sha256": "990ecc06ade7144f3119f2f2aad8e159e481890060af8a98ce4710c4351b4ece",
+        "blob": "0feedc26ccc7e5ced55b9dd044a6a6b7ca5ccbbc"
+      }
+    },
+    "payload": [
+      {
+        "path": "Core/MerchantAftercareProgress.swift",
+        "status": "M",
+        "before_sha256": "dd946498b7de1ce00e1b5024802f0228239aed75b000a4aac4cc1f88625c0377",
+        "before_blob": "23d62da8bcc7c9f58fbd36a5f1d1e277c60d4848",
+        "after_sha256": "0c72f702c6c23d49a7e6bc0abdd73e8aad8ba9d62908f105e20107db5eee1349",
+        "after_blob": "041f2666be5e23045b855515ff836a95d665d42a",
+        "hunks": [
+          {
+            "before": "                  let decision = Decision(rawValue: try row.mbRequiredText(\"decision\")) else { throw MerchantBusinessFailure.malformed }\n",
+            "after": "                  let decision = Decision(rawValue: try row.mbRequiredText(\"decision\")) else { throw MerchantBusinessFailure.malformed }\n            try Self.validateResponseReadback(row, processing: processing, opinion: opinion)\n"
+          },
+          {
+            "before": "                            occurredAt: try Self.timestamp(row, \"createTime\"), evidence: evidence)\n",
+            "after": "                            occurredAt: try Self.timestamp(row, \"createTime\"), evidence: evidence)\n        }\n    }\n    /// detailVO supplies the same current outcome to every response, not the outcome\n    /// at the historical decision time. Older payloads may omit these mirror fields;\n    /// provided values must be typed and consistent before any progress is shown.\n    /// A mirror only validates the detail; it never supplies a missing outcome.\n    private static func validateResponseReadback(_ row: MerchantBusinessObject, processing: Processing, opinion: Opinion) throws {\n        if let value = row[\"processing\"] {\n            guard value.string == processing.rawValue else { throw MerchantBusinessFailure.malformed }\n        }\n        if let value = row[\"merchantOpinion\"] {\n            guard value.string == opinion.rawValue else { throw MerchantBusinessFailure.malformed }\n        }\n        if let value = row[\"refunded\"] {\n            guard value.bool == (processing == .refunded) else { throw MerchantBusinessFailure.malformed }\n"
+          }
+        ]
+      },
+      {
+        "path": "Tests/CoreTests/MerchantAftercareProgressTests.swift",
+        "status": "M",
+        "before_sha256": "80b0176f7f6db572248b1357fcac0942b648447d54695f29ee1611a1cd300c63",
+        "before_blob": "8cacaf673a7637a71476804fc794ce540861d3c7",
+        "after_sha256": "d05581c0a0b601f7b72025a6d8f0f6c70427b6b508984227910ba8ab9b70ab4f",
+        "after_blob": "b331ddbf190266feddfbf5489797b82b3cf79410",
+        "hunks": [
+          {
+            "before": "            var fields = try fields(); fields[\"refunded\"] = bit\n            XCTAssertThrowsError(try MerchantAftercareProgress(refundID: 62001, fields: fields))\n        }\n",
+            "after": "            var fields = try fields(); fields[\"refunded\"] = bit\n            XCTAssertThrowsError(try MerchantAftercareProgress(refundID: 62001, fields: fields))\n        }\n    }\n    func testResponseReadbackMatchesCurrentSnapshotAcrossEveryStateAndOpinion() throws {\n        // detailVO projects the current refund outcome onto every historical row.\n        // A row's decision is its historical opinion, not the current opinion mirror.\n        for state in MerchantAftercareProgress.Processing.allCases {\n            for opinion in MerchantAftercareProgress.Opinion.allCases {\n                var fields = try fields()\n                fields[\"processing\"] = .string(state.rawValue)\n                fields[\"merchantOpinion\"] = .string(opinion.rawValue)\n                var row = try XCTUnwrap(response(1, time: \"2026-10-01 09:00:00\", decision: \"REJECT\").object)\n                row[\"processing\"] = .string(state.rawValue)\n                row[\"merchantOpinion\"] = .string(opinion.rawValue)\n                row[\"refunded\"] = .bool(state == .refunded)\n                fields[\"responses\"] = .array([.object(row)])\n                let document = try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields))\n                let value = try XCTUnwrap(document.aftercareProgress)\n                XCTAssertEqual(value.processing, state)\n                XCTAssertEqual(value.opinion, opinion)\n                XCTAssertEqual(value.funds, state == .refunded ? .confirmed : .unconfirmed)\n                XCTAssertEqual(value.responses.first?.decision, .reject)\n                XCTAssertEqual(value.responses.first?.occurredAt, try MerchantAftercareTime.parse(\"2026-10-01 09:00:00\"))\n            }\n        }\n    }\n    func testContradictoryResponseReadbackRejectsBothDirectionsAtDocumentBoundary() throws {\n        for state in MerchantAftercareProgress.Processing.allCases {\n            for opinion in MerchantAftercareProgress.Opinion.allCases {\n                for (key, contradiction) in [\n                    (\"processing\", MerchantBusinessValue.string(state == .refunded ? \"UNKNOWN\" : \"REFUNDED\")),\n                    (\"merchantOpinion\", .string(opinion == .agree ? \"REJECT\" : \"AGREE\")),\n                    (\"refunded\", .bool(state != .refunded))\n                ] {\n                    var fields = try fields()\n                    fields[\"processing\"] = .string(state.rawValue)\n                    fields[\"merchantOpinion\"] = .string(opinion.rawValue)\n                    var row = try XCTUnwrap(response(1, decision: \"AGREE\").object)\n                    row[key] = contradiction\n                    fields[\"responses\"] = .array([.object(row)])\n                    XCTAssertThrowsError(try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields)),\n                                         \"Contradictory \\(key) must not produce funds for \\(state.rawValue)/\\(opinion.rawValue)\")\n                }\n            }\n        }\n    }\n    func testProvidedResponseReadbackRejectsNullUnknownAndWrongTypes() throws {\n        let invalid: [(String, [MerchantBusinessValue])] = [\n            (\"processing\", [.null, .bool(true), .int(1), .array([]), .object([:]), .string(\"UNRECOGNIZED\")]),\n            (\"merchantOpinion\", [.null, .bool(true), .int(1), .array([]), .object([:]), .string(\"UNRECOGNIZED\")]),\n            (\"refunded\", [.null, .string(\"false\"), .int(0), .array([]), .object([:])])\n        ]\n        for (key, values) in invalid {\n            for invalidValue in values {\n                var fields = try fields()\n                var row = try XCTUnwrap(response(1).object)\n                row[key] = invalidValue\n                fields[\"responses\"] = .array([.object(row)])\n                XCTAssertThrowsError(try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields)), key)\n            }\n        }\n    }\n    func testOmittedResponseReadbackNeverCreatesFundsOrHistoricalState() throws {\n        for state in MerchantAftercareProgress.Processing.allCases {\n            for providedKey in [nil, \"processing\", \"merchantOpinion\", \"refunded\"] as [String?] {\n                var fields = try fields()\n                fields[\"processing\"] = .string(state.rawValue)\n                fields[\"merchantOpinion\"] = .string(\"REJECT\")\n                var row = try XCTUnwrap(response(1, decision: \"AGREE\").object)\n                let readback: MerchantBusinessObject = [\"processing\": .string(state.rawValue),\n                                                       \"merchantOpinion\": .string(\"REJECT\"),\n                                                       \"refunded\": .bool(state == .refunded)]\n                if let providedKey { row[providedKey] = readback[providedKey] }\n                fields[\"responses\"] = .array([.object(row)])\n                let document = try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields))\n                let value = try XCTUnwrap(document.aftercareProgress)\n                XCTAssertEqual(value.processing, state)\n                XCTAssertEqual(value.opinion, .reject)\n                XCTAssertEqual(value.funds, state == .refunded ? .confirmed : .unconfirmed)\n                XCTAssertEqual(value.responses.first?.decision, .agree)\n                XCTAssertNil(value.responses.first?.occurredAt)\n                XCTAssertNil(value.platformTakeoverAt)\n                XCTAssertEqual(value.events.map(\\.id), [\"request\", \"response:1\"])\n            }\n        }\n    }\n    func testResponseReadbackCannotReplaceMissingCurrentOutcome() throws {\n        for key in [\"processing\", \"merchantOpinion\"] {\n            for replacement in [nil, MerchantBusinessValue.null, .bool(true), .string(\"UNRECOGNIZED\")] as [MerchantBusinessValue?] {\n                var fields = try fields()\n                var row = try XCTUnwrap(response(1, decision: \"AGREE\").object)\n                row[\"processing\"] = .string(\"REFUNDED\")\n                row[\"merchantOpinion\"] = .string(\"AGREE\")\n                row[\"refunded\"] = .bool(true)\n                fields[key] = replacement\n                fields[\"responses\"] = .array([.object(row)])\n                XCTAssertThrowsError(try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields)))\n            }\n        }\n    }\n    func testReadTransportRejectsContradictoryOutcomeWithoutMutation() async throws {\n        var fields = try fields()\n        fields[\"processing\"] = .string(\"REFUNDED\")\n        var row = try XCTUnwrap(response(1, decision: \"AGREE\").object)\n        row[\"refunded\"] = .bool(false)\n        fields[\"responses\"] = .array([.object(row)])\n        let transport = AftercareProgressTransport(data: try JSONEncoder().encode(MerchantBusinessValue.object([\"code\": .int(200), \"data\": .object(fields)])))\n        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: \"https://example.test\")!), readTransport: transport)\n        let access = try MerchantBusinessAccess(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object!)\n        do {\n            _ = try await service.document(.refund(.init(62001)), access: access, token: \"synthetic-token\")\n            XCTFail(\"Conflicting response outcome must not become an authorized refund document\")\n        } catch {\n            XCTAssertEqual(error as? MerchantBusinessFailure, .malformed)\n        }\n        let requests = await transport.requests\n        XCTAssertEqual(requests.count, 1)\n        XCTAssertEqual(requests.first?.httpMethod, \"GET\")\n        XCTAssertEqual(requests.first?.url?.path, \"/api/merchant/aftercare/detail\")\n        XCTAssertFalse(service.canExecuteSyntheticMutation)\n"
+          }
+        ]
+      },
+      {
+        "path": "Tests/ContractChecks/test_merchant_aftercare_progress_readback.py",
+        "status": "A",
+        "before_sha256": null,
+        "before_blob": null,
+        "after_sha256": "fa785ce529334168f0837bbd5b0541ed42180ae1978cd7f7b1e67f4c97d7ec19",
+        "after_blob": "01c2f17510897fd0f1b803b3ea75d60ee670c915",
+        "hunks": []
+      }
+    ],
+    "added_methods": [
+      "QuestifyCoreTests/MerchantAftercareProgressTests/testContradictoryResponseReadbackRejectsBothDirectionsAtDocumentBoundary",
+      "QuestifyCoreTests/MerchantAftercareProgressTests/testOmittedResponseReadbackNeverCreatesFundsOrHistoricalState",
+      "QuestifyCoreTests/MerchantAftercareProgressTests/testProvidedResponseReadbackRejectsNullUnknownAndWrongTypes",
+      "QuestifyCoreTests/MerchantAftercareProgressTests/testReadTransportRejectsContradictoryOutcomeWithoutMutation",
+      "QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackCannotReplaceMissingCurrentOutcome",
+      "QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackMatchesCurrentSnapshotAcrossEveryStateAndOpinion"
+    ],
+    "counts": {
+      "core": 50,
+      "app-unit": 14,
+      "ui": 7,
+      "total": 71
+    },
+    "split": {
+      "version": 1,
+      "global_total": 71,
+      "global_counts": {
+        "core": 50,
+        "app-unit": 14,
+        "ui": 7
+      },
+      "admission": "AUTHORIZED_TWO_STANDARD_MACOS_DIAGNOSTIC_WORKERS",
+      "partitions": [
+        {
+          "name": "core-app",
+          "methods": [
+            "QuestifyCoreTests/MerchantAftercareProgressTests/testContradictoryResponseReadbackRejectsBothDirectionsAtDocumentBoundary",
+            "QuestifyCoreTests/MerchantAftercareProgressTests/testOmittedResponseReadbackNeverCreatesFundsOrHistoricalState",
+            "QuestifyCoreTests/MerchantAftercareProgressTests/testProvidedResponseReadbackRejectsNullUnknownAndWrongTypes",
+            "QuestifyCoreTests/MerchantAftercareProgressTests/testReadTransportRejectsContradictoryOutcomeWithoutMutation",
+            "QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackCannotReplaceMissingCurrentOutcome",
+            "QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackMatchesCurrentSnapshotAcrossEveryStateAndOpinion",
+            "QuestifyCoreTests/MerchantDecorTagDraftTests/testHistoricalLabelsRemainByteExactUntilExplicitRemoval",
+            "QuestifyCoreTests/MerchantDecorTagDraftTests/testSemicolonCustomLabelRemainsOneLiteralTag",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testAcknowledgedWriteReadbackFailureKeepsLockUntilReadOnlyRetry",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testCancelledReadDoesNotPublishLateServerExplanation",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFailedRefreshRetainsSnapshotAndShowsExplanation",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFinalPreWriteReadFailureDoesNotDispatchOrReuseConfirmation",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testInitialReadFailureShowsExactServerMessageAndRetryClearsItWithoutWriting",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testLateFailureCannotPublishAfterSameAccountTokenReplacement",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testNewReadClearsPriorExplanationBeforeResponse",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testPrepareFailureKeepsSnapshotAndRequiresANewReview",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testSessionResetClearsPreviouslyDisplayedExplanation",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnauthorizedCallbackInvalidatesFailureBeforePresentation",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnknownWriteReadbackFailureAndMatchingRetryNeverUnlockOrResend",
+            "QuestifyCoreTests/ProfileReadFailureRecoveryTests/testWhitespaceAndNonServerErrorsNeverBecomeUserText",
+            "QuestifyCoreTests/TemplateAuthoringHTTPTests/testRefreshSnapshotCannotReplaceHundredRowWritePreflightOrOldReview",
+            "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAlreadyCancelledRefreshClearsSnapshotWithoutDispatch",
+            "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAuthContractUnknownAndCancellationFailuresClearRefreshSnapshot",
+            "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testCachedRefreshLifetimeTransitionsAndABAFenceAllLateResults",
+            "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testContinuationAuthAndContractErrorsClearRowsButOverlapRemainsRetryable",
+            "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testNewKeywordNeverDisplaysPreviousQuerySnapshot",
+            "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testOnlyExplicitTransientFailuresRetainSnapshotAndRequireFirstPageRetry",
+            "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshAtHundredPageBoundaryRestartsAtOneWithoutPage101",
+            "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshReplacesOverlappingIDsAndValidEmptyClearsSnapshot",
+            "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testSameKeywordNewGenerationRejectsOldSuccessAndError",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testActualMiniCounterexamplesSeparatePersonalAndMarketplaceStates",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testAlreadyCancelledRefreshCannotDispatchOrKeepSidecars",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testAuthContractAndCancellationErrorsClearEveryCachedState",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testCanonicalOptionalTextAndMissingFieldsRemainCompatible",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testDisplayMetadataNeverChangesSharedDTOOrAcknowledgesPendingMutation",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testEmptyFirstPageClearsRowsAndDisplayStatesTogether",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testExistingBaseDTOValidationIsNotRelaxedByTolerantDisplayColumns",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testFeedbackIsVerbatimOptionalTextAndNeverAnAction",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMalformedBaseRowsClearStatesWithoutCommittingPartialPage",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMalformedOptionalColumnsNeverInvalidateAnOtherwiseLegalRow",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMarketIdentityLongBoundsAreReadFromOriginalBytesWithoutCoercion",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMarketplaceMatrixIgnoresPersonalPublishStatus",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testNewKeywordCannotRetainOldStateWhenRequestFails",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testOldSuccessAndErrorCannotOverwriteNewSameIDState",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testOverlappingContinuationCannotPartiallyReplaceOrAppendStates",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testPartialMetadataDecodingDoesNotDropOtherFieldsOrOtherRows",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testPersonalReviewPrecedenceMatchesSourceMatrix",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testSameIDsAndEqualBaseRowsStillReplaceChangedDisplayStates",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testScopeTransitionsABARevocationLeaveAndCancelRetireStates",
+            "QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testTransientRefreshRetainsStatesWithRowsAndRetryReplacesBoth",
+            "QuestifyAppUnitTests/MerchantDecorTagPickerTests/testDuplicateOverLimitHistoricalTagsStayUnchangedOnOpenCancelAndInvalidOwner",
+            "QuestifyAppUnitTests/MerchantDecorTagPickerTests/testSemicolonTagApplyCancelAndReopenPreserveExactLabels",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testClonedTransportRejectsLateLeaseReplacementTokenRoleAndErrors",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCurrent401ExpiresOnlyCurrentOwner",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testNormalFactoryPagedShelfDetailAndEveryWriterRemainOff",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail",
+            "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority"
+          ],
+          "counts": {
+            "core": 50,
+            "app-unit": 14
+          }
+        },
+        {
+          "name": "ui-legacy",
+          "methods": [
+            "QuestifyUITests/TemplateOwnShelfFlowTests/testAccountChangeDismissesReviewAndSignoutClearsShelf",
+            "QuestifyUITests/TemplateOwnShelfFlowTests/testChineseLargeTextCanCancelReview",
+            "QuestifyUITests/TemplateOwnShelfFlowTests/testDefaultDisabledHasNoMutationConfirmation",
+            "QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteRequiresSeparateReviewAndSimulationIsLabelled",
+            "QuestifyUITests/TemplateOwnShelfFlowTests/testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit",
+            "QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedDetailBackAndReopenKeepsStableDestination",
+            "QuestifyUITests/TemplateOwnShelfFlowTests/testUnknownLocksBothActionsAcrossReopen"
+          ],
+          "counts": {
+            "ui": 7
+          }
+        }
+      ],
+      "budget_seconds": {
+        "core-build": 720,
+        "core-test": 180,
+        "app-build": 1200,
+        "app-test": 360,
+        "ui-build": 1200,
+        "ui-legacy-test": 1000,
+        "boot": 180
+      },
+      "budget_status": "AUTHORIZED_DIAGNOSTIC_EXISTING_PHASE_LIMITS_UNMEASURED_SPLIT_WALL",
+      "worker_cap_seconds": 2700,
+      "finalization_reserve_seconds": 240,
+      "peak_macos_jobs": 2
+    },
+    "workflow": {
+      "path": ".github/workflows/native-targeted.yml",
+      "status": "M",
+      "before_sha256": "990ecc06ade7144f3119f2f2aad8e159e481890060af8a98ce4710c4351b4ece",
+      "before_blob": "0feedc26ccc7e5ced55b9dd044a6a6b7ca5ccbbc",
+      "after_sha256": "3e1b570a65394ebe159e7a95764cb5cd8fd80d7116b90b630feb63fb610aa880",
+      "after_blob": "13353955b6cc6ac7d0aa67a1a12e4641b4296d3d",
+      "hunks": [
+        {
+          "before": "name: Targeted native diagnostics\n# First execution is this narrowly scoped push. GitHub only registers manual\n# dispatch after this file exists on the default branch; no main change is implied.\non:\n  push:\n    branches: [migration/native-ios]\n    paths:\n      - .github/workflows/native-targeted.yml\n      - tools/targeted_native_selection.json\n      - tools/run_targeted_native.py\n      - tools/tests/test_targeted_native.py\n  workflow_dispatch:\npermissions:\n  contents: read\nconcurrency:\n  group: native-targeted-${{ github.ref }}\n  cancel-in-progress: true\njobs:\n  targeted:\n    name: native-targeted-diagnostic\n    runs-on: macos-26\n    # Upper bound, not an expected duration or a replacement for required gates.\n    timeout-minutes: 45\n    env:\n      PYTHONDONTWRITEBYTECODE: '1'\n    steps:\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n        with:\n          fetch-depth: 2\n          persist-credentials: false\n      - name: Validate fixed selection and diagnostic controls\n        run: |\n          # Corrections can move the reviewed base beyond checkout depth two.\n          # Fetch only that exact public commit; do not widen checkout or scope.\n          GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch --no-tags --depth=1 https://github.com/liboyang42-cpu/chengyin-ios.git 45b728c7d48cf7969ac864e5693322d45e79394a\n          python3 -B -m unittest discover -s tools/tests -p test_targeted_native.py -v\n          python3 -B tools/run_targeted_native.py validate\n      - name: Run exact selected native methods on one simulator\n        run: python3 -B tools/run_targeted_native.py run --output \"$RUNNER_TEMP/native-targeted\"\n      - name: Report exact-SHA selected results, including incomplete runs\n        if: always()\n        run: python3 -B tools/run_targeted_native.py report --output \"$RUNNER_TEMP/native-targeted\" --summary \"$GITHUB_STEP_SUMMARY\"\n",
+          "after": "name: Targeted native diagnostics\n# Authorized standard-runner split. Both nonempty current71 partitions must pass\n# on this exact SHA/run/attempt; this does not grant release or deployment admission.\non:\n  push:\n    branches: [migration/native-ios]\n    paths:\n      - .github/workflows/native-targeted.yml\n      - tools/targeted_native_selection.json\n      - tools/run_targeted_native.py\n      - tools/tests/test_targeted_native.py\n  workflow_dispatch:\npermissions:\n  contents: read\nconcurrency:\n  group: native-targeted-${{ github.ref }}\n  cancel-in-progress: true\njobs:\n  targeted:\n    name: native-targeted-${{ matrix.partition }}\n    runs-on: macos-26\n    timeout-minutes: 45\n    continue-on-error: false\n    strategy:\n      fail-fast: false\n      max-parallel: 2\n      matrix:\n        partition: [core-app, ui-legacy]\n        include:\n          - partition: core-app\n            result_group: app-unit\n          - partition: ui-legacy\n            result_group: ui\n    env:\n      PYTHONDONTWRITEBYTECODE: '1'\n    steps:\n      - name: Record job-entry clock before checkout\n        run: python3 -c 'import time,os,pathlib; pathlib.Path(os.environ[\"RUNNER_TEMP\"],\"native-targeted-start\").write_text(str(time.monotonic()))'\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n        with:\n          fetch-depth: 2\n          persist-credentials: false\n      - name: Validate all historical controls and current71 source identities\n        run: |\n          python3 -B tools/run_targeted_native.py preflight --output \"$RUNNER_TEMP/native-targeted-preflight.json\" --start-file \"$RUNNER_TEMP/native-targeted-start\"\n      - name: Build fresh products and run exact partition methods\n        run: python3 -B tools/run_targeted_native.py run-partition --partition '${{ matrix.partition }}' --preflight \"$RUNNER_TEMP/native-targeted-preflight.json\" --output \"$RUNNER_TEMP/native-targeted-${{ matrix.partition }}\"\n      - name: Re-extract and validate bounded partition evidence\n        id: report\n        if: always()\n        run: |\n          python3 -c 'import time,os,pathlib; pathlib.Path(os.environ[\"RUNNER_TEMP\"],\"native-report-start\").write_text(str(time.monotonic()))'\n          set +e\n          python3 -B tools/run_targeted_native.py report-partition --partition '${{ matrix.partition }}' --output \"$RUNNER_TEMP/native-targeted-${{ matrix.partition }}\" --evidence \"$RUNNER_TEMP/native-evidence-${{ matrix.partition }}\" --summary \"$GITHUB_STEP_SUMMARY\"\n          status=$?\n          set -e\n          python3 -B tools/run_targeted_native.py record-observation --phase report-command --start-file \"$RUNNER_TEMP/native-report-start\" --returncode \"$status\" --summary \"$GITHUB_STEP_SUMMARY\"\n          exit \"$status\"\n      - name: Preserve bounded raw schema diagnostics even when admission fails\n        if: always()\n        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02\n        with:\n          name: native-schema-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}\n          path: |\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/manifest.json\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-version.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-summary-help.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-tests-help.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-devices.json\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-runtimes.json\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-summary.json\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-tests.json\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-version.txt.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-summary-help.txt.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-tests-help.txt.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-devices.json.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-runtimes.json.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-summary.json.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-tests.json.stderr.txt\n          if-no-files-found: error\n          retention-days: 1\n          overwrite: false\n      - name: Record immutable artifact upload start\n        if: ${{ always() && steps.report.outcome == 'success' }}\n        run: python3 -c 'import time,os,pathlib; pathlib.Path(os.environ[\"RUNNER_TEMP\"],\"native-upload-start\").write_text(str(time.monotonic()))'\n      - name: Upload only allowlisted receipt and raw result evidence\n        id: upload\n        if: ${{ always() && steps.report.outcome == 'success' }}\n        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02\n        with:\n          name: native-targeted-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}\n          path: ${{ runner.temp }}/native-evidence-${{ matrix.partition }}/*\n          if-no-files-found: error\n          retention-days: 1\n          overwrite: false\n      - name: Record completed artifact upload observation\n        if: ${{ always() && steps.upload.outcome == 'success' }}\n        run: python3 -B tools/run_targeted_native.py record-observation --phase artifact-upload --start-file \"$RUNNER_TEMP/native-upload-start\" --returncode 0 --summary \"$GITHUB_STEP_SUMMARY\"\n  aggregate:\n    name: native-targeted-diagnostic\n    needs: [targeted]\n    if: always()\n    runs-on: ubuntu-24.04\n    timeout-minutes: 10\n    env:\n      PYTHONDONTWRITEBYTECODE: '1'\n      MATRIX_RESULT: ${{ needs.targeted.result }}\n    steps:\n      - name: Require every matrix worker to succeed\n        run: test \"$MATRIX_RESULT\" = success\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n        with:\n          fetch-depth: 2\n          persist-credentials: false\n      - name: Record artifact download start\n        run: python3 -c 'import time,os,pathlib; pathlib.Path(os.environ[\"RUNNER_TEMP\"],\"native-download-start\").write_text(str(time.monotonic()))'\n      - name: Download only this SHA run attempt evidence\n        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093\n        with:\n          pattern: native-targeted-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-*\n          path: ${{ runner.temp }}/native-targeted-artifacts\n          merge-multiple: false\n      - name: Reparse exact71 and verify same-run identities\n        run: python3 -B tools/run_targeted_native.py aggregate --start-file \"$RUNNER_TEMP/native-download-start\" --artifacts \"$RUNNER_TEMP/native-targeted-artifacts\" --needs-result \"$MATRIX_RESULT\" --output \"$RUNNER_TEMP/native-targeted-71-receipt.json\" --summary \"$GITHUB_STEP_SUMMARY\"\n"
+        }
+      ]
+    }
   }
 }

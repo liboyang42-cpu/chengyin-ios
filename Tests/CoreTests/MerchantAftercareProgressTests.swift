@@ -35,6 +35,124 @@ final class MerchantAftercareProgressTests: XCTestCase {
             XCTAssertThrowsError(try MerchantAftercareProgress(refundID: 62001, fields: fields))
         }
     }
+    func testResponseReadbackMatchesCurrentSnapshotAcrossEveryStateAndOpinion() throws {
+        // detailVO projects the current refund outcome onto every historical row.
+        // A row's decision is its historical opinion, not the current opinion mirror.
+        for state in MerchantAftercareProgress.Processing.allCases {
+            for opinion in MerchantAftercareProgress.Opinion.allCases {
+                var fields = try fields()
+                fields["processing"] = .string(state.rawValue)
+                fields["merchantOpinion"] = .string(opinion.rawValue)
+                var row = try XCTUnwrap(response(1, time: "2026-10-01 09:00:00", decision: "REJECT").object)
+                row["processing"] = .string(state.rawValue)
+                row["merchantOpinion"] = .string(opinion.rawValue)
+                row["refunded"] = .bool(state == .refunded)
+                fields["responses"] = .array([.object(row)])
+                let document = try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields))
+                let value = try XCTUnwrap(document.aftercareProgress)
+                XCTAssertEqual(value.processing, state)
+                XCTAssertEqual(value.opinion, opinion)
+                XCTAssertEqual(value.funds, state == .refunded ? .confirmed : .unconfirmed)
+                XCTAssertEqual(value.responses.first?.decision, .reject)
+                XCTAssertEqual(value.responses.first?.occurredAt, try MerchantAftercareTime.parse("2026-10-01 09:00:00"))
+            }
+        }
+    }
+    func testContradictoryResponseReadbackRejectsBothDirectionsAtDocumentBoundary() throws {
+        for state in MerchantAftercareProgress.Processing.allCases {
+            for opinion in MerchantAftercareProgress.Opinion.allCases {
+                for (key, contradiction) in [
+                    ("processing", MerchantBusinessValue.string(state == .refunded ? "UNKNOWN" : "REFUNDED")),
+                    ("merchantOpinion", .string(opinion == .agree ? "REJECT" : "AGREE")),
+                    ("refunded", .bool(state != .refunded))
+                ] {
+                    var fields = try fields()
+                    fields["processing"] = .string(state.rawValue)
+                    fields["merchantOpinion"] = .string(opinion.rawValue)
+                    var row = try XCTUnwrap(response(1, decision: "AGREE").object)
+                    row[key] = contradiction
+                    fields["responses"] = .array([.object(row)])
+                    XCTAssertThrowsError(try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields)),
+                                         "Contradictory \(key) must not produce funds for \(state.rawValue)/\(opinion.rawValue)")
+                }
+            }
+        }
+    }
+    func testProvidedResponseReadbackRejectsNullUnknownAndWrongTypes() throws {
+        let invalid: [(String, [MerchantBusinessValue])] = [
+            ("processing", [.null, .bool(true), .int(1), .array([]), .object([:]), .string("UNRECOGNIZED")]),
+            ("merchantOpinion", [.null, .bool(true), .int(1), .array([]), .object([:]), .string("UNRECOGNIZED")]),
+            ("refunded", [.null, .string("false"), .int(0), .array([]), .object([:])])
+        ]
+        for (key, values) in invalid {
+            for invalidValue in values {
+                var fields = try fields()
+                var row = try XCTUnwrap(response(1).object)
+                row[key] = invalidValue
+                fields["responses"] = .array([.object(row)])
+                XCTAssertThrowsError(try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields)), key)
+            }
+        }
+    }
+    func testOmittedResponseReadbackNeverCreatesFundsOrHistoricalState() throws {
+        for state in MerchantAftercareProgress.Processing.allCases {
+            for providedKey in [nil, "processing", "merchantOpinion", "refunded"] as [String?] {
+                var fields = try fields()
+                fields["processing"] = .string(state.rawValue)
+                fields["merchantOpinion"] = .string("REJECT")
+                var row = try XCTUnwrap(response(1, decision: "AGREE").object)
+                let readback: MerchantBusinessObject = ["processing": .string(state.rawValue),
+                                                       "merchantOpinion": .string("REJECT"),
+                                                       "refunded": .bool(state == .refunded)]
+                if let providedKey { row[providedKey] = readback[providedKey] }
+                fields["responses"] = .array([.object(row)])
+                let document = try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields))
+                let value = try XCTUnwrap(document.aftercareProgress)
+                XCTAssertEqual(value.processing, state)
+                XCTAssertEqual(value.opinion, .reject)
+                XCTAssertEqual(value.funds, state == .refunded ? .confirmed : .unconfirmed)
+                XCTAssertEqual(value.responses.first?.decision, .agree)
+                XCTAssertNil(value.responses.first?.occurredAt)
+                XCTAssertNil(value.platformTakeoverAt)
+                XCTAssertEqual(value.events.map(\.id), ["request", "response:1"])
+            }
+        }
+    }
+    func testResponseReadbackCannotReplaceMissingCurrentOutcome() throws {
+        for key in ["processing", "merchantOpinion"] {
+            for replacement in [nil, MerchantBusinessValue.null, .bool(true), .string("UNRECOGNIZED")] as [MerchantBusinessValue?] {
+                var fields = try fields()
+                var row = try XCTUnwrap(response(1, decision: "AGREE").object)
+                row["processing"] = .string("REFUNDED")
+                row["merchantOpinion"] = .string("AGREE")
+                row["refunded"] = .bool(true)
+                fields[key] = replacement
+                fields["responses"] = .array([.object(row)])
+                XCTAssertThrowsError(try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields)))
+            }
+        }
+    }
+    func testReadTransportRejectsContradictoryOutcomeWithoutMutation() async throws {
+        var fields = try fields()
+        fields["processing"] = .string("REFUNDED")
+        var row = try XCTUnwrap(response(1, decision: "AGREE").object)
+        row["refunded"] = .bool(false)
+        fields["responses"] = .array([.object(row)])
+        let transport = AftercareProgressTransport(data: try JSONEncoder().encode(MerchantBusinessValue.object(["code": .int(200), "data": .object(fields)])))
+        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.test")!), readTransport: transport)
+        let access = try MerchantBusinessAccess(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object!)
+        do {
+            _ = try await service.document(.refund(.init(62001)), access: access, token: "synthetic-token")
+            XCTFail("Conflicting response outcome must not become an authorized refund document")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .malformed)
+        }
+        let requests = await transport.requests
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertEqual(requests.first?.httpMethod, "GET")
+        XCTAssertEqual(requests.first?.url?.path, "/api/merchant/aftercare/detail")
+        XCTAssertFalse(service.canExecuteSyntheticMutation)
+    }
     func testMissingAmountRemainsUnknownAndNegativeAmountIsRejected() throws {
         var fields = try fields(); fields.removeValue(forKey: "refundAmount")
         XCTAssertNil(try MerchantAftercareProgress(refundID: 62001, fields: fields).amount.raw)

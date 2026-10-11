@@ -171,14 +171,14 @@ def unique_object(pairs):
 
 
 def read_json(path):
-    raw = Path(path).read_bytes()
+    raw = (path.read_bytes() if isinstance(path, MerchantHistoryPath) else Path(path).read_bytes())
     require(len(raw) <= LIMIT, 'Oversized JSON evidence')
     return json.loads(raw, object_pairs_hook=unique_object)
 
 
 def digest(path):
     h = hashlib.sha256()
-    with Path(path).open('rb') as source:
+    with (path if isinstance(path, MerchantHistoryPath) else Path(path)).open('rb') as source:
         for chunk in iter(lambda: source.read(1024 * 1024), b''):
             h.update(chunk)
     return h.hexdigest()
@@ -34685,22 +34685,22 @@ def main():
     parser.add_argument('--output', type=Path)
     parser.add_argument('--summary', type=Path)
     args = parser.parse_args()
-    root = args.source_root.resolve(strict=True)
+    root = args.source_root.absolute()
     if args.action == 'report':
         require(args.output is not None, 'Output required')
-        report(args.output, args.summary, root, native=True)
+        merchant_report(args.output, args.summary, root)
         return 0
     selection = read_json(args.selection or root / PATHS[1])
-    validate_byteperf_selection(selection, root)
+    validate_merchant_selection(selection, root)
     if args.action == 'validate':
-        print('Validated fixed selection: Core 44, AppUnit 14, UI 7; Apple execution NOT_RUN')
+        print('Validated current71 source selection: Core 50, AppUnit 14, UI 7; Apple execution NOT_RUN; real published7bf parent scope requires run/report')
         return 0
     require(args.output is not None and 'RUNNER_TEMP' in os.environ, 'Fresh runner output required')
     temp = Path(os.environ['RUNNER_TEMP']).resolve(strict=True)
     output = args.output.absolute()
     require(output.parent.resolve(strict=True) == temp and not output.is_symlink(), 'Output must be a new direct runner-temp child')
     output.mkdir()  # never reuse old results, even on retries
-    job = NativeDiagnostic(root, output, selection); job.save()
+    job = MerchantDiagnostic(root, output, selection); job.save()
     try:
         job.run()
     except BaseException as error:
@@ -34715,5 +34715,1331 @@ def main():
     return 0
 
 
+# MERCHANT_READBACK_LAYER_BEGIN
+# Current71 is an explicit successor. Every original65 API remains historical.
+import io
+
+MERCHANT_BASE_COMMIT = '7bf858c23374b808c6d932367f96e97d09e9d799'
+MERCHANT_BASE_TREE = '94f43a19209607d403b47f3cdada1cfadf9c9aba'
+MERCHANT_NAME = 'merchant-aftercare-readback-native-v1'
+MERCHANT_PRE_NAME = 'shelf-profile-merchant-creator-unified-repair-v5'
+MERCHANT_PRE_COVERAGE = '65 selected methods: all prior 45 (original shelf Core10/AppUnit12/UI7, profile Core12, merchant Core2/AppUnit2) plus Creator state Core20. No new Creator state-label, localization, accessibility or visual UI execution coverage. Full required native gates, device/live acceptance and physical-device Keychain coverage remain separate. All groups require fresh same-SHA builds and a new same-run receipt.'
+MERCHANT_WORKFLOW_PATH = '.github/workflows/native-targeted.yml'
+MERCHANT_PRODUCT_PATHS = ('Core/MerchantAftercareProgress.swift', 'Tests/CoreTests/MerchantAftercareProgressTests.swift', 'Tests/ContractChecks/test_merchant_aftercare_progress_readback.py')
+MERCHANT_PATHS = ('Core/MerchantAftercareProgress.swift', 'Tests/CoreTests/MerchantAftercareProgressTests.swift', 'Tests/ContractChecks/test_merchant_aftercare_progress_readback.py', 'tools/run_targeted_native.py', 'tools/targeted_native_selection.json', 'tools/tests/test_targeted_native.py', '.github/workflows/native-targeted.yml')
+MERCHANT_METHODS = ('QuestifyCoreTests/MerchantAftercareProgressTests/testContradictoryResponseReadbackRejectsBothDirectionsAtDocumentBoundary', 'QuestifyCoreTests/MerchantAftercareProgressTests/testOmittedResponseReadbackNeverCreatesFundsOrHistoricalState', 'QuestifyCoreTests/MerchantAftercareProgressTests/testProvidedResponseReadbackRejectsNullUnknownAndWrongTypes', 'QuestifyCoreTests/MerchantAftercareProgressTests/testReadTransportRejectsContradictoryOutcomeWithoutMutation', 'QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackCannotReplaceMissingCurrentOutcome', 'QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackMatchesCurrentSnapshotAcrossEveryStateAndOpinion')
+MERCHANT_BEFORE = {'Core/MerchantAftercareProgress.swift': {'sha256': 'dd946498b7de1ce00e1b5024802f0228239aed75b000a4aac4cc1f88625c0377', 'blob': '23d62da8bcc7c9f58fbd36a5f1d1e277c60d4848'}, 'Tests/CoreTests/MerchantAftercareProgressTests.swift': {'sha256': '80b0176f7f6db572248b1357fcac0942b648447d54695f29ee1611a1cd300c63', 'blob': '8cacaf673a7637a71476804fc794ce540861d3c7'}, 'tools/run_targeted_native.py': {'sha256': 'a7f3d0009b6a114d2b346dd7e257bf1f774dd454fe77033efb0ab54ac0736276', 'blob': 'd75c5f72ffe07dcafb266df7ccd1086a3643e5d6'}, 'tools/targeted_native_selection.json': {'sha256': 'b6973842c59ad96ff4443e1920f0c34c6cdcaf06bf4e92d9477d53d46938aa71', 'blob': '6de594b602ac5e93ae7b40a7dcd3113aee0062ba'}, 'tools/tests/test_targeted_native.py': {'sha256': 'd5aa2b42d5eb98b91252097d48c4841b0a90071bb29bd78d8cdb136b28da9d42', 'blob': '15a2707b605dc9bcf9d5a39a1b938a1f992b8d4e'}, '.github/workflows/native-targeted.yml': {'sha256': '990ecc06ade7144f3119f2f2aad8e159e481890060af8a98ce4710c4351b4ece', 'blob': '0feedc26ccc7e5ced55b9dd044a6a6b7ca5ccbbc'}}
+MERCHANT_LAYER = {'version': 1, 'name': 'merchant-aftercare-readback-native-v1', 'base_commit': '7bf858c23374b808c6d932367f96e97d09e9d799', 'base_tree': '94f43a19209607d403b47f3cdada1cfadf9c9aba', 'allowed_changes': ['M\tCore/MerchantAftercareProgress.swift', 'M\tTests/CoreTests/MerchantAftercareProgressTests.swift', 'A\tTests/ContractChecks/test_merchant_aftercare_progress_readback.py', 'M\ttools/run_targeted_native.py', 'M\ttools/targeted_native_selection.json', 'M\ttools/tests/test_targeted_native.py', 'M\t.github/workflows/native-targeted.yml'], 'before': {'Core/MerchantAftercareProgress.swift': {'sha256': 'dd946498b7de1ce00e1b5024802f0228239aed75b000a4aac4cc1f88625c0377', 'blob': '23d62da8bcc7c9f58fbd36a5f1d1e277c60d4848'}, 'Tests/CoreTests/MerchantAftercareProgressTests.swift': {'sha256': '80b0176f7f6db572248b1357fcac0942b648447d54695f29ee1611a1cd300c63', 'blob': '8cacaf673a7637a71476804fc794ce540861d3c7'}, 'tools/run_targeted_native.py': {'sha256': 'a7f3d0009b6a114d2b346dd7e257bf1f774dd454fe77033efb0ab54ac0736276', 'blob': 'd75c5f72ffe07dcafb266df7ccd1086a3643e5d6'}, 'tools/targeted_native_selection.json': {'sha256': 'b6973842c59ad96ff4443e1920f0c34c6cdcaf06bf4e92d9477d53d46938aa71', 'blob': '6de594b602ac5e93ae7b40a7dcd3113aee0062ba'}, 'tools/tests/test_targeted_native.py': {'sha256': 'd5aa2b42d5eb98b91252097d48c4841b0a90071bb29bd78d8cdb136b28da9d42', 'blob': '15a2707b605dc9bcf9d5a39a1b938a1f992b8d4e'}, '.github/workflows/native-targeted.yml': {'sha256': '990ecc06ade7144f3119f2f2aad8e159e481890060af8a98ce4710c4351b4ece', 'blob': '0feedc26ccc7e5ced55b9dd044a6a6b7ca5ccbbc'}}, 'payload': [{'path': 'Core/MerchantAftercareProgress.swift', 'status': 'M', 'before_sha256': 'dd946498b7de1ce00e1b5024802f0228239aed75b000a4aac4cc1f88625c0377', 'before_blob': '23d62da8bcc7c9f58fbd36a5f1d1e277c60d4848', 'after_sha256': '0c72f702c6c23d49a7e6bc0abdd73e8aad8ba9d62908f105e20107db5eee1349', 'after_blob': '041f2666be5e23045b855515ff836a95d665d42a', 'hunks': [{'before': '                  let decision = Decision(rawValue: try row.mbRequiredText("decision")) else { throw MerchantBusinessFailure.malformed }\n', 'after': '                  let decision = Decision(rawValue: try row.mbRequiredText("decision")) else { throw MerchantBusinessFailure.malformed }\n            try Self.validateResponseReadback(row, processing: processing, opinion: opinion)\n'}, {'before': '                            occurredAt: try Self.timestamp(row, "createTime"), evidence: evidence)\n', 'after': '                            occurredAt: try Self.timestamp(row, "createTime"), evidence: evidence)\n        }\n    }\n    /// detailVO supplies the same current outcome to every response, not the outcome\n    /// at the historical decision time. Older payloads may omit these mirror fields;\n    /// provided values must be typed and consistent before any progress is shown.\n    /// A mirror only validates the detail; it never supplies a missing outcome.\n    private static func validateResponseReadback(_ row: MerchantBusinessObject, processing: Processing, opinion: Opinion) throws {\n        if let value = row["processing"] {\n            guard value.string == processing.rawValue else { throw MerchantBusinessFailure.malformed }\n        }\n        if let value = row["merchantOpinion"] {\n            guard value.string == opinion.rawValue else { throw MerchantBusinessFailure.malformed }\n        }\n        if let value = row["refunded"] {\n            guard value.bool == (processing == .refunded) else { throw MerchantBusinessFailure.malformed }\n'}]}, {'path': 'Tests/CoreTests/MerchantAftercareProgressTests.swift', 'status': 'M', 'before_sha256': '80b0176f7f6db572248b1357fcac0942b648447d54695f29ee1611a1cd300c63', 'before_blob': '8cacaf673a7637a71476804fc794ce540861d3c7', 'after_sha256': 'd05581c0a0b601f7b72025a6d8f0f6c70427b6b508984227910ba8ab9b70ab4f', 'after_blob': 'b331ddbf190266feddfbf5489797b82b3cf79410', 'hunks': [{'before': '            var fields = try fields(); fields["refunded"] = bit\n            XCTAssertThrowsError(try MerchantAftercareProgress(refundID: 62001, fields: fields))\n        }\n', 'after': '            var fields = try fields(); fields["refunded"] = bit\n            XCTAssertThrowsError(try MerchantAftercareProgress(refundID: 62001, fields: fields))\n        }\n    }\n    func testResponseReadbackMatchesCurrentSnapshotAcrossEveryStateAndOpinion() throws {\n        // detailVO projects the current refund outcome onto every historical row.\n        // A row\'s decision is its historical opinion, not the current opinion mirror.\n        for state in MerchantAftercareProgress.Processing.allCases {\n            for opinion in MerchantAftercareProgress.Opinion.allCases {\n                var fields = try fields()\n                fields["processing"] = .string(state.rawValue)\n                fields["merchantOpinion"] = .string(opinion.rawValue)\n                var row = try XCTUnwrap(response(1, time: "2026-10-01 09:00:00", decision: "REJECT").object)\n                row["processing"] = .string(state.rawValue)\n                row["merchantOpinion"] = .string(opinion.rawValue)\n                row["refunded"] = .bool(state == .refunded)\n                fields["responses"] = .array([.object(row)])\n                let document = try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields))\n                let value = try XCTUnwrap(document.aftercareProgress)\n                XCTAssertEqual(value.processing, state)\n                XCTAssertEqual(value.opinion, opinion)\n                XCTAssertEqual(value.funds, state == .refunded ? .confirmed : .unconfirmed)\n                XCTAssertEqual(value.responses.first?.decision, .reject)\n                XCTAssertEqual(value.responses.first?.occurredAt, try MerchantAftercareTime.parse("2026-10-01 09:00:00"))\n            }\n        }\n    }\n    func testContradictoryResponseReadbackRejectsBothDirectionsAtDocumentBoundary() throws {\n        for state in MerchantAftercareProgress.Processing.allCases {\n            for opinion in MerchantAftercareProgress.Opinion.allCases {\n                for (key, contradiction) in [\n                    ("processing", MerchantBusinessValue.string(state == .refunded ? "UNKNOWN" : "REFUNDED")),\n                    ("merchantOpinion", .string(opinion == .agree ? "REJECT" : "AGREE")),\n                    ("refunded", .bool(state != .refunded))\n                ] {\n                    var fields = try fields()\n                    fields["processing"] = .string(state.rawValue)\n                    fields["merchantOpinion"] = .string(opinion.rawValue)\n                    var row = try XCTUnwrap(response(1, decision: "AGREE").object)\n                    row[key] = contradiction\n                    fields["responses"] = .array([.object(row)])\n                    XCTAssertThrowsError(try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields)),\n                                         "Contradictory \\(key) must not produce funds for \\(state.rawValue)/\\(opinion.rawValue)")\n                }\n            }\n        }\n    }\n    func testProvidedResponseReadbackRejectsNullUnknownAndWrongTypes() throws {\n        let invalid: [(String, [MerchantBusinessValue])] = [\n            ("processing", [.null, .bool(true), .int(1), .array([]), .object([:]), .string("UNRECOGNIZED")]),\n            ("merchantOpinion", [.null, .bool(true), .int(1), .array([]), .object([:]), .string("UNRECOGNIZED")]),\n            ("refunded", [.null, .string("false"), .int(0), .array([]), .object([:])])\n        ]\n        for (key, values) in invalid {\n            for invalidValue in values {\n                var fields = try fields()\n                var row = try XCTUnwrap(response(1).object)\n                row[key] = invalidValue\n                fields["responses"] = .array([.object(row)])\n                XCTAssertThrowsError(try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields)), key)\n            }\n        }\n    }\n    func testOmittedResponseReadbackNeverCreatesFundsOrHistoricalState() throws {\n        for state in MerchantAftercareProgress.Processing.allCases {\n            for providedKey in [nil, "processing", "merchantOpinion", "refunded"] as [String?] {\n                var fields = try fields()\n                fields["processing"] = .string(state.rawValue)\n                fields["merchantOpinion"] = .string("REJECT")\n                var row = try XCTUnwrap(response(1, decision: "AGREE").object)\n                let readback: MerchantBusinessObject = ["processing": .string(state.rawValue),\n                                                       "merchantOpinion": .string("REJECT"),\n                                                       "refunded": .bool(state == .refunded)]\n                if let providedKey { row[providedKey] = readback[providedKey] }\n                fields["responses"] = .array([.object(row)])\n                let document = try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields))\n                let value = try XCTUnwrap(document.aftercareProgress)\n                XCTAssertEqual(value.processing, state)\n                XCTAssertEqual(value.opinion, .reject)\n                XCTAssertEqual(value.funds, state == .refunded ? .confirmed : .unconfirmed)\n                XCTAssertEqual(value.responses.first?.decision, .agree)\n                XCTAssertNil(value.responses.first?.occurredAt)\n                XCTAssertNil(value.platformTakeoverAt)\n                XCTAssertEqual(value.events.map(\\.id), ["request", "response:1"])\n            }\n        }\n    }\n    func testResponseReadbackCannotReplaceMissingCurrentOutcome() throws {\n        for key in ["processing", "merchantOpinion"] {\n            for replacement in [nil, MerchantBusinessValue.null, .bool(true), .string("UNRECOGNIZED")] as [MerchantBusinessValue?] {\n                var fields = try fields()\n                var row = try XCTUnwrap(response(1, decision: "AGREE").object)\n                row["processing"] = .string("REFUNDED")\n                row["merchantOpinion"] = .string("AGREE")\n                row["refunded"] = .bool(true)\n                fields[key] = replacement\n                fields["responses"] = .array([.object(row)])\n                XCTAssertThrowsError(try MerchantBusinessDocument(query: .refund(.init(62001)), payload: .object(fields)))\n            }\n        }\n    }\n    func testReadTransportRejectsContradictoryOutcomeWithoutMutation() async throws {\n        var fields = try fields()\n        fields["processing"] = .string("REFUNDED")\n        var row = try XCTUnwrap(response(1, decision: "AGREE").object)\n        row["refunded"] = .bool(false)\n        fields["responses"] = .array([.object(row)])\n        let transport = AftercareProgressTransport(data: try JSONEncoder().encode(MerchantBusinessValue.object(["code": .int(200), "data": .object(fields)])))\n        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.test")!), readTransport: transport)\n        let access = try MerchantBusinessAccess(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object!)\n        do {\n            _ = try await service.document(.refund(.init(62001)), access: access, token: "synthetic-token")\n            XCTFail("Conflicting response outcome must not become an authorized refund document")\n        } catch {\n            XCTAssertEqual(error as? MerchantBusinessFailure, .malformed)\n        }\n        let requests = await transport.requests\n        XCTAssertEqual(requests.count, 1)\n        XCTAssertEqual(requests.first?.httpMethod, "GET")\n        XCTAssertEqual(requests.first?.url?.path, "/api/merchant/aftercare/detail")\n        XCTAssertFalse(service.canExecuteSyntheticMutation)\n'}]}, {'path': 'Tests/ContractChecks/test_merchant_aftercare_progress_readback.py', 'status': 'A', 'before_sha256': None, 'before_blob': None, 'after_sha256': 'fa785ce529334168f0837bbd5b0541ed42180ae1978cd7f7b1e67f4c97d7ec19', 'after_blob': '01c2f17510897fd0f1b803b3ea75d60ee670c915', 'hunks': []}], 'added_methods': ['QuestifyCoreTests/MerchantAftercareProgressTests/testContradictoryResponseReadbackRejectsBothDirectionsAtDocumentBoundary', 'QuestifyCoreTests/MerchantAftercareProgressTests/testOmittedResponseReadbackNeverCreatesFundsOrHistoricalState', 'QuestifyCoreTests/MerchantAftercareProgressTests/testProvidedResponseReadbackRejectsNullUnknownAndWrongTypes', 'QuestifyCoreTests/MerchantAftercareProgressTests/testReadTransportRejectsContradictoryOutcomeWithoutMutation', 'QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackCannotReplaceMissingCurrentOutcome', 'QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackMatchesCurrentSnapshotAcrossEveryStateAndOpinion'], 'counts': {'core': 50, 'app-unit': 14, 'ui': 7, 'total': 71}, 'split': {'version': 1, 'global_total': 71, 'global_counts': {'core': 50, 'app-unit': 14, 'ui': 7}, 'admission': 'AUTHORIZED_TWO_STANDARD_MACOS_DIAGNOSTIC_WORKERS', 'partitions': [{'name': 'core-app', 'methods': ['QuestifyCoreTests/MerchantAftercareProgressTests/testContradictoryResponseReadbackRejectsBothDirectionsAtDocumentBoundary', 'QuestifyCoreTests/MerchantAftercareProgressTests/testOmittedResponseReadbackNeverCreatesFundsOrHistoricalState', 'QuestifyCoreTests/MerchantAftercareProgressTests/testProvidedResponseReadbackRejectsNullUnknownAndWrongTypes', 'QuestifyCoreTests/MerchantAftercareProgressTests/testReadTransportRejectsContradictoryOutcomeWithoutMutation', 'QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackCannotReplaceMissingCurrentOutcome', 'QuestifyCoreTests/MerchantAftercareProgressTests/testResponseReadbackMatchesCurrentSnapshotAcrossEveryStateAndOpinion', 'QuestifyCoreTests/MerchantDecorTagDraftTests/testHistoricalLabelsRemainByteExactUntilExplicitRemoval', 'QuestifyCoreTests/MerchantDecorTagDraftTests/testSemicolonCustomLabelRemainsOneLiteralTag', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testAcknowledgedWriteReadbackFailureKeepsLockUntilReadOnlyRetry', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testCancelledReadDoesNotPublishLateServerExplanation', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFailedRefreshRetainsSnapshotAndShowsExplanation', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFinalPreWriteReadFailureDoesNotDispatchOrReuseConfirmation', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testInitialReadFailureShowsExactServerMessageAndRetryClearsItWithoutWriting', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testLateFailureCannotPublishAfterSameAccountTokenReplacement', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testNewReadClearsPriorExplanationBeforeResponse', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testPrepareFailureKeepsSnapshotAndRequiresANewReview', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testSessionResetClearsPreviouslyDisplayedExplanation', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnauthorizedCallbackInvalidatesFailureBeforePresentation', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnknownWriteReadbackFailureAndMatchingRetryNeverUnlockOrResend', 'QuestifyCoreTests/ProfileReadFailureRecoveryTests/testWhitespaceAndNonServerErrorsNeverBecomeUserText', 'QuestifyCoreTests/TemplateAuthoringHTTPTests/testRefreshSnapshotCannotReplaceHundredRowWritePreflightOrOldReview', 'QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAlreadyCancelledRefreshClearsSnapshotWithoutDispatch', 'QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAuthContractUnknownAndCancellationFailuresClearRefreshSnapshot', 'QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testCachedRefreshLifetimeTransitionsAndABAFenceAllLateResults', 'QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testContinuationAuthAndContractErrorsClearRowsButOverlapRemainsRetryable', 'QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testNewKeywordNeverDisplaysPreviousQuerySnapshot', 'QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testOnlyExplicitTransientFailuresRetainSnapshotAndRequireFirstPageRetry', 'QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshAtHundredPageBoundaryRestartsAtOneWithoutPage101', 'QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshReplacesOverlappingIDsAndValidEmptyClearsSnapshot', 'QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testSameKeywordNewGenerationRejectsOldSuccessAndError', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testActualMiniCounterexamplesSeparatePersonalAndMarketplaceStates', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testAlreadyCancelledRefreshCannotDispatchOrKeepSidecars', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testAuthContractAndCancellationErrorsClearEveryCachedState', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testCanonicalOptionalTextAndMissingFieldsRemainCompatible', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testDisplayMetadataNeverChangesSharedDTOOrAcknowledgesPendingMutation', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testEmptyFirstPageClearsRowsAndDisplayStatesTogether', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testExistingBaseDTOValidationIsNotRelaxedByTolerantDisplayColumns', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testFeedbackIsVerbatimOptionalTextAndNeverAnAction', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMalformedBaseRowsClearStatesWithoutCommittingPartialPage', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMalformedOptionalColumnsNeverInvalidateAnOtherwiseLegalRow', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMarketIdentityLongBoundsAreReadFromOriginalBytesWithoutCoercion', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMarketplaceMatrixIgnoresPersonalPublishStatus', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testNewKeywordCannotRetainOldStateWhenRequestFails', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testOldSuccessAndErrorCannotOverwriteNewSameIDState', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testOverlappingContinuationCannotPartiallyReplaceOrAppendStates', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testPartialMetadataDecodingDoesNotDropOtherFieldsOrOtherRows', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testPersonalReviewPrecedenceMatchesSourceMatrix', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testSameIDsAndEqualBaseRowsStillReplaceChangedDisplayStates', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testScopeTransitionsABARevocationLeaveAndCancelRetireStates', 'QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testTransientRefreshRetainsStatesWithRowsAndRetryReplacesBoth', 'QuestifyAppUnitTests/MerchantDecorTagPickerTests/testDuplicateOverLimitHistoricalTagsStayUnchangedOnOpenCancelAndInvalidOwner', 'QuestifyAppUnitTests/MerchantDecorTagPickerTests/testSemicolonTagApplyCancelAndReopenPreserveExactLabels', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testClonedTransportRejectsLateLeaseReplacementTokenRoleAndErrors', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCurrent401ExpiresOnlyCurrentOwner', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testNormalFactoryPagedShelfDetailAndEveryWriterRemainOff', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail', 'QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority'], 'counts': {'core': 50, 'app-unit': 14}}, {'name': 'ui-legacy', 'methods': ['QuestifyUITests/TemplateOwnShelfFlowTests/testAccountChangeDismissesReviewAndSignoutClearsShelf', 'QuestifyUITests/TemplateOwnShelfFlowTests/testChineseLargeTextCanCancelReview', 'QuestifyUITests/TemplateOwnShelfFlowTests/testDefaultDisabledHasNoMutationConfirmation', 'QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteRequiresSeparateReviewAndSimulationIsLabelled', 'QuestifyUITests/TemplateOwnShelfFlowTests/testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit', 'QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedDetailBackAndReopenKeepsStableDestination', 'QuestifyUITests/TemplateOwnShelfFlowTests/testUnknownLocksBothActionsAcrossReopen'], 'counts': {'ui': 7}}], 'budget_seconds': {'core-build': 720, 'core-test': 180, 'app-build': 1200, 'app-test': 360, 'ui-build': 1200, 'ui-legacy-test': 1000, 'boot': 180}, 'budget_status': 'AUTHORIZED_DIAGNOSTIC_EXISTING_PHASE_LIMITS_UNMEASURED_SPLIT_WALL', 'worker_cap_seconds': 2700, 'finalization_reserve_seconds': 240, 'peak_macos_jobs': 2}, 'workflow': {'path': '.github/workflows/native-targeted.yml', 'status': 'M', 'before_sha256': '990ecc06ade7144f3119f2f2aad8e159e481890060af8a98ce4710c4351b4ece', 'before_blob': '0feedc26ccc7e5ced55b9dd044a6a6b7ca5ccbbc', 'after_sha256': '3e1b570a65394ebe159e7a95764cb5cd8fd80d7116b90b630feb63fb610aa880', 'after_blob': '13353955b6cc6ac7d0aa67a1a12e4641b4296d3d', 'hunks': [{'before': 'name: Targeted native diagnostics\n# First execution is this narrowly scoped push. GitHub only registers manual\n# dispatch after this file exists on the default branch; no main change is implied.\non:\n  push:\n    branches: [migration/native-ios]\n    paths:\n      - .github/workflows/native-targeted.yml\n      - tools/targeted_native_selection.json\n      - tools/run_targeted_native.py\n      - tools/tests/test_targeted_native.py\n  workflow_dispatch:\npermissions:\n  contents: read\nconcurrency:\n  group: native-targeted-${{ github.ref }}\n  cancel-in-progress: true\njobs:\n  targeted:\n    name: native-targeted-diagnostic\n    runs-on: macos-26\n    # Upper bound, not an expected duration or a replacement for required gates.\n    timeout-minutes: 45\n    env:\n      PYTHONDONTWRITEBYTECODE: \'1\'\n    steps:\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n        with:\n          fetch-depth: 2\n          persist-credentials: false\n      - name: Validate fixed selection and diagnostic controls\n        run: |\n          # Corrections can move the reviewed base beyond checkout depth two.\n          # Fetch only that exact public commit; do not widen checkout or scope.\n          GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch --no-tags --depth=1 https://github.com/liboyang42-cpu/chengyin-ios.git 45b728c7d48cf7969ac864e5693322d45e79394a\n          python3 -B -m unittest discover -s tools/tests -p test_targeted_native.py -v\n          python3 -B tools/run_targeted_native.py validate\n      - name: Run exact selected native methods on one simulator\n        run: python3 -B tools/run_targeted_native.py run --output "$RUNNER_TEMP/native-targeted"\n      - name: Report exact-SHA selected results, including incomplete runs\n        if: always()\n        run: python3 -B tools/run_targeted_native.py report --output "$RUNNER_TEMP/native-targeted" --summary "$GITHUB_STEP_SUMMARY"\n', 'after': 'name: Targeted native diagnostics\n# Authorized standard-runner split. Both nonempty current71 partitions must pass\n# on this exact SHA/run/attempt; this does not grant release or deployment admission.\non:\n  push:\n    branches: [migration/native-ios]\n    paths:\n      - .github/workflows/native-targeted.yml\n      - tools/targeted_native_selection.json\n      - tools/run_targeted_native.py\n      - tools/tests/test_targeted_native.py\n  workflow_dispatch:\npermissions:\n  contents: read\nconcurrency:\n  group: native-targeted-${{ github.ref }}\n  cancel-in-progress: true\njobs:\n  targeted:\n    name: native-targeted-${{ matrix.partition }}\n    runs-on: macos-26\n    timeout-minutes: 45\n    continue-on-error: false\n    strategy:\n      fail-fast: false\n      max-parallel: 2\n      matrix:\n        partition: [core-app, ui-legacy]\n        include:\n          - partition: core-app\n            result_group: app-unit\n          - partition: ui-legacy\n            result_group: ui\n    env:\n      PYTHONDONTWRITEBYTECODE: \'1\'\n    steps:\n      - name: Record job-entry clock before checkout\n        run: python3 -c \'import time,os,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"],"native-targeted-start").write_text(str(time.monotonic()))\'\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n        with:\n          fetch-depth: 2\n          persist-credentials: false\n      - name: Validate all historical controls and current71 source identities\n        run: |\n          python3 -B tools/run_targeted_native.py preflight --output "$RUNNER_TEMP/native-targeted-preflight.json" --start-file "$RUNNER_TEMP/native-targeted-start"\n      - name: Build fresh products and run exact partition methods\n        run: python3 -B tools/run_targeted_native.py run-partition --partition \'${{ matrix.partition }}\' --preflight "$RUNNER_TEMP/native-targeted-preflight.json" --output "$RUNNER_TEMP/native-targeted-${{ matrix.partition }}"\n      - name: Re-extract and validate bounded partition evidence\n        id: report\n        if: always()\n        run: |\n          python3 -c \'import time,os,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"],"native-report-start").write_text(str(time.monotonic()))\'\n          set +e\n          python3 -B tools/run_targeted_native.py report-partition --partition \'${{ matrix.partition }}\' --output "$RUNNER_TEMP/native-targeted-${{ matrix.partition }}" --evidence "$RUNNER_TEMP/native-evidence-${{ matrix.partition }}" --summary "$GITHUB_STEP_SUMMARY"\n          status=$?\n          set -e\n          python3 -B tools/run_targeted_native.py record-observation --phase report-command --start-file "$RUNNER_TEMP/native-report-start" --returncode "$status" --summary "$GITHUB_STEP_SUMMARY"\n          exit "$status"\n      - name: Preserve bounded raw schema diagnostics even when admission fails\n        if: always()\n        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02\n        with:\n          name: native-schema-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}\n          path: |\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/manifest.json\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-version.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-summary-help.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-tests-help.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-devices.json\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-runtimes.json\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-summary.json\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-tests.json\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-version.txt.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-summary-help.txt.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/xcresult-tests-help.txt.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-devices.json.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/simulator-runtimes.json.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-summary.json.stderr.txt\n            ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/schema-evidence/${{ matrix.result_group }}-tests.json.stderr.txt\n          if-no-files-found: error\n          retention-days: 1\n          overwrite: false\n      - name: Record immutable artifact upload start\n        if: ${{ always() && steps.report.outcome == \'success\' }}\n        run: python3 -c \'import time,os,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"],"native-upload-start").write_text(str(time.monotonic()))\'\n      - name: Upload only allowlisted receipt and raw result evidence\n        id: upload\n        if: ${{ always() && steps.report.outcome == \'success\' }}\n        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02\n        with:\n          name: native-targeted-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}\n          path: ${{ runner.temp }}/native-evidence-${{ matrix.partition }}/*\n          if-no-files-found: error\n          retention-days: 1\n          overwrite: false\n      - name: Record completed artifact upload observation\n        if: ${{ always() && steps.upload.outcome == \'success\' }}\n        run: python3 -B tools/run_targeted_native.py record-observation --phase artifact-upload --start-file "$RUNNER_TEMP/native-upload-start" --returncode 0 --summary "$GITHUB_STEP_SUMMARY"\n  aggregate:\n    name: native-targeted-diagnostic\n    needs: [targeted]\n    if: always()\n    runs-on: ubuntu-24.04\n    timeout-minutes: 10\n    env:\n      PYTHONDONTWRITEBYTECODE: \'1\'\n      MATRIX_RESULT: ${{ needs.targeted.result }}\n    steps:\n      - name: Require every matrix worker to succeed\n        run: test "$MATRIX_RESULT" = success\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n        with:\n          fetch-depth: 2\n          persist-credentials: false\n      - name: Record artifact download start\n        run: python3 -c \'import time,os,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"],"native-download-start").write_text(str(time.monotonic()))\'\n      - name: Download only this SHA run attempt evidence\n        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093\n        with:\n          pattern: native-targeted-71-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-*\n          path: ${{ runner.temp }}/native-targeted-artifacts\n          merge-multiple: false\n      - name: Reparse exact71 and verify same-run identities\n        run: python3 -B tools/run_targeted_native.py aggregate --start-file "$RUNNER_TEMP/native-download-start" --artifacts "$RUNNER_TEMP/native-targeted-artifacts" --needs-result "$MATRIX_RESULT" --output "$RUNNER_TEMP/native-targeted-71-receipt.json" --summary "$GITHUB_STEP_SUMMARY"\n'}]}}
+MERCHANT_LAYER_SHA256 = '3123283e1e8f1225e033736f607d582638f425c6e1b2df117d8c87c8bfec3b34'
+MERCHANT_SELECTION_SHA256 = '084af543b4dc7b5531368748e4ee5dca864d0d0405e16dd360099955d386b40d'
+MERCHANT_SELECTION_RAW_SHA256 = '4166e3f61752a26395ab0ac5a6384b055d8460b576e0b41ee70051c47982e23d'
+MERCHANT_TEST_SHA256 = 'd615410cf0e7630680691f0c8a0fe3b31564bf4c923452cb6a00db6fbb2b9e21'
+MERCHANT_RUNNER_REPLACEMENTS = (('    raise SystemExit(main())', '    raise SystemExit(split71_main())'), ('    root = args.source_root.resolve(strict=True)', '    root = args.source_root.absolute()'), ('    raw = Path(path).read_bytes()\n    require(len(raw) <= LIMIT', '    raw = (path.read_bytes() if isinstance(path, MerchantHistoryPath) else Path(path).read_bytes())\n    require(len(raw) <= LIMIT'), ("    with Path(path).open('rb') as source:\n", "    with (path if isinstance(path, MerchantHistoryPath) else Path(path)).open('rb') as source:\n"), ('        report(args.output, args.summary, root, native=True)', '        merchant_report(args.output, args.summary, root)'), ("    validate_byteperf_selection(selection, root)\n    if args.action == 'validate':", "    validate_merchant_selection(selection, root)\n    if args.action == 'validate':"), ("        print('Validated fixed selection: Core 44, AppUnit 14, UI 7; Apple execution NOT_RUN')", "        print('Validated current71 source selection: Core 50, AppUnit 14, UI 7; Apple execution NOT_RUN; real published7bf parent scope requires run/report')"), ('    job = NativeDiagnostic(root, output, selection); job.save()', '    job = MerchantDiagnostic(root, output, selection); job.save()'))
+MERCHANT_TEST_SETUP = ("BYTEPERF_TOOLS = TOOLS\nBYTEPERF_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')\nBYTEPERF_SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))", "MERCHANT_SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))\nMERCHANT_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')\nrunner.validate_merchant_selection(MERCHANT_SELECTION, MERCHANT_SOURCE)\nBYTEPERF_SOURCE = runner.merchant_history_root(MERCHANT_SELECTION, MERCHANT_SOURCE)\nBYTEPERF_TOOLS = BYTEPERF_SOURCE / 'tools'\nBYTEPERF_SELECTION = runner.merchant_predecessor_selection(MERCHANT_SELECTION)")
+
+
+def merchant_predecessor_selection(selection):
+    require(isinstance(selection, dict) and selection.get('merchant_readback') == MERCHANT_LAYER,
+            'Missing/changed merchant readback layer')
+    require(hashlib.sha256(encode(selection).encode()).hexdigest() == MERCHANT_SELECTION_SHA256,
+            'Changed complete current71 selection')
+    old = json.loads(json.dumps(selection), object_pairs_hook=unique_object)
+    del old['merchant_readback']
+    old['name'] = MERCHANT_PRE_NAME
+    old['coverage_boundary'] = MERCHANT_PRE_COVERAGE
+    old['groups'][0]['methods'] = [m for m in old['groups'][0]['methods'] if m not in MERCHANT_METHODS]
+    old['groups'][0]['method_sources'] = [r for r in old['groups'][0]['method_sources'] if r['method'] not in MERCHANT_METHODS]
+    old['source_files'] = [r for r in old['source_files'] if r['path'] not in MERCHANT_PRODUCT_PATHS]
+    raw = (json.dumps(old, indent=2, ensure_ascii=True) + '\n').encode()
+    require(hashlib.sha256(raw).hexdigest() == MERCHANT_BEFORE[PATHS[1]]['sha256']
+            and blob_id(raw) == MERCHANT_BEFORE[PATHS[1]]['blob']
+            and MERCHANT_BEFORE[PATHS[1]]['sha256'] == BYTEPERF_SELECTION_RAW_SHA256,
+            'Complete published7bf predecessor selection not restored')
+    return old
+
+
+def merchant_regular_bytes(root, relative):
+    require(isinstance(root, Path) and root.is_dir() and not root.is_symlink(),
+            'Merchant source root must be a real checkout directory')
+    require(root.absolute() == root.resolve(strict=True), 'Merchant source root contains an alias')
+    parts = Path(relative).parts
+    path = root / relative
+    require(relative in MERCHANT_PATHS
+            and all(not (root / Path(*parts[:i])).is_symlink() for i in range(1, len(parts) + 1))
+            and path.is_file() and path.resolve(strict=True).is_relative_to(root.resolve(strict=True)),
+            'Merchant current source missing, linked, or outside root: ' + relative)
+    require(path.stat().st_nlink == 1, 'Merchant current source is a hardlink alias: ' + relative)
+    return path.read_bytes()
+
+
+def merchant_runner_preimage(raw):
+    first = b'\n# MERCHANT_READBACK_LAYER_BEGIN\n'
+    last = b'# MERCHANT_READBACK_LAYER_END\n'
+    require(raw.count(first) == 1 and raw.count(last) == 1, 'Changed merchant runner layer markers')
+    start, end = raw.index(first), raw.index(last) + len(last)
+    restored = raw[:start] + raw[end:]
+    for before, after in MERCHANT_RUNNER_REPLACEMENTS:
+        require(restored.count(after.encode()) == 1, 'Changed merchant entry or byte-view hook')
+        restored = restored.replace(after.encode(), before.encode(), 1)
+    require(hashlib.sha256(restored).hexdigest() == MERCHANT_BEFORE[PATHS[2]]['sha256']
+            and blob_id(restored) == MERCHANT_BEFORE[PATHS[2]]['blob'],
+            'Complete previous runner bytes not restored')
+    return restored
+
+
+def merchant_test_preimage(raw):
+    first = b'\n# MERCHANT_READBACK_TESTS_BEGIN\n'
+    last = b'# MERCHANT_READBACK_TESTS_END\n'
+    require(raw.count(first) == 1 and raw.count(last) == 1, 'Changed merchant test layer markers')
+    restored = raw[:raw.index(first)] + raw[raw.index(last) + len(last):]
+    before, after = MERCHANT_TEST_SETUP
+    require(restored.count(after.encode()) == 1, 'Changed explicit merchant historical fixture entry')
+    restored = restored.replace(after.encode(), before.encode(), 1)
+    require(hashlib.sha256(restored).hexdigest() == MERCHANT_BEFORE[PATHS[3]]['sha256']
+            and blob_id(restored) == MERCHANT_BEFORE[PATHS[3]]['blob']
+            and MERCHANT_BEFORE[PATHS[3]]['sha256'] == BYTEPERF_TEST_SHA256,
+            'Complete212 diagnostic predecessor bytes not restored')
+    return restored
+
+
+def merchant_current_inputs(selection, root):
+    merchant_predecessor_selection(selection)
+    incoming = {p: merchant_regular_bytes(root, p) for p in MERCHANT_PATHS}
+    require(hashlib.sha256(incoming[PATHS[2]]).hexdigest() == NATIVE_IMPLEMENTATION_SHA256,
+            'Merchant runner differs from complete loaded implementation')
+    merchant_runner_preimage(incoming[PATHS[2]])
+    require(hashlib.sha256(incoming[PATHS[1]]).hexdigest() == MERCHANT_SELECTION_RAW_SHA256
+            and json.loads(incoming[PATHS[1]], object_pairs_hook=unique_object) == selection,
+            'Changed complete raw current71 selection')
+    require(hashlib.sha256(incoming[PATHS[3]]).hexdigest() == MERCHANT_TEST_SHA256,
+            'Changed complete merchant diagnostic tests')
+    merchant_test_preimage(incoming[PATHS[3]])
+    require(hashlib.sha256(encode(selection['merchant_readback']).encode()).hexdigest() == MERCHANT_LAYER_SHA256,
+            'Changed independently fixed merchant layer')
+    for row in MERCHANT_LAYER['payload']:
+        raw = incoming[row['path']]
+        require(hashlib.sha256(raw).hexdigest() == row['after_sha256'] and blob_id(raw) == row['after_blob'],
+                'Changed frozen merchant postimage: ' + row['path'])
+        if row['status'] == 'M':
+            restored = inverse_reviewed_repair(row, raw)
+            require(hashlib.sha256(restored).hexdigest() == MERCHANT_BEFORE[row['path']]['sha256']
+                    and blob_id(restored) == MERCHANT_BEFORE[row['path']]['blob'],
+                    'Wrong independent merchant predecessor')
+        else:
+            require(row['status'] == 'A' and row['path'] == MERCHANT_PRODUCT_PATHS[2]
+                    and row['before_sha256'] is None and row['before_blob'] is None and row['hunks'] == [],
+                    'Merchant addition has fabricated history')
+    row = MERCHANT_LAYER['workflow']
+    require(hashlib.sha256(incoming[MERCHANT_WORKFLOW_PATH]).hexdigest() == row['after_sha256']
+            and blob_id(incoming[MERCHANT_WORKFLOW_PATH]) == row['after_blob'], 'Changed complete schema-evidence workflow')
+    restored = inverse_reviewed_repair(row, incoming[MERCHANT_WORKFLOW_PATH])
+    require(hashlib.sha256(restored).hexdigest() == MERCHANT_BEFORE[MERCHANT_WORKFLOW_PATH]['sha256']
+            and blob_id(restored) == MERCHANT_BEFORE[MERCHANT_WORKFLOW_PATH]['blob'], 'Changed workflow predecessor')
+    return incoming
+
+
+class MerchantHistoryPath:
+    """Explicit read-only historical byte view; all other paths read the same root.
+
+    Never a healthy-root fallback, source copy, hardlink, mutable global switch,
+    or cache of admission. Every projected read reauthenticates its live file.
+    Git receives the genuine checkout through __fspath__, never a synthetic repo.
+    """
+    def __init__(self, root, overrides, current_hashes, relative=Path('.')):
+        self.root, self.overrides, self.current_hashes, self.relative = root, overrides, current_hashes, relative
+
+    def __truediv__(self, other):
+        relative = self.relative / other
+        require(not relative.is_absolute() and '..' not in relative.parts, 'Historical view escaped root')
+        return MerchantHistoryPath(self.root, self.overrides, self.current_hashes, relative)
+
+    def __fspath__(self):
+        return os.fspath(self.root / self.relative)
+
+    def __str__(self):
+        return os.fspath(self)
+
+    def __getattr__(self, name):
+        require(name in {'is_dir', 'is_file', 'is_symlink', 'resolve', 'exists', 'stat'},
+                'Unsupported historical path operation: ' + name)
+        return getattr(self.root / self.relative, name)
+
+    def read_bytes(self):
+        relative = self.relative.as_posix()
+        if relative in self.overrides:
+            raw = merchant_regular_bytes(self.root, relative)
+            require(hashlib.sha256(raw).hexdigest() == self.current_hashes[relative],
+                    'Live source changed after historical view creation: ' + relative)
+            return self.overrides[relative]
+        return (self.root / self.relative).read_bytes()
+
+    def read_text(self, encoding='utf-8', errors='strict'):
+        return self.read_bytes().decode(encoding, errors)
+
+    def open(self, mode='r', *args, **kwargs):
+        require(mode in {'r', 'rb'}, 'Historical view is read-only')
+        return io.BytesIO(self.read_bytes()) if mode == 'rb' else io.StringIO(self.read_text())
+
+
+def merchant_history_root(selection, root):
+    incoming = merchant_current_inputs(selection, root)
+    old = merchant_predecessor_selection(selection)
+    overrides = {PATHS[1]: (json.dumps(old, indent=2, ensure_ascii=True) + '\n').encode(),
+                 PATHS[3]: merchant_test_preimage(incoming[PATHS[3]])}
+    for row in MERCHANT_LAYER['payload']:
+        if row['status'] == 'M': overrides[row['path']] = inverse_reviewed_repair(row, incoming[row['path']])
+    overrides[MERCHANT_WORKFLOW_PATH] = inverse_reviewed_repair(MERCHANT_LAYER['workflow'], incoming[MERCHANT_WORKFLOW_PATH])
+    return MerchantHistoryPath(root, overrides,
+                               {p: hashlib.sha256(incoming[p]).hexdigest() for p in overrides})
+
+
+def validate_merchant_selection(selection, root):
+    incoming = merchant_current_inputs(selection, root)
+    old = merchant_predecessor_selection(selection)
+    require([g['name'] for g in selection['groups']] == ['core', 'app-unit', 'ui']
+            and [len(g['methods']) for g in selection['groups']] == [50, 14, 7],
+            'Current71 requires Core50 AppUnit14 UI7')
+    core = selection['groups'][0]
+    require(core['methods'] == sorted(set(old['groups'][0]['methods']) | set(MERCHANT_METHODS)),
+            'Changed exact current50 Core method selection')
+    expected_bindings = sorted(old['groups'][0]['method_sources'] +
+                               [{'method': m, 'source': MERCHANT_PRODUCT_PATHS[1]} for m in MERCHANT_METHODS],
+                               key=lambda r: r['method'])
+    require(core['method_sources'] == expected_bindings, 'Wrong merchant method/source bindings')
+    declarations = declared_methods(incoming[MERCHANT_PRODUCT_PATHS[1]].decode(), 'QuestifyCoreTests')
+    require(all(declarations.get(m) == 1 for m in MERCHANT_METHODS), 'Merchant method not uniquely declared')
+    require(selection['groups'][1:] == old['groups'][1:], 'Historical AppUnit/UI selection changed')
+    require(selection['source_files'] == old['source_files'] +
+            [{'path': r['path'], 'sha256': r['after_sha256']} for r in MERCHANT_LAYER['payload']],
+            'Changed merchant bound source domain')
+    validate_byteperf_selection(old, merchant_history_root(selection, root))
+    return selection
+
+
+def merchant_tree_entries(root, revision, paths=None):
+    command = ['git', 'ls-tree', '-r', '-z', revision]
+    if paths is None: command.insert(3, '-t')
+    else: command += ['--', *paths]
+    entries = {}
+    for row in checked(command, root).split('\0'):
+        if not row: continue
+        metadata, path = row.split('\t', 1)
+        require(path not in entries, 'Duplicate merchant tree entry')
+        entries[path] = metadata.split(' ')
+    return entries
+
+
+def merchant_tree_id(entries):
+    """Rebuild a complete Git tree, including empty trees, without Git writes."""
+    children = {'': {}}
+    for path, metadata in entries.items():
+        require(isinstance(path, str) and path and not path.startswith('/')
+                and all(p not in {'', '.', '..'} for p in path.split('/')),
+                'Invalid complete tree path')
+        mode, kind, oid = metadata
+        require(re.fullmatch('[0-9a-f]{40}', oid) is not None
+                and (mode, kind) in {('040000', 'tree'), ('100644', 'blob'),
+                                     ('100755', 'blob'), ('120000', 'blob'), ('160000', 'commit')},
+                'Invalid complete tree metadata')
+        parent, _, name = path.rpartition('/')
+        require(not parent or entries.get(parent, [None, None])[1] == 'tree',
+                'Complete tree is missing an ancestor directory')
+        children.setdefault(parent, {})[name] = (mode, kind, oid, path)
+        if kind == 'tree': children.setdefault(path, {})
+    hashes = {}
+    for parent in sorted(children, key=lambda p: (p.count('/') + bool(p), p), reverse=True):
+        rows = []
+        for name, (mode, kind, oid, path) in sorted(children[parent].items(),
+                key=lambda item: (item[0] + ('/' if item[1][1] == 'tree' else '')).encode()):
+            oid = hashes[path] if kind == 'tree' else oid
+            rows.append(mode.lstrip('0').encode() + b' ' + name.encode() + b'\0' + bytes.fromhex(oid))
+        raw = b''.join(rows)
+        hashes[parent] = hashlib.sha1(b'tree ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+    return hashes['']
+
+
+def verify_merchant_tree(root, revision, *, before):
+    incoming = merchant_current_inputs(read_json(root / PATHS[1]), root)
+    expected = {p: ['100644', 'blob', identity['blob']] for p, identity in MERCHANT_BEFORE.items()}
+    if not before: expected = {p: ['100644', 'blob', blob_id(incoming[p])] for p in MERCHANT_PATHS}
+    actual = merchant_tree_entries(root, revision, MERCHANT_PATHS)
+    require(actual == expected, 'Changed exact merchant seven-path tree modes/types/blobs/presence')
+    return actual
+
+
+def ensure_merchant_c3_commit(root):
+    """Read only fixed public c3a if the new depth-two checkout lacks it."""
+    require(BYTEPERF_BASE_COMMIT == 'c3a914cd53c0ab60e6d19fc24588d85679dcaa1c'
+            and BYTEPERF_BASE_TREE == 'b237ac69c51f2295101453fd20ea9a6b74c0ba3f',
+            'Changed fixed public repair object target')
+    try:
+        checked(['git', 'cat-file', '-e', BYTEPERF_BASE_COMMIT + '^{commit}'], root)
+        checked(['git', 'cat-file', '-e', BYTEPERF_BASE_COMMIT + '^{tree}'], root)
+    except ValueError:
+        environment = {'PATH': os.environ.get('PATH', os.defpath), 'LANG': 'C',
+                       'HOME': '/dev/null', 'GIT_TERMINAL_PROMPT': '0',
+                       'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null',
+                       'GIT_ASKPASS': '/usr/bin/false', 'SSH_ASKPASS': '/usr/bin/false'}
+        code, raw = execute(['git', 'config', '--local', '--includes', '--name-only', '--list'],
+                            root, 10, True, env=environment)
+        require(code == 0, 'Cannot inspect public-read repository configuration')
+        keys = raw.decode().lower().splitlines()
+        require(not any(k.startswith(('url.', 'http.', 'credential.', 'include.', 'includeif.'))
+                        or k in {'core.askpass', 'extensions.worktreeconfig'} for k in keys),
+                'Public repair read rejects credential, redirect, or included configuration')
+        command = ['git', '-c', 'credential.helper=', '-c', 'core.askPass=',
+                   '-c', 'http.extraHeader=', '-c', 'http.followRedirects=false',
+                   '-c', 'protocol.allow=never', '-c', 'protocol.https.allow=always',
+                   'fetch', '--no-tags', '--no-write-fetch-head', '--depth=1', '--no-recurse-submodules',
+                   'https://github.com/liboyang42-cpu/chengyin-ios.git',
+                   'c3a914cd53c0ab60e6d19fc24588d85679dcaa1c']
+        code, _ = execute(command, root, 60, True, env=environment)
+        require(code == 0, 'Exact public c3a read failed; historical repair verification is unavailable')
+    checked(['git', 'cat-file', '-e', BYTEPERF_BASE_COMMIT + '^{commit}'], root)
+    checked(['git', 'cat-file', '-e', BYTEPERF_BASE_COMMIT + '^{tree}'], root)
+    raw = checked(['git', 'cat-file', '-p', BYTEPERF_BASE_COMMIT], root)
+    headers = raw.split('\n\n', 1)[0].splitlines()
+    require([line[5:] for line in headers if line.startswith('tree ')] == [BYTEPERF_BASE_TREE]
+            and [line[7:] for line in headers if line.startswith('parent ')]
+            == ['54f708eb260ad20cdf0fb6355cc4eaedb967019a'],
+            'Published c3a commit/tree/parent identity differs')
+
+
+def verify_merchant_published_history(root, selection):
+    old = merchant_predecessor_selection(selection)
+    view = merchant_history_root(selection, root)
+    # Workflow depth2 contains candidate+7bf, and its explicit fixed45b read
+    # supplies the oldest baseline. Authenticate these prerequisites locally;
+    # acquire intermediate published objects only when the fixed chain needs them.
+    for revision in (MERCHANT_BASE_COMMIT, HISTORICAL_BASE_COMMIT):
+        for kind in ('commit', 'tree'):
+            checked(['git', 'cat-file', '-e', revision + '^{' + kind + '}'], root)
+    headers = checked(['git', 'cat-file', '-p', MERCHANT_BASE_COMMIT], root).split('\n\n', 1)[0].splitlines()
+    require([r[5:] for r in headers if r.startswith('tree ')] == [MERCHANT_BASE_TREE]
+            and [r[7:] for r in headers if r.startswith('parent ')] == [BYTEPERF_BASE_COMMIT],
+            'Real published7bf must have exact tree and sole c3 parent')
+    ensure_merchant_c3_commit(root)
+    require(checked(['git', 'rev-parse', BYTEPERF_BASE_COMMIT + '^{tree}'], root) == BYTEPERF_BASE_TREE,
+            'Changed complete published c3 tree')
+    changes = checked(['git', 'diff', '--name-status', '--no-renames', BYTEPERF_BASE_COMMIT, MERCHANT_BASE_COMMIT], root).splitlines()
+    require(len(changes) == 9 and set(changes) == set(BYTEPERF_LAYER['allowed_changes']),
+            'Published7bf differs from exact nine-path byte-transform layer')
+    verify_byteperf_tree(view, BYTEPERF_BASE_COMMIT, before=True)
+    incoming = byteperf_current_inputs(old, view)
+    expected = {p: ['100644', 'blob', blob_id(incoming[p])] for p in BYTEPERF_PATHS}
+    expected[PATHS[2]] = ['100644', 'blob', MERCHANT_BEFORE[PATHS[2]]['blob']]
+    require(merchant_tree_entries(root, MERCHANT_BASE_COMMIT, BYTEPERF_PATHS) == expected,
+            'Wrong complete published7bf nine-path postimages')
+    ensure_casefold_commit(root)
+    prior = verify_casefold_scope(view, byteperf_predecessor_selection(old), published_revision=BYTEPERF_BASE_COMMIT)
+    prior.update(byteperf_base_commit=BYTEPERF_BASE_COMMIT, byteperf_base_tree=BYTEPERF_BASE_TREE,
+                 byteperf_selection=BYTEPERF_NAME)
+    return prior
+
+
+def verify_merchant_scope(root, selection):
+    validate_merchant_selection(selection, root)
+    head = checked(['git', 'rev-parse', 'HEAD'], root)
+    require(re.fullmatch('[a-f0-9]{40}', head) is not None and head == os.environ.get('GITHUB_SHA'),
+            'Actual merchant HEAD differs from GITHUB_SHA')
+    headers = checked(['git', 'cat-file', '-p', head], root).split('\n\n', 1)[0].splitlines()
+    require([r[7:] for r in headers if r.startswith('parent ')] == [MERCHANT_BASE_COMMIT],
+            'Merchant candidate must have sole real published7bf parent; equal-tree witnesses are not parents')
+    require(checked(['git', 'rev-parse', MERCHANT_BASE_COMMIT + '^{tree}'], root) == MERCHANT_BASE_TREE,
+            'Wrong complete published7bf tree')
+    changes = checked(['git', 'diff', '--name-status', '--no-renames', MERCHANT_BASE_COMMIT, head], root).splitlines()
+    require(len(changes) == 7 and set(changes) == set(MERCHANT_LAYER['allowed_changes']),
+            'Merchant candidate differs from seven exact change statuses')
+    before = verify_merchant_tree(root, MERCHANT_BASE_COMMIT, before=True)
+    after = verify_merchant_tree(root, head, before=False)
+    full_before = merchant_tree_entries(root, MERCHANT_BASE_COMMIT)
+    full_after = merchant_tree_entries(root, head)
+    expected = dict(full_before); expected.update(after)
+    require(set(full_after) == set(expected) and all(
+            full_after[p][:2] == row[:2] if row[1] == 'tree' else full_after[p] == row
+            for p, row in expected.items()), 'Merchant candidate changed an off-scope tree mode/type/blob/path')
+    expected_tree = merchant_tree_id(expected)
+    prior = verify_merchant_published_history(root, selection)
+    tree = checked(['git', 'rev-parse', 'HEAD^{tree}'], root)
+    require(tree == expected_tree, 'Candidate tree differs from exact seven-leaf reconstruction of complete parent tree')
+    require([r[5:] for r in headers if r.startswith('tree ')] == [tree], 'Changed candidate tree header')
+    require(not checked(['git', 'status', '--porcelain', '--untracked-files=normal'], root),
+            'Merchant candidate checkout is not clean')
+    merchant_current_inputs(selection, root)
+    prior.update(source_sha=head, source_tree=tree, merchant_base_commit=MERCHANT_BASE_COMMIT,
+                 merchant_base_tree=MERCHANT_BASE_TREE, merchant_selection=MERCHANT_NAME)
+    return prior
+
+
+# Bounded raw evidence capture is independent from XCTest pass/fail decisions.
+# No schema interpretation, native receipt rewriting, source archives or app products.
+def merchant_schema_commands(result_paths):
+    rows = [
+        ('xcresult-version.txt', ['xcrun', 'xcresulttool', '--version'], 1024 * 1024),
+        ('xcresult-summary-help.txt', ['xcrun', 'xcresulttool', 'get', 'test-results', 'summary', '--help'], 1024 * 1024),
+        ('xcresult-tests-help.txt', ['xcrun', 'xcresulttool', 'get', 'test-results', 'tests', '--help'], 1024 * 1024),
+        ('simulator-devices.json', ['xcrun', 'simctl', 'list', 'devices', 'available', '--json'], 2 * 1024 * 1024),
+        ('simulator-runtimes.json', ['xcrun', 'simctl', 'list', 'runtimes', '--json'], 2 * 1024 * 1024)]
+    for group in ('app-unit', 'ui'):
+        for part in ('summary', 'tests'):
+            path = result_paths.get(group)
+            command = None if path is None else ['xcrun', 'xcresulttool', 'get', 'test-results', part, '--path', str(path), '--compact']
+            rows.append((group + '-' + part + '.json', command, 10 * 1024 * 1024))
+    return rows
+
+
+def merchant_capture_command(command, root, seconds, stdout_limit, stderr_limit=64 * 1024):
+    """Stream bounded pipes; kill/reap the process group inside the item deadline."""
+    import selectors
+    start = time.monotonic(); deadline = start + max(0, seconds)
+    stdout, stderr = bytearray(), bytearray()
+    status, code, process = 'CAPTURED', None, None
+    observed = {'stdout': 0, 'stderr': 0}; truncated = {'stdout': False, 'stderr': False}
+    selector = selectors.DefaultSelector()
+    try:
+        require(seconds > 0.6, 'Schema evidence budget exhausted')
+        process = subprocess.Popen(command, cwd=root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+        for name, stream in [('stdout', process.stdout), ('stderr', process.stderr)]:
+            os.set_blocking(stream.fileno(), False); selector.register(stream, selectors.EVENT_READ, name)
+        while selector.get_map():
+            remaining = deadline - time.monotonic() - 0.5
+            if remaining <= 0: status = 'TIMEOUT'; break
+            for key, _ in selector.select(min(remaining, 0.1)):
+                chunk = os.read(key.fileobj.fileno(), 65536)
+                if not chunk: selector.unregister(key.fileobj); continue
+                name = key.data; observed[name] += len(chunk)
+                target, limit = (stdout, stdout_limit) if name == 'stdout' else (stderr, stderr_limit)
+                available = max(0, limit - len(target)); target.extend(chunk[:available])
+                if len(chunk) > available:
+                    truncated[name] = True; status = 'SIZE_LIMIT'; break
+            if status != 'CAPTURED': break
+        if status == 'CAPTURED':
+            try: code = process.wait(timeout=max(0.001, deadline - time.monotonic() - 0.1))
+            except subprocess.TimeoutExpired: status = 'TIMEOUT'
+        if status != 'CAPTURED':
+            try: os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError: pass
+            code = process.wait(timeout=max(0.001, deadline - time.monotonic()))
+        elif code != 0: status = 'EXIT_NONZERO'
+    except Exception as error:
+        status = 'CAPTURE_ERROR'
+        if process is not None:
+            try: os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError: pass
+            try: code = process.wait(timeout=max(0.001, deadline - time.monotonic()))
+            except subprocess.TimeoutExpired: code = None
+        message = str(error).encode()[:stderr_limit]
+        if not stderr: stderr.extend(message); observed['stderr'] = len(message)
+    finally:
+        selector.close()
+        if process is not None:
+            for stream in (process.stdout, process.stderr):
+                if stream is not None: stream.close()
+    return {'argv': [str(x) for x in command], 'status': status, 'returncode': code,
+            'wall_seconds': time.monotonic() - start, 'observed_bytes': observed,
+            'truncated': truncated, 'stdout': bytes(stdout), 'stderr': bytes(stderr)}
+
+
+def merchant_capture_schema(root, output, result_paths, receipt, seconds=90):
+    start = time.monotonic(); deadline = start + min(90, max(0, seconds))
+    destination = output / 'schema-evidence'
+    require(not destination.exists() and not destination.is_symlink(), 'Schema evidence directory must be fresh')
+    destination.mkdir(mode=0o700)
+    manifest = {'version': 1, 'purpose': 'raw-apple-tool-schema-evidence-only',
+                'status': 'NOT_RUN', 'native_test_result_authority': False,
+                'source_sha': receipt.get('source_sha'), 'source_tree': receipt.get('source_tree'),
+                'workflow_sha': receipt.get('workflow_sha'), 'run_id': receipt.get('run_id'),
+                'run_attempt': receipt.get('run_attempt'), 'items': [],
+                'limits': {'total_seconds': 90, 'item_seconds': 30, 'total_bytes': 48 * 1024 * 1024,
+                           'stderr_item_bytes': 64 * 1024}, 'retained_bytes': 0}
+    verified_paths = {}
+    for group, path in result_paths.items():
+        if group not in ('app-unit', 'ui'): continue
+        path = Path(path)
+        if (not path.is_symlink() and path.is_dir() and path.suffix == '.xcresult'
+                and path.parent.resolve(strict=True) == output.resolve(strict=True)):
+            verified_paths[group] = path
+    if not verified_paths:
+        manifest['reason'] = 'No actual current-run resultBundlePath reached a readable xcresult directory'
+    else:
+        for filename, command, limit in merchant_schema_commands(verified_paths):
+            remaining = deadline - time.monotonic()
+            if command is None or remaining <= 0.6:
+                manifest['items'].append({'file': filename, 'status': 'NOT_RUN',
+                    'reason': 'No actual current-run resultBundlePath' if command is None else 'Total evidence time budget exhausted'})
+                continue
+            # Leave128KiB for a bounded manifest; files are never directory globs.
+            available = 48 * 1024 * 1024 - 128 * 1024 - manifest['retained_bytes']
+            if available <= 64 * 1024:
+                manifest['items'].append({'file': filename, 'status': 'NOT_RUN', 'reason': 'Total evidence byte budget exhausted'})
+                continue
+            result = merchant_capture_command(command, root, min(30, remaining), min(limit, available - 64 * 1024))
+            for stream in ('stdout', 'stderr'):
+                raw = result.pop(stream); name = filename if stream == 'stdout' else filename + '.stderr.txt'
+                (destination / name).write_bytes(raw)
+                result[stream] = {'file': name, 'byte_count': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+                manifest['retained_bytes'] += len(raw)
+            result['file'] = filename; manifest['items'].append(result)
+        manifest['status'] = 'CAPTURED' if len(manifest['items']) == 9 and all(r['status'] == 'CAPTURED' for r in manifest['items']) else 'PARTIAL_OR_FAILED'
+    manifest['wall_seconds'] = time.monotonic() - start
+    raw = (json.dumps(manifest, indent=2, ensure_ascii=True) + '\n').encode()
+    require(len(raw) <= 128 * 1024 and len(raw) + manifest['retained_bytes'] <= 48 * 1024 * 1024,
+            'Schema evidence manifest exceeded its reserved bound')
+    (destination / 'manifest.json').write_bytes(raw)
+    return manifest
+
+
+class MerchantDiagnostic(Diagnostic):
+    def __init__(self, root, output, selection):
+        super().__init__(root, output, selection)
+        self.receipt['expected_count'] = 71
+        self.schema_result_paths = {}
+
+    def scope(self):
+        return verify_merchant_scope(self.root, self.selection)
+
+    def collect(self, group, command, seconds, result):
+        if group['name'] in ('app-unit', 'ui'):
+            positions = [i for i, value in enumerate(command) if value == '-resultBundlePath']
+            if len(positions) == 1 and positions[0] + 1 < len(command) and str(command[positions[0] + 1]) == str(result):
+                self.schema_result_paths[group['name']] = result
+        return super().collect(group, command, seconds, result)
+
+    def capture_schema(self):
+        try:
+            merchant_capture_schema(self.root, self.output, self.schema_result_paths, self.receipt,
+                                    min(90, max(0, self.deadline - time.monotonic())))
+        except Exception as error:
+            # Collection cannot replace or upgrade native test decisions.
+            print('APPLE_SCHEMA_EVIDENCE_CAPTURE_FAILED ' + str(error)[:512], flush=True)
+
+    def run(self):
+        try:
+            super().run()
+        except BaseException as error:
+            if isinstance(error, Exception): self.capture_schema()
+            raise
+        else:
+            self.capture_schema()
+
+
+def validate_merchant_pass_receipt(receipt, expected, selection):
+    old = merchant_predecessor_selection(selection)
+    require(receipt.get('merchant_base_commit') == MERCHANT_BASE_COMMIT
+            and receipt.get('merchant_base_tree') == MERCHANT_BASE_TREE
+            and receipt.get('merchant_selection') == MERCHANT_NAME, 'Wrong current71 merchant receipt identity')
+    require(receipt.get('selection') == MERCHANT_NAME
+            and all(type(receipt.get(k)) is int and receipt[k] == 71 for k in ['expected_count', 'actual_count']),
+            'Current71 requires seventy-one actual executed methods')
+    require(set(receipt.get('groups', {})) == {'core', 'app-unit', 'ui'}, 'Missing current71 result group')
+    for group in selection['groups']:
+        actual = receipt['groups'][group['name']]
+        require(actual.get('status') == 'PASS' and actual.get('expected') == group['methods']
+                and type(actual.get('actual_count')) is int and actual['actual_count'] == len(group['methods']),
+                'Wrong current71 actual group count')
+        validate_outcomes(actual.get('actual'), group['methods'], actual.get('returncode'))
+    # A projection only checks inherited identities/guards after all real71 IDs
+    # passed. It is never emitted, accepted as old execution, or hashed as evidence.
+    prior = json.loads(json.dumps(receipt), object_pairs_hook=unique_object)
+    prior.update(selection=old['name'], expected_count=65, actual_count=65)
+    core = prior['groups']['core']; old_methods = old['groups'][0]['methods']
+    core.update(expected=old_methods, actual_count=44,
+                actual=[r for r in core['actual'] if r['method'] in old_methods])
+    validate_byteperf_pass_receipt(prior, expected, old)
+
+
+def merchant_report(output, summary, root=ROOT):
+    path = output / 'receipt.json'
+    if not path.is_file():
+        text = 'Targeted native diagnostics: NOT_RUN. No finalized receipt; full required native gates remain separate.\n'
+        print(text)
+        if summary:
+            with summary.open('a') as destination:
+                destination.write(text)
+        return
+    receipt = read_json(path)
+    if receipt.get('status') == 'PASS':
+        expected = {key: os.environ.get(env, '') for key, env in [('source_sha', 'GITHUB_SHA'), ('workflow_sha', 'GITHUB_WORKFLOW_SHA'), ('run_id', 'GITHUB_RUN_ID'), ('run_attempt', 'GITHUB_RUN_ATTEMPT')]}
+        expected['source_tree'] = checked(['git', 'rev-parse', 'HEAD^{tree}'], root)
+        expected['selection_sha256'] = digest(root / PATHS[1])
+        selection = read_json(root / PATHS[1])
+        verify_merchant_scope(root, selection)
+        validate_merchant_pass_receipt(receipt, expected, selection)
+        for group in selection['groups']:
+            actual = receipt['groups'][group['name']]
+            if group['kind'] == 'swift':
+                result = output / 'core.xml'
+                require(digest(result) == actual['result_sha256'], 'Core evidence changed')
+                transcript = output / 'core-stdout.txt'
+                require(digest(transcript) == actual['transcript_sha256'], 'Core transcript changed')
+                rows = validate_core_evidence(result.read_bytes(), transcript.read_bytes(), group['methods'], actual['returncode'])
+            else:
+                documents = {}
+                for part in ['summary', 'tests']:
+                    result = output / (group['name'] + '-' + part + '.json')
+                    require(digest(result) == actual[part + '_sha256'], 'XCTest evidence changed')
+                    documents[part] = read_json(result)
+                rows = parse_xcresult(documents['tests'], group['target'])
+                validate_summary(documents['summary'], len(group['methods']), receipt['simulator']['udid'])
+            require(rows == actual['actual'], 'Receipt does not match actual result evidence')
+            validate_outcomes(rows, group['methods'], actual['returncode'])
+    # This report is evidence only. It never promotes a partial run to success.
+    print('TARGETED_NATIVE_RECEIPT ' + encode(receipt), flush=True)
+    lines = ['Targeted native diagnostics: ' + receipt.get('status', 'INCOMPLETE'),
+             'Source SHA: ' + receipt.get('source_sha', 'NOT_RECORDED'),
+             'Source tree: ' + receipt.get('source_tree', 'NOT_RECORDED'),
+             'Actual methods: ' + str(receipt.get('actual_count', 0)) + ' / 71',
+             receipt.get('coverage_boundary', '')]
+    for name, group in receipt.get('groups', {}).items():
+        lines.append(name + ': ' + group['status'] + ', actual ' + str(group['actual_count']))
+        for row in group['actual']:
+            lines.append('  ' + row['method'] + ': ' + row['status'])
+    if summary:
+        with summary.open('a') as destination:
+            destination.write('\n'.join(lines) + '\n')
+
+# Strict independent same-run current71 partition protocol. Synthetic controls are
+# not evidence that the current Apple tool supports this schema. Unknown is FAIL.
+SPLIT71_PARTITIONS = ('core-app', 'ui-legacy')
+SPLIT71_PATHS = ('tools/run_targeted_native.py', 'tools/targeted_native_selection.json', 'tools/tests/test_targeted_native.py', '.github/workflows/native-targeted.yml')
+SPLIT71_TOOLCHAIN_KEYS = {'xcode', 'developer', 'swift', 'sdk_version', 'sdk_path'}
+SPLIT71_ID_KEYS = {'repository', 'ref', 'event', 'source_sha', 'source_tree', 'workflow_sha', 'run_id', 'run_attempt', 'selection_sha256', 'partition_table_sha256', 'source_archive_sha256'}
+SPLIT71_COMMON_PHASES = ('checkout-initialization', 'python-validation', 'source-validation', 'scope-before', 'toolchain-before', 'toolchain-after-build', 'schema-capture', 'simulator-inventory', 'products-before', 'boot', 'products-after', 'scope-after', 'toolchain-after', 'report')
+SPLIT71_CONFIGS = {'core': 'SwiftPM/debug/host/QuestifyCorePackageTests.xctest', 'ui': 'Debug/iphonesimulator/unsigned/ONLY_ACTIVE_ARCH=NO', 'app-unit': 'Debug/iphonesimulator/isolated-entitlement-section/adhoc-host'}
+SPLIT71_PUBLIC_OBJECTS = {'45b728c7d48cf7969ac864e5693322d45e79394a': '440cdc3bbd4a40369e6cb6762eec6306e4aa921d'}
+
+
+def split71_layer(selection):
+    require(isinstance(selection, dict) and selection.get('merchant_readback') == MERCHANT_LAYER,
+            'Changed fixed current71 source/partition contract')
+    require(split71_hash(selection) == MERCHANT_SELECTION_SHA256, 'Changed complete current71 selection')
+    return MERCHANT_LAYER['split']
+
+
+def validate_split71_selection(selection, root):
+    validate_merchant_selection(selection, root)
+    layer = split71_layer(selection)
+    require([p['name'] for p in layer['partitions']] == list(SPLIT71_PARTITIONS), 'Changed exact two-partition order')
+    flat = [m for p in layer['partitions'] for m in p['methods']]
+    original = [m for g in selection['groups'] for m in g['methods']]
+    require(len(flat) == len(set(flat)) == 71 and set(flat) == set(original), 'Partitions must cover all exact71 once')
+    require([len(p['methods']) for p in layer['partitions']] == [64, 7], 'Wrong fixed64/7 cardinality')
+    require([len(g['methods']) for g in selection['groups']] == [50, 14, 7], 'Wrong complete current71 group counts')
+    require(all(m.startswith(('QuestifyCoreTests/', 'QuestifyAppUnitTests/')) for m in layer['partitions'][0]['methods'])
+            and all(m.startswith('QuestifyUITests/') for m in layer['partitions'][1]['methods']), 'Wrong partition target assignment')
+    return selection
+
+
+def split71_require_admission(selection):
+    require(split71_layer(selection)['admission'] == 'AUTHORIZED_TWO_STANDARD_MACOS_DIAGNOSTIC_WORKERS',
+            'Current71 split execution is not authorized by this fixed contract')
+
+
+def verify_split71_scope(root, selection):
+    validate_split71_selection(selection, root)
+    split71_ensure_public_object(root, HISTORICAL_BASE_COMMIT)
+    scope = verify_merchant_scope(root, selection)
+    return {k: scope[k] for k in ('source_sha', 'source_tree')}
+
+
+def split71_hash(value):
+    return hashlib.sha256(encode(value).encode()).hexdigest()
+
+
+def split71_groups(selection, partition):
+    require(partition in SPLIT71_PARTITIONS, 'Unknown exact partition')
+    layer = split71_layer(selection)
+    row = next(p for p in layer['partitions'] if p['name'] == partition)
+    result = []
+    for original in selection['groups']:
+        methods = [m for m in row['methods'] if m.startswith(original['target'] + '/')]
+        if methods:
+            result.append(dict(original, methods=methods))
+    return result
+
+
+def split71_ensure_public_object(root, revision):
+    """Only fixed historical objects, sanitized env, no credentials/redirects, 60s."""
+    require(revision in SPLIT71_PUBLIC_OBJECTS,'Unapproved public historical object')
+    tree=SPLIT71_PUBLIC_OBJECTS[revision]
+    try:
+        checked(['git','cat-file','-e',revision+'^{commit}'],root)
+        actual=checked(['git','rev-parse',revision+'^{tree}'],root)
+    except ValueError:
+        actual=None
+    if actual is not None:
+        require(actual==tree,'Present historical object tree differs');return
+    environment={'PATH':os.environ.get('PATH',os.defpath),'LANG':'C','HOME':'/dev/null',
+        'GIT_TERMINAL_PROMPT':'0','GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':'/dev/null',
+        'GIT_ASKPASS':'/usr/bin/false','SSH_ASKPASS':'/usr/bin/false'}
+    code,raw=execute(['git','config','--local','--includes','--name-only','--list'],root,10,True,env=environment)
+    require(code==0,'Cannot inspect exact public object configuration')
+    require(not any(key.startswith(('url.','http.','credential.','include.','includeif.')) or
+        key in {'core.askpass','extensions.worktreeconfig'} for key in raw.decode().lower().splitlines()),
+        'Public historical fetch rejects credentials, redirects, and includes')
+    command=['git','-c','credential.helper=','-c','core.askPass=','-c','http.extraHeader=',
+        '-c','http.followRedirects=false','-c','protocol.allow=never','-c','protocol.https.allow=always',
+        'fetch','--no-tags','--no-write-fetch-head','--depth=1','--no-recurse-submodules',
+        'https://github.com/liboyang42-cpu/chengyin-ios.git',revision]
+    code,_=execute(command,root,60,True,env=environment)
+    require(code==0,'Exact historical object unavailable; no admission')
+    checked(['git','cat-file','-e',revision+'^{commit}'],root)
+    require(checked(['git','rev-parse',revision+'^{tree}'],root)==tree,'Fetched historical tree differs')
+
+
+def split71_identity(root, selection, scope=None, environ=None):
+    env = os.environ if environ is None else environ
+    require(env.get('GITHUB_REPOSITORY') == 'liboyang42-cpu/chengyin-ios' and
+            env.get('GITHUB_REF') == 'refs/heads/migration/native-ios' and
+            env.get('GITHUB_EVENT_NAME') in {'push','workflow_dispatch'}, 'Wrong split71 run scope')
+    for key in ('GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT'):
+        require(re.fullmatch('[1-9][0-9]*',env.get(key,'')) is not None,'Invalid run identity')
+    scope = verify_split71_scope(root,selection) if scope is None else scope
+    require(env.get('GITHUB_WORKFLOW_SHA') == scope['source_sha'] == env.get('GITHUB_SHA'), 'Workflow/source SHA differs')
+    return dict(scope, repository=env['GITHUB_REPOSITORY'], ref=env['GITHUB_REF'], event=env['GITHUB_EVENT_NAME'],
+        workflow_sha=env['GITHUB_WORKFLOW_SHA'], run_id=env['GITHUB_RUN_ID'], run_attempt=env['GITHUB_RUN_ATTEMPT'],
+        selection_sha256=digest(root/SPLIT71_PATHS[1]), source_archive_sha256=split71_archive_digest(root,scope['source_sha']), partition_table_sha256=split71_hash(split71_layer(selection)['partitions']))
+
+
+def split71_archive_digest(root, revision):
+    """Bounded streaming identity, without persisting/transferring a source archive."""
+    import selectors
+    require(re.fullmatch('[a-f0-9]{40}', revision) is not None, 'Invalid archive revision')
+    process = subprocess.Popen(['git','archive','--format=tar',revision], cwd=root,
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, start_new_session=True)
+    selector=selectors.DefaultSelector();selector.register(process.stdout,selectors.EVENT_READ)
+    end=time.monotonic()+60;total=0;hasher=hashlib.sha256()
+    try:
+        while selector.get_map():
+            remaining=end-time.monotonic();require(remaining>0,'Source archive identity timed out')
+            for key,_ in selector.select(remaining):
+                raw=os.read(key.fd,1024*1024)
+                if not raw:selector.unregister(key.fileobj);continue
+                total+=len(raw);require(total<=256*1024*1024,'Source archive identity exceeds bounded stream')
+                hasher.update(raw)
+        require(process.wait(timeout=max(0.1,end-time.monotonic()))==0 and total>0,'Source archive failed')
+        return hasher.hexdigest()
+    finally:
+        selector.close();process.stdout.close()
+        if process.poll() is None:
+            os.killpg(process.pid,signal.SIGKILL);process.wait(timeout=5)
+
+
+def split71_artifact_name(identity, partition):
+    require(partition in SPLIT71_PARTITIONS,'Unknown partition artifact')
+    return 'native-targeted-71-' + '-'.join([identity['source_sha'],identity['run_id'],identity['run_attempt'],partition])
+
+
+def split71_phase_names(partition):
+    return set(SPLIT71_COMMON_PHASES) | (set(('core-build','core-test','core-products-before','core-products-after','app-build','app-test')) if partition == 'core-app' else {'ui-build', partition+'-test'})
+
+
+def split71_validate_phases(phases, partition):
+    import math
+    require(isinstance(phases,dict) and set(phases) == split71_phase_names(partition), 'Missing/unknown phase budget')
+    for name, row in phases.items():
+        require(isinstance(row,dict) and set(row) == {'started_monotonic','ended_monotonic','wall_seconds','returncode'}, 'Unknown phase schema')
+        require(type(row['returncode']) is int and row['returncode'] == 0, 'Phase did not succeed: '+name)
+        for key in ('started_monotonic','ended_monotonic','wall_seconds'):
+            require(type(row[key]) in (int,float) and math.isfinite(row[key]) and row[key] >= 0, 'Invalid phase time')
+        require(row['ended_monotonic'] >= row['started_monotonic'] and
+                abs(row['ended_monotonic']-row['started_monotonic']-row['wall_seconds']) < 0.00001, 'Inconsistent phase time')
+
+
+def split71_worker_clock(phases):
+    start=phases['checkout-initialization']['started_monotonic'];end=phases['report']['ended_monotonic']
+    phase_seconds=sum(row['wall_seconds'] for row in phases.values())
+    return {'started_monotonic':start,'ended_monotonic':end,'wall_seconds':end-start,
+            'classified_phase_seconds':phase_seconds,'unclassified_overhead_seconds':end-start-phase_seconds}
+
+
+def split71_validate_worker_clock(receipt,phases):
+    import math
+    expected=split71_worker_clock(phases)
+    require(receipt.get('worker_clock')==expected,'Worker total/overhead clock differs from phase observations')
+    require(all(type(value) in (int,float) and math.isfinite(value) for value in expected.values()),'Invalid worker clock')
+    require(0<=expected['wall_seconds']<=2700 and expected['unclassified_overhead_seconds']>=-0.00001,'Worker exceeds cap or overlapping phases')
+    ordered=sorted(phases.values(),key=lambda row:row['started_monotonic'])
+    require(all(a['ended_monotonic']<=b['started_monotonic']+0.00001 for a,b in zip(ordered,ordered[1:])),'Overlapping phase observations')
+
+
+def split71_ledger(products):
+    entries=[]; products=products.resolve(strict=True)
+    for path in sorted(products.rglob('*')):
+        relative=str(path.relative_to(products))
+        if path.is_symlink():
+            require(path.resolve(strict=True).is_relative_to(products),'Products link escaped build root')
+            entries.append([relative,'link',os.readlink(path)])
+        elif path.is_file(): entries.append([relative,'file',digest(path)])
+    require(bool(entries),'Empty product ledger')
+    return entries
+
+
+def split71_validate_ledger(ledger, product):
+    require(isinstance(ledger,list) and ledger,'Empty product ledger')
+    names=[]
+    for row in ledger:
+        require(isinstance(row,list) and len(row)==3 and all(isinstance(v,str) for v in row),'Malformed product ledger')
+        name,kind,value=row
+        require(name and not Path(name).is_absolute() and '..' not in Path(name).parts and '\\' not in name,'Unsafe product ledger path')
+        require(kind in ('file','link'),'Unknown product ledger entry')
+        require(bool(re.fullmatch('[a-f0-9]{64}',value)) if kind=='file' else bool(value),'Invalid product entry identity')
+        names.append(name)
+    require(names==sorted(set(names)),'Duplicate/unsorted product ledger')
+    require(type(product.get('files')) is int and product['files']==len(ledger) and product.get('sha256')==split71_hash(ledger),'Product ledger digest/count differs')
+    if product.get('configuration')==SPLIT71_CONFIGS['core']:
+        require(product.get('bundle')=='QuestifyCorePackageTests.xctest' and any(row[0]=='Contents/MacOS/QuestifyCorePackageTests' and row[1]=='file' for row in ledger),'Wrong Core executable inventory')
+        return
+    run=product.get('xctestrun')
+    require(isinstance(run,str) and Path(run).name==run and run.endswith('.xctestrun'),'Invalid product xctestrun')
+    require([run,'file',product.get('xctestrun_sha256')] in ledger,'Xctestrun not bound to product ledger')
+
+
+def split71_evidence_names(partition):
+    names={'receipt.json','phase-times.json','products-ledger.json','xcresult-summary-help.txt','xcresult-tests-help.txt','xcresult-version.txt','simulator-devices.json','simulator-runtimes.json'}
+    if partition=='core-app':
+        names |= {'core.xml','core-stdout.txt','app-unit-summary.json','app-unit-tests.json','app-unit-manifest.json'}
+    else: names |= {'ui-summary.json','ui-tests.json','ui-config.json','ui-info.plist'}
+    names.add('schema-manifest.json')
+    names.update(row[0]+'.stderr.txt' for row in split71_schema_rows(partition))
+    return names
+
+
+def split71_read_evidence(output, partition):
+    require(output.is_dir() and not output.is_symlink(),'Evidence directory missing/linked')
+    require({p.name for p in output.iterdir()}==split71_evidence_names(partition),'Unexpected/missing evidence file')
+    result={}; total=0
+    for path in output.iterdir():
+        require(path.is_file() and not path.is_symlink(),'Evidence must be a regular file')
+        raw=path.read_bytes(); total+=len(raw)
+        require((len(raw)>0 or path.name.endswith('.stderr.txt')) and len(raw)<=LIMIT,'Empty/oversized evidence')
+        result[path.name]=raw
+    require(total <= 8*LIMIT,'Oversized partition artifact')
+    return result
+
+
+def split71_json(raw):
+    require(len(raw)<=LIMIT,'Oversized JSON evidence')
+    return json.loads(raw,object_pairs_hook=unique_object)
+
+
+def split71_validate_schema_help(raw, kind):
+    """Schema is obtained from the actual installed Apple tool, never inferred.
+
+    Strict known fields fail closed on unsupported tool output. Current Xcode26.6
+    raw help/summary have NOT yet been observed in this local draft; promotion
+    requires reviewing that evidence from the approved runner before relying on it.
+    """
+    text=raw.decode();marker='Command output structure (JSON Schema):'
+    require(text.count(marker)==1,'Unknown xcresulttool schema-help format')
+    data,_=json.JSONDecoder(object_pairs_hook=unique_object).raw_decode(text.split(marker,1)[1].lstrip())
+    schemas=data.get('schemas',{});device=schemas.get('Device',{})
+    required={'deviceId','deviceName','architecture','modelName','osVersion'}
+    fields=required|{'platform','osBuildNumber'}
+    require(device.get('type')=='object' and set(device.get('properties',{}))==fields and required<=set(device.get('required',[])),'Unsupported actual Device schema')
+    require(all(device['properties'][key].get('type')=='string' for key in fields),'Unsupported device field types')
+    if kind=='summary':
+        row=schemas.get('DeviceAndConfigurationSummary',{})
+        require(set(row.get('properties',{}))=={'device','testPlanConfiguration','passedTests','failedTests','skippedTests','expectedFailures'},'Unsupported actual summary device schema')
+        require(row['properties']['device']=={'$ref':'#/schemas/Device'} and row['properties']['testPlanConfiguration']=={'$ref':'#/schemas/Configuration'},'Unbound actual summary schema')
+    else:
+        row=schemas.get('Tests',{})
+        for key in ('devices','testPlanConfigurations','testNodes'):
+            require(key in row.get('required',[]) and row.get('properties',{}).get(key,{}).get('type')=='array','Unsupported actual tests schema')
+        require(row['properties']['devices'].get('items')=={'$ref':'#/schemas/Device'},'Unbound actual tests devices schema')
+
+
+def split71_validate_simulator(evidence, simulator, toolchain):
+    devices=split71_json(evidence['simulator-devices.json'])
+    require(choose_simulator(devices)==simulator,'Selected simulator differs from raw available inventory')
+    inventory=split71_json(evidence['simulator-runtimes.json'])
+    require(isinstance(inventory,dict) and isinstance(inventory.get('runtimes'),list),'Unknown runtime inventory')
+    matches=[row for row in inventory['runtimes'] if isinstance(row,dict) and row.get('identifier')==simulator['runtime']]
+    require(len(matches)==1,'Missing/duplicate selected runtime')
+    row=matches[0]
+    require(row.get('isAvailable') is True and all(isinstance(row.get(k),str) and row[k] for k in ('identifier','version','buildversion','name')),'Incomplete actual runtime identity')
+    require(re.fullmatch(r'[0-9]+(?:\.[0-9]+){1,2}',row['version']) and row['identifier']=='com.apple.CoreSimulator.SimRuntime.iOS-'+row['version'].replace('.','-'),'Runtime identifier/version mismatch')
+    require(row['version']==toolchain['sdk_version'],'Unapproved SDK/runtime version difference')
+    return {key:row[key] for key in ('identifier','version','buildversion','name')}
+
+
+def split71_validate_device_results(summary, tests, count, simulator, runtime):
+    require(isinstance(summary,dict) and isinstance(tests,dict),'Unknown XCTest raw documents')
+    for key,value in [('totalTestCount',count),('passedTests',count),('failedTests',0),('skippedTests',0),('expectedFailures',0)]:
+        require(type(summary.get(key)) is int and summary[key]==value,'Wrong raw summary count: '+key)
+    require(summary.get('result')=='Passed' and summary.get('testFailures')==[],'Raw summary reports nonpassing/incomplete execution')
+    rows=summary.get('devicesAndConfigurations')
+    require(isinstance(rows,list) and len(rows)==1,'XCTest summary must have exactly one device/configuration')
+    row=rows[0]
+    require(isinstance(row,dict) and set(row)=={'device','testPlanConfiguration','passedTests','failedTests','skippedTests','expectedFailures'},'Unknown device/configuration summary fields')
+    for key,value in [('passedTests',count),('failedTests',0),('skippedTests',0),('expectedFailures',0)]:
+        require(type(row.get(key)) is int and row[key]==value,'Wrong device-specific count')
+    device=row['device'];config=row['testPlanConfiguration']
+    fields={'deviceId','deviceName','architecture','modelName','platform','osVersion','osBuildNumber'}
+    require(isinstance(device,dict) and set(device)==fields and all(isinstance(v,str) and v for v in device.values()),'Unknown actual XCTest device schema')
+    require(device['deviceId'].lower()==simulator['udid'].lower() and device['deviceName']==simulator['name'] and device['platform']=='iOS Simulator' and device['osVersion']==runtime['version'] and device['osBuildNumber']==runtime['buildversion'],'Executed device/OS differs from actual selected runtime')
+    require(isinstance(config,dict) and set(config)=={'configurationId','configurationName'} and all(isinstance(v,str) and v for v in config.values()),'Unknown test-plan configuration')
+    require(tests.get('devices')==[device] and tests.get('testPlanConfigurations')==[config],'Raw tests/summary device or configuration differs')
+
+
+def split71_core_inventory(root):
+    build=(root/'.build').resolve(strict=True)
+    candidates={p.resolve(strict=True) for p in build.rglob('QuestifyCorePackageTests.xctest') if p.is_dir() and not p.is_symlink()}
+    require(len(candidates)==1,'Expected exactly one freshly built Core test bundle')
+    bundle=next(iter(candidates));require(bundle.is_relative_to(build),'Core test bundle escaped fresh build')
+    ledger=split71_ledger(bundle)
+    product={'configuration':SPLIT71_CONFIGS['core'],'bundle':bundle.name,'files':len(ledger),'sha256':split71_hash(ledger)}
+    split71_validate_ledger(ledger,product);return product,ledger
+
+
+def validate_split71_partition(receipt, expected, selection, evidence):
+    require(isinstance(receipt,dict) and receipt.get('version')==2 and type(receipt['version']) is int and
+        receipt.get('scope')=='split71-partition-only' and receipt.get('status')=='PASS','Not a split71 partition pass')
+    partition=receipt.get('partition');require(partition in SPLIT71_PARTITIONS,'Unknown receipt partition')
+    require(set(expected)==SPLIT71_ID_KEYS,'Incomplete trusted current identity')
+    for key,value in expected.items(): require(bool(value) and receipt.get(key)==value,'Partition identity differs: '+key)
+    require(receipt.get('artifact_name')==split71_artifact_name(expected,partition),'Wrong artifact name')
+    require(set(evidence)==split71_evidence_names(partition),'Unexpected/missing evidence')
+    require(split71_json(evidence['receipt.json'])==receipt,'Receipt object differs from artifact bytes')
+    groups=split71_groups(selection,partition); total=sum(len(g['methods']) for g in groups)
+    require(all(type(receipt.get(k)) is int and receipt[k]==total for k in ('expected_count','actual_count')),'Wrong partition count')
+    require(set(receipt.get('groups',{}))=={g['name'] for g in groups},'Wrong partition result groups')
+    toolchain=receipt.get('toolchain',{});simulator=receipt.get('simulator',{})
+    require(set(toolchain)==SPLIT71_TOOLCHAIN_KEYS and all(isinstance(v,str) and v for v in toolchain.values()),'Incomplete toolchain')
+    require(set(simulator)=={'udid','name','runtime'} and re.fullmatch('[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}',simulator.get('udid','')) and simulator.get('name','').startswith('iPhone') and simulator.get('runtime','').startswith('com.apple.CoreSimulator.SimRuntime.iOS-'),'Incomplete simulator')
+    image=receipt.get('runner_image',{})
+    require(set(image)=={'ImageOS','ImageVersion','RUNNER_ARCH'} and all(isinstance(v,str) and v for v in image.values()),'Incomplete runner image')
+    split71_validate_capture(evidence,receipt,partition)
+    split71_validate_schema_help(evidence['xcresult-summary-help.txt'],'summary')
+    split71_validate_schema_help(evidence['xcresult-tests-help.txt'],'tests')
+    require(receipt.get('xcresulttool_version')==evidence['xcresult-version.txt'].decode().strip() and receipt['xcresulttool_version'].startswith('xcresulttool version '),'Missing xcresulttool version evidence')
+    runtime=split71_validate_simulator(evidence,simulator,toolchain)
+    require(receipt.get('simulator_runtime')==runtime,'Runtime receipt differs from raw inventory')
+    phases=split71_json(evidence['phase-times.json']);split71_validate_phases(phases,partition);split71_validate_worker_clock(receipt,phases)
+    ledger=split71_json(evidence['products-ledger.json'])
+    product_name='app-unit' if partition=='core-app' else 'ui'
+    product_names={'core','app-unit'} if partition=='core-app' else {'ui'}
+    require(set(receipt.get('products',{}))==product_names and set(ledger)==product_names,'Wrong partition product set')
+    if partition=='core-app':
+        require(receipt['products']['core'].get('configuration')==SPLIT71_CONFIGS['core'],'Wrong Core product configuration')
+        split71_validate_ledger(ledger['core'],receipt['products']['core'])
+    product=receipt['products'][product_name]
+    require(product.get('configuration')==SPLIT71_CONFIGS[product_name],'Wrong product configuration')
+    split71_validate_ledger(ledger[product_name],product)
+    require(receipt.get('products_before')==receipt['products'] and receipt.get('products_after')==receipt['products'],'Products changed during tests')
+    require(receipt.get('source_before')==receipt.get('source_after')=={k:expected[k] for k in ('source_sha','source_tree')},'Source changed during tests')
+    if product_name=='app-unit':
+        manifest=split71_json(evidence['app-unit-manifest.json'])
+        require(manifest==product.get('manifest') and manifest.get('commit')==expected['source_sha'] and manifest.get('purpose')=='isolated-simulator-app-unit' and manifest.get('targets')=={'QuestifyAppUnitTests':product['xctestrun']} and manifest.get('toolchain')=={k:toolchain[k] for k in ('xcode','developer')},'AppUnit manifest identity differs')
+        archive=manifest.get('source_archive_sha256','')
+        require(bool(re.fullmatch('[a-f0-9]{64}',archive)) and archive==receipt.get('source_archive_sha256'),'Wrong independently observed source archive')
+        require(['questify-test-products.json','file',hashlib.sha256(evidence['app-unit-manifest.json']).hexdigest()] in ledger[product_name],'Manifest differs from product ledger')
+    else:
+        config=split71_json(evidence['ui-config.json'])
+        info=plistlib.loads(evidence['ui-info.plist'])
+        require(info.get('QuestifyAPIBaseURL') in (None,'') and info.get('CFBundleSupportedPlatforms')==['iPhoneSimulator'],'Raw UI Info.plist is unsafe')
+        require(['Debug-iphonesimulator/Questify.app/Info.plist','file',hashlib.sha256(evidence['ui-info.plist']).hexdigest()] in ledger['ui'],'UI Info.plist differs from product ledger')
+        require(not any(row[0].endswith('/embedded.mobileprovision') for row in ledger['ui']),'Provisioned UI product ledger is forbidden')
+        require(config=={'QuestifyAPIBaseURL':'','CFBundleSupportedPlatforms':['iPhoneSimulator'],'embedded_mobileprovision':False},'Unsafe UI app configuration')
+    hashes=receipt.get('evidence_sha256',{})
+    require(set(hashes)==set(evidence)-{'receipt.json'},'Incomplete evidence digest set')
+    for name,raw in evidence.items():
+        if name!='receipt.json': require(hashes[name]==hashlib.sha256(raw).hexdigest(),'Changed raw evidence: '+name)
+    all_rows=[]
+    for group in groups:
+        entry=receipt['groups'][group['name']]
+        require(entry.get('status')=='PASS' and entry.get('expected')==group['methods'] and type(entry.get('actual_count')) is int and entry['actual_count']==len(group['methods']),'Wrong group expected/actual count')
+        if group['kind']=='swift':
+            rows=validate_core_evidence(evidence['core.xml'],evidence['core-stdout.txt'],group['methods'],entry.get('returncode'))
+        else:
+            raw=split71_json(evidence[group['name']+'-tests.json'])
+            rows=parse_xcresult(raw,group['target'])
+            summary=split71_json(evidence[group['name']+'-summary.json'])
+            require(type(summary.get('expectedFailures',0)) is int and summary.get('expectedFailures',0)==0,'Invalid expected failure count')
+            split71_validate_device_results(summary,raw,len(group['methods']),simulator,runtime)
+        require(entry.get('actual')==rows,'Receipt differs from reparsed raw results')
+        validate_outcomes(rows,group['methods'],entry.get('returncode'));all_rows.extend(rows)
+    return all_rows
+
+
+def aggregate_split71(selection, expected, artifacts, needs_result):
+    require(needs_result=='success','Matrix has failed/cancelled/skipped/incomplete worker')
+    names={split71_artifact_name(expected,p) for p in SPLIT71_PARTITIONS}
+    require(isinstance(artifacts,dict) and set(artifacts)==names,'Missing/extra/stale-attempt artifact')
+    all_rows=[]; receipts=[]
+    for partition in SPLIT71_PARTITIONS:
+        name=split71_artifact_name(expected,partition); evidence=artifacts[name]
+        receipt=split71_json(evidence['receipt.json'])
+        require(receipt.get('partition')==partition and receipt.get('artifact_name')==name,'Artifact partition/name mismatch')
+        all_rows.extend(validate_split71_partition(receipt,expected,selection,evidence));receipts.append(receipt)
+    require(len({r['simulator']['udid'].lower() for r in receipts})==2,'Partitions require independent simulator identities')
+    for key in ('toolchain','runner_image','xcresulttool_version','simulator_runtime'):
+        require(all(r[key]==receipts[0][key] for r in receipts),'Cross-runner '+key+' policy differs')
+    require(len({r['simulator']['runtime'] for r in receipts})==1,'Simulator runtime differs between workers')
+    methods=[m for p in split71_layer(selection)['partitions'] for m in p['methods']]
+    validate_outcomes(all_rows,methods,0)
+    require(len(all_rows)==71,'No complete71 execution')
+    return dict(expected,version=2,scope='split71-selected-native-diagnostic-only',status='PASS',
+        expected_count=71,actual_count=71,counts={'core':50,'app-unit':14,'ui':7},actual=all_rows,
+        partition_receipt_sha256={n:hashlib.sha256(v['receipt.json']).hexdigest() for n,v in artifacts.items()},
+        coverage_boundary='Only exact selected71, not full required native gates or release admission')
+
+
+def split71_schema_rows(partition, result=None):
+    require(partition in SPLIT71_PARTITIONS, 'Unknown schema capture partition')
+    group='app-unit' if partition=='core-app' else 'ui'
+    return [row for row in merchant_schema_commands({group:result} if result is not None else {})
+            if not row[0].startswith(('app-unit-', 'ui-')) or row[0].startswith(group+'-')]
+
+
+def split71_capture_schema(root, output, partition, result_paths, receipt, seconds=90):
+    """Bounded acquisition is not admission. Even unsupported raw JSON is retained."""
+    start=time.monotonic();deadline=start+min(90,max(0,seconds))
+    destination=output/'schema-evidence'
+    require(not destination.exists() and not destination.is_symlink(),'Schema evidence directory must be fresh')
+    destination.mkdir(mode=0o700)
+    group='app-unit' if partition=='core-app' else 'ui'
+    path=result_paths.get(group); verified=None
+    if path is not None:
+        path=Path(path)
+        if (not path.is_symlink() and path.is_dir() and path.name==group+'.xcresult'
+                and path.parent.resolve(strict=True)==output.resolve(strict=True)):
+            verified=path
+    manifest={'version':2,'purpose':'raw-apple-tool-schema-evidence-only',
+        'native_test_result_authority':False,'partition':partition,'status':'PARTIAL_OR_FAILED',
+        'identity':{k:receipt.get(k) for k in SPLIT71_ID_KEYS},'result_bundle_path':str(verified) if verified else None,
+        'limits':{'total_seconds':90,'item_seconds':30,'total_bytes':48*1024*1024,'stderr_item_bytes':64*1024},
+        'items':[],'retained_bytes':0}
+    for filename,command,limit in split71_schema_rows(partition,verified):
+        remaining=deadline-time.monotonic()
+        if command is None or remaining<=0.6:
+            manifest['items'].append({'file':filename,'status':'NOT_RUN','reason':'No readable actual result bundle' if command is None else 'Capture time exhausted'})
+            continue
+        available=48*1024*1024-128*1024-manifest['retained_bytes']
+        if available<=64*1024:
+            manifest['items'].append({'file':filename,'status':'NOT_RUN','reason':'Capture size exhausted'});continue
+        item=merchant_capture_command(command,root,min(30,remaining),min(limit,available-64*1024))
+        for stream in ('stdout','stderr'):
+            raw=item.pop(stream);name=filename if stream=='stdout' else filename+'.stderr.txt'
+            (destination/name).write_bytes(raw)
+            item[stream]={'file':name,'byte_count':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+            manifest['retained_bytes']+=len(raw)
+        item['file']=filename;manifest['items'].append(item)
+    if len(manifest['items'])==7 and all(r['status']=='CAPTURED' for r in manifest['items']):manifest['status']='CAPTURED'
+    manifest['wall_seconds']=time.monotonic()-start
+    raw=(json.dumps(manifest,indent=2,ensure_ascii=True)+'\n').encode()
+    require(len(raw)<=128*1024 and len(raw)+manifest['retained_bytes']<=48*1024*1024,'Capture manifest exceeds reserved limit')
+    (destination/'manifest.json').write_bytes(raw)
+    return manifest
+
+
+def split71_validate_capture(evidence, receipt, partition):
+    import math
+    manifest=split71_json(evidence['schema-manifest.json'])
+    require(isinstance(manifest,dict) and set(manifest)=={'version','purpose','native_test_result_authority','partition','status','identity','result_bundle_path','limits','items','retained_bytes','wall_seconds'},'Unknown capture manifest schema')
+    require(type(manifest.get('version')) is int and manifest['version']==2 and
+        manifest.get('purpose')=='raw-apple-tool-schema-evidence-only' and manifest.get('native_test_result_authority') is False and
+        manifest.get('partition')==partition and manifest.get('status')=='CAPTURED','Incomplete/wrong acquisition manifest')
+    require(manifest['identity']=={k:receipt[k] for k in SPLIT71_ID_KEYS},'Acquisition source/run/attempt differs')
+    require(manifest['limits']=={'total_seconds':90,'item_seconds':30,'total_bytes':48*1024*1024,'stderr_item_bytes':64*1024},'Changed acquisition budget')
+    group='app-unit' if partition=='core-app' else 'ui';path=manifest['result_bundle_path']
+    require(isinstance(path,str) and Path(path).is_absolute() and '..' not in Path(path).parts and
+            Path(path).name==group+'.xcresult' and receipt.get('result_bundle_path')==path,'Acquisition result path not bound to executed command')
+    expected=split71_schema_rows(partition,Path(path));items=manifest['items']
+    require(isinstance(items,list) and [r.get('file') for r in items]==[r[0] for r in expected],'Missing/extra/duplicate acquisition item')
+    retained=0
+    for item,(filename,command,limit) in zip(items,expected):
+        require(set(item)=={'argv','status','returncode','wall_seconds','observed_bytes','truncated','stdout','stderr','file'},'Unknown acquisition item fields')
+        require(item['argv']==command and item['status']=='CAPTURED' and type(item['returncode']) is int and item['returncode']==0,'Wrong/incomplete acquisition command')
+        require(type(item['wall_seconds']) in (float,int) and math.isfinite(item['wall_seconds']) and 0<=item['wall_seconds']<=30,'Unbounded acquisition item time')
+        require(item['truncated']=={'stdout':False,'stderr':False} and set(item['observed_bytes'])=={'stdout','stderr'},'Truncated acquisition stream')
+        for stream in ('stdout','stderr'):
+            name=filename if stream=='stdout' else filename+'.stderr.txt';row=item[stream];raw=evidence[name]
+            require(row=={'file':name,'byte_count':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},'Raw capture stream identity differs')
+            require(type(row['byte_count']) is int and len(raw)<=(limit if stream=='stdout' else 64*1024) and
+                type(item['observed_bytes'][stream]) is int and item['observed_bytes'][stream]==len(raw),'Capture byte bound/truncation mismatch')
+            retained+=len(raw)
+    require(type(manifest['retained_bytes']) is int and manifest['retained_bytes']==retained and
+        retained+len(evidence['schema-manifest.json'])<=48*1024*1024,'Total capture size differs')
+    require(type(manifest['wall_seconds']) in (int,float) and math.isfinite(manifest['wall_seconds']) and
+        0<=manifest['wall_seconds']<=90 and sum(r['wall_seconds'] for r in items)<=manifest['wall_seconds']+0.00001,'Invalid capture total clock')
+    return manifest
+
+
+class Split71Diagnostic(Diagnostic):
+    def __init__(self,root,output,selection,partition,preflight):
+        self.root,self.output,self.selection,self.partition=root,output,selection,partition
+        self.schema_result_paths={}
+        self.phases=read_json(preflight)
+        require(set(self.phases)=={'checkout-initialization','python-validation','source-validation'},'Missing fresh preflight phases')
+        start=self.phases['checkout-initialization']['started_monotonic']
+        self.deadline=start+split71_layer(selection)['worker_cap_seconds']-split71_layer(selection)['finalization_reserve_seconds']
+        self.receipt={'version':2,'scope':'split71-partition-only','status':'INCOMPLETE','partition':partition,
+            'expected_count':sum(len(g['methods']) for g in split71_groups(selection,partition)),'actual_count':0,
+            'groups':{g['name']:{'status':'NOT_RUN','expected':g['methods'],'actual_count':0,'actual':[]} for g in split71_groups(selection,partition)}}
+    def phase(self,name,operation):
+        require(name in split71_phase_names(self.partition) and name not in self.phases,'Duplicate/unknown phase')
+        start=time.monotonic();code=1
+        try:
+            result=operation();code=0;return result
+        finally:
+            end=time.monotonic();self.phases[name]={'started_monotonic':start,'ended_monotonic':end,'wall_seconds':end-start,'returncode':code}
+            write_json(self.output/'phase-times.json',self.phases)
+    def run_command(self,name,command,seconds):
+        def perform():
+            code,_=self.command(command,seconds)
+            require(type(code) is int and code==0,'Failed build/boot command: '+name)
+        return self.phase(name,perform)
+    def collect(self,group,command,seconds,result):
+        if group['kind']=='swift':return super().collect(group,command,seconds,result)
+        positions=[i for i,value in enumerate(command) if value=='-resultBundlePath']
+        require(len(positions)==1 and positions[0]+1<len(command) and str(command[positions[0]+1])==str(result),'Result bundle path is not the actual test command path')
+        require(result.parent==self.output and result.suffix=='.xcresult' and not result.exists() and not result.is_symlink(),'Result bundle must be fresh and local')
+        self.schema_result_paths[group['name']]=result
+        self.receipt['result_bundle_path']=str(result)
+        entry=self.receipt['groups'][group['name']];entry['status']='RUNNING';self.save()
+        code,_=self.command(command,seconds);entry.update(returncode=code,status='EXECUTED_UNVALIDATED');self.save()
+        require(type(code) is int and code==0,'Native test command failed; raw capture remains diagnostic only')
+    def capture_schema(self):
+        return split71_capture_schema(self.root,self.output,self.partition,self.schema_result_paths,self.receipt,
+            min(90,max(0,self.deadline-time.monotonic())))
+    def run(self):
+        try:
+            self.execute_partition()
+        except BaseException as error:
+            if isinstance(error,Exception) and SPLIT71_ID_KEYS<=set(self.receipt):
+                try:self.phase('schema-capture',self.capture_schema)
+                except Exception as capture_error:print('SPLIT71_CAPTURE_FAILED '+str(capture_error)[:512],flush=True)
+            raise
+        self.phase('schema-capture',self.capture_schema)
+        self.receipt['status']='EXECUTED';self.save()
+    def inventory(self):
+        documents={}
+        for kind in ('devices','runtimes'):
+            command=['xcrun','simctl','list',kind]
+            if kind=='devices':command.append('available')
+            code,raw=self.command(command+['--json'],60,True);require(code==0,'Cannot observe simulator inventory')
+            (self.output/('simulator-'+kind+'.json')).write_bytes(raw);documents['simulator-'+kind+'.json']=raw
+        simulator=choose_simulator(split71_json(documents['simulator-devices.json']))
+        runtime=split71_validate_simulator(documents,simulator,self.receipt['toolchain'])
+        self.receipt['simulator_runtime']=runtime;return simulator
+    def scope(self):
+        return verify_split71_scope(self.root,self.selection)
+    def execute_partition(self):
+        split71_require_admission(self.selection);runtime_environment(os.environ)
+        identity=self.phase('scope-before',lambda:split71_identity(self.root,self.selection,self.scope()))
+        scope={k:identity[k] for k in ('source_sha','source_tree')}
+        self.receipt.update(identity)
+        self.receipt['artifact_name']=split71_artifact_name(self.receipt,self.partition)
+        self.receipt['source_before']=scope
+        self.receipt['runner_image']={k:os.environ.get(k,'') for k in ('ImageOS','ImageVersion','RUNNER_ARCH')}
+        self.receipt['toolchain']=self.phase('toolchain-before',self.toolchain);self.save()
+        groups={g['name']:g for g in split71_groups(self.selection,self.partition)}
+        budget=split71_layer(self.selection)['budget_seconds']
+        if self.partition=='core-app':
+            require(not (self.root/'.build').exists(),'Preexisting Core products forbidden')
+            self.run_command('core-build',['swift','build','--build-tests'],budget['core-build'])
+            core_product,core_ledger=self.phase('core-products-before',lambda:split71_core_inventory(self.root))
+            core=self.output/'core.xml'
+            self.phase('core-test',lambda:self.collect(groups['core'],core_command(groups['core'],core),budget['core-test'],core))
+            require(self.phase('core-products-after',lambda:split71_core_inventory(self.root))==(core_product,core_ledger),'Core bundle changed during test execution')
+        simulator=self.phase('simulator-inventory',self.inventory);self.receipt['simulator']=simulator;self.save()
+        if self.partition=='core-app':
+            self.run_command('app-build',[sys.executable,'-B','tools/build_simulator_keychain_host.py','--source-root',str(self.root),'--commit',self.receipt['source_sha'],'--simulator',simulator['udid'],'--approve-ephemeral-simulator-host'],budget['app-build'])
+            products=Path(os.environ['RUNNER_TEMP'])/'app-unit-linked/Products';name='app-unit'
+        else:
+            derived=self.output/'ui-build';name='ui'
+            self.run_command('ui-build',['xcodebuild','-project','Questify.xcodeproj','-scheme','Questify','-configuration','Debug','-sdk','iphonesimulator','-destination','platform=iOS Simulator,id='+simulator['udid'],'-destination-timeout','60','-derivedDataPath',str(derived),'CODE_SIGNING_ALLOWED=NO','ONLY_ACTIVE_ARCH=NO','build-for-testing'],budget['ui-build'])
+            products=derived/'Build/Products'
+        run=None
+        def inspect():
+            nonlocal run
+            run=select_xctestrun(products,groups[name]['target'])
+            ledger=split71_ledger(products)
+            product={'configuration':SPLIT71_CONFIGS[name],'xctestrun':run.name,'xctestrun_sha256':digest(run),'files':len(ledger),'sha256':split71_hash(ledger)}
+            if name=='app-unit':
+                raw=(products/'questify-test-products.json').read_bytes();manifest=split71_json(raw)
+                (self.output/'app-unit-manifest.json').write_bytes(raw);product['manifest']=manifest
+                # Hash the exact Git archive independently; never persist/upload it.
+                require(manifest.get('source_archive_sha256')==self.receipt['source_archive_sha256'],'Wrong independently observed source archive')
+                require(manifest.get('source_archive_sha256')==self.receipt['source_archive_sha256'] and manifest.get('commit')==self.receipt['source_sha'] and manifest.get('targets')=={'QuestifyAppUnitTests':run.name} and manifest.get('purpose')=='isolated-simulator-app-unit' and manifest.get('toolchain')=={k:self.receipt['toolchain'][k] for k in ('xcode','developer')},'Wrong actual AppUnit source/products')
+            else:
+                app=products/'Debug-iphonesimulator/Questify.app';info_raw=(app/'Info.plist').read_bytes();info=plistlib.loads(info_raw)
+                (self.output/'ui-info.plist').write_bytes(info_raw)
+                require(info.get('QuestifyAPIBaseURL') in (None,'') and info.get('CFBundleSupportedPlatforms')==['iPhoneSimulator'] and not (app/'embedded.mobileprovision').exists(),'Unsafe UI products')
+                write_json(self.output/'ui-config.json',{'QuestifyAPIBaseURL':'','CFBundleSupportedPlatforms':['iPhoneSimulator'],'embedded_mobileprovision':False})
+            if name=='app-unit':
+                current_core,current_ledger=split71_core_inventory(self.root)
+                require((current_core,current_ledger)==(core_product,core_ledger),'Core binary changed after its test')
+                return {'core':core_product,name:product},{'core':core_ledger,name:ledger}
+            return {name:product},{name:ledger}
+        products_before,ledger=self.phase('products-before',inspect)
+        self.receipt['products']=products_before;self.receipt['products_before']=products_before
+        write_json(self.output/'products-ledger.json',ledger);self.save()
+        require(self.phase('toolchain-after-build',self.toolchain)==self.receipt['toolchain'],'Toolchain changed after building')
+        self.run_command('boot',['xcrun','simctl','bootstatus',simulator['udid'],'-b'],budget['boot'])
+        result=self.output/(name+'.xcresult');phase='app-test' if name=='app-unit' else self.partition+'-test'
+        self.phase(phase,lambda:self.collect(groups[name],xcode_test_command(groups[name],run,simulator['udid'],result),budget[phase],result))
+        after,after_ledger=self.phase('products-after',inspect)
+        require(after==products_before and after_ledger==ledger,'Native products changed during selected tests')
+        self.receipt['products_after']=after
+        self.receipt['source_after']=self.phase('scope-after',self.scope)
+        require(self.receipt['source_after']==scope,'Source changed during execution')
+        require(self.phase('toolchain-after',self.toolchain)==self.receipt['toolchain'],'Toolchain changed during execution')
+        self.receipt['status']='EXECUTED_UNVALIDATED';self.save()
+
+
+def split71_report(output,evidence,selection,root,summary=None):
+    start=time.monotonic();receipt=read_json(output/'receipt.json')
+    require(receipt.get('status')=='EXECUTED','Partition not completely executed; cannot emit PASS')
+    expected=split71_identity(root,selection)
+    partition=receipt['partition'];groups=split71_groups(selection,partition)
+    capture=output/'schema-evidence'
+    raw_names={r[0] for r in split71_schema_rows(partition)}
+    raw_names|={n+'.stderr.txt' for n in tuple(raw_names)}
+    require(capture.is_dir() and not capture.is_symlink() and {p.name for p in capture.iterdir()}==raw_names|{'manifest.json'},'Missing/extra capture evidence')
+    documents={}
+    for path in capture.iterdir():
+        require(path.is_file() and not path.is_symlink() and path.stat().st_size<=LIMIT,'Unsafe capture file')
+        documents['schema-manifest.json' if path.name=='manifest.json' else path.name]=path.read_bytes()
+    split71_validate_capture(documents,receipt,partition)
+    # Save first, then strict same-tool schema admission. No unknown-schema fallback.
+    split71_validate_schema_help(documents['xcresult-summary-help.txt'],'summary')
+    split71_validate_schema_help(documents['xcresult-tests-help.txt'],'tests')
+    receipt['xcresulttool_version']=documents['xcresult-version.txt'].decode().strip()
+    runtime=split71_validate_simulator(documents,receipt['simulator'],receipt['toolchain'])
+    require(runtime==receipt['simulator_runtime'],'Simulator changed since test selection')
+    phases=read_json(output/'phase-times.json')
+    final_deadline=phases['checkout-initialization']['started_monotonic']+2700-30
+    # Re-extract both actual result documents inside one bounded 60-second window.
+    reread_deadline=min(final_deadline,time.monotonic()+60)
+    for group in groups:
+        if group['kind']=='swift':continue
+        path=output/(group['name']+'.xcresult')
+        require(path.is_dir() and not path.is_symlink() and str(path)==receipt['result_bundle_path'],'Report result bundle differs from actual test command')
+        for part in ('summary','tests'):
+            item=merchant_capture_command(['xcrun','xcresulttool','get','test-results',part,'--path',str(path),'--compact'],root,min(30,reread_deadline-time.monotonic()),10*1024*1024)
+            require(item['status']=='CAPTURED' and type(item['returncode']) is int and item['returncode']==0,'Cannot re-extract bounded actual xcresult')
+            require(split71_json(item['stdout'])==split71_json(documents[group['name']+'-'+part+'.json']),'Re-extracted xcresult differs')
+        raw=split71_json(documents[group['name']+'-tests.json'])
+        rows=parse_xcresult(raw,group['target'])
+        split71_validate_device_results(split71_json(documents[group['name']+'-summary.json']),raw,len(group['methods']),receipt['simulator'],runtime)
+        entry=receipt['groups'][group['name']]
+        validate_outcomes(rows,group['methods'],entry.get('returncode'))
+        entry.update(status='PASS',actual=rows,actual_count=len(rows))
+    receipt['actual_count']=sum(g['actual_count'] for g in receipt['groups'].values())
+    end=time.monotonic();require(end<=final_deadline,'Final report exhausted worker finalization budget')
+    phases['report']={'started_monotonic':start,'ended_monotonic':end,'wall_seconds':end-start,'returncode':0}
+    documents['phase-times.json']=(encode(phases)+'\n').encode()
+    for name in split71_evidence_names(partition)-set(documents)-{'receipt.json'}:
+        path=output/name
+        require(path.is_file() and not path.is_symlink() and path.stat().st_size<=LIMIT,'Unsafe result evidence')
+        documents[name]=path.read_bytes()
+    receipt['status']='PASS';receipt['worker_clock']=split71_worker_clock(phases)
+    receipt['evidence_sha256']={n:hashlib.sha256(raw).hexdigest() for n,raw in documents.items()}
+    documents['receipt.json']=(encode(receipt)+'\n').encode()
+    validate_split71_partition(receipt,expected,selection,documents)
+    evidence.mkdir()
+    for name,raw in documents.items():(evidence/name).write_bytes(raw)
+    end=time.monotonic();require(end<=final_deadline,'Evidence serialization exhausted finalization budget')
+    phases['report'].update(ended_monotonic=end,wall_seconds=end-start)
+    receipt['worker_clock']=split71_worker_clock(phases)
+    documents['phase-times.json']=(encode(phases)+'\n').encode()
+    receipt['evidence_sha256']['phase-times.json']=hashlib.sha256(documents['phase-times.json']).hexdigest()
+    documents['receipt.json']=(encode(receipt)+'\n').encode()
+    validate_split71_partition(receipt,expected,selection,documents)
+    for name in ('phase-times.json','receipt.json'):(evidence/name).write_bytes(documents[name])
+    text='current71 partition '+partition+': PASS '+str(receipt['actual_count'])+'; aggregate71 still required\n'
+    print(text)
+    if summary:
+        with summary.open('a') as stream:stream.write(text)
+
+
+def split71_preflight(root,selection,output,start_file):
+    split71_require_admission(selection)
+    import math
+    start=float(start_file.read_text().strip());now=time.monotonic()
+    require(math.isfinite(start) and 0<=start<=now,'Invalid job-entry monotonic marker')
+    phases={'checkout-initialization':{'started_monotonic':start,'ended_monotonic':now,'wall_seconds':now-start,'returncode':0}}
+    for name,operation in [('python-validation',lambda:execute([sys.executable,'-B','-m','unittest','discover','-s','tools/tests','-p','test_targeted_native.py','-v'],root,max(1,start+2460-time.monotonic()))[0]),('source-validation',lambda:validate_split71_selection(selection,root))]:
+        a=time.monotonic();code=1
+        try:
+            result=operation()
+            if name=='python-validation':require(type(result) is int and result==0,'Complete diagnostic suite failed')
+            code=0
+        finally:
+            b=time.monotonic();phases[name]={'started_monotonic':a,'ended_monotonic':b,'wall_seconds':b-a,'returncode':code};write_json(output,phases)
+
+
+def split71_observe_command(phase, start_file, returncode, summary=None):
+    """Outer command/transfer observation, logged after its actual completion.
+
+    An immutable artifact cannot contain its own future upload duration. Upload
+    and complete report-command observations are therefore retained in the same
+    worker's official log/step summary; upload success is also required by needs.
+    """
+    import math
+    require(phase in {'report-command','artifact-upload','artifact-download'},'Unknown outer observation')
+    start=float(start_file.read_text());end=time.monotonic()
+    require(math.isfinite(start) and 0<=start<=end and type(returncode) is int,'Invalid outer clock')
+    observation={'phase':phase,'started_monotonic':start,'ended_monotonic':end,'wall_seconds':end-start,
+        'returncode':returncode,'source_sha':os.environ.get('GITHUB_SHA',''),
+        'run_id':os.environ.get('GITHUB_RUN_ID',''),'run_attempt':os.environ.get('GITHUB_RUN_ATTEMPT','')}
+    text='SPLIT71_OUTER_PHASE '+encode(observation)+'\n';print(text,flush=True)
+    if summary:
+        with summary.open('a') as stream:stream.write(text)
+    return observation
+
+
+def split71_main():
+    parser=argparse.ArgumentParser(description='Strict independent current71 two-partition protocol')
+    parser.add_argument('action',choices=['validate','preflight','run-partition','report-partition','aggregate','record-observation'])
+    parser.add_argument('--source-root',type=Path,default=ROOT);parser.add_argument('--partition',choices=SPLIT71_PARTITIONS)
+    for flag in ('output','evidence','artifacts','preflight','start-file','summary'):parser.add_argument('--'+flag,type=Path)
+    parser.add_argument('--needs-result');parser.add_argument('--phase');parser.add_argument('--returncode',type=int,default=0)
+    args=parser.parse_args();root=args.source_root.absolute();selection=read_json(root/SPLIT71_PATHS[1])
+    if args.action=='validate':
+        validate_split71_selection(selection,root)
+        print('Static current71=50/14/7, disjoint64/7; original212 controls preserved. Apple NOT_RUN.')
+        return 0
+    split71_require_admission(selection)
+    if args.action=='record-observation':
+        require(args.start_file is not None,'Observation clock required')
+        split71_observe_command(args.phase,args.start_file,args.returncode,args.summary);return 0
+    if args.action=='preflight':
+        require(args.output is not None and args.start_file is not None,'Preflight paths required')
+        split71_preflight(root,selection,args.output,args.start_file);return 0
+    if args.action=='aggregate':
+        require(args.artifacts is not None and args.output is not None,'Aggregate paths required')
+        require(args.start_file is not None,'Download observation clock required')
+        download=split71_observe_command('artifact-download',args.start_file,0,args.summary)
+        expected=split71_identity(root,selection)
+        require(args.artifacts.is_dir() and not args.artifacts.is_symlink(),'Missing artifact root')
+        names={split71_artifact_name(expected,p):p for p in SPLIT71_PARTITIONS}
+        require({p.name for p in args.artifacts.iterdir()}==set(names),'Downloaded artifact set not exact current run/attempt')
+        documents={name:split71_read_evidence(args.artifacts/name,part) for name,part in names.items()}
+        receipt=aggregate_split71(selection,expected,documents,args.needs_result);receipt['artifact_download_observation']=download;write_json(args.output,receipt)
+        text='current71 selected diagnostic: PASS 71=Core50+AppUnit14+UI7. Full required native gates remain separate.\n'
+        print(text)
+        if args.summary:
+            with args.summary.open('a') as stream:stream.write(text)
+        return 0
+    require(args.partition is not None and args.output is not None,'Exact partition/output required')
+    temp=Path(os.environ['RUNNER_TEMP']).resolve(strict=True);output=args.output.absolute()
+    require(output.parent.resolve(strict=True)==temp and not output.is_symlink(),'Output must be direct runner-temp child')
+    if args.action=='report-partition':
+        require(args.evidence is not None and args.evidence.parent.resolve(strict=True)==temp and not args.evidence.is_symlink(),'Fresh direct evidence directory required')
+        split71_report(output,args.evidence,selection,root,args.summary);return 0
+    require(args.preflight is not None,'Full preflight evidence required');output.mkdir()
+    job=Split71Diagnostic(root,output,selection,args.partition,args.preflight);job.save()
+    try:job.run()
+    except BaseException as error:
+        job.receipt.update(status='FAIL' if isinstance(error,Exception) else 'INCOMPLETE',error=str(error));job.save();raise
+    return 0
+
+
+
+# MERCHANT_READBACK_LAYER_END
+
 if __name__ == '__main__':
-    raise SystemExit(main())
+    raise SystemExit(split71_main())
