@@ -1,0 +1,27 @@
+{
+  "status": "PENDING_PARENT_INTEGRATION",
+  "app_sources": [
+    "App/ProfilePreferenceRemovalEditor.swift"
+  ],
+  "core_sources": [
+    "Core/ProfilePreferenceRemoval.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfilePreferenceRemovalTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfilePreferenceRemovalTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfilePreferenceRemovalLocalizations.fragment.json",
+  "new_localization_keys": 11,
+  "central_files_modified": [],
+  "merge_instructions": [
+    "Apply after three sealed profile slices; preserve the newer central ProfileEditView body decomposition.",
+    "Register new files and merge only new localization keys.",
+    "Existing catalogue picker and production gates are unchanged. This action needs no catalogue or image reader."
+  ],
+  "apple": "NOT_RUN"
+}

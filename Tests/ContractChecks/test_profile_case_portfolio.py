@@ -19,7 +19,7 @@ class ProfileCasePortfolioContracts(unittest.TestCase):
         s = section('Core/ProfileEditContracts.swift', 'public struct ProfileEditPayload', 'public struct ProfileEditSession')
         for token in ['public let caseIntroduction: String?', 'case caseIntroduction = "caseIntroducton"',
                       'draft.caseIntroduction == nil || snapshot.caseIntroduction != nil', 'caseIntroduction = draft.caseIntroduction',
-                      'wechat = removesContactQR ? "" : snapshot.wechat; casePics = snapshot.casePics']:
+                      'wechat = removesContactQR ? "" : snapshot.wechat\n        casePics = removesCasePictures ? "" : snapshot.casePics']:
             self.assertIn(token, s)
         self.assertNotIn('caseIntroduction = draft.normalized', s)
         self.assertNotIn('casePics.split', s)
@@ -38,9 +38,9 @@ class ProfileCasePortfolioContracts(unittest.TestCase):
 
     def test_case_text_survives_normalization_and_avatar_operations(self):
         s = read('Core/ProfileEditContracts.swift')
-        self.assertIn('avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR)', s)
-        self.assertIn('avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR) }', s)
-        self.assertIn('caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR)', read('App/ProfileEditView.swift'))
+        self.assertIn('avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures)', s)
+        self.assertIn('avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures) }', s)
+        self.assertIn('caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures)', read('App/ProfileEditView.swift'))
         s = section('Core/ProfileEditContracts.swift', 'public func hasChanges', 'public var isValid')
         self.assertIn('ordinary.caseIntroduction = nil', s)
         self.assertIn('!ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction)', s)

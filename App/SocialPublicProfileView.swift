@@ -45,7 +45,7 @@ import SwiftUI
                     }.accessibilityIdentifier("social.profile.tabs")
                     switch tab {
                     case .posts:
-                        SocialAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader, actions: actions)
+                        ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader, actions: actions, isCurrent: isCurrent)
                     case .achievements:
                         Section("social.achievements") {
                             SocialOptionalCount(title: "social.published", count: profile.published)
@@ -72,54 +72,5 @@ import SwiftUI
             }
         }.appNavigationTitle("social.profile").navigationBarTitleDisplayMode(.inline)
             .accessibilityIdentifier("social.profile")
-    }
-}
-@MainActor private struct SocialAuthorPostsSection: View {
-    let memberID: Int
-    let accountReader: any SocialAccountReading
-    let squareReader: any SquareReading
-    let actions: SocialActionCoordinator?
-    @State private var pagination = SquareFeedPagination()
-    @State private var error: Error?
-    @State private var busy = false
-    @State private var generation = 0
-    @State private var loadedIdentity: SocialAccountIdentity?
-    var body: some View {
-        Section("social.posts") {
-            if accountReader.identity.accountID == nil { Text("social.postsSignIn").accessibilityIdentifier("social.profile.postsSignIn") }
-            else if busy && pagination.items.isEmpty { ProgressView("social.loading") }
-            else if loadedIdentity == accountReader.identity {
-                if let error { SocialIssueView(error: error) { Task { await load(reset: !pagination.hasLoadedPage) } } }
-                ForEach(pagination.items) { post in
-                    NavigationLink {
-                        SquareDetailView(id: post.id, contentGeneration: post.generation, reader: squareReader, accountReader: accountReader, actions: actions)
-                    } label: { SquarePostContent(post: post, showImages: false) }
-                    NativeMediaGalleryEntry(sources: post.images, scope: squareReader.scope, titleKey: "media.destination.squareImages")
-                }
-                if pagination.hasLoadedPage && pagination.items.isEmpty { Text("social.noPosts") }
-                if pagination.continuationInvalid { Text("square.invalidCursor") }
-                if pagination.hasMore && error == nil {
-                    Button("square.loadMore") { Task { await load(reset: false) } }.disabled(busy)
-                }
-            }
-        }
-        .task(id: accountReader.identity) { await load(reset: true) }
-        .onDisappear { generation += 1; busy = false }
-    }
-    private func load(reset: Bool) async {
-        guard !busy || reset else { return }
-        generation += 1; let run = generation, identity = accountReader.identity, scope = squareReader.scope
-        if reset { pagination = SquareFeedPagination(); loadedIdentity = nil }; error = nil
-        guard identity.accountID != nil else { busy = false; return }
-        busy = true; loadedIdentity = identity
-        defer { if generation == run { busy = false } }
-        do {
-            let cursor = pagination.nextCursor
-            let page = try await squareReader.squareFeed(query: .init(authorID: memberID), cursor: cursor)
-            try Task.checkCancellation()
-            guard run == generation, identity == accountReader.identity, scope == squareReader.scope else { return }
-            try pagination.accept(page, requestedCursor: cursor)
-        } catch is CancellationError { }
-        catch { if run == generation, identity == accountReader.identity, scope == squareReader.scope { self.error = error } }
     }
 }

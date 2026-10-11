@@ -1,0 +1,178 @@
+{
+  "profile.preferenceRemoval.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selected preferences"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已选路线偏好"
+        }
+      }
+    }
+  },
+  "profile.preferenceRemoval.open": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage selected preferences"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理已选偏好"
+        }
+      }
+    }
+  },
+  "profile.preferenceRemoval.empty": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No selected preferences"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无已选偏好"
+        }
+      }
+    }
+  },
+  "profile.preferenceRemoval.unknownName": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Category"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分类"
+        }
+      }
+    }
+  },
+  "profile.preferenceRemoval.remove": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除"
+        }
+      }
+    }
+  },
+  "profile.preferenceRemoval.restore": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Restore"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "恢复"
+        }
+      }
+    }
+  },
+  "profile.preferenceRemoval.hint": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Done only stages these removals. Review and save your profile to apply them."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "完成仅暂存移除结果，请审阅并保存整页资料后生效。"
+        }
+      }
+    }
+  },
+  "profile.preferenceRemoval.clear": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear all"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清空已选偏好"
+        }
+      }
+    }
+  },
+  "profile.preferenceRemoval.undoAll": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Undo removals"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "撤回本次移除"
+        }
+      }
+    }
+  },
+  "profile.preferenceRemoval.unavailable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Stored preferences could not be safely read. Close this editor and reload your profile."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法安全读取已存偏好，请关闭此窗口并重新加载资料。"
+        }
+      }
+    }
+  },
+  "profile.preferenceRemoval.review": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selected preference IDs"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存后的偏好分类编号"
+        }
+      }
+    }
+  }
+}

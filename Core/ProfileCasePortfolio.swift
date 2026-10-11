@@ -4,6 +4,8 @@ import Foundation
 public struct ProfileCasePortfolio {
     public let images: [String]
     public let omittedImageCount: Int
+    /// Includes references beyond the preview cap; bulk removal always means all.
+    public var imageCount: Int { images.count + omittedImageCount }
     public init(casePics: String) {
         // Mini excludes blank entries but retains each nonblank value and duplicate position.
         let values = casePics.split(separator: ";", omittingEmptySubsequences: false)

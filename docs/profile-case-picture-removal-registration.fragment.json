@@ -1,0 +1,24 @@
+{
+  "status": "PENDING_PARENT_INTEGRATION",
+  "app_sources": [
+    "App/ProfileCasePictureRemovalEditor.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileCasePictureRemovalTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileCasePictureRemovalTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileCasePictureRemovalLocalizations.fragment.json",
+  "new_localization_keys": 10,
+  "central_files_modified": [],
+  "merge_instructions": [
+    "Apply after the four sealed profile increments; preserve the newer central ProfileEditView body decomposition.",
+    "Register only the new source/test files and merge the new localization fragment.",
+    "Clear-all requires no image reader or upload authority. It does not change the pending reader dependency of the older gallery entries."
+  ],
+  "apple": "NOT_RUN"
+}

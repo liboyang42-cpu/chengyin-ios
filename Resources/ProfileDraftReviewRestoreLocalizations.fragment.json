@@ -1,0 +1,242 @@
+{
+  "profile.reviewRestore.compare": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Compare changes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "对比资料改动"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.before": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Before"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "原值"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.after": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "After saving"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存后"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.exactTextHint": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Only changed fields are listed. Text comparisons include spacing and exact character encoding."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅列出有改动的字段，文字对比包括空白和字符编码差异。"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.noChanges": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No changed values in this review."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次审阅没有变化的值。"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.open": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard reviewed changes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃本次审阅的改动"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard these local changes?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃这些本机改动？"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.message": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All changes in this review will be cleared. The last reviewed profile stays on this page. Nothing will be saved to the server."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次审阅中的全部改动将被清除，页面恢复为本次审阅时读取的资料，不会向服务器保存。"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.confirm": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard changes and stay"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃改动并留在此页"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.restored": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Local changes were discarded. Nothing was saved."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已放弃本机改动，未执行保存。"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.empty": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Empty"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "空"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.whitespace": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Whitespace only"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅含空白字符"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.present": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Present"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已有"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.absent": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "None"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无"
+        }
+      }
+    }
+  },
+  "profile.reviewRestore.newAvatar": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Newly staged avatar"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "新暂存的头像"
+        }
+      }
+    }
+  }
+}

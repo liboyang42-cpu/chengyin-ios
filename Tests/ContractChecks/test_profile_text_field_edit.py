@@ -80,7 +80,9 @@ class ProfileTextFieldEditContracts(unittest.TestCase):
         self.assertLess(confirm.index('retireTextEdit()'), confirm.index('var next = draft'))
         for token in ['case .name: next.name = text', 'case .introduction: next.introduction = text', 'draft = next']:
             self.assertIn(token, confirm)
-        for forbidden in ['normalized', 'trimmingCharacters', 'routePreferenceIDs =', 'avatarReplacement =', 'draft = .init']:
+        self.assertNotIn("routePreferenceIDs =", confirm.split("case .preferences:", 1)[0])
+        self.assertIn("if selected != original { next.routePreferenceIDs = selected }", confirm.split("case .preferences:", 1)[1])
+        for forbidden in ['normalized', 'trimmingCharacters', 'avatarReplacement =', 'draft = .init']:
             self.assertNotIn(forbidden, confirm)
 
     def test_local_path_cannot_dispatch_transport_or_release_locks(self):

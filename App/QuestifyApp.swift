@@ -86,6 +86,8 @@ struct QuestifyApp: App {
                     ClubOperationsFixtureHostView(scenario: clubOperations)
                 } else if let clubManagement=ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ClubManagementFixtureRootView(scenario:clubManagement)
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-author-posts-refresh") {
+                    ProfileAuthorPostsRefreshFixtureHost(scenario: fixtureArgument("--profile-author-posts-scenario") ?? "content")
                 } else if let profileEdit=ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ProfileEditFixtureHost(scenario:profileEdit)
                 } else if let clubAction=ClubActionFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
@@ -161,6 +163,7 @@ final class AppSessionContainer: ObservableObject {
            ClubActionFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            ClubOperationsFixtureHostView.selected(arguments: ProcessInfo.processInfo.arguments) != nil ||
            ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-author-posts-refresh") ||
            ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil {
             session=nil

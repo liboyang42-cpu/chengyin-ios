@@ -60,6 +60,7 @@ public enum ProfileAvatarExact {
                      value.avatarReplacement?.id.uuidString ?? "no-avatar-change"]
         if let text = value.caseIntroduction { parts += ["caseIntroducton", text] }
         if value.removesContactQR { parts.append("remove-contact-qr") }
+        if value.removesCasePictures { parts.append("remove-case-pictures") }
         return hash(strings(parts))
     }
 }

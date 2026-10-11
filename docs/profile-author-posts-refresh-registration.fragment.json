@@ -1,0 +1,35 @@
+{
+  "status": "PENDING_PARENT_INTEGRATION",
+  "app_sources": [
+    "App/ProfileAuthorPostsSection.swift",
+    "App/ProfileAuthorPostsRefreshFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileAuthorPostsRefresh.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileAuthorPostsRefreshAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileAuthorPostsRefreshTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileAuthorPostsRefreshLocalizations.fragment.json",
+  "new_localization_keys": 3,
+  "ui_fixture_launch": {
+    "flag": "--uitesting-profile-author-posts-refresh",
+    "scenario_flag": "--profile-author-posts-scenario",
+    "host": "ProfileAuthorPostsRefreshFixtureHost(scenario: scenario)",
+    "debug_only": true
+  },
+  "central_files_modified": [],
+  "merge_instructions": [
+    "Register the two App files and one Core file in app target; register the tests.",
+    "Add the DEBUG fixture launch flag in the central fixture router; read its optional scenario argument. No production route change is required.",
+    "Merge the three bilingual localization keys.",
+    "Production entry is already rewired in SocialPublicProfileView.posts; keep central ProfileEditView body decomposition and all six sealed packages unchanged."
+  ],
+  "apple": "NOT_RUN"
+}

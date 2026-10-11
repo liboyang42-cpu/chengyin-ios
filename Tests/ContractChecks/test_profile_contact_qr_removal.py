@@ -17,7 +17,7 @@ class ProfileContactQRRemovalContracts(unittest.TestCase):
     def test_payload_preserves_exact_original_or_clears_existing_wire_key(self):
         s = section('Core/ProfileEditContracts.swift', 'public struct ProfileEditPayload', 'public struct ProfileEditSession')
         self.assertIn('removesContactQR = draft.removesContactQR && !snapshot.wechat.isEmpty', s)
-        self.assertIn('wechat = removesContactQR ? "" : snapshot.wechat; casePics = snapshot.casePics', s)
+        self.assertIn('wechat = removesContactQR ? "" : snapshot.wechat\n        casePics = removesCasePictures ? "" : snapshot.casePics', s)
         keys = s.split('enum CodingKeys:', 1)[1].split('public init', 1)[0]
         self.assertIn('case name, introduction, avatar, wechat, casePics, tagIds', keys)
         self.assertNotIn('removesContactQR', keys)
@@ -35,8 +35,8 @@ class ProfileContactQRRemovalContracts(unittest.TestCase):
 
     def test_avatar_and_normalization_preserve_intent_and_fingerprint(self):
         contracts = read('Core/ProfileEditContracts.swift')
-        self.assertEqual(contracts.count('caseIntroduction: caseIntroduction, removesContactQR: removesContactQR)'), 2)
-        self.assertIn('caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR)', read('App/ProfileEditView.swift'))
+        self.assertEqual(contracts.count('caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures)'), 2)
+        self.assertIn('caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures)', read('App/ProfileEditView.swift'))
         fingerprint = section('Core/ProfileAvatarUpload.swift', 'public static func draft', 'public struct ProfileAvatarTarget')
         self.assertIn('if value.removesContactQR { parts.append("remove-contact-qr") }', fingerprint)
 

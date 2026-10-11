@@ -2,11 +2,13 @@ import SwiftUI
 
 /// Mini parity: nickname openPop4/cancel4/confirm4; introduction openPop/cancel/confirm.
 enum ProfileTextField: String, CaseIterable {
-    case name, introduction, caseIntroduction, contactQR
+    case name, introduction, caseIntroduction, contactQR, preferences, casePictures
     var titleKey: String {
         switch self {
         case .caseIntroduction: return "profile.case.description"
         case .contactQR: return "profile.contactQR.title"
+        case .preferences: return "profile.preferenceRemoval.title"
+        case .casePictures: return "profile.caseRemoval.title"
         default: return "profile.edit.\(rawValue)"
         }
     }
@@ -16,6 +18,8 @@ enum ProfileTextField: String, CaseIterable {
         case .introduction: return draft.introduction
         case .caseIntroduction: return draft.caseIntroduction ?? ""
         case .contactQR: return "" // Contact QR uses the action-only editor; never expose a raw URL input.
+        case .preferences: return "" // Selection actions use a dedicated editor, never free-form IDs.
+        case .casePictures: return "" // All-image removal has an action-only editor.
         }
     }
 }
@@ -53,6 +57,10 @@ struct ProfileTextFieldEditor: View {
             Section {
                 if edit.field == .contactQR {
                     Text("profile.contactQR.noUpload")
+                } else if edit.field == .preferences {
+                    Text("profile.preferenceRemoval.hint")
+                } else if edit.field == .casePictures {
+                    Text("profile.caseRemoval.hint")
                 } else if edit.field == .name {
                     TextField(LocalizedStringKey(edit.field.titleKey), text: $text)
                         .textContentType(.nickname).focused($focused)
@@ -67,7 +75,11 @@ struct ProfileTextFieldEditor: View {
                 }
             } footer: { Text("profile.fieldEdit.hint") }
             if edit.field == .caseIntroduction {
-                ProfileCasePortfolioSection(casePics: edit.snapshot.casePics, scope: edit.id, reader: caseImageReader)
+                if edit.draft.removesCasePictures {
+                    Text("profile.caseRemoval.staged").accessibilityIdentifier("profile.caseRemoval.stagedInDescription")
+                } else {
+                    ProfileCasePortfolioSection(casePics: edit.snapshot.casePics, scope: edit.id, reader: caseImageReader)
+                }
             }
         }
         .appNavigationTitle(key: edit.field.titleKey)
@@ -80,6 +92,8 @@ struct ProfileTextFieldEditor: View {
                 Button("profile.fieldEdit.apply") { focused = false; confirm(text) }
                     .accessibilityIdentifier("profile.fieldEdit.apply")
                     .disabled(edit.field == .contactQR || (edit.field == .caseIntroduction && edit.snapshot.caseIntroduction == nil))
+                    .disabled(edit.field == .preferences)
+                    .disabled(edit.field == .casePictures)
             }
         }
     }

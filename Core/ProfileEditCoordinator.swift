@@ -14,6 +14,7 @@ public struct ProfileEditConfirmation: Identifiable, Equatable {
     fileprivate let snapshot: ProfileEditSnapshot
     fileprivate let session: ProfileEditSession
     fileprivate let avatarValidity: ProfileAvatarSaveValidity?
+    public var reviewSummary: ProfileEditReviewSummary { .init(snapshot: snapshot, payload: payload) }
 }
 /// Retain in AppSession, not the navigation destination. Unknown writes remain locked even
 /// through navigation and same-account reauthentication. Reconciliation never repeats a POST.
@@ -113,7 +114,8 @@ public final class ProfileEditCoordinator {
             guard latest.draft == original.draft,
                   draft.routePreferenceIDs == nil || latest.tagIds == original.tagIds,
                   draft.caseIntroduction == nil || ProfileCasePortfolio.sameText(latest.caseIntroduction, original.caseIntroduction),
-                  !draft.removesContactQR || latest.wechat.utf8.elementsEqual(original.wechat.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return }
+                  !draft.removesContactQR || latest.wechat.utf8.elementsEqual(original.wechat.utf8),
+                  !draft.removesCasePictures || latest.casePics.utf8.elementsEqual(original.casePics.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return }
             if let avatar = draft.avatarReplacement {
                 guard avatarValidity?.isCurrent == true, avatar.permits(session: expected, snapshot: latest) else {
                     messageKey = "profile.avatar.changed"; return
@@ -129,6 +131,16 @@ public final class ProfileEditCoordinator {
         }
     }
     public func cancel(_ value: ProfileEditConfirmation) { if confirmation == value { confirmation = nil } }
+    /// Consume this live review and return its freshly read baseline, without a request.
+    /// This discards only local intent; it cannot acknowledge or unlock any write.
+    public func discardReviewedDraft(_ value: ProfileEditConfirmation) -> ProfileEditSnapshot? {
+        synchronizeSession()
+        guard !Task.isCancelled, !isBusy, !isLocked, confirmation == value,
+              session == value.session, currentSession() == value.session else { return nil }
+        confirmation = nil; snapshot = value.snapshot
+        messageKey = "profile.reviewRestore.restored"; remoteMessage = nil
+        return value.snapshot
+    }
     public func save(_ value: ProfileEditConfirmation) async {
         synchronizeSession()
         guard !isBusy, !isLocked, confirmation == value, session == value.session, let service else { return }
@@ -141,7 +153,8 @@ public final class ProfileEditCoordinator {
             guard active(expected, request) else { return }
             guard latest == value.snapshot,
                   ProfileCasePortfolio.sameText(latest.caseIntroduction, value.snapshot.caseIntroduction),
-                  !value.payload.removesContactQR || latest.wechat.utf8.elementsEqual(value.snapshot.wechat.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return }
+                  !value.payload.removesContactQR || latest.wechat.utf8.elementsEqual(value.snapshot.wechat.utf8),
+                  !value.payload.removesCasePictures || latest.casePics.utf8.elementsEqual(value.snapshot.casePics.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return }
             if value.payload.avatarReplacement != nil {
                 // Image-bearing full replacement preserves exact server bytes, not
                 // only Swift's canonically equivalent String values.

@@ -63,6 +63,7 @@
     "CouponManagementFlowTests.swift": "ceed7f5b854426dbf598786b26d1c974f3cad4b7c1d58cb9bcf8745204f66363",
     "TicketWalletFlowTests.swift": "59e425ea9cfb0a621640c9673f40db86f2ce94aa8a2fe65c5d3f20eb450eddc6",
     "SocialAccountFlowTests.swift": "4be80eb36a96fb19420fde772a46661f56217afd20319333c84b0e6f79ba6e36",
+    "ProfileAuthorPostsRefreshFlowTests.swift": "72f8a3ec5625ca00f14d6dfd9c8d1618501d5d5051b29d9deeb32012d7360735",
     "ReferenceChatTaskFlowTests.swift": "d96e7e68af7b0b36a4f33299b0fbd84d5abcf98b2abed7e7c202839a37fca602",
     "MerchantTemplateParticipationPlanFlowTests.swift": "bdde78569545ec1c0fd1636b0d7a3657cf759aa489e77f612f9060fe7b3e3cd8",
     "ProfileContactQRRemovalFlowTests.swift": "b2e650c4b6733546dc24ca36cce3538f487f476a122ea8e17c50597fd53d02d6",
@@ -75,6 +76,7 @@
     "ProjectPendingStoryImageFlowTests.swift": "55e7cced493afbbb70e9a5a632f0deb938df583b54cd70459d76e267fc19f59e",
     "ProjectSubmissionEvidenceUITestSupport.swift": "49a420e87068cbc4b28e8b570ec7faceec09d3b9b7521cd2c3e75f53803db3c6",
     "ModuleFlowTests.swift": "bb8a6103f9b878d4f86355dc88acef53ff0f51ce830707aa17787abc51cdb37f",
+    "ProfileCasePictureRemovalFlowTests.swift": "d028a95bb912648cb8571e67fed2f552720ce42a52ea62b6ee4172f007a04ee7",
     "ApprovedTopicSelectedCoverChineseFlowTests.swift": "f56a803a8581e9ba340fff97f76bce3929c63ba6c9baf74de8ed522ccd688d81",
     "JourneyContentFlowTests.swift": "cd56d905e1d42c413d921f48106872ea27e334e9213d68fc384a786acaa9cebc",
     "MerchantClubDiscoveryFlowTests.swift": "4ef4f6534ab84a98978711196f98ad0b41d822411fb08e342f494c422ef9f5eb",
@@ -100,6 +102,7 @@
     "ClubActionFlowTests.swift": "ec872341ba84f2e3844a980e99a7134b6c86939d9f426c425ffc746f50506e5a",
     "OwnedTopicCoverRecoveryFlowTests.swift": "98aae087e9048ce0eab91987fe5b14d66b7bb8505565ccee4e87b636b6802503",
     "PublicPlayTemplatePresentationFlowTests.swift": "d2e29a26850319048b7a246ab7a9b69c1e256bf43a1b9548a415202dfab2d402",
+    "ProfileDraftReviewRestoreFlowTests.swift": "2477449bcf10fdd6a1805ebdd26e4c00f0822843f8ec63c214ec067b597d3486",
     "CooperationFlowTests.swift": "fd7f8883ac1d32d2db9aa7f5b912b078301ba94443411ed092f6d1118f82f706",
     "SearchMapFlowTests.swift": "23ff72dd010bded72404168d4f3ecc9da2c3fb553a135585a9009f68486a4c74",
     "OwnedCouponCodeJourneyUITests.swift": "e90cdc1ecbac62b8d258767a54e82848d0118fc562e3a4bbe79cbde395926414",
@@ -135,6 +138,7 @@
     "ApprovedReleasePreparationChineseFlowTests.swift": "720f17dbc1a0d613c29d426e8d5405e24def9143b2669cc22cfba2c5ea15065c",
     "ProjectStoryTemplateAlbumFirstFlowTests.swift": "fa8008549f9c942efa8206c2346fdefdeba8ffe69e988bdabc3d000b9d9d6d8d",
     "GroupPollUITests.swift": "b5bafcac4f364f38178e8dd74dced246e7b1fb2390023952205ea78600683086",
+    "ProfilePreferenceRemovalFlowTests.swift": "306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca",
     "RegistrationWaitlistOrderUITests.swift": "41b1adbf4ea544490337879865000eb08d8b37ec14d0a1bbe26430eb4b8dc648",
     "SquareFlowTests.swift": "ad1287b0eb9a6a47f18145ec844e13679c0036fbcfe2af33b94b82077639b07f",
     "ProjectStoryImageCancellationFlowTests.swift": "e8b6c7b7471fdd762355dd73884c66c8fd015db9a49d94b4568857027e73fd99",
@@ -357,11 +361,11 @@
     "ApprovedTopicReviewRequestFlowTests.swift": "1f1e787a1beb9d46675f2662fd61890b0f2d90926bf6bc3d228bf2af3efe8a6b",
     "ClubEnrollmentFlowTests.swift": "fb6bf952ef69e09eb0aef75153752a5515d62e9d27f32048726849b3f9a8ea24"
   },
-  "current_inventory_sha256": "4956680a4a6c615255ea879e54ba4602935c8b825d26b98af2f940fc409a0929",
+  "current_inventory_sha256": "191cb83f604b1a93e1a2246bd24e93d7ef2cf0748f5768e14e95288b417c0949",
   "previous_inventory_sha256": "3eff90afa8092ff9d54db78c792fd362da4392c0d479231b84bd31f627b54216",
-  "method_count": 774,
+  "method_count": 794,
   "class_count_before": 162,
-  "class_count_after": 174,
+  "class_count_after": 178,
   "helper_copy_sha256": "74ae59e50a36d4781536dc66dd42f2854f931450a158294c5f3f80d83916959c",
   "method_costs": {
     "ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation": {
@@ -513,9 +517,13 @@
     "ProfileContactQRRemovalFlowTests": 840,
     "MerchantTemplateHintsFlowTests": 3550,
     "MerchantTemplateStoryTimelineFlowTests": 3300,
-    "MerchantTemplateCategoryFlowTests": 1500
+    "MerchantTemplateCategoryFlowTests": 1500,
+    "ProfilePreferenceRemovalFlowTests": 820,
+    "ProfileCasePictureRemovalFlowTests": 830,
+    "ProfileDraftReviewRestoreFlowTests": 910,
+    "ProfileAuthorPostsRefreshFlowTests": 650
   },
-  "added_total_seconds": 18063.948,
+  "added_total_seconds": 21273.948,
   "shard_count": 79,
   "deadline_seconds": 1800,
   "startup_reserve_seconds": 300,
@@ -905,7 +913,7 @@
     },
     "Questify.xcodeproj/project.pbxproj": {
       "before_sha256": "0497d3ffb5b6dfd9c3aa0cd67a27594cfcb412fcda57fa3ac5ec63d8cc462ed1",
-      "after_sha256": "3ab0c639caf60da2e8b0e04167ac7fdeaef565cd33e8c9536486238c7509e7d9",
+      "after_sha256": "9cae8a0e57cbe6d54a8af503e49ca5b63e4e63c5657b572ee4d53ad7ee79cb83",
       "hunks": [
         {
           "before": "\t\t\"F2C416E5BF616602CFE89B81\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"588CE027521446DF6EC81070\";\n\t\t};\n\t\t\"74E41CC929B3EEB9D9C0C251\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n",
@@ -2194,6 +2202,118 @@
         {
           "before": "\t\t\t\t\"F2E3A5FE65C40255230687C6\",\n\t\t\t\t\"A0EF509173BCA11DCB538A15\",\n",
           "after": "\t\t\t\t\"F2E3A5FE65C40255230687C6\",\n\t\t\t\t\"F2207904C12B5D1652E3615E\",\n\t\t\t\t\"A0EF509173BCA11DCB538A15\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"43DC8A092EAD5EBD27C39ACD\" = {\n",
+          "after": "\t\t};\n\t\t\"9A2F3735A8FF565E48CC1144\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileAuthorPostsRefreshFixture.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"0C0D0972CDD87E0F3B9DE5F2\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"9A2F3735A8FF565E48CC1144\";\n\t\t};\n\t\t\"CB59DB4C69D964EEEF5047E0\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileAuthorPostsSection.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"DB1865F358B5847BB9BC2C7C\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"CB59DB4C69D964EEEF5047E0\";\n\t\t};\n\t\t\"43DC8A092EAD5EBD27C39ACD\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"5A8D8C25FDE552A6518EEAD2\" = {\n",
+          "after": "\t\t};\n\t\t\"ABDCEB70CCDE80010E411D60\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileCasePictureRemovalEditor.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"E547ED1DC27C3837461B89B2\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"ABDCEB70CCDE80010E411D60\";\n\t\t};\n\t\t\"5A8D8C25FDE552A6518EEAD2\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"6D1976384385971B369C88EA\" = {\n",
+          "after": "\t\t};\n\t\t\"7B66069AAE99A9C1EF9CC6F6\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileDraftReviewSection.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"17BD09D07101AB7FA2BEAD5B\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"7B66069AAE99A9C1EF9CC6F6\";\n\t\t};\n\t\t\"6D1976384385971B369C88EA\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"13E3B23250A44787F31332B4\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"13E3B23250A44787F31332B4\";\n\t\t};\n\t\t\"1A57C6B00B001786B24583CC\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfilePreferenceRemovalEditor.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"FB3F5B9E55B1370066DC4C8D\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"1A57C6B00B001786B24583CC\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"BE71DC2ED17789DE6FD55C7E\" = {\n",
+          "after": "\t\t};\n\t\t\"FF7D853F5B0CFEC6B7E69C4F\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ProfileAuthorPostsRefresh.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"ED110C781D0B345184111855\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"FF7D853F5B0CFEC6B7E69C4F\";\n\t\t};\n\t\t\"BE71DC2ED17789DE6FD55C7E\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"E56562DB4C323A90145C7AE3\" = {\n",
+          "after": "\t\t};\n\t\t\"D614EEAF1FB869F414E56C73\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ProfileEditReviewSummary.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"2CA1FBC129362D8C75398142\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"D614EEAF1FB869F414E56C73\";\n\t\t};\n\t\t\"E56562DB4C323A90145C7AE3\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"C8C79EEA66A13E1BB6A518C8\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"C8C79EEA66A13E1BB6A518C8\";\n\t\t};\n\t\t\"9C264276DBE43FC8B5837AB3\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ProfilePreferenceRemoval.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"89EF236A118BEEF236CB3915\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"9C264276DBE43FC8B5837AB3\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"2174F61B80F6EB897A2E4519\",\n\t\t\t\t\"43DC8A092EAD5EBD27C39ACD\",\n\t\t\t\t\"C26CA241BE029CAD13B6F6C3\",\n\t\t\t\t\"5A8D8C25FDE552A6518EEAD2\",\n\t\t\t\t\"4EACECCB7D53281738EFBF75\",\n\t\t\t\t\"6D1976384385971B369C88EA\",\n",
+          "after": "\t\t\t\t\"2174F61B80F6EB897A2E4519\",\n\t\t\t\t\"9A2F3735A8FF565E48CC1144\",\n\t\t\t\t\"CB59DB4C69D964EEEF5047E0\",\n\t\t\t\t\"43DC8A092EAD5EBD27C39ACD\",\n\t\t\t\t\"C26CA241BE029CAD13B6F6C3\",\n\t\t\t\t\"ABDCEB70CCDE80010E411D60\",\n\t\t\t\t\"5A8D8C25FDE552A6518EEAD2\",\n\t\t\t\t\"4EACECCB7D53281738EFBF75\",\n\t\t\t\t\"7B66069AAE99A9C1EF9CC6F6\",\n\t\t\t\t\"6D1976384385971B369C88EA\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"13E3B23250A44787F31332B4\",\n\t\t\t\t\"16F15ED28BB4D950546E46C7\",\n",
+          "after": "\t\t\t\t\"13E3B23250A44787F31332B4\",\n\t\t\t\t\"1A57C6B00B001786B24583CC\",\n\t\t\t\t\"16F15ED28BB4D950546E46C7\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"45FD0B1982B68D0502E7690F\",\n\t\t\t\t\"BE71DC2ED17789DE6FD55C7E\",\n",
+          "after": "\t\t\t\t\"45FD0B1982B68D0502E7690F\",\n\t\t\t\t\"FF7D853F5B0CFEC6B7E69C4F\",\n\t\t\t\t\"BE71DC2ED17789DE6FD55C7E\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"5F9090BBB9E04F99596F23D6\",\n\t\t\t\t\"E56562DB4C323A90145C7AE3\",\n\t\t\t\t\"C8C79EEA66A13E1BB6A518C8\",\n\t\t\t\t\"7B66D10820834E019DF8ED15\",\n",
+          "after": "\t\t\t\t\"5F9090BBB9E04F99596F23D6\",\n\t\t\t\t\"D614EEAF1FB869F414E56C73\",\n\t\t\t\t\"E56562DB4C323A90145C7AE3\",\n\t\t\t\t\"C8C79EEA66A13E1BB6A518C8\",\n\t\t\t\t\"9C264276DBE43FC8B5837AB3\",\n\t\t\t\t\"7B66D10820834E019DF8ED15\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"45537B344BC24E8B10D20AA9\",\n\t\t\t\t\"B8390AF2DAEBBC1CE5F66B41\",\n\t\t\t\t\"AF16AE672F9BD66482E650F1\",\n\t\t\t\t\"54E072CE26227B2585081955\",\n\t\t\t\t\"544D6EBA6D88DB89819B269A\",\n",
+          "after": "\t\t\t\t\"45537B344BC24E8B10D20AA9\",\n\t\t\t\t\"1D98ADBE9E6125FB27E4EEF5\",\n\t\t\t\t\"E180DFDF90313904935037CF\",\n\t\t\t\t\"B8390AF2DAEBBC1CE5F66B41\",\n\t\t\t\t\"AF16AE672F9BD66482E650F1\",\n\t\t\t\t\"B5658D82542E5B0136C21B28\",\n\t\t\t\t\"54E072CE26227B2585081955\",\n\t\t\t\t\"F16823981022AEDEEB0BB792\",\n\t\t\t\t\"544D6EBA6D88DB89819B269A\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"D2F2EE85A614A591B9448F10\",\n\t\t\t\t\"E5830D21BA42540EDC9C998C\",\n\t\t\t\t\"76E148E3F33F46E1F9C2974A\",\n\t\t\t\t\"137BBAD514297E8321CEC40E\",\n\t\t\t\t\"424F607C053428BF79CAAE78\",\n",
+          "after": "\t\t\t\t\"D2F2EE85A614A591B9448F10\",\n\t\t\t\t\"7C25B1799BB0F60034989FD5\",\n\t\t\t\t\"E5830D21BA42540EDC9C998C\",\n\t\t\t\t\"189C8D3430D33AD5DB674088\",\n\t\t\t\t\"76E148E3F33F46E1F9C2974A\",\n\t\t\t\t\"137BBAD514297E8321CEC40E\",\n\t\t\t\t\"456AEAFE13BD95267373A33C\",\n\t\t\t\t\"424F607C053428BF79CAAE78\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"C4CEBB2FE841F16329B2021C\",\n\t\t\t\t\"A90F20F9DDCD55F044CA650A\",\n",
+          "after": "\t\t\t\t\"C4CEBB2FE841F16329B2021C\",\n\t\t\t\t\"F4C617421421008CE7E057C5\",\n\t\t\t\t\"A90F20F9DDCD55F044CA650A\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"A1151449A4300E86E84B1385\",\n\t\t\t\t\"5342E12F197E40FAEA63E10D\",\n\t\t\t\t\"E9E90C983628299A019FADE6\",\n\t\t\t\t\"F88AB917BA152B491DDF3620\",\n\t\t\t\t\"B0745F7B87EFB6911B99A4DC\",\n\t\t\t\t\"396300A932CC47690D1335C9\",\n",
+          "after": "\t\t\t\t\"A1151449A4300E86E84B1385\",\n\t\t\t\t\"0C0D0972CDD87E0F3B9DE5F2\",\n\t\t\t\t\"DB1865F358B5847BB9BC2C7C\",\n\t\t\t\t\"5342E12F197E40FAEA63E10D\",\n\t\t\t\t\"E9E90C983628299A019FADE6\",\n\t\t\t\t\"E547ED1DC27C3837461B89B2\",\n\t\t\t\t\"F88AB917BA152B491DDF3620\",\n\t\t\t\t\"B0745F7B87EFB6911B99A4DC\",\n\t\t\t\t\"17BD09D07101AB7FA2BEAD5B\",\n\t\t\t\t\"396300A932CC47690D1335C9\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"BA8142009EB964EA83E45805\",\n\t\t\t\t\"3AD79AB7E363F13C47B90B94\",\n",
+          "after": "\t\t\t\t\"BA8142009EB964EA83E45805\",\n\t\t\t\t\"FB3F5B9E55B1370066DC4C8D\",\n\t\t\t\t\"3AD79AB7E363F13C47B90B94\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"042F506051DE80B360DF4F45\",\n\t\t\t\t\"26985573156A1CF20AFAC0AF\",\n",
+          "after": "\t\t\t\t\"042F506051DE80B360DF4F45\",\n\t\t\t\t\"ED110C781D0B345184111855\",\n\t\t\t\t\"26985573156A1CF20AFAC0AF\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"A4D11CB59F131208A46EB21A\",\n\t\t\t\t\"50CAB04DA3C8CEC944E7B8DB\",\n\t\t\t\t\"1FECB3DF4A217D3B4D8BA6D9\",\n\t\t\t\t\"7F446D30EDAAC722FE2C53FE\",\n",
+          "after": "\t\t\t\t\"A4D11CB59F131208A46EB21A\",\n\t\t\t\t\"2CA1FBC129362D8C75398142\",\n\t\t\t\t\"50CAB04DA3C8CEC944E7B8DB\",\n\t\t\t\t\"1FECB3DF4A217D3B4D8BA6D9\",\n\t\t\t\t\"89EF236A118BEEF236CB3915\",\n\t\t\t\t\"7F446D30EDAAC722FE2C53FE\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"B8390AF2DAEBBC1CE5F66B41\" = {\n",
+          "after": "\t\t};\n\t\t\"1D98ADBE9E6125FB27E4EEF5\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"7D86503E87F31F03A9985284\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"1D98ADBE9E6125FB27E4EEF5\";\n\t\t};\n\t\t\"E180DFDF90313904935037CF\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"21C5901E3F2922CA333B977A\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"E180DFDF90313904935037CF\";\n\t\t};\n\t\t\"B8390AF2DAEBBC1CE5F66B41\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"54E072CE26227B2585081955\" = {\n",
+          "after": "\t\t};\n\t\t\"B5658D82542E5B0136C21B28\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"FEEFE845039BA479C4E34E6A\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"B5658D82542E5B0136C21B28\";\n\t\t};\n\t\t\"54E072CE26227B2585081955\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"54E072CE26227B2585081955\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"54E072CE26227B2585081955\";\n\t\t};\n\t\t\"F16823981022AEDEEB0BB792\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"882AFBB33966DF13876C740D\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"F16823981022AEDEEB0BB792\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"C8BCB0C02B80B7111A83E18C\",\n\t\t\t\t\"2E23CF17F5150BB1AEBBE205\",\n\t\t\t\t\"7625D95ED36C10BF4AD01D3E\",\n\t\t\t\t\"6D996FF606113ABFECE5D938\",\n\t\t\t\t\"28A6F595C2984575DE564A14\",\n",
+          "after": "\t\t\t\t\"C8BCB0C02B80B7111A83E18C\",\n\t\t\t\t\"7D86503E87F31F03A9985284\",\n\t\t\t\t\"21C5901E3F2922CA333B977A\",\n\t\t\t\t\"2E23CF17F5150BB1AEBBE205\",\n\t\t\t\t\"7625D95ED36C10BF4AD01D3E\",\n\t\t\t\t\"FEEFE845039BA479C4E34E6A\",\n\t\t\t\t\"6D996FF606113ABFECE5D938\",\n\t\t\t\t\"882AFBB33966DF13876C740D\",\n\t\t\t\t\"28A6F595C2984575DE564A14\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"E5830D21BA42540EDC9C998C\" = {\n",
+          "after": "\t\t};\n\t\t\"7C25B1799BB0F60034989FD5\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileAuthorPostsRefreshAppTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"E6279CADDBA4DD8163D95647\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"7C25B1799BB0F60034989FD5\";\n\t\t};\n\t\t\"E5830D21BA42540EDC9C998C\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"76E148E3F33F46E1F9C2974A\" = {\n",
+          "after": "\t\t};\n\t\t\"189C8D3430D33AD5DB674088\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileCasePictureRemovalTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"2B875FD006FDF120290E772F\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"189C8D3430D33AD5DB674088\";\n\t\t};\n\t\t\"76E148E3F33F46E1F9C2974A\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"424F607C053428BF79CAAE78\" = {\n",
+          "after": "\t\t};\n\t\t\"456AEAFE13BD95267373A33C\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileDraftReviewRestoreTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"01DB8EF7978F7110527097E9\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"456AEAFE13BD95267373A33C\";\n\t\t};\n\t\t\"424F607C053428BF79CAAE78\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"C4CEBB2FE841F16329B2021C\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"C4CEBB2FE841F16329B2021C\";\n\t\t};\n\t\t\"F4C617421421008CE7E057C5\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfilePreferenceRemovalTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"32FAF698395E8AB6C751025B\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"F4C617421421008CE7E057C5\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"946C12E4776196553D063BE6\",\n\t\t\t\t\"5F13368F03E599783EF37FFD\",\n\t\t\t\t\"16F74F0875B8EECAC99D65E9\",\n\t\t\t\t\"88F0CFA986947BD3FFB032B4\",\n\t\t\t\t\"2C857E999D5CCB78EC4E39A5\",\n",
+          "after": "\t\t\t\t\"946C12E4776196553D063BE6\",\n\t\t\t\t\"E6279CADDBA4DD8163D95647\",\n\t\t\t\t\"5F13368F03E599783EF37FFD\",\n\t\t\t\t\"2B875FD006FDF120290E772F\",\n\t\t\t\t\"16F74F0875B8EECAC99D65E9\",\n\t\t\t\t\"88F0CFA986947BD3FFB032B4\",\n\t\t\t\t\"01DB8EF7978F7110527097E9\",\n\t\t\t\t\"2C857E999D5CCB78EC4E39A5\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"365154B02B459B703B9B896B\",\n\t\t\t\t\"4E8B2399036D64374225F524\",\n",
+          "after": "\t\t\t\t\"365154B02B459B703B9B896B\",\n\t\t\t\t\"32FAF698395E8AB6C751025B\",\n\t\t\t\t\"4E8B2399036D64374225F524\",\n"
         }
       ]
     },
@@ -2547,7 +2667,7 @@
     },
     "App/QuestifyApp.swift": {
       "before_sha256": "5afc5b2698d07cc17a05ed5ccadc97d7005a61e563157354eb0d238d8a248f63",
-      "after_sha256": "12cb038406bd94963807345d0a4c557efeb011a4e6ffee8dc4b2fd9a2a344511",
+      "after_sha256": "66c26033617571953ee3d8e3026a7ffbf80066b5136135d07e4e7287432e433c",
       "hunks": [
         {
           "before": "                TabView(selection:$selectedTab) {\n                    SessionHomeFeedView(onSignIn:{ selectedTab=4 }).tabItem { Label(\"homeFeed.title\",systemImage:\"house\") }.tag(0)\n                    ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label(\"activity.browse\",systemImage:\"map\") }.tag(1)\n                    RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true },experienceReader:session.roamExperienceReader, cityDestination: { AnyView(SessionCityPlayerView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView()) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController())) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)\n                        .tabItem { Label(\"roam.title\",systemImage:\"map\") }.tag(3)\n                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }) }\n                        .id(session.sessionRevision)\n",
@@ -2556,6 +2676,14 @@
         {
           "before": "            if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }\n        }\n        .environmentObject(session)\n        .environment(\\.verificationCodeFactory, { session.makeVerificationCodeCoordinator(target: $0) })\n        .environment(\\.withdrawalSupportReader, session.withdrawalSupportReader)\n        .environment(\\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))\n",
           "after": "            if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }\n        }\n        .environmentObject(session)\n        .environment(\\.projectCategoryReader, session)\n            .environment(\\.projectNodePlaceReader, session.searchMapReader)\n        .environment(\\.projectChapterAudioPlayback, session.platformConsumers.audioFactory)\n        .environment(\\.projectNodeTemplateCreationFactory, {\n            .init(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session,\n                  imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })\n        })\n        .environment(\\.verificationCodeFactory, { session.makeVerificationCodeCoordinator(target: $0) })\n        .environment(\\.withdrawalSupportReader, session.withdrawalSupportReader)\n        .environment(\\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))\n"
+        },
+        {
+          "before": "                    ClubManagementFixtureRootView(scenario:clubManagement)\n                } else if let profileEdit=ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {\n",
+          "after": "                    ClubManagementFixtureRootView(scenario:clubManagement)\n                } else if ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-author-posts-refresh\") {\n                    ProfileAuthorPostsRefreshFixtureHost(scenario: fixtureArgument(\"--profile-author-posts-scenario\") ?? \"content\")\n                } else if let profileEdit=ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {\n"
+        },
+        {
+          "before": "           ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n           ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n",
+          "after": "           ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-author-posts-refresh\") ||\n           ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n"
         }
       ]
     },
@@ -4135,7 +4263,7 @@
     },
     "App/ProfileEditView.swift": {
       "before_sha256": "5bec19374886dc1f2f780a170675ead92425b99a643fcf6b6bf09f5c9e59ac73",
-      "after_sha256": "45879a75ed1ea5c2fbe3403df07cae9aa7bcda40d03f974954f84c60a4adf427",
+      "after_sha256": "69e4a0d9ec41ea5d3a525516951c7f43586ddd06148063de6b2d5b8dbf33bff9",
       "hunks": [
         {
           "before": "import SwiftUI\n\n@MainActor\nfinal class ProfileEditModel: ObservableObject {\n    let coordinator: ProfileEditCoordinator\n    @Published var draft = ProfileEditDraft()\n    @Published var confirmation: ProfileEditConfirmation?\n    @Published private(set) var busy = false\n    @Published private(set) var revision = 0\n    private var generation = 0\n    private var contextIdentity: ProfileReadIdentity?\n    private var contextViewerRevision: UInt64?\n    init(coordinator: ProfileEditCoordinator) {\n        self.coordinator = coordinator\n        contextIdentity = coordinator.identity; contextViewerRevision = coordinator.viewerRevision\n    }\n    private func synchronizeContext() {\n        guard contextIdentity != coordinator.identity || contextViewerRevision != coordinator.viewerRevision else { return }\n        generation += 1; draft = .init(); confirmation = nil; busy = false\n        contextIdentity = coordinator.identity; contextViewerRevision = coordinator.viewerRevision\n        coordinator.synchronizeSession()\n    }\n    func resetAndLoad() async {\n        generation += 1; draft = .init(); confirmation = nil; busy = false\n        coordinator.synchronizeSession()\n        await load()\n    }\n    func load() async {\n        synchronizeContext()\n        guard !busy else { return }\n        let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision\n",
@@ -4320,6 +4448,62 @@
         {
           "before": "            HStack {\n                LabeledContent {\n                    if value.isEmpty { Text(\"profile.fieldEdit.empty\").foregroundStyle(.secondary) }\n                    else { Text(verbatim: value).lineLimit(3) }\n                } label: { Text(LocalizedStringKey(field.titleKey)) }\n",
           "after": "            HStack {\n                LabeledContent {\n                    if field == .caseIntroduction, model.coordinator.snapshot?.caseIntroduction == nil {\n                        Text(\"profile.case.descriptionUnavailable\").font(.caption).foregroundStyle(.secondary)\n                    } else if value.isEmpty { Text(\"profile.fieldEdit.empty\").foregroundStyle(.secondary) }\n                    else { Text(verbatim: value).lineLimit(3) }\n                } label: { Text(LocalizedStringKey(field.titleKey)) }\n"
+        },
+        {
+          "before": "    @Published private(set) var textEdit: ProfileTextFieldEdit?\n    private var exitCommitted = false\n",
+          "after": "    @Published private(set) var textEdit: ProfileTextFieldEdit?\n    private struct ReviewedDraft {\n        let reviewID: UUID\n        let generation: Int\n        let modelRevision: Int\n        let draftRevision: UInt64\n        let draft: ProfileEditDraft\n        let identity: ProfileReadIdentity?\n        let viewerRevision: UInt64?\n    }\n    private var reviewedDraft: ReviewedDraft?\n    private var exitCommitted = false\n"
+        },
+        {
+          "before": "        && lhs.removesContactQR == rhs.removesContactQR\n    }\n",
+          "after": "        && lhs.removesContactQR == rhs.removesContactQR\n        && lhs.removesCasePictures == rhs.removesCasePictures\n    }\n"
+        },
+        {
+          "before": "            || (draft.removesContactQR && !snapshot.wechat.isEmpty)\n    }\n",
+          "after": "            || (draft.removesContactQR && !snapshot.wechat.isEmpty)\n            || (draft.removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0)\n    }\n"
+        },
+        {
+          "before": "            next.removesContactQR = text.isEmpty && !snapshot.wechat.isEmpty\n        }\n",
+          "after": "            next.removesContactQR = text.isEmpty && !snapshot.wechat.isEmpty\n        case .casePictures:\n            guard text.isEmpty || text.utf8.elementsEqual(snapshot.casePics.utf8) else { return false }\n            next.removesCasePictures = text.isEmpty && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0\n        case .preferences:\n            guard let original = ProfilePreferenceRemoval.selection(draft: draft, snapshot: snapshot),\n                  let selected = ProfilePreferenceRemoval.parse(text),\n                  ProfilePreferenceRemoval.isOrderedSubset(selected, of: original) else { return false }\n            // No-op confirmation must keep nil/raw preservation and existing staged edits.\n            if selected != original { next.routePreferenceIDs = selected }\n        }\n"
+        },
+        {
+          "before": "        return confirmTextEdit(value, text: remove ? \"\" : value.snapshot.wechat)\n    }\n",
+          "after": "        return confirmTextEdit(value, text: remove ? \"\" : value.snapshot.wechat)\n    }\n    @discardableResult func confirmPreferenceRemoval(_ value: ProfileTextFieldEdit, selectedIDs: [Int]) -> Bool {\n        guard value.field == .preferences,\n              ProfilePreferenceRemoval.validIDs(selectedIDs) else { return false }\n        return confirmTextEdit(value, text: selectedIDs.map(String.init).joined(separator: \",\"))\n    }\n    @discardableResult func confirmCasePictureRemoval(_ value: ProfileTextFieldEdit, remove: Bool) -> Bool {\n        guard value.field == .casePictures else { return false }\n        return confirmTextEdit(value, text: remove ? \"\" : value.snapshot.casePics)\n    }\n"
+        },
+        {
+          "before": "        guard !busy, !coordinator.isLocked, draft.avatarReplacement?.id == id else { return }\n        draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR)\n    }\n    func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }\n    func retireAvatar() { cancelExit(); avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }\n    func activateAvatar() { avatarActive = true }\n",
+          "after": "        guard !busy, !coordinator.isLocked, draft.avatarReplacement?.id == id else { return }\n        draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures)\n    }\n    func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }\n    func retireAvatar() { cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }\n    func activateAvatar() { avatarActive = true }\n"
+        },
+        {
+          "before": "        let request = generation; busy = true\n        await coordinator.prepare(draft, avatarValidity: avatarSaveValidity(for: draft))\n",
+          "after": "        let request = generation; busy = true\n        let captured = draft, capturedRevision = avatarDraftRevision\n        reviewedDraft = nil\n        await coordinator.prepare(draft, avatarValidity: avatarSaveValidity(for: draft))\n"
+        },
+        {
+          "before": "        if coordinator.messageKey == \"profile.edit.changed\", let snapshot = coordinator.snapshot { draft = snapshot.draft }\n    }\n",
+          "after": "        if coordinator.messageKey == \"profile.edit.changed\", let snapshot = coordinator.snapshot { draft = snapshot.draft }\n        if let value = confirmation, avatarDraftRevision == capturedRevision, Self.sameDraft(draft, captured) {\n            reviewedDraft = .init(reviewID: value.id, generation: generation, modelRevision: revision,\n                draftRevision: capturedRevision, draft: captured, identity: identity, viewerRevision: viewerRevision)\n        }\n    }\n    func canRestoreReviewedDraft(_ value: ProfileEditConfirmation) -> Bool {\n        guard !exitCommitted, !busy, !coordinator.isBusy, !coordinator.isLocked,\n              textEdit == nil, !avatarPresentationActive, reloadConfirmation == nil, exitConfirmation == nil,\n              confirmation == value, coordinator.confirmation == value,\n              let captured = reviewedDraft, captured.reviewID == value.id,\n              captured.generation == generation, captured.modelRevision == revision,\n              captured.draftRevision == avatarDraftRevision, Self.sameDraft(draft, captured.draft),\n              captured.identity == coordinator.identity, captured.viewerRevision == coordinator.viewerRevision else { return false }\n        return true\n    }\n    /// Restore every field atomically from the latest reviewed self read and remain here.\n    @discardableResult func restoreReviewedDraft(_ value: ProfileEditConfirmation) -> Bool {\n        guard canRestoreReviewedDraft(value), let snapshot = coordinator.discardReviewedDraft(value) else { return false }\n        reviewedDraft = nil; confirmation = nil\n        retireReload(); retireAvatar(); activateAvatar()\n        draft = snapshot.draft; revision += 1\n        return true\n    }\n"
+        },
+        {
+          "before": "        let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision\n        let request = generation; confirmation = nil; busy = true\n        await coordinator.save(value)\n",
+          "after": "        let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision\n        let request = generation; reviewedDraft = nil; confirmation = nil; busy = true\n        await coordinator.save(value)\n"
+        },
+        {
+          "before": "                            .disabled(!model.canBeginTextEdit)\n                    }\n",
+          "after": "                            .disabled(!model.canBeginTextEdit)\n                        Button(\"profile.caseRemoval.open\") { model.beginTextEdit(.casePictures) }\n                            .disabled(!model.canBeginTextEdit).accessibilityIdentifier(\"profile.caseRemoval.open\")\n                        if model.draft.removesCasePictures { Text(\"profile.caseRemoval.staged\") }\n                    }\n"
+        },
+        {
+          "before": "                        LabeledContent(\"context.preferences.selected\", value: String(selectedPreferences.count))\n                        Button(\"context.preferences.edit\") { showPreferences = true }\n",
+          "after": "                        LabeledContent(\"context.preferences.selected\", value: String(selectedPreferences.count))\n                        Button(\"profile.preferenceRemoval.open\") { model.beginTextEdit(.preferences) }\n                            .disabled(!model.canBeginTextEdit)\n                            .accessibilityIdentifier(\"profile.preferenceRemoval.open\")\n                        Button(\"context.preferences.edit\") { showPreferences = true }\n"
+        },
+        {
+          "before": "                        .id(value.id)\n                } else {\n",
+          "after": "                        .id(value.id)\n                } else if value.field == .casePictures {\n                    ProfileCasePictureRemovalEditor(edit: value,\n                        cancel: { model.cancelTextEdit(value) },\n                        confirm: { _ = model.confirmCasePictureRemoval(value, remove: $0) })\n                        .id(value.id)\n                } else if value.field == .preferences {\n                    ProfilePreferenceRemovalEditor(edit: value,\n                        cancel: { model.cancelTextEdit(value) },\n                        confirm: { _ = model.confirmPreferenceRemoval(value, selectedIDs: $0) })\n                        .id(value.id)\n                } else {\n"
+        },
+        {
+          "before": "                Form {\n                    Section {\n",
+          "after": "                Form {\n                    ProfileDraftReviewSection(summary: value.reviewSummary,\n                        canRestore: model.canRestoreReviewedDraft(value),\n                        restore: { _ = model.restoreReviewedDraft(value) })\n                        .id(value.id)\n                    Section {\n"
+        },
+        {
+          "before": "                        if value.payload.removesContactQR { Text(\"profile.contactQR.reviewRemoval\") }\n                        if value.payload.avatarReplacement != nil { Text(\"profile.avatar.confirmChange\") }\n",
+          "after": "                        if value.payload.removesContactQR { Text(\"profile.contactQR.reviewRemoval\") }\n                        if value.payload.removesCasePictures { Text(\"profile.caseRemoval.review\") }\n                        if let ids = value.payload.preferenceIDs {\n                            ProfilePreferenceRemovalReview(ids: ids)\n                        }\n                        if value.payload.avatarReplacement != nil { Text(\"profile.avatar.confirmChange\") }\n"
         }
       ]
     },
@@ -4441,7 +4625,7 @@
     },
     "Core/ProfileEditContracts.swift": {
       "before_sha256": "1023b237a4388ccb08e62054b2c8be80e769f0c143dd56af97ad1b3e64f2e46e",
-      "after_sha256": "525213b2ff5b11f8a12ecb2e8bcb51cc676856a6231411644272d482613aaf5e",
+      "after_sha256": "fd3e3c774cae29da1363ce34ba9212d68a7024e438e94572eec7dc0121752f70",
       "hunks": [
         {
           "before": "    public var introduction: String\n    /// Nil preserves the complete wire string. An explicit empty selection clears preferences.\n    public var routePreferenceIDs: [Int]?\n    public init(name: String = \"\", introduction: String = \"\", routePreferenceIDs: [Int]? = nil) {\n        self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs\n    }\n    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs) }\n    public var isValid: Bool {\n        let ids = routePreferenceIDs ?? []\n        return !normalized.name.isEmpty && ids.allSatisfy { $0 > 0 } && Set(ids).count == ids.count\n",
@@ -4482,12 +4666,44 @@
         {
           "before": "    public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {\n        if avatarReplacement != nil {\n",
           "after": "    public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {\n        if let caseIntroduction, !ProfileCasePortfolio.sameText(caseIntroduction, snapshot.caseIntroduction) { return false }\n        if avatarReplacement != nil {\n"
+        },
+        {
+          "before": "    public let tagIds: String\n    enum CodingKeys: String, CodingKey {\n",
+          "after": "    public let tagIds: String\n    /// Display-only labels from the existing self response; never sent back.\n    public let preferenceNames: [Int: String]\n    enum CodingKeys: String, CodingKey {\n"
+        },
+        {
+          "before": "        else { caseIntroduction = nil }\n        introduction = try preserved(.introduction)\n",
+          "after": "        else { caseIntroduction = nil }\n        let labels = (try? c.decode([ProfilePreferenceLabel].self, forKey: .sysCategoryList)) ?? []\n        preferenceNames = ProfilePreferenceRemoval.names(labels)\n        introduction = try preserved(.introduction)\n"
+        },
+        {
+          "before": "    public var removesContactQR: Bool\n    /// Nil preserves the complete wire string. An explicit empty selection clears preferences.\n",
+          "after": "    public var removesContactQR: Bool\n    /// Clear all existing work-image references; no replacement or upload capability.\n    public var removesCasePictures: Bool\n    /// Nil preserves the complete wire string. An explicit empty selection clears preferences.\n"
+        },
+        {
+          "before": "    public private(set) var avatarReplacement: ProfileAvatarReplacement?\n    public init(name: String = \"\", introduction: String = \"\", routePreferenceIDs: [Int]? = nil, avatarReplacement: ProfileAvatarReplacement? = nil, caseIntroduction: String? = nil, removesContactQR: Bool = false) {\n        self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs\n        self.avatarReplacement = avatarReplacement; self.caseIntroduction = caseIntroduction\n        self.removesContactQR = removesContactQR\n    }\n    public func stagingAvatar(_ value: ProfileAvatarReplacement) -> Self {\n        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR)\n    }\n    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR) }\n    public func hasChanges(comparedTo snapshot: ProfileEditSnapshot) -> Bool {\n        var ordinary = normalized; ordinary.caseIntroduction = nil; ordinary.removesContactQR = false\n        let caseChanged = caseIntroduction.map { !ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction) } ?? false\n        let contactQRChanged = removesContactQR && !snapshot.wechat.isEmpty\n        return ordinary != snapshot.draft.normalized || caseChanged || contactQRChanged\n    }\n",
+          "after": "    public private(set) var avatarReplacement: ProfileAvatarReplacement?\n    public init(name: String = \"\", introduction: String = \"\", routePreferenceIDs: [Int]? = nil, avatarReplacement: ProfileAvatarReplacement? = nil, caseIntroduction: String? = nil, removesContactQR: Bool = false, removesCasePictures: Bool = false) {\n        self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs\n        self.avatarReplacement = avatarReplacement; self.caseIntroduction = caseIntroduction\n        self.removesContactQR = removesContactQR; self.removesCasePictures = removesCasePictures\n    }\n    public func stagingAvatar(_ value: ProfileAvatarReplacement) -> Self {\n        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures)\n    }\n    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures) }\n    public func hasChanges(comparedTo snapshot: ProfileEditSnapshot) -> Bool {\n        var ordinary = normalized; ordinary.caseIntroduction = nil; ordinary.removesContactQR = false; ordinary.removesCasePictures = false\n        let caseChanged = caseIntroduction.map { !ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction) } ?? false\n        let contactQRChanged = removesContactQR && !snapshot.wechat.isEmpty\n        let picturesChanged = removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0\n        return ordinary != snapshot.draft.normalized || caseChanged || contactQRChanged || picturesChanged\n    }\n"
+        },
+        {
+          "before": "    public let removesContactQR: Bool\n    public let casePics: String\n",
+          "after": "    public let removesContactQR: Bool\n    public let removesCasePictures: Bool\n    public let casePics: String\n"
+        },
+        {
+          "before": "    public let avatarReplacement: ProfileAvatarReplacement?\n    enum CodingKeys: String, CodingKey {\n",
+          "after": "    public let avatarReplacement: ProfileAvatarReplacement?\n    /// Review metadata only. The existing tagIds key is the sole wire representation.\n    public let preferenceIDs: [Int]?\n    enum CodingKeys: String, CodingKey {\n"
+        },
+        {
+          "before": "        caseIntroduction = draft.caseIntroduction\n        removesContactQR = draft.removesContactQR && !snapshot.wechat.isEmpty\n        name = draft.normalized.name; introduction = draft.normalized.introduction\n",
+          "after": "        caseIntroduction = draft.caseIntroduction\n        preferenceIDs = draft.routePreferenceIDs\n        removesContactQR = draft.removesContactQR && !snapshot.wechat.isEmpty\n        removesCasePictures = draft.removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0\n        name = draft.normalized.name; introduction = draft.normalized.introduction\n"
+        },
+        {
+          "before": "        avatar = draft.avatarReplacement?.reference ?? snapshot.avatar\n        wechat = removesContactQR ? \"\" : snapshot.wechat; casePics = snapshot.casePics\n        tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: \",\") } ?? snapshot.tagIds\n",
+          "after": "        avatar = draft.avatarReplacement?.reference ?? snapshot.avatar\n        wechat = removesContactQR ? \"\" : snapshot.wechat\n        casePics = removesCasePictures ? \"\" : snapshot.casePics\n        tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: \",\") } ?? snapshot.tagIds\n"
         }
       ]
     },
     "Core/ProfileEditCoordinator.swift": {
       "before_sha256": "c08da5dead9c78d7256fecf8853f4a9a4122a5cf3ad5cca4dec3cbce7a03982f",
-      "after_sha256": "0e1a00e4c3a00d82af47fca36be8944088008cbc0cba186bc1865db01a05aece",
+      "after_sha256": "c6e84c713093527632de90971c6949c905e25a78510a7ef3ea1b7617f971d8e8",
       "hunks": [
         {
           "before": "import Foundation\n\npublic struct ProfileEditConfirmation: Identifiable, Equatable {\n    public let id: UUID\n    public let payload: ProfileEditPayload\n    fileprivate let snapshot: ProfileEditSnapshot\n    fileprivate let session: ProfileEditSession\n}\n/// Retain in AppSession, not the navigation destination. Unknown writes remain locked even\n/// through navigation and same-account reauthentication. Reconciliation never repeats a POST.\n",
@@ -4536,6 +4752,22 @@
         {
           "before": "            guard active(expected, request) else { return }\n            guard latest == value.snapshot else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if value.payload.avatarReplacement != nil {\n",
           "after": "            guard active(expected, request) else { return }\n            guard latest == value.snapshot,\n                  ProfileCasePortfolio.sameText(latest.caseIntroduction, value.snapshot.caseIntroduction),\n                  !value.payload.removesContactQR || latest.wechat.utf8.elementsEqual(value.snapshot.wechat.utf8) else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if value.payload.avatarReplacement != nil {\n"
+        },
+        {
+          "before": "    fileprivate let avatarValidity: ProfileAvatarSaveValidity?\n}\n",
+          "after": "    fileprivate let avatarValidity: ProfileAvatarSaveValidity?\n    public var reviewSummary: ProfileEditReviewSummary { .init(snapshot: snapshot, payload: payload) }\n}\n"
+        },
+        {
+          "before": "                  draft.caseIntroduction == nil || ProfileCasePortfolio.sameText(latest.caseIntroduction, original.caseIntroduction),\n                  !draft.removesContactQR || latest.wechat.utf8.elementsEqual(original.wechat.utf8) else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if let avatar = draft.avatarReplacement {\n",
+          "after": "                  draft.caseIntroduction == nil || ProfileCasePortfolio.sameText(latest.caseIntroduction, original.caseIntroduction),\n                  !draft.removesContactQR || latest.wechat.utf8.elementsEqual(original.wechat.utf8),\n                  !draft.removesCasePictures || latest.casePics.utf8.elementsEqual(original.casePics.utf8) else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if let avatar = draft.avatarReplacement {\n"
+        },
+        {
+          "before": "    public func cancel(_ value: ProfileEditConfirmation) { if confirmation == value { confirmation = nil } }\n    public func save(_ value: ProfileEditConfirmation) async {\n",
+          "after": "    public func cancel(_ value: ProfileEditConfirmation) { if confirmation == value { confirmation = nil } }\n    /// Consume this live review and return its freshly read baseline, without a request.\n    /// This discards only local intent; it cannot acknowledge or unlock any write.\n    public func discardReviewedDraft(_ value: ProfileEditConfirmation) -> ProfileEditSnapshot? {\n        synchronizeSession()\n        guard !Task.isCancelled, !isBusy, !isLocked, confirmation == value,\n              session == value.session, currentSession() == value.session else { return nil }\n        confirmation = nil; snapshot = value.snapshot\n        messageKey = \"profile.reviewRestore.restored\"; remoteMessage = nil\n        return value.snapshot\n    }\n    public func save(_ value: ProfileEditConfirmation) async {\n"
+        },
+        {
+          "before": "                  ProfileCasePortfolio.sameText(latest.caseIntroduction, value.snapshot.caseIntroduction),\n                  !value.payload.removesContactQR || latest.wechat.utf8.elementsEqual(value.snapshot.wechat.utf8) else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if value.payload.avatarReplacement != nil {\n",
+          "after": "                  ProfileCasePortfolio.sameText(latest.caseIntroduction, value.snapshot.caseIntroduction),\n                  !value.payload.removesContactQR || latest.wechat.utf8.elementsEqual(value.snapshot.wechat.utf8),\n                  !value.payload.removesCasePictures || latest.casePics.utf8.elementsEqual(value.snapshot.casePics.utf8) else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if value.payload.avatarReplacement != nil {\n"
         }
       ]
     },
@@ -5043,7 +5275,7 @@
     },
     "Resources/Localizable.xcstrings": {
       "before_sha256": "8f552d5a3f34a86c19a370c411a08669dfb4440a15f3b3037cd635595b4ff995",
-      "after_sha256": "43d6117db612545acb290fcce2aefd9a9366c40ccc9feae07e594e41c4ec3a4d",
+      "after_sha256": "aab898a7457e4396faf6a22d9adb83a9c61ebbd1b55a77c3d73ee6e9b27fbffb",
       "hunks": [
         {
           "before": "          }\n        }\n      }\n    }\n  },\n  \"version\": \"1.0\"\n",
@@ -5076,6 +5308,10 @@
         {
           "before": "      }\n    }\n",
           "after": "      }\n    },\n    \"merchant.hints.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Progressive hints\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"阶梯提示\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.enabled\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enable hints\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"启用提示\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.hint1\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"First hint\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"一级提示\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.hint2\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Second hint (optional)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"二级提示（选填）\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.answerReveal\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Fallback answer or explanation\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"兜底答案或解析\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.scope\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Hints are supported for written answers, multiple-choice questions and GPS arrival. Only the three text fields are saved.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"文字作答、选项问答和 GPS 到达支持提示。仅保存这三项文字。\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.unsupported\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This completion method does not support hint editing. Existing hints are preserved until you explicitly disable them or switch to a supported method.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前完成方式不支持编辑提示。已有提示会保留，直到你明确关闭提示或切换到支持的完成方式。\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.methodConflict\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This completion method does not support enabled hints. Switch back or explicitly disable hints before saving.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前完成方式不支持已启用的提示。请换回支持的方式，或明确关闭提示后再保存。\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.clearHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Disabling hints empties all three fields. Saving an empty field clears that saved text; review the changes before confirming.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"关闭提示会清空这三项。保存空白字段会清除对应的已保存文字，请先审阅再确认。\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.previewTitle\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Preview hint sequence\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"预览提示顺序\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.previewBoundary\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Author-only draft preview. This does not unlock hints for players, validate completion or grant rewards.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"仅供作者查看草稿。不会为玩家解锁提示、判定完成或发放奖励。\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.previewEmpty\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter hint text to preview it.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"填写提示文字后可预览。\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.revealNext\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reveal next hint\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"查看下一条提示\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.revealAnswer\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reveal fallback answer\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"查看兜底答案\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.restart\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Restart preview\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重新预览\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.reviewBoundary\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Review all hint text before saving. When players may see it is controlled by the existing runtime.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存前请检查全部提示内容。玩家何时能看到这些内容，由现有运行流程控制。\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.clearReview\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This saved text will be cleared.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"将清除这项已保存文字。\"\n          }\n        }\n      }\n    },\n    \"merchant.hints.empty\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No text\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"未填写\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Template story timeline\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"模板剧情时间线\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.enabled\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Include story timeline\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"添加剧情时间线\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.scope\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Edit the timeline text and labels. Existing images are retained; this editor does not upload or replace them.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"可编辑剧情片段和时刻标签。已有图片会保留；此处不上传或替换图片。\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.opaque\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This saved story uses an unsupported format. Its original content is preserved and cannot be edited or cleared here.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"此剧情使用暂不支持的格式。原始内容会保留，无法在此编辑或清空。\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.beat %lld\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Moment %1$lld\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"第 %1$lld 个时刻\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.body\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"What happens at this moment?\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这一刻发生了什么？\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.tag\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Moment label (optional)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"时刻标签（选填）\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.images %lld\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"%1$lld existing image references\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"关联 %1$lld 个已有图片引用\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.up\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Move earlier\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"提前\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.down\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Move later\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"延后\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.remove\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove moment\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"删除片段\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.add\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Add moment\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"添加时刻\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.clearHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Disabling the timeline removes its text and image references after confirmation. Blank moments without images are omitted.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"关闭时间线并确认保存后，会移除剧情文字及图片引用。没有图片的空片段不写入。\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.preview\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Preview timeline text\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"预览剧情文字\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.previewBoundary\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Author-only text preview. It does not publish, unlock player content or grant rewards. Images are represented by their retained reference counts.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"仅供作者查看文字草稿，不会发布、解锁玩家内容或发奖。图片以保留引用数量显示。\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.empty\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No story moments yet.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无剧情片段。\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.projectionHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The legacy story summary is limited to 500 UTF-16 units. The complete text remains in the saved timeline.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"旧版剧情摘要最多保存 500 个 UTF-16 单元，完整文字仍保存在时间线中。\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.clearReview\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saving will clear the existing story text and timeline.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存后将清空现有剧情文字和时间线。\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.removedImages %lld\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saving will remove %1$lld existing image references from this timeline; no uploaded image file is deleted.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存后将从此时间线移除 %1$lld 个已有图片引用；不会删除已上传的图片文件。\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.removedBeats\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saved moments being removed\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"将移除的已保存片段\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.tagNeedsContent\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"A moment has only a label. Add story text or remove the label so it is not silently discarded.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"有片段仅填写了标签。请添加正文或清空标签，避免标签被静默丢弃。\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.encodingFailed\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The timeline cannot be encoded. Keep your draft and try again.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"时间线暂时无法编码，请保留草稿后重试。\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.moveEarlier %lld\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Move moment %1$lld earlier\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"将第 %1$lld 个时刻提前\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.moveLater %lld\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Move moment %1$lld later\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"将第 %1$lld 个时刻延后\"\n          }\n        }\n      }\n    },\n    \"merchant.storyTimeline.removeMoment %lld\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove moment %1$lld\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"删除第 %1$lld 个时刻\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Gameplay categories\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"玩法类别\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.choose\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose gameplay categories\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"选择玩法类别\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.scope\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose from the current gameplay catalog. Categories do not approve a template or change its publication status.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"从当前玩法目录选择分类。分类不代表模板已获批准，也不会改变发布状态。\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.stale\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This template or account changed. Close this sheet and open it again.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"模板或账号已变化，请关闭后重新打开。\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.loading\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Loading categories…\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"正在加载类别…\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.retry\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Retry categories\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重试加载类别\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.unsupported\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The saved category format is not recognized. Keep it unchanged or explicitly replace it using the catalog.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"现有分类格式暂不支持。可保留原样，或明确使用目录分类替换。\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.replace\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Replace unrecognized selection\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"替换未识别的分类\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.unavailable\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saved categories missing from this catalog\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前目录没有的已有分类\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.unavailableHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"These IDs are preserved. Remove them explicitly before applying a new selection; nothing is removed just by loading.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这些 ID 会保留。应用新选择前需明确移除；加载目录不会自动删除。\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.removeID %lld\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove saved category #%1$lld\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除已有分类 #%1$lld\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.empty\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The server returned no gameplay categories.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"服务端暂无玩法类别。\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.noMatches\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No matching categories.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"没有匹配的类别。\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.catalog\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Available gameplay categories\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"可选玩法类别\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.selectionCount %lld\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"%1$lld selected\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已选 %1$lld 项\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.minimum\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Select at least one available category. When the selection changes, its first ID becomes the primary category.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"至少选择一个当前可用类别。变更选择后，第一个选中的 ID 将作为主分类。\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.reload\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reload catalog\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重新加载目录\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.search\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Search category names or IDs\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"搜索类别名称或 ID\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.apply\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Use selection\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"使用所选类别\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.none\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No category selection.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"尚未选择类别。\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.id %lld\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"ID %1$lld\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"ID %1$lld\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.primary %lld\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Primary category: %1$lld\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"主分类：%1$lld\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.replacementReview\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saving replaces the unrecognized saved category value with this selection.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存后将用本次选择替换原来未识别的分类值。\"\n          }\n        }\n      }\n    },\n    \"merchant.categories.reviewHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Review the selected IDs and primary category. Only server save and readback confirm the stored result.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请检查分类 ID 与主分类。保存结果以服务端确认和回读为准。\"\n          }\n        }\n      }\n    }\n"
+        },
+        {
+          "before": "      }\n    }\n",
+          "after": "      }\n    },\n    \"profile.preferenceRemoval.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Selected preferences\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已选路线偏好\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.open\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Manage selected preferences\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"管理已选偏好\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.empty\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No selected preferences\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无已选偏好\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.unknownName\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Category\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"分类\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.remove\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.restore\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Restore\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"恢复\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.hint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Done only stages these removals. Review and save your profile to apply them.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"完成仅暂存移除结果，请审阅并保存整页资料后生效。\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.clear\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Clear all\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"清空已选偏好\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.undoAll\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Undo removals\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"撤回本次移除\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.unavailable\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Stored preferences could not be safely read. Close this editor and reload your profile.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"无法安全读取已存偏好，请关闭此窗口并重新加载资料。\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.review\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Selected preference IDs\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存后的偏好分类编号\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Existing work images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"现有作品图片\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.open\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Manage existing work images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"管理现有作品图片\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.count\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Existing images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"现有图片数量\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.empty\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No existing work images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无现有作品图片\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.staged\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"All work images are pending removal\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"全部作品图片待移除\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.restore\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Keep all existing images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保留全部现有图片\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.remove\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove all work images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除全部作品图片\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.explanation\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This removes every existing work image from your profile, including images beyond the preview limit. Your work description stays unchanged.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"此操作将从资料中移除全部现有作品图片，包括超出预览数量的图片。作品描述会保留。\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.hint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Done only stages this choice. Review and save your full profile to apply it. Cancel keeps the page draft unchanged.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"完成仅暂存选择，审阅并保存整页资料后生效。取消不会更改整页草稿。\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.review\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"All existing work images will be removed.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"全部现有作品图片将被移除。\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.compare\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Compare changes\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"对比资料改动\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.before\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Before\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"原值\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.after\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"After saving\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存后\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.exactTextHint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Only changed fields are listed. Text comparisons include spacing and exact character encoding.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"仅列出有改动的字段，文字对比包括空白和字符编码差异。\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.noChanges\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No changed values in this review.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本次审阅没有变化的值。\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.open\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Discard reviewed changes\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"放弃本次审阅的改动\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Discard these local changes?\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"放弃这些本机改动？\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.message\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"All changes in this review will be cleared. The last reviewed profile stays on this page. Nothing will be saved to the server.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本次审阅中的全部改动将被清除，页面恢复为本次审阅时读取的资料，不会向服务器保存。\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.confirm\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Discard changes and stay\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"放弃改动并留在此页\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.restored\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Local changes were discarded. Nothing was saved.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已放弃本机改动，未执行保存。\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.empty\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Empty\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"空\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.whitespace\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Whitespace only\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"仅含空白字符\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.present\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Present\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已有\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.absent\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"None\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"无\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.newAvatar\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Newly staged avatar\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"新暂存的头像\"\n          }\n        }\n      }\n    },\n    \"profile.postsRefresh.refresh\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Refresh posts\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"刷新动态\"\n          }\n        }\n      }\n    },\n    \"profile.postsRefresh.refreshing\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Refreshing posts…\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"正在刷新动态…\"\n          }\n        }\n      }\n    },\n    \"profile.postsRefresh.retained\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Showing previously loaded posts until a new read succeeds.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂时显示上次已加载的动态，读取成功后更新。\"\n          }\n        }\n      }\n    }\n"
         }
       ]
     },
@@ -5209,7 +5445,7 @@
     "Core/RoamRetainedRead.swift": "7864b357ca7c20ad9f60f767a788f7a72ac3cd80edcc4554a87ef15d7db0bbe0",
     "Core/SearchMapLayerVisibility.swift": "2e95d0a1b587228fcf6f7b1b893d31c1ef67b3679702953810fb5e39feeec6b5",
     "Core/SearchMapViewportSelection.swift": "8cb68c5decb74da1b172da29507953f5b3fae9ece71eac4cce947c0cc84bcfc7",
-    "Resources/Localizable.xcstrings": "43d6117db612545acb290fcce2aefd9a9366c40ccc9feae07e594e41c4ec3a4d",
+    "Resources/Localizable.xcstrings": "aab898a7457e4396faf6a22d9adb83a9c61ebbd1b55a77c3d73ee6e9b27fbffb",
     "Resources/MerchantCityClaimWithdrawalLocalizations.fragment.json": "a19e4d670bc4be11489d8a45e4e5e1d4b68e2e074abacd86301f75a44fde800e",
     "Resources/MerchantCityQuotaLocalizations.fragment.json": "8c0b7f0fa055ae9cfd55517319138c01d58ca7fd5c1368196eeb608237bca3be",
     "Resources/MerchantCustomerContactLocalizations.fragment.json": "45fbb42eb318bd44ac1a0c728c1510941701d10aa5bb945fd135686147ca3cc6",
@@ -5552,7 +5788,7 @@
     "App/ProjectStoryTextInsertionButton.swift": "9844c587e8cee24c520ff0ae06d2f260fc2e1c38b04d184334912879eed3651a",
     "Core/ProfileAvatarFlow.swift": "6558a0f7606edd6319fc4088d90483215058e177d0310606c5247761c9f7de19",
     "Core/ProfileAvatarJournal.swift": "0e5f828ded3b4c2ace321afd7fb7f3d6b27bd087fdc046f0026b730747465638",
-    "Core/ProfileAvatarUpload.swift": "f9eb0d929be8b9f728937c103753d4eed38a7e38252025bb0f49325cf6de1541",
+    "Core/ProfileAvatarUpload.swift": "3327229fce8e634caa3ba2085eeede3c1be57419c81df678b18d5dbc8eb38610",
     "Core/ProjectEmptyStoryTextRemoval.swift": "802bf501a18454f53c331fec20c2c5924e3ee30f3bbebdb0bfc4327e886844e7",
     "Core/ProjectStoryTextInsertion.swift": "3bfa34a812e8911c9dc61e3762e6333dc70bd2ebff8b6a3320797ed20c65954b",
     "Resources/ProfileAvatarLocalizations.fragment.json": "cdf169196f1a916bcd7c62f0cfe766f521df88ded12744ba5467335161458659",
@@ -5674,7 +5910,7 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "54abf54a1f8cbcffd00432774bab7f6973644b79ba381e7141a3481d98f17ae2",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "0ad2034549bbf8f0adc818df510b5b3d19d70a042b72948e739b60e3384d8707",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "616a5e7f28ff5bd6814c91bf10e8f7efd99b8091ad4a8b9dc9d895f8bd2e0ad4",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
@@ -5688,14 +5924,14 @@
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "ee416a984c21b028274ef1279e84eadb544c37360459d6fcfeec265f67c27227",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "7c706133b0073709b0c1307594a5c4ee71ff35aa7f12098e4cfa57a775c62fe0",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
-    "Tests/ContractChecks/test_roam_route_replay.py": "be3e53d0e8d8cc1d00ed58a33f1657371a55e11515d10edcd7dfb075d6b3d952",
+    "Tests/ContractChecks/test_roam_route_replay.py": "b43fb0be28afef4ec713fafa46e75fc1ba33a18f5663469b2f9e7f3585f8706b",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "fe8a9eda8547564ec0371acac4a899a5bd85e4b12cff71679cb3ab8d86892e0e",
+    "Tests/ContractChecks/test_category_roam_registration.py": "1c799fe9811fb09de2e1a7afca5a1a327a1acfd95dd768f953283ff83eac3423",
     "Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift": "91a1011295933822da752baaf3912cc8e36551bbe58597352dff171bf8c96222",
     "Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
     "Tests/ContractChecks/test_club_leaderboard_member_navigation.py": "f76bc1c7da34ef0e3df056a02eac732079e2b5103e0b872136dbf2d2e4b8c1a6",
@@ -5726,7 +5962,7 @@
     "docs/template-story-image-removal.md": "cbe5a2f317c50f0f9928dbefda60f5cb135536c516d0d23e64491684dfa5cbf0",
     "docs/template-venue-selection.md": "87576577256bacb75af887898ef3dbe5a60d6e1d29c10cae2fa972804d223042",
     "tools/template_story_localizations.json": "70f45636bc45c799eadbd879a4493ca6be435c21664fb1ed8c0a416452e4f1a1",
-    "App/SocialPublicProfileView.swift": "330e1eb6af7a6236d5466c0fadf4860ba0c92e3d4c29798392f0c5ac0acb80fe",
+    "App/SocialPublicProfileView.swift": "6d6d9d4083489d1d0f90440f22819ca5c4dd67c6607897fb3cef635f2c28de1b",
     "tools/tests/test_ci138_followon_integration.py": "553a98c94238f12d9c04774a0edaf0d0f6be2710ee029a569dc72b6cb05c1588",
     ".gitleaks.toml": "53f03a335ca414028fe30bb2b0f1f2bf587457d2b7a0ecd01404fac8a7c37148",
     "tools/tests/test_gitleaks_exact_source_digest.py": "92acf0f99d51b3f83cd6541b00e41eb32fe72fa70f0e263d05228a7267619d4d",
@@ -5772,8 +6008,8 @@
     "App/ClubEventCalendarView.swift": "3ab1f0b2c8d5776dbb6c98d3c26cb4ed01319b4a2986005626d6c736c6953f87",
     "Tests/CoreTests/MerchantTemplateExitPlanTests.swift": "d88fa72f67c8e09e441dbdc37c9906870eb199a00212541e3f1f5fc58fae8514",
     "docs/profile-text-field-edit.md": "d0d882dc204f2de4b48321c65a3e6041a37a2a9cf6418ac9e5359a95886b6893",
-    "Tests/ContractChecks/test_profile_text_field_edit.py": "352923330881c91cb6d74c387a3c87eb4021999f611518e33910e6286630a4c3",
-    "App/ProfileTextFieldEditor.swift": "afc42b6665ac620b7fe23c3708ca15184a8b8ffbf40544d71fc57068af455449",
+    "Tests/ContractChecks/test_profile_text_field_edit.py": "9fc62520d50acf00fd60f6b50835b79d41850e17c8bc27b5a960201a5c76994b",
+    "App/ProfileTextFieldEditor.swift": "e1aa1287839dfebe5748f47b5a5b22e336b5b054dcb8651da3672413501bafb3",
     "Tests/ContractChecks/test_merchant_template_exit_plan.py": "6e06ab860aa8fdefe559f07c989907297789871ce980b387af703f46c61a6bf0",
     "Core/RoamSharePhotoSaveState.swift": "dc363f60f6e8ebd84ebc25053fdf070b6000dcebc6b22aef5ccdf2d0e79383dd",
     "Tests/CoreTests/MerchantTemplateParticipationPlanTests.swift": "d02c0358ad1f43a4f112024c94a9875ffae2a1eb07c1f2443388e67d0af98e9a",
@@ -5794,8 +6030,8 @@
     "Tests/AppUnitTests/ProfileContactQRRemovalTests.swift": "11ca5957f3f35b807f3c9eb1fdc23a943cee056cde983dbc9f673068d2e59d2d",
     "Tests/CoreTests/TemplateRewardMedalRemovalTests.swift": "0794332f5556e09b94abcb970fa7da5693d398327f2caf853bbe004b8bb0bb37",
     "docs/profile-contact-qr-removal.md": "6caf857ec03fae7b50c31b7ea2ccc72a793ca1b784cfb67965ce6a6842f9e19b",
-    "Core/ProfileCasePortfolio.swift": "f6516e0758f14091d74067e0d400cd90a28f6545b65caa197d53ec5c838b4e1e",
-    "Tests/ContractChecks/test_profile_contact_qr_removal.py": "b79d47d597f888e6b596b9e600e611de2dca00847148a3182253472c40a61a8a",
+    "Core/ProfileCasePortfolio.swift": "4aee137343a990ad54d9f6514a8661b6e67e654f6cf07dada0edbaf95551fc00",
+    "Tests/ContractChecks/test_profile_contact_qr_removal.py": "a9932b2860c29579272348417e70322cb464e673bb90eb688bdbc93ce6d2e867",
     "docs/localization/template-reward-medal-clear.json": "a2dd8e3ec833a5719b00e0944033f355ad48b5e2f27c90c0c4e498462e5704d0",
     "Tests/CoreTests/MerchantTemplateRuleStepsTests.swift": "e4f9af9bfb0dad26ea77333083f77169ebe8d3df77af29b8ef7387f893624c8e",
     "App/TemplateRewardMedalClear.swift": "e9e3c1ceea511cdd41a60d747dee9520b7e2e60aa6719fce3acb18e39d90fd3a",
@@ -5809,10 +6045,10 @@
     "docs/profile-case-portfolio.md": "61f51777b32a0c59e3f699ed564dc1a4bd27dfdb0e15c1f34d103d0275036ad2",
     "docs/profile-case-portfolio-registration.fragment.json": "11fb7c4f604a30367636eb767a2f6b1fa84c2e1d541335820bd38db0348b67b9",
     "docs/merchant-template-preparation.md": "429751d2393936c40e9d030ab733ae4d177315ee740439b55f0acf16ac45254c",
-    "App/ProfileEditFixtureSupport.swift": "f0c59d0603c9931a6054e1ffe4dbd7adf848bc36745dec6dfc8198dc4139ff4b",
+    "App/ProfileEditFixtureSupport.swift": "c1a9958de26a58ced0d8a82985ac14f1cc74fe214dfcd089d295d7c5d319a09e",
     "Tests/AppUnitTests/TemplateChoiceOptionRowsEditorTests.swift": "e8d5a0ee9a89ed51d4791e35230be2d6a7ca4378729812251a35d00a7764dedc",
     "Tests/CoreTests/ProfileCasePortfolioTests.swift": "25fa6570762f8efd59a48530ee8f1624a836e1cb008c9f06a1ffeab8b16bdddc",
-    "Tests/ContractChecks/test_profile_case_portfolio.py": "96e76f34fff25e60bc8c4bf001d467254bc9cd46f0e9a252698cb7afc08f34c1",
+    "Tests/ContractChecks/test_profile_case_portfolio.py": "fcd105cda22c647977aff1b7599858fe9c43d6e456987130f9405219c24b3877",
     "Resources/ProfileContactQRRemovalLocalizations.fragment.json": "fe53a7ff39ba016665626dbd7e2edbf9249a6233ed6d0db29f1949254f1377fe",
     "Resources/MerchantTemplateMetadataLocalizations.fragment.json": "aae72acb7b15b2139d7775d18cadb1c44cc6f915a07466f94f30021d059a773a",
     "Resources/MerchantTemplateRuleStepsLocalizations.fragment.json": "3cb782324ad1f954cb516b045bb9c7befc1b1ed9cbea1ab7ef6690c41c55dd47",
@@ -5826,7 +6062,7 @@
     "docs/localization/template-choice-option-rows.json": "a9593126e2069ae063c9ccdf2443219cbce2853c6947eb572c08b7b9c2a553fa",
     "Tests/CoreTests/MerchantTemplatePreparationTests.swift": "b324cdbb30ea3fffec501606d3461c90b36a948cde725c6036729cad4ee3bd80",
     "App/TemplateChoiceOptionRowsEditor.swift": "99b721f076152c1662284aab9dcd750128a2d9b95ca4e77beae58cd8d5361c17",
-    "Core/ProfileEditSyntheticFixtures.swift": "edbbbe51e4599f06e3656416e821c06bb5e314915e1a2a26ff0fb34f883cc5be",
+    "Core/ProfileEditSyntheticFixtures.swift": "988d8f3b5766a6d6857c6dfb25c543ffc4bfbe17e6f3957d71f0009d7acb4a64",
     "Core/TemplateChoiceOptionRows.swift": "edbca33f4d070295213465767e0d540764cfec8dbf120f16b84a24f95a069079",
     "Tests/AppUnitTests/TemplateRewardMedalClearTests.swift": "d9e8eb879137326db648c1609b7be789ea98d2033f8948b5cceb5f5f5a1241c5",
     "docs/profile-contact-qr-removal-registration.fragment.json": "047f428b3d04aa2f12536408b8fd514f24975b76117401d6234ee2dfdfc6fb34",
@@ -5882,6 +6118,42 @@
     "Core/MerchantTemplateCategorySelection.swift": "d2e73b144b92957a9cfab90e32b12ca819083680adf2fd1a751850e72cc5dee8",
     "App/MerchantTemplateCategoryPicker.swift": "445134087ee808e9b80de781037fb891f5e71594a83aa4ebc1875425c1eff7b7",
     "Tests/CoreTests/MerchantTemplateHintsTests.swift": "115285b29f1b6072bb65cbabd1cafb3b73e7174620af06eca64abb6f70188238",
+    "Resources/ProfileCasePictureRemovalLocalizations.fragment.json": "c777914dc2cc5d7c45644097a0adb3478a97d998a65bdcf2364b97027b5cd090",
+    "Tests/AppUnitTests/ProfileAuthorPostsRefreshAppTests.swift": "9d6ec510e77bd9d6eac4511a984ac44ba5e220ecf7ab1823b19dd10725bc89c6",
+    "Tests/AppUnitTests/ProfilePreferenceRemovalTests.swift": "541f80d3feb70871c444133beadff480458bafef2b616d987d9d7c962a45cd52",
+    "docs/profile-draft-review-restore.md": "368a58d28e3613e3f773ac91a040f55a8d33a0a3bf8e895f3e1e0b75a44b4363",
+    "Tests/ContractChecks/test_profile_preference_removal.py": "d15f9391b4d1944f8667410f50e71ec05e389387d94583d2a30faf31bafc742f",
+    "Tests/CoreTests/ProfilePreferenceRemovalTests.swift": "47167ff6977a4cf421862f06339ecd959aa8dc02d2182c32e3f3ea8d04f75738",
+    "Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift": "2477449bcf10fdd6a1805ebdd26e4c00f0822843f8ec63c214ec067b597d3486",
+    "App/ProfileDraftReviewSection.swift": "252b94f6a11518a1a3b638a7f111f3ebb0c16ef614afe1933540bae557adda45",
+    "App/ProfileAuthorPostsRefreshFixture.swift": "33a54e8b83fe3e0940284f8c8a81902289be4d979a5585835e543a68a6f726f9",
+    "Core/ProfileAuthorPostsRefresh.swift": "483c55cb8552d4025630201d735f21f35a1c23def7a90d7ffba76b77dbbe8275",
+    "docs/profile-preference-removal.md": "9a0f1387c41b6144dd97b0ad6c1fa1a7ca539b468f39c60c3d9d5d52f42d9d5b",
+    "Tests/CoreTests/ProfileDraftReviewRestoreTests.swift": "e95c486308f5cd21a933fa3bffba70d4239f41ad27073f164b46afe298c3498e",
+    "docs/profile-preference-removal-registration.fragment.json": "694638b7fd8a9db74e5279956f8e84041a66d73bec8dc658de0128d0e4e50aef",
+    "docs/profile-author-posts-refresh-registration.fragment.json": "3e9d86c7c669fb80a9ef041cde78840f1cc51a2b2275d99500fa780f884ee0a3",
+    "Core/ProfilePreferenceRemoval.swift": "256c15ff86403cd4e03931bc28bf14787fee5bca080f39a00b57e80e2598cd31",
+    "App/ProfileAuthorPostsSection.swift": "7b44cd42c12180f345ddfbc007dd412407c5703394071da8891173e059835013",
+    "Resources/ProfileDraftReviewRestoreLocalizations.fragment.json": "20fa6850eb660de7ec704c5be59f4e518daabeb04d571f09bfcf99ffcde0e301",
+    "docs/profile-draft-review-restore-registration.fragment.json": "b6192eccfe38b153412bb37937e6c1ab7a1bbc1327737cb0231d47b523b2e3ed",
+    "Tests/CoreTests/ProfileAuthorPostsRefreshTests.swift": "b4870615b0139f48a078eb25e046c34a45f9d85cf96dc59793eea96c4c0441c7",
+    "docs/profile-author-posts-refresh.md": "886abb97549cd44f33302b11ecaa859d0476e21a6dacf6583473076cd1a69dbd",
+    "Tests/AppUnitTests/ProfileCasePictureRemovalTests.swift": "caf9cddc69cffca58e3dbff03caa4c94d146b6a6bdbcff385ca532a145aef782",
+    "App/ProfilePreferenceRemovalEditor.swift": "d204dcf16a21765ad0af962f93ee54d89aa903b46673e2ebdb6bb8b2cec4c4e9",
+    "Resources/ProfilePreferenceRemovalLocalizations.fragment.json": "86389e92315e61b605ad920a2602139ac645952a3989862a852970a2b3946bdf",
+    "Tests/ContractChecks/test_profile_case_picture_removal.py": "f390444378a687e07da595e86724ae93c2586747d85e535746445cbb79f2399b",
+    "Tests/ContractChecks/test_profile_author_posts_refresh.py": "1f4bd5c360127d2d01d1e17f67075580567c1f8aaa103cca2bb80d997c66d533",
+    "Tests/CoreTests/ProfileCasePictureRemovalTests.swift": "08cbbe578922d3253a5186fdbb899567b225e097ab083a933da83e7b3ee63797",
+    "App/ProfileCasePictureRemovalEditor.swift": "0404c8d7a208e3f26965334b28564db618af501389187ce41a8c47a08ff00022",
+    "Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift": "d028a95bb912648cb8571e67fed2f552720ce42a52ea62b6ee4172f007a04ee7",
+    "docs/profile-case-picture-removal-registration.fragment.json": "9bf8c77736e8acd050be17907fb1c12957e77c642e59475bb2ae9afe95bd6038",
+    "Core/ProfileEditReviewSummary.swift": "440c1fb608c23523e169cb06b294582499f4e3c4b568744a62ac8d1bfaf7ff6e",
+    "docs/profile-case-picture-removal.md": "d98ae53475ec436a03e12d385a952a2cd371d1a44462e9c4905689b72e6b3829",
+    "Tests/ContractChecks/test_profile_draft_review_restore.py": "670920b9be75215e6523d3267a93a3c2efcfe14c95e735b07dc6611b12b7354e",
+    "Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift": "72f8a3ec5625ca00f14d6dfd9c8d1618501d5d5051b29d9deeb32012d7360735",
+    "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift": "306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca",
+    "Tests/AppUnitTests/ProfileDraftReviewRestoreTests.swift": "a22b9e2ffdec3ded318bb599c7bf7138b5f3f2c381c812fe32f39220f538a3c3",
+    "Resources/ProfileAuthorPostsRefreshLocalizations.fragment.json": "fbad4662566bea1277f754727655ee489b85a8cf2999e09099e0a68783736c7c",
     "tools/tests/test_readiness_contract_parse_cache.py": "a05486842d224477efc0c91a25c0fb9458858295eb069869c37923903613f3b0"
   },
   "current_method_replacements": {
@@ -5980,10 +6252,10 @@
   "product_ui_budget": {
     "status": "UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT",
     "measured": false,
-    "new_methods": 32,
+    "new_methods": 52,
     "changed_existing_methods": 3,
-    "method_count_after": 774,
-    "class_count_after": 174,
+    "method_count_after": 794,
+    "class_count_after": 178,
     "assumptions": {
       "per_reveal_seconds": 40,
       "per_reveal_maximum_swipes": 10,
@@ -5996,7 +6268,7 @@
     },
     "source_sha256": {
       "App/MerchantOperationsEditor.swift": "eb56f809b605df42d8dd47e18367dfd02bc7de9d0bc8728527debc4fef7286b9",
-      "App/ProfileEditView.swift": "45879a75ed1ea5c2fbe3403df07cae9aa7bcda40d03f974954f84c60a4adf427",
+      "App/ProfileEditView.swift": "69e4a0d9ec41ea5d3a525516951c7f43586ddd06148063de6b2d5b8dbf33bff9",
       "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
       "Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift": "e9447c82c9429d68ffafba9b0934789fb1bd685364fcce6c11e560db5325530e",
       "Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift": "23bd4804a9a9de93deeef8e33975f619aa9bb244ecff7aa712fad05063f14d5c",
@@ -6006,9 +6278,13 @@
       "Tests/AppUITests/MerchantTemplatePreparationFlowTests.swift": "1b5e909777f95a10c36b46631b7f7c8f9091c413ac0fe3a0a5f890b5fe86a673",
       "Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift": "48e614784818da1dfdb1a542742da2c7d9db44ad1c6e61efcea050961b005016",
       "Tests/AppUITests/MerchantTemplateStoryTimelineFlowTests.swift": "42cc9464013786784bcd73269ccbc4ad4f78071a137ca1024cb3cbb8e2038e83",
+      "Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift": "72f8a3ec5625ca00f14d6dfd9c8d1618501d5d5051b29d9deeb32012d7360735",
+      "Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift": "d028a95bb912648cb8571e67fed2f552720ce42a52ea62b6ee4172f007a04ee7",
       "Tests/AppUITests/ProfileCasePortfolioFlowTests.swift": "171eb446703ca5240139d43fa1acbe3c764b848116e8f97c6b603dd2059d4455",
       "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift": "b2e650c4b6733546dc24ca36cce3538f487f476a122ea8e17c50597fd53d02d6",
-      "Tests/AppUITests/ProfileEditFlowTests.swift": "e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067"
+      "Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift": "2477449bcf10fdd6a1805ebdd26e4c00f0822843f8ec63c214ec067b597d3486",
+      "Tests/AppUITests/ProfileEditFlowTests.swift": "e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067",
+      "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift": "306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca"
     },
     "methods": {
       "ProfileEditFlowTests.testNicknameCancelReopenAndApply": {
@@ -6500,6 +6776,286 @@
         "typed_characters": 0,
         "unrounded_seconds": 461.0,
         "seconds": 470
+      },
+      "ProfilePreferenceRemovalFlowTests.testUnavailableCatalogueItemCanBeRemovedLocallyAndCancelled": {
+        "source": "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift",
+        "declaration_sha256": "046c1b6dc02f67cda5b49967b28ec7e56235b9ea0542c4cd2afefc8e5e2c8f48",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 6,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 156.0,
+        "seconds": 160
+      },
+      "ProfilePreferenceRemovalFlowTests.testRestoreAndUndoAllLeavePageUnchanged": {
+        "source": "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift",
+        "declaration_sha256": "26b4abdbe44264fc33cf7dc364e1c26b20c45c96405c5f3be6ccb0e70bf67c58",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 20,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 7,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 0,
+        "unrounded_seconds": 147.0,
+        "seconds": 150
+      },
+      "ProfilePreferenceRemovalFlowTests.testRemoveReviewSaveAndReopenShowsOnlyVerifiedSelection": {
+        "source": "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift",
+        "declaration_sha256": "504a49ebdc5669b32b746f9857aa6ba3b6825c003b17e7bfe51328a0ce7d467c",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 45,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 9,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 188.0,
+        "seconds": 190
+      },
+      "ProfilePreferenceRemovalFlowTests.testClearAllStagesEmptySelectionWithoutCatalogueRequest": {
+        "source": "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift",
+        "declaration_sha256": "10a62038c4d538981a839e9d4434069d1a6c2ae141066d3a927920a13b3a6b78",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 6,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 0,
+        "unrounded_seconds": 152.0,
+        "seconds": 160
+      },
+      "ProfilePreferenceRemovalFlowTests.testSwipeDismissDiscardsLocalRemoval": {
+        "source": "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift",
+        "declaration_sha256": "bbc10792c4102a57a0ffa19ca5eee07c4889b819b64de83df0bc089c7818dc5f",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 35,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 6,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 0,
+        "unrounded_seconds": 157.0,
+        "seconds": 160
+      },
+      "ProfileCasePictureRemovalFlowTests.testClearAllCancelPreservesExistingImages": {
+        "source": "Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift",
+        "declaration_sha256": "a69d6ad71588a741226a17a9eedb91af5ade8ea25331dc3051d76b0d8a9d7bb4",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 6,
+        "direct_ax_assertion_count": 2,
+        "typed_characters": 0,
+        "unrounded_seconds": 154.0,
+        "seconds": 160
+      },
+      "ProfileCasePictureRemovalFlowTests.testStageReopenAndKeepAllRestoresUnchangedDraft": {
+        "source": "Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift",
+        "declaration_sha256": "2f484039fd64ad085bc3f75002f509db47939601304773ec9e89d1f81b1676c9",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 8,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 0,
+        "unrounded_seconds": 162.0,
+        "seconds": 170
+      },
+      "ProfileCasePictureRemovalFlowTests.testDescriptionEditorShowsPendingImageRemovalInsteadOfOriginalGallery": {
+        "source": "Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift",
+        "declaration_sha256": "7735fd1bd53aa90f6de3cf82be08262bc7eb228a2cf5116b395842f9dd4eeac8",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 25,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 5,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 0,
+        "unrounded_seconds": 142.0,
+        "seconds": 150
+      },
+      "ProfileCasePictureRemovalFlowTests.testReviewSaveAndReopenConfirmsAllImagesRemoved": {
+        "source": "Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift",
+        "declaration_sha256": "55e146b883d47b9b1ad801890a19bdf0247e4d08707ef358f08225a715e18b4f",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 45,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 9,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 186.0,
+        "seconds": 190
+      },
+      "ProfileCasePictureRemovalFlowTests.testSwipeDismissDoesNotStageClearAll": {
+        "source": "Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift",
+        "declaration_sha256": "d9a8583a182dbf1a3d8f2b67e1611ab2dfb4608e8f008407b42a631b1d71ed4b",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 35,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 6,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 0,
+        "unrounded_seconds": 157.0,
+        "seconds": 160
+      },
+      "ProfileDraftReviewRestoreFlowTests.testCompareShowsBeforeAndAfterForChangedFieldOnly": {
+        "source": "Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift",
+        "declaration_sha256": "5b242168581b527b1e8966cdc203c6cf89d37acf5aec7333229e61538b9b973e",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 20,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 8,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 6,
+        "unrounded_seconds": 159.5,
+        "seconds": 160
+      },
+      "ProfileDraftReviewRestoreFlowTests.testDiscardConfirmationCancelPreservesReviewAndDraft": {
+        "source": "Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift",
+        "declaration_sha256": "fcf84852f31a3db5e14fcd87136078838167193f662b25c9d119cec27970b172",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 20,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 10,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 6,
+        "unrounded_seconds": 167.5,
+        "seconds": 170
+      },
+      "ProfileDraftReviewRestoreFlowTests.testDiscardStaysOnPageAndDoesNotReportServerSave": {
+        "source": "Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift",
+        "declaration_sha256": "93bad18ede1241a8058cf0632bd1accbc178508ef290baaf78dd752187738091",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 25,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 9,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 6,
+        "unrounded_seconds": 167.5,
+        "seconds": 170
+      },
+      "ProfileDraftReviewRestoreFlowTests.testDiscardRestoresImagesAsWellAsText": {
+        "source": "Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift",
+        "declaration_sha256": "0722e82218e089524bc89118551b7086915142a94bfd0630880f61e3a3b56623",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 25,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 14,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 6,
+        "unrounded_seconds": 188.5,
+        "seconds": 190
+      },
+      "ProfileDraftReviewRestoreFlowTests.testDiscardThenEditAndSaveIsStillAvailable": {
+        "source": "Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift",
+        "declaration_sha256": "fe85dab764d278ee5020eba7d12ae4a866b417120fa30e477acf0156e67dada0",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 40,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 17,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 12,
+        "unrounded_seconds": 220.0,
+        "seconds": 220
+      },
+      "ProfileAuthorPostsRefreshFlowTests.testRefreshFailureRetainsCardsAndRetryReplacesTail": {
+        "source": "Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift",
+        "declaration_sha256": "0504d020e7b6501a3e12c9c2822c5088a8348a16b0ad4e541648c427a0c3d3b1",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 21,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 7,
+        "direct_ax_assertion_count": 2,
+        "typed_characters": 0,
+        "unrounded_seconds": 150.0,
+        "seconds": 150
+      },
+      "ProfileAuthorPostsRefreshFlowTests.testEmptyRefreshReplacesPreviouslyVisiblePost": {
+        "source": "Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift",
+        "declaration_sha256": "b24de462f17f7412201c5aeae47dcb08679c7bb94b65dd87118ccf0c4c383611",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 9,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 2,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 0,
+        "unrounded_seconds": 111.0,
+        "seconds": 120
+      },
+      "ProfileAuthorPostsRefreshFlowTests.testMoreFailureRetriesContinuation": {
+        "source": "Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift",
+        "declaration_sha256": "acaebbaf5916ba2c33d236fcb8137058965b9897bd0d64dd4c9b4c5159a005fa",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 12,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 4,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 0,
+        "unrounded_seconds": 124.0,
+        "seconds": 130
+      },
+      "ProfileAuthorPostsRefreshFlowTests.testSignOutRemovesCardsAndShowsExistingSignInMessage": {
+        "source": "Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift",
+        "declaration_sha256": "0478516d85fbb4bc7574972a4587aae75c79825f804180c347d4705230c5f3a2",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 9,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 2,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 0,
+        "unrounded_seconds": 111.0,
+        "seconds": 120
+      },
+      "ProfileAuthorPostsRefreshFlowTests.testLeavingAndReturningStartsFreshFirstPage": {
+        "source": "Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift",
+        "declaration_sha256": "0e0715dcfd9c1663d534a512f27a83c0820b992edb1384b0fbd171ac47179aa1",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 12,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 4,
+        "direct_ax_assertion_count": 0,
+        "typed_characters": 0,
+        "unrounded_seconds": 122.0,
+        "seconds": 130
       }
     },
     "class_increment_seconds": {
@@ -6513,9 +7069,13 @@
       "ProfileContactQRRemovalFlowTests": 840,
       "MerchantTemplateHintsFlowTests": 3550,
       "MerchantTemplateStoryTimelineFlowTests": 3300,
-      "MerchantTemplateCategoryFlowTests": 1500
+      "MerchantTemplateCategoryFlowTests": 1500,
+      "ProfilePreferenceRemovalFlowTests": 820,
+      "ProfileCasePictureRemovalFlowTests": 830,
+      "ProfileDraftReviewRestoreFlowTests": 910,
+      "ProfileAuthorPostsRefreshFlowTests": 650
     },
-    "added_seconds": 16350,
+    "added_seconds": 19560,
     "prior_profile_class_seconds": 81.645
   }
 }

@@ -1,0 +1,27 @@
+{
+  "status": "PENDING_PARENT_INTEGRATION",
+  "app_sources": [
+    "App/ProfileDraftReviewSection.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileEditReviewSummary.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileDraftReviewRestoreTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileDraftReviewRestoreTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileDraftReviewRestoreLocalizations.fragment.json",
+  "new_localization_keys": 15,
+  "central_files_modified": [],
+  "merge_instructions": [
+    "Apply after all five sealed profile increments; preserve newer central ProfileEditView body decomposition.",
+    "Register new sources and tests, and merge the 15 new bilingual keys.",
+    "This is local draft restoration only; do not treat it as remote rollback, write recovery or upload asset deletion."
+  ],
+  "apple": "NOT_RUN"
+}
