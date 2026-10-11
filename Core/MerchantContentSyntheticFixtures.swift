@@ -18,6 +18,7 @@ public final class MerchantContentFixtureTransport: MerchantContentOfflineTransp
     public var failReads = false
     public private(set) var requests: [URLRequest] = []
     private var npc = #"{"name":"Synthetic guide","avatar":"fixture-avatar","greeting":"Welcome","voiceStatus":0}"#
+    private var updatedRegistration: MerchantContentValue?
     private var lastCommand: MerchantContentValue = .null
     public init() {}
     public func send(_ request: URLRequest) async throws -> (Data, Int) {
@@ -37,7 +38,9 @@ public final class MerchantContentFixtureTransport: MerchantContentOfflineTransp
         case "/api/merchant/chapter-node/mine", "/api/merchant/chapter-node/pending": return envelope(#"[{"id":62,"chapterId":7,"topicId":70,"name":"Synthetic station","nodeAuditStatus":1,"address":"Synthetic street"}]"#)
         case "/api/merchant/upcoming-runs": return envelope(#"[{"ticketId":11,"startTime":"2026-10-02 10:00:00","paidCount":3,"teamStatus":"FORMED"}]"#)
         case "/api/registration/merchant/list": return envelope("{\"rows\":[" + MerchantContentFixtureData.registration + "]}")
-        case "/api/registration/merchant/info": return envelope(MerchantContentFixtureData.registration)
+        case "/api/registration/merchant/info":
+            if let updatedRegistration { return (try JSONEncoder().encode(MerchantContentValue.object(["code": .integer(200), "data": updatedRegistration])), 200) }
+            return envelope(MerchantContentFixtureData.registration)
         case "/api/registration/merchant/select": return envelope(#""未报名""#)
         case "/api/merchant/city-node/list": return envelope(#"{"nodes":[{"poiId":17,"name":"Synthetic place","status":1,"address":"Synthetic street"}],"applications":[{"id":91,"poiName":"Claim awaiting review","applicationType":2,"auditStatus":0}],"used":1,"max":5}"#)
         case "/api/merchant/city-node/claimable": return envelope(#"[{"poiId":18,"name":"Synthetic square"}]"#)
@@ -54,6 +57,14 @@ public final class MerchantContentFixtureTransport: MerchantContentOfflineTransp
             return (try JSONEncoder().encode(MerchantContentValue.object(["code": .integer(200), "data": .object(f)])), 200)
         case "/api/merchant/chapter-node/poster-code": return envelope(#"{"code":"SYNTHETIC-NOT-REDEEMABLE","nodeName":"Synthetic station"}"#)
         default:
+            if path == "/api/registration/merchant/update", let body = request.httpBody {
+                let fields = try JSONDecoder().decode(MerchantContentValue.self, from: body)
+                if fields["startDate"].text != nil, fields["endDate"].text != nil, fields["cooperateDate"].text != nil, !unknownWrite {
+                    var value = try MerchantContentFixtureData.value(MerchantContentFixtureData.registration).object ?? [:]
+                    for key in ["startDate", "endDate", "cooperateDate"] { value[key] = fields[key] }
+                    updatedRegistration = .object(value)
+                }
+            }
             if path == "/api/game/session/command", let body = request.httpBody { lastCommand = try JSONDecoder().decode(MerchantContentValue.self, from: body) }
             if unknownWrite { throw URLError(.timedOut) }
             if path == "/api/merchant/city-node/save" { return envelope(#"{"id":92}"#) }

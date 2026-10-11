@@ -86,6 +86,10 @@ public struct MerchantProject: Decodable, Equatable, Identifiable {
     public let projectID: Int
     public let bizType: String
     public let title: String
+    public let state: String?
+    public let ownerType: String?
+    public let addressName: String?
+    public let pendingVerifyCount: Int?
     public let projectTypeText: String?
     public let stateText: String?
     public let acceptStatusText: String?
@@ -95,6 +99,7 @@ public struct MerchantProject: Decodable, Equatable, Identifiable {
     public let viewCount: Int
     enum CodingKeys: String, CodingKey {
         case id, bizType, title, projectTypeText, stateText, acceptStatusText, startTime, endTime, signupCount, viewCount
+        case state, ownerType, addressName, pendingVerifyCount
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -103,6 +108,13 @@ public struct MerchantProject: Decodable, Equatable, Identifiable {
         }
         projectID = id
         bizType = try c.decode(String.self, forKey: .bizType)
+        state = try c.decodeIfPresent(String.self, forKey: .state)
+        ownerType = try c.decodeIfPresent(String.self, forKey: .ownerType)
+        addressName = try c.decodeIfPresent(String.self, forKey: .addressName)
+        pendingVerifyCount = try c.decodeIfPresent(Int.self, forKey: .pendingVerifyCount)
+        if let pendingVerifyCount, pendingVerifyCount < 0 {
+            throw DecodingError.dataCorruptedError(forKey: .pendingVerifyCount, in: c, debugDescription: "Invalid pending verification count")
+        }
         title = try c.decodeIfPresent(String.self, forKey: .title)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         projectTypeText = try c.decodeIfPresent(String.self, forKey: .projectTypeText)
         stateText = try c.decodeIfPresent(String.self, forKey: .stateText)

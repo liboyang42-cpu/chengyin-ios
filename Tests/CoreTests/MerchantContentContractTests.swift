@@ -70,6 +70,29 @@ final class MerchantContentContractTests: XCTestCase {
         let won = try snapshot(.registration(id: 22), MerchantContentFixtureData.registration.replacingOccurrences(of: #""auditStatus":0"#, with: #""auditStatus":1"#))
         XCTAssertThrowsError(try MerchantContentCommand.updateRegistration(id: 22, topicID: 70, draft: d).validate(against: won))
     }
+    func testRegistrationEditUsesExactBackendStatePairs() throws {
+        for status in -1...4 {
+            for audit in -1...3 {
+                let expected = (status == 0 && audit == 0) || ((status == 2 || status == 3) && audit == 2)
+                XCTAssertEqual(MerchantRegistrationEditEligibility.allows(status: status, auditStatus: audit), expected)
+                let raw = "{\"id\":22,\"topicId\":70,\"status\":\(status),\"auditStatus\":\(audit)}"
+                let state = try snapshot(.registration(id: 22), raw)
+                let draft = MerchantRegistrationContentDraft(detail: try value(MerchantContentFixtureData.registration))
+                let command = MerchantContentCommand.updateRegistration(id: 22, topicID: 70, draft: draft)
+                if expected { XCTAssertNoThrow(try command.validate(against: state)) }
+                else { XCTAssertThrowsError(try command.validate(against: state)) }
+            }
+        }
+    }
+    func testRegistrationEditMissingStateCannotGrantAccess() throws {
+        XCTAssertFalse(MerchantRegistrationEditEligibility.allows(status: nil, auditStatus: 0))
+        XCTAssertFalse(MerchantRegistrationEditEligibility.allows(status: 0, auditStatus: nil))
+        for raw in [#"{"id":22,"topicId":70,"status":0}"#, #"{"id":22,"topicId":70,"auditStatus":0}"#] {
+            let state = try snapshot(.registration(id: 22), raw)
+            let draft = MerchantRegistrationContentDraft(detail: try value(MerchantContentFixtureData.registration))
+            XCTAssertThrowsError(try MerchantContentCommand.updateRegistration(id: 22, topicID: 70, draft: draft).validate(against: state))
+        }
+    }
     func testCancellationNeedsKnownNotWonStatus() throws {
         XCTAssertThrowsError(try MerchantContentCommand.cancelRegistration(id: 22).validate(against: snapshot(.registration(id: 22), #"{"id":22,"status":0}"#)))
     }

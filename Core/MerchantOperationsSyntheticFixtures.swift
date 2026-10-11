@@ -10,6 +10,8 @@ import Foundation
     public var denied = false
     public var failure: APIError?
     public var saveFailure: MerchantOperationsFailure?
+    public var templatePageFailures: Set<Int> = []
+    public private(set) var templatePageRequests: [Int] = []
     public private(set) var saveCount = 0
     public private(set) var accessCount = 0
     public private(set) var documents: [MerchantOperationsDestination: MerchantOperationsDocument] = [:]
@@ -46,9 +48,53 @@ import Foundation
         guard let document = documents[destination] else { throw APIError.malformedResponse }
         return document
     }
+    public func templatePage(page: Int) async throws -> MerchantTemplatePageRead {
+        let access = try await access()
+        guard access.allows(.templates) else { throw MerchantOperationsFailure.accessDenied }
+        guard page > 0, page <= Int.max / MerchantTemplatePage.pageSize else { throw APIError.invalidRequest }
+        templatePageRequests.append(page)
+        if templatePageFailures.remove(page) != nil { throw APIError.httpStatus(503) }
+        guard case .templates(let saved) = documents[.templates] else { throw APIError.malformedResponse }
+        let start = min((page - 1) * MerchantTemplatePage.pageSize, saved.count)
+        let end = min(start + MerchantTemplatePage.pageSize, saved.count)
+        let rows: [[String: Any]] = saved[start..<end].map { row in
+            var fields: [String: Any] = ["id": row.id, "title": row.title]
+            if let description = row.description { fields["description"] = description }
+            if let image = row.imgUrl { fields["imgUrl"] = image }
+            if let method = row.validationMethod { fields["validationMethod"] = method }
+            if let status = row.status { fields["status"] = status }
+            if let status = row.publishStatus { fields["publishStatus"] = status }
+            if case .draft(.template(let current)) = documents[.template(row.id)] {
+                fields["title"] = current.title; fields["description"] = current.description
+            }
+            return fields
+        }
+        let data = try JSONSerialization.data(withJSONObject: ["rows": rows, "total": saved.count])
+        return .init(page: try JSONDecoder().decode(MerchantTemplatePage.self, from: data), access: access)
+    }
+    public func configureTemplateBrowserFixture(count: Int = 105) throws {
+        guard count >= 0, case .draft(.template(let seed)) = documents[.template(71)] else { throw APIError.invalidRequest }
+        var rows: [[String: Any]] = []
+        for offset in 0..<count {
+            var value = seed; value.id = 71 + offset; value.title = "Synthetic template \(offset + 1)"
+            documents[.template(value.id)] = .draft(.template(value))
+            rows.append(["id": value.id!, "title": value.title, "description": "Synthetic paged template", "validationMethod": 2, "status": 0])
+        }
+        let data = try JSONSerialization.data(withJSONObject: rows)
+        documents[.templates] = .templates(try JSONDecoder().decode([MerchantTemplateRecord].self, from: data))
+    }
     public func templateCategories() async throws -> MerchantTemplateCategoryCatalog {
         guard try await access().allows(.templates) else { throw MerchantOperationsFailure.accessDenied }
         return try JSONDecoder().decode(MerchantTemplateCategoryCatalog.self, from: Data(#"[{"id":101,"categoryName":"Synthetic observation","type":4},{"id":102,"categoryName":"Synthetic puzzle","type":4},{"id":103,"categoryName":"Synthetic exploration","type":4}]"#.utf8))
+    }
+    public func brandImages() async throws -> MerchantBrandImages {
+        let access = try await access()
+        guard access.allows(.profile), access.cooperationManage else { throw MerchantOperationsFailure.accessDenied }
+        return try JSONDecoder().decode(MerchantBrandImages.self, from: Data(#"{"id":31,"derivatives":"https://example.invalid/brand/one.png,https://example.invalid/brand/two.png,/legacy-brand.png"}"#.utf8))
+    }
+    public func storeIndustries() async throws -> MerchantStoreIndustryCatalog {
+        guard try await access().allows(.decor) else { throw MerchantOperationsFailure.accessDenied }
+        return try JSONDecoder().decode(MerchantStoreIndustryCatalog.self, from: Data(#"[{"id":8,"categoryName":"Synthetic café","type":1},{"id":9,"categoryName":"Synthetic bookshop","type":1},{"id":10,"categoryName":"Synthetic workshop","type":1}]"#.utf8))
     }
     public func saveExample(_ draft: MerchantOperationsDraft) async throws {
         guard try await access().allows(draft.destination) else { throw MerchantOperationsFailure.accessDenied }

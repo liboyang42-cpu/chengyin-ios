@@ -1,0 +1,376 @@
+{
+  "merchant.industry.currentID %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Store industry ID: %1$lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店铺行业 ID：%1$lld"
+        }
+      }
+    }
+  },
+  "merchant.industry.none": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No industry selected"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未选择行业"
+        }
+      }
+    }
+  },
+  "merchant.industry.choose": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose store industry"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择店铺行业"
+        }
+      }
+    }
+  },
+  "merchant.industry.scope": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This is the shop’s public industry classification, separate from gameplay categories. Apply edits the current draft only."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这是店铺的公开行业分类，与玩法类别分开。应用选择仅修改当前草稿。"
+        }
+      }
+    }
+  },
+  "merchant.industry.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading store industries…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在加载店铺行业…"
+        }
+      }
+    }
+  },
+  "merchant.industry.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry industry catalog"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试行业目录"
+        }
+      }
+    }
+  },
+  "merchant.industry.stale": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This selection expired. Reopen it from the current shop draft."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次选择已失效，请从当前店铺草稿重新打开。"
+        }
+      }
+    }
+  },
+  "merchant.industry.original": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved industry"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已有行业"
+        }
+      }
+    }
+  },
+  "merchant.industry.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The saved industry is missing from this catalog. It remains unchanged unless you choose and apply another industry."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前目录中没有已有行业。除非明确选择并应用另一行业，否则会保持原值。"
+        }
+      }
+    }
+  },
+  "merchant.industry.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server returned no available store industries."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端暂无可选店铺行业。"
+        }
+      }
+    }
+  },
+  "merchant.industry.catalog": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Available industries"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可选行业"
+        }
+      }
+    }
+  },
+  "merchant.industry.selected": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selected industry"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次选择"
+        }
+      }
+    }
+  },
+  "merchant.industry.replaceHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Applying will replace the previous industry in this draft. Review the change before saving."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用后将替换草稿中的原行业，保存前仍需审阅。"
+        }
+      }
+    }
+  },
+  "merchant.industry.noClear": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose one available industry. Clearing is not supported by the current save contract."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择一个可用行业。当前保存合同不支持清空行业。"
+        }
+      }
+    }
+  },
+  "merchant.industry.reload": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reload industries"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新加载行业"
+        }
+      }
+    }
+  },
+  "merchant.industry.apply": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use this industry"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "使用此行业"
+        }
+      }
+    }
+  },
+  "merchant.industry.reviewTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review industry change"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "审阅行业变更"
+        }
+      }
+    }
+  },
+  "merchant.industry.previous": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Previous industry ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "原行业 ID"
+        }
+      }
+    }
+  },
+  "merchant.industry.new": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selected industry ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "所选行业 ID"
+        }
+      }
+    }
+  },
+  "merchant.industry.reviewBody": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This changes the shop’s public classification, not its qualifications or approval. Only the server save and readback confirm the stored industry."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此操作变更店铺公开分类，不改变资质或审核资格。保存结果以服务端确认和回读为准。"
+        }
+      }
+    }
+  },
+  "merchant.industry.readback": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server-confirmed store industry has been reloaded."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已重新读取服务端确认的店铺行业。"
+        }
+      }
+    }
+  },
+  "merchant.industry.readbackFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The save was acknowledged, but the current industry could not be read. Reload the shop; do not resubmit this save."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存已获确认，但暂未读到当前行业。请重新加载店铺，不要重复提交本次保存。"
+        }
+      }
+    }
+  }
+}

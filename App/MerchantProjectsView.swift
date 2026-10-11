@@ -8,6 +8,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
     var contentService: (any MerchantContentServing)? = nil
     @StateObject private var model = MerchantLoadModel<MerchantProjectWorkspaceSnapshot>()
     @StateObject private var presentation = MerchantProjectWorkspacePresentation()
+    @State private var tab: MerchantProjectBrowserTab = .topic
     private var context: MerchantProjectWorkspaceContext { .init(reader: reader, service: contentService) }
     private var sourceFresh: Bool { !model.isLoading && model.errorKey == nil && model.loadedRevision == reader.sessionRevision }
     var body: some View {
@@ -18,6 +19,8 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                 ContentUnavailableView("merchant.projects", systemImage: "lock", description: Text("merchant.signIn"))
             } else if model.loadedRevision == reader.sessionRevision, let snapshot = model.value {
                 let page = snapshot.page
+                let shownTab = tab
+                let browser = MerchantProjectBrowser(page: page, tab: shownTab)
                 let permit = presentation.permit(snapshot: snapshot)
                 List {
                     Section {
@@ -29,18 +32,35 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                             MerchantInlineFailure(errorKey: error, retry: { Task { await reload() } })
                         }
                     }
+                    MerchantProjectBrowserControls(browser: browser, canSelect: !model.isLoading) { selected in
+                        guard model.value?.id == snapshot.id, !model.isLoading, tab == shownTab, browser.tabs.contains(selected) else { return }
+                        presentation.invalidate(); tab = selected
+                    }
                     if page.rows.isEmpty {
                         Text("merchant.projects.empty").accessibilityIdentifier("merchant.projects.empty")
+                    } else if browser.rows.isEmpty {
+                        Text("merchant.projectBrowser.emptyTab").accessibilityIdentifier("merchant.projectBrowser.emptyTab")
+                        ForEach(browser.alternatives, id: \.rawValue) { alternative in
+                            Button {
+                                guard model.value?.id == snapshot.id, !model.isLoading, tab == shownTab,
+                                      browser.alternatives.contains(alternative) else { return }
+                                presentation.invalidate(); tab = alternative
+                            } label: {
+                                Text(LocalizedStringKey(alternative.titleKey))
+                            }.accessibilityIdentifier("merchant.projectBrowser.switch." + alternative.rawValue)
+                        }
                     }
-                    ForEach(page.rows) { project in
+                    ForEach(browser.rows) { project in
                         Button {
                             guard model.value?.id == snapshot.id else { return }
+                            guard tab == shownTab, browser.rows.contains(project) else { return }
                             presentation.openSummary(project: project, snapshot: snapshot, context: context, permit: permit)
                         } label: {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title).font(.headline)
                                 if let text = project.projectTypeText, !text.isEmpty { Text(text).font(.subheadline) }
                                 if let text = project.stateText, !text.isEmpty { Text(text).foregroundStyle(.secondary) }
+                                MerchantProjectCardContext(project: project)
                                 if let text = project.startTime, !text.isEmpty { Label(text, systemImage: "calendar").font(.caption) }
                             }.padding(.vertical, 4)
                         }
@@ -54,8 +74,11 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
         }
         .appNavigationTitle("merchant.projects")
         .task(id: reader.sessionRevision) { await reload(discardOldValue: true) }
-        .onChange(of: context) { _, _ in presentation.invalidate() }
-        .onChange(of: model.value?.id) { _, _ in presentation.invalidate() }
+        .onChange(of: context) { _, _ in presentation.invalidate(); tab = .topic }
+        .onChange(of: model.value?.id) { _, _ in
+            presentation.invalidate()
+            if tab == .other, let page = model.value?.page, !MerchantProjectBrowser(page: page, tab: tab).tabs.contains(.other) { tab = .topic }
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { presentation.activate() } else { presentation.retire() }
         }
@@ -106,6 +129,7 @@ private struct MerchantProjectSummary: View {
             Section {
                 Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title).font(.headline)
                 Text("merchant.summarySnapshot").font(.footnote).foregroundStyle(.secondary)
+                MerchantProjectCardContext(project: project)
                 MerchantCountRow("merchant.recordID", value: project.projectID)
                 if let text = project.projectTypeText, !text.isEmpty { LabeledContent("merchant.project.type", value: text) }
                 if let text = project.stateText, !text.isEmpty { LabeledContent("merchant.project.state", value: text) }

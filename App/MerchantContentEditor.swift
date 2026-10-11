@@ -11,6 +11,7 @@ import SwiftUI
     @StateObject private var model: MerchantContentViewModel
     @State private var text: [String: String] = [:]
     @State private var checked: [String: Bool] = [:]
+    @State private var availabilityReplacement: MerchantRegistrationAvailability?
     @State private var templateID = 0
     @State private var pauseFallback: MerchantStationPauseChoice?
     @State private var approve = true
@@ -26,6 +27,14 @@ import SwiftUI
     var body: some View {
         Form {
             Section { MerchantContentBoundary(); MerchantContentStatus(model: model, allowsReload: !dirty) }
+            if availabilityReplacement != nil, c.receipt != nil, c.snapshot == nil, !c.busy {
+                Button("merchant.registrationAvailability.retryReadback") {
+                    Task {
+                        availabilityReplacement = nil; text = [:]; dirty = false
+                        await model.load(); if c.isCurrent, let source = c.snapshot { seed(source) }
+                    }
+                }.accessibilityIdentifier("merchant.registrationAvailability.retryReadback")
+            }
             if c.isCurrent, let source = c.snapshot {
                 fields(source)
                 Section {
@@ -42,7 +51,7 @@ import SwiftUI
         }
         .accessibilityIdentifier("merchant.content.editor")
         .appNavigationTitle(key: "merchant.content." + query.key)
-        .task(id: service.scope) { text = [:]; pauseFallback = nil; dirty = false; await model.load(); if c.isCurrent, let s = c.snapshot { seed(s) } }
+        .task(id: service.scope) { text = [:]; availabilityReplacement = nil; pauseFallback = nil; dirty = false; await model.load(); if c.isCurrent, let s = c.snapshot { seed(s) } }
         .navigationBarBackButtonHidden(dirty)
         .toolbar { if dirty { ToolbarItem(placement: .topBarLeading) { Button("action.cancel") { discard = true }.accessibilityIdentifier("merchant.content.close") } } }
         .interactiveDismissDisabled(dirty || c.busy)
@@ -51,8 +60,12 @@ import SwiftUI
             Button("merchant.content.keepEditing", role: .cancel) { }
         }
         .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { MerchantContentReviewView(model: model, review: $0) }
-        .onChange(of: c.snapshot?.observedAt) { _, _ in if !dirty, let s = c.snapshot { seed(s) } }
-        .onChange(of: service.scope) { _, _ in model.invalidate(); text = [:]; checked = [:]; pauseFallback = nil; dirty = false }
+        .onChange(of: c.snapshot?.observedAt) { _, _ in
+            if availabilityReplacement != nil, c.receipt != nil, let s = c.snapshot {
+                text = [:]; availabilityReplacement = nil; seed(s)
+            } else if !dirty, let s = c.snapshot { seed(s) }
+        }
+        .onChange(of: service.scope) { _, _ in model.invalidate(); text = [:]; checked = [:]; availabilityReplacement = nil; pauseFallback = nil; dirty = false }
     }
     private func binding(_ name: String) -> Binding<String> { Binding(get: { text[name] ?? "" }, set: { text[name] = $0; dirty = true; model.cancel() }) }
     private func field(_ name: String) -> some View {
@@ -68,7 +81,16 @@ import SwiftUI
             Section("merchant.content.registrationContent") {
                 ForEach(["addressName", "address", "longitude", "latitude", "activityDesc", "picUrl", "limitNum"], id: \.self) { field($0) }
                 if case .registrationCreate = kind { field("cooperateDate") }
-                Text("merchant.content.registrationPreservation").font(.footnote)
+                if case .registrationCreate = kind { Text("merchant.content.registrationPreservation").font(.footnote) }
+            }
+            if case .registrationEdit(let id) = kind {
+                MerchantRegistrationAvailabilityPicker(context: .init(scope: s.scope, registrationID: id, observedAt: s.observedAt),
+                    source: .init(s.value), replacement: availabilityReplacement,
+                    canEdit: c.isCurrent && !c.busy && !c.locked && c.review == nil && c.receipt == nil) { replacement in
+                    guard c.isCurrent, !c.busy, !c.locked, c.review == nil, c.receipt == nil,
+                          c.snapshot == s, c.snapshot?.observedAt == s.observedAt else { return false }
+                    availabilityReplacement = replacement; dirty = true; model.cancel(); return true
+                }
             }
         case .chapterNode:
             Section { templates(s); ForEach(["name", "description", "address", "longitude", "latitude", "imgUrl", "businessTime"], id: \.self) { field($0) }; Text("merchant.content.nodeReviewWarning").font(.footnote); Text("merchant.content.xpUnavailable").font(.footnote) }
@@ -183,7 +205,9 @@ import SwiftUI
         templateID = value["templateId"].integer ?? 0; dirty = false
     }
     private func registrationDraft() -> MerchantRegistrationContentDraft {
-        .init(detail: .object(text.mapValues { .string($0) }))
+        var draft = MerchantRegistrationContentDraft(detail: .object(text.mapValues { .string($0) }))
+        if case .registrationEdit = kind { draft.availabilityReplacement = availabilityReplacement }
+        return draft
     }
     private func command(_ s: MerchantContentSnapshot) throws -> MerchantContentCommand {
         func value(_ key: String) -> String { text[key] ?? "" }

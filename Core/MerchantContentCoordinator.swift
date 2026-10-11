@@ -53,6 +53,21 @@ public struct MerchantContentReview: Identifiable, Equatable {
             receipt = value
             issue = value.station?.outcome == "FAILED" ? "merchant.content.stationFailed" : "merchant.content.acknowledged"
             serverMessage = value.message
+            if frozen.command.registrationAvailability != nil {
+                // Only the new availability edit adds readback. The acknowledged
+                // receipt remains consumed even if this read fails; never replay it.
+                snapshot = nil
+                do {
+                    let returned = try await service.load(query)
+                    guard !Task.isCancelled, generation == operation, service.scope == frozen.scope else { return }
+                    guard returned.query == query, returned.scope == frozen.scope,
+                          returned.access.merchantID == frozen.baseline.access.merchantID else { throw MerchantContentFailure.conflict }
+                    snapshot = returned; issue = "merchant.registrationAvailability.readback"
+                } catch {
+                    guard !Task.isCancelled, generation == operation, service.scope == frozen.scope else { return }
+                    issue = "merchant.registrationAvailability.readbackFailed"
+                }
+            }
         } catch {
             guard generation == operation, service.scope == frozen.scope else { return }
             do { locked = try service.pending().contains { $0.merchantID == frozen.baseline.access.merchantID } }

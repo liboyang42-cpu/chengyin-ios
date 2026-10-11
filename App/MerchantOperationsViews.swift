@@ -133,13 +133,18 @@ struct MerchantOperationsDocumentView: View {
     }
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
     var body: some View {
+        if destination == .templates {
+            MerchantTemplateBrowserView(reader: reader, imageHost: imageHost, templateAssistFactory: templateAssistFactory)
+        } else { documentBody }
+    }
+    private var documentBody: some View {
         Group {
             if coordinator.isCurrent, let document = coordinator.document {
                 switch document {
                 case .draft:
                     MerchantOperationsEditor(model: model, templateAssistFactory: templateAssistFactory, imageContext: model.imageContext)
                 case .cityNodes(let catalog): MerchantOperationsCityView(catalog: catalog)
-                case .templates(let rows): MerchantOperationsTemplatesView(reader: reader, rows: rows, imageHost: imageHost, artworkVersion: String(model.revision), templateAssistFactory: templateAssistFactory)
+                case .templates: MerchantTemplateBrowserView(reader: reader, imageHost: imageHost, templateAssistFactory: templateAssistFactory)
                 case .assets(let resources): MerchantOperationsAssetsView(resources: resources)
                 }
             } else if let issue = coordinator.issue, coordinator.loadedScope == reader.scope {
@@ -204,39 +209,6 @@ struct MerchantOperationsIssueView: View {
         case .key(let key): Text(LocalizedStringKey(key)).foregroundStyle(.secondary).accessibilityIdentifier("merchant.operations.issue")
         case .server(let text): Text(verbatim: text).foregroundStyle(.secondary).accessibilityIdentifier("merchant.operations.issue")
         }
-    }
-}
-
-@MainActor
-private struct MerchantOperationsTemplatesView: View {
-    let reader: any MerchantOperationsReading
-    let rows: [MerchantTemplateRecord]
-    let imageHost: MerchantRetainedImageHost?
-    let artworkVersion: String
-    var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
-    var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 18) {
-                MerchantOperationsBoundary(isExample: reader.isOfflineExample)
-                Text("merchant.operations.templatePageLimit").font(.footnote).foregroundStyle(.secondary)
-                NavigationLink("merchant.operations.newTemplate") { MerchantOperationsDocumentView(reader: reader, destination: .template(nil), imageHost: imageHost, templateAssistFactory: templateAssistFactory) }
-                    .accessibilityIdentifier("merchant.operations.newTemplate")
-                if rows.isEmpty { ContentUnavailableView("merchant.operations.empty", systemImage: "square.grid.2x2") }
-                ForEach(rows) { row in
-                    NavigationLink { MerchantOperationsDocumentView(reader: reader, destination: .template(row.id), imageHost: imageHost, templateAssistFactory: templateAssistFactory) } label: {
-                        QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imgUrl, title: row.title, subtitle: row.description, fallbackTitle: "merchant.operations.untitled", minimumHeight: 230,
-                            progressiveBlur: .cover, artworkIdentity: .init(owner: reader.scope.uuidString, content: "merchant-template:\(row.id)", version: artworkVersion)) {
-                            Text(LocalizedStringKey(templateStatus(row.status)))
-                            if let method = row.validationMethod.flatMap(MerchantTemplateMethod.init(rawValue:)) { Text(LocalizedStringKey(method.titleKey)) }
-                        }
-                    }.buttonStyle(.plain).accessibilityIdentifier("merchant.operations.template." + String(row.id))
-                }
-            }.padding()
-        }
-    }
-    private func templateStatus(_ status: Int?) -> String {
-        switch status { case 0: return "merchant.operations.template.unpublished"; case 1: return "merchant.operations.template.published"
-        case 2: return "merchant.operations.review.pending"; default: return "merchant.operations.review.unknown" }
     }
 }
 

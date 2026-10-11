@@ -1,0 +1,291 @@
+{
+  "merchant.brandImages.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Brand images"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "品牌图片"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View saved brand images"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看已保存品牌图"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.sourceHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read the images currently saved for this shop. Unsaved merchandise edits are not previewed here."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取此门店当前已保存的图片，本次尚未保存的品牌商品编辑不会用于预览。"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.readOnly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Viewing only. This does not change materials or confirm verification."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅查看，不修改资料，也不代表认证通过。"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.expired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This viewing session has ended. Open the images again from the current shop."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次查看已结束，请从当前门店重新打开。"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading brand images…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在读取品牌图片…"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No saved brand-image references are available. Text merchandise descriptions are not images."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "没有可查看的已保存品牌图引用。文字商品介绍不会作为图片。"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.image %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Brand image %1$lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "品牌图 %1$lld"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.unsupported": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This saved reference cannot be previewed securely. It has not been changed or removed."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此已保存的引用无法安全预览，未对其修改或移除。"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.back": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Image list"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "图片列表"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.reload": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reload saved images"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新读取已保存图片"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.previous": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Previous image"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上一张"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.next": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Next image"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "下一张"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.positionLabel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Image position in saved list"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "图片在已保存列表中的位置"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.zoomIn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Zoom in"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放大"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.resetZoom": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reset zoom"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "恢复原尺寸"
+        }
+      }
+    }
+  },
+  "merchant.brandImages.imageFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This image could not be loaded. Retry or choose another image."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "图片暂时无法读取，请重试或选择其他图片。"
+        }
+      }
+    }
+  }
+}

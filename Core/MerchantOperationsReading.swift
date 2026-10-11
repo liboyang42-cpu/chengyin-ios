@@ -24,7 +24,10 @@ public struct MerchantOperationsSession: Equatable {
     func saveTemplateReviewed(_ draft: MerchantNodeTemplate, baseline: MerchantNodeTemplate) async throws -> Int?
     func access() async throws -> MerchantOperationsAccess
     func document(_ destination: MerchantOperationsDestination) async throws -> MerchantOperationsDocument
+    func templatePage(page: Int) async throws -> MerchantTemplatePageRead
     func templateCategories() async throws -> MerchantTemplateCategoryCatalog
+    func brandImages() async throws -> MerchantBrandImages
+    func storeIndustries() async throws -> MerchantStoreIndustryCatalog
     func featuredActivities(page: Int) async throws -> MerchantFeaturedActivityPage
     /// Only the DEBUG synthetic reader implements this. Live readers always reject it.
     func saveExample(_ draft: MerchantOperationsDraft) async throws
@@ -50,12 +53,38 @@ public struct MerchantOperationsSession: Equatable {
         self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized; snapshot = currentSession(); self.approval = approval; self.journal = journal
     }
     public func access() async throws -> MerchantOperationsAccess { try await read { try await $0.access(token: $1) } }
+    public func templatePage(page: Int) async throws -> MerchantTemplatePageRead {
+        guard page > 0 else { throw APIError.invalidRequest }
+        let expected = currentSession()
+        return try await read { service, token in
+            let access = try await service.access(token: token)
+            guard !Task.isCancelled, expected == currentSession() else { throw CancellationError() }
+            let result = try await service.templatePage(page: page, access: access, token: token)
+            return .init(page: result, access: access)
+        }
+    }
     public func templateCategories() async throws -> MerchantTemplateCategoryCatalog {
         let expected = currentSession()
         return try await read { service, token in
             let access = try await service.access(token: token)
             guard !Task.isCancelled, expected == currentSession() else { throw CancellationError() }
             return try await service.templateCategories(access: access, token: token)
+        }
+    }
+    public func brandImages() async throws -> MerchantBrandImages {
+        let expected = currentSession()
+        return try await read { service, token in
+            let access = try await service.access(token: token)
+            guard !Task.isCancelled, expected == currentSession() else { throw CancellationError() }
+            return try await service.brandImages(access: access, token: token)
+        }
+    }
+    public func storeIndustries() async throws -> MerchantStoreIndustryCatalog {
+        let expected = currentSession()
+        return try await read { service, token in
+            let access = try await service.access(token: token)
+            guard !Task.isCancelled, expected == currentSession() else { throw CancellationError() }
+            return try await service.storeIndustries(access: access, token: token)
         }
     }
     public func featuredActivities(page: Int) async throws -> MerchantFeaturedActivityPage {
@@ -275,6 +304,21 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
                     guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
                     issue = .key(destination == .npcMapPoint ? "merchantMapPoint.readbackFailed" : destination == .businessStatus ? "merchant.operations.statusReadbackFailed" : "merchant.operations.profileReadbackFailed")
                 }
+            } else if MerchantStoreIndustryChange(baseline: value.baseline, draft: value.draft) != nil {
+                // The new industry-change flow rereads the saved storefront category.
+                // A read failure after acknowledgement must never replay decor/save.
+                document = nil; baseline = nil; draft = nil; exampleSaved = false
+                do {
+                    let current = try await reader.document(.decor)
+                    guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
+                    guard case .draft(.decor(let returned)) = current else { throw APIError.malformedResponse }
+                    document = current; baseline = .decor(returned); draft = .decor(returned)
+                    exampleSaved = reader.isOfflineExample
+                    issue = reader.isOfflineExample ? nil : .key("merchant.industry.readback")
+                } catch {
+                    guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
+                    issue = .key("merchant.industry.readbackFailed")
+                }
             } else if case .cooperation(var accepted) = value.draft {
                 accepted.acknowledgeCapacityEdit()
                 let saved = MerchantOperationsDraft.cooperation(accepted)
@@ -295,7 +339,10 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
 }
 
 public extension MerchantOperationsReading {
+    func templatePage(page: Int) async throws -> MerchantTemplatePageRead { throw APIError.notConfigured }
     func templateCategories() async throws -> MerchantTemplateCategoryCatalog { throw APIError.notConfigured }
+    func brandImages() async throws -> MerchantBrandImages { throw APIError.notConfigured }
+    func storeIndustries() async throws -> MerchantStoreIndustryCatalog { throw APIError.notConfigured }
     func featuredActivities(page: Int) async throws -> MerchantFeaturedActivityPage { throw APIError.notConfigured }
     var canSave: Bool { isOfflineExample }
     func hasPending(_ destination: MerchantOperationsDestination) -> Bool { false }

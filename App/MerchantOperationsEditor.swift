@@ -63,6 +63,7 @@ struct MerchantOperationsEditor: View {
                 profileField("merchant.operations.preference", \.preference, "preference")
                 Text("merchant.operations.profileWhitelist").font(.footnote).foregroundStyle(.secondary)
             }
+            MerchantBrandImagesEntry(document: model)
             MerchantStoreHoursEditor(model: model)
             mediaSection("merchant.operations.logo", field: .logo)
         case .decor(let value):
@@ -71,7 +72,7 @@ struct MerchantOperationsEditor: View {
                 decorField("merchant.operations.slogan", \.slogan, "slogan")
                 decorField("merchant.operations.cityRole", \.cityRole, "cityRole")
                 Text("merchant.featuredClear.draftHint").font(.footnote).foregroundStyle(.secondary)
-                if let category = value.categoryID { LabeledContent("merchant.operations.category", value: String(category)) }
+                MerchantStoreIndustryPicker(document: model)
                 if let type = value.featuredType, let id = value.featuredID { LabeledContent("merchant.operations.featured", value: "\(type) / \(id)") }
                 MerchantFeaturedClearControl(model: model, source: value)
                 MerchantFeaturedActivityPicker(document: model)
@@ -303,6 +304,9 @@ struct MerchantOperationsConfirmationView: View {
                     Text(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnly" : (isExample ? "merchant.operations.confirmExampleBody" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLiveHint" : "merchant.operations.liveDisabled"))))
                     Text("merchant.operations.reviewNoApproval").font(.footnote).foregroundStyle(.secondary)
                     Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)
+                }
+                if let change = MerchantStoreIndustryChange(baseline: model.coordinator.baseline, draft: confirmation.draft) {
+                    MerchantStoreIndustryReview(change: change)
                 }
                 if let avatar = MerchantNPCCharacterAvatarSnapshot(draft: confirmation.draft) {
                     if let preset = avatar.preset {

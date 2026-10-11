@@ -11,6 +11,10 @@ struct MerchantOperationsFixtureHostView: View {
         if args.contains("--merchant-operations-failure") { reader.failure = .httpStatus(503) }
         if args.contains("--merchant-operations-unknown") { reader.saveFailure = .outcomeUnknown }
         if args.contains("--merchant-operations-rejected") { reader.saveFailure = .rejected(code: 422, message: "Synthetic content review rejected this text") }
+        if args.contains("--merchant-template-browser-pages") { try? reader.configureTemplateBrowserFixture() }
+        if args.contains("--merchant-template-browser-empty") { try? reader.configureTemplateBrowserFixture(count: 0) }
+        if args.contains("--merchant-template-browser-first-failure") { reader.templatePageFailures.insert(1) }
+        if args.contains("--merchant-template-browser-more-failure") { reader.templatePageFailures.insert(2) }
         _reader = State(initialValue: reader)
     }
     var body: some View {

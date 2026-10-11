@@ -1,0 +1,461 @@
+{
+  "merchant.registrationAvailability.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Registration availability"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "报名可接待时间"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.choose": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose dates and daily hours"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择日期与每日时段"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.sourceStart": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved first day"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已保存开始日期"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.sourceEnd": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved last day"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已保存结束日期"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.sourceDaily": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved daily hours"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已保存每日时段"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.newStart": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "New first day"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "新开始日期"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.newEnd": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "New last day"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "新结束日期"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.newDaily": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "New daily hours"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "新每日时段"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.notProvided": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not provided"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未提供"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.unrecognized": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Unrecognized saved value"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法识别的已保存值"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.restore": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Restore saved availability"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "恢复已保存的可接待时间"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.pending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This availability change is in the current draft only."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此可接待时间变更仅在当前草稿中。"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.preserve": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Without an explicit replacement, the saved dates and daily hours remain unchanged."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未明确替换时，已保存的日期及每日时段保持不变。"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.localDraft": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose both the date range and the daily hours. Apply returns to your draft; review and confirmation are still required."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "同时选择日期区间和每日时段。应用后回到草稿，仍需审阅及确认。"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.proposal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The saved availability is missing or cannot be represented here. These proposed dates and hours replace it only if you apply them."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已保存的可接待时间缺失或无法在此表示。只有应用后，这组建议日期与时段才会替换原值。"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.dateRange": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Inclusive date range"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可接待日期区间（含首尾）"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.dailyStart": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Daily start time"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "每日开始时间"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.dailyEnd": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Daily end time"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "每日结束时间"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.civilHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "These are calendar dates and same-day hours, not timezone conversions. Daily end must be after start; overnight hours are unsupported."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此处为日历日期及当日时段，不进行时区换算。结束须晚于开始，不支持跨夜。"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.invalid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use valid dates, with the last day on or after the first. Daily end must be later than start."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请输入有效日期，结束日期不得早于开始日期，每日结束时间须晚于开始时间。"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.stale": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The registration or draft changed. Close this sheet and open it again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "报名或草稿已变化，请关闭后重新打开。"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.apply": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply to draft"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用到草稿"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.reviewTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Availability replacement"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可接待时间替换"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.reviewHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This replaces the saved date range and daily hours together. Saving does not mean the application is approved; server eligibility still applies."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次将一并替换已保存的日期区间及每日时段。保存不代表报名获批，仍以服务端资格校验为准。"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.readback": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Availability was refreshed from the saved registration."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已从保存后的报名记录重新读取可接待时间。"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.readbackFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The update was acknowledged, but its saved details could not be read. Reload the registration; do not submit the same update again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更新已收到确认，但尚未读回保存详情。请重新读取报名，不要重复提交同一次更新。"
+        }
+      }
+    }
+  },
+  "merchant.registrationAvailability.retryReadback": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reload saved registration"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新读取已保存报名"
+        }
+      }
+    }
+  }
+}

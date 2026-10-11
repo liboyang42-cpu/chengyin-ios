@@ -59,9 +59,25 @@ public struct MerchantOperationsService {
     public func access(token: String) async throws -> MerchantOperationsAccess {
         try await read("api/merchant/access/me", body: .none, token: token)
     }
+    public func templatePage(page: Int, access: MerchantOperationsAccess, token: String) async throws -> MerchantTemplatePage {
+        guard access.allows(.templates) else { throw MerchantOperationsFailure.accessDenied }
+        guard page > 0 else { throw APIError.invalidRequest }
+        return try await read("api/template/my-list", body: .form(["is_quote": "", "keyword": "", "category_id": "",
+            "pageNum": String(page), "pageSize": String(MerchantTemplatePage.pageSize)]), token: token)
+    }
     public func templateCategories(access: MerchantOperationsAccess, token: String) async throws -> MerchantTemplateCategoryCatalog {
         guard access.allows(.templates) else { throw MerchantOperationsFailure.accessDenied }
         return try await read("api/category/list", body: .form(["type": "4", "parentid": "0"]), token: token)
+    }
+    public func brandImages(access: MerchantOperationsAccess, token: String) async throws -> MerchantBrandImages {
+        guard access.allows(.profile), access.cooperationManage else { throw MerchantOperationsFailure.accessDenied }
+        let value: MerchantBrandImages = try await read("api/merchant/coop-profile", body: .json, token: token)
+        guard value.merchantID == access.identity.merchantID else { throw APIError.malformedResponse }
+        return value
+    }
+    public func storeIndustries(access: MerchantOperationsAccess, token: String) async throws -> MerchantStoreIndustryCatalog {
+        guard access.allows(.decor) else { throw MerchantOperationsFailure.accessDenied }
+        return try await read("api/category/list", body: .form(["type": "1", "parentid": "0"]), token: token)
     }
     public func featuredActivities(page: Int, access: MerchantOperationsAccess, token: String) async throws -> MerchantFeaturedActivityPage {
         guard access.allows(.decor) else { throw MerchantOperationsFailure.accessDenied }

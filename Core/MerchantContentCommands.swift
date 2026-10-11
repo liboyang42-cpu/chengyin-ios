@@ -62,7 +62,7 @@ public enum MerchantContentCommand: Codable, Equatable {
             if !time.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { f["cooperateDate"] = .string(time.trimmingCharacters(in: .whitespacesAndNewlines)) }
             return json("api/registration/merchant/create", f)
         case .updateRegistration(let id, let topic, let draft):
-            try positive(id); try positive(topic); var f = try draft.fields(); f["id"] = .integer(id); f["topicId"] = .integer(topic)
+            try positive(id); try positive(topic); var f = try draft.fieldsIncludingAvailability(); f["id"] = .integer(id); f["topicId"] = .integer(topic)
             return json("api/registration/merchant/update", f)
         case .cancelRegistration(let id): try positive(id); return form("api/registration/merchant/cancel", ["id": String(id)])
         case .invite(let chapter, let member):
@@ -109,7 +109,7 @@ public enum MerchantContentCommand: Codable, Equatable {
             try need(chapters.flatMap { $0["nodes"].array ?? [] }.contains { $0["id"].integer == node })
         case .updateRegistration(let id, let topic, _):
             try need(snapshot.query == .registration(id: id) && snapshot.value["id"].integer == id && snapshot.value["topicId"].integer == topic)
-            try need([0, 2].contains(snapshot.value["status"].integer ?? -1) && snapshot.value["auditStatus"].integer != 1)
+            try need(MerchantRegistrationEditEligibility.allows(status: snapshot.value["status"].integer, auditStatus: snapshot.value["auditStatus"].integer))
         case .cancelRegistration(let id):
             try need(snapshot.query == .registration(id: id) && snapshot.value["id"].integer == id)
             // An absent award state is unknown, not proof that cancellation is allowed.

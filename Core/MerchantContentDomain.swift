@@ -41,6 +41,16 @@ public enum MerchantContentValue: Codable, Equatable, Sendable {
     public func decoded<T: Decodable>(_ type: T.Type) throws -> T { try JSONDecoder().decode(type, from: JSONEncoder().encode(self)) }
 }
 
+/// Exact existing edit states from MerchantRegistrationEditServiceImpl.
+/// An absent client state remains unknown and must never grant an edit.
+public enum MerchantRegistrationEditEligibility {
+    public static func allows(status: Int?, auditStatus: Int?) -> Bool {
+        guard let status, let auditStatus else { return false }
+        return (status == 0 && auditStatus == 0) ||
+            ((status == 2 || status == 3) && auditStatus == 2)
+    }
+}
+
 public enum MerchantContentFailure: Error, Equatable {
     case invalid, malformed, denied, changedSession, conflict, disabled, storage, unknown, locked
     case rejected(code: Int, message: String?)
@@ -101,6 +111,8 @@ public enum MerchantRecruitMode: String {
     }
 }
 public struct MerchantRegistrationContentDraft: Codable, Equatable {
+    /// Explicit edited group only; absence preserves the existing server availability.
+    public var availabilityReplacement: MerchantRegistrationAvailability? = nil
     public var addressName = "", address = "", longitude = "", latitude = "", activityDesc = "", picUrl = "", limitNum = ""
     public init(detail: MerchantContentValue = .object([:])) {
         addressName = detail["addressName"].text ?? ""; address = detail["address"].text ?? ""

@@ -138,8 +138,8 @@ struct MerchantContentBoundary: View {
             Text("merchant.content.cityApplications").font(.headline)
             MerchantContentRows(service: service, model: model, rows: s.value["applications"].array ?? [], kind: .cityApplication)
         case .registration(let id):
-            MerchantContentFields(value: s.value, names: ["topicName", "nodeName", "chapterName", "status", "auditStatus", "reason", "addressName", "address", "activityDesc", "limitNum", "startDate", "endDate"])
-            if [0, 2].contains(s.value["status"].integer ?? -1), s.value["auditStatus"].integer != 1 {
+            MerchantContentFields(value: s.value, names: ["topicName", "nodeName", "chapterName", "status", "auditStatus", "reason", "addressName", "address", "activityDesc", "limitNum", "startDate", "endDate", "cooperateDate"])
+            if MerchantRegistrationEditEligibility.allows(status: s.value["status"].integer, auditStatus: s.value["auditStatus"].integer) {
                 NavigationLink("merchant.content.edit") { MerchantContentEditView(service: service, query: query, kind: .registrationEdit(id)) }.accessibilityIdentifier("merchant.content.edit")
             }
             if [0, 1, 2].contains(s.value["status"].integer ?? -1), s.value["auditStatus"].integer.map({ $0 != 1 }) == true { Button("merchant.content.cancelRegistration", role: .destructive) { model.prepare(.cancelRegistration(id: id)) } }
@@ -459,6 +459,9 @@ struct MerchantContentCodeView: View {
                     LabeledContent("merchant.content.field.merchantID", value: String(review.baseline.access.merchantID ?? 0))
                     Text(verbatim: review.command.scopeKey).font(.caption)
                     Text(verbatim: bodyText).font(.system(.body, design: .monospaced)).textSelection(.enabled)
+                    if let availability = review.command.registrationAvailability {
+                        MerchantRegistrationAvailabilityReview(source: .init(review.baseline.value), replacement: availability)
+                    }
                     if case .cancelClaim(let poiID) = review.command,
                        let target = MerchantCityClaimWithdrawal(poiID: poiID, snapshot: review.baseline) {
                         if let name = target.name, !name.isEmpty { Text(verbatim: name).font(.headline) }

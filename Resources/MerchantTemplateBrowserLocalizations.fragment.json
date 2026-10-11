@@ -1,0 +1,206 @@
+{
+  "merchant.templateBrowser.count %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loaded %1$lld of %2$lld templates"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已加载 %1$lld / %2$lld 个玩法"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.loadedCount %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%1$lld templates loaded; server total unavailable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已加载 %1$lld 个玩法，服务端总数未知"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.refreshing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refreshing templates…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在刷新玩法…"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.loadingMore": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading more templates…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在加载更多玩法…"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.more": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Load more templates"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "加载更多玩法"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.retryMore": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry this page"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试本页"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.retryRefresh": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry refresh"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新刷新"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.moreFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The next page was not added. Your loaded templates are unchanged; retry the same page or refresh the list."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "下一页未追加。已加载玩法保持不变，可重试同一页或刷新列表。"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.retained": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refresh failed. These are the previously loaded templates, not a new server result."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新失败。下方仍是上次加载的玩法，并非新的服务端结果。"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.end": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All available templates loaded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已加载全部可用玩法"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.emptyHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server returned no templates. Create a template to start authoring."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端暂无玩法，可新建模板开始编辑。"
+        }
+      }
+    }
+  },
+  "merchant.templateBrowser.accessChanged": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant access changed. Refresh before browsing again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商家授权已变更，请刷新后继续浏览。"
+        }
+      }
+    }
+  }
+}
