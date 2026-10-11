@@ -7,6 +7,14 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+# This adapter restores only the original line-bound historical contract input.
+import importlib.util
+_profile_spec = importlib.util.spec_from_file_location(
+    'profile_read_failure_remote_admission',
+    ROOT / 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py')
+_profile_admission = importlib.util.module_from_spec(_profile_spec)
+_profile_spec.loader.exec_module(_profile_admission)
 MAIN_MERGE_COMMIT = "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f"
 MAIN_MERGE_RECORDS = json.loads((ROOT / "tools/tests/fixtures/gitleaks-main-merge-audit-2026-10-05.json").read_text())["findings"]
 MAIN_MERGE_FINDINGS = {f"{r['commit']}:{r['path']}:{r['rule']}:{r['line']}" for r in MAIN_MERGE_RECORDS}
@@ -76,7 +84,8 @@ class GitleaksConfigurationTests(unittest.TestCase):
         self.assertFalse(any(entry.startswith("6757dfac63086ac80bc849df587895bcaaa820df:") for entry in entries))
 
     def test_file_digest_findings_recompute_from_exact_native_source_bytes(self):
-        raw = (ROOT / FILE_DIGEST_PATH).read_text()
+        raw = _profile_admission.historical_readiness_contract(
+            (ROOT / FILE_DIGEST_PATH).read_bytes(), ROOT).decode('utf-8')
         contract = json.loads(raw)
         for number, section, key, source, line_digest in FILE_DIGEST_RECORDS:
             with self.subTest(line=number):

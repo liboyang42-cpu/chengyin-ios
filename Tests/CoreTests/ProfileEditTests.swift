@@ -76,3 +76,192 @@ final class ProfileEditTests: XCTestCase {
         XCTAssertEqual(coordinator.snapshot?.nickname, "Trail Friend")
     }
 }
+
+/// Source-backed read-error presentation only. All services are in-memory; no live writes.
+@MainActor final class ProfileReadFailureRecoveryTests: XCTestCase {
+    private func session(_ epoch: UInt64 = 1, token: String = "synthetic-read-failure") throws -> ProfileEditSession {
+        try .init(accountID: 901, epoch: epoch, token: token)
+    }
+    private let explanation = " 资料正在维护，请稍后重试。 "
+    private func failure(_ message: String?) -> ProfileReadFailure { .init(code: 503, message: message) }
+
+    func testInitialReadFailureShowsExactServerMessageAndRetryClearsItWithoutWriting() async throws {
+        let current = try session(), service = ProfileReadFailureRecoveryService()
+        service.readError = failure(explanation)
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        let failed = await subject.load()
+        XCTAssertFalse(failed); XCTAssertNil(subject.snapshot)
+        XCTAssertEqual(subject.messageKey, "profile.edit.loadFailed")
+        XCTAssertEqual(subject.remoteMessage, explanation)
+        XCTAssertFalse(subject.isBusy); XCTAssertFalse(subject.isLocked)
+        service.readError = nil
+        let retried = await subject.load()
+        XCTAssertTrue(retried); XCTAssertNotNil(subject.snapshot)
+        XCTAssertNil(subject.messageKey); XCTAssertNil(subject.remoteMessage)
+        XCTAssertEqual(service.saveCount, 0)
+    }
+    func testFailedRefreshRetainsSnapshotAndShowsExplanation() async throws {
+        let current = try session(), service = ProfileReadFailureRecoveryService()
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        await subject.load(); let original = subject.snapshot
+        service.readError = failure(explanation)
+        let loaded = await subject.load()
+        XCTAssertFalse(loaded); XCTAssertEqual(subject.snapshot, original)
+        XCTAssertEqual(subject.messageKey, "profile.edit.refreshFailed")
+        XCTAssertEqual(subject.remoteMessage, explanation)
+        XCTAssertNil(subject.confirmation); XCTAssertEqual(service.saveCount, 0)
+    }
+    func testPrepareFailureKeepsSnapshotAndRequiresANewReview() async throws {
+        let current = try session(), service = ProfileReadFailureRecoveryService()
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        await subject.load(); let original = subject.snapshot
+        let draft = ProfileEditDraft(name: "Local draft", introduction: "Untouched", routePreferenceIDs: [7])
+        service.readError = failure(explanation)
+        await subject.prepare(draft)
+        XCTAssertEqual(subject.snapshot, original); XCTAssertNil(subject.confirmation)
+        XCTAssertEqual(subject.messageKey, "profile.edit.loadFailed")
+        XCTAssertEqual(subject.remoteMessage, explanation); XCTAssertEqual(service.saveCount, 0)
+        service.readError = nil
+        await subject.prepare(draft)
+        XCTAssertEqual(subject.confirmation?.payload.name, draft.name)
+        XCTAssertEqual(subject.confirmation?.payload.tagIds, "7")
+        XCTAssertNil(subject.remoteMessage); XCTAssertEqual(service.saveCount, 0)
+    }
+    func testFinalPreWriteReadFailureDoesNotDispatchOrReuseConfirmation() async throws {
+        let current = try session(), service = ProfileReadFailureRecoveryService()
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        await subject.load(); let original = subject.snapshot
+        await subject.prepare(.init(name: "Reviewed"))
+        let review = try XCTUnwrap(subject.confirmation)
+        service.readError = failure(explanation)
+        await subject.save(review)
+        XCTAssertEqual(subject.remoteMessage, explanation)
+        XCTAssertEqual(subject.messageKey, "profile.edit.loadFailed")
+        XCTAssertEqual(subject.snapshot, original); XCTAssertFalse(subject.isLocked)
+        XCTAssertNil(subject.confirmation); XCTAssertEqual(service.saveCount, 0)
+        service.readError = nil
+        await subject.save(review)
+        XCTAssertEqual(service.saveCount, 0)
+    }
+    func testAcknowledgedWriteReadbackFailureKeepsLockUntilReadOnlyRetry() async throws {
+        let current = try session(), service = ProfileReadFailureRecoveryService()
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        await subject.load(); await subject.prepare(.init(name: "Confirmed"))
+        let review = try XCTUnwrap(subject.confirmation)
+        service.afterSaveReadError = failure(explanation)
+        await subject.save(review)
+        XCTAssertTrue(subject.isLocked); XCTAssertEqual(subject.messageKey, "profile.edit.unknown")
+        XCTAssertEqual(subject.remoteMessage, explanation); XCTAssertEqual(service.saveCount, 1)
+        service.readError = nil
+        await subject.load()
+        XCTAssertFalse(subject.isLocked); XCTAssertEqual(subject.messageKey, "profile.edit.saved")
+        XCTAssertNil(subject.remoteMessage); XCTAssertEqual(service.saveCount, 1)
+    }
+    func testUnknownWriteReadbackFailureAndMatchingRetryNeverUnlockOrResend() async throws {
+        let current = try session(), service = ProfileReadFailureRecoveryService()
+        service.unknownWrite = true
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        await subject.load(); await subject.prepare(.init(name: "Possibly stored"))
+        let review = try XCTUnwrap(subject.confirmation)
+        service.afterSaveReadError = failure(explanation)
+        await subject.save(review)
+        XCTAssertTrue(subject.isLocked); XCTAssertEqual(subject.remoteMessage, explanation)
+        XCTAssertEqual(subject.messageKey, "profile.edit.unknown")
+        await subject.load()
+        XCTAssertTrue(subject.isLocked); XCTAssertEqual(subject.remoteMessage, explanation)
+        service.readError = nil
+        await subject.load()
+        XCTAssertTrue(subject.isLocked); XCTAssertNil(subject.remoteMessage)
+        XCTAssertEqual(subject.messageKey, "profile.edit.readbackUnconfirmed")
+        await subject.save(review)
+        XCTAssertEqual(service.saveCount, 1)
+    }
+    func testWhitespaceAndNonServerErrorsNeverBecomeUserText() async throws {
+        let current = try session(), service = ProfileReadFailureRecoveryService()
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        let errors: [Error] = [failure(" \n\t"), failure(nil), APIError.malformedResponse,
+                              NSError(domain: "synthetic-internal-only", code: 1,
+                                      userInfo: [NSLocalizedDescriptionKey: "INTERNAL_SENTINEL_DO_NOT_DISPLAY"])]
+        for error in errors {
+            service.readError = error
+            await subject.load()
+            XCTAssertNil(subject.remoteMessage)
+            XCTAssertEqual(subject.messageKey, "profile.edit.loadFailed")
+        }
+    }
+    func testNewReadClearsPriorExplanationBeforeResponse() async throws {
+        let current = try session(), service = ProfileReadFailureRecoveryService()
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        service.readError = failure(explanation); await subject.load()
+        XCTAssertNotNil(subject.remoteMessage)
+        service.readError = nil
+        service.beforeRead = { XCTAssertNil(subject.remoteMessage); XCTAssertNil(subject.messageKey) }
+        await subject.load()
+        XCTAssertNil(subject.remoteMessage)
+    }
+    func testLateFailureCannotPublishAfterSameAccountTokenReplacement() async throws {
+        var current = try session()
+        let replacement = try session(token: "synthetic-replacement"), service = ProfileReadFailureRecoveryService()
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        service.beforeRead = { current = replacement; subject.synchronizeSession() }
+        service.readError = failure(explanation)
+        await subject.load()
+        XCTAssertNil(subject.remoteMessage); XCTAssertNil(subject.messageKey)
+        XCTAssertNil(subject.snapshot); XCTAssertFalse(subject.isBusy)
+    }
+    func testCancelledReadDoesNotPublishLateServerExplanation() async throws {
+        let current = try session(), service = ProfileReadFailureRecoveryService()
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        service.beforeRead = { withUnsafeCurrentTask { $0?.cancel() } }
+        service.readError = failure(explanation)
+        let task = Task { await subject.load() }
+        let loaded = await task.value
+        XCTAssertFalse(loaded); XCTAssertNil(subject.remoteMessage); XCTAssertNil(subject.messageKey)
+        XCTAssertFalse(subject.isBusy); XCTAssertEqual(service.saveCount, 0)
+    }
+    func testSessionResetClearsPreviouslyDisplayedExplanation() async throws {
+        var current: ProfileEditSession? = try session()
+        let service = ProfileReadFailureRecoveryService()
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current })
+        service.readError = failure(explanation); await subject.load()
+        XCTAssertNotNil(subject.remoteMessage)
+        current = nil; subject.synchronizeSession()
+        XCTAssertNil(subject.remoteMessage); XCTAssertNil(subject.messageKey)
+        XCTAssertNil(subject.snapshot); XCTAssertNil(subject.confirmation)
+    }
+    func testUnauthorizedCallbackInvalidatesFailureBeforePresentation() async throws {
+        var current: ProfileEditSession? = try session()
+        let service = ProfileReadFailureRecoveryService()
+        service.readError = ProfileReadFailure(httpStatus: 401, message: explanation)
+        var unauthorizedCount = 0
+        let subject = ProfileEditCoordinator(service: service, currentSession: { current },
+            onUnauthorized: { _ in unauthorizedCount += 1; current = nil })
+        await subject.load()
+        XCTAssertEqual(unauthorizedCount, 1); XCTAssertNil(subject.remoteMessage)
+        XCTAssertNil(subject.messageKey); XCTAssertEqual(service.saveCount, 0)
+    }
+}
+
+@MainActor private final class ProfileReadFailureRecoveryService: ProfileEditServing {
+    var readError: Error?
+    var afterSaveReadError: Error?
+    var beforeRead: (() -> Void)?
+    var unknownWrite = false
+    private(set) var saveCount = 0
+    private var name = "Trail Friend"
+    private var introduction = "Weekend walks"
+    private var tagIds = "7,4"
+    func read(token: String) async throws -> ProfileEditSnapshot {
+        beforeRead?()
+        if let readError { throw readError }
+        let object: [String: Any] = ["id": 901, "nickname": name, "introduction": introduction,
+            "avatar": " raw-avatar ", "wechat": " contact-qr ", "casePics": "one;;two;", "tagIds": tagIds]
+        return try JSONDecoder().decode(ProfileEditSnapshot.self, from: JSONSerialization.data(withJSONObject: object))
+    }
+    func save(_ payload: ProfileEditPayload, token: String) async throws {
+        saveCount += 1
+        name = payload.name; introduction = payload.introduction; tagIds = payload.tagIds
+        readError = afterSaveReadError
+        if unknownWrite { throw ProfileEditWriteError.outcomeUnknown }
+    }
+}

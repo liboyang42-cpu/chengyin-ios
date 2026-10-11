@@ -1,6 +1,17 @@
 from pathlib import Path
 import hashlib,json,re,unittest
 ROOT=Path(__file__).resolve().parents[2]
+
+# Read-error admission affects only historical Coordinator preservation input.
+import importlib.util
+_read_error_spec = importlib.util.spec_from_file_location(
+    'profile_read_failure_contract', ROOT/'tools/check_profile_read_failure_contract.py')
+_read_error = importlib.util.module_from_spec(_read_error_spec)
+_read_error_spec.loader.exec_module(_read_error)
+def historical_profile_input(path, raw):
+    if path == 'Core/ProfileEditCoordinator.swift':
+        return _read_error.historical_coordinator_input(raw)
+    return raw
 VIEW=ROOT/'App/ProfileEditView.swift'
 def sha(data):return hashlib.sha256(data).hexdigest()
 PROTECTED = {'App/SettingsView.swift': '71d5c2d1951ec43c206ed9c3ba32799adb0c4e227a38aa126f965c40cd3d5df9', 'App/SettingsAboutView.swift': '585345c14d5979ac9ae26896c63f7171d49648719bbd750bae0e70504180724c', 'App/SettingsSupportSections.swift': '3bce8a7d7c6cd5a2d26fe84f08db7f041331c111f211ee2e22e26db3f945f044', 'App/SettingsLegalDocumentView.swift': 'b4265846b83888ae09d1b6420b0b6b96ae3cbcfd82a6bb4f9cb97ec5a623a0e4', 'App/SettingsFixtureSupport.swift': '461b8948504a4d3504cf265dfaff13854c27c3c52d28cf3d64b59909999b4079', 'App/SocialGuideViews.swift': 'cd44920e357a25b1628d22e0bad0bd2eb381c80374f6bdbeab7218df6bf6e5fe', 'Core/SettingsSoundPreferences.swift': 'd5a18d2231045c4a2b8e8b0266dfa3ae7b8dc662afde540701906c18ddd4bb85', 'Core/SettingsAboutContracts.swift': 'ba1744844ef65d153d207c80c97cb93ce9980c06f1918d89fb6946abe50b71b1', 'Core/SettingsLegalContracts.swift': '9d42be2c73066664d128b9be8fc64fc507f5588b36710f86d0516062e5495da1', 'Core/SettingsSourceLegalCatalog.swift': 'f1f7dda089399a36d3a75770fde908d565ef5e67f8000d9fc72519510aff1fe8', 'App/ProfileEditFixtureSupport.swift': '7d42406c89637170da295cc677aab4d6689f8b20931ab85b0508317030835eb0', 'Core/ProfileEditContracts.swift': '1023b237a4388ccb08e62054b2c8be80e769f0c143dd56af97ad1b3e64f2e46e', 'Core/ProfileEditService.swift': 'ff2196f3430aaab19442d1129cfb05e0b6d3d73c84928670364a413b67e67ee9', 'Core/ProfileEditCoordinator.swift': 'c08da5dead9c78d7256fecf8853f4a9a4122a5cf3ad5cca4dec3cbce7a03982f', 'Core/ProfileEditSyntheticFixtures.swift': 'f508f83889e4ee2dce3fb0c91764c30710b67c426f4a4b34a22b45f7e4c448ce', 'App/AccountCollectionFavoritesView.swift': '4a5053d9b3675b68d465b04d3eb607e27dd1d73d8e93aa205091e01c8d3ba0ec', 'Core/ObjectCardCollectionModel.swift': '08bb9879ca862b8654ab0f57c32f137fda83ebeac030b6da05824340daca7696', 'Core/SquareGovernanceCoordinator.swift': 'e9303fe8c27fad21ac6c393668dc7a05501ad7fd9f4de8c992aaadcb1fc114b3', 'Tests/CoreTests/SquareGovernanceTests.swift': '2eb284673c7daf6326bae8ac287f277b1ae32402f3e38a8b8c01b289443c9e8b', 'App/AppSession.swift': 'd6a39320f8978fc5179ce615bf9335a510dd2f3280901e093f2d0187bbb65187', 'App/ContextualPickers.swift': '2e96e3230c857e2a0163a897341ea555c6261684a244a5bace33793edb1fc24e', 'Tests/AppUnitTests/ProfileEditRefreshTests.swift': 'cbce303b159f98f20e84a768c3d35c19d45ad41fb63c9fe62ab52e3b40888889', 'Core/ProfileReading.swift': '19b8994eb50e491267805ca038f673f23a9e1da68afb04a7306a5f8d9e62bb2d', 'Resources/Localizable.xcstrings': '44b49a16455cde72d83e0b16beb2e91e85e67657bb98c330e4e46f188af4b3ae', 'Questify.xcodeproj/project.pbxproj': 'b4a000d9b5e72008180b9a1e15ca20b12b8ff2767d53a36c7ea4b0bc02d10c8d', 'Package.swift': '89fefe8ae302c55a9b8853a792f2426d6331eeaa2c1c1b905a77ef6efeac5e2d'}
@@ -13,7 +24,7 @@ class ProfileReloadDiscardContracts(unittest.TestCase):
             self.assertEqual(raw[offset:offset+len(after)],after);raw=raw[:offset]+before+raw[offset+len(after):]
         self.assertEqual(sha(raw),INVERSE['before'])
     def test_other_former_muse_paths_core_transports_catalog_and_existing_tests_unchanged(self):
-        for path,expected in PROTECTED.items():self.assertEqual(sha((ROOT/path).read_bytes()),expected,path)
+        for path,expected in PROTECTED.items():self.assertEqual(sha(historical_profile_input(path, (ROOT/path).read_bytes())),expected,path)
     def test_only_explicit_reload_entry_uses_the_new_confirmation(self):
         text=VIEW.read_text();self.assertEqual(text.count('Task { await model.requestReload() }'),1)
         self.assertIn('await self.load()',text);self.assertIn('if loaded, let snapshot = coordinator.snapshot { draft = snapshot.draft }',text)

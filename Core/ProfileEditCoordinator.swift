@@ -89,6 +89,7 @@ public final class ProfileEditCoordinator {
             return true
         } catch {
             guard active(expected, request) else { return false }
+            remoteMessage = Self.readFailureMessage(error)
             messageKey = isLocked ? "profile.edit.unknown"
                 : (snapshot == nil ? "profile.edit.loadFailed" : "profile.edit.refreshFailed")
             return false
@@ -121,6 +122,7 @@ public final class ProfileEditCoordinator {
                                  avatarValidity: draft.avatarReplacement == nil ? nil : avatarValidity)
         } catch {
             guard active(expected, request) else { return }
+            remoteMessage = Self.readFailureMessage(error)
             messageKey = "profile.edit.loadFailed"
         }
     }
@@ -145,6 +147,7 @@ public final class ProfileEditCoordinator {
             }
         } catch {
             guard active(expected, request) else { return }
+            remoteMessage = Self.readFailureMessage(error)
             messageKey = "profile.edit.loadFailed"; return
         }
         pending[expected.identity.accountID] = PendingWrite(payload: value.payload)
@@ -186,8 +189,17 @@ public final class ProfileEditCoordinator {
             reconcile(latest)
         } catch {
             guard active(expected, request) else { return }
+            remoteMessage = Self.readFailureMessage(error)
             messageKey = "profile.edit.unknown"
         }
+    }
+    /// Only the explicit server-facing explanation is presentable. Transport/debug
+    /// descriptions can contain URLs or credentials and must never become UI text.
+    /// A whitespace-only explanation falls back to the existing localized status.
+    private static func readFailureMessage(_ error: Error) -> String? {
+        guard let message = (error as? ProfileReadFailure)?.message,
+              !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return message
     }
     private func reconcile(_ value: ProfileEditSnapshot) {
         guard let unresolved = pending[value.id] else { return }

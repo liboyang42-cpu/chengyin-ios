@@ -3566,7 +3566,7 @@
     },
     "Core/ProfileEditCoordinator.swift": {
       "before_sha256": "c08da5dead9c78d7256fecf8853f4a9a4122a5cf3ad5cca4dec3cbce7a03982f",
-      "after_sha256": "2abfe23ec770e6c0b6781c42b3a5b502a4855a8394ba46a4db5857eed563bb7b",
+      "after_sha256": "bbd462eed41321ab249fda4e2f80e48aad51942cc6ce195bbd45b7e52b1e1b67",
       "hunks": [
         {
           "before": "import Foundation\n\npublic struct ProfileEditConfirmation: Identifiable, Equatable {\n    public let id: UUID\n    public let payload: ProfileEditPayload\n    fileprivate let snapshot: ProfileEditSnapshot\n    fileprivate let session: ProfileEditSession\n}\n/// Retain in AppSession, not the navigation destination. Unknown writes remain locked even\n/// through navigation and same-account reauthentication. Reconciliation never repeats a POST.\n",
@@ -3587,6 +3587,22 @@
         {
           "before": "            let latest = try await read(expected)\n            guard active(expected, request) else { return }\n            guard latest == value.snapshot else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n        } catch {\n            guard active(expected, request) else { return }\n            messageKey = \"profile.edit.loadFailed\"; return\n        }\n        pending[expected.identity.accountID] = PendingWrite(payload: value.payload)\n        do {\n            try await service.save(value.payload, token: expected.token)\n            pending[expected.identity.accountID]?.acknowledged = true\n        }\n        catch let error as ProfileEditWriteError {\n",
           "after": "            let latest = try await read(expected)\n            guard active(expected, request) else { return }\n            guard latest == value.snapshot else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if value.payload.avatarReplacement != nil {\n                // Image-bearing full replacement preserves exact server bytes, not\n                // only Swift's canonically equivalent String values.\n                guard ProfileAvatarExact.snapshot(latest) == ProfileAvatarExact.snapshot(value.snapshot) else {\n                    snapshot = latest; messageKey = \"profile.edit.changed\"; return\n                }\n            }\n        } catch {\n            guard active(expected, request) else { return }\n            messageKey = \"profile.edit.loadFailed\"; return\n        }\n        pending[expected.identity.accountID] = PendingWrite(payload: value.payload)\n        do {\n            if let avatar = value.payload.avatarReplacement {\n                guard let imageService = service as? any ProfileAvatarEditServing else { throw ProfileEditWriteError.notSent }\n                try await imageService.saveAvatar(value.payload, token: expected.token) { [weak self] in\n                    guard let self else { return false }\n                    return self.active(expected, request) && value.avatarValidity?.isCurrent == true &&\n                        avatar.permits(session: expected, snapshot: value.snapshot)\n                }\n            } else {\n                try await service.save(value.payload, token: expected.token)\n            }\n            pending[expected.identity.accountID]?.acknowledged = true\n        }\n        catch let error as ProfileEditWriteError {\n"
+        },
+        {
+          "before": "            return true\n        } catch {\n            guard active(expected, request) else { return false }\n            messageKey = isLocked ? \"profile.edit.unknown\"\n                : (snapshot == nil ? \"profile.edit.loadFailed\" : \"profile.edit.refreshFailed\")\n            return false\n",
+          "after": "            return true\n        } catch {\n            guard active(expected, request) else { return false }\n            remoteMessage = Self.readFailureMessage(error)\n            messageKey = isLocked ? \"profile.edit.unknown\"\n                : (snapshot == nil ? \"profile.edit.loadFailed\" : \"profile.edit.refreshFailed\")\n            return false\n"
+        },
+        {
+          "before": "                                 avatarValidity: draft.avatarReplacement == nil ? nil : avatarValidity)\n        } catch {\n            guard active(expected, request) else { return }\n            messageKey = \"profile.edit.loadFailed\"\n        }\n    }\n",
+          "after": "                                 avatarValidity: draft.avatarReplacement == nil ? nil : avatarValidity)\n        } catch {\n            guard active(expected, request) else { return }\n            remoteMessage = Self.readFailureMessage(error)\n            messageKey = \"profile.edit.loadFailed\"\n        }\n    }\n"
+        },
+        {
+          "before": "            }\n        } catch {\n            guard active(expected, request) else { return }\n            messageKey = \"profile.edit.loadFailed\"; return\n        }\n        pending[expected.identity.accountID] = PendingWrite(payload: value.payload)\n",
+          "after": "            }\n        } catch {\n            guard active(expected, request) else { return }\n            remoteMessage = Self.readFailureMessage(error)\n            messageKey = \"profile.edit.loadFailed\"; return\n        }\n        pending[expected.identity.accountID] = PendingWrite(payload: value.payload)\n"
+        },
+        {
+          "before": "            reconcile(latest)\n        } catch {\n            guard active(expected, request) else { return }\n            messageKey = \"profile.edit.unknown\"\n        }\n    }\n    private func reconcile(_ value: ProfileEditSnapshot) {\n        guard let unresolved = pending[value.id] else { return }\n",
+          "after": "            reconcile(latest)\n        } catch {\n            guard active(expected, request) else { return }\n            remoteMessage = Self.readFailureMessage(error)\n            messageKey = \"profile.edit.unknown\"\n        }\n    }\n    /// Only the explicit server-facing explanation is presentable. Transport/debug\n    /// descriptions can contain URLs or credentials and must never become UI text.\n    /// A whitespace-only explanation falls back to the existing localized status.\n    private static func readFailureMessage(_ error: Error) -> String? {\n        guard let message = (error as? ProfileReadFailure)?.message,\n              !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }\n        return message\n    }\n    private func reconcile(_ value: ProfileEditSnapshot) {\n        guard let unresolved = pending[value.id] else { return }\n"
         }
       ]
     },
@@ -4311,7 +4327,7 @@
     "Tests/AppUnitTests/ProjectDraftNodeOverviewTests.swift": "c6a91c3dab968dfd083c177b3bae8bfec09cfe762fba2806283c5c3d3b480594",
     "Tests/AppUnitTests/RoamHistoryLiveEntryTests.swift": "648a0ef063fccc787e64170f78f63898bdcb4b5f9df511aaf63530be475ddaee",
     "Tests/AppUnitTests/TicketWalletPlayEntryTests.swift": "a6f7432a2960ba9458cc7eb776b62f28ecf0cad6f66005981d0d5937c7ad6712",
-    "Tests/ContractChecks/test_profile_reload_discard.py": "3da1b513c2fdcbafcfe98c6ddc9172cc453caca11954d140c51ed78c2f41da25",
+    "Tests/ContractChecks/test_profile_reload_discard.py": "044ef04942dd76592917397f686cbe6c7d50bd199ceb0776806af965da78fada",
     "Tests/ContractChecks/test_roam_history_live_entry.py": "90846ead477f4b7dbe775f05b21b86fabe450d45ed0e67fffbfff516ac075054",
     "Tests/ContractChecks/test_ticket_wallet_play_entry.py": "d1840576971f00d11b17beb57163bf6226d454c854b460f9cf302d84b3dc93b7",
     "Tests/CoreTests/ProjectDraftNodeProjectionTests.swift": "dbce6ca6dfb3b78860aaabfdbfcb7c20d514751098fb1e7107bff8c8ca85e3ba",
@@ -4346,7 +4362,7 @@
     "Tests/AppUnitTests/ProfileAvatarPresentationTests.swift": "48f3f73ce774329b8f1da1c09bb3192f3cccf4ee38d329535d4c98f48e53071b",
     "Tests/AppUnitTests/ProjectStoryTextFieldTests.swift": "5c4cbd03b6f903ba6da5c270fafda1f6973714561cd2d58cd45f8a74fd2f8d4c",
     "Tests/AppUnitTests/ProjectStoryTextInsertionButtonTests.swift": "f19ce129144b461dd634f162b21f933293fd97fb3a049f5f609e74cef86fb01a",
-    "Tests/ContractChecks/test_profile_avatar.py": "3be8c14b0d722350f6dde13542824f334e3a3bf66e3e4c687a536deeb51e81f0",
+    "Tests/ContractChecks/test_profile_avatar.py": "031747f2374ef01e935753b51be7859c75f3f5861a83037cd935089ed006a1db",
     "Tests/ContractChecks/test_ticket_wallet_read_lifetime.py": "1d31e0385565f0e248e1e57b230fd60a8c45eee54beca1b3575f54f507a286c6",
     "Tests/CoreTests/ProfileAvatarTests.swift": "343516e9937a123b8907d89981e64f92650f1135e7883633a707624afc30db2e",
     "Tests/CoreTests/ProjectEmptyStoryTextRemovalTests.swift": "45fd7bb2f0b9a90709b77691091fe4f5b41f60efd2fe8d0315475f0d3d1be03c",
@@ -4457,7 +4473,11 @@
     "Tests/ContractChecks/test_project_node_place_picker.py": "e110dff2ce225570953658638a4ea65247d587edb695e2ca9178745879a81cc9",
     "Tests/ContractChecks/test_project_pending_node_place_picker.py": "e69814640109712e684af5af2637f8ced05c4acece8ad935bdad77138bdcb361",
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
-    "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463"
+    "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
+    "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "81041b1c2ba2e328284555841f3b14b0e3630ed78f1190f701a86016ab558d84",
+    "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
+    "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30"
   },
   "current_method_replacements": {
     "MerchantContentFlowTests.testCityClaimWithdrawalReviewUsesSourcePOIAndCanCancel": {
