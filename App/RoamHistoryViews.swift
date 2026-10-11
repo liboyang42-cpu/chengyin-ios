@@ -142,6 +142,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
     let timestamp: Int64
     @State private var record: RoamHistoryRecord?
     @State private var showShare = false
+    @State private var selectedMedal: RoamMedalShareSelection?
     @State private var loaded = false
     @State private var error: Error?
     @State private var loadedOwner: ReadKey?
@@ -175,8 +176,14 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                             Label { RoamTitle(place.name) } icon: { Image(systemName: place.cat == "merchant" ? "storefront" : "mappin") }
                         }
                     }
-                    if let medal = record.medal { Label { Text(verbatim: medal) } icon: { Image(systemName: "medal") } }
-                    if let medal = record.shopMedalName { Label { Text(verbatim: medal) } icon: { Image(systemName: "medal") } }
+                    ForEach(RoamMedalShareSelection.selections(for: record)) { medal in
+                        Button { showShare = false; selectedMedal = medal } label: {
+                            Label { Text(verbatim: medal.card.name) } icon: { Image(systemName: "medal") }
+                                .frame(minHeight: 44, alignment: .leading)
+                        }
+                        .accessibilityLabel(Text("roam.medalShare.open") + Text(verbatim: ": " + medal.card.name))
+                        .accessibilityIdentifier("roam.medalShare.open." + medal.card.kind.rawValue)
+                    }
                     if !record.photos.isEmpty { LabeledContent("roam.experience.savedPhotoReferences", value: String(record.photos.count)) }
                     Button("roam.share.title", systemImage: "square.and.arrow.up") { showShare = true }
                         .accessibilityIdentifier("roam.share.open")
@@ -187,9 +194,14 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                 } else { ProgressView("roam.loading") }
             }.padding()
         }.navigationTitle("roam.experience.session")
-            .task(id: readKey) { showShare = false; load() }
-            .onChange(of: readKey) { _, _ in showShare = false }
+            .task(id: readKey) { showShare = false; selectedMedal = nil; load() }
+            .onChange(of: readKey) { _, _ in showShare = false; selectedMedal = nil }
             .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }
+            .sheet(item: $selectedMedal) { medal in
+                if currentRecord == medal.record {
+                    NavigationStack { RoamMedalShareView(selection: medal, reader: reader) }
+                }
+            }
             .accessibilityIdentifier("roam.experience.session")
     }
     private func load() {

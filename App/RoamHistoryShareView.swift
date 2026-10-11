@@ -17,6 +17,8 @@ import UIKit
     @State private var renderedRecord: RoamHistoryRecord?
     @State private var renderedIncludeRoute = false
     @State private var renderedOwner: RoamHistoryLiveOwner?
+    @State private var albumGuide = RoamShareAlbumGuideState()
+    @State private var guideSourceChanged = false
     init(record: RoamHistoryRecord, reader: any RoamExperienceReading) {
         self.record = record; self.reader = reader
         presentationOwner = RoamHistoryLiveOwner(reader: reader)
@@ -30,9 +32,11 @@ import UIKit
                 }
                 card
                 if renderingFailed { Text("roam.share.renderFailed").foregroundStyle(.secondary) }
+                if guideSourceChanged { Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary) }
                 if let image, renderedRecord == record, renderedIncludeRoute == includeRoute,
                    renderedOwner == RoamHistoryLiveOwner(reader: reader) {
                     photoSaveControls(image)
+                    albumGuideControls(image)
                     ShareLink(item: Image(uiImage: image), preview: SharePreview(Text("roam.share.title"), image: Image(uiImage: image))) {
                         Label("roam.share.system", systemImage: "square.and.arrow.up")
                     }.disabled(photoSave.inFlight || photoSave.state.phase == .sourceChanged)
@@ -54,16 +58,66 @@ import UIKit
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
             .onChange(of: record) { _, _ in includeRoute = false; invalidateImage() }
             .onChange(of: RoamHistoryLiveOwner(reader: reader)) { _, _ in includeRoute = false; invalidateImage() }
-            .onDisappear { invalidateImage() }
+            .onChange(of: photoSave.state.phase) { _, phase in receiveAlbumGuide(phase) }
+            .sheet(item: Binding(get: { albumGuide.guide }, set: { if $0 == nil { albumGuide.dismissGuide() } })) { guide in
+                RoamShareAlbumGuideView(guide: guide)
+            }
+            .onDisappear {
+                // A full-height guide may cover its presenter; retain its confirmed image.
+                // Record/owner changes above always invalidate both, including while covered.
+                if albumGuide.guide == nil { invalidateImage() }
+            }
     }
     private func invalidateImage() {
         photoSave.invalidate()
+        albumGuide.invalidate()
+        guideSourceChanged = false
         image = nil; renderedRecord = nil; renderingFailed = false
         renderedOwner = nil
     }
     private var sourceIsCurrent: Bool {
         guard presentationOwner == RoamHistoryLiveOwner(reader: reader), presentationOwner.isAuthorized else { return false }
         return (try? reader.history().first { $0.ts == record.ts }) == record
+    }
+    private var preparedSelection: RoamSharePhotoSaveState.Selection? {
+        guard image != nil, renderedRecord == record, renderedIncludeRoute == includeRoute,
+              renderedOwner == presentationOwner else { return nil }
+        return .init(record: record, includeRoute: includeRoute)
+    }
+    private func albumGuideControls(_ image: UIImage) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("roam.albumGuide.choose").font(.headline)
+            Text("roam.albumGuide.beforeSave").font(.caption).foregroundStyle(.secondary)
+            ForEach(RoamShareAlbumGuideState.Destination.allCases) { destination in
+                Button {
+                    beginAlbumGuide(destination, image: image)
+                } label: {
+                    Label(LocalizedStringKey(destination == .moments ? "roam.albumGuide.momentsAction" : "roam.albumGuide.xiaohongshuAction"), systemImage: "photo.on.rectangle")
+                }.buttonStyle(.bordered)
+                    .disabled(photoSave.inFlight || albumGuide.pending != nil || photoSave.state.phase == .sourceChanged)
+                    .accessibilityIdentifier("roam.albumGuide.open." + destination.rawValue)
+            }
+        }
+    }
+    private func beginAlbumGuide(_ destination: RoamShareAlbumGuideState.Destination, image: UIImage) {
+        guard let selection = preparedSelection, sourceIsCurrent else {
+            invalidateImage(); guideSourceChanged = true; return
+        }
+        guard let request = albumGuide.begin(destination: destination, selection: selection, saveInFlight: photoSave.inFlight) else { return }
+        if photoSave.state.phase == .saved, photoSave.state.selection == selection {
+            // The identical prepared card was already saved in this presentation.
+            // Reuse its receipt rather than writing a duplicate just to show instructions.
+            albumGuide.receive(request, phase: .saved, current: selection, sourceIsCurrent: sourceIsCurrent)
+            return
+        }
+        photoSave.save(image, selection: selection) {
+            albumGuide.accepts(request) && preparedSelection == selection && sourceIsCurrent
+        }
+    }
+    private func receiveAlbumGuide(_ phase: RoamSharePhotoSaveState.Phase) {
+        guard let request = albumGuide.pending else { return }
+        guard let selection = preparedSelection else { albumGuide.invalidate(); return }
+        albumGuide.receive(request, phase: phase, current: selection, sourceIsCurrent: sourceIsCurrent)
     }
     @ViewBuilder private func photoSaveControls(_ image: UIImage) -> some View {
         let phase = photoSave.state.phase

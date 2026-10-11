@@ -14,6 +14,7 @@ struct RoamBrowserView: View {
     var posterDestination: ((RoamNodeDetail) -> AnyView)? = nil
     var eventDestination: ((RoamEventDestination) -> AnyView)? = nil
     var playerProfileDestination: ((Int) -> AnyView)? = nil
+    var couponWalletDestination: (() -> AnyView)? = nil
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     @State private var layer: RoamLayer = .places
@@ -116,7 +117,7 @@ struct RoamBrowserView: View {
             .onChange(of: eventFilter) { _, _ in selected = nil }
             .onChange(of: retentionScope) { _, scope in retainedRead.retainOnly(scope: scope) }
             .sheet(item: $selected) { item in
-                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDestination, playerProfileDestination: playerProfileDestination)
+                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDestination, playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
             }
             .toolbar {
                 if let cityDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("city.read.title", destination: cityDestination) } }

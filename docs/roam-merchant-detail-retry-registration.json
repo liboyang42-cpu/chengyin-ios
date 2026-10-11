@@ -1,0 +1,22 @@
+{
+  "feature": "P127 supplementary merchant read retry",
+  "base_commit": "51d3e24de92427a777f8690f847cec39971b041a",
+  "required_prior_detail_sha256": "8ba70f466244313bf607d6ca6b9d0635fb58261706e7483e45e8966e1b5b1581",
+  "app_sources": [
+    "App/RoamMerchantDetailRetryModel.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/RoamMerchantDetailRetryModelTests.swift"
+  ],
+  "existing_dependency": "Core/ManualMapReadApproval.swift (ManualMapReadTaskOwner)",
+  "prior_batch_dependency": "Core/RoamFeaturedCouponWalletSelection.swift (unchanged)",
+  "localization_new_entries": [],
+  "reused_localization_keys": [
+    "action.retry",
+    "roam.merchantFailed",
+    "roam.loading"
+  ],
+  "source_test": "Tests/ContractChecks/test_roam_merchant_detail_retry.py",
+  "central_files_edited": false,
+  "apple_execution": "NOT_RUN"
+}

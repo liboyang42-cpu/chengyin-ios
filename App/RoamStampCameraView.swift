@@ -7,6 +7,7 @@ import UIKit
 @MainActor struct RoamStampCameraView: View {
     var coordinator: RoamStampCaptureCoordinator? = nil
     var cameraEnabled = false
+    var album: RoamStampAlbumContinuation? = nil
     @Environment(\.scenePhase) private var scenePhase
     private enum Focus: Hashable { case capture, status }
     @AccessibilityFocusState private var focusedControl: Focus?
@@ -16,6 +17,8 @@ import UIKit
     @State private var revision = 0
     @State private var captureGeneration = 0
     @State private var work: Task<Void, Never>?
+    @State private var localDraft = RoamCityStampDraft()
+    @State private var createdStampTarget: RoamCreatedStampTarget?
     var body: some View {
         let _ = revision
         Form {
@@ -25,6 +28,7 @@ import UIKit
                 if cameraIssue { Text("media.stamp.cameraIssue") }
                 Toggle("media.stamp.consent", isOn: $purposeAccepted).disabled(isBusy || showingCamera)
             }
+            captionSection
             if let coordinator {
                 Section {
                     if let bytes = coordinator.selection?.jpeg, let image = UIImage(data: bytes) {
@@ -43,6 +47,14 @@ import UIKit
                         Text("media.stamp.exactRetry")
                         Button("media.stamp.create") { run { await coordinator.create() } }.disabled(!coordinator.canCreate)
                     }
+                    if case .created = coordinator.phase, let album {
+                        Button("roam.createdStamp.open", systemImage: "rectangle.stack") {
+                            guard createdStampTarget == nil else { return }
+                            createdStampTarget = RoamCreatedStampTarget(phase: coordinator.phase, origin: coordinator.scope, reader: album.reader)
+                        }
+                        .disabled(createdStampTarget != nil || RoamCreatedStampTarget(phase: coordinator.phase, origin: coordinator.scope, reader: album.reader) == nil)
+                        .accessibilityIdentifier("roam.createdStamp.open")
+                    }
                 }
             }
             Button("media.stamp.capture") { requestCamera() }
@@ -50,6 +62,11 @@ import UIKit
                 .accessibilityIdentifier("media.stamp.capture")
                 .accessibilityFocused($focusedControl, equals: .capture)
         }.navigationTitle("media.stamp.title")
+            .navigationDestination(item: $createdStampTarget) { target in
+                if let album, target.isCurrent(reader: album.reader) {
+                    RoamCreatedStampView(target: target, album: album)
+                } else { ContentUnavailableView("roam.createdStamp.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
+            }
             .fullScreenCover(isPresented: $showingCamera, onDismiss: {
                 guard scenePhase == .active, cameraEnabled else { return }
                 focusedControl = coordinator?.selection == nil ? .capture : .status
@@ -73,6 +90,32 @@ import UIKit
             }
             .onChange(of: cameraEnabled) { _, enabled in if !enabled { invalidateCapture() } }
     }
+    private var captionText: String { coordinator?.caption ?? localDraft.caption }
+    private var captionSection: some View {
+        Section("roam.experience.caption") {
+            TextField("roam.experience.caption", text: Binding(get: { captionText }, set: { value in
+                if let coordinator { coordinator.updateCaption(value) }
+                else { localDraft.caption = value }
+            }), axis: .vertical)
+                .lineLimit(2...5)
+                .disabled(showingCamera || !(coordinator?.canEditCaption ?? true))
+                .accessibilityIdentifier("media.stamp.caption")
+            LabeledContent("roam.experience.remaining", value: String(30 - captionText.utf16.count))
+                .font(.caption).monospacedDigit()
+                .accessibilityIdentifier("media.stamp.caption.remaining")
+            if !RoamExperienceMath.validCaption(captionText) {
+                Label("roam.experience.captionLimit", systemImage: "exclamationmark.circle")
+                    .foregroundStyle(.red).accessibilityIdentifier("media.stamp.caption.limit")
+            }
+            Text("media.stamp.caption.preview").font(.caption).foregroundStyle(.secondary)
+            if captionText.isEmpty { Text("roam.experience.captionEmpty").foregroundStyle(.secondary) }
+            else { Text(verbatim: captionText).fixedSize(horizontal: false, vertical: true) }
+            if coordinator?.pending != nil || isBusy {
+                Text("media.stamp.caption.locked").font(.caption).foregroundStyle(.secondary)
+            }
+            if coordinator == nil { Text("roam.experience.draftOnly").font(.caption).foregroundStyle(.secondary) }
+        }.accessibilityIdentifier("media.stamp.caption.section")
+    }
     private var isBusy: Bool { coordinator?.phase == .uploading || coordinator?.phase == .creating }
     private func invalidateCapture() {
         captureGeneration += 1; showingCamera = false; focusedControl = nil
@@ -92,7 +135,7 @@ import UIKit
             showingCamera = granted; cameraIssue = !granted
         }
     }
-    private func stop() { captureGeneration += 1; work?.cancel(); work = nil; coordinator?.cancel(); coordinator?.changed = nil }
+    private func stop() { captureGeneration += 1; work?.cancel(); work = nil; coordinator?.cancel(); coordinator?.changed = nil; localDraft = RoamCityStampDraft() }
     private func run(_ action: @escaping @MainActor () async -> Void) { work?.cancel(); work = Task { await action(); revision += 1 } }
     private func phaseKey(_ phase: RoamStampCaptureCoordinator.Phase) -> String {
         switch phase {

@@ -2,9 +2,20 @@ import SwiftUI
 
 @MainActor struct SessionRoamStampCameraView: View {
     @EnvironmentObject private var session: AppSession
+    var body: some View {
+        // Caption text is local even when no capture coordinator can be made. Recreate
+        // that state on owner/realm/epoch changes, including nil-to-nil capability states.
+        ScopedSessionRoamStampCameraView()
+            .id(session.walletCommerceScope)
+            .id(session.sessionRevision)
+    }
+}
+@MainActor private struct ScopedSessionRoamStampCameraView: View {
+    @EnvironmentObject private var session: AppSession
     @State private var coordinator: RoamStampCaptureCoordinator?
     var body: some View {
-        RoamStampCameraView(coordinator: coordinator, cameraEnabled: session.stampCameraEnabled)
+        RoamStampCameraView(coordinator: coordinator, cameraEnabled: session.stampCameraEnabled,
+            album: RoamStampAlbumContinuation(reader: session.roamExperienceReader, camera: { AnyView(SessionRoamStampCameraView()) }))
             .id(coordinator.map { ObjectIdentifier($0) })
             .task(id: session.walletCommerceScope) { coordinator?.cancel(); coordinator = session.makeRoamStampCaptureCoordinator() }
             .onChange(of: session.walletCommerceScope) { _, _ in coordinator?.cancel(); coordinator = nil }

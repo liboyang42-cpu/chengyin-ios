@@ -1,0 +1,28 @@
+{
+  "feature": "P005 completed walk -> existing saved history",
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "app_sources": [
+    "Core/RoamFinishedHistoryReader.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/RoamFinishedHistoryFlowTests.swift"
+  ],
+  "core_test_discovery": "Tests/CoreTests/RoamFinishedHistoryTests.swift via existing SwiftPM target",
+  "localizations": {
+    "roam.finishedHistory.title": {
+      "en": "Your saved walk",
+      "zh-Hans": "已保存的本次漫游"
+    },
+    "roam.finishedHistory.hint": {
+      "en": "Settlement and local archiving are complete. Review the saved record or browse your local history.",
+      "zh-Hans": "结算与本机存档已完成。可以回看本次已保存记录，或浏览本机漫游历史。"
+    },
+    "roam.finishedHistory.thisWalk": {
+      "en": "Review this saved walk",
+      "zh-Hans": "回看本次已保存漫游"
+    }
+  },
+  "no_AppSession_or_root_factory_change": true,
+  "local_history_only_no_transport": true,
+  "central_files_edited": false
+}

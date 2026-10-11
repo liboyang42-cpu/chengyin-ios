@@ -1,0 +1,34 @@
+{
+  "feature": "P027/P028 confirmed stamp album continuation",
+  "base_commit": "96d727404a966cd3b3d2437c79449046beda560f",
+  "required_prior_afterimages": {
+    "App/RoamStampCameraView.swift": "6310ba393fed74f501789be8050fbd91ecfec1fd7454e7e597d54dc1db5baa9d",
+    "App/SessionRoamMediaViews.swift": "383646cee94a8ab2ad7c2db00b2b3caaa4f41797d6f0334f693f73833eb898a3",
+    "Core/RoamStampCaptureCoordinator.swift": "e97908d54607323fdad95a3ab7b5e6d575a5ce651d1f3ece3bf9cd802c96ab38"
+  },
+  "app_sources": ["App/RoamCreatedStampView.swift", "Core/RoamCreatedStampLookup.swift"],
+  "modified_registered_sources": ["App/RoamStampCameraView.swift", "App/SessionRoamMediaViews.swift"],
+  "swift_package_discovery": ["Core/RoamCreatedStampLookup.swift", "Tests/CoreTests/RoamCreatedStampLookupTests.swift"],
+  "localization_destination": "Resources/Localizable.xcstrings",
+  "localization_new_entries": {
+    "roam.createdStamp.open": {"en": "View saved stamp", "zh-Hans": "查看入册结果"},
+    "roam.createdStamp.title": {"en": "Saved stamp", "zh-Hans": "入册结果"},
+    "roam.createdStamp.confirmed": {"en": "Stamp creation was confirmed", "zh-Hans": "已收到这枚印章的入册确认"},
+    "roam.createdStamp.id": {"en": "Stamp ID", "zh-Hans": "印章编号"},
+    "roam.createdStamp.readNotice": {"en": "Read the saved stamp from your album. This does not upload, create or exchange another stamp.", "zh-Hans": "从你的集邮册读取这枚印章；不会重新上传、创建或交换。"},
+    "roam.createdStamp.moreHint": {"en": "This stamp is not on the pages read so far. Read the next page or browse your album.", "zh-Hans": "已读页面还没有这枚印章。可以读取下一页，或浏览集邮册。"},
+    "roam.createdStamp.hidden": {"en": "The album returned this stamp, but its current status does not allow it to be displayed.", "zh-Hans": "集邮册返回了这枚印章，但当前状态不允许展示内容。"},
+    "roam.createdStamp.missing": {"en": "This read finished without returning that stamp. Your creation confirmation is unchanged; try reading again later.", "zh-Hans": "本次读取已结束，列表暂未返回这枚印章。入册确认没有改变，可以稍后重读。"},
+    "roam.createdStamp.browse": {"en": "Browse stamp album", "zh-Hans": "浏览集邮册"},
+    "roam.createdStamp.changed": {"en": "The album account or session changed. Go back to continue.", "zh-Hans": "集邮册账户或会话已变化，请返回后继续。"}
+  },
+  "central_files_edited": false,
+  "new_permissions_or_services": [],
+  "required_follow_through": [
+    "Apply the exact fourth caption production afterimages before this delta; preserve its localization and tests independently.",
+    "Register the new App and Core sources in the existing app target and merge ten EN/zh-Hans entries using the central owner.",
+    "Run RoamCreatedStampLookupTests, RoamStampCaptionTests and MediaDestinationsTests plus an unsigned Apple app build.",
+    "Check the ordinary confirmed-create button, owner change, read failure/retry/next-page, hidden/missing results, Back and existing album camera continuation on a synthetic approved Apple configuration."
+  ],
+  "apple_execution": "NOT_RUN"
+}

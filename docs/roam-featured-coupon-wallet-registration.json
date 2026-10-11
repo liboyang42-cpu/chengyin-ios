@@ -1,0 +1,30 @@
+{
+  "feature": "P127 merchant coupon feature opens existing owned wallet",
+  "app_sources": [
+    "App/SessionRoamCouponWalletView.swift",
+    "Core/RoamFeaturedCouponWalletSelection.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/RoamFeaturedCouponWalletViewTests.swift"
+  ],
+  "spm_sources": [
+    "Core/RoamFeaturedCouponWalletSelection.swift",
+    "Tests/CoreTests/RoamFeaturedCouponWalletSelectionTests.swift"
+  ],
+  "localization_new_entries": [],
+  "localization_reused": [
+    "merchant.publicHome.featured.openWallet",
+    "roamEvent.unavailable",
+    "roamEvent.changed"
+  ],
+  "root_composition": {
+    "path": "App/QuestifyApp.swift",
+    "already_in_patch": true,
+    "argument": "couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader)",
+    "position": "RoamBrowserView arguments, after playerProfileDestination and before mediaScope",
+    "conflict_policy": "If another root edit overlaps, merge this argument into the corresponding current RoamBrowserView call; do not replace unrelated root changes."
+  },
+  "source_contract_test": "Tests/ContractChecks/test_roam_featured_coupon_wallet.py",
+  "central_pbx_catalog_ci_modified": false,
+  "apple_execution": "NOT_RUN"
+}

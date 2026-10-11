@@ -1,0 +1,57 @@
+{
+  "feature": "P005 earned-medal card sharing from saved P126/P128 record",
+  "base": "94bced23ae734bcd8a5e236c8b992294bd15b14a",
+  "app_sources": [
+    "App/RoamMedalShareView.swift",
+    "Core/RoamMedalShareSelection.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/RoamMedalShareCardTests.swift"
+  ],
+  "core_test_discovery": "Tests/CoreTests/RoamMedalShareSelectionTests.swift (automatic via existing SwiftPM target)",
+  "existing_dependencies": [
+    "App/RoamSharePhotoSaveModel.swift",
+    "Core/RoamSharePhotoSaveState.swift",
+    "App/RoamHistoryViews.swift"
+  ],
+  "localizations": {
+    "roam.medalShare.title": {
+      "en": "Medal card",
+      "zh-Hans": "勋章卡"
+    },
+    "roam.medalShare.open": {
+      "en": "Share this earned medal",
+      "zh-Hans": "分享这枚已得勋章"
+    },
+    "roam.medalShare.privacy": {
+      "en": "The card contains only this saved medal, its category, and the recorded date. It has no route, places, photos, or account details.",
+      "zh-Hans": "卡片仅包含这枚已保存的勋章、类别与记录日期，不包含路线、地点、照片或账号信息。"
+    },
+    "roam.medalShare.preview": {
+      "en": "Preview of the medal card to save or share",
+      "zh-Hans": "将保存或分享的勋章卡预览"
+    },
+    "roam.medalShare.prepare": {
+      "en": "Generate medal card",
+      "zh-Hans": "生成勋章卡"
+    },
+    "roam.medalShare.earned": {
+      "en": "MEDAL EARNED",
+      "zh-Hans": "徽章到手"
+    },
+    "roam.medalShare.journey": {
+      "en": "Saved journey medal",
+      "zh-Hans": "已保存的漫游勋章"
+    },
+    "roam.medalShare.shop": {
+      "en": "Saved shop medal",
+      "zh-Hans": "已保存的探店勋章"
+    },
+    "roam.medalShare.brand": {
+      "en": "城瘾 · CityFog",
+      "zh-Hans": "城瘾 · CityFog"
+    }
+  },
+  "central_files_edited": false,
+  "real_photos_or_share_executed": false
+}

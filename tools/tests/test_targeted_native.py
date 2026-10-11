@@ -9930,8 +9930,8 @@ class Split404PartitionProtocol(unittest.TestCase):
 
     def test_exact_three_partitions_union87_reparses_all_raw_results(self):
         identity,artifacts=self.fixture();result=self.r.aggregate_split404(self.selection,identity,artifacts,'success')
-        self.assertEqual((result['actual_count'],result['counts']),(649,{'core':340,'app-unit':244,'ui':65}))
-        self.assertEqual(len({row['method'] for row in result['actual']}),649)
+        self.assertEqual((result['actual_count'],result['counts']),(765,{'core':431,'app-unit':265,'ui':69}))
+        self.assertEqual(len({row['method'] for row in result['actual']}),765)
 
     def test_every_new6_core_omission_rejected_even_after_rehash(self):
         self.assertEqual(len(self.r.MERCHANT_METHODS),6)
@@ -10154,7 +10154,7 @@ class Split404PartitionProtocol(unittest.TestCase):
         raw=(CLUB87_SOURCE/'.github/workflows/native-targeted.yml').read_text()
         for text in ('partition: [core, app-unit, ui]','fail-fast: false','max-parallel: 3','continue-on-error: false','needs: [targeted]','if: always()','retention-days: 1','overwrite: false','merge-multiple: false','fetch-depth: 2','persist-credentials: false','contents: read'):
             self.assertIn(text,raw)
-        self.assertIn('native-targeted-649-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-',raw)
+        self.assertIn('native-targeted-765-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-',raw)
         for text in ('permissions: write','id-token:','secrets.','token:','continue-on-error: true','merge-multiple: true'):
             self.assertNotIn(text,raw)
 
@@ -10284,7 +10284,7 @@ class Split404PartitionProtocol(unittest.TestCase):
                     else:
                         self.r.split404_report(output,evidence,self.selection,CLUB87_SOURCE)
                         actual=self.r.split404_read_evidence(evidence,'ui');receipt=self.r.split404_json(actual['receipt.json'])
-                        self.assertEqual(len(self.r.validate_split404_partition(receipt,identity,self.selection,actual)),65)
+                        self.assertEqual(len(self.r.validate_split404_partition(receipt,identity,self.selection,actual)),69)
                 self.assertEqual([c[4] for c in calls],['summary','tests'])
 
 
@@ -10310,6 +10310,34 @@ class Split404PartitionProtocol(unittest.TestCase):
             if change is None:data['schemas'][name]['properties']['durationInSeconds']={'type':'number','format':'float'}
             else:data['schemas'][name]=change
             with self.assertRaises(ValueError):self.r.split404_validate_schema((self.r.encode(data)+'\n').encode(),kind)
+
+    def test_product_ledger_uses_serialized_relative_path_order(self):
+        r = CLUB87_RUNNER
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in ('Questify.app/Questify', 'Questify.app.dSYM/Contents/Info.plist',
+                         'Questify.app/Frameworks/A.framework/A', 'Questify.app/Frameworks/A.framework.dSYM/Info',
+                         'QuestifyAppUnitTests.xctestrun'):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(name.encode())
+            (root / 'Questify.app/linked').symlink_to('Questify')
+            rows = r.split404_ledger(root)
+            self.assertEqual([row[0] for row in rows], sorted(row[0] for row in rows))
+            self.assertEqual(len(rows), 6)
+            self.assertIn(['Questify.app/linked', 'link', 'Questify'], rows)
+            run = 'QuestifyAppUnitTests.xctestrun'
+            product = {'files': len(rows), 'sha256': r.split404_hash(rows),
+                       'configuration': 'app-unit', 'xctestrun': run,
+                       'xctestrun_sha256': r.digest(root / run)}
+            r.split404_validate_ledger(rows, product)
+            for changed in (list(reversed(rows)), rows + [rows[-1]]):
+                with self.assertRaisesRegex(ValueError, 'Duplicate/unsorted'):
+                    r.split404_validate_ledger(changed, product)
+            (root / 'outside').symlink_to(root.parent)
+            with self.assertRaisesRegex(ValueError, 'escaped build root'):
+                r.split404_ledger(root)
+
 
 
 class Club87SourceBoundary(unittest.TestCase):
@@ -10417,10 +10445,10 @@ class Club87SourceBoundary(unittest.TestCase):
 
     def test_complete87_new16_and_published_merchant6_preserved_with_exclusive_partition(self):
         layer=self.r.split404_layer(CLUB87_SELECTION)
-        self.assertEqual([len(p['methods']) for p in layer['partitions']],[340,244,65])
+        self.assertEqual([len(p['methods']) for p in layer['partitions']],[431,265,69])
         flat=[m for p in layer['partitions'] for m in p['methods']]
-        self.assertEqual(len(flat),649);self.assertEqual(len(set(flat)),649)
-        self.assertEqual(len(layer['partitions'][0]['methods']),340)
+        self.assertEqual(len(flat),765);self.assertEqual(len(set(flat)),765)
+        self.assertEqual(len(layer['partitions'][0]['methods']),431)
         self.assertTrue(set(self.r.MERCHANT_METHODS)<=set(flat))
         self.assertTrue(all(row['method'] in flat for row in self.r.CLUB87_LAYER['added_methods']))
 
@@ -10544,7 +10572,7 @@ class Split404CommandDiagnostics(unittest.TestCase):
 
     def test_raw_command_artifact_is_fixed_same_run_bounded_diagnostic_only(self):
         raw=(CLUB87_SOURCE/'.github/workflows/native-targeted.yml').read_text()
-        self.assertIn('native-command-649-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}',raw)
+        self.assertIn('native-command-765-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}',raw)
         block=raw.split('      - name: Preserve bounded initial inventory and Core failure diagnostics\n',1)[1].split('      - name:',1)[0]
         self.assertIn('if: always()',block);self.assertIn('retention-days: 1',block);self.assertIn('overwrite: false',block)
         paths=[line.strip() for line in block.splitlines() if 'command-evidence/' in line]

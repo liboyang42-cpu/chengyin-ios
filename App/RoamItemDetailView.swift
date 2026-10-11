@@ -11,10 +11,12 @@ struct RoamItemDetailView: View {
     private let posterDestination: ((RoamNodeDetail) -> AnyView)?
     private let eventDestination: ((RoamEventDestination) -> AnyView)?
     private let playerProfileDestination: ((Int) -> AnyView)?
+    private let couponWalletDestination: (() -> AnyView)?
     @State private var eventNavigation: RoamEventNavigationSelection?
     @State private var routeTopicNavigation: RoamRouteTopicNavigationSelection?
     @State private var playerProfileNavigation: RoamPlayerProfileSelection?
     @State private var featuredActivityNavigation: RoamFeaturedActivitySelection?
+    @State private var featuredCouponWalletNavigation: RoamFeaturedCouponWalletSelection?
     @State private var merchantReadSnapshot = UUID()
     @State private var eventPresentationID = UUID()
     @State private var eventIsVisible = false
@@ -26,12 +28,14 @@ struct RoamItemDetailView: View {
     @State private var node: RoamNodeDetail?
     @State private var merchant: RoamMerchantDetail?
     @State private var merchantFailed = false
+    @StateObject private var merchantRetry = RoamMerchantDetailRetryModel()
     @State private var readOwner = ManualMapReadTaskOwner()
     @State private var loading = false
     @State private var issue: RoamScreenIssue?
     @State private var generation = 0
-    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil, eventDestination: ((RoamEventDestination) -> AnyView)? = nil, playerProfileDestination: ((Int) -> AnyView)? = nil) {
+    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil, eventDestination: ((RoamEventDestination) -> AnyView)? = nil, playerProfileDestination: ((Int) -> AnyView)? = nil, couponWalletDestination: (() -> AnyView)? = nil) {
         self.stampDestination = stampDestination; self.posterDestination = posterDestination; self.eventDestination = eventDestination; self.playerProfileDestination = playerProfileDestination
+        self.couponWalletDestination = couponWalletDestination
         _originatingReaderID = State(initialValue: ObjectIdentifier(reader)); _originatingArea = State(initialValue: reader.searchArea)
         _latestReaderID = State(initialValue: ObjectIdentifier(reader)); _latestItem = State(initialValue: item)
         self.mediaScope = mediaScope; self.makeExternalMaps = makeExternalMaps
@@ -103,23 +107,31 @@ struct RoamItemDetailView: View {
                         .accessibilityIdentifier("roamFeaturedActivity.stale")
                 }
             }
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("roam.close") { dismiss() } } }
+            .navigationDestination(item: $featuredCouponWalletNavigation) { selection in
+                if selection.mayRemainOpen(in: eventScope, snapshotID: merchantReadSnapshot), let couponWalletDestination {
+                    couponWalletDestination()
+                } else {
+                    ContentUnavailableView("roamEvent.changed", systemImage: "ticket")
+                        .accessibilityIdentifier("roamFeaturedCouponWallet.stale")
+                }
+            }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("roam.close") { merchantRetry.cancel(); dismiss() } } }
             .task(id: reader.identity) {
                 guard !Task.isCancelled else { return }
                 readOwner.activate(); await load()
             }
             .onAppear { eventPresentationID = UUID(); eventIsVisible = true; readOwner.activate() }
             .onChange(of: ObjectIdentifier(reader)) { _, value in
-                latestReaderID = value; eventPresentationID = UUID()
-                eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil
+                latestReaderID = value; eventPresentationID = UUID(); merchantRetry.cancel()
+                eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil
             }
             .onChange(of: item) { _, value in
-                latestItem = value; eventPresentationID = UUID()
-                eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil
+                latestItem = value; eventPresentationID = UUID(); merchantRetry.cancel()
+                eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil
             }
-            .onChange(of: reader.identity) { _, _ in eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil }
-            .onChange(of: reader.searchArea) { _, _ in eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil }
-            .onDisappear { eventIsVisible = false; eventPresentationID = UUID(); readOwner.deactivate(); generation += 1; loading = false }
+            .onChange(of: reader.identity) { _, _ in merchantRetry.cancel(); eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil }
+            .onChange(of: reader.searchArea) { _, _ in merchantRetry.cancel(); eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil }
+            .onDisappear { merchantRetry.cancel(); eventIsVisible = false; eventPresentationID = UUID(); readOwner.deactivate(); generation += 1; loading = false }
         }
         .accessibilityIdentifier("roam.detail")
     }
@@ -172,9 +184,49 @@ struct RoamItemDetailView: View {
             }
             if let merchant { merchantContent(merchant) }
             else if merchantFailed {
-                Section("roam.merchant") { Text("roam.merchantFailed").foregroundStyle(.secondary) }
+                merchantRetrySection(node: node)
             }
         }
+    }
+    private func merchantRetrySection(node: RoamNodeDetail) -> some View {
+        let renderedScope = eventScope
+        let renderedSnapshot = merchantReadSnapshot
+        return Section("roam.merchant") {
+            Text("roam.merchantFailed").foregroundStyle(.secondary)
+            if merchantRetry.isLoading {
+                ProgressView("roam.loading").accessibilityIdentifier("roam.merchant.retry.loading")
+            }
+            Button("action.retry", systemImage: "arrow.clockwise") {
+                retryMerchant(node: node, rendered: renderedScope, snapshot: renderedSnapshot)
+            }
+            .disabled(merchantRetry.isLoading || loading || !eventIsVisible || renderedScope == nil)
+            .accessibilityIdentifier("roam.merchant.retry")
+        }
+    }
+    private func retryMerchant(node capturedNode: RoamNodeDetail, rendered: RoamEventNavigationScope?, snapshot: UUID) {
+        guard eventIsVisible, !loading, issue == nil, merchantFailed, merchant == nil, !merchantRetry.isLoading,
+              let rendered, rendered == eventScope, snapshot == merchantReadSnapshot,
+              self.node == capturedNode, currentPlace?.id == capturedNode.id,
+              let merchantID = capturedNode.merchantId, merchantID > 0 else { return }
+        // A new merchant read retires feature actions without discarding the place.
+        merchantReadSnapshot = UUID(); featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil
+        let attemptSnapshot = merchantReadSnapshot
+        merchantRetry.retry(merchantID: merchantID, reader: reader, isCurrent: {
+            eventIsVisible && !loading && issue == nil && merchantFailed && merchant == nil &&
+                rendered == eventScope && self.node == capturedNode && currentPlace?.id == capturedNode.id &&
+                merchantReadSnapshot == attemptSnapshot
+        }, completion: { result in
+            switch result {
+            case .success(let value):
+                merchant = value; merchantFailed = false
+            case .failure(let error):
+                if error as? APIError == .unauthorized {
+                    self.node = nil; merchant = nil; merchantFailed = false; issue = RoamScreenIssue(error: error)
+                } else {
+                    merchantFailed = true
+                }
+            }
+        })
     }
     @ViewBuilder private func merchantContent(_ detail: RoamMerchantDetail) -> some View {
         let merchant = detail.merchant
@@ -195,10 +247,38 @@ struct RoamItemDetailView: View {
             Section("roam.featured") {
                 Text(verbatim: featured.name)
                 Text("roam.featuredReadOnly").font(.caption).foregroundStyle(.secondary)
-                if let renderedNode = node, let renderedPlace = currentPlace,
-                   RoamFeaturedActivityTarget(node: renderedNode, detail: detail) != nil {
-                    featuredActivityButton(place: renderedPlace, node: renderedNode, detail: detail)
+                if let renderedNode = node, let renderedPlace = currentPlace {
+                    if RoamFeaturedActivityTarget(node: renderedNode, detail: detail) != nil {
+                        featuredActivityButton(place: renderedPlace, node: renderedNode, detail: detail)
+                    } else if RoamFeaturedCouponWalletTarget(node: renderedNode, detail: detail) != nil {
+                        featuredCouponWalletButton(place: renderedPlace, node: renderedNode, detail: detail)
+                    }
                 }
+            }
+        }
+    }
+    private func featuredCouponWalletButton(place: RoamPlace, node: RoamNodeDetail, detail: RoamMerchantDetail) -> some View {
+        let renderedScope = eventScope
+        let renderedSnapshot = merchantReadSnapshot
+        return VStack(alignment: .leading, spacing: 4) {
+            Button {
+                guard eventIsVisible, !loading, issue == nil, !merchantFailed, couponWalletDestination != nil,
+                      eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil,
+                      featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil,
+                      let selection = RoamFeaturedCouponWalletSelection(place: place, currentPlace: currentPlace,
+                          node: node, currentNode: self.node, detail: detail, currentDetail: self.merchant,
+                          rendered: renderedScope, current: eventScope,
+                          snapshotID: renderedSnapshot, currentSnapshotID: merchantReadSnapshot) else { return }
+                featuredCouponWalletNavigation = selection
+            } label: { Label("merchant.publicHome.featured.openWallet", systemImage: "ticket") }
+                .frame(minHeight: 44)
+                .disabled(couponWalletDestination == nil || renderedScope == nil || !eventIsVisible || loading || issue != nil || merchantFailed ||
+                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil ||
+                          featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)
+                .accessibilityIdentifier("roamFeaturedCouponWallet.open")
+            if couponWalletDestination == nil || renderedScope == nil {
+                Text("roamEvent.unavailable").font(.footnote).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -208,7 +288,7 @@ struct RoamItemDetailView: View {
         return VStack(alignment: .leading, spacing: 4) {
             Button {
                 guard eventIsVisible, !loading, issue == nil, !merchantFailed, eventDestination != nil,
-                      eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil,
+                      eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil,
                       let selection = RoamFeaturedActivitySelection(place: place, currentPlace: currentPlace,
                           node: node, currentNode: self.node, detail: detail, currentDetail: self.merchant,
                           rendered: renderedScope, current: eventScope,
@@ -217,7 +297,7 @@ struct RoamItemDetailView: View {
             } label: { Label("roamEvent.openActivity", systemImage: "calendar") }
                 .frame(minHeight: 44)
                 .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || loading || issue != nil || merchantFailed ||
-                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)
+                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)
                 .accessibilityIdentifier("roamFeaturedActivity.open")
             if eventDestination == nil || renderedScope == nil {
                 Text("roamEvent.unavailable").font(.footnote).foregroundStyle(.secondary)
@@ -236,13 +316,13 @@ struct RoamItemDetailView: View {
         if RoamRouteTopicDestination(route: route) != nil {
             Section {
                 Button {
-                    guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, eventDestination != nil,
+                    guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil, eventDestination != nil,
                           let selection = RoamRouteTopicNavigationSelection(route: route, currentRoute: currentRoute,
                               rendered: renderedScope, current: eventScope) else { return }
                     routeTopicNavigation = selection
                 } label: { Label("searchMap.relatedTopic", systemImage: "map") }
                     .frame(minHeight: 44)
-                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)
+                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)
                     .accessibilityIdentifier("roamRouteTopic.open.\(route.id)")
                 if eventDestination == nil || renderedScope == nil {
                     Text("roamEvent.unavailable").font(.footnote).foregroundStyle(.secondary)
@@ -267,7 +347,7 @@ struct RoamItemDetailView: View {
         Section {
             if let target = RoamEventDestination(event: event) {
                 Button {
-                    guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, eventDestination != nil,
+                    guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil, eventDestination != nil,
                           let selection = RoamEventNavigationSelection(event: event, currentEvent: currentEvent,
                               rendered: renderedScope, current: eventScope) else { return }
                     eventNavigation = selection
@@ -277,7 +357,7 @@ struct RoamItemDetailView: View {
                     case .topic: Label("roamEvent.openTopic", systemImage: "map")
                     }
                 }.frame(minHeight: 44)
-                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)
+                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)
                     .accessibilityIdentifier("roamEvent.open.\(event.id)")
             }
             if eventDestination == nil || renderedScope == nil {
@@ -297,7 +377,7 @@ struct RoamItemDetailView: View {
         }
         Section {
             Button {
-                guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil,
+                guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil,
                       playerProfileDestination != nil,
                       let selection = RoamPlayerProfileSelection(player: player, currentPlayer: currentPlayer,
                           rendered: renderedScope, current: eventScope) else { return }
@@ -305,7 +385,7 @@ struct RoamItemDetailView: View {
             } label: { Label("roamPlayerProfile.open", systemImage: "person.crop.circle") }
                 .frame(minHeight: 44)
                 .disabled(player.id <= 0 || playerProfileDestination == nil || renderedScope == nil || !eventIsVisible ||
-                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)
+                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)
                 .accessibilityIdentifier("roamPlayerProfile.open.\(player.id)")
             if playerProfileDestination == nil || renderedScope == nil {
                 Text("roamPlayerProfile.unavailable").font(.footnote).foregroundStyle(.secondary)
@@ -320,9 +400,10 @@ struct RoamItemDetailView: View {
         await readOwner.run { await performLoad() }
     }
     private func performLoad() async {
+        merchantRetry.cancel()
         generation += 1
         let operation = generation
-        merchantReadSnapshot = UUID(); featuredActivityNavigation = nil
+        merchantReadSnapshot = UUID(); featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil
         node = nil; merchant = nil; merchantFailed = false; issue = nil
         guard reader.isConfigured, isCurrent else { loading = false; return }
         guard case .place(let place) = item else { loading = false; return }

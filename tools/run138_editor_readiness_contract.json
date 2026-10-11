@@ -90,6 +90,7 @@
     "MerchantTemplateCategoryFlowTests.swift": "e9447c82c9429d68ffafba9b0934789fb1bd685364fcce6c11e560db5325530e",
     "FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
     "ClubProfileScopeFlowTests.swift": "8cae5d6cb5f38bc4c65ac213251a400056bf305614b9449530321809189bbd9a",
+    "RoamFinishedHistoryFlowTests.swift": "879d620461e5d0cfb6bf4806f973b8a1986bb23a9ad00a67bbb36b261007aceb",
     "WalkingNavigationFlowTests.swift": "06b8f3a8e2cbc92d47ef44058a5e4ad50b0d2025ab22526f264d435478355502",
     "IntegratedActivityPlayJourneyFlowTests.swift": "52242b06d592da9facdb20e2d7cf6c1331f558aaec1023923e6982e069d7ac69",
     "MerchantTemplateAssistFlowTests.swift": "0f3f046377c674ee281923ec2153ff08acce31248e8300c3b2784996a2793498",
@@ -101,6 +102,7 @@
     "ProjectPendingNewChapterFlowTests.swift": "bb7d8be16e5d5e4fa8ec7f67ef6ea8ff37da3821d3a09f2de83fe111b50bc516",
     "ClubActionFlowTests.swift": "ec872341ba84f2e3844a980e99a7134b6c86939d9f426c425ffc746f50506e5a",
     "OwnedTopicCoverRecoveryFlowTests.swift": "98aae087e9048ce0eab91987fe5b14d66b7bb8505565ccee4e87b636b6802503",
+    "RoamReducedMotionFlowTests.swift": "b457a536c4b691af386616943eed66d6174ae040b5d837d3c0f60688588b1f1b",
     "PublicPlayTemplatePresentationFlowTests.swift": "d2e29a26850319048b7a246ab7a9b69c1e256bf43a1b9548a415202dfab2d402",
     "ProfileDraftReviewRestoreFlowTests.swift": "2477449bcf10fdd6a1805ebdd26e4c00f0822843f8ec63c214ec067b597d3486",
     "CooperationFlowTests.swift": "fd7f8883ac1d32d2db9aa7f5b912b078301ba94443411ed092f6d1118f82f706",
@@ -361,11 +363,11 @@
     "ApprovedTopicReviewRequestFlowTests.swift": "1f1e787a1beb9d46675f2662fd61890b0f2d90926bf6bc3d228bf2af3efe8a6b",
     "ClubEnrollmentFlowTests.swift": "fb6bf952ef69e09eb0aef75153752a5515d62e9d27f32048726849b3f9a8ea24"
   },
-  "current_inventory_sha256": "191cb83f604b1a93e1a2246bd24e93d7ef2cf0748f5768e14e95288b417c0949",
+  "current_inventory_sha256": "10893145e0f683f0411dd17199e03323c0dfa549cab342259c07a219b0fda117",
   "previous_inventory_sha256": "3eff90afa8092ff9d54db78c792fd362da4392c0d479231b84bd31f627b54216",
-  "method_count": 794,
+  "method_count": 798,
   "class_count_before": 162,
-  "class_count_after": 178,
+  "class_count_after": 180,
   "helper_copy_sha256": "74ae59e50a36d4781536dc66dd42f2854f931450a158294c5f3f80d83916959c",
   "method_costs": {
     "ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation": {
@@ -521,9 +523,11 @@
     "ProfilePreferenceRemovalFlowTests": 820,
     "ProfileCasePictureRemovalFlowTests": 830,
     "ProfileDraftReviewRestoreFlowTests": 910,
-    "ProfileAuthorPostsRefreshFlowTests": 650
+    "ProfileAuthorPostsRefreshFlowTests": 650,
+    "RoamReducedMotionFlowTests": 1180,
+    "RoamFinishedHistoryFlowTests": 810
   },
-  "added_total_seconds": 21273.948,
+  "added_total_seconds": 23263.948,
   "shard_count": 79,
   "deadline_seconds": 1800,
   "startup_reserve_seconds": 300,
@@ -913,7 +917,7 @@
     },
     "Questify.xcodeproj/project.pbxproj": {
       "before_sha256": "0497d3ffb5b6dfd9c3aa0cd67a27594cfcb412fcda57fa3ac5ec63d8cc462ed1",
-      "after_sha256": "9cae8a0e57cbe6d54a8af503e49ca5b63e4e63c5657b572ee4d53ad7ee79cb83",
+      "after_sha256": "58d54507b57882b572c8a6e5cd1a3d355a581c9575d5608bfb014c495390cdeb",
       "hunks": [
         {
           "before": "\t\t\"F2C416E5BF616602CFE89B81\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"588CE027521446DF6EC81070\";\n\t\t};\n\t\t\"74E41CC929B3EEB9D9C0C251\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n",
@@ -2314,6 +2318,158 @@
         {
           "before": "\t\t\t\t\"365154B02B459B703B9B896B\",\n\t\t\t\t\"4E8B2399036D64374225F524\",\n",
           "after": "\t\t\t\t\"365154B02B459B703B9B896B\",\n\t\t\t\t\"32FAF698395E8AB6C751025B\",\n\t\t\t\t\"4E8B2399036D64374225F524\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"98191369B95665B87E336A80\" = {\n",
+          "after": "\t\t};\n\t\t\"36C275E78EC2F6B81A48D6DD\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/RoamCreatedStampView.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"6D1FAD33B839A74210C55B25\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"36C275E78EC2F6B81A48D6DD\";\n\t\t};\n\t\t\"98191369B95665B87E336A80\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"7509101505DFAD3C4D24B68A\" = {\n",
+          "after": "\t\t};\n\t\t\"E4B968797CBF7E22DABC1B8E\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/RoamMedalShareView.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"51D2ECE6BD73A57531D2DCAA\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"E4B968797CBF7E22DABC1B8E\";\n\t\t};\n\t\t\"0EFBA9FC5B6D0445964DE209\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/RoamMerchantDetailRetryModel.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"7787B83B418125E32FB8A8AA\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"0EFBA9FC5B6D0445964DE209\";\n\t\t};\n\t\t\"7509101505DFAD3C4D24B68A\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"710AA4220E2065EF3EA93612\" = {\n",
+          "after": "\t\t};\n\t\t\"BFED5324C6D10E78189F7C4A\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/RoamShareAlbumGuideView.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"63C084A462C2A9B13C7EDC0A\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"BFED5324C6D10E78189F7C4A\";\n\t\t};\n\t\t\"710AA4220E2065EF3EA93612\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"EBB7E77E9E2F898843E9EC62\" = {\n",
+          "after": "\t\t};\n\t\t\"201D1B35E12027A176357F5F\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/SessionRoamCouponWalletView.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"63D72E3027F41CB6C0E5B191\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"201D1B35E12027A176357F5F\";\n\t\t};\n\t\t\"EBB7E77E9E2F898843E9EC62\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"CC9FD8C28273859BB1FACF24\" = {\n",
+          "after": "\t\t};\n\t\t\"7772107B4325C8EA9CF9F66B\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ReducedMotionPreference.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"C881FD2F7ED46F763A4F296D\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"7772107B4325C8EA9CF9F66B\";\n\t\t};\n\t\t\"CC9FD8C28273859BB1FACF24\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"4A27FCA0E3CBCE083B1A4588\" = {\n",
+          "after": "\t\t};\n\t\t\"748720A0A9C8669B1EEFB327\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/RoamCreatedStampLookup.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"323D32673DD77906E005F7C7\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"748720A0A9C8669B1EEFB327\";\n\t\t};\n\t\t\"4A27FCA0E3CBCE083B1A4588\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"838A8341789E96137BB22970\" = {\n",
+          "after": "\t\t};\n\t\t\"772D40228F534FE33C49320A\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/RoamFeaturedCouponWalletSelection.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"634154C7DDBF21BE16ABC77E\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"772D40228F534FE33C49320A\";\n\t\t};\n\t\t\"1B681AF38E2E65C8F79D6BD3\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/RoamFinishedHistoryReader.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"096DF8857E10FABFB3243A82\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"1B681AF38E2E65C8F79D6BD3\";\n\t\t};\n\t\t\"838A8341789E96137BB22970\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"84B0EB5D8ADDCD395562C928\" = {\n",
+          "after": "\t\t};\n\t\t\"5105B236806898C8F915894D\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/RoamMedalShareSelection.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"4E3B98167D44253FD9039DD9\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"5105B236806898C8F915894D\";\n\t\t};\n\t\t\"84B0EB5D8ADDCD395562C928\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"C5CF56B2B4C003EFF9369639\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"C5CF56B2B4C003EFF9369639\";\n\t\t};\n\t\t\"A2F173D88E7A827D98096911\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/RoamShareAlbumGuideState.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"60F5E101C6FD1A1BCF1FCD3B\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"A2F173D88E7A827D98096911\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"4B6E710ECC432A4DAFCB10EB\",\n\t\t\t\t\"98191369B95665B87E336A80\",\n",
+          "after": "\t\t\t\t\"4B6E710ECC432A4DAFCB10EB\",\n\t\t\t\t\"36C275E78EC2F6B81A48D6DD\",\n\t\t\t\t\"98191369B95665B87E336A80\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"95A667BE63CA88C61D4DFD03\",\n\t\t\t\t\"7509101505DFAD3C4D24B68A\",\n",
+          "after": "\t\t\t\t\"95A667BE63CA88C61D4DFD03\",\n\t\t\t\t\"E4B968797CBF7E22DABC1B8E\",\n\t\t\t\t\"0EFBA9FC5B6D0445964DE209\",\n\t\t\t\t\"7509101505DFAD3C4D24B68A\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"37BABF6D417CCF8E6E4344EF\",\n\t\t\t\t\"710AA4220E2065EF3EA93612\",\n",
+          "after": "\t\t\t\t\"37BABF6D417CCF8E6E4344EF\",\n\t\t\t\t\"BFED5324C6D10E78189F7C4A\",\n\t\t\t\t\"710AA4220E2065EF3EA93612\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"4C8AE753042E98C4805108B1\",\n\t\t\t\t\"EBB7E77E9E2F898843E9EC62\",\n",
+          "after": "\t\t\t\t\"4C8AE753042E98C4805108B1\",\n\t\t\t\t\"201D1B35E12027A176357F5F\",\n\t\t\t\t\"EBB7E77E9E2F898843E9EC62\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"B34C9700B6FF205FFD7CFB06\",\n\t\t\t\t\"CC9FD8C28273859BB1FACF24\",\n",
+          "after": "\t\t\t\t\"B34C9700B6FF205FFD7CFB06\",\n\t\t\t\t\"7772107B4325C8EA9CF9F66B\",\n\t\t\t\t\"CC9FD8C28273859BB1FACF24\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"FE53410B551F8774AD732140\",\n\t\t\t\t\"4A27FCA0E3CBCE083B1A4588\",\n",
+          "after": "\t\t\t\t\"FE53410B551F8774AD732140\",\n\t\t\t\t\"748720A0A9C8669B1EEFB327\",\n\t\t\t\t\"4A27FCA0E3CBCE083B1A4588\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"46990D310D953F3B3053F228\",\n\t\t\t\t\"838A8341789E96137BB22970\",\n",
+          "after": "\t\t\t\t\"46990D310D953F3B3053F228\",\n\t\t\t\t\"772D40228F534FE33C49320A\",\n\t\t\t\t\"1B681AF38E2E65C8F79D6BD3\",\n\t\t\t\t\"838A8341789E96137BB22970\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"8242DFEA14056F8408852FA5\",\n\t\t\t\t\"84B0EB5D8ADDCD395562C928\",\n",
+          "after": "\t\t\t\t\"8242DFEA14056F8408852FA5\",\n\t\t\t\t\"5105B236806898C8F915894D\",\n\t\t\t\t\"84B0EB5D8ADDCD395562C928\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"C5CF56B2B4C003EFF9369639\",\n\t\t\t\t\"B5839526CA923F95001FDD6F\",\n",
+          "after": "\t\t\t\t\"C5CF56B2B4C003EFF9369639\",\n\t\t\t\t\"A2F173D88E7A827D98096911\",\n\t\t\t\t\"B5839526CA923F95001FDD6F\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"9DFA5A43631E9FDB393E7707\",\n\t\t\t\t\"7059831BB09DA650938BE211\",\n",
+          "after": "\t\t\t\t\"9DFA5A43631E9FDB393E7707\",\n\t\t\t\t\"7AE75328E8EBAD644A9C110C\",\n\t\t\t\t\"B3CD3FAF641329E87594C108\",\n\t\t\t\t\"7059831BB09DA650938BE211\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"E2792E541FE563DC4CB757B5\",\n\t\t\t\t\"A16A95151DDE8A0FA27244C1\",\n\t\t\t\t\"C95CDE2293868ED7961E9FDD\",\n\t\t\t\t\"2F42FD42E7C53CC9353AE697\",\n",
+          "after": "\t\t\t\t\"E2792E541FE563DC4CB757B5\",\n\t\t\t\t\"7E421E72BD05A295F6EAF6A4\",\n\t\t\t\t\"A16A95151DDE8A0FA27244C1\",\n\t\t\t\t\"66A1FD3B2B95665CE03451F0\",\n\t\t\t\t\"C95CDE2293868ED7961E9FDD\",\n\t\t\t\t\"96C4CBD875A20D3209EA4E79\",\n\t\t\t\t\"2F42FD42E7C53CC9353AE697\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"D8ECE99F378D28ADEFF289D0\",\n\t\t\t\t\"1EAB80C89D133CA0C1567183\",\n",
+          "after": "\t\t\t\t\"D8ECE99F378D28ADEFF289D0\",\n\t\t\t\t\"452255652F0B2ED15FCD3192\",\n\t\t\t\t\"1EAB80C89D133CA0C1567183\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"2329C6D958A7CC0759F4CE51\",\n\t\t\t\t\"7F621435A3A09548E2FB286B\",\n",
+          "after": "\t\t\t\t\"2329C6D958A7CC0759F4CE51\",\n\t\t\t\t\"6D1FAD33B839A74210C55B25\",\n\t\t\t\t\"7F621435A3A09548E2FB286B\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"B4E5CD9C4513CF0FEA8ACC2B\",\n\t\t\t\t\"6F1E4A1C6E8FEA5111FBE675\",\n",
+          "after": "\t\t\t\t\"B4E5CD9C4513CF0FEA8ACC2B\",\n\t\t\t\t\"51D2ECE6BD73A57531D2DCAA\",\n\t\t\t\t\"7787B83B418125E32FB8A8AA\",\n\t\t\t\t\"6F1E4A1C6E8FEA5111FBE675\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"DD794CF3CBBE8915BC22F367\",\n\t\t\t\t\"0397658CCB94E5E6A4B8F2BF\",\n",
+          "after": "\t\t\t\t\"DD794CF3CBBE8915BC22F367\",\n\t\t\t\t\"63C084A462C2A9B13C7EDC0A\",\n\t\t\t\t\"0397658CCB94E5E6A4B8F2BF\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"B1EDF6D721DB4159FC852D2B\",\n\t\t\t\t\"4CBC337775305E26611672A3\",\n",
+          "after": "\t\t\t\t\"B1EDF6D721DB4159FC852D2B\",\n\t\t\t\t\"63D72E3027F41CB6C0E5B191\",\n\t\t\t\t\"4CBC337775305E26611672A3\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"A1F24EE234958840D9855D43\",\n\t\t\t\t\"E7E34939B42A8BC60B769116\",\n",
+          "after": "\t\t\t\t\"A1F24EE234958840D9855D43\",\n\t\t\t\t\"C881FD2F7ED46F763A4F296D\",\n\t\t\t\t\"E7E34939B42A8BC60B769116\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"D0508C32C6C349B5A9B0C8EE\",\n\t\t\t\t\"08A89AD27F7D5F64EDB9DD23\",\n",
+          "after": "\t\t\t\t\"D0508C32C6C349B5A9B0C8EE\",\n\t\t\t\t\"323D32673DD77906E005F7C7\",\n\t\t\t\t\"08A89AD27F7D5F64EDB9DD23\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"38A53194702DB0EF02E928A8\",\n\t\t\t\t\"C13329F3EE74D4DCA25D8359\",\n",
+          "after": "\t\t\t\t\"38A53194702DB0EF02E928A8\",\n\t\t\t\t\"634154C7DDBF21BE16ABC77E\",\n\t\t\t\t\"096DF8857E10FABFB3243A82\",\n\t\t\t\t\"C13329F3EE74D4DCA25D8359\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"5D3234B4FCAB52CDDC07E386\",\n\t\t\t\t\"D31CA55CAE3F2C79CF79E014\",\n",
+          "after": "\t\t\t\t\"5D3234B4FCAB52CDDC07E386\",\n\t\t\t\t\"4E3B98167D44253FD9039DD9\",\n\t\t\t\t\"D31CA55CAE3F2C79CF79E014\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"47CDF2D69373EEAC5242AB05\",\n\t\t\t\t\"8FF3052CB6EA1453D8AFA8F2\",\n",
+          "after": "\t\t\t\t\"47CDF2D69373EEAC5242AB05\",\n\t\t\t\t\"60F5E101C6FD1A1BCF1FCD3B\",\n\t\t\t\t\"8FF3052CB6EA1453D8AFA8F2\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"7059831BB09DA650938BE211\" = {\n",
+          "after": "\t\t};\n\t\t\"7AE75328E8EBAD644A9C110C\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/RoamFinishedHistoryFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"D7AF03FAEEEA80C20D8EE1FC\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"7AE75328E8EBAD644A9C110C\";\n\t\t};\n\t\t\"B3CD3FAF641329E87594C108\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/RoamReducedMotionFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"E733270D14301C094A1F7535\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"B3CD3FAF641329E87594C108\";\n\t\t};\n\t\t\"7059831BB09DA650938BE211\" = {\n"
+        },
+        {
+          "before": "\t\t\t\t\"AC7E01022D48AC34A1BA6384\",\n\t\t\t\t\"F5E70152CB466F9889CE6B56\",\n",
+          "after": "\t\t\t\t\"AC7E01022D48AC34A1BA6384\",\n\t\t\t\t\"D7AF03FAEEEA80C20D8EE1FC\",\n\t\t\t\t\"E733270D14301C094A1F7535\",\n\t\t\t\t\"F5E70152CB466F9889CE6B56\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"A16A95151DDE8A0FA27244C1\" = {\n",
+          "after": "\t\t};\n\t\t\"7E421E72BD05A295F6EAF6A4\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/RoamFeaturedCouponWalletViewTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"EB17DBEE50F65A8A918BD1CD\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"7E421E72BD05A295F6EAF6A4\";\n\t\t};\n\t\t\"A16A95151DDE8A0FA27244C1\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"C95CDE2293868ED7961E9FDD\" = {\n",
+          "after": "\t\t};\n\t\t\"66A1FD3B2B95665CE03451F0\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/RoamMedalShareCardTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"0BC3D120873199EA8D376116\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"66A1FD3B2B95665CE03451F0\";\n\t\t};\n\t\t\"C95CDE2293868ED7961E9FDD\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"2F42FD42E7C53CC9353AE697\" = {\n",
+          "after": "\t\t};\n\t\t\"96C4CBD875A20D3209EA4E79\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/RoamMerchantDetailRetryModelTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"66237C9DD5F19D9F0A08B1C5\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"96C4CBD875A20D3209EA4E79\";\n\t\t};\n\t\t\"2F42FD42E7C53CC9353AE697\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"D8ECE99F378D28ADEFF289D0\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"D8ECE99F378D28ADEFF289D0\";\n\t\t};\n\t\t\"452255652F0B2ED15FCD3192\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/RoamShareAlbumGuideFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"88E430EB02C86407EE589E1C\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"452255652F0B2ED15FCD3192\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"2A3940D7A16690B91A9C5B9E\",\n\t\t\t\t\"D70BBFA856AD2D89B5A99DA2\",\n\t\t\t\t\"F35E4F8DB620C79B0C8EB391\",\n\t\t\t\t\"1374CE38DFE1E60A4694FC2C\",\n",
+          "after": "\t\t\t\t\"2A3940D7A16690B91A9C5B9E\",\n\t\t\t\t\"EB17DBEE50F65A8A918BD1CD\",\n\t\t\t\t\"D70BBFA856AD2D89B5A99DA2\",\n\t\t\t\t\"0BC3D120873199EA8D376116\",\n\t\t\t\t\"F35E4F8DB620C79B0C8EB391\",\n\t\t\t\t\"66237C9DD5F19D9F0A08B1C5\",\n\t\t\t\t\"1374CE38DFE1E60A4694FC2C\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"BCF696FF758FCE907082C0D4\",\n\t\t\t\t\"979357F71D4A9F80954095F1\",\n",
+          "after": "\t\t\t\t\"BCF696FF758FCE907082C0D4\",\n\t\t\t\t\"88E430EB02C86407EE589E1C\",\n\t\t\t\t\"979357F71D4A9F80954095F1\",\n"
         }
       ]
     },
@@ -2667,7 +2823,7 @@
     },
     "App/QuestifyApp.swift": {
       "before_sha256": "5afc5b2698d07cc17a05ed5ccadc97d7005a61e563157354eb0d238d8a248f63",
-      "after_sha256": "66c26033617571953ee3d8e3026a7ffbf80066b5136135d07e4e7287432e433c",
+      "after_sha256": "5b5d23eb056085d253f098b4d6eb6a507b02368bb5a7657ed66f262acc495dee",
       "hunks": [
         {
           "before": "                TabView(selection:$selectedTab) {\n                    SessionHomeFeedView(onSignIn:{ selectedTab=4 }).tabItem { Label(\"homeFeed.title\",systemImage:\"house\") }.tag(0)\n                    ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label(\"activity.browse\",systemImage:\"map\") }.tag(1)\n                    RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true },experienceReader:session.roamExperienceReader, cityDestination: { AnyView(SessionCityPlayerView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView()) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController())) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)\n                        .tabItem { Label(\"roam.title\",systemImage:\"map\") }.tag(3)\n                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }) }\n                        .id(session.sessionRevision)\n",
@@ -2684,6 +2840,10 @@
         {
           "before": "           ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n           ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n",
           "after": "           ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-author-posts-refresh\") ||\n           ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n"
+        },
+        {
+          "before": "                            squareReader: session.squareReader, actions: nil).id(session.socialAccountReader.identity))\n                    }, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)\n                        .tabItem { Label(\"roam.title\",systemImage:\"map\") }.tag(3)\n",
+          "after": "                            squareReader: session.squareReader, actions: nil).id(session.socialAccountReader.identity))\n                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)\n                        .tabItem { Label(\"roam.title\",systemImage:\"map\") }.tag(3)\n"
         }
       ]
     },
@@ -2707,7 +2867,7 @@
     },
     "App/RoamBrowserView.swift": {
       "before_sha256": "6ca544f74c16c3f3629aacf030476799a6d305083e1ca8f815d2078cc6aa3195",
-      "after_sha256": "f7e93b3ef55ac7d91de52e566951cb65366e1deecfb3f15fce0c222352c0f0ee",
+      "after_sha256": "852349b856f26f8ec2facbeeebc1a3d5e5aa92d0010ec86973bc72ca949f8b71",
       "hunks": [
         {
           "before": "    var stampDestination: (() -> AnyView)? = nil\n    var liveDestination: (() -> AnyView)? = nil\n    var posterDestination: ((RoamNodeDetail) -> AnyView)? = nil\n    var mediaScope: UUID = UUID()\n    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil\n    @State private var layer: RoamLayer = .places\n",
@@ -2744,12 +2904,20 @@
         {
           "before": "                if item.coordinate == nil { Label(\"roam.noCoordinates\", systemImage: \"mappin.slash\").font(.caption) }\n            }\n            Spacer(minLength: 0)\n            Image(systemName: \"chevron.right\").foregroundStyle(.secondary).font(.caption)\n        }\n        .padding(.vertical, 8).contentShape(Rectangle())\n        .accessibilityElement(children: .combine)\n",
           "after": "                if item.coordinate == nil { Label(\"roam.noCoordinates\", systemImage: \"mappin.slash\").font(.caption) }\n            }\n            Spacer(minLength: 0)\n            if navigable { Image(systemName: \"chevron.right\").foregroundStyle(.secondary).font(.caption) }\n        }\n        .padding(.vertical, 8).contentShape(Rectangle())\n        .accessibilityElement(children: .combine)\n"
+        },
+        {
+          "before": "    var playerProfileDestination: ((Int) -> AnyView)? = nil\n    var mediaScope: UUID = UUID()\n",
+          "after": "    var playerProfileDestination: ((Int) -> AnyView)? = nil\n    var couponWalletDestination: (() -> AnyView)? = nil\n    var mediaScope: UUID = UUID()\n"
+        },
+        {
+          "before": "            .sheet(item: $selected) { item in\n                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDestination, playerProfileDestination: playerProfileDestination)\n            }\n",
+          "after": "            .sheet(item: $selected) { item in\n                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDestination, playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)\n            }\n"
         }
       ]
     },
     "App/RoamItemDetailView.swift": {
       "before_sha256": "40de2617e674aa4a63c9cac9c3fafcc7dab01b9032ba24e4351dcd05addb21ee",
-      "after_sha256": "14d073fb21dcdf75f0bfdf27dcd0b6467fc148c84a055e9debb2ad62d167e4bc",
+      "after_sha256": "22955d1058f63d98e1f73ba638e016202dbed64526a52160f06494116a95660c",
       "hunks": [
         {
           "before": "    @State private var originatingIdentity: RoamReadIdentity?\n    private let stampDestination: (() -> AnyView)?\n    private let posterDestination: ((RoamNodeDetail) -> AnyView)?\n    @Environment(\\.dismiss) private var dismiss\n    @State private var node: RoamNodeDetail?\n    @State private var merchant: RoamMerchantDetail?\n",
@@ -2786,6 +2954,74 @@
         {
           "before": "        }\n    }\n}\n",
           "after": "        }\n    }\n}\n\n/// A snapshot description only. Render both fields independently rather than\n/// repairing apparently inconsistent values with a client-side business rule.\nstruct RoamPlaceReadStatusLabel: View {\n    let status: RoamPlaceReadStatus\n    var discoveryKey: String {\n        switch status.discovered {\n        case .yes: \"roamPlaceRead.discovered\"\n        case .no: \"roamPlaceRead.notDiscovered\"\n        case .unknown: \"roamPlaceRead.discoveryUnknown\"\n        }\n    }\n    var redemptionKey: String {\n        switch status.pendingRedemption {\n        case .yes: \"roamPlaceRead.pending\"\n        case .no: \"roamPlaceRead.noPending\"\n        case .unknown: \"roamPlaceRead.redemptionUnknown\"\n        }\n    }\n    var body: some View {\n        VStack(alignment: .leading, spacing: 4) {\n            Label(LocalizedStringKey(discoveryKey), systemImage: status.discovered == .unknown ? \"questionmark.circle\" : \"map\")\n            Label(LocalizedStringKey(redemptionKey), systemImage: status.pendingRedemption == .unknown ? \"questionmark.circle\" : \"ticket\")\n        }.fixedSize(horizontal: false, vertical: true)\n            .accessibilityElement(children: .combine)\n            .accessibilityIdentifier(\"roamPlaceRead.status\")\n    }\n}\n\n/// Text and shape both identify the public source status, including unknown.\nstruct RoamMerchantBusinessStatusLabel: View {\n    let state: RoamMerchantBusinessState\n    var localizationKey: String {\n        switch state {\n        case .open: \"roam.open\"\n        case .closed: \"roam.closed\"\n        case .unknown: \"roam.merchantBusinessUnknown\"\n        }\n    }\n    var symbol: String {\n        switch state {\n        case .open: \"storefront\"\n        case .closed: \"moon.zzz\"\n        case .unknown: \"questionmark.circle\"\n        }\n    }\n    var body: some View {\n        Label(LocalizedStringKey(localizationKey), systemImage: symbol)\n            .fixedSize(horizontal: false, vertical: true)\n            .accessibilityIdentifier(\"roam.merchantBusinessStatus\")\n    }\n}\n"
+        },
+        {
+          "before": "    private let playerProfileDestination: ((Int) -> AnyView)?\n    @State private var eventNavigation: RoamEventNavigationSelection?\n",
+          "after": "    private let playerProfileDestination: ((Int) -> AnyView)?\n    private let couponWalletDestination: (() -> AnyView)?\n    @State private var eventNavigation: RoamEventNavigationSelection?\n"
+        },
+        {
+          "before": "    @State private var featuredActivityNavigation: RoamFeaturedActivitySelection?\n    @State private var merchantReadSnapshot = UUID()\n",
+          "after": "    @State private var featuredActivityNavigation: RoamFeaturedActivitySelection?\n    @State private var featuredCouponWalletNavigation: RoamFeaturedCouponWalletSelection?\n    @State private var merchantReadSnapshot = UUID()\n"
+        },
+        {
+          "before": "    @State private var merchantFailed = false\n    @State private var readOwner = ManualMapReadTaskOwner()\n",
+          "after": "    @State private var merchantFailed = false\n    @StateObject private var merchantRetry = RoamMerchantDetailRetryModel()\n    @State private var readOwner = ManualMapReadTaskOwner()\n"
+        },
+        {
+          "before": "    @State private var generation = 0\n    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil, eventDestination: ((RoamEventDestination) -> AnyView)? = nil, playerProfileDestination: ((Int) -> AnyView)? = nil) {\n        self.stampDestination = stampDestination; self.posterDestination = posterDestination; self.eventDestination = eventDestination; self.playerProfileDestination = playerProfileDestination\n        _originatingReaderID = State(initialValue: ObjectIdentifier(reader)); _originatingArea = State(initialValue: reader.searchArea)\n",
+          "after": "    @State private var generation = 0\n    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil, eventDestination: ((RoamEventDestination) -> AnyView)? = nil, playerProfileDestination: ((Int) -> AnyView)? = nil, couponWalletDestination: (() -> AnyView)? = nil) {\n        self.stampDestination = stampDestination; self.posterDestination = posterDestination; self.eventDestination = eventDestination; self.playerProfileDestination = playerProfileDestination\n        self.couponWalletDestination = couponWalletDestination\n        _originatingReaderID = State(initialValue: ObjectIdentifier(reader)); _originatingArea = State(initialValue: reader.searchArea)\n"
+        },
+        {
+          "before": "            }\n            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(\"roam.close\") { dismiss() } } }\n            .task(id: reader.identity) {\n",
+          "after": "            }\n            .navigationDestination(item: $featuredCouponWalletNavigation) { selection in\n                if selection.mayRemainOpen(in: eventScope, snapshotID: merchantReadSnapshot), let couponWalletDestination {\n                    couponWalletDestination()\n                } else {\n                    ContentUnavailableView(\"roamEvent.changed\", systemImage: \"ticket\")\n                        .accessibilityIdentifier(\"roamFeaturedCouponWallet.stale\")\n                }\n            }\n            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(\"roam.close\") { merchantRetry.cancel(); dismiss() } } }\n            .task(id: reader.identity) {\n"
+        },
+        {
+          "before": "            .onChange(of: ObjectIdentifier(reader)) { _, value in\n                latestReaderID = value; eventPresentationID = UUID()\n                eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil\n            }\n            .onChange(of: item) { _, value in\n                latestItem = value; eventPresentationID = UUID()\n                eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil\n            }\n            .onChange(of: reader.identity) { _, _ in eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil }\n            .onChange(of: reader.searchArea) { _, _ in eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil }\n            .onDisappear { eventIsVisible = false; eventPresentationID = UUID(); readOwner.deactivate(); generation += 1; loading = false }\n        }\n",
+          "after": "            .onChange(of: ObjectIdentifier(reader)) { _, value in\n                latestReaderID = value; eventPresentationID = UUID(); merchantRetry.cancel()\n                eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil\n            }\n            .onChange(of: item) { _, value in\n                latestItem = value; eventPresentationID = UUID(); merchantRetry.cancel()\n                eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil\n            }\n            .onChange(of: reader.identity) { _, _ in merchantRetry.cancel(); eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil }\n            .onChange(of: reader.searchArea) { _, _ in merchantRetry.cancel(); eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil }\n            .onDisappear { merchantRetry.cancel(); eventIsVisible = false; eventPresentationID = UUID(); readOwner.deactivate(); generation += 1; loading = false }\n        }\n"
+        },
+        {
+          "before": "            else if merchantFailed {\n                Section(\"roam.merchant\") { Text(\"roam.merchantFailed\").foregroundStyle(.secondary) }\n            }\n        }\n    }\n",
+          "after": "            else if merchantFailed {\n                merchantRetrySection(node: node)\n            }\n        }\n    }\n    private func merchantRetrySection(node: RoamNodeDetail) -> some View {\n        let renderedScope = eventScope\n        let renderedSnapshot = merchantReadSnapshot\n        return Section(\"roam.merchant\") {\n            Text(\"roam.merchantFailed\").foregroundStyle(.secondary)\n            if merchantRetry.isLoading {\n                ProgressView(\"roam.loading\").accessibilityIdentifier(\"roam.merchant.retry.loading\")\n            }\n            Button(\"action.retry\", systemImage: \"arrow.clockwise\") {\n                retryMerchant(node: node, rendered: renderedScope, snapshot: renderedSnapshot)\n            }\n            .disabled(merchantRetry.isLoading || loading || !eventIsVisible || renderedScope == nil)\n            .accessibilityIdentifier(\"roam.merchant.retry\")\n        }\n    }\n    private func retryMerchant(node capturedNode: RoamNodeDetail, rendered: RoamEventNavigationScope?, snapshot: UUID) {\n        guard eventIsVisible, !loading, issue == nil, merchantFailed, merchant == nil, !merchantRetry.isLoading,\n              let rendered, rendered == eventScope, snapshot == merchantReadSnapshot,\n              self.node == capturedNode, currentPlace?.id == capturedNode.id,\n              let merchantID = capturedNode.merchantId, merchantID > 0 else { return }\n        // A new merchant read retires feature actions without discarding the place.\n        merchantReadSnapshot = UUID(); featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil\n        let attemptSnapshot = merchantReadSnapshot\n        merchantRetry.retry(merchantID: merchantID, reader: reader, isCurrent: {\n            eventIsVisible && !loading && issue == nil && merchantFailed && merchant == nil &&\n                rendered == eventScope && self.node == capturedNode && currentPlace?.id == capturedNode.id &&\n                merchantReadSnapshot == attemptSnapshot\n        }, completion: { result in\n            switch result {\n            case .success(let value):\n                merchant = value; merchantFailed = false\n            case .failure(let error):\n                if error as? APIError == .unauthorized {\n                    self.node = nil; merchant = nil; merchantFailed = false; issue = RoamScreenIssue(error: error)\n                } else {\n                    merchantFailed = true\n                }\n            }\n        })\n    }\n"
+        },
+        {
+          "before": "                Text(\"roam.featuredReadOnly\").font(.caption).foregroundStyle(.secondary)\n                if let renderedNode = node, let renderedPlace = currentPlace,\n                   RoamFeaturedActivityTarget(node: renderedNode, detail: detail) != nil {\n                    featuredActivityButton(place: renderedPlace, node: renderedNode, detail: detail)\n                }\n            }\n",
+          "after": "                Text(\"roam.featuredReadOnly\").font(.caption).foregroundStyle(.secondary)\n                if let renderedNode = node, let renderedPlace = currentPlace {\n                    if RoamFeaturedActivityTarget(node: renderedNode, detail: detail) != nil {\n                        featuredActivityButton(place: renderedPlace, node: renderedNode, detail: detail)\n                    } else if RoamFeaturedCouponWalletTarget(node: renderedNode, detail: detail) != nil {\n                        featuredCouponWalletButton(place: renderedPlace, node: renderedNode, detail: detail)\n                    }\n                }\n            }\n        }\n    }\n    private func featuredCouponWalletButton(place: RoamPlace, node: RoamNodeDetail, detail: RoamMerchantDetail) -> some View {\n        let renderedScope = eventScope\n        let renderedSnapshot = merchantReadSnapshot\n        return VStack(alignment: .leading, spacing: 4) {\n            Button {\n                guard eventIsVisible, !loading, issue == nil, !merchantFailed, couponWalletDestination != nil,\n                      eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil,\n                      featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil,\n                      let selection = RoamFeaturedCouponWalletSelection(place: place, currentPlace: currentPlace,\n                          node: node, currentNode: self.node, detail: detail, currentDetail: self.merchant,\n                          rendered: renderedScope, current: eventScope,\n                          snapshotID: renderedSnapshot, currentSnapshotID: merchantReadSnapshot) else { return }\n                featuredCouponWalletNavigation = selection\n            } label: { Label(\"merchant.publicHome.featured.openWallet\", systemImage: \"ticket\") }\n                .frame(minHeight: 44)\n                .disabled(couponWalletDestination == nil || renderedScope == nil || !eventIsVisible || loading || issue != nil || merchantFailed ||\n                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil ||\n                          featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)\n                .accessibilityIdentifier(\"roamFeaturedCouponWallet.open\")\n            if couponWalletDestination == nil || renderedScope == nil {\n                Text(\"roamEvent.unavailable\").font(.footnote).foregroundStyle(.secondary)\n                    .fixedSize(horizontal: false, vertical: true)\n            }\n"
+        },
+        {
+          "before": "                guard eventIsVisible, !loading, issue == nil, !merchantFailed, eventDestination != nil,\n                      eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil,\n                      let selection = RoamFeaturedActivitySelection(place: place, currentPlace: currentPlace,\n",
+          "after": "                guard eventIsVisible, !loading, issue == nil, !merchantFailed, eventDestination != nil,\n                      eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil,\n                      let selection = RoamFeaturedActivitySelection(place: place, currentPlace: currentPlace,\n"
+        },
+        {
+          "before": "                .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || loading || issue != nil || merchantFailed ||\n                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)\n                .accessibilityIdentifier(\"roamFeaturedActivity.open\")\n",
+          "after": "                .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || loading || issue != nil || merchantFailed ||\n                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)\n                .accessibilityIdentifier(\"roamFeaturedActivity.open\")\n"
+        },
+        {
+          "before": "                Button {\n                    guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, eventDestination != nil,\n                          let selection = RoamRouteTopicNavigationSelection(route: route, currentRoute: currentRoute,\n",
+          "after": "                Button {\n                    guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil, eventDestination != nil,\n                          let selection = RoamRouteTopicNavigationSelection(route: route, currentRoute: currentRoute,\n"
+        },
+        {
+          "before": "                    .frame(minHeight: 44)\n                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)\n                    .accessibilityIdentifier(\"roamRouteTopic.open.\\(route.id)\")\n",
+          "after": "                    .frame(minHeight: 44)\n                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)\n                    .accessibilityIdentifier(\"roamRouteTopic.open.\\(route.id)\")\n"
+        },
+        {
+          "before": "                Button {\n                    guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, eventDestination != nil,\n                          let selection = RoamEventNavigationSelection(event: event, currentEvent: currentEvent,\n",
+          "after": "                Button {\n                    guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil, eventDestination != nil,\n                          let selection = RoamEventNavigationSelection(event: event, currentEvent: currentEvent,\n"
+        },
+        {
+          "before": "                }.frame(minHeight: 44)\n                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)\n                    .accessibilityIdentifier(\"roamEvent.open.\\(event.id)\")\n",
+          "after": "                }.frame(minHeight: 44)\n                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)\n                    .accessibilityIdentifier(\"roamEvent.open.\\(event.id)\")\n"
+        },
+        {
+          "before": "            Button {\n                guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil,\n                      playerProfileDestination != nil,\n",
+          "after": "            Button {\n                guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil,\n                      playerProfileDestination != nil,\n"
+        },
+        {
+          "before": "                .disabled(player.id <= 0 || playerProfileDestination == nil || renderedScope == nil || !eventIsVisible ||\n                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)\n                .accessibilityIdentifier(\"roamPlayerProfile.open.\\(player.id)\")\n",
+          "after": "                .disabled(player.id <= 0 || playerProfileDestination == nil || renderedScope == nil || !eventIsVisible ||\n                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)\n                .accessibilityIdentifier(\"roamPlayerProfile.open.\\(player.id)\")\n"
+        },
+        {
+          "before": "    private func performLoad() async {\n        generation += 1\n        let operation = generation\n        merchantReadSnapshot = UUID(); featuredActivityNavigation = nil\n        node = nil; merchant = nil; merchantFailed = false; issue = nil\n",
+          "after": "    private func performLoad() async {\n        merchantRetry.cancel()\n        generation += 1\n        let operation = generation\n        merchantReadSnapshot = UUID(); featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil\n        node = nil; merchant = nil; merchantFailed = false; issue = nil\n"
         }
       ]
     },
@@ -4509,17 +4745,25 @@
     },
     "App/RoamExperienceHubView.swift": {
       "before_sha256": "241f98d233117e0acdc4722b0603cf95245e128ec091c123f7053e4f38ecfee3",
-      "after_sha256": "3a5bef7227dc189e13771fefd3d6b591da64ef20d5ab1a5c5610e77535c15419",
+      "after_sha256": "6daac9b26a830c2c2d92b756413a6c0bebf300d13aa15c7fb7f2a8e5db515679",
       "hunks": [
         {
           "before": "                }.padding(.vertical, 8)\n            }\n            Section(\"roam.experience.yourRoam\") {\n                NavigationLink { RoamHistoryView(reader: reader) } label: { Label(\"roam.experience.history\", systemImage: \"clock.arrow.circlepath\") }\n                    .accessibilityIdentifier(\"roam.experience.history.open\")\n                NavigationLink { RoamRecoveryView(reader: reader) } label: { Label(\"roam.experience.recovery\", systemImage: \"arrow.clockwise.circle\") }\n                    .accessibilityIdentifier(\"roam.experience.recovery.open\")\n",
           "after": "                }.padding(.vertical, 8)\n            }\n            Section(\"roam.experience.yourRoam\") {\n                NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination) } label: { Label(\"roam.experience.history\", systemImage: \"clock.arrow.circlepath\") }\n                    .accessibilityIdentifier(\"roam.experience.history.open\")\n                NavigationLink { RoamRecoveryView(reader: reader) } label: { Label(\"roam.experience.recovery\", systemImage: \"arrow.clockwise.circle\") }\n                    .accessibilityIdentifier(\"roam.experience.recovery.open\")\n"
+        },
+        {
+          "before": "    let liveDestination: (() -> AnyView)?\n    var body: some View {\n",
+          "after": "    let liveDestination: (() -> AnyView)?\n    @AppStorage(ReducedMotionPreference.storageKey) private var reduceMotionLocally = ReducedMotionPreference.defaultValue\n    @Environment(\\.accessibilityReduceMotion) private var systemReduceMotion\n    @QuestifyReduceMotion private var effectiveReduceMotion\n    var body: some View {\n"
+        },
+        {
+          "before": "                    .accessibilityIdentifier(\"roam.experience.hangout.open\")\n            }\n",
+          "after": "                    .accessibilityIdentifier(\"roam.experience.hangout.open\")\n            }\n            Section(\"roam.motion.title\") {\n                Toggle(\"roam.motion.reduce\", isOn: $reduceMotionLocally)\n                    .accessibilityIdentifier(\"roam.motion.reduce\")\n                Text(\"roam.motion.hint\").font(.footnote).foregroundStyle(.secondary)\n                    .fixedSize(horizontal: false, vertical: true)\n                if systemReduceMotion {\n                    Text(\"roam.motion.system\").font(.footnote).foregroundStyle(.secondary)\n                        .fixedSize(horizontal: false, vertical: true)\n                        .accessibilityIdentifier(\"roam.motion.system\")\n                }\n                Text(LocalizedStringKey(effectiveReduceMotion ? \"roam.motion.active\" : \"roam.motion.followsSystem\"))\n                    .font(.footnote).foregroundStyle(.secondary)\n                    .fixedSize(horizontal: false, vertical: true)\n                    .accessibilityIdentifier(effectiveReduceMotion ? \"roam.motion.status.reduced\" : \"roam.motion.status.system\")\n            }\n"
         }
       ]
     },
     "App/RoamHistoryViews.swift": {
       "before_sha256": "1926c84b140127cb8f4c65aae81e7305dfb730b1f219459e4b05001baefe4751",
-      "after_sha256": "a37d9862d672aafe03dee51fe24a231eea5b70dc228322c561e3f2ebeea46e36",
+      "after_sha256": "922d42358866927fb386004e47d01903b3b7683d1f80a99a6a5e55b706b1d586",
       "hunks": [
         {
           "before": "\n@MainActor struct RoamHistoryView: View {\n    let reader: any RoamExperienceReading\n    @State private var records: [RoamHistoryRecord] = []\n    @State private var error: Error?\n    @State private var loaded = false\n    var body: some View {\n        ScrollView {\n            LazyVStack(alignment: .leading, spacing: 16) {\n",
@@ -4544,6 +4788,18 @@
         {
           "before": "            .onChange(of: readKey) { _, _ in showShare = false }\n            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record) } } }\n            .accessibilityIdentifier(\"roam.experience.session\")\n",
           "after": "            .onChange(of: readKey) { _, _ in showShare = false }\n            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }\n            .accessibilityIdentifier(\"roam.experience.session\")\n"
+        },
+        {
+          "before": "    @State private var showShare = false\n    @State private var loaded = false\n",
+          "after": "    @State private var showShare = false\n    @State private var selectedMedal: RoamMedalShareSelection?\n    @State private var loaded = false\n"
+        },
+        {
+          "before": "                    }\n                    if let medal = record.medal { Label { Text(verbatim: medal) } icon: { Image(systemName: \"medal\") } }\n                    if let medal = record.shopMedalName { Label { Text(verbatim: medal) } icon: { Image(systemName: \"medal\") } }\n                    if !record.photos.isEmpty { LabeledContent(\"roam.experience.savedPhotoReferences\", value: String(record.photos.count)) }\n",
+          "after": "                    }\n                    ForEach(RoamMedalShareSelection.selections(for: record)) { medal in\n                        Button { showShare = false; selectedMedal = medal } label: {\n                            Label { Text(verbatim: medal.card.name) } icon: { Image(systemName: \"medal\") }\n                                .frame(minHeight: 44, alignment: .leading)\n                        }\n                        .accessibilityLabel(Text(\"roam.medalShare.open\") + Text(verbatim: \": \" + medal.card.name))\n                        .accessibilityIdentifier(\"roam.medalShare.open.\" + medal.card.kind.rawValue)\n                    }\n                    if !record.photos.isEmpty { LabeledContent(\"roam.experience.savedPhotoReferences\", value: String(record.photos.count)) }\n"
+        },
+        {
+          "before": "        }.navigationTitle(\"roam.experience.session\")\n            .task(id: readKey) { showShare = false; load() }\n            .onChange(of: readKey) { _, _ in showShare = false }\n            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }\n            .accessibilityIdentifier(\"roam.experience.session\")\n",
+          "after": "        }.navigationTitle(\"roam.experience.session\")\n            .task(id: readKey) { showShare = false; selectedMedal = nil; load() }\n            .onChange(of: readKey) { _, _ in showShare = false; selectedMedal = nil }\n            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }\n            .sheet(item: $selectedMedal) { medal in\n                if currentRecord == medal.record {\n                    NavigationStack { RoamMedalShareView(selection: medal, reader: reader) }\n                }\n            }\n            .accessibilityIdentifier(\"roam.experience.session\")\n"
         }
       ]
     },
@@ -5243,7 +5499,7 @@
     },
     "App/RoamExperienceComponents.swift": {
       "before_sha256": "5d07efdb738c201f6f9b6502b1211330db63d6873ed4be5d33e1eb054115b453",
-      "after_sha256": "02188caf2ccd48dae34f6775828d2e722ce4f8239f9925af8d972d9148e772fb",
+      "after_sha256": "ced9f51a676f661d8d1f8e473da9936260de9bc04f2948e52f71d8cc836b4983",
       "hunks": [
         {
           "before": "}\nstruct RoamRouteSketchView: View {\n    let record: RoamHistoryRecord\n    var body: some View {\n        let sketch = RoamRouteSketch(track: record.track, places: record.pois.map(\\.point))\n        ZStack {\n",
@@ -5256,6 +5512,10 @@
         {
           "before": "        }.font(.subheadline).monospacedDigit()\n    }\n}\n",
           "after": "        }.font(.subheadline).monospacedDigit()\n    }\n}\n\n/// Replays only the stored sketch. This view has no location, network or write capability.\n@MainActor struct RoamSavedRouteReplayView: View {\n    let reader: any RoamExperienceReading\n    let record: RoamHistoryRecord\n    @Environment(\\.scenePhase) private var scenePhase\n    @Environment(\\.accessibilityReduceMotion) private var reduceMotion\n    @State private var replay = RoamRouteReplayState()\n    @State private var visible = false\n    @State private var request: Request?\n    private struct Request {\n        let id = UUID()\n        let context: RoamRouteReplayState.Context\n        let counts: [Int]\n    }\n    private var owner: RoamRouteReplayState.Owner { .init(reader: reader, record: record) }\n    var body: some View {\n        let current = owner\n        let context = replay.context(for: current)\n        VStack(alignment: .leading, spacing: 12) {\n            // Always normalize the complete record; revealing a prefix never rescales it.\n            RoamRouteSketchView(record: record, visibleSegments: context == nil ? nil : replay.visibleSegments)\n            if let context {\n                if replay.phase == .playing {\n                    Button(\"roamRouteReplay.skip\", systemImage: \"forward.end\") {\n                        synchronize()\n                        guard replay.accepts(context, current: owner) else { return }\n                        replay.skip(in: context, current: owner); request = nil\n                    }.frame(minHeight: 44).accessibilityIdentifier(\"roamRouteReplay.skip\")\n                } else {\n                    Button(LocalizedStringKey(replay.phase == .completed ? \"roamRouteReplay.again\" : \"roamRouteReplay.start\"), systemImage: \"play\") {\n                        synchronize()\n                        guard replay.accepts(context, current: owner) else { return }\n                        if let ticket = replay.start(in: context, current: owner) {\n                            request = Request(context: ticket, counts: replay.plan.counts)\n                        }\n                    }.frame(minHeight: 44).accessibilityIdentifier(\"roamRouteReplay.start\")\n                }\n                ProgressView(value: replay.progress, total: 1)\n                    .accessibilityLabel(Text(\"roamRouteReplay.progress\"))\n                    .accessibilityValue(Text(replay.progress, format: .percent.precision(.fractionLength(0))))\n                    .accessibilityIdentifier(\"roamRouteReplay.progress\")\n                Text(LocalizedStringKey(replay.phase == .playing ? \"roamRouteReplay.playing\" : (replay.phase == .completed ? \"roamRouteReplay.completed\" : \"roamRouteReplay.ready\")))\n                    .font(.caption).foregroundStyle(.secondary)\n            }\n        }\n        .onAppear { visible = true; synchronize() }\n        .onDisappear { visible = false; synchronize() }\n        .onChange(of: owner) { _, _ in synchronize() }\n        .onChange(of: scenePhase) { _, _ in synchronize() }\n        .onChange(of: reduceMotion) { _, _ in synchronize() }\n        .task(id: request?.id) {\n            guard let captured = request else { return }\n            for (index, count) in captured.counts.enumerated() {\n                if index > 0 {\n                    do { try await Task.sleep(nanoseconds: RoamRouteReplayPlan.intervalNanoseconds) }\n                    catch { return }\n                }\n                if reduceMotion { synchronize(); return }\n                guard !Task.isCancelled, visible, scenePhase == .active,\n                      replay.accepts(captured.context, current: owner) else { return }\n                replay.advance(to: count, in: captured.context, current: owner)\n            }\n            // No old-task cleanup can clear a later request.\n        }\n        .accessibilityElement(children: .contain)\n        .accessibilityIdentifier(\"roamRouteReplay.saved\")\n    }\n    private func synchronize() {\n        replay.update(owner: owner, active: visible && scenePhase == .active, reduceMotion: reduceMotion)\n        if let captured = request, !replay.accepts(captured.context, current: owner) { request = nil }\n    }\n}\n"
+        },
+        {
+          "before": "    @Environment(\\.scenePhase) private var scenePhase\n    @Environment(\\.accessibilityReduceMotion) private var reduceMotion\n    @State private var replay = RoamRouteReplayState()\n",
+          "after": "    @Environment(\\.scenePhase) private var scenePhase\n    @QuestifyReduceMotion private var reduceMotion\n    @State private var replay = RoamRouteReplayState()\n"
         }
       ]
     },
@@ -5275,7 +5535,7 @@
     },
     "Resources/Localizable.xcstrings": {
       "before_sha256": "8f552d5a3f34a86c19a370c411a08669dfb4440a15f3b3037cd635595b4ff995",
-      "after_sha256": "aab898a7457e4396faf6a22d9adb83a9c61ebbd1b55a77c3d73ee6e9b27fbffb",
+      "after_sha256": "888b05c52d54f4a1545a792a8fb5c13f46ec75bfe7010f29d340be235e745049",
       "hunks": [
         {
           "before": "          }\n        }\n      }\n    }\n  },\n  \"version\": \"1.0\"\n",
@@ -5312,6 +5572,10 @@
         {
           "before": "      }\n    }\n",
           "after": "      }\n    },\n    \"profile.preferenceRemoval.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Selected preferences\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已选路线偏好\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.open\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Manage selected preferences\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"管理已选偏好\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.empty\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No selected preferences\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无已选偏好\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.unknownName\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Category\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"分类\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.remove\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.restore\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Restore\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"恢复\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.hint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Done only stages these removals. Review and save your profile to apply them.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"完成仅暂存移除结果，请审阅并保存整页资料后生效。\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.clear\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Clear all\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"清空已选偏好\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.undoAll\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Undo removals\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"撤回本次移除\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.unavailable\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Stored preferences could not be safely read. Close this editor and reload your profile.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"无法安全读取已存偏好，请关闭此窗口并重新加载资料。\"\n          }\n        }\n      }\n    },\n    \"profile.preferenceRemoval.review\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Selected preference IDs\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存后的偏好分类编号\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Existing work images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"现有作品图片\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.open\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Manage existing work images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"管理现有作品图片\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.count\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Existing images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"现有图片数量\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.empty\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No existing work images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无现有作品图片\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.staged\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"All work images are pending removal\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"全部作品图片待移除\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.restore\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Keep all existing images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保留全部现有图片\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.remove\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove all work images\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除全部作品图片\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.explanation\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This removes every existing work image from your profile, including images beyond the preview limit. Your work description stays unchanged.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"此操作将从资料中移除全部现有作品图片，包括超出预览数量的图片。作品描述会保留。\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.hint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Done only stages this choice. Review and save your full profile to apply it. Cancel keeps the page draft unchanged.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"完成仅暂存选择，审阅并保存整页资料后生效。取消不会更改整页草稿。\"\n          }\n        }\n      }\n    },\n    \"profile.caseRemoval.review\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"All existing work images will be removed.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"全部现有作品图片将被移除。\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.compare\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Compare changes\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"对比资料改动\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.before\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Before\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"原值\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.after\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"After saving\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存后\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.exactTextHint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Only changed fields are listed. Text comparisons include spacing and exact character encoding.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"仅列出有改动的字段，文字对比包括空白和字符编码差异。\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.noChanges\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No changed values in this review.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本次审阅没有变化的值。\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.open\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Discard reviewed changes\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"放弃本次审阅的改动\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Discard these local changes?\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"放弃这些本机改动？\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.message\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"All changes in this review will be cleared. The last reviewed profile stays on this page. Nothing will be saved to the server.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本次审阅中的全部改动将被清除，页面恢复为本次审阅时读取的资料，不会向服务器保存。\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.confirm\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Discard changes and stay\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"放弃改动并留在此页\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.restored\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Local changes were discarded. Nothing was saved.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已放弃本机改动，未执行保存。\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.empty\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Empty\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"空\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.whitespace\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Whitespace only\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"仅含空白字符\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.present\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Present\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已有\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.absent\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"None\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"无\"\n          }\n        }\n      }\n    },\n    \"profile.reviewRestore.newAvatar\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Newly staged avatar\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"新暂存的头像\"\n          }\n        }\n      }\n    },\n    \"profile.postsRefresh.refresh\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Refresh posts\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"刷新动态\"\n          }\n        }\n      }\n    },\n    \"profile.postsRefresh.refreshing\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Refreshing posts…\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"正在刷新动态…\"\n          }\n        }\n      }\n    },\n    \"profile.postsRefresh.retained\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Showing previously loaded posts until a new read succeeds.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂时显示上次已加载的动态，读取成功后更新。\"\n          }\n        }\n      }\n    }\n"
+        },
+        {
+          "before": "      }\n    }\n",
+          "after": "      }\n    },\n    \"media.stamp.caption.preview\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Caption preview\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"配文预览\"\n          }\n        }\n      }\n    },\n    \"media.stamp.caption.locked\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This caption is locked with the uploaded photo and request key. Any retry uses the same caption.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"配文已与本次照片和请求键锁定；再次确认会使用同一段配文。\"\n          }\n        }\n      }\n    },\n    \"roam.motion.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Display and motion\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"显示与动态效果\"\n          }\n        }\n      }\n    },\n    \"roam.motion.reduce\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reduce motion in this app\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"在此应用中减少动态效果\"\n          }\n        }\n      }\n    },\n    \"roam.motion.hint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This device-only preference reduces supported in-app animations. It does not change iOS settings.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"仅保存在这台设备，减少应用内已支持的动画；不会修改 iOS 设置。\"\n          }\n        }\n      }\n    },\n    \"roam.motion.system\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"iOS Reduce Motion is on. It remains in effect when this switch is off.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"iOS 已开启“减少动态效果”；关闭此开关后仍会遵循系统设置。\"\n          }\n        }\n      }\n    },\n    \"roam.motion.active\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reduced motion is active\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"减少动态效果已生效\"\n          }\n        }\n      }\n    },\n    \"roam.motion.followsSystem\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Following iOS motion settings\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"正在遵循 iOS 动态效果设置\"\n          }\n        }\n      }\n    },\n    \"roam.createdStamp.open\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"View saved stamp\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"查看入册结果\"\n          }\n        }\n      }\n    },\n    \"roam.createdStamp.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saved stamp\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"入册结果\"\n          }\n        }\n      }\n    },\n    \"roam.createdStamp.confirmed\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Stamp creation was confirmed\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已收到这枚印章的入册确认\"\n          }\n        }\n      }\n    },\n    \"roam.createdStamp.id\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Stamp ID\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"印章编号\"\n          }\n        }\n      }\n    },\n    \"roam.createdStamp.readNotice\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Read the saved stamp from your album. This does not upload, create or exchange another stamp.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"从你的集邮册读取这枚印章；不会重新上传、创建或交换。\"\n          }\n        }\n      }\n    },\n    \"roam.createdStamp.moreHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This stamp is not on the pages read so far. Read the next page or browse your album.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已读页面还没有这枚印章。可以读取下一页，或浏览集邮册。\"\n          }\n        }\n      }\n    },\n    \"roam.createdStamp.hidden\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The album returned this stamp, but its current status does not allow it to be displayed.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"集邮册返回了这枚印章，但当前状态不允许展示内容。\"\n          }\n        }\n      }\n    },\n    \"roam.createdStamp.missing\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This read finished without returning that stamp. Your creation confirmation is unchanged; try reading again later.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本次读取已结束，列表暂未返回这枚印章。入册确认没有改变，可以稍后重读。\"\n          }\n        }\n      }\n    },\n    \"roam.createdStamp.browse\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Browse stamp album\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"浏览集邮册\"\n          }\n        }\n      }\n    },\n    \"roam.createdStamp.changed\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The album account or session changed. Go back to continue.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"集邮册账户或会话已变化，请返回后继续。\"\n          }\n        }\n      }\n    },\n    \"roam.medalShare.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Medal card\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"勋章卡\"\n          }\n        }\n      }\n    },\n    \"roam.medalShare.open\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Share this earned medal\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"分享这枚已得勋章\"\n          }\n        }\n      }\n    },\n    \"roam.medalShare.privacy\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The card contains only this saved medal, its category, and the recorded date. It has no route, places, photos, or account details.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"卡片仅包含这枚已保存的勋章、类别与记录日期，不包含路线、地点、照片或账号信息。\"\n          }\n        }\n      }\n    },\n    \"roam.medalShare.preview\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Preview of the medal card to save or share\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"将保存或分享的勋章卡预览\"\n          }\n        }\n      }\n    },\n    \"roam.medalShare.prepare\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Generate medal card\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"生成勋章卡\"\n          }\n        }\n      }\n    },\n    \"roam.medalShare.earned\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"MEDAL EARNED\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"徽章到手\"\n          }\n        }\n      }\n    },\n    \"roam.medalShare.journey\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saved journey medal\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已保存的漫游勋章\"\n          }\n        }\n      }\n    },\n    \"roam.medalShare.shop\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saved shop medal\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已保存的探店勋章\"\n          }\n        }\n      }\n    },\n    \"roam.medalShare.brand\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"城瘾 · CityFog\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"城瘾 · CityFog\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.choose\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Prepare a post\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"准备发布\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.beforeSave\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Save this card first, then view the instructions. An identical card already saved here will not be saved again.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"先保存这张卡，再查看发布指引；本页已成功保存过的同一张卡不会重复保存。\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.momentsAction\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Save card and view Moments guide\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"存图并查看朋友圈指引\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.xiaohongshuAction\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Save card and view Xiaohongshu guide\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"存图并查看小红书指引\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.saved\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This card was saved to Photos\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这张卡已保存到相册\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.momentsSteps\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Open WeChat Moments yourself and select the saved card from Photos. You can use the suggested text below.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请自行打开微信朋友圈，从相册选择刚保存的足迹卡。可参考下面的文案。\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.xiaohongshuSteps\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Open Xiaohongshu yourself and select the saved card from Photos. You can use the suggested text below.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请自行打开小红书，从相册选择刚保存的足迹卡。可参考下面的文案。\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.notPosted\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Nothing has been posted. Choose who can see it in the other app before publishing.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"尚未发布任何内容。发布前，请在对应应用中自行设置谁可以看到。\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.copyTitle\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Suggested text\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"文案参考\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.copyHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Touch and hold to select text. Unknown statistics are omitted. Nothing is copied to the clipboard automatically.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"可长按选择文案。未记录的统计不会补成零，也不会自动写入剪贴板。\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.exploration\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Exploration\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"探索度\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.moments\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Moments guide\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"朋友圈发布指引\"\n          }\n        }\n      }\n    },\n    \"roam.albumGuide.xiaohongshu\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Xiaohongshu guide\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"小红书发布指引\"\n          }\n        }\n      }\n    },\n    \"roam.finishedHistory.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Your saved walk\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已保存的本次漫游\"\n          }\n        }\n      }\n    },\n    \"roam.finishedHistory.hint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Settlement and local archiving are complete. Review the saved record or browse your local history.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"结算与本机存档已完成。可以回看本次已保存记录，或浏览本机漫游历史。\"\n          }\n        }\n      }\n    },\n    \"roam.finishedHistory.thisWalk\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Review this saved walk\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"回看本次已保存漫游\"\n          }\n        }\n      }\n    }\n"
         }
       ]
     },
@@ -5445,7 +5709,7 @@
     "Core/RoamRetainedRead.swift": "7864b357ca7c20ad9f60f767a788f7a72ac3cd80edcc4554a87ef15d7db0bbe0",
     "Core/SearchMapLayerVisibility.swift": "2e95d0a1b587228fcf6f7b1b893d31c1ef67b3679702953810fb5e39feeec6b5",
     "Core/SearchMapViewportSelection.swift": "8cb68c5decb74da1b172da29507953f5b3fae9ece71eac4cce947c0cc84bcfc7",
-    "Resources/Localizable.xcstrings": "aab898a7457e4396faf6a22d9adb83a9c61ebbd1b55a77c3d73ee6e9b27fbffb",
+    "Resources/Localizable.xcstrings": "888b05c52d54f4a1545a792a8fb5c13f46ec75bfe7010f29d340be235e745049",
     "Resources/MerchantCityClaimWithdrawalLocalizations.fragment.json": "a19e4d670bc4be11489d8a45e4e5e1d4b68e2e074abacd86301f75a44fde800e",
     "Resources/MerchantCityQuotaLocalizations.fragment.json": "8c0b7f0fa055ae9cfd55517319138c01d58ca7fd5c1368196eeb608237bca3be",
     "Resources/MerchantCustomerContactLocalizations.fragment.json": "45fbb42eb318bd44ac1a0c728c1510941701d10aa5bb945fd135686147ca3cc6",
@@ -5910,7 +6174,7 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "0ad2034549bbf8f0adc818df510b5b3d19d70a042b72948e739b60e3384d8707",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "ede79c3f852697619627d54c583d9acbd3d7e184021cd31e9e76af47f5812c84",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "616a5e7f28ff5bd6814c91bf10e8f7efd99b8091ad4a8b9dc9d895f8bd2e0ad4",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
@@ -5924,14 +6188,14 @@
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "7c706133b0073709b0c1307594a5c4ee71ff35aa7f12098e4cfa57a775c62fe0",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "599f07eab32981dc0f118b6ef2fcc78283f294d3ffb745d845019e44cad3f3f4",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
-    "Tests/ContractChecks/test_roam_route_replay.py": "b43fb0be28afef4ec713fafa46e75fc1ba33a18f5663469b2f9e7f3585f8706b",
+    "Tests/ContractChecks/test_roam_route_replay.py": "e73c32a6cb07239d1f87c199fb7d5c1887a0119f9a467094b49f704d36c1aad6",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "1c799fe9811fb09de2e1a7afca5a1a327a1acfd95dd768f953283ff83eac3423",
+    "Tests/ContractChecks/test_category_roam_registration.py": "43a780b5d4ee3f1e41e1e3b0590b1c31892258716c82c85ced2c6b68ebedd509",
     "Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift": "91a1011295933822da752baaf3912cc8e36551bbe58597352dff171bf8c96222",
     "Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
     "Tests/ContractChecks/test_club_leaderboard_member_navigation.py": "f76bc1c7da34ef0e3df056a02eac732079e2b5103e0b872136dbf2d2e4b8c1a6",
@@ -5939,7 +6203,7 @@
     "tools/tests/test_run138_current_ci_entry.py": "9b26d1739824a0801174876cd72007cf17fa39e3605e988ba7a39ea3750d1f0e",
     "tools/tests/test_creator_history_fixture_rejection.py": "f01c504f715ee961df19de807a27e4321420c43e130631d68fb1924323fec85b",
     "tools/run138_current_source_projection.py": "c516a6952473bd0a0b958631f1751bf23085b35dc1b7dae3c3afa2afd3a4709e",
-    "App/RoamHistoryShareView.swift": "20713bba31a10b2b3e5d9365e496e69e96234ae9d851e96cfc986b057d9f6df3",
+    "App/RoamHistoryShareView.swift": "252495326401471cf28212a22ee814ffcd41d1739b4fbb48fcfba14c675afa02",
     "App/TemplateAuthoringDetailForms.swift": "06553b9348ea718f0d8846a2ad2c01b9c5e9de06c849b89f03c3f6e688d2efa8",
     "App/TemplateAuthoringMetadataSelectors.swift": "9bcd9cf6f470df1bb359dc4f663ffadf2f5fccec7799f4592c758fb76418a6fa",
     "App/TemplateStoryEditor.swift": "60dd8ac32c19c940c1bfa8200b30fc2e6fe81f7ef46e96bb4608380fd94c0aa3",
@@ -6154,6 +6418,50 @@
     "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift": "306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca",
     "Tests/AppUnitTests/ProfileDraftReviewRestoreTests.swift": "a22b9e2ffdec3ded318bb599c7bf7138b5f3f2c381c812fe32f39220f538a3c3",
     "Resources/ProfileAuthorPostsRefreshLocalizations.fragment.json": "fbad4662566bea1277f754727655ee489b85a8cf2999e09099e0a68783736c7c",
+    "Core/RoamFinishedHistoryReader.swift": "d731e86c74542a321e6789ba25957c02660f7587c1dc9e39da8811c34e2b6f99",
+    "docs/roam-reduced-motion-registration.json": "b368df8f11c1b58fde01278c0bd923be499ef9de895112d67ad75666868d3d3e",
+    "Core/ReducedMotionPreference.swift": "672422877788d66f28b6c0375547acddf6fc22e8976d2d5923d725ca843000ac",
+    "Core/RoamMedalShareSelection.swift": "5172b84db946cd1b2407feb2c1322aba9d34a8c16bbcdd7ff6c9c8eb10afbb87",
+    "Tests/CoreTests/RoamShareAlbumGuideTests.swift": "2a37886cebf395a393cd894fe2a7170ceb29b8dcce721de5b7d4dcdfa710274b",
+    "docs/roam-featured-coupon-wallet-registration.json": "42ba1565574ce124207a9e768ba8145aff70ea87d0ac0533b8855d5b75fbf8a9",
+    "docs/roam-featured-coupon-wallet.md": "74eed4f8363fabe5d967207218e5c21d022f743bfb73cee02565e023d707960b",
+    "App/QuestifyMotion.swift": "813fbbcbaa0b3f35d5b132c706494b243e797151a5a9b2c5ff3cf54ba2e2fa90",
+    "Core/RoamStampCaptureCoordinator.swift": "e97908d54607323fdad95a3ab7b5e6d575a5ce651d1f3ece3bf9cd802c96ab38",
+    "App/RoamLiveSessionView.swift": "4677dffcbd5d7baedb21a5a7eb13cd959b6689b966fdeda3f57c5bdeda6bd553",
+    "docs/roam-merchant-detail-retry.md": "d2b4dedae8d0d9a3248b44ed1ef1058c7f30010d0a2644d2a1cbab2accba8336",
+    "Core/RoamLiveSessionController.swift": "f65d618880eeba0b4bb223f1d5b0f2b603880c4b0aabc546b81a29a7334bf10d",
+    "App/RoamCreatedStampView.swift": "6eaed5cec74f3ce23331e7847ba298f3052a94df04f04fe483a0eb09efe903fc",
+    "docs/roam-medal-card-registration.json": "862caf0651ed77beab476906a131f69e51bec11421a6ae8012d893fc9d07dde5",
+    "Tests/CoreTests/RoamFinishedHistoryTests.swift": "44819ba78e56caa5051b47e64ff3fccb9b9d7451ea934d4358061a559c72a260",
+    "Tests/CoreTests/ReducedMotionPreferenceTests.swift": "47dbd54e47f9b4eeeaf9cff40c8ac5a2362260d4369c404a33a5a38d4067a383",
+    "Tests/AppUnitTests/RoamFeaturedCouponWalletViewTests.swift": "963c163311aa660b5c353f748f776881b81d9bdf557498b967638c8ce950312b",
+    "Tests/ContractChecks/test_roam_merchant_detail_retry.py": "baf03b1682aa0c3256e9c5421af0b3c743e7f0c5ee562617cd6d0c6f81ba6812",
+    "docs/roam-finished-history-registration.json": "f0302c8227223a3ee3d74d77a28a4da6b2ff4bc3db86b49ca8658b8d3e56eb9f",
+    "Tests/CoreTests/RoamStampCaptionTests.swift": "7505339d9547afbcb6e2ef292593d77a92f7a725892f87f7f71a7df8a5f4a0c5",
+    "App/SessionRoamMediaViews.swift": "b8f86ef408923b5406da8be4bf78a2a3d72479dd4584cf72fbce5e29c162f087",
+    "Tests/CoreTests/RoamMedalShareSelectionTests.swift": "a2f9ab1dc74387973374160abe088b9e1be862322c8c0f122885f3413a39d3cf",
+    "App/RoamShareAlbumGuideView.swift": "7bafc7d4480b2108de11cdc9428ae710241abef1ffbd40a89489f06200e02e4c",
+    "Tests/AppUnitTests/RoamShareAlbumGuideFlowTests.swift": "353e17ebed3406636f00797435bedc0075fa70320db6cc2ae4074b2a3e030d6b",
+    "Tests/AppUITests/RoamReducedMotionFlowTests.swift": "b457a536c4b691af386616943eed66d6174ae040b5d837d3c0f60688588b1f1b",
+    "App/RoamStampCameraView.swift": "4077063a84f61d9a88f3bb11196930aab2b3a98c29cc75cb23b90e3225ab333b",
+    "docs/roam-reduced-motion.md": "a48c560b461c9b33cad2c0fe1bda5c17ab54e5c5561daa538b1c52337eeeb891",
+    "Core/RoamCreatedStampLookup.swift": "d5c50ebd2ea245cad072b7e8956ab753c173b0a4bdbbd086acde392ce3aba723",
+    "docs/roam-merchant-detail-retry-registration.json": "e4f430576be6c13c7a99f88ca24e73a2653df39ead2174d56e7b1e640bc4181e",
+    "docs/roam-stamp-caption.md": "52ac4f4db4dde00ee6f677eaf902f07c02ebc994e7c5e63617132c11124da5cc",
+    "Tests/CoreTests/RoamFeaturedCouponWalletSelectionTests.swift": "0d2c406dd83feb875fd2ec78161332c434fcdec6e44f4c2a1387310f13613e21",
+    "App/RoamMerchantDetailRetryModel.swift": "1e1cb51cefa8963c40cf383715d824e999d82e14a3d67541b744487c536f9d88",
+    "Tests/AppUITests/RoamFinishedHistoryFlowTests.swift": "879d620461e5d0cfb6bf4806f973b8a1986bb23a9ad00a67bbb36b261007aceb",
+    "docs/roam-created-stamp-registration.json": "073f6544afd95676b75c873e7716249c0ab9361d787976e3037e846e60f33ee5",
+    "Core/RoamFeaturedCouponWalletSelection.swift": "890f71229fe0480932a44a6a066a5a753d890518d40ccf695ee9b9823345a92a",
+    "App/SessionRoamCouponWalletView.swift": "5558b7ad016283b3b0c22bfcb98b0f355f04239430646f8f68a5f8896c9b9ed4",
+    "docs/roam-stamp-caption-registration.json": "e7fe9572ca0c10c116aa63a2f51d5de06520c5554a4451d70fea939735980b7d",
+    "Tests/AppUnitTests/RoamMedalShareCardTests.swift": "7f4e14807a7b3e7f80588cae32dd89f8a437fda30aa835a303387d1bb3ddea44",
+    "docs/roam-share-album-guide-registration.json": "f652ab7c6dad3ea85a2f22acc361a976ca6076f7794f4e01a5698fa246d45498",
+    "Tests/CoreTests/RoamCreatedStampLookupTests.swift": "5dc911c02570f5feb2e5c081af1435cd829f498e743c348e5b93276a17b392fc",
+    "App/RoamMedalShareView.swift": "76edc2d9fc67b2db7f9855c0417052e672fb7c342f258daa614e395f93246cbf",
+    "Core/RoamShareAlbumGuideState.swift": "4820f821637ecb278e358962efb24c87ca75c4fd22799ecb5a9db85cd2ca55ee",
+    "Tests/AppUnitTests/RoamMerchantDetailRetryModelTests.swift": "fddae777bbc66b081f53b10e0213b58710fa2f7285cb8ca479010e5c7963e258",
+    "Tests/ContractChecks/test_roam_featured_coupon_wallet.py": "19822b3b202ec1349de3d5d0519607fd64b4d4bae5f4b53b44bd439a313b29bb",
     "tools/tests/test_readiness_contract_parse_cache.py": "a05486842d224477efc0c91a25c0fb9458858295eb069869c37923903613f3b0"
   },
   "current_method_replacements": {
@@ -6252,10 +6560,10 @@
   "product_ui_budget": {
     "status": "UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT",
     "measured": false,
-    "new_methods": 52,
+    "new_methods": 56,
     "changed_existing_methods": 3,
-    "method_count_after": 794,
-    "class_count_after": 178,
+    "method_count_after": 798,
+    "class_count_after": 180,
     "assumptions": {
       "per_reveal_seconds": 40,
       "per_reveal_maximum_swipes": 10,
@@ -6284,7 +6592,9 @@
       "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift": "b2e650c4b6733546dc24ca36cce3538f487f476a122ea8e17c50597fd53d02d6",
       "Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift": "2477449bcf10fdd6a1805ebdd26e4c00f0822843f8ec63c214ec067b597d3486",
       "Tests/AppUITests/ProfileEditFlowTests.swift": "e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067",
-      "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift": "306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca"
+      "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift": "306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca",
+      "Tests/AppUITests/RoamFinishedHistoryFlowTests.swift": "879d620461e5d0cfb6bf4806f973b8a1986bb23a9ad00a67bbb36b261007aceb",
+      "Tests/AppUITests/RoamReducedMotionFlowTests.swift": "b457a536c4b691af386616943eed66d6174ae040b5d837d3c0f60688588b1f1b"
     },
     "methods": {
       "ProfileEditFlowTests.testNicknameCancelReopenAndApply": {
@@ -7056,6 +7366,62 @@
         "typed_characters": 0,
         "unrounded_seconds": 122.0,
         "seconds": 130
+      },
+      "RoamReducedMotionFlowTests.testUnconfiguredRoamCanReduceMotionAndPersistsAcrossRelaunch": {
+        "source": "Tests/AppUITests/RoamReducedMotionFlowTests.swift",
+        "declaration_sha256": "7459bd255aa8d29619ee3743fdd915717821e3f941b642e2b015d2c4dac94027",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 180,
+        "explicit_wait_seconds": 0,
+        "bounded_reveal_calls": 13,
+        "direct_action_count": 3,
+        "direct_ax_assertion_count": 11,
+        "typed_characters": 0,
+        "unrounded_seconds": 737,
+        "seconds": 740
+      },
+      "RoamReducedMotionFlowTests.testChineseMaximumTypeLocalOffCannotOverrideExistingReducedMotionFixture": {
+        "source": "Tests/AppUITests/RoamReducedMotionFlowTests.swift",
+        "declaration_sha256": "82d6268c82d0428645ef222cd7f0c20bca83d58461a6d1bb85307833a9c35614",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 0,
+        "bounded_reveal_calls": 8,
+        "direct_action_count": 2,
+        "direct_ax_assertion_count": 8,
+        "typed_characters": 0,
+        "unrounded_seconds": 436,
+        "seconds": 440
+      },
+      "RoamFinishedHistoryFlowTests.testFinishedWalkOpensItsActualStoredRecordAndHistoryThenReturns": {
+        "source": "Tests/AppUITests/RoamFinishedHistoryFlowTests.swift",
+        "declaration_sha256": "76d0144baf7182e269855824214e9c0b2ec4fedac0bda3cbb34c43f47546cdc3",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 7,
+        "direct_action_count": 9,
+        "direct_ax_assertion_count": 10,
+        "typed_characters": 0,
+        "unrounded_seconds": 465,
+        "seconds": 470
+      },
+      "RoamFinishedHistoryFlowTests.testUnknownOrRecoveredActiveSessionHasNoSavedContinuation": {
+        "source": "Tests/AppUITests/RoamFinishedHistoryFlowTests.swift",
+        "declaration_sha256": "026367de38124fbf20eec27b473d36cbc28e46bfe39ab17c38936ac65c547514",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 5,
+        "direct_action_count": 4,
+        "direct_ax_assertion_count": 7,
+        "typed_characters": 0,
+        "unrounded_seconds": 334,
+        "seconds": 340
       }
     },
     "class_increment_seconds": {
@@ -7073,9 +7439,11 @@
       "ProfilePreferenceRemovalFlowTests": 820,
       "ProfileCasePictureRemovalFlowTests": 830,
       "ProfileDraftReviewRestoreFlowTests": 910,
-      "ProfileAuthorPostsRefreshFlowTests": 650
+      "ProfileAuthorPostsRefreshFlowTests": 650,
+      "RoamReducedMotionFlowTests": 1180,
+      "RoamFinishedHistoryFlowTests": 810
     },
-    "added_seconds": 19560,
+    "added_seconds": 21550,
     "prior_profile_class_seconds": 81.645
   }
 }

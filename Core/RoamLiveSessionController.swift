@@ -6,6 +6,7 @@ import Foundation
     public private(set) var phase: RoamLivePhase = .ready
     public private(set) var record: RoamLiveRecord?
     public private(set) var settlement: RoamSessionFact?
+    public private(set) var completedHistory: RoamFinishedHistoryReference?
     public private(set) var places: [RoamPlace] = []
     public private(set) var registeredShops: [RoamRouteNode] = []
     public private(set) var track: [RoamHistoryPoint] = []
@@ -40,6 +41,15 @@ import Foundation
                 now: @escaping () -> Date = Date.init,
                 key: @escaping () -> String = { UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased() }) {
         self.service = service; self.location = location; self.journal = journal; self.history = history; self.now = now; self.key = key
+    }
+    /// Uses the already supplied local store; no new transport, grant or factory setup.
+    public func makeFinishedHistoryReader(offlineExample: Bool = false) -> RoamFinishedHistoryReader {
+        RoamFinishedHistoryReader(store: history, offlineExample: offlineExample, currentIdentity: { [weak self] in
+            guard let self, self.phase == .finished, self.completedHistory != nil, self.isAvailable,
+                  let bound = self.boundIdentity, let current = self.service?.identity,
+                  current.scope.storageKey == bound.scope.storageKey, current.epoch == bound.epoch else { return nil }
+            return current
+        }, completion: { [weak self] in self?.completedHistory })
     }
     public func prepare() {
         guard record == nil, phase != .finished else { return }
@@ -260,6 +270,7 @@ import Foundation
         let archived = try JSONDecoder().decode(RoamHistoryRecord.self, from: JSONSerialization.data(withJSONObject: fields))
         try history.prependSettled(archived, fact: fact)
         try journal.clear(scope: record.scope)
+        completedHistory = .init(timestamp: archived.ts, serverSessionID: id)
         self.record = nil; phase = .finished; error = nil; lastFix = nil; previousFix = nil; track = []; places = []; registeredShops = []; grid = []; presenceEnabled = false
     }
     private func persist(_ draft: RoamLiveRecord) throws { try journal.write(draft); record = draft }
@@ -282,6 +293,7 @@ import Foundation
         if phase == .paused, record?.finishRequested == true { phase = .recoveryRequired }
     }
     public func invalidate() {
+        completedHistory = nil
         generation += 1; operation = nil; busy = false; location?.stop(); record = nil; settlement = nil; places = []; registeredShops = []; track = []
         lastFix = nil; previousFix = nil; origin = nil; grid = []; boundIdentity = nil; presenceEnabled = false; error = nil; phase = .unavailable; changed()
     }

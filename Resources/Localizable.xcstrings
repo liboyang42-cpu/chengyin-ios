@@ -153221,6 +153221,737 @@
           }
         }
       }
+    },
+    "media.stamp.caption.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caption preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配文预览"
+          }
+        }
+      }
+    },
+    "media.stamp.caption.locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This caption is locked with the uploaded photo and request key. Any retry uses the same caption."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配文已与本次照片和请求键锁定；再次确认会使用同一段配文。"
+          }
+        }
+      }
+    },
+    "roam.motion.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display and motion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示与动态效果"
+          }
+        }
+      }
+    },
+    "roam.motion.reduce": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduce motion in this app"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在此应用中减少动态效果"
+          }
+        }
+      }
+    },
+    "roam.motion.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device-only preference reduces supported in-app animations. It does not change iOS settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅保存在这台设备，减少应用内已支持的动画；不会修改 iOS 设置。"
+          }
+        }
+      }
+    },
+    "roam.motion.system": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS Reduce Motion is on. It remains in effect when this switch is off."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 已开启“减少动态效果”；关闭此开关后仍会遵循系统设置。"
+          }
+        }
+      }
+    },
+    "roam.motion.active": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduced motion is active"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "减少动态效果已生效"
+          }
+        }
+      }
+    },
+    "roam.motion.followsSystem": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Following iOS motion settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在遵循 iOS 动态效果设置"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View saved stamp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看入册结果"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved stamp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入册结果"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.confirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stamp creation was confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收到这枚印章的入册确认"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.id": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stamp ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "印章编号"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.readNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the saved stamp from your album. This does not upload, create or exchange another stamp."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从你的集邮册读取这枚印章；不会重新上传、创建或交换。"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.moreHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stamp is not on the pages read so far. Read the next page or browse your album."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读页面还没有这枚印章。可以读取下一页，或浏览集邮册。"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.hidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The album returned this stamp, but its current status does not allow it to be displayed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集邮册返回了这枚印章，但当前状态不允许展示内容。"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This read finished without returning that stamp. Your creation confirmation is unchanged; try reading again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次读取已结束，列表暂未返回这枚印章。入册确认没有改变，可以稍后重读。"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.browse": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse stamp album"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浏览集邮册"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The album account or session changed. Go back to continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集邮册账户或会话已变化，请返回后继续。"
+          }
+        }
+      }
+    },
+    "roam.medalShare.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medal card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勋章卡"
+          }
+        }
+      }
+    },
+    "roam.medalShare.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share this earned medal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享这枚已得勋章"
+          }
+        }
+      }
+    },
+    "roam.medalShare.privacy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The card contains only this saved medal, its category, and the recorded date. It has no route, places, photos, or account details."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卡片仅包含这枚已保存的勋章、类别与记录日期，不包含路线、地点、照片或账号信息。"
+          }
+        }
+      }
+    },
+    "roam.medalShare.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview of the medal card to save or share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将保存或分享的勋章卡预览"
+          }
+        }
+      }
+    },
+    "roam.medalShare.prepare": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate medal card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成勋章卡"
+          }
+        }
+      }
+    },
+    "roam.medalShare.earned": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MEDAL EARNED"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徽章到手"
+          }
+        }
+      }
+    },
+    "roam.medalShare.journey": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved journey medal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的漫游勋章"
+          }
+        }
+      }
+    },
+    "roam.medalShare.shop": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved shop medal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的探店勋章"
+          }
+        }
+      }
+    },
+    "roam.medalShare.brand": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾 · CityFog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾 · CityFog"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare a post"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备发布"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.beforeSave": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this card first, then view the instructions. An identical card already saved here will not be saved again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先保存这张卡，再查看发布指引；本页已成功保存过的同一张卡不会重复保存。"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.momentsAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save card and view Moments guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存图并查看朋友圈指引"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.xiaohongshuAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save card and view Xiaohongshu guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存图并查看小红书指引"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This card was saved to Photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这张卡已保存到相册"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.momentsSteps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open WeChat Moments yourself and select the saved card from Photos. You can use the suggested text below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请自行打开微信朋友圈，从相册选择刚保存的足迹卡。可参考下面的文案。"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.xiaohongshuSteps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Xiaohongshu yourself and select the saved card from Photos. You can use the suggested text below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请自行打开小红书，从相册选择刚保存的足迹卡。可参考下面的文案。"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.notPosted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing has been posted. Choose who can see it in the other app before publishing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未发布任何内容。发布前，请在对应应用中自行设置谁可以看到。"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.copyTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggested text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文案参考"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.copyHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touch and hold to select text. Unknown statistics are omitted. Nothing is copied to the clipboard automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可长按选择文案。未记录的统计不会补成零，也不会自动写入剪贴板。"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.exploration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exploration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "探索度"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.moments": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moments guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "朋友圈发布指引"
+          }
+        }
+      }
+    },
+    "roam.albumGuide.xiaohongshu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xiaohongshu guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小红书发布指引"
+          }
+        }
+      }
+    },
+    "roam.finishedHistory.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your saved walk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的本次漫游"
+          }
+        }
+      }
+    },
+    "roam.finishedHistory.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement and local archiving are complete. Review the saved record or browse your local history."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算与本机存档已完成。可以回看本次已保存记录，或浏览本机漫游历史。"
+          }
+        }
+      }
+    },
+    "roam.finishedHistory.thisWalk": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review this saved walk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回看本次已保存漫游"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

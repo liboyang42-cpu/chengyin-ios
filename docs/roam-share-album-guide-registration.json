@@ -1,0 +1,69 @@
+{
+  "feature": "P005 confirmed saved-card publication guide",
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "app_sources": [
+    "App/RoamShareAlbumGuideView.swift",
+    "Core/RoamShareAlbumGuideState.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/RoamShareAlbumGuideFlowTests.swift"
+  ],
+  "core_test_discovery": "Tests/CoreTests/RoamShareAlbumGuideTests.swift via existing SwiftPM target",
+  "localizations": {
+    "roam.albumGuide.choose": {
+      "en": "Prepare a post",
+      "zh-Hans": "准备发布"
+    },
+    "roam.albumGuide.beforeSave": {
+      "en": "Save this card first, then view the instructions. An identical card already saved here will not be saved again.",
+      "zh-Hans": "先保存这张卡，再查看发布指引；本页已成功保存过的同一张卡不会重复保存。"
+    },
+    "roam.albumGuide.momentsAction": {
+      "en": "Save card and view Moments guide",
+      "zh-Hans": "存图并查看朋友圈指引"
+    },
+    "roam.albumGuide.xiaohongshuAction": {
+      "en": "Save card and view Xiaohongshu guide",
+      "zh-Hans": "存图并查看小红书指引"
+    },
+    "roam.albumGuide.saved": {
+      "en": "This card was saved to Photos",
+      "zh-Hans": "这张卡已保存到相册"
+    },
+    "roam.albumGuide.momentsSteps": {
+      "en": "Open WeChat Moments yourself and select the saved card from Photos. You can use the suggested text below.",
+      "zh-Hans": "请自行打开微信朋友圈，从相册选择刚保存的足迹卡。可参考下面的文案。"
+    },
+    "roam.albumGuide.xiaohongshuSteps": {
+      "en": "Open Xiaohongshu yourself and select the saved card from Photos. You can use the suggested text below.",
+      "zh-Hans": "请自行打开小红书，从相册选择刚保存的足迹卡。可参考下面的文案。"
+    },
+    "roam.albumGuide.notPosted": {
+      "en": "Nothing has been posted. Choose who can see it in the other app before publishing.",
+      "zh-Hans": "尚未发布任何内容。发布前，请在对应应用中自行设置谁可以看到。"
+    },
+    "roam.albumGuide.copyTitle": {
+      "en": "Suggested text",
+      "zh-Hans": "文案参考"
+    },
+    "roam.albumGuide.copyHint": {
+      "en": "Touch and hold to select text. Unknown statistics are omitted. Nothing is copied to the clipboard automatically.",
+      "zh-Hans": "可长按选择文案。未记录的统计不会补成零，也不会自动写入剪贴板。"
+    },
+    "roam.albumGuide.exploration": {
+      "en": "Exploration",
+      "zh-Hans": "探索度"
+    },
+    "roam.albumGuide.moments": {
+      "en": "Moments guide",
+      "zh-Hans": "朋友圈发布指引"
+    },
+    "roam.albumGuide.xiaohongshu": {
+      "en": "Xiaohongshu guide",
+      "zh-Hans": "小红书发布指引"
+    }
+  },
+  "existing_photos_permission_unchanged": true,
+  "no_external_publication_or_launch": true,
+  "central_files_edited": false
+}

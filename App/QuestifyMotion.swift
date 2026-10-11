@@ -1,19 +1,20 @@
 import SwiftUI
 
-/// System preference is read-only. A DEBUG-only policy input exercises our custom
-/// animation fallback without pretending to change iOS accessibility settings.
+/// System preference is read-only. The local setting may reduce app motion further,
+/// but turning it off cannot override iOS. DEBUG can still force the existing fallback.
 @propertyWrapper
 struct QuestifyReduceMotion: DynamicProperty {
     init() {}
     @Environment(\.accessibilityReduceMotion) private var systemValue
+    @AppStorage(ReducedMotionPreference.storageKey) private var localValue = ReducedMotionPreference.defaultValue
     #if DEBUG
     private static let fixtureValue=ProcessInfo.processInfo.arguments.contains("--uitesting-reduce-motion")
     #endif
     var wrappedValue:Bool {
         #if DEBUG
-        return systemValue || Self.fixtureValue
+        return ReducedMotionPreference.effective(system: systemValue, local: localValue) || Self.fixtureValue
         #else
-        return systemValue
+        return ReducedMotionPreference.effective(system: systemValue, local: localValue)
         #endif
     }
 }

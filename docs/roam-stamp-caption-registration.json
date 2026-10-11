@@ -1,0 +1,41 @@
+{
+  "feature": "P130 stamp caption authoring and exact retry payload",
+  "base_commit": "51d3e24de92427a777f8690f847cec39971b041a",
+  "prior_batch_dependencies": [],
+  "app_sources": [],
+  "modified_registered_sources": [
+    "App/RoamStampCameraView.swift",
+    "App/SessionRoamMediaViews.swift",
+    "Core/RoamStampCaptureCoordinator.swift"
+  ],
+  "app_unit_test_sources": [],
+  "swift_package_discovery": [
+    "Tests/CoreTests/RoamStampCaptionTests.swift"
+  ],
+  "localization_destination": "Resources/Localizable.xcstrings",
+  "localization_new_entries": {
+    "media.stamp.caption.preview": {
+      "en": "Caption preview",
+      "zh-Hans": "配文预览"
+    },
+    "media.stamp.caption.locked": {
+      "en": "This caption is locked with the uploaded photo and request key. Any retry uses the same caption.",
+      "zh-Hans": "配文已与本次照片和请求键锁定；再次确认会使用同一段配文。"
+    }
+  },
+  "reused_localization_keys": [
+    "roam.experience.caption",
+    "roam.experience.remaining",
+    "roam.experience.captionLimit",
+    "roam.experience.captionEmpty",
+    "roam.experience.draftOnly"
+  ],
+  "central_files_edited": false,
+  "required_follow_through": [
+    "Merge the two EN/zh-Hans localization entries through the central catalog owner.",
+    "No new application source registration or framework/permission is required; the Core XCTest is discovered by the existing Swift package target.",
+    "Run swift test --filter RoamStampCaptionTests and the existing MediaDestinationsTests, then an unsigned Apple app build and the documented UI acceptance cases.",
+    "Keep existing camera, uploader, stamp-create, approved-origin and credential gates unchanged."
+  ],
+  "apple_execution": "NOT_RUN"
+}

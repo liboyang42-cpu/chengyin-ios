@@ -2,9 +2,11 @@ import SwiftUI
 
 @MainActor private final class RoamLiveViewModel: ObservableObject {
     let controller: RoamLiveSessionController
+    let finishedHistory: RoamFinishedHistoryReader
     @Published private var revision = 0
-    init(_ controller: RoamLiveSessionController) {
+    init(_ controller: RoamLiveSessionController, offlineExample: Bool) {
         self.controller = controller
+        finishedHistory = controller.makeFinishedHistoryReader(offlineExample: offlineExample)
         controller.onChange = { [weak self] in self?.revision &+= 1 }
     }
 }
@@ -16,7 +18,7 @@ import SwiftUI
     @State private var presenceAccepted = false
     @State private var confirmFinish = false
     @State private var showRules = false
-    init(controller: RoamLiveSessionController, offlineExample: Bool = false) { self.offlineExample = offlineExample; _model = StateObject(wrappedValue: RoamLiveViewModel(controller)) }
+    init(controller: RoamLiveSessionController, offlineExample: Bool = false) { self.offlineExample = offlineExample; _model = StateObject(wrappedValue: RoamLiveViewModel(controller, offlineExample: offlineExample)) }
     private var owner: RoamLiveSessionController { model.controller }
     var body: some View {
         List {
@@ -33,6 +35,21 @@ import SwiftUI
                 }
             } else {
                 status
+                if owner.phase == .finished, let saved = owner.completedHistory, model.finishedHistory.identity != nil {
+                    Section("roam.finishedHistory.title") {
+                        Text("roam.finishedHistory.hint").font(.caption).foregroundStyle(.secondary)
+                        NavigationLink {
+                            RoamHistoryDetailView(reader: model.finishedHistory, timestamp: saved.timestamp)
+                        } label: {
+                            Label("roam.finishedHistory.thisWalk", systemImage: "book.closed")
+                        }.accessibilityIdentifier("roam.finishedHistory.record.open")
+                        NavigationLink {
+                            RoamHistoryView(reader: model.finishedHistory)
+                        } label: {
+                            Label("roam.experience.history", systemImage: "clock.arrow.circlepath")
+                        }.accessibilityIdentifier("roam.finishedHistory.history.open")
+                    }
+                }
                 if [.ready, .locationDenied, .paused].contains(owner.phase) {
                     Section {
                         Toggle("roam.live.consent", isOn: $purposeAccepted).accessibilityIdentifier("roam.live.consent")

@@ -13,6 +13,9 @@ import SwiftUI
     let reader: any RoamExperienceReading
     let stampDestination: (() -> AnyView)?
     let liveDestination: (() -> AnyView)?
+    @AppStorage(ReducedMotionPreference.storageKey) private var reduceMotionLocally = ReducedMotionPreference.defaultValue
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @QuestifyReduceMotion private var effectiveReduceMotion
     var body: some View {
         List {
             Section {
@@ -43,6 +46,21 @@ import SwiftUI
             Section {
                 NavigationLink { RoamHangoutUnavailableView() } label: { Label("roam.experience.hangout", systemImage: "person.3") }
                     .accessibilityIdentifier("roam.experience.hangout.open")
+            }
+            Section("roam.motion.title") {
+                Toggle("roam.motion.reduce", isOn: $reduceMotionLocally)
+                    .accessibilityIdentifier("roam.motion.reduce")
+                Text("roam.motion.hint").font(.footnote).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if systemReduceMotion {
+                    Text("roam.motion.system").font(.footnote).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("roam.motion.system")
+                }
+                Text(LocalizedStringKey(effectiveReduceMotion ? "roam.motion.active" : "roam.motion.followsSystem"))
+                    .font(.footnote).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier(effectiveReduceMotion ? "roam.motion.status.reduced" : "roam.motion.status.system")
             }
         }.navigationTitle("roam.experience.title")
             .accessibilityIdentifier("roam.experience.hub")

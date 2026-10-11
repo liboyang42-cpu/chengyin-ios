@@ -1,0 +1,66 @@
+{
+  "feature": "P005 device-local Reduce Motion switch",
+  "base_commit": "96d727404a966cd3b3d2437c79449046beda560f",
+  "prior_batch_dependencies": [],
+  "app_sources": [
+    "Core/ReducedMotionPreference.swift"
+  ],
+  "modified_registered_sources": [
+    "App/QuestifyMotion.swift",
+    "App/RoamExperienceHubView.swift",
+    "App/RoamExperienceComponents.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/RoamReducedMotionFlowTests.swift"
+  ],
+  "swift_package_discovery": [
+    "Core/ReducedMotionPreference.swift",
+    "Tests/CoreTests/ReducedMotionPreferenceTests.swift"
+  ],
+  "localization_destination": "Resources/Localizable.xcstrings",
+  "localization_new_entries": {
+    "roam.motion.title": {
+      "en": "Display and motion",
+      "zh-Hans": "显示与动态效果"
+    },
+    "roam.motion.reduce": {
+      "en": "Reduce motion in this app",
+      "zh-Hans": "在此应用中减少动态效果"
+    },
+    "roam.motion.hint": {
+      "en": "This device-only preference reduces supported in-app animations. It does not change iOS settings.",
+      "zh-Hans": "仅保存在这台设备，减少应用内已支持的动画；不会修改 iOS 设置。"
+    },
+    "roam.motion.system": {
+      "en": "iOS Reduce Motion is on. It remains in effect when this switch is off.",
+      "zh-Hans": "iOS 已开启“减少动态效果”；关闭此开关后仍会遵循系统设置。"
+    },
+    "roam.motion.active": {
+      "en": "Reduced motion is active",
+      "zh-Hans": "减少动态效果已生效"
+    },
+    "roam.motion.followsSystem": {
+      "en": "Following iOS motion settings",
+      "zh-Hans": "正在遵循 iOS 动态效果设置"
+    }
+  },
+  "native_preference": {
+    "key": "chengyin.preferences.reduceMotion",
+    "type": "Bool",
+    "default": false,
+    "storage": "SwiftUI AppStorage (device-local app preferences)",
+    "system_preference": "Read-only; system true OR local true",
+    "mini_keys_are_provenance_only": [
+      "play_reduced_motion",
+      "roam_reduced_motion"
+    ]
+  },
+  "central_files_edited": false,
+  "required_follow_through": [
+    "Register the new Core source in the app target and the UI test in its existing target through the central project owner.",
+    "Merge six EN/zh-Hans entries into the existing catalog.",
+    "Run ReducedMotionPreferenceTests, the existing RoamRouteReplayTests and RoamReducedMotionFlowTests, then an unsigned Apple app build.",
+    "Verify actual iOS Reduce Motion on/off, local preference persistence, VoiceOver and existing animation consumers on a device; the DEBUG override does not prove real system behavior."
+  ],
+  "apple_execution": "NOT_RUN"
+}

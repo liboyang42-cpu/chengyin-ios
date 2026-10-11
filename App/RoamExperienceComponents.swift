@@ -86,7 +86,7 @@ struct RoamRecordedStats: View {
     let reader: any RoamExperienceReading
     let record: RoamHistoryRecord
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @QuestifyReduceMotion private var reduceMotion
     @State private var replay = RoamRouteReplayState()
     @State private var visible = false
     @State private var request: Request?

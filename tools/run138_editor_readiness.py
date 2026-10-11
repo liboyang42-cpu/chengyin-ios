@@ -18,7 +18,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = '515d880d54c2c20d0787abf2d420519430f43e8a9046f21e12505e680f60f998'
+CONTRACT_SHA256 = '232f16321c35feedae0e9600572cf17a58b5e4da725e984743936a53c838ff25'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'
@@ -145,9 +145,9 @@ def validate_current(directory, profile_path, root=ROOT):
     if digest(Path(profile_path).read_bytes()) != c['unchanged_profile_sha256']:
         raise ValueError('Old profile, floors or historical observations changed')
     keys, classes = inventory(directory)
-    if (len(keys) != 794 or len(classes) != 178
+    if (len(keys) != 798 or len(classes) != 180
             or canonical(keys) != c['current_inventory_sha256']):
-        raise ValueError('Current 794 complete methods are not preserved')
+        raise ValueError('Current 798 complete methods are not preserved')
     for relative, expected in c['followon_support_sha256'].items():
         if digest(entry_projection().historical_entry_bytes(root, relative)) != expected:
             raise ValueError('Follow-on source or cost adapter changed: ' + relative)
@@ -204,7 +204,7 @@ def validate_current(directory, profile_path, root=ROOT):
         raise ValueError('Direction-only story helper added work or changed other semantics')
     if (c['new_over900_exceptions'] != {CHINESE: 948, CURRENT_REVIEW: 946, 'ProjectStoryImageFlowTests.testChosenStoryImageAppliesOnlyAfterUploadAndRestoresIntoExactPreparedOrder': 905, RELEASE_RECOVERY: 944, COVER_RECOVERY: 942, 'ApprovedTopicFrozenCoverPublicationFlowTests.testApprovedCoverConfirmationAndUnknownPublicationRestoreOriginalManifest': 940, 'ProjectStoryAudioRecoveryFlowTests.testChineseMaximumTextUnknownUploadChecksSameRequestWithoutSecondUpload': 980}
             or c['preserved_historical_exceptions'] != {CHINESE: 908, CURRENT_REVIEW: 906, RELEASE_RECOVERY: 904, COVER_RECOVERY: 902}
-            or c['added_total_seconds'] != 21273.948 or c['deadline_seconds'] != 1800
+            or c['added_total_seconds'] != 23263.948 or c['deadline_seconds'] != 1800
             or c['startup_reserve_seconds'] != 300 or c['shard_count'] != 79):
         raise ValueError('Exception scope, added work, reserve or deadline changed')
     validate_club_leaderboard_budget(c, directory, root)
@@ -281,7 +281,7 @@ def weights(directory=ROOT / 'Tests/AppUITests', profile_path=ROOT / 'tools/ui_d
         raise ValueError('Prior profile whole-class floor changed')
     for name,seconds in increments.items():result[name]=result.get(name,0)+seconds
     if ({name: result[name] for name in c['candidate_class_seconds']} != c['candidate_class_seconds']
-            or not math.isclose(sum(result.values()) - sum(before.values()), 21273.948, abs_tol=1e-7)):
+            or not math.isclose(sum(result.values()) - sum(before.values()), 23263.948, abs_tol=1e-7)):
         raise ValueError('New full-method work was omitted or an old cost decreased')
     return result
 
@@ -299,9 +299,9 @@ def report(root=ROOT):
     if max(loads) + 300 > 1800:
         raise ValueError('A complete class/shard exceeds the unchanged deadline and reserve')
     return {'status': c['status'], 'active_ci_runner_modified': True, 'apple_executed': False,
-            'method_count': 794, 'class_count': len(costs), 'shard_count': 79,
+            'method_count': 798, 'class_count': len(costs), 'shard_count': 79,
             'candidate_class_seconds': c['candidate_class_seconds'],
-            'added_total_seconds': 21273.948, 'total_seconds': sum(costs.values()),
+            'added_total_seconds': 23263.948, 'total_seconds': sum(costs.values()),
             'maximum_shard_seconds': max(loads), 'maximum_with_startup_reserve_seconds': max(loads) + 300,
             'deadline_seconds': 1800, 'startup_reserve_seconds': 300,
             'shards': [{'index': index, 'classes': group, 'seconds': loads[index]} for index, group in enumerate(groups)]}
@@ -357,10 +357,10 @@ def validate_club_leaderboard_budget(c, directory, root):
 
 _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
  'measured': False,
- 'new_methods': 52,
+ 'new_methods': 56,
  'changed_existing_methods': 3,
- 'method_count_after': 794,
- 'class_count_after': 178,
+ 'method_count_after': 798,
+ 'class_count_after': 180,
  'assumptions': {'per_reveal_seconds': 40,
                  'per_reveal_maximum_swipes': 10,
                  'per_reveal_maximum_viewports': 11,
@@ -386,7 +386,9 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                    'Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift': 'b2e650c4b6733546dc24ca36cce3538f487f476a122ea8e17c50597fd53d02d6',
                    'Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift': '2477449bcf10fdd6a1805ebdd26e4c00f0822843f8ec63c214ec067b597d3486',
                    'Tests/AppUITests/ProfileEditFlowTests.swift': 'e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067',
-                   'Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift': '306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca'},
+                   'Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift': '306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca',
+                   'Tests/AppUITests/RoamFinishedHistoryFlowTests.swift': '879d620461e5d0cfb6bf4806f973b8a1986bb23a9ad00a67bbb36b261007aceb',
+                   'Tests/AppUITests/RoamReducedMotionFlowTests.swift': 'b457a536c4b691af386616943eed66d6174ae040b5d837d3c0f60688588b1f1b'},
  'methods': {'ProfileEditFlowTests.testNicknameCancelReopenAndApply': {'source': 'Tests/AppUITests/ProfileEditFlowTests.swift',
                                                                        'declaration_sha256': '2a159139c56d4319a10df9295a2ddb0bb96f7921661382dc34a555a7cf67a3bc',
                                                                        'measured': False,
@@ -1046,7 +1048,55 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                                                                                                 'direct_ax_assertion_count': 0,
                                                                                                 'typed_characters': 0,
                                                                                                 'unrounded_seconds': 122.0,
-                                                                                                'seconds': 130}},
+                                                                                                'seconds': 130},
+             'RoamReducedMotionFlowTests.testUnconfiguredRoamCanReduceMotionAndPersistsAcrossRelaunch': {'source': 'Tests/AppUITests/RoamReducedMotionFlowTests.swift',
+                                                                                                         'declaration_sha256': '7459bd255aa8d29619ee3743fdd915717821e3f941b642e2b015d2c4dac94027',
+                                                                                                         'measured': False,
+                                                                                                         'existing_method_increment': False,
+                                                                                                         'lifecycle_seconds': 180,
+                                                                                                         'explicit_wait_seconds': 0,
+                                                                                                         'bounded_reveal_calls': 13,
+                                                                                                         'direct_action_count': 3,
+                                                                                                         'direct_ax_assertion_count': 11,
+                                                                                                         'typed_characters': 0,
+                                                                                                         'unrounded_seconds': 737,
+                                                                                                         'seconds': 740},
+             'RoamReducedMotionFlowTests.testChineseMaximumTypeLocalOffCannotOverrideExistingReducedMotionFixture': {'source': 'Tests/AppUITests/RoamReducedMotionFlowTests.swift',
+                                                                                                                     'declaration_sha256': '82d6268c82d0428645ef222cd7f0c20bca83d58461a6d1bb85307833a9c35614',
+                                                                                                                     'measured': False,
+                                                                                                                     'existing_method_increment': False,
+                                                                                                                     'lifecycle_seconds': 90,
+                                                                                                                     'explicit_wait_seconds': 0,
+                                                                                                                     'bounded_reveal_calls': 8,
+                                                                                                                     'direct_action_count': 2,
+                                                                                                                     'direct_ax_assertion_count': 8,
+                                                                                                                     'typed_characters': 0,
+                                                                                                                     'unrounded_seconds': 436,
+                                                                                                                     'seconds': 440},
+             'RoamFinishedHistoryFlowTests.testFinishedWalkOpensItsActualStoredRecordAndHistoryThenReturns': {'source': 'Tests/AppUITests/RoamFinishedHistoryFlowTests.swift',
+                                                                                                              'declaration_sha256': '76d0144baf7182e269855824214e9c0b2ec4fedac0bda3cbb34c43f47546cdc3',
+                                                                                                              'measured': False,
+                                                                                                              'existing_method_increment': False,
+                                                                                                              'lifecycle_seconds': 90,
+                                                                                                              'explicit_wait_seconds': 30,
+                                                                                                              'bounded_reveal_calls': 7,
+                                                                                                              'direct_action_count': 9,
+                                                                                                              'direct_ax_assertion_count': 10,
+                                                                                                              'typed_characters': 0,
+                                                                                                              'unrounded_seconds': 465,
+                                                                                                              'seconds': 470},
+             'RoamFinishedHistoryFlowTests.testUnknownOrRecoveredActiveSessionHasNoSavedContinuation': {'source': 'Tests/AppUITests/RoamFinishedHistoryFlowTests.swift',
+                                                                                                        'declaration_sha256': '026367de38124fbf20eec27b473d36cbc28e46bfe39ab17c38936ac65c547514',
+                                                                                                        'measured': False,
+                                                                                                        'existing_method_increment': False,
+                                                                                                        'lifecycle_seconds': 90,
+                                                                                                        'explicit_wait_seconds': 10,
+                                                                                                        'bounded_reveal_calls': 5,
+                                                                                                        'direct_action_count': 4,
+                                                                                                        'direct_ax_assertion_count': 7,
+                                                                                                        'typed_characters': 0,
+                                                                                                        'unrounded_seconds': 334,
+                                                                                                        'seconds': 340}},
  'class_increment_seconds': {'ProfileEditFlowTests': 890,
                              'MerchantTemplateParticipationPlanFlowTests': 950,
                              'MerchantTemplateExitPlanFlowTests': 850,
@@ -1061,8 +1111,10 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                              'ProfilePreferenceRemovalFlowTests': 820,
                              'ProfileCasePictureRemovalFlowTests': 830,
                              'ProfileDraftReviewRestoreFlowTests': 910,
-                             'ProfileAuthorPostsRefreshFlowTests': 650},
- 'added_seconds': 19560,
+                             'ProfileAuthorPostsRefreshFlowTests': 650,
+                             'RoamReducedMotionFlowTests': 1180,
+                             'RoamFinishedHistoryFlowTests': 810},
+ 'added_seconds': 21550,
  'prior_profile_class_seconds': 81.645}
 
 def validate_product_ui_budget(c, directory, root):
