@@ -59,6 +59,10 @@ public struct MerchantOperationsService {
     public func access(token: String) async throws -> MerchantOperationsAccess {
         try await read("api/merchant/access/me", body: .none, token: token)
     }
+    public func templateCategories(access: MerchantOperationsAccess, token: String) async throws -> MerchantTemplateCategoryCatalog {
+        guard access.allows(.templates) else { throw MerchantOperationsFailure.accessDenied }
+        return try await read("api/category/list", body: .form(["type": "4", "parentid": "0"]), token: token)
+    }
     public func featuredActivities(page: Int, access: MerchantOperationsAccess, token: String) async throws -> MerchantFeaturedActivityPage {
         guard access.allows(.decor) else { throw MerchantOperationsFailure.accessDenied }
         guard page > 0 else { throw APIError.invalidRequest }

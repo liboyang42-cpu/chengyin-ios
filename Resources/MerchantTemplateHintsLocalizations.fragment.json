@@ -1,0 +1,308 @@
+{
+  "merchant.hints.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Progressive hints"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "阶梯提示"
+        }
+      }
+    }
+  },
+  "merchant.hints.enabled": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enable hints"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "启用提示"
+        }
+      }
+    }
+  },
+  "merchant.hints.hint1": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "First hint"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "一级提示"
+        }
+      }
+    }
+  },
+  "merchant.hints.hint2": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Second hint (optional)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "二级提示（选填）"
+        }
+      }
+    }
+  },
+  "merchant.hints.answerReveal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Fallback answer or explanation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "兜底答案或解析"
+        }
+      }
+    }
+  },
+  "merchant.hints.scope": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hints are supported for written answers, multiple-choice questions and GPS arrival. Only the three text fields are saved."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "文字作答、选项问答和 GPS 到达支持提示。仅保存这三项文字。"
+        }
+      }
+    }
+  },
+  "merchant.hints.unsupported": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This completion method does not support hint editing. Existing hints are preserved until you explicitly disable them or switch to a supported method."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前完成方式不支持编辑提示。已有提示会保留，直到你明确关闭提示或切换到支持的完成方式。"
+        }
+      }
+    }
+  },
+  "merchant.hints.methodConflict": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This completion method does not support enabled hints. Switch back or explicitly disable hints before saving."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前完成方式不支持已启用的提示。请换回支持的方式，或明确关闭提示后再保存。"
+        }
+      }
+    }
+  },
+  "merchant.hints.clearHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Disabling hints empties all three fields. Saving an empty field clears that saved text; review the changes before confirming."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "关闭提示会清空这三项。保存空白字段会清除对应的已保存文字，请先审阅再确认。"
+        }
+      }
+    }
+  },
+  "merchant.hints.previewTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Preview hint sequence"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览提示顺序"
+        }
+      }
+    }
+  },
+  "merchant.hints.previewBoundary": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Author-only draft preview. This does not unlock hints for players, validate completion or grant rewards."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅供作者查看草稿。不会为玩家解锁提示、判定完成或发放奖励。"
+        }
+      }
+    }
+  },
+  "merchant.hints.previewEmpty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter hint text to preview it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "填写提示文字后可预览。"
+        }
+      }
+    }
+  },
+  "merchant.hints.revealNext": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reveal next hint"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看下一条提示"
+        }
+      }
+    }
+  },
+  "merchant.hints.revealAnswer": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reveal fallback answer"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看兜底答案"
+        }
+      }
+    }
+  },
+  "merchant.hints.restart": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Restart preview"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新预览"
+        }
+      }
+    }
+  },
+  "merchant.hints.reviewBoundary": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review all hint text before saving. When players may see it is controlled by the existing runtime."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存前请检查全部提示内容。玩家何时能看到这些内容，由现有运行流程控制。"
+        }
+      }
+    }
+  },
+  "merchant.hints.clearReview": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This saved text will be cleared."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "将清除这项已保存文字。"
+        }
+      }
+    }
+  },
+  "merchant.hints.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No text"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未填写"
+        }
+      }
+    }
+  }
+}

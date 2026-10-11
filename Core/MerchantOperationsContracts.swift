@@ -390,6 +390,195 @@ public struct MerchantTemplateRuleSteps: Equatable {
     }
 }
 
+/// Existing Mini hint group. The enabled switch is editor state, never a backend flag.
+public struct MerchantTemplateHints: Equatable {
+    public enum Field: String, CaseIterable, Identifiable {
+        case hint1, hint2, answerReveal
+        public var id: String { rawValue }
+        public var titleKey: String { "merchant.hints." + rawValue }
+    }
+    private let sourceFields: [String: String]
+    private let sourceMethod: MerchantTemplateMethod?
+    private var values: [Field: String]
+    public private(set) var enabled: Bool
+    public private(set) var isEdited = false
+    public init(hint1: String? = nil, hint2: String? = nil, answerReveal: String? = nil,
+                method: MerchantTemplateMethod? = nil) {
+        sourceFields = ["hint1": hint1, "hint2": hint2, "answerReveal": answerReveal].compactMapValues { $0 }
+        // An absent/empty group has no method-dependent source state. Keep legacy
+        // no-hint templates equivalent to a freshly constructed empty group.
+        sourceMethod = sourceFields.values.contains { !$0.isEmpty } ? method : nil
+        values = [.hint1: hint1 ?? "", .hint2: hint2 ?? "", .answerReveal: answerReveal ?? ""]
+        enabled = sourceFields.values.contains { !$0.isEmpty }
+    }
+    public static func supports(_ method: MerchantTemplateMethod?) -> Bool {
+        method == .secretWord || method == .quiz || method == .gps
+    }
+    public func text(_ field: Field) -> String { values[field] ?? "" }
+    public mutating func update(_ field: Field, text: String) {
+        guard enabled, values[field] != text else { return }
+        values[field] = text; isEdited = true
+    }
+    public mutating func setEnabled(_ value: Bool) {
+        guard enabled != value else { return }
+        enabled = value; isEdited = true
+        if !value { for field in Field.allCases { values[field] = "" } }
+    }
+    /// The exact String fields support empty updates. Missing source values stay omitted
+    /// until this group is explicitly edited; no unrelated edit silently clears hints.
+    public var fields: [String: String] {
+        guard isEdited else { return sourceFields }
+        return Dictionary(uniqueKeysWithValues: Field.allCases.map { ($0.rawValue, enabled ? text($0) : "") })
+    }
+    public var clearedFields: [Field] {
+        guard isEdited else { return [] }
+        return Field.allCases.filter { !(sourceFields[$0.rawValue] ?? "").isEmpty && fields[$0.rawValue] == "" }
+    }
+    public var previewStages: [Field] {
+        guard enabled else { return [] }
+        return Field.allCases.filter { !text($0).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+    public func blocker(method: MerchantTemplateMethod?) -> String? {
+        // Grandfather untouched legacy content. Changing to an unsupported completion
+        // method must not silently erase it as a hidden side effect.
+        enabled && !Self.supports(method) && (isEdited || method != sourceMethod)
+            ? "merchant.hints.methodConflict" : nil
+    }
+}
+
+/// The existing storyJson timeline, kept separate from the store's own story editor.
+/// Unknown source shapes remain opaque: no fallback may silently replace richer content.
+public struct MerchantTemplateStoryTimeline: Equatable {
+    public struct Beat: Equatable, Identifiable {
+        public let id: Int
+        public fileprivate(set) var text: String
+        public fileprivate(set) var tag: String
+        private let sourceImages: [String]?
+        private let legacyImage: String?
+        public var images: [String] { sourceImages ?? legacyImage.map { $0.isEmpty ? [] : [$0] } ?? [] }
+        public var imageReferenceCount: Int { (sourceImages?.count ?? 0) + ((legacyImage ?? "").isEmpty ? 0 : 1) }
+        fileprivate init(id: Int, text: String = "", tag: String = "", images: [String]? = [], legacyImage: String? = nil) {
+            self.id = id; self.text = text; self.tag = tag; sourceImages = images; self.legacyImage = legacyImage
+        }
+        fileprivate var object: [String: Any] {
+            var result: [String: Any] = ["text": text, "tag": tag]
+            if let sourceImages { result["imgs"] = sourceImages }
+            if let legacyImage { result["img"] = legacyImage }
+            if sourceImages == nil && legacyImage == nil { result["imgs"] = [String]() }
+            return result
+        }
+        fileprivate var hasContent: Bool { !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || imageReferenceCount > 0 }
+    }
+    private let sourceText: String?
+    private let sourceJSON: String?
+    private let sourceImageCount: Int
+    private let sourceBeats: [Beat]
+    private var nextID: Int
+    public let isEditable: Bool
+    public private(set) var beats: [Beat]
+    public private(set) var enabled: Bool
+    public private(set) var isEdited = false
+    public init(storyText: String? = nil, storyJSON: String? = nil) {
+        sourceText = storyText; sourceJSON = storyJSON
+        if let raw = storyJSON, !raw.isEmpty {
+            if let parsed = Self.parse(raw) {
+                beats = parsed.isEmpty ? [Beat(id: 1, text: storyText ?? "")] : parsed
+                isEditable = true; enabled = !parsed.isEmpty || !(storyText ?? "").isEmpty
+            } else {
+                beats = []; isEditable = false; enabled = true
+            }
+        } else {
+            beats = [Beat(id: 1, text: storyText ?? "")]; isEditable = true
+            enabled = !(storyText ?? "").isEmpty
+        }
+        sourceBeats = beats
+        sourceImageCount = beats.reduce(0) { $0 + $1.imageReferenceCount }
+        nextID = beats.count + 1
+    }
+    private static func parse(_ raw: String) -> [Beat]? {
+        guard let array = try? JSONSerialization.jsonObject(with: Data(raw.utf8)) as? [[String: Any]] else { return nil }
+        var result: [Beat] = []
+        for (index, item) in array.enumerated() {
+            guard Set(item.keys).isSubset(of: ["text", "tag", "imgs", "img"]) else { return nil }
+            for key in ["text", "tag", "img"] {
+                if let value = item[key], !(value is NSNull), !(value is String) { return nil }
+            }
+            var images: [String]?
+            if let value = item["imgs"], !(value is NSNull) {
+                guard let strings = value as? [String] else { return nil }; images = strings
+            }
+            result.append(Beat(id: index + 1, text: (item["text"] as? String) ?? "", tag: (item["tag"] as? String) ?? "",
+                               images: images, legacyImage: item["img"] as? String))
+        }
+        return result
+    }
+    public mutating func setEnabled(_ value: Bool) {
+        guard isEditable, value != enabled else { return }
+        enabled = value; isEdited = true
+        if !value { beats = [Beat(id: nextID)]; nextID += 1 }
+    }
+    public mutating func update(_ id: Int, text: String? = nil, tag: String? = nil) {
+        guard isEditable, enabled, let index = beats.firstIndex(where: { $0.id == id }) else { return }
+        let before = beats[index]
+        if let text { beats[index].text = text }; if let tag { beats[index].tag = tag }
+        if beats[index] != before { isEdited = true }
+    }
+    public mutating func add() {
+        guard isEditable, enabled else { return }
+        beats.append(Beat(id: nextID)); nextID += 1; isEdited = true
+    }
+    public mutating func remove(_ id: Int) {
+        guard isEditable, enabled, beats.count > 1, let index = beats.firstIndex(where: { $0.id == id }) else { return }
+        beats.remove(at: index); isEdited = true
+    }
+    public mutating func move(_ id: Int, offset: Int) {
+        guard isEditable, enabled, [-1, 1].contains(offset), let index = beats.firstIndex(where: { $0.id == id }),
+              beats.indices.contains(index + offset) else { return }
+        beats.swapAt(index, index + offset); isEdited = true
+    }
+    public var previewBeats: [Beat] { enabled ? beats.filter(\.hasContent) : [] }
+    private var fullProjection: String { previewBeats.map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.joined(separator: "\n") }
+    /// Mini's existing <=500 UTF-16-unit summary; full text remains in storyJson.
+    /// Keep a whole Swift Character at the boundary rather than splitting a surrogate.
+    public var textProjection: String {
+        var result = "", count = 0
+        for character in fullProjection {
+            let length = String(character).utf16.count
+            guard count + length <= 500 else { break }
+            result.append(character); count += length
+        }
+        return result
+    }
+    public var projectionIsShortened: Bool { isEdited && enabled && textProjection != fullProjection }
+    private var editedJSON: String? {
+        guard enabled, !previewBeats.isEmpty else { return "" }
+        guard let data = try? JSONSerialization.data(withJSONObject: previewBeats.map(\.object), options: [.sortedKeys]) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+    public var fields: [String: String] {
+        guard isEdited else { return ["storyText": sourceText, "storyJson": sourceJSON].compactMapValues { $0 } }
+        guard let json = editedJSON else { return [:] }
+        return ["storyText": enabled ? textProjection : "", "storyJson": json]
+    }
+    public var removedImageCount: Int { isEdited ? max(0, sourceImageCount - previewBeats.reduce(0) { $0 + $1.imageReferenceCount }) : 0 }
+    public var removedBeats: [Beat] {
+        guard isEdited else { return [] }
+        let retained = Set(previewBeats.map(\.id))
+        return sourceBeats.filter { $0.hasContent && !retained.contains($0.id) }
+    }
+    public var clearsSource: Bool {
+        isEdited && fields["storyJson"] == "" && (!(sourceText ?? "").isEmpty || !(sourceJSON ?? "").isEmpty)
+    }
+    public var blocker: String? {
+        guard isEdited else { return nil }
+        guard isEditable else { return "merchant.storyTimeline.opaque" }
+        if enabled && beats.contains(where: { !$0.hasContent && !$0.tag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
+            return "merchant.storyTimeline.tagNeedsContent"
+        }
+        return editedJSON == nil ? "merchant.storyTimeline.encodingFailed" : nil
+    }
+}
+
 public struct MerchantNodeTemplate: Decodable, Equatable {
     public var id: Int?
     public var title = ""
@@ -402,6 +591,9 @@ public struct MerchantNodeTemplate: Decodable, Equatable {
     public var usageLocation = ""
     public var requiredMaterials = ""
     public var ruleSteps = MerchantTemplateRuleSteps()
+    public var hints = MerchantTemplateHints()
+    public var storyTimeline = MerchantTemplateStoryTimeline()
+    public var categories = MerchantTemplateCategories()
     public var imgURL: String?
     public var method: MerchantTemplateMethod?
     public var questionAnswer = ""
@@ -419,7 +611,7 @@ public struct MerchantNodeTemplate: Decodable, Equatable {
     public var exitPlan: MerchantTemplateExitPlan?
     public init() {}
     private enum CodingKeys: String, CodingKey {
-        case id, title, description, duration, players, imgUrl, validationMethod, questionAnswer, questionName, questionA, questionB, questionC, questionD, correctAnswer, feedbackText, couponId, usageLocation, requiredMaterials, ruleInstructions
+        case id, title, description, duration, players, imgUrl, validationMethod, questionAnswer, questionName, questionA, questionB, questionC, questionD, correctAnswer, feedbackText, couponId, usageLocation, requiredMaterials, ruleInstructions, hint1, hint2, answerReveal, storyText, storyJson, categoryId, activityCategoryids, sysCategoryList
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -437,6 +629,21 @@ public struct MerchantNodeTemplate: Decodable, Equatable {
         ruleSteps = .init(sourceText: try c.decodeIfPresent(String.self, forKey: .ruleInstructions))
         imgURL = try c.decodeIfPresent(String.self, forKey: .imgUrl)
         method = c.merchantInteger(.validationMethod).flatMap(MerchantTemplateMethod.init(rawValue:))
+        hints = .init(hint1: try c.decodeIfPresent(String.self, forKey: .hint1),
+                      hint2: try c.decodeIfPresent(String.self, forKey: .hint2),
+                      answerReveal: try c.decodeIfPresent(String.self, forKey: .answerReveal), method: method)
+        storyTimeline = .init(storyText: try c.decodeIfPresent(String.self, forKey: .storyText),
+                              storyJSON: try c.decodeIfPresent(String.self, forKey: .storyJson))
+        let primaryCategory: Int?
+        if !c.contains(.categoryId) { primaryCategory = nil }
+        else if try c.decodeNil(forKey: .categoryId) { primaryCategory = nil }
+        else if let value = try? c.decode(Int.self, forKey: .categoryId) { primaryCategory = value }
+        else {
+            let raw = try c.decode(String.self, forKey: .categoryId)
+            guard let value = Int(raw) else { throw APIError.malformedResponse }; primaryCategory = value
+        }
+        categories = .init(rawIDs: try c.decodeIfPresent(String.self, forKey: .activityCategoryids), primaryID: primaryCategory,
+                           labels: try c.decodeIfPresent([MerchantTemplateCategory].self, forKey: .sysCategoryList) ?? [])
         questionAnswer = try c.decodeIfPresent(String.self, forKey: .questionAnswer) ?? ""
         questionName = try c.decodeIfPresent(String.self, forKey: .questionName) ?? ""
         optionA = try c.decodeIfPresent(String.self, forKey: .questionA) ?? ""
@@ -461,6 +668,8 @@ public struct MerchantNodeTemplate: Decodable, Equatable {
         if !gameDurationMinutes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
            Self.validDuration(gameDurationMinutes) == nil { return "merchant.templateMetadata.durationInvalid" }
         if let blocker = ruleSteps.blocker { return blocker }
+        if let blocker = hints.blocker(method: method) { return blocker }
+        if let blocker = storyTimeline.blocker { return blocker }
         return participationPlan?.blocker ?? exitPlan?.blocker
     }
     /// Backend entity Long is copied through an Integer DTO with Math.toIntExact.
@@ -479,6 +688,9 @@ public struct MerchantNodeTemplate: Decodable, Equatable {
         // Picker choices are exact wire values; preserve unfamiliar loaded values byte-for-byte.
         if !usageLocation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { fields["usageLocation"] = usageLocation }
         if let rules = ruleSteps.wireValue { fields["ruleInstructions"] = rules }
+        for (key, value) in hints.fields { fields[key] = value }
+        for (key, value) in storyTimeline.fields { fields[key] = value }
+        for (key, value) in categories.fields { fields[key] = value }
         if let imgURL { fields["imgUrl"] = imgURL }; if let couponID { fields["couponId"] = couponID }
         for (key, value) in ["description": description, "players": players, "requiredMaterials": requiredMaterials, "questionAnswer": questionAnswer, "questionName": questionName,
                               "questionA": optionA, "questionB": optionB, "questionC": optionC, "questionD": optionD,

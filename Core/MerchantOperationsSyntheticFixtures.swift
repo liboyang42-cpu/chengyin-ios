@@ -46,6 +46,10 @@ import Foundation
         guard let document = documents[destination] else { throw APIError.malformedResponse }
         return document
     }
+    public func templateCategories() async throws -> MerchantTemplateCategoryCatalog {
+        guard try await access().allows(.templates) else { throw MerchantOperationsFailure.accessDenied }
+        return try JSONDecoder().decode(MerchantTemplateCategoryCatalog.self, from: Data(#"[{"id":101,"categoryName":"Synthetic observation","type":4},{"id":102,"categoryName":"Synthetic puzzle","type":4},{"id":103,"categoryName":"Synthetic exploration","type":4}]"#.utf8))
+    }
     public func saveExample(_ draft: MerchantOperationsDraft) async throws {
         guard try await access().allows(draft.destination) else { throw MerchantOperationsFailure.accessDenied }
         guard draft.blocker == nil else { throw MerchantOperationsFailure.notSent }
@@ -71,6 +75,16 @@ import Foundation
         returned.requiredMaterials = draft.requiredMaterials.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             ? baseline.requiredMaterials : draft.requiredMaterials.trimmingCharacters(in: .whitespacesAndNewlines)
         returned.ruleSteps = .init(sourceText: draft.ruleSteps.wireValue ?? baseline.ruleSteps.wireValue)
+        let hintFields = draft.hints.fields
+        returned.hints = .init(hint1: hintFields["hint1"] ?? baseline.hints.fields["hint1"],
+                               hint2: hintFields["hint2"] ?? baseline.hints.fields["hint2"],
+                               answerReveal: hintFields["answerReveal"] ?? baseline.hints.fields["answerReveal"],
+                               method: returned.method)
+        let storyFields = draft.storyTimeline.fields
+        returned.storyTimeline = .init(storyText: storyFields["storyText"] ?? baseline.storyTimeline.fields["storyText"],
+                                       storyJSON: storyFields["storyJson"] ?? baseline.storyTimeline.fields["storyJson"])
+        returned.categories = .init(rawIDs: draft.categories.rawIDs ?? baseline.categories.rawIDs,
+                                    primaryID: draft.categories.primaryID ?? baseline.categories.primaryID, labels: draft.categories.labels)
         try await saveExample(.template(returned))
         return returned.id
     }

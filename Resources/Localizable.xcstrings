@@ -151458,6 +151458,1145 @@
           }
         }
       }
+    },
+    "merchant.hints.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progressive hints"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阶梯提示"
+          }
+        }
+      }
+    },
+    "merchant.hints.enabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable hints"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用提示"
+          }
+        }
+      }
+    },
+    "merchant.hints.hint1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First hint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一级提示"
+          }
+        }
+      }
+    },
+    "merchant.hints.hint2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Second hint (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二级提示（选填）"
+          }
+        }
+      }
+    },
+    "merchant.hints.answerReveal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fallback answer or explanation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兜底答案或解析"
+          }
+        }
+      }
+    },
+    "merchant.hints.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hints are supported for written answers, multiple-choice questions and GPS arrival. Only the three text fields are saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字作答、选项问答和 GPS 到达支持提示。仅保存这三项文字。"
+          }
+        }
+      }
+    },
+    "merchant.hints.unsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This completion method does not support hint editing. Existing hints are preserved until you explicitly disable them or switch to a supported method."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前完成方式不支持编辑提示。已有提示会保留，直到你明确关闭提示或切换到支持的完成方式。"
+          }
+        }
+      }
+    },
+    "merchant.hints.methodConflict": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This completion method does not support enabled hints. Switch back or explicitly disable hints before saving."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前完成方式不支持已启用的提示。请换回支持的方式，或明确关闭提示后再保存。"
+          }
+        }
+      }
+    },
+    "merchant.hints.clearHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disabling hints empties all three fields. Saving an empty field clears that saved text; review the changes before confirming."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭提示会清空这三项。保存空白字段会清除对应的已保存文字，请先审阅再确认。"
+          }
+        }
+      }
+    },
+    "merchant.hints.previewTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview hint sequence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览提示顺序"
+          }
+        }
+      }
+    },
+    "merchant.hints.previewBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author-only draft preview. This does not unlock hints for players, validate completion or grant rewards."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供作者查看草稿。不会为玩家解锁提示、判定完成或发放奖励。"
+          }
+        }
+      }
+    },
+    "merchant.hints.previewEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter hint text to preview it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写提示文字后可预览。"
+          }
+        }
+      }
+    },
+    "merchant.hints.revealNext": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reveal next hint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看下一条提示"
+          }
+        }
+      }
+    },
+    "merchant.hints.revealAnswer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reveal fallback answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看兜底答案"
+          }
+        }
+      }
+    },
+    "merchant.hints.restart": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新预览"
+          }
+        }
+      }
+    },
+    "merchant.hints.reviewBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review all hint text before saving. When players may see it is controlled by the existing runtime."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存前请检查全部提示内容。玩家何时能看到这些内容，由现有运行流程控制。"
+          }
+        }
+      }
+    },
+    "merchant.hints.clearReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved text will be cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将清除这项已保存文字。"
+          }
+        }
+      }
+    },
+    "merchant.hints.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未填写"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template story timeline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板剧情时间线"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.enabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include story timeline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加剧情时间线"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit the timeline text and labels. Existing images are retained; this editor does not upload or replace them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可编辑剧情片段和时刻标签。已有图片会保留；此处不上传或替换图片。"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.opaque": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved story uses an unsupported format. Its original content is preserved and cannot be edited or cleared here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此剧情使用暂不支持的格式。原始内容会保留，无法在此编辑或清空。"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.beat %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moment %1$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$lld 个时刻"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What happens at this moment?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一刻发生了什么？"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.tag": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moment label (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时刻标签（选填）"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.images %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld existing image references"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关联 %1$lld 个已有图片引用"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.up": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move earlier"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提前"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.down": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "延后"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove moment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除片段"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add moment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加时刻"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.clearHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disabling the timeline removes its text and image references after confirmation. Blank moments without images are omitted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭时间线并确认保存后，会移除剧情文字及图片引用。没有图片的空片段不写入。"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview timeline text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览剧情文字"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.previewBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author-only text preview. It does not publish, unlock player content or grant rewards. Images are represented by their retained reference counts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供作者查看文字草稿，不会发布、解锁玩家内容或发奖。图片以保留引用数量显示。"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No story moments yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无剧情片段。"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.projectionHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The legacy story summary is limited to 500 UTF-16 units. The complete text remains in the saved timeline."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旧版剧情摘要最多保存 500 个 UTF-16 单元，完整文字仍保存在时间线中。"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.clearReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving will clear the existing story text and timeline."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存后将清空现有剧情文字和时间线。"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.removedImages %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving will remove %1$lld existing image references from this timeline; no uploaded image file is deleted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存后将从此时间线移除 %1$lld 个已有图片引用；不会删除已上传的图片文件。"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.removedBeats": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved moments being removed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将移除的已保存片段"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.tagNeedsContent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A moment has only a label. Add story text or remove the label so it is not silently discarded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有片段仅填写了标签。请添加正文或清空标签，避免标签被静默丢弃。"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.encodingFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The timeline cannot be encoded. Keep your draft and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间线暂时无法编码，请保留草稿后重试。"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.moveEarlier %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move moment %1$lld earlier"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将第 %1$lld 个时刻提前"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.moveLater %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move moment %1$lld later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将第 %1$lld 个时刻延后"
+          }
+        }
+      }
+    },
+    "merchant.storyTimeline.removeMoment %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove moment %1$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除第 %1$lld 个时刻"
+          }
+        }
+      }
+    },
+    "merchant.categories.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gameplay categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法类别"
+          }
+        }
+      }
+    },
+    "merchant.categories.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose gameplay categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择玩法类别"
+          }
+        }
+      }
+    },
+    "merchant.categories.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose from the current gameplay catalog. Categories do not approve a template or change its publication status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从当前玩法目录选择分类。分类不代表模板已获批准，也不会改变发布状态。"
+          }
+        }
+      }
+    },
+    "merchant.categories.stale": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This template or account changed. Close this sheet and open it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板或账号已变化，请关闭后重新打开。"
+          }
+        }
+      }
+    },
+    "merchant.categories.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading categories…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载类别…"
+          }
+        }
+      }
+    },
+    "merchant.categories.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试加载类别"
+          }
+        }
+      }
+    },
+    "merchant.categories.unsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved category format is not recognized. Keep it unchanged or explicitly replace it using the catalog."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现有分类格式暂不支持。可保留原样，或明确使用目录分类替换。"
+          }
+        }
+      }
+    },
+    "merchant.categories.replace": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace unrecognized selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换未识别的分类"
+          }
+        }
+      }
+    },
+    "merchant.categories.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved categories missing from this catalog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前目录没有的已有分类"
+          }
+        }
+      }
+    },
+    "merchant.categories.unavailableHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These IDs are preserved. Remove them explicitly before applying a new selection; nothing is removed just by loading."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些 ID 会保留。应用新选择前需明确移除；加载目录不会自动删除。"
+          }
+        }
+      }
+    },
+    "merchant.categories.removeID %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove saved category #%1$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除已有分类 #%1$lld"
+          }
+        }
+      }
+    },
+    "merchant.categories.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server returned no gameplay categories."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端暂无玩法类别。"
+          }
+        }
+      }
+    },
+    "merchant.categories.noMatches": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching categories."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有匹配的类别。"
+          }
+        }
+      }
+    },
+    "merchant.categories.catalog": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available gameplay categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选玩法类别"
+          }
+        }
+      }
+    },
+    "merchant.categories.selectionCount %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选 %1$lld 项"
+          }
+        }
+      }
+    },
+    "merchant.categories.minimum": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select at least one available category. When the selection changes, its first ID becomes the primary category."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "至少选择一个当前可用类别。变更选择后，第一个选中的 ID 将作为主分类。"
+          }
+        }
+      }
+    },
+    "merchant.categories.reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload catalog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载目录"
+          }
+        }
+      }
+    },
+    "merchant.categories.search": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search category names or IDs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索类别名称或 ID"
+          }
+        }
+      }
+    },
+    "merchant.categories.apply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用所选类别"
+          }
+        }
+      }
+    },
+    "merchant.categories.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No category selection."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未选择类别。"
+          }
+        }
+      }
+    },
+    "merchant.categories.id %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ID %1$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ID %1$lld"
+          }
+        }
+      }
+    },
+    "merchant.categories.primary %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primary category: %1$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主分类：%1$lld"
+          }
+        }
+      }
+    },
+    "merchant.categories.replacementReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving replaces the unrecognized saved category value with this selection."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存后将用本次选择替换原来未识别的分类值。"
+          }
+        }
+      }
+    },
+    "merchant.categories.reviewHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the selected IDs and primary category. Only server save and readback confirm the stored result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查分类 ID 与主分类。保存结果以服务端确认和回读为准。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

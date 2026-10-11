@@ -206,6 +206,8 @@ struct MerchantOperationsEditor: View {
                 Text("merchant.preparation.hint").font(.footnote).foregroundStyle(.secondary)
                 Text("merchant.preparation.omissionHint").font(.footnote).foregroundStyle(.secondary)
             }
+            MerchantTemplateCategoryPicker(document: model)
+            MerchantTemplateStoryTimelineFields(model: model)
             MerchantTemplateRuleStepsFields(model: model)
             MerchantTemplateParticipationPlanFields(model: model)
             MerchantTemplateExitPlanFields(model: model)
@@ -225,6 +227,7 @@ struct MerchantOperationsEditor: View {
                     }
                 }
             }
+            MerchantTemplateHintsFields(model: model)
             Section {
                 templateField("merchant.operations.feedback", \.feedbackText, "feedback")
                 Text("merchant.operations.templateOwnerOnly").font(.footnote).foregroundStyle(.secondary)
@@ -369,7 +372,10 @@ struct MerchantOperationsConfirmationView: View {
                     MerchantTemplateParticipationPlanReview(plan: plan)
                 }
                 if case .template(let template) = confirmation.draft {
+                    MerchantTemplateCategoryReview(categories: template.categories)
+                    MerchantTemplateStoryTimelineReview(timeline: template.storyTimeline)
                     MerchantTemplateRuleStepsReview(rules: template.ruleSteps)
+                    MerchantTemplateHintsReview(hints: template.hints)
                 }
                 if case .template(let template) = confirmation.draft, let plan = template.exitPlan {
                     MerchantTemplateExitPlanReview(plan: plan)
@@ -579,6 +585,205 @@ private struct MerchantTemplateRuleStepsReview: View {
                     .accessibilityIdentifier("merchant.ruleSteps.review.text")
             } else {
                 Text("merchant.ruleSteps.emptyReview").accessibilityIdentifier("merchant.ruleSteps.review.empty")
+            }
+        }
+    }
+}
+
+@MainActor
+private struct MerchantTemplateHintsFields: View {
+    @ObservedObject var model: MerchantOperationsViewModel
+    private var template: MerchantNodeTemplate? {
+        if case .template(let value) = model.coordinator.draft { return value }; return nil
+    }
+    private func edit(_ action: (inout MerchantTemplateHints) -> Void) {
+        guard var value = template else { return }
+        action(&value.hints); model.edit(.template(value))
+    }
+    var body: some View {
+        if let value = template {
+            Section("merchant.hints.title") {
+                Toggle("merchant.hints.enabled", isOn: Binding(get: { template?.hints.enabled ?? false }, set: { enabled in
+                    edit { $0.setEnabled(enabled) }
+                })).disabled(!MerchantTemplateHints.supports(value.method) && !value.hints.enabled)
+                    .accessibilityIdentifier("merchant.hints.enabled")
+                Text("merchant.hints.scope").font(.footnote).foregroundStyle(.secondary)
+                if !MerchantTemplateHints.supports(value.method) {
+                    Text("merchant.hints.unsupported").font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("merchant.hints.unsupported")
+                }
+                if value.hints.enabled {
+                    ForEach(MerchantTemplateHints.Field.allCases) { field in
+                        TextField(LocalizedStringKey(field.titleKey), text: Binding(get: { template?.hints.text(field) ?? "" }, set: { text in
+                            edit { $0.update(field, text: text) }
+                        }), axis: .vertical)
+                            .disabled(!MerchantTemplateHints.supports(value.method))
+                            .accessibilityIdentifier("merchant.hints.field.\(field.rawValue)")
+                    }
+                }
+                Text("merchant.hints.clearHint").font(.footnote).foregroundStyle(.secondary)
+            }
+            if value.hints.enabled && MerchantTemplateHints.supports(value.method) {
+                MerchantTemplateHintsPreview(hints: value.hints).id(model.coordinator.draftIdentity)
+            }
+        }
+    }
+}
+
+private struct MerchantTemplateHintsPreview: View {
+    let hints: MerchantTemplateHints
+    @State private var revealed = 0
+    var body: some View {
+        Section("merchant.hints.previewTitle") {
+            Text("merchant.hints.previewBoundary").font(.footnote).foregroundStyle(.secondary)
+            ForEach(Array(hints.previewStages.prefix(revealed))) { field in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(LocalizedStringKey(field.titleKey)).font(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: hints.text(field)).fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("merchant.hints.preview.\(field.rawValue)")
+                }
+            }
+            if hints.previewStages.isEmpty {
+                Text("merchant.hints.previewEmpty")
+            } else if revealed < hints.previewStages.count {
+                Button(LocalizedStringKey(hints.previewStages[revealed] == .answerReveal ? "merchant.hints.revealAnswer" : "merchant.hints.revealNext")) {
+                    revealed = min(revealed + 1, hints.previewStages.count)
+                }.accessibilityIdentifier("merchant.hints.preview.next")
+            }
+            Button("merchant.hints.restart") { revealed = 0 }
+                .disabled(revealed == 0).accessibilityIdentifier("merchant.hints.preview.restart")
+        }.onChange(of: hints) { _, _ in revealed = 0 }
+    }
+}
+
+private struct MerchantTemplateHintsReview: View {
+    let hints: MerchantTemplateHints
+    var body: some View {
+        Section("merchant.hints.title") {
+            Text("merchant.hints.reviewBoundary").font(.footnote).foregroundStyle(.secondary)
+            ForEach(MerchantTemplateHints.Field.allCases) { field in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(LocalizedStringKey(field.titleKey)).font(.caption).foregroundStyle(.secondary)
+                    if hints.clearedFields.contains(field) {
+                        Text("merchant.hints.clearReview").accessibilityIdentifier("merchant.hints.review.clear.\(field.rawValue)")
+                    } else if let text = hints.fields[field.rawValue], !text.isEmpty {
+                        Text(verbatim: text).fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("merchant.hints.review.\(field.rawValue)")
+                    } else { Text("merchant.hints.empty") }
+                }
+            }
+        }
+    }
+}
+
+@MainActor
+private struct MerchantTemplateStoryTimelineFields: View {
+    @ObservedObject var model: MerchantOperationsViewModel
+    private var template: MerchantNodeTemplate? {
+        if case .template(let value) = model.coordinator.draft { return value }; return nil
+    }
+    private func edit(_ action: (inout MerchantTemplateStoryTimeline) -> Void) {
+        guard var value = template else { return }
+        action(&value.storyTimeline); model.edit(.template(value))
+    }
+    var body: some View {
+        if let timeline = template?.storyTimeline {
+            Section("merchant.storyTimeline.title") {
+                Toggle("merchant.storyTimeline.enabled", isOn: Binding(get: { template?.storyTimeline.enabled ?? false }, set: { enabled in
+                    edit { $0.setEnabled(enabled) }
+                })).disabled(!timeline.isEditable).accessibilityIdentifier("merchant.storyTimeline.enabled")
+                Text("merchant.storyTimeline.scope").font(.footnote).foregroundStyle(.secondary)
+                if !timeline.isEditable {
+                    Text("merchant.storyTimeline.opaque").accessibilityIdentifier("merchant.storyTimeline.opaque")
+                } else if timeline.enabled {
+                    ForEach(Array(timeline.beats.enumerated()), id: \.element.id) { index, beat in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("merchant.storyTimeline.beat \(index + 1)").font(.headline)
+                            TextField("merchant.storyTimeline.body", text: Binding(get: {
+                                template?.storyTimeline.beats.first(where: { $0.id == beat.id })?.text ?? ""
+                            }, set: { text in edit { $0.update(beat.id, text: text) } }), axis: .vertical)
+                                .accessibilityIdentifier("merchant.storyTimeline.body.\(beat.id)")
+                            TextField("merchant.storyTimeline.tag", text: Binding(get: {
+                                template?.storyTimeline.beats.first(where: { $0.id == beat.id })?.tag ?? ""
+                            }, set: { tag in edit { $0.update(beat.id, tag: tag) } }))
+                                .accessibilityIdentifier("merchant.storyTimeline.tag.\(beat.id)")
+                            if beat.imageReferenceCount > 0 {
+                                Text("merchant.storyTimeline.images \(beat.imageReferenceCount)").font(.footnote)
+                            }
+                            HStack {
+                                Button("merchant.storyTimeline.up", systemImage: "arrow.up") { edit { $0.move(beat.id, offset: -1) } }
+                                    .disabled(index == 0).accessibilityLabel(Text("merchant.storyTimeline.moveEarlier \(index + 1)"))
+                                    .accessibilityIdentifier("merchant.storyTimeline.up.\(beat.id)")
+                                Button("merchant.storyTimeline.down", systemImage: "arrow.down") { edit { $0.move(beat.id, offset: 1) } }
+                                    .disabled(index == timeline.beats.count - 1).accessibilityLabel(Text("merchant.storyTimeline.moveLater \(index + 1)"))
+                                    .accessibilityIdentifier("merchant.storyTimeline.down.\(beat.id)")
+                                Button(role: .destructive) { edit { $0.remove(beat.id) } } label: {
+                                    Label("merchant.storyTimeline.remove", systemImage: "minus.circle")
+                                }.disabled(timeline.beats.count <= 1).accessibilityLabel(Text("merchant.storyTimeline.removeMoment \(index + 1)"))
+                                    .accessibilityIdentifier("merchant.storyTimeline.remove.\(beat.id)")
+                            }.buttonStyle(.borderless)
+                        }
+                    }
+                    Button("merchant.storyTimeline.add", systemImage: "plus") { edit { $0.add() } }
+                        .accessibilityIdentifier("merchant.storyTimeline.add")
+                }
+                Text("merchant.storyTimeline.clearHint").font(.footnote).foregroundStyle(.secondary)
+            }
+            if timeline.enabled && timeline.isEditable {
+                Section("merchant.storyTimeline.preview") {
+                    Text("merchant.storyTimeline.previewBoundary").font(.footnote).foregroundStyle(.secondary)
+                    MerchantTemplateStoryTimelineContent(timeline: timeline, prefix: "merchant.storyTimeline.preview")
+                }
+            }
+        }
+    }
+}
+
+private struct MerchantTemplateStoryTimelineContent: View {
+    let timeline: MerchantTemplateStoryTimeline
+    let prefix: String
+    var body: some View {
+        if timeline.previewBeats.isEmpty { Text("merchant.storyTimeline.empty") }
+        ForEach(Array(timeline.previewBeats.enumerated()), id: \.element.id) { index, beat in
+            VStack(alignment: .leading, spacing: 6) {
+                Text("merchant.storyTimeline.beat \(index + 1)").font(.caption).foregroundStyle(.secondary)
+                if !beat.tag.isEmpty { Text(verbatim: beat.tag).font(.headline) }
+                Text(verbatim: beat.text).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("\(prefix).body.\(index)")
+                if beat.imageReferenceCount > 0 { Text("merchant.storyTimeline.images \(beat.imageReferenceCount)") }
+            }
+        }
+        if timeline.projectionIsShortened {
+            Text("merchant.storyTimeline.projectionHint").font(.footnote)
+                .accessibilityIdentifier("\(prefix).projection")
+        }
+    }
+}
+
+private struct MerchantTemplateStoryTimelineReview: View {
+    let timeline: MerchantTemplateStoryTimeline
+    var body: some View {
+        Section("merchant.storyTimeline.title") {
+            if !timeline.isEditable { Text("merchant.storyTimeline.opaque") }
+            else {
+                if timeline.clearsSource {
+                    Text("merchant.storyTimeline.clearReview").accessibilityIdentifier("merchant.storyTimeline.review.clear")
+                }
+                MerchantTemplateStoryTimelineContent(timeline: timeline, prefix: "merchant.storyTimeline.review")
+                if timeline.removedImageCount > 0 {
+                    Text("merchant.storyTimeline.removedImages \(timeline.removedImageCount)")
+                        .accessibilityIdentifier("merchant.storyTimeline.review.removedImages")
+                }
+                if !timeline.removedBeats.isEmpty {
+                    Text("merchant.storyTimeline.removedBeats").font(.headline)
+                    ForEach(timeline.removedBeats) { beat in
+                        VStack(alignment: .leading, spacing: 4) {
+                            if !beat.tag.isEmpty { Text(verbatim: beat.tag).font(.caption) }
+                            Text(verbatim: beat.text).fixedSize(horizontal: false, vertical: true)
+                            if beat.imageReferenceCount > 0 { Text("merchant.storyTimeline.images \(beat.imageReferenceCount)") }
+                        }.accessibilityIdentifier("merchant.storyTimeline.review.removed.\(beat.id)")
+                    }
+                }
             }
         }
     }

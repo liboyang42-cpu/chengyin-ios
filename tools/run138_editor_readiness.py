@@ -18,7 +18,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = 'bdac31efdeb64c4bda06e4515d5b8ef8b5957fb5e1f8c9d5ba44a1b597fa5e69'
+CONTRACT_SHA256 = '1ff09b20269467828cb9ec7aaf451043e87a7774079fcc0d3645f9a3a6dc388c'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'
@@ -145,9 +145,9 @@ def validate_current(directory, profile_path, root=ROOT):
     if digest(Path(profile_path).read_bytes()) != c['unchanged_profile_sha256']:
         raise ValueError('Old profile, floors or historical observations changed')
     keys, classes = inventory(directory)
-    if (len(keys) != 765 or len(classes) != 171
+    if (len(keys) != 774 or len(classes) != 174
             or canonical(keys) != c['current_inventory_sha256']):
-        raise ValueError('Current 765 complete methods are not preserved')
+        raise ValueError('Current 774 complete methods are not preserved')
     for relative, expected in c['followon_support_sha256'].items():
         if digest(entry_projection().historical_entry_bytes(root, relative)) != expected:
             raise ValueError('Follow-on source or cost adapter changed: ' + relative)
@@ -204,7 +204,7 @@ def validate_current(directory, profile_path, root=ROOT):
         raise ValueError('Direction-only story helper added work or changed other semantics')
     if (c['new_over900_exceptions'] != {CHINESE: 948, CURRENT_REVIEW: 946, 'ProjectStoryImageFlowTests.testChosenStoryImageAppliesOnlyAfterUploadAndRestoresIntoExactPreparedOrder': 905, RELEASE_RECOVERY: 944, COVER_RECOVERY: 942, 'ApprovedTopicFrozenCoverPublicationFlowTests.testApprovedCoverConfirmationAndUnknownPublicationRestoreOriginalManifest': 940, 'ProjectStoryAudioRecoveryFlowTests.testChineseMaximumTextUnknownUploadChecksSameRequestWithoutSecondUpload': 980}
             or c['preserved_historical_exceptions'] != {CHINESE: 908, CURRENT_REVIEW: 906, RELEASE_RECOVERY: 904, COVER_RECOVERY: 902}
-            or c['added_total_seconds'] != 9713.948 or c['deadline_seconds'] != 1800
+            or c['added_total_seconds'] != 18063.948 or c['deadline_seconds'] != 1800
             or c['startup_reserve_seconds'] != 300 or c['shard_count'] != 79):
         raise ValueError('Exception scope, added work, reserve or deadline changed')
     validate_club_leaderboard_budget(c, directory, root)
@@ -281,7 +281,7 @@ def weights(directory=ROOT / 'Tests/AppUITests', profile_path=ROOT / 'tools/ui_d
         raise ValueError('Prior profile whole-class floor changed')
     for name,seconds in increments.items():result[name]=result.get(name,0)+seconds
     if ({name: result[name] for name in c['candidate_class_seconds']} != c['candidate_class_seconds']
-            or not math.isclose(sum(result.values()) - sum(before.values()), 9713.948, abs_tol=1e-7)):
+            or not math.isclose(sum(result.values()) - sum(before.values()), 18063.948, abs_tol=1e-7)):
         raise ValueError('New full-method work was omitted or an old cost decreased')
     return result
 
@@ -299,9 +299,9 @@ def report(root=ROOT):
     if max(loads) + 300 > 1800:
         raise ValueError('A complete class/shard exceeds the unchanged deadline and reserve')
     return {'status': c['status'], 'active_ci_runner_modified': True, 'apple_executed': False,
-            'method_count': 765, 'class_count': len(costs), 'shard_count': 79,
+            'method_count': 774, 'class_count': len(costs), 'shard_count': 79,
             'candidate_class_seconds': c['candidate_class_seconds'],
-            'added_total_seconds': 9713.948, 'total_seconds': sum(costs.values()),
+            'added_total_seconds': 18063.948, 'total_seconds': sum(costs.values()),
             'maximum_shard_seconds': max(loads), 'maximum_with_startup_reserve_seconds': max(loads) + 300,
             'deadline_seconds': 1800, 'startup_reserve_seconds': 300,
             'shards': [{'index': index, 'classes': group, 'seconds': loads[index]} for index, group in enumerate(groups)]}
@@ -357,10 +357,10 @@ def validate_club_leaderboard_budget(c, directory, root):
 
 _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
  'measured': False,
- 'new_methods': 23,
+ 'new_methods': 32,
  'changed_existing_methods': 3,
- 'method_count_after': 765,
- 'class_count_after': 171,
+ 'method_count_after': 774,
+ 'class_count_after': 174,
  'assumptions': {'per_reveal_seconds': 40,
                  'per_reveal_maximum_swipes': 10,
                  'per_reveal_maximum_viewports': 11,
@@ -369,14 +369,17 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                  'per_direct_ax_assertion_seconds': 2,
                  'per_typed_character_seconds': 0.25,
                  'round_up_seconds': 10},
- 'source_sha256': {'App/MerchantOperationsEditor.swift': '2728a1253e261b4e7712ed3fc799832668880a53d59300b211ec50b1e843e8be',
+ 'source_sha256': {'App/MerchantOperationsEditor.swift': 'eb56f809b605df42d8dd47e18367dfd02bc7de9d0bc8728527debc4fef7286b9',
                    'App/ProfileEditView.swift': '45879a75ed1ea5c2fbe3403df07cae9aa7bcda40d03f974954f84c60a4adf427',
                    'Tests/AppUITests/FailureScreenshot.swift': '705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49',
+                   'Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift': 'e9447c82c9429d68ffafba9b0934789fb1bd685364fcce6c11e560db5325530e',
                    'Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift': '23bd4804a9a9de93deeef8e33975f619aa9bb244ecff7aa712fad05063f14d5c',
+                   'Tests/AppUITests/MerchantTemplateHintsFlowTests.swift': 'e3aa74109dd207627d622476b1cfc6b6d7b9c5f77f2675076eed91a590541fb8',
                    'Tests/AppUITests/MerchantTemplateMetadataFlowTests.swift': '4212ff99e168ef270480c497ab9d1fb1f95bcf79bc803e161a256e0f857c3074',
-                   'Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift': 'b4e8c60794037f8e8fb151c3ba11516099482d63cf2784b3085bc9d38a6a7e7f',
+                   'Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift': 'bdde78569545ec1c0fd1636b0d7a3657cf759aa489e77f612f9060fe7b3e3cd8',
                    'Tests/AppUITests/MerchantTemplatePreparationFlowTests.swift': '1b5e909777f95a10c36b46631b7f7c8f9091c413ac0fe3a0a5f890b5fe86a673',
                    'Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift': '48e614784818da1dfdb1a542742da2c7d9db44ad1c6e61efcea050961b005016',
+                   'Tests/AppUITests/MerchantTemplateStoryTimelineFlowTests.swift': '42cc9464013786784bcd73269ccbc4ad4f78071a137ca1024cb3cbb8e2038e83',
                    'Tests/AppUITests/ProfileCasePortfolioFlowTests.swift': '171eb446703ca5240139d43fa1acbe3c764b848116e8f97c6b603dd2059d4455',
                    'Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift': 'b2e650c4b6733546dc24ca36cce3538f487f476a122ea8e17c50597fd53d02d6',
                    'Tests/AppUITests/ProfileEditFlowTests.swift': 'e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067'},
@@ -691,7 +694,115 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                                                                                            'direct_ax_assertion_count': 1,
                                                                                            'typed_characters': 0,
                                                                                            'unrounded_seconds': 157.0,
-                                                                                           'seconds': 160}},
+                                                                                           'seconds': 160},
+             'MerchantTemplateHintsFlowTests.testThreeStagePreviewResetsAfterEditAndSaveReadbackRetainsHints': {'source': 'Tests/AppUITests/MerchantTemplateHintsFlowTests.swift',
+                                                                                                                'declaration_sha256': '6a0bd1afcdb11810ccedae0a11b1758230ccbb722be37c21cb332c7e49db6611',
+                                                                                                                'measured': False,
+                                                                                                                'existing_method_increment': False,
+                                                                                                                'lifecycle_seconds': 90,
+                                                                                                                'explicit_wait_seconds': 0,
+                                                                                                                'bounded_reveal_calls': 27,
+                                                                                                                'direct_action_count': 21,
+                                                                                                                'direct_ax_assertion_count': 7,
+                                                                                                                'typed_characters': 44,
+                                                                                                                'unrounded_seconds': 1300.0,
+                                                                                                                'seconds': 1300},
+             'MerchantTemplateHintsFlowTests.testDisableReviewCancelDiscardAndConfirmedClear': {'source': 'Tests/AppUITests/MerchantTemplateHintsFlowTests.swift',
+                                                                                                'declaration_sha256': '827c5b6368f913abb9fa224a5911234d13cbb6bd4e19d049f6f48fccf850a4bd',
+                                                                                                'measured': False,
+                                                                                                'existing_method_increment': False,
+                                                                                                'lifecycle_seconds': 90,
+                                                                                                'explicit_wait_seconds': 0,
+                                                                                                'bounded_reveal_calls': 28,
+                                                                                                'direct_action_count': 22,
+                                                                                                'direct_ax_assertion_count': 6,
+                                                                                                'typed_characters': 36,
+                                                                                                'unrounded_seconds': 1341.0,
+                                                                                                'seconds': 1350},
+             'MerchantTemplateHintsFlowTests.testUnsupportedMethodRequiresExplicitHintDisableBeforeReview': {'source': 'Tests/AppUITests/MerchantTemplateHintsFlowTests.swift',
+                                                                                                             'declaration_sha256': 'f0e1e79d154b8e9fa506da96ac2542bb2b2edac9213265d9c136cfdf0a84f641',
+                                                                                                             'measured': False,
+                                                                                                             'existing_method_increment': False,
+                                                                                                             'lifecycle_seconds': 90,
+                                                                                                             'explicit_wait_seconds': 0,
+                                                                                                             'bounded_reveal_calls': 18,
+                                                                                                             'direct_action_count': 14,
+                                                                                                             'direct_ax_assertion_count': 3,
+                                                                                                             'typed_characters': 36,
+                                                                                                             'unrounded_seconds': 895.0,
+                                                                                                             'seconds': 900},
+             'MerchantTemplateStoryTimelineFlowTests.testTimelineCreateReorderPreviewCancelSaveAndReadback': {'source': 'Tests/AppUITests/MerchantTemplateStoryTimelineFlowTests.swift',
+                                                                                                              'declaration_sha256': '42e5995386ad9d9fa1cd7b064652f303cc72cca1d3a7221b531c09b9eaa587ea',
+                                                                                                              'measured': False,
+                                                                                                              'existing_method_increment': False,
+                                                                                                              'lifecycle_seconds': 90,
+                                                                                                              'explicit_wait_seconds': 0,
+                                                                                                              'bounded_reveal_calls': 22,
+                                                                                                              'direct_action_count': 18,
+                                                                                                              'direct_ax_assertion_count': 5,
+                                                                                                              'typed_characters': 39,
+                                                                                                              'unrounded_seconds': 1079.75,
+                                                                                                              'seconds': 1080},
+             'MerchantTemplateStoryTimelineFlowTests.testDisableReviewCancelDiscardAndConfirmedTimelineClear': {'source': 'Tests/AppUITests/MerchantTemplateStoryTimelineFlowTests.swift',
+                                                                                                                'declaration_sha256': '64342f516ce99dfce89a3e05f17aef0ef78c88f5de8a4d803f98dc4d7342f343',
+                                                                                                                'measured': False,
+                                                                                                                'existing_method_increment': False,
+                                                                                                                'lifecycle_seconds': 90,
+                                                                                                                'explicit_wait_seconds': 0,
+                                                                                                                'bounded_reveal_calls': 24,
+                                                                                                                'direct_action_count': 20,
+                                                                                                                'direct_ax_assertion_count': 6,
+                                                                                                                'typed_characters': 19,
+                                                                                                                'unrounded_seconds': 1166.75,
+                                                                                                                'seconds': 1170},
+             'MerchantTemplateStoryTimelineFlowTests.testRemovedSavedMomentAppearsInReviewAndDiscardRestoresIt': {'source': 'Tests/AppUITests/MerchantTemplateStoryTimelineFlowTests.swift',
+                                                                                                                  'declaration_sha256': 'f4c754af20899d7c96fd1054b6c5e7529fbe8171153fe535e6052d2835b1b829',
+                                                                                                                  'measured': False,
+                                                                                                                  'existing_method_increment': False,
+                                                                                                                  'lifecycle_seconds': 90,
+                                                                                                                  'explicit_wait_seconds': 0,
+                                                                                                                  'bounded_reveal_calls': 21,
+                                                                                                                  'direct_action_count': 19,
+                                                                                                                  'direct_ax_assertion_count': 3,
+                                                                                                                  'typed_characters': 39,
+                                                                                                                  'unrounded_seconds': 1040.75,
+                                                                                                                  'seconds': 1050},
+             'MerchantTemplateCategoryFlowTests.testPickerCancelLeavesTemplateUnchangedAndReopensWithoutSelection': {'source': 'Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift',
+                                                                                                                     'declaration_sha256': 'fd16e9568458eef279593bc92ebfc1fabc8e8c532bc57771b94312ba5c7343d6',
+                                                                                                                     'measured': False,
+                                                                                                                     'existing_method_increment': False,
+                                                                                                                     'lifecycle_seconds': 90,
+                                                                                                                     'explicit_wait_seconds': 10,
+                                                                                                                     'bounded_reveal_calls': 7,
+                                                                                                                     'direct_action_count': 7,
+                                                                                                                     'direct_ax_assertion_count': 4,
+                                                                                                                     'typed_characters': 0,
+                                                                                                                     'unrounded_seconds': 423.0,
+                                                                                                                     'seconds': 430},
+             'MerchantTemplateCategoryFlowTests.testSelectionOrderFrozenReviewCancelSaveAndReadback': {'source': 'Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift',
+                                                                                                       'declaration_sha256': '3a42d8bc20ccc87de42c3a71b97e52f4b7240b973a274a5943c16ca109e871e6',
+                                                                                                       'measured': False,
+                                                                                                       'existing_method_increment': False,
+                                                                                                       'lifecycle_seconds': 90,
+                                                                                                       'explicit_wait_seconds': 5,
+                                                                                                       'bounded_reveal_calls': 11,
+                                                                                                       'direct_action_count': 11,
+                                                                                                       'direct_ax_assertion_count': 4,
+                                                                                                       'typed_characters': 0,
+                                                                                                       'unrounded_seconds': 598.0,
+                                                                                                       'seconds': 600},
+             'MerchantTemplateCategoryFlowTests.testReloadKeepsBufferAndEmptySelectionCannotApply': {'source': 'Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift',
+                                                                                                     'declaration_sha256': '6c12c2f55a0134879ac86caa437f5fecb885a1c79fdfb7dc3e5c9a4427f5b0c3',
+                                                                                                     'measured': False,
+                                                                                                     'existing_method_increment': False,
+                                                                                                     'lifecycle_seconds': 90,
+                                                                                                     'explicit_wait_seconds': 15,
+                                                                                                     'bounded_reveal_calls': 7,
+                                                                                                     'direct_action_count': 14,
+                                                                                                     'direct_ax_assertion_count': 3,
+                                                                                                     'typed_characters': 0,
+                                                                                                     'unrounded_seconds': 461.0,
+                                                                                                     'seconds': 470}},
  'class_increment_seconds': {'ProfileEditFlowTests': 890,
                              'MerchantTemplateParticipationPlanFlowTests': 950,
                              'MerchantTemplateExitPlanFlowTests': 850,
@@ -699,8 +810,11 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                              'MerchantTemplatePreparationFlowTests': 1050,
                              'MerchantTemplateRuleStepsFlowTests': 1880,
                              'ProfileCasePortfolioFlowTests': 670,
-                             'ProfileContactQRRemovalFlowTests': 840},
- 'added_seconds': 8000,
+                             'ProfileContactQRRemovalFlowTests': 840,
+                             'MerchantTemplateHintsFlowTests': 3550,
+                             'MerchantTemplateStoryTimelineFlowTests': 3300,
+                             'MerchantTemplateCategoryFlowTests': 1500},
+ 'added_seconds': 16350,
  'prior_profile_class_seconds': 81.645}
 
 def validate_product_ui_budget(c, directory, root):

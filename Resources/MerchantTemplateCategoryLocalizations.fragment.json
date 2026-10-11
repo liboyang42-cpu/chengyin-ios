@@ -1,0 +1,410 @@
+{
+  "merchant.categories.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Gameplay categories"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩法类别"
+        }
+      }
+    }
+  },
+  "merchant.categories.choose": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose gameplay categories"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择玩法类别"
+        }
+      }
+    }
+  },
+  "merchant.categories.scope": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose from the current gameplay catalog. Categories do not approve a template or change its publication status."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "从当前玩法目录选择分类。分类不代表模板已获批准，也不会改变发布状态。"
+        }
+      }
+    }
+  },
+  "merchant.categories.stale": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This template or account changed. Close this sheet and open it again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "模板或账号已变化，请关闭后重新打开。"
+        }
+      }
+    }
+  },
+  "merchant.categories.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading categories…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在加载类别…"
+        }
+      }
+    }
+  },
+  "merchant.categories.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry categories"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试加载类别"
+        }
+      }
+    }
+  },
+  "merchant.categories.unsupported": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The saved category format is not recognized. Keep it unchanged or explicitly replace it using the catalog."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现有分类格式暂不支持。可保留原样，或明确使用目录分类替换。"
+        }
+      }
+    }
+  },
+  "merchant.categories.replace": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Replace unrecognized selection"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "替换未识别的分类"
+        }
+      }
+    }
+  },
+  "merchant.categories.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved categories missing from this catalog"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前目录没有的已有分类"
+        }
+      }
+    }
+  },
+  "merchant.categories.unavailableHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "These IDs are preserved. Remove them explicitly before applying a new selection; nothing is removed just by loading."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这些 ID 会保留。应用新选择前需明确移除；加载目录不会自动删除。"
+        }
+      }
+    }
+  },
+  "merchant.categories.removeID %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove saved category #%1$lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除已有分类 #%1$lld"
+        }
+      }
+    }
+  },
+  "merchant.categories.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server returned no gameplay categories."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端暂无玩法类别。"
+        }
+      }
+    }
+  },
+  "merchant.categories.noMatches": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No matching categories."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "没有匹配的类别。"
+        }
+      }
+    }
+  },
+  "merchant.categories.catalog": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Available gameplay categories"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可选玩法类别"
+        }
+      }
+    }
+  },
+  "merchant.categories.selectionCount %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%1$lld selected"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已选 %1$lld 项"
+        }
+      }
+    }
+  },
+  "merchant.categories.minimum": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Select at least one available category. When the selection changes, its first ID becomes the primary category."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "至少选择一个当前可用类别。变更选择后，第一个选中的 ID 将作为主分类。"
+        }
+      }
+    }
+  },
+  "merchant.categories.reload": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reload catalog"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新加载目录"
+        }
+      }
+    }
+  },
+  "merchant.categories.search": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Search category names or IDs"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "搜索类别名称或 ID"
+        }
+      }
+    }
+  },
+  "merchant.categories.apply": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use selection"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "使用所选类别"
+        }
+      }
+    }
+  },
+  "merchant.categories.none": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No category selection."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未选择类别。"
+        }
+      }
+    }
+  },
+  "merchant.categories.id %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "ID %1$lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "ID %1$lld"
+        }
+      }
+    }
+  },
+  "merchant.categories.primary %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Primary category: %1$lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "主分类：%1$lld"
+        }
+      }
+    }
+  },
+  "merchant.categories.replacementReview": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saving replaces the unrecognized saved category value with this selection."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存后将用本次选择替换原来未识别的分类值。"
+        }
+      }
+    }
+  },
+  "merchant.categories.reviewHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review the selected IDs and primary category. Only server save and readback confirm the stored result."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请检查分类 ID 与主分类。保存结果以服务端确认和回读为准。"
+        }
+      }
+    }
+  }
+}
