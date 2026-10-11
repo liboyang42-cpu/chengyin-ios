@@ -1,0 +1,32 @@
+{
+  "batch": "P049 named default series lead",
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "composite_preimage_tree": "e3b5af7dc14fe5912785f09ba98664cd3cef7d0c",
+  "dependencies": [
+    {
+      "path": "../club-role-assignment-picker/club-role-assignment-picker.patch",
+      "sha256": "e1ec23eea1487ba8338c7f73bd19021caeafa784547d5ffb9d2e9cd6a1c792ff"
+    },
+    {
+      "path": "../club-series-schedule/club-series-schedule.patch",
+      "sha256": "02132fffcaa2490df7f6e0d92fa92712d9d8604f3764908c2192317cf8ee3e44"
+    }
+  ],
+  "modified_app_sources": [
+    "App/ClubGovernanceCommandForm.swift"
+  ],
+  "app_sources": [
+    "App/ClubSeriesLeadPicker.swift"
+  ],
+  "core_sources": [
+    "Core/ClubSeriesLeadOptions.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubSeriesLeadPickerTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubSeriesLeadOptionsTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubSeriesLeadLocalizations.fragment.json",
+  "merge_instructions": "Apply after exact11 then12 shared form preimages. Central owner registers App/Core sources and AppUnit tests, merges7 bilingual keys. No new backend scope, role grant or write permission. Preserve positive explicit lead ID and member-proof contract."
+}

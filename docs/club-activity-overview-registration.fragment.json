@@ -1,0 +1,14 @@
+{
+  "feature": "P045 current/ended activity browsing",
+  "base_commit": "96d727404a966cd3b3d2437c79449046beda560f",
+  "prior_batch_dependencies": [],
+  "already_in_baseline": ["club-event-calendar.patch"],
+  "app_sources": ["App/ClubActivityListContent.swift", "Core/ClubActivityOverview.swift"],
+  "modified_sources": ["App/ClubEventCalendarView.swift"],
+  "swift_package_tests": ["Tests/CoreTests/ClubActivityOverviewTests.swift"],
+  "app_unit_tests": ["Tests/AppUnitTests/ClubActivityOverviewReadTests.swift"],
+  "localization_fragment": "Resources/ClubActivityOverviewLocalizations.fragment.json",
+  "pending_native_tests": ["swift test --filter ClubActivityOverviewTests", "Questify AppUnitTests ClubActivityOverviewReadTests", "existing ClubEventCalendarTests and ClubEventCalendarReadTests compatibility"],
+  "pending_ui_checks": ["current/ended cards, order and omitted unknown stats", "exact start/end boundary and non-China device timezone", "source category precedence and large text", "exact existing topic open/back", "list/month switching", "failure/refresh/role/account/authorization stale retirement", "cover loading and VoiceOver"],
+  "registration_policy": "Central owner alone registers sources and merges localization. No PBX, total catalog, CI or shared fixture modification included."
+}

@@ -1,11 +1,14 @@
 import SwiftUI
 
-struct ClubGovernanceCommandForm: View {
+@MainActor struct ClubGovernanceCommandForm: View {
     let route: ClubGovernanceFormRoute
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var rolePicker = ClubRoleAssignmentReadModel()
+    @StateObject private var seriesLeadPicker = ClubSeriesLeadReadModel()
+    @State private var scheduleSession: ClubSeriesScheduleSession?
     @State private var draft: ClubGovernanceFormDraft
     @State private var review: ClubGovernanceReview?
     @State private var failure: ClubGovernanceFailure?
@@ -18,14 +21,40 @@ struct ClubGovernanceCommandForm: View {
     @State private var generation: UInt64 = 0
     init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator) {
         self.route = route; self.identity = identity; self.access = access; self.coordinator = coordinator
-        _draft = State(initialValue: .init(operation: route.operation, scope: route.scope, seed: route.seed))
+        var initial = ClubGovernanceFormDraft(operation: route.operation, scope: route.scope, seed: route.seed)
+        if route.operation == .assignRole { initial.text["roleCode"] = "" }
+        _draft = State(initialValue: initial)
     }
     var body: some View {
+        let _ = bindRolePicker()
+        let _ = bindSeriesLeadPicker()
         Form {
             Section { Text("club.gov.localDraft"); Text(LocalizedStringKey(gateKey)) }
             Section("club.gov.target") { ClubGovernanceFactRows(value: .object(route.scope.ids), fields: ["clubId", "topicId", "activityId", "seriesId", "memberId", "registrationId", "campaignId", "chapterId"]); ClubGovernanceFactRows(value: .object(draft.anchors), fields: Array(draft.anchors.keys).sorted()) }
             Section {
-                ForEach(Array(draft.text.keys).sorted(), id: \.self) { key in
+                if route.operation == .assignRole {
+                    ClubRoleAssignmentPicker(scope: route.scope, identity: identity, access: access, model: rolePicker,
+                        memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),
+                        canEdit: { !busy && !locked && review == nil })
+                }
+                if route.operation == .createSeries {
+                    ClubSeriesLeadPicker(scope: route.scope, identity: identity, access: access, model: seriesLeadPicker,
+                        memberID: textBinding("defaultLeadMemberId"), canEdit: { !busy && !locked && review == nil })
+                }
+                if isSeries {
+                    Button("club.schedule.title") {
+                        scheduleSession = .init(form: draft, identity: identity, access: access, now: Date())
+                    }.disabled(identity == nil || identity != access.identity || !access.isConfigured).accessibilityIdentifier("club.schedule.open")
+                    if !(draft.text["startDate"] ?? "").isEmpty {
+                        ClubGovernanceFactRows(value: .object(draft.text.filter { ClubSeriesScheduleDraft.fieldKeys.contains($0.key) }.mapValues(ClubGovernanceValue.string)),
+                            fields: ["recurrenceType", "startDate", "startTime", "occurrenceCount", "customDates"])
+                    } else { Text("club.schedule.choose") }
+                }
+                ForEach(Array(draft.text.keys).sorted().filter { key in
+                    (route.operation != .assignRole || !["targetMemberId", "roleCode"].contains(key)) &&
+                    (!isSeries || !ClubSeriesScheduleDraft.fieldKeys.contains(key)) &&
+                    (route.operation != .createSeries || key != "defaultLeadMemberId")
+                }, id: \.self) { key in
                     if let choices = draft.choices(key) {
                         Picker(LocalizedStringKey("club.gov.field." + key), selection: textBinding(key)) {
                             ForEach(choices, id: \.self) { Text(LocalizedStringKey("club.gov.choice." + $0)).tag($0) }
@@ -51,7 +80,7 @@ struct ClubGovernanceCommandForm: View {
                     Button("club.gov.cancelReview") { self.review = nil; coordinator.cancelReview() }.disabled(busy)
                 }
             } else if receipt == nil {
-                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil).accessibilityIdentifier("club.gov.prepare")
+                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady).accessibilityIdentifier("club.gov.prepare")
             }
             if let groupCode {
                 TimelineView(.periodic(from: groupCode.receivedAt, by: 1)) { context in
@@ -77,8 +106,53 @@ struct ClubGovernanceCommandForm: View {
             Button("club.gov.discard", role: .destructive) { generation &+= 1; coordinator.cancelReview(); dismiss() }
             Button("club.gov.keepEditing", role: .cancel) {}
         } message: { Text(locked ? "club.gov.unknown" : "club.gov.discardBody") }
-        .onChange(of: identity) { _, _ in generation &+= 1; review = nil; receipt = nil; groupCode = nil; coordinator.cancelReview(); draft = .init(operation: route.operation, scope: route.scope); failure = .staleReview; dismiss() }
-        .onDisappear { generation &+= 1; coordinator.cancelReview() }
+        .sheet(item: $scheduleSession) { session in
+            NavigationStack {
+                ClubSeriesScheduleEditor(session: session, canApply: { canApplySchedule(session) }, apply: { selection in
+                    guard canApplySchedule(session), let next = try? selection.applying(to: draft, now: Date()) else { return false }
+                    draft = next; dirty = true; review = nil; failure = nil; coordinator.cancelReview(); scheduleSession = nil
+                    return true
+                })
+            }
+        }
+        .onChange(of: access.authorizationGeneration) { _, _ in scheduleSession = nil }
+        .onChange(of: identity) { _, _ in scheduleSession = nil; generation &+= 1; review = nil; receipt = nil; groupCode = nil; coordinator.cancelReview(); draft = .init(operation: route.operation, scope: route.scope); failure = .staleReview; dismiss() }
+        .task(id: rolePickerContext) {
+            guard route.operation == .assignRole, let permit = rolePicker.activate(rolePickerContext) else { return }
+            await rolePicker.load(permit, access: access)
+        }
+        .task(id: seriesLeadContext) {
+            guard route.operation == .createSeries, let permit = seriesLeadPicker.activate(seriesLeadContext) else { return }
+            await seriesLeadPicker.load(permit, access: access)
+        }
+        .onDisappear { seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; generation &+= 1; coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
+    }
+    private var rolePickerContext: ClubGovernanceReadContext {
+        ClubRoleAssignmentReadModel.context(scope: route.scope, identity: identity, access: access)
+    }
+    private func bindRolePicker() {
+        if route.operation == .assignRole { rolePicker.bind(rolePickerContext) }
+    }
+    private var roleAssignmentReady: Bool {
+        route.operation != .assignRole || rolePicker.canPrepare(scope: route.scope, identity: identity, access: access,
+            memberID: draft.text["targetMemberId"] ?? "", roleCode: draft.text["roleCode"] ?? "")
+    }
+    private var seriesLeadContext: ClubSeriesLeadReadModel.Context {
+        ClubSeriesLeadReadModel.context(scope: route.scope, identity: identity, access: access)
+    }
+    private func bindSeriesLeadPicker() {
+        if route.operation == .createSeries { seriesLeadPicker.bind(seriesLeadContext) }
+    }
+    private var seriesLeadReady: Bool {
+        route.operation != .createSeries || seriesLeadPicker.canPrepare(scope: route.scope, identity: identity, access: access,
+            memberID: draft.text["defaultLeadMemberId"] ?? "")
+    }
+    private var isSeries: Bool { [.createSeries, .updateSeries].contains(route.operation) }
+    private var seriesScheduleReady: Bool {
+        !isSeries || (!(draft.text["startDate"] ?? "").isEmpty && ClubSeriesScheduleDraft(form: draft, now: Date()).issue(now: Date()) == nil)
+    }
+    private func canApplySchedule(_ session: ClubSeriesScheduleSession) -> Bool {
+        !busy && !locked && review == nil && session.isCurrent(activeID: scheduleSession?.id, form: draft, identity: identity, access: access)
     }
     private var gateKey: String {
         switch route.operation.risk { case .administrative: return "club.gov.writeGate"; case .financial: return "club.gov.financialGate"; case .identity: return "club.gov.identityGate"; case .provider: return "club.gov.providerGate" }
@@ -86,6 +160,7 @@ struct ClubGovernanceCommandForm: View {
     private func textBinding(_ key: String) -> Binding<String> { Binding(get: { draft.text[key] ?? "" }, set: { draft.text[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func flagBinding(_ key: String) -> Binding<Bool> { Binding(get: { draft.flags[key] ?? false }, set: { draft.flags[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func prepare() async {
+        guard roleAssignmentReady && seriesScheduleReady && seriesLeadReady else { return }
         let revision = generation, expected = identity; busy = true; failure = nil
         do {
             let pending = try await coordinator.prepare(draft.command())

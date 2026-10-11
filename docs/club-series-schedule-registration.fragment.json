@@ -1,0 +1,28 @@
+{
+  "batch": "P049 Shanghai series schedule editor",
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "composite_preimage_tree": "31d8b958879bebff012e1940db4500df765ab88c",
+  "dependencies": [
+    {
+      "path": "../club-role-assignment-picker/club-role-assignment-picker.patch",
+      "sha256": "e1ec23eea1487ba8338c7f73bd19021caeafa784547d5ffb9d2e9cd6a1c792ff"
+    }
+  ],
+  "modified_app_sources": [
+    "App/ClubGovernanceCommandForm.swift"
+  ],
+  "app_sources": [
+    "App/ClubSeriesScheduleEditor.swift"
+  ],
+  "core_sources": [
+    "Core/ClubSeriesScheduleDraft.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubSeriesScheduleEditorTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubSeriesScheduleDraftTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubSeriesScheduleLocalizations.fragment.json",
+  "merge_instructions": "Apply only after exact batch11 form preimage. Central owner registers App/Core sources and AppUnit tests, merges16 bilingual keys. Preserve current service/permission/schema/confirmation gates. No AppSession or PBX/aggregate catalog changes in this packet."
+}

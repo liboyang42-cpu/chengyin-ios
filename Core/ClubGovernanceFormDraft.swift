@@ -34,7 +34,15 @@ public struct ClubGovernanceFormDraft {
         case .ban: text = ["reason": "", "expiresAt": ""]
         case .unban, .transferOwner, .cancelOccurrence, .revokeRole, .appeal: text["reason"] = ""
         case .correctAttendance: text["reason"] = ""; flags["arrived"] = false
-        case .report: text = ["targetType": "CLUB", "targetId": scope.clubID.map(String.init) ?? "", "reason": ""]
+        case .report:
+            if seed["targetType"] != nil || seed["targetId"] != nil {
+                // A contextual entry freezes its exact target. Incomplete or
+                // malformed seeds fail command validation; never fall back to CLUB.
+                anchors = seed.filter { ["targetType", "targetId"].contains($0.key) }
+                text = ["reason": ""]
+            } else {
+                text = ["targetType": "CLUB", "targetId": scope.clubID.map(String.init) ?? "", "reason": ""]
+            }
         case .assignRole: text = ["targetMemberId": "", "roleCode": scope.activityID == nil ? "CLUB_OPERATOR" : "EVENT_CHECKIN"]
         case .sendNotification: text = ["audienceType": scope.activityID == nil ? "ALL_MEMBERS" : "REGISTERED", "title": "", "content": ""]
         case .saveTopicSettings: for key in ["coopOpen", "pinned", "memberOnly"] { flags[key] = seed[key]?.bool ?? false }
@@ -62,6 +70,9 @@ public struct ClubGovernanceFormDraft {
         let integers = Set(["maxEventSize", "avgEventSize", "occurrenceCount", "capacity", "defaultLeadMemberId", "offerMinutes", "targetMemberId", "targetId"])
         let nullable = Set(["maxEventSize", "avgEventSize", "capacity"])
         for (key, raw) in text {
+            // A later caller must not override a contextual report's anchors by
+            // inserting a second editable field into the public draft dictionary.
+            guard operation != .report || anchors[key] == nil else { throw ClubGovernanceFailure.invalidRequest }
             let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
             if integers.contains(key) {
                 if nullable.contains(key), value.isEmpty { values[key] = .null }

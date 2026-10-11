@@ -1,0 +1,19 @@
+{
+  "batch": "P045 club stats overview",
+  "base": "94bced23ae734bcd8a5e236c8b992294bd15b14a",
+  "dependencies": [],
+  "app_sources": [
+    "App/ClubStatsOverviewView.swift"
+  ],
+  "core_sources": [
+    "Core/ClubStatsOverview.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubStatsOverviewReadTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubStatsOverviewTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubStatsOverviewLocalizations.fragment.json",
+  "merge_instructions": "Central owner registers new App and Core sources in app; adds AppUnitTests source; SPM includes Core/tests automatically. Merge13 bilingual localization keys with collision checking. No permission/service changes. ClubDetail insertion is independent of earlier merchant/community hunks."
+}

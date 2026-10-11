@@ -1,0 +1,12 @@
+{
+  "feature": "P045 contextual member report",
+  "base_commit": "53bbc93ea77bcb66a2ed1701e3e0ef8896d30e13",
+  "depends_on_calendar_patch": false,
+  "app_sources": ["App/ClubMemberReportView.swift", "Core/ClubMemberReportTarget.swift"],
+  "modified_sources": ["App/ClubMembersView.swift", "Core/ClubGovernanceFormDraft.swift"],
+  "swift_package_tests": ["Tests/CoreTests/ClubMemberReportTargetTests.swift"],
+  "localization_fragment": "Resources/ClubMemberReportLocalizations.fragment.json",
+  "pending_native_test": "swift test --filter ClubMemberReportTargetTests",
+  "pending_ui_checks": ["other-member report entry", "self-report hidden", "exact named immutable target", "reason/review/cancel", "return/reopen", "refresh and account/authority changes", "public-profile button independence", "large text and VoiceOver"],
+  "registration_policy": "Integrating owner merges the localization fragment and uses the existing project generator. No PBX, aggregate catalog or workflow modification is included."
+}

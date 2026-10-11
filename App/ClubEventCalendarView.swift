@@ -4,6 +4,7 @@ import SwiftUI
 /// it neither creates a new transport nor enables any dormant write capability.
 @MainActor final class ClubEventCalendarReadModel: ObservableObject {
     @Published private(set) var snapshot: ClubEventCalendarSnapshot?
+    @Published private(set) var activityOverview: ClubActivityOverview?
     @Published private(set) var context: ClubGovernanceReadContext?
     @Published private(set) var loading = false
     @Published private(set) var failure: ClubGovernanceFailure?
@@ -12,7 +13,7 @@ import SwiftUI
     private var active = true
 
     func invalidate() {
-        generation &+= 1; snapshot = nil; context = nil; loading = false; failure = nil
+        generation &+= 1; snapshot = nil; activityOverview = nil; context = nil; loading = false; failure = nil
     }
     func suspend() {
         active = false; generation &+= 1; loading = false
@@ -30,7 +31,7 @@ import SwiftUI
     func canSelect(_ expected: ClubGovernanceReadContext, access: any ClubGovernanceAccess) -> Bool {
         active && !loading && accepted(expected, access: access)
     }
-    func load(_ expected: ClubGovernanceReadContext, access: any ClubGovernanceAccess) async {
+    func load(_ expected: ClubGovernanceReadContext, access: any ClubGovernanceAccess, now: () -> Date = Date.init) async {
         invalidate(); let revision = generation
         guard active, !Task.isCancelled else { return }
         guard (expected.identity?.accountID ?? 0) > 0 else { failure = .signedOut; return }
@@ -45,8 +46,8 @@ import SwiftUI
             try check()
             let response = try await access.read(.topics, scope: expected.scope, options: [:], check: check)
             try check()
-            let projected = try ClubEventCalendarSnapshot(snapshot: response, context: expected)
-            context = expected; snapshotGeneration = revision; snapshot = projected
+            let projected = try ClubActivityOverview(snapshot: response, context: expected, now: now())
+            context = expected; snapshotGeneration = revision; snapshot = projected.calendar; activityOverview = projected
         } catch {
             guard active, revision == generation, live(expected, access: access), !Task.isCancelled else { return }
             failure = error as? ClubGovernanceFailure ?? .malformed
@@ -84,8 +85,14 @@ import SwiftUI
             }
             if let snapshot = accepted {
                 if calendarMode { calendar(snapshot) }
-                else if snapshot.events.isEmpty { Text("club.calendar.noEvents").accessibilityIdentifier("club.calendar.empty") }
-                else { ForEach(snapshot.events) { event in eventRow(event, showDate: true) } }
+                else if let overview = model.activityOverview {
+                    let renderedContext = readContext, renderedGeneration = model.snapshotGeneration
+                    ClubActivityListContent(overview: overview, canOpen: governance.topicDestination != nil && model.canSelect(readContext, access: governance.access)) { row in
+                        guard overview == model.activityOverview, renderedContext == readContext, renderedGeneration == model.snapshotGeneration,
+                              overview.rows.contains(row) else { return }
+                        select(row.id)
+                    }
+                }
             }
             Button("club.gov.refresh") { refresh() }.disabled(model.loading)
                 .accessibilityIdentifier("club.calendar.refresh")

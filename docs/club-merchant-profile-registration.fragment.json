@@ -1,0 +1,19 @@
+{
+  "batch": "P045 merchant discovery public profile",
+  "base": "94bced23ae734bcd8a5e236c8b992294bd15b14a",
+  "dependencies": [],
+  "app_sources": [
+    "App/ClubMerchantProfileView.swift"
+  ],
+  "core_sources": [
+    "Core/ClubMerchantProfileSelection.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubMerchantProfileReadTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubMerchantProfileSelectionTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubMerchantProfileLocalizations.fragment.json",
+  "merge_instructions": "Central owner adds app/Core sources to App target, app-unit file to AppUnitTests; SPM includes Core and CoreTests automatically. Merge both bilingual keys with collision checking. Do not alter source permissions or AppSession. Do not include test or evidence files in app."
+}

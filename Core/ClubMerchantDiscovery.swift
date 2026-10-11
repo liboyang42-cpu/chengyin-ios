@@ -6,6 +6,7 @@ import Observation
 public struct ClubMerchantDiscoveryRow: Equatable, Identifiable {
     public let id: Int
     public let fields: [String]
+    public let ownerMemberID: PublicMerchantOwnerID?
     public var name: String { fields[0].isEmpty ? fields[1] : fields[0] }
     public var activityTypes: String { fields[2] }
     public var address: String { fields[3] }
@@ -19,6 +20,9 @@ public struct ClubMerchantDiscoveryRow: Equatable, Identifiable {
             default: throw CoopFlowFailure.malformed
             }
         }
+        // Source goMerchantProfile uses memberId. Missing or invalid metadata does
+        // not destroy the readable card and must never fall back to id/index.
+        ownerMemberID = value["memberId"].integer.flatMap(PublicMerchantOwnerID.init)
         id = index
     }
 }
@@ -119,6 +123,17 @@ public struct ClubMerchantDiscoveryContext: Equatable {
     }
     public func hasLoadedRows(in context: ClubMerchantDiscoveryContext) -> Bool {
         phase(in: context) == .ready && !storedRows.isEmpty
+    }
+    public func profileSelection(row: ClubMerchantDiscoveryRow, permit: Permit?) -> ClubMerchantProfileSelection? {
+        guard let permit, accepts(permit), storedPhase == .ready,
+              rows(in: permit.context).contains(row), let owner = row.ownerMemberID else { return nil }
+        return .init(row: row, owner: owner, permit: permit, generation: generation)
+    }
+    public func isCurrent(_ selection: ClubMerchantProfileSelection,
+                          clubReader: any ClubReading, reader: any CoopFlowReading) -> Bool {
+        accepts(selection.permit) && generation == selection.generation && storedPhase == .ready &&
+            storedRows.contains(selection.row) && selection.row.ownerMemberID == selection.owner &&
+            selection.permit.context.matches(clubReader: clubReader, reader: reader)
     }
     public func setKeyword(_ value: String, permit: Permit?) {
         guard let permit, accepts(permit) else { return }

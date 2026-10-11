@@ -58,7 +58,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
                 if let session = reader as? AppSession {
                     // Keep the scope binder mounted for non-owners so owner loss fences old callbacks immediately.
-                    ClubMerchantDiscoveryView(club: club, clubReader: reader, reader: session.cooperationFlowReader)
+                    SessionClubMerchantProfileHost(session: session) {
+                        ClubMerchantDiscoveryView(club: club, clubReader: reader, reader: session.cooperationFlowReader)
+                    }
                 }
                 if let community {
                     Section {
@@ -75,6 +77,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             ClubEventCalendarView(clubID: id, identity: reader.clubIdentity, governance: governance)
                         } label: { Label("club.calendar.title", systemImage: "calendar") }
                             .accessibilityIdentifier("club.calendar.open")
+                        if club.isOwner {
+                            NavigationLink {
+                                ClubStatsOverviewView(clubID: id, identity: reader.clubIdentity, governance: governance)
+                            } label: { Label("club.statsOverview.title", systemImage: "chart.bar") }
+                                .accessibilityIdentifier("club.statsOverview.open")
+                        }
                         ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates)
                     }
                 }

@@ -455,6 +455,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "192BD39924E71BE96ED1AD43";
 		};
+		"2AB8CDD62E27FE75DED7A4BB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubActivityListContent.swift";
+			"sourceTree" = "<group>";
+		};
+		"D8492FB3D0BADF594D542406" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "2AB8CDD62E27FE75DED7A4BB";
+		};
 		"5598362E24B63B88276B83EA" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -655,6 +665,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "E71212457F3F44C529DF7A64";
 		};
+		"6E4056638EA93F6F16E4A58F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubMemberReportView.swift";
+			"sourceTree" = "<group>";
+		};
+		"16F7D0A5331DAE7E4D03CCC9" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "6E4056638EA93F6F16E4A58F";
+		};
 		"E0455209C4F8D9AF9BD8B1B7" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -674,6 +694,16 @@
 		"2F06A026CD27EA34FA1C7577" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "EB6619E76749BEE2B0F42A3E";
+		};
+		"58945537205D638F880637EC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubMerchantProfileView.swift";
+			"sourceTree" = "<group>";
+		};
+		"7DFEF22D75E6EDFB9E46502E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "58945537205D638F880637EC";
 		};
 		"51B69CD1C2FE71D51AC9F5D1" = {
 			"isa" = "PBXFileReference";
@@ -794,6 +824,46 @@
 		"F1B0FA7ABABF58085ADB50AD" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "97BCD19A884437E62D5E6D65";
+		};
+		"E4D9F71878C5CEF6118AEBF3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubRoleAssignmentPicker.swift";
+			"sourceTree" = "<group>";
+		};
+		"8018B3E518B5C97B48831025" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E4D9F71878C5CEF6118AEBF3";
+		};
+		"770810F149C279C4A5FB647C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubSeriesLeadPicker.swift";
+			"sourceTree" = "<group>";
+		};
+		"E02E5E69DA67535A58AE651A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "770810F149C279C4A5FB647C";
+		};
+		"CEE5078475BD312AFE8E9642" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubSeriesScheduleEditor.swift";
+			"sourceTree" = "<group>";
+		};
+		"966FE28EC252D1EE9CF614A0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CEE5078475BD312AFE8E9642";
+		};
+		"C24CA45E04044834E838E92D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubStatsOverviewView.swift";
+			"sourceTree" = "<group>";
+		};
+		"E544A87F67A5A3B351BF6FD0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C24CA45E04044834E838E92D";
 		};
 		"F1080E9B18996EFD99E102E2" = {
 			"isa" = "PBXFileReference";
@@ -7404,6 +7474,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "B3637A5508AC79DC5F3406FD";
 		};
+		"03938A5F6463DC5D0134D93F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubActivityOverview.swift";
+			"sourceTree" = "<group>";
+		};
+		"96889A5B77F8DD80E394159F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "03938A5F6463DC5D0134D93F";
+		};
 		"470A3EEDAE85737B5C4545BA" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -7634,6 +7714,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "35FF9F77E73405D7678C375D";
 		};
+		"F2168C7BF4C79B0F7E605F7F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubMemberReportTarget.swift";
+			"sourceTree" = "<group>";
+		};
+		"E15B4B02A39AC3D093E161C8" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F2168C7BF4C79B0F7E605F7F";
+		};
 		"4CA657C9C07F6F8421B936AA" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -7643,6 +7733,16 @@
 		"5AE12F7F04133EB2814E4FE8" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "4CA657C9C07F6F8421B936AA";
+		};
+		"89E3C8D299A569BBDDCEBBF3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubMerchantProfileSelection.swift";
+			"sourceTree" = "<group>";
+		};
+		"B12C68B0433CB305D290B183" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "89E3C8D299A569BBDDCEBBF3";
 		};
 		"00FEB6885AA08F7EBFD75142" = {
 			"isa" = "PBXFileReference";
@@ -7804,6 +7904,36 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "0354569B1D7808C1BE8DB028";
 		};
+		"8934AF429B8CF0B4549C0EFF" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubRoleAssignmentOptions.swift";
+			"sourceTree" = "<group>";
+		};
+		"17BF92D7753A1BE8D7F9A3FC" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8934AF429B8CF0B4549C0EFF";
+		};
+		"AFA73584AF7641AA793AE650" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubSeriesLeadOptions.swift";
+			"sourceTree" = "<group>";
+		};
+		"95B16E7DD3EC85CD29D8441D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "AFA73584AF7641AA793AE650";
+		};
+		"19B414D974BF06DCB32B8CE1" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubSeriesScheduleDraft.swift";
+			"sourceTree" = "<group>";
+		};
+		"F91BB4AF705892B8BA333B80" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "19B414D974BF06DCB32B8CE1";
+		};
 		"959ECC7C7B8E69BFEF7F2967" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -7813,6 +7943,16 @@
 		"4B83E4AAF725D6606E16C448" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "959ECC7C7B8E69BFEF7F2967";
+		};
+		"948C8B11502604D411211C8B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubStatsOverview.swift";
+			"sourceTree" = "<group>";
+		};
+		"D932F7941D9B85A11F25AA22" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "948C8B11502604D411211C8B";
 		};
 		"B14178CEDAA370781C6A6B93" = {
 			"isa" = "PBXFileReference";
@@ -14903,6 +15043,7 @@
 				"8A9903E990B1C7CEAF46FAE1",
 				"FF87529B40E21D36CC9ED99F",
 				"192BD39924E71BE96ED1AD43",
+				"2AB8CDD62E27FE75DED7A4BB",
 				"5598362E24B63B88276B83EA",
 				"11596633AB21878F078B50BE",
 				"E1F7A791F0798635FE555B9C",
@@ -14923,8 +15064,10 @@
 				"785AD3B99C2ABBED0601F80B",
 				"5320CB78BBB1708AA441DC25",
 				"E71212457F3F44C529DF7A64",
+				"6E4056638EA93F6F16E4A58F",
 				"E0455209C4F8D9AF9BD8B1B7",
 				"EB6619E76749BEE2B0F42A3E",
+				"58945537205D638F880637EC",
 				"51B69CD1C2FE71D51AC9F5D1",
 				"5C62090E288844F91917086C",
 				"34B395C35BB3CF643BEA0602",
@@ -14937,6 +15080,10 @@
 				"C85DD9796E60442BBA04D47F",
 				"695B52D10A3BDE8AA91BA7C9",
 				"97BCD19A884437E62D5E6D65",
+				"E4D9F71878C5CEF6118AEBF3",
+				"770810F149C279C4A5FB647C",
+				"CEE5078475BD312AFE8E9642",
+				"C24CA45E04044834E838E92D",
 				"F1080E9B18996EFD99E102E2",
 				"46E54F708961BABC8D856262",
 				"0C85B044FBC94480EF45FA4D",
@@ -15597,6 +15744,7 @@
 				"60735704B98EB6E0DBDFA5A8",
 				"4DB09B674A9CB08E71DD9A0A",
 				"B3637A5508AC79DC5F3406FD",
+				"03938A5F6463DC5D0134D93F",
 				"470A3EEDAE85737B5C4545BA",
 				"916019654CA162CD7892B4EA",
 				"C75D489144C71BF40B1DD5F9",
@@ -15620,7 +15768,9 @@
 				"610C24D18D62769EFFC76D0C",
 				"03152527FCB60F70D4A2C17D",
 				"35FF9F77E73405D7678C375D",
+				"F2168C7BF4C79B0F7E605F7F",
 				"4CA657C9C07F6F8421B936AA",
+				"89E3C8D299A569BBDDCEBBF3",
 				"00FEB6885AA08F7EBFD75142",
 				"64F137BE939CDEA1BEC07198",
 				"E882907FE4FA70F67650F86E",
@@ -15637,7 +15787,11 @@
 				"3354DFB1169DBA775958C492",
 				"020D24B10F9F8E565D5DAD29",
 				"0354569B1D7808C1BE8DB028",
+				"8934AF429B8CF0B4549C0EFF",
+				"AFA73584AF7641AA793AE650",
+				"19B414D974BF06DCB32B8CE1",
 				"959ECC7C7B8E69BFEF7F2967",
+				"948C8B11502604D411211C8B",
 				"B14178CEDAA370781C6A6B93",
 				"07796190C1F5FA3D9273F085",
 				"13B757522D9CD377EFDEEF7C",
@@ -16561,11 +16715,17 @@
 				"D3A484982C28ACB469E8898C",
 				"A6F02311300305D58EE71ED7",
 				"79F801E58C3ACDAAB42C5F82",
+				"CC4B97CD7D45750B7CDA3D0B",
 				"525EE1679C85AA5272DE7DF4",
 				"547DD20422C04B364B7AAC62",
 				"8B9A9C171C57ED03B74662FD",
 				"FF92266D75B4923B2A3045B4",
+				"ACD26E9EEBC2442F06E4EE56",
 				"0839835583E1D20F07C45259",
+				"DBB09A5EEFFC1B25407E5F6E",
+				"5EA73EA342E6C543CD6C89A8",
+				"3FFD819A1BCD992D2E5EB80B",
+				"67F40E5F521D5EC171CD04FD",
 				"8388C7D38F87D95825320119",
 				"018EB28B372D646C14C562F8",
 				"50DC4B290A84A7AE25F40550",
@@ -16881,6 +17041,7 @@
 				"C6F4905EB3D0F3547343D744",
 				"D22EE7F9861F005F98300F98",
 				"46A7B9E26B8772353113B0F6",
+				"D8492FB3D0BADF594D542406",
 				"D401F05B2E15F31CA5BF9FE5",
 				"30A20A5CADD4B15364C542AE",
 				"C28B9D48E1AA166E8283E8BB",
@@ -16901,8 +17062,10 @@
 				"21CB44993BE412C458BDA344",
 				"444B4FC79914B12F4B5A7F22",
 				"36FA295DECD3566374236301",
+				"16F7D0A5331DAE7E4D03CCC9",
 				"FB7928B0ED10FDA077FC377D",
 				"2F06A026CD27EA34FA1C7577",
+				"7DFEF22D75E6EDFB9E46502E",
 				"811C18776843175091F401A0",
 				"54EAFA2E755B9C0F7180CDB9",
 				"41D99C097BE48B4FBB4461E4",
@@ -16915,6 +17078,10 @@
 				"2BB4003DBA0ED47BBB47DDF9",
 				"882510613CB5994796CCAD8A",
 				"F1B0FA7ABABF58085ADB50AD",
+				"8018B3E518B5C97B48831025",
+				"E02E5E69DA67535A58AE651A",
+				"966FE28EC252D1EE9CF614A0",
+				"E544A87F67A5A3B351BF6FD0",
 				"DA3A118111F13A4C997FB526",
 				"DA86BC740D62DC0B06783F75",
 				"4C1DA5DAB9487DD7217ADD1A",
@@ -17575,6 +17742,7 @@
 				"F40CF93F14EFF126EB3BC825",
 				"100969A88506CF25C78E99A8",
 				"8AEC4003AF0C01ED030B46D8",
+				"96889A5B77F8DD80E394159F",
 				"32B679A9165F4B7767E2EB9A",
 				"931FD8E63B6C4D9A6E0D7BF7",
 				"C5E483C72C44556788876013",
@@ -17598,7 +17766,9 @@
 				"376125C7A910D922B900A9C4",
 				"A8407EDAA98894E12486DE21",
 				"682FCDC44CA90B15084B9A30",
+				"E15B4B02A39AC3D093E161C8",
 				"5AE12F7F04133EB2814E4FE8",
+				"B12C68B0433CB305D290B183",
 				"08CEF648F8F8FC3BE6A0F81C",
 				"582669D62EDF7415071FE17C",
 				"61BE5158EA0D70276E7C5032",
@@ -17615,7 +17785,11 @@
 				"1B03C782DBAFB574F1E18314",
 				"3DFA00FFD6A428D028543DAC",
 				"12B39DAECC4D18241FC0F5A8",
+				"17BF92D7753A1BE8D7F9A3FC",
+				"95B16E7DD3EC85CD29D8441D",
+				"F91BB4AF705892B8BA333B80",
 				"4B83E4AAF725D6606E16C448",
+				"D932F7941D9B85A11F25AA22",
 				"BDF88DDED284B57301002BBE",
 				"9560CBC043C06AA0C0FB61AD",
 				"13492C8460DDF0341053C92F",
@@ -20901,6 +21075,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "79F801E58C3ACDAAB42C5F82";
 		};
+		"CC4B97CD7D45750B7CDA3D0B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ClubActivityOverviewReadTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"12D27978C84601B58F8734F1" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CC4B97CD7D45750B7CDA3D0B";
+		};
 		"525EE1679C85AA5272DE7DF4" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -20941,6 +21125,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FF92266D75B4923B2A3045B4";
 		};
+		"ACD26E9EEBC2442F06E4EE56" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ClubMerchantProfileReadTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"D53057D5CCF7C72B3A0C73E0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "ACD26E9EEBC2442F06E4EE56";
+		};
 		"0839835583E1D20F07C45259" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -20950,6 +21144,46 @@
 		"7C401B1000DC8856B786CA95" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "0839835583E1D20F07C45259";
+		};
+		"DBB09A5EEFFC1B25407E5F6E" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ClubRoleAssignmentPickerTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"8E4E8E93275D2929B51A15B2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DBB09A5EEFFC1B25407E5F6E";
+		};
+		"5EA73EA342E6C543CD6C89A8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ClubSeriesLeadPickerTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"8279BA0E1540C0A2DAD9BA6F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "5EA73EA342E6C543CD6C89A8";
+		};
+		"3FFD819A1BCD992D2E5EB80B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ClubSeriesScheduleEditorTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"42CA505CAB70E36941E6175A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3FFD819A1BCD992D2E5EB80B";
+		};
+		"67F40E5F521D5EC171CD04FD" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ClubStatsOverviewReadTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"0B7FA287D6EE963D3B655FF6" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "67F40E5F521D5EC171CD04FD";
 		};
 		"8388C7D38F87D95825320119" = {
 			"isa" = "PBXFileReference";
@@ -23633,11 +23867,17 @@
 				"1AB02342F699B5B61FC7A236",
 				"78DC09D3AB80ACC96A1F884A",
 				"44CE67A5CC5852ABF791D64C",
+				"12D27978C84601B58F8734F1",
 				"EBEC019FDEAE55ACE06179C2",
 				"7FEA355EA4D0539C58BA2CC1",
 				"B6734CE497406843B9515643",
 				"8655F31ED79CD238FA54AED2",
+				"D53057D5CCF7C72B3A0C73E0",
 				"7C401B1000DC8856B786CA95",
+				"8E4E8E93275D2929B51A15B2",
+				"8279BA0E1540C0A2DAD9BA6F",
+				"42CA505CAB70E36941E6175A",
+				"0B7FA287D6EE963D3B655FF6",
 				"EF9ECDC20F32FC34BCA977BC",
 				"A6C5B38B6813011CDAE2A1B1",
 				"1CC4808D9FEF86AE36533F86",

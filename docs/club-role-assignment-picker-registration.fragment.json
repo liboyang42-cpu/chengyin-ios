@@ -1,0 +1,19 @@
+{
+  "batch": "P054 guided role assignment picker",
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "dependencies": [],
+  "app_sources": [
+    "App/ClubRoleAssignmentPicker.swift"
+  ],
+  "core_sources": [
+    "Core/ClubRoleAssignmentOptions.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubRoleAssignmentPickerTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubRoleAssignmentOptionsTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubRoleAssignmentLocalizations.fragment.json",
+  "merge_instructions": "Central owner registers new App/Core files in app and new AppUnit file in AppUnitTests; SPM discovers Core and CoreTests. Merge 11 bilingual keys. Existing command coordinator, write grants, contracts and source validation are unchanged."
+}

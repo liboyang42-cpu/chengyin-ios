@@ -1,0 +1,182 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "club.rolePicker.clubScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies to this club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作用范围：本俱乐部"
+          }
+        }
+      }
+    },
+    "club.rolePicker.member": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a member"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择成员"
+          }
+        }
+      }
+    },
+    "club.rolePicker.role": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a role"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择角色"
+          }
+        }
+      }
+    },
+    "club.rolePicker.unselected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选择"
+          }
+        }
+      }
+    },
+    "club.rolePicker.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选"
+          }
+        }
+      }
+    },
+    "club.rolePicker.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No assignable members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可委派的成员"
+          }
+        }
+      }
+    },
+    "club.rolePicker.unverified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some members have unconfirmed owner status and cannot be selected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分成员的主理人身份尚未确认，暂不可选择。"
+          }
+        }
+      }
+    },
+    "club.rolePicker.summary.CLUB_CO_OWNER": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can maintain club information, members and activities; cannot assign roles."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可维护俱乐部资料、成员与活动；不能分配角色"
+          }
+        }
+      }
+    },
+    "club.rolePicker.summary.CLUB_OPERATOR": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can manage content, join requests and member notices. Event and on-site permissions are assigned separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可管理内容、入会审核与成员通知；活动与现场权限按场次单独委派"
+          }
+        }
+      }
+    },
+    "club.rolePicker.summary.EVENT_LEAD": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Responsible only for this occurrence’s on-site operations and check-in."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅负责当前场次的现场执行与核销"
+          }
+        }
+      }
+    },
+    "club.rolePicker.summary.EVENT_CHECKIN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can check in this occurrence only; no member-management or financial permissions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅负责当前场次核销，不获得成员或财务权限"
+          }
+        }
+      }
+    }
+  }
+}
