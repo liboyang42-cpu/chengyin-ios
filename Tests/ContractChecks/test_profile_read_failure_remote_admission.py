@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
-DISCOVERY_HELPER_FINGERPRINT = '9151580209a925a141535c70e229ab1c0609d3cd0d7b8b544f16f16df2a543a9'
+DISCOVERY_HELPER_FINGERPRINT = '8c8eeec9a9120b261cfe3a6c067c25718e7b5a3b3cb41f5f34897fd11523a37d'
 
 def load(relative, name):
     spec = importlib.util.spec_from_file_location(name, ROOT / relative)
@@ -533,7 +533,8 @@ class ProfileReadFailureRemoteAdmission(unittest.TestCase):
             del support[path]
         self.assertEqual(digest((json.dumps(contract, indent=2, ensure_ascii=False)+'\n').encode()), '11cc2e20ce328dcba2fcfbcb4425bf581908038c71d4f4c7eee15c1bbab1b2b6')
         self.assertEqual(digest((ROOT/'tools/run138_current_source_projection.py').read_bytes()), 'c0e6a5351bd024bdcbf8d1152bb4e8cb683cc5ff15e370627a14e229a1158727')
-        source = (ROOT/'tools/run138_editor_readiness.py').read_text()
+        from Tests.ContractChecks.test_category_roam_registration import uncached_readiness_source
+        source = uncached_readiness_source((ROOT/'tools/run138_editor_readiness.py').read_bytes()).decode()
         current = digest((ROOT/'tools/run138_editor_readiness_contract.json').read_bytes())
         self.assertEqual(source.count("CONTRACT_SHA256 = '"+current+"'"), 1)
         original = source.replace("CONTRACT_SHA256 = '"+current+"'", "CONTRACT_SHA256 = '11cc2e20ce328dcba2fcfbcb4425bf581908038c71d4f4c7eee15c1bbab1b2b6'", 1)

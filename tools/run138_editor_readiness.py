@@ -9,6 +9,8 @@ import argparse
 import atexit
 import hashlib
 import json
+from copy import deepcopy
+from functools import lru_cache
 import math
 import re
 import tempfile
@@ -16,7 +18,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = 'b72d9b1024daadb5273a4de24c0175d42c04516b1f89c6c53c0f9c40dd7a77b6'
+CONTRACT_SHA256 = 'd3fedafc9efe917220f4c52cb4c82d742f840a7307546da35e4da130a80d7fdb'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'
@@ -36,11 +38,16 @@ def canonical(value):
     return digest(json.dumps(value, sort_keys=True, separators=(',', ':')).encode())
 
 
+@lru_cache(maxsize=1)
+def _parsed_contract(raw):
+    return json.loads(raw)
+
+
 def contract(root=ROOT):
     raw = (Path(root) / 'tools/run138_editor_readiness_contract.json').read_bytes()
     if digest(raw) != CONTRACT_SHA256:
         raise ValueError('Unreviewed current readiness planning contract')
-    return json.loads(raw)
+    return deepcopy(_parsed_contract(raw))
 
 
 def source_contract(root=ROOT):

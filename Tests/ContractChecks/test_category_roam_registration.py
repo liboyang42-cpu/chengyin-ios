@@ -319,7 +319,7 @@ class CategoryRoamRegistrationContracts(unittest.TestCase):
 
 
 # Exact discovery/Roam layer on the frozen club R2 floor.
-ADMISSION_FINGERPRINT = '9151580209a925a141535c70e229ab1c0609d3cd0d7b8b544f16f16df2a543a9'
+ADMISSION_FINGERPRINT = '8c8eeec9a9120b261cfe3a6c067c25718e7b5a3b3cb41f5f34897fd11523a37d'
 CATEGORY_TEMPLATE_OFFSET = 65180
 CURRENT_APPROVED_PATHS = ['App/GlobalSearchView.swift',
  'Core/SearchMapReading.swift',
@@ -6397,8 +6397,1276 @@ def _inverse_exact(raw, row, label):
     return value
 
 
-def _parent_contract(value):
+
+# Exact parser/property repair layer on the complete published discovery predecessor.
+REPAIR_PRE_CONTRACT_SHA256 = 'b72d9b1024daadb5273a4de24c0175d42c04516b1f89c6c53c0f9c40dd7a77b6'
+REPAIR_PRE_RUNNER_SHA256 = 'f39364ce7df89dc337047e825294047fa0af2f461424cd9aa1e6384c0c389d4f'
+REPAIR_PRE_PROFILE_SHA256 = 'f9904bbd44d23bcaacd02be0647cf6bc4d7f0d5994371a8f05f2edac868b59ec'
+REPAIR_PRE_FINGERPRINT = '9151580209a925a141535c70e229ab1c0609d3cd0d7b8b544f16f16df2a543a9'
+REPAIR_SOURCE_INVERSES = {'App/ProjectThoughtDefinitionsEditor.swift': {'before_sha256': 'dc2bcdecf846d8226db09d96df7ce7688cabc722249add64a114d48721263bd9',
+                                               'after_sha256': 'e580e547bd55d7a0df2ef032fb39699aeb6187701cc604ab5d20be1129f91750',
+                                               'hunks': [{'before': '        let id = UUID(), incarnation: '
+                                                                    'UUID, session: ProjectEditSession?, '
+                                                                    'identity: ProjectEditDraftIdentity?\n'
+                                                                    '        let revision: Int, bytes: '
+                                                                    'Data\n',
+                                                          'after': '        let id = UUID()\n'
+                                                                   '        let incarnation: UUID\n'
+                                                                   '        let session: '
+                                                                   'ProjectEditSession?\n'
+                                                                   '        let identity: '
+                                                                   'ProjectEditDraftIdentity?\n'
+                                                                   '        let revision: Int\n'
+                                                                   '        let bytes: Data\n'},
+                                                         {'before': '        let id = UUID(), key: String, '
+                                                                    'revision: Int, impacts: [String]\n',
+                                                          'after': '        let id = UUID()\n'
+                                                                   '        let key: String\n'
+                                                                   '        let revision: Int\n'
+                                                                   '        let impacts: [String]\n'}]},
+ 'App/ProjectEndingConditionPicker.swift': {'before_sha256': '1b0a460cc65ee4ba69be25390940f188bbeaddbd824ee4d77d053dfdb28ba5a8',
+                                            'after_sha256': '16da43f7d88ae2aa153b622dfce15d91938d580a8ad0fdec61f51418d7827688',
+                                            'hunks': [{'before': '@MainActor final class '
+                                                                 'ProjectEndingConditionController: '
+                                                                 'ObservableObject {\n'
+                                                                 '    struct Presentation: Identifiable {\n'
+                                                                 '        let id = UUID(), incarnation: '
+                                                                 'UUID, session: ProjectEditSession?, '
+                                                                 'identity: ProjectEditDraftIdentity?\n'
+                                                                 '        let revision: Int, bytes: Data\n',
+                                                       'after': '@MainActor final class '
+                                                                'ProjectEndingConditionController: '
+                                                                'ObservableObject {\n'
+                                                                '    struct Presentation: Identifiable {\n'
+                                                                '        let id = UUID()\n'
+                                                                '        let incarnation: UUID\n'
+                                                                '        let session: ProjectEditSession?\n'
+                                                                '        let identity: '
+                                                                'ProjectEditDraftIdentity?\n'
+                                                                '        let revision: Int\n'
+                                                                '        let bytes: Data\n'},
+                                                      {'before': '@MainActor final class '
+                                                                 'ProjectStoryConditionController: '
+                                                                 'ObservableObject {\n'
+                                                                 '    struct Presentation: Identifiable {\n'
+                                                                 '        let id = UUID(), incarnation: '
+                                                                 'UUID, session: ProjectEditSession?, '
+                                                                 'identity: ProjectEditDraftIdentity?\n'
+                                                                 '        let revision: Int, bytes: Data\n',
+                                                       'after': '@MainActor final class '
+                                                                'ProjectStoryConditionController: '
+                                                                'ObservableObject {\n'
+                                                                '    struct Presentation: Identifiable {\n'
+                                                                '        let id = UUID()\n'
+                                                                '        let incarnation: UUID\n'
+                                                                '        let session: ProjectEditSession?\n'
+                                                                '        let identity: '
+                                                                'ProjectEditDraftIdentity?\n'
+                                                                '        let revision: Int\n'
+                                                                '        let bytes: Data\n'}]},
+ 'tools/club_customer_directory_admission.py': {'before_sha256': '80b6fb95961ef598ea66aa02e0081938b5df2ae7860a3e3fad76e5c0fa0a2297',
+                                                'after_sha256': '1878c5c48f1da07910178409ca0b927be695e92a462497dc8cd9aa7d9a929aaf',
+                                                'hunks': [{'before': 'FLOOR_INPUTS = '
+                                                                     "('App/MerchantBusinessEditor.swift',",
+                                                           'after': 'FLOOR_INPUTS = '
+                                                                    "('App/ProjectThoughtDefinitionsEditor.swift',\n"
+                                                                    ' '
+                                                                    "'App/ProjectEndingConditionPicker.swift',\n"
+                                                                    " 'App/MerchantBusinessEditor.swift',"},
+                                                          {'before': 'def '
+                                                                     'current_predecessor_contract(contract, '
+                                                                     'root):\n'
+                                                                     '    """Full club raw admission -> '
+                                                                     'exact complete creator floor; never a '
+                                                                     'scanner view."""\n'
+                                                                     '    root = Path(root)\n'
+                                                                     '    if digest((root / '
+                                                                     'HELPER_PATH).read_bytes()) != '
+                                                                     'HELPER_SHA256:\n'
+                                                                     "        raise ValueError('Current club "
+                                                                     "reader changed')\n"
+                                                                     '    prefix = (root / '
+                                                                     "HELPER_PATH).read_bytes().split(b'\\n# "
+                                                                     'Finite club layer on the exact '
+                                                                     'creator/fixed45 floor. Frozen reader '
+                                                                     "above retained.\\n', 1)[0]\n"
+                                                                     '    if digest(prefix) != '
+                                                                     'FROZEN16_HELPER_SHA256:\n'
+                                                                     "        raise ValueError('Frozen club "
+                                                                     "reader was not retained exactly')\n"
+                                                                     '    permission_prefix = '
+                                                                     "prefix.split(b'\\n# Exact keyword/PBX "
+                                                                     'evolution. Original eleven-file reader '
+                                                                     "above is retained byte-for-byte.\\n', "
+                                                                     '1)[0]\n'
+                                                                     '    if digest(permission_prefix) != '
+                                                                     'FROZEN_PERMISSION_HELPER_SHA256:\n'
+                                                                     "        raise ValueError('Frozen "
+                                                                     'original club11 helper not retained '
+                                                                     "exactly')\n"
+                                                                     '    restore_creator_history_test((root '
+                                                                     '/ CLUB_HISTORY_PATH).read_bytes())\n'
+                                                                     '    support = '
+                                                                     "contract['feature_batch_support_sha256']\n"
+                                                                     '    if support.get(HELPER_PATH) != '
+                                                                     'HELPER_SHA256:\n'
+                                                                     "        raise ValueError('Current club "
+                                                                     "helper support changed')\n"
+                                                                     '    for name, expected in '
+                                                                     'CLUB_RAW_SHA256.items():\n'
+                                                                     '        if digest((root / '
+                                                                     'name).read_bytes()) != expected:\n'
+                                                                     "            raise ValueError('Changed "
+                                                                     "or mixed club raw input: ' + name)\n"
+                                                                     '        if name in support and '
+                                                                     'support[name] != expected:\n'
+                                                                     "            raise ValueError('Changed "
+                                                                     "club support binding: ' + name)\n"
+                                                                     '    if digest((root / '
+                                                                     "'tools/tests/test_gitleaks_configuration.py').read_bytes()) "
+                                                                     '!= CURRENT_SCANNER_SHA256:\n'
+                                                                     "        raise ValueError('Current "
+                                                                     "scanner changed')\n"
+                                                                     '    for name, expected in '
+                                                                     'CLUB_SOURCE_ROWS.items():\n'
+                                                                     '        if '
+                                                                     "contract['feature_batch_sources'].pop(name, "
+                                                                     'None) != expected:\n'
+                                                                     "            raise ValueError('Unknown "
+                                                                     "club source inverse: ' + name)\n"
+                                                                     '        _inverse_row(name, (root / '
+                                                                     'name).read_bytes(), expected)\n'
+                                                                     '    pbx = '
+                                                                     "'Questify.xcodeproj/project.pbxproj'\n"
+                                                                     '    row = '
+                                                                     "contract['feature_batch_sources'][pbx]\n"
+                                                                     '    extension = '
+                                                                     'EVOLUTION_SOURCES[pbx]\n'
+                                                                     "    if row['after_sha256'] != "
+                                                                     "extension['after_sha256'] or "
+                                                                     "row['hunks'][-len(extension['hunks']):] "
+                                                                     "!= extension['hunks']:\n"
+                                                                     "        raise ValueError('Unknown club "
+                                                                     "PBX extension')\n"
+                                                                     '    restore_evolution_source(pbx, '
+                                                                     '(root / pbx).read_bytes())\n'
+                                                                     '    del '
+                                                                     "row['hunks'][-len(extension['hunks']):]\n"
+                                                                     "    row['after_sha256'] = "
+                                                                     "extension['before_sha256']\n"
+                                                                     '    if digest(_encoded(row)) != '
+                                                                     'CLUB_PBX_PRE_ROW_SHA256:\n'
+                                                                     "        raise ValueError('Complete "
+                                                                     "preceding PBX row not restored')\n"
+                                                                     '    for name in CLUB_SUPPORT_PATHS:\n'
+                                                                     '        if name not in support:\n'
+                                                                     "            raise ValueError('Missing "
+                                                                     "club support row: ' + name)\n"
+                                                                     '        del support[name]\n'
+                                                                     '    support[CLUB_PREADMISSION_PATH] = '
+                                                                     'CLUB_PREADMISSION_SHA256\n'
+                                                                     '    if digest(_encoded(contract)) != '
+                                                                     'CLUB_PRECONTRACT_SHA256:\n'
+                                                                     "        raise ValueError('Complete "
+                                                                     "creator predecessor not restored')\n"
+                                                                     '    return contract\n'
+                                                                     '\n',
+                                                           'after': 'def '
+                                                                    'current_predecessor_contract(contract, '
+                                                                    'root):\n'
+                                                                    '    """Full club raw admission -> exact '
+                                                                    'complete creator floor; never a scanner '
+                                                                    'view."""\n'
+                                                                    '    root = Path(root)\n'
+                                                                    '    if digest((root / '
+                                                                    'HELPER_PATH).read_bytes()) != '
+                                                                    "'80b6fb95961ef598ea66aa02e0081938b5df2ae7860a3e3fad76e5c0fa0a2297':\n"
+                                                                    "        raise ValueError('Current club "
+                                                                    "reader changed')\n"
+                                                                    '    prefix = (root / '
+                                                                    "HELPER_PATH).read_bytes().split(b'\\n# "
+                                                                    'Finite club layer on the exact '
+                                                                    'creator/fixed45 floor. Frozen reader '
+                                                                    "above retained.\\n', 1)[0]\n"
+                                                                    '    if digest(prefix) != '
+                                                                    'FROZEN16_HELPER_SHA256:\n'
+                                                                    "        raise ValueError('Frozen club "
+                                                                    "reader was not retained exactly')\n"
+                                                                    '    permission_prefix = '
+                                                                    "prefix.split(b'\\n# Exact keyword/PBX "
+                                                                    'evolution. Original eleven-file reader '
+                                                                    "above is retained byte-for-byte.\\n', "
+                                                                    '1)[0]\n'
+                                                                    '    if digest(permission_prefix) != '
+                                                                    'FROZEN_PERMISSION_HELPER_SHA256:\n'
+                                                                    "        raise ValueError('Frozen "
+                                                                    'original club11 helper not retained '
+                                                                    "exactly')\n"
+                                                                    '    restore_creator_history_test((root '
+                                                                    '/ CLUB_HISTORY_PATH).read_bytes())\n'
+                                                                    '    support = '
+                                                                    "contract['feature_batch_support_sha256']\n"
+                                                                    '    if support.get(HELPER_PATH) != '
+                                                                    "'80b6fb95961ef598ea66aa02e0081938b5df2ae7860a3e3fad76e5c0fa0a2297':\n"
+                                                                    "        raise ValueError('Current club "
+                                                                    "helper support changed')\n"
+                                                                    '    for name, expected in '
+                                                                    'CLUB_RAW_SHA256.items():\n'
+                                                                    '        if digest((root / '
+                                                                    'name).read_bytes()) != expected:\n'
+                                                                    "            raise ValueError('Changed "
+                                                                    "or mixed club raw input: ' + name)\n"
+                                                                    '        if name in support and '
+                                                                    'support[name] != expected:\n'
+                                                                    "            raise ValueError('Changed "
+                                                                    "club support binding: ' + name)\n"
+                                                                    '    if digest((root / '
+                                                                    "'tools/tests/test_gitleaks_configuration.py').read_bytes()) "
+                                                                    '!= CURRENT_SCANNER_SHA256:\n'
+                                                                    "        raise ValueError('Current "
+                                                                    "scanner changed')\n"
+                                                                    '    for name, expected in '
+                                                                    'CLUB_SOURCE_ROWS.items():\n'
+                                                                    '        if '
+                                                                    "contract['feature_batch_sources'].pop(name, "
+                                                                    'None) != expected:\n'
+                                                                    "            raise ValueError('Unknown "
+                                                                    "club source inverse: ' + name)\n"
+                                                                    '        _inverse_row(name, (root / '
+                                                                    'name).read_bytes(), expected)\n'
+                                                                    '    pbx = '
+                                                                    "'Questify.xcodeproj/project.pbxproj'\n"
+                                                                    '    row = '
+                                                                    "contract['feature_batch_sources'][pbx]\n"
+                                                                    '    extension = EVOLUTION_SOURCES[pbx]\n'
+                                                                    "    if row['after_sha256'] != "
+                                                                    "extension['after_sha256'] or "
+                                                                    "row['hunks'][-len(extension['hunks']):] "
+                                                                    "!= extension['hunks']:\n"
+                                                                    "        raise ValueError('Unknown club "
+                                                                    "PBX extension')\n"
+                                                                    '    restore_evolution_source(pbx, (root '
+                                                                    '/ pbx).read_bytes())\n'
+                                                                    '    del '
+                                                                    "row['hunks'][-len(extension['hunks']):]\n"
+                                                                    "    row['after_sha256'] = "
+                                                                    "extension['before_sha256']\n"
+                                                                    '    if digest(_encoded(row)) != '
+                                                                    'CLUB_PBX_PRE_ROW_SHA256:\n'
+                                                                    "        raise ValueError('Complete "
+                                                                    "preceding PBX row not restored')\n"
+                                                                    '    for name in CLUB_SUPPORT_PATHS:\n'
+                                                                    '        if name not in support:\n'
+                                                                    "            raise ValueError('Missing "
+                                                                    "club support row: ' + name)\n"
+                                                                    '        del support[name]\n'
+                                                                    '    support[CLUB_PREADMISSION_PATH] = '
+                                                                    'CLUB_PREADMISSION_SHA256\n'
+                                                                    '    if digest(_encoded(contract)) != '
+                                                                    'CLUB_PRECONTRACT_SHA256:\n'
+                                                                    "        raise ValueError('Complete "
+                                                                    "creator predecessor not restored')\n"
+                                                                    '    return contract\n'
+                                                                    '\n'},
+                                                          {'before': '    frozen_test = '
+                                                                     '_inverse_row(FROZEN_TEST_PATH, '
+                                                                     '(Path(root) / '
+                                                                     'FROZEN_TEST_PATH).read_bytes(), '
+                                                                     'FROZEN16_TEST_INVERSE)\n',
+                                                           'after': '    from '
+                                                                    'Tests.ContractChecks.test_category_roam_registration '
+                                                                    'import repair_predecessor_source\n'
+                                                                    '    current_test = '
+                                                                    'repair_predecessor_source(FROZEN_TEST_PATH, '
+                                                                    '(Path(root) / '
+                                                                    'FROZEN_TEST_PATH).read_bytes())\n'
+                                                                    '    frozen_test = '
+                                                                    '_inverse_row(FROZEN_TEST_PATH, '
+                                                                    'current_test, '
+                                                                    'FROZEN16_TEST_INVERSE)\n'}]},
+ 'tools/tests/test_creator_shelf_state_history.py': {'before_sha256': 'accaa341cf2803a6847c19ee675d7bb9d06b831d300c1a56d9f17d9aeddfb65e',
+                                                     'after_sha256': '2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf',
+                                                     'hunks': [{'before': '        '
+                                                                          "script=(ROOT/'tools/run138_editor_readiness.py').read_bytes()\n"
+                                                                          '        '
+                                                                          'script=script.replace(digest(current_raw).encode(),digest(raw).encode(),1)\n',
+                                                                'after': '        '
+                                                                         "script=(ROOT/'tools/run138_editor_readiness.py').read_bytes()\n"
+                                                                         '        from '
+                                                                         'Tests.ContractChecks.test_category_roam_registration '
+                                                                         'import uncached_readiness_source\n'
+                                                                         '        '
+                                                                         'script=uncached_readiness_source(script)\n'
+                                                                         '        '
+                                                                         'script=script.replace(digest(current_raw).encode(),digest(raw).encode(),1)\n'},
+                                                               {'before': '# CLUB_HISTORY_INPUT_END\n',
+                                                                'after': '# CLUB_HISTORY_INPUT_END\n'
+                                                                         '\n'
+                                                                         '\n'
+                                                                         'def '
+                                                                         '_restore_precache_history_test(data):\n'
+                                                                         '    """Keep the parser input '
+                                                                         "adapter's ValueError boundary and "
+                                                                         'complete b75 preimage."""\n'
+                                                                         '    try:\n'
+                                                                         '        return '
+                                                                         '_restore_preclub_history_test(data)\n'
+                                                                         '    except AssertionError as '
+                                                                         'error:\n'
+                                                                         '        raise '
+                                                                         'ValueError(str(error)) from '
+                                                                         'error\n'}]},
+ 'Tests/ContractChecks/test_club_customer_directory_remote_admission.py': {'before_sha256': 'b1ee3e1eac62c6a670986301f1fe2713d615c7a8a82ece5dfdd8946ae08e43c1',
+                                                                           'after_sha256': '09b5c57129442da635c71ff664b9a8c22ff0d694184592b86058312eb073e11e',
+                                                                           'hunks': [{'before': '            '
+                                                                                                'reader.write_bytes(reader.read_bytes().replace(readiness.CONTRACT_SHA256.encode(), '
+                                                                                                'admission.BASE_CONTRACT_SHA256.encode()))\n',
+                                                                                      'after': '            '
+                                                                                               'from '
+                                                                                               'Tests.ContractChecks.test_category_roam_registration '
+                                                                                               'import '
+                                                                                               'uncached_readiness_source\n'
+                                                                                               '            '
+                                                                                               'reader.write_bytes(uncached_readiness_source(reader.read_bytes()).replace(readiness.CONTRACT_SHA256.encode(), '
+                                                                                               'admission.BASE_CONTRACT_SHA256.encode()))\n'}]}}
+REPAIR_CURRENT_SOURCE_ROWS = {'App/ProjectThoughtDefinitionsEditor.swift': {'before_sha256': 'dc2bcdecf846d8226db09d96df7ce7688cabc722249add64a114d48721263bd9',
+                                               'after_sha256': 'e580e547bd55d7a0df2ef032fb39699aeb6187701cc604ab5d20be1129f91750',
+                                               'hunks': [{'before': '        let id = UUID(), incarnation: '
+                                                                    'UUID, session: ProjectEditSession?, '
+                                                                    'identity: ProjectEditDraftIdentity?\n'
+                                                                    '        let revision: Int, bytes: '
+                                                                    'Data\n',
+                                                          'after': '        let id = UUID()\n'
+                                                                   '        let incarnation: UUID\n'
+                                                                   '        let session: '
+                                                                   'ProjectEditSession?\n'
+                                                                   '        let identity: '
+                                                                   'ProjectEditDraftIdentity?\n'
+                                                                   '        let revision: Int\n'
+                                                                   '        let bytes: Data\n'},
+                                                         {'before': '        let id = UUID(), key: String, '
+                                                                    'revision: Int, impacts: [String]\n',
+                                                          'after': '        let id = UUID()\n'
+                                                                   '        let key: String\n'
+                                                                   '        let revision: Int\n'
+                                                                   '        let impacts: [String]\n'}]},
+ 'App/ProjectEndingConditionPicker.swift': {'before_sha256': '188e81782efb8117c5dc669021c228c425c050996b0e6727aa325b00ea6eb418',
+                                            'after_sha256': '16da43f7d88ae2aa153b622dfce15d91938d580a8ad0fdec61f51418d7827688',
+                                            'hunks': [{'before': '    @ObservedObject var controller: '
+                                                                 'ProjectEndingConditionController\n'
+                                                                 '    @ObservedObject private var model: '
+                                                                 'ProjectEditModel\n'
+                                                                 '    let original: '
+                                                                 'ProjectEndingConditionController.Presentation\n'
+                                                                 '    @State private var selectedID: '
+                                                                 'String?\n'
+                                                                 '    init(controller: '
+                                                                 'ProjectEndingConditionController, '
+                                                                 'original: '
+                                                                 'ProjectEndingConditionController.Presentation) '
+                                                                 '{\n'
+                                                                 '        self.controller = controller; '
+                                                                 'self.original = original; model = '
+                                                                 'controller.context.model\n'
+                                                                 '        _selectedID = State(initialValue: '
+                                                                 'original.choices.first(where: {\n'
+                                                                 '            '
+                                                                 'ProjectEditPendingMaterials.exactData($0.value) '
+                                                                 '== original.oldValue.flatMap { '
+                                                                 'ProjectEditPendingMaterials.exactData($0) '
+                                                                 '}\n'
+                                                                 '        })?.id)\n'
+                                                                 '    }\n'
+                                                                 '    private var originalText: String {\n'
+                                                                 '        guard let raw = original.oldValue, '
+                                                                 'let bytes = '
+                                                                 'ProjectEditPendingMaterials.exactData(raw) '
+                                                                 'else { return "—" }\n'
+                                                                 '        return raw.text ?? '
+                                                                 'String(decoding: bytes, as: UTF8.self)\n'
+                                                                 '    }\n'
+                                                                 '    var body: some View {\n'
+                                                                 '        NavigationStack {\n'
+                                                                 '            Form {\n'
+                                                                 '                if '
+                                                                 'controller.isCurrent(original) {\n'
+                                                                 '                    '
+                                                                 'LabeledContent(content: { Text(verbatim: '
+                                                                 'originalText).textSelection(.enabled) },\n'
+                                                                 '                        label: { '
+                                                                 'Text("projectEndingChoice.current", '
+                                                                 'tableName: "ProjectEndingConditionPicker") '
+                                                                 '})\n'
+                                                                 '                    '
+                                                                 'Text("projectEndingChoice.scope", '
+                                                                 'tableName: '
+                                                                 '"ProjectEndingConditionPicker").font(.caption)\n'
+                                                                 '                    if '
+                                                                 'original.choices.isEmpty { '
+                                                                 'Text("projectEndingChoice.empty", '
+                                                                 'tableName: "ProjectEndingConditionPicker") '
+                                                                 '}\n'
+                                                                 '                    '
+                                                                 'ForEach(original.choices) { choice in\n'
+                                                                 '                        Button { '
+                                                                 'selectedID = choice.id } label: {\n'
+                                                                 '                            HStack {\n'
+                                                                 '                                '
+                                                                 'VStack(alignment: .leading) {\n',
+                                                       'after': '    @ObservedObject var controller: '
+                                                                'ProjectEndingConditionController\n'
+                                                                '    @ObservedObject private var model: '
+                                                                'ProjectEditModel\n'
+                                                                '    let original: '
+                                                                'ProjectEndingConditionController.Presentation\n'
+                                                                '    init(controller: '
+                                                                'ProjectEndingConditionController, original: '
+                                                                'ProjectEndingConditionController.Presentation) '
+                                                                '{\n'
+                                                                '        self.controller = controller; '
+                                                                'self.original = original; model = '
+                                                                'controller.context.model\n'
+                                                                '    }\n'
+                                                                '    var body: some View {\n'
+                                                                '        '
+                                                                'ProjectConditionChoiceSheet(choices: '
+                                                                'original.choices, oldValue: '
+                                                                'original.oldValue,\n'
+                                                                '            isCurrent: '
+                                                                'controller.isCurrent(original), titleKey: '
+                                                                '"projectEndingChoice.title",\n'
+                                                                '            scopeKey: '
+                                                                '"projectEndingChoice.scope", emptyKey: '
+                                                                '"projectEndingChoice.empty",\n'
+                                                                '            apply: { controller.apply(id: '
+                                                                '$0, original: original) }, close: { '
+                                                                'controller.close(original) })\n'
+                                                                '    }\n'
+                                                                '}\n'
+                                                                '/// Shared source-only UI. Ending and voice '
+                                                                'controllers keep separate typed targets and '
+                                                                'semantics.\n'
+                                                                '@MainActor private struct '
+                                                                'ProjectConditionChoiceSheet: View {\n'
+                                                                '    let choices: '
+                                                                '[ProjectEndingConditionChoices.Choice]\n'
+                                                                '    let oldValue: ProjectEditJSON?\n'
+                                                                '    let isCurrent: Bool\n'
+                                                                '    let titleKey: String, scopeKey: String, '
+                                                                'emptyKey: String\n'
+                                                                '    let apply: (String) -> Void, close: () '
+                                                                '-> Void\n'
+                                                                '    @State private var selectedID: String?\n'
+                                                                '    init(choices: '
+                                                                '[ProjectEndingConditionChoices.Choice], '
+                                                                'oldValue: ProjectEditJSON?, isCurrent: '
+                                                                'Bool,\n'
+                                                                '         titleKey: String, scopeKey: '
+                                                                'String, emptyKey: String, apply: @escaping '
+                                                                '(String) -> Void, close: @escaping () -> '
+                                                                'Void) {\n'
+                                                                '        self.choices = choices; '
+                                                                'self.oldValue = oldValue; self.isCurrent = '
+                                                                'isCurrent\n'
+                                                                '        self.titleKey = titleKey; '
+                                                                'self.scopeKey = scopeKey; self.emptyKey = '
+                                                                'emptyKey; self.apply = apply; self.close = '
+                                                                'close\n'
+                                                                '        _selectedID = State(initialValue: '
+                                                                'choices.first(where: {\n'
+                                                                '            '
+                                                                'ProjectEditPendingMaterials.exactData($0.value) '
+                                                                '== oldValue.flatMap { '
+                                                                'ProjectEditPendingMaterials.exactData($0) '
+                                                                '}\n'
+                                                                '        })?.id)\n'
+                                                                '    }\n'
+                                                                '    private var originalText: String {\n'
+                                                                '        guard let raw = oldValue, let bytes '
+                                                                '= '
+                                                                'ProjectEditPendingMaterials.exactData(raw) '
+                                                                'else { return "—" }\n'
+                                                                '        return raw.text ?? String(decoding: '
+                                                                'bytes, as: UTF8.self)\n'
+                                                                '    }\n'
+                                                                '    var body: some View {\n'
+                                                                '        NavigationStack {\n'
+                                                                '            Form {\n'
+                                                                '                if isCurrent {\n'
+                                                                '                    LabeledContent(content: '
+                                                                '{ Text(verbatim: '
+                                                                'originalText).textSelection(.enabled) },\n'
+                                                                '                        label: { '
+                                                                'Text("projectEndingChoice.current", '
+                                                                'tableName: "ProjectEndingConditionPicker") '
+                                                                '})\n'
+                                                                '                    '
+                                                                'Text(LocalizedStringKey(scopeKey), '
+                                                                'tableName: '
+                                                                '"ProjectEndingConditionPicker").font(.caption)\n'
+                                                                '                    if choices.isEmpty { '
+                                                                'Text(LocalizedStringKey(emptyKey), '
+                                                                'tableName: "ProjectEndingConditionPicker") '
+                                                                '}\n'
+                                                                '                    ForEach(choices) { '
+                                                                'choice in\n'
+                                                                '                        Button { selectedID '
+                                                                '= choice.id } label: {\n'
+                                                                '                            HStack {\n'
+                                                                '                                '
+                                                                'VStack(alignment: .leading) {\n'},
+                                                      {'before': '                            }\n'
+                                                                 '                        }\n'
+                                                                 '                    }\n'
+                                                                 '                    Button(action: { if '
+                                                                 'let selectedID { controller.apply(id: '
+                                                                 'selectedID, original: original) } },\n'
+                                                                 '                        label: { '
+                                                                 'Text("projectEndingChoice.confirm", '
+                                                                 'tableName: "ProjectEndingConditionPicker") '
+                                                                 '})\n'
+                                                                 '                        '
+                                                                 '.disabled(selectedID == '
+                                                                 'nil).accessibilityIdentifier("projectEndingChoice.confirm")\n'
+                                                                 '                } else { '
+                                                                 'Text("projectStarter.stale") }\n'
+                                                                 '            }\n'
+                                                                 '            '
+                                                                 '.navigationTitle(Text("projectEndingChoice.title", '
+                                                                 'tableName: '
+                                                                 '"ProjectEndingConditionPicker"))\n'
+                                                                 '            .toolbar { '
+                                                                 'ToolbarItem(placement: '
+                                                                 '.cancellationAction) { '
+                                                                 'Button("action.cancel") { '
+                                                                 'controller.close(original) } } }\n'
+                                                                 '        }\n'
+                                                                 '    }\n'
+                                                                 '}\n',
+                                                       'after': '                            }\n'
+                                                                '                        }\n'
+                                                                '                    }\n'
+                                                                '                    Button(action: { if let '
+                                                                'selectedID { apply(selectedID) } },\n'
+                                                                '                        label: { '
+                                                                'Text("projectEndingChoice.confirm", '
+                                                                'tableName: "ProjectEndingConditionPicker") '
+                                                                '})\n'
+                                                                '                        '
+                                                                '.disabled(selectedID == '
+                                                                'nil).accessibilityIdentifier("projectEndingChoice.confirm")\n'
+                                                                '                } else { '
+                                                                'Text("projectStarter.stale") }\n'
+                                                                '            }\n'
+                                                                '            '
+                                                                '.navigationTitle(Text(LocalizedStringKey(titleKey), '
+                                                                'tableName: '
+                                                                '"ProjectEndingConditionPicker"))\n'
+                                                                '            .toolbar { '
+                                                                'ToolbarItem(placement: .cancellationAction) '
+                                                                '{ Button("action.cancel", action: close) } '
+                                                                '}\n'
+                                                                '        }\n'
+                                                                '    }\n'
+                                                                '}\n'
+                                                                '@MainActor final class '
+                                                                'ProjectStoryConditionController: '
+                                                                'ObservableObject {\n'
+                                                                '    struct Presentation: Identifiable {\n'
+                                                                '        let id = UUID(), incarnation: UUID, '
+                                                                'session: ProjectEditSession?, identity: '
+                                                                'ProjectEditDraftIdentity?\n'
+                                                                '        let revision: Int, bytes: Data\n'
+                                                                '        let lease: '
+                                                                'ProjectEditStarterController.Lease\n'
+                                                                '        let target: '
+                                                                'ProjectStoryConditionChoice.Target\n'
+                                                                '        let choices: '
+                                                                '[ProjectEndingConditionChoices.Choice]\n'
+                                                                '        let oldValue: ProjectEditJSON?\n'
+                                                                '    }\n'
+                                                                '    let model: ProjectEditModel\n'
+                                                                '    let chapterID: String\n'
+                                                                '    let block: Binding<ProjectEditBlock>\n'
+                                                                '    @Published private(set) var '
+                                                                'presentation: Presentation?\n'
+                                                                '    init(model: ProjectEditModel, '
+                                                                'chapterID: String, block: '
+                                                                'Binding<ProjectEditBlock>) {\n'
+                                                                '        self.model = model; self.chapterID '
+                                                                '= chapterID; self.block = block\n'
+                                                                '    }\n'
+                                                                '    private var target: '
+                                                                'ProjectStoryConditionChoice.Target? {\n'
+                                                                '        guard model.captureStarterLease() '
+                                                                '!= nil, let target = try? '
+                                                                'ProjectStoryConditionChoice.Target(draft: '
+                                                                'model.draft, chapterID: chapterID, blockID: '
+                                                                'block.wrappedValue.id),\n'
+                                                                '              '
+                                                                'ProjectEditPendingMaterials.exactData(block.wrappedValue) '
+                                                                '== target.blockBytes else { return nil }\n'
+                                                                '        return target\n'
+                                                                '    }\n'
+                                                                '    var available: Bool { target != nil }\n'
+                                                                '    func open() {\n'
+                                                                '        guard presentation == nil, let '
+                                                                'target, let lease = '
+                                                                'model.captureStarterLease(), let bytes = '
+                                                                'ProjectEditPendingMaterials.exactData(model.draft) '
+                                                                'else { return }\n'
+                                                                '        presentation = .init(incarnation: '
+                                                                'model.editorIncarnation, session: '
+                                                                'model.coordinator.session, identity: '
+                                                                'model.coordinator.identity,\n'
+                                                                '            revision: '
+                                                                'model.draftMutationRevision, bytes: bytes, '
+                                                                'lease: lease, target: target,\n'
+                                                                '            choices: '
+                                                                'ProjectEndingConditionChoices.choices(in: '
+                                                                'model.draft, operation: "HAS_TAG"), '
+                                                                'oldValue: '
+                                                                'ProjectStoryConditionChoice.currentValue(target, '
+                                                                'in: model.draft))\n'
+                                                                '    }\n'
+                                                                '    func isCurrent(_ original: '
+                                                                'Presentation) -> Bool {\n'
+                                                                '        presentation?.id == original.id && '
+                                                                'model.isCurrentStarterLease(original.lease) '
+                                                                '&& available && original.incarnation == '
+                                                                'model.editorIncarnation &&\n'
+                                                                '        original.session == '
+                                                                'model.coordinator.session && '
+                                                                'original.identity == '
+                                                                'model.coordinator.identity &&\n'
+                                                                '        original.revision == '
+                                                                'model.draftMutationRevision && '
+                                                                'ProjectEditPendingMaterials.exactData(model.draft) '
+                                                                '== original.bytes &&\n'
+                                                                '        '
+                                                                'block.wrappedValue.id.utf8.elementsEqual(original.target.blockID.utf8) '
+                                                                '&& '
+                                                                'ProjectEditPendingMaterials.exactData(block.wrappedValue) '
+                                                                '== original.target.blockBytes\n'
+                                                                '    }\n'
+                                                                '    func apply(id: String, original: '
+                                                                'Presentation) {\n'
+                                                                '        guard isCurrent(original), let '
+                                                                'choice = original.choices.first(where: { '
+                                                                '$0.id == id }),\n'
+                                                                '              let next = try? '
+                                                                'ProjectStoryConditionChoice.applying(choice, '
+                                                                'to: model.draft, target: original.target) '
+                                                                'else { return }\n'
+                                                                '        if '
+                                                                'ProjectEditPendingMaterials.exactData(next) '
+                                                                '!= original.bytes { model.draft = next }\n'
+                                                                '        close(original)\n'
+                                                                '    }\n'
+                                                                '    func close(_ original: Presentation) { '
+                                                                'if presentation?.id == original.id { '
+                                                                'presentation = nil } }\n'
+                                                                '    func retire() { presentation = nil }\n'
+                                                                '    func binding(_ original: Presentation?) '
+                                                                '-> Binding<Presentation?> {\n'
+                                                                '        .init(get: { guard let original, '
+                                                                'self.isCurrent(original) else { return nil '
+                                                                '}; return original },\n'
+                                                                '              set: { if $0 == nil, let '
+                                                                'original { self.close(original) } })\n'
+                                                                '    }\n'
+                                                                '}\n'
+                                                                '@MainActor struct '
+                                                                'ProjectStoryConditionEntry: View {\n'
+                                                                '    @ObservedObject private var model: '
+                                                                'ProjectEditModel\n'
+                                                                '    @StateObject private var controller: '
+                                                                'ProjectStoryConditionController\n'
+                                                                '    init(model: ProjectEditModel, '
+                                                                'chapterID: String, block: '
+                                                                'Binding<ProjectEditBlock>) {\n'
+                                                                '        self.model = model; _controller = '
+                                                                'StateObject(wrappedValue: .init(model: '
+                                                                'model, chapterID: chapterID, block: '
+                                                                'block))\n'
+                                                                '    }\n'
+                                                                '    var body: some View {\n'
+                                                                '        let original = '
+                                                                'controller.presentation\n'
+                                                                '        Button(action: { controller.open() '
+                                                                '}, label: { '
+                                                                'Text("projectEndingChoice.choose", '
+                                                                'tableName: "ProjectEndingConditionPicker") '
+                                                                '})\n'
+                                                                '            '
+                                                                '.disabled(!controller.available).accessibilityIdentifier("projectStoryCondition.open")\n'
+                                                                '            .sheet(item: '
+                                                                'controller.binding(original)) { original in '
+                                                                'ProjectStoryConditionSheet(controller: '
+                                                                'controller, original: original) }\n'
+                                                                '            .onChange(of: '
+                                                                'model.editorIncarnation) { _, _ in '
+                                                                'controller.retire() }\n'
+                                                                '            .onDisappear { '
+                                                                'controller.retire() }\n'
+                                                                '    }\n'
+                                                                '}\n'
+                                                                '@MainActor private struct '
+                                                                'ProjectStoryConditionSheet: View {\n'
+                                                                '    @ObservedObject var controller: '
+                                                                'ProjectStoryConditionController\n'
+                                                                '    @ObservedObject private var model: '
+                                                                'ProjectEditModel\n'
+                                                                '    let original: '
+                                                                'ProjectStoryConditionController.Presentation\n'
+                                                                '    init(controller: '
+                                                                'ProjectStoryConditionController, original: '
+                                                                'ProjectStoryConditionController.Presentation) '
+                                                                '{\n'
+                                                                '        self.controller = controller; '
+                                                                'self.original = original; model = '
+                                                                'controller.model\n'
+                                                                '    }\n'
+                                                                '    var body: some View {\n'
+                                                                '        '
+                                                                'ProjectConditionChoiceSheet(choices: '
+                                                                'original.choices, oldValue: '
+                                                                'original.oldValue,\n'
+                                                                '            isCurrent: '
+                                                                'controller.isCurrent(original), titleKey: '
+                                                                '"projectStoryCondition.title",\n'
+                                                                '            scopeKey: '
+                                                                '"projectStoryCondition.scope", emptyKey: '
+                                                                '"projectStoryCondition.empty",\n'
+                                                                '            apply: { controller.apply(id: '
+                                                                '$0, original: original) }, close: { '
+                                                                'controller.close(original) })\n'
+                                                                '    }\n'
+                                                                '}\n'},
+                                                      {'before': '@MainActor final class '
+                                                                 'ProjectEndingConditionController: '
+                                                                 'ObservableObject {\n'
+                                                                 '    struct Presentation: Identifiable {\n'
+                                                                 '        let id = UUID(), incarnation: '
+                                                                 'UUID, session: ProjectEditSession?, '
+                                                                 'identity: ProjectEditDraftIdentity?\n'
+                                                                 '        let revision: Int, bytes: Data\n',
+                                                       'after': '@MainActor final class '
+                                                                'ProjectEndingConditionController: '
+                                                                'ObservableObject {\n'
+                                                                '    struct Presentation: Identifiable {\n'
+                                                                '        let id = UUID()\n'
+                                                                '        let incarnation: UUID\n'
+                                                                '        let session: ProjectEditSession?\n'
+                                                                '        let identity: '
+                                                                'ProjectEditDraftIdentity?\n'
+                                                                '        let revision: Int\n'
+                                                                '        let bytes: Data\n'},
+                                                      {'before': '@MainActor final class '
+                                                                 'ProjectStoryConditionController: '
+                                                                 'ObservableObject {\n'
+                                                                 '    struct Presentation: Identifiable {\n'
+                                                                 '        let id = UUID(), incarnation: '
+                                                                 'UUID, session: ProjectEditSession?, '
+                                                                 'identity: ProjectEditDraftIdentity?\n'
+                                                                 '        let revision: Int, bytes: Data\n',
+                                                       'after': '@MainActor final class '
+                                                                'ProjectStoryConditionController: '
+                                                                'ObservableObject {\n'
+                                                                '    struct Presentation: Identifiable {\n'
+                                                                '        let id = UUID()\n'
+                                                                '        let incarnation: UUID\n'
+                                                                '        let session: ProjectEditSession?\n'
+                                                                '        let identity: '
+                                                                'ProjectEditDraftIdentity?\n'
+                                                                '        let revision: Int\n'
+                                                                '        let bytes: Data\n'}]}}
+REPAIR_PRE_SOURCE_ROWS = {'App/ProjectThoughtDefinitionsEditor.swift': None,
+ 'App/ProjectEndingConditionPicker.swift': {'before_sha256': '188e81782efb8117c5dc669021c228c425c050996b0e6727aa325b00ea6eb418',
+                                            'after_sha256': '1b0a460cc65ee4ba69be25390940f188bbeaddbd824ee4d77d053dfdb28ba5a8',
+                                            'hunks': [{'before': '    @ObservedObject var controller: '
+                                                                 'ProjectEndingConditionController\n'
+                                                                 '    @ObservedObject private var model: '
+                                                                 'ProjectEditModel\n'
+                                                                 '    let original: '
+                                                                 'ProjectEndingConditionController.Presentation\n'
+                                                                 '    @State private var selectedID: '
+                                                                 'String?\n'
+                                                                 '    init(controller: '
+                                                                 'ProjectEndingConditionController, '
+                                                                 'original: '
+                                                                 'ProjectEndingConditionController.Presentation) '
+                                                                 '{\n'
+                                                                 '        self.controller = controller; '
+                                                                 'self.original = original; model = '
+                                                                 'controller.context.model\n'
+                                                                 '        _selectedID = State(initialValue: '
+                                                                 'original.choices.first(where: {\n'
+                                                                 '            '
+                                                                 'ProjectEditPendingMaterials.exactData($0.value) '
+                                                                 '== original.oldValue.flatMap { '
+                                                                 'ProjectEditPendingMaterials.exactData($0) '
+                                                                 '}\n'
+                                                                 '        })?.id)\n'
+                                                                 '    }\n'
+                                                                 '    private var originalText: String {\n'
+                                                                 '        guard let raw = original.oldValue, '
+                                                                 'let bytes = '
+                                                                 'ProjectEditPendingMaterials.exactData(raw) '
+                                                                 'else { return "—" }\n'
+                                                                 '        return raw.text ?? '
+                                                                 'String(decoding: bytes, as: UTF8.self)\n'
+                                                                 '    }\n'
+                                                                 '    var body: some View {\n'
+                                                                 '        NavigationStack {\n'
+                                                                 '            Form {\n'
+                                                                 '                if '
+                                                                 'controller.isCurrent(original) {\n'
+                                                                 '                    '
+                                                                 'LabeledContent(content: { Text(verbatim: '
+                                                                 'originalText).textSelection(.enabled) },\n'
+                                                                 '                        label: { '
+                                                                 'Text("projectEndingChoice.current", '
+                                                                 'tableName: "ProjectEndingConditionPicker") '
+                                                                 '})\n'
+                                                                 '                    '
+                                                                 'Text("projectEndingChoice.scope", '
+                                                                 'tableName: '
+                                                                 '"ProjectEndingConditionPicker").font(.caption)\n'
+                                                                 '                    if '
+                                                                 'original.choices.isEmpty { '
+                                                                 'Text("projectEndingChoice.empty", '
+                                                                 'tableName: "ProjectEndingConditionPicker") '
+                                                                 '}\n'
+                                                                 '                    '
+                                                                 'ForEach(original.choices) { choice in\n'
+                                                                 '                        Button { '
+                                                                 'selectedID = choice.id } label: {\n'
+                                                                 '                            HStack {\n'
+                                                                 '                                '
+                                                                 'VStack(alignment: .leading) {\n',
+                                                       'after': '    @ObservedObject var controller: '
+                                                                'ProjectEndingConditionController\n'
+                                                                '    @ObservedObject private var model: '
+                                                                'ProjectEditModel\n'
+                                                                '    let original: '
+                                                                'ProjectEndingConditionController.Presentation\n'
+                                                                '    init(controller: '
+                                                                'ProjectEndingConditionController, original: '
+                                                                'ProjectEndingConditionController.Presentation) '
+                                                                '{\n'
+                                                                '        self.controller = controller; '
+                                                                'self.original = original; model = '
+                                                                'controller.context.model\n'
+                                                                '    }\n'
+                                                                '    var body: some View {\n'
+                                                                '        '
+                                                                'ProjectConditionChoiceSheet(choices: '
+                                                                'original.choices, oldValue: '
+                                                                'original.oldValue,\n'
+                                                                '            isCurrent: '
+                                                                'controller.isCurrent(original), titleKey: '
+                                                                '"projectEndingChoice.title",\n'
+                                                                '            scopeKey: '
+                                                                '"projectEndingChoice.scope", emptyKey: '
+                                                                '"projectEndingChoice.empty",\n'
+                                                                '            apply: { controller.apply(id: '
+                                                                '$0, original: original) }, close: { '
+                                                                'controller.close(original) })\n'
+                                                                '    }\n'
+                                                                '}\n'
+                                                                '/// Shared source-only UI. Ending and voice '
+                                                                'controllers keep separate typed targets and '
+                                                                'semantics.\n'
+                                                                '@MainActor private struct '
+                                                                'ProjectConditionChoiceSheet: View {\n'
+                                                                '    let choices: '
+                                                                '[ProjectEndingConditionChoices.Choice]\n'
+                                                                '    let oldValue: ProjectEditJSON?\n'
+                                                                '    let isCurrent: Bool\n'
+                                                                '    let titleKey: String, scopeKey: String, '
+                                                                'emptyKey: String\n'
+                                                                '    let apply: (String) -> Void, close: () '
+                                                                '-> Void\n'
+                                                                '    @State private var selectedID: String?\n'
+                                                                '    init(choices: '
+                                                                '[ProjectEndingConditionChoices.Choice], '
+                                                                'oldValue: ProjectEditJSON?, isCurrent: '
+                                                                'Bool,\n'
+                                                                '         titleKey: String, scopeKey: '
+                                                                'String, emptyKey: String, apply: @escaping '
+                                                                '(String) -> Void, close: @escaping () -> '
+                                                                'Void) {\n'
+                                                                '        self.choices = choices; '
+                                                                'self.oldValue = oldValue; self.isCurrent = '
+                                                                'isCurrent\n'
+                                                                '        self.titleKey = titleKey; '
+                                                                'self.scopeKey = scopeKey; self.emptyKey = '
+                                                                'emptyKey; self.apply = apply; self.close = '
+                                                                'close\n'
+                                                                '        _selectedID = State(initialValue: '
+                                                                'choices.first(where: {\n'
+                                                                '            '
+                                                                'ProjectEditPendingMaterials.exactData($0.value) '
+                                                                '== oldValue.flatMap { '
+                                                                'ProjectEditPendingMaterials.exactData($0) '
+                                                                '}\n'
+                                                                '        })?.id)\n'
+                                                                '    }\n'
+                                                                '    private var originalText: String {\n'
+                                                                '        guard let raw = oldValue, let bytes '
+                                                                '= '
+                                                                'ProjectEditPendingMaterials.exactData(raw) '
+                                                                'else { return "—" }\n'
+                                                                '        return raw.text ?? String(decoding: '
+                                                                'bytes, as: UTF8.self)\n'
+                                                                '    }\n'
+                                                                '    var body: some View {\n'
+                                                                '        NavigationStack {\n'
+                                                                '            Form {\n'
+                                                                '                if isCurrent {\n'
+                                                                '                    LabeledContent(content: '
+                                                                '{ Text(verbatim: '
+                                                                'originalText).textSelection(.enabled) },\n'
+                                                                '                        label: { '
+                                                                'Text("projectEndingChoice.current", '
+                                                                'tableName: "ProjectEndingConditionPicker") '
+                                                                '})\n'
+                                                                '                    '
+                                                                'Text(LocalizedStringKey(scopeKey), '
+                                                                'tableName: '
+                                                                '"ProjectEndingConditionPicker").font(.caption)\n'
+                                                                '                    if choices.isEmpty { '
+                                                                'Text(LocalizedStringKey(emptyKey), '
+                                                                'tableName: "ProjectEndingConditionPicker") '
+                                                                '}\n'
+                                                                '                    ForEach(choices) { '
+                                                                'choice in\n'
+                                                                '                        Button { selectedID '
+                                                                '= choice.id } label: {\n'
+                                                                '                            HStack {\n'
+                                                                '                                '
+                                                                'VStack(alignment: .leading) {\n'},
+                                                      {'before': '                            }\n'
+                                                                 '                        }\n'
+                                                                 '                    }\n'
+                                                                 '                    Button(action: { if '
+                                                                 'let selectedID { controller.apply(id: '
+                                                                 'selectedID, original: original) } },\n'
+                                                                 '                        label: { '
+                                                                 'Text("projectEndingChoice.confirm", '
+                                                                 'tableName: "ProjectEndingConditionPicker") '
+                                                                 '})\n'
+                                                                 '                        '
+                                                                 '.disabled(selectedID == '
+                                                                 'nil).accessibilityIdentifier("projectEndingChoice.confirm")\n'
+                                                                 '                } else { '
+                                                                 'Text("projectStarter.stale") }\n'
+                                                                 '            }\n'
+                                                                 '            '
+                                                                 '.navigationTitle(Text("projectEndingChoice.title", '
+                                                                 'tableName: '
+                                                                 '"ProjectEndingConditionPicker"))\n'
+                                                                 '            .toolbar { '
+                                                                 'ToolbarItem(placement: '
+                                                                 '.cancellationAction) { '
+                                                                 'Button("action.cancel") { '
+                                                                 'controller.close(original) } } }\n'
+                                                                 '        }\n'
+                                                                 '    }\n'
+                                                                 '}\n',
+                                                       'after': '                            }\n'
+                                                                '                        }\n'
+                                                                '                    }\n'
+                                                                '                    Button(action: { if let '
+                                                                'selectedID { apply(selectedID) } },\n'
+                                                                '                        label: { '
+                                                                'Text("projectEndingChoice.confirm", '
+                                                                'tableName: "ProjectEndingConditionPicker") '
+                                                                '})\n'
+                                                                '                        '
+                                                                '.disabled(selectedID == '
+                                                                'nil).accessibilityIdentifier("projectEndingChoice.confirm")\n'
+                                                                '                } else { '
+                                                                'Text("projectStarter.stale") }\n'
+                                                                '            }\n'
+                                                                '            '
+                                                                '.navigationTitle(Text(LocalizedStringKey(titleKey), '
+                                                                'tableName: '
+                                                                '"ProjectEndingConditionPicker"))\n'
+                                                                '            .toolbar { '
+                                                                'ToolbarItem(placement: .cancellationAction) '
+                                                                '{ Button("action.cancel", action: close) } '
+                                                                '}\n'
+                                                                '        }\n'
+                                                                '    }\n'
+                                                                '}\n'
+                                                                '@MainActor final class '
+                                                                'ProjectStoryConditionController: '
+                                                                'ObservableObject {\n'
+                                                                '    struct Presentation: Identifiable {\n'
+                                                                '        let id = UUID(), incarnation: UUID, '
+                                                                'session: ProjectEditSession?, identity: '
+                                                                'ProjectEditDraftIdentity?\n'
+                                                                '        let revision: Int, bytes: Data\n'
+                                                                '        let lease: '
+                                                                'ProjectEditStarterController.Lease\n'
+                                                                '        let target: '
+                                                                'ProjectStoryConditionChoice.Target\n'
+                                                                '        let choices: '
+                                                                '[ProjectEndingConditionChoices.Choice]\n'
+                                                                '        let oldValue: ProjectEditJSON?\n'
+                                                                '    }\n'
+                                                                '    let model: ProjectEditModel\n'
+                                                                '    let chapterID: String\n'
+                                                                '    let block: Binding<ProjectEditBlock>\n'
+                                                                '    @Published private(set) var '
+                                                                'presentation: Presentation?\n'
+                                                                '    init(model: ProjectEditModel, '
+                                                                'chapterID: String, block: '
+                                                                'Binding<ProjectEditBlock>) {\n'
+                                                                '        self.model = model; self.chapterID '
+                                                                '= chapterID; self.block = block\n'
+                                                                '    }\n'
+                                                                '    private var target: '
+                                                                'ProjectStoryConditionChoice.Target? {\n'
+                                                                '        guard model.captureStarterLease() '
+                                                                '!= nil, let target = try? '
+                                                                'ProjectStoryConditionChoice.Target(draft: '
+                                                                'model.draft, chapterID: chapterID, blockID: '
+                                                                'block.wrappedValue.id),\n'
+                                                                '              '
+                                                                'ProjectEditPendingMaterials.exactData(block.wrappedValue) '
+                                                                '== target.blockBytes else { return nil }\n'
+                                                                '        return target\n'
+                                                                '    }\n'
+                                                                '    var available: Bool { target != nil }\n'
+                                                                '    func open() {\n'
+                                                                '        guard presentation == nil, let '
+                                                                'target, let lease = '
+                                                                'model.captureStarterLease(), let bytes = '
+                                                                'ProjectEditPendingMaterials.exactData(model.draft) '
+                                                                'else { return }\n'
+                                                                '        presentation = .init(incarnation: '
+                                                                'model.editorIncarnation, session: '
+                                                                'model.coordinator.session, identity: '
+                                                                'model.coordinator.identity,\n'
+                                                                '            revision: '
+                                                                'model.draftMutationRevision, bytes: bytes, '
+                                                                'lease: lease, target: target,\n'
+                                                                '            choices: '
+                                                                'ProjectEndingConditionChoices.choices(in: '
+                                                                'model.draft, operation: "HAS_TAG"), '
+                                                                'oldValue: '
+                                                                'ProjectStoryConditionChoice.currentValue(target, '
+                                                                'in: model.draft))\n'
+                                                                '    }\n'
+                                                                '    func isCurrent(_ original: '
+                                                                'Presentation) -> Bool {\n'
+                                                                '        presentation?.id == original.id && '
+                                                                'model.isCurrentStarterLease(original.lease) '
+                                                                '&& available && original.incarnation == '
+                                                                'model.editorIncarnation &&\n'
+                                                                '        original.session == '
+                                                                'model.coordinator.session && '
+                                                                'original.identity == '
+                                                                'model.coordinator.identity &&\n'
+                                                                '        original.revision == '
+                                                                'model.draftMutationRevision && '
+                                                                'ProjectEditPendingMaterials.exactData(model.draft) '
+                                                                '== original.bytes &&\n'
+                                                                '        '
+                                                                'block.wrappedValue.id.utf8.elementsEqual(original.target.blockID.utf8) '
+                                                                '&& '
+                                                                'ProjectEditPendingMaterials.exactData(block.wrappedValue) '
+                                                                '== original.target.blockBytes\n'
+                                                                '    }\n'
+                                                                '    func apply(id: String, original: '
+                                                                'Presentation) {\n'
+                                                                '        guard isCurrent(original), let '
+                                                                'choice = original.choices.first(where: { '
+                                                                '$0.id == id }),\n'
+                                                                '              let next = try? '
+                                                                'ProjectStoryConditionChoice.applying(choice, '
+                                                                'to: model.draft, target: original.target) '
+                                                                'else { return }\n'
+                                                                '        if '
+                                                                'ProjectEditPendingMaterials.exactData(next) '
+                                                                '!= original.bytes { model.draft = next }\n'
+                                                                '        close(original)\n'
+                                                                '    }\n'
+                                                                '    func close(_ original: Presentation) { '
+                                                                'if presentation?.id == original.id { '
+                                                                'presentation = nil } }\n'
+                                                                '    func retire() { presentation = nil }\n'
+                                                                '    func binding(_ original: Presentation?) '
+                                                                '-> Binding<Presentation?> {\n'
+                                                                '        .init(get: { guard let original, '
+                                                                'self.isCurrent(original) else { return nil '
+                                                                '}; return original },\n'
+                                                                '              set: { if $0 == nil, let '
+                                                                'original { self.close(original) } })\n'
+                                                                '    }\n'
+                                                                '}\n'
+                                                                '@MainActor struct '
+                                                                'ProjectStoryConditionEntry: View {\n'
+                                                                '    @ObservedObject private var model: '
+                                                                'ProjectEditModel\n'
+                                                                '    @StateObject private var controller: '
+                                                                'ProjectStoryConditionController\n'
+                                                                '    init(model: ProjectEditModel, '
+                                                                'chapterID: String, block: '
+                                                                'Binding<ProjectEditBlock>) {\n'
+                                                                '        self.model = model; _controller = '
+                                                                'StateObject(wrappedValue: .init(model: '
+                                                                'model, chapterID: chapterID, block: '
+                                                                'block))\n'
+                                                                '    }\n'
+                                                                '    var body: some View {\n'
+                                                                '        let original = '
+                                                                'controller.presentation\n'
+                                                                '        Button(action: { controller.open() '
+                                                                '}, label: { '
+                                                                'Text("projectEndingChoice.choose", '
+                                                                'tableName: "ProjectEndingConditionPicker") '
+                                                                '})\n'
+                                                                '            '
+                                                                '.disabled(!controller.available).accessibilityIdentifier("projectStoryCondition.open")\n'
+                                                                '            .sheet(item: '
+                                                                'controller.binding(original)) { original in '
+                                                                'ProjectStoryConditionSheet(controller: '
+                                                                'controller, original: original) }\n'
+                                                                '            .onChange(of: '
+                                                                'model.editorIncarnation) { _, _ in '
+                                                                'controller.retire() }\n'
+                                                                '            .onDisappear { '
+                                                                'controller.retire() }\n'
+                                                                '    }\n'
+                                                                '}\n'
+                                                                '@MainActor private struct '
+                                                                'ProjectStoryConditionSheet: View {\n'
+                                                                '    @ObservedObject var controller: '
+                                                                'ProjectStoryConditionController\n'
+                                                                '    @ObservedObject private var model: '
+                                                                'ProjectEditModel\n'
+                                                                '    let original: '
+                                                                'ProjectStoryConditionController.Presentation\n'
+                                                                '    init(controller: '
+                                                                'ProjectStoryConditionController, original: '
+                                                                'ProjectStoryConditionController.Presentation) '
+                                                                '{\n'
+                                                                '        self.controller = controller; '
+                                                                'self.original = original; model = '
+                                                                'controller.model\n'
+                                                                '    }\n'
+                                                                '    var body: some View {\n'
+                                                                '        '
+                                                                'ProjectConditionChoiceSheet(choices: '
+                                                                'original.choices, oldValue: '
+                                                                'original.oldValue,\n'
+                                                                '            isCurrent: '
+                                                                'controller.isCurrent(original), titleKey: '
+                                                                '"projectStoryCondition.title",\n'
+                                                                '            scopeKey: '
+                                                                '"projectStoryCondition.scope", emptyKey: '
+                                                                '"projectStoryCondition.empty",\n'
+                                                                '            apply: { controller.apply(id: '
+                                                                '$0, original: original) }, close: { '
+                                                                'controller.close(original) })\n'
+                                                                '    }\n'
+                                                                '}\n'}]}}
+REPAIR_PRE_SUPPORT = {'Tests/ContractChecks/test_category_roam_registration.py': '80f4cbe6fba6df6ed1604aea7d7dfd20fd957d679a6e450401a49d2b80c5f1fa',
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': '1cda598881ae8cd6327b8ef322337f78ca40d8f6c29f2a7d8b84b49050de591f',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': 'f9904bbd44d23bcaacd02be0647cf6bc4d7f0d5994371a8f05f2edac868b59ec',
+ 'tools/club_customer_directory_admission.py': '80b6fb95961ef598ea66aa02e0081938b5df2ae7860a3e3fad76e5c0fa0a2297',
+ 'tools/tests/test_creator_shelf_state_history.py': 'accaa341cf2803a6847c19ee675d7bb9d06b831d300c1a56d9f17d9aeddfb65e',
+ 'Tests/ContractChecks/test_club_customer_directory_remote_admission.py': 'b1ee3e1eac62c6a670986301f1fe2713d615c7a8a82ece5dfdd8946ae08e43c1',
+ 'App/ProjectThoughtDefinitionsEditor.swift': 'dc2bcdecf846d8226db09d96df7ce7688cabc722249add64a114d48721263bd9'}
+REPAIR_LEAF_PATHS = ('App/ProjectThoughtDefinitionsEditor.swift', 'App/ProjectEndingConditionPicker.swift')
+READINESS_PARSE_CACHE_INVERSE_HUNKS = [('import json\nfrom copy import deepcopy\nfrom functools import lru_cache\n', 'import json\n'),
+ ('@lru_cache(maxsize=1)\n'
+  'def _parsed_contract(raw):\n'
+  '    return json.loads(raw)\n'
+  '\n'
+  '\n'
+  'def contract(root=ROOT):\n',
+  'def contract(root=ROOT):\n'),
+ ('    return deepcopy(_parsed_contract(raw))\n\n\ndef source_contract',
+  '    return json.loads(raw)\n\n\ndef source_contract')]
+REPAIR_PROFILE_INPUT_HUNKS = [('        from Tests.ContractChecks.test_category_roam_registration import uncached_readiness_source\n'
+  '        source = '
+  "uncached_readiness_source((ROOT/'tools/run138_editor_readiness.py').read_bytes()).decode()\n",
+  "        source = (ROOT/'tools/run138_editor_readiness.py').read_text()\n")]
+
+def uncached_readiness_source(raw):
+    for after, before in reversed(READINESS_PARSE_CACHE_INVERSE_HUNKS):
+        after, before = after.encode(), before.encode()
+        if raw.count(after) != 1:
+            raise ValueError('Unknown readiness parser-cache source span')
+        raw = raw.replace(after, before, 1)
+    pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", raw)
+    if len(pins) != 1 or digest(raw.replace(pins[0], BASE_CONTRACT_SHA256.encode())) != BASE_RUNNER_SHA256:
+        raise ValueError('Unknown complete uncached readiness predecessor')
+    return raw
+
+
+def repair_profile_input_predecessor(raw):
+    for after, before in reversed(REPAIR_PROFILE_INPUT_HUNKS):
+        after, before = after.encode(), before.encode()
+        require(raw.count(after) == 1, 'Unknown exact profile parser input adapter')
+        raw = raw.replace(after, before, 1)
+    return raw
+
+
+def repair_predecessor_source(path, raw):
+    if path == 'tools/club_customer_directory_admission.py':
+        require(digest(raw) == REPAIR_SOURCE_INVERSES[path]['after_sha256'], 'Unreviewed complete club helper input')
+    if path in REPAIR_SOURCE_INVERSES:
+        return _inverse_exact(raw, REPAIR_SOURCE_INVERSES[path], path)
+    return raw
+
+
+def repair_predecessor_contract(value):
     value = copy.deepcopy(value)
+    for path, expected in REPAIR_CURRENT_SOURCE_ROWS.items():
+        require(value['feature_batch_sources'].get(path) == expected,
+                'Changed exact parser/property source row: ' + path)
+        prior = REPAIR_PRE_SOURCE_ROWS[path]
+        if prior is None: del value['feature_batch_sources'][path]
+        else: value['feature_batch_sources'][path] = copy.deepcopy(prior)
+    for path, old in REPAIR_PRE_SUPPORT.items():
+        require(value['feature_batch_support_sha256'].get(path) == digest((ROOT / path).read_bytes()),
+                'Changed exact parser/property support: ' + path)
+        value['feature_batch_support_sha256'][path] = old
+    require(digest(encode(value)) == REPAIR_PRE_CONTRACT_SHA256,
+            'Complete discovery predecessor contract not restored')
+    return value
+
+
+def repair_predecessor_fixture_source(path, raw, current_contract):
+    if path == CONTRACT_PATH:
+        require(raw == current_contract, 'Mixed current fixture contract')
+        return encode(repair_predecessor_contract(json.loads(raw)))
+    if path == RUNNER_PATH:
+        old = uncached_readiness_source(raw)
+        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", old)
+        require(len(pins) == 1 and pins[0].decode() == digest(current_contract), 'Mixed current fixture runner')
+        old = old.replace(pins[0], REPAIR_PRE_CONTRACT_SHA256.encode())
+        require(digest(old) == REPAIR_PRE_RUNNER_SHA256, 'Complete predecessor fixture runner changed')
+        return old
+    if path == PROFILE_PATH:
+        raw = repair_profile_input_predecessor(raw)
+        before = ("DISCOVERY_HELPER_FINGERPRINT = '" + ADMISSION_FINGERPRINT + "'").encode()
+        after = ("DISCOVERY_HELPER_FINGERPRINT = '" + REPAIR_PRE_FINGERPRINT + "'").encode()
+        require(raw.count(before) == 1, 'Missing current profile binding')
+        old = raw.replace(before, after, 1)
+        require(digest(old) == REPAIR_PRE_PROFILE_SHA256, 'Complete predecessor fixture profile changed')
+        return old
+    return repair_predecessor_source(path, raw)
+
+
+def _parent_contract(value):
+    value = repair_predecessor_contract(value)
     for path, expected in CURRENT_SOURCE_ROWS.items():
         require(value['feature_batch_sources'].get(path) == expected, 'Unknown new source row: ' + path)
         old = PARENT_SOURCE_ROWS[path]
@@ -6440,6 +7708,7 @@ def _project_contract(value, changes, orders, expected):
 
 
 def _profile_preimage(raw):
+    raw = repair_profile_input_predecessor(raw)
     pins = re.findall(rb"(?m)^DISCOVERY_HELPER_FINGERPRINT = '([0-9a-f]{64})'$", raw)
     require(len(pins) == 1 and pins[0].decode() == ADMISSION_FINGERPRINT,
             'Profile frontend does not pin this exact admission implementation')
@@ -6497,7 +7766,10 @@ def checked_current(raw, root):
     """Read all actual current bytes on every call, before any historical cache."""
     root = Path(root)
     require((root / CONTRACT_PATH).read_bytes() == raw, 'Live current contract differs from supplied bytes')
-    runner = (root / RUNNER_PATH).read_bytes()
+    try:
+        runner = uncached_readiness_source((root / RUNNER_PATH).read_bytes())
+    except ValueError as error:
+        raise AssertionError(str(error)) from error
     pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", runner)
     require(len(pins) == 1, 'Missing/repeated current runner pin')
     require(digest(runner.replace(pins[0], BASE_CONTRACT_SHA256.encode())) == BASE_RUNNER_SHA256,
@@ -6520,7 +7792,7 @@ def checked_current(raw, root):
     # Independent parent input pins protect even freshly imported/rehashed helpers.
     for path, expected in PARENT_INPUT_SHA256.items():
         message = 'Unreviewed complete club helper input' if path == 'tools/club_customer_directory_admission.py' else 'Changed exact parent raw input: ' + path
-        data = (root / path).read_bytes()
+        data = repair_predecessor_source(path, (root / path).read_bytes())
         if path in EXTRA_INPUT_ROWS: data = _inverse_exact(data, EXTRA_INPUT_ROWS[path], path)
         require(digest(data) == expected, message)
     parent = _parent_contract(value)
@@ -6591,15 +7863,23 @@ def _profile_parent_inputs(root):
         members = list(root.rglob('*'))
         require(not any(p.is_symlink() for p in members), 'Symlink in historical 47-file fixture')
         files = {str(p.relative_to(root)) for p in members if p.is_file()}
-        require(files == set(PROFILE_CONTEXT_INPUTS), 'Historical fixture must contain exactly 47 inputs')
-        for path in PROFILE_CONTEXT_INPUTS:
-            require((root / path).read_bytes() == (ROOT / path).read_bytes(),
-                    'Changed/mixed historical fixture raw input: ' + path)
+        current_raw = (ROOT / CONTRACT_PATH).read_bytes()
+        incoming = {path: (root / path).read_bytes() for path in files}
+        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS):
+            # All 49 physical bytes are read before any predecessor/context reuse.
+            for path, data in incoming.items():
+                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 49-file fixture: ' + path)
+        else:
+            require(files == set(PROFILE_CONTEXT_INPUTS), 'Historical fixture must contain exactly 47 inputs')
+            for path in PROFILE_CONTEXT_INPUTS:
+                expected = repair_predecessor_fixture_source(path, (ROOT / path).read_bytes(), current_raw)
+                require(incoming[path] == expected,
+                        'Changed/mixed historical fixture raw input: ' + path)
         origin = ROOT
     raw = (origin / CONTRACT_PATH).read_bytes()
     value, sources, runner, pin = checked_current(raw, origin)
     parent = _parent_contract(value)
-    contents = {p: (origin / p).read_bytes() for p in PROFILE_CONTEXT_INPUTS}
+    contents = {p: repair_predecessor_source(p, (origin / p).read_bytes()) for p in PROFILE_CONTEXT_INPUTS}
     for path, row in EXTRA_INPUT_ROWS.items(): contents[path] = _inverse_exact(contents[path], row, path)
     contents[CONTRACT_PATH] = encode(parent)
     contents[RUNNER_PATH] = runner.replace(pin, PARENT_CONTRACT_SHA256.encode())
@@ -6683,6 +7963,7 @@ def creator_history_test_preimage(data, root):
     root = Path(root)
     checked_current((root / CONTRACT_PATH).read_bytes(), root)
     require(data == (root / CREATOR_HISTORY_TEST_PATH).read_bytes(), 'Unknown live creator history test argument')
+    data = repair_predecessor_source(CREATOR_HISTORY_TEST_PATH, data)
     return _inverse_exact(data, EXTRA_INPUT_ROWS[CREATOR_HISTORY_TEST_PATH], CREATOR_HISTORY_TEST_PATH)
 
 class CategoryRoamCurrentFloorContracts(unittest.TestCase):
@@ -6781,7 +8062,7 @@ class CategoryRoamCurrentFloorContracts(unittest.TestCase):
             base = Path(temporary); fixture = base / 'exact47'; fixture.mkdir()
             for path in PROFILE_CONTEXT_INPUTS:
                 target = fixture / path; target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes((ROOT / path).read_bytes())
+                target.write_bytes(repair_predecessor_fixture_source(path, (ROOT / path).read_bytes(), raw))
             profile_history_inputs(raw, fixture, 'history')
             link = base / 'outside-alias'; link.symlink_to(fixture, target_is_directory=True)
             with self.assertRaisesRegex(ValueError, 'root itself'):

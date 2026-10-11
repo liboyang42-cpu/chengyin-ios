@@ -22,6 +22,48 @@ SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))
 UUID = '01234567-0123-0123-0123-012345678901'
 
 
+def static_tree_records(root, before):
+    records = []
+    for row in SELECTION['static_repair_changes']:
+        if not before or row['status'] == 'M':
+            records.append('100644 blob ' + row['before_blob' if before else 'after_blob'] + '\t' + row['path'])
+    for relative, baseline in runner.STATIC_DIAGNOSTIC_BASE_BLOBS.items():
+        raw = (root / relative).read_bytes()
+        blob = baseline if before else runner.hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+        records.append('100644 blob ' + blob + '\t' + relative)
+    return records
+
+
+def scope_transport(command, root):
+    if command[1:3] == ['rev-parse', 'HEAD']: return 'a' * 40
+    if command[1:3] == ['rev-parse', 'HEAD^{tree}']: return 'b' * 40
+    if command[1:3] == ['rev-parse', runner.BASE_COMMIT + '^{tree}']: return runner.BASE_TREE
+    if command[1:3] == ['rev-parse', runner.HISTORICAL_BASE_COMMIT + '^{tree}']: return runner.HISTORICAL_BASE_TREE
+    if command[1] == 'rev-list': return 'a' * 40 + ' ' + runner.BASE_COMMIT
+    if command[1:3] == ['cat-file', '-e']: return ''
+    if command[1:3] == ['cat-file', '-p']:
+        return 'tree ' + runner.CREATOR_TREE + '\nparent ' + runner.HISTORICAL_BASE_COMMIT + '\n\nPublished creator witness'
+    if command[1] == 'status': return ''
+    if command[1] == 'diff':
+        changes = (runner.ALLOWED_CHANGES if command[3] == runner.BASE_COMMIT else
+                   runner.PARENT_HISTORY_CHANGES if command[3] == runner.CREATOR_COMMIT else
+                   runner.HISTORICAL_ALLOWED_CHANGES)
+        return '\n'.join(changes)
+    if command[1] == 'ls-tree':
+        if tuple(command[5:]) == runner.CREATOR_PATHS:
+            before = command[3] == runner.HISTORICAL_BASE_TREE
+            rows = ['100644 blob ' + r['before_blob' if before else 'after_blob'] + '\t' + r['path']
+                    for r in SELECTION['creator_changes'] if not before or r['status'] == 'M']
+        elif tuple(command[5:]) == runner.CREATOR_PARENT_PATHS:
+            before = command[3] == runner.CREATOR_TREE
+            rows = ['100644 blob ' + r['before_blob' if before else 'after_blob'] + '\t' + r['path']
+                    for r in SELECTION['creator_parent_changes']]
+        else:
+            rows = static_tree_records(root, command[3] == runner.BASE_TREE)
+        return '\0'.join(rows) + '\0'
+    raise AssertionError(command)
+
+
 def xctests(methods, target):
     return {'testNodes': [{'nodeType': 'Test Plan', 'name': 'Questify', 'children': [
         {'nodeType': 'Unit test bundle', 'name': target, 'children': [
@@ -157,7 +199,7 @@ class SelectionAndCommands(unittest.TestCase):
         self.assertIn('  workflow_dispatch:', active)
         self.assertIn('  contents: read', active)
         self.assertIn('persist-credentials: false', active)
-        self.assertIn('GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch --no-tags --depth=1 https://github.com/liboyang42-cpu/chengyin-ios.git ' + runner.BASE_COMMIT, active)
+        self.assertIn('GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch --no-tags --depth=1 https://github.com/liboyang42-cpu/chengyin-ios.git ' + runner.HISTORICAL_BASE_COMMIT, active)
         self.assertIn('timeout-minutes: 45', active)
         self.assertIn('name: native-targeted-diagnostic', active)
         for forbidden in ['needs:', 'matrix:', 'upload-artifact', 'download-artifact', 'secrets.', 'required-native-gates', 'run_static_checks.py', 'ci_gates.py aggregate']:
@@ -427,23 +469,14 @@ class RuntimeBoundaries(unittest.TestCase):
             with self.assertRaises(ValueError): runner.products_digest(root)
 
     def test_scope_requires_exact_sha_base_and_nineteen_exact_statuses(self):
-        def output(command, root):
-            if command[1:3] == ['rev-parse', 'HEAD']: return 'a' * 40
-            if command[1:3] == ['rev-parse', runner.BASE_COMMIT + '^{tree}']: return runner.BASE_TREE
-            if command[1:3] == ['rev-parse', 'HEAD^{tree}']: return 'b' * 40
-            if command[1] == 'status': return ''
-            if command[1] == 'diff': return '\n'.join(runner.ALLOWED_CHANGES)
-            if command[1] == 'ls-tree':
-                before = command[3] == runner.BASE_TREE
-                return '\0'.join('100644 blob ' + r['before_blob' if before else 'after_blob'] + '\t' + r['path'] for r in SELECTION['creator_changes'] if not before or r['status'] == 'M') + '\0'
-            raise AssertionError(command)
+        output = scope_transport
         with mock.patch.dict(os.environ, {'GITHUB_SHA': 'a' * 40}), mock.patch.object(runner, 'checked', side_effect=output):
             self.assertEqual(runner.verify_scope(SOURCE, SELECTION)['source_tree'], 'b' * 40)
         for field in ['head', 'base', 'diff', 'dirty', 'missing-repair', 'wrong-status', 'old-additions', 'duplicate']:
             def mutated(command, root):
                 original = output(command, root)
                 if field == 'head' and command[1:3] == ['rev-parse', 'HEAD']: return 'c' * 40
-                if field == 'base' and command[1:3] == ['rev-parse', runner.BASE_COMMIT + '^{tree}']: return 'c' * 40
+                if field == 'base' and command[1:3] == ['rev-parse', runner.HISTORICAL_BASE_COMMIT + '^{tree}']: return 'c' * 40
                 if field == 'diff' and command[1] == 'diff': return original + '\nM\tApp/AppSession.swift'
                 if field == 'missing-repair' and command[1] == 'diff': return '\n'.join(original.splitlines()[:-1])
                 if field == 'wrong-status' and command[1] == 'diff': return original.replace('M\t' + runner.CREATOR_PATHS[0], 'A\t' + runner.CREATOR_PATHS[0])
@@ -473,6 +506,9 @@ class ReceiptIdentity(unittest.TestCase):
                     'run_id': '123', 'run_attempt': '1', 'selection_sha256': 'c' * 64}
         r = {**identity, 'version': 1, 'status': 'PASS', 'scope': 'selected-native-diagnostic-only',
              'base_commit': runner.BASE_COMMIT, 'base_tree': runner.BASE_TREE,
+             'historical_base_commit': runner.HISTORICAL_BASE_COMMIT,
+             'historical_base_tree': runner.HISTORICAL_BASE_TREE,
+             'creator_base_commit': runner.CREATOR_COMMIT, 'creator_base_tree': runner.CREATOR_TREE,
              'selection': SELECTION['name'], 'expected_count': 65, 'actual_count': 65,
              'toolchain': {k: k for k in ['xcode', 'developer', 'swift', 'sdk_version', 'sdk_path']},
              'simulator': {'udid': UUID, 'name': 'iPhone 17', 'runtime': 'com.apple.CoreSimulator.SimRuntime.iOS-26-0'},
@@ -821,6 +857,8 @@ class Creator65Contract(unittest.TestCase):
         paths = {row['path'] for row in SELECTION['source_files']}
         paths.update(CREATOR15_IDENTITIES)
         paths.update(row['path'] for row in SELECTION['reviewed_repairs'])
+        paths.update(runner.STATIC_REPAIR_PATHS)
+        paths.update(runner.STATIC_DIAGNOSTIC_BASE_BLOBS)
         for relative in paths:
             destination = root / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -982,8 +1020,8 @@ class Creator65Contract(unittest.TestCase):
                     runner.validate_pass_receipt(changed, identity, SELECTION)
 
     def test_creator_15_and_diagnostic_4_have_exact_independent_statuses(self):
-        self.assertEqual(runner.BASE_COMMIT, '45b728c7d48cf7969ac864e5693322d45e79394a')
-        self.assertEqual(runner.BASE_TREE, '440cdc3bbd4a40369e6cb6762eec6306e4aa921d')
+        self.assertEqual(runner.HISTORICAL_BASE_COMMIT, '45b728c7d48cf7969ac864e5693322d45e79394a')
+        self.assertEqual(runner.HISTORICAL_BASE_TREE, '440cdc3bbd4a40369e6cb6762eec6306e4aa921d')
         self.assertEqual(tuple(runner.PATHS), DIAGNOSTIC4_PATHS)
         self.assertIsInstance(runner.CREATOR_PATHS, tuple)
         self.assertEqual(len(runner.CREATOR_PATHS), 15)
@@ -991,18 +1029,19 @@ class Creator65Contract(unittest.TestCase):
         self.assertFalse(set(runner.CREATOR_PATHS) & set(DIAGNOSTIC4_PATHS))
         expected = {'M\t' + p for p in DIAGNOSTIC4_PATHS}
         expected.update(spec[0] + '\t' + p for p, spec in CREATOR15_IDENTITIES.items())
-        self.assertIsInstance(runner.ALLOWED_CHANGES, tuple)
-        self.assertEqual(len(runner.ALLOWED_CHANGES), 19)
-        self.assertEqual(set(runner.ALLOWED_CHANGES), expected)
-        self.assertEqual(SELECTION['allowed_changes'], list(runner.ALLOWED_CHANGES))
-        self.assertEqual(sum(x.startswith('M\t') for x in runner.ALLOWED_CHANGES), 15)
-        self.assertEqual(sum(x.startswith('A\t') for x in runner.ALLOWED_CHANGES), 4)
+        self.assertIsInstance(runner.HISTORICAL_ALLOWED_CHANGES, tuple)
+        self.assertEqual(len(runner.HISTORICAL_ALLOWED_CHANGES), 19)
+        self.assertEqual(set(runner.HISTORICAL_ALLOWED_CHANGES), expected)
+        self.assertEqual(SELECTION['historical_base']['allowed_changes'], list(runner.HISTORICAL_ALLOWED_CHANGES))
+        self.assertEqual(sum(x.startswith('M\t') for x in runner.HISTORICAL_ALLOWED_CHANGES), 15)
+        self.assertEqual(sum(x.startswith('A\t') for x in runner.HISTORICAL_ALLOWED_CHANGES), 4)
 
     def test_all_creator_current_bytes_sha_and_git_blobs_are_independently_bound(self):
         rows = SELECTION['creator_changes']
         self.assertEqual([r['path'] for r in rows], list(runner.CREATOR_PATHS))
         self.assertEqual(self.sha(runner.encode(rows).encode()), runner.CREATOR_CHANGES_CONTRACT_SHA256)
         root = self.fixture_root()
+        published = runner.restore_creator_inputs(SELECTION, root)
         restored = runner.validate_creator_changes(SELECTION, root)
         self.assertEqual(set(restored), {p for p, spec in CREATOR15_IDENTITIES.items() if spec[0] == 'M'})
         for row in rows:
@@ -1013,7 +1052,7 @@ class Creator65Contract(unittest.TestCase):
                 self.assertEqual(tuple(row[k] for k in ('status', 'before_sha256', 'before_blob',
                                                        'after_sha256', 'after_blob')),
                                  CREATOR15_IDENTITIES[path])
-                raw = (root / path).read_bytes()
+                raw = published.get(path, (root / path).read_bytes())
                 self.assertEqual(self.sha(raw), row['after_sha256'])
                 self.assertEqual(self.blob(raw), row['after_blob'])
                 if row['status'] == 'A':
@@ -1093,10 +1132,11 @@ class Creator65Contract(unittest.TestCase):
                 destination.write_bytes(raw)
 
     def test_modified_creator_inverse_requires_complete_predecessor(self):
+        published = runner.restore_creator_inputs(SELECTION, SOURCE)
         for row in SELECTION['creator_changes']:
             if row['status'] != 'M':
                 continue
-            raw = (SOURCE / row['path']).read_bytes()
+            raw = published.get(row['path'], (SOURCE / row['path']).read_bytes())
             old = runner.inverse_reviewed_repair(row, raw)
             self.assertEqual(self.sha(old), CREATOR15_IDENTITIES[row['path']][1])
             self.assertEqual(self.blob(old), CREATOR15_IDENTITIES[row['path']][2])
@@ -1116,7 +1156,7 @@ class Creator65Contract(unittest.TestCase):
         # Only the git transport is synthetic; independent pinned blob records are
         # parsed by the real function. All current files remain real byte fixtures.
         output = '\0'.join(records) + ('\0' if records else '')
-        expected_command = ['git', 'ls-tree', '-z', runner.BASE_TREE, '--', *runner.CREATOR_PATHS]
+        expected_command = ['git', 'ls-tree', '-z', runner.HISTORICAL_BASE_TREE, '--', *runner.CREATOR_PATHS]
         def checked(command, actual_root, *args, **kwargs):
             self.assertEqual(command, expected_command)
             self.assertEqual(actual_root, root)
@@ -1209,14 +1249,7 @@ class ShallowCheckoutBoundaries(unittest.TestCase):
         root = Creator65Contract.fixture_root(self)
         with mock.patch.object(runner, 'checked', side_effect=AssertionError('Current validation must not read Git history')):
             self.assertEqual(runner.validate_selection(copy.deepcopy(SELECTION), root), SELECTION)
-        def transport(command, actual_root):
-            if command[1:3] == ['rev-parse', 'HEAD']: return 'a' * 40
-            if command[1:3] == ['rev-parse', runner.BASE_COMMIT + '^{tree}']: return runner.BASE_TREE
-            if command[1] == 'status': return ''
-            if command[1] == 'diff': return '\n'.join(runner.ALLOWED_CHANGES)
-            if command[1] == 'ls-tree' and command[3] == 'a' * 40:
-                return '\0'.join('100644 blob ' + r['after_blob'] + '\t' + r['path'] for r in SELECTION['creator_changes']) + '\0'
-            raise AssertionError(command)
+        transport = scope_transport
         with mock.patch.dict(os.environ, {'GITHUB_SHA': 'a' * 40}), \
              mock.patch.object(runner, 'checked', side_effect=transport), \
              mock.patch.object(runner, 'verify_creator_baseline', side_effect=ValueError('Historical baseline missing')) as baseline:
@@ -1234,27 +1267,459 @@ class ShallowCheckoutBoundaries(unittest.TestCase):
         def git(*args, data=None):
             return subprocess.check_output(['git', *args], input=data, env=env).decode().strip()
         git('read-tree', '--empty')
+        published = runner.restore_creator_inputs(SELECTION, root)
         for row in SELECTION['creator_changes']:
             if row['status'] == 'M':
-                old = runner.inverse_reviewed_repair(row, (root / row['path']).read_bytes())
+                old = runner.inverse_reviewed_repair(row, published.get(row['path'], (root / row['path']).read_bytes()))
                 oid = git('hash-object', '-w', '--stdin', data=old)
                 self.assertEqual(oid, row['before_blob'])
                 git('update-index', '--add', '--cacheinfo', '100644', oid, row['path'])
         witness = git('write-tree')
         # This is an explicit disposable subset tree, not a claim to recreate45b.
         # The independent identity fixture still fixes the production full tree.
-        with mock.patch.dict(os.environ, env, clear=True), mock.patch.object(runner, 'BASE_TREE', witness):
+        with mock.patch.dict(os.environ, env, clear=True), mock.patch.object(runner, 'HISTORICAL_BASE_TREE', witness):
             self.assertEqual(len(runner.verify_creator_baseline(SELECTION, root)), 11)
         for row in SELECTION['creator_changes']:
             if row['status'] != 'A': continue
             git('read-tree', witness)
-            oid = git('hash-object', '-w', '--stdin', data=(root / row['path']).read_bytes())
+            oid = git('hash-object', '-w', '--stdin', data=published.get(row['path'], (root / row['path']).read_bytes()))
             self.assertEqual(oid, row['after_blob'])
             git('update-index', '--add', '--cacheinfo', '100644', oid, row['path'])
             mutant = git('write-tree')
             with self.subTest(path=row['path']), mock.patch.dict(os.environ, env, clear=True), \
-                 mock.patch.object(runner, 'BASE_TREE', mutant), self.assertRaisesRegex(ValueError, 'already exists in baseline'):
+                 mock.patch.object(runner, 'HISTORICAL_BASE_TREE', mutant), self.assertRaisesRegex(ValueError, 'already exists in baseline'):
                 runner.verify_creator_baseline(SELECTION, root)
+
+
+class StaticRepairBinding(unittest.TestCase):
+    """Current 3393 repair scope is independent of every preserved history layer."""
+    BASELINES = {'App/ProjectThoughtDefinitionsEditor.swift': ('M',
+                                               'dc2bcdecf846d8226db09d96df7ce7688cabc722249add64a114d48721263bd9',
+                                               '01b97e6fa5bcfbda6ee476c8ec32bc17636cb27d'),
+ 'App/ProjectEndingConditionPicker.swift': ('M',
+                                            '1b0a460cc65ee4ba69be25390940f188bbeaddbd824ee4d77d053dfdb28ba5a8',
+                                            '6f9114ca362dac40dbfc1ae19c8947c133a44c3b'),
+ 'tools/run138_editor_readiness.py': ('M',
+                                      'f39364ce7df89dc337047e825294047fa0af2f461424cd9aa1e6384c0c389d4f',
+                                      'b59adab2ffde9df7d9ad3a3afc8e8e4084ee2bbb'),
+ 'tools/run138_editor_readiness_contract.json': ('M',
+                                                 'b72d9b1024daadb5273a4de24c0175d42c04516b1f89c6c53c0f9c40dd7a77b6',
+                                                 '045c337b9a9c36595192df7c46272ab487f4258b'),
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': ('M',
+                                                                        'f9904bbd44d23bcaacd02be0647cf6bc4d7f0d5994371a8f05f2edac868b59ec',
+                                                                        'be4ebdde8b93e24c2fb1833c16473598f8f6b9be'),
+ 'tools/club_customer_directory_admission.py': ('M',
+                                                '80b6fb95961ef598ea66aa02e0081938b5df2ae7860a3e3fad76e5c0fa0a2297',
+                                                '50e51bdc77a9373046c00c8313d3e45079cac76a'),
+ 'Tests/ContractChecks/test_category_roam_registration.py': ('M',
+                                                             '80f4cbe6fba6df6ed1604aea7d7dfd20fd957d679a6e450401a49d2b80c5f1fa',
+                                                             'b7403c238d4a70a362b86eb2a67627553c0958ef'),
+ 'tools/tests/test_creator_shelf_state_history.py': ('M',
+                                                     'accaa341cf2803a6847c19ee675d7bb9d06b831d300c1a56d9f17d9aeddfb65e',
+                                                     '53740f8ba2cf1f428f78da4309e7aeb883d06af6'),
+ 'tools/tests/test_club_parity_integration_budget.py': ('M',
+                                                        'e2b27a07353c01261c3220596fa46376f77dd59b533a12caf9f3174fe279a248',
+                                                        '48eee28519350c74cab77601b751db5de094c946'),
+ 'tools/tests/test_readiness_contract_parse_cache.py': ('A', None, None),
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': ('M',
+                                                                  '1cda598881ae8cd6327b8ef322337f78ca40d8f6c29f2a7d8b84b49050de591f',
+                                                                  '375bee1d0b03f3d02bbe028b0a8b2ae69b984587'),
+ 'Tests/ContractChecks/test_club_customer_directory_remote_admission.py': ('M',
+                                                                           'b1ee3e1eac62c6a670986301f1fe2713d615c7a8a82ece5dfdd8946ae08e43c1',
+                                                                           'd5a1361846364539a119a558fd23459164a465cb')}
+
+    def fixture_root(self):
+        return Creator65Contract.fixture_root(self)
+
+    def test_exact_published_base_nine_paths_and_old_domains_remain_separate(self):
+        self.assertEqual(runner.BASE_COMMIT, '3393ec85076a7a4e246e94e98ddf81f6b73ede2f')
+        self.assertEqual(runner.BASE_TREE, '7dd9461bafbe546e1c5ef5eaacc750267b416b2f')
+        self.assertEqual(SELECTION['base_commit'], runner.BASE_COMMIT)
+        self.assertEqual(SELECTION['base_tree'], runner.BASE_TREE)
+        expected = {status + '\t' + path for path, (status, _, _) in self.BASELINES.items()}
+        expected.update('M\t' + path for path in ('tools/targeted_native_selection.json',
+                        'tools/run_targeted_native.py', 'tools/tests/test_targeted_native.py'))
+        self.assertEqual(len(runner.ALLOWED_CHANGES), 15)
+        self.assertEqual(set(runner.ALLOWED_CHANGES), expected)
+        self.assertEqual(SELECTION['allowed_changes'], list(runner.ALLOWED_CHANGES))
+        self.assertEqual([x for x in runner.ALLOWED_CHANGES if x.startswith('A\t')],
+                         ['A\ttools/tests/test_readiness_contract_parse_cache.py'])
+        self.assertNotIn('M\t.github/workflows/native-targeted.yml', runner.ALLOWED_CHANGES)
+        self.assertEqual(tuple(runner.STATIC_REPAIR_PATHS), tuple(self.BASELINES))
+        self.assertEqual(len(runner.HISTORICAL_ALLOWED_CHANGES), 19)
+        self.assertEqual(SELECTION['historical_base'], {
+            'base_commit': '45b728c7d48cf7969ac864e5693322d45e79394a',
+            'base_tree': '440cdc3bbd4a40369e6cb6762eec6306e4aa921d',
+            'allowed_changes': list(runner.HISTORICAL_ALLOWED_CHANGES)})
+        self.assertEqual(runner.CREATOR_CHANGES_CONTRACT_SHA256,
+                         'a0a916e50820419681f69c6e21ad048655f5b5d6db628079cc8a44a96ab7e1e9')
+        for path in ('tools/tests/test_readiness_contract_parse_cache.py',
+                     'tools/tests/test_club_parity_integration_budget.py'):
+            self.assertNotIn(path, runner.CREATOR_PATHS)
+            self.assertNotIn(path, runner.REPAIR_PATHS)
+            self.assertNotIn(path, runner.BOUND_SOURCES)
+
+    def test_complete_current_payload_inverts_to_independent_b75_bytes(self):
+        root = self.fixture_root()
+        restored = runner.validate_static_repair(SELECTION, root)
+        self.assertEqual(set(restored), {p for p, row in self.BASELINES.items() if row[0] == 'M'})
+        for row in SELECTION['static_repair_changes']:
+            path = row['path']; raw = (root / path).read_bytes()
+            with self.subTest(path=path):
+                self.assertEqual(tuple(row[k] for k in ('status', 'before_sha256', 'before_blob')),
+                                 self.BASELINES[path])
+                self.assertEqual(Creator65Contract.sha(raw), row['after_sha256'])
+                self.assertEqual(Creator65Contract.blob(raw), row['after_blob'])
+                if row['status'] == 'M':
+                    self.assertEqual(Creator65Contract.sha(restored[path]), self.BASELINES[path][1])
+                    self.assertEqual(Creator65Contract.blob(restored[path]), self.BASELINES[path][2])
+                    self.assertEqual(runner.inverse_reviewed_repair(row, raw), restored[path])
+                else:
+                    self.assertEqual(row['hunks'], [])
+                    self.assertNotIn(path, restored)
+        self.assertEqual(runner.validate_selection(copy.deepcopy(SELECTION), root), SELECTION)
+
+    def test_manifest_cannot_widen_or_change_under_outer_repin(self):
+        root = self.fixture_root()
+        for mode in ('missing', 'duplicate', 'reordered', 'outside-path', 'wrong-status',
+                     'before-sha', 'before-blob', 'after-sha', 'after-blob', 'hunk', 'extra-field'):
+            changed = copy.deepcopy(SELECTION); rows = changed['static_repair_changes']
+            if mode == 'missing': rows.pop()
+            elif mode == 'duplicate': rows.append(copy.deepcopy(rows[0]))
+            elif mode == 'reordered': rows.reverse()
+            elif mode == 'outside-path': rows[0]['path'] = 'Core/Unreviewed.swift'
+            elif mode == 'wrong-status': rows[0]['status'] = 'A'
+            elif mode == 'extra-field': rows[0]['ignored'] = True
+            elif mode == 'hunk': rows[0]['hunks'][0]['before'] += '\n'
+            else: rows[0][mode.replace('-', '_') + ('256' if mode.endswith('sha') else '')] = '0' * (64 if mode.endswith('sha') else 40)
+            pin = Creator65Contract.sha(runner.encode(changed).encode())
+            with self.subTest(mode=mode), mock.patch.object(runner, 'SELECTION_CONTRACT_SHA256', pin), self.assertRaises(ValueError):
+                runner.validate_selection(changed, root)
+        for field in ('base_commit', 'base_tree', 'allowed_changes'):
+            changed = copy.deepcopy(SELECTION)
+            changed['historical_base'][field] = changed[field]
+            pin = Creator65Contract.sha(runner.encode(changed).encode())
+            with self.subTest(historical_field=field), mock.patch.object(runner, 'SELECTION_CONTRACT_SHA256', pin), self.assertRaisesRegex(ValueError, 'historical nineteen-path'):
+                runner.validate_selection(changed, root)
+
+    def test_every_payload_checks_real_bytes_sha_blob_and_regular_file(self):
+        root = self.fixture_root()
+        for row in SELECTION['static_repair_changes']:
+            path = root / row['path']; original = path.read_bytes()
+            path.write_bytes(original + b'\n')
+            with self.subTest(path=row['path'], mode='changed'), self.assertRaisesRegex(ValueError, 'current static repair bytes'):
+                runner.validate_static_repair(SELECTION, root)
+            path.unlink()
+            with self.subTest(path=row['path'], mode='missing'), self.assertRaises(ValueError):
+                runner.validate_static_repair(SELECTION, root)
+            other = path.with_name(path.name + '.witness'); other.write_bytes(original); path.symlink_to(other)
+            with self.subTest(path=row['path'], mode='symlink'), self.assertRaises(ValueError):
+                runner.validate_static_repair(SELECTION, root)
+            path.unlink(); other.unlink(); path.write_bytes(original)
+            for field in ('after_sha256', 'after_blob'):
+                changed = copy.deepcopy(SELECTION)
+                next(r for r in changed['static_repair_changes'] if r['path'] == row['path'])[field] = '0' * (64 if field.endswith('sha256') else 40)
+                pin = Creator65Contract.sha(runner.encode(changed['static_repair_changes']).encode())
+                with self.subTest(path=row['path'], field=field), mock.patch.object(runner, 'STATIC_REPAIR_CHANGES_SHA256', pin), self.assertRaisesRegex(ValueError, 'current static repair (bytes|blob)'):
+                    runner.validate_static_repair(changed, root)
+        self.assertEqual(len(runner.validate_static_repair(SELECTION, root)), 11)
+
+    def test_inverse_rejects_rehashed_off_hunk_and_fabricated_addition_predecessors(self):
+        root = self.fixture_root()
+        for row in SELECTION['static_repair_changes']:
+            raw = (root / row['path']).read_bytes()
+            if row['status'] == 'A':
+                for field, value in [('before_sha256', Creator65Contract.sha(b'')),
+                                     ('before_blob', Creator65Contract.blob(b'')),
+                                     ('hunks', [{'before': '', 'after': raw.decode()}])]:
+                    changed = copy.deepcopy(SELECTION)
+                    next(r for r in changed['static_repair_changes'] if r['path'] == row['path'])[field] = value
+                    pin = Creator65Contract.sha(runner.encode(changed['static_repair_changes']).encode())
+                    with self.subTest(field=field), mock.patch.object(runner, 'STATIC_REPAIR_CHANGES_SHA256', pin), self.assertRaisesRegex(ValueError, 'fabricated predecessor'):
+                        runner.validate_static_repair(changed, root)
+                continue
+            for mode, mutant in [('off-hunk', raw + b'\n'),
+                                 ('missing', raw.replace(row['hunks'][0]['after'].encode(), b'', 1)),
+                                 ('duplicate', raw + row['hunks'][0]['after'].encode())]:
+                forged = copy.deepcopy(row)
+                forged['after_sha256'], forged['after_blob'] = Creator65Contract.sha(mutant), Creator65Contract.blob(mutant)
+                with self.subTest(path=row['path'], mode=mode), self.assertRaises(ValueError):
+                    runner.inverse_reviewed_repair(forged, mutant)
+
+    def test_actual_parent_nine_path_scope_and_receipt_cannot_claim_old_scope(self):
+        root = self.fixture_root()
+        for mode in ('parent', 'merge', 'missing-base', 'tree', 'missing', 'extra', 'status', 'old-scope'):
+            def transport(command, actual_root):
+                result = scope_transport(command, actual_root)
+                if command[1] == 'rev-list':
+                    if mode == 'parent': return 'a' * 40 + ' ' + runner.HISTORICAL_BASE_COMMIT
+                    if mode == 'merge': return result + ' ' + 'f' * 40
+                if command[1:3] == ['rev-parse', runner.BASE_COMMIT + '^{tree}']:
+                    if mode == 'missing-base': raise ValueError('Read command failed')
+                    if mode == 'tree': return 'c' * 40
+                if command[1] == 'diff' and command[3] == runner.BASE_COMMIT:
+                    if mode == 'missing': return '\n'.join(result.splitlines()[:-1])
+                    if mode == 'extra': return result + '\nM\tApp/AppSession.swift'
+                    if mode == 'status': return result.replace('A\ttools/tests/test_readiness_contract_parse_cache.py', 'M\ttools/tests/test_readiness_contract_parse_cache.py')
+                    if mode == 'old-scope': return '\n'.join(runner.HISTORICAL_ALLOWED_CHANGES)
+                return result
+            with self.subTest(mode=mode), mock.patch.dict(os.environ, {'GITHUB_SHA': 'a' * 40}), mock.patch.object(runner, 'checked', side_effect=transport), self.assertRaisesRegex(ValueError, '3393|fifteen exact'):
+                runner.verify_scope(root, SELECTION)
+        for field, value in [('base_commit', runner.HISTORICAL_BASE_COMMIT),
+                             ('base_tree', runner.HISTORICAL_BASE_TREE),
+                             ('historical_base_commit', runner.BASE_COMMIT),
+                             ('historical_base_tree', runner.BASE_TREE)]:
+            receipt, identity = ReceiptIdentity().receipt(); receipt[field] = value
+            with self.subTest(receipt_field=field), self.assertRaises(ValueError):
+                runner.validate_pass_receipt(receipt, identity, SELECTION)
+
+    def test_each_baseline_and_current_tree_mode_blob_and_addition_absence(self):
+        root = self.fixture_root()
+        for before in (True, False):
+            records = static_tree_records(root, before)
+            def verify(rows):
+                with mock.patch.object(runner, 'checked', return_value='\0'.join(rows) + '\0'):
+                    return runner.verify_static_repair_tree(SELECTION, root, runner.BASE_TREE if before else 'a' * 40, before)
+            self.assertEqual(len(verify(records)), 14 if before else 15)
+            for i, record in enumerate(records):
+                for mode in ('missing', 'duplicate', 'blob', 'executable', 'symlink', 'directory'):
+                    changed = list(records)
+                    if mode == 'missing': changed.pop(i)
+                    elif mode == 'duplicate': changed.append(record)
+                    elif mode == 'blob': changed[i] = '100644 blob ' + '0' * 40 + '\t' + record.split('\t')[1]
+                    else: changed[i] = record.replace('100644 blob', {'executable':'100755 blob', 'symlink':'120000 blob', 'directory':'040000 tree'}[mode], 1)
+                    with self.subTest(before=before, path=record.split('\t')[1], mode=mode), self.assertRaises(ValueError): verify(changed)
+            extra = 'tools/tests/test_readiness_contract_parse_cache.py' if before else 'Core/Unreviewed.swift'
+            with self.subTest(before=before, mode='unexpected-presence'), self.assertRaises(ValueError):
+                verify(records + ['100644 blob ' + '1' * 40 + '\t' + extra])
+
+    def test_real_git_subset_witness_binds_b75_payload_and_current_mode_blobs(self):
+        root = self.fixture_root(); gitdir = root / 'static-witness.git'
+        env = dict(os.environ, GIT_DIR=str(gitdir), GIT_INDEX_FILE=str(root / 'static-witness.index'))
+        env.pop('GIT_OBJECT_DIRECTORY', None); env.pop('GIT_ALTERNATE_OBJECT_DIRECTORIES', None)
+        subprocess.run(['git', 'init', '--bare', '-q', str(gitdir)], env=env, check=True)
+        def git(*args, data=None):
+            return subprocess.check_output(['git', *args], input=data, env=env).decode().strip()
+        restored = runner.validate_static_repair(SELECTION, root)
+        # The witness contains only real payload blobs. Diagnostic baseline objects
+        # are fixed Git identities, not claimed source copies or a full 3393 tree.
+        git('read-tree', '--empty')
+        for path, raw in restored.items():
+            oid = git('hash-object', '-w', '--stdin', data=raw)
+            self.assertEqual(oid, self.BASELINES[path][2])
+            git('update-index', '--add', '--cacheinfo', '100644', oid, path)
+        # Existing diagnostic baseline identities need not be materialized to write
+        # this explicit subset tree; allow-missing never changes production checks.
+        for path, oid in runner.STATIC_DIAGNOSTIC_BASE_BLOBS.items():
+            git('update-index', '--add', '--cacheinfo', '100644', oid, path)
+        before = git('write-tree', '--missing-ok')
+        with mock.patch.dict(os.environ, env, clear=True):
+            self.assertEqual(len(runner.verify_static_repair_tree(SELECTION, root, before, True)), 14)
+        git('read-tree', '--empty')
+        for change in runner.ALLOWED_CHANGES:
+            path = change.split('\t', 1)[1]; raw = (root / path).read_bytes()
+            oid = git('hash-object', '-w', '--stdin', data=raw)
+            git('update-index', '--add', '--cacheinfo', '100644', oid, path)
+        current = git('write-tree')
+        with mock.patch.dict(os.environ, env, clear=True):
+            self.assertEqual(len(runner.verify_static_repair_tree(SELECTION, root, current, False)), 15)
+        path = 'tools/tests/test_readiness_contract_parse_cache.py'
+        oid = next(row['after_blob'] for row in SELECTION['static_repair_changes'] if row['path'] == path)
+        git('update-index', '--cacheinfo', '100755', oid, path); mutant = git('write-tree')
+        with mock.patch.dict(os.environ, env, clear=True), self.assertRaisesRegex(ValueError, 'mode/blob'):
+            runner.verify_static_repair_tree(SELECTION, root, mutant, False)
+
+
+class PublishedParentBridge(unittest.TestCase):
+    def fixture_root(self):
+        return Creator65Contract.fixture_root(self)
+
+    def test_exact_eight_path_parent_bridge_preserves_old_source_domains(self):
+        self.assertEqual(runner.CREATOR_COMMIT, 'b75f7549678caf51a65ec8942b6a6d0c23e887de')
+        self.assertEqual(runner.CREATOR_TREE, '6d5a1e4a1486b3e97ed2f1e995ac5194e568bc20')
+        expected = ('Questify.xcodeproj/project.pbxproj', 'Resources/Localizable.xcstrings',
+                    'Tests/ContractChecks/test_profile_read_failure_remote_admission.py',
+                    'Tests/ContractChecks/test_template_shelf_state_projection.py',
+                    'tools/run138_editor_readiness.py', 'tools/run138_editor_readiness_contract.json',
+                    'tools/tests/creator_shelf_state_history.py', 'tools/tests/test_creator_shelf_state_history.py')
+        self.assertEqual(runner.CREATOR_PARENT_PATHS, expected)
+        self.assertEqual(tuple(row['path'] for row in SELECTION['creator_parent_changes']), expected)
+        self.assertEqual(Creator65Contract.sha(runner.encode(SELECTION['creator_parent_changes']).encode()),
+                         runner.CREATOR_PARENT_CHANGES_SHA256)
+        self.assertEqual({row['path'] for row in SELECTION['historical_source_files']}, runner.BOUND_SOURCES)
+        self.assertEqual(len(SELECTION['historical_source_files']), 29)
+        self.assertEqual({row['path'] for row in SELECTION['source_files']}, runner.BOUND_SOURCES)
+        before = {row['path']:row['sha256'] for row in SELECTION['historical_source_files']}
+        after = {row['path']:row['sha256'] for row in SELECTION['source_files']}
+        self.assertEqual([p for p in before if before[p] != after[p]], ['Questify.xcodeproj/project.pbxproj'])
+        self.assertEqual(len(runner.PARENT_HISTORY_CHANGES), 34)
+        self.assertEqual(SELECTION['creator_base'], {'base_commit':runner.CREATOR_COMMIT,
+                         'base_tree':runner.CREATOR_TREE,'parent_changes':list(runner.PARENT_HISTORY_CHANGES)})
+        for row in SELECTION['creator_parent_changes']:
+            self.assertEqual(row['status'], 'M')
+            self.assertIn(row['path'], runner.BOUND_SOURCES | set(runner.CREATOR_PATHS) | set(runner.REPAIR_PATHS))
+
+    def test_current_to_true_parent_to_b75_inverses_match_every_historical_source(self):
+        root = self.fixture_root()
+        parent = runner.validate_static_repair(SELECTION, root)
+        historical = runner.restore_creator_inputs(SELECTION, root)
+        self.assertEqual(set(historical), set(runner.CREATOR_PARENT_PATHS))
+        for row in SELECTION['creator_parent_changes']:
+            raw = parent.get(row['path'], (root / row['path']).read_bytes())
+            with self.subTest(path=row['path']):
+                self.assertEqual(Creator65Contract.sha(raw), row['after_sha256'])
+                self.assertEqual(Creator65Contract.blob(raw), row['after_blob'])
+                self.assertEqual(runner.inverse_reviewed_repair(row, raw), historical[row['path']])
+                self.assertEqual(Creator65Contract.sha(historical[row['path']]), row['before_sha256'])
+                self.assertEqual(Creator65Contract.blob(historical[row['path']]), row['before_blob'])
+        for row in SELECTION['historical_source_files']:
+            raw = historical.get(row['path'], (root / row['path']).read_bytes())
+            self.assertEqual(Creator65Contract.sha(raw), row['sha256'])
+        self.assertEqual(len(runner.validate_creator_changes(SELECTION, root)), 11)
+
+    def test_parent_bridge_rejects_repinned_missing_reordered_or_expanded_inputs(self):
+        root = self.fixture_root()
+        for mode in ('missing','duplicate','reordered','outside','before-sha','before-blob',
+                     'after-sha','after-blob','hunks','status','extra-field'):
+            changed = copy.deepcopy(SELECTION); rows = changed['creator_parent_changes']
+            if mode == 'missing': rows.pop()
+            elif mode == 'duplicate': rows.append(copy.deepcopy(rows[0]))
+            elif mode == 'reordered': rows.reverse()
+            elif mode == 'outside': rows[0]['path'] = 'Core/Unreviewed.swift'
+            elif mode == 'status': rows[0]['status'] = 'A'
+            elif mode == 'extra-field': rows[0]['ignored'] = True
+            elif mode == 'hunks': rows[0]['hunks'].pop()
+            else: rows[0][mode.replace('-','_') + ('256' if mode.endswith('sha') else '')] = '0' * (64 if mode.endswith('sha') else 40)
+            pin = Creator65Contract.sha(runner.encode(changed).encode())
+            with self.subTest(mode=mode), mock.patch.object(runner,'SELECTION_CONTRACT_SHA256',pin), self.assertRaises(ValueError):
+                runner.validate_selection(changed,root)
+        changed = copy.deepcopy(SELECTION)
+        next(r for r in changed['historical_source_files'] if r['path'] == 'Questify.xcodeproj/project.pbxproj')['sha256'] = next(r['sha256'] for r in changed['source_files'] if r['path'] == 'Questify.xcodeproj/project.pbxproj')
+        with self.assertRaisesRegex(ValueError,'historical source bindings'):
+            runner.restore_creator_inputs(changed,root)
+
+    def test_each_parent_inverse_rejects_rehashed_off_hunk_and_changed_real_sources(self):
+        root = self.fixture_root(); parent = runner.validate_static_repair(SELECTION,root)
+        for row in SELECTION['creator_parent_changes']:
+            path = root / row['path']; current = path.read_bytes()
+            path.write_bytes(current + b'\n')
+            with self.subTest(path=row['path'],mode='current'),self.assertRaises(ValueError):
+                runner.restore_creator_inputs(SELECTION,root)
+            path.write_bytes(current)
+            raw = parent.get(row['path'], current)
+            for mode,mutant in [('off-hunk',raw+b'\n'),('missing',raw.replace(row['hunks'][0]['after'].encode(),b'',1)),('duplicate',raw+row['hunks'][0]['after'].encode())]:
+                forged = copy.deepcopy(row); forged['after_sha256'],forged['after_blob'] = Creator65Contract.sha(mutant),Creator65Contract.blob(mutant)
+                with self.subTest(path=row['path'],mode=mode),self.assertRaises(ValueError):
+                    runner.inverse_reviewed_repair(forged,mutant)
+        self.assertEqual(len(runner.restore_creator_inputs(SELECTION,root)),8)
+
+    def test_every_real_parent_bridge_tree_mode_blob_and_presence_is_exact(self):
+        for before in (True,False):
+            records = ['100644 blob '+r['before_blob' if before else 'after_blob']+'\t'+r['path'] for r in SELECTION['creator_parent_changes']]
+            def verify(rows):
+                with mock.patch.object(runner,'checked',return_value='\0'.join(rows)+'\0'):
+                    return runner.verify_creator_parent_tree(SELECTION,SOURCE,runner.CREATOR_TREE if before else runner.BASE_TREE,before)
+            self.assertEqual(len(verify(records)),8)
+            for i,record in enumerate(records):
+                for mode in ('missing','duplicate','blob','mode','symlink','tree'):
+                    changed = list(records)
+                    if mode == 'missing':changed.pop(i)
+                    elif mode == 'duplicate':changed.append(record)
+                    elif mode == 'blob':changed[i]='100644 blob '+'0'*40+'\t'+record.split('\t')[1]
+                    else:changed[i]=record.replace('100644 blob',{'mode':'100755 blob','symlink':'120000 blob','tree':'040000 tree'}[mode],1)
+                    with self.subTest(before=before,path=record.split('\t')[1],mode=mode),self.assertRaises(ValueError):verify(changed)
+            with self.assertRaises(ValueError):verify(records+['100644 blob '+'0'*40+'\tCore/Unreviewed.swift'])
+
+    def test_parent_history_and_receipts_cannot_relabel_b75_as_current_parent(self):
+        for mode in ('missing','extra','old-nineteen'):
+            def transport(command,root):
+                result=scope_transport(command,root)
+                if command[1]=='diff' and command[3]==runner.CREATOR_COMMIT:
+                    if mode=='missing':return '\n'.join(result.splitlines()[:-1])
+                    if mode=='extra':return result+'\nM\tCore/Unreviewed.swift'
+                    return '\n'.join(runner.HISTORICAL_ALLOWED_CHANGES)
+                return result
+            with self.subTest(mode=mode),mock.patch.dict(os.environ,{'GITHUB_SHA':'a'*40}),mock.patch.object(runner,'checked',side_effect=transport),self.assertRaisesRegex(ValueError,'creator-to-3393 history'):
+                runner.verify_scope(SOURCE,SELECTION)
+        for field,value in [('base_commit',runner.CREATOR_COMMIT),('base_tree',runner.CREATOR_TREE),('creator_base_commit',runner.BASE_COMMIT),('creator_base_tree',runner.BASE_TREE)]:
+            receipt,identity=ReceiptIdentity().receipt();receipt[field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):runner.validate_pass_receipt(receipt,identity,SELECTION)
+
+
+class FixedPublicCreatorRead(unittest.TestCase):
+    @staticmethod
+    def headers(tree=None,parent=None):
+        return 'tree '+(tree or runner.CREATOR_TREE)+'\nparent '+(parent or runner.HISTORICAL_BASE_COMMIT)+'\nauthor Test <test@example.invalid> 1 +0000\n\nSynthetic commit metadata'
+
+    def present(self,command,root):
+        if command[1:3]==['cat-file','-e']:return ''
+        if command==['git','cat-file','-p',runner.CREATOR_COMMIT]:return self.headers()
+        raise AssertionError(command)
+
+    def missing(self,command,root):
+        if command[1:3]==['cat-file','-e']:raise ValueError('Synthetic missing object')
+        return self.present(command,root)
+
+    def test_present_exact_object_never_fetches_or_inspects_network_configuration(self):
+        with mock.patch.object(runner,'checked',side_effect=self.present) as read,mock.patch.object(runner,'execute') as execute:
+            runner.ensure_creator_commit(SOURCE)
+            execute.assert_not_called()
+            self.assertEqual(read.call_args_list,[mock.call(['git','cat-file','-e',runner.CREATOR_COMMIT+'^{commit}'],SOURCE),mock.call(['git','cat-file','-e',runner.CREATOR_COMMIT+'^{tree}'],SOURCE),mock.call(['git','cat-file','-p',runner.CREATOR_COMMIT],SOURCE)])
+
+    def test_missing_object_uses_one_whitelisted_bounded_noninteractive_public_read(self):
+        inherited={'GITHUB_TOKEN':'do-not-forward','GH_TOKEN':'do-not-forward','SECRET':'do-not-forward',
+                   'HTTPS_PROXY':'https://do-not-forward.invalid','GIT_CONFIG_COUNT':'1','GIT_ASKPASS':'do-not-forward',
+                   'SSH_AUTH_SOCK':'do-not-forward','HOME':'do-not-forward','GIT_OBJECT_DIRECTORY':'do-not-forward'}
+        with mock.patch.object(runner,'checked',side_effect=self.missing),mock.patch.object(runner,'execute',side_effect=[(0,b'core.repositoryformatversion\ncore.bare\n'),(0,b'')]) as execute,mock.patch.dict(os.environ,inherited):
+            runner.ensure_creator_commit(SOURCE)
+        self.assertEqual(execute.call_count,2)
+        config,fetch=execute.call_args_list
+        self.assertEqual(config.args,(['git','config','--local','--includes','--name-only','--list'],SOURCE,10,True))
+        command=fetch.args[0]
+        self.assertEqual(fetch.args[1:],(SOURCE,60,True))
+        self.assertEqual(command[-7:],['fetch','--no-tags','--no-write-fetch-head','--depth=1','--no-recurse-submodules','https://github.com/liboyang42-cpu/chengyin-ios.git','b75f7549678caf51a65ec8942b6a6d0c23e887de'])
+        for value in ('credential.helper=','core.askPass=','http.extraHeader=','http.followRedirects=false','protocol.allow=never','protocol.https.allow=always'):self.assertIn(value,command)
+        environment=fetch.kwargs['env']
+        self.assertEqual(set(environment),{'PATH','LANG','HOME','GIT_TERMINAL_PROMPT','GIT_CONFIG_NOSYSTEM','GIT_CONFIG_GLOBAL','GIT_ASKPASS','SSH_ASKPASS'})
+        self.assertNotIn('do-not-forward',environment.values())
+        self.assertEqual(environment['GIT_TERMINAL_PROMPT'],'0')
+        self.assertEqual(environment['GIT_CONFIG_NOSYSTEM'],'1')
+        self.assertEqual(environment['GIT_CONFIG_GLOBAL'],'/dev/null')
+        self.assertEqual(environment['HOME'],'/dev/null')
+        self.assertEqual(config.kwargs['env'],environment)
+        for action in ('checkout','reset','push','pull'):self.assertNotIn(action,command)
+
+    def test_offline_timeout_or_unreadable_config_fail_closed_without_retry(self):
+        for mode in ('offline','timeout','config'):
+            outputs=[(1,b'')] if mode=='config' else [(0,b'core.bare\n'),(124 if mode=='timeout' else 1,b'')]
+            with self.subTest(mode=mode),mock.patch.object(runner,'checked',side_effect=self.missing),mock.patch.object(runner,'execute',side_effect=outputs) as execute,self.assertRaises(ValueError):
+                runner.ensure_creator_commit(SOURCE)
+            self.assertEqual(execute.call_count,1 if mode=='config' else 2)
+
+    def test_existing_or_fetched_wrong_tree_parent_or_duplicate_parent_is_rejected(self):
+        for existing in (True,False):
+            for mode in ('tree','parent','merge'):
+                headers=self.headers(tree='0'*40) if mode=='tree' else self.headers(parent=runner.BASE_COMMIT) if mode=='parent' else self.headers().replace('\nauthor','\nparent '+'1'*40+'\nauthor')
+                def read(command,root):
+                    if command[1:3]==['cat-file','-e']:
+                        if existing:return ''
+                        raise ValueError('Synthetic missing object')
+                    return headers
+                with self.subTest(existing=existing,mode=mode),mock.patch.object(runner,'checked',side_effect=read),mock.patch.object(runner,'execute',side_effect=[(0,b'core.bare\n'),(0,b'')]) as execute,self.assertRaisesRegex(ValueError,'commit/tree/parent identity'):
+                    runner.ensure_creator_commit(SOURCE)
+                self.assertEqual(execute.call_count,0 if existing else 2)
+
+    def test_credential_redirect_include_and_auth_configuration_never_reach_fetch(self):
+        for key in ('credential.helper','credential.https://github.com.username','http.extraheader','http.https://github.com/.extraheader','http.proxy','url.ssh://example.invalid.insteadof','include.path','includeif.gitdir:work.path','core.askpass','extensions.worktreeconfig'):
+            with self.subTest(key=key),mock.patch.object(runner,'checked',side_effect=self.missing),mock.patch.object(runner,'execute',return_value=(0,(key+'\n').encode())) as execute,self.assertRaisesRegex(ValueError,'rejects credential, redirect, or included'):
+                runner.ensure_creator_commit(SOURCE)
+            self.assertEqual(execute.call_count,1)
+
+    def test_public_target_cannot_be_generalized_by_changing_fixed_identity(self):
+        for key in ('CREATOR_COMMIT','CREATOR_TREE','HISTORICAL_BASE_COMMIT'):
+            with self.subTest(key=key),mock.patch.object(runner,key,'f'*40),mock.patch.object(runner,'checked') as read,mock.patch.object(runner,'execute') as execute,self.assertRaisesRegex(ValueError,'fixed public creator object target'):
+                runner.ensure_creator_commit(SOURCE)
+            read.assert_not_called();execute.assert_not_called()
 
 
 if __name__ == '__main__':

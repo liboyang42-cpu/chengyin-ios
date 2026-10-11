@@ -7,6 +7,7 @@ import hashlib,json,re,shutil,tempfile,unittest
 from tools.tests.story_template_budget_history import before_story_template, materialize_pre_story_ui, historical_pre_story_source, historical_pre_story_module
 from unittest.mock import patch
 from tools.tests.club_parity_budget_history import before_club_parity
+from tools.run138_current_source_projection import original_feature_batch_bytes
 ROOT=Path(__file__).resolve().parents[2]
 shard=historical_pre_story_module(ROOT/'tools/run_ui_shard.py','frozen_club_r2_runner')
 ci_gates=historical_pre_story_module(ROOT/'tools/ci_gates.py','frozen_club_r2_gates')
@@ -70,7 +71,7 @@ class ClubParityIntegrationBudgetTests(unittest.TestCase):
  def test_original_eight_non_ui_upstream_postimages_are_exact(self):
   rows=json.loads((FIXTURE/'upstream-source-paths.json').read_text());self.assertEqual(len(rows),9)
   for row in rows:
-   if row['path']!='Tests/AppUITests/ClubOperationsFlowTests.swift':self.assertEqual(sha((ROOT/row['path']).read_bytes()),row['post_sha256'])
+   if row['path']!='Tests/AppUITests/ClubOperationsFlowTests.swift':self.assertEqual(sha(original_feature_batch_bytes(row['path'],(ROOT/row['path']).read_bytes(),ROOT)),row['post_sha256'])
  def test_66_is_minimum_and_67_preserves_30_seconds_without_class_splitting(self):
   self.assertEqual((shard.DEFAULT_SHARD_COUNT,ci_gates.SHARD_COUNT,self.plan['shard_count']),(67,67,67));self.assertEqual((self.plan['deadline_seconds'],self.plan['startup_reserve_seconds'],self.plan['complete_method_limit_seconds']),(1800,300,900));self.assertEqual(sum(self.costs.values()),Decimal('92687.381'));self.assertEqual(max(self.costs.values()),1470)
   for count in range(1,148):

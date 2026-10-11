@@ -9,8 +9,12 @@ import SwiftUI
 }
 @MainActor final class ProjectEndingConditionController: ObservableObject {
     struct Presentation: Identifiable {
-        let id = UUID(), incarnation: UUID, session: ProjectEditSession?, identity: ProjectEditDraftIdentity?
-        let revision: Int, bytes: Data
+        let id = UUID()
+        let incarnation: UUID
+        let session: ProjectEditSession?
+        let identity: ProjectEditDraftIdentity?
+        let revision: Int
+        let bytes: Data
         let target: ProjectEndingConditionChoices.Target
         let choices: [ProjectEndingConditionChoices.Choice]
         let oldValue: ProjectEditJSON?
@@ -128,8 +132,12 @@ import SwiftUI
 }
 @MainActor final class ProjectStoryConditionController: ObservableObject {
     struct Presentation: Identifiable {
-        let id = UUID(), incarnation: UUID, session: ProjectEditSession?, identity: ProjectEditDraftIdentity?
-        let revision: Int, bytes: Data
+        let id = UUID()
+        let incarnation: UUID
+        let session: ProjectEditSession?
+        let identity: ProjectEditDraftIdentity?
+        let revision: Int
+        let bytes: Data
         let lease: ProjectEditStarterController.Lease
         let target: ProjectStoryConditionChoice.Target
         let choices: [ProjectEndingConditionChoices.Choice]

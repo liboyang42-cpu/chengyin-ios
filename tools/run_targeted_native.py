@@ -20,8 +20,8 @@ from urllib.parse import unquote, urlparse
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_COMMIT = '45b728c7d48cf7969ac864e5693322d45e79394a'
-BASE_TREE = '440cdc3bbd4a40369e6cb6762eec6306e4aa921d'
+HISTORICAL_BASE_COMMIT = '45b728c7d48cf7969ac864e5693322d45e79394a'
+HISTORICAL_BASE_TREE = '440cdc3bbd4a40369e6cb6762eec6306e4aa921d'
 PATHS = ('.github/workflows/native-targeted.yml', 'tools/targeted_native_selection.json',
          'tools/run_targeted_native.py', 'tools/tests/test_targeted_native.py')
 REPAIR_PATHS = ('App/ProjectNodeImageCrop.swift', 'tools/run138_editor_readiness_contract.json', 'tools/run138_editor_readiness.py', 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py', 'tools/run_static_checks.py', 'tools/tests/test_native_static_checks.py')
@@ -31,10 +31,89 @@ GROUPS = {'core': ('QuestifyCoreTests', None, 44),
 BOUND_SOURCES = {'Questify.xcodeproj/project.pbxproj', '.github/workflows/native-ios.yml', 'Questify.xcodeproj/xcshareddata/xcschemes/QuestifyAppUnitTests.xcscheme', 'Package.swift', 'App/MerchantOperationsViews.swift', 'App/ProjectNodeImageCrop.swift', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift', 'App/MerchantOperationsFixtureSupport.swift', 'tools/prepare_simulator_keychain_host.py', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift', 'App/ProfileEditView.swift', 'Config/Base.xcconfig', 'App/MerchantDecorTagEditor.swift', 'Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme', 'App/MerchantOperationsEditor.swift', 'Core/MerchantOperationsReading.swift', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift', 'Core/ProfileEditService.swift', 'Config/AppUnitTests.xcconfig', 'tools/build_simulator_keychain_host.py', 'Tests/CoreTests/ProfileEditTests.swift', 'tools/ci_gates.py', 'Core/ProfileEditCoordinator.swift', 'Core/MerchantDecorTagDraft.swift', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift', 'App/TemplateAuthoringMineView.swift', 'Core/TemplateAuthoringShelf.swift', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'}
 FIXED_METHOD_SOURCES = (('QuestifyAppUnitTests/MerchantDecorTagPickerTests/testDuplicateOverLimitHistoricalTagsStayUnchangedOnOpenCancelAndInvalidOwner', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift'), ('QuestifyAppUnitTests/MerchantDecorTagPickerTests/testSemicolonTagApplyCancelAndReopenPreserveExactLabels', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testClonedTransportRejectsLateLeaseReplacementTokenRoleAndErrors', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCurrent401ExpiresOnlyCurrentOwner', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testNormalFactoryPagedShelfDetailAndEveryWriterRemainOff', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyCoreTests/MerchantDecorTagDraftTests/testHistoricalLabelsRemainByteExactUntilExplicitRemoval', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift'), ('QuestifyCoreTests/MerchantDecorTagDraftTests/testSemicolonCustomLabelRemainsOneLiteralTag', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testAcknowledgedWriteReadbackFailureKeepsLockUntilReadOnlyRetry', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testCancelledReadDoesNotPublishLateServerExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFailedRefreshRetainsSnapshotAndShowsExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFinalPreWriteReadFailureDoesNotDispatchOrReuseConfirmation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testInitialReadFailureShowsExactServerMessageAndRetryClearsItWithoutWriting', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testLateFailureCannotPublishAfterSameAccountTokenReplacement', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testNewReadClearsPriorExplanationBeforeResponse', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testPrepareFailureKeepsSnapshotAndRequiresANewReview', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testSessionResetClearsPreviouslyDisplayedExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnauthorizedCallbackInvalidatesFailureBeforePresentation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnknownWriteReadbackFailureAndMatchingRetryNeverUnlockOrResend', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testWhitespaceAndNonServerErrorsNeverBecomeUserText', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/TemplateAuthoringHTTPTests/testRefreshSnapshotCannotReplaceHundredRowWritePreflightOrOldReview', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAlreadyCancelledRefreshClearsSnapshotWithoutDispatch', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAuthContractUnknownAndCancellationFailuresClearRefreshSnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testCachedRefreshLifetimeTransitionsAndABAFenceAllLateResults', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testContinuationAuthAndContractErrorsClearRowsButOverlapRemainsRetryable', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testNewKeywordNeverDisplaysPreviousQuerySnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testOnlyExplicitTransientFailuresRetainSnapshotAndRequireFirstPageRetry', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshAtHundredPageBoundaryRestartsAtOneWithoutPage101', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshReplacesOverlappingIDsAndValidEmptyClearsSnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testSameKeywordNewGenerationRejectsOldSuccessAndError', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testActualMiniCounterexamplesSeparatePersonalAndMarketplaceStates', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testAlreadyCancelledRefreshCannotDispatchOrKeepSidecars', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testAuthContractAndCancellationErrorsClearEveryCachedState', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testCanonicalOptionalTextAndMissingFieldsRemainCompatible', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testDisplayMetadataNeverChangesSharedDTOOrAcknowledgesPendingMutation', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testEmptyFirstPageClearsRowsAndDisplayStatesTogether', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testExistingBaseDTOValidationIsNotRelaxedByTolerantDisplayColumns', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testFeedbackIsVerbatimOptionalTextAndNeverAnAction', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMalformedBaseRowsClearStatesWithoutCommittingPartialPage', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMalformedOptionalColumnsNeverInvalidateAnOtherwiseLegalRow', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMarketIdentityLongBoundsAreReadFromOriginalBytesWithoutCoercion', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMarketplaceMatrixIgnoresPersonalPublishStatus', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testNewKeywordCannotRetainOldStateWhenRequestFails', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testOldSuccessAndErrorCannotOverwriteNewSameIDState', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testOverlappingContinuationCannotPartiallyReplaceOrAppendStates', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testPartialMetadataDecodingDoesNotDropOtherFieldsOrOtherRows', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testPersonalReviewPrecedenceMatchesSourceMatrix', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testSameIDsAndEqualBaseRowsStillReplaceChangedDisplayStates', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testScopeTransitionsABARevocationLeaveAndCancelRetireStates', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testTransientRefreshRetainsStatesWithRowsAndRetryReplacesBoth', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testAccountChangeDismissesReviewAndSignoutClearsShelf', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testChineseLargeTextCanCancelReview', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testDefaultDisabledHasNoMutationConfirmation', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteRequiresSeparateReviewAndSimulationIsLabelled', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedDetailBackAndReopenKeepsStableDestination', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testUnknownLocksBothActionsAcrossReopen', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'))
 METHOD = re.compile(r'(QuestifyCoreTests|QuestifyAppUnitTests|QuestifyUITests)/([A-Za-z][A-Za-z0-9_]*)/(test[A-Za-z0-9_]+)')
-SELECTION_CONTRACT_SHA256 = 'a871250c5af6ab9189c08317cf0c2b0563b938084a7a95ecfb7536fdab82aa43'
+SELECTION_CONTRACT_SHA256 = 'ffc171f8f6c7b3097a8edc8d71e0e82fe0b123ac77c68cbc36009e9b83f4b379'
 CREATOR_PATHS = ('App/TemplateAuthoringMineView.swift', 'Core/TemplateAuthoringShelf.swift', 'Resources/Localizable.xcstrings', 'Tests/ContractChecks/test_template_shelf_state_projection.py', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift', 'tools/tests/creator_shelf_state_history.py', 'tools/tests/test_creator_shelf_state_history.py', 'tools/tests/creator_shelf_refresh_history.py', 'tools/tests/test_creator_shelf_refresh_history.py', 'tools/tests/test_creator_pending_synthetic_storage_history.py', 'tools/run138_editor_readiness_contract.json', 'tools/run138_editor_readiness.py', 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py', 'App/MerchantBusinessEditor.swift', 'Tests/ContractChecks/test_merchant_review_draft_return.py')
 CREATOR_CHANGES_CONTRACT_SHA256 = 'a0a916e50820419681f69c6e21ad048655f5b5d6db628079cc8a44a96ab7e1e9'
-ALLOWED_CHANGES = ('M	.github/workflows/native-targeted.yml', 'M	tools/targeted_native_selection.json', 'M	tools/run_targeted_native.py', 'M	tools/tests/test_targeted_native.py', 'M	App/TemplateAuthoringMineView.swift', 'M	Core/TemplateAuthoringShelf.swift', 'M	Resources/Localizable.xcstrings', 'A	Tests/ContractChecks/test_template_shelf_state_projection.py', 'A	Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift', 'A	tools/tests/creator_shelf_state_history.py', 'A	tools/tests/test_creator_shelf_state_history.py', 'M	tools/tests/creator_shelf_refresh_history.py', 'M	tools/tests/test_creator_shelf_refresh_history.py', 'M	tools/tests/test_creator_pending_synthetic_storage_history.py', 'M	tools/run138_editor_readiness_contract.json', 'M	tools/run138_editor_readiness.py', 'M	Tests/ContractChecks/test_profile_read_failure_remote_admission.py', 'M	App/MerchantBusinessEditor.swift', 'M	Tests/ContractChecks/test_merchant_review_draft_return.py')
+HISTORICAL_ALLOWED_CHANGES = ('M	.github/workflows/native-targeted.yml', 'M	tools/targeted_native_selection.json', 'M	tools/run_targeted_native.py', 'M	tools/tests/test_targeted_native.py', 'M	App/TemplateAuthoringMineView.swift', 'M	Core/TemplateAuthoringShelf.swift', 'M	Resources/Localizable.xcstrings', 'A	Tests/ContractChecks/test_template_shelf_state_projection.py', 'A	Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift', 'A	tools/tests/creator_shelf_state_history.py', 'A	tools/tests/test_creator_shelf_state_history.py', 'M	tools/tests/creator_shelf_refresh_history.py', 'M	tools/tests/test_creator_shelf_refresh_history.py', 'M	tools/tests/test_creator_pending_synthetic_storage_history.py', 'M	tools/run138_editor_readiness_contract.json', 'M	tools/run138_editor_readiness.py', 'M	Tests/ContractChecks/test_profile_read_failure_remote_admission.py', 'M	App/MerchantBusinessEditor.swift', 'M	Tests/ContractChecks/test_merchant_review_draft_return.py')
+# This repair is a distinct fifteen-path child of the already-published discovery
+# commit. The old nineteen-path image remains historical evidence only.
+BASE_COMMIT = '3393ec85076a7a4e246e94e98ddf81f6b73ede2f'
+BASE_TREE = '7dd9461bafbe546e1c5ef5eaacc750267b416b2f'
+STATIC_REPAIR_PATHS = ('App/ProjectThoughtDefinitionsEditor.swift',
+ 'App/ProjectEndingConditionPicker.swift',
+ 'tools/run138_editor_readiness.py',
+ 'tools/run138_editor_readiness_contract.json',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py',
+ 'tools/club_customer_directory_admission.py',
+ 'Tests/ContractChecks/test_category_roam_registration.py',
+ 'tools/tests/test_creator_shelf_state_history.py',
+ 'tools/tests/test_club_parity_integration_budget.py',
+ 'tools/tests/test_readiness_contract_parse_cache.py',
+ 'Tests/ContractChecks/test_global_search_category_recovery.py',
+ 'Tests/ContractChecks/test_club_customer_directory_remote_admission.py')
+ALLOWED_CHANGES = ('M\tApp/ProjectThoughtDefinitionsEditor.swift',
+ 'M\tApp/ProjectEndingConditionPicker.swift',
+ 'M\ttools/run138_editor_readiness.py',
+ 'M\ttools/run138_editor_readiness_contract.json',
+ 'M\tTests/ContractChecks/test_profile_read_failure_remote_admission.py',
+ 'M\ttools/club_customer_directory_admission.py',
+ 'M\tTests/ContractChecks/test_category_roam_registration.py',
+ 'M\ttools/tests/test_creator_shelf_state_history.py',
+ 'M\ttools/tests/test_club_parity_integration_budget.py',
+ 'A\ttools/tests/test_readiness_contract_parse_cache.py',
+ 'M\ttools/run_targeted_native.py',
+ 'M\ttools/targeted_native_selection.json',
+ 'M\ttools/tests/test_targeted_native.py',
+ 'M\tTests/ContractChecks/test_global_search_category_recovery.py',
+ 'M\tTests/ContractChecks/test_club_customer_directory_remote_admission.py')
+CREATOR_COMMIT = 'b75f7549678caf51a65ec8942b6a6d0c23e887de'
+CREATOR_TREE = '6d5a1e4a1486b3e97ed2f1e995ac5194e568bc20'
+CREATOR_PARENT_PATHS = ('Questify.xcodeproj/project.pbxproj',
+ 'Resources/Localizable.xcstrings',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py',
+ 'Tests/ContractChecks/test_template_shelf_state_projection.py',
+ 'tools/run138_editor_readiness.py',
+ 'tools/run138_editor_readiness_contract.json',
+ 'tools/tests/creator_shelf_state_history.py',
+ 'tools/tests/test_creator_shelf_state_history.py')
+CREATOR_PARENT_CHANGES_SHA256 = '3f704cdecbafab177689f9c35ecc52c2c581ad0a963ea6002b098610900952d2'
+PARENT_HISTORY_CHANGES = ('M\tApp/ClubGovernanceViews.swift',
+ 'M\tApp/GlobalSearchView.swift',
+ 'M\tApp/RoamExperienceComponents.swift',
+ 'M\tApp/RoamHistoryViews.swift',
+ 'M\tApp/SearchMapFilterSheet.swift',
+ 'M\tCore/ClubCustomerHistoryTopicRoute.swift',
+ 'M\tCore/ClubGovernanceContracts.swift',
+ 'M\tCore/RoamExperienceMath.swift',
+ 'M\tCore/SearchMapReading.swift',
+ 'M\tQuestify.xcodeproj/project.pbxproj',
+ 'M\tResources/Localizable.xcstrings',
+ 'A\tTests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift',
+ 'A\tTests/ContractChecks/test_category_roam_registration.py',
+ 'A\tTests/ContractChecks/test_club_customer_directory_remote_admission.py',
+ 'A\tTests/ContractChecks/test_club_customer_keyword_debounce.py',
+ 'A\tTests/ContractChecks/test_club_customer_permissions.py',
+ 'A\tTests/ContractChecks/test_global_search_category_recovery.py',
+ 'M\tTests/ContractChecks/test_profile_read_failure_remote_admission.py',
+ 'A\tTests/ContractChecks/test_roam_route_replay.py',
+ 'M\tTests/ContractChecks/test_template_shelf_state_projection.py',
+ 'A\tTests/CoreTests/ClubCustomerPermissionTests.swift',
+ 'M\tTests/CoreTests/ClubGovernanceProductionTests.swift',
+ 'A\tTests/CoreTests/GlobalSearchCategoryRecoveryTests.swift',
+ 'A\tTests/CoreTests/RoamRouteReplayTests.swift',
+ 'A\tTests/CoreTests/SearchMapCategoryRecoveryTests.swift',
+ 'A\tdocs/club-customer-keyword-debounce.md',
+ 'A\tdocs/club-customer-permissions.md',
+ 'A\tdocs/global-search-category-recovery.md',
+ 'A\tdocs/roam-route-replay.md',
+ 'A\ttools/club_customer_directory_admission.py',
+ 'M\ttools/run138_editor_readiness.py',
+ 'M\ttools/run138_editor_readiness_contract.json',
+ 'M\ttools/tests/creator_shelf_state_history.py',
+ 'M\ttools/tests/test_creator_shelf_state_history.py')
+HISTORICAL_SOURCE_FILES_SHA256 = '80b4ed9152d4acf4f1688962c0cf8a30209fb475405b2f2b247595ca9706a0de'
+STATIC_REPAIR_CHANGES_SHA256 = '4ab9e7d7117f44afcbf10f45d89ec2fe7a3f9e6cc0a37d59e5fd42d13ad407c6'
+STATIC_DIAGNOSTIC_BASE_BLOBS = {'tools/targeted_native_selection.json': 'd3d549ea73885294a64928274e24196aacb2afca', 'tools/run_targeted_native.py': '720fe9fffccdfaad4744e9dc9a03fa4ae2d0abc1', 'tools/tests/test_targeted_native.py': '5b464736a814967c8ef15276e48b6142ee160683'}
 LIMIT = 10 * 1024 * 1024
 
 
@@ -89,10 +168,137 @@ def inverse_reviewed_repair(row, raw):
     return restored
 
 
+def validate_static_repair(selection, root):
+    """Authenticate complete current bytes, then restore exactly the published 3393 image.
+
+    This fixed twelve-file layer does not grant any new path to a historical inverse.
+    Diagnostic metadata is scope-bound separately to avoid self-hash recursion.
+    """
+    rows = selection.get('static_repair_changes')
+    require(isinstance(rows, list) and all(isinstance(row, dict) for row in rows)
+            and [row.get('path') for row in rows] == list(STATIC_REPAIR_PATHS),
+            'Missing/reordered static repair payload scope')
+    require(hashlib.sha256(encode(rows).encode()).hexdigest() == STATIC_REPAIR_CHANGES_SHA256,
+            'Changed independently frozen static repair bindings')
+    restored = {}
+    for row in rows:
+        require(set(row) == {'path', 'status', 'before_sha256', 'before_blob',
+                             'after_sha256', 'after_blob', 'hunks'},
+                'Unknown static repair binding fields')
+        require(row['status'] + '\t' + row['path'] in ALLOWED_CHANGES,
+                'Wrong static repair path status')
+        path = root / row['path']
+        require(not path.is_symlink() and path.is_file()
+                and path.resolve().is_relative_to(root.resolve()),
+                'Static repair source escaped checkout or is not a regular file')
+        raw = path.read_bytes()
+        require(hashlib.sha256(raw).hexdigest() == row['after_sha256'],
+                'Changed complete current static repair bytes')
+        require(hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == row['after_blob'],
+                'Changed complete current static repair blob')
+        if row['status'] == 'A':
+            require(row['before_sha256'] is None and row['before_blob'] is None and row['hunks'] == [],
+                    'Added static repair file cannot have a fabricated predecessor')
+        else:
+            require(row['status'] == 'M' and isinstance(row['hunks'], list) and bool(row['hunks']),
+                    'Invalid static repair modification')
+            require(all(isinstance(hunk, dict) and set(hunk) == {'before', 'after'}
+                        and all(isinstance(hunk[key], str) and hunk[key] for key in ('before', 'after'))
+                        for hunk in row['hunks']), 'Invalid static repair inverse hunk')
+            restored[row['path']] = inverse_reviewed_repair(row, raw)
+    return restored
+
+
+def verify_static_repair_tree(selection, root, revision, before):
+    """Bind mode, presence, and Git blobs at the real 3393 tree and current HEAD."""
+    paths = tuple(change.split('\t', 1)[1] for change in ALLOWED_CHANGES)
+    raw = checked(['git', 'ls-tree', '-z', revision, '--', *paths], root)
+    entries = {}
+    for entry in raw.split('\0'):
+        if not entry:
+            continue
+        metadata, path = entry.split('\t', 1)
+        require(path not in entries, 'Duplicate static repair tree path')
+        entries[path] = metadata.split(' ')
+    rows = selection['static_repair_changes']
+    expected = {row['path']: row['before_blob' if before else 'after_blob']
+                for row in rows if not before or row['status'] == 'M'}
+    for path, old_blob in STATIC_DIAGNOSTIC_BASE_BLOBS.items():
+        if before:
+            expected[path] = old_blob
+        else:
+            source = root / path
+            require(not source.is_symlink() and source.is_file()
+                    and source.resolve().is_relative_to(root.resolve()),
+                    'Static diagnostic source escaped checkout or is not a regular file')
+            data = source.read_bytes()
+            expected[path] = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+    require(set(entries) == set(expected), 'Static repair tree has missing or unexpected paths')
+    for path, blob in expected.items():
+        require(entries[path] == ['100644', 'blob', blob],
+                'Static repair tree differs from exact reviewed mode/blob')
+    return entries
+
+
+def restore_creator_inputs(selection, root):
+    """Current15 -> exact3393 -> fixed b75 inputs; historical domains stay fixed."""
+    parent = validate_static_repair(selection, root)
+    rows = selection.get('creator_parent_changes')
+    require(isinstance(rows, list) and all(isinstance(row, dict) for row in rows)
+            and [row.get('path') for row in rows] == list(CREATOR_PARENT_PATHS),
+            'Missing/reordered creator parent bridge')
+    require(hashlib.sha256(encode(rows).encode()).hexdigest() == CREATOR_PARENT_CHANGES_SHA256,
+            'Changed independently frozen creator parent bridge')
+    restored = {}
+    for row in rows:
+        require(set(row) == {'path', 'status', 'before_sha256', 'before_blob',
+                             'after_sha256', 'after_blob', 'hunks'} and row['status'] == 'M',
+                'Invalid creator parent bridge fields/status')
+        require(row['path'] in BOUND_SOURCES or row['path'] in CREATOR_PATHS
+                or row['path'] in REPAIR_PATHS, 'Creator bridge expanded a historical source domain')
+        path = root / row['path']
+        require(not path.is_symlink() and path.is_file()
+                and path.resolve().is_relative_to(root.resolve()), 'Creator bridge source escaped checkout')
+        raw = parent.get(row['path'], path.read_bytes())
+        require(hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == row['after_blob'],
+                'Changed complete creator parent bridge blob')
+        require(isinstance(row['hunks'], list) and bool(row['hunks'])
+                and all(isinstance(h, dict) and set(h) == {'before', 'after'}
+                        and all(isinstance(h[k], str) and h[k] for k in ('before', 'after'))
+                        for h in row['hunks']), 'Invalid creator parent bridge inverse')
+        restored[row['path']] = inverse_reviewed_repair(row, raw)
+    sources = selection.get('historical_source_files')
+    require(isinstance(sources, list) and hashlib.sha256(encode(sources).encode()).hexdigest()
+            == HISTORICAL_SOURCE_FILES_SHA256, 'Changed fixed historical source bindings')
+    require({row['path'] for row in sources} == BOUND_SOURCES,
+            'Changed historical source domain')
+    for row in sources:
+        raw = restored.get(row['path'], parent.get(row['path'], (root / row['path']).read_bytes()))
+        require(hashlib.sha256(raw).hexdigest() == row['sha256'],
+                'Historical source digest changed: ' + row['path'])
+    return restored
+
+
+def verify_creator_parent_tree(selection, root, revision, before):
+    raw = checked(['git', 'ls-tree', '-z', revision, '--', *CREATOR_PARENT_PATHS], root)
+    entries = {}
+    for entry in raw.split('\0'):
+        if not entry:
+            continue
+        metadata, path = entry.split('\t', 1)
+        require(path not in entries, 'Duplicate creator parent tree path')
+        entries[path] = metadata.split(' ')
+    require(set(entries) == set(CREATOR_PARENT_PATHS), 'Incomplete creator parent tree scope')
+    for row in selection['creator_parent_changes']:
+        require(entries[row['path']] == ['100644', 'blob', row['before_blob' if before else 'after_blob']],
+                'Creator parent tree differs from exact reviewed mode/blob')
+    return entries
+
+
 def verify_creator_baseline(selection, root):
     # The exact published tree is independently fixed. An added path must be
     # absent from that real tree; no empty-file inverse can stand in for absence.
-    raw = checked(['git', 'ls-tree', '-z', BASE_TREE, '--', *CREATOR_PATHS], root)
+    raw = checked(['git', 'ls-tree', '-z', HISTORICAL_BASE_TREE, '--', *CREATOR_PATHS], root)
     entries = {}
     for entry in raw.split('\0'):
         if not entry:
@@ -127,6 +333,7 @@ def verify_creator_current_tree(selection, root, head):
 
 
 def validate_creator_changes(selection, root):
+    published = restore_creator_inputs(selection, root)
     rows = selection.get('creator_changes')
     require(isinstance(rows, list) and [r.get('path') for r in rows] == list(CREATOR_PATHS),
             'Missing/reordered creator current scope')
@@ -136,10 +343,10 @@ def validate_creator_changes(selection, root):
     for row in rows:
         require(set(row) == {'path', 'status', 'before_sha256', 'before_blob', 'after_sha256', 'after_blob', 'hunks'},
                 'Unknown creator binding fields')
-        require(row['status'] + '\t' + row['path'] in ALLOWED_CHANGES, 'Wrong creator path status')
+        require(row['status'] + '\t' + row['path'] in HISTORICAL_ALLOWED_CHANGES, 'Wrong creator path status')
         path = root / row['path']
         require(not path.is_symlink() and path.resolve().is_relative_to(root.resolve()), 'Creator source escaped checkout')
-        raw = path.read_bytes()
+        raw = published.get(row['path'], path.read_bytes())
         require(hashlib.sha256(raw).hexdigest() == row['after_sha256'], 'Changed complete current creator bytes')
         require(hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == row['after_blob'],
                 'Changed complete current creator blob')
@@ -163,14 +370,15 @@ def validate_reviewed_repairs(selection, root):
         require(not path.is_symlink() and path.resolve().is_relative_to(root.resolve()), 'Repair escaped checkout')
         restored[row['path']] = inverse_reviewed_repair(row, creator.get(row['path'], path.read_bytes()))
     current = read_json(root / REPAIR_PATHS[1])
+    repair_hashes = {row['path']: row['after_sha256'] for row in selection['static_repair_changes']}
     crop = repairs[0]
     require(current['feature_batch_support_sha256'][crop['path']] == crop['after_sha256'], 'Current crop support is not genuine')
     require(current['feature_batch_sources'][crop['path']] == {k: crop[k] for k in ['before_sha256', 'after_sha256', 'hunks']}, 'Missing exact central crop inverse')
-    require(current['feature_batch_support_sha256'][repairs[3]['path']] == next(r['after_sha256'] for r in selection['creator_changes'] if r['path'] == repairs[3]['path']), 'Current admission support is not genuine')
+    require(current['feature_batch_support_sha256'][repairs[3]['path']] == repair_hashes[repairs[3]['path']], 'Current admission support is not genuine')
     for row in repairs[4:]:
         require(current['followon_support_sha256'][row['path']] == row['after_sha256'], 'Current static support is not genuine')
     pins = re.findall(r"^CONTRACT_SHA256 = '([0-9a-f]{64})'$", (root / REPAIR_PATHS[2]).read_text(), re.MULTILINE)
-    require(pins == [next(r['after_sha256'] for r in selection['creator_changes'] if r['path'] == repairs[1]['path'])], 'Current readiness pin differs from complete contract')
+    require(pins == [repair_hashes[repairs[1]['path']]], 'Current readiness pin differs from complete contract')
     return restored
 
 
@@ -190,11 +398,17 @@ def declared_methods(source, target):
 
 def validate_selection(selection, root):
     require(isinstance(selection, dict) and type(selection.get('version')) is int and selection.get('version') == 1, 'Unsupported selection version')
-    require(set(selection) == {'repository', 'groups', 'base_tree', 'base_commit', 'creator_changes', 'branch', 'allowed_changes', 'name', 'version', 'source_files', 'coverage_boundary', 'reviewed_repairs'}, 'Unknown fixed selection fields')
-    require(selection.get('name') == 'shelf-profile-merchant-creator-v3', 'Unknown fixed selection')
+    require(set(selection) == {'repository', 'groups', 'base_tree', 'base_commit', 'creator_changes', 'branch', 'allowed_changes', 'name', 'version', 'source_files', 'coverage_boundary', 'reviewed_repairs', 'historical_base', 'static_repair_changes', 'creator_base', 'creator_parent_changes', 'historical_source_files'}, 'Unknown fixed selection fields')
+    require(selection.get('name') == 'shelf-profile-merchant-creator-unified-repair-v5', 'Unknown fixed selection')
     require(selection.get('base_commit') == BASE_COMMIT and selection.get('base_tree') == BASE_TREE, 'Wrong reviewed base')
     require(selection.get('repository') == 'liboyang42-cpu/chengyin-ios' and selection.get('branch') == 'migration/native-ios', 'Wrong repository or branch')
-    require(selection.get('allowed_changes') == list(ALLOWED_CHANGES), 'Changed exact nineteen-path/status boundary')
+    require(selection.get('allowed_changes') == list(ALLOWED_CHANGES), 'Changed exact fifteen-path repair boundary')
+    require(selection.get('historical_base') == {'base_commit': HISTORICAL_BASE_COMMIT,
+            'base_tree': HISTORICAL_BASE_TREE, 'allowed_changes': list(HISTORICAL_ALLOWED_CHANGES)},
+            'Changed historical nineteen-path boundary')
+    require(selection.get('creator_base') == {'base_commit': CREATOR_COMMIT,
+            'base_tree': CREATOR_TREE, 'parent_changes': list(PARENT_HISTORY_CHANGES)},
+            'Changed exact published creator-to-parent history')
     sources = selection.get('source_files')
     require(isinstance(sources, list) and all(isinstance(row, dict) and set(row) == {'path', 'sha256'} for row in sources), 'Invalid source bindings')
     hashes = {row['path']: row['sha256'] for row in sources}
@@ -233,12 +447,12 @@ def validate_selection(selection, root):
     return selection
 
 
-def execute(command, cwd, timeout, capture=False):
+def execute(command, cwd, timeout, capture=False, env=None):
     """Every process tree gets bounded interrupt/terminate/kill cleanup."""
     require(timeout > 0, 'Diagnostic deadline exhausted')
     process = subprocess.Popen([str(x) for x in command], cwd=cwd, start_new_session=True,
                                stdout=subprocess.PIPE if capture else None,
-                               stderr=subprocess.PIPE if capture is True else None)
+                               stderr=subprocess.PIPE if capture is True else None, env=env)
     timed_out = False
     try:
         stdout, stderr = process.communicate(timeout=timeout)
@@ -267,20 +481,79 @@ def checked(command, root, timeout=60):
     return output.decode().strip()
 
 
+def ensure_creator_commit(root):
+    """Read only the one public b75 object when depth-two checkout lacks it."""
+    require(CREATOR_COMMIT == 'b75f7549678caf51a65ec8942b6a6d0c23e887de'
+            and CREATOR_TREE == '6d5a1e4a1486b3e97ed2f1e995ac5194e568bc20'
+            and HISTORICAL_BASE_COMMIT == '45b728c7d48cf7969ac864e5693322d45e79394a',
+            'Changed fixed public creator object target')
+    try:
+        checked(['git', 'cat-file', '-e', CREATOR_COMMIT + '^{commit}'], root)
+        checked(['git', 'cat-file', '-e', CREATOR_COMMIT + '^{tree}'], root)
+    except ValueError:
+        # Deliberately do not inherit tokens, proxies, askpass, SSH, config-count,
+        # custom object stores, or HOME credentials into the network subprocess.
+        environment = {'PATH': os.environ.get('PATH', os.defpath), 'LANG': 'C',
+                       'HOME': '/dev/null', 'GIT_TERMINAL_PROMPT': '0',
+                       'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null',
+                       'GIT_ASKPASS': '/usr/bin/false', 'SSH_ASKPASS': '/usr/bin/false'}
+        code, raw = execute(['git', 'config', '--local', '--includes', '--name-only', '--list'],
+                            root, 10, True, env=environment)
+        require(code == 0, 'Cannot inspect public-read repository configuration')
+        keys = raw.decode().lower().splitlines()
+        require(not any(k.startswith(('url.', 'http.', 'credential.', 'include.', 'includeif.'))
+                        or k in {'core.askpass', 'extensions.worktreeconfig'} for k in keys),
+                'Public creator read rejects credential, redirect, or included configuration')
+        command = ['git', '-c', 'credential.helper=', '-c', 'core.askPass=',
+                   '-c', 'http.extraHeader=', '-c', 'http.followRedirects=false',
+                   '-c', 'protocol.allow=never', '-c', 'protocol.https.allow=always',
+                   'fetch', '--no-tags', '--no-write-fetch-head', '--depth=1', '--no-recurse-submodules',
+                   'https://github.com/liboyang42-cpu/chengyin-ios.git',
+                   'b75f7549678caf51a65ec8942b6a6d0c23e887de']
+        code, _ = execute(command, root, 60, True, env=environment)
+        require(code == 0, 'Exact public b75 read failed; historical source verification is unavailable')
+    raw = checked(['git', 'cat-file', '-p', CREATOR_COMMIT], root)
+    headers = raw.split('\n\n', 1)[0].splitlines()
+    require([line[5:] for line in headers if line.startswith('tree ')] == [CREATOR_TREE]
+            and [line[7:] for line in headers if line.startswith('parent ')] == [HISTORICAL_BASE_COMMIT],
+            'Published b75 commit/tree/parent identity differs')
+
+
 def verify_scope(root, selection):
     head = checked(['git', 'rev-parse', 'HEAD'], root)
     require(re.fullmatch('[a-f0-9]{40}', head) is not None and head == os.environ.get('GITHUB_SHA'), 'Actual HEAD differs from GITHUB_SHA')
-    require(checked(['git', 'rev-parse', BASE_COMMIT + '^{tree}'], root) == BASE_TREE, 'Baseline tree differs')
+    try:
+        base_tree = checked(['git', 'rev-parse', BASE_COMMIT + '^{tree}'], root)
+        parents = checked(['git', 'rev-list', '--parents', '-n', '1', 'HEAD'], root).split()
+    except ValueError as error:
+        raise ValueError('Published 3393 repair baseline is unavailable; the exact parent must be present') from error
+    require(base_tree == BASE_TREE, 'Published 3393 repair baseline tree differs')
+    require(parents == [head, BASE_COMMIT], 'Static repair must have exactly the published 3393 parent')
     changes = checked(['git', 'diff', '--name-status', BASE_COMMIT, head], root).splitlines()
-    require(set(changes) == set(ALLOWED_CHANGES) and len(changes) == len(ALLOWED_CHANGES), 'Source changes differ from nineteen exact reviewed statuses')
-    verify_creator_current_tree(selection, root, head)
+    require(set(changes) == set(ALLOWED_CHANGES) and len(changes) == len(ALLOWED_CHANGES), 'Source changes differ from fifteen exact repair statuses')
+    ensure_creator_commit(root)
+    require(checked(['git', 'rev-parse', HISTORICAL_BASE_COMMIT + '^{tree}'], root) == HISTORICAL_BASE_TREE, 'Historical baseline tree differs')
+    historical = checked(['git', 'diff', '--name-status', HISTORICAL_BASE_COMMIT, CREATOR_COMMIT], root).splitlines()
+    require(set(historical) == set(HISTORICAL_ALLOWED_CHANGES) and len(historical) == len(HISTORICAL_ALLOWED_CHANGES),
+            'Published b75 history differs from nineteen exact reviewed statuses')
+    parent_history = checked(['git', 'diff', '--name-status', CREATOR_COMMIT, BASE_COMMIT], root).splitlines()
+    require(set(parent_history) == set(PARENT_HISTORY_CHANGES) and len(parent_history) == len(PARENT_HISTORY_CHANGES),
+            'Published creator-to-3393 history differs from its exact statuses')
+    verify_creator_parent_tree(selection, root, CREATOR_TREE, before=True)
+    verify_creator_parent_tree(selection, root, BASE_TREE, before=False)
+    verify_static_repair_tree(selection, root, BASE_TREE, before=True)
+    verify_static_repair_tree(selection, root, head, before=False)
+    verify_creator_current_tree(selection, root, CREATOR_COMMIT)
     require(not checked(['git', 'status', '--porcelain', '--untracked-files=normal'], root), 'Checkout is not clean')
     validate_selection(selection, root)
-    # Required for every real run, before any build and again at finalization.
-    # Static source validation stays usable in a history-free shallow checkout.
+    # Both tree witnesses are mandatory before any build and at finalization.
+    # Current-byte validation alone stays usable in a history-free checkout.
     verify_creator_baseline(selection, root)
     return {'source_sha': head, 'source_tree': checked(['git', 'rev-parse', 'HEAD^{tree}'], root),
-            'base_commit': BASE_COMMIT, 'base_tree': BASE_TREE}
+            'base_commit': BASE_COMMIT, 'base_tree': BASE_TREE,
+            'historical_base_commit': HISTORICAL_BASE_COMMIT,
+            'historical_base_tree': HISTORICAL_BASE_TREE,
+            'creator_base_commit': CREATOR_COMMIT, 'creator_base_tree': CREATOR_TREE}
 
 
 def choose_simulator(data):
@@ -630,6 +903,10 @@ def validate_pass_receipt(receipt, expected, selection):
     for key, value in expected.items():
         require(bool(value) and receipt.get(key) == value, 'Receipt identity mismatch: ' + key)
     require(receipt.get('base_commit') == BASE_COMMIT and receipt.get('base_tree') == BASE_TREE, 'Wrong receipt base')
+    require(receipt.get('historical_base_commit') == HISTORICAL_BASE_COMMIT
+            and receipt.get('historical_base_tree') == HISTORICAL_BASE_TREE, 'Wrong receipt historical base')
+    require(receipt.get('creator_base_commit') == CREATOR_COMMIT
+            and receipt.get('creator_base_tree') == CREATOR_TREE, 'Wrong receipt creator base')
     require(receipt.get('selection') == selection['name'] and all(type(receipt.get(k)) is int and receipt[k] == 65 for k in ['expected_count', 'actual_count']), 'Wrong total executed count')
     require(set(receipt.get('groups', {})) == set(GROUPS), 'Missing receipt group')
     toolchain = receipt.get('toolchain')

@@ -518,7 +518,9 @@ CLUB_RAW_SHA256 = {'Core/ClubCustomerHistoryTopicRoute.swift': '566199e3d716e395
  'docs/club-customer-keyword-debounce.md': '1fa12a8011cb1b2c3d7425dcd8f1f8ca07f27be08adb8a545c1be98f97806f0e',
  'Questify.xcodeproj/project.pbxproj': 'a397f1c25ca67e4657846e799d8b1f55f8755d3debc7bc7609dcc6040afc9f50',
  'tools/tests/test_creator_shelf_state_history.py': 'baa95d45430a19f2a7c472dcd269150197617f45d50735aa84b142ca2973d33c'}
-FLOOR_INPUTS = ('App/MerchantBusinessEditor.swift',
+FLOOR_INPUTS = ('App/ProjectThoughtDefinitionsEditor.swift',
+ 'App/ProjectEndingConditionPicker.swift',
+ 'App/MerchantBusinessEditor.swift',
  'App/MerchantOperationsEditor.swift',
  'App/ProjectNodeImageCrop.swift',
  'App/TemplateAuthoringMineView.swift',
@@ -1214,7 +1216,7 @@ def _profile_module():
 def current_predecessor_contract(contract, root):
     """Full club raw admission -> exact complete creator floor; never a scanner view."""
     root = Path(root)
-    if digest((root / HELPER_PATH).read_bytes()) != HELPER_SHA256:
+    if digest((root / HELPER_PATH).read_bytes()) != '80b6fb95961ef598ea66aa02e0081938b5df2ae7860a3e3fad76e5c0fa0a2297':
         raise ValueError('Current club reader changed')
     prefix = (root / HELPER_PATH).read_bytes().split(b'\n# Finite club layer on the exact creator/fixed45 floor. Frozen reader above retained.\n', 1)[0]
     if digest(prefix) != FROZEN16_HELPER_SHA256:
@@ -1224,7 +1226,7 @@ def current_predecessor_contract(contract, root):
         raise ValueError('Frozen original club11 helper not retained exactly')
     restore_creator_history_test((root / CLUB_HISTORY_PATH).read_bytes())
     support = contract['feature_batch_support_sha256']
-    if support.get(HELPER_PATH) != HELPER_SHA256:
+    if support.get(HELPER_PATH) != '80b6fb95961ef598ea66aa02e0081938b5df2ae7860a3e3fad76e5c0fa0a2297':
         raise ValueError('Current club helper support changed')
     for name, expected in CLUB_RAW_SHA256.items():
         if digest((root / name).read_bytes()) != expected:
@@ -1272,7 +1274,9 @@ def _validated_frozen16(root):
     if digest(baseline) != BASE_CONTRACT_SHA256:
         raise ValueError('Full historical baseline changed')
     # Bind both changed club support files to their exact frozen predecessors.
-    frozen_test = _inverse_row(FROZEN_TEST_PATH, (Path(root) / FROZEN_TEST_PATH).read_bytes(), FROZEN16_TEST_INVERSE)
+    from Tests.ContractChecks.test_category_roam_registration import repair_predecessor_source
+    current_test = repair_predecessor_source(FROZEN_TEST_PATH, (Path(root) / FROZEN_TEST_PATH).read_bytes())
+    frozen_test = _inverse_row(FROZEN_TEST_PATH, current_test, FROZEN16_TEST_INVERSE)
     _inverse_row(FROZEN_TEST_PATH, frozen_test, TEST_EVOLUTION)
     restored = json.loads(baseline)
     restored['feature_batch_sources'].update(copy.deepcopy(FROZEN16_SOURCE_ROWS))

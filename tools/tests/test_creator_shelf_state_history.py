@@ -351,6 +351,8 @@ class CreatorShelfStateHistoryTests(unittest.TestCase):
         self.assertEqual(len(raw),len(legacy))
         self.assertEqual(digest(legacy),'519006c2f95083423c186d289b8b2a1b6ef9c6327b5fd461718548b8e0fc40ce')
         script=(ROOT/'tools/run138_editor_readiness.py').read_bytes()
+        from Tests.ContractChecks.test_category_roam_registration import uncached_readiness_source
+        script=uncached_readiness_source(script)
         script=script.replace(digest(current_raw).encode(),digest(raw).encode(),1)
         self.assertEqual(script.count(digest(raw).encode()),1)
         previous=script.replace(digest(raw).encode(),digest(legacy).encode(),1)
@@ -454,5 +456,13 @@ def _restore_preclub_history_test(data):
     from tools import club_customer_directory_admission as club
     return club.restore_creator_history_test(data)
 # CLUB_HISTORY_INPUT_END
+
+
+def _restore_precache_history_test(data):
+    """Keep the parser input adapter's ValueError boundary and complete b75 preimage."""
+    try:
+        return _restore_preclub_history_test(data)
+    except AssertionError as error:
+        raise ValueError(str(error)) from error
 if __name__ == '__main__':
     unittest.main()

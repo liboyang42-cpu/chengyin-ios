@@ -157,7 +157,8 @@ class ClubCustomerDirectoryRemoteAdmissionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Hybrid baseline and current readiness reader'):
                 admission.historical_scan_contract(root)
             reader = root / 'tools/run138_editor_readiness.py'
-            reader.write_bytes(reader.read_bytes().replace(readiness.CONTRACT_SHA256.encode(), admission.BASE_CONTRACT_SHA256.encode()))
+            from Tests.ContractChecks.test_category_roam_registration import uncached_readiness_source
+            reader.write_bytes(uncached_readiness_source(reader.read_bytes()).replace(readiness.CONTRACT_SHA256.encode(), admission.BASE_CONTRACT_SHA256.encode()))
             self.assertEqual(digest(reader.read_bytes()), admission.BASE_READINESS_SHA256)
             with self.assertRaisesRegex(ValueError, 'Baseline domain contains new support'):
                 admission.historical_scan_contract(root)

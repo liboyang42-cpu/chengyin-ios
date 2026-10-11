@@ -2,11 +2,18 @@ import SwiftUI
 
 @MainActor final class ProjectThoughtDefinitionsController: ObservableObject {
     struct Presentation: Identifiable {
-        let id = UUID(), incarnation: UUID, session: ProjectEditSession?, identity: ProjectEditDraftIdentity?
-        let revision: Int, bytes: Data
+        let id = UUID()
+        let incarnation: UUID
+        let session: ProjectEditSession?
+        let identity: ProjectEditDraftIdentity?
+        let revision: Int
+        let bytes: Data
     }
     struct Removal: Identifiable {
-        let id = UUID(), key: String, revision: Int, impacts: [String]
+        let id = UUID()
+        let key: String
+        let revision: Int
+        let impacts: [String]
     }
     let model: ProjectEditModel
     @Published private(set) var presentation: Presentation?
