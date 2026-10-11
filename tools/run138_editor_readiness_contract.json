@@ -90,7 +90,7 @@
     "TopicFlowTests.swift": "7f10c301530c999528b055414dc9e2a8f3cab099b556b5f950ee9a9e97271313",
     "PlayRouteMapCameraFallbackFlowTests.swift": "4f9bfb0535abbb3b61b40847d040b07ca476cef323016ab29925dac2ad2c156c",
     "MerchantTemplateCategoryFlowTests.swift": "71fe2b737b41bfa12ee2140ea2330158d890c0992cb0400a63083189466bee11",
-    "FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+    "FailureScreenshot.swift": "a875b7c0672ae267d14bca68d3955188d4955f3f4268e441ff04541ed37b07fc",
     "ClubProfileScopeFlowTests.swift": "8cae5d6cb5f38bc4c65ac213251a400056bf305614b9449530321809189bbd9a",
     "RoamFinishedHistoryFlowTests.swift": "879d620461e5d0cfb6bf4806f973b8a1986bb23a9ad00a67bbb36b261007aceb",
     "WalkingNavigationFlowTests.swift": "06b8f3a8e2cbc92d47ef44058a5e4ad50b0d2025ab22526f264d435478355502",
@@ -3045,7 +3045,7 @@
     },
     "App/MerchantOperationsEditor.swift": {
       "before_sha256": "2b9a71ae8f0462dd244b6e577db7f640292372c14e21ebefd7d65abdc9987c76",
-      "after_sha256": "1ee00542cb6f1e01128be1d8d8c85be2ee77e0c7810514e5b695ecea7727dfd1",
+      "after_sha256": "15206efd15238957c20c435b78e8463ef8da5d0067467e0579ac37968f4ce658",
       "hunks": [
         {
           "before": "            Section(\"merchant.operations.decor\") {\n                decorField(\"merchant.operations.slogan\", \\.slogan, \"slogan\")\n                decorField(\"merchant.operations.cityRole\", \\.cityRole, \"cityRole\")\n                Text(\"merchant.operations.decorPreserved\").font(.footnote).foregroundStyle(.secondary)\n                if let category = value.categoryID { LabeledContent(\"merchant.operations.category\", value: String(category)) }\n                if let type = value.featuredType, let id = value.featuredID { LabeledContent(\"merchant.operations.featured\", value: \"\\(type) / \\(id)\") }\n            }\n            Section(\"merchant.operations.tags\") {\n                TextField(\"merchant.operations.tags\", text: Binding(get: { currentDecor?.tags.joined(separator: \";\") ?? \"\" }, set: { raw in\n                    guard var value = currentDecor else { return }; value.tags = raw.components(separatedBy: \";\").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }; model.edit(.decor(value))\n                }), axis: .vertical).accessibilityIdentifier(\"merchant.operations.field.tags\")\n                Text(\"merchant.operations.tagsHint\").font(.footnote).foregroundStyle(.secondary)\n            }\n            mediaSection(\"merchant.operations.cover\", field: .coverImage)\n        case .gallery(let value):\n",
@@ -3122,6 +3122,18 @@
         {
           "before": "                    Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)\n                }\n",
           "after": "                    Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)\n                }\n                if let change = MerchantStoreIndustryChange(baseline: model.coordinator.baseline, draft: confirmation.draft) {\n                    MerchantStoreIndustryReview(change: change)\n                }\n"
+        },
+        {
+          "before": "    @State private var assist: MerchantTemplateAssistPresentation?\n    var imageContext: ((MerchantImageField) -> RetainedImageSelectionContext?)? = nil\n",
+          "after": "    @State private var assist: MerchantTemplateAssistPresentation?\n    @State private var categoryPicker: MerchantTemplateCategoryPickerModel?\n    var imageContext: ((MerchantImageField) -> RetainedImageSelectionContext?)? = nil\n"
+        },
+        {
+          "before": "        .sheet(item: $assist) { presentation in MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }\n    }\n",
+          "after": "        .sheet(item: $assist) { presentation in MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }\n        .modifier(MerchantTemplateCategoryPresentation(document: model, picker: $categoryPicker))\n    }\n"
+        },
+        {
+          "before": "            }\n            MerchantTemplateCategoryPicker(document: model)\n            MerchantTemplateStoryTimelineFields(model: model)\n",
+          "after": "            }\n            MerchantTemplateCategoryPicker(document: model) { categoryPicker = .init(document: model) }\n            MerchantTemplateStoryTimelineFields(model: model)\n"
         }
       ]
     },
@@ -6592,7 +6604,7 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "4e1bf5de0d545c71b806aea1e4c7c2e2b508f0369229acd0a7b058a9836d91c7",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "db2113f9dc7e2bbfa0b13076d34a935689bb2120521773381e987bf12a41a9c7",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "616a5e7f28ff5bd6814c91bf10e8f7efd99b8091ad4a8b9dc9d895f8bd2e0ad4",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
@@ -6606,14 +6618,14 @@
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "8798bb421ef226312ed5b1de19ad0f84520e7eb0b1b30ec2aff2096f498ad440",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "5587af336397b46a42c8ac6ad39ebe4fc1ccc849ea65cd9ad2e71599af9734b5",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
     "Tests/ContractChecks/test_roam_route_replay.py": "b32855ff76202a86f4717eac6e7da4d35b6bd98a4015fe0c87c951624d9d859c",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "5570a4a363bb0e84de04ee349dbc1124b004921896d5844016b127d8853e79e8",
+    "Tests/ContractChecks/test_category_roam_registration.py": "4cd57b0bc263da53381d71e546c0c1fe5cfa7cf0b620b28de1021ff7778642e4",
     "Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift": "91a1011295933822da752baaf3912cc8e36551bbe58597352dff171bf8c96222",
     "Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
     "Tests/ContractChecks/test_club_leaderboard_member_navigation.py": "f76bc1c7da34ef0e3df056a02eac732079e2b5103e0b872136dbf2d2e4b8c1a6",
@@ -6798,7 +6810,7 @@
     "Resources/MerchantTemplateHintsLocalizations.fragment.json": "8eada615f163b28a046aad67c43a9ba0321bea4e01959589a6828b7c1fcf208b",
     "Resources/MerchantTemplateStoryTimelineLocalizations.fragment.json": "bfc92932d886ca9ef286823f8ce0f8e2401031af6633314cd38f048c8a4163a2",
     "Core/MerchantTemplateCategorySelection.swift": "d2e73b144b92957a9cfab90e32b12ca819083680adf2fd1a751850e72cc5dee8",
-    "App/MerchantTemplateCategoryPicker.swift": "445134087ee808e9b80de781037fb891f5e71594a83aa4ebc1875425c1eff7b7",
+    "App/MerchantTemplateCategoryPicker.swift": "00ab0e5d3c8bd39d9933b1f2b7919acc5a041e185aa6a9e1574e6e7e24144ac0",
     "Tests/CoreTests/MerchantTemplateHintsTests.swift": "115285b29f1b6072bb65cbabd1cafb3b73e7174620af06eca64abb6f70188238",
     "Resources/ProfileCasePictureRemovalLocalizations.fragment.json": "c777914dc2cc5d7c45644097a0adb3478a97d998a65bdcf2364b97027b5cd090",
     "Tests/AppUnitTests/ProfileAuthorPostsRefreshAppTests.swift": "9d6ec510e77bd9d6eac4511a984ac44ba5e220ecf7ab1823b19dd10725bc89c6",
@@ -7012,6 +7024,8 @@
     "Tests/CoreTests/TemplateQAAnswerSelectionTests.swift": "30d4e39dc13ccc8c48f192ca543c53f839e5b13500685ae90b670d3163f49eba",
     "docs/registration/template-multiplayer-plan.json": "35b7bace95d08ba90b2ebe738b89f3f1304dda8779c8ece39ea5476f4601d0d0",
     "Tests/CoreTests/TemplateRewardKindsTests.swift": "b987350a8673d88aea4d780951be997a9788b5fc84659e661314ad7702787321",
+    "Tests/AppUITests/FailureScreenshot.swift": "a875b7c0672ae267d14bca68d3955188d4955f3f4268e441ff04541ed37b07fc",
+    "Tests/ContractChecks/test_native_ui_accessibility_semantics.py": "08d2964752351446a6c70b601474fce2108f482194b41e8c063da6476946a668",
     "tools/tests/test_readiness_contract_parse_cache.py": "a05486842d224477efc0c91a25c0fb9458858295eb069869c37923903613f3b0"
   },
   "current_method_replacements": {
@@ -7127,7 +7141,7 @@
     "source_sha256": {
       "App/MerchantOperationsEditor.swift": "1ee00542cb6f1e01128be1d8d8c85be2ee77e0c7810514e5b695ecea7727dfd1",
       "App/ProfileEditView.swift": "69e4a0d9ec41ea5d3a525516951c7f43586ddd06148063de6b2d5b8dbf33bff9",
-      "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+      "Tests/AppUITests/FailureScreenshot.swift": "a875b7c0672ae267d14bca68d3955188d4955f3f4268e441ff04541ed37b07fc",
       "Tests/AppUITests/MerchantBrandImagesFlowTests.swift": "a9d6e4daf86461e90566204e62c21d1e2367b843002841b963f7fc130c37f778",
       "Tests/AppUITests/MerchantProjectBrowserFlowTests.swift": "cd307f7f147b783c8fc706351bf2e7cab0fa422c52a81327eb5b8d5475401f73",
       "Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift": "d173e18869e461f229ff48b773f2645efa573b021bcf866b2e9e7a155a67d9de",

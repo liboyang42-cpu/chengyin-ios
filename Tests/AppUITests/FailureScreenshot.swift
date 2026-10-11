@@ -31,18 +31,19 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
         // action leaves instead, preferring the last (presented) container.
         func foregroundBar(_ bars: [XCUIElement]) -> XCUIElement? {
             bars.reversed().first { bar in
+                guard bar.exists else { return false }
                 let frame = bar.frame
                 guard !frame.isEmpty, app.frame.intersects(frame) else { return false }
-                let actions = bar.buttons.allElementsBoundByIndex.filter {
+                let actions = bar.buttons.allElementsBoundByAccessibilityElement.filter {
                     $0.descendants(matching: .button).count == 0
                 }
                 return actions.isEmpty || actions.contains { $0.isHittable }
             }
         }
-        let navigationBar = foregroundBar(app.navigationBars.allElementsBoundByIndex)
+        let navigationBar = foregroundBar(app.navigationBars.allElementsBoundByAccessibilityElement)
         if let navigationBar { bounds.origin.y = max(bounds.minY, navigationBar.frame.maxY + 4) }
         var bottom = app.frame.maxY - 40
-        let toolbar = foregroundBar(app.toolbars.allElementsBoundByIndex)
+        let toolbar = foregroundBar(app.toolbars.allElementsBoundByAccessibilityElement)
         if let toolbar { bottom = min(bottom, toolbar.frame.minY - 4) }
         let keyboard = app.keyboards.firstMatch
         if keyboard.exists { bottom = min(bottom, keyboard.frame.minY - 4) }

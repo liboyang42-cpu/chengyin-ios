@@ -5,6 +5,7 @@ struct MerchantOperationsEditor: View {
     @ObservedObject var model: MerchantOperationsViewModel
     var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
     @State private var assist: MerchantTemplateAssistPresentation?
+    @State private var categoryPicker: MerchantTemplateCategoryPickerModel?
     var imageContext: ((MerchantImageField) -> RetainedImageSelectionContext?)? = nil
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
     private var isExample: Bool { coordinator.reader.isOfflineExample }
@@ -28,6 +29,7 @@ struct MerchantOperationsEditor: View {
         .disabled(coordinator.isBusy)
         .accessibilityIdentifier("merchant.operations.editor")
         .sheet(item: $assist) { presentation in MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }
+        .modifier(MerchantTemplateCategoryPresentation(document: model, picker: $categoryPicker))
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
         switch draft {
@@ -207,7 +209,7 @@ struct MerchantOperationsEditor: View {
                 Text("merchant.preparation.hint").font(.footnote).foregroundStyle(.secondary)
                 Text("merchant.preparation.omissionHint").font(.footnote).foregroundStyle(.secondary)
             }
-            MerchantTemplateCategoryPicker(document: model)
+            MerchantTemplateCategoryPicker(document: model) { categoryPicker = .init(document: model) }
             MerchantTemplateStoryTimelineFields(model: model)
             MerchantTemplateRuleStepsFields(model: model)
             MerchantTemplateParticipationPlanFields(model: model)

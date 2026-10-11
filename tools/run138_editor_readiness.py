@@ -18,7 +18,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = '3690fd1cc47ba22961d7017e809eb8266ee20edebf0964ec9e1b7f5f01c937ba'
+CONTRACT_SHA256 = '3c8679a58bac78d39c47be6a734ab0c2f78fff3ed3b6c341e13cddc1da022811'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'
@@ -371,7 +371,7 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                  'round_up_seconds': 10},
  'source_sha256': {'App/MerchantOperationsEditor.swift': '1ee00542cb6f1e01128be1d8d8c85be2ee77e0c7810514e5b695ecea7727dfd1',
                    'App/ProfileEditView.swift': '69e4a0d9ec41ea5d3a525516951c7f43586ddd06148063de6b2d5b8dbf33bff9',
-                   'Tests/AppUITests/FailureScreenshot.swift': '705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49',
+                   'Tests/AppUITests/FailureScreenshot.swift': 'a875b7c0672ae267d14bca68d3955188d4955f3f4268e441ff04541ed37b07fc',
                    'Tests/AppUITests/MerchantBrandImagesFlowTests.swift': 'a9d6e4daf86461e90566204e62c21d1e2367b843002841b963f7fc130c37f778',
                    'Tests/AppUITests/MerchantProjectBrowserFlowTests.swift': 'cd307f7f147b783c8fc706351bf2e7cab0fa422c52a81327eb5b8d5475401f73',
                    'Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift': 'd173e18869e461f229ff48b773f2645efa573b021bcf866b2e9e7a155a67d9de',

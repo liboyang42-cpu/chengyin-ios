@@ -1,6 +1,6 @@
 import SwiftUI
 
-@MainActor private final class MerchantTemplateCategoryPickerModel: ObservableObject, Identifiable {
+@MainActor final class MerchantTemplateCategoryPickerModel: ObservableObject, Identifiable {
     let id = UUID()
     let document: MerchantOperationsViewModel
     let selection: MerchantTemplateCategorySelection
@@ -27,8 +27,7 @@ import SwiftUI
 
 @MainActor struct MerchantTemplateCategoryPicker: View {
     @ObservedObject var document: MerchantOperationsViewModel
-    @State private var picker: MerchantTemplateCategoryPickerModel?
-    @Environment(\.scenePhase) private var scenePhase
+    let open: () -> Void
     private var editable: Bool {
         let owner = document.coordinator
         return owner.isCurrent && !owner.isBusy && !owner.isLocked && owner.confirmation == nil
@@ -37,10 +36,25 @@ import SwiftUI
         if case .template(let value) = document.coordinator.draft {
             Section("merchant.categories.title") {
                 MerchantTemplateCategorySummary(categories: value.categories)
-                Button("merchant.categories.choose") { picker = .init(document: document) }
+                Button("merchant.categories.choose", action: open)
                     .disabled(!editable).accessibilityIdentifier("merchant.categories.open")
                 Text("merchant.categories.scope").font(.footnote).foregroundStyle(.secondary)
             }
+        }
+    }
+}
+
+/// The stable editor owns presentation, independent of a lazy Form section's lifetime.
+@MainActor struct MerchantTemplateCategoryPresentation: ViewModifier {
+    @ObservedObject var document: MerchantOperationsViewModel
+    @Binding var picker: MerchantTemplateCategoryPickerModel?
+    @Environment(\.scenePhase) private var scenePhase
+    private var editable: Bool {
+        let owner = document.coordinator
+        return owner.isCurrent && !owner.isBusy && !owner.isLocked && owner.confirmation == nil
+    }
+    func body(content: Content) -> some View {
+        content
             .sheet(item: Binding(get: { picker }, set: { value in
                 if value == nil { picker?.cancel() }; picker = value
             }), onDismiss: close) { value in
@@ -52,7 +66,6 @@ import SwiftUI
             .onChange(of: editable) { _, value in if !value { close() } }
             .onChange(of: scenePhase) { _, value in if value != .active { close() } }
             .onDisappear { close() }
-        }
     }
     private func close() { picker?.cancel(); picker = nil }
 }

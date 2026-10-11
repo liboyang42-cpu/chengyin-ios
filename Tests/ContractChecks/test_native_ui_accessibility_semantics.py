@@ -12,10 +12,10 @@ def source(path):
 class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
     def test_fixture_viewport_ignores_presenting_bars_under_a_sheet(self):
         helper = source('Tests/AppUITests/FailureScreenshot.swift')
-        for expected in ['foregroundBar(app.navigationBars.allElementsBoundByIndex)',
-                         'foregroundBar(app.toolbars.allElementsBoundByIndex)',
-                         'bars.reversed().first', 'app.frame.intersects(frame)',
-                         'bar.buttons.allElementsBoundByIndex',
+        for expected in ['foregroundBar(app.navigationBars.allElementsBoundByAccessibilityElement)',
+                         'foregroundBar(app.toolbars.allElementsBoundByAccessibilityElement)',
+                         'bars.reversed().first', 'guard bar.exists else { return false }', 'app.frame.intersects(frame)',
+                         'bar.buttons.allElementsBoundByAccessibilityElement',
                          '$0.descendants(matching: .button).count == 0',
                          'actions.isEmpty || actions.contains { $0.isHittable }',
                          'navigationBar.frame.maxY + 4', 'toolbar.frame.minY - 4',
