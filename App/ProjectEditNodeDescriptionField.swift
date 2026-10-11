@@ -41,7 +41,8 @@ import SwiftUI
 
     init(source: ProjectEditNodeDescriptionSource) {
         self.source = source; target = source.target
-        text = source.node.wrappedValue.description; acknowledgedBytes = Data(text.utf8)
+        let initialText = source.node.wrappedValue.description
+        text = initialText; acknowledgedBytes = Data(initialText.utf8)
     }
     func activate() {
         guard let target, source.target == target else { return }

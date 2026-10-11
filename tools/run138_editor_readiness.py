@@ -18,7 +18,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = '9c26993734c6ba8d4623165187cb0cfcebc1ff20e3c9209da7a2982099ee2cb6'
+CONTRACT_SHA256 = '6fa7fd18b5000d3843f4c5809d58cd97f0b40dd0b3b41ad933583aa6250522e4'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'

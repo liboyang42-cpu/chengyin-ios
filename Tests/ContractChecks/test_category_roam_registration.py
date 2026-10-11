@@ -319,7 +319,7 @@ class CategoryRoamRegistrationContracts(unittest.TestCase):
 
 
 # Exact discovery/Roam layer on the frozen club R2 floor.
-ADMISSION_FINGERPRINT = 'd6b62d85bd3c184e3b89eb38de69f5d73cf2395b8777b208eaf4d5d677b52d17'
+ADMISSION_FINGERPRINT = 'c2799c63edc88cd73f5902565bb3ee5c59b757c41dd4db428e664e46e09936f1'
 CATEGORY_TEMPLATE_OFFSET = 65180
 CURRENT_APPROVED_PATHS = ['App/GlobalSearchView.swift',
  'Core/SearchMapReading.swift',
@@ -7780,6 +7780,7 @@ def checked_current(raw, root):
     require(digest(raw).encode() == pins[0], 'Unknown complete current contract')
     value = json.loads(raw)
     require(encode(value) == raw, 'Noncanonical/duplicate current contract')
+    description_current_inputs(value, root)
     require(digest((root / SELF_PATH).read_bytes()) == IMPLEMENTATION_SHA256,
             'Loaded current admission differs from actual source')
     module = (root / SELF_PATH).read_bytes()
@@ -7868,10 +7869,15 @@ def _profile_parent_inputs(root):
         files = {str(p.relative_to(root)) for p in members if p.is_file()}
         current_raw = (ROOT / CONTRACT_PATH).read_bytes()
         incoming = {path: (root / path).read_bytes() for path in files}
-        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | set(NATIVE_CURRENT_INPUTS):
-            # All 51 physical inputs precede every predecessor/context reuse.
+        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH}:
+            # All 52 physical current inputs precede every predecessor/cache reuse.
             for path, data in incoming.items():
-                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 51-file fixture: ' + path)
+                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 52-file fixture: ' + path)
+        elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | set(NATIVE_CURRENT_INPUTS):
+            # Exactly published 7b51; missing-current52 is never backfilled.
+            for path, data in incoming.items():
+                expected = description_predecessor_fixture_source(path, (ROOT / path).read_bytes(), current_raw)
+                require(data == expected, 'Changed/mixed historical 7b51 fixture: ' + path)
         elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS):
             # This is exactly published c2af49, not current51 with missing inputs.
             for path, data in incoming.items():
@@ -8274,7 +8280,7 @@ def _native_category_preimage(raw):
         after, before = hunk['after'].encode(), hunk['before'].encode()
         require(prefix.count(after) == 1, 'Missing/repeated native source interface span')
         prefix = prefix.replace(after, before, 1)
-    slot = b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+    slot = b"ADMISSION_FINGERPRINT = '" + DESCRIPTION_PRE_FINGERPRINT.encode() + b"'"
     require(prefix.count(slot) == 1, 'Unknown native admission fingerprint slot')
     old = prefix.replace(slot, b"ADMISSION_FINGERPRINT = '" + NATIVE_PRE_FINGERPRINT.encode() + b"'", 1) + suffix
     require(digest(old) == NATIVE_PRE_SHA256[SELF_PATH], 'Complete c2af admission source not restored')
@@ -8309,6 +8315,9 @@ def native_readiness_source(raw):
 
 def native_predecessor_source(path, raw):
     """Exact historical bytes only; current admission remains checked_current."""
+    if path in NATIVE_PRE_SHA256 and digest(raw) == NATIVE_PRE_SHA256[path]:
+        return raw  # Explicit exact c2af historical input.
+    raw = description_predecessor_source(path, raw)
     if path not in NATIVE_PRE_SHA256:
         return raw
     if digest(raw) == NATIVE_PRE_SHA256[path]:
@@ -8324,7 +8333,7 @@ def native_predecessor_source(path, raw):
     elif path == SELF_PATH:
         old = _native_category_preimage(raw)
     elif path == PROFILE_PATH:
-        slot = b"DISCOVERY_HELPER_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+        slot = b"DISCOVERY_HELPER_FINGERPRINT = '" + DESCRIPTION_PRE_FINGERPRINT.encode() + b"'"
         require(raw.count(slot) == 1, 'Unknown native profile source pin')
         old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = '" + NATIVE_PRE_FINGERPRINT.encode() + b"'", 1)
     elif path == RUNNER_PATH:
@@ -8335,7 +8344,7 @@ def native_predecessor_source(path, raw):
     elif path == CATEGORY_GATE:
         import base64, zlib
         normalized, source = _decoded_external_template(raw)
-        require(source == (ROOT / SELF_PATH).read_bytes(), 'Unknown native complete external template')
+        require(source == description_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), 'Unknown native complete external template')
         old_source = _native_category_preimage(source)
         encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()
         first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
@@ -8351,13 +8360,15 @@ def native_predecessor_source(path, raw):
 
 def native_predecessor_contract(value):
     """Authenticate new bytes, then restore the entire published c2af contract."""
-    value = copy.deepcopy(value)
+    if digest(encode(value)) == NATIVE_PRE_CONTRACT_SHA256:
+        return copy.deepcopy(value)  # Explicit exact c2af historical value.
+    value = description_predecessor_contract(value)
     if digest(encode(value)) == NATIVE_PRE_CONTRACT_SHA256:
         return value  # Explicit historical-only value, never current admission.
     path = NATIVE_LEAF_PATHS[0]
     require(value['feature_batch_sources'].get(path) == NATIVE_NAV_ROW, 'Unknown native UUID-only source row')
     require(digest((ROOT / path).read_bytes()) == NATIVE_NAV_ROW['after_sha256'], 'Native current Navigation bytes changed')
-    require(digest((ROOT / 'tools/club_customer_directory_admission.py').read_bytes()) == NATIVE_HELPER_ROW['after_sha256'],
+    require(digest(description_predecessor_source(DESCRIPTION_HELPER_PATH, (ROOT / DESCRIPTION_HELPER_PATH).read_bytes())) == NATIVE_HELPER_ROW['after_sha256'],
             'Native current club fixture input changed')
     require(value['entry_projection_module_sha256'] == NATIVE_PROJECTION_ROW['after_sha256'],
             'Unknown exact current member-copy projection pin')
@@ -8376,7 +8387,7 @@ def native_predecessor_contract(value):
     del row['hunks'][-len(hunks):]
     require(digest(encode(row)) == NATIVE_PRE_PBX_ROW_SHA256, 'Complete original209 PBX row not restored')
     for path, expected in NATIVE_PRE_SUPPORT.items():
-        raw = (ROOT / path).read_bytes()
+        raw = description_predecessor_source(path, (ROOT / path).read_bytes())
         require(value['feature_batch_support_sha256'].get(path) == digest(raw), 'Native current support changed: ' + path)
         require(digest(native_predecessor_source(path, raw)) == expected, 'Unknown native predecessor support: ' + path)
         value['feature_batch_support_sha256'][path] = expected
@@ -8391,6 +8402,212 @@ def native_predecessor_fixture_source(path, raw, current_contract):
         require(raw == current_contract, 'Mixed native current fixture contract')
         return encode(native_predecessor_contract(json.loads(raw)))
     return native_predecessor_source(path, raw)
+
+# Exact 7b node-description initialization predecessor layer.
+DESCRIPTION_PRE_CONTRACT_SHA256 = '9c26993734c6ba8d4623165187cb0cfcebc1ff20e3c9209da7a2982099ee2cb6'
+DESCRIPTION_PRE_FINGERPRINT = 'd6b62d85bd3c184e3b89eb38de69f5d73cf2395b8777b208eaf4d5d677b52d17'
+DESCRIPTION_LEAF_PATH = 'App/ProjectEditNodeDescriptionField.swift'
+DESCRIPTION_HELPER_PATH = 'tools/club_customer_directory_admission.py'
+DESCRIPTION_LEAF_ROW = {'before_sha256': '663f5aa34981ca0e3ec9207e165140b78bb8c8a3858314bf2cda4d836599f2e3',
+ 'after_sha256': 'c03d2b762a9c339449f799214b356180ead19d9c6bc9065ff2c25e0cabc77053',
+ 'hunks': [{'before': '        text = source.node.wrappedValue.description; acknowledgedBytes = '
+                      'Data(text.utf8)\n',
+            'after': '        let initialText = source.node.wrappedValue.description\n'
+                     '        text = initialText; acknowledgedBytes = Data(initialText.utf8)\n'}]}
+DESCRIPTION_HELPER_ROW = {'before_sha256': '379ada64233f6a51f52d5ca595c9092632f248e23c50825aa989ff0882fcfd88',
+ 'after_sha256': 'b8c6be27289110f7bf75d01d28fd41d9778b90dd7c32b78cf0ff849aa1916977',
+ 'hunks': [{'before': "FLOOR_INPUTS = ('App/ProjectEditIssueNavigation.swift',\n",
+            'after': "FLOOR_INPUTS = ('App/ProjectEditNodeDescriptionField.swift',\n"
+                     " 'tools/run138_current_source_projection.py',\n"
+                     " 'App/ProjectEditIssueNavigation.swift',\n"}]}
+DESCRIPTION_PRE_SHA256 = {'App/ProjectEditNodeDescriptionField.swift': '663f5aa34981ca0e3ec9207e165140b78bb8c8a3858314bf2cda4d836599f2e3',
+ 'tools/club_customer_directory_admission.py': '379ada64233f6a51f52d5ca595c9092632f248e23c50825aa989ff0882fcfd88',
+ 'Tests/ContractChecks/test_category_roam_registration.py': '04ee74c0f01805cc61a87a4019c300d10f829e63d66561a2d830264e4cde5afb',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': '67ea1752863c6a805623784675eb3f93b300242d5a303ab4962c038c5499546e',
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': '17fa92c7b8a10193097c9e6208cd320576bb415d78c046825c51286905cf0a0d',
+ 'tools/run138_editor_readiness.py': '87c6810802742e1ca8f1978ab77b1db70981f4039a3f6262453a92df58340845'}
+DESCRIPTION_PRE_SUPPORT = {'App/ProjectEditNodeDescriptionField.swift': '663f5aa34981ca0e3ec9207e165140b78bb8c8a3858314bf2cda4d836599f2e3',
+ 'tools/club_customer_directory_admission.py': '379ada64233f6a51f52d5ca595c9092632f248e23c50825aa989ff0882fcfd88',
+ 'Tests/ContractChecks/test_category_roam_registration.py': '04ee74c0f01805cc61a87a4019c300d10f829e63d66561a2d830264e4cde5afb',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': '67ea1752863c6a805623784675eb3f93b300242d5a303ab4962c038c5499546e',
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': '17fa92c7b8a10193097c9e6208cd320576bb415d78c046825c51286905cf0a0d'}
+DESCRIPTION_CATEGORY_PREFIX_HUNKS = [{'before': 'def native_predecessor_source(path, raw):\n'
+            '    """Exact historical bytes only; current admission remains checked_current."""\n',
+  'after': 'def native_predecessor_source(path, raw):\n'
+           '    """Exact historical bytes only; current admission remains checked_current."""\n'
+           '    if path in NATIVE_PRE_SHA256 and digest(raw) == NATIVE_PRE_SHA256[path]:\n'
+           '        return raw  # Explicit exact c2af historical input.\n'
+           '    raw = description_predecessor_source(path, raw)\n'},
+ {'before': 'def native_predecessor_contract(value):\n'
+            '    """Authenticate new bytes, then restore the entire published c2af contract."""\n'
+            '    value = copy.deepcopy(value)\n',
+  'after': 'def native_predecessor_contract(value):\n'
+           '    """Authenticate new bytes, then restore the entire published c2af contract."""\n'
+           '    if digest(encode(value)) == NATIVE_PRE_CONTRACT_SHA256:\n'
+           '        return copy.deepcopy(value)  # Explicit exact c2af historical value.\n'
+           '    value = description_predecessor_contract(value)\n'},
+ {'before': "    require(digest((ROOT / 'tools/club_customer_directory_admission.py').read_bytes()) == "
+            "NATIVE_HELPER_ROW['after_sha256'],\n",
+  'after': '    require(digest(description_predecessor_source(DESCRIPTION_HELPER_PATH, (ROOT / '
+           "DESCRIPTION_HELPER_PATH).read_bytes())) == NATIVE_HELPER_ROW['after_sha256'],\n"},
+ {'before': '    for path, expected in NATIVE_PRE_SUPPORT.items():\n'
+            '        raw = (ROOT / path).read_bytes()\n',
+  'after': '    for path, expected in NATIVE_PRE_SUPPORT.items():\n'
+           '        raw = description_predecessor_source(path, (ROOT / path).read_bytes())\n'},
+ {'before': '    slot = b"ADMISSION_FINGERPRINT = \'" + ADMISSION_FINGERPRINT.encode() + b"\'"\n'
+            "    require(prefix.count(slot) == 1, 'Unknown native admission fingerprint slot')\n",
+  'after': '    slot = b"ADMISSION_FINGERPRINT = \'" + DESCRIPTION_PRE_FINGERPRINT.encode() + b"\'"\n'
+           "    require(prefix.count(slot) == 1, 'Unknown native admission fingerprint slot')\n"},
+ {'before': '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + ADMISSION_FINGERPRINT.encode() + b"\'"\n'
+            "        require(raw.count(slot) == 1, 'Unknown native profile source pin')\n",
+  'after': '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + DESCRIPTION_PRE_FINGERPRINT.encode() + '
+           'b"\'"\n'
+           "        require(raw.count(slot) == 1, 'Unknown native profile source pin')\n"},
+ {'before': "        require(source == (ROOT / SELF_PATH).read_bytes(), 'Unknown native complete external "
+            "template')\n",
+  'after': '        require(source == description_predecessor_source(SELF_PATH, (ROOT / '
+           "SELF_PATH).read_bytes()), 'Unknown native complete external template')\n"},
+ {'before': '        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | '
+            'set(NATIVE_CURRENT_INPUTS):\n'
+            '            # All 51 physical inputs precede every predecessor/context reuse.\n'
+            '            for path, data in incoming.items():\n'
+            "                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 51-file "
+            "fixture: ' + path)\n"
+            '        elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS):',
+  'after': '        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | '
+           'set(NATIVE_CURRENT_INPUTS) | {DESCRIPTION_LEAF_PATH}:\n'
+           '            # All 52 physical current inputs precede every predecessor/cache reuse.\n'
+           '            for path, data in incoming.items():\n'
+           "                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 52-file "
+           "fixture: ' + path)\n"
+           '        elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | '
+           'set(NATIVE_CURRENT_INPUTS):\n'
+           '            # Exactly published 7b51; missing-current52 is never backfilled.\n'
+           '            for path, data in incoming.items():\n'
+           '                expected = description_predecessor_fixture_source(path, (ROOT / '
+           'path).read_bytes(), current_raw)\n'
+           "                require(data == expected, 'Changed/mixed historical 7b51 fixture: ' + path)\n"
+           '        elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS):'},
+ {'before': '    value = json.loads(raw)\n'
+            "    require(encode(value) == raw, 'Noncanonical/duplicate current contract')\n",
+  'after': '    value = json.loads(raw)\n'
+           "    require(encode(value) == raw, 'Noncanonical/duplicate current contract')\n"
+           '    description_current_inputs(value, root)\n'}]
+
+def _description_category_preimage(raw):
+    marker = b'\n# Exact 7b node-description initialization predecessor layer.\n'
+    suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
+    require(digest(raw) == IMPLEMENTATION_SHA256, 'Changed complete description admission source')
+    require(raw.count(marker) == 1 and raw.endswith(suffix), 'Unknown description layer source boundary')
+    prefix, _ = raw.split(marker, 1)
+    for hunk in reversed(DESCRIPTION_CATEGORY_PREFIX_HUNKS):
+        after, before = hunk['after'].encode(), hunk['before'].encode()
+        require(prefix.count(after) == 1, 'Missing/repeated description source interface span')
+        prefix = prefix.replace(after, before, 1)
+    slot = b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+    require(prefix.count(slot) == 1, 'Unknown description admission fingerprint slot')
+    old = prefix.replace(slot, b"ADMISSION_FINGERPRINT = '" + DESCRIPTION_PRE_FINGERPRINT.encode() + b"'", 1) + suffix
+    require(digest(old) == DESCRIPTION_PRE_SHA256[SELF_PATH], 'Complete published 7b admission source not restored')
+    return old
+
+
+def description_predecessor_source(path, raw):
+    """Exact complete published 7b bytes; never a current-input admission bypass."""
+    if path not in DESCRIPTION_PRE_SHA256:
+        return raw
+    if digest(raw) == DESCRIPTION_PRE_SHA256[path]:
+        return raw  # Explicit historical-only interface; current checks require new bytes.
+    if path == DESCRIPTION_LEAF_PATH:
+        old = _inverse_exact(raw, DESCRIPTION_LEAF_ROW, path)
+    elif path == DESCRIPTION_HELPER_PATH:
+        old = _inverse_exact(raw, DESCRIPTION_HELPER_ROW, path)
+    elif path == SELF_PATH:
+        old = _description_category_preimage(raw)
+    elif path == PROFILE_PATH:
+        slot = b"DISCOVERY_HELPER_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+        require(raw.count(slot) == 1, 'Unknown description profile source pin')
+        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = '" + DESCRIPTION_PRE_FINGERPRINT.encode() + b"'", 1)
+    elif path == RUNNER_PATH:
+        native_current_readiness_source(raw)
+        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", raw)
+        require(len(pins) == 1, 'Unknown description readiness pin')
+        old = raw.replace(pins[0], DESCRIPTION_PRE_CONTRACT_SHA256.encode(), 1)
+    elif path == CATEGORY_GATE:
+        import base64, zlib
+        normalized, source = _decoded_external_template(raw)
+        require(source == (ROOT / SELF_PATH).read_bytes(), 'Unknown description complete external template')
+        old_source = _description_category_preimage(source)
+        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()
+        first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
+        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\n'
+        suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
+        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\n' + b''.join(
+            ('    ' + repr(encoded[i:i+80]) + '\n').encode() for i in range(0, len(encoded), 80)) + b')\n' + last + suffix
+    else:
+        raise AssertionError('Unreviewed description predecessor path')
+    require(digest(old) == DESCRIPTION_PRE_SHA256[path], 'Complete published 7b source not restored: ' + path)
+    return old
+
+
+def description_current_inputs(value, root=ROOT):
+    """Re-read every actual new boundary member before any old value or cache."""
+    root = Path(root)
+    require(not root.is_symlink(), 'Description current root is a symlink')
+    contents = {}
+    for path in DESCRIPTION_PRE_SHA256:
+        file = root / path
+        require(not file.is_symlink() and file.is_file() and file.resolve().is_relative_to(root.resolve()),
+                'Missing, escaped or symlinked description current input: ' + path)
+        contents[path] = file.read_bytes()
+    raw = (root / CONTRACT_PATH).read_bytes()
+    require(encode(value) == raw, 'Changed or mixed actual description contract')
+    runner = contents[RUNNER_PATH]
+    native_current_readiness_source(runner)
+    pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", runner)
+    require(len(pins) == 1 and pins[0].decode() == digest(raw), 'Unknown complete description contract pin')
+    module = contents[SELF_PATH]
+    require(digest(module) == IMPLEMENTATION_SHA256, 'Loaded description admission differs from current bytes')
+    validate_external_source_template(root, module)
+    slot = b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+    require(module.count(slot) == 1 and digest(module.replace(slot, b"ADMISSION_FINGERPRINT = '<SELF>'", 1)) == ADMISSION_FINGERPRINT,
+            'Changed complete description admission fingerprint')
+    require(value['feature_batch_sources'].get(DESCRIPTION_LEAF_PATH) == DESCRIPTION_LEAF_ROW,
+            'Unknown exact description initialization inverse')
+    require(digest(contents[DESCRIPTION_LEAF_PATH]) == DESCRIPTION_LEAF_ROW['after_sha256'],
+            'Old or changed current description initializer')
+    require(digest(contents[DESCRIPTION_HELPER_PATH]) == DESCRIPTION_HELPER_ROW['after_sha256'],
+            'Old or changed current description fixture producer')
+    for path, expected in DESCRIPTION_PRE_SUPPORT.items():
+        require(value['feature_batch_support_sha256'].get(path) == digest(contents[path]),
+                'Changed current description support: ' + path)
+        require(digest(description_predecessor_source(path, contents[path])) == expected,
+                'Unknown complete description support predecessor: ' + path)
+    require(digest(description_predecessor_source(RUNNER_PATH, runner)) == DESCRIPTION_PRE_SHA256[RUNNER_PATH],
+            'Changed complete description readiness implementation')
+    return contents
+
+
+def description_predecessor_contract(value, root=ROOT):
+    """Admit actual new bytes, then restore the entire immutable 7b contract."""
+    value = copy.deepcopy(value)
+    if digest(encode(value)) == DESCRIPTION_PRE_CONTRACT_SHA256:
+        return value  # Exact historical-only contract; checked_current never accepts it as current.
+    description_current_inputs(value, root)
+    require(value['feature_batch_sources'].pop(DESCRIPTION_LEAF_PATH) == DESCRIPTION_LEAF_ROW,
+            'Missing complete description inverse row')
+    for path, expected in DESCRIPTION_PRE_SUPPORT.items():
+        value['feature_batch_support_sha256'][path] = expected
+    require(digest(encode(value)) == DESCRIPTION_PRE_CONTRACT_SHA256,
+            'Complete published 7b readiness contract not restored')
+    return value
+
+
+def description_predecessor_fixture_source(path, raw, current_contract):
+    """Build genuine published 7b51 inputs, never fill a missing current52 file."""
+    if path == CONTRACT_PATH:
+        require(raw == current_contract, 'Mixed description current fixture contract')
+        return encode(description_predecessor_contract(json.loads(raw)))
+    return description_predecessor_source(path, raw)
 
 if __name__ == '__main__':
     unittest.main()
