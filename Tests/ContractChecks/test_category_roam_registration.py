@@ -319,7 +319,7 @@ class CategoryRoamRegistrationContracts(unittest.TestCase):
 
 
 # Exact discovery/Roam layer on the frozen club R2 floor.
-ADMISSION_FINGERPRINT = '1593f471ec9335da9f0c9e72db12061f037ae7ae3a1fe4b00c8431f4641ae3b3'
+ADMISSION_FINGERPRINT = '46c3e9069e54cb113279ce1e7e4f5046bc155b143845d527ac2a440ece2fa27e'
 CATEGORY_TEMPLATE_OFFSET = 65180
 CURRENT_APPROVED_PATHS = ['App/GlobalSearchView.swift',
  'Core/SearchMapReading.swift',
@@ -7952,6 +7952,7 @@ def creator_catalog_input(data, root):
 
 def creator_history_root(root, *, live_root=ROOT):
     try:
+        _reject_invalid_historical_creator_fixture(root, live_root=live_root)
         _, _, context = _profile_parent_inputs(live_root)
         root = Path(root)
         # Existing bounded legacy fixtures keep their original strict domain.
@@ -9845,6 +9846,263 @@ def byte_cache_predecessor_source(path, raw, *, root=ROOT):
         old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\n' + b''.join(
             ('    ' + repr(encoded[i:i+80]) + '\n').encode() for i in range(0, len(encoded), 80)) + b')\n' + last + suffix
     require(digest(old) == BYTE_CACHE_PRE_SHA256[path], 'Complete native54 source not restored: ' + path)
+    return old
+
+# Exact published7bf rejection-only creator fixture predecessor.
+FIXTURE_REJECTION_SOURCE_BASE_COMMIT = '7bf858c23374b808c6d932367f96e97d09e9d799'
+FIXTURE_REJECTION_SOURCE_BASE_TREE = '94f43a19209607d403b47f3cdada1cfadf9c9aba'
+FIXTURE_REJECTION_PRE_FINGERPRINT = '1593f471ec9335da9f0c9e72db12061f037ae7ae3a1fe4b00c8431f4641ae3b3'
+FIXTURE_REJECTION_PRE_SHA256 = {'Tests/ContractChecks/test_category_roam_registration.py': '5c72f6dd5b8dbe54413e9351272418968c637dae78133e48946ed365e1442597',
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': '65e3f5cb35be878a8ed78afb4357e8588d9bb778ae33d4f95d6ba504ef031dd7',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': '664c7d0b0e8166687c0bc0814a9c2a801518dde1be3692dc59c5957a53d3d22a',
+ 'tools/run138_editor_readiness_contract.json': '4f1ca536a2e6f2b0bc8a77a9849cbe49325cc508e44cefb0363a59d75db5b151',
+ 'tools/run138_editor_readiness.py': '9beed44a6cde9dd4db65a7e721e92702cc7f86eb4209061bdf3777fa6b173b95'}
+FIXTURE_REJECTION_SOURCE_HUNKS = (('def creator_history_root(root, *, live_root=ROOT):\n'
+  '    try:\n'
+  '        _, _, context = _profile_parent_inputs(live_root)\n'
+  '        root = Path(root)\n'
+  '        # Existing bounded legacy fixtures keep their original strict domain.\n'
+  '        # The actual current root and our authenticated parent context are explicit.\n'
+  '        if root.resolve() == Path(live_root).resolve(): return context\n'
+  '        if str(root.resolve()) in _profile_origins: return root\n'
+  '        require(not (root / CONTRACT_PATH).exists() and not (root / CONTRACT_PATH).is_symlink(),\n'
+  "                'Unknown mixed current creator history root')\n"
+  '        # The pre-existing eight-input synthetic fixture can contain the new\n'
+  '        # catalog/gate only as an exact complete current eight-file group.\n'
+  '        # Old fixtures still proceed to the unchanged strict old state reader.\n'
+  '        incoming = {p: (root / p).read_bytes() for p in CREATOR_FIXTURE_INPUTS if (root / p).exists()}\n'
+  '        new_catalog = CATALOG_PATH in incoming and digest(incoming[CATALOG_PATH]) == '
+  "CURRENT_SOURCE_ROWS[CATALOG_PATH]['after_sha256']\n"
+  '        new_gate = CREATOR_RAW_GATE_PATH in incoming and digest(incoming[CREATOR_RAW_GATE_PATH]) == '
+  "EXTRA_INPUT_ROWS[CREATOR_RAW_GATE_PATH]['after_sha256']\n"
+  '        if new_catalog or new_gate:\n'
+  "            require(set(incoming) == set(CREATOR_FIXTURE_INPUTS), 'Incomplete current eight-file creator "
+  "fixture')\n"
+  '            for path, data in incoming.items():\n'
+  "                require(not (root / path).is_symlink(), 'Symlink in current creator fixture')\n"
+  "                require(data == (Path(live_root) / path).read_bytes(), 'Mixed current creator fixture: ' "
+  '+ path)\n'
+  '            old = {p: (context / p).read_bytes() for p in CREATOR_FIXTURE_INPUTS}\n'
+  '            return _bounded_context(_creator_fixture_contexts, str(root.resolve()), old, '
+  "'category-roam-creator8-')\n"
+  '        return root\n'
+  '    except (AssertionError, OSError, KeyError, TypeError, UnicodeError) as error:\n'
+  '        raise ValueError(str(error)) from error',
+  'def creator_history_root(root, *, live_root=ROOT):\n'
+  '    try:\n'
+  '        _reject_invalid_historical_creator_fixture(root, live_root=live_root)\n'
+  '        _, _, context = _profile_parent_inputs(live_root)\n'
+  '        root = Path(root)\n'
+  '        # Existing bounded legacy fixtures keep their original strict domain.\n'
+  '        # The actual current root and our authenticated parent context are explicit.\n'
+  '        if root.resolve() == Path(live_root).resolve(): return context\n'
+  '        if str(root.resolve()) in _profile_origins: return root\n'
+  '        require(not (root / CONTRACT_PATH).exists() and not (root / CONTRACT_PATH).is_symlink(),\n'
+  "                'Unknown mixed current creator history root')\n"
+  '        # The pre-existing eight-input synthetic fixture can contain the new\n'
+  '        # catalog/gate only as an exact complete current eight-file group.\n'
+  '        # Old fixtures still proceed to the unchanged strict old state reader.\n'
+  '        incoming = {p: (root / p).read_bytes() for p in CREATOR_FIXTURE_INPUTS if (root / p).exists()}\n'
+  '        new_catalog = CATALOG_PATH in incoming and digest(incoming[CATALOG_PATH]) == '
+  "CURRENT_SOURCE_ROWS[CATALOG_PATH]['after_sha256']\n"
+  '        new_gate = CREATOR_RAW_GATE_PATH in incoming and digest(incoming[CREATOR_RAW_GATE_PATH]) == '
+  "EXTRA_INPUT_ROWS[CREATOR_RAW_GATE_PATH]['after_sha256']\n"
+  '        if new_catalog or new_gate:\n'
+  "            require(set(incoming) == set(CREATOR_FIXTURE_INPUTS), 'Incomplete current eight-file creator "
+  "fixture')\n"
+  '            for path, data in incoming.items():\n'
+  "                require(not (root / path).is_symlink(), 'Symlink in current creator fixture')\n"
+  "                require(data == (Path(live_root) / path).read_bytes(), 'Mixed current creator fixture: ' "
+  '+ path)\n'
+  '            old = {p: (context / p).read_bytes() for p in CREATOR_FIXTURE_INPUTS}\n'
+  '            return _bounded_context(_creator_fixture_contexts, str(root.resolve()), old, '
+  "'category-roam-creator8-')\n"
+  '        return root\n'
+  '    except (AssertionError, OSError, KeyError, TypeError, UnicodeError) as error:\n'
+  '        raise ValueError(str(error)) from error'),)
+FIXTURE_REJECTION_GIT_STATES = (('334b93752e26bc4f005f7aec3e5bc3fa89a15947',
+  '09334269bacd076a5cdb4da03a5da1b4ec0156ea',
+  (('App/TemplateAuthoringMineView.swift',
+    '882bdcf7b5467e0f57dc28c21b3e7c38e32b956f4c19a2713a1d88b31e4cb85d'),
+   ('Core/TemplateAuthoringShelf.swift', '079a78c9ca829f79bf35fff0eb3c9dc575baddd7332ae20e092b3eba22a4a5f6'),
+   ('Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift',
+    'd0a7f13f6f66fdf29d2db630d5aefc5f97113921d7c3977d5a0e1f9793123224'),
+   ('Tests/ContractChecks/test_template_shelf_read_bridge.py',
+    'efe2ba8a755453f86964af41c5335fb41abb7423d5d173500a7df8e9502347b2'),
+   ('Tests/CoreTests/TemplateAuthoringHTTPTests.swift',
+    '95bb75ebea6aa3b76314843463ca7e09e2bab68366281b4e99b1cbbcb8155baa'))),
+ ('6ae3e545b373dd5cddc47356a57d0cb6ee928e70',
+  'dc1573c54487cb5402b083b0ff91d3a98025eca9',
+  (('App/TemplateAuthoringMineView.swift',
+    '91d2c740529dd2970568cacfcd68409618c6e2d1d6cda007daccfdb3dc8164d7'),
+   ('Core/TemplateAuthoringShelf.swift', '3d8865b315f1712f0056d1b376f0f7f2b1aa01e8417dab95f438c200cefe2e91'),
+   ('Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift',
+    '7311d093a69f2291048f9f08110ef1425cd884ede1781abb28c037c1b50a2673'),
+   ('Tests/ContractChecks/test_template_shelf_read_bridge.py',
+    'c6739456a84e353060b42225dae9b8c2a472d8f080bb831ccd7bb74c39afaec8'),
+   ('Tests/CoreTests/TemplateAuthoringHTTPTests.swift',
+    '760c57eef41df4f73d89ea5143fd629c68d82ffe1c290a203006371c684e8ee6'))),
+ ('b75f7549678caf51a65ec8942b6a6d0c23e887de',
+  '6d5a1e4a1486b3e97ed2f1e995ac5194e568bc20',
+  (('App/TemplateAuthoringMineView.swift',
+    '070653140719b1dd37b8cf5b811c0a6cfef9c66eff13fa06d9a78b6634a4c38f'),
+   ('Core/TemplateAuthoringShelf.swift', 'a9261782a98016cf474bbd9a2b2035fd6fbba6bf5ac9bb5682f85c95f4bbb13a'),
+   ('Resources/Localizable.xcstrings', '8f552d5a3f34a86c19a370c411a08669dfb4440a15f3b3037cd635595b4ff995'),
+   ('Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift',
+    '7311d093a69f2291048f9f08110ef1425cd884ede1781abb28c037c1b50a2673'),
+   ('Tests/ContractChecks/test_template_shelf_read_bridge.py',
+    'c6739456a84e353060b42225dae9b8c2a472d8f080bb831ccd7bb74c39afaec8'),
+   ('Tests/ContractChecks/test_template_shelf_state_projection.py',
+    '92a11a1874c3c442ff7bf76d62ae4e8331e0d7d589f6d55d919e9a4130180dc4'),
+   ('Tests/CoreTests/TemplateAuthoringHTTPTests.swift',
+    '760c57eef41df4f73d89ea5143fd629c68d82ffe1c290a203006371c684e8ee6'),
+   ('Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift',
+    'b2b199d73b7045d4c3de9ce7bc0ea41b10bfc233c6b9c180438fd415d5c99b87'))),
+ ('7bf858c23374b808c6d932367f96e97d09e9d799',
+  '94f43a19209607d403b47f3cdada1cfadf9c9aba',
+  (('App/TemplateAuthoringMineView.swift',
+    '070653140719b1dd37b8cf5b811c0a6cfef9c66eff13fa06d9a78b6634a4c38f'),
+   ('Core/TemplateAuthoringShelf.swift', 'a9261782a98016cf474bbd9a2b2035fd6fbba6bf5ac9bb5682f85c95f4bbb13a'),
+   ('Resources/Localizable.xcstrings', '901ba5a72ab2748c171483dff7743c63a30552ab9ded21b2c3379ae410f2a898'),
+   ('Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift',
+    '7311d093a69f2291048f9f08110ef1425cd884ede1781abb28c037c1b50a2673'),
+   ('Tests/ContractChecks/test_template_shelf_read_bridge.py',
+    'c6739456a84e353060b42225dae9b8c2a472d8f080bb831ccd7bb74c39afaec8'),
+   ('Tests/ContractChecks/test_template_shelf_state_projection.py',
+    'f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595'),
+   ('Tests/CoreTests/TemplateAuthoringHTTPTests.swift',
+    '760c57eef41df4f73d89ea5143fd629c68d82ffe1c290a203006371c684e8ee6'),
+   ('Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift',
+    'b2b199d73b7045d4c3de9ce7bc0ea41b10bfc233c6b9c180438fd415d5c99b87'))))
+
+import stat
+
+
+def _reject_invalid_historical_creator_fixture(root, *, live_root):
+    """Only reject definite invalid complete legacy fixtures; never admit one.
+
+    Current roots, authenticated contexts, unusual paths, incomplete inventories
+    and uncertain reads retain the original complete admission chain. Every
+    preliminary member and byte read is fresh; no health result is retained.
+    """
+    if type(root) not in (str, type(Path())) or type(live_root) not in (str, type(Path())):
+        return
+    states = tuple(dict(state[2]) for state in FIXTURE_REJECTION_GIT_STATES)
+    five, eight = frozenset(states[0]), frozenset(states[2])
+    directories = {parent.as_posix() for name in eight for parent in Path(name).parents
+                   if parent != Path('.')}
+    try:
+        root = Path(root)
+        # lstat precedes resolve so even self-referential symlinks are uncertain.
+        if not stat.S_ISDIR(root.lstat().st_mode):
+            return
+        resolved = root.resolve()
+        if resolved == Path(live_root).resolve() or str(resolved) in _profile_origins:
+            return
+        pending, files, seen, actual_directories = [root], set(), set(), set()
+        while pending:
+            directory = pending.pop()
+            # Unlike rglob/Path.walk, iterdir does not suppress scandir errors.
+            for path in directory.iterdir():
+                name = path.relative_to(root).as_posix()
+                if name in seen:
+                    return
+                seen.add(name)
+                mode = path.lstat().st_mode
+                if stat.S_ISDIR(mode):
+                    if name not in directories:
+                        return
+                    actual_directories.add(name)
+                    pending.append(path)
+                elif stat.S_ISREG(mode):
+                    if name not in eight:
+                        return
+                    files.add(name)
+                else:
+                    # Symlinks, FIFO, socket and device nodes are uncertain.
+                    return
+        if files not in (five, eight):
+            return
+        required_directories = {parent.as_posix() for name in files for parent in Path(name).parents
+                                if parent != Path('.')}
+        if actual_directories != required_directories:
+            return
+        identities = {name: digest((root / name).read_bytes()) for name in files}
+    except (OSError, ValueError, RuntimeError):
+        # Only preliminary path/inventory/read errors fall through. The original
+        # implementation owns their final exception and current-source checks.
+        return
+    if any(identities == state for state in states):
+        return
+    if files == five:
+        raise ValueError('Mixed or unreviewed shelf refresh source bundle')
+    if (identities[CATALOG_PATH] == states[3][CATALOG_PATH]
+            or identities[CREATOR_RAW_GATE_PATH] == states[3][CREATOR_RAW_GATE_PATH]):
+        for name in CREATOR_FIXTURE_INPUTS:
+            if identities[name] != states[3][name]:
+                raise ValueError('Mixed current creator fixture: ' + name)
+    raise ValueError('Mixed, incomplete or unreviewed shelf state source bundle')
+
+# Both older complete-source inverses retain their original boundaries and
+# checks. The new finite creator call is removed before their old hash checks.
+BYTE_CACHE_SOURCE_HUNKS = BYTE_CACHE_SOURCE_HUNKS + FIXTURE_REJECTION_SOURCE_HUNKS
+ALBUM_CATEGORY_PREFIX_HUNKS = ALBUM_CATEGORY_PREFIX_HUNKS + [
+    {'before': before, 'after': after} for before, after in FIXTURE_REJECTION_SOURCE_HUNKS
+]
+
+
+def _fixture_rejection_category_preimage(raw):
+    marker = b'\n# Exact published7bf rejection-only creator fixture predecessor.\n'
+    suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
+    require(digest(raw) == IMPLEMENTATION_SHA256, 'Changed complete fixture-rejection admission source')
+    require(raw.count(marker) == 1 and raw.endswith(suffix), 'Unknown fixture-rejection source boundary')
+    prefix, _ = raw.split(marker, 1)
+    for before, after in reversed(FIXTURE_REJECTION_SOURCE_HUNKS):
+        before, after = before.encode(), after.encode()
+        require(prefix.count(after) == 1, 'Changed exact fixture-rejection inverse span')
+        prefix = prefix.replace(after, before, 1)
+    slot = b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+    require(prefix.count(slot) == 1, 'Changed fixture-rejection fingerprint slot')
+    old = prefix.replace(slot, b"ADMISSION_FINGERPRINT = '" + FIXTURE_REJECTION_PRE_FINGERPRINT.encode() + b"'", 1) + suffix
+    require(digest(old) == FIXTURE_REJECTION_PRE_SHA256[SELF_PATH], 'Complete published7bf admission not restored')
+    return old
+
+
+def fixture_rejection_predecessor_source(path, raw, *, root=ROOT):
+    """Restore exact published7bf source bytes only after fresh current admission."""
+    root = Path(root)
+    require(path in FIXTURE_REJECTION_PRE_SHA256, 'Fixture-rejection predecessor escaped its five-source domain')
+    current_contract = (root / CONTRACT_PATH).read_bytes()
+    checked_current(current_contract, root)
+    require(raw == (root / path).read_bytes(), 'Changed actual fixture-rejection predecessor input')
+    if path == SELF_PATH:
+        old = _fixture_rejection_category_preimage(raw)
+    elif path == PROFILE_PATH:
+        slot = b"DISCOVERY_HELPER_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+        require(raw.count(slot) == 1, 'Changed fixture-rejection profile slot')
+        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = '" + FIXTURE_REJECTION_PRE_FINGERPRINT.encode() + b"'", 1)
+    elif path == RUNNER_PATH:
+        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", raw)
+        require(len(pins) == 1 and pins[0].decode() == digest(current_contract), 'Changed fixture-rejection runner pin')
+        old = raw.replace(pins[0], FIXTURE_REJECTION_PRE_SHA256[CONTRACT_PATH].encode(), 1)
+    elif path == CONTRACT_PATH:
+        value = json.loads(raw)
+        require(encode(value) == raw, 'Noncanonical fixture-rejection contract')
+        for name in (SELF_PATH, CATEGORY_GATE, PROFILE_PATH):
+            require(value['feature_batch_support_sha256'][name] == digest((root / name).read_bytes()),
+                    'Changed fixture-rejection current support: ' + name)
+            value['feature_batch_support_sha256'][name] = FIXTURE_REJECTION_PRE_SHA256[name]
+        old = encode(value)
+    else:
+        normalized, source = _decoded_external_template(raw)
+        require(source == (root / SELF_PATH).read_bytes(), 'Changed fixture-rejection external template source')
+        encoded = encode_frozen_source(_fixture_rejection_category_preimage(source)).decode()
+        first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
+        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\n'
+        suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
+        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\n' + b''.join(
+            ('    ' + repr(encoded[i:i+80]) + '\n').encode() for i in range(0, len(encoded), 80)) + b')\n' + last + suffix
+    require(digest(old) == FIXTURE_REJECTION_PRE_SHA256[path], 'Complete published7bf source not restored: ' + path)
     return old
 
 if __name__ == '__main__':

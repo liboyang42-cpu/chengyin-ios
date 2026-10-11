@@ -19,6 +19,49 @@ TOOLS = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('targeted_native_runner', TOOLS / 'run_targeted_native.py')
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
+
+# CREATOR_FIXTURE_BOOTSTRAP_BEGIN
+# Test-only physical parent domain. Runtime admission never executes old code.
+FIXTURE_RUNNER = runner
+FIXTURE_SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))
+FIXTURE_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')
+
+def fixture_published_test_inputs(selection, current):
+    FIXTURE_RUNNER.validate_fixture_selection(selection, current)
+    restored = FIXTURE_RUNNER.fixture_predecessor_sources(selection, current)
+    contract = FIXTURE_RUNNER.read_json(current / 'tools/run138_editor_readiness_contract.json')
+    paths = set(FIXTURE_RUNNER.BOUND_SOURCES) | set(FIXTURE_RUNNER.CREATOR_PATHS) | set(FIXTURE_RUNNER.REPAIR_PATHS)
+    for values in (FIXTURE_RUNNER.STATIC_REPAIR_PATHS, FIXTURE_RUNNER.PATHS, FIXTURE_RUNNER.NATIVE_PATHS,
+                   FIXTURE_RUNNER.PORTABLE_PATHS, FIXTURE_RUNNER.DESCRIPTION_PATHS, FIXTURE_RUNNER.SOCIAL_PATHS,
+                   FIXTURE_RUNNER.PATHFIX_PATHS, FIXTURE_RUNNER.MERCHANT_PATHS, FIXTURE_RUNNER.BYTEPERF_PATHS):
+        paths.update(values)
+    paths.update(contract['feature_batch_sources'])
+    paths.update(contract['feature_batch_support_sha256'])
+    paths.add('tools/run138_current_source_projection.py')
+    temporary = tempfile.TemporaryDirectory(prefix='targeted-published3cbc-inputs-')
+    atexit.register(temporary.cleanup)
+    root = Path(temporary.name).resolve(strict=True)
+    for relative in sorted(paths):
+        source = current / relative
+        parts = Path(relative).parts
+        if (any((current / Path(*parts[:i])).is_symlink() for i in range(1, len(parts) + 1))
+                or not source.is_file() or source.stat().st_nlink != 1
+                or not source.resolve(strict=True).is_relative_to(current.resolve(strict=True))):
+            raise ValueError('Missing or linked published3cbc fixture input: ' + relative)
+        raw = source.read_bytes()
+        if relative in restored: raw = restored[relative]
+        destination = root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(raw)
+    FIXTURE_RUNNER.fixture_current_inputs(selection, current)
+    return root
+
+FIXTURE_PARENT_SOURCE = fixture_published_test_inputs(FIXTURE_SELECTION, FIXTURE_SOURCE)
+TOOLS = FIXTURE_PARENT_SOURCE / 'tools'
+spec = importlib.util.spec_from_file_location('published3cbc_native_runner', TOOLS / 'run_targeted_native.py')
+runner = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(runner)
+# CREATOR_FIXTURE_BOOTSTRAP_END
 DESCRIPTION_7B_TEST_SHA256 = '37b8a210e51c0c062964fedfd146313e53895fb255f4465db3eef0f0aaded993'
 DESCRIPTION_7B_TEST_BLOB = '91937ee7b9690b80de047ac24bf0748bf95c50e7'
 DESCRIPTION_7B_TEST_PACKED = (
@@ -4274,7 +4317,7 @@ def byteperf_test_inputs(selection, current):
     return old, root
 
 
-MERCHANT_SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))
+MERCHANT_SOURCE = FIXTURE_PARENT_SOURCE
 MERCHANT_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')
 runner.validate_merchant_selection(MERCHANT_SELECTION, MERCHANT_SOURCE)
 BYTEPERF_SOURCE = runner.merchant_history_root(MERCHANT_SELECTION, MERCHANT_SOURCE)
@@ -8449,7 +8492,7 @@ class MerchantReadbackBoundary(unittest.TestCase):
     def fixture(self):
         temporary = tempfile.TemporaryDirectory(prefix='merchant-current-six-')
         self.addCleanup(temporary.cleanup)
-        root = Path(temporary.name)
+        root = Path(temporary.name).resolve(strict=True)
         for relative in runner.MERCHANT_PATHS:
             path = root / relative; path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes((MERCHANT_SOURCE / relative).read_bytes())
@@ -9487,5 +9530,233 @@ class Split71PartitionProtocol(unittest.TestCase):
 
 # MERCHANT_READBACK_TESTS_END
 
+
+# CREATOR_FIXTURE_TESTS_BEGIN
+FIXTURE276_IDENTITIES = ('SelectionAndCommands.test_actual_bound_source_and_all_65_declarations', 'SelectionAndCommands.test_original_29_methods_are_preserved_and_only_16_added', 'SelectionAndCommands.test_per_method_source_binding_rejects_missing_swapped_duplicate_and_wrong_target', 'SelectionAndCommands.test_repinned_changed_method_and_duplicate_source_declaration_fail', 'SelectionAndCommands.test_duplicate_declaration_is_not_a_unique_method', 'SelectionAndCommands.test_nonboolean_version_and_exact_contract', 'SelectionAndCommands.test_changed_source_hash_and_missing_guard_rejected', 'SelectionAndCommands.test_empty_duplicate_target_and_wildcard_selectors_rejected', 'SelectionAndCommands.test_core_filter_is_exact_set_without_full_suite_fallback', 'SelectionAndCommands.test_every_xcode_method_has_its_own_exact_filter', 'SelectionAndCommands.test_workflow_remains_additive_standard_and_independent', 'SelectionAndCommands.test_original_gates_project_schemes_and_product_sources_are_unchanged', 'ReviewedCompileRepair.test_complete_predecessors_and_unrelated_contract_semantics_are_preserved', 'ReviewedCompileRepair.test_real_central_projection_accepts_current_support_and_exact_inverse', 'ReviewedCompileRepair.test_repair_inverse_rejects_off_hunk_changes_even_with_rehashed_postimage', 'Results.test_xunit_reads_all_forty_four_real_cases', 'Results.test_core_transcript_proves_execution_beyond_swiftpm_xunit', 'Results.test_xunit_failures_skips_and_unknown_status_cannot_pass', 'Results.test_modern_xcresult_exact_target_and_method_set', 'Results.test_xcresult_missing_wrong_target_bad_identifier_and_unknown_schema', 'Results.test_target_url_binding_must_not_override_wrong_bundle', 'Results.test_zero_omitted_extra_duplicate_failed_skipped_timeout_and_cancel_fail', 'Results.test_hidden_repetitions_and_xunit_summary_disagreement_fail', 'Results.test_summary_counts_actual_device_and_no_boolean_counts', 'RuntimeBoundaries.test_single_installed_iphone_and_no_automatic_other_device', 'RuntimeBoundaries.test_run_requires_hosted_mac_exact_repo_branch_and_event', 'RuntimeBoundaries.test_process_exit_is_real_and_timeout_never_passes', 'RuntimeBoundaries.test_core_build_is_once_before_exact_execution_and_failure_stops', 'RuntimeBoundaries.test_core_capture_keeps_stderr_live_and_limits_only_evidence', 'RuntimeBoundaries.test_every_cleanup_wait_is_bounded_even_after_kill', 'RuntimeBoundaries.test_product_target_selection_supports_only_safe_testhost_tokens', 'RuntimeBoundaries.test_product_directory_alias_returns_canonical_safe_run', 'RuntimeBoundaries.test_ambiguous_products_and_extra_target_fail', 'RuntimeBoundaries.test_inventory_detects_product_mutation_and_escaping_links', 'RuntimeBoundaries.test_scope_requires_exact_sha_base_and_nineteen_exact_statuses', 'RuntimeBoundaries.test_duplicate_json_keys_rejected', 'RuntimeBoundaries.test_missing_receipt_reports_not_run', 'ReceiptIdentity.test_exact_same_run_sha_tree_configuration_and_65_results', 'ReceiptIdentity.test_report_revalidates_real_exported_files_not_just_receipt_counts', 'ReceiptIdentity.test_other_run_attempt_sha_tree_selection_or_workflow_rejected', 'ReceiptIdentity.test_missing_or_wrong_configuration_toolchain_simulator_or_group_rejected', 'CreatorCurrentTreeAndCounts.test_every_creator_current_tree_mode_blob_and_presence_is_exact', 'CreatorCurrentTreeAndCounts.test_receipt_counts_are_real_integers_and_outer_fields_are_exact', 'Creator65Contract.test_original_45_exact_bindings_plus_independent_20_are_exactly_65', 'Creator65Contract.test_each_of_the_65_methods_has_one_declaration_in_its_exact_source', 'Creator65Contract.test_each_new_method_rejects_repinned_replacement_or_wrong_source', 'Creator65Contract.test_each_new_declaration_is_checked_before_creator_image_validation', 'Creator65Contract.test_new_source_binding_cannot_be_dropped_even_after_outer_repin', 'Creator65Contract.test_core_44_requires_both_complete_independent_execution_streams', 'Creator65Contract.test_old_45_receipt_cannot_be_upgraded_by_renaming_or_recounting', 'Creator65Contract.test_each_new_method_is_required_in_the_65_receipt', 'Creator65Contract.test_creator_15_and_diagnostic_4_have_exact_independent_statuses', 'Creator65Contract.test_all_creator_current_bytes_sha_and_git_blobs_are_independently_bound', 'Creator65Contract.test_creator_missing_duplicate_reordered_and_changed_rows_reject_outer_repin', 'Creator65Contract.test_every_creator_path_rejects_changed_real_current_bytes', 'Creator65Contract.test_added_files_cannot_be_rehashed_or_claim_predecessors_or_hunks', 'Creator65Contract.test_modified_creator_inverse_requires_complete_predecessor', 'Creator65Contract.test_creator_baseline_requires_each_modified_blob_and_all_four_additions_absent', 'Creator65Contract.test_each_creator_current_sha_and_blob_check_remains_active_after_inner_repin', 'Creator65Contract.test_each_creator_current_file_must_exist_as_a_regular_checkout_file', 'Creator65Contract.test_added_file_null_predecessor_and_empty_hunks_are_independently_enforced', 'ShallowCheckoutBoundaries.test_current_bytes_validate_without_history_but_real_run_scope_requires_it', 'ShallowCheckoutBoundaries.test_real_git_witness_proves_predecessors_and_addition_absence_without_parent_history', 'StaticRepairBinding.test_exact_published_base_nine_paths_and_old_domains_remain_separate', 'StaticRepairBinding.test_complete_current_payload_inverts_to_independent_b75_bytes', 'StaticRepairBinding.test_manifest_cannot_widen_or_change_under_outer_repin', 'StaticRepairBinding.test_every_payload_checks_real_bytes_sha_blob_and_regular_file', 'StaticRepairBinding.test_inverse_rejects_rehashed_off_hunk_and_fabricated_addition_predecessors', 'StaticRepairBinding.test_actual_parent_nine_path_scope_and_receipt_cannot_claim_old_scope', 'StaticRepairBinding.test_each_baseline_and_current_tree_mode_blob_and_addition_absence', 'StaticRepairBinding.test_real_git_subset_witness_binds_b75_payload_and_current_mode_blobs', 'PublishedParentBridge.test_exact_eight_path_parent_bridge_preserves_old_source_domains', 'PublishedParentBridge.test_current_to_true_parent_to_b75_inverses_match_every_historical_source', 'PublishedParentBridge.test_parent_bridge_rejects_repinned_missing_reordered_or_expanded_inputs', 'PublishedParentBridge.test_each_parent_inverse_rejects_rehashed_off_hunk_and_changed_real_sources', 'PublishedParentBridge.test_every_real_parent_bridge_tree_mode_blob_and_presence_is_exact', 'PublishedParentBridge.test_parent_history_and_receipts_cannot_relabel_b75_as_current_parent', 'FixedPublicCreatorRead.test_present_exact_object_never_fetches_or_inspects_network_configuration', 'FixedPublicCreatorRead.test_missing_object_uses_one_whitelisted_bounded_noninteractive_public_read', 'FixedPublicCreatorRead.test_offline_timeout_or_unreadable_config_fail_closed_without_retry', 'FixedPublicCreatorRead.test_existing_or_fetched_wrong_tree_parent_or_duplicate_parent_is_rejected', 'FixedPublicCreatorRead.test_credential_redirect_include_and_auth_configuration_never_reach_fetch', 'FixedPublicCreatorRead.test_public_target_cannot_be_generalized_by_changing_fixed_identity', 'NativeC2afBoundary.test_original83_complete_method_sources_are_unchanged', 'NativeC2afBoundary.test_new14_old15_history34_history19_and_original65_remain_separate', 'NativeC2afBoundary.test_all_eleven_physical_postimages_restore_exact_complete_c2af_sources', 'NativeC2afBoundary.test_no_v5_missing_unknown_or_expanded_current_layer_is_accepted', 'NativeC2afBoundary.test_rehashed_rows_cannot_change_independent_predecessors_or_inverse_shape', 'NativeC2afBoundary.test_each_current_source_rejects_missing_alias_stale_bytes_and_same_stat_mutation', 'NativeC2afBoundary.test_navigation_crlf_cr_and_rehashed_off_hunk_changes_fail_complete_inverse', 'NativeC2afBoundary.test_incomplete_or_forged_predecessor_maps_cannot_feed_historical_checks', 'NativeC2afBoundary.test_native_receipt_requires_current_c2af_layer_before_original65_receipt_checks', 'NativeC2afBoundary.test_all_fourteen_actual_tree_modes_blobs_and_presence_are_mandatory', 'NativeC2afBoundary.test_exact_scope_rejects_wrong_or_missing_parent_and_each_historical_layer', 'NativeC2afBoundary.test_real_git_subset_tree_witness_is_separate_from_mocked_scope_transport', 'FixedPublicRepairRead.test_present_exact_3393_never_fetches', 'FixedPublicRepairRead.test_missing_3393_uses_only_separate_fixed_public_bounded_fetch', 'FixedPublicRepairRead.test_3393_network_failures_and_credential_configuration_refuse_without_retry', 'FixedPublicRepairRead.test_3393_fixed_identity_wrong_tree_parent_merge_and_missing_headers_fail', 'PortableDiagnosticBoundary.test_complete_original83_sources_reject_body_decorator_comment_missing_duplicate_and_line_endings', 'PortableDiagnosticBoundary.test_exact_f04_selection_source_and_four_path_layer_are_mandatory', 'PortableDiagnosticBoundary.test_all_four_actual_current_files_and_both_tree_authorities_are_strict', 'PortableDiagnosticBoundary.test_entry_test_inverse_preserves_exact_f04_and_rejects_old_current_or_off_hunk', 'PortableDiagnosticBoundary.test_new4_and_published14_15_34_19_scope_cannot_be_relabelled', 'PortableDiagnosticBoundary.test_portable_receipt_requires_new_identity_before_original65_checks', 'FixedPublicNativeRead.test_present_c2af_never_fetches', 'FixedPublicNativeRead.test_missing_c2af_is_one_exact_bounded_public_read', 'FixedPublicNativeRead.test_bad_c2af_identity_config_timeout_and_parent_fail_closed', 'DescriptionRepairBoundary.test_complete_original108_methods_and_decorators_are_byte_identical', 'DescriptionRepairBoundary.test_original108_binding_rejects_body_decorator_comment_omission_duplicates_and_newlines', 'DescriptionRepairBoundary.test_new11_old4_native14_15_34_19_and_original65_stay_separate', 'DescriptionRepairBoundary.test_all_eight_current_payloads_restore_exact_complete_7b_bytes', 'DescriptionRepairBoundary.test_selection_missing_unknown_reordered_and_historical_layers_fail', 'DescriptionRepairBoundary.test_each_of_eleven_current_files_rejects_missing_old_and_same_stat_bytes', 'DescriptionRepairBoundary.test_leaf_and_ancestor_symbolic_links_inside_or_outside_root_are_rejected', 'DescriptionRepairBoundary.test_each_payload_rejects_coherently_repinned_off_hunk_postimage', 'DescriptionRepairBoundary.test_inverse_predecessor_hash_blob_hunks_and_complete_path_set_are_independent', 'DescriptionRepairBoundary.test_every_before_and_current_tree_requires_all_eleven_exact_modes_blobs_and_types', 'DescriptionRepairBoundary.test_new11_scope_authenticates_old4_native14_and_all_older_domains', 'DescriptionRepairBoundary.test_scope_rejects_wrong_parent_extra_parent_modes_each_history_and_dirty_checkout', 'DescriptionRepairBoundary.test_description_receipt_requires_new_identity_and_still_requires_all65_actual_results', 'FixedPublicPortableRead.test_present_exact_f04_never_fetches_or_reads_network_configuration', 'FixedPublicPortableRead.test_missing_f04_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicPortableRead.test_f04_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicPortableRead.test_f04_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicPortableRead.test_existing_or_fetched_f04_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicPortableRead.test_fixed_f04_public_object_identity_cannot_be_generalized', 'SocialActorBoundary.test_complete_original127_methods_and_decorators_are_byte_identical', 'SocialActorBoundary.test_original127_binding_rejects_body_decorator_comment_omission_duplicates_and_newlines', 'SocialActorBoundary.test_new15_old11_old4_native14_15_34_19_and_original65_stay_separate', 'SocialActorBoundary.test_all_twelve_current_payloads_restore_exact_complete_42_bytes', 'SocialActorBoundary.test_selection_missing_unknown_reordered_and_historical_layers_fail', 'SocialActorBoundary.test_each_of_fifteen_current_files_rejects_missing_old_and_same_stat_bytes', 'SocialActorBoundary.test_leaf_and_ancestor_symbolic_links_inside_or_outside_root_are_rejected', 'SocialActorBoundary.test_each_payload_rejects_coherently_repinned_off_hunk_postimage', 'SocialActorBoundary.test_inverse_predecessor_hash_blob_hunks_and_complete_path_set_are_independent', 'SocialActorBoundary.test_every_before_and_current_tree_requires_all_fifteen_exact_modes_blobs_and_types', 'SocialActorBoundary.test_new15_scope_authenticates_old11_old4_native14_and_all_older_domains', 'SocialActorBoundary.test_scope_rejects_wrong_parent_extra_parent_modes_each_history_and_dirty_checkout', 'SocialActorBoundary.test_social_receipt_requires_new_identity_and_still_requires_all65_actual_results', 'SocialActorBoundary.test_actor_leaf_is_only_initializer_annotation_and_equatable_identity_bytes_are_unchanged', 'SocialActorBoundary.test_merchant_single_test_leaf_matches_reviewed_complete_after_and_exact42_before', 'SocialActorBoundary.test_historical_inputs_copy_bytes_without_aliasing_any_current_checkout_file', 'SocialActorBoundary.test_new_performance_control_cannot_claim_any_historical_predecessor', 'FixedPublicDescriptionRead.test_present_exact_7b_never_fetches_or_reads_network_configuration', 'FixedPublicDescriptionRead.test_missing_7b_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicDescriptionRead.test_7b_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicDescriptionRead.test_7b_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicDescriptionRead.test_existing_or_fetched_7b_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicDescriptionRead.test_fixed_7b_public_object_identity_cannot_be_generalized', 'PathTemplateDiagnosticBoundary.test_original150_complete_method_bytes_and_decorators_are_unchanged', 'PathTemplateDiagnosticBoundary.test_original150_source_identity_rejects_body_comment_missing_and_duplicate_method', 'PathTemplateDiagnosticBoundary.test_complete_bb5_predecessor_json_and_test_bytes_are_fixed', 'PathTemplateDiagnosticBoundary.test_all_three_current_raw_files_reject_missing_old_same_size_mtime_and_links_after_warm', 'PathTemplateDiagnosticBoundary.test_noncanonical_selection_bytes_and_unknown_or_missing_layer_are_rejected', 'PathTemplateDiagnosticBoundary.test_missing_foreign_source_never_falls_back_to_loaded_healthy_root', 'PathTemplateDiagnosticBoundary.test_parent_directory_symlink_is_rejected_even_for_byte_identical_inputs', 'PathTemplateDiagnosticBoundary.test_historical_fixture_has_no_hardlink_into_real_current_source', 'PathTemplateDiagnosticBoundary.test_coherent_outer_repin_cannot_change_before_blobs_or_any_historical_selection_byte', 'PathTemplateDiagnosticBoundary.test_exact_new3_scope_preserves_all_published_fifteen_and_older_layers', 'PathTemplateDiagnosticBoundary.test_scope_rejects_new_parent_merge_mode_missing_extra_and_every_old_scope', 'PathTemplateDiagnosticBoundary.test_receipt_requires_pathfix_and_every_old_identity_and_all65_real_results', 'XctestrunPathTemplateTests.test_plain_and_double_underscore_product_root_aliases', 'XctestrunPathTemplateTests.test_literal_token_product_roots_are_not_reexpanded', 'XctestrunPathTemplateTests.test_double_underscore_product_children_and_absolute_paths', 'XctestrunPathTemplateTests.test_nested_host_tokens_preserve_literal_physical_root_names', 'XctestrunPathTemplateTests.test_unknown_template_tokens_reject_existing_literal_paths', 'XctestrunPathTemplateTests.test_missing_empty_and_recursive_host_tokens_reject', 'XctestrunPathTemplateTests.test_relative_and_missing_product_fields_reject', 'XctestrunPathTemplateTests.test_parent_and_absolute_sibling_escapes_reject', 'XctestrunPathTemplateTests.test_product_links_stay_inside_root_and_run_links_reject', 'XctestrunPathTemplateTests.test_multiple_runs_extra_targets_and_no_match_reject', 'XctestrunPathTemplateTests.test_non_token_double_underscore_names_remain_literal', 'FixedPublicSocialRead.test_present_exact_42_never_fetches_or_reads_network_configuration', 'FixedPublicSocialRead.test_missing_42_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicSocialRead.test_42_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicSocialRead.test_42_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicSocialRead.test_existing_or_fetched_42_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicSocialRead.test_fixed_42_public_object_identity_cannot_be_generalized', 'AlbumGetterActorBoundary.test_all179_previously_reviewed_method_bytes_remain_exact', 'AlbumGetterActorBoundary.test_exact_eight_payloads_restore_bb5_and_keep_all_other_files_out', 'AlbumGetterActorBoundary.test_only_actor_annotation_changes_and_all_nine_swift_methods_stay_intact', 'AlbumGetterActorBoundary.test_payload_rows_cannot_omit_duplicate_reorder_or_coherently_replace_preimages', 'CasefoldFixtureBoundary.test_all183_complete_method_bytes_decorators_and_comments_remain_unchanged', 'CasefoldFixtureBoundary.test_actual_identical_and_case_variant_names_have_independent_parents', 'CasefoldFixtureBoundary.test_simulated_casefold_directory_collision_rejects_old_layout_not_isolated_helper', 'CasefoldFixtureBoundary.test_selector_complete_function_and_original_literal_cases_remain_fixed', 'CasefoldFixtureBoundary.test_current_three_raw_missing_old_same_stat_symlink_and_foreign_root_rejected', 'CasefoldFixtureBoundary.test_exact_raw_json_and_coherent_before_repin_cannot_forge_predecessor', 'CasefoldFixtureBoundary.test_published54_complete_before_images_and_old_domain_do_not_admit_new_layer', 'CasefoldFixtureBoundary.test_bounded_published54_fixture_never_hardlinks_current_sources', 'CasefoldFixtureBoundary.test_receipt_requires_new_identity_every_old_layer_and_all65_actual_methods', 'FixedPublicPathfixRead.test_present_exact_bb5_never_fetches_or_reads_network_configuration', 'FixedPublicPathfixRead.test_missing_bb5_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicPathfixRead.test_bb5_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicPathfixRead.test_bb5_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicPathfixRead.test_existing_or_fetched_bb5_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicPathfixRead.test_fixed_bb5_public_object_identity_cannot_be_generalized', 'BoundedByteTransformBoundary.test_complete_original198_methods_are_preserved_without_weakened_assertions', 'BoundedByteTransformBoundary.test_warm_boundaries_reject_each_current_raw_same_size_mtime_missing_and_symlink', 'BoundedByteTransformBoundary.test_all_five_source_inverses_restore_complete_published_c3a_bytes', 'BoundedByteTransformBoundary.test_old_defaults_reject_new_layer_and_mixed_foreign_current_roots', 'BoundedByteTransformBoundary.test_exact_raw_selection_and_inverse_payload_cannot_be_coherently_rebound', 'BoundedByteTransformBoundary.test_warm_async_and_threaded_boundary_still_reads_actual_root_bytes', 'BoundedByteTransformBoundary.test_bounded_physical_predecessors_share_no_inodes', 'BoundedByteTransformBoundary.test_receipt_requires_all_new_and_old_identity_fields', 'FixedPublicCasefoldRead.test_present_exact_54f_never_fetches_or_reads_network_configuration', 'FixedPublicCasefoldRead.test_missing_54f_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicCasefoldRead.test_54f_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicCasefoldRead.test_54f_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicCasefoldRead.test_existing_or_fetched_54f_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicCasefoldRead.test_fixed_54f_public_object_identity_cannot_be_generalized', 'MerchantReadbackBoundary.test_original212_complete_methods_and_full_predecessor_files_are_exact', 'MerchantReadbackBoundary.test_exact_current71_retains_all65_and_six_real_new_source_bindings', 'MerchantReadbackBoundary.test_old_defaults_reject_current71_and_current_rejects_old65', 'MerchantReadbackBoundary.test_each_new_method_missing_duplicate_extra_wrong_source_and_old_recount_reject', 'MerchantReadbackBoundary.test_warm_current_six_reject_same_stat_missing_symlink_and_hardlink_aliases', 'MerchantReadbackBoundary.test_root_and_ancestor_links_and_noncanonical_json_fail', 'MerchantReadbackBoundary.test_projection_is_explicit_readonly_same_root_and_reauthenticates_after_warm', 'MerchantReadbackBoundary.test_coherent_payload_repin_cannot_replace_complete_predecessor_or_frozen_postimage', 'MerchantReadbackBoundary.test_current_core_filter_selects_all50_and_each_new_method_exactly', 'MerchantReadbackBoundary.test_core50_requires_both_real_streams_and_every_new_method', 'MerchantReadbackBoundary.test_current71_receipt_rejects_old65_missing_each_new_and_forged_counter', 'MerchantReadbackBoundary.test_receipt_preserves_every_historical_identity_and_result_digest_requirement', 'MerchantReadbackBoundary.test_current_receipt_initialization_is71_and_legacy_initialization_stays65', 'MerchantReadbackBoundary.test_each_before_and_after_tree_path_mode_type_blob_and_addition_absence', 'MerchantReadbackBoundary.test_scope_exact_six_full_trees_githubsha_parent_and_dirty_guards', 'MerchantReadbackBoundary.test_missing_real_parent_fails_without_fetch_or_alternate_object_acquisition', 'MerchantReadbackBoundary.test_report_missing_receipt_stays_not_run_without_scope_or_execution', 'MerchantReadbackBoundary.test_report_revalidates_current50_xml_transcript_and_every_exported_result', 'MerchantReadbackBoundary.test_published7bf_nine_path_bridge_reaches_exact_c3_history_without_network', 'MerchantReadbackBoundary.test_published_bridge_rejects_wrong_headers_diff_every_mode_blob_and_old_chain', 'MerchantReadbackBoundary.test_present_commit_missing_tree_stops_before_any_legacy_fetch_helper', 'MerchantReadbackBoundary.test_complete_tree_reconstruction_authenticates_empty_trees_and_directory_modes', 'MerchantReadbackBoundary.test_cli_alias_source_root_is_rejected_before_normalizing_it_away', 'MerchantReadbackBoundary.test_c3_present_never_fetches_and_fixed_target_cannot_be_generalized', 'MerchantReadbackBoundary.test_c3_missing_commit_or_tree_fetches_one_exact_public_object_with_safe_environment', 'MerchantReadbackBoundary.test_c3_unsafe_configuration_stops_before_fetch', 'MerchantReadbackBoundary.test_c3_config_network_timeout_and_success_without_objects_fail_without_retry', 'MerchantReadbackBoundary.test_c3_wrong_tree_parent_merge_duplicate_or_missing_headers_are_rejected', 'MerchantReadbackBoundary.test_schema_commands_use_exact_observed_result_paths_and_nine_bounded_reads', 'MerchantReadbackBoundary.test_schema_without_actual_result_is_not_run_and_never_invents_a_default_path', 'MerchantReadbackBoundary.test_schema_raw_bytes_metadata_and_receipt_authority_stay_separate', 'MerchantReadbackBoundary.test_schema_time_budget_missing_results_links_and_command_failures_are_explicit', 'MerchantReadbackBoundary.test_schema_streaming_limits_and_timeout_are_real_local_process_controls', 'MerchantReadbackBoundary.test_schema_capture_never_rewrites_test_status_and_respects_cancellation', 'MerchantReadbackBoundary.test_schema_workflow_is_exact_split_allowlist_and_old_no_artifact_domain_restored', 'Split71PartitionProtocol.test_exact_two_partitions_union71_reparses_all_raw_results', 'Split71PartitionProtocol.test_every_new6_core_omission_rejected_even_after_rehash', 'Split71PartitionProtocol.test_legacy65_receipt_cannot_impersonate_split71', 'Split71PartitionProtocol.test_missing_extra_duplicate_partition_and_wrong_artifact_names_rejected', 'Split71PartitionProtocol.test_matrix_cancel_skip_failure_unknown_and_nonstring_success_rejected', 'Split71PartitionProtocol.test_cross_sha_run_attempt_tree_workflow_selection_and_repository_rejected', 'Split71PartitionProtocol.test_wrong_group_same_total_substitution_duplicate_and_zero_results_rejected', 'Split71PartitionProtocol.test_raw_json_tampering_and_rehashed_failure_skip_incomplete_rejected', 'Split71PartitionProtocol.test_nonzero_or_boolean_test_build_and_summary_counts_rejected', 'Split71PartitionProtocol.test_wrong_device_and_reused_device_toolchain_runtime_image_rejected', 'Split71PartitionProtocol.test_products_manifest_archive_and_before_after_changes_rejected', 'Split71PartitionProtocol.test_unknown_missing_negative_nan_and_inconsistent_phase_rejected', 'Split71PartitionProtocol.test_current_selection_budget_partition_or_old_declaration_changes_rejected', 'Split71PartitionProtocol.test_ui_raw_plist_must_match_product_inventory_and_safe_configuration', 'Split71PartitionProtocol.test_device_schema_rejects_note_spoof_mixed_device_wrong_os_and_fabricated_runtime', 'Split71PartitionProtocol.test_core_product_binary_ledger_mutation_is_rejected', 'Split71PartitionProtocol.test_fixed_history_read_is_bounded_sanitized_and_rejects_other_revision', 'Split71PartitionProtocol.test_summary_overall_failure_or_nonempty_failure_list_rejected_after_rehash', 'Split71PartitionProtocol.test_worker_clock_cannot_hide_overhead_overlap_or_exceed_worker_cap', 'Split71PartitionProtocol.test_fixed_two_worker_authorization_does_not_admit_changed_contract', 'Split71PartitionProtocol.test_method_commands_have_only_exact_whole_identities_and_original_timeouts', 'Split71PartitionProtocol.test_evidence_allowlist_refuses_symlinks_extra_products_and_duplicate_json_keys', 'Split71PartitionProtocol.test_current_workflow_uses_fixed_matrix_bounded_same_attempt_artifacts_and_no_permissions_expansion', 'Split71PartitionProtocol.test_split_acquisition_requires_only_its_seven_exact_raw_commands_and_keeps_unsupported_bytes', 'Split71PartitionProtocol.test_split_acquisition_manifest_rejects_failure_timeout_truncation_identity_path_and_scope_even_after_rehash', 'Split71PartitionProtocol.test_split_acquisition_missing_bundle_expired_budget_and_aliased_path_never_become_complete', 'Split71PartitionProtocol.test_split_test_execution_cannot_mark_pass_before_actual_schema_admission', 'Split71PartitionProtocol.test_unknown_raw_help_is_retained_but_no_pass_evidence_is_written', 'Split71PartitionProtocol.test_report_reextracts_both_current_result_documents_before_pass_and_rejects_changed_result')
+FIXTURE276_SOURCE_SHA256 = '03cb72c651440a7b9cf0809fe1da9c7eb3851d6306121d33357939d9f969ac7e'
+class CreatorFixtureDiagnosticBoundary(unittest.TestCase):
+    r = FIXTURE_RUNNER
+
+    def fixture(self):
+        temporary = tempfile.TemporaryDirectory(prefix='fixture-nine-control-')
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name).resolve(strict=True)
+        paths = {p.relative_to(FIXTURE_PARENT_SOURCE).as_posix() for p in FIXTURE_PARENT_SOURCE.rglob('*') if p.is_file()}
+        paths.update(self.r.FIXTURE_PATHS)
+        for relative in sorted(paths):
+            source = FIXTURE_SOURCE / relative
+            self.assertTrue(source.is_file())
+            self.assertFalse(source.is_symlink())
+            target = root / relative; target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(source.read_bytes())
+        return root
+
+    def test_current_nine_and_unchanged71_partition_contract(self):
+        self.r.validate_split71_selection(FIXTURE_SELECTION, FIXTURE_SOURCE)
+        self.assertEqual(self.r.split71_layer(FIXTURE_SELECTION), runner.split71_layer(MERCHANT_SELECTION))
+        self.assertEqual(FIXTURE_SELECTION['groups'], MERCHANT_SELECTION['groups'])
+        self.assertEqual([len(p['methods']) for p in self.r.split71_layer(FIXTURE_SELECTION)['partitions']], [64, 7])
+
+    def test_complete_parent_diagnostic_and_source_preimages_match_real_git(self):
+        restored = self.r.fixture_predecessor_sources(FIXTURE_SELECTION, FIXTURE_SOURCE)
+        self.assertEqual(len(restored), 8)
+        for relative, raw in restored.items():
+            with self.subTest(path=relative):
+                expected = subprocess.check_output(['git', '-C', str(FIXTURE_SOURCE), 'show', self.r.FIXTURE_BASE_COMMIT + ':' + relative])
+                self.assertEqual(raw, expected)
+                self.assertEqual((FIXTURE_PARENT_SOURCE / relative).read_bytes(), expected)
+        self.assertNotIn('tools/tests/test_creator_history_fixture_rejection.py', restored)
+        self.assertEqual(runner.NATIVE_IMPLEMENTATION_SHA256, self.r.FIXTURE_BEFORE[self.r.PATHS[2]]['sha256'])
+
+    def test_original276_methods_and_complete_parent_test_source_preserved(self):
+        raw = self.r.fixture_test_preimage((FIXTURE_SOURCE / self.r.PATHS[3]).read_bytes())
+        lines = raw.splitlines(True); found = {}
+        for cls in ast.parse(raw).body:
+            if isinstance(cls, ast.ClassDef):
+                for node in cls.body:
+                    if isinstance(node, ast.FunctionDef) and node.name.startswith('test_'):
+                        start = min([node.lineno] + [d.lineno for d in node.decorator_list])
+                        found[cls.name + '.' + node.name] = b''.join(lines[start - 1:node.end_lineno]).decode()
+        self.assertEqual(tuple(found), FIXTURE276_IDENTITIES)
+        self.assertEqual(len(found), 276)
+        self.assertEqual(self.r.hashlib.sha256(self.r.encode(found).encode()).hexdigest(), FIXTURE276_SOURCE_SHA256)
+        current = ast.parse((FIXTURE_SOURCE / self.r.PATHS[3]).read_text()); current_lines = (FIXTURE_SOURCE / self.r.PATHS[3]).read_text().splitlines(True)
+        for cls in current.body:
+            if isinstance(cls, ast.ClassDef):
+                for node in cls.body:
+                    key = cls.name + '.' + getattr(node, 'name', '')
+                    if key in found:
+                        start = min([node.lineno] + [d.lineno for d in node.decorator_list])
+                        self.assertEqual(''.join(current_lines[start - 1:node.end_lineno]), found[key])
+
+    def test_each_complete_nine_input_hot_mutation_and_restoration(self):
+        root = self.fixture(); self.r.fixture_current_inputs(FIXTURE_SELECTION, root)
+        for relative in self.r.FIXTURE_PATHS:
+            with self.subTest(path=relative):
+                path = root / relative; raw = path.read_bytes(); stat = path.stat()
+                changed = bytes([raw[0] ^ 1]) + raw[1:]; path.write_bytes(changed)
+                os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+                with self.assertRaises(ValueError): self.r.fixture_current_inputs(FIXTURE_SELECTION, root)
+                path.write_bytes(raw)
+        self.r.fixture_current_inputs(FIXTURE_SELECTION, root)
+
+    def test_each_nine_missing_and_alias_rejected(self):
+        root = self.fixture()
+        for relative in self.r.FIXTURE_PATHS:
+            with self.subTest(path=relative):
+                path = root / relative; raw = path.read_bytes(); path.unlink()
+                with self.assertRaises(ValueError): self.r.fixture_current_inputs(FIXTURE_SELECTION, root)
+                other = root / 'alias-source'; other.write_bytes(raw); path.symlink_to(other)
+                with self.assertRaises(ValueError): self.r.fixture_current_inputs(FIXTURE_SELECTION, root)
+                path.unlink(); os.link(other, path)
+                with self.assertRaises(ValueError): self.r.fixture_current_inputs(FIXTURE_SELECTION, root)
+                path.unlink(); other.unlink(); path.write_bytes(raw)
+
+    def test_old_default_admission_stays_closed_to_current_sources(self):
+        with self.assertRaises(ValueError): self.r.validate_merchant_selection(MERCHANT_SELECTION, FIXTURE_SOURCE)
+        with self.assertRaises(ValueError): self.r.fixture_current_inputs(MERCHANT_SELECTION, FIXTURE_SOURCE)
+        changed = copy.deepcopy(FIXTURE_SELECTION); changed['creator_fixture_rejection']['payload'][0]['after_sha256'] = '0' * 64
+        with self.assertRaises(ValueError): self.r.fixture_predecessor_selection(changed)
+        changed = copy.deepcopy(FIXTURE_SELECTION); changed['groups'][0]['methods'].pop()
+        with self.assertRaises(ValueError): self.r.split71_layer(changed)
+
+    def test_explicit_history_view_reauthenticates_current_source_without_acceptance_cache(self):
+        root = self.fixture()
+        old = self.r.fixture_predecessor_selection(FIXTURE_SELECTION)
+        view = self.r.merchant_history_root(old, root, fixture_layer=True)
+        relative = 'tools/run138_editor_readiness.py'; path = root / relative
+        expected = (FIXTURE_PARENT_SOURCE / relative).read_bytes()
+        self.assertEqual((view / relative).read_bytes(), expected)
+        raw = path.read_bytes(); stat = path.stat(); path.write_bytes(raw[:-1] + bytes([raw[-1] ^ 1]))
+        os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+        with self.assertRaises(ValueError): (view / relative).read_bytes()
+        path.write_bytes(raw)
+        self.assertEqual((view / relative).read_bytes(), expected)
+        with self.assertRaises(ValueError): (view / relative).open('wb')
+
+    def test_fixed_public7bf_fetch_has_bounded_credentialfree_target(self):
+        calls = []
+        def checked(command, root):
+            if command[:3] == ['git', 'cat-file', '-e'] and not calls: raise ValueError('missing')
+            if command[:3] == ['git', 'cat-file', '-p']:
+                return 'tree ' + self.r.MERCHANT_BASE_TREE + '\nparent ' + self.r.BYTEPERF_BASE_COMMIT + '\n\nfixed'
+            return ''
+        def execute(command, root, seconds, *args, **kwargs):
+            calls.append((command, seconds, kwargs))
+            return 0, b''
+        with mock.patch.object(self.r, 'checked', side_effect=checked), mock.patch.object(self.r, 'execute', side_effect=execute):
+            self.r.ensure_fixture_7bf_commit(FIXTURE_SOURCE)
+        self.assertEqual(len(calls), 2)
+        command, seconds, kw = calls[1]
+        self.assertEqual(command[-2:], ['https://github.com/liboyang42-cpu/chengyin-ios.git', self.r.MERCHANT_BASE_COMMIT])
+        self.assertEqual(seconds, 60)
+        self.assertIn('http.followRedirects=false', command)
+        self.assertIn('credential.helper=', command)
+        self.assertEqual(kw['env']['GIT_TERMINAL_PROMPT'], '0')
+        self.assertEqual(kw['env']['GIT_CONFIG_GLOBAL'], '/dev/null')
+
+    def test_scope_dispatch_remains_explicit_and_result_schema_unchanged(self):
+        identity = {'source_sha': 'a' * 40, 'source_tree': 'b' * 40, 'fixture_base_commit': self.r.FIXTURE_BASE_COMMIT}
+        with mock.patch.object(self.r, 'validate_split71_selection'), mock.patch.object(self.r, 'split71_ensure_public_object'), mock.patch.object(self.r, 'verify_fixture_scope', return_value=identity) as current, mock.patch.object(self.r, 'verify_merchant_scope', side_effect=AssertionError('old scope')):
+            self.assertEqual(self.r.verify_split71_scope(FIXTURE_SOURCE, FIXTURE_SELECTION), {'source_sha': 'a' * 40, 'source_tree': 'b' * 40})
+            current.assert_called_once_with(FIXTURE_SOURCE, FIXTURE_SELECTION)
+
+    def test_merchant_positive_fixture_canonicalizes_real_ancestor_alias_without_weakening_source_guard(self):
+        # A real local filesystem alias reproduces macOS-style temporary-root
+        # ancestry. It is not a claim about the unprinted CI temporary pathname.
+        with tempfile.TemporaryDirectory(prefix='merchant-fixture-alias-control-') as directory:
+            outer = Path(directory).resolve(strict=True)
+            physical = outer / 'physical'; physical.mkdir()
+            alias = outer / 'alias'; alias.symlink_to(physical, target_is_directory=True)
+            helper = MerchantReadbackBoundary()
+            try:
+                with mock.patch.object(tempfile, 'tempdir', str(alias)):
+                    canonical = helper.fixture()
+                self.assertEqual(canonical, canonical.resolve(strict=True))
+                self.assertTrue(canonical.is_relative_to(physical))
+                # Use the same authenticated historical runner/source domain as
+                # MerchantReadbackBoundary, never a current-layer bypass.
+                historical_runner = helper.fixture.__globals__['runner']
+                historical_selection = helper.fixture.__globals__['MERCHANT_SELECTION']
+                historical_runner.merchant_current_inputs(historical_selection, canonical)
+                ancestor_alias = alias / canonical.relative_to(physical)
+                self.assertTrue(ancestor_alias.is_dir())
+                self.assertFalse(ancestor_alias.is_symlink())
+                with self.assertRaisesRegex(ValueError, 'Merchant source root contains an alias'):
+                    historical_runner.merchant_current_inputs(historical_selection, ancestor_alias)
+                leaf_alias = outer / 'root-alias'; leaf_alias.symlink_to(canonical, target_is_directory=True)
+                with self.assertRaisesRegex(ValueError, 'real checkout directory'):
+                    historical_runner.merchant_current_inputs(historical_selection, leaf_alias)
+            finally:
+                helper.doCleanups()
+    def test_coherent_user_repin_of_added_control_remains_rejected(self):
+        root = self.fixture()
+        path = root / 'tools/tests/test_creator_history_fixture_rejection.py'
+        path.write_bytes(path.read_bytes() + b'\n# coordinated repin\n')
+        changed = copy.deepcopy(FIXTURE_SELECTION)
+        row = next(r for r in changed['creator_fixture_rejection']['payload'] if r['path'] == path.relative_to(root).as_posix())
+        row['after_sha256'] = self.r.hashlib.sha256(path.read_bytes()).hexdigest()
+        row['after_blob'] = self.r.blob_id(path.read_bytes())
+        (root / self.r.PATHS[1]).write_text(json.dumps(changed, indent=2, ensure_ascii=True) + '\n')
+        with self.assertRaises(ValueError): self.r.fixture_current_inputs(changed, root)
+        with self.assertRaises(ValueError): self.r.validate_split71_selection(changed, root)
+
+    def test_current_external_root_aliases_never_normalized(self):
+        root = self.fixture()
+        with tempfile.TemporaryDirectory(prefix='fixture-current-alias-') as directory:
+            physical = Path(directory).resolve(strict=True)
+            alias = physical / 'alias'; alias.symlink_to(root, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, 'real checkout directory'):
+                self.r.fixture_current_inputs(FIXTURE_SELECTION, alias)
+            alias.unlink(); alias.symlink_to(root.parent, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, 'contains an alias'):
+                self.r.fixture_current_inputs(FIXTURE_SELECTION, alias / root.name)
+
+    def test_fixed_public_fetch_rejects_credential_configuration_and_wrong_history(self):
+        with mock.patch.object(self.r, 'checked', side_effect=ValueError('missing')), mock.patch.object(self.r, 'execute', return_value=(0, b'http.extraheader\n')) as execute:
+            with self.assertRaisesRegex(ValueError, 'credential, redirect'):
+                self.r.ensure_fixture_7bf_commit(FIXTURE_SOURCE)
+            self.assertEqual(execute.call_count, 1)
+        with mock.patch.object(self.r, 'checked', return_value='tree ' + self.r.MERCHANT_BASE_TREE + '\nparent ' + '0' * 40 + '\n\nwrong'), mock.patch.object(self.r, 'execute', side_effect=AssertionError('no fetch')):
+            with self.assertRaisesRegex(ValueError, 'commit/tree/parent identity differs'):
+                self.r.ensure_fixture_7bf_commit(FIXTURE_SOURCE)
+    def test_current_selection_receipts_bind_new_identity_and_preserve_exact71_results(self):
+        helper = Split71PartitionProtocol(); helper.r = self.r; helper.selection = FIXTURE_SELECTION
+        identity, artifacts = helper.fixture()
+        identity['selection_sha256'] = self.r.FIXTURE_SELECTION_RAW_SHA256
+        with self.assertRaises(ValueError): self.r.aggregate_split71(FIXTURE_SELECTION, identity, artifacts, 'success')
+        for docs in artifacts.values():
+            receipt = self.r.split71_json(docs['receipt.json'])
+            receipt['selection_sha256'] = identity['selection_sha256']
+            schema = self.r.split71_json(docs['schema-manifest.json'])
+            schema['identity']['selection_sha256'] = identity['selection_sha256']
+            docs['schema-manifest.json'] = (self.r.encode(schema) + '\n').encode()
+            helper.seal(receipt, docs)
+        result = self.r.aggregate_split71(FIXTURE_SELECTION, identity, artifacts, 'success')
+        self.assertEqual((result['actual_count'], result['counts']), (71, {'core': 50, 'app-unit': 14, 'ui': 7}))
+        self.assertEqual(len({row['method'] for row in result['actual']}), 71)
+        changed = copy.deepcopy(artifacts)
+        docs = next(iter(changed.values()))
+        helper.change_receipt(docs, lambda receipt: receipt.update(selection_sha256=runner.MERCHANT_SELECTION_RAW_SHA256))
+        with self.assertRaises(ValueError): self.r.aggregate_split71(FIXTURE_SELECTION, identity, changed, 'success')
+    def test_mutation_between_preimage_authentication_and_view_hash_binding_rejects(self):
+        root = self.fixture(); target = root / 'tools/run138_editor_readiness.py'
+        raw = target.read_bytes(); original = self.r.fixture_predecessor_sources; calls = []
+        def mutate_after_authenticated_preimage(selection, source):
+            restored = original(selection, source); calls.append(1)
+            if len(calls) == 2:
+                stat = target.stat()
+                target.write_bytes(raw[:-1] + bytes([raw[-1] ^ 1]))
+                os.utime(target, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+            return restored
+        with mock.patch.object(self.r, 'fixture_predecessor_sources', side_effect=mutate_after_authenticated_preimage):
+            with self.assertRaisesRegex(ValueError, 'Changed frozen fixture postimage'):
+                self.r.merchant_history_root(MERCHANT_SELECTION, root, fixture_layer=True)
+        self.assertEqual(len(calls), 2)
+        target.write_bytes(raw)
+        view = self.r.merchant_history_root(MERCHANT_SELECTION, root, fixture_layer=True)
+        self.assertEqual((view / 'tools/run138_editor_readiness.py').read_bytes(),
+                         (FIXTURE_PARENT_SOURCE / 'tools/run138_editor_readiness.py').read_bytes())
+# CREATOR_FIXTURE_TESTS_END
 if __name__ == '__main__':
     unittest.main()
