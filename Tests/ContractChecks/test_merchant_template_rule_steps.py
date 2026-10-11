@@ -77,8 +77,10 @@ class MerchantTemplateRuleStepsChecks(unittest.TestCase):
         ui = read('Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift')
         self.assertEqual(len(re.findall(r'func test\w+\(', ui)), 2)
         for token in ['merchant.ruleSteps.remove.1', 'merchant.ruleSteps.review.clear', 'merchant.operations.confirm.cancel',
-                      'Keep editing', 'Discard and reload', 'XCTAssertEqual(text.label, "Find the sign\\nRead the clue")']:
+                      'app.alerts.buttons["merchant.operations.keepEditing"].tap()', 'app.alerts.buttons["merchant.operations.discardReload"].tap()', 'XCTAssertEqual(text.label, "Find the sign\\nRead the clue")']:
             self.assertIn(token, ui)
+        self.assertIn('app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)', ui)
+        self.assertIn('app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)', ui)
 
 
 if __name__ == '__main__': unittest.main()

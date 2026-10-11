@@ -60,8 +60,8 @@ final class MerchantTemplateStoryTimelineFlowTests: XCTestCase {
         let clear = app.staticTexts["merchant.storyTimeline.review.clear"]
         XCTAssertTrue(revealFixtureElement(clear, in: app, requiresHittable: false))
         app.buttons["merchant.operations.confirm.cancel"].tap()
-        app.buttons["merchant.operations.reload"].tap(); app.buttons["Keep editing"].tap()
-        app.buttons["merchant.operations.reload"].tap(); app.buttons["Discard and reload"].tap()
+        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.keepEditing"].tap()
+        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.discardReload"].tap()
         let body = app.descendants(matching: .any)["merchant.storyTimeline.body.1"].firstMatch
         XCTAssertTrue(revealFixtureElement(body, in: app, towardTop: true)); XCTAssertEqual(body.value as? String, "First moment")
         tapFixtureNativeSwitch(toggle, in: app); review(app); save(app); app.buttons["merchant.operations.reload"].tap()
@@ -75,7 +75,7 @@ final class MerchantTemplateStoryTimelineFlowTests: XCTestCase {
         let removed = app.descendants(matching: .any)["merchant.storyTimeline.review.removed.1"].firstMatch
         XCTAssertTrue(revealFixtureElement(removed, in: app, requiresHittable: false))
         app.buttons["merchant.operations.confirm.cancel"].tap()
-        app.buttons["merchant.operations.reload"].tap(); app.buttons["Discard and reload"].tap()
+        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.discardReload"].tap()
         let body = app.descendants(matching: .any)["merchant.storyTimeline.body.1"].firstMatch
         XCTAssertTrue(revealFixtureElement(body, in: app, towardTop: true)); XCTAssertEqual(body.value as? String, "First moment")
     }

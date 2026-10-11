@@ -66,8 +66,8 @@ final class MerchantTemplateHintsFlowTests: XCTestCase {
             XCTAssertTrue(revealFixtureElement(app.staticTexts["merchant.hints.review.clear.\(field)"], in: app, requiresHittable: false))
         }
         app.buttons["merchant.operations.confirm.cancel"].tap()
-        app.buttons["merchant.operations.reload"].tap(); app.buttons["Keep editing"].tap()
-        app.buttons["merchant.operations.reload"].tap(); app.buttons["Discard and reload"].tap()
+        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.keepEditing"].tap()
+        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.discardReload"].tap()
         let first = app.descendants(matching: .any)["merchant.hints.field.hint1"].firstMatch
         XCTAssertTrue(revealFixtureElement(first, in: app, towardTop: true)); XCTAssertEqual(first.value as? String, "Look at the sign")
         tapFixtureNativeSwitch(toggle, in: app); review(app); save(app); app.buttons["merchant.operations.reload"].tap()

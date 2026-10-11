@@ -165,13 +165,16 @@ struct MerchantOperationsDocumentView: View {
             }
         }
         .interactiveDismissDisabled(coordinator.isDirty || coordinator.isBusy)
-        .confirmationDialog("merchant.operations.discardTitle", isPresented: $confirmDiscard, titleVisibility: .visible) {
+        .alert("merchant.operations.discardTitle", isPresented: $confirmDiscard) {
             Button("merchant.operations.discard", role: .destructive) { model.discard(); dismiss() }
             Button("merchant.operations.keepEditing", role: .cancel) { }
+                .accessibilityIdentifier("merchant.operations.keepEditing")
         } message: { Text("merchant.operations.discardBody") }
-        .confirmationDialog("merchant.operations.discardTitle", isPresented: $confirmReload, titleVisibility: .visible) {
+        .alert("merchant.operations.discardTitle", isPresented: $confirmReload) {
             Button("merchant.operations.discardReload", role: .destructive) { model.discard(); Task { await model.load() } }
+                .accessibilityIdentifier("merchant.operations.discardReload")
             Button("merchant.operations.keepEditing", role: .cancel) { }
+                .accessibilityIdentifier("merchant.operations.keepEditing")
         } message: { Text("merchant.operations.discardBody") }
         .sheet(item: Binding(get: { coordinator.isCurrent ? coordinator.confirmation : nil }, set: { if $0 == nil { model.cancel() } })) { confirmation in
             MerchantOperationsConfirmationView(model: model, confirmation: confirmation)

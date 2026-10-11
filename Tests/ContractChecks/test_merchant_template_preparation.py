@@ -77,8 +77,10 @@ class MerchantTemplatePreparationChecks(unittest.TestCase):
         ui = read('Tests/AppUITests/MerchantTemplatePreparationFlowTests.swift')
         self.assertEqual(len(re.findall(r'func test\w+\(', ui)), 2)
         self.assertIn('app.buttons["Museum"].tap()', ui)
-        self.assertIn('app.buttons["Discard and reload"].tap()', ui)
+        self.assertIn('app.alerts.buttons["merchant.operations.discardReload"].tap()', ui)
         self.assertIn('XCTAssertEqual(field.value as? String, "Map and pen")', ui)
+        self.assertIn('app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)', ui)
+        self.assertIn('app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)', ui)
 
 
 if __name__ == '__main__': unittest.main()

@@ -85,8 +85,10 @@ class MerchantTemplateHintsChecks(unittest.TestCase):
         ui = read('Tests/AppUITests/MerchantTemplateHintsFlowTests.swift')
         self.assertEqual(len(re.findall(r'func test\w+\(', ui)), 3)
         for token in ['merchant.hints.preview.answerReveal', 'merchant.hints.preview.restart', 'merchant.hints.review.clear.',
-                      'Keep editing', 'Discard and reload', 'app.buttons["Photo"].tap()', 'XCTAssertFalse(review.isEnabled)']:
+                      'app.alerts.buttons["merchant.operations.keepEditing"].tap()', 'app.alerts.buttons["merchant.operations.discardReload"].tap()', 'app.buttons["Photo"].tap()', 'XCTAssertFalse(review.isEnabled)']:
             self.assertIn(token, ui)
+        self.assertIn('app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)', ui)
+        self.assertIn('app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)', ui)
 
 
 if __name__ == '__main__': unittest.main()

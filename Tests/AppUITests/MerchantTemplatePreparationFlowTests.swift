@@ -45,11 +45,11 @@ final class MerchantTemplatePreparationFlowTests: XCTestCase {
     func testReloadRequiresExplicitDiscardAndDoesNotSavePreparationEdits() {
         let app = open(); edit(app)
         app.buttons["merchant.operations.reload"].tap()
-        app.buttons["Keep editing"].tap()
+        XCTAssertTrue(app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.keepEditing"].tap()
         let field = app.descendants(matching: .any)["merchant.operations.field.requiredMaterials"].firstMatch
         XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true)); XCTAssertEqual(field.value as? String, "  Map and pen  ")
         app.buttons["merchant.operations.reload"].tap()
-        app.buttons["Discard and reload"].tap()
+        XCTAssertTrue(app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.discardReload"].tap()
         XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true))
         XCTAssertNotEqual(field.value as? String, "  Map and pen  ")
         XCTAssertFalse(app.buttons["merchant.operations.close"].exists)

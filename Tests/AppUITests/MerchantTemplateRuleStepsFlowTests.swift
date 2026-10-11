@@ -54,8 +54,8 @@ final class MerchantTemplateRuleStepsFlowTests: XCTestCase {
         let clear = app.staticTexts["merchant.ruleSteps.review.clear"]
         XCTAssertTrue(revealFixtureElement(clear, in: app, requiresHittable: false))
         app.buttons["merchant.operations.confirm.cancel"].tap()
-        app.buttons["merchant.operations.reload"].tap(); app.buttons["Keep editing"].tap()
-        app.buttons["merchant.operations.reload"].tap(); app.buttons["Discard and reload"].tap()
+        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.keepEditing"].tap()
+        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.discardReload"].tap()
         let first = app.textFields["merchant.ruleSteps.field.0"]
         XCTAssertTrue(revealFixtureElement(first, in: app, towardTop: true)); XCTAssertEqual(first.value as? String, "Find the sign")
         input(app, index: 0, text: String(repeating: XCUIKeyboardKey.delete.rawValue, count: "Find the sign".count))

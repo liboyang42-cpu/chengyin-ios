@@ -17,11 +17,13 @@ class MerchantOperationsSourceTests(unittest.TestCase):
         self.assertEqual(routes, {
             'api/merchant/business-status', 'api/merchant/access/me', 'api/merchant/info', 'api/merchant/coop-profile',
             'api/merchant/npc/profile', 'api/merchant/npc/voice/status', 'api/merchant/npc/avatar/status',
-            'api/merchant/city-node/list', 'api/template/my-list', 'api/template/myinfo', 'api/merchant/city-node/template/submit'})
+            'api/merchant/city-node/list', 'api/template/my-list', 'api/template/myinfo', 'api/merchant/city-node/template/submit',
+            'api/category/list', 'api/activity/list'})
         if SOURCE.exists():
             source = '\n'.join((SOURCE/'data/api'/f).read_text() for f in ['merchant_api.dart','merchant_npc_api.dart','template_api.dart'])
-            # New status route is verified against the mini/backend receipt, not inferred from Flutter.
-            for route in routes - {'api/merchant/business-status'}:
+            # These later read routes use their fixed Mini/backend receipts, not an older Flutter snapshot.
+            # category: f1fe /76d54c19 +3b3582e0; activity: ce61 /36f0d912 +93d209b5.
+            for route in routes - {'api/merchant/business-status', 'api/category/list', 'api/activity/list'}:
                 self.assertIn('/' + route, source)
 
     def test_mutation_routes_are_exact_and_scoped_before_transport(self):
@@ -97,7 +99,12 @@ class MerchantOperationsSourceTests(unittest.TestCase):
         self.assertIn('Form {', editor)
         self.assertNotIn('.stroke(', views + editor)
         self.assertIn('interactiveDismissDisabled', views)
-        self.assertIn('confirmationDialog', views)
+        self.assertEqual(views.count('.alert("merchant.operations.discardTitle", isPresented:'), 2)
+        self.assertNotIn('.confirmationDialog("merchant.operations.discardTitle"', views)
+        self.assertEqual(views.count('.accessibilityIdentifier("merchant.operations.keepEditing")'), 2)
+        self.assertIn('.accessibilityIdentifier("merchant.operations.discardReload")', views)
+        self.assertIn('Button("merchant.operations.keepEditing", role: .cancel) { }', views)
+        self.assertIn('model.discard(); Task { await model.load() }', views)
         self.assertIn('confirmation.draft.reviewLines', editor)
         self.assertIn('frame(minWidth: 44, minHeight: 44)', editor)
 
