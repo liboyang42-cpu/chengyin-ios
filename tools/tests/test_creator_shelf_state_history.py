@@ -291,7 +291,11 @@ class CreatorShelfStateHistoryTests(unittest.TestCase):
         from tools import run138_editor_readiness as planning
         projection.validate_feature_batch_sources(ROOT)
         contract=planning.contract(ROOT)
+        from Tests.ContractChecks import test_profile_read_failure_remote_admission as admission
+        current_contract=contract
+        contract=admission._club_directory_contract(json.loads(json.dumps(contract)),ROOT)
         self.assertEqual(len(contract['feature_batch_support_sha256']),502)
+        contract=current_contract
         original=Path.read_bytes
         # Read actual inputs once; mutations are isolated read substitutions,
         # never copies of the repository or historical acceptance expectations.
@@ -395,7 +399,7 @@ PORT_TEST_INVERSE_DELTAS = ((20370,
 class CreatorFixed45TestPreservation(unittest.TestCase):
     def test_original_reviewed_creator_history_test_restores_complete_bytes(self):
         data=(ROOT/'tools/tests/test_creator_shelf_state_history.py').read_bytes()
-        data=_restore_premerchant_history_test(data)
+        data=_restore_premerchant_history_test(_restore_preclub_history_test(data))
         first=b'\n# CREATOR_FIXED45_PORT_BEGIN\n';last=b'# CREATOR_FIXED45_PORT_END\n'
         self.assertEqual(data.count(first),1);self.assertEqual(data.count(last),1)
         start=data.index(first);end=data.index(last,start)+len(last)
@@ -438,5 +442,11 @@ def _restore_premerchant_history_test(data):
 # MERCHANT_COMPILE_HISTORY_END
 
 
+
+# CLUB_HISTORY_INPUT_BEGIN
+def _restore_preclub_history_test(data):
+    from tools import club_customer_directory_admission as club
+    return club.restore_creator_history_test(data)
+# CLUB_HISTORY_INPUT_END
 if __name__ == '__main__':
     unittest.main()

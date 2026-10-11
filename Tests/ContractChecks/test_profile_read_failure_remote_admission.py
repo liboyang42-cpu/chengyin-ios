@@ -29,7 +29,7 @@ READINESS_PATH = 'tools/run138_editor_readiness_contract.json'
 SCANNER_PATH = 'tools/tests/test_gitleaks_configuration.py'
 
 # Combined admission authenticates current bytes before either historical layer.
-COMBINED_ADMISSION_FINGERPRINT = 'd42238ddbf45e0302293fb26de0dc5a384121e6e0ce0428843d3f435419c7617'
+COMBINED_ADMISSION_FINGERPRINT = '09273a52c1e9eeccfe29122c23663e7c1131e12657997b620893a16a4aa8671f'
 PROFILE_R2_CONTRACT_SHA256 = '3538a4526a2f42c07a8837ddb2cd12e4598ecf0d97459b36e4fcd61fb7e07efb'
 PROFILE_R2_ADMISSION_SHA256 = '81041b1c2ba2e328284555841f3b14b0e3630ed78f1190f701a86016ab558d84'
 COMBINED_ADMISSION_PATH = 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py'
@@ -248,21 +248,48 @@ MERCHANT_BUSINESS_READER_INVERSE_HUNKS = [('            lines=compiler_historica
   '')]
 
 
+CLUB_MERCHANT_PRECONTRACT_SHA256 = 'eb80d6bb10463819a30d41530cc00c909d94f6f79fd1108401b22031369b2053'
+CLUB_MERCHANT_PREADMISSION_SHA256 = 'df08d6c30bcebd89e901e5ae3a5920b22142dbd8b2cf4a7dfa4c765be5917271'
+
+def _club_bound_merchant_input(contract, root):
+    # Only the actual authenticated club set or its exact reviewed merchant floor.
+    current=(root/READINESS_PATH).read_bytes()
+    current_contract=json.loads(current)
+    if (json.dumps(current_contract,indent=2,ensure_ascii=False)+'\n').encode()!=current:
+        raise ValueError('Noncanonical complete club current contract')
+    module=(root/COMBINED_ADMISSION_PATH).read_bytes()
+    slot=rb"^COMBINED_ADMISSION_FINGERPRINT = '[0-9a-f]{64}'$"
+    normalized=re.sub(slot,b"COMBINED_ADMISSION_FINGERPRINT = '<SELF>'",module,flags=re.MULTILINE)
+    if digest(normalized)!=COMBINED_ADMISSION_FINGERPRINT or current_contract['feature_batch_support_sha256'].get(COMBINED_ADMISSION_PATH)!=digest(module):
+        raise ValueError('Changed complete club current admission')
+    prior=_club_directory_contract(json.loads(current),root)
+    value=(json.dumps(contract,indent=2,ensure_ascii=False)+'\n').encode()
+    encoded=(json.dumps(prior,indent=2,ensure_ascii=False)+'\n').encode()
+    if value not in (current,encoded):
+        raise ValueError('Unknown mixed club/merchant input floor')
+    return prior,current
+
+
 def _merchant_business_compile_contract(contract, root=ROOT):
     root=Path(root)
+    contract,current_encoded=_club_bound_merchant_input(contract,root)
     encoded=(json.dumps(contract,indent=2,ensure_ascii=False)+'\n').encode()
-    if encoded!=(root/READINESS_PATH).read_bytes():raise ValueError('Unknown current merchant compile contract bytes')
+    if digest(encoded)!=CLUB_MERCHANT_PRECONTRACT_SHA256:raise ValueError('Unknown current merchant compile contract bytes')
     runner=(root/'tools/run138_editor_readiness.py').read_bytes()
     pins=re.findall(rb"^CONTRACT_SHA256 = '([0-9a-f]{64})'$",runner,re.MULTILINE)
-    if len(pins)!=1 or pins[0].decode()!=digest(encoded):raise ValueError('Changed merchant compile current pin')
+    if len(pins)!=1 or pins[0].decode()!=digest(current_encoded):raise ValueError('Changed merchant compile current pin')
     if digest(runner.replace(pins[0],ORIGINAL_READINESS_SHA256.encode(),1))!='cafa9858b24a18f3827ce5678701b1e32cf533e66d51dc43788b15a74d60a79f':raise ValueError('Changed merchant compile runner')
     module=(root/COMBINED_ADMISSION_PATH).read_bytes()
     slot=rb"^COMBINED_ADMISSION_FINGERPRINT = '[0-9a-f]{64}'$"
     normalized=re.sub(slot,b"COMBINED_ADMISSION_FINGERPRINT = '<SELF>'",module,flags=re.MULTILINE)
     support=contract['feature_batch_support_sha256']
-    if digest(normalized)!=COMBINED_ADMISSION_FINGERPRINT or support.get(COMBINED_ADMISSION_PATH)!=digest(module):raise ValueError('Changed merchant compile admission')
+    if digest(normalized)!=COMBINED_ADMISSION_FINGERPRINT or support.get(COMBINED_ADMISSION_PATH)!=CLUB_MERCHANT_PREADMISSION_SHA256:raise ValueError('Changed merchant compile admission')
     for name,expected in MERCHANT_BUSINESS_CURRENT_RAW_SHA256.items():
-        if digest((root/name).read_bytes())!=expected:raise ValueError('Changed or mixed merchant compile group: '+name)
+        value=(root/name).read_bytes()
+        if name=='tools/tests/test_creator_shelf_state_history.py':
+            from tools import club_customer_directory_admission as club
+            value=club.restore_creator_history_test(value)
+        if digest(value)!=expected:raise ValueError('Changed or mixed merchant compile group: '+name)
     reader=(root/MERCHANT_BUSINESS_READER_PATH).read_bytes()
     for after,before in MERCHANT_BUSINESS_READER_INVERSE_HUNKS:
         if reader.count(after.encode())!=1:raise ValueError('Unknown merchant historical reader adaptation')
@@ -280,6 +307,16 @@ def _merchant_business_compile_contract(contract, root=ROOT):
     restored=(json.dumps(contract,indent=2,ensure_ascii=False)+'\n').encode()
     if digest(restored)!=MERCHANT_BUSINESS_PRE_CONTRACT_SHA256:raise ValueError('Complete creator13 floor not restored')
     return contract
+
+
+CLUB_DIRECTORY_HELPER_SHA256 = '80b6fb95961ef598ea66aa02e0081938b5df2ae7860a3e3fad76e5c0fa0a2297'
+
+def _club_directory_contract(contract, root=ROOT):
+    helper = Path(root) / 'tools/club_customer_directory_admission.py'
+    if digest(helper.read_bytes()) != CLUB_DIRECTORY_HELPER_SHA256:
+        raise ValueError('Unreviewed complete club helper input')
+    from tools import club_customer_directory_admission as club
+    return club.current_predecessor_contract(contract, root)
 
 
 def _creator_state_contract(contract, root=ROOT):
@@ -937,6 +974,83 @@ class MerchantBusinessCompileAdmission(unittest.TestCase):
 
 
 SCANNER_READER_HUNKS = [('ROOT = Path(__file__).resolve().parents[2]\n', "ROOT = Path(__file__).resolve().parents[2]\n\n# This adapter restores only the original line-bound historical contract input.\nimport importlib.util\n_profile_spec = importlib.util.spec_from_file_location(\n    'profile_read_failure_remote_admission',\n    ROOT / 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py')\n_profile_admission = importlib.util.module_from_spec(_profile_spec)\n_profile_spec.loader.exec_module(_profile_admission)\n"), ('raw = (ROOT / FILE_DIGEST_PATH).read_text()', "raw = _profile_admission.historical_readiness_contract(\n            (ROOT / FILE_DIGEST_PATH).read_bytes(), ROOT).decode('utf-8')")]
+
+class ClubDirectoryCombinedAdmission(unittest.TestCase):
+    def test_complete_club_creator_and_frozen_permission_chains(self):
+        from tools import club_customer_directory_admission as club
+        data=(ROOT/READINESS_PATH).read_bytes()
+        restored=_club_directory_contract(json.loads(data))
+        self.assertEqual(digest((json.dumps(restored,indent=2,ensure_ascii=False)+'\n').encode()),club.CLUB_PRECONTRACT_SHA256)
+        self.assertEqual(digest(historical_readiness_contract(data)),ORIGINAL_READINESS_SHA256)
+        self.assertEqual(digest(club.frozen_permission_contract(ROOT).encode()),club.FROZEN_PERMISSION_CONTRACT_SHA256)
+        self.assertEqual(digest(club.historical_scan_contract(ROOT).encode()),ORIGINAL_READINESS_SHA256)
+
+    def test_each_club_raw_input_rejects_drift_and_missing(self):
+        from tools import club_customer_directory_admission as club
+        data=(ROOT/READINESS_PATH).read_bytes();probe=ProfileMerchantCombinedAdmission()
+        for name in (*club.CLUB_RAW_SHA256,club.HELPER_PATH,COMBINED_ADMISSION_PATH):
+            path=ROOT/name;value=path.read_bytes()
+            for mutant in [value+b'\n',value[:-1],b'\xef\xbb\xbf'+value,value.replace(b'\n',b'\r\n'),bytes([value[0]^1])+value[1:]]:
+                with self.subTest(path=name),probe.substituted({str(path):mutant}),self.assertRaises(ValueError):
+                    _combined_profile_contract(data)
+            original=Path.read_bytes
+            def missing(p):
+                if p==path:raise FileNotFoundError(name)
+                return original(p)
+            with patch.object(Path,'read_bytes',missing),self.assertRaises(ValueError):
+                _combined_profile_contract(data)
+
+    def test_club_repinned_unknown_mixed_or_self_rows_rejected(self):
+        from tools import club_customer_directory_admission as club
+        data=(ROOT/READINESS_PATH).read_bytes();probe=ProfileMerchantCombinedAdmission()
+        for mode in ['source','hunk','support','helper','self','pbx','unknown']:
+            changed=json.loads(data)
+            if mode=='source':changed['feature_batch_sources']['App/ClubGovernanceViews.swift']['after_sha256']='0'*64
+            elif mode=='hunk':changed['feature_batch_sources']['App/ClubGovernanceViews.swift']['hunks'].pop()
+            elif mode=='support':del changed['feature_batch_support_sha256'][club.CLUB_SUPPORT_PATHS[0]]
+            elif mode=='helper':changed['feature_batch_support_sha256'][club.HELPER_PATH]=club.FROZEN16_HELPER_SHA256
+            elif mode=='self':changed['feature_batch_support_sha256'][COMBINED_ADMISSION_PATH]=club.CLUB_PREADMISSION_SHA256
+            elif mode=='pbx':changed['feature_batch_sources']['Questify.xcodeproj/project.pbxproj']['hunks'].pop()
+            else:changed['unreviewed_club_input']=True
+            probe.reject_repinned(changed)
+
+    def test_raw_club_gate_does_not_use_historical_inverse(self):
+        from tools import run138_current_source_projection as projection
+        with patch.dict(globals(),{'_club_directory_contract':lambda *a,**k:(_ for _ in ()).throw(AssertionError('inverse forbidden')),
+                                  'historical_readiness_contract':lambda *a,**k:(_ for _ in ()).throw(AssertionError('inverse forbidden'))}):
+            projection.validate_feature_batch_sources(ROOT)
+            projection.validate_entries(ROOT)
+
+
+    def test_fresh_import_helper_and_contract_runner_repin_is_rejected(self):
+        import types
+        import tools as toolspackage
+        from tools import club_customer_directory_admission as club
+        data=(ROOT/READINESS_PATH).read_bytes();probe=ProfileMerchantCombinedAdmission()
+        helperpath=ROOT/club.HELPER_PATH
+        mutant=helperpath.read_bytes()+b'\n'
+        changed=json.loads(data);changed['feature_batch_support_sha256'][club.HELPER_PATH]=digest(mutant)
+        encoded=(json.dumps(changed,indent=2,ensure_ascii=False)+'\n').encode()
+        runnerpath=ROOT/'tools/run138_editor_readiness.py'
+        runner=runnerpath.read_bytes().replace(digest(data).encode(),digest(encoded).encode(),1)
+        with probe.substituted({str(helperpath):mutant,str(ROOT/READINESS_PATH):encoded,str(runnerpath):runner}):
+            fresh=types.ModuleType('tools.club_customer_directory_admission');fresh.__file__=str(helperpath)
+            exec(compile(mutant,str(helperpath),'exec'),fresh.__dict__)
+            self.assertEqual(fresh.HELPER_SHA256,digest(mutant))
+            with patch.object(toolspackage,'club_customer_directory_admission',fresh),patch.dict(sys.modules,{'tools.club_customer_directory_admission':fresh}),self.assertRaisesRegex(ValueError,'Unreviewed complete club helper input'):
+                historical_readiness_contract(encoded)
+
+
+    def test_creator_history_direct_script_entry_resolves_club_helper(self):
+        import os
+        import subprocess
+        environment=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONPATH=str(ROOT))
+        name='CreatorFixed45TestPreservation.test_original_reviewed_creator_history_test_restores_complete_bytes'
+        result=subprocess.run([sys.executable,str(ROOT/'tools/tests/test_creator_shelf_state_history.py'),name],cwd=ROOT,env=environment,capture_output=True,text=True,timeout=30)
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        self.assertIn('Ran 1 test',result.stderr)
+        self.assertIn('OK',result.stderr)
+
 
 if __name__ == '__main__':
     unittest.main()

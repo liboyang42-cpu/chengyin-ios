@@ -82,6 +82,7 @@ public struct ClubGovernancePermissions: Equatable {
         guard let permission else { return true }
         if permission == "OWNER" { return roleCodes.contains("CLUB_OWNER") }
         if permission == "ROLES" { return canManageRoles }
+        if permission == "CUSTOMER_DIRECTORY" { return allowsCustomerDirectory(scope: scope) }
         if permissions.contains(permission) { return true }
         guard let activityID = scope.activityID else { return false }
         return eventAccesses.contains { $0["activityId"].int == activityID && ($0["permissions"].array ?? []).contains(.string(permission)) }
@@ -136,7 +137,8 @@ public enum ClubGovernanceRead: String, CaseIterable {
     public var permission: String? {
         switch self {
         case .stats, .editions, .dissolutionBlockers: return "OWNER"
-        case .customers, .customer, .customerCount, .checkin, .topicCustomers, .registrations: return "club:member:list:read"
+        case .customers, .customer, .customerCount: return "CUSTOMER_DIRECTORY" // Local preflight, never an API grant.
+        case .checkin, .topicCustomers, .registrations: return "club:member:list:read"
         case .settlement: return "club:finance:read"
         case .eventTopics, .series, .seriesDetail, .occurrences, .occurrenceStatus: return "club:activity:manage"
         case .roster: return "club:event:checkin"

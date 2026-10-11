@@ -216,7 +216,7 @@ import FoundationNetworking
             case "/api/club/access/me":
                 accessCount += 1
                 if accessCount == 3 { onThirdAccess?() }
-                payload = "{\"active\":true,\"club\":{\"id\":81},\"roleCodes\":[\"CLUB_MEMBER\"],\"permissions\":\(allowed ? (chapterFlow ? "[\"club:content:manage\"]" : (banFlow ? "[\"club:member:manage\"]" : "[\"club:member:list:read\"]")) : "[]"),\"canManageRoles\":false}"
+                payload = "{\"active\":true,\"club\":{\"id\":81},\"roleCodes\":[\"CLUB_MEMBER\"],\"permissions\":\(allowed ? (chapterFlow ? "[\"club:content:manage\"]" : (banFlow ? "[\"club:member:manage\"]" : "[\"club:member:list:read\",\"club:member:manage\"]")) : "[]"),\"canManageRoles\":false}"
             case "/api/club/members": payload = #"[{"memberId":704,"isOwner":false},{"memberId":705,"isOwner":false}]"#
             case "/api/club/governance/ban": payload = "null"
             case "/api/club/topic-setting/detail": payload = #"{"canManage":true,"coopOpen":false,"pinned":false,"memberOnly":true,"chapters":[{"chapterId":151,"name":"Chapter","recruiting":false,"merchantCount":0,"finishTime":""}]}"#

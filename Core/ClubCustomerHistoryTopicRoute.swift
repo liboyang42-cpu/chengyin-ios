@@ -70,3 +70,14 @@ public struct ClubCustomerHistoryTopicRoute: Hashable, Identifiable {
         return (1...maximum).contains(id) ? id : nil
     }
 }
+
+/// Mirrors CRM list/count/detail requireGovernable using current access/me evidence.
+/// Contact-list visibility and event-only grants cannot authorize this club-wide read.
+public extension ClubGovernancePermissions {
+    func allowsCustomerDirectory(scope: ClubGovernanceScope) -> Bool {
+        guard active, clubID == scope.clubID, (scope.clubID ?? 0) > 0 else { return false }
+        do { try scope.validate() } catch { return false }
+        return roleCodes.contains("CLUB_OWNER") || roleCodes.contains("CLUB_LEGACY_ADMIN") ||
+            permissions.contains("club:member:manage")
+    }
+}

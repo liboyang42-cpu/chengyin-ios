@@ -882,7 +882,7 @@
     },
     "Questify.xcodeproj/project.pbxproj": {
       "before_sha256": "0497d3ffb5b6dfd9c3aa0cd67a27594cfcb412fcda57fa3ac5ec63d8cc462ed1",
-      "after_sha256": "fcf316f51e4bb5b19b7f2b16df7ae161d96cfe5ee8cb6f166fe41b9921eeb552",
+      "after_sha256": "a397f1c25ca67e4657846e799d8b1f55f8755d3debc7bc7609dcc6040afc9f50",
       "hunks": [
         {
           "before": "\t\t\"F2C416E5BF616602CFE89B81\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"588CE027521446DF6EC81070\";\n\t\t};\n\t\t\"74E41CC929B3EEB9D9C0C251\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n",
@@ -1707,6 +1707,18 @@
         {
           "before": "\t\t\t\t\"C0C58432A3408F34F27464AC\",\n\t\t\t\t\"7A4C8E1A4DFB6ECB3542F390\",\n\t\t\t\t\"D5402F983840F5F4E7E505C1\",\n\t\t\t\t\"F98B23623F4EB4435190D73A\",\n\t\t\t\t\"3B7E6CBD77ACA45C95C8FA5F\",\n\t\t\t\t\"14B0700446BE94EA5B04E200\",\n\t\t\t\t\"5560C1DE6B883E862414EFC6\",\n\t\t\t\t\"BCD900E8C6EDBA5A5C25AE98\",\n\t\t\t\t\"9AC43F03144A0CE266C250B8\",\n\t\t\t\t\"3FD0E2A31BE1DE9B54888991\",\n\t\t\t\t\"8AEF503B52D4FA11213CC6D7\",\n\t\t\t\t\"D04E1134A85C17E3E48C26D2\",\n\t\t\t\t\"93739874E8417B7C10A6C562\",\n\t\t\t\t\"98E04BF52DE8FF1F85CE831E\",\n\t\t\t\t\"3CE6B7B908387927E50AC754\",\n",
           "after": "\t\t\t\t\"C0C58432A3408F34F27464AC\",\n\t\t\t\t\"7A4C8E1A4DFB6ECB3542F390\",\n\t\t\t\t\"D5402F983840F5F4E7E505C1\",\n\t\t\t\t\"F98B23623F4EB4435190D73A\",\n\t\t\t\t\"3B7E6CBD77ACA45C95C8FA5F\",\n\t\t\t\t\"D358F8FFC6769B29314BD848\",\n\t\t\t\t\"14B0700446BE94EA5B04E200\",\n\t\t\t\t\"5560C1DE6B883E862414EFC6\",\n\t\t\t\t\"BCD900E8C6EDBA5A5C25AE98\",\n\t\t\t\t\"9AC43F03144A0CE266C250B8\",\n\t\t\t\t\"3FD0E2A31BE1DE9B54888991\",\n\t\t\t\t\"A9480660AE2AD5A9F10371B3\",\n\t\t\t\t\"8AEF503B52D4FA11213CC6D7\",\n\t\t\t\t\"D04E1134A85C17E3E48C26D2\",\n\t\t\t\t\"93739874E8417B7C10A6C562\",\n\t\t\t\t\"98E04BF52DE8FF1F85CE831E\",\n\t\t\t\t\"3CE6B7B908387927E50AC754\",\n"
+        },
+        {
+          "before": "\t\t\"791E6BF02CD332B0299A3459\" = {\n",
+          "after": "\t\t\"2A4F7E878F7689C47FE34583\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"4FF7D0B5D5B04E3FAAE97D5A\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"2A4F7E878F7689C47FE34583\";\n\t\t};\n\t\t\"791E6BF02CD332B0299A3459\" = {\n"
+        },
+        {
+          "before": "\t\t\t\t\"791E6BF02CD332B0299A3459\",\n",
+          "after": "\t\t\t\t\"2A4F7E878F7689C47FE34583\",\n\t\t\t\t\"791E6BF02CD332B0299A3459\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"19EC95F64576113ABFA6995C\",\n",
+          "after": "\t\t\t\t\"4FF7D0B5D5B04E3FAAE97D5A\",\n\t\t\t\t\"19EC95F64576113ABFA6995C\",\n"
         }
       ]
     },
@@ -4001,6 +4013,66 @@
           "after": "    @State private var horizontal=0.5\n    @State private var vertical=0.5\n    @State private var zoom=1.0\n"
         }
       ]
+    },
+    "Core/ClubCustomerHistoryTopicRoute.swift": {
+      "before_sha256": "4fe6609906f468bb3ee4be8acd37ac59ca8bdc9ceb04855ef5365b60bafeec27",
+      "after_sha256": "566199e3d716e395082b0fe383464a62917b28d3851cf2437e4433ec35bb11e2",
+      "hunks": [
+        {
+          "before": "        return (1...maximum).contains(id) ? id : nil\n    }\n}\n",
+          "after": "        return (1...maximum).contains(id) ? id : nil\n    }\n}\n\n/// Mirrors CRM list/count/detail requireGovernable using current access/me evidence.\n/// Contact-list visibility and event-only grants cannot authorize this club-wide read.\npublic extension ClubGovernancePermissions {\n    func allowsCustomerDirectory(scope: ClubGovernanceScope) -> Bool {\n        guard active, clubID == scope.clubID, (scope.clubID ?? 0) > 0 else { return false }\n        do { try scope.validate() } catch { return false }\n        return roleCodes.contains(\"CLUB_OWNER\") || roleCodes.contains(\"CLUB_LEGACY_ADMIN\") ||\n            permissions.contains(\"club:member:manage\")\n    }\n}\n"
+        }
+      ]
+    },
+    "Core/ClubGovernanceContracts.swift": {
+      "before_sha256": "e8b328600808aad0529d3ec6f993a3bb6a08e0a2c0b6d3c6ba2ea19b6bd03264",
+      "after_sha256": "ad3935e5f71a0018c1d9db4c86f6afbb021a4e2c78b92d4b7bd931f8f0fdaa32",
+      "hunks": [
+        {
+          "before": "        if permission == \"ROLES\" { return canManageRoles }\n",
+          "after": "        if permission == \"ROLES\" { return canManageRoles }\n        if permission == \"CUSTOMER_DIRECTORY\" { return allowsCustomerDirectory(scope: scope) }\n"
+        },
+        {
+          "before": "        case .customers, .customer, .customerCount, .checkin, .topicCustomers, .registrations: return \"club:member:list:read\"",
+          "after": "        case .customers, .customer, .customerCount: return \"CUSTOMER_DIRECTORY\" // Local preflight, never an API grant.\n        case .checkin, .topicCustomers, .registrations: return \"club:member:list:read\""
+        }
+      ]
+    },
+    "Tests/CoreTests/ClubGovernanceProductionTests.swift": {
+      "before_sha256": "7ec52b15675c3a14de89bd27b32b28b9079d28fc6da784337e2a1f16fc82aa5f",
+      "after_sha256": "772420e3ec145740c416da29bc5ee2b187e10bc21181e149e5947410733e100a",
+      "hunks": [
+        {
+          "before": "                payload = \"{\\\"active\\\":true,\\\"club\\\":{\\\"id\\\":81},\\\"roleCodes\\\":[\\\"CLUB_MEMBER\\\"],\\\"permissions\\\":\\(allowed ? (chapterFlow ? \"[\\\"club:content:manage\\\"]\" : (banFlow ? \"[\\\"club:member:manage\\\"]\" : \"[\\\"club:member:list:read\\\"]\")) : \"[]\"),\\\"canManageRoles\\\":false}\"\n",
+          "after": "                payload = \"{\\\"active\\\":true,\\\"club\\\":{\\\"id\\\":81},\\\"roleCodes\\\":[\\\"CLUB_MEMBER\\\"],\\\"permissions\\\":\\(allowed ? (chapterFlow ? \"[\\\"club:content:manage\\\"]\" : (banFlow ? \"[\\\"club:member:manage\\\"]\" : \"[\\\"club:member:list:read\\\",\\\"club:member:manage\\\"]\")) : \"[]\"),\\\"canManageRoles\\\":false}\"\n"
+        }
+      ]
+    },
+    "App/ClubGovernanceViews.swift": {
+      "before_sha256": "bff35ca70073f32a548aa10a3741f8e64e82dcb9542117a97c06a22f1d724e4a",
+      "after_sha256": "f29b604938d53c1d397f1da93961eae1672a80b45b05bc3016501667dc6533ff",
+      "hunks": [
+        {
+          "before": "import SwiftUI\n\n/// Mount independently of legacy isOwner/viewerIsAdmin. access/me decides each row.\nstruct ClubGovernanceEntryButton: View {\n",
+          "after": "import SwiftUI\n\n/// P044 keyword-only scheduling. The view still owns authorization and response fences.\n@MainActor final class ClubCustomerKeywordDebounce {\n    static let delayNanoseconds: UInt64 = 300_000_000\n    private var pending: Task<Void, Never>?\n    private var revision: UInt64 = 0\n    private let sleep: @MainActor @Sendable () async throws -> Void\n    nonisolated init(sleep: @escaping @MainActor @Sendable () async throws -> Void = {\n        try await Task.sleep(nanoseconds: ClubCustomerKeywordDebounce.delayNanoseconds)\n    }) { self.sleep = sleep }\n    func cancel() {\n        revision &+= 1\n        pending?.cancel()\n        pending = nil\n    }\n    @discardableResult func schedule(_ action: @escaping @MainActor () async -> Void) -> Task<Void, Never> {\n        cancel()\n        let expected = revision\n        let task = Task { @MainActor [weak self] in\n            guard let self else { return }\n            do { try await self.sleep() } catch { return }\n            guard !Task.isCancelled, self.revision == expected else { return }\n            // Release the handle before load() cancels any still-pending timer.\n            self.pending = nil\n            await action()\n        }\n        pending = task\n        return task\n    }\n}\n\n/// Mount independently of legacy isOwner/viewerIsAdmin. access/me decides each row.\nstruct ClubGovernanceEntryButton: View {\n"
+        },
+        {
+          "before": "    @State private var filter = \"all\"\n    @State private var topicCustomerFilter: ClubTopicCustomerFilter = .all\n    @State private var keyword = \"\"\n    @State private var sort = \"composite\"\n    @State private var page = 1\n    @State private var editor: ClubGovernanceFormRoute?\n",
+          "after": "    @State private var filter = \"all\"\n    @State private var topicCustomerFilter: ClubTopicCustomerFilter = .all\n    @State private var keyword = \"\"\n    @State private var customerKeywordDebounce = ClubCustomerKeywordDebounce()\n    @State private var sort = \"composite\"\n    @State private var page = 1\n    @State private var editor: ClubGovernanceFormRoute?\n"
+        },
+        {
+          "before": "                    Picker(\"club.gov.filter\", selection: $filter) {\n                        ForEach([\"all\", \"repeat\", \"new\", \"remark\"], id: \\.self) { Text(LocalizedStringKey(\"club.gov.filter.\" + $0)).tag($0) }\n                    }\n                    .onChange(of: filter) { _, _ in Task { await load() } }\n                    TextField(\"club.gov.keyword\", text: $keyword).submitLabel(.search).onSubmit { Task { await load() } }\n                    Button(\"club.gov.search\") { Task { await load() } }.disabled(loading)\n                }\n            }\n            if operation == .topicCustomers {\n",
+          "after": "                    Picker(\"club.gov.filter\", selection: $filter) {\n                        ForEach([\"all\", \"repeat\", \"new\", \"remark\"], id: \\.self) { Text(LocalizedStringKey(\"club.gov.filter.\" + $0)).tag($0) }\n                    }\n                    .onChange(of: filter) { _, _ in loadCustomersNow() }\n                    TextField(\"club.gov.keyword\", text: $keyword).submitLabel(.search)\n                        .onChange(of: keyword) { _, _ in scheduleCustomerKeywordRead() }\n                        .onSubmit { loadCustomersNow() }\n                    Button(\"club.gov.search\") { loadCustomersNow() }.disabled(loading)\n                }\n            }\n            if operation == .topicCustomers {\n"
+        },
+        {
+          "before": "        .task(id: readContext) { snapshot = nil; editor = nil; customerTopic = nil; feedClub = nil; coordinator.cancelReview(); await load() }\n        .onChange(of: readContext) { _, _ in invalidateRead() }\n        .onChange(of: identity) { _, _ in invalidateRead() }\n        .onDisappear { generation &+= 1 }\n        .refreshable { await load() }\n    }\n    private func load() async {\n        generation &+= 1; let revision = generation; let expected = identity; let context = readContext\n        snapshot = nil; failure = nil; loading = true\n        snapshotContext = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID()\n",
+          "after": "        .task(id: readContext) { snapshot = nil; editor = nil; customerTopic = nil; feedClub = nil; coordinator.cancelReview(); await load() }\n        .onChange(of: readContext) { _, _ in invalidateRead() }\n        .onChange(of: identity) { _, _ in invalidateRead() }\n        .onDisappear {\n            if operation == .customers {\n                customerKeywordDebounce.cancel()\n                generation &+= 1\n            }\n        }\n        .onDisappear { generation &+= 1 }\n        .refreshable { await load() }\n    }\n    @MainActor private func loadCustomersNow() {\n        customerKeywordDebounce.cancel()\n        Task { await load() }\n    }\n    @MainActor private func scheduleCustomerKeywordRead() {\n        guard operation == .customers else { return }\n        let context = readContext; let expected = identity\n        let expectedFilter = filter; let expectedKeyword = keyword\n        // Invalidate an older response immediately, including the 300ms wait.\n        generation &+= 1\n        snapshot = nil; snapshotContext = nil; failure = nil; loading = false\n        let keywordRevision = generation\n        customerKeywordDebounce.schedule {\n            guard operation == .customers, context == readContext, expected == identity,\n                  access.identity == expected, keywordRevision == generation,\n                  filter == expectedFilter, keyword == expectedKeyword,\n                  !Task.isCancelled else { return }\n            await load()\n        }\n    }\n    @MainActor private func load() async {\n        if operation == .customers { customerKeywordDebounce.cancel() }\n        generation &+= 1; let revision = generation; let expected = identity; let context = readContext\n        snapshot = nil; failure = nil; loading = true\n        snapshotContext = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID()\n"
+        },
+        {
+          "before": "        }\n        if revision == generation { loading = false }\n    }\n    private func invalidateRead() {\n        generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID(); coordinator.cancelReview()\n    }\n    private func current(_ target: ClubFeedClubRoute) -> Bool {\n",
+          "after": "        }\n        if revision == generation { loading = false }\n    }\n    @MainActor private func invalidateRead() {\n        if operation == .customers { customerKeywordDebounce.cancel() }\n        generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID(); coordinator.cancelReview()\n    }\n    private func current(_ target: ClubFeedClubRoute) -> Bool {\n"
+        }
+      ]
     }
   },
   "feature_batch_support_sha256": {
@@ -4503,9 +4575,18 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "df08d6c30bcebd89e901e5ae3a5920b22142dbd8b2cf4a7dfa4c765be5917271",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "1a0779ba66616abee50b9ae87cc3d0f6ac3a6574a971aa323d14f7d745c3765d",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
-    "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30"
+    "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30",
+    "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
+    "Tests/ContractChecks/test_club_customer_permissions.py": "773186689d0583d41d6ab75298e4b815e86dc688a2ce5043cdba43d0a5b2ffba",
+    "docs/club-customer-permissions.md": "f32d0102eeb5bb2bc696b139389a5e674140623f7597973ffce5468629cd1f10",
+    "Tests/ContractChecks/test_club_customer_directory_remote_admission.py": "b1ee3e1eac62c6a670986301f1fe2713d615c7a8a82ece5dfdd8946ae08e43c1",
+    "tools/club_customer_directory_admission.py": "80b6fb95961ef598ea66aa02e0081938b5df2ae7860a3e3fad76e5c0fa0a2297",
+    "Tests/ContractChecks/test_club_customer_keyword_debounce.py": "262ed2f2d1151dbe6994048cc21e76b98799fc34a68caeba59c08947508c8e6c",
+    "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift": "2c3cfc1da3d145221e13d9561c1bfb9166b58c84807bfd93034fcaff44b303a5",
+    "docs/club-customer-keyword-debounce.md": "1fa12a8011cb1b2c3d7425dcd8f1f8ca07f27be08adb8a545c1be98f97806f0e",
+    "tools/tests/test_creator_shelf_state_history.py": "baa95d45430a19f2a7c472dcd269150197617f45d50735aa84b142ca2973d33c"
   },
   "current_method_replacements": {
     "MerchantContentFlowTests.testCityClaimWithdrawalReviewUsesSourcePOIAndCanCancel": {

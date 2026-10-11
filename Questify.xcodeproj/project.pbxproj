@@ -15326,6 +15326,7 @@
 				"71A7505267803344467EE759",
 				"6AAF4C68E4CB945E5E18944C",
 				"4A57125287F6AEF51C738309",
+				"2A4F7E878F7689C47FE34583",
 				"791E6BF02CD332B0299A3459",
 				"783FC56096E91597FD59C9D5",
 				"8E1251348B29DBD73A8A5393",
@@ -19031,6 +19032,16 @@
 			"path" = "Config/AppUnitTests.xcconfig";
 			"sourceTree" = "<group>";
 		};
+		"2A4F7E878F7689C47FE34583" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"4FF7D0B5D5B04E3FAAE97D5A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "2A4F7E878F7689C47FE34583";
+		};
 		"791E6BF02CD332B0299A3459" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -21498,6 +21509,7 @@
 			"isa" = "PBXSourcesBuildPhase";
 			"buildActionMask" = 2147483647;
 			"files" = (
+				"4FF7D0B5D5B04E3FAAE97D5A",
 				"19EC95F64576113ABFA6995C",
 				"347E85455BBF6CC9554E794C",
 				"A11ED0B2DB9D772EBD8F9407",

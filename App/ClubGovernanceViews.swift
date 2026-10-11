@@ -1,5 +1,35 @@
 import SwiftUI
 
+/// P044 keyword-only scheduling. The view still owns authorization and response fences.
+@MainActor final class ClubCustomerKeywordDebounce {
+    static let delayNanoseconds: UInt64 = 300_000_000
+    private var pending: Task<Void, Never>?
+    private var revision: UInt64 = 0
+    private let sleep: @MainActor @Sendable () async throws -> Void
+    nonisolated init(sleep: @escaping @MainActor @Sendable () async throws -> Void = {
+        try await Task.sleep(nanoseconds: ClubCustomerKeywordDebounce.delayNanoseconds)
+    }) { self.sleep = sleep }
+    func cancel() {
+        revision &+= 1
+        pending?.cancel()
+        pending = nil
+    }
+    @discardableResult func schedule(_ action: @escaping @MainActor () async -> Void) -> Task<Void, Never> {
+        cancel()
+        let expected = revision
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            do { try await self.sleep() } catch { return }
+            guard !Task.isCancelled, self.revision == expected else { return }
+            // Release the handle before load() cancels any still-pending timer.
+            self.pending = nil
+            await action()
+        }
+        pending = task
+        return task
+    }
+}
+
 /// Mount independently of legacy isOwner/viewerIsAdmin. access/me decides each row.
 struct ClubGovernanceEntryButton: View {
     let clubID: Int
@@ -84,6 +114,7 @@ struct ClubGovernanceReadView: View {
     @State private var filter = "all"
     @State private var topicCustomerFilter: ClubTopicCustomerFilter = .all
     @State private var keyword = ""
+    @State private var customerKeywordDebounce = ClubCustomerKeywordDebounce()
     @State private var sort = "composite"
     @State private var page = 1
     @State private var editor: ClubGovernanceFormRoute?
@@ -99,9 +130,11 @@ struct ClubGovernanceReadView: View {
                     Picker("club.gov.filter", selection: $filter) {
                         ForEach(["all", "repeat", "new", "remark"], id: \.self) { Text(LocalizedStringKey("club.gov.filter." + $0)).tag($0) }
                     }
-                    .onChange(of: filter) { _, _ in Task { await load() } }
-                    TextField("club.gov.keyword", text: $keyword).submitLabel(.search).onSubmit { Task { await load() } }
-                    Button("club.gov.search") { Task { await load() } }.disabled(loading)
+                    .onChange(of: filter) { _, _ in loadCustomersNow() }
+                    TextField("club.gov.keyword", text: $keyword).submitLabel(.search)
+                        .onChange(of: keyword) { _, _ in scheduleCustomerKeywordRead() }
+                        .onSubmit { loadCustomersNow() }
+                    Button("club.gov.search") { loadCustomersNow() }.disabled(loading)
                 }
             }
             if operation == .topicCustomers {
@@ -153,10 +186,37 @@ struct ClubGovernanceReadView: View {
         .task(id: readContext) { snapshot = nil; editor = nil; customerTopic = nil; feedClub = nil; coordinator.cancelReview(); await load() }
         .onChange(of: readContext) { _, _ in invalidateRead() }
         .onChange(of: identity) { _, _ in invalidateRead() }
+        .onDisappear {
+            if operation == .customers {
+                customerKeywordDebounce.cancel()
+                generation &+= 1
+            }
+        }
         .onDisappear { generation &+= 1 }
         .refreshable { await load() }
     }
-    private func load() async {
+    @MainActor private func loadCustomersNow() {
+        customerKeywordDebounce.cancel()
+        Task { await load() }
+    }
+    @MainActor private func scheduleCustomerKeywordRead() {
+        guard operation == .customers else { return }
+        let context = readContext; let expected = identity
+        let expectedFilter = filter; let expectedKeyword = keyword
+        // Invalidate an older response immediately, including the 300ms wait.
+        generation &+= 1
+        snapshot = nil; snapshotContext = nil; failure = nil; loading = false
+        let keywordRevision = generation
+        customerKeywordDebounce.schedule {
+            guard operation == .customers, context == readContext, expected == identity,
+                  access.identity == expected, keywordRevision == generation,
+                  filter == expectedFilter, keyword == expectedKeyword,
+                  !Task.isCancelled else { return }
+            await load()
+        }
+    }
+    @MainActor private func load() async {
+        if operation == .customers { customerKeywordDebounce.cancel() }
         generation &+= 1; let revision = generation; let expected = identity; let context = readContext
         snapshot = nil; failure = nil; loading = true
         snapshotContext = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID()
@@ -181,7 +241,8 @@ struct ClubGovernanceReadView: View {
         }
         if revision == generation { loading = false }
     }
-    private func invalidateRead() {
+    @MainActor private func invalidateRead() {
+        if operation == .customers { customerKeywordDebounce.cancel() }
         generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID(); coordinator.cancelReview()
     }
     private func current(_ target: ClubFeedClubRoute) -> Bool {
