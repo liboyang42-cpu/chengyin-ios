@@ -189,7 +189,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
         }.navigationTitle("roam.experience.session")
             .task(id: readKey) { showShare = false; load() }
             .onChange(of: readKey) { _, _ in showShare = false }
-            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record) } } }
+            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }
             .accessibilityIdentifier("roam.experience.session")
     }
     private func load() {

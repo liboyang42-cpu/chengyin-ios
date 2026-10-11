@@ -1,0 +1,8 @@
+{
+  "feature": "P036 onPreviewAudio",
+  "depends_on": "P036 clearAudio candidate",
+  "app_sources": ["App/TemplateNarrationAudioPreview.swift"],
+  "app_unit_tests": ["Tests/AppUnitTests/TemplateNarrationAudioPreviewTests.swift"],
+  "localization_fragment": "docs/localization/template-narration-audio-preview.json",
+  "integration_note": "Apply after the sealed clearAudio candidate. Reuse existing PlatformAudioPlayback, PlatformAudioConsumerView and session factory. Do not enable a production audio driver or add approved origins during registration."
+}

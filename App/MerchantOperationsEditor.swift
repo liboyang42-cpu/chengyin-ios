@@ -180,6 +180,8 @@ struct MerchantOperationsEditor: View {
                     ForEach(MerchantTemplateMethod.allCases, id: \.rawValue) { method in Text(LocalizedStringKey(method.titleKey)).tag(method.rawValue) }
                 }.accessibilityIdentifier("merchant.operations.method")
             }
+            MerchantTemplateParticipationPlanFields(model: model)
+            MerchantTemplateExitPlanFields(model: model)
             if value.method == .secretWord { Section { templateField("merchant.operations.answer", \.questionAnswer, "answer") } }
             if value.method == .quiz {
                 Section("merchant.operations.quiz") {
@@ -268,7 +270,7 @@ struct MerchantOperationsConfirmationView: View {
         NavigationStack {
             List {
                 Section {
-                    Text(LocalizedStringKey(isExample ? "merchant.operations.confirmExampleBody" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLiveHint" : "merchant.operations.liveDisabled")))
+                    Text(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnly" : (isExample ? "merchant.operations.confirmExampleBody" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLiveHint" : "merchant.operations.liveDisabled"))))
                     Text("merchant.operations.reviewNoApproval").font(.footnote).foregroundStyle(.secondary)
                     Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)
                 }
@@ -312,10 +314,16 @@ struct MerchantOperationsConfirmationView: View {
                     }
                     if case .template(let value) = confirmation.draft, let method = value.method { Text(LocalizedStringKey(method.titleKey)) }
                 }
+                if case .template(let template) = confirmation.draft, let plan = template.participationPlan {
+                    MerchantTemplateParticipationPlanReview(plan: plan)
+                }
+                if case .template(let template) = confirmation.draft, let plan = template.exitPlan {
+                    MerchantTemplateExitPlanReview(plan: plan)
+                }
                 Section {
-                    Button(LocalizedStringKey(isExample ? "merchant.operations.confirmExample" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLive" : "merchant.operations.liveDisabled"))) {
+                    Button(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnlyAction" : (isExample ? "merchant.operations.confirmExample" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLive" : "merchant.operations.liveDisabled")))) {
                         Task { await model.confirm(confirmation) }
-                    }.disabled(!model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier("merchant.operations.confirm")
+                    }.disabled(confirmation.draft.localOnlyReview || !model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier("merchant.operations.confirm")
                 }
             }
             .appNavigationTitle("merchant.operations.reviewDraft")
@@ -336,6 +344,132 @@ private struct MerchantOperationsMediaPreview: View {
                 else if QuestifyCardArtwork.safeURL(source) == nil { Text("merchant.operations.noImage") }
             }
             .listRowInsets(EdgeInsets())
+        }
+    }
+}
+
+
+/// Uses the existing draft identity, dirty-state guard and immutable review.
+@MainActor
+private struct MerchantTemplateParticipationPlanFields: View {
+    @ObservedObject var model: MerchantOperationsViewModel
+    private var template: MerchantNodeTemplate? {
+        if case .template(let value) = model.coordinator.draft { return value }
+        return nil
+    }
+    var body: some View {
+        Section("merchant.participation.title") {
+            Text("merchant.participation.localOnly").font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("merchant.participation.boundary")
+            if let plan = template?.participationPlan {
+                field("merchant.participation.duration", \.durationMinutes, "duration")
+                field("merchant.participation.capacity", \.maximumParticipants, "capacity")
+                Picker("merchant.participation.staffing", selection: Binding(get: {
+                    template?.participationPlan?.staffing ?? .unspecified
+                }, set: { value in update { $0.staffing = value } })) {
+                    ForEach(MerchantTemplateParticipationPlan.Staffing.allCases, id: \.rawValue) { value in
+                        Text(LocalizedStringKey(value.titleKey)).tag(value)
+                    }
+                }.pickerStyle(.menu).accessibilityIdentifier("merchant.participation.staffing")
+                if let blocker = plan.blocker {
+                    Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("merchant.participation.blocker")
+                }
+                Button("merchant.participation.remove", role: .destructive) {
+                    guard var value = template else { return }
+                    value.participationPlan = nil; model.edit(.template(value))
+                }.accessibilityIdentifier("merchant.participation.remove")
+            } else {
+                Button("merchant.participation.add") {
+                    guard var value = template else { return }
+                    value.participationPlan = .init(); model.edit(.template(value))
+                }.accessibilityIdentifier("merchant.participation.add")
+            }
+        }
+    }
+    private func update(_ edit: (inout MerchantTemplateParticipationPlan) -> Void) {
+        guard var value = template, var plan = value.participationPlan else { return }
+        edit(&plan); value.participationPlan = plan; model.edit(.template(value))
+    }
+    private func field(_ title: LocalizedStringKey, _ path: WritableKeyPath<MerchantTemplateParticipationPlan, String>, _ id: String) -> some View {
+        TextField(title, text: Binding(get: { template?.participationPlan?[keyPath: path] ?? "" }, set: { text in
+            update { $0[keyPath: path] = text }
+        })).keyboardType(.numberPad).accessibilityIdentifier("merchant.participation." + id)
+    }
+}
+
+@MainActor
+private struct MerchantTemplateParticipationPlanReview: View {
+    let plan: MerchantTemplateParticipationPlan
+    var body: some View {
+        Section("merchant.participation.reviewTitle") {
+            LabeledContent("merchant.participation.duration", value: plan.durationMinutes.trimmingCharacters(in: .whitespacesAndNewlines))
+                .accessibilityIdentifier("merchant.participation.review.duration")
+            LabeledContent("merchant.participation.capacity", value: plan.maximumParticipants.trimmingCharacters(in: .whitespacesAndNewlines))
+                .accessibilityIdentifier("merchant.participation.review.capacity")
+            LabeledContent("merchant.participation.staffing") { Text(LocalizedStringKey(plan.staffing.titleKey)) }
+                .accessibilityIdentifier("merchant.participation.review.staffing")
+            Text("merchant.participation.reviewBoundary").font(.footnote).foregroundStyle(.secondary)
+        }
+    }
+}
+
+
+@MainActor
+private struct MerchantTemplateExitPlanFields: View {
+    @ObservedObject var model: MerchantOperationsViewModel
+    private var template: MerchantNodeTemplate? {
+        if case .template(let value) = model.coordinator.draft { return value }
+        return nil
+    }
+    var body: some View {
+        Section("merchant.exitPlan.title") {
+            Text("merchant.participation.localOnly").font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("merchant.exitPlan.boundary")
+            if let plan = template?.exitPlan {
+                field("merchant.exitPlan.offline", \.offlineAlternative, "offline")
+                field("merchant.exitPlan.failureExit", \.failureExit, "failureExit")
+                Text("merchant.exitPlan.instructionsHint").font(.footnote).foregroundStyle(.secondary)
+                if let blocker = plan.blocker {
+                    Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("merchant.exitPlan.blocker")
+                }
+                Button("merchant.exitPlan.remove", role: .destructive) {
+                    guard var value = template else { return }
+                    value.exitPlan = nil; model.edit(.template(value))
+                }.accessibilityIdentifier("merchant.exitPlan.remove")
+            } else {
+                Button("merchant.exitPlan.add") {
+                    guard var value = template else { return }
+                    value.exitPlan = .init(); model.edit(.template(value))
+                }.accessibilityIdentifier("merchant.exitPlan.add")
+            }
+        }
+    }
+    private func field(_ title: LocalizedStringKey, _ path: WritableKeyPath<MerchantTemplateExitPlan, String>, _ id: String) -> some View {
+        TextField(title, text: Binding(get: { template?.exitPlan?[keyPath: path] ?? "" }, set: { text in
+            guard var value = template, var plan = value.exitPlan else { return }
+            plan[keyPath: path] = text; value.exitPlan = plan; model.edit(.template(value))
+        }), axis: .vertical).accessibilityIdentifier("merchant.exitPlan." + id)
+    }
+}
+
+@MainActor
+private struct MerchantTemplateExitPlanReview: View {
+    let plan: MerchantTemplateExitPlan
+    var body: some View {
+        Section("merchant.exitPlan.reviewTitle") {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("merchant.exitPlan.offline").font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: plan.offlineAlternative.trimmingCharacters(in: .whitespacesAndNewlines))
+                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.exitPlan.review.offline")
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                Text("merchant.exitPlan.failureExit").font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: plan.failureExit.trimmingCharacters(in: .whitespacesAndNewlines))
+                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.exitPlan.review.failureExit")
+            }
+            Text("merchant.exitPlan.reviewBoundary").font(.footnote).foregroundStyle(.secondary)
         }
     }
 }

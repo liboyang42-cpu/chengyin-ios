@@ -157,13 +157,16 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
     }
     public func prepare() {
         guard canReview, let draft, let baseline, let loadedScope else { return }
-        do { _ = try draft.previews() }
+        do { if !draft.localOnlyReview { _ = try draft.previews() } }
         catch { issue = .key("merchant.operations.invalidDraft"); return }
         confirmation = .init(id: UUID(), draft: draft, baseline: baseline, scope: loadedScope)
     }
     public func confirm(_ value: MerchantOperationsConfirmation) async {
         guard canReview, confirmation == value, reader.scope == value.scope else { return }
         confirmation = nil
+        guard !value.draft.localOnlyReview else {
+            issue = .key("merchant.participation.localOnly"); return
+        }
         guard reader.canSave else { issue = .key("merchant.operations.liveDisabled"); return }
         isBusy = true; let operation = generation
         defer { if operation == generation { isBusy = false } }

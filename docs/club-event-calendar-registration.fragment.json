@@ -1,0 +1,16 @@
+{
+  "feature": "P045 club activity calendar",
+  "base_commit": "53bbc93ea77bcb66a2ed1701e3e0ef8896d30e13",
+  "app_sources": ["App/ClubEventCalendarView.swift", "Core/ClubEventCalendar.swift"],
+  "modified_app_sources": ["App/ClubDetailView.swift"],
+  "swift_package_sources": ["Core/ClubEventCalendar.swift"],
+  "swift_package_tests": ["Tests/CoreTests/ClubEventCalendarTests.swift"],
+  "app_unit_tests": ["Tests/AppUnitTests/ClubEventCalendarReadTests.swift"],
+  "localization_fragment": "Resources/ClubEventCalendarLocalizations.fragment.json",
+  "focused_static_check": "python3 tools/check_club_event_calendar.py",
+  "native_checks_pending": [
+    "swift test --filter ClubEventCalendarTests",
+    "xcodebuild test -project Questify.xcodeproj -scheme Questify -only-testing:QuestifyAppUnitTests/ClubEventCalendarReadTests on an approved simulator"
+  ],
+  "registration_policy": "Integrating owner merges the localization fragment and runs the existing project generator. This slice does not modify PBX, the aggregate catalog, CI, or existing fixture hosts."
+}

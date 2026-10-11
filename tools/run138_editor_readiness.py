@@ -18,7 +18,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = 'e7954159d4be6241dcca16705265314196c9c04c95b25e175fc63b73fa3e218c'
+CONTRACT_SHA256 = '182d37b2a5f1eda5af752fb8217aabc31346743318c7676dcb508dbc9cc5ff4e'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'
@@ -145,9 +145,9 @@ def validate_current(directory, profile_path, root=ROOT):
     if digest(Path(profile_path).read_bytes()) != c['unchanged_profile_sha256']:
         raise ValueError('Old profile, floors or historical observations changed')
     keys, classes = inventory(directory)
-    if (len(keys) != 742 or len(classes) != 164
+    if (len(keys) != 750 or len(classes) != 166
             or canonical(keys) != c['current_inventory_sha256']):
-        raise ValueError('Current 742 complete methods are not preserved')
+        raise ValueError('Current 750 complete methods are not preserved')
     for relative, expected in c['followon_support_sha256'].items():
         if digest(entry_projection().historical_entry_bytes(root, relative)) != expected:
             raise ValueError('Follow-on source or cost adapter changed: ' + relative)
@@ -204,10 +204,11 @@ def validate_current(directory, profile_path, root=ROOT):
         raise ValueError('Direction-only story helper added work or changed other semantics')
     if (c['new_over900_exceptions'] != {CHINESE: 948, CURRENT_REVIEW: 946, 'ProjectStoryImageFlowTests.testChosenStoryImageAppliesOnlyAfterUploadAndRestoresIntoExactPreparedOrder': 905, RELEASE_RECOVERY: 944, COVER_RECOVERY: 942, 'ApprovedTopicFrozenCoverPublicationFlowTests.testApprovedCoverConfirmationAndUnknownPublicationRestoreOriginalManifest': 940, 'ProjectStoryAudioRecoveryFlowTests.testChineseMaximumTextUnknownUploadChecksSameRequestWithoutSecondUpload': 980}
             or c['preserved_historical_exceptions'] != {CHINESE: 908, CURRENT_REVIEW: 906, RELEASE_RECOVERY: 904, COVER_RECOVERY: 902}
-            or c['added_total_seconds'] != 1713.948 or c['deadline_seconds'] != 1800
+            or c['added_total_seconds'] != 4403.948 or c['deadline_seconds'] != 1800
             or c['startup_reserve_seconds'] != 300 or c['shard_count'] != 79):
         raise ValueError('Exception scope, added work, reserve or deadline changed')
     validate_club_leaderboard_budget(c, directory, root)
+    validate_product_ui_budget(c, directory, root)
     return c
 
 
@@ -275,8 +276,12 @@ def weights(directory=ROOT / 'Tests/AppUITests', profile_path=ROOT / 'tools/ui_d
     result['ApprovedTopicFrozenCoverPublicationFlowTests'] = before['ApprovedTopicFrozenCoverPublicationFlowTests'] + 32
     result['SquareWorkspaceFlowTests'] = 19.197 + 110 + 120
     result['ClubLeaderboardMemberFlowTests'] = validate_club_leaderboard_budget(c, directory, root)
+    increments=validate_product_ui_budget(c, directory, root)
+    if not math.isclose(before.get('ProfileEditFlowTests',-1),c['product_ui_budget']['prior_profile_class_seconds'],abs_tol=1e-9):
+        raise ValueError('Prior profile whole-class floor changed')
+    for name,seconds in increments.items():result[name]=result.get(name,0)+seconds
     if ({name: result[name] for name in c['candidate_class_seconds']} != c['candidate_class_seconds']
-            or not math.isclose(sum(result.values()) - sum(before.values()), 1713.948, abs_tol=1e-7)):
+            or not math.isclose(sum(result.values()) - sum(before.values()), 4403.948, abs_tol=1e-7)):
         raise ValueError('New full-method work was omitted or an old cost decreased')
     return result
 
@@ -294,9 +299,9 @@ def report(root=ROOT):
     if max(loads) + 300 > 1800:
         raise ValueError('A complete class/shard exceeds the unchanged deadline and reserve')
     return {'status': c['status'], 'active_ci_runner_modified': True, 'apple_executed': False,
-            'method_count': 742, 'class_count': len(costs), 'shard_count': 79,
+            'method_count': 750, 'class_count': len(costs), 'shard_count': 79,
             'candidate_class_seconds': c['candidate_class_seconds'],
-            'added_total_seconds': 1713.948, 'total_seconds': sum(costs.values()),
+            'added_total_seconds': 4403.948, 'total_seconds': sum(costs.values()),
             'maximum_shard_seconds': max(loads), 'maximum_with_startup_reserve_seconds': max(loads) + 300,
             'deadline_seconds': 1800, 'startup_reserve_seconds': 300,
             'shards': [{'index': index, 'classes': group, 'seconds': loads[index]} for index, group in enumerate(groups)]}
@@ -349,6 +354,185 @@ def validate_club_leaderboard_budget(c, directory, root):
         raise ValueError('Club full-class allowance or held-request waits changed')
     return 1190
 
+
+_PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
+ 'measured': False,
+ 'new_methods': 8,
+ 'changed_existing_methods': 3,
+ 'method_count_after': 750,
+ 'class_count_after': 166,
+ 'assumptions': {'per_reveal_seconds': 40,
+                 'per_reveal_maximum_swipes': 10,
+                 'per_reveal_maximum_viewports': 11,
+                 'lifecycle_and_failure_seconds': 90,
+                 'per_direct_action_seconds': 5,
+                 'per_direct_ax_assertion_seconds': 2,
+                 'per_typed_character_seconds': 0.25,
+                 'round_up_seconds': 10},
+ 'source_sha256': {'App/MerchantOperationsEditor.swift': 'ff2fc80339203552415f39c18bf447f507fdde54f966b39409a4a23852fe20a9',
+                   'App/ProfileEditView.swift': '2984a3b5b5dc9ac638fcb3f3414bbeca41a685a11a3c8aee3ee310d5911f3393',
+                   'Tests/AppUITests/FailureScreenshot.swift': '705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49',
+                   'Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift': '23bd4804a9a9de93deeef8e33975f619aa9bb244ecff7aa712fad05063f14d5c',
+                   'Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift': 'b4e8c60794037f8e8fb151c3ba11516099482d63cf2784b3085bc9d38a6a7e7f',
+                   'Tests/AppUITests/ProfileEditFlowTests.swift': 'e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067'},
+ 'methods': {'ProfileEditFlowTests.testNicknameCancelReopenAndApply': {'source': 'Tests/AppUITests/ProfileEditFlowTests.swift',
+                                                                       'declaration_sha256': '2a159139c56d4319a10df9295a2ddb0bb96f7921661382dc34a555a7cf67a3bc',
+                                                                       'measured': False,
+                                                                       'existing_method_increment': False,
+                                                                       'lifecycle_seconds': 90,
+                                                                       'explicit_wait_seconds': 47,
+                                                                       'bounded_reveal_calls': 0,
+                                                                       'direct_action_count': 8,
+                                                                       'direct_ax_assertion_count': 4,
+                                                                       'typed_characters': 17,
+                                                                       'unrounded_seconds': 189.25,
+                                                                       'seconds': 190},
+             'ProfileEditFlowTests.testIntroductionCancelDoesNotRevertPreviouslyStagedNickname': {'source': 'Tests/AppUITests/ProfileEditFlowTests.swift',
+                                                                                                  'declaration_sha256': '8dbc1df29a0f7dcc9b13926476932126f2647437787dd401c4b6a18a340d7f0b',
+                                                                                                  'measured': False,
+                                                                                                  'existing_method_increment': False,
+                                                                                                  'lifecycle_seconds': 90,
+                                                                                                  'explicit_wait_seconds': 68,
+                                                                                                  'bounded_reveal_calls': 0,
+                                                                                                  'direct_action_count': 12,
+                                                                                                  'direct_ax_assertion_count': 5,
+                                                                                                  'typed_characters': 25,
+                                                                                                  'unrounded_seconds': 234.25,
+                                                                                                  'seconds': 240},
+             'ProfileEditFlowTests.testSwipeDismissDiscardsOnlyLocalFieldScratch': {'source': 'Tests/AppUITests/ProfileEditFlowTests.swift',
+                                                                                    'declaration_sha256': 'ad04bd32e5b7c3ec6394428d7da1ba36b52c76c5afd93334e3c432c34c970b6f',
+                                                                                    'measured': False,
+                                                                                    'existing_method_increment': False,
+                                                                                    'lifecycle_seconds': 90,
+                                                                                    'explicit_wait_seconds': 47,
+                                                                                    'bounded_reveal_calls': 0,
+                                                                                    'direct_action_count': 5,
+                                                                                    'direct_ax_assertion_count': 3,
+                                                                                    'typed_characters': 10,
+                                                                                    'unrounded_seconds': 170.5,
+                                                                                    'seconds': 180},
+             'ProfileEditFlowTests.testBackgroundKeepsFieldScratchUntilExplicitCancel': {'source': 'Tests/AppUITests/ProfileEditFlowTests.swift',
+                                                                                         'declaration_sha256': '37e3d99153a5d3635ea2cea0ab41b99b24fb51bb9185d2d31701633d5a704f13',
+                                                                                         'measured': False,
+                                                                                         'existing_method_increment': False,
+                                                                                         'lifecycle_seconds': 90,
+                                                                                         'explicit_wait_seconds': 47,
+                                                                                         'bounded_reveal_calls': 0,
+                                                                                         'direct_action_count': 7,
+                                                                                         'direct_ax_assertion_count': 3,
+                                                                                         'typed_characters': 9,
+                                                                                         'unrounded_seconds': 180.25,
+                                                                                         'seconds': 190},
+             'MerchantTemplateParticipationPlanFlowTests.testIncompletePlanBlocksReviewAndRemovingItRestoresUnchangedTemplate': {'source': 'Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift',
+                                                                                                                                 'declaration_sha256': 'aade52d00a8fba15356483e95d512e2a3cd6a616c2ee495e8f8a30a3899e2673',
+                                                                                                                                 'measured': False,
+                                                                                                                                 'existing_method_increment': False,
+                                                                                                                                 'lifecycle_seconds': 90,
+                                                                                                                                 'explicit_wait_seconds': 4,
+                                                                                                                                 'bounded_reveal_calls': 5,
+                                                                                                                                 'direct_action_count': 4,
+                                                                                                                                 'direct_ax_assertion_count': 4,
+                                                                                                                                 'typed_characters': 0,
+                                                                                                                                 'unrounded_seconds': 322.0,
+                                                                                                                                 'seconds': 330},
+             'MerchantTemplateParticipationPlanFlowTests.testCompletePlanReviewCannotSubmitAndCancelRetainsLocalFields': {'source': 'Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift',
+                                                                                                                          'declaration_sha256': '9413b591e0cab9096f42346d9b21a84722f14581fa2b29baa2aedec6c14290ff',
+                                                                                                                          'measured': False,
+                                                                                                                          'existing_method_increment': False,
+                                                                                                                          'lifecycle_seconds': 90,
+                                                                                                                          'explicit_wait_seconds': 4,
+                                                                                                                          'bounded_reveal_calls': 11,
+                                                                                                                          'direct_action_count': 13,
+                                                                                                                          'direct_ax_assertion_count': 6,
+                                                                                                                          'typed_characters': 3,
+                                                                                                                          'unrounded_seconds': 611.75,
+                                                                                                                          'seconds': 620},
+             'MerchantTemplateExitPlanFlowTests.testEmptyExitPlanBlocksReviewAndExplicitRemovalLeavesOriginalTemplate': {'source': 'Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift',
+                                                                                                                         'declaration_sha256': '2ef4229746d838c0603da3fc6f804b908cb5d268894ebf72863b83fcb1bca7f2',
+                                                                                                                         'measured': False,
+                                                                                                                         'existing_method_increment': False,
+                                                                                                                         'lifecycle_seconds': 90,
+                                                                                                                         'explicit_wait_seconds': 0,
+                                                                                                                         'bounded_reveal_calls': 5,
+                                                                                                                         'direct_action_count': 4,
+                                                                                                                         'direct_ax_assertion_count': 4,
+                                                                                                                         'typed_characters': 0,
+                                                                                                                         'unrounded_seconds': 318.0,
+                                                                                                                         'seconds': 320},
+             'MerchantTemplateExitPlanFlowTests.testExitInstructionsReviewRemainsLocalAndCancelKeepsExactText': {'source': 'Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift',
+                                                                                                                 'declaration_sha256': '3e18d10659b7183fe3742acccd32e009e341961df59a58e1eed85c0b74d36015',
+                                                                                                                 'measured': False,
+                                                                                                                 'existing_method_increment': False,
+                                                                                                                 'lifecycle_seconds': 90,
+                                                                                                                 'explicit_wait_seconds': 0,
+                                                                                                                 'bounded_reveal_calls': 9,
+                                                                                                                 'direct_action_count': 9,
+                                                                                                                 'direct_ax_assertion_count': 5,
+                                                                                                                 'typed_characters': 75,
+                                                                                                                 'unrounded_seconds': 523.75,
+                                                                                                                 'seconds': 530},
+             'ProfileEditFlowTests.testFailedReloadKeepsDraftAndAllowsReviewedSave': {'source': 'Tests/AppUITests/ProfileEditFlowTests.swift',
+                                                                                      'declaration_sha256': '4c5c16cafb45e2950d7a133d6469d01710b17e581d24c3851bbf6042cfdae4fb',
+                                                                                      'measured': False,
+                                                                                      'existing_method_increment': True,
+                                                                                      'lifecycle_seconds': 0,
+                                                                                      'explicit_wait_seconds': 11,
+                                                                                      'bounded_reveal_calls': 0,
+                                                                                      'direct_action_count': 2,
+                                                                                      'direct_ax_assertion_count': 0,
+                                                                                      'typed_characters': 0,
+                                                                                      'unrounded_seconds': 21.0,
+                                                                                      'seconds': 30},
+             'ProfileEditFlowTests.testConfirmedProfileSaveIsReadBack': {'source': 'Tests/AppUITests/ProfileEditFlowTests.swift',
+                                                                         'declaration_sha256': '16907fcf1e98d39835ea3c91148523936c39ab3b2b4544d7c6f6049223f972e3',
+                                                                         'measured': False,
+                                                                         'existing_method_increment': True,
+                                                                         'lifecycle_seconds': 0,
+                                                                         'explicit_wait_seconds': 11,
+                                                                         'bounded_reveal_calls': 0,
+                                                                         'direct_action_count': 2,
+                                                                         'direct_ax_assertion_count': 0,
+                                                                         'typed_characters': 0,
+                                                                         'unrounded_seconds': 21.0,
+                                                                         'seconds': 30},
+             'ProfileEditFlowTests.testUnknownWriteLocksReviewAndOffersReadOnlyCheck': {'source': 'Tests/AppUITests/ProfileEditFlowTests.swift',
+                                                                                        'declaration_sha256': 'e77675c888284be6947f798aa4bcfd60a35515f9ef86b67372b461f560142ca6',
+                                                                                        'measured': False,
+                                                                                        'existing_method_increment': True,
+                                                                                        'lifecycle_seconds': 0,
+                                                                                        'explicit_wait_seconds': 11,
+                                                                                        'bounded_reveal_calls': 0,
+                                                                                        'direct_action_count': 2,
+                                                                                        'direct_ax_assertion_count': 0,
+                                                                                        'typed_characters': 0,
+                                                                                        'unrounded_seconds': 21.0,
+                                                                                        'seconds': 30}},
+ 'class_increment_seconds': {'ProfileEditFlowTests': 890,
+                             'MerchantTemplateParticipationPlanFlowTests': 950,
+                             'MerchantTemplateExitPlanFlowTests': 850},
+ 'added_seconds': 2690,
+ 'prior_profile_class_seconds': 81.645}
+
+def validate_product_ui_budget(c, directory, root):
+    budget=c.get('product_ui_budget')
+    if budget!=_PRODUCT_UI_BUDGET or budget['measured'] is not False:
+        raise ValueError('Changed source-bound unmeasured product UI budget')
+    for path,expected in budget['source_sha256'].items():
+        if digest((Path(root)/path).read_bytes())!=expected:
+            raise ValueError('Product UI budget source changed: '+path)
+    totals={}
+    for identity,row in budget['methods'].items():
+        text=(Path(root)/row['source']).read_text();name=identity.split('.')[1]
+        match=re.search(r'(?m)^    func '+re.escape(name)+r'\b[\s\S]*?^    }',text)
+        if match is None or digest(match.group().encode())!=row['declaration_sha256']:
+            raise ValueError('Product complete UI method changed: '+identity)
+        seconds=row['lifecycle_seconds']+row['explicit_wait_seconds']+40*row['bounded_reveal_calls']+5*row['direct_action_count']+2*row['direct_ax_assertion_count']+0.25*row['typed_characters']
+        if row['measured'] is not False or seconds!=row['unrounded_seconds'] or math.ceil(seconds/10)*10!=row['seconds'] or not 0<row['seconds']<=900:
+            raise ValueError('Product UI action/wait allowance changed')
+        cls=identity.split('.')[0];totals[cls]=totals.get(cls,0)+row['seconds']
+    if totals!=budget['class_increment_seconds'] or sum(totals.values())!=budget['added_seconds']:
+        raise ValueError('Product UI full-class/increment accounting differs')
+    return totals
 
 atexit.register(lambda: [life.cleanup() for life in _lives])
 

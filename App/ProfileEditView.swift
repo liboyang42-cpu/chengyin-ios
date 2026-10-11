@@ -27,10 +27,11 @@ struct ProfileEditExitConfirmation: Identifiable {
 @MainActor
 final class ProfileEditModel: ObservableObject {
     let coordinator: ProfileEditCoordinator
-    @Published var draft = ProfileEditDraft() { didSet { avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }
+    @Published var draft = ProfileEditDraft() { didSet { retireTextEdit(); avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }
     @Published var confirmation: ProfileEditConfirmation?
     @Published private(set) var reloadConfirmation: ProfileEditReloadConfirmation?
     @Published private(set) var exitConfirmation: ProfileEditExitConfirmation?
+    @Published private(set) var textEdit: ProfileTextFieldEdit?
     private var exitCommitted = false
     @Published private(set) var busy = false
     @Published private(set) var revision = 0
@@ -66,12 +67,55 @@ final class ProfileEditModel: ObservableObject {
         let samePreferences = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: ",").utf8.elementsEqual(snapshot.tagIds.utf8) } ?? true
         return !sameText || !samePreferences || draft.avatarReplacement != nil
     }
+    /// This is local scratch editing, never an independent server save.
+    var canBeginTextEdit: Bool {
+        !exitCommitted && !busy && !coordinator.isBusy && !coordinator.isLocked
+            && coordinator.isConfigured && coordinator.snapshot != nil
+            && confirmation == nil && coordinator.confirmation == nil
+            && reloadConfirmation == nil && exitConfirmation == nil
+            && textEdit == nil && !avatarPresentationActive
+    }
+    func beginTextEdit(_ field: ProfileTextField) {
+        guard !exitCommitted else { return }
+        synchronizeContext()
+        guard canBeginTextEdit, let identity = coordinator.identity,
+              let snapshot = coordinator.snapshot else { return }
+        textEdit = .init(field: field, identity: identity, viewerRevision: coordinator.viewerRevision,
+            generation: generation, modelRevision: revision, draftRevision: avatarDraftRevision,
+            snapshot: snapshot, draft: draft)
+    }
+    func cancelTextEdit(_ value: ProfileTextFieldEdit) {
+        guard textEdit?.id == value.id else { return }
+        retireTextEdit()
+    }
+    private func retireTextEdit() { textEdit = nil }
+    @discardableResult func confirmTextEdit(_ value: ProfileTextFieldEdit, text: String) -> Bool {
+        guard textEdit?.id == value.id else { return false }
+        guard !exitCommitted, !busy, !coordinator.isBusy, !coordinator.isLocked,
+              confirmation == nil, coordinator.confirmation == nil,
+              reloadConfirmation == nil, exitConfirmation == nil, !avatarPresentationActive,
+              coordinator.identity == value.identity, coordinator.viewerRevision == value.viewerRevision,
+              generation == value.generation, revision == value.modelRevision,
+              avatarDraftRevision == value.draftRevision, Self.sameDraft(draft, value.draft),
+              let snapshot = coordinator.snapshot, Self.sameSnapshot(snapshot, value.snapshot) else {
+            cancelTextEdit(value); return false
+        }
+        // Consume before assigning: a repeated or late action cannot touch a newer field.
+        retireTextEdit()
+        var next = draft
+        switch value.field {
+        case .name: next.name = text
+        case .introduction: next.introduction = text
+        }
+        draft = next
+        return true
+    }
     func ownsAvatarScope(_ scope: ProfileAvatarScope) -> Bool {
         avatarActive && scope.editorID == avatarEditorID && scope.lifetimeID == avatarLifetimeID &&
             coordinator.identity == scope.identity && coordinator.viewerRevision == scope.viewerRevision
     }
     func avatarTarget(source: ProfileAvatarUploadClient) -> ProfileAvatarTarget? {
-        guard avatarActive, !busy, confirmation == nil, reloadConfirmation == nil, exitConfirmation == nil, draft.avatarReplacement == nil,
+        guard avatarActive, !busy, confirmation == nil, reloadConfirmation == nil, exitConfirmation == nil, textEdit == nil, draft.avatarReplacement == nil,
               let snapshot = coordinator.snapshot,
               let scope = coordinator.avatarScope(source: source, editorID: avatarEditorID, lifetimeID: avatarLifetimeID) else { return nil }
         return try? .init(scope: scope, snapshot: snapshot, draft: draft, draftRevision: avatarDraftRevision)
@@ -98,10 +142,10 @@ final class ProfileEditModel: ObservableObject {
     }
     /// Disable unreviewed modal dismissal while local changes or an operation exist.
     /// The explicit Back action remains available after an unknown save has settled.
-    var blocksInteractiveExit: Bool { !exitCommitted && (hasUnsavedDraft || busy || coordinator.isBusy) }
+    var blocksInteractiveExit: Bool { !exitCommitted && (hasUnsavedDraft || textEdit != nil || busy || coordinator.isBusy) }
     var canRequestExit: Bool {
         !exitCommitted && !busy && !coordinator.isBusy && confirmation == nil
-            && coordinator.confirmation == nil && reloadConfirmation == nil && !avatarPresentationActive
+            && coordinator.confirmation == nil && reloadConfirmation == nil && textEdit == nil && !avatarPresentationActive
     }
     func cancelExit() { exitConfirmation = nil }
     /// True means the caller may dismiss now; false either presents a review or blocks
@@ -144,6 +188,7 @@ final class ProfileEditModel: ObservableObject {
     func retireReload() { reloadContextRevision &+= 1; cancelReload(); cancelExit() }
     func requestReload() async {
         guard !exitCommitted else { return }
+        guard textEdit == nil else { return }
         synchronizeContext()
         guard !busy, !coordinator.isBusy, confirmation == nil, coordinator.confirmation == nil else { return }
         retireReload()
@@ -177,6 +222,7 @@ final class ProfileEditModel: ObservableObject {
     }
     private func synchronizeContext() {
         guard contextIdentity != coordinator.identity || contextViewerRevision != coordinator.viewerRevision else { return }
+        retireTextEdit()
         retireReload(); retireAvatar(); activateAvatar()
         generation += 1; draft = .init(); confirmation = nil; busy = false
         contextIdentity = coordinator.identity; contextViewerRevision = coordinator.viewerRevision
@@ -186,6 +232,7 @@ final class ProfileEditModel: ObservableObject {
         // A committed exit ends this model's lifetime. Only a new navigation
         // destination/model may reopen; a delayed or cancelled .task may not.
         guard !exitCommitted, !Task.isCancelled else { return }
+        retireTextEdit()
         retireReload(); retireAvatar(); activateAvatar()
         generation += 1; draft = .init(); confirmation = nil; busy = false
         coordinator.synchronizeSession()
@@ -193,6 +240,7 @@ final class ProfileEditModel: ObservableObject {
     }
     func load() async {
         guard !exitCommitted else { return }
+        guard textEdit == nil else { return }
         retireReload()
         synchronizeContext()
         guard !busy else { return }
@@ -215,6 +263,7 @@ final class ProfileEditModel: ObservableObject {
     }
     func prepare() async {
         guard !exitCommitted else { return }
+        guard textEdit == nil else { return }
         retireReload()
         synchronizeContext()
         let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision
@@ -227,6 +276,7 @@ final class ProfileEditModel: ObservableObject {
     }
     func save(_ value: ProfileEditConfirmation) async {
         guard !exitCommitted else { return }
+        guard textEdit == nil else { return }
         retireReload()
         synchronizeContext()
         let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision
@@ -242,8 +292,6 @@ final class ProfileEditModel: ObservableObject {
 
 /// Parent passes its live session revision and retains the coordinator outside navigation.
 struct ProfileEditView: View {
-    private enum Field: Hashable { case name, introduction }
-    @FocusState private var focusedField: Field?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: ProfileEditModel
@@ -260,7 +308,7 @@ struct ProfileEditView: View {
         _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))
         self.sessionRevision = sessionRevision; self.categoryReader = categoryReader; self.avatarDependencies = avatarDependencies
     }
-    var body: some View {
+    private var editorForm: some View {
         Form {
             if model.coordinator.identity == nil {
                 Text("profile.edit.signIn")
@@ -269,35 +317,34 @@ struct ProfileEditView: View {
             } else {
                 if model.coordinator.snapshot != nil {
                     Section {
-                        TextField("profile.edit.name", text: $model.draft.name)
-                            .textContentType(.nickname).focused($focusedField,equals:.name)
-                            .accessibilityIdentifier("profile.edit.name")
-                        TextField("profile.edit.introduction", text: $model.draft.introduction, axis: .vertical)
-                            .lineLimit(3...8).focused($focusedField,equals:.introduction)
-                            .accessibilityIdentifier("profile.edit.introduction")
+                        textFieldRow(.name, value: model.draft.name)
+                        textFieldRow(.introduction, value: model.draft.introduction)
                     } header: { Text("profile.edit.details") }
-                        .disabled(model.busy || model.coordinator.isLocked)
+                        .disabled(!model.canBeginTextEdit)
                     ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
                     Section("context.preferences.title") {
                         LabeledContent("context.preferences.selected", value: String(selectedPreferences.count))
-                        Button("context.preferences.edit") { focusedField = nil; showPreferences = true }
-                            .disabled(model.busy || model.coordinator.isLocked).accessibilityIdentifier("profile.edit.preferences")
+                        Button("context.preferences.edit") { showPreferences = true }
+                            .disabled(model.busy || model.coordinator.isLocked || model.textEdit != nil).accessibilityIdentifier("profile.edit.preferences")
                     }
-                    Button { focusedField=nil; Task { await model.prepare() } } label: { Text("profile.edit.review") }
+                    Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }
                         .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
-                                  || model.draft.normalized == model.coordinator.snapshot?.draft.normalized)
+                                  || model.textEdit != nil || model.draft.normalized == model.coordinator.snapshot?.draft.normalized)
                         .accessibilityIdentifier("profile.edit.review")
                 }
                 if let key = model.coordinator.messageKey {
                     Text(LocalizedStringKey(key)).accessibilityIdentifier("profile.edit.status")
                 }
                 if let remote = model.coordinator.remoteMessage { Text(verbatim: remote) }
-                Button { focusedField = nil; Task { await model.requestReload() } } label: {
+                Button { Task { await model.requestReload() } } label: {
                     Text(LocalizedStringKey(model.coordinator.isLocked ? "profile.edit.check" : "profile.edit.reload"))
-                }.disabled(model.busy).accessibilityIdentifier("profile.edit.reload")
+                }.disabled(model.busy || model.textEdit != nil).accessibilityIdentifier("profile.edit.reload")
                 if model.busy { ProgressView().accessibilityIdentifier("profile.edit.busy") }
             }
         }
+    }
+    private var editorNavigation: some View {
+        editorForm
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
         .appNavigationTitle("profile.edit.title")
         .navigationBarBackButtonHidden(true)
@@ -305,7 +352,6 @@ struct ProfileEditView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    focusedField = nil
                     if model.requestExit() { dismiss() }
                 } label: { Label("action.back", systemImage: "chevron.left") }
                 .disabled(!model.canRequestExit)
@@ -332,19 +378,29 @@ struct ProfileEditView: View {
         .onChange(of: showReloadConfirmation) { _, showing in if !showing { model.cancelReload() } }
         .onChange(of: model.confirmation?.id) { _, _ in model.retireReload() }
         .onChange(of: sessionRevision) { _, _ in model.retireReload() }
+        .onChange(of: sessionRevision) { _, _ in
+            if let value = model.textEdit { model.cancelTextEdit(value) }
+        }
+    }
+    var body: some View {
+        editorNavigation
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model.retireReload(); model.retireAvatar() } else { model.activateAvatar() }
         }
         .task(id: sessionRevision) { showPreferences = false; await model.resetAndLoad() }
+        .sheet(item: textEditPresentation) { value in
+            NavigationStack {
+                ProfileTextFieldEditor(edit: value,
+                    cancel: { model.cancelTextEdit(value) },
+                    confirm: { _ = model.confirmTextEdit(value, text: $0) })
+                    .id(value.id)
+            }.interactiveDismissDisabled(false)
+        }
         .sheet(isPresented: $showPreferences) {
             NavigationStack { ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,
                 currentIdentity: { model.coordinator.identity }) { model.draft.routePreferenceIDs = $0 } }
         }
-        .onDisappear {
-            if !showPreferences, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }
-            model.retireReload()
-            if let value = model.confirmation { model.coordinator.cancel(value) }
-        }
+        .onDisappear(perform: handleEditorDisappear)
         .sheet(item: $model.confirmation) { value in
             NavigationStack {
                 Form {
@@ -363,4 +419,32 @@ struct ProfileEditView: View {
             }.interactiveDismissDisabled(model.busy)
         }
     }
+    /// Capture this presentation's token so a delayed swipe-dismissal cannot cancel its successor.
+    private var textEditPresentation: Binding<ProfileTextFieldEdit?> {
+        let presented = model.textEdit
+        return .init(get: { model.textEdit }, set: { value in
+            if value == nil, let presented { model.cancelTextEdit(presented) }
+        })
+    }
+    private func textFieldRow(_ field: ProfileTextField, value: String) -> some View {
+        Button { model.beginTextEdit(field) } label: {
+            HStack {
+                LabeledContent {
+                    if value.isEmpty { Text("profile.fieldEdit.empty").foregroundStyle(.secondary) }
+                    else { Text(verbatim: value).lineLimit(3) }
+                } label: { Text(LocalizedStringKey(field.titleKey)) }
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }.contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("profile.fieldEdit.open.\(field.rawValue)")
+    }
+
+    private func handleEditorDisappear() {
+        if !showPreferences, model.textEdit == nil, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }
+        model.retireReload()
+        if let value = model.confirmation { model.coordinator.cancel(value) }
+    }
+
 }

@@ -1,0 +1,20 @@
+{
+  "status": "PENDING_PARENT_INTEGRATION",
+  "base": "53bbc93ea77bcb66a2ed1701e3e0ef8896d30e13",
+  "required_profile_view_overlay_sha256": "40905088b434a38286e3059a8e4d8f66c8d82c3257a3c86b836ab3806214fa59",
+  "app_sources": [
+    "App/ProfileTextFieldEditor.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileTextFieldEditTests.swift"
+  ],
+  "existing_app_ui_test_source": "Tests/AppUITests/ProfileEditFlowTests.swift",
+  "localization_fragment": "Resources/ProfileTextFieldEditLocalizations.fragment.json",
+  "instructions": [
+    "Add app source to Questify Sources and unit tests to QuestifyAppUnitTests Sources using the canonical generator/integration process.",
+    "Merge only the three localization keys in the fragment, preserving existing catalog rows.",
+    "Existing ProfileEditFlowTests target registration remains unchanged.",
+    "Run the new ProfileTextFieldEditTests and new UI methods on an Apple toolchain after integration; do not treat source checks as execution."
+  ],
+  "central_files_modified": []
+}

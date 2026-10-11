@@ -64,6 +64,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // V2 governance has its own access/me model, including delegated event staff.
                 if let governance = management?.governance {
                     Section {
+                        NavigationLink {
+                            ClubEventCalendarView(clubID: id, identity: reader.clubIdentity, governance: governance)
+                        } label: { Label("club.calendar.title", systemImage: "calendar") }
+                            .accessibilityIdentifier("club.calendar.open")
                         ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates)
                     }
                 }

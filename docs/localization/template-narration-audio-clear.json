@@ -1,0 +1,12 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateNarration.clear": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Clear narration audio" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "清除导览音频" } }
+      }
+    }
+  },
+  "version": "1.0"
+}

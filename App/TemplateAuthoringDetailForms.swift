@@ -133,6 +133,11 @@ import SwiftUI
             if model.draft.voiceEnabled {
                 TemplateAuthoringField("audioUrl", text: model.optional(\.audioUrl))
                 TemplateAuthoringField("audioDuration", text: model.number(\.audioDuration))
+                Button("templateNarration.clear", role: .destructive,
+                       action: model.clearNarrationAudioAction())
+                    .disabled(!model.canClearNarrationAudio)
+                    .accessibilityIdentifier("templateNarration.clear")
+                TemplateNarrationAudioPreviewEntry(model: model)
             }
         }
     }

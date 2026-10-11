@@ -32,6 +32,23 @@
           }
         }
       }
+    },
+    "NSPhotoLibraryAddUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save a walk card to Photos when you choose Save to Photos."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在你选择“保存到相册”时，将漫游足迹卡添加到相册。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

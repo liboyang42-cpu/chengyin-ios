@@ -18,3 +18,10 @@ regexes = [
   '''^d5c4b559ba35a52da62527695761a638bb8dfe512f45f73d0010cfa63a1b7942$''',
   '''^8dc268db59480c9718286193dcdf2b5674121dc91e3104fbf46217515d14e2b0$''',
 ]
+
+[[rules.allowlists]]
+description = "Only the verified WeChat UI source SHA256 in the readiness source registry"
+condition = "AND"
+regexTarget = "secret"
+paths = ['^tools/run138_editor_readiness_contract\.json$']
+regexes = ['^d5c4b559ba35a52da62527695761a638bb8dfe512f45f73d0010cfa63a1b7942$']

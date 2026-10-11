@@ -6,176 +6,178 @@
   "source_contract_sha256": "e6a48f0e2ca5f9e4c64524097c3ff61279d68c15e70d287bc3ea4e9752f8a438",
   "unchanged_profile_sha256": "29702b1924f79fd62fed74b71de626e7e68545747990b0e55be21415accaced7",
   "current_ui_sources": {
-    "AccessibilityPresentationFlowTests.swift": "34b15121fb2f5eb93efcf0709c4f7d4c50b31db1b1e8765e424a4f24fbd201f0",
-    "AccountCollectionFlowTests.swift": "a7e98b59a99954f21dd70d997b0deffbedaebc4335df52c4c25799e954f9e974",
-    "AccountSavedPostCollectionFlowTests.swift": "da788dddda108d6f13970424e9d3b8b88a15dbce3ff911d713c25f38204abacf",
-    "ActivityFlowTests.swift": "ec86e3283c73fb1e9589459231ff63a8999e76aba888f113fc1113773089ac80",
-    "ApprovedReleasePreparationChineseFlowTests.swift": "720f17dbc1a0d613c29d426e8d5405e24def9143b2669cc22cfba2c5ea15065c",
-    "ApprovedReleasePreparationFlowTests.swift": "310a2d069c69a0141e358d4e0a313a0db5886757989df8efafba27ff98b9a9ce",
-    "ApprovedReleasePublicationFlowTests.swift": "c2e72f5a8476541c4298ad934685fc36cb7fe02916741e61391e605702ae354e",
-    "ApprovedReleaseReceiptRecoveryFlowTests.swift": "8e497b471cb9d2ef46c62c051d9711068a438f2999cbe3bbc8368df71d19f6a0",
+    "OfficialActionUITests.swift": "31f8642fedd6dd93907157e8a450866706fe0087a14182bb3b27756d1d74d98a",
     "ApprovedReleaseRecoveryFlowTests.swift": "a6f47484264a2b9c5ee72567665fae6ef1c7fd30dff12b6d0faf7ee140ccf06f",
-    "ApprovedTopicFrozenCoverPublicationFlowTests.swift": "7a746e2711cf2b6a0de6f90c0c96c6762113cc0212b16eaca4331786ba3b1d90",
-    "ApprovedTopicFrozenCoverReviewFlowTests.swift": "2366899354a57fc696522bac39bab8196897f5c18566ce8de9151673189c5968",
-    "ApprovedTopicReviewCurrentChineseFlowTests.swift": "e1bf02652ddb0e9a61d771a1199ea9834927e97ae04407b16576f78850c81db5",
-    "ApprovedTopicReviewCurrentFlowTests.swift": "69bb9f6c9780bfa70d8d0fa9737a35b255a5f97bb530fad009653eba046d87e6",
-    "ApprovedTopicReviewPersistenceFlowTests.swift": "920404b722b8c1c4a646e636f5d2665a1364adbdf542038d624fa6fdc22a222b",
-    "ApprovedTopicReviewRequestFlowTests.swift": "1f1e787a1beb9d46675f2662fd61890b0f2d90926bf6bc3d228bf2af3efe8a6b",
-    "ApprovedTopicReviewUnknownFlowTests.swift": "12d3b39f6819ae294c37399f303cb08dfcc0ac49122460a6683c1df9cadda098",
-    "ApprovedTopicSelectedCoverChineseFlowTests.swift": "f56a803a8581e9ba340fff97f76bce3929c63ba6c9baf74de8ed522ccd688d81",
-    "ApprovedTopicSelectedCoverFlowTests.swift": "292d83ab1e6f818622d3249d37e73c12cd1da6aac92c68bab81cc98bf4082d68",
-    "ClubActionFlowTests.swift": "ec872341ba84f2e3844a980e99a7134b6c86939d9f426c425ffc746f50506e5a",
+    "ApprovedReleaseReceiptRecoveryFlowTests.swift": "8e497b471cb9d2ef46c62c051d9711068a438f2999cbe3bbc8368df71d19f6a0",
+    "ProjectStoryAudioMiddleGapFlowTests.swift": "65f6a0e23b24f20370e046b33fd827a0e580ab671adecae66de4293f22e29b46",
+    "PlayRouteMapCameraFlowTests.swift": "d329e8f87741c7a7bb78404e0bc4fea123051fe0355182c582bbf28a5034c872",
+    "ProjectPendingStoryAudioFlowTests.swift": "48a4937a51d290aa3d5851eca59a259a17e570dd0ca5c24764f7c3a6286102c5",
+    "OwnerDraftReceiptFlowTests.swift": "f02e2cff62a7fdc0840e87815023c63bad054c6e150a39f0968a11118b194cf1",
+    "AccessibilityPresentationFlowTests.swift": "34b15121fb2f5eb93efcf0709c4f7d4c50b31db1b1e8765e424a4f24fbd201f0",
+    "RegionalEntryFlowTests.swift": "a5993099e207811a32c6ebf139d76d3ce97d9ee309ad7b82c5c2d4a6cb362642",
+    "ProjectOwnedModeCopyFlowTests.swift": "4f45e3e382bf3d9988b82d4667580f2d61d8264fa072918f0c6e5840a991cec7",
     "ClubCommunityUITests.swift": "bd56adbfe7555d5ddb841c325956ac4b68b32fa77f8286017b8c01e877b3691c",
-    "ClubEnrollmentFlowTests.swift": "fb6bf952ef69e09eb0aef75153752a5515d62e9d27f32048726849b3f9a8ea24",
-    "ClubFeedReadFlowTests.swift": "11e6d9f2f0e886eb46d39cc32d0f4d2e55f30006d48f8d555bf76889e540172d",
-    "ClubGovernanceFlowTests.swift": "4d41464ed772a0c371669e5dd55c8a06700b5980e2cb6f17e6ece58a7d1ce7ee",
-    "ClubManagementFlowTests.swift": "22e581ab357d252769d40c71fc8222c87a8cea5a6d9b88573bfa36d0089c3a92",
-    "ClubOperationsFlowTests.swift": "1b1de2b71ed658e09a004b15102201b9ee9a66fb702d4797e93f4df68d70192a",
-    "ClubOwnerRefundFlowTests.swift": "83112f2ee22cbac73e561c0f6e11247ed4481a171a52aaa0b11501d0db03ab98",
-    "ClubProfileScopeFlowTests.swift": "8cae5d6cb5f38bc4c65ac213251a400056bf305614b9449530321809189bbd9a",
-    "ClubStoryFlowTests.swift": "ed0766adf387f2813c91fad54b3716d901c1c4db256ec3597c952452d9f1b7a1",
-    "ClubStoryNavigationFlowTests.swift": "28af5b75320b585e93edeb80ba5ce6493c666b05632f3e61e6698a4cd4c086d3",
-    "CoopRelationDiscoveryFlowTests.swift": "fe71447339f4d8006cf1b668ecc80df501722e0153edf37a77c8a5ba2c869c42",
-    "CooperationFlowTests.swift": "fd7f8883ac1d32d2db9aa7f5b912b078301ba94443411ed092f6d1118f82f706",
-    "CooperationFlowUITests.swift": "914ac0900365b40e72de7a304b8c058cb6cd5a09b7bcfbb4b56f869337e068f2",
-    "CouponCommandRecoveryFlowTests.swift": "17ea016fd49b9bc97a3eb39bb4070618154faf4ff08b45b0dc1540ca1d01a2d6",
-    "CouponManagementFlowTests.swift": "ceed7f5b854426dbf598786b26d1c974f3cad4b7c1d58cb9bcf8745204f66363",
-    "CouponRuntimeChineseFlowTests.swift": "cd4248ccbbd4543e515582fd8b4b5afdbe55d1d8bb756fdedc494fda46458bf4",
+    "ApprovedTopicReviewCurrentFlowTests.swift": "69bb9f6c9780bfa70d8d0fa9737a35b255a5f97bb530fad009653eba046d87e6",
+    "ProjectEditReviewReadinessFlowTests.swift": "f0faaac7f2c9483ea61c38a66a22ddd381502c3435b28ffb478ef637238a5396",
+    "SearchMapAlternativeListFlowTests.swift": "57f1c4b1e01ec0bed5313181ceaf8583c2cdbdf57f30d1c74973550d9ddaa9da",
+    "ApprovedReleasePreparationFlowTests.swift": "310a2d069c69a0141e358d4e0a313a0db5886757989df8efafba27ff98b9a9ce",
+    "TemplateHistoricalHintFlowTests.swift": "c6240505b4ab86c338ed8f34149992338ad37dc6c436a559c162b71ade624f19",
+    "RoamExperienceFlowTests.swift": "5c38eb0ba990fdb5dea75121444e882b6add575a34c4afb37a49dfbd74a0ff51",
     "CouponRuntimeFlowTests.swift": "29d491e08624930b2943e4a59bdf605184de68c1bd6d99500637a28af1883225",
-    "CouponRuntimeJourney.swift": "83906936ce979ab1cbd070794bacdf24044c508a9aa7be58c9f159195c3aae87",
+    "ApprovedTopicReviewUnknownFlowTests.swift": "12d3b39f6819ae294c37399f303cb08dfcc0ac49122460a6683c1df9cadda098",
+    "CooperationFlowUITests.swift": "914ac0900365b40e72de7a304b8c058cb6cd5a09b7bcfbb4b56f869337e068f2",
+    "PublicMerchantHomeFlowTests.swift": "7ada18a8f87bd815359f10bb4ae7b3b3a20ced50158a7b49af8db60c12a75e08",
+    "SettingsNativeFlowTests.swift": "8ee242078d4cc1e496309a2f1057aaec06b4c544c89ffcb4f1b30e004a5a5d44",
     "CreatorContentFlowTests.swift": "41f2288cdbcff8e3474d89e7c834c615bec907792b7bc87bce5b1b280070dd01",
-    "DoorReferralUITests.swift": "b21271c91fa6609e664233e394da06d7ec0277f9452affcdac6b02d7f806cb3e",
-    "EntryFlowTests.swift": "3b37248790bc7f8b1ea372e9f194050492ba331c843f08c754d82d2ca7d33a40",
-    "FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
-    "FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7",
-    "GroupPollUITests.swift": "b5bafcac4f364f38178e8dd74dced246e7b1fb2390023952205ea78600683086",
-    "GrowthCenterFlowTests.swift": "fc7d491130ce3388d188e48df31784e696bd41e33903c6ff99d545af07eeb025",
-    "HomeFeedFlowTests.swift": "1ac5148b32f4727965c7e2298db6cb21aa1a3ccea6e7b61a83ceff68c80c6792",
-    "IMExpandedUITests.swift": "b2ed06bf0be180fb5cadf2a72c2a59d182b1d79b757c21af0359a8334a5a033b",
-    "IntegratedActivityPlayJourneyFlowTests.swift": "52242b06d592da9facdb20e2d7cf6c1331f558aaec1023923e6982e069d7ac69",
-    "IntegratedDeniedAcceptanceFlowTests.swift": "24c0b29e21178acf569d1d6ed92d685934fe1ea32f39370a98819cc627edd921",
-    "IntegratedNativeAcceptanceFlowTests.swift": "c9ba0d1df3d6dac1e331fb5770b3ea064a6fb97de381782d6b74f28cc7a616d3",
-    "JourneyContentFlowTests.swift": "cd56d905e1d42c413d921f48106872ea27e334e9213d68fc384a786acaa9cebc",
-    "JourneyRoleViewFlowTests.swift": "ac8cc4dc31662355fdf50cab238c815de5e31ab3e83d0eb07cb349c7d132c704",
+    "TemplateMetadataSelectorsFlowTests.swift": "a56a732d72fa7d656ec32ebdd96d3523515f43efd3a05c659a2f870dba746102",
+    "ProjectOwnedEditorFlowTests.swift": "e06f4f77108ca084088c5a0a412fe754938530611fd4e2ff12199e4d1ae278c6",
+    "ProjectEditFlowTests.swift": "f900b7c8d78924d765a37d391e49503467a4a371d172288518c937d321ed6b5b",
     "MerchantBusinessFlowTests.swift": "6f7abf0f8348ef9c53137270d0fdb3150a5e1cefb625710a218aa4b5c4aa305c",
+    "PlayRouteMapContinuationFlowTests.swift": "a6024af16bb73e474e20cb6ee0821a6a39cf9557df25dca12396eba10273ba26",
+    "MerchantEngagementFlowTests.swift": "10d93de727d27a9b6567cb13e2a0c9462c96946e1c580dea9c7dc911c000fbd0",
+    "OfficialEventFlowTests.swift": "1385657529c64512d7e3c8456336c9492ed8ee6967562431e2120ff44f359dea",
+    "FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7",
+    "ProjectStoryTemplateGameEndFlowTests.swift": "5c609f541e23260d28d92af58aff62cc75217b19f197b4c83a357ecf51b1c188",
+    "PrivateHomeMapPickerFlowTests.swift": "d40b439eb9720ee8442939c6aeb74a49e79cc4bc276a2ab4552d19f7a9a03a2d",
+    "TemplatePreferenceDraftEditorFlowTests.swift": "92a68fe87676f1a874445f679114fe072c441891d49356db003f0bf1d352b270",
+    "MerchantMarketingUITests.swift": "bb864fc5a5a61e2c8b5a88eebb01ac2775f2de3c5cc2569c421e1e4a3aec757d",
+    "ObjectCardFlowTests.swift": "2a4223607dcdb62ea07c6909dba70a250358182f592f31fe8fcd493d1a75845c",
+    "NativeSettingsReuseFlowTests.swift": "08f355f90f680f33af778ae60da46d7f635d801fccbc64f83deb4b456d757fae",
+    "ReferenceMapCardFlowTests.swift": "d5891be32187229dc059e54c45770165550731b60a2dab62f969c7c2fba19e15",
+    "TemplateSensorDraftFlowTests.swift": "c6953c1caa1123229985fa2d5fae7381166d3d3232cad8e6dd1e47f59dc44f9d",
+    "PublicMerchantReviewFilterFlowTests.swift": "981ae8379b43d7ac65ee79c9976d5e383ad85005ecab276955eed016b3382f02",
+    "PlayDirectorPrefabFlowTests.swift": "710afa5c51c3be25b3ea45abeedfa975c9703757aba24c00920bcf7a1fe094d6",
+    "NativeEnrollmentFlowTests.swift": "73fff42b9d3eb694dc936f578d43e9f4d37a3110e60206a0ee94d24ce5605175",
+    "SquareReportFlowTests.swift": "7152af267e98cb8d9cf5a67c6e2686403c2e6353504aad6a4f1fc26ad40f65e9",
+    "ProjectEditStarterFlowTests.swift": "cc1f2d6d1c9b457af206881bd3392d054ba4f705d9159bccc5f56edcddfd3483",
+    "ProjectStoryImageFlowTests.swift": "dbe83155026481a333a2be69ea2ba5a00a2ae133b070338bf461d727f0f080d6",
+    "TopicTemplateNameSearchFlowTests.swift": "c4e6bb1724ebac6bcefec3389f639b9a532dcc76f8d698f90ae5b1826433ce04",
+    "PlayBranchHistoryFlowTests.swift": "66d9552a55f04d286ff267803786d434c08da35977338042c31c229cdc88729c",
+    "NearbyTeamUITests.swift": "7c408b308478448e6a8176c89433cd431f480e112f7d2e120f227baa5714d3b9",
+    "ApprovedTopicFrozenCoverPublicationFlowTests.swift": "7a746e2711cf2b6a0de6f90c0c96c6762113cc0212b16eaca4331786ba3b1d90",
+    "PublisherLifecycleUITests.swift": "85d6d3c53b726ec4eded7a4581c77b3fe2dfbd20846da92bba0187813909a4c4",
+    "SquareWorkspaceFlowTests.swift": "b7e7f7e894b1789c75ef3005284e7597319ad6e6f6df8a45cb7072f5ee70bf2c",
+    "OwnedTopicCoverSelectionFlowTests.swift": "eccef38b0bca7d50aa67b299b0252089c292bc6d96f539a3477e3997d237f30b",
+    "IntegratedDeniedAcceptanceFlowTests.swift": "24c0b29e21178acf569d1d6ed92d685934fe1ea32f39370a98819cc627edd921",
+    "CouponManagementFlowTests.swift": "ceed7f5b854426dbf598786b26d1c974f3cad4b7c1d58cb9bcf8745204f66363",
+    "TicketWalletFlowTests.swift": "59e425ea9cfb0a621640c9673f40db86f2ce94aa8a2fe65c5d3f20eb450eddc6",
+    "SocialAccountFlowTests.swift": "4be80eb36a96fb19420fde772a46661f56217afd20319333c84b0e6f79ba6e36",
+    "ReferenceChatTaskFlowTests.swift": "d96e7e68af7b0b36a4f33299b0fbd84d5abcf98b2abed7e7c202839a37fca602",
+    "MerchantTemplateParticipationPlanFlowTests.swift": "b4e8c60794037f8e8fb151c3ba11516099482d63cf2784b3085bc9d38a6a7e7f",
+    "ProjectStoryAudioFlowTests.swift": "09ed44f1047ce78327e94d78d7a96039a40ed1ad375a68f5858ef9e3eddd72c6",
+    "ProjectStoryImageMiddleGapFlowTests.swift": "14ccbf3f0c0f1dbb2caacdfc44c3867069033931ad3a1d136809262dea2dece5",
+    "ProjectStoryTemplateFlowSupport.swift": "b681a4dfab49f19c0ef17cccf76a0fbd18bd64ea7a0cd4bea7ee5e23c168db9e",
+    "SquareGovernanceFlowTests.swift": "3b6f3e2ec02a3939e90047635824bfe681de43f5b9ba45d82d9022780914b2b8",
+    "PlayBranchHistoryLifetimeFlowTests.swift": "d2baa99029f6706f2e24f4b8389aa0d10c4dc071cd0ca61b1a489c0f9b2fa05d",
+    "OwnerDraftHistoryFlowTests.swift": "17384dc614940b687f31d1b5cc1f85c71ff1b50cd4ec496e4e08c52ee27c510c",
+    "ProjectPendingStoryImageFlowTests.swift": "55e7cced493afbbb70e9a5a632f0deb938df583b54cd70459d76e267fc19f59e",
+    "ProjectSubmissionEvidenceUITestSupport.swift": "49a420e87068cbc4b28e8b570ec7faceec09d3b9b7521cd2c3e75f53803db3c6",
+    "ModuleFlowTests.swift": "bb8a6103f9b878d4f86355dc88acef53ff0f51ce830707aa17787abc51cdb37f",
+    "ApprovedTopicSelectedCoverChineseFlowTests.swift": "f56a803a8581e9ba340fff97f76bce3929c63ba6c9baf74de8ed522ccd688d81",
+    "JourneyContentFlowTests.swift": "cd56d905e1d42c413d921f48106872ea27e334e9213d68fc384a786acaa9cebc",
     "MerchantClubDiscoveryFlowTests.swift": "4ef4f6534ab84a98978711196f98ad0b41d822411fb08e342f494c422ef9f5eb",
     "MerchantContentFlowTests.swift": "f3eae34c014c2fa58a3b3c6fae5d6c143d3a4f88ffc2bdf3ab2bbd4c08439d04",
-    "MerchantEngagementFlowTests.swift": "10d93de727d27a9b6567cb13e2a0c9462c96946e1c580dea9c7dc911c000fbd0",
-    "MerchantMarketingUITests.swift": "bb864fc5a5a61e2c8b5a88eebb01ac2775f2de3c5cc2569c421e1e4a3aec757d",
-    "MerchantNPCFlowTests.swift": "d64a77db83ad9228988fc6fd7b855e7d4f435d802fb8549ab00fabee674a87d2",
-    "MerchantOnboardingFlowTests.swift": "efe66ffdf924eeaed5833c5bf482f84af643882afbc3d156646f6113e5234cac",
-    "MerchantOperationsFlowTests.swift": "c67960f25bde6fb02b1b9c8f3cbf3c854c96abfa91b0a55a6769470923b6fa0b",
-    "MerchantTemplateAssistFlowTests.swift": "0f3f046377c674ee281923ec2153ff08acce31248e8300c3b2784996a2793498",
-    "ModuleFlowTests.swift": "bb8a6103f9b878d4f86355dc88acef53ff0f51ce830707aa17787abc51cdb37f",
-    "NativeEnrollmentFlowTests.swift": "73fff42b9d3eb694dc936f578d43e9f4d37a3110e60206a0ee94d24ce5605175",
-    "NativeNavigationCompletionUITests.swift": "f8753a247d2412fbfb8647065a98e49e01b98ebb8d00aae8aae4536bc3f833bc",
-    "NativePlatformFlowTests.swift": "b9e8711950fa3f3e13c2f7802aeb3365879a00c26ae2697689002521f3dbfaa4",
-    "NativePresentationPatternFlowTests.swift": "8d6928510236f31608f35335e3a7e5f04eb6339e16220daf4a768c44b08109f8",
-    "NativeSettingsReuseFlowTests.swift": "08f355f90f680f33af778ae60da46d7f635d801fccbc64f83deb4b456d757fae",
-    "NativeVerificationFlowTests.swift": "33812ae6464baffd58bfcc5aed48b3713a4f62ca2bc8befaff03ae76347051cf",
-    "NearbyTeamUITests.swift": "7c408b308478448e6a8176c89433cd431f480e112f7d2e120f227baa5714d3b9",
-    "NonCashRewardFlowTests.swift": "c42f8eb9afa9dfde589995c894b3ff256dd83b9cbd3bec76dd54bc40295c22fa",
-    "ObjectCardFlowTests.swift": "2a4223607dcdb62ea07c6909dba70a250358182f592f31fe8fcd493d1a75845c",
-    "OfficialActionUITests.swift": "31f8642fedd6dd93907157e8a450866706fe0087a14182bb3b27756d1d74d98a",
-    "OfficialEventFlowTests.swift": "1385657529c64512d7e3c8456336c9492ed8ee6967562431e2120ff44f359dea",
-    "OrderLifecycleUITests.swift": "47277c352682645056bb751c67be3b0c9bce32a2298f191b87835c13870d19c0",
-    "OwnedCouponCodeJourneyUITests.swift": "e90cdc1ecbac62b8d258767a54e82848d0118fc562e3a4bbe79cbde395926414",
-    "OwnedOrderFlowTests.swift": "6ceb1cf1aed9b14859f4bfec5866cdc6d4adf5118c3926aa4b11ffdd181f3aa6",
-    "OwnedTopicCoverRecoveryFlowTests.swift": "98aae087e9048ce0eab91987fe5b14d66b7bb8505565ccee4e87b636b6802503",
-    "OwnedTopicCoverSelectionFlowTests.swift": "eccef38b0bca7d50aa67b299b0252089c292bc6d96f539a3477e3997d237f30b",
-    "OwnerDraftBrowserFlowTests.swift": "f7229b195dd3e47ee90ec6038ebd893ac9dd444182192c4a2de76bf861f90aa8",
-    "OwnerDraftHistoryFlowTests.swift": "17384dc614940b687f31d1b5cc1f85c71ff1b50cd4ec496e4e08c52ee27c510c",
-    "OwnerDraftReceiptFlowTests.swift": "f02e2cff62a7fdc0840e87815023c63bad054c6e150a39f0968a11118b194cf1",
-    "PlayBranchHistoryFlowTests.swift": "66d9552a55f04d286ff267803786d434c08da35977338042c31c229cdc88729c",
-    "PlayBranchHistoryLifetimeFlowTests.swift": "d2baa99029f6706f2e24f4b8389aa0d10c4dc071cd0ca61b1a489c0f9b2fa05d",
-    "PlayCompareFlowTests.swift": "77ab14431d332b6f30ede7c5425f8d97b9ebdce7f3aac413cd1659b67a5c8aa5",
-    "PlayDirectorPrefabFlowTests.swift": "710afa5c51c3be25b3ea45abeedfa975c9703757aba24c00920bcf7a1fe094d6",
-    "PlayExperienceFlowTests.swift": "9dc9ecdc777622bbf4f906c17749a83d9719ea0f46084cbdb4a5bad00248e8e9",
-    "PlayPreferenceFlowTests.swift": "87b702b0966a3758454d115a658fa1cccc14a415ccbe8c28e65102fcd68f2a17",
-    "PlayRouteMapCameraFallbackFlowTests.swift": "4f9bfb0535abbb3b61b40847d040b07ca476cef323016ab29925dac2ad2c156c",
-    "PlayRouteMapCameraFlowTests.swift": "d329e8f87741c7a7bb78404e0bc4fea123051fe0355182c582bbf28a5034c872",
-    "PlayRouteMapContinuationFlowTests.swift": "a6024af16bb73e474e20cb6ee0821a6a39cf9557df25dca12396eba10273ba26",
-    "PlayRouteMapFlowTests.swift": "bfdd211e9113d87788f6555d4a4736c6e77e04175d84807981df0fb34d6ed4ca",
-    "PrivateHomeFlowTests.swift": "db437c5ac4d4c5f48e3f15f1e5bd65f1bfac66aa62cd363b7c0e4b15f97625ab",
-    "PrivateHomeMapPickerFlowTests.swift": "d40b439eb9720ee8442939c6aeb74a49e79cc4bc276a2ab4552d19f7a9a03a2d",
-    "ProfileEditFlowTests.swift": "b868fef77b7dd8235fe6fcc65518027d79db7e805c60636998bf47b408c168be",
-    "ProjectEditFlowTests.swift": "f900b7c8d78924d765a37d391e49503467a4a371d172288518c937d321ed6b5b",
-    "ProjectEditPendingFlowTests.swift": "abea0305a979a0fddf8acc5cabb81c6c230afd9c33241e31dc15a4f2ec2d19ab",
-    "ProjectEditPendingRestoreFlowTests.swift": "36e3ab9017004357c892f91620c0a133892b0750602323a18ad4a765fb9c654f",
-    "ProjectEditPreparedNodesFlowTests.swift": "0840b45f13e092a1904f1e8ed3e407264d76ae4ba322c3c7d1551aadf8706e66",
-    "ProjectEditPreparedStoryOrderFlowTests.swift": "e28b96f2bff03ba04ce8838eac35747febd293d6788df281481b126ceaaa95bb",
-    "ProjectEditReviewReadinessFlowTests.swift": "f0faaac7f2c9483ea61c38a66a22ddd381502c3435b28ffb478ef637238a5396",
     "ProjectEditRichStoryFlowTests.swift": "52742845580a9d0412570f156376193e0e517f97269013ac47ef58203650ee1e",
-    "ProjectEditStarterFlowTests.swift": "cc1f2d6d1c9b457af206881bd3392d054ba4f705d9159bccc5f56edcddfd3483",
-    "ProjectOwnedEditorFlowTests.swift": "e06f4f77108ca084088c5a0a412fe754938530611fd4e2ff12199e4d1ae278c6",
-    "ProjectOwnedModeCopyFlowTests.swift": "4f45e3e382bf3d9988b82d4667580f2d61d8264fa072918f0c6e5840a991cec7",
-    "ProjectPendingNewChapterFlowTests.swift": "bb7d8be16e5d5e4fa8ec7f67ef6ea8ff37da3821d3a09f2de83fe111b50bc516",
-    "ProjectPendingStoryAudioFlowTests.swift": "48a4937a51d290aa3d5851eca59a259a17e570dd0ca5c24764f7c3a6286102c5",
-    "ProjectPendingStoryImageFlowTests.swift": "55e7cced493afbbb70e9a5a632f0deb938df583b54cd70459d76e267fc19f59e",
-    "ProjectStoryAudioEndGapFlowTests.swift": "f6e5c82ea86678312349f66d526c924ec43cdc654821f89925598aebde09583a",
-    "ProjectStoryAudioFirstGapFlowTests.swift": "fc27e0d0fd10dc26c00d846c73b70fb93f0b0941d4760ab21f68f83b210e11a2",
-    "ProjectStoryAudioFlowTests.swift": "09ed44f1047ce78327e94d78d7a96039a40ed1ad375a68f5858ef9e3eddd72c6",
-    "ProjectStoryAudioMiddleGapFlowTests.swift": "65f6a0e23b24f20370e046b33fd827a0e580ab671adecae66de4293f22e29b46",
-    "ProjectStoryAudioRecoveryFlowTests.swift": "75b012d6cb4c2d056fdff63589da5fa4d91da65d2b9602346c7c9da6f426868c",
-    "ProjectStoryImageCancellationFlowTests.swift": "e8b6c7b7471fdd762355dd73884c66c8fd015db9a49d94b4568857027e73fd99",
-    "ProjectStoryImageEndGapFlowTests.swift": "8a6b4aaec660277779498763b6949d1d1245bfc75936bf28c4e448fd5b44160e",
-    "ProjectStoryImageFirstGapFlowTests.swift": "8e1a7dba152edf2108aef8d277208a0b1e27ba9d11089a0cfa998d2e6fa5754c",
-    "ProjectStoryImageFlowTests.swift": "dbe83155026481a333a2be69ea2ba5a00a2ae133b070338bf461d727f0f080d6",
-    "ProjectStoryImageMiddleGapFlowTests.swift": "14ccbf3f0c0f1dbb2caacdfc44c3867069033931ad3a1d136809262dea2dece5",
-    "ProjectStoryMediaGapFlowSupport.swift": "2700c2aa085765facb8c443e7981baec5a4484d35dbf07e08b970eeafae09014",
-    "ProjectStoryTemplateAlbumEndFlowTests.swift": "6377916c6dc133ae9ed6c617001d6af03ae40e84063d8d7c3a62903d4e0adf45",
-    "ProjectStoryTemplateAlbumFirstFlowTests.swift": "fa8008549f9c942efa8206c2346fdefdeba8ffe69e988bdabc3d000b9d9d6d8d",
-    "ProjectStoryTemplateAlbumMiddleFlowTests.swift": "d49e49faa131146f8b92d6595b94812e5b51e7ca9b6e077933a1ff1b93e1c207",
-    "ProjectStoryTemplateFlowSupport.swift": "b681a4dfab49f19c0ef17cccf76a0fbd18bd64ea7a0cd4bea7ee5e23c168db9e",
-    "ProjectStoryTemplateGameEndFlowTests.swift": "5c609f541e23260d28d92af58aff62cc75217b19f197b4c83a357ecf51b1c188",
-    "ProjectStoryTemplateGameFirstFlowTests.swift": "0af0a11c92b255213a3a268bb0a3910413883ad81b61f0286cfb948d4768b8ed",
-    "ProjectStoryTemplateGameMiddleFlowTests.swift": "b4f91805d7ccf4ca6504ce88cc441997c2762d85b68b0038e01d02444e0d79f2",
-    "ProjectSubmissionAcknowledgmentChineseFlowTests.swift": "71adad3b7f246a732a01aa579c07fba4b7bb7e57986d2c1b53c16f53cd08a617",
     "ProjectSubmissionAcknowledgmentFlowTests.swift": "cc4d7d4e495e5bd9352b48bbeedb6cdde531cad94d64374c8698c5703e1343ab",
-    "ProjectSubmissionEvidenceUITestSupport.swift": "49a420e87068cbc4b28e8b570ec7faceec09d3b9b7521cd2c3e75f53803db3c6",
-    "PublicMerchantHomeFlowTests.swift": "7ada18a8f87bd815359f10bb4ae7b3b3a20ced50158a7b49af8db60c12a75e08",
-    "PublicMerchantReviewFilterFlowTests.swift": "981ae8379b43d7ac65ee79c9976d5e383ad85005ecab276955eed016b3382f02",
-    "PublicPlayTemplatePresentationFlowTests.swift": "d2e29a26850319048b7a246ab7a9b69c1e256bf43a1b9548a415202dfab2d402",
-    "PublicTemplateDetailFlowTests.swift": "97456797aabff5343ffac2d59567cf45366e6af3238dd99ee10a710de613422d",
-    "PublisherLifecycleUITests.swift": "85d6d3c53b726ec4eded7a4581c77b3fe2dfbd20846da92bba0187813909a4c4",
-    "PublishingModesFlowTests.swift": "e23f25375776a35553204977cb9ead02875c2cc38695f0ac20a13dfd99a5b642",
-    "ReferenceChatTaskFlowTests.swift": "d96e7e68af7b0b36a4f33299b0fbd84d5abcf98b2abed7e7c202839a37fca602",
-    "ReferenceMapCardFlowTests.swift": "d5891be32187229dc059e54c45770165550731b60a2dab62f969c7c2fba19e15",
-    "RegionalEntryFlowTests.swift": "a5993099e207811a32c6ebf139d76d3ce97d9ee309ad7b82c5c2d4a6cb362642",
-    "RegistrationWaitlistOrderUITests.swift": "41b1adbf4ea544490337879865000eb08d8b37ec14d0a1bbe26430eb4b8dc648",
-    "RegistrationWaitlistUITests.swift": "6b798a02b14c8eca196441ece7fef851063788fa1e757ccb8d717e2dc5d4419a",
-    "RetainedImageUITests.swift": "5639a62d4ce407907c0f3d40376bb7c336ace03bdd4c919246674b0d83c6d1e5",
-    "RoamExperienceFlowTests.swift": "5c38eb0ba990fdb5dea75121444e882b6add575a34c4afb37a49dfbd74a0ff51",
-    "SearchMapAlternativeListFlowTests.swift": "57f1c4b1e01ec0bed5313181ceaf8583c2cdbdf57f30d1c74973550d9ddaa9da",
-    "SearchMapFlowTests.swift": "23ff72dd010bded72404168d4f3ecc9da2c3fb553a135585a9009f68486a4c74",
-    "SettingsNativeFlowTests.swift": "8ee242078d4cc1e496309a2f1057aaec06b4c544c89ffcb4f1b30e004a5a5d44",
-    "ShopNPCFlowTests.swift": "609f1e4bca562679d582789df265f7b6e340f02341b481609573eee3b97fa8d2",
-    "SignedInContentDetailFlowTests.swift": "172f0db6c6a73badeab368f510e1793f54abb63cafbf31e01237e21c431889ff",
-    "SocialAccountFlowTests.swift": "4be80eb36a96fb19420fde772a46661f56217afd20319333c84b0e6f79ba6e36",
-    "SquareFlowTests.swift": "ad1287b0eb9a6a47f18145ec844e13679c0036fbcfe2af33b94b82077639b07f",
-    "SquareGovernanceFlowTests.swift": "3b6f3e2ec02a3939e90047635824bfe681de43f5b9ba45d82d9022780914b2b8",
-    "SquareReportFlowTests.swift": "7152af267e98cb8d9cf5a67c6e2686403c2e6353504aad6a4f1fc26ad40f65e9",
-    "SquareWorkspaceFlowTests.swift": "b7e7f7e894b1789c75ef3005284e7597319ad6e6f6df8a45cb7072f5ee70bf2c",
-    "TeamFlowTests.swift": "94469129c7b605b748d1556fbf44458ba1662c312c7a5ed8f0c5f2768113cae3",
-    "TemplateAuthoringFlowTests.swift": "dafe1f98f1ab54d3d2564a224ad27860e877fabb7a474c1a206192063153b948",
-    "TemplateCompositionFlowTests.swift": "2786ec402ff09027d1bd96b1981fb92d287cffcb94c3c4add30de3b5d6530393",
-    "TemplateEditorControlsFlowTests.swift": "e11dfa363adeb722fc64b93ca7572d74fde3c478a166686560722db242ad38b2",
-    "TemplateHistoricalHintFlowTests.swift": "c6240505b4ab86c338ed8f34149992338ad37dc6c436a559c162b71ade624f19",
-    "TemplateMediaReviewFlowTests.swift": "8e052ab35f47a07eaed5ee7332489254d1791e1faabb4b3c232650f1738de438",
-    "TemplateMetadataSelectorsFlowTests.swift": "a56a732d72fa7d656ec32ebdd96d3523515f43efd3a05c659a2f870dba746102",
-    "TemplateOwnShelfFlowTests.swift": "3ead06d83d63800015dd8255d73aae100ab8ae85fc0553787edc12d6951419ce",
-    "TemplatePreferenceDraftEditorFlowTests.swift": "92a68fe87676f1a874445f679114fe072c441891d49356db003f0bf1d352b270",
-    "TemplateSensorDraftFlowTests.swift": "c6953c1caa1123229985fa2d5fae7381166d3d3232cad8e6dd1e47f59dc44f9d",
-    "TicketWalletFlowTests.swift": "59e425ea9cfb0a621640c9673f40db86f2ce94aa8a2fe65c5d3f20eb450eddc6",
+    "GrowthCenterFlowTests.swift": "fc7d491130ce3388d188e48df31784e696bd41e33903c6ff99d545af07eeb025",
+    "ProjectStoryImageFirstGapFlowTests.swift": "8e1a7dba152edf2108aef8d277208a0b1e27ba9d11089a0cfa998d2e6fa5754c",
     "TopicFlowTests.swift": "7f10c301530c999528b055414dc9e2a8f3cab099b556b5f950ee9a9e97271313",
-    "TopicTemplateNameSearchFlowTests.swift": "c4e6bb1724ebac6bcefec3389f639b9a532dcc76f8d698f90ae5b1826433ce04",
+    "PlayRouteMapCameraFallbackFlowTests.swift": "4f9bfb0535abbb3b61b40847d040b07ca476cef323016ab29925dac2ad2c156c",
+    "FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+    "ClubProfileScopeFlowTests.swift": "8cae5d6cb5f38bc4c65ac213251a400056bf305614b9449530321809189bbd9a",
     "WalkingNavigationFlowTests.swift": "06b8f3a8e2cbc92d47ef44058a5e4ad50b0d2025ab22526f264d435478355502",
-    "WalletCommerceFlowTests.swift": "b10534587a9b4404222f0d3b87b0fd271f2905531ceb02ba780aeea76131d31a",
-    "WeChatAppAuthFlowTests.swift": "d5c4b559ba35a52da62527695761a638bb8dfe512f45f73d0010cfa63a1b7942",
-    "WorkshopCreatorPendingEntryFlowTests.swift": "f83f768726e0b11f63b7ebf013db5da842c12fb06196b19e77f37ba64f0eb9e1",
+    "IntegratedActivityPlayJourneyFlowTests.swift": "52242b06d592da9facdb20e2d7cf6c1331f558aaec1023923e6982e069d7ac69",
+    "MerchantTemplateAssistFlowTests.swift": "0f3f046377c674ee281923ec2153ff08acce31248e8300c3b2784996a2793498",
+    "OrderLifecycleUITests.swift": "47277c352682645056bb751c67be3b0c9bce32a2298f191b87835c13870d19c0",
+    "SignedInContentDetailFlowTests.swift": "172f0db6c6a73badeab368f510e1793f54abb63cafbf31e01237e21c431889ff",
+    "MerchantOnboardingFlowTests.swift": "efe66ffdf924eeaed5833c5bf482f84af643882afbc3d156646f6113e5234cac",
+    "NativeVerificationFlowTests.swift": "33812ae6464baffd58bfcc5aed48b3713a4f62ca2bc8befaff03ae76347051cf",
+    "ProjectPendingNewChapterFlowTests.swift": "bb7d8be16e5d5e4fa8ec7f67ef6ea8ff37da3821d3a09f2de83fe111b50bc516",
+    "ClubActionFlowTests.swift": "ec872341ba84f2e3844a980e99a7134b6c86939d9f426c425ffc746f50506e5a",
+    "OwnedTopicCoverRecoveryFlowTests.swift": "98aae087e9048ce0eab91987fe5b14d66b7bb8505565ccee4e87b636b6802503",
+    "PublicPlayTemplatePresentationFlowTests.swift": "d2e29a26850319048b7a246ab7a9b69c1e256bf43a1b9548a415202dfab2d402",
+    "CooperationFlowTests.swift": "fd7f8883ac1d32d2db9aa7f5b912b078301ba94443411ed092f6d1118f82f706",
+    "SearchMapFlowTests.swift": "23ff72dd010bded72404168d4f3ecc9da2c3fb553a135585a9009f68486a4c74",
+    "OwnedCouponCodeJourneyUITests.swift": "e90cdc1ecbac62b8d258767a54e82848d0118fc562e3a4bbe79cbde395926414",
+    "ProjectEditPendingRestoreFlowTests.swift": "36e3ab9017004357c892f91620c0a133892b0750602323a18ad4a765fb9c654f",
+    "MerchantOperationsFlowTests.swift": "c67960f25bde6fb02b1b9c8f3cbf3c854c96abfa91b0a55a6769470923b6fa0b",
+    "RegistrationWaitlistUITests.swift": "6b798a02b14c8eca196441ece7fef851063788fa1e757ccb8d717e2dc5d4419a",
+    "NativePresentationPatternFlowTests.swift": "8d6928510236f31608f35335e3a7e5f04eb6339e16220daf4a768c44b08109f8",
+    "MerchantNPCFlowTests.swift": "d64a77db83ad9228988fc6fd7b855e7d4f435d802fb8549ab00fabee674a87d2",
+    "TemplateOwnShelfFlowTests.swift": "3ead06d83d63800015dd8255d73aae100ab8ae85fc0553787edc12d6951419ce",
     "WorkshopCreatorPendingRecoveryFlowTests.swift": "a347e744e54c6e8b6673e9e6db0e3a99f954d037e1dabac98793caa8bfe52150",
     "WorkshopCreatorPendingReviewFlowTests.swift": "ae5e2dfa18f2225abc36507c7fea871dde1ae327567b56ff796aebac14bbe53c",
-    "ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d"
+    "ApprovedTopicFrozenCoverReviewFlowTests.swift": "2366899354a57fc696522bac39bab8196897f5c18566ce8de9151673189c5968",
+    "PlayPreferenceFlowTests.swift": "87b702b0966a3758454d115a658fa1cccc14a415ccbe8c28e65102fcd68f2a17",
+    "IMExpandedUITests.swift": "b2ed06bf0be180fb5cadf2a72c2a59d182b1d79b757c21af0359a8334a5a033b",
+    "PublicTemplateDetailFlowTests.swift": "97456797aabff5343ffac2d59567cf45366e6af3238dd99ee10a710de613422d",
+    "ClubFeedReadFlowTests.swift": "11e6d9f2f0e886eb46d39cc32d0f4d2e55f30006d48f8d555bf76889e540172d",
+    "ProjectEditPreparedNodesFlowTests.swift": "0840b45f13e092a1904f1e8ed3e407264d76ae4ba322c3c7d1551aadf8706e66",
+    "WorkshopCreatorPendingEntryFlowTests.swift": "f83f768726e0b11f63b7ebf013db5da842c12fb06196b19e77f37ba64f0eb9e1",
+    "ShopNPCFlowTests.swift": "609f1e4bca562679d582789df265f7b6e340f02341b481609573eee3b97fa8d2",
+    "WeChatAppAuthFlowTests.swift": "d5c4b559ba35a52da62527695761a638bb8dfe512f45f73d0010cfa63a1b7942",
+    "PlayCompareFlowTests.swift": "77ab14431d332b6f30ede7c5425f8d97b9ebdce7f3aac413cd1659b67a5c8aa5",
+    "TemplateCompositionFlowTests.swift": "2786ec402ff09027d1bd96b1981fb92d287cffcb94c3c4add30de3b5d6530393",
+    "AccountSavedPostCollectionFlowTests.swift": "da788dddda108d6f13970424e9d3b8b88a15dbce3ff911d713c25f38204abacf",
+    "ProjectStoryTemplateGameMiddleFlowTests.swift": "b4f91805d7ccf4ca6504ce88cc441997c2762d85b68b0038e01d02444e0d79f2",
+    "ClubOperationsFlowTests.swift": "1b1de2b71ed658e09a004b15102201b9ee9a66fb702d4797e93f4df68d70192a",
+    "ProjectStoryMediaGapFlowSupport.swift": "2700c2aa085765facb8c443e7981baec5a4484d35dbf07e08b970eeafae09014",
+    "ProjectSubmissionAcknowledgmentChineseFlowTests.swift": "71adad3b7f246a732a01aa579c07fba4b7bb7e57986d2c1b53c16f53cd08a617",
+    "NativeNavigationCompletionUITests.swift": "f8753a247d2412fbfb8647065a98e49e01b98ebb8d00aae8aae4536bc3f833bc",
+    "DoorReferralUITests.swift": "b21271c91fa6609e664233e394da06d7ec0277f9452affcdac6b02d7f806cb3e",
+    "ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
+    "ApprovedReleasePreparationChineseFlowTests.swift": "720f17dbc1a0d613c29d426e8d5405e24def9143b2669cc22cfba2c5ea15065c",
+    "ProjectStoryTemplateAlbumFirstFlowTests.swift": "fa8008549f9c942efa8206c2346fdefdeba8ffe69e988bdabc3d000b9d9d6d8d",
+    "GroupPollUITests.swift": "b5bafcac4f364f38178e8dd74dced246e7b1fb2390023952205ea78600683086",
+    "RegistrationWaitlistOrderUITests.swift": "41b1adbf4ea544490337879865000eb08d8b37ec14d0a1bbe26430eb4b8dc648",
+    "SquareFlowTests.swift": "ad1287b0eb9a6a47f18145ec844e13679c0036fbcfe2af33b94b82077639b07f",
+    "ProjectStoryImageCancellationFlowTests.swift": "e8b6c7b7471fdd762355dd73884c66c8fd015db9a49d94b4568857027e73fd99",
+    "ClubOwnerRefundFlowTests.swift": "83112f2ee22cbac73e561c0f6e11247ed4481a171a52aaa0b11501d0db03ab98",
+    "PublishingModesFlowTests.swift": "e23f25375776a35553204977cb9ead02875c2cc38695f0ac20a13dfd99a5b642",
+    "JourneyRoleViewFlowTests.swift": "ac8cc4dc31662355fdf50cab238c815de5e31ab3e83d0eb07cb349c7d132c704",
+    "ApprovedReleasePublicationFlowTests.swift": "c2e72f5a8476541c4298ad934685fc36cb7fe02916741e61391e605702ae354e",
+    "HomeFeedFlowTests.swift": "1ac5148b32f4727965c7e2298db6cb21aa1a3ccea6e7b61a83ceff68c80c6792",
+    "ProjectEditPendingFlowTests.swift": "abea0305a979a0fddf8acc5cabb81c6c230afd9c33241e31dc15a4f2ec2d19ab",
+    "NativePlatformFlowTests.swift": "b9e8711950fa3f3e13c2f7802aeb3365879a00c26ae2697689002521f3dbfaa4",
+    "ApprovedTopicSelectedCoverFlowTests.swift": "292d83ab1e6f818622d3249d37e73c12cd1da6aac92c68bab81cc98bf4082d68",
+    "NonCashRewardFlowTests.swift": "c42f8eb9afa9dfde589995c894b3ff256dd83b9cbd3bec76dd54bc40295c22fa",
+    "ProjectStoryAudioEndGapFlowTests.swift": "f6e5c82ea86678312349f66d526c924ec43cdc654821f89925598aebde09583a",
+    "ClubStoryFlowTests.swift": "ed0766adf387f2813c91fad54b3716d901c1c4db256ec3597c952452d9f1b7a1",
+    "PrivateHomeFlowTests.swift": "db437c5ac4d4c5f48e3f15f1e5bd65f1bfac66aa62cd363b7c0e4b15f97625ab",
+    "CoopRelationDiscoveryFlowTests.swift": "fe71447339f4d8006cf1b668ecc80df501722e0153edf37a77c8a5ba2c869c42",
+    "ProfileEditFlowTests.swift": "e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067",
+    "TemplateEditorControlsFlowTests.swift": "e11dfa363adeb722fc64b93ca7572d74fde3c478a166686560722db242ad38b2",
+    "CouponRuntimeChineseFlowTests.swift": "cd4248ccbbd4543e515582fd8b4b5afdbe55d1d8bb756fdedc494fda46458bf4",
+    "TeamFlowTests.swift": "94469129c7b605b748d1556fbf44458ba1662c312c7a5ed8f0c5f2768113cae3",
+    "PlayExperienceFlowTests.swift": "9dc9ecdc777622bbf4f906c17749a83d9719ea0f46084cbdb4a5bad00248e8e9",
+    "CouponCommandRecoveryFlowTests.swift": "17ea016fd49b9bc97a3eb39bb4070618154faf4ff08b45b0dc1540ca1d01a2d6",
+    "RetainedImageUITests.swift": "5639a62d4ce407907c0f3d40376bb7c336ace03bdd4c919246674b0d83c6d1e5",
+    "OwnerDraftBrowserFlowTests.swift": "f7229b195dd3e47ee90ec6038ebd893ac9dd444182192c4a2de76bf861f90aa8",
+    "WalletCommerceFlowTests.swift": "b10534587a9b4404222f0d3b87b0fd271f2905531ceb02ba780aeea76131d31a",
+    "ClubStoryNavigationFlowTests.swift": "28af5b75320b585e93edeb80ba5ce6493c666b05632f3e61e6698a4cd4c086d3",
+    "ApprovedTopicReviewPersistenceFlowTests.swift": "920404b722b8c1c4a646e636f5d2665a1364adbdf542038d624fa6fdc22a222b",
+    "EntryFlowTests.swift": "3b37248790bc7f8b1ea372e9f194050492ba331c843f08c754d82d2ca7d33a40",
+    "TemplateMediaReviewFlowTests.swift": "8e052ab35f47a07eaed5ee7332489254d1791e1faabb4b3c232650f1738de438",
+    "ApprovedTopicReviewRequestFlowTests.swift": "1f1e787a1beb9d46675f2662fd61890b0f2d90926bf6bc3d228bf2af3efe8a6b",
+    "OwnedOrderFlowTests.swift": "6ceb1cf1aed9b14859f4bfec5866cdc6d4adf5118c3926aa4b11ffdd181f3aa6",
+    "ClubManagementFlowTests.swift": "22e581ab357d252769d40c71fc8222c87a8cea5a6d9b88573bfa36d0089c3a92",
+    "ApprovedTopicReviewCurrentChineseFlowTests.swift": "e1bf02652ddb0e9a61d771a1199ea9834927e97ae04407b16576f78850c81db5",
+    "ProjectStoryAudioRecoveryFlowTests.swift": "75b012d6cb4c2d056fdff63589da5fa4d91da65d2b9602346c7c9da6f426868c",
+    "ProjectEditPreparedStoryOrderFlowTests.swift": "e28b96f2bff03ba04ce8838eac35747febd293d6788df281481b126ceaaa95bb",
+    "TemplateAuthoringFlowTests.swift": "dafe1f98f1ab54d3d2564a224ad27860e877fabb7a474c1a206192063153b948",
+    "ClubGovernanceFlowTests.swift": "4d41464ed772a0c371669e5dd55c8a06700b5980e2cb6f17e6ece58a7d1ce7ee",
+    "MerchantTemplateExitPlanFlowTests.swift": "23bd4804a9a9de93deeef8e33975f619aa9bb244ecff7aa712fad05063f14d5c",
+    "PlayRouteMapFlowTests.swift": "bfdd211e9113d87788f6555d4a4736c6e77e04175d84807981df0fb34d6ed4ca",
+    "CouponRuntimeJourney.swift": "83906936ce979ab1cbd070794bacdf24044c508a9aa7be58c9f159195c3aae87",
+    "ProjectStoryTemplateAlbumMiddleFlowTests.swift": "d49e49faa131146f8b92d6595b94812e5b51e7ca9b6e077933a1ff1b93e1c207",
+    "ActivityFlowTests.swift": "ec86e3283c73fb1e9589459231ff63a8999e76aba888f113fc1113773089ac80",
+    "ProjectStoryTemplateGameFirstFlowTests.swift": "0af0a11c92b255213a3a268bb0a3910413883ad81b61f0286cfb948d4768b8ed",
+    "ProjectStoryAudioFirstGapFlowTests.swift": "fc27e0d0fd10dc26c00d846c73b70fb93f0b0941d4760ab21f68f83b210e11a2",
+    "AccountCollectionFlowTests.swift": "a7e98b59a99954f21dd70d997b0deffbedaebc4335df52c4c25799e954f9e974",
+    "IntegratedNativeAcceptanceFlowTests.swift": "c9ba0d1df3d6dac1e331fb5770b3ea064a6fb97de381782d6b74f28cc7a616d3",
+    "ProjectStoryImageEndGapFlowTests.swift": "8a6b4aaec660277779498763b6949d1d1245bfc75936bf28c4e448fd5b44160e",
+    "ClubEnrollmentFlowTests.swift": "fb6bf952ef69e09eb0aef75153752a5515d62e9d27f32048726849b3f9a8ea24",
+    "ProjectStoryTemplateAlbumEndFlowTests.swift": "6377916c6dc133ae9ed6c617001d6af03ae40e84063d8d7c3a62903d4e0adf45"
   },
   "previous_ui_sources": {
     "SquareWorkspaceFlowTests.swift": "022582bc90e5cc85a88b272eefe5af66e69c2bcf1caad4f4e244542c71e92831",
@@ -347,11 +349,11 @@
     "ApprovedTopicReviewRequestFlowTests.swift": "1f1e787a1beb9d46675f2662fd61890b0f2d90926bf6bc3d228bf2af3efe8a6b",
     "ClubEnrollmentFlowTests.swift": "fb6bf952ef69e09eb0aef75153752a5515d62e9d27f32048726849b3f9a8ea24"
   },
-  "current_inventory_sha256": "09fc5a8e8563e2a3763358fe5c00fd9f2753e14b271281f7f1db34273fc6b282",
+  "current_inventory_sha256": "93e23ff0f4fc2d90b3ca004ad95fb36a8d61da24a4b023813eb0cc8de8115ce4",
   "previous_inventory_sha256": "3eff90afa8092ff9d54db78c792fd362da4392c0d479231b84bd31f627b54216",
-  "method_count": 742,
+  "method_count": 750,
   "class_count_before": 162,
-  "class_count_after": 164,
+  "class_count_after": 166,
   "helper_copy_sha256": "74ae59e50a36d4781536dc66dd42f2854f931450a158294c5f3f80d83916959c",
   "method_costs": {
     "ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation": {
@@ -492,9 +494,12 @@
     "OwnedCouponCodeJourneyUITests": 380,
     "ApprovedTopicFrozenCoverPublicationFlowTests": 940,
     "SquareWorkspaceFlowTests": 249.197,
-    "ClubLeaderboardMemberFlowTests": 1190
+    "ClubLeaderboardMemberFlowTests": 1190,
+    "ProfileEditFlowTests": 971.645,
+    "MerchantTemplateParticipationPlanFlowTests": 950,
+    "MerchantTemplateExitPlanFlowTests": 850
   },
-  "added_total_seconds": 1713.948,
+  "added_total_seconds": 4403.948,
   "shard_count": 79,
   "deadline_seconds": 1800,
   "startup_reserve_seconds": 300,
@@ -884,7 +889,7 @@
     },
     "Questify.xcodeproj/project.pbxproj": {
       "before_sha256": "0497d3ffb5b6dfd9c3aa0cd67a27594cfcb412fcda57fa3ac5ec63d8cc462ed1",
-      "after_sha256": "c771fff33c617d717e2949d9c1e0017f8b7b044e2afa9781226da299d06c9e4d",
+      "after_sha256": "0bcc55cdc63b659b8cd44c70b6fb4166cc2350c73f4a5da36853938f8d393af3",
       "hunks": [
         {
           "before": "\t\t\"F2C416E5BF616602CFE89B81\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"588CE027521446DF6EC81070\";\n\t\t};\n\t\t\"74E41CC929B3EEB9D9C0C251\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n",
@@ -1805,6 +1810,150 @@
         {
           "before": "\t\t\t\t\"9AC43F03144A0CE266C250B8\",\n\t\t\t\t\"3FD0E2A31BE1DE9B54888991\",\n",
           "after": "\t\t\t\t\"9AC43F03144A0CE266C250B8\",\n\t\t\t\t\"348C2EE3AAB2534685B163E7\",\n\t\t\t\t\"3FD0E2A31BE1DE9B54888991\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"4CCF33815CF518FDE1AB4CC3\" = {\n",
+          "after": "\t\t};\n\t\t\"B8CAE5387E4DA2BA21584605\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ClubEventCalendarView.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"096E6F77F6A68B49AAB5153F\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"B8CAE5387E4DA2BA21584605\";\n\t\t};\n\t\t\"4CCF33815CF518FDE1AB4CC3\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"5F303578E135A4C018FEFAC6\" = {\n",
+          "after": "\t\t};\n\t\t\"DA72559BE6C208D3694BF244\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileTextFieldEditor.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"4E5C32D7E0CA8B161AC711D7\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"DA72559BE6C208D3694BF244\";\n\t\t};\n\t\t\"5F303578E135A4C018FEFAC6\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"150B7512679C6462C6B26270\" = {\n",
+          "after": "\t\t};\n\t\t\"710AA4220E2065EF3EA93612\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/RoamSharePhotoSaveModel.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"0397658CCB94E5E6A4B8F2BF\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"710AA4220E2065EF3EA93612\";\n\t\t};\n\t\t\"150B7512679C6462C6B26270\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"071DF4278A55802BB3D833C2\" = {\n",
+          "after": "\t\t};\n\t\t\"84DEF0635D4699F26657B9D5\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/TemplateNarrationAudioClear.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"738077F05CC26AF09F6B343A\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"84DEF0635D4699F26657B9D5\";\n\t\t};\n\t\t\"B2A55FB7956BCD6414DD2ECC\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/TemplateNarrationAudioPreview.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"E3F07126A3E107629D9BEDB1\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"B2A55FB7956BCD6414DD2ECC\";\n\t\t};\n\t\t\"071DF4278A55802BB3D833C2\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"859B5E0984A46933875E9495\" = {\n",
+          "after": "\t\t};\n\t\t\"E7843C6314BB4A457D3397A1\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ClubEventCalendar.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"BF1ACDE498B37F9CCA353E3A\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"E7843C6314BB4A457D3397A1\";\n\t\t};\n\t\t\"859B5E0984A46933875E9495\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"37889AE7F000668DBEC48AEE\" = {\n",
+          "after": "\t\t};\n\t\t\"B5839526CA923F95001FDD6F\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/RoamSharePhotoSaveState.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"8FF3052CB6EA1453D8AFA8F2\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"B5839526CA923F95001FDD6F\";\n\t\t};\n\t\t\"37889AE7F000668DBEC48AEE\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"AFA359D6ADCFA95D640BA6BE\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"AFA359D6ADCFA95D640BA6BE\";\n\t\t};\n\t\t\"18A3541275BC99ACD506B2DD\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/TemplateNarrationAudioRemoval.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"81C10936844CD342A14FAA83\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"18A3541275BC99ACD506B2DD\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"E575C87262DD2AB238054692\",\n\t\t\t\t\"4CCF33815CF518FDE1AB4CC3\",\n",
+          "after": "\t\t\t\t\"E575C87262DD2AB238054692\",\n\t\t\t\t\"B8CAE5387E4DA2BA21584605\",\n\t\t\t\t\"4CCF33815CF518FDE1AB4CC3\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"16F15ED28BB4D950546E46C7\",\n\t\t\t\t\"5F303578E135A4C018FEFAC6\",\n",
+          "after": "\t\t\t\t\"16F15ED28BB4D950546E46C7\",\n\t\t\t\t\"DA72559BE6C208D3694BF244\",\n\t\t\t\t\"5F303578E135A4C018FEFAC6\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"37BABF6D417CCF8E6E4344EF\",\n\t\t\t\t\"150B7512679C6462C6B26270\",\n",
+          "after": "\t\t\t\t\"37BABF6D417CCF8E6E4344EF\",\n\t\t\t\t\"710AA4220E2065EF3EA93612\",\n\t\t\t\t\"150B7512679C6462C6B26270\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"46375CFB34C503CA255D1CBF\",\n\t\t\t\t\"071DF4278A55802BB3D833C2\",\n",
+          "after": "\t\t\t\t\"46375CFB34C503CA255D1CBF\",\n\t\t\t\t\"84DEF0635D4699F26657B9D5\",\n\t\t\t\t\"B2A55FB7956BCD6414DD2ECC\",\n\t\t\t\t\"071DF4278A55802BB3D833C2\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"A8AEF0C820CB1008A8F66C89\",\n\t\t\t\t\"859B5E0984A46933875E9495\",\n",
+          "after": "\t\t\t\t\"A8AEF0C820CB1008A8F66C89\",\n\t\t\t\t\"E7843C6314BB4A457D3397A1\",\n\t\t\t\t\"859B5E0984A46933875E9495\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"C5CF56B2B4C003EFF9369639\",\n\t\t\t\t\"37889AE7F000668DBEC48AEE\",\n",
+          "after": "\t\t\t\t\"C5CF56B2B4C003EFF9369639\",\n\t\t\t\t\"B5839526CA923F95001FDD6F\",\n\t\t\t\t\"37889AE7F000668DBEC48AEE\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"AFA359D6ADCFA95D640BA6BE\",\n\t\t\t\t\"0DC9C4F7022CE915D9195B64\",\n",
+          "after": "\t\t\t\t\"AFA359D6ADCFA95D640BA6BE\",\n\t\t\t\t\"18A3541275BC99ACD506B2DD\",\n\t\t\t\t\"0DC9C4F7022CE915D9195B64\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"8118BBCAD39F8103EEE1E60C\",\n\t\t\t\t\"BA851E1F4F3FE032492FB7DC\",\n",
+          "after": "\t\t\t\t\"8118BBCAD39F8103EEE1E60C\",\n\t\t\t\t\"3EA1C3550546E088317E139F\",\n\t\t\t\t\"129ED5F415BFEE6DDA97EAE8\",\n\t\t\t\t\"BA851E1F4F3FE032492FB7DC\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"547DD20422C04B364B7AAC62\",\n\t\t\t\t\"FF92266D75B4923B2A3045B4\",\n",
+          "after": "\t\t\t\t\"547DD20422C04B364B7AAC62\",\n\t\t\t\t\"8B9A9C171C57ED03B74662FD\",\n\t\t\t\t\"FF92266D75B4923B2A3045B4\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"A90F20F9DDCD55F044CA650A\",\n\t\t\t\t\"8F01338666414D52FAA33D33\",\n",
+          "after": "\t\t\t\t\"A90F20F9DDCD55F044CA650A\",\n\t\t\t\t\"BE0DE4D7C34A7386487CEBE1\",\n\t\t\t\t\"8F01338666414D52FAA33D33\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"D8ECE99F378D28ADEFF289D0\",\n\t\t\t\t\"05D7BCEEF2EC3E9C37ABE8C9\",\n",
+          "after": "\t\t\t\t\"D8ECE99F378D28ADEFF289D0\",\n\t\t\t\t\"1EAB80C89D133CA0C1567183\",\n\t\t\t\t\"05D7BCEEF2EC3E9C37ABE8C9\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"644A777D9883824A0931DA3B\",\n\t\t\t\t\"6B20E374F87238A018F4C6DD\",\n",
+          "after": "\t\t\t\t\"644A777D9883824A0931DA3B\",\n\t\t\t\t\"EEF6ECCDE9DB43FC895E2FA8\",\n\t\t\t\t\"58D25741B7E7311790BC19BA\",\n\t\t\t\t\"6B20E374F87238A018F4C6DD\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"A1595E06E12549C471E42C95\",\n\t\t\t\t\"14FF5166EF5CC8EA79F84EED\",\n",
+          "after": "\t\t\t\t\"A1595E06E12549C471E42C95\",\n\t\t\t\t\"096E6F77F6A68B49AAB5153F\",\n\t\t\t\t\"14FF5166EF5CC8EA79F84EED\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"3AD79AB7E363F13C47B90B94\",\n\t\t\t\t\"913AFAD10844F8B3C8563B7E\",\n",
+          "after": "\t\t\t\t\"3AD79AB7E363F13C47B90B94\",\n\t\t\t\t\"4E5C32D7E0CA8B161AC711D7\",\n\t\t\t\t\"913AFAD10844F8B3C8563B7E\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"DD794CF3CBBE8915BC22F367\",\n\t\t\t\t\"9343B08A26E756B9F85A7DFC\",\n",
+          "after": "\t\t\t\t\"DD794CF3CBBE8915BC22F367\",\n\t\t\t\t\"0397658CCB94E5E6A4B8F2BF\",\n\t\t\t\t\"9343B08A26E756B9F85A7DFC\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"A0309DA411FC27CBC4FAEEAD\",\n\t\t\t\t\"C70ED2603A80BAA07FAAE73D\",\n",
+          "after": "\t\t\t\t\"A0309DA411FC27CBC4FAEEAD\",\n\t\t\t\t\"738077F05CC26AF09F6B343A\",\n\t\t\t\t\"E3F07126A3E107629D9BEDB1\",\n\t\t\t\t\"C70ED2603A80BAA07FAAE73D\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"04A524CEB0777F271723E7F0\",\n\t\t\t\t\"0024A4C37975AAE7242DE7C3\",\n",
+          "after": "\t\t\t\t\"04A524CEB0777F271723E7F0\",\n\t\t\t\t\"BF1ACDE498B37F9CCA353E3A\",\n\t\t\t\t\"0024A4C37975AAE7242DE7C3\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"47CDF2D69373EEAC5242AB05\",\n\t\t\t\t\"24B17FEF5BB345C83F41D5C5\",\n",
+          "after": "\t\t\t\t\"47CDF2D69373EEAC5242AB05\",\n\t\t\t\t\"8FF3052CB6EA1453D8AFA8F2\",\n\t\t\t\t\"24B17FEF5BB345C83F41D5C5\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"7DA60D19BF3886730F6D2E28\",\n\t\t\t\t\"308486647CF8276D4BC279AF\",\n",
+          "after": "\t\t\t\t\"7DA60D19BF3886730F6D2E28\",\n\t\t\t\t\"81C10936844CD342A14FAA83\",\n\t\t\t\t\"308486647CF8276D4BC279AF\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"BA851E1F4F3FE032492FB7DC\" = {\n",
+          "after": "\t\t};\n\t\t\"3EA1C3550546E088317E139F\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"FC28C266119056381A74D6E6\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"3EA1C3550546E088317E139F\";\n\t\t};\n\t\t\"129ED5F415BFEE6DDA97EAE8\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"E4BF0A95A6A0E3F1639AEFB4\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"129ED5F415BFEE6DDA97EAE8\";\n\t\t};\n\t\t\"BA851E1F4F3FE032492FB7DC\" = {\n"
+        },
+        {
+          "before": "\t\t\t\t\"13758E20894C36DED299268A\",\n\t\t\t\t\"A0EF509173BCA11DCB538A15\",\n",
+          "after": "\t\t\t\t\"13758E20894C36DED299268A\",\n\t\t\t\t\"FC28C266119056381A74D6E6\",\n\t\t\t\t\"E4BF0A95A6A0E3F1639AEFB4\",\n\t\t\t\t\"A0EF509173BCA11DCB538A15\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"FF92266D75B4923B2A3045B4\" = {\n",
+          "after": "\t\t};\n\t\t\"8B9A9C171C57ED03B74662FD\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ClubEventCalendarReadTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"B6734CE497406843B9515643\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"8B9A9C171C57ED03B74662FD\";\n\t\t};\n\t\t\"FF92266D75B4923B2A3045B4\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"8F01338666414D52FAA33D33\" = {\n",
+          "after": "\t\t};\n\t\t\"BE0DE4D7C34A7386487CEBE1\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileTextFieldEditTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"B632117972A6B3F2E55B839B\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"BE0DE4D7C34A7386487CEBE1\";\n\t\t};\n\t\t\"8F01338666414D52FAA33D33\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"05D7BCEEF2EC3E9C37ABE8C9\" = {\n",
+          "after": "\t\t};\n\t\t\"1EAB80C89D133CA0C1567183\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/RoamSharePhotoSaveModelTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"979357F71D4A9F80954095F1\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"1EAB80C89D133CA0C1567183\";\n\t\t};\n\t\t\"05D7BCEEF2EC3E9C37ABE8C9\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"644A777D9883824A0931DA3B\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"644A777D9883824A0931DA3B\";\n\t\t};\n\t\t\"EEF6ECCDE9DB43FC895E2FA8\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/TemplateNarrationAudioClearTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"CE7B66D8B6001F399948E4D1\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"EEF6ECCDE9DB43FC895E2FA8\";\n\t\t};\n\t\t\"58D25741B7E7311790BC19BA\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/TemplateNarrationAudioPreviewTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"8B90E3CBBCDB328123249AD3\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"58D25741B7E7311790BC19BA\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"7FEA355EA4D0539C58BA2CC1\",\n\t\t\t\t\"8655F31ED79CD238FA54AED2\",\n",
+          "after": "\t\t\t\t\"7FEA355EA4D0539C58BA2CC1\",\n\t\t\t\t\"B6734CE497406843B9515643\",\n\t\t\t\t\"8655F31ED79CD238FA54AED2\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"4E8B2399036D64374225F524\",\n\t\t\t\t\"893C5DDE18D3C2A2FC9302BA\",\n",
+          "after": "\t\t\t\t\"4E8B2399036D64374225F524\",\n\t\t\t\t\"B632117972A6B3F2E55B839B\",\n\t\t\t\t\"893C5DDE18D3C2A2FC9302BA\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"BCF696FF758FCE907082C0D4\",\n\t\t\t\t\"CF2FB10154B347FFCF3AA51E\",\n",
+          "after": "\t\t\t\t\"BCF696FF758FCE907082C0D4\",\n\t\t\t\t\"979357F71D4A9F80954095F1\",\n\t\t\t\t\"CF2FB10154B347FFCF3AA51E\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"D5402F983840F5F4E7E505C1\",\n\t\t\t\t\"F98B23623F4EB4435190D73A\",\n",
+          "after": "\t\t\t\t\"D5402F983840F5F4E7E505C1\",\n\t\t\t\t\"CE7B66D8B6001F399948E4D1\",\n\t\t\t\t\"8B90E3CBBCDB328123249AD3\",\n\t\t\t\t\"F98B23623F4EB4435190D73A\",\n"
         }
       ]
     },
@@ -2062,7 +2211,7 @@
     },
     "App/MerchantOperationsEditor.swift": {
       "before_sha256": "2b9a71ae8f0462dd244b6e577db7f640292372c14e21ebefd7d65abdc9987c76",
-      "after_sha256": "3656f645fdac72a57fc05caeafc71a61bdcb1728d7c5da0196ce7d0fa184fbbe",
+      "after_sha256": "ff2fc80339203552415f39c18bf447f507fdde54f966b39409a4a23852fe20a9",
       "hunks": [
         {
           "before": "            Section(\"merchant.operations.decor\") {\n                decorField(\"merchant.operations.slogan\", \\.slogan, \"slogan\")\n                decorField(\"merchant.operations.cityRole\", \\.cityRole, \"cityRole\")\n                Text(\"merchant.operations.decorPreserved\").font(.footnote).foregroundStyle(.secondary)\n                if let category = value.categoryID { LabeledContent(\"merchant.operations.category\", value: String(category)) }\n                if let type = value.featuredType, let id = value.featuredID { LabeledContent(\"merchant.operations.featured\", value: \"\\(type) / \\(id)\") }\n            }\n            Section(\"merchant.operations.tags\") {\n                TextField(\"merchant.operations.tags\", text: Binding(get: { currentDecor?.tags.joined(separator: \";\") ?? \"\" }, set: { raw in\n                    guard var value = currentDecor else { return }; value.tags = raw.components(separatedBy: \";\").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }; model.edit(.decor(value))\n                }), axis: .vertical).accessibilityIdentifier(\"merchant.operations.field.tags\")\n                Text(\"merchant.operations.tagsHint\").font(.footnote).foregroundStyle(.secondary)\n            }\n            mediaSection(\"merchant.operations.cover\", field: .coverImage)\n        case .gallery(let value):\n",
@@ -2083,6 +2232,22 @@
         {
           "before": "            Section(\"merchant.operations.tags\") {\n                TextField(\"merchant.operations.tags\", text: Binding(get: { currentDecor?.tags.joined(separator: \";\") ?? \"\" }, set: { raw in\n                    guard var value = currentDecor else { return }; value.tags = raw.components(separatedBy: \";\").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }; model.edit(.decor(value))\n                }), axis: .vertical).accessibilityIdentifier(\"merchant.operations.field.tags\")\n                Text(\"merchant.operations.tagsHint\").font(.footnote).foregroundStyle(.secondary)\n                MerchantDecorTagEditor(model: model)\n            }\n",
           "after": "            Section(\"merchant.operations.tags\") {\n                ForEach(Array(value.tags.enumerated()), id: \\.offset) { index, tag in\n                    Text(verbatim: tag)\n                        .accessibilityIdentifier(\"merchant.operations.tags.value.\" + String(index))\n                }\n                MerchantDecorTagEditor(model: model)\n            }\n"
+        },
+        {
+          "before": "                })) {\n                    Text(\"merchant.operations.chooseMethod\").tag(0)\n                    ForEach(MerchantTemplateMethod.allCases, id: \\.rawValue) { method in Text(LocalizedStringKey(method.titleKey)).tag(method.rawValue) }\n                }.accessibilityIdentifier(\"merchant.operations.method\")\n            }\n            if value.method == .secretWord { Section { templateField(\"merchant.operations.answer\", \\.questionAnswer, \"answer\") } }\n            if value.method == .quiz {\n                Section(\"merchant.operations.quiz\") {\n                    templateField(\"merchant.operations.question\", \\.questionName, \"question\")\n                    templateField(\"merchant.operations.optionA\", \\.optionA, \"optionA\")\n",
+          "after": "                })) {\n                    Text(\"merchant.operations.chooseMethod\").tag(0)\n                    ForEach(MerchantTemplateMethod.allCases, id: \\.rawValue) { method in Text(LocalizedStringKey(method.titleKey)).tag(method.rawValue) }\n                }.accessibilityIdentifier(\"merchant.operations.method\")\n            }\n            MerchantTemplateParticipationPlanFields(model: model)\n            MerchantTemplateExitPlanFields(model: model)\n            if value.method == .secretWord { Section { templateField(\"merchant.operations.answer\", \\.questionAnswer, \"answer\") } }\n            if value.method == .quiz {\n                Section(\"merchant.operations.quiz\") {\n                    templateField(\"merchant.operations.question\", \\.questionName, \"question\")\n                    templateField(\"merchant.operations.optionA\", \\.optionA, \"optionA\")\n"
+        },
+        {
+          "before": "    private var isExample: Bool { model.coordinator.reader.isOfflineExample }\n    var body: some View {\n        NavigationStack {\n            List {\n                Section {\n                    Text(LocalizedStringKey(isExample ? \"merchant.operations.confirmExampleBody\" : (model.coordinator.reader.canSave ? \"merchant.operations.confirmLiveHint\" : \"merchant.operations.liveDisabled\")))\n                    Text(\"merchant.operations.reviewNoApproval\").font(.footnote).foregroundStyle(.secondary)\n                    Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)\n                }\n                if let avatar = MerchantNPCCharacterAvatarSnapshot(draft: confirmation.draft) {\n                    if let preset = avatar.preset {\n",
+          "after": "    private var isExample: Bool { model.coordinator.reader.isOfflineExample }\n    var body: some View {\n        NavigationStack {\n            List {\n                Section {\n                    Text(LocalizedStringKey(confirmation.draft.localOnlyReview ? \"merchant.participation.localOnly\" : (isExample ? \"merchant.operations.confirmExampleBody\" : (model.coordinator.reader.canSave ? \"merchant.operations.confirmLiveHint\" : \"merchant.operations.liveDisabled\"))))\n                    Text(\"merchant.operations.reviewNoApproval\").font(.footnote).foregroundStyle(.secondary)\n                    Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)\n                }\n                if let avatar = MerchantNPCCharacterAvatarSnapshot(draft: confirmation.draft) {\n                    if let preset = avatar.preset {\n"
+        },
+        {
+          "before": "                            } else { Text(verbatim: line.value.isEmpty ? \"—\" : line.value).fixedSize(horizontal: false, vertical: true) }\n                        }\n                    }\n                    if case .template(let value) = confirmation.draft, let method = value.method { Text(LocalizedStringKey(method.titleKey)) }\n                }\n                Section {\n                    Button(LocalizedStringKey(isExample ? \"merchant.operations.confirmExample\" : (model.coordinator.reader.canSave ? \"merchant.operations.confirmLive\" : \"merchant.operations.liveDisabled\"))) {\n                        Task { await model.confirm(confirmation) }\n                    }.disabled(!model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier(\"merchant.operations.confirm\")\n                }\n            }\n            .appNavigationTitle(\"merchant.operations.reviewDraft\")\n            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(\"action.cancel\") { model.cancel() }.accessibilityIdentifier(\"merchant.operations.confirm.cancel\") } }\n        }\n",
+          "after": "                            } else { Text(verbatim: line.value.isEmpty ? \"—\" : line.value).fixedSize(horizontal: false, vertical: true) }\n                        }\n                    }\n                    if case .template(let value) = confirmation.draft, let method = value.method { Text(LocalizedStringKey(method.titleKey)) }\n                }\n                if case .template(let template) = confirmation.draft, let plan = template.participationPlan {\n                    MerchantTemplateParticipationPlanReview(plan: plan)\n                }\n                if case .template(let template) = confirmation.draft, let plan = template.exitPlan {\n                    MerchantTemplateExitPlanReview(plan: plan)\n                }\n                Section {\n                    Button(LocalizedStringKey(confirmation.draft.localOnlyReview ? \"merchant.participation.localOnlyAction\" : (isExample ? \"merchant.operations.confirmExample\" : (model.coordinator.reader.canSave ? \"merchant.operations.confirmLive\" : \"merchant.operations.liveDisabled\")))) {\n                        Task { await model.confirm(confirmation) }\n                    }.disabled(confirmation.draft.localOnlyReview || !model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier(\"merchant.operations.confirm\")\n                }\n            }\n            .appNavigationTitle(\"merchant.operations.reviewDraft\")\n            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(\"action.cancel\") { model.cancel() }.accessibilityIdentifier(\"merchant.operations.confirm.cancel\") } }\n        }\n"
+        },
+        {
+          "before": "            }\n            .listRowInsets(EdgeInsets())\n        }\n    }\n}\n",
+          "after": "            }\n            .listRowInsets(EdgeInsets())\n        }\n    }\n}\n\n\n/// Uses the existing draft identity, dirty-state guard and immutable review.\n@MainActor\nprivate struct MerchantTemplateParticipationPlanFields: View {\n    @ObservedObject var model: MerchantOperationsViewModel\n    private var template: MerchantNodeTemplate? {\n        if case .template(let value) = model.coordinator.draft { return value }\n        return nil\n    }\n    var body: some View {\n        Section(\"merchant.participation.title\") {\n            Text(\"merchant.participation.localOnly\").font(.footnote).foregroundStyle(.secondary)\n                .accessibilityIdentifier(\"merchant.participation.boundary\")\n            if let plan = template?.participationPlan {\n                field(\"merchant.participation.duration\", \\.durationMinutes, \"duration\")\n                field(\"merchant.participation.capacity\", \\.maximumParticipants, \"capacity\")\n                Picker(\"merchant.participation.staffing\", selection: Binding(get: {\n                    template?.participationPlan?.staffing ?? .unspecified\n                }, set: { value in update { $0.staffing = value } })) {\n                    ForEach(MerchantTemplateParticipationPlan.Staffing.allCases, id: \\.rawValue) { value in\n                        Text(LocalizedStringKey(value.titleKey)).tag(value)\n                    }\n                }.pickerStyle(.menu).accessibilityIdentifier(\"merchant.participation.staffing\")\n                if let blocker = plan.blocker {\n                    Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary)\n                        .accessibilityIdentifier(\"merchant.participation.blocker\")\n                }\n                Button(\"merchant.participation.remove\", role: .destructive) {\n                    guard var value = template else { return }\n                    value.participationPlan = nil; model.edit(.template(value))\n                }.accessibilityIdentifier(\"merchant.participation.remove\")\n            } else {\n                Button(\"merchant.participation.add\") {\n                    guard var value = template else { return }\n                    value.participationPlan = .init(); model.edit(.template(value))\n                }.accessibilityIdentifier(\"merchant.participation.add\")\n            }\n        }\n    }\n    private func update(_ edit: (inout MerchantTemplateParticipationPlan) -> Void) {\n        guard var value = template, var plan = value.participationPlan else { return }\n        edit(&plan); value.participationPlan = plan; model.edit(.template(value))\n    }\n    private func field(_ title: LocalizedStringKey, _ path: WritableKeyPath<MerchantTemplateParticipationPlan, String>, _ id: String) -> some View {\n        TextField(title, text: Binding(get: { template?.participationPlan?[keyPath: path] ?? \"\" }, set: { text in\n            update { $0[keyPath: path] = text }\n        })).keyboardType(.numberPad).accessibilityIdentifier(\"merchant.participation.\" + id)\n    }\n}\n\n@MainActor\nprivate struct MerchantTemplateParticipationPlanReview: View {\n    let plan: MerchantTemplateParticipationPlan\n    var body: some View {\n        Section(\"merchant.participation.reviewTitle\") {\n            LabeledContent(\"merchant.participation.duration\", value: plan.durationMinutes.trimmingCharacters(in: .whitespacesAndNewlines))\n                .accessibilityIdentifier(\"merchant.participation.review.duration\")\n            LabeledContent(\"merchant.participation.capacity\", value: plan.maximumParticipants.trimmingCharacters(in: .whitespacesAndNewlines))\n                .accessibilityIdentifier(\"merchant.participation.review.capacity\")\n            LabeledContent(\"merchant.participation.staffing\") { Text(LocalizedStringKey(plan.staffing.titleKey)) }\n                .accessibilityIdentifier(\"merchant.participation.review.staffing\")\n            Text(\"merchant.participation.reviewBoundary\").font(.footnote).foregroundStyle(.secondary)\n        }\n    }\n}\n\n\n@MainActor\nprivate struct MerchantTemplateExitPlanFields: View {\n    @ObservedObject var model: MerchantOperationsViewModel\n    private var template: MerchantNodeTemplate? {\n        if case .template(let value) = model.coordinator.draft { return value }\n        return nil\n    }\n    var body: some View {\n        Section(\"merchant.exitPlan.title\") {\n            Text(\"merchant.participation.localOnly\").font(.footnote).foregroundStyle(.secondary)\n                .accessibilityIdentifier(\"merchant.exitPlan.boundary\")\n            if let plan = template?.exitPlan {\n                field(\"merchant.exitPlan.offline\", \\.offlineAlternative, \"offline\")\n                field(\"merchant.exitPlan.failureExit\", \\.failureExit, \"failureExit\")\n                Text(\"merchant.exitPlan.instructionsHint\").font(.footnote).foregroundStyle(.secondary)\n                if let blocker = plan.blocker {\n                    Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary)\n                        .accessibilityIdentifier(\"merchant.exitPlan.blocker\")\n                }\n                Button(\"merchant.exitPlan.remove\", role: .destructive) {\n                    guard var value = template else { return }\n                    value.exitPlan = nil; model.edit(.template(value))\n                }.accessibilityIdentifier(\"merchant.exitPlan.remove\")\n            } else {\n                Button(\"merchant.exitPlan.add\") {\n                    guard var value = template else { return }\n                    value.exitPlan = .init(); model.edit(.template(value))\n                }.accessibilityIdentifier(\"merchant.exitPlan.add\")\n            }\n        }\n    }\n    private func field(_ title: LocalizedStringKey, _ path: WritableKeyPath<MerchantTemplateExitPlan, String>, _ id: String) -> some View {\n        TextField(title, text: Binding(get: { template?.exitPlan?[keyPath: path] ?? \"\" }, set: { text in\n            guard var value = template, var plan = value.exitPlan else { return }\n            plan[keyPath: path] = text; value.exitPlan = plan; model.edit(.template(value))\n        }), axis: .vertical).accessibilityIdentifier(\"merchant.exitPlan.\" + id)\n    }\n}\n\n@MainActor\nprivate struct MerchantTemplateExitPlanReview: View {\n    let plan: MerchantTemplateExitPlan\n    var body: some View {\n        Section(\"merchant.exitPlan.reviewTitle\") {\n            VStack(alignment: .leading, spacing: 6) {\n                Text(\"merchant.exitPlan.offline\").font(.caption).foregroundStyle(.secondary)\n                Text(verbatim: plan.offlineAlternative.trimmingCharacters(in: .whitespacesAndNewlines))\n                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(\"merchant.exitPlan.review.offline\")\n            }\n            VStack(alignment: .leading, spacing: 6) {\n                Text(\"merchant.exitPlan.failureExit\").font(.caption).foregroundStyle(.secondary)\n                Text(verbatim: plan.failureExit.trimmingCharacters(in: .whitespacesAndNewlines))\n                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(\"merchant.exitPlan.review.failureExit\")\n            }\n            Text(\"merchant.exitPlan.reviewBoundary\").font(.footnote).foregroundStyle(.secondary)\n        }\n    }\n}\n"
         }
       ]
     },
@@ -2552,7 +2717,7 @@
     },
     "Core/MerchantOperationsContracts.swift": {
       "before_sha256": "9a673d888c5fe35f76343477f47f9ee0177e0d4e922c3c49f26d1d2a6a72f385",
-      "after_sha256": "ae53eada2d41bb3868032618afda8b97bea2844d1e1f6aaf941026aeac603052",
+      "after_sha256": "cf277141356540ce606e07c16fccf0fe24c57e08778a03229f7b127ed071c16e",
       "hunks": [
         {
           "before": "    public var blocker: String? {\n        if gallery.count > 9 { return \"merchant.operations.galleryLimit\" }\n        if ((featuredType ?? 0) > 0) != ((featuredID ?? 0) > 0) { return \"merchant.operations.featuredIncomplete\" }\n        if (coverImage ?? \"\").isEmpty && slogan.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && cityRole.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && storyTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && gallery.isEmpty && tags.isEmpty { return \"merchant.operations.decorEmpty\" }\n        return nil\n    }\n    /// This full payload is a contract preview only; no production send exists.\n",
@@ -2569,12 +2734,24 @@
         {
           "before": "    public var blocker: String? {\n        let text = capacity.trimmingCharacters(in: .whitespacesAndNewlines)\n        if !text.isEmpty && (Int(text) == nil || Int(text)! < 0) { return \"merchant.operations.capacityInvalid\" }\n        if let chargeType, ![0, 1].contains(chargeType) { return \"merchant.operations.chargeUnknown\" }\n        return nil\n    }\n    public var fields: [String: Any] {\n        var fields: [String: Any] = [\"availableTime\": availableTime.trimmingCharacters(in: .whitespacesAndNewlines), \"demand\": demand.trimmingCharacters(in: .whitespacesAndNewlines)]\n        if let capacity = Int(capacity.trimmingCharacters(in: .whitespacesAndNewlines)) { fields[\"capacity\"] = capacity }\n        if let chargeType { fields[\"chargeType\"] = chargeType }\n        if let suitActivityTypes { fields[\"suitActivityTypes\"] = suitActivityTypes }\n        if let coopOpen { fields[\"coopOpen\"] = coopOpen }\n",
           "after": "    public var blocker: String? {\n        let text = capacity.trimmingCharacters(in: .whitespacesAndNewlines)\n        if !text.isEmpty && (Int(text) == nil || Int(text)! < 0) { return \"merchant.operations.capacityInvalid\" }\n        guard let chargeType else { return \"merchant.coopChargeChoice.required\" }\n        if ![0, 1].contains(chargeType) { return \"merchant.operations.chargeUnknown\" }\n        return nil\n    }\n    public var fields: [String: Any] {\n        var fields: [String: Any] = [\"availableTime\": availableTime.trimmingCharacters(in: .whitespacesAndNewlines), \"demand\": demand.trimmingCharacters(in: .whitespacesAndNewlines)]\n        if let capacity = Int(capacity.trimmingCharacters(in: .whitespacesAndNewlines)) { fields[\"capacity\"] = capacity }\n        else if clearsCapacity { fields[\"capacity\"] = NSNull(); fields[\"params\"] = [\"clearCapacity\": true] }\n        if let chargeType { fields[\"chargeType\"] = chargeType }\n        if let suitActivityTypes { fields[\"suitActivityTypes\"] = suitActivityTypes }\n        if let coopOpen { fields[\"coopOpen\"] = coopOpen }\n"
+        },
+        {
+          "before": "}\npublic struct MerchantNodeTemplate: Decodable, Equatable {\n",
+          "after": "}\n/// Merchant-confirmed planning facts for this editing session only. The current native\n/// save contract has no mapping for this group; never enter it in AI or API payloads.\npublic struct MerchantTemplateParticipationPlan: Equatable {\n    public enum Staffing: String, CaseIterable {\n        case unspecified, selfGuided, staffRequired\n        public var titleKey: String { \"merchant.participation.staffing.\" + rawValue }\n    }\n    public var durationMinutes = \"\"\n    public var maximumParticipants = \"\"\n    public var staffing: Staffing = .unspecified\n    public init() {}\n    public var blocker: String? {\n        if Self.positiveInteger(durationMinutes) == nil { return \"merchant.participation.durationInvalid\" }\n        if Self.positiveInteger(maximumParticipants) == nil { return \"merchant.participation.capacityInvalid\" }\n        if staffing == .unspecified { return \"merchant.participation.staffingRequired\" }\n        return nil\n    }\n    /// Accept only whole, positive decimal counts, never signs, fractions or exponents.\n    public static func positiveInteger(_ text: String) -> Int? {\n        let value = text.trimmingCharacters(in: .whitespacesAndNewlines)\n        guard !value.isEmpty, value.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }),\n              let number = Int(value), number > 0 else { return nil }\n        return number\n    }\n}\n\n/// Manually authored contingencies for this editing session, not approved runtime\n/// branches. No server decode or write mapping is inferred from these local fields.\npublic struct MerchantTemplateExitPlan: Equatable {\n    public static let maximumTextLength = 600\n    public var offlineAlternative = \"\"\n    public var failureExit = \"\"\n    public init() {}\n    public var blocker: String? {\n        if offlineAlternative.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return \"merchant.exitPlan.offlineRequired\" }\n        if offlineAlternative.utf16.count > Self.maximumTextLength { return \"merchant.exitPlan.textLimit\" }\n        if failureExit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return \"merchant.exitPlan.exitRequired\" }\n        if failureExit.utf16.count > Self.maximumTextLength { return \"merchant.exitPlan.textLimit\" }\n        return nil\n    }\n}\n\npublic struct MerchantNodeTemplate: Decodable, Equatable {\n"
+        },
+        {
+          "before": "    public var couponID: Int?\n    public init() {}\n",
+          "after": "    public var couponID: Int?\n    /// Nil preserves legacy drafts. Adding a plan explicitly opts into local-only review.\n    public var participationPlan: MerchantTemplateParticipationPlan?\n    /// Explicit, independent opt-in; held only until this edit session ends.\n    public var exitPlan: MerchantTemplateExitPlan?\n    public init() {}\n"
+        },
+        {
+          "before": "        }\n        return nil\n    }\n    public var fields: [String: Any] {\n",
+          "after": "        }\n        return participationPlan?.blocker ?? exitPlan?.blocker\n    }\n    /// Exact legacy wire fields only. A local participation plan is not a server fact.\n    public var fields: [String: Any] {\n"
         }
       ]
     },
     "Core/MerchantOperationsReading.swift": {
       "before_sha256": "1a05b0a53216ef39bf580d64bfe440f3a8ad226679ef4437c218f02a450d29e0",
-      "after_sha256": "1443259beec87da46817343187529c52a988bdde1eec2d2642c8bedc2f167e75",
+      "after_sha256": "94454c0a5cf02c2689f09f5cd9f9b2407e7aa76e673598470e06c7c75a07e84f",
       "hunks": [
         {
           "before": "    func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws\n    func access() async throws -> MerchantOperationsAccess\n    func document(_ destination: MerchantOperationsDestination) async throws -> MerchantOperationsDocument\n    /// Only the DEBUG synthetic reader implements this. Live readers always reject it.\n    func saveExample(_ draft: MerchantOperationsDraft) async throws\n}\n",
@@ -2591,6 +2768,14 @@
         {
           "before": "}\n\npublic extension MerchantOperationsReading {\n    var canSave: Bool { isOfflineExample }\n    func hasPending(_ destination: MerchantOperationsDestination) -> Bool { false }\n    func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws { try await saveExample(draft) }\n",
           "after": "}\n\npublic extension MerchantOperationsReading {\n    func featuredActivities(page: Int) async throws -> MerchantFeaturedActivityPage { throw APIError.notConfigured }\n    var canSave: Bool { isOfflineExample }\n    func hasPending(_ destination: MerchantOperationsDestination) -> Bool { false }\n    func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws { try await saveExample(draft) }\n"
+        },
+        {
+          "before": "        guard canReview, let draft, let baseline, let loadedScope else { return }\n        do { _ = try draft.previews() }\n        catch { issue = .key(\"merchant.operations.invalidDraft\"); return }\n",
+          "after": "        guard canReview, let draft, let baseline, let loadedScope else { return }\n        do { if !draft.localOnlyReview { _ = try draft.previews() } }\n        catch { issue = .key(\"merchant.operations.invalidDraft\"); return }\n"
+        },
+        {
+          "before": "        confirmation = nil\n        guard reader.canSave else { issue = .key(\"merchant.operations.liveDisabled\"); return }\n",
+          "after": "        confirmation = nil\n        guard !value.draft.localOnlyReview else {\n            issue = .key(\"merchant.participation.localOnly\"); return\n        }\n        guard reader.canSave else { issue = .key(\"merchant.operations.liveDisabled\"); return }\n"
         }
       ]
     },
@@ -3582,7 +3767,7 @@
     },
     "App/ProfileEditView.swift": {
       "before_sha256": "5bec19374886dc1f2f780a170675ead92425b99a643fcf6b6bf09f5c9e59ac73",
-      "after_sha256": "40905088b434a38286e3059a8e4d8f66c8d82c3257a3c86b836ab3806214fa59",
+      "after_sha256": "2984a3b5b5dc9ac638fcb3f3414bbeca41a685a11a3c8aee3ee310d5911f3393",
       "hunks": [
         {
           "before": "import SwiftUI\n\n@MainActor\nfinal class ProfileEditModel: ObservableObject {\n    let coordinator: ProfileEditCoordinator\n    @Published var draft = ProfileEditDraft()\n    @Published var confirmation: ProfileEditConfirmation?\n    @Published private(set) var busy = false\n    @Published private(set) var revision = 0\n    private var generation = 0\n    private var contextIdentity: ProfileReadIdentity?\n    private var contextViewerRevision: UInt64?\n    init(coordinator: ProfileEditCoordinator) {\n        self.coordinator = coordinator\n        contextIdentity = coordinator.identity; contextViewerRevision = coordinator.viewerRevision\n    }\n    private func synchronizeContext() {\n        guard contextIdentity != coordinator.identity || contextViewerRevision != coordinator.viewerRevision else { return }\n        generation += 1; draft = .init(); confirmation = nil; busy = false\n        contextIdentity = coordinator.identity; contextViewerRevision = coordinator.viewerRevision\n        coordinator.synchronizeSession()\n    }\n    func resetAndLoad() async {\n        generation += 1; draft = .init(); confirmation = nil; busy = false\n        coordinator.synchronizeSession()\n        await load()\n    }\n    func load() async {\n        synchronizeContext()\n        guard !busy else { return }\n        let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision\n",
@@ -3655,6 +3840,74 @@
         {
           "before": "        .appNavigationTitle(\"profile.edit.title\")\n        .confirmationDialog(\"profile.reloadDiscard.title\", isPresented: $showReloadConfirmation,\n",
           "after": "        .appNavigationTitle(\"profile.edit.title\")\n        .navigationBarBackButtonHidden(true)\n        .interactiveDismissDisabled(model.blocksInteractiveExit)\n        .toolbar {\n            ToolbarItem(placement: .topBarLeading) {\n                Button {\n                    focusedField = nil\n                    if model.requestExit() { dismiss() }\n                } label: { Label(\"action.back\", systemImage: \"chevron.left\") }\n                .disabled(!model.canRequestExit)\n                .accessibilityIdentifier(\"profile.exitDiscard.back\")\n                .confirmationDialog(\"profile.exitDiscard.title\", isPresented: $showExitConfirmation,\n                                    titleVisibility: .visible, presenting: model.exitConfirmation) { value in\n                    Button(\"profile.exitDiscard.confirm\", role: .destructive) {\n                        if model.confirmExit(value) { dismiss() }\n                    }.accessibilityIdentifier(\"profile.exitDiscard.confirm\")\n                    Button(\"action.cancel\", role: .cancel) { model.cancelExit() }\n                } message: { _ in Text(\"profile.exitDiscard.message\") }\n            }\n        }\n        .onChange(of: model.exitConfirmation?.id) { _, id in showExitConfirmation = id != nil }\n        .onChange(of: showExitConfirmation) { _, showing in if !showing { model.cancelExit() } }\n        .onChange(of: showPreferences) { _, _ in model.cancelExit() }\n        .confirmationDialog(\"profile.reloadDiscard.title\", isPresented: $showReloadConfirmation,\n"
+        },
+        {
+          "before": "final class ProfileEditModel: ObservableObject {\n    let coordinator: ProfileEditCoordinator\n    @Published var draft = ProfileEditDraft() { didSet { avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }\n    @Published var confirmation: ProfileEditConfirmation?\n    @Published private(set) var reloadConfirmation: ProfileEditReloadConfirmation?\n    @Published private(set) var exitConfirmation: ProfileEditExitConfirmation?\n    private var exitCommitted = false\n    @Published private(set) var busy = false\n",
+          "after": "final class ProfileEditModel: ObservableObject {\n    let coordinator: ProfileEditCoordinator\n    @Published var draft = ProfileEditDraft() { didSet { retireTextEdit(); avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }\n    @Published var confirmation: ProfileEditConfirmation?\n    @Published private(set) var reloadConfirmation: ProfileEditReloadConfirmation?\n    @Published private(set) var exitConfirmation: ProfileEditExitConfirmation?\n    @Published private(set) var textEdit: ProfileTextFieldEdit?\n    private var exitCommitted = false\n    @Published private(set) var busy = false\n"
+        },
+        {
+          "before": "        return !sameText || !samePreferences || draft.avatarReplacement != nil\n    }\n    func ownsAvatarScope(_ scope: ProfileAvatarScope) -> Bool {\n        avatarActive && scope.editorID == avatarEditorID && scope.lifetimeID == avatarLifetimeID &&\n",
+          "after": "        return !sameText || !samePreferences || draft.avatarReplacement != nil\n    }\n    /// This is local scratch editing, never an independent server save.\n    var canBeginTextEdit: Bool {\n        !exitCommitted && !busy && !coordinator.isBusy && !coordinator.isLocked\n            && coordinator.isConfigured && coordinator.snapshot != nil\n            && confirmation == nil && coordinator.confirmation == nil\n            && reloadConfirmation == nil && exitConfirmation == nil\n            && textEdit == nil && !avatarPresentationActive\n    }\n    func beginTextEdit(_ field: ProfileTextField) {\n        guard !exitCommitted else { return }\n        synchronizeContext()\n        guard canBeginTextEdit, let identity = coordinator.identity,\n              let snapshot = coordinator.snapshot else { return }\n        textEdit = .init(field: field, identity: identity, viewerRevision: coordinator.viewerRevision,\n            generation: generation, modelRevision: revision, draftRevision: avatarDraftRevision,\n            snapshot: snapshot, draft: draft)\n    }\n    func cancelTextEdit(_ value: ProfileTextFieldEdit) {\n        guard textEdit?.id == value.id else { return }\n        retireTextEdit()\n    }\n    private func retireTextEdit() { textEdit = nil }\n    @discardableResult func confirmTextEdit(_ value: ProfileTextFieldEdit, text: String) -> Bool {\n        guard textEdit?.id == value.id else { return false }\n        guard !exitCommitted, !busy, !coordinator.isBusy, !coordinator.isLocked,\n              confirmation == nil, coordinator.confirmation == nil,\n              reloadConfirmation == nil, exitConfirmation == nil, !avatarPresentationActive,\n              coordinator.identity == value.identity, coordinator.viewerRevision == value.viewerRevision,\n              generation == value.generation, revision == value.modelRevision,\n              avatarDraftRevision == value.draftRevision, Self.sameDraft(draft, value.draft),\n              let snapshot = coordinator.snapshot, Self.sameSnapshot(snapshot, value.snapshot) else {\n            cancelTextEdit(value); return false\n        }\n        // Consume before assigning: a repeated or late action cannot touch a newer field.\n        retireTextEdit()\n        var next = draft\n        switch value.field {\n        case .name: next.name = text\n        case .introduction: next.introduction = text\n        }\n        draft = next\n        return true\n    }\n    func ownsAvatarScope(_ scope: ProfileAvatarScope) -> Bool {\n        avatarActive && scope.editorID == avatarEditorID && scope.lifetimeID == avatarLifetimeID &&\n"
+        },
+        {
+          "before": "    }\n    func avatarTarget(source: ProfileAvatarUploadClient) -> ProfileAvatarTarget? {\n        guard avatarActive, !busy, confirmation == nil, reloadConfirmation == nil, exitConfirmation == nil, draft.avatarReplacement == nil,\n              let snapshot = coordinator.snapshot,\n              let scope = coordinator.avatarScope(source: source, editorID: avatarEditorID, lifetimeID: avatarLifetimeID) else { return nil }\n",
+          "after": "    }\n    func avatarTarget(source: ProfileAvatarUploadClient) -> ProfileAvatarTarget? {\n        guard avatarActive, !busy, confirmation == nil, reloadConfirmation == nil, exitConfirmation == nil, textEdit == nil, draft.avatarReplacement == nil,\n              let snapshot = coordinator.snapshot,\n              let scope = coordinator.avatarScope(source: source, editorID: avatarEditorID, lifetimeID: avatarLifetimeID) else { return nil }\n"
+        },
+        {
+          "before": "    /// Disable unreviewed modal dismissal while local changes or an operation exist.\n    /// The explicit Back action remains available after an unknown save has settled.\n    var blocksInteractiveExit: Bool { !exitCommitted && (hasUnsavedDraft || busy || coordinator.isBusy) }\n    var canRequestExit: Bool {\n        !exitCommitted && !busy && !coordinator.isBusy && confirmation == nil\n            && coordinator.confirmation == nil && reloadConfirmation == nil && !avatarPresentationActive\n    }\n    func cancelExit() { exitConfirmation = nil }\n",
+          "after": "    /// Disable unreviewed modal dismissal while local changes or an operation exist.\n    /// The explicit Back action remains available after an unknown save has settled.\n    var blocksInteractiveExit: Bool { !exitCommitted && (hasUnsavedDraft || textEdit != nil || busy || coordinator.isBusy) }\n    var canRequestExit: Bool {\n        !exitCommitted && !busy && !coordinator.isBusy && confirmation == nil\n            && coordinator.confirmation == nil && reloadConfirmation == nil && textEdit == nil && !avatarPresentationActive\n    }\n    func cancelExit() { exitConfirmation = nil }\n"
+        },
+        {
+          "before": "    func requestReload() async {\n        guard !exitCommitted else { return }\n        synchronizeContext()\n        guard !busy, !coordinator.isBusy, confirmation == nil, coordinator.confirmation == nil else { return }\n",
+          "after": "    func requestReload() async {\n        guard !exitCommitted else { return }\n        guard textEdit == nil else { return }\n        synchronizeContext()\n        guard !busy, !coordinator.isBusy, confirmation == nil, coordinator.confirmation == nil else { return }\n"
+        },
+        {
+          "before": "    private func synchronizeContext() {\n        guard contextIdentity != coordinator.identity || contextViewerRevision != coordinator.viewerRevision else { return }\n        retireReload(); retireAvatar(); activateAvatar()\n        generation += 1; draft = .init(); confirmation = nil; busy = false\n",
+          "after": "    private func synchronizeContext() {\n        guard contextIdentity != coordinator.identity || contextViewerRevision != coordinator.viewerRevision else { return }\n        retireTextEdit()\n        retireReload(); retireAvatar(); activateAvatar()\n        generation += 1; draft = .init(); confirmation = nil; busy = false\n"
+        },
+        {
+          "before": "        // destination/model may reopen; a delayed or cancelled .task may not.\n        guard !exitCommitted, !Task.isCancelled else { return }\n        retireReload(); retireAvatar(); activateAvatar()\n        generation += 1; draft = .init(); confirmation = nil; busy = false\n",
+          "after": "        // destination/model may reopen; a delayed or cancelled .task may not.\n        guard !exitCommitted, !Task.isCancelled else { return }\n        retireTextEdit()\n        retireReload(); retireAvatar(); activateAvatar()\n        generation += 1; draft = .init(); confirmation = nil; busy = false\n"
+        },
+        {
+          "before": "    func load() async {\n        guard !exitCommitted else { return }\n        retireReload()\n        synchronizeContext()\n",
+          "after": "    func load() async {\n        guard !exitCommitted else { return }\n        guard textEdit == nil else { return }\n        retireReload()\n        synchronizeContext()\n"
+        },
+        {
+          "before": "    func prepare() async {\n        guard !exitCommitted else { return }\n        retireReload()\n        synchronizeContext()\n",
+          "after": "    func prepare() async {\n        guard !exitCommitted else { return }\n        guard textEdit == nil else { return }\n        retireReload()\n        synchronizeContext()\n"
+        },
+        {
+          "before": "    func save(_ value: ProfileEditConfirmation) async {\n        guard !exitCommitted else { return }\n        retireReload()\n        synchronizeContext()\n",
+          "after": "    func save(_ value: ProfileEditConfirmation) async {\n        guard !exitCommitted else { return }\n        guard textEdit == nil else { return }\n        retireReload()\n        synchronizeContext()\n"
+        },
+        {
+          "before": "/// Parent passes its live session revision and retains the coordinator outside navigation.\nstruct ProfileEditView: View {\n    private enum Field: Hashable { case name, introduction }\n    @FocusState private var focusedField: Field?\n    @Environment(\\.scenePhase) private var scenePhase\n    @Environment(\\.dismiss) private var dismiss\n",
+          "after": "/// Parent passes its live session revision and retains the coordinator outside navigation.\nstruct ProfileEditView: View {\n    @Environment(\\.scenePhase) private var scenePhase\n    @Environment(\\.dismiss) private var dismiss\n"
+        },
+        {
+          "before": "        self.sessionRevision = sessionRevision; self.categoryReader = categoryReader; self.avatarDependencies = avatarDependencies\n    }\n    var body: some View {\n        Form {\n            if model.coordinator.identity == nil {\n",
+          "after": "        self.sessionRevision = sessionRevision; self.categoryReader = categoryReader; self.avatarDependencies = avatarDependencies\n    }\n    private var editorForm: some View {\n        Form {\n            if model.coordinator.identity == nil {\n"
+        },
+        {
+          "before": "                if model.coordinator.snapshot != nil {\n                    Section {\n                        TextField(\"profile.edit.name\", text: $model.draft.name)\n                            .textContentType(.nickname).focused($focusedField,equals:.name)\n                            .accessibilityIdentifier(\"profile.edit.name\")\n                        TextField(\"profile.edit.introduction\", text: $model.draft.introduction, axis: .vertical)\n                            .lineLimit(3...8).focused($focusedField,equals:.introduction)\n                            .accessibilityIdentifier(\"profile.edit.introduction\")\n                    } header: { Text(\"profile.edit.details\") }\n                        .disabled(model.busy || model.coordinator.isLocked)\n                    ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)\n                    Section(\"context.preferences.title\") {\n                        LabeledContent(\"context.preferences.selected\", value: String(selectedPreferences.count))\n                        Button(\"context.preferences.edit\") { focusedField = nil; showPreferences = true }\n                            .disabled(model.busy || model.coordinator.isLocked).accessibilityIdentifier(\"profile.edit.preferences\")\n                    }\n                    Button { focusedField=nil; Task { await model.prepare() } } label: { Text(\"profile.edit.review\") }\n                        .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid\n                                  || model.draft.normalized == model.coordinator.snapshot?.draft.normalized)\n                        .accessibilityIdentifier(\"profile.edit.review\")\n                }\n",
+          "after": "                if model.coordinator.snapshot != nil {\n                    Section {\n                        textFieldRow(.name, value: model.draft.name)\n                        textFieldRow(.introduction, value: model.draft.introduction)\n                    } header: { Text(\"profile.edit.details\") }\n                        .disabled(!model.canBeginTextEdit)\n                    ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)\n                    Section(\"context.preferences.title\") {\n                        LabeledContent(\"context.preferences.selected\", value: String(selectedPreferences.count))\n                        Button(\"context.preferences.edit\") { showPreferences = true }\n                            .disabled(model.busy || model.coordinator.isLocked || model.textEdit != nil).accessibilityIdentifier(\"profile.edit.preferences\")\n                    }\n                    Button { Task { await model.prepare() } } label: { Text(\"profile.edit.review\") }\n                        .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid\n                                  || model.textEdit != nil || model.draft.normalized == model.coordinator.snapshot?.draft.normalized)\n                        .accessibilityIdentifier(\"profile.edit.review\")\n                }\n"
+        },
+        {
+          "before": "                }\n                if let remote = model.coordinator.remoteMessage { Text(verbatim: remote) }\n                Button { focusedField = nil; Task { await model.requestReload() } } label: {\n                    Text(LocalizedStringKey(model.coordinator.isLocked ? \"profile.edit.check\" : \"profile.edit.reload\"))\n                }.disabled(model.busy).accessibilityIdentifier(\"profile.edit.reload\")\n                if model.busy { ProgressView().accessibilityIdentifier(\"profile.edit.busy\") }\n            }\n        }\n        .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))\n        .appNavigationTitle(\"profile.edit.title\")\n",
+          "after": "                }\n                if let remote = model.coordinator.remoteMessage { Text(verbatim: remote) }\n                Button { Task { await model.requestReload() } } label: {\n                    Text(LocalizedStringKey(model.coordinator.isLocked ? \"profile.edit.check\" : \"profile.edit.reload\"))\n                }.disabled(model.busy || model.textEdit != nil).accessibilityIdentifier(\"profile.edit.reload\")\n                if model.busy { ProgressView().accessibilityIdentifier(\"profile.edit.busy\") }\n            }\n        }\n    }\n    private var editorNavigation: some View {\n        editorForm\n        .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))\n        .appNavigationTitle(\"profile.edit.title\")\n"
+        },
+        {
+          "before": "            ToolbarItem(placement: .topBarLeading) {\n                Button {\n                    focusedField = nil\n                    if model.requestExit() { dismiss() }\n                } label: { Label(\"action.back\", systemImage: \"chevron.left\") }\n",
+          "after": "            ToolbarItem(placement: .topBarLeading) {\n                Button {\n                    if model.requestExit() { dismiss() }\n                } label: { Label(\"action.back\", systemImage: \"chevron.left\") }\n"
+        },
+        {
+          "before": "        .onChange(of: model.confirmation?.id) { _, _ in model.retireReload() }\n        .onChange(of: sessionRevision) { _, _ in model.retireReload() }\n        .onChange(of: scenePhase) { _, phase in\n            if phase != .active { model.retireReload(); model.retireAvatar() } else { model.activateAvatar() }\n        }\n        .task(id: sessionRevision) { showPreferences = false; await model.resetAndLoad() }\n        .sheet(isPresented: $showPreferences) {\n            NavigationStack { ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,\n                currentIdentity: { model.coordinator.identity }) { model.draft.routePreferenceIDs = $0 } }\n        }\n        .onDisappear {\n            if !showPreferences, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }\n            model.retireReload()\n            if let value = model.confirmation { model.coordinator.cancel(value) }\n        }\n        .sheet(item: $model.confirmation) { value in\n            NavigationStack {\n",
+          "after": "        .onChange(of: model.confirmation?.id) { _, _ in model.retireReload() }\n        .onChange(of: sessionRevision) { _, _ in model.retireReload() }\n        .onChange(of: sessionRevision) { _, _ in\n            if let value = model.textEdit { model.cancelTextEdit(value) }\n        }\n    }\n    var body: some View {\n        editorNavigation\n        .onChange(of: scenePhase) { _, phase in\n            if phase != .active { model.retireReload(); model.retireAvatar() } else { model.activateAvatar() }\n        }\n        .task(id: sessionRevision) { showPreferences = false; await model.resetAndLoad() }\n        .sheet(item: textEditPresentation) { value in\n            NavigationStack {\n                ProfileTextFieldEditor(edit: value,\n                    cancel: { model.cancelTextEdit(value) },\n                    confirm: { _ = model.confirmTextEdit(value, text: $0) })\n                    .id(value.id)\n            }.interactiveDismissDisabled(false)\n        }\n        .sheet(isPresented: $showPreferences) {\n            NavigationStack { ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,\n                currentIdentity: { model.coordinator.identity }) { model.draft.routePreferenceIDs = $0 } }\n        }\n        .onDisappear(perform: handleEditorDisappear)\n        .sheet(item: $model.confirmation) { value in\n            NavigationStack {\n"
+        },
+        {
+          "before": "        }\n    }\n}\n",
+          "after": "        }\n    }\n    /// Capture this presentation's token so a delayed swipe-dismissal cannot cancel its successor.\n    private var textEditPresentation: Binding<ProfileTextFieldEdit?> {\n        let presented = model.textEdit\n        return .init(get: { model.textEdit }, set: { value in\n            if value == nil, let presented { model.cancelTextEdit(presented) }\n        })\n    }\n    private func textFieldRow(_ field: ProfileTextField, value: String) -> some View {\n        Button { model.beginTextEdit(field) } label: {\n            HStack {\n                LabeledContent {\n                    if value.isEmpty { Text(\"profile.fieldEdit.empty\").foregroundStyle(.secondary) }\n                    else { Text(verbatim: value).lineLimit(3) }\n                } label: { Text(LocalizedStringKey(field.titleKey)) }\n                Image(systemName: \"chevron.right\").font(.caption).foregroundStyle(.secondary)\n                    .accessibilityHidden(true)\n            }.contentShape(Rectangle())\n        }\n        .buttonStyle(.plain)\n        .accessibilityIdentifier(\"profile.fieldEdit.open.\\(field.rawValue)\")\n    }\n\n    private func handleEditorDisappear() {\n        if !showPreferences, model.textEdit == nil, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }\n        model.retireReload()\n        if let value = model.confirmation { model.coordinator.cancel(value) }\n    }\n\n}\n"
         }
       ]
     },
@@ -3670,7 +3923,7 @@
     },
     "App/RoamHistoryViews.swift": {
       "before_sha256": "1926c84b140127cb8f4c65aae81e7305dfb730b1f219459e4b05001baefe4751",
-      "after_sha256": "2a4d67bbb003df0646599c911ae8c2ac6e20b99e2af7ae81f89be384af608172",
+      "after_sha256": "a37d9862d672aafe03dee51fe24a231eea5b70dc228322c561e3f2ebeea46e36",
       "hunks": [
         {
           "before": "\n@MainActor struct RoamHistoryView: View {\n    let reader: any RoamExperienceReading\n    @State private var records: [RoamHistoryRecord] = []\n    @State private var error: Error?\n    @State private var loaded = false\n    var body: some View {\n        ScrollView {\n            LazyVStack(alignment: .leading, spacing: 16) {\n",
@@ -3691,6 +3944,10 @@
         {
           "before": "                    Button(\"roam.share.title\", systemImage: \"square.and.arrow.up\") { showShare = true }\n                        .accessibilityIdentifier(\"roam.share.open\")\n                    Text(\"roam.experience.historyPrivacy\").font(.caption).foregroundStyle(.secondary)\n                } else if loaded {\n                    ContentUnavailableView(\"roam.experience.recordMissing\", systemImage: \"questionmark.folder\", description: Text(\"roam.experience.recordMissingHint\"))\n                        .accessibilityIdentifier(\"roam.experience.history.missing\")\n                } else { ProgressView(\"roam.loading\") }\n            }.padding()\n        }.navigationTitle(\"roam.experience.session\")\n            .task(id: reader.identity) { showShare = false; load() }\n            .sheet(isPresented: $showShare) { if let record { NavigationStack { RoamHistoryShareView(record: record) } } }\n            .accessibilityIdentifier(\"roam.experience.session\")\n    }\n    private func load() {\n        record = nil; error = nil; loaded = false\n        do { record = try reader.history().first { $0.ts == timestamp }; loaded = true } catch { self.error = error }\n    }\n}\n",
           "after": "                    Button(\"roam.share.title\", systemImage: \"square.and.arrow.up\") { showShare = true }\n                        .accessibilityIdentifier(\"roam.share.open\")\n                    Text(\"roam.experience.historyPrivacy\").font(.caption).foregroundStyle(.secondary)\n                } else if currentLoaded {\n                    ContentUnavailableView(\"roam.experience.recordMissing\", systemImage: \"questionmark.folder\", description: Text(\"roam.experience.recordMissingHint\"))\n                        .accessibilityIdentifier(\"roam.experience.history.missing\")\n                } else { ProgressView(\"roam.loading\") }\n            }.padding()\n        }.navigationTitle(\"roam.experience.session\")\n            .task(id: readKey) { showShare = false; load() }\n            .onChange(of: readKey) { _, _ in showShare = false }\n            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record) } } }\n            .accessibilityIdentifier(\"roam.experience.session\")\n    }\n    private func load() {\n        record = nil; error = nil; loaded = false; loadedOwner = nil\n        let captured = readKey\n        do {\n            let value = try reader.history().first { $0.ts == timestamp }\n            guard captured == readKey else { return }\n            record = value; loaded = true; loadedOwner = captured\n        } catch {\n            guard captured == readKey else { return }\n            self.error = error; loadedOwner = captured\n        }\n    }\n}\n"
+        },
+        {
+          "before": "            .onChange(of: readKey) { _, _ in showShare = false }\n            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record) } } }\n            .accessibilityIdentifier(\"roam.experience.session\")\n",
+          "after": "            .onChange(of: readKey) { _, _ in showShare = false }\n            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }\n            .accessibilityIdentifier(\"roam.experience.session\")\n"
         }
       ]
     },
@@ -4330,7 +4587,7 @@
     },
     "Resources/Localizable.xcstrings": {
       "before_sha256": "8f552d5a3f34a86c19a370c411a08669dfb4440a15f3b3037cd635595b4ff995",
-      "after_sha256": "ee7b8753c4baf10eb81aec87d3e26f1f9e7f5efa1b7fa717ab343230a0998aa6",
+      "after_sha256": "81907047a7213362ccf37e7b1e7faaf4936a048ca3d56064d725c9b12c855b27",
       "hunks": [
         {
           "before": "          }\n        }\n      }\n    }\n  },\n  \"version\": \"1.0\"\n",
@@ -4339,6 +4596,10 @@
         {
           "before": "      }\n    }\n",
           "after": "      }\n    },\n    \"templateVenue.scenicArea\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Scenic area\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"景区\"\n          }\n        }\n      }\n    },\n    \"templateVenue.park\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Park or green space\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"公园绿地\"\n          }\n        }\n      }\n    },\n    \"templateVenue.shoppingDistrict\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Shopping district\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"商圈街区\"\n          }\n        }\n      }\n    },\n    \"templateVenue.historicTown\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Historic town or street\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"古镇老街\"\n          }\n        }\n      }\n    },\n    \"templateVenue.museum\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Museum\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"博物馆\"\n          }\n        }\n      }\n    },\n    \"templateVenue.campus\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Campus\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"校园\"\n          }\n        }\n      }\n    },\n    \"templateVenue.indoorVenue\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Indoor venue\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"室内场馆\"\n          }\n        }\n      }\n    },\n    \"templateVenue.historical\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Your saved venue is kept as entered. Choosing a preset replaces it.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已保留原有场所文字。选择预设后才会替换。\"\n          }\n        }\n      }\n    },\n    \"templateStory.removeImage\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove image\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除图片\"\n          }\n        }\n      }\n    },\n    \"templateStory.removeImageNumber %lld\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove image %lld\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除第 %lld 张图片\"\n          }\n        }\n      }\n    },\n    \"profile.exitDiscard.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"放弃修改并返回？\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Discard changes and go back?\"\n          }\n        }\n      }\n    },\n    \"profile.exitDiscard.confirm\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"放弃修改并返回\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Discard changes and go back\"\n          }\n        }\n      }\n    },\n    \"profile.exitDiscard.message\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"返回会放弃尚未保存的昵称、简介、路线偏好和暂存头像。结果未知的保存仍保持待核对状态，返回不会重试保存。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Going back discards unsaved changes to your nickname, introduction, route preferences and staged avatar. An unresolved save stays pending; going back does not retry it.\"\n          }\n        }\n      }\n    }\n"
+        },
+        {
+          "before": "      }\n    }\n",
+          "after": "      }\n    },\n    \"templateNarration.clear\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Clear narration audio\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"清除导览音频\"\n          }\n        }\n      }\n    },\n    \"templateNarration.preview\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Preview narration audio\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"试听导览音频\"\n          }\n        }\n      }\n    },\n    \"templateNarration.closePreview\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Close audio preview\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"关闭音频试听\"\n          }\n        }\n      }\n    },\n    \"templateNarration.previewUnavailable\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Preview needs an approved playback service and a valid HTTPS audio reference.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"试听需要已获准的播放服务和有效的 HTTPS 音频地址。\"\n          }\n        }\n      }\n    },\n    \"profile.fieldEdit.empty\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"未填写\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Not set\"\n          }\n        }\n      }\n    },\n    \"profile.fieldEdit.hint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"完成编辑只更新当前草稿，回到资料页后仍需确认保存。取消或下滑关闭会放弃本次字段编辑。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Done updates only this draft. Review and save from the profile page to submit changes. Cancel or swipe down to discard this field edit.\"\n          }\n        }\n      }\n    },\n    \"profile.fieldEdit.apply\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"完成\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Done\"\n          }\n        }\n      }\n    },\n    \"roam.share.savePhotos\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Save to Photos\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存到相册\"\n          }\n        }\n      }\n    },\n    \"roam.share.retrySavePhotos\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Retry saving\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重试保存\"\n          }\n        }\n      }\n    },\n    \"roam.share.savingPhotos\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saving to Photos…\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"正在保存到相册…\"\n          }\n        }\n      }\n    },\n    \"roam.share.savedPhotos\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saved to Photos\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已保存到相册\"\n          }\n        }\n      }\n    },\n    \"roam.share.photoPermissionDenied\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Allow this app to add photos in Settings, then return and retry saving.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请在设置中允许本应用添加照片，返回后重试保存。\"\n          }\n        }\n      }\n    },\n    \"roam.share.photoPermissionRestricted\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saving photos is restricted on this device. Retry after the restriction is removed.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"此设备限制了照片保存。限制解除后可重试。\"\n          }\n        }\n      }\n    },\n    \"roam.share.photoSaveUnavailable\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Photo saving is not configured in this app build. You can still use the system share sheet.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前应用版本尚未配置相册保存，仍可使用系统分享。\"\n          }\n        }\n      }\n    },\n    \"roam.share.photoSaveFailed\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The card could not be saved. Retry saving the prepared card.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"足迹卡保存失败，可重试保存已生成的卡片。\"\n          }\n        }\n      }\n    },\n    \"roam.share.openPhotoSettings\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Open Settings\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"打开设置\"\n          }\n        }\n      }\n    },\n    \"roam.share.photoSaveSourceChanged\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This saved walk changed or is no longer readable. Close this card and reopen the walk to prepare a new one.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这条漫游记录已更改或暂时无法读取。请关闭足迹卡，重新打开记录并生成新卡片。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Club activities\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"俱乐部活动\"\n          }\n        }\n      }\n    },\n    \"club.calendar.display\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Activity display\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"活动显示方式\"\n          }\n        }\n      }\n    },\n    \"club.calendar.list\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"List\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"列表\"\n          }\n        }\n      }\n    },\n    \"club.calendar.monthView\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Calendar\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"日历\"\n          }\n        }\n      }\n    },\n    \"club.calendar.previous\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Previous month\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"上一个月\"\n          }\n        }\n      }\n    },\n    \"club.calendar.next\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Next month\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"下一个月\"\n          }\n        }\n      }\n    },\n    \"club.calendar.startDates\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Shown by activity start date. Dates do not confirm availability or registration.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"按活动开始日期显示，日期不代表仍有名额或报名已确认。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.noEvents\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No activities yet.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无活动。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.noMonthEvents\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No activities start this month. Try another month.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本月暂无开始的活动，可切换其他月份查看。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.noDayEvents\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No activities start on this date.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当天暂无开始的活动。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.pickDay\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose a date to see its activities.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"选择日期查看当天活动。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.undated\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Date unavailable\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"日期待明确\"\n          }\n        }\n      }\n    },\n    \"club.calendar.undatedHint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"These activities have no usable start date yet. You can still open their details.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"以下活动暂未提供可用的开始日期，仍可查看活动详情。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.dateUnknown\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Start date unavailable\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"开始日期待明确\"\n          }\n        }\n      }\n    },\n    \"club.calendar.untitled\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Untitled activity\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"未命名活动\"\n          }\n        }\n      }\n    },\n    \"club.calendar.day %@ %lld\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"%1$@, %2$lld activities\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"%1$@，%2$lld 个活动\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.1\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Mon\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"一\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.2\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Tue\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"二\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.3\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Wed\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"三\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.4\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Thu\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"四\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.5\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Fri\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"五\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.6\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Sat\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"六\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.7\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Sun\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"日\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Participation plan (local)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"参与安排（本地）\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.localOnly\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"These fields stay in this editing session only. They are not sent or saved to the server; leaving, reloading or discarding removes them. A draft with this plan cannot be submitted.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这些字段只保留在本次编辑中，不发送或保存到服务端；离开、刷新或放弃修改会移除。含此安排的草稿暂不能提交。\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.localOnlyAction\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Local review only; submission unavailable\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"仅本地审阅，暂不能提交\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.add\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Add local participation plan\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"添加本地参与安排\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.remove\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove local participation plan\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除本地参与安排\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.duration\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Participation time (minutes)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"参与时长（分钟）\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.capacity\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Maximum participants\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"人数上限\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.staffing\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Employee involvement\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"是否需要员工\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.staffing.unspecified\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose employee involvement\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请选择是否需要员工\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.staffing.selfGuided\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No employee required\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"不需要员工\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.staffing.staffRequired\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Employee required\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"需要员工\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.durationInvalid\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter participation time as a positive whole number of minutes.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写大于零的整数分钟数。\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.capacityInvalid\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter a positive whole-number participant limit.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写大于零的整数人数上限。\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.staffingRequired\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose whether an employee is required.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请选择是否需要员工。\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.reviewTitle\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Local participation plan to review\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"审阅本地参与安排\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.reviewBoundary\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Planning details are not proof of staffing, opening hours, capacity, safety approval or publication. Existing server facts, stock and rewards remain authoritative.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"规划内容不代表已确认员工、营业时间、场地容量、安全审核或发布。既有服务端事实、库存与奖励保持权威。\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Offline and exit plan (local)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"断网与退出预案（本地）\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.add\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Add local offline and exit plan\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"添加本地断网与退出预案\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.remove\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove local offline and exit plan\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除本地断网与退出预案\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.offline\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Alternative when offline\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"断网时的替代方式\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.failureExit\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Steps to stop or leave safely\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"失败或中止时的退出步骤\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.instructionsHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Describe a non-digital alternative and how participants can stop or leave. Keep each instruction within 600 characters. This does not activate offline gameplay or approve a route.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"填写不依赖网络的替代方式，以及参与者停止或离开的步骤。每项不超过600字符。这不会启用离线玩法或批准路线。\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.offlineRequired\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Describe what participants should do when the connection is unavailable.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写断网时参与者可以采用的替代方式。\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.exitRequired\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Describe how participants can stop or leave if the activity fails or they choose to exit.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写活动失败或参与者主动中止时的退出步骤。\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.textLimit\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Each instruction must stay within the 600-character limit.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"每项预案说明不能超过600字符。\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.reviewTitle\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Local offline and exit plan to review\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"审阅本地断网与退出预案\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.reviewBoundary\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"These are unapproved planning notes for this editing session. They do not confirm a safe or accessible route, cancel an order, issue a refund or grant a reward. No runtime fallback is enabled.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这些是本次编辑中的待审预案，不代表已确认路线安全或无障碍，也不会取消订单、退款或发放奖励。未启用运行时替代分支。\"\n          }\n        }\n      }\n    }\n"
         }
       ]
     },
@@ -4413,6 +4674,28 @@
           "after": "                            .accessibilityIdentifier(\"club.gov.fixture.destination.\" + operation.rawValue)\n                            .toolbar {\n                                // Leaderboard scenarios already expose a fixed switch above the stack.\n                                // A duplicate floating bottom bar can intercept the member-row tap.\n                                if !ProcessInfo.processInfo.arguments.contains(\"--club-leaderboard-scenario\") {\n                                    ToolbarItem(placement: .bottomBar) { Button(\"club.gov.switchAccount\") { store.switchAccount() }.accessibilityIdentifier(\"club.gov.switchAccount\") }\n                                }\n                            }\n                    } label: { Text(LocalizedStringKey(\"club.gov.\" + operation.rawValue)) }.accessibilityIdentifier(\"club.gov.fixture.\" + operation.rawValue)\n"
         }
       ]
+    },
+    "Tests/AppUITests/ProfileEditFlowTests.swift": {
+      "before_sha256": "b868fef77b7dd8235fe6fcc65518027d79db7e805c60636998bf47b408c168be",
+      "after_sha256": "e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067",
+      "hunks": [
+        {
+          "before": "    }\n    private func editAndReview() {\n        let field = app.textFields[\"profile.edit.name\"]\n        XCTAssertTrue(field.waitForExistence(timeout: 10)); field.tap(); field.typeText(\" Updated\")\n        app.swipeUp()\n",
+          "after": "    }\n    private func openField(_ name: String) -> XCUIElement {\n        let row = app.buttons[\"profile.fieldEdit.open.\\(name)\"]\n        XCTAssertTrue(row.waitForExistence(timeout: 10)); row.tap()\n        let input = app.textFields[\"profile.edit.\\(name)\"]\n        if input.waitForExistence(timeout: 3) { return input }\n        let multiline = app.textViews[\"profile.edit.\\(name)\"]\n        XCTAssertTrue(multiline.waitForExistence(timeout: 3)); return multiline\n    }\n    private func applyField() {\n        app.buttons[\"profile.fieldEdit.apply\"].tap()\n        XCTAssertTrue(app.buttons[\"profile.fieldEdit.open.name\"].waitForExistence(timeout: 5))\n    }\n    private func editAndReview() {\n        let field = openField(\"name\"); field.tap(); field.typeText(\" Updated\"); applyField()\n        app.swipeUp()\n"
+        },
+        {
+          "before": "        launch(\"refreshFailure\")\n        let field = app.textFields[\"profile.edit.name\"]\n        XCTAssertTrue(field.waitForExistence(timeout: 10))\n        field.tap(); field.typeText(\" Updated\")\n        app.swipeUp()\n",
+          "after": "        launch(\"refreshFailure\")\n        let field = openField(\"name\")\n        field.tap(); field.typeText(\" Updated\"); applyField()\n        app.swipeUp()\n"
+        },
+        {
+          "before": "        XCTAssertTrue(status.label.contains(\"unsaved changes are kept\"))\n        XCTAssertEqual(field.value as? String, \"Trail Friend Updated\")\n        XCTAssertTrue(app.buttons[\"profile.edit.review\"].isEnabled)\n",
+          "after": "        XCTAssertTrue(status.label.contains(\"unsaved changes are kept\"))\n        XCTAssertTrue(app.buttons[\"profile.fieldEdit.open.name\"].label.contains(\"Trail Friend Updated\"))\n        XCTAssertTrue(app.buttons[\"profile.edit.review\"].isEnabled)\n"
+        },
+        {
+          "before": "        XCTAssertTrue(app.staticTexts[\"profile.edit.status\"].waitForExistence(timeout: 10))\n        XCTAssertFalse(app.textFields[\"profile.edit.name\"].exists)\n    }\n}\n",
+          "after": "        XCTAssertTrue(app.staticTexts[\"profile.edit.status\"].waitForExistence(timeout: 10))\n        XCTAssertFalse(app.buttons[\"profile.fieldEdit.open.name\"].exists)\n    }\n    func testNicknameCancelReopenAndApply() {\n        launch(\"success\")\n        let field = openField(\"name\"); let original = field.value as? String\n        field.tap(); field.typeText(\" Cancelled\")\n        app.buttons[\"profile.fieldEdit.cancel\"].tap()\n        let reopened = openField(\"name\"); XCTAssertEqual(reopened.value as? String, original)\n        reopened.tap(); reopened.typeText(\" Staged\"); applyField()\n        XCTAssertTrue(app.buttons[\"profile.fieldEdit.open.name\"].label.contains(\"Staged\"))\n        XCTAssertTrue(app.buttons[\"profile.edit.review\"].isEnabled)\n    }\n    func testIntroductionCancelDoesNotRevertPreviouslyStagedNickname() {\n        launch(\"success\")\n        let name = openField(\"name\"); name.tap(); name.typeText(\" Staged\"); applyField()\n        let introduction = openField(\"introduction\"), original = introduction.value as? String\n        introduction.tap(); introduction.typeText(\" Cancelled\")\n        app.buttons[\"profile.fieldEdit.cancel\"].tap()\n        XCTAssertTrue(app.buttons[\"profile.fieldEdit.open.name\"].label.contains(\"Staged\"))\n        let reopened = openField(\"introduction\"); XCTAssertEqual(reopened.value as? String, original)\n        reopened.tap(); reopened.typeText(\" New bio\"); applyField()\n        XCTAssertTrue(app.buttons[\"profile.fieldEdit.open.introduction\"].label.contains(\"New bio\"))\n        XCTAssertTrue(app.buttons[\"profile.fieldEdit.open.name\"].label.contains(\"Staged\"))\n    }\n    func testSwipeDismissDiscardsOnlyLocalFieldScratch() {\n        launch(\"success\")\n        let field = openField(\"name\"), original = field.value as? String\n        field.tap(); field.typeText(\" Cancelled\")\n        let navigation = app.navigationBars.element(boundBy: app.navigationBars.count - 1)\n        navigation.swipeDown()\n        XCTAssertTrue(app.buttons[\"profile.fieldEdit.open.name\"].waitForExistence(timeout: 5))\n        let reopened = openField(\"name\"); XCTAssertEqual(reopened.value as? String, original)\n    }\n    func testBackgroundKeepsFieldScratchUntilExplicitCancel() {\n        launch(\"success\")\n        let field = openField(\"name\"), original = field.value as? String\n        field.tap(); field.typeText(\" Retained\")\n        XCUIDevice.shared.press(.home); app.activate()\n        XCTAssertTrue(field.waitForExistence(timeout: 5))\n        XCTAssertTrue((field.value as? String)?.contains(\"Retained\") == true)\n        app.buttons[\"profile.fieldEdit.cancel\"].tap()\n        let reopened = openField(\"name\"); XCTAssertEqual(reopened.value as? String, original)\n    }\n\n}\n"
+        }
+      ]
     }
   },
   "feature_batch_support_sha256": {
@@ -4450,7 +4733,7 @@
     "Core/RoamRetainedRead.swift": "7864b357ca7c20ad9f60f767a788f7a72ac3cd80edcc4554a87ef15d7db0bbe0",
     "Core/SearchMapLayerVisibility.swift": "2e95d0a1b587228fcf6f7b1b893d31c1ef67b3679702953810fb5e39feeec6b5",
     "Core/SearchMapViewportSelection.swift": "8cb68c5decb74da1b172da29507953f5b3fae9ece71eac4cce947c0cc84bcfc7",
-    "Resources/Localizable.xcstrings": "ee7b8753c4baf10eb81aec87d3e26f1f9e7f5efa1b7fa717ab343230a0998aa6",
+    "Resources/Localizable.xcstrings": "81907047a7213362ccf37e7b1e7faaf4936a048ca3d56064d725c9b12c855b27",
     "Resources/MerchantCityClaimWithdrawalLocalizations.fragment.json": "a19e4d670bc4be11489d8a45e4e5e1d4b68e2e074abacd86301f75a44fde800e",
     "Resources/MerchantCityQuotaLocalizations.fragment.json": "8c0b7f0fa055ae9cfd55517319138c01d58ca7fd5c1368196eeb608237bca3be",
     "Resources/MerchantCustomerContactLocalizations.fragment.json": "45fbb42eb318bd44ac1a0c728c1510941701d10aa5bb945fd135686147ca3cc6",
@@ -4915,7 +5198,7 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "8fe977024c9d56e40eb6f58861c914abc18c16b5ce77f25cec8dbb8c2b226e7b",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "d05cb618ce151ed73ca7b47a9a081a3c7563984cad8f29f92c05cecd953ace25",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "616a5e7f28ff5bd6814c91bf10e8f7efd99b8091ad4a8b9dc9d895f8bd2e0ad4",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
@@ -4929,14 +5212,14 @@
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "a930efaf7b617ab2ced76cc2947017a090c5f707bf828b566f5ddf3b47e1f6c6",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "49548a2ffd425fee934f1dd39439e13fede7c8293646c1dd80b3bf75de79f8f2",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
-    "Tests/ContractChecks/test_roam_route_replay.py": "48db20edf92a950335e2a68bf74e66ffd00e6a2d9f91c26a39e0fb3a53a66638",
+    "Tests/ContractChecks/test_roam_route_replay.py": "406c7106dd554f8ccf52b829bd4536e6be55caa23d2a07cc258e99391dfcfb02",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "ae82c2a49509ea11c92205596da00ff46ad018fdd31c840aa02483b4bf3ea48c",
+    "Tests/ContractChecks/test_category_roam_registration.py": "68745b084cf69282097dc4e5ba519004b1b8d12ee7643d85baa44de2a3a31a52",
     "Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift": "91a1011295933822da752baaf3912cc8e36551bbe58597352dff171bf8c96222",
     "Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
     "Tests/ContractChecks/test_club_leaderboard_member_navigation.py": "f76bc1c7da34ef0e3df056a02eac732079e2b5103e0b872136dbf2d2e4b8c1a6",
@@ -4944,8 +5227,8 @@
     "tools/tests/test_run138_current_ci_entry.py": "9b26d1739824a0801174876cd72007cf17fa39e3605e988ba7a39ea3750d1f0e",
     "tools/tests/test_creator_history_fixture_rejection.py": "f01c504f715ee961df19de807a27e4321420c43e130631d68fb1924323fec85b",
     "tools/run138_current_source_projection.py": "c516a6952473bd0a0b958631f1751bf23085b35dc1b7dae3c3afa2afd3a4709e",
-    "App/RoamHistoryShareView.swift": "0cc8b3a70fcd3f059b3082dd7aef851e0f5836bf11fc156c53d511c484b1f5e8",
-    "App/TemplateAuthoringDetailForms.swift": "e8b7ff1434fd9163dc2ae20aeedfee05901d2712b8eca590c505ee4526be8a98",
+    "App/RoamHistoryShareView.swift": "20713bba31a10b2b3e5d9365e496e69e96234ae9d851e96cfc986b057d9f6df3",
+    "App/TemplateAuthoringDetailForms.swift": "4b1c14e16533888c72208bdec51c0476396c3689e79dcba82fda453c42e257bc",
     "App/TemplateAuthoringMetadataSelectors.swift": "9bcd9cf6f470df1bb359dc4f663ffadf2f5fccec7799f4592c758fb76418a6fa",
     "App/TemplateStoryEditor.swift": "60dd8ac32c19c940c1bfa8200b30fc2e6fe81f7ef46e96bb4608380fd94c0aa3",
     "Core/TemplateMetadata.swift": "ff6b5528cc67b62321a5cfc7341d6e572857a3cdd6d561a1446a620bfd16d68a",
@@ -4969,8 +5252,59 @@
     "tools/template_story_localizations.json": "70f45636bc45c799eadbd879a4493ca6be435c21664fb1ed8c0a416452e4f1a1",
     "App/SocialPublicProfileView.swift": "330e1eb6af7a6236d5466c0fadf4860ba0c92e3d4c29798392f0c5ac0acb80fe",
     "tools/tests/test_ci138_followon_integration.py": "093ed3b716bb349103adb29d8dc6ab873d61d043b90c4b08ca5095481a8e5e6d",
-    ".gitleaks.toml": "5bece171dd5c06a703bf989d3e7ba7799310384284ac7eb70396746dfe10eca4",
-    "tools/tests/test_gitleaks_exact_source_digest.py": "d78a5fc7a81facbab09589a08d4364ec9bc68f7d54a4ca870224abfd8e1d99ea",
+    ".gitleaks.toml": "53f03a335ca414028fe30bb2b0f1f2bf587457d2b7a0ecd01404fac8a7c37148",
+    "tools/tests/test_gitleaks_exact_source_digest.py": "92acf0f99d51b3f83cd6541b00e41eb32fe72fa70f0e263d05228a7267619d4d",
+    "Config/Info.plist": "9424fbf723ba77c09f62e6b94bc0ee76f8c60e3d449c7b7ed699f1c83d14527d",
+    "App/ClubDetailView.swift": "b04fa0d623774f79ce111980313213b15e54d570e97bc945ea0657ffe7ecfd8c",
+    "Core/TemplateNarrationAudioRemoval.swift": "48704d577db57198b1fda3b4d5d5fa9fc4d6f57370dd36f71acc1f7da9902103",
+    "Resources/InfoPlist.xcstrings": "bf4ac803dc66bae7e9ad488843c102928704771e7cdbf52c91e066e1414baa7d",
+    "Tests/CoreTests/RoamSharePhotoSaveStateTests.swift": "edf798b65c49ad49fa6448b8c701636f6dcdb1d708b90cd1ba51417c924d1c41",
+    "tools/roam_share_photo_save_localizations.json": "ca470e8bfcb6e07b7a10d26a73c0a28df553cceb868c04d9d229ce59729fd354",
+    "Tests/AppUnitTests/TemplateNarrationAudioPreviewTests.swift": "4afba37940032a4556185df3f9e21779beab0f306d9213f652b3a9f4e1b6e85e",
+    "Core/MerchantOperationsDraft.swift": "f52f466c7543473f9dd9e3e02f46c5bd5441c869421758f00e3bbc1239d497f4",
+    "docs/roam-share-photo-save.md": "176c22030a8cb50983613f1efaa6e17a1220295669b35e3af1fbdd814d0731b3",
+    "Tests/AppUnitTests/ClubEventCalendarReadTests.swift": "df1d6464177de6db5ccc1a3e287e0692ec978bb4e325a24db071d540d30eb42d",
+    "Tests/ContractChecks/test_template_narration_audio_clear.py": "8a65a943b8c83ca6c5c4a558eeaadf46225ee5bed624cce4ff49b15772fa16ca",
+    "docs/template-narration-audio-clear.md": "f1f87759795267ed7a8fd7f53c3e87a89c2991bba3c13d6538783de174a03ef3",
+    "docs/registration/template-narration-audio-clear.json": "3ee253dd6152aafb96b45e8c708f82b431148e42ccbb2049b08f9d09010dc0e6",
+    "docs/localization/template-narration-audio-preview.json": "a55112b7ae2094ca1509ba143a18e820ce97c4ace6a8765d4f6df6c8085de0cc",
+    "Resources/ProfileTextFieldEditLocalizations.fragment.json": "2b17e51a8f7b908814e6e4cde7a62db7962e58375599e36230dc94a6f23bde64",
+    "App/TemplateNarrationAudioPreview.swift": "d6e4fa0f3e4c57f26a6d50ec89c4e7dd68951ff5e47010c61d656d3a8a61fb8a",
+    "docs/club-event-calendar-registration.fragment.json": "beb0eb0323a84b8bcef6339a9469699a77e9c252cfca50b0075aa215993f222d",
+    "docs/club-event-calendar.md": "bf09c214ad82cef8c0bd1503f60e22e5cef47a78e78c174252e9b1c16184a601",
+    "docs/roam-share-photo-save-registration.json": "c84911258099a597d81478f9e7d504ec871337b11491d2c1140a31c1664ee512",
+    "tools/check_club_event_calendar.py": "c728b3492ebddcf47d967616b508dd1bc4fe217dd2da7f0d6a0f5a2fded33ceb",
+    "Tests/ContractChecks/test_merchant_template_participation_plan.py": "dc80be6fe3e7e1ede394e0939af1011a3bf372b590864bb7bf89f1db66c9e1bb",
+    "docs/registration/template-narration-audio-preview.json": "509c62250f39b472b761febc2713a23ac70daad666f9dd5e25802f118cbbe316",
+    "docs/merchant-template-participation-plan.md": "3a429425a27bdca54b8520fed35f963be650e2081075ae148879270a04cc1a95",
+    "Tests/AppUnitTests/ProfileTextFieldEditTests.swift": "0ab64738ab4507c38599666e36dec6a7616855a3023dfa478eea96541cab62c7",
+    "Tests/CoreTests/ClubEventCalendarTests.swift": "587f8bbaf7b36744c1a46c4cde07ef5112a46ef2d244cf1704f571061b7bcd03",
+    "Tests/ContractChecks/test_template_narration_audio_preview.py": "54be9d513e174636b69e64c55086900d8fbee211bc0e728304053456495f96a1",
+    "Tests/AppUnitTests/RoamSharePhotoSaveModelTests.swift": "e53b51606e3631893e4ee3fd0262751c2716ce8e05515134a56afdc7060a670d",
+    "Resources/MerchantTemplateParticipationPlanLocalizations.fragment.json": "c1321f6411f71b57acba8321d46c234e01e93141ea60ce96a0ca9727d9c1a6b4",
+    "Resources/ClubEventCalendarLocalizations.fragment.json": "6507b9b060125df03b83e531b95b621f57934751236e135c046218f53adb603b",
+    "docs/template-narration-audio-preview.md": "3de8e7fd9e8e67f7e7435b8e9f31ccaa46e26051a4cbbb7a29e77ad2073f7f9c",
+    "Tests/AppUITests/ProfileEditFlowTests.swift": "e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067",
+    "docs/profile-text-field-edit-registration.fragment.json": "88d2736669cfaceb0a6b83dc75c314c124ac66ec9910844c1440e927989eacf1",
+    "docs/merchant-template-exit-plan.md": "254a19949ce5128c1180409e90222ebe5a295d4294411ad801b691662bad5df0",
+    "Tests/ContractChecks/test_roam_share_photo_save.py": "306963ddbd385e376e86546279822d75d092080dcdf68026b2efdbf9ecb98f54",
+    "App/TemplateNarrationAudioClear.swift": "0a68ec324fc81258c75798869537633437d221cceacd075f728f4395de3738c6",
+    "Tests/CoreTests/TemplateNarrationAudioRemovalTests.swift": "49e2ac6204a14eae4442470c16dedb30c58c69305dd96d0695c5dc3177ed5971",
+    "App/RoamSharePhotoSaveModel.swift": "d1e11042b1c28f1b11ad504cd8c93a918033e654108338aa50daaa088ee9fb68",
+    "Tests/AppUnitTests/TemplateNarrationAudioClearTests.swift": "318bc161a2790abe0cf6f884793cee14c35bd1100e042d7b12ae1d7b6583a617",
+    "Core/ClubEventCalendar.swift": "4119d067f96e0c12c17b7457a687d09235cf99d3af621d200038121ace257368",
+    "App/ClubEventCalendarView.swift": "3ab1f0b2c8d5776dbb6c98d3c26cb4ed01319b4a2986005626d6c736c6953f87",
+    "Tests/CoreTests/MerchantTemplateExitPlanTests.swift": "d88fa72f67c8e09e441dbdc37c9906870eb199a00212541e3f1f5fc58fae8514",
+    "docs/profile-text-field-edit.md": "d0d882dc204f2de4b48321c65a3e6041a37a2a9cf6418ac9e5359a95886b6893",
+    "Tests/ContractChecks/test_profile_text_field_edit.py": "0f7f3c5d9278cf8edd11018d4c5b7d8e2c6986b61f7839d37e140a85cf2d782a",
+    "App/ProfileTextFieldEditor.swift": "8f74180dfefeaa60c1c3e027029ebe79b1eafab7ad98e9694a202e03213a6cb1",
+    "Tests/ContractChecks/test_merchant_template_exit_plan.py": "6e06ab860aa8fdefe559f07c989907297789871ce980b387af703f46c61a6bf0",
+    "Core/RoamSharePhotoSaveState.swift": "dc363f60f6e8ebd84ebc25053fdf070b6000dcebc6b22aef5ccdf2d0e79383dd",
+    "Tests/CoreTests/MerchantTemplateParticipationPlanTests.swift": "d02c0358ad1f43a4f112024c94a9875ffae2a1eb07c1f2443388e67d0af98e9a",
+    "Resources/MerchantTemplateExitPlanLocalizations.fragment.json": "a921c384252549ed7879fc6725af7154886c2e277b33f3336adc77d187dd000d",
+    "Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift": "b4e8c60794037f8e8fb151c3ba11516099482d63cf2784b3085bc9d38a6a7e7f",
+    "Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift": "23bd4804a9a9de93deeef8e33975f619aa9bb244ecff7aa712fad05063f14d5c",
+    "docs/localization/template-narration-audio-clear.json": "e0b163455e70abfa93f970c6d1eb545c87156f06eaebb9710a0dff9989cf5ef8",
     "tools/tests/test_readiness_contract_parse_cache.py": "a05486842d224477efc0c91a25c0fb9458858295eb069869c37923903613f3b0"
   },
   "current_method_replacements": {
@@ -5065,5 +5399,194 @@
         "complete_seconds": 150
       }
     }
+  },
+  "product_ui_budget": {
+    "status": "UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT",
+    "measured": false,
+    "new_methods": 8,
+    "changed_existing_methods": 3,
+    "method_count_after": 750,
+    "class_count_after": 166,
+    "assumptions": {
+      "per_reveal_seconds": 40,
+      "per_reveal_maximum_swipes": 10,
+      "per_reveal_maximum_viewports": 11,
+      "lifecycle_and_failure_seconds": 90,
+      "per_direct_action_seconds": 5,
+      "per_direct_ax_assertion_seconds": 2,
+      "per_typed_character_seconds": 0.25,
+      "round_up_seconds": 10
+    },
+    "source_sha256": {
+      "App/MerchantOperationsEditor.swift": "ff2fc80339203552415f39c18bf447f507fdde54f966b39409a4a23852fe20a9",
+      "App/ProfileEditView.swift": "2984a3b5b5dc9ac638fcb3f3414bbeca41a685a11a3c8aee3ee310d5911f3393",
+      "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+      "Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift": "23bd4804a9a9de93deeef8e33975f619aa9bb244ecff7aa712fad05063f14d5c",
+      "Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift": "b4e8c60794037f8e8fb151c3ba11516099482d63cf2784b3085bc9d38a6a7e7f",
+      "Tests/AppUITests/ProfileEditFlowTests.swift": "e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067"
+    },
+    "methods": {
+      "ProfileEditFlowTests.testNicknameCancelReopenAndApply": {
+        "source": "Tests/AppUITests/ProfileEditFlowTests.swift",
+        "declaration_sha256": "2a159139c56d4319a10df9295a2ddb0bb96f7921661382dc34a555a7cf67a3bc",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 47,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 8,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 17,
+        "unrounded_seconds": 189.25,
+        "seconds": 190
+      },
+      "ProfileEditFlowTests.testIntroductionCancelDoesNotRevertPreviouslyStagedNickname": {
+        "source": "Tests/AppUITests/ProfileEditFlowTests.swift",
+        "declaration_sha256": "8dbc1df29a0f7dcc9b13926476932126f2647437787dd401c4b6a18a340d7f0b",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 68,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 12,
+        "direct_ax_assertion_count": 5,
+        "typed_characters": 25,
+        "unrounded_seconds": 234.25,
+        "seconds": 240
+      },
+      "ProfileEditFlowTests.testSwipeDismissDiscardsOnlyLocalFieldScratch": {
+        "source": "Tests/AppUITests/ProfileEditFlowTests.swift",
+        "declaration_sha256": "ad04bd32e5b7c3ec6394428d7da1ba36b52c76c5afd93334e3c432c34c970b6f",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 47,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 5,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 10,
+        "unrounded_seconds": 170.5,
+        "seconds": 180
+      },
+      "ProfileEditFlowTests.testBackgroundKeepsFieldScratchUntilExplicitCancel": {
+        "source": "Tests/AppUITests/ProfileEditFlowTests.swift",
+        "declaration_sha256": "37e3d99153a5d3635ea2cea0ab41b99b24fb51bb9185d2d31701633d5a704f13",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 47,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 7,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 9,
+        "unrounded_seconds": 180.25,
+        "seconds": 190
+      },
+      "MerchantTemplateParticipationPlanFlowTests.testIncompletePlanBlocksReviewAndRemovingItRestoresUnchangedTemplate": {
+        "source": "Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift",
+        "declaration_sha256": "aade52d00a8fba15356483e95d512e2a3cd6a616c2ee495e8f8a30a3899e2673",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 4,
+        "bounded_reveal_calls": 5,
+        "direct_action_count": 4,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 322.0,
+        "seconds": 330
+      },
+      "MerchantTemplateParticipationPlanFlowTests.testCompletePlanReviewCannotSubmitAndCancelRetainsLocalFields": {
+        "source": "Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift",
+        "declaration_sha256": "9413b591e0cab9096f42346d9b21a84722f14581fa2b29baa2aedec6c14290ff",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 4,
+        "bounded_reveal_calls": 11,
+        "direct_action_count": 13,
+        "direct_ax_assertion_count": 6,
+        "typed_characters": 3,
+        "unrounded_seconds": 611.75,
+        "seconds": 620
+      },
+      "MerchantTemplateExitPlanFlowTests.testEmptyExitPlanBlocksReviewAndExplicitRemovalLeavesOriginalTemplate": {
+        "source": "Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift",
+        "declaration_sha256": "2ef4229746d838c0603da3fc6f804b908cb5d268894ebf72863b83fcb1bca7f2",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 0,
+        "bounded_reveal_calls": 5,
+        "direct_action_count": 4,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 318.0,
+        "seconds": 320
+      },
+      "MerchantTemplateExitPlanFlowTests.testExitInstructionsReviewRemainsLocalAndCancelKeepsExactText": {
+        "source": "Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift",
+        "declaration_sha256": "3e18d10659b7183fe3742acccd32e009e341961df59a58e1eed85c0b74d36015",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 0,
+        "bounded_reveal_calls": 9,
+        "direct_action_count": 9,
+        "direct_ax_assertion_count": 5,
+        "typed_characters": 75,
+        "unrounded_seconds": 523.75,
+        "seconds": 530
+      },
+      "ProfileEditFlowTests.testFailedReloadKeepsDraftAndAllowsReviewedSave": {
+        "source": "Tests/AppUITests/ProfileEditFlowTests.swift",
+        "declaration_sha256": "4c5c16cafb45e2950d7a133d6469d01710b17e581d24c3851bbf6042cfdae4fb",
+        "measured": false,
+        "existing_method_increment": true,
+        "lifecycle_seconds": 0,
+        "explicit_wait_seconds": 11,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 2,
+        "direct_ax_assertion_count": 0,
+        "typed_characters": 0,
+        "unrounded_seconds": 21.0,
+        "seconds": 30
+      },
+      "ProfileEditFlowTests.testConfirmedProfileSaveIsReadBack": {
+        "source": "Tests/AppUITests/ProfileEditFlowTests.swift",
+        "declaration_sha256": "16907fcf1e98d39835ea3c91148523936c39ab3b2b4544d7c6f6049223f972e3",
+        "measured": false,
+        "existing_method_increment": true,
+        "lifecycle_seconds": 0,
+        "explicit_wait_seconds": 11,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 2,
+        "direct_ax_assertion_count": 0,
+        "typed_characters": 0,
+        "unrounded_seconds": 21.0,
+        "seconds": 30
+      },
+      "ProfileEditFlowTests.testUnknownWriteLocksReviewAndOffersReadOnlyCheck": {
+        "source": "Tests/AppUITests/ProfileEditFlowTests.swift",
+        "declaration_sha256": "e77675c888284be6947f798aa4bcfd60a35515f9ef86b67372b461f560142ca6",
+        "measured": false,
+        "existing_method_increment": true,
+        "lifecycle_seconds": 0,
+        "explicit_wait_seconds": 11,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 2,
+        "direct_ax_assertion_count": 0,
+        "typed_characters": 0,
+        "unrounded_seconds": 21.0,
+        "seconds": 30
+      }
+    },
+    "class_increment_seconds": {
+      "ProfileEditFlowTests": 890,
+      "MerchantTemplateParticipationPlanFlowTests": 950,
+      "MerchantTemplateExitPlanFlowTests": 850
+    },
+    "added_seconds": 2690,
+    "prior_profile_class_seconds": 81.645
   }
 }

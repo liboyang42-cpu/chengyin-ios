@@ -4,4 +4,5 @@
     <key>QuestifyMarket</key><string>$(QUESTIFY_MARKET)</string>
     <key>QuestifyAPIBaseURL</key><string>$(QUESTIFY_API_BASE_URL)</string>
     <key>QuestifySessionRealm</key><string>$(QUESTIFY_SESSION_REALM)</string>
+    <key>NSPhotoLibraryAddUsageDescription</key><string>Save a walk card to Photos when you choose Save to Photos.</string>
 </dict></plist>

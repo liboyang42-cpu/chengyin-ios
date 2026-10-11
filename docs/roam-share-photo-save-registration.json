@@ -1,0 +1,33 @@
+{
+  "feature": "P128 explicit prepared-card Photos save",
+  "app_sources": [
+    "App/RoamSharePhotoSaveModel.swift",
+    "Core/RoamSharePhotoSaveState.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/RoamSharePhotoSaveModelTests.swift"
+  ],
+  "swift_package_discovery": [
+    "Core/RoamSharePhotoSaveState.swift",
+    "Tests/CoreTests/RoamSharePhotoSaveStateTests.swift"
+  ],
+  "framework": "Photos (Apple SDK import; check autolinking during unsigned build)",
+  "localizable_fragment": "tools/roam_share_photo_save_localizations.json",
+  "info_plist_catalog_fragment": {
+    "NSPhotoLibraryAddUsageDescription": {
+      "en": "Save a walk card to Photos when you choose Save to Photos.",
+      "zh-Hans": "仅在你选择“保存到相册”时，将漫游足迹卡添加到相册。"
+    }
+  },
+  "info_plist_catalog_destination": "Resources/InfoPlist.xcstrings",
+  "source_checks": [
+    "Tests/ContractChecks/test_roam_share_photo_save.py"
+  ],
+  "central_files_edited": false,
+  "required_follow_through": [
+    "Register the two app sources and one app-hosted test source through the central project pipeline.",
+    "Merge Localizable and InfoPlist fragments into their existing catalogs.",
+    "Reconcile existing frozen-source checks for the reviewed source changes; do not label old checks as passing.",
+    "Run Core and AppUnit XCTest plus unsigned CN/US builds and explicit Photos permission/device UI cases."
+  ]
+}

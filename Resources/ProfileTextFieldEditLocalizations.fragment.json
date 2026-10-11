@@ -1,0 +1,53 @@
+{
+  "profile.fieldEdit.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未填写"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not set"
+        }
+      }
+    }
+  },
+  "profile.fieldEdit.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "完成编辑只更新当前草稿，回到资料页后仍需确认保存。取消或下滑关闭会放弃本次字段编辑。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Done updates only this draft. Review and save from the profile page to submit changes. Cancel or swipe down to discard this field edit."
+        }
+      }
+    }
+  },
+  "profile.fieldEdit.apply": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "完成"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Done"
+        }
+      }
+    }
+  }
+}

@@ -34,10 +34,16 @@ public enum MerchantOperationsDraft: Equatable {
         case .template(let value): return value.blocker
         }
     }
+    /// Local merchant plans are reviewable but have no evidenced server mapping.
+    public var localOnlyReview: Bool {
+        if case .template(let value) = self { return value.participationPlan != nil || value.exitPlan != nil }
+        return false
+    }
     /// Exact source JSON contracts used by previews and the dormant scoped transport.
     /// Story intentionally remains two operations: the source is not atomic.
     public func previews() throws -> [MerchantOperationsRequestPreview] {
         if blocker != nil { throw APIError.invalidRequest }
+        guard !localOnlyReview else { throw MerchantOperationsFailure.liveWritesDisabled }
         switch self {
         case .npcMapPoint(let value): return [try .init(path: "api/merchant/decor/save", fields: value.fields)]
         case .businessStatus(let value): return [try .init(path: "api/merchant/business-status/update", form: ["business_status": String(value.status.rawValue)])]

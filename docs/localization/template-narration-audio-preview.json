@@ -1,0 +1,24 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateNarration.preview": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Preview narration audio" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "试听导览音频" } }
+      }
+    },
+    "templateNarration.closePreview": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Close audio preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "关闭音频试听" } }
+      }
+    },
+    "templateNarration.previewUnavailable": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Preview needs an approved playback service and a valid HTTPS audio reference." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "试听需要已获准的播放服务和有效的 HTTPS 音频地址。" } }
+      }
+    }
+  },
+  "version": "1.0"
+}

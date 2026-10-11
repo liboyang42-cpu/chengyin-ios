@@ -1,0 +1,11 @@
+{
+  "feature": "P036 clearAudio",
+  "app_sources": [
+    "App/TemplateNarrationAudioClear.swift",
+    "Core/TemplateNarrationAudioRemoval.swift"
+  ],
+  "app_unit_tests": ["Tests/AppUnitTests/TemplateNarrationAudioClearTests.swift"],
+  "package_tests": ["Tests/CoreTests/TemplateNarrationAudioRemovalTests.swift"],
+  "localization_fragment": "docs/localization/template-narration-audio-clear.json",
+  "integration_note": "Use the normal project generator during integration; merge the catalog fragment additively. No central project or catalog edits are included in this feature patch."
+}

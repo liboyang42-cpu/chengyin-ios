@@ -1,0 +1,274 @@
+{
+  "merchant.participation.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Participation plan (local)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "参与安排（本地）"
+        }
+      }
+    }
+  },
+  "merchant.participation.localOnly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "These fields stay in this editing session only. They are not sent or saved to the server; leaving, reloading or discarding removes them. A draft with this plan cannot be submitted."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这些字段只保留在本次编辑中，不发送或保存到服务端；离开、刷新或放弃修改会移除。含此安排的草稿暂不能提交。"
+        }
+      }
+    }
+  },
+  "merchant.participation.localOnlyAction": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Local review only; submission unavailable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅本地审阅，暂不能提交"
+        }
+      }
+    }
+  },
+  "merchant.participation.add": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Add local participation plan"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "添加本地参与安排"
+        }
+      }
+    }
+  },
+  "merchant.participation.remove": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove local participation plan"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除本地参与安排"
+        }
+      }
+    }
+  },
+  "merchant.participation.duration": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Participation time (minutes)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "参与时长（分钟）"
+        }
+      }
+    }
+  },
+  "merchant.participation.capacity": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Maximum participants"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "人数上限"
+        }
+      }
+    }
+  },
+  "merchant.participation.staffing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Employee involvement"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "是否需要员工"
+        }
+      }
+    }
+  },
+  "merchant.participation.staffing.unspecified": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose employee involvement"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择是否需要员工"
+        }
+      }
+    }
+  },
+  "merchant.participation.staffing.selfGuided": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No employee required"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "不需要员工"
+        }
+      }
+    }
+  },
+  "merchant.participation.staffing.staffRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Employee required"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "需要员工"
+        }
+      }
+    }
+  },
+  "merchant.participation.durationInvalid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter participation time as a positive whole number of minutes."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写大于零的整数分钟数。"
+        }
+      }
+    }
+  },
+  "merchant.participation.capacityInvalid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter a positive whole-number participant limit."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写大于零的整数人数上限。"
+        }
+      }
+    }
+  },
+  "merchant.participation.staffingRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose whether an employee is required."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择是否需要员工。"
+        }
+      }
+    }
+  },
+  "merchant.participation.reviewTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Local participation plan to review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "审阅本地参与安排"
+        }
+      }
+    }
+  },
+  "merchant.participation.reviewBoundary": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Planning details are not proof of staffing, opening hours, capacity, safety approval or publication. Existing server facts, stock and rewards remain authoritative."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "规划内容不代表已确认员工、营业时间、场地容量、安全审核或发布。既有服务端事实、库存与奖励保持权威。"
+        }
+      }
+    }
+  }
+}

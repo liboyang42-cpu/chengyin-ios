@@ -285,6 +285,48 @@ public enum MerchantTemplateMethod: Int, CaseIterable {
     case secretWord = 1, photo, quiz, posterCode, gps
     public var titleKey: String { "merchant.operations.method.\(rawValue)" }
 }
+/// Merchant-confirmed planning facts for this editing session only. The current native
+/// save contract has no mapping for this group; never enter it in AI or API payloads.
+public struct MerchantTemplateParticipationPlan: Equatable {
+    public enum Staffing: String, CaseIterable {
+        case unspecified, selfGuided, staffRequired
+        public var titleKey: String { "merchant.participation.staffing." + rawValue }
+    }
+    public var durationMinutes = ""
+    public var maximumParticipants = ""
+    public var staffing: Staffing = .unspecified
+    public init() {}
+    public var blocker: String? {
+        if Self.positiveInteger(durationMinutes) == nil { return "merchant.participation.durationInvalid" }
+        if Self.positiveInteger(maximumParticipants) == nil { return "merchant.participation.capacityInvalid" }
+        if staffing == .unspecified { return "merchant.participation.staffingRequired" }
+        return nil
+    }
+    /// Accept only whole, positive decimal counts, never signs, fractions or exponents.
+    public static func positiveInteger(_ text: String) -> Int? {
+        let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty, value.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }),
+              let number = Int(value), number > 0 else { return nil }
+        return number
+    }
+}
+
+/// Manually authored contingencies for this editing session, not approved runtime
+/// branches. No server decode or write mapping is inferred from these local fields.
+public struct MerchantTemplateExitPlan: Equatable {
+    public static let maximumTextLength = 600
+    public var offlineAlternative = ""
+    public var failureExit = ""
+    public init() {}
+    public var blocker: String? {
+        if offlineAlternative.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return "merchant.exitPlan.offlineRequired" }
+        if offlineAlternative.utf16.count > Self.maximumTextLength { return "merchant.exitPlan.textLimit" }
+        if failureExit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return "merchant.exitPlan.exitRequired" }
+        if failureExit.utf16.count > Self.maximumTextLength { return "merchant.exitPlan.textLimit" }
+        return nil
+    }
+}
+
 public struct MerchantNodeTemplate: Decodable, Equatable {
     public var id: Int?
     public var title = ""
@@ -300,6 +342,10 @@ public struct MerchantNodeTemplate: Decodable, Equatable {
     public var correctAnswer = ""
     public var feedbackText = ""
     public var couponID: Int?
+    /// Nil preserves legacy drafts. Adding a plan explicitly opts into local-only review.
+    public var participationPlan: MerchantTemplateParticipationPlan?
+    /// Explicit, independent opt-in; held only until this edit session ends.
+    public var exitPlan: MerchantTemplateExitPlan?
     public init() {}
     private enum CodingKeys: String, CodingKey {
         case id, title, description, imgUrl, validationMethod, questionAnswer, questionName, questionA, questionB, questionC, questionD, correctAnswer, feedbackText, couponId
@@ -332,8 +378,9 @@ public struct MerchantNodeTemplate: Decodable, Equatable {
             let key = correctAnswer.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
             guard let index = ["A", "B", "C", "D"].firstIndex(of: key), !options[index].isEmpty else { return "merchant.operations.correctRequired" }
         }
-        return nil
+        return participationPlan?.blocker ?? exitPlan?.blocker
     }
+    /// Exact legacy wire fields only. A local participation plan is not a server fact.
     public var fields: [String: Any] {
         var fields: [String: Any] = ["title": title.trimmingCharacters(in: .whitespacesAndNewlines)]
         if let id { fields["id"] = id }; if let method { fields["validationMethod"] = method.rawValue }

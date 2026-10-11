@@ -49,7 +49,7 @@ def _validate_reviewed_config(config):
     rule = config["rules"][0]
     _require(set(rule) == {"id", "allowlists"})
     _require(rule["id"] == "generic-api-key")
-    _require(isinstance(rule["allowlists"], list) and len(rule["allowlists"]) == 1)
+    _require(isinstance(rule["allowlists"], list) and len(rule["allowlists"]) == 2)
     allow = rule["allowlists"][0]
     _require(set(allow) == {"description", "condition", "regexTarget", "paths", "regexes"})
     _require(isinstance(allow["description"], str) and allow["description"])
@@ -57,7 +57,13 @@ def _validate_reviewed_config(config):
     _require(allow["regexTarget"] == "secret")
     _require(allow["paths"] == EXPECTED_PATH_REGEXES)
     _require(allow["regexes"] == EXPECTED_DIGEST_REGEXES)
-    return allow
+    readiness = rule["allowlists"][1]
+    _require(set(readiness) == {"description", "condition", "regexTarget", "paths", "regexes"})
+    _require(isinstance(readiness["description"], str) and readiness["description"])
+    _require(readiness["condition"] == "AND" and readiness["regexTarget"] == "secret")
+    _require(readiness["paths"] == [r"^tools/run138_editor_readiness_contract\.json$"])
+    _require(readiness["regexes"] == [EXPECTED_DIGEST_REGEXES[0]])
+    return allow, readiness
 
 
 def _exception_applies(config, rule_id, path, extracted_value):
@@ -66,10 +72,11 @@ def _exception_applies(config, rule_id, path, extracted_value):
 fullmatch avoids Python '$' accepting a final newline; Go's configured '$' is
 end-of-text. This helper models this one exception, not Gitleaks detection.
 """
-    allow = _validate_reviewed_config(config)
-    return (rule_id == "generic-api-key"
-            and any(re.fullmatch(pattern, path) for pattern in allow["paths"])
-            and any(re.fullmatch(pattern, extracted_value) for pattern in allow["regexes"]))
+    allowed = _validate_reviewed_config(config)
+    return (rule_id == "generic-api-key" and any(
+            any(re.fullmatch(pattern, path) for pattern in allow["paths"])
+            and any(re.fullmatch(pattern, extracted_value) for pattern in allow["regexes"])
+            for allow in allowed))
 
 
 def _embedded_digest_maps(text):
@@ -121,6 +128,22 @@ class GitleaksExactSourceDigestTests(unittest.TestCase):
             for reviewed in REVIEWED_DIGESTS:
                 with self.subTest(path=relative, digest=reviewed):
                     self.assertTrue(_exception_applies(self.config, "generic-api-key", relative, reviewed))
+
+    def test_readiness_exception_is_separate_one_digest_one_path_and_still_bound_to_source(self):
+        path = "tools/run138_editor_readiness_contract.json"
+        self.assertTrue(_exception_applies(self.config, "generic-api-key", path, REVIEWED_DIGESTS[0]))
+        for value in (REVIEWED_DIGESTS[1], "0" * 64, REVIEWED_DIGESTS[0] + "0"):
+            self.assertFalse(_exception_applies(self.config, "generic-api-key", path, value))
+        for other in (path + ".bak", "shadow/" + path, "tools/other.json"):
+            self.assertFalse(_exception_applies(self.config, "generic-api-key", other, REVIEWED_DIGESTS[0]))
+        self.assertFalse(_exception_applies(self.config, "github-pat", path, REVIEWED_DIGESTS[0]))
+        contract = json.loads((ROOT / path).read_text())
+        self.assertEqual(contract["current_ui_sources"]["WeChatAppAuthFlowTests.swift"], REVIEWED_DIGESTS[0])
+        for key, value in (("condition", "OR"), ("regexTarget", "line"),
+                           ("paths", [".*"]), ("regexes", EXPECTED_DIGEST_REGEXES)):
+            changed = deepcopy(self.config)
+            changed["rules"][0]["allowlists"][1][key] = value
+            with self.assertRaises(AssertionError): _validate_reviewed_config(changed)
 
     def test_same_path_different_values_are_never_covered(self):
         different = [hashlib.sha256(b"synthetic negative control, not a credential").hexdigest()]

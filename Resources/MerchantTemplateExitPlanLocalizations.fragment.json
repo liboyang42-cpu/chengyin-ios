@@ -1,0 +1,189 @@
+{
+  "merchant.exitPlan.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Offline and exit plan (local)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "断网与退出预案（本地）"
+        }
+      }
+    }
+  },
+  "merchant.exitPlan.add": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Add local offline and exit plan"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "添加本地断网与退出预案"
+        }
+      }
+    }
+  },
+  "merchant.exitPlan.remove": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove local offline and exit plan"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除本地断网与退出预案"
+        }
+      }
+    }
+  },
+  "merchant.exitPlan.offline": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Alternative when offline"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "断网时的替代方式"
+        }
+      }
+    }
+  },
+  "merchant.exitPlan.failureExit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Steps to stop or leave safely"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "失败或中止时的退出步骤"
+        }
+      }
+    }
+  },
+  "merchant.exitPlan.instructionsHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Describe a non-digital alternative and how participants can stop or leave. Keep each instruction within 600 characters. This does not activate offline gameplay or approve a route."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "填写不依赖网络的替代方式，以及参与者停止或离开的步骤。每项不超过600字符。这不会启用离线玩法或批准路线。"
+        }
+      }
+    }
+  },
+  "merchant.exitPlan.offlineRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Describe what participants should do when the connection is unavailable."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写断网时参与者可以采用的替代方式。"
+        }
+      }
+    }
+  },
+  "merchant.exitPlan.exitRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Describe how participants can stop or leave if the activity fails or they choose to exit."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写活动失败或参与者主动中止时的退出步骤。"
+        }
+      }
+    }
+  },
+  "merchant.exitPlan.textLimit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Each instruction must stay within the 600-character limit."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "每项预案说明不能超过600字符。"
+        }
+      }
+    }
+  },
+  "merchant.exitPlan.reviewTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Local offline and exit plan to review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "审阅本地断网与退出预案"
+        }
+      }
+    }
+  },
+  "merchant.exitPlan.reviewBoundary": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "These are unapproved planning notes for this editing session. They do not confirm a safe or accessible route, cancel an order, issue a refund or grant a reward. No runtime fallback is enabled."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这些是本次编辑中的待审预案，不代表已确认路线安全或无障碍，也不会取消订单、退款或发放奖励。未启用运行时替代分支。"
+        }
+      }
+    }
+  }
+}

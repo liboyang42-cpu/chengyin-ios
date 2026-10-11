@@ -1,0 +1,42 @@
+{
+  "roam.share.savePhotos": {
+    "en": "Save to Photos",
+    "zh-Hans": "保存到相册"
+  },
+  "roam.share.retrySavePhotos": {
+    "en": "Retry saving",
+    "zh-Hans": "重试保存"
+  },
+  "roam.share.savingPhotos": {
+    "en": "Saving to Photos…",
+    "zh-Hans": "正在保存到相册…"
+  },
+  "roam.share.savedPhotos": {
+    "en": "Saved to Photos",
+    "zh-Hans": "已保存到相册"
+  },
+  "roam.share.photoPermissionDenied": {
+    "en": "Allow this app to add photos in Settings, then return and retry saving.",
+    "zh-Hans": "请在设置中允许本应用添加照片，返回后重试保存。"
+  },
+  "roam.share.photoPermissionRestricted": {
+    "en": "Saving photos is restricted on this device. Retry after the restriction is removed.",
+    "zh-Hans": "此设备限制了照片保存。限制解除后可重试。"
+  },
+  "roam.share.photoSaveUnavailable": {
+    "en": "Photo saving is not configured in this app build. You can still use the system share sheet.",
+    "zh-Hans": "当前应用版本尚未配置相册保存，仍可使用系统分享。"
+  },
+  "roam.share.photoSaveFailed": {
+    "en": "The card could not be saved. Retry saving the prepared card.",
+    "zh-Hans": "足迹卡保存失败，可重试保存已生成的卡片。"
+  },
+  "roam.share.openPhotoSettings": {
+    "en": "Open Settings",
+    "zh-Hans": "打开设置"
+  },
+  "roam.share.photoSaveSourceChanged": {
+    "en": "This saved walk changed or is no longer readable. Close this card and reopen the walk to prepare a new one.",
+    "zh-Hans": "这条漫游记录已更改或暂时无法读取。请关闭足迹卡，重新打开记录并生成新卡片。"
+  }
+}
