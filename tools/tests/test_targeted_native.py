@@ -20,8 +20,10 @@ spec = importlib.util.spec_from_file_location('targeted_native_runner', TOOLS / 
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
 CURRENT_TOOLS = TOOLS
-CURRENT_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')
+PORTABLE_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')
 CURRENT_SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))
+runner.validate_portable_selection(PORTABLE_SELECTION, CURRENT_SOURCE)
+CURRENT_SELECTION = runner.portable_predecessor_selection(PORTABLE_SELECTION)
 
 
 def c2af_test_inputs(selection, current):
@@ -1766,7 +1768,34 @@ class FixedPublicCreatorRead(unittest.TestCase):
 
 
 ORIGINAL83_IDENTITIES = ('SelectionAndCommands.test_actual_bound_source_and_all_65_declarations', 'SelectionAndCommands.test_original_29_methods_are_preserved_and_only_16_added', 'SelectionAndCommands.test_per_method_source_binding_rejects_missing_swapped_duplicate_and_wrong_target', 'SelectionAndCommands.test_repinned_changed_method_and_duplicate_source_declaration_fail', 'SelectionAndCommands.test_duplicate_declaration_is_not_a_unique_method', 'SelectionAndCommands.test_nonboolean_version_and_exact_contract', 'SelectionAndCommands.test_changed_source_hash_and_missing_guard_rejected', 'SelectionAndCommands.test_empty_duplicate_target_and_wildcard_selectors_rejected', 'SelectionAndCommands.test_core_filter_is_exact_set_without_full_suite_fallback', 'SelectionAndCommands.test_every_xcode_method_has_its_own_exact_filter', 'SelectionAndCommands.test_workflow_remains_additive_standard_and_independent', 'SelectionAndCommands.test_original_gates_project_schemes_and_product_sources_are_unchanged', 'ReviewedCompileRepair.test_complete_predecessors_and_unrelated_contract_semantics_are_preserved', 'ReviewedCompileRepair.test_real_central_projection_accepts_current_support_and_exact_inverse', 'ReviewedCompileRepair.test_repair_inverse_rejects_off_hunk_changes_even_with_rehashed_postimage', 'Results.test_xunit_reads_all_forty_four_real_cases', 'Results.test_core_transcript_proves_execution_beyond_swiftpm_xunit', 'Results.test_xunit_failures_skips_and_unknown_status_cannot_pass', 'Results.test_modern_xcresult_exact_target_and_method_set', 'Results.test_xcresult_missing_wrong_target_bad_identifier_and_unknown_schema', 'Results.test_target_url_binding_must_not_override_wrong_bundle', 'Results.test_zero_omitted_extra_duplicate_failed_skipped_timeout_and_cancel_fail', 'Results.test_hidden_repetitions_and_xunit_summary_disagreement_fail', 'Results.test_summary_counts_actual_device_and_no_boolean_counts', 'RuntimeBoundaries.test_single_installed_iphone_and_no_automatic_other_device', 'RuntimeBoundaries.test_run_requires_hosted_mac_exact_repo_branch_and_event', 'RuntimeBoundaries.test_process_exit_is_real_and_timeout_never_passes', 'RuntimeBoundaries.test_core_build_is_once_before_exact_execution_and_failure_stops', 'RuntimeBoundaries.test_core_capture_keeps_stderr_live_and_limits_only_evidence', 'RuntimeBoundaries.test_every_cleanup_wait_is_bounded_even_after_kill', 'RuntimeBoundaries.test_product_target_selection_supports_only_safe_testhost_tokens', 'RuntimeBoundaries.test_product_directory_alias_returns_canonical_safe_run', 'RuntimeBoundaries.test_ambiguous_products_and_extra_target_fail', 'RuntimeBoundaries.test_inventory_detects_product_mutation_and_escaping_links', 'RuntimeBoundaries.test_scope_requires_exact_sha_base_and_nineteen_exact_statuses', 'RuntimeBoundaries.test_duplicate_json_keys_rejected', 'RuntimeBoundaries.test_missing_receipt_reports_not_run', 'ReceiptIdentity.test_exact_same_run_sha_tree_configuration_and_65_results', 'ReceiptIdentity.test_report_revalidates_real_exported_files_not_just_receipt_counts', 'ReceiptIdentity.test_other_run_attempt_sha_tree_selection_or_workflow_rejected', 'ReceiptIdentity.test_missing_or_wrong_configuration_toolchain_simulator_or_group_rejected', 'CreatorCurrentTreeAndCounts.test_every_creator_current_tree_mode_blob_and_presence_is_exact', 'CreatorCurrentTreeAndCounts.test_receipt_counts_are_real_integers_and_outer_fields_are_exact', 'Creator65Contract.test_original_45_exact_bindings_plus_independent_20_are_exactly_65', 'Creator65Contract.test_each_of_the_65_methods_has_one_declaration_in_its_exact_source', 'Creator65Contract.test_each_new_method_rejects_repinned_replacement_or_wrong_source', 'Creator65Contract.test_each_new_declaration_is_checked_before_creator_image_validation', 'Creator65Contract.test_new_source_binding_cannot_be_dropped_even_after_outer_repin', 'Creator65Contract.test_core_44_requires_both_complete_independent_execution_streams', 'Creator65Contract.test_old_45_receipt_cannot_be_upgraded_by_renaming_or_recounting', 'Creator65Contract.test_each_new_method_is_required_in_the_65_receipt', 'Creator65Contract.test_creator_15_and_diagnostic_4_have_exact_independent_statuses', 'Creator65Contract.test_all_creator_current_bytes_sha_and_git_blobs_are_independently_bound', 'Creator65Contract.test_creator_missing_duplicate_reordered_and_changed_rows_reject_outer_repin', 'Creator65Contract.test_every_creator_path_rejects_changed_real_current_bytes', 'Creator65Contract.test_added_files_cannot_be_rehashed_or_claim_predecessors_or_hunks', 'Creator65Contract.test_modified_creator_inverse_requires_complete_predecessor', 'Creator65Contract.test_creator_baseline_requires_each_modified_blob_and_all_four_additions_absent', 'Creator65Contract.test_each_creator_current_sha_and_blob_check_remains_active_after_inner_repin', 'Creator65Contract.test_each_creator_current_file_must_exist_as_a_regular_checkout_file', 'Creator65Contract.test_added_file_null_predecessor_and_empty_hunks_are_independently_enforced', 'ShallowCheckoutBoundaries.test_current_bytes_validate_without_history_but_real_run_scope_requires_it', 'ShallowCheckoutBoundaries.test_real_git_witness_proves_predecessors_and_addition_absence_without_parent_history', 'StaticRepairBinding.test_exact_published_base_nine_paths_and_old_domains_remain_separate', 'StaticRepairBinding.test_complete_current_payload_inverts_to_independent_b75_bytes', 'StaticRepairBinding.test_manifest_cannot_widen_or_change_under_outer_repin', 'StaticRepairBinding.test_every_payload_checks_real_bytes_sha_blob_and_regular_file', 'StaticRepairBinding.test_inverse_rejects_rehashed_off_hunk_and_fabricated_addition_predecessors', 'StaticRepairBinding.test_actual_parent_nine_path_scope_and_receipt_cannot_claim_old_scope', 'StaticRepairBinding.test_each_baseline_and_current_tree_mode_blob_and_addition_absence', 'StaticRepairBinding.test_real_git_subset_witness_binds_b75_payload_and_current_mode_blobs', 'PublishedParentBridge.test_exact_eight_path_parent_bridge_preserves_old_source_domains', 'PublishedParentBridge.test_current_to_true_parent_to_b75_inverses_match_every_historical_source', 'PublishedParentBridge.test_parent_bridge_rejects_repinned_missing_reordered_or_expanded_inputs', 'PublishedParentBridge.test_each_parent_inverse_rejects_rehashed_off_hunk_and_changed_real_sources', 'PublishedParentBridge.test_every_real_parent_bridge_tree_mode_blob_and_presence_is_exact', 'PublishedParentBridge.test_parent_history_and_receipts_cannot_relabel_b75_as_current_parent', 'FixedPublicCreatorRead.test_present_exact_object_never_fetches_or_inspects_network_configuration', 'FixedPublicCreatorRead.test_missing_object_uses_one_whitelisted_bounded_noninteractive_public_read', 'FixedPublicCreatorRead.test_offline_timeout_or_unreadable_config_fail_closed_without_retry', 'FixedPublicCreatorRead.test_existing_or_fetched_wrong_tree_parent_or_duplicate_parent_is_rejected', 'FixedPublicCreatorRead.test_credential_redirect_include_and_auth_configuration_never_reach_fetch', 'FixedPublicCreatorRead.test_public_target_cannot_be_generalized_by_changing_fixed_identity')
-ORIGINAL83_AST_SHA256 = '311e211931cdd9dece95a664fcebd7ded868e5a15e323f3565cdc4e504729044'
+ORIGINAL83_SOURCE_SHA256 = 'dba749c01625197f25d498342708d4e03f9c7fe10c48416b4099bda4863d2c84'
+
+
+
+def original83_source_blocks(raw):
+    """Retain every original byte from decorators through each complete method."""
+    tree = ast.parse(raw.decode('utf-8'))
+    lines = raw.splitlines(keepends=True)
+    found = {}
+    for cls in tree.body:
+        if not isinstance(cls, ast.ClassDef): continue
+        for node in cls.body:
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)): continue
+            identity = cls.name + '.' + node.name
+            if identity not in ORIGINAL83_IDENTITIES: continue
+            if identity in found: raise ValueError('Duplicate original method identity')
+            first = min([node.lineno] + [d.lineno for d in node.decorator_list])
+            found[identity] = b''.join(lines[first - 1:node.end_lineno]).decode('utf-8')
+    if len(found) != 83 or set(found) != set(ORIGINAL83_IDENTITIES):
+        raise ValueError('Missing original83 complete source identity')
+    return found
+
+
+def verify_original83_source(raw):
+    found = original83_source_blocks(raw)
+    if runner.hashlib.sha256(runner.encode(found).encode()).hexdigest() != ORIGINAL83_SOURCE_SHA256:
+        raise ValueError('Changed complete original83 method source bytes')
+    return found
 
 
 class NativeC2afBoundary(unittest.TestCase):
@@ -1777,20 +1806,15 @@ class NativeC2afBoundary(unittest.TestCase):
         for relative in runner.NATIVE_PATHS:
             destination = root / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_bytes((CURRENT_SOURCE / relative).read_bytes())
+            destination.write_bytes(runner.portable_f04_source(relative, (CURRENT_SOURCE / relative).read_bytes()))
         return root
 
     def rows_pin(self, selection):
         return runner.hashlib.sha256(runner.encode(selection['native_repair']['payload_changes']).encode()).hexdigest()
 
-    def test_original83_complete_method_asts_are_unchanged(self):
-        tree = ast.parse((CURRENT_TOOLS / 'tests/test_targeted_native.py').read_text())
-        found = {cls.name + '.' + node.name: ast.dump(node, include_attributes=False)
-                 for cls in tree.body if isinstance(cls, ast.ClassDef)
-                 for node in cls.body if isinstance(node, ast.FunctionDef)
-                 and cls.name + '.' + node.name in ORIGINAL83_IDENTITIES}
-        self.assertEqual(len(found), 83)
-        self.assertEqual(runner.hashlib.sha256(runner.encode(found).encode()).hexdigest(), ORIGINAL83_AST_SHA256)
+    def test_original83_complete_method_sources_are_unchanged(self):
+        raw = (CURRENT_TOOLS / 'tests/test_targeted_native.py').read_bytes()
+        self.assertEqual(len(verify_original83_source(raw)), 83)
 
     def test_new14_old15_history34_history19_and_original65_remain_separate(self):
         self.assertEqual(runner.NATIVE_BASE_COMMIT, 'c2af90a5e11a789ca8dc99eb8daae2c1e84e0700')
@@ -2081,6 +2105,176 @@ class FixedPublicRepairRead(unittest.TestCase):
                     return headers
                 with mock.patch.object(runner, 'checked', side_effect=read), mock.patch.object(runner, 'execute', side_effect=[(0, b'core.bare\n'), (0, b'')]), self.assertRaises(ValueError):
                     runner.ensure_repair_commit(CURRENT_SOURCE)
+
+
+class PortableDiagnosticBoundary(unittest.TestCase):
+    def test_complete_original83_sources_reject_body_decorator_comment_missing_duplicate_and_line_endings(self):
+        raw = (CURRENT_TOOLS / 'tests/test_targeted_native.py').read_bytes()
+        found = verify_original83_source(raw)
+        segment = next(value for value in found.values() if 'self.assert' in value).encode()
+        mutants = [raw.replace(segment, segment.replace(b'self.assert', b'self.asserX', 1), 1),
+                   raw.replace(segment, b'    @unittest.skip("mutated")\n' + segment, 1),
+                   raw.replace(segment, segment.replace(b'\n', b' # changed\n', 1), 1),
+                   raw.replace(segment, b'', 1), raw.replace(segment, segment + b'\n' + segment, 1),
+                   raw.replace(b'\n', b'\r\n'), raw.replace(b'\n', b'\r')]
+        for mutant in mutants:
+            with self.assertRaises((ValueError, SyntaxError)): verify_original83_source(mutant)
+
+    def test_exact_f04_selection_source_and_four_path_layer_are_mandatory(self):
+        self.assertEqual(runner.portable_predecessor_selection(PORTABLE_SELECTION), CURRENT_SELECTION)
+        self.assertEqual(runner.PORTABLE_BASE_COMMIT, 'f04f1cab7ef92afcafcdbde411dde71b4a605820')
+        self.assertEqual(runner.PORTABLE_BASE_TREE, '75569d4e6d8ed5c23ee9865164a8d01c2e346116')
+        self.assertEqual(tuple(runner.PORTABLE_PATHS), ('tools/run_targeted_native.py',
+                         'tools/targeted_native_selection.json', 'tools/tests/test_targeted_native.py',
+                         'tools/tests/test_run138_current_ci_entry.py'))
+        for mode in ('missing', 'extra', 'wrong-base', 'extra-path', 'old-method', 'key-order'):
+            changed = copy.deepcopy(PORTABLE_SELECTION)
+            if mode == 'missing': changed.pop('portable_diagnostics')
+            elif mode == 'extra': changed['unknown'] = True
+            elif mode == 'wrong-base': changed['portable_diagnostics']['base_commit'] = runner.NATIVE_BASE_COMMIT
+            elif mode == 'extra-path': changed['portable_diagnostics']['allowed_changes'].append('M\tApp/Unexpected.swift')
+            elif mode == 'old-method': changed['groups'][0]['methods'][0] += 'Changed'
+            else: changed = dict(reversed(list(changed.items())))
+            with self.subTest(mode=mode), self.assertRaises(ValueError):
+                runner.portable_predecessor_selection(changed)
+
+    def test_all_four_actual_current_files_and_both_tree_authorities_are_strict(self):
+        runner.validate_portable_selection(PORTABLE_SELECTION, CURRENT_SOURCE)
+        with tempfile.TemporaryDirectory(prefix='portable-three-control-') as directory:
+            root = Path(directory)
+            for relative in runner.PORTABLE_PATHS:
+                target = root / relative; target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes((CURRENT_SOURCE / relative).read_bytes())
+            for relative in runner.PORTABLE_PATHS:
+                target = root / relative; raw = target.read_bytes(); stamp = target.stat()
+                target.write_bytes(bytes([raw[0] ^ 1]) + raw[1:]); os.utime(target, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+                with self.assertRaises(ValueError): runner.validate_portable_selection(PORTABLE_SELECTION, root)
+                target.unlink()
+                with self.assertRaises(ValueError): runner.validate_portable_selection(PORTABLE_SELECTION, root)
+                target.symlink_to(CURRENT_SOURCE / relative)
+                with self.assertRaises(ValueError): runner.validate_portable_selection(PORTABLE_SELECTION, root)
+                target.unlink(); target.write_bytes(raw)
+        for before in (True, False):
+            blobs = runner.PORTABLE_BEFORE_BLOBS if before else {p:runner.blob_id((CURRENT_SOURCE/p).read_bytes()) for p in runner.PORTABLE_PATHS}
+            rows = ['100644 blob ' + blob + '\t' + p for p,blob in blobs.items()]
+            with mock.patch.object(runner,'checked',return_value='\0'.join(rows)+'\0'):
+                self.assertEqual(len(runner.verify_portable_tree(CURRENT_SOURCE,'synthetic',before=before)),4)
+            for i in range(4):
+                for mode in ('missing','mode','blob','duplicate'):
+                    bad=list(rows)
+                    if mode=='missing':bad.pop(i)
+                    elif mode=='mode':bad[i]=bad[i].replace('100644','100755')
+                    elif mode=='blob':bad[i]=re.sub('[a-f0-9]{40}','0'*40,bad[i],count=1)
+                    else:bad.append(bad[i])
+                    with mock.patch.object(runner,'checked',return_value='\0'.join(bad)+'\0'),self.assertRaises(ValueError):
+                        runner.verify_portable_tree(CURRENT_SOURCE,'synthetic',before=before)
+
+    def test_entry_test_inverse_preserves_exact_f04_and_rejects_old_current_or_off_hunk(self):
+        relative = 'tools/tests/test_run138_current_ci_entry.py'
+        raw = (CURRENT_SOURCE / relative).read_bytes()
+        row = runner.PORTABLE_SOURCE_ROWS[relative]
+        self.assertEqual(runner.hashlib.sha256(runner.portable_f04_source(relative, raw)).hexdigest(),
+                         '08766906799a3069dea21b563d6072fff81e543bb14ddc6938a9b5e043529367')
+        self.assertEqual(runner.hashlib.sha256(raw).hexdigest(),
+                         '2ee4f0dac630e697d10d06595a1ac257d50d49f9ef421ef9f0c1549e5f516f08')
+        for mutant in (raw + b'\n', raw.replace(row['hunks'][0]['after'].encode(), b'', 1),
+                       raw + row['hunks'][0]['after'].encode()):
+            with self.assertRaises(ValueError): runner.portable_f04_source(relative, mutant)
+        original = Path.read_bytes
+        def read(path):
+            return runner.portable_f04_source(relative, raw) if path == CURRENT_SOURCE / relative else original(path)
+        with mock.patch.object(Path, 'read_bytes', read), self.assertRaises(ValueError):
+            runner.validate_portable_selection(PORTABLE_SELECTION, CURRENT_SOURCE)
+
+    def transport(self, command, root):
+        if command[1:3] == ['rev-parse',runner.PORTABLE_BASE_COMMIT+'^{tree}']:return runner.PORTABLE_BASE_TREE
+        if command[1:3] == ['cat-file','-p']:
+            if command[3]=='a'*40:return 'tree '+'b'*40+'\nparent '+runner.PORTABLE_BASE_COMMIT+'\n\nCurrent portable witness'
+            if command[3]==runner.PORTABLE_BASE_COMMIT:return 'tree '+runner.PORTABLE_BASE_TREE+'\nparent '+runner.NATIVE_BASE_COMMIT+'\n\nPublished f04 witness'
+        if command[1]=='diff' and command[3]==runner.PORTABLE_BASE_COMMIT:return '\n'.join(runner.PORTABLE_LAYER['allowed_changes'])
+        if command[1]=='ls-tree':
+            if tuple(command[5:])==runner.PORTABLE_PATHS:
+                blobs=runner.PORTABLE_BEFORE_BLOBS if command[3]==runner.PORTABLE_BASE_COMMIT else {p:runner.blob_id((root/p).read_bytes()) for p in runner.PORTABLE_PATHS}
+                return '\0'.join('100644 blob '+b+'\t'+p for p,b in blobs.items())+'\0'
+            if tuple(command[5:])==runner.NATIVE_PATHS and command[3]==runner.PORTABLE_BASE_COMMIT:
+                rows=['100644 blob '+r['after_blob']+'\t'+r['path'] for r in CURRENT_SELECTION['native_repair']['payload_changes']]
+                rows.extend('100644 blob '+runner.PORTABLE_BEFORE_BLOBS[p]+'\t'+p for p in runner.NATIVE_DIAGNOSTIC_BASE_BLOBS)
+                return '\0'.join(rows)+'\0'
+        return NativeC2afBoundary().native_transport(command,root)
+
+    def test_new4_and_published14_15_34_19_scope_cannot_be_relabelled(self):
+        with mock.patch.object(runner,'checked',side_effect=self.transport),mock.patch.dict(os.environ,{'GITHUB_SHA':'a'*40}):
+            identity=runner.verify_portable_scope(CURRENT_SOURCE,PORTABLE_SELECTION)
+            self.assertEqual(identity['source_sha'],'a'*40)
+            self.assertEqual(identity['source_tree'],'b'*40)
+            self.assertEqual(identity['portable_base_commit'],runner.PORTABLE_BASE_COMMIT)
+            self.assertEqual(identity['native_base_commit'],runner.NATIVE_BASE_COMMIT)
+        for mode in ('parent','merge','f04-tree','missing-path','extra-path','status','published14','dirty'):
+            def changed(command,root):
+                value=self.transport(command,root)
+                if command[1:4]==['cat-file','-p','a'*40]:
+                    if mode=='parent':return value.replace(runner.PORTABLE_BASE_COMMIT,runner.NATIVE_BASE_COMMIT)
+                    if mode=='merge':return value.replace('\n\n','\nparent '+'f'*40+'\n\n')
+                if command[1:3]==['rev-parse',runner.PORTABLE_BASE_COMMIT+'^{tree}'] and mode=='f04-tree':return '0'*40
+                if command[1]=='diff':
+                    if command[3]==runner.PORTABLE_BASE_COMMIT:
+                        if mode=='missing-path':return '\n'.join(value.splitlines()[:-1])
+                        if mode=='extra-path':return value+'\nM\tApp/Unexpected.swift'
+                        if mode=='status':return value.replace('M\t','A\t',1)
+                    if command[3]==runner.NATIVE_BASE_COMMIT and mode=='published14':return ''
+                if command[1]=='status' and mode=='dirty':return ' M App/Unexpected.swift'
+                return value
+            with mock.patch.object(runner,'checked',side_effect=changed),mock.patch.dict(os.environ,{'GITHUB_SHA':'a'*40}),self.assertRaises(ValueError):
+                runner.verify_portable_scope(CURRENT_SOURCE,PORTABLE_SELECTION)
+
+    def test_portable_receipt_requires_new_identity_before_original65_checks(self):
+        receipt,expected=ReceiptIdentity().receipt()
+        receipt.update(native_base_commit=runner.NATIVE_BASE_COMMIT,native_base_tree=runner.NATIVE_BASE_TREE,native_selection=runner.NATIVE_NAME)
+        with self.assertRaises(ValueError):runner.validate_portable_pass_receipt(receipt,expected,PORTABLE_SELECTION)
+        receipt.update(portable_base_commit=runner.PORTABLE_BASE_COMMIT,portable_base_tree=runner.PORTABLE_BASE_TREE,portable_selection=runner.PORTABLE_LAYER['name'])
+        runner.validate_portable_pass_receipt(receipt,expected,PORTABLE_SELECTION)
+        for field in ('portable_base_commit','portable_base_tree','portable_selection'):
+            bad=copy.deepcopy(receipt);bad[field]='wrong'
+            with self.assertRaises(ValueError):runner.validate_portable_pass_receipt(bad,expected,PORTABLE_SELECTION)
+        receipt['groups']['core']['actual'].pop()
+        with self.assertRaises(ValueError):runner.validate_portable_pass_receipt(receipt,expected,PORTABLE_SELECTION)
+
+
+class FixedPublicNativeRead(unittest.TestCase):
+    def headers(self):return 'tree '+runner.NATIVE_BASE_TREE+'\nparent '+runner.BASE_COMMIT+'\n\nSynthetic c2af metadata'
+    def present(self,command,root):
+        if command[1:3]==['cat-file','-e']:return ''
+        if command==['git','cat-file','-p',runner.NATIVE_BASE_COMMIT]:return self.headers()
+        raise AssertionError(command)
+    def missing(self,command,root):
+        if command[1:3]==['cat-file','-e']:raise ValueError('Missing c2af')
+        return self.present(command,root)
+    def test_present_c2af_never_fetches(self):
+        with mock.patch.object(runner,'checked',side_effect=self.present),mock.patch.object(runner,'execute') as execute:
+            runner.ensure_native_commit(CURRENT_SOURCE)
+        execute.assert_not_called()
+    def test_missing_c2af_is_one_exact_bounded_public_read(self):
+        with mock.patch.object(runner,'checked',side_effect=self.missing),mock.patch.object(runner,'execute',side_effect=[(0,b'core.bare\n'),(0,b'')]) as execute:
+            runner.ensure_native_commit(CURRENT_SOURCE)
+        self.assertEqual(execute.call_count,2)
+        args=execute.call_args_list[1].args;kwargs=execute.call_args_list[1].kwargs
+        self.assertEqual(args[0][-2:],['https://github.com/liboyang42-cpu/chengyin-ios.git',runner.NATIVE_BASE_COMMIT])
+        self.assertEqual(args[2],60);self.assertIn('--depth=1',args[0]);self.assertIn('http.followRedirects=false',args[0]);self.assertIn('credential.helper=',args[0])
+        self.assertEqual(kwargs['env']['GIT_TERMINAL_PROMPT'],'0');self.assertNotIn('GITHUB_TOKEN',kwargs['env'])
+    def test_bad_c2af_identity_config_timeout_and_parent_fail_closed(self):
+        for key in ('NATIVE_BASE_COMMIT','NATIVE_BASE_TREE'):
+            with mock.patch.object(runner,key,'0'*40),mock.patch.object(runner,'checked') as read,self.assertRaises(ValueError):runner.ensure_native_commit(CURRENT_SOURCE)
+            read.assert_not_called()
+        for config in (b'credential.helper\n',b'http.extraheader\n',b'url.bad.insteadof\n',b'include.path\n'):
+            with mock.patch.object(runner,'checked',side_effect=self.missing),mock.patch.object(runner,'execute',return_value=(0,config)) as execute,self.assertRaises(ValueError):runner.ensure_native_commit(CURRENT_SOURCE)
+            self.assertEqual(execute.call_count,1)
+        for result in ((1,b''),(124,b'')):
+            with mock.patch.object(runner,'checked',side_effect=self.missing),mock.patch.object(runner,'execute',side_effect=[(0,b'core.bare\n'),result]) as execute,self.assertRaises(ValueError):runner.ensure_native_commit(CURRENT_SOURCE)
+            self.assertEqual(execute.call_count,2)
+        for bad in (self.headers().replace(runner.NATIVE_BASE_TREE,'0'*40),self.headers().replace(runner.BASE_COMMIT,'0'*40),self.headers().replace('\n\n','\nparent '+'f'*40+'\n\n')):
+            def changed(command,root):return '' if command[1:3]==['cat-file','-e'] else bad
+            with mock.patch.object(runner,'checked',side_effect=changed),mock.patch.object(runner,'execute') as execute,self.assertRaises(ValueError):runner.ensure_native_commit(CURRENT_SOURCE)
+            execute.assert_not_called()
 
 
 if __name__ == '__main__':

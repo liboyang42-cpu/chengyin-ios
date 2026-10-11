@@ -221,6 +221,8 @@ class CurrentCIEntryTests(unittest.TestCase):
                 file = root / relative
                 raw = file.read_bytes()
                 alternative = raw.replace(b'WeChatApp\\u0041uth', b'WeChat\\u0041ppAuth')
+                if relative == 'tools/run138_editor_readiness_contract.json':
+                    alternative = raw.replace(b'WeChatAppAuth', b'WeChatApp\\u0041uth', 1)
                 self.assertNotEqual(alternative, raw)
                 self.assertEqual(json.loads(alternative), json.loads(raw))
                 for mutant in (alternative, raw + b'\n', b''):

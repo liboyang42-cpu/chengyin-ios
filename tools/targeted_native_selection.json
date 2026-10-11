@@ -1752,5 +1752,39 @@
       "tools/targeted_native_selection.json": "02ae2c0e2092a40257ecf8e9aca83f5776470853",
       "tools/tests/test_targeted_native.py": "7ad4998ec65832b7ed5d8d97e806cc748015f970"
     }
+  },
+  "portable_diagnostics": {
+    "version": 1,
+    "name": "native-diagnostic-source-portability-v7",
+    "base_commit": "f04f1cab7ef92afcafcdbde411dde71b4a605820",
+    "base_tree": "75569d4e6d8ed5c23ee9865164a8d01c2e346116",
+    "allowed_changes": [
+      "M\ttools/run_targeted_native.py",
+      "M\ttools/targeted_native_selection.json",
+      "M\ttools/tests/test_targeted_native.py",
+      "M\ttools/tests/test_run138_current_ci_entry.py"
+    ],
+    "before_blobs": {
+      "tools/run_targeted_native.py": "2267a55673f9b73c07d9c8b25376ddc7bcc215b2",
+      "tools/targeted_native_selection.json": "96061e6ad4fdad7dfc3a7ba21d7812da8ac4d3ca",
+      "tools/tests/test_targeted_native.py": "6293c976bb333c5b25a667d6d218ec1cba734930",
+      "tools/tests/test_run138_current_ci_entry.py": "075aff96a46321527451fc3c358d109ff023fe0d"
+    },
+    "source_changes": {
+      "tools/tests/test_run138_current_ci_entry.py": {
+        "path": "tools/tests/test_run138_current_ci_entry.py",
+        "status": "M",
+        "before_sha256": "08766906799a3069dea21b563d6072fff81e543bb14ddc6938a9b5e043529367",
+        "before_blob": "075aff96a46321527451fc3c358d109ff023fe0d",
+        "after_sha256": "2ee4f0dac630e697d10d06595a1ac257d50d49f9ef421ef9f0c1549e5f516f08",
+        "after_blob": "57ae77dbe8d00c07c3505016a9f0d361bf663a2a",
+        "hunks": [
+          {
+            "before": "                raw = file.read_bytes()\n                alternative = raw.replace(b'WeChatApp\\\\u0041uth', b'WeChat\\\\u0041ppAuth')\n                self.assertNotEqual(alternative, raw)\n                self.assertEqual(json.loads(alternative), json.loads(raw))\n",
+            "after": "                raw = file.read_bytes()\n                alternative = raw.replace(b'WeChatApp\\\\u0041uth', b'WeChat\\\\u0041ppAuth')\n                if relative == 'tools/run138_editor_readiness_contract.json':\n                    alternative = raw.replace(b'WeChatAppAuth', b'WeChatApp\\\\u0041uth', 1)\n                self.assertNotEqual(alternative, raw)\n                self.assertEqual(json.loads(alternative), json.loads(raw))\n"
+          }
+        ]
+      }
+    }
   }
 }

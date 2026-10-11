@@ -606,6 +606,205 @@ def blob_id(raw):
     return hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
 
 
+PORTABLE_BASE_COMMIT = 'f04f1cab7ef92afcafcdbde411dde71b4a605820'
+PORTABLE_BASE_TREE = '75569d4e6d8ed5c23ee9865164a8d01c2e346116'
+PORTABLE_PATHS = ('tools/run_targeted_native.py',
+ 'tools/targeted_native_selection.json',
+ 'tools/tests/test_targeted_native.py',
+ 'tools/tests/test_run138_current_ci_entry.py')
+PORTABLE_BEFORE_BLOBS = {'tools/run_targeted_native.py': '2267a55673f9b73c07d9c8b25376ddc7bcc215b2',
+ 'tools/targeted_native_selection.json': '96061e6ad4fdad7dfc3a7ba21d7812da8ac4d3ca',
+ 'tools/tests/test_targeted_native.py': '6293c976bb333c5b25a667d6d218ec1cba734930',
+ 'tools/tests/test_run138_current_ci_entry.py': '075aff96a46321527451fc3c358d109ff023fe0d'}
+PORTABLE_LAYER = {'version': 1,
+ 'name': 'native-diagnostic-source-portability-v7',
+ 'base_commit': 'f04f1cab7ef92afcafcdbde411dde71b4a605820',
+ 'base_tree': '75569d4e6d8ed5c23ee9865164a8d01c2e346116',
+ 'allowed_changes': ['M\ttools/run_targeted_native.py',
+                     'M\ttools/targeted_native_selection.json',
+                     'M\ttools/tests/test_targeted_native.py',
+                     'M\ttools/tests/test_run138_current_ci_entry.py'],
+ 'before_blobs': {'tools/run_targeted_native.py': '2267a55673f9b73c07d9c8b25376ddc7bcc215b2',
+                  'tools/targeted_native_selection.json': '96061e6ad4fdad7dfc3a7ba21d7812da8ac4d3ca',
+                  'tools/tests/test_targeted_native.py': '6293c976bb333c5b25a667d6d218ec1cba734930',
+                  'tools/tests/test_run138_current_ci_entry.py': '075aff96a46321527451fc3c358d109ff023fe0d'},
+ 'source_changes': {'tools/tests/test_run138_current_ci_entry.py': {'path': 'tools/tests/test_run138_current_ci_entry.py',
+                                                                    'status': 'M',
+                                                                    'before_sha256': '08766906799a3069dea21b563d6072fff81e543bb14ddc6938a9b5e043529367',
+                                                                    'before_blob': '075aff96a46321527451fc3c358d109ff023fe0d',
+                                                                    'after_sha256': '2ee4f0dac630e697d10d06595a1ac257d50d49f9ef421ef9f0c1549e5f516f08',
+                                                                    'after_blob': '57ae77dbe8d00c07c3505016a9f0d361bf663a2a',
+                                                                    'hunks': [{'before': '                '
+                                                                                         'raw = '
+                                                                                         'file.read_bytes()\n'
+                                                                                         '                '
+                                                                                         'alternative = '
+                                                                                         "raw.replace(b'WeChatApp\\\\u0041uth', "
+                                                                                         "b'WeChat\\\\u0041ppAuth')\n"
+                                                                                         '                '
+                                                                                         'self.assertNotEqual(alternative, '
+                                                                                         'raw)\n'
+                                                                                         '                '
+                                                                                         'self.assertEqual(json.loads(alternative), '
+                                                                                         'json.loads(raw))\n',
+                                                                               'after': '                raw '
+                                                                                        '= '
+                                                                                        'file.read_bytes()\n'
+                                                                                        '                '
+                                                                                        'alternative = '
+                                                                                        "raw.replace(b'WeChatApp\\\\u0041uth', "
+                                                                                        "b'WeChat\\\\u0041ppAuth')\n"
+                                                                                        '                if '
+                                                                                        'relative == '
+                                                                                        "'tools/run138_editor_readiness_contract.json':\n"
+                                                                                        '                    '
+                                                                                        'alternative = '
+                                                                                        "raw.replace(b'WeChatAppAuth', "
+                                                                                        "b'WeChatApp\\\\u0041uth', "
+                                                                                        '1)\n'
+                                                                                        '                '
+                                                                                        'self.assertNotEqual(alternative, '
+                                                                                        'raw)\n'
+                                                                                        '                '
+                                                                                        'self.assertEqual(json.loads(alternative), '
+                                                                                        'json.loads(raw))\n'}]}}}
+PORTABLE_PRE_SELECTION_SHA256 = 'd7de3664b2c70ddf52d327dcf4ad539630d3b2315abc8e19a63c6fdcd52effe5'
+PORTABLE_SELECTION_SHA256 = 'c0ba9258fa046a0d5fc7acbf632deeedd9797619c4b1d8d07c632105ff00506d'
+PORTABLE_SELECTION_RAW_SHA256 = '6d7d4bdc8d71278e11b0086fb83bc95255bb0e3c31659f417cf73a9c372e6c2f'
+PORTABLE_TEST_SHA256 = '37b8a210e51c0c062964fedfd146313e53895fb255f4465db3eef0f0aaded993'
+PORTABLE_SOURCE_ROWS = {'tools/tests/test_run138_current_ci_entry.py': {'path': 'tools/tests/test_run138_current_ci_entry.py',
+                                                 'status': 'M',
+                                                 'before_sha256': '08766906799a3069dea21b563d6072fff81e543bb14ddc6938a9b5e043529367',
+                                                 'before_blob': '075aff96a46321527451fc3c358d109ff023fe0d',
+                                                 'after_sha256': '2ee4f0dac630e697d10d06595a1ac257d50d49f9ef421ef9f0c1549e5f516f08',
+                                                 'after_blob': '57ae77dbe8d00c07c3505016a9f0d361bf663a2a',
+                                                 'hunks': [{'before': '                raw = '
+                                                                      'file.read_bytes()\n'
+                                                                      '                alternative = '
+                                                                      "raw.replace(b'WeChatApp\\\\u0041uth', "
+                                                                      "b'WeChat\\\\u0041ppAuth')\n"
+                                                                      '                '
+                                                                      'self.assertNotEqual(alternative, '
+                                                                      'raw)\n'
+                                                                      '                '
+                                                                      'self.assertEqual(json.loads(alternative), '
+                                                                      'json.loads(raw))\n',
+                                                            'after': '                raw = '
+                                                                     'file.read_bytes()\n'
+                                                                     '                alternative = '
+                                                                     "raw.replace(b'WeChatApp\\\\u0041uth', "
+                                                                     "b'WeChat\\\\u0041ppAuth')\n"
+                                                                     '                if relative == '
+                                                                     "'tools/run138_editor_readiness_contract.json':\n"
+                                                                     '                    alternative = '
+                                                                     "raw.replace(b'WeChatAppAuth', "
+                                                                     "b'WeChatApp\\\\u0041uth', 1)\n"
+                                                                     '                '
+                                                                     'self.assertNotEqual(alternative, raw)\n'
+                                                                     '                '
+                                                                     'self.assertEqual(json.loads(alternative), '
+                                                                     'json.loads(raw))\n'}]}}
+
+def portable_predecessor_selection(selection):
+    """Authenticate the new diagnostic-only layer and restore exact published f04."""
+    require(isinstance(selection, dict) and 'portable_diagnostics' in selection,
+            'Missing mandatory portable diagnostic layer')
+    require(selection['portable_diagnostics'] == PORTABLE_LAYER,
+            'Changed exact four-path portable diagnostic layer')
+    require(hashlib.sha256(encode(selection).encode()).hexdigest() == PORTABLE_SELECTION_SHA256,
+            'Changed complete portable selection')
+    old = {key: value for key, value in selection.items() if key != 'portable_diagnostics'}
+    raw = (json.dumps(old, indent=2, ensure_ascii=True) + '\n').encode()
+    require(hashlib.sha256(raw).hexdigest() == PORTABLE_PRE_SELECTION_SHA256
+            and blob_id(raw) == PORTABLE_BEFORE_BLOBS[PATHS[1]],
+            'Complete published f04 selection bytes not restored')
+    return json.loads(json.dumps(old, ensure_ascii=True), object_pairs_hook=unique_object)
+
+
+def portable_f04_source(relative, raw):
+    """Exact reviewed entry-test predecessor for the historical native14 layer."""
+    if relative not in PORTABLE_SOURCE_ROWS: return raw
+    row = PORTABLE_SOURCE_ROWS[relative]
+    if hashlib.sha256(raw).hexdigest() == row['before_sha256'] and blob_id(raw) == row['before_blob']:
+        return raw  # Explicit f04 historical input; current validation below is stricter.
+    require(hashlib.sha256(raw).hexdigest() == row['after_sha256'] and blob_id(raw) == row['after_blob'],
+            'Changed complete portable entry-test source')
+    return inverse_reviewed_repair(row, raw)
+
+
+def validate_portable_selection(selection, root):
+    old = portable_predecessor_selection(selection)
+    for relative in PORTABLE_PATHS:
+        path = root / relative
+        require(not path.is_symlink() and path.is_file()
+                and path.resolve().is_relative_to(root.resolve()),
+                'Portable diagnostic is not a regular current source')
+    require(digest(root / PORTABLE_PATHS[0]) == NATIVE_IMPLEMENTATION_SHA256,
+            'Portable runner differs from authenticated loaded implementation')
+    require(digest(root / PORTABLE_PATHS[1]) == PORTABLE_SELECTION_RAW_SHA256,
+            'Changed actual portable selection source')
+    require(digest(root / PORTABLE_PATHS[2]) == PORTABLE_TEST_SHA256,
+            'Changed complete portable diagnostic controls')
+    for relative, row in PORTABLE_SOURCE_ROWS.items():
+        raw = (root / relative).read_bytes()
+        require(hashlib.sha256(raw).hexdigest() == row['after_sha256'] and blob_id(raw) == row['after_blob'],
+                'Current entry-test cannot use its f04 predecessor')
+        require(blob_id(portable_f04_source(relative, raw)) == row['before_blob'],
+                'Complete f04 entry-test predecessor not restored')
+    validate_native_selection(old, root)
+    return selection
+
+
+def verify_portable_tree(root, revision, *, before):
+    expected = PORTABLE_BEFORE_BLOBS if before else {
+        relative: blob_id((root / relative).read_bytes()) for relative in PORTABLE_PATHS}
+    raw = checked(['git', 'ls-tree', '-z', revision, '--', *PORTABLE_PATHS], root)
+    actual = {}
+    for entry in raw.split('\0'):
+        if not entry: continue
+        metadata, path = entry.split('\t', 1)
+        require(path not in actual, 'Duplicate portable diagnostic tree path')
+        actual[path] = metadata.split(' ')
+    require(set(actual) == set(PORTABLE_PATHS), 'Missing portable diagnostic tree path')
+    for path, blob in expected.items():
+        require(actual[path] == ['100644', 'blob', blob], 'Changed portable diagnostic mode/blob: ' + path)
+    return actual
+
+
+def verify_portable_scope(root, selection):
+    validate_portable_selection(selection, root)
+    head = checked(['git', 'rev-parse', 'HEAD'], root)
+    require(re.fullmatch('[a-f0-9]{40}', head) is not None
+            and head == os.environ.get('GITHUB_SHA'), 'Actual portable HEAD differs from GITHUB_SHA')
+    headers = checked(['git', 'cat-file', '-p', head], root).split('\n\n', 1)[0].splitlines()
+    require([line[7:] for line in headers if line.startswith('parent ')] == [PORTABLE_BASE_COMMIT],
+            'Portable diagnostic must have exactly the published f04 parent')
+    require(checked(['git', 'rev-parse', PORTABLE_BASE_COMMIT + '^{tree}'], root) == PORTABLE_BASE_TREE,
+            'Published f04 diagnostic tree changed')
+    changes = checked(['git', 'diff', '--name-status', PORTABLE_BASE_COMMIT, head], root).splitlines()
+    require(len(changes) == 4 and set(changes) == set(PORTABLE_LAYER['allowed_changes']),
+            'Portable diagnostic changes differ from four exact statuses')
+    verify_portable_tree(root, PORTABLE_BASE_COMMIT, before=True)
+    verify_portable_tree(root, head, before=False)
+    ensure_native_commit(root)
+    prior = verify_native_scope(root, portable_predecessor_selection(selection),
+                                published_revision=PORTABLE_BASE_COMMIT)
+    prior.update(source_sha=head, source_tree=checked(['git', 'rev-parse', 'HEAD^{tree}'], root),
+                 portable_base_commit=PORTABLE_BASE_COMMIT, portable_base_tree=PORTABLE_BASE_TREE,
+                 portable_selection=PORTABLE_LAYER['name'])
+    require(not checked(['git', 'status', '--porcelain', '--untracked-files=normal'], root),
+            'Portable checkout is not clean')
+    return prior
+
+
+def validate_portable_pass_receipt(receipt, expected, selection):
+    require(receipt.get('portable_base_commit') == PORTABLE_BASE_COMMIT
+            and receipt.get('portable_base_tree') == PORTABLE_BASE_TREE
+            and receipt.get('portable_selection') == PORTABLE_LAYER['name'],
+            'Wrong receipt portable diagnostic identity')
+    validate_native_pass_receipt(receipt, expected, portable_predecessor_selection(selection))
+
+
 def native_predecessor_selection(selection):
     """Return only the complete independently pinned c2af v5 selection."""
     require(isinstance(selection, dict) and 'native_repair' in selection,
@@ -672,7 +871,7 @@ def native_predecessor_sources(selection, root):
         require(not path.is_symlink() and path.is_file()
                 and path.resolve().is_relative_to(root.resolve()),
                 'Native source escaped checkout or is not a regular file')
-        raw = path.read_bytes()
+        raw = portable_f04_source(row['path'], path.read_bytes())
         require(hashlib.sha256(raw).hexdigest() == row['after_sha256'],
                 'Changed complete current native bytes: ' + row['path'])
         require(blob_id(raw) == row['after_blob'], 'Changed complete current native blob')
@@ -709,7 +908,7 @@ def validate_native_selection(selection, root):
     return selection
 
 
-def verify_native_tree(selection, root, revision, before):
+def verify_native_tree(selection, root, revision, before, *, diagnostic_blobs=None):
     """Independent actual-tree mode/blob authority for all fourteen paths."""
     native_predecessor_sources(selection, root)
     raw = checked(['git', 'ls-tree', '-z', revision, '--', *NATIVE_PATHS], root)
@@ -722,8 +921,13 @@ def verify_native_tree(selection, root, revision, before):
         entries[path] = metadata.split(' ')
     expected = {row['path']: row['before_blob' if before else 'after_blob']
                 for row in selection['native_repair']['payload_changes']}
+    if diagnostic_blobs is not None:
+        require(diagnostic_blobs == PORTABLE_BEFORE_BLOBS and not before
+                and revision == PORTABLE_BASE_COMMIT, 'Unknown published diagnostic tree authority')
     for relative, old_blob in NATIVE_DIAGNOSTIC_BASE_BLOBS.items():
-        if before:
+        if diagnostic_blobs is not None:
+            expected[relative] = diagnostic_blobs[relative]
+        elif before:
             expected[relative] = old_blob
         else:
             source = root / relative
@@ -774,11 +978,53 @@ def ensure_repair_commit(root):
             'Published 3393 commit/tree/parent identity differs')
 
 
-def verify_native_scope(root, selection):
+def ensure_native_commit(root):
+    """Read only fixed public c2af if the new depth-two checkout lacks it."""
+    require(NATIVE_BASE_COMMIT == 'c2af90a5e11a789ca8dc99eb8daae2c1e84e0700'
+            and NATIVE_BASE_TREE == 'bb341123236a28027becc55e06f35cb294bb718f',
+            'Changed fixed public repair object target')
+    try:
+        checked(['git', 'cat-file', '-e', NATIVE_BASE_COMMIT + '^{commit}'], root)
+        checked(['git', 'cat-file', '-e', NATIVE_BASE_COMMIT + '^{tree}'], root)
+    except ValueError:
+        environment = {'PATH': os.environ.get('PATH', os.defpath), 'LANG': 'C',
+                       'HOME': '/dev/null', 'GIT_TERMINAL_PROMPT': '0',
+                       'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null',
+                       'GIT_ASKPASS': '/usr/bin/false', 'SSH_ASKPASS': '/usr/bin/false'}
+        code, raw = execute(['git', 'config', '--local', '--includes', '--name-only', '--list'],
+                            root, 10, True, env=environment)
+        require(code == 0, 'Cannot inspect public-read repository configuration')
+        keys = raw.decode().lower().splitlines()
+        require(not any(k.startswith(('url.', 'http.', 'credential.', 'include.', 'includeif.'))
+                        or k in {'core.askpass', 'extensions.worktreeconfig'} for k in keys),
+                'Public repair read rejects credential, redirect, or included configuration')
+        command = ['git', '-c', 'credential.helper=', '-c', 'core.askPass=',
+                   '-c', 'http.extraHeader=', '-c', 'http.followRedirects=false',
+                   '-c', 'protocol.allow=never', '-c', 'protocol.https.allow=always',
+                   'fetch', '--no-tags', '--no-write-fetch-head', '--depth=1', '--no-recurse-submodules',
+                   'https://github.com/liboyang42-cpu/chengyin-ios.git',
+                   'c2af90a5e11a789ca8dc99eb8daae2c1e84e0700']
+        code, _ = execute(command, root, 60, True, env=environment)
+        require(code == 0, 'Exact public c2af read failed; historical repair verification is unavailable')
+    raw = checked(['git', 'cat-file', '-p', NATIVE_BASE_COMMIT], root)
+    headers = raw.split('\n\n', 1)[0].splitlines()
+    require([line[5:] for line in headers if line.startswith('tree ')] == [NATIVE_BASE_TREE]
+            and [line[7:] for line in headers if line.startswith('parent ')]
+            == ['3393ec85076a7a4e246e94e98ddf81f6b73ede2f'],
+            'Published c2af commit/tree/parent identity differs')
+
+
+def verify_native_scope(root, selection, *, published_revision=None):
     validate_native_selection(selection, root)
-    head = checked(['git', 'rev-parse', 'HEAD'], root)
-    require(re.fullmatch('[a-f0-9]{40}', head) is not None
-            and head == os.environ.get('GITHUB_SHA'), 'Actual HEAD differs from GITHUB_SHA')
+    if published_revision is None:
+        head = checked(['git', 'rev-parse', 'HEAD'], root)
+        require(re.fullmatch('[a-f0-9]{40}', head) is not None
+                and head == os.environ.get('GITHUB_SHA'), 'Actual HEAD differs from GITHUB_SHA')
+    else:
+        require(published_revision == PORTABLE_BASE_COMMIT, 'Unknown published native scope revision')
+        head = published_revision
+        require(checked(['git', 'rev-parse', head + '^{tree}'], root) == PORTABLE_BASE_TREE,
+                'Changed published native scope tree')
     require(checked(['git', 'rev-parse', NATIVE_BASE_COMMIT + '^{tree}'], root) == NATIVE_BASE_TREE,
             'Published c2af native baseline tree differs')
     headers = checked(['git', 'cat-file', '-p', head], root).split('\n\n', 1)[0].splitlines()
@@ -792,7 +1038,8 @@ def verify_native_scope(root, selection):
             and [line[7:] for line in parent if line.startswith('parent ')] == [BASE_COMMIT],
             'Published c2af commit/tree/parent identity differs')
     verify_native_tree(selection, root, NATIVE_BASE_TREE, before=True)
-    verify_native_tree(selection, root, head, before=False)
+    verify_native_tree(selection, root, head, before=False,
+                       diagnostic_blobs=PORTABLE_BEFORE_BLOBS if published_revision else None)
     ensure_repair_commit(root)
     prior = checked(['git', 'diff', '--name-status', BASE_COMMIT, NATIVE_BASE_COMMIT], root).splitlines()
     require(len(prior) == len(ALLOWED_CHANGES) and set(prior) == set(ALLOWED_CHANGES),
@@ -815,7 +1062,7 @@ def verify_native_scope(root, selection):
     verify_creator_current_tree(old, root, CREATOR_COMMIT)
     verify_creator_baseline(old, root)
     require(not checked(['git', 'status', '--porcelain', '--untracked-files=normal'], root), 'Checkout is not clean')
-    return {'source_sha': head, 'source_tree': checked(['git', 'rev-parse', 'HEAD^{tree}'], root),
+    return {'source_sha': head, 'source_tree': checked(['git', 'rev-parse', (published_revision or 'HEAD') + '^{tree}'], root),
             'base_commit': BASE_COMMIT, 'base_tree': BASE_TREE,
             'historical_base_commit': HISTORICAL_BASE_COMMIT, 'historical_base_tree': HISTORICAL_BASE_TREE,
             'creator_base_commit': CREATOR_COMMIT, 'creator_base_tree': CREATOR_TREE,
@@ -1170,7 +1417,7 @@ class Diagnostic:
 
 class NativeDiagnostic(Diagnostic):
     def scope(self):
-        return verify_native_scope(self.root, self.selection)
+        return verify_portable_scope(self.root, self.selection)
 
 
 def validate_native_pass_receipt(receipt, expected, selection):
@@ -1232,8 +1479,8 @@ def report(output, summary, root=ROOT, *, native=False):
         expected['selection_sha256'] = digest(root / PATHS[1])
         selection = read_json(root / PATHS[1])
         if native:
-            verify_native_scope(root, selection)
-            validate_native_pass_receipt(receipt, expected, selection)
+            verify_portable_scope(root, selection)
+            validate_portable_pass_receipt(receipt, expected, selection)
         else:
             validate_pass_receipt(receipt, expected, selection)
         for group in selection['groups']:
@@ -1284,7 +1531,7 @@ def main():
         report(args.output, args.summary, root, native=True)
         return 0
     selection = read_json(args.selection or root / PATHS[1])
-    validate_native_selection(selection, root)
+    validate_portable_selection(selection, root)
     if args.action == 'validate':
         print('Validated fixed selection: Core 44, AppUnit 14, UI 7; Apple execution NOT_RUN')
         return 0
