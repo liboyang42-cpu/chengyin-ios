@@ -114,6 +114,44 @@ PARENT_HISTORY_CHANGES = ('M\tApp/ClubGovernanceViews.swift',
 HISTORICAL_SOURCE_FILES_SHA256 = '80b4ed9152d4acf4f1688962c0cf8a30209fb475405b2f2b247595ca9706a0de'
 STATIC_REPAIR_CHANGES_SHA256 = '4ab9e7d7117f44afcbf10f45d89ec2fe7a3f9e6cc0a37d59e5fd42d13ad407c6'
 STATIC_DIAGNOSTIC_BASE_BLOBS = {'tools/targeted_native_selection.json': 'd3d549ea73885294a64928274e24196aacb2afca', 'tools/run_targeted_native.py': '720fe9fffccdfaad4744e9dc9a03fa4ae2d0abc1', 'tools/tests/test_targeted_native.py': '5b464736a814967c8ef15276e48b6142ee160683'}
+
+# The new fourteen-path child is an independent layer. The existing v5 constants
+# remain the immutable c2af -> 3393 -> b75 -> 45b historical authority.
+NATIVE_BASE_COMMIT = 'c2af90a5e11a789ca8dc99eb8daae2c1e84e0700'
+NATIVE_BASE_TREE = 'bb341123236a28027becc55e06f35cb294bb718f'
+NATIVE_NAME = 'shelf-profile-merchant-creator-navigation-repair-v6'
+# Runtime capture avoids self-hash recursion and rejects a different or changed
+# runner on disk, even when --source-root names a separate physical view.
+NATIVE_IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+NATIVE_SELECTION_CONTRACT_SHA256 = 'c69ec5ac6b725d463a3a60a02c3aa507799c004e8fa2b93deeebf3fa4efbab0f'
+NATIVE_REPAIR_CHANGES_SHA256 = 'd94e6c660b6822ff9c53a64abd9383d2b83f916dfedc8500f2f84857067aa505'
+NATIVE_PREIMAGES = {'App/ProjectEditIssueNavigation.swift': ('ff473e0c1695a05f3b983e0675f0e7cd431f5b8258dad01b6d1a73f0911b0a2b',
+                                          '5933c8c4b6920c5b74056a7fcbef7f08d314c4d6'),
+ 'tools/run138_editor_readiness_contract.json': ('d3fedafc9efe917220f4c52cb4c82d742f840a7307546da35e4da130a80d7fdb',
+                                                 '7f6a9115079c5aea1842c1ae20851c92f87aaf2b'),
+ 'tools/run138_editor_readiness.py': ('3854d1af7783eeb72ea095e53a0330d2919c823ab0fd349ae623be4206f1a642',
+                                      'bf9e201f5d18c6be8f174782debf54a4cdcd7216'),
+ 'Tests/ContractChecks/test_category_roam_registration.py': ('0af9b683f459178b3388921bd593dffd5d1ef4e4916df509e464d6620f5fd501',
+                                                             'b25603121c22fcc332674b3e4497c4fa325f6eda'),
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': ('402c5c67484ca946d65ddd7c77352d7075445fa69064e9ffeb3f98f896cab470',
+                                                                        'e8f664f803c16cd40e361074240c5ceb7a6289ca'),
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': ('03c1954fe6862fe2d4651384ca6b1b3296382cba7896c6202a82520aadb95b98',
+                                                                  'ce0bacb80a0f0776fd574657d169d98f60b5f676'),
+ 'tools/club_customer_directory_admission.py': ('1878c5c48f1da07910178409ca0b927be695e92a462497dc8cd9aa7d9a929aaf',
+                                                '950b01cd6066819b9d1cb3a4e6f20e1d972c4995'),
+ 'tools/tests/test_readiness_contract_parse_cache.py': ('f65761715213da40330ceca4098ead9f668d9442eff58c1656d89c79aa11ee59',
+                                                        'd33a46dc0fd47cf4b7b22a6cc35a0112fd52b497'),
+ 'tools/tests/test_run138_current_ci_entry.py': ('503ca3cb20863529767cd9fe1558dd2e21faac16eaadb088beda155470022312',
+                                                 '271d10fe654b6b0b0e5980cfd0ea20ed3eecc8e9'),
+ 'Questify.xcodeproj/project.pbxproj': ('a397f1c25ca67e4657846e799d8b1f55f8755d3debc7bc7609dcc6040afc9f50',
+                                        '833f6b1e4dc3c22028df18a1c216e2be7125ada9'),
+ 'tools/run138_current_source_projection.py': ('c0e6a5351bd024bdcbf8d1152bb4e8cb683cc5ff15e370627a14e229a1158727',
+                                               'becd4b3230d3fc3ac1cc9f58537f504c277f3ffa')}
+NATIVE_DIAGNOSTIC_BASE_BLOBS = {'tools/run_targeted_native.py': '5223156b4e0154bb6d8f37461319ed7f33a8dcee', 'tools/targeted_native_selection.json': '02ae2c0e2092a40257ecf8e9aca83f5776470853', 'tools/tests/test_targeted_native.py': '7ad4998ec65832b7ed5d8d97e806cc748015f970'}
+NATIVE_PAYLOAD_PATHS = tuple(NATIVE_PREIMAGES)
+NATIVE_PATHS = NATIVE_PAYLOAD_PATHS + tuple(NATIVE_DIAGNOSTIC_BASE_BLOBS)
+NATIVE_ALLOWED_CHANGES = tuple('M\t' + path for path in NATIVE_PATHS)
+
 LIMIT = 10 * 1024 * 1024
 
 
@@ -168,7 +206,7 @@ def inverse_reviewed_repair(row, raw):
     return restored
 
 
-def validate_static_repair(selection, root):
+def validate_static_repair(selection, root, *, predecessor=None):
     """Authenticate complete current bytes, then restore exactly the published 3393 image.
 
     This fixed twelve-file layer does not grant any new path to a historical inverse.
@@ -191,7 +229,7 @@ def validate_static_repair(selection, root):
         require(not path.is_symlink() and path.is_file()
                 and path.resolve().is_relative_to(root.resolve()),
                 'Static repair source escaped checkout or is not a regular file')
-        raw = path.read_bytes()
+        raw = historical_source(row['path'], path.read_bytes(), predecessor)
         require(hashlib.sha256(raw).hexdigest() == row['after_sha256'],
                 'Changed complete current static repair bytes')
         require(hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == row['after_blob'],
@@ -209,7 +247,7 @@ def validate_static_repair(selection, root):
     return restored
 
 
-def verify_static_repair_tree(selection, root, revision, before):
+def verify_static_repair_tree(selection, root, revision, before, *, diagnostic_blobs=None):
     """Bind mode, presence, and Git blobs at the real 3393 tree and current HEAD."""
     paths = tuple(change.split('\t', 1)[1] for change in ALLOWED_CHANGES)
     raw = checked(['git', 'ls-tree', '-z', revision, '--', *paths], root)
@@ -226,6 +264,10 @@ def verify_static_repair_tree(selection, root, revision, before):
     for path, old_blob in STATIC_DIAGNOSTIC_BASE_BLOBS.items():
         if before:
             expected[path] = old_blob
+        elif diagnostic_blobs is not None:
+            require(set(diagnostic_blobs) == set(STATIC_DIAGNOSTIC_BASE_BLOBS),
+                    'Invalid historical diagnostic image scope')
+            expected[path] = diagnostic_blobs[path]
         else:
             source = root / path
             require(not source.is_symlink() and source.is_file()
@@ -240,9 +282,9 @@ def verify_static_repair_tree(selection, root, revision, before):
     return entries
 
 
-def restore_creator_inputs(selection, root):
+def restore_creator_inputs(selection, root, *, predecessor=None):
     """Current15 -> exact3393 -> fixed b75 inputs; historical domains stay fixed."""
-    parent = validate_static_repair(selection, root)
+    parent = validate_static_repair(selection, root, predecessor=predecessor)
     rows = selection.get('creator_parent_changes')
     require(isinstance(rows, list) and all(isinstance(row, dict) for row in rows)
             and [row.get('path') for row in rows] == list(CREATOR_PARENT_PATHS),
@@ -259,7 +301,7 @@ def restore_creator_inputs(selection, root):
         path = root / row['path']
         require(not path.is_symlink() and path.is_file()
                 and path.resolve().is_relative_to(root.resolve()), 'Creator bridge source escaped checkout')
-        raw = parent.get(row['path'], path.read_bytes())
+        raw = parent.get(row['path'], historical_source(row['path'], path.read_bytes(), predecessor))
         require(hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == row['after_blob'],
                 'Changed complete creator parent bridge blob')
         require(isinstance(row['hunks'], list) and bool(row['hunks'])
@@ -332,8 +374,8 @@ def verify_creator_current_tree(selection, root, head):
     return entries
 
 
-def validate_creator_changes(selection, root):
-    published = restore_creator_inputs(selection, root)
+def validate_creator_changes(selection, root, *, predecessor=None):
+    published = restore_creator_inputs(selection, root, predecessor=predecessor)
     rows = selection.get('creator_changes')
     require(isinstance(rows, list) and [r.get('path') for r in rows] == list(CREATOR_PATHS),
             'Missing/reordered creator current scope')
@@ -359,8 +401,8 @@ def validate_creator_changes(selection, root):
     return restored
 
 
-def validate_reviewed_repairs(selection, root):
-    creator = validate_creator_changes(selection, root)
+def validate_reviewed_repairs(selection, root, *, predecessor=None):
+    creator = validate_creator_changes(selection, root, predecessor=predecessor)
     repairs = selection.get('reviewed_repairs')
     require(isinstance(repairs, list) and [row.get('path') for row in repairs] == list(REPAIR_PATHS), 'Missing/changed reviewed repair scope')
     restored = {}
@@ -369,7 +411,9 @@ def validate_reviewed_repairs(selection, root):
         path = root / row['path']
         require(not path.is_symlink() and path.resolve().is_relative_to(root.resolve()), 'Repair escaped checkout')
         restored[row['path']] = inverse_reviewed_repair(row, creator.get(row['path'], path.read_bytes()))
-    current = read_json(root / REPAIR_PATHS[1])
+    current = (read_json(root / REPAIR_PATHS[1]) if predecessor is None else
+               json.loads(historical_source(REPAIR_PATHS[1], (root / REPAIR_PATHS[1]).read_bytes(), predecessor),
+                          object_pairs_hook=unique_object))
     repair_hashes = {row['path']: row['after_sha256'] for row in selection['static_repair_changes']}
     crop = repairs[0]
     require(current['feature_batch_support_sha256'][crop['path']] == crop['after_sha256'], 'Current crop support is not genuine')
@@ -377,7 +421,7 @@ def validate_reviewed_repairs(selection, root):
     require(current['feature_batch_support_sha256'][repairs[3]['path']] == repair_hashes[repairs[3]['path']], 'Current admission support is not genuine')
     for row in repairs[4:]:
         require(current['followon_support_sha256'][row['path']] == row['after_sha256'], 'Current static support is not genuine')
-    pins = re.findall(r"^CONTRACT_SHA256 = '([0-9a-f]{64})'$", (root / REPAIR_PATHS[2]).read_text(), re.MULTILINE)
+    pins = re.findall(r"^CONTRACT_SHA256 = '([0-9a-f]{64})'$", historical_source(REPAIR_PATHS[2], (root / REPAIR_PATHS[2]).read_bytes(), predecessor).decode(), re.MULTILINE)
     require(pins == [repair_hashes[repairs[1]['path']]], 'Current readiness pin differs from complete contract')
     return restored
 
@@ -396,7 +440,7 @@ def declared_methods(source, target):
     return counts
 
 
-def validate_selection(selection, root):
+def validate_selection(selection, root, *, predecessor=None):
     require(isinstance(selection, dict) and type(selection.get('version')) is int and selection.get('version') == 1, 'Unsupported selection version')
     require(set(selection) == {'repository', 'groups', 'base_tree', 'base_commit', 'creator_changes', 'branch', 'allowed_changes', 'name', 'version', 'source_files', 'coverage_boundary', 'reviewed_repairs', 'historical_base', 'static_repair_changes', 'creator_base', 'creator_parent_changes', 'historical_source_files'}, 'Unknown fixed selection fields')
     require(selection.get('name') == 'shelf-profile-merchant-creator-unified-repair-v5', 'Unknown fixed selection')
@@ -417,7 +461,9 @@ def validate_selection(selection, root):
         require(re.fullmatch('[a-f0-9]{64}', expected or '') is not None, 'Invalid source digest')
         path = root / relative
         require(not path.is_symlink() and path.resolve().is_relative_to(root.resolve()), 'Source escaped checkout')
-        require(digest(path) == expected, 'Source digest changed: ' + relative)
+        actual = (digest(path) if predecessor is None else
+                  hashlib.sha256(historical_source(relative, path.read_bytes(), predecessor)).hexdigest())
+        require(actual == expected, 'Source digest changed: ' + relative)
     require(not (root / 'Config/Local.xcconfig').exists(), 'Private local configuration is not allowed')
     rows = selection.get('groups')
     require(isinstance(rows, list) and [r.get('name') for r in rows] == list(GROUPS), 'Missing/reordered test groups')
@@ -442,7 +488,7 @@ def validate_selection(selection, root):
             identifier = row['method']
             require(METHOD.fullmatch(identifier) is not None and identifier.startswith(target + '/'), 'Not an exact method')
             require(declarations[path].get(identifier) == 1, 'Selected method is not uniquely declared in its own bound source')
-    validate_reviewed_repairs(selection, root)
+    validate_reviewed_repairs(selection, root, predecessor=predecessor)
     require(hashlib.sha256(encode(selection).encode()).hexdigest() == SELECTION_CONTRACT_SHA256, 'Fixed selection contract changed')
     return selection
 
@@ -554,6 +600,227 @@ def verify_scope(root, selection):
             'historical_base_commit': HISTORICAL_BASE_COMMIT,
             'historical_base_tree': HISTORICAL_BASE_TREE,
             'creator_base_commit': CREATOR_COMMIT, 'creator_base_tree': CREATOR_TREE}
+
+
+def blob_id(raw):
+    return hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+
+
+def native_predecessor_selection(selection):
+    """Return only the complete independently pinned c2af v5 selection."""
+    require(isinstance(selection, dict) and 'native_repair' in selection,
+            'Missing mandatory current native repair layer')
+    old = {key: value for key, value in selection.items() if key != 'native_repair'}
+    require(hashlib.sha256(encode(old).encode()).hexdigest()
+            == 'ffc171f8f6c7b3097a8edc8d71e0e82fe0b123ac77c68cbc36009e9b83f4b379',
+            'Changed complete c2af predecessor selection')
+    # JSON roundtrip prevents a historical consumer mutating current identities.
+    return json.loads(json.dumps(old, ensure_ascii=True), object_pairs_hook=unique_object)
+
+
+def native_predecessor_selection_bytes(selection):
+    """Restore the original c2af JSON encoding, not just its semantic object."""
+    raw = (json.dumps(native_predecessor_selection(selection), indent=2, ensure_ascii=True) + '\n').encode()
+    require(hashlib.sha256(raw).hexdigest()
+            == 'c3562224a372d442434ed28bc861aef370cf18e72d69faf9b97b0a8652247bf5'
+            and blob_id(raw) == '02ae2c0e2092a40257ecf8e9aca83f5776470853',
+            'Complete c2af selection encoding or Git blob changed')
+    return raw
+
+
+def native_predecessor_sources(selection, root):
+    """Read all eleven real postimages before returning any exact c2af bytes.
+
+    No cache, healthy-root fallback, missing-input completion, or old-byte
+    admission is provided here. The new runtime must authenticate this boundary
+    before any unchanged v5 source and inverse checks.
+    """
+    native_predecessor_selection(selection)
+    layer = selection.get('native_repair')
+    require(isinstance(layer, dict) and set(layer) == {'version', 'name', 'base_commit',
+            'base_tree', 'allowed_changes', 'payload_changes', 'diagnostic_before_blobs'},
+            'Unknown native repair layer fields')
+    require(type(layer['version']) is int and layer['version'] == 1
+            and layer['name'] == NATIVE_NAME and layer['base_commit'] == NATIVE_BASE_COMMIT
+            and layer['base_tree'] == NATIVE_BASE_TREE, 'Wrong exact c2af native base')
+    require(layer['allowed_changes'] == list(NATIVE_ALLOWED_CHANGES)
+            and layer['diagnostic_before_blobs'] == NATIVE_DIAGNOSTIC_BASE_BLOBS,
+            'Changed exact native fourteen-path boundary')
+    rows = layer['payload_changes']
+    require(isinstance(rows, list) and all(isinstance(row, dict) for row in rows)
+            and [row.get('path') for row in rows] == list(NATIVE_PAYLOAD_PATHS),
+            'Missing/reordered native eleven-file payload')
+    require(hashlib.sha256(encode(rows).encode()).hexdigest() == NATIVE_REPAIR_CHANGES_SHA256,
+            'Changed independently frozen native repair bindings')
+    restored = {}
+    for row in rows:
+        require(set(row) == {'path', 'status', 'before_sha256', 'before_blob',
+                'after_sha256', 'after_blob', 'hunks'} and row['status'] == 'M',
+                'Invalid native repair fields/status')
+        require((row['before_sha256'], row['before_blob']) == NATIVE_PREIMAGES[row['path']],
+                'Wrong independent c2af payload predecessor')
+        require(all(isinstance(row[key], str) and re.fullmatch(pattern, row[key])
+                    for key, pattern in [('after_sha256', '[a-f0-9]{64}'),
+                                         ('after_blob', '[a-f0-9]{40}')]),
+                'Malformed native current digest')
+        require(isinstance(row['hunks'], list) and bool(row['hunks'])
+                and all(isinstance(h, dict) and set(h) == {'before', 'after'}
+                        and all(isinstance(h[k], str) and bool(h[k]) for k in ('before', 'after'))
+                        and h['before'] != h['after'] for h in row['hunks']),
+                'Invalid native repair inverse hunks')
+        path = root / row['path']
+        require(not path.is_symlink() and path.is_file()
+                and path.resolve().is_relative_to(root.resolve()),
+                'Native source escaped checkout or is not a regular file')
+        raw = path.read_bytes()
+        require(hashlib.sha256(raw).hexdigest() == row['after_sha256'],
+                'Changed complete current native bytes: ' + row['path'])
+        require(blob_id(raw) == row['after_blob'], 'Changed complete current native blob')
+        restored[row['path']] = inverse_reviewed_repair(row, raw)
+    return restored
+
+
+def historical_source(relative, raw, predecessor):
+    """An explicit c2af map cannot broaden or weaken any historical digest."""
+    if predecessor is None:
+        return raw  # Explicit v5 interface, never the current CLI admission path.
+    require(isinstance(predecessor, dict) and set(predecessor) == set(NATIVE_PAYLOAD_PATHS),
+            'Incomplete exact c2af predecessor mapping')
+    if relative not in NATIVE_PREIMAGES:
+        return raw
+    restored = predecessor[relative]
+    require(isinstance(restored, bytes)
+            and (hashlib.sha256(restored).hexdigest(), blob_id(restored))
+            == NATIVE_PREIMAGES[relative], 'Unauthenticated c2af predecessor source')
+    return restored
+
+
+def validate_native_selection(selection, root):
+    implementation = root / 'tools/run_targeted_native.py'
+    require(not implementation.is_symlink() and implementation.is_file()
+            and implementation.resolve().is_relative_to(root.resolve())
+            and digest(implementation) == NATIVE_IMPLEMENTATION_SHA256,
+            'Current native runner differs from the authenticated loaded implementation')
+    predecessor = native_predecessor_sources(selection, root)
+    old = native_predecessor_selection(selection)
+    validate_selection(old, root, predecessor=predecessor)
+    require(hashlib.sha256(encode(selection).encode()).hexdigest()
+            == NATIVE_SELECTION_CONTRACT_SHA256, 'Fixed native selection contract changed')
+    return selection
+
+
+def verify_native_tree(selection, root, revision, before):
+    """Independent actual-tree mode/blob authority for all fourteen paths."""
+    native_predecessor_sources(selection, root)
+    raw = checked(['git', 'ls-tree', '-z', revision, '--', *NATIVE_PATHS], root)
+    entries = {}
+    for entry in raw.split('\0'):
+        if not entry:
+            continue
+        metadata, path = entry.split('\t', 1)
+        require(path not in entries, 'Duplicate native tree path')
+        entries[path] = metadata.split(' ')
+    expected = {row['path']: row['before_blob' if before else 'after_blob']
+                for row in selection['native_repair']['payload_changes']}
+    for relative, old_blob in NATIVE_DIAGNOSTIC_BASE_BLOBS.items():
+        if before:
+            expected[relative] = old_blob
+        else:
+            source = root / relative
+            require(not source.is_symlink() and source.is_file()
+                    and source.resolve().is_relative_to(root.resolve()),
+                    'Native diagnostic source escaped checkout or is not a regular file')
+            expected[relative] = blob_id(source.read_bytes())
+    require(set(entries) == set(expected), 'Native tree has missing or unexpected paths')
+    for relative, blob in expected.items():
+        require(entries[relative] == ['100644', 'blob', blob],
+                'Native tree differs from exact reviewed mode/blob: ' + relative)
+    return entries
+
+
+def ensure_repair_commit(root):
+    """Read only fixed public3393 if the new depth-two checkout lacks it."""
+    require(BASE_COMMIT == '3393ec85076a7a4e246e94e98ddf81f6b73ede2f'
+            and BASE_TREE == '7dd9461bafbe546e1c5ef5eaacc750267b416b2f',
+            'Changed fixed public repair object target')
+    try:
+        checked(['git', 'cat-file', '-e', BASE_COMMIT + '^{commit}'], root)
+        checked(['git', 'cat-file', '-e', BASE_COMMIT + '^{tree}'], root)
+    except ValueError:
+        environment = {'PATH': os.environ.get('PATH', os.defpath), 'LANG': 'C',
+                       'HOME': '/dev/null', 'GIT_TERMINAL_PROMPT': '0',
+                       'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null',
+                       'GIT_ASKPASS': '/usr/bin/false', 'SSH_ASKPASS': '/usr/bin/false'}
+        code, raw = execute(['git', 'config', '--local', '--includes', '--name-only', '--list'],
+                            root, 10, True, env=environment)
+        require(code == 0, 'Cannot inspect public-read repository configuration')
+        keys = raw.decode().lower().splitlines()
+        require(not any(k.startswith(('url.', 'http.', 'credential.', 'include.', 'includeif.'))
+                        or k in {'core.askpass', 'extensions.worktreeconfig'} for k in keys),
+                'Public repair read rejects credential, redirect, or included configuration')
+        command = ['git', '-c', 'credential.helper=', '-c', 'core.askPass=',
+                   '-c', 'http.extraHeader=', '-c', 'http.followRedirects=false',
+                   '-c', 'protocol.allow=never', '-c', 'protocol.https.allow=always',
+                   'fetch', '--no-tags', '--no-write-fetch-head', '--depth=1', '--no-recurse-submodules',
+                   'https://github.com/liboyang42-cpu/chengyin-ios.git',
+                   '3393ec85076a7a4e246e94e98ddf81f6b73ede2f']
+        code, _ = execute(command, root, 60, True, env=environment)
+        require(code == 0, 'Exact public 3393 read failed; historical repair verification is unavailable')
+    raw = checked(['git', 'cat-file', '-p', BASE_COMMIT], root)
+    headers = raw.split('\n\n', 1)[0].splitlines()
+    require([line[5:] for line in headers if line.startswith('tree ')] == [BASE_TREE]
+            and [line[7:] for line in headers if line.startswith('parent ')]
+            == ['cf7b3e7f0f7c2105b23c439f2314d6163886c126'],
+            'Published 3393 commit/tree/parent identity differs')
+
+
+def verify_native_scope(root, selection):
+    validate_native_selection(selection, root)
+    head = checked(['git', 'rev-parse', 'HEAD'], root)
+    require(re.fullmatch('[a-f0-9]{40}', head) is not None
+            and head == os.environ.get('GITHUB_SHA'), 'Actual HEAD differs from GITHUB_SHA')
+    require(checked(['git', 'rev-parse', NATIVE_BASE_COMMIT + '^{tree}'], root) == NATIVE_BASE_TREE,
+            'Published c2af native baseline tree differs')
+    headers = checked(['git', 'cat-file', '-p', head], root).split('\n\n', 1)[0].splitlines()
+    require([line[7:] for line in headers if line.startswith('parent ')] == [NATIVE_BASE_COMMIT],
+            'Native repair must have exactly the published c2af parent')
+    changes = checked(['git', 'diff', '--name-status', NATIVE_BASE_COMMIT, head], root).splitlines()
+    require(len(changes) == len(NATIVE_ALLOWED_CHANGES) and set(changes) == set(NATIVE_ALLOWED_CHANGES),
+            'Source changes differ from fourteen exact native repair statuses')
+    parent = checked(['git', 'cat-file', '-p', NATIVE_BASE_COMMIT], root).split('\n\n', 1)[0].splitlines()
+    require([line[5:] for line in parent if line.startswith('tree ')] == [NATIVE_BASE_TREE]
+            and [line[7:] for line in parent if line.startswith('parent ')] == [BASE_COMMIT],
+            'Published c2af commit/tree/parent identity differs')
+    verify_native_tree(selection, root, NATIVE_BASE_TREE, before=True)
+    verify_native_tree(selection, root, head, before=False)
+    ensure_repair_commit(root)
+    prior = checked(['git', 'diff', '--name-status', BASE_COMMIT, NATIVE_BASE_COMMIT], root).splitlines()
+    require(len(prior) == len(ALLOWED_CHANGES) and set(prior) == set(ALLOWED_CHANGES),
+            'Published c2af history differs from fifteen exact repair statuses')
+    ensure_creator_commit(root)
+    require(checked(['git', 'rev-parse', HISTORICAL_BASE_COMMIT + '^{tree}'], root)
+            == HISTORICAL_BASE_TREE, 'Historical baseline tree differs')
+    historical = checked(['git', 'diff', '--name-status', HISTORICAL_BASE_COMMIT, CREATOR_COMMIT], root).splitlines()
+    require(len(historical) == len(HISTORICAL_ALLOWED_CHANGES) and set(historical) == set(HISTORICAL_ALLOWED_CHANGES),
+            'Published b75 history differs from nineteen exact reviewed statuses')
+    parent_history = checked(['git', 'diff', '--name-status', CREATOR_COMMIT, BASE_COMMIT], root).splitlines()
+    require(len(parent_history) == len(PARENT_HISTORY_CHANGES) and set(parent_history) == set(PARENT_HISTORY_CHANGES),
+            'Published creator-to-3393 history differs from its exact statuses')
+    old = native_predecessor_selection(selection)
+    verify_creator_parent_tree(old, root, CREATOR_TREE, before=True)
+    verify_creator_parent_tree(old, root, BASE_TREE, before=False)
+    verify_static_repair_tree(old, root, BASE_TREE, before=True)
+    verify_static_repair_tree(old, root, NATIVE_BASE_TREE, before=False,
+                              diagnostic_blobs=NATIVE_DIAGNOSTIC_BASE_BLOBS)
+    verify_creator_current_tree(old, root, CREATOR_COMMIT)
+    verify_creator_baseline(old, root)
+    require(not checked(['git', 'status', '--porcelain', '--untracked-files=normal'], root), 'Checkout is not clean')
+    return {'source_sha': head, 'source_tree': checked(['git', 'rev-parse', 'HEAD^{tree}'], root),
+            'base_commit': BASE_COMMIT, 'base_tree': BASE_TREE,
+            'historical_base_commit': HISTORICAL_BASE_COMMIT, 'historical_base_tree': HISTORICAL_BASE_TREE,
+            'creator_base_commit': CREATOR_COMMIT, 'creator_base_tree': CREATOR_TREE,
+            'native_base_commit': NATIVE_BASE_COMMIT, 'native_base_tree': NATIVE_BASE_TREE,
+            'native_selection': NATIVE_NAME}
 
 
 def choose_simulator(data):
@@ -780,6 +1047,9 @@ class Diagnostic:
             self.receipt['groups'][group['name']] = {'status': 'NOT_RUN', 'expected': group['methods'],
                                                     'actual_count': 0, 'actual': []}
 
+    def scope(self):
+        return verify_scope(self.root, self.selection)
+
     def save(self):
         self.receipt['actual_count'] = sum(g['actual_count'] for g in self.receipt['groups'].values())
         write_json(self.output / 'receipt.json', self.receipt)
@@ -836,7 +1106,7 @@ class Diagnostic:
 
     def run(self):
         runtime_environment(os.environ)
-        self.receipt.update(verify_scope(self.root, self.selection))
+        self.receipt.update(self.scope())
         self.receipt['run_id'] = os.environ['GITHUB_RUN_ID']; self.receipt['run_attempt'] = os.environ['GITHUB_RUN_ATTEMPT']
         self.receipt['workflow_sha'] = os.environ.get('GITHUB_WORKFLOW_SHA', '')
         require(self.receipt['workflow_sha'] == self.receipt['source_sha'], 'Workflow revision differs from source checkout')
@@ -892,10 +1162,23 @@ class Diagnostic:
             result = self.output / (name + '.xcresult')
             self.collect(groups[name], xcode_test_command(groups[name], run, simulator['udid'], result),
                          360 if name == 'app-unit' else 1000, result)
-        require(verify_scope(self.root, self.selection)['source_tree'] == self.receipt['source_tree'], 'Source changed during diagnostics')
+        require(self.scope()['source_tree'] == self.receipt['source_tree'], 'Source changed during diagnostics')
         require(self.toolchain() == self.receipt['toolchain'], 'Toolchain changed during diagnostics')
         self.receipt['status'] = 'PASS'; self.save()
 
+
+
+class NativeDiagnostic(Diagnostic):
+    def scope(self):
+        return verify_native_scope(self.root, self.selection)
+
+
+def validate_native_pass_receipt(receipt, expected, selection):
+    old = native_predecessor_selection(selection)
+    require(receipt.get('native_base_commit') == NATIVE_BASE_COMMIT
+            and receipt.get('native_base_tree') == NATIVE_BASE_TREE
+            and receipt.get('native_selection') == NATIVE_NAME, 'Wrong receipt native repair identity')
+    validate_pass_receipt(receipt, expected, old)
 
 
 def validate_pass_receipt(receipt, expected, selection):
@@ -933,7 +1216,7 @@ def validate_pass_receipt(receipt, expected, selection):
     require(re.fullmatch('[a-f0-9]{64}', manifest.get('source_archive_sha256', '')) is not None, 'Missing source archive digest')
 
 
-def report(output, summary, root=ROOT):
+def report(output, summary, root=ROOT, *, native=False):
     path = output / 'receipt.json'
     if not path.is_file():
         text = 'Targeted native diagnostics: NOT_RUN. No finalized receipt; full required native gates remain separate.\n'
@@ -948,7 +1231,11 @@ def report(output, summary, root=ROOT):
         expected['source_tree'] = checked(['git', 'rev-parse', 'HEAD^{tree}'], root)
         expected['selection_sha256'] = digest(root / PATHS[1])
         selection = read_json(root / PATHS[1])
-        validate_pass_receipt(receipt, expected, selection)
+        if native:
+            verify_native_scope(root, selection)
+            validate_native_pass_receipt(receipt, expected, selection)
+        else:
+            validate_pass_receipt(receipt, expected, selection)
         for group in selection['groups']:
             actual = receipt['groups'][group['name']]
             if group['kind'] == 'swift':
@@ -994,10 +1281,10 @@ def main():
     root = args.source_root.resolve(strict=True)
     if args.action == 'report':
         require(args.output is not None, 'Output required')
-        report(args.output, args.summary, root)
+        report(args.output, args.summary, root, native=True)
         return 0
     selection = read_json(args.selection or root / PATHS[1])
-    validate_selection(selection, root)
+    validate_native_selection(selection, root)
     if args.action == 'validate':
         print('Validated fixed selection: Core 44, AppUnit 14, UI 7; Apple execution NOT_RUN')
         return 0
@@ -1006,7 +1293,7 @@ def main():
     output = args.output.absolute()
     require(output.parent.resolve(strict=True) == temp and not output.is_symlink(), 'Output must be a new direct runner-temp child')
     output.mkdir()  # never reuse old results, even on retries
-    job = Diagnostic(root, output, selection); job.save()
+    job = NativeDiagnostic(root, output, selection); job.save()
     try:
         job.run()
     except BaseException as error:

@@ -18,7 +18,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = 'd3fedafc9efe917220f4c52cb4c82d742f840a7307546da35e4da130a80d7fdb'
+CONTRACT_SHA256 = '9c26993734c6ba8d4623165187cb0cfcebc1ff20e3c9209da7a2982099ee2cb6'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'
@@ -55,6 +55,17 @@ def source_contract(root=ROOT):
     if digest(raw) != contract(root)['source_contract_sha256']:
         raise ValueError('Changed exact readiness source contract')
     return json.loads(raw)
+
+
+def contract_member(section, member=None, root=ROOT):
+    """Copy one validated member without copying unrelated contract branches."""
+    raw = (Path(root) / 'tools/run138_editor_readiness_contract.json').read_bytes()
+    if digest(raw) != CONTRACT_SHA256:
+        raise ValueError('Unreviewed current readiness planning contract')
+    value = _parsed_contract(raw)[section]
+    if member is not None:
+        value = value.get(member)
+    return deepcopy(value)
 
 
 def original_source(relative, raw, root=ROOT):

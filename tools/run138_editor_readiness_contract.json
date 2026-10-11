@@ -512,7 +512,7 @@
     "basis": "Same existing gap reveal and tap, same bounded helper, default direction corrected at fresh chapter entry; no new action or wait."
   },
   "entry_contract_sha256": "f9a2475bbd7230951b7b2d9efa87130f502b935ddb1bf44f68b5fd9ead0a3cd2",
-  "entry_projection_module_sha256": "c0e6a5351bd024bdcbf8d1152bb4e8cb683cc5ff15e370627a14e229a1158727",
+  "entry_projection_module_sha256": "7e14668c3ab789f3903971a8de30a828c1cac36c6755d67f81e92ef29356c7f1",
   "ui52_method_costs": {
     "MerchantMarketingUITests.testNormalMerchantWorkbenchOpensDormantMarketingInBothLanguages": {
       "prior_complete_method_seconds": 114.954,
@@ -882,7 +882,7 @@
     },
     "Questify.xcodeproj/project.pbxproj": {
       "before_sha256": "0497d3ffb5b6dfd9c3aa0cd67a27594cfcb412fcda57fa3ac5ec63d8cc462ed1",
-      "after_sha256": "a397f1c25ca67e4657846e799d8b1f55f8755d3debc7bc7609dcc6040afc9f50",
+      "after_sha256": "211fe2e6ded15704a582d9340bb45d198620afe118b2add40d60679820b64f65",
       "hunks": [
         {
           "before": "\t\t\"F2C416E5BF616602CFE89B81\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"588CE027521446DF6EC81070\";\n\t\t};\n\t\t\"74E41CC929B3EEB9D9C0C251\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n",
@@ -1719,6 +1719,30 @@
         {
           "before": "\t\t\t\t\"19EC95F64576113ABFA6995C\",\n",
           "after": "\t\t\t\t\"4FF7D0B5D5B04E3FAAE97D5A\",\n\t\t\t\t\"19EC95F64576113ABFA6995C\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"4A57125287F6AEF51C738309\",\n\t\t\t\t\"2A4F7E878F7689C47FE34583\",\n\t\t\t\t\"791E6BF02CD332B0299A3459\",\n",
+          "after": "\t\t\t\t\"4A57125287F6AEF51C738309\",\n\t\t\t\t\"791E6BF02CD332B0299A3459\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"525EE1679C85AA5272DE7DF4\",\n\t\t\t\t\"8388C7D38F87D95825320119\",\n",
+          "after": "\t\t\t\t\"525EE1679C85AA5272DE7DF4\",\n\t\t\t\t\"547DD20422C04B364B7AAC62\",\n\t\t\t\t\"8388C7D38F87D95825320119\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"2A4F7E878F7689C47FE34583\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"4FF7D0B5D5B04E3FAAE97D5A\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"2A4F7E878F7689C47FE34583\";\n\t\t};\n\t\t\"791E6BF02CD332B0299A3459\" = {\n",
+          "after": "\t\t};\n\t\t\"791E6BF02CD332B0299A3459\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"525EE1679C85AA5272DE7DF4\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"525EE1679C85AA5272DE7DF4\";\n\t\t};\n\t\t\"547DD20422C04B364B7AAC62\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"7FEA355EA4D0539C58BA2CC1\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"547DD20422C04B364B7AAC62\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\"files\" = (\n\t\t\t\t\"4FF7D0B5D5B04E3FAAE97D5A\",\n\t\t\t\t\"19EC95F64576113ABFA6995C\",\n",
+          "after": "\t\t\t\"files\" = (\n\t\t\t\t\"19EC95F64576113ABFA6995C\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"EBEC019FDEAE55ACE06179C2\",\n\t\t\t\t\"EF9ECDC20F32FC34BCA977BC\",\n",
+          "after": "\t\t\t\t\"EBEC019FDEAE55ACE06179C2\",\n\t\t\t\t\"7FEA355EA4D0539C58BA2CC1\",\n\t\t\t\t\"EF9ECDC20F32FC34BCA977BC\",\n"
         }
       ]
     },
@@ -4181,6 +4205,16 @@
           "after": "        let id = UUID()\n        let key: String\n        let revision: Int\n        let impacts: [String]\n"
         }
       ]
+    },
+    "App/ProjectEditIssueNavigation.swift": {
+      "before_sha256": "ff473e0c1695a05f3b983e0675f0e7cd431f5b8258dad01b6d1a73f0911b0a2b",
+      "after_sha256": "6d10281d7c74e6664404ed359902fd3673873bce0ddd519686dbb521cf29319d",
+      "hunks": [
+        {
+          "before": "    struct Destination: Identifiable {\n        let id = UUID()\n        let capture: Capture\n    }",
+          "after": "    struct Destination: Identifiable, Hashable {\n        let id = UUID()\n        let capture: Capture\n        nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }\n        nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }\n    }"
+        }
+      ]
     }
   },
   "feature_batch_support_sha256": {
@@ -4192,7 +4226,7 @@
     "App/NPCQuickQuestionBar.swift": "dd4372b5bd9dc60e994e38189698c601fbf4deb2391ebf647ad9bb7665391cb7",
     "App/ProjectCategoryPicker.swift": "fae1345af183c17a4da514fccc4c755e86c5c6a9b747ff7decb004178089818c",
     "App/ProjectEditDatePicker.swift": "093f29da316764705f8017e2d647e82af09e7a5baeb6a4ff24179e45a1a6d970",
-    "App/ProjectEditIssueNavigation.swift": "ff473e0c1695a05f3b983e0675f0e7cd431f5b8258dad01b6d1a73f0911b0a2b",
+    "App/ProjectEditIssueNavigation.swift": "6d10281d7c74e6664404ed359902fd3673873bce0ddd519686dbb521cf29319d",
     "App/ProjectEditNodeDescriptionField.swift": "663f5aa34981ca0e3ec9207e165140b78bb8c8a3858314bf2cda4d836599f2e3",
     "App/ProjectEditStarterPresentation.swift": "98ca1769b20ed757e44021b60edfde904a6f4a838eaee81f54cfe74d23b40726",
     "App/ProjectPendingNodeRemovalController.swift": "b0d03998cb16faf613baaae2297eb9127d2282370b18b207f5a893fe3139f168",
@@ -4683,28 +4717,28 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "402c5c67484ca946d65ddd7c77352d7075445fa69064e9ffeb3f98f896cab470",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "67ea1752863c6a805623784675eb3f93b300242d5a303ab4962c038c5499546e",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
     "Tests/ContractChecks/test_club_customer_permissions.py": "773186689d0583d41d6ab75298e4b815e86dc688a2ce5043cdba43d0a5b2ffba",
     "docs/club-customer-permissions.md": "f32d0102eeb5bb2bc696b139389a5e674140623f7597973ffce5468629cd1f10",
     "Tests/ContractChecks/test_club_customer_directory_remote_admission.py": "09b5c57129442da635c71ff664b9a8c22ff0d694184592b86058312eb073e11e",
-    "tools/club_customer_directory_admission.py": "1878c5c48f1da07910178409ca0b927be695e92a462497dc8cd9aa7d9a929aaf",
+    "tools/club_customer_directory_admission.py": "379ada64233f6a51f52d5ca595c9092632f248e23c50825aa989ff0882fcfd88",
     "Tests/ContractChecks/test_club_customer_keyword_debounce.py": "262ed2f2d1151dbe6994048cc21e76b98799fc34a68caeba59c08947508c8e6c",
     "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift": "2c3cfc1da3d145221e13d9561c1bfb9166b58c84807bfd93034fcaff44b303a5",
     "docs/club-customer-keyword-debounce.md": "1fa12a8011cb1b2c3d7425dcd8f1f8ca07f27be08adb8a545c1be98f97806f0e",
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "03c1954fe6862fe2d4651384ca6b1b3296382cba7896c6202a82520aadb95b98",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "17fa92c7b8a10193097c9e6208cd320576bb415d78c046825c51286905cf0a0d",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
     "Tests/ContractChecks/test_roam_route_replay.py": "83d0cb05ce9ec6289354c960494e6923b78a2825f6c244ec08b6693dfbe8c5c3",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "0af9b683f459178b3388921bd593dffd5d1ef4e4916df509e464d6620f5fd501"
+    "Tests/ContractChecks/test_category_roam_registration.py": "04ee74c0f01805cc61a87a4019c300d10f829e63d66561a2d830264e4cde5afb"
   },
   "current_method_replacements": {
     "MerchantContentFlowTests.testCityClaimWithdrawalReviewUsesSourcePOIAndCanCancel": {

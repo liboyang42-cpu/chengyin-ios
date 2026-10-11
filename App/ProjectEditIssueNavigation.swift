@@ -22,9 +22,11 @@ import SwiftUI
         let issue: ProjectEditIssue
         let capture: Capture?
     }
-    struct Destination: Identifiable {
+    struct Destination: Identifiable, Hashable {
         let id = UUID()
         let capture: Capture
+        nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+        nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
     }
     let model: ProjectEditModel
     private let controllerID = UUID()

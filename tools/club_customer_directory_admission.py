@@ -109,6 +109,12 @@ def _inverse_row(relative, raw, row):
 
 
 def restore_evolution_source(relative, raw):
+    if relative == 'Questify.xcodeproj/project.pbxproj':
+        from Tests.ContractChecks.test_category_roam_registration import native_predecessor_source
+        try:
+            raw = native_predecessor_source(relative, raw)
+        except AssertionError as error:
+            raise ValueError(str(error)) from error
     return _inverse_row(relative, raw, EVOLUTION_SOURCES[relative])
 
 
@@ -518,7 +524,8 @@ CLUB_RAW_SHA256 = {'Core/ClubCustomerHistoryTopicRoute.swift': '566199e3d716e395
  'docs/club-customer-keyword-debounce.md': '1fa12a8011cb1b2c3d7425dcd8f1f8ca07f27be08adb8a545c1be98f97806f0e',
  'Questify.xcodeproj/project.pbxproj': 'a397f1c25ca67e4657846e799d8b1f55f8755d3debc7bc7609dcc6040afc9f50',
  'tools/tests/test_creator_shelf_state_history.py': 'baa95d45430a19f2a7c472dcd269150197617f45d50735aa84b142ca2973d33c'}
-FLOOR_INPUTS = ('App/ProjectThoughtDefinitionsEditor.swift',
+FLOOR_INPUTS = ('App/ProjectEditIssueNavigation.swift',
+ 'App/ProjectThoughtDefinitionsEditor.swift',
  'App/ProjectEndingConditionPicker.swift',
  'App/MerchantBusinessEditor.swift',
  'App/MerchantOperationsEditor.swift',

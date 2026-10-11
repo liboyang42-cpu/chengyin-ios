@@ -15326,7 +15326,6 @@
 				"71A7505267803344467EE759",
 				"6AAF4C68E4CB945E5E18944C",
 				"4A57125287F6AEF51C738309",
-				"2A4F7E878F7689C47FE34583",
 				"791E6BF02CD332B0299A3459",
 				"783FC56096E91597FD59C9D5",
 				"8E1251348B29DBD73A8A5393",
@@ -15343,6 +15342,7 @@
 				"A6F02311300305D58EE71ED7",
 				"79F801E58C3ACDAAB42C5F82",
 				"525EE1679C85AA5272DE7DF4",
+				"547DD20422C04B364B7AAC62",
 				"8388C7D38F87D95825320119",
 				"018EB28B372D646C14C562F8",
 				"50DC4B290A84A7AE25F40550",
@@ -19032,16 +19032,6 @@
 			"path" = "Config/AppUnitTests.xcconfig";
 			"sourceTree" = "<group>";
 		};
-		"2A4F7E878F7689C47FE34583" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift";
-			"sourceTree" = "<group>";
-		};
-		"4FF7D0B5D5B04E3FAAE97D5A" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "2A4F7E878F7689C47FE34583";
-		};
 		"791E6BF02CD332B0299A3459" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -19201,6 +19191,16 @@
 		"EBEC019FDEAE55ACE06179C2" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "525EE1679C85AA5272DE7DF4";
+		};
+		"547DD20422C04B364B7AAC62" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"7FEA355EA4D0539C58BA2CC1" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "547DD20422C04B364B7AAC62";
 		};
 		"8388C7D38F87D95825320119" = {
 			"isa" = "PBXFileReference";
@@ -21509,7 +21509,6 @@
 			"isa" = "PBXSourcesBuildPhase";
 			"buildActionMask" = 2147483647;
 			"files" = (
-				"4FF7D0B5D5B04E3FAAE97D5A",
 				"19EC95F64576113ABFA6995C",
 				"347E85455BBF6CC9554E794C",
 				"A11ED0B2DB9D772EBD8F9407",
@@ -21526,6 +21525,7 @@
 				"78DC09D3AB80ACC96A1F884A",
 				"44CE67A5CC5852ABF791D64C",
 				"EBEC019FDEAE55ACE06179C2",
+				"7FEA355EA4D0539C58BA2CC1",
 				"EF9ECDC20F32FC34BCA977BC",
 				"A6C5B38B6813011CDAE2A1B1",
 				"1CC4808D9FEF86AE36533F86",

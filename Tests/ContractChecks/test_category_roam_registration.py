@@ -319,7 +319,7 @@ class CategoryRoamRegistrationContracts(unittest.TestCase):
 
 
 # Exact discovery/Roam layer on the frozen club R2 floor.
-ADMISSION_FINGERPRINT = '8c8eeec9a9120b261cfe3a6c067c25718e7b5a3b3cb41f5f34897fd11523a37d'
+ADMISSION_FINGERPRINT = 'd6b62d85bd3c184e3b89eb38de69f5d73cf2395b8777b208eaf4d5d677b52d17'
 CATEGORY_TEMPLATE_OFFSET = 65180
 CURRENT_APPROVED_PATHS = ['App/GlobalSearchView.swift',
  'Core/SearchMapReading.swift',
@@ -7599,6 +7599,7 @@ REPAIR_PROFILE_INPUT_HUNKS = [('        from Tests.ContractChecks.test_category_
   "        source = (ROOT/'tools/run138_editor_readiness.py').read_text()\n")]
 
 def uncached_readiness_source(raw):
+    raw = native_readiness_source(raw)
     for after, before in reversed(READINESS_PARSE_CACHE_INVERSE_HUNKS):
         after, before = after.encode(), before.encode()
         if raw.count(after) != 1:
@@ -7619,6 +7620,7 @@ def repair_profile_input_predecessor(raw):
 
 
 def repair_predecessor_source(path, raw):
+    raw = native_predecessor_source(path, raw)
     if path == 'tools/club_customer_directory_admission.py':
         require(digest(raw) == REPAIR_SOURCE_INVERSES[path]['after_sha256'], 'Unreviewed complete club helper input')
     if path in REPAIR_SOURCE_INVERSES:
@@ -7627,7 +7629,7 @@ def repair_predecessor_source(path, raw):
 
 
 def repair_predecessor_contract(value):
-    value = copy.deepcopy(value)
+    value = native_predecessor_contract(value)
     for path, expected in REPAIR_CURRENT_SOURCE_ROWS.items():
         require(value['feature_batch_sources'].get(path) == expected,
                 'Changed exact parser/property source row: ' + path)
@@ -7635,7 +7637,7 @@ def repair_predecessor_contract(value):
         if prior is None: del value['feature_batch_sources'][path]
         else: value['feature_batch_sources'][path] = copy.deepcopy(prior)
     for path, old in REPAIR_PRE_SUPPORT.items():
-        require(value['feature_batch_support_sha256'].get(path) == digest((ROOT / path).read_bytes()),
+        require(value['feature_batch_support_sha256'].get(path) == digest(native_predecessor_source(path, (ROOT / path).read_bytes())),
                 'Changed exact parser/property support: ' + path)
         value['feature_batch_support_sha256'][path] = old
     require(digest(encode(value)) == REPAIR_PRE_CONTRACT_SHA256,
@@ -7766,8 +7768,9 @@ def checked_current(raw, root):
     """Read all actual current bytes on every call, before any historical cache."""
     root = Path(root)
     require((root / CONTRACT_PATH).read_bytes() == raw, 'Live current contract differs from supplied bytes')
+    require(digest((root / NATIVE_PROJECTION_PATH).read_bytes()) == NATIVE_PROJECTION_ROW['after_sha256'], 'Changed actual current projection source')
     try:
-        runner = uncached_readiness_source((root / RUNNER_PATH).read_bytes())
+        runner = uncached_readiness_source(native_current_readiness_source((root / RUNNER_PATH).read_bytes()))
     except ValueError as error:
         raise AssertionError(str(error)) from error
     pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", runner)
@@ -7865,10 +7868,15 @@ def _profile_parent_inputs(root):
         files = {str(p.relative_to(root)) for p in members if p.is_file()}
         current_raw = (ROOT / CONTRACT_PATH).read_bytes()
         incoming = {path: (root / path).read_bytes() for path in files}
-        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS):
-            # All 49 physical bytes are read before any predecessor/context reuse.
+        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | set(NATIVE_CURRENT_INPUTS):
+            # All 51 physical inputs precede every predecessor/context reuse.
             for path, data in incoming.items():
-                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 49-file fixture: ' + path)
+                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 51-file fixture: ' + path)
+        elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS):
+            # This is exactly published c2af49, not current51 with missing inputs.
+            for path, data in incoming.items():
+                expected = native_predecessor_fixture_source(path, (ROOT / path).read_bytes(), current_raw)
+                require(data == expected, 'Changed/mixed historical c2af49 fixture: ' + path)
         else:
             require(files == set(PROFILE_CONTEXT_INPUTS), 'Historical fixture must contain exactly 47 inputs')
             for path in PROFILE_CONTEXT_INPUTS:
@@ -7883,7 +7891,7 @@ def _profile_parent_inputs(root):
     for path, row in EXTRA_INPUT_ROWS.items(): contents[path] = _inverse_exact(contents[path], row, path)
     contents[CONTRACT_PATH] = encode(parent)
     contents[RUNNER_PATH] = runner.replace(pin, PARENT_CONTRACT_SHA256.encode())
-    contents[PROFILE_PATH] = _profile_preimage(contents[PROFILE_PATH])
+    contents[PROFILE_PATH] = _profile_preimage((origin / PROFILE_PATH).read_bytes())
     contents[CATALOG_PATH] = _inverse_exact(contents[CATALOG_PATH], CURRENT_SOURCE_ROWS[CATALOG_PATH], CATALOG_PATH)
     require(len(contents) == 47, 'Profile context escaped its finite 47-file domain')
     key = (str(origin.resolve()), digest(raw))
@@ -7913,7 +7921,7 @@ def historical_protected_root(root, path):
     root = Path(root)
     checked_current((root / CONTRACT_PATH).read_bytes(), root)
     if path != 'Questify.xcodeproj/project.pbxproj': return root
-    raw = _inverse_exact((root / path).read_bytes(), PROTECTED_PBX_ROW, path)
+    raw = _inverse_exact(native_predecessor_source(path, (root / path).read_bytes()), PROTECTED_PBX_ROW, path)
     require(digest(raw) == PROTECTED_PBX_SHA256, 'Unknown exact historical PBX')
     return _bounded_context(_protected_contexts, str(root.resolve()), {path: raw}, 'category-roam-pbx-')
 
@@ -8091,6 +8099,298 @@ class CategoryRoamCurrentFloorContracts(unittest.TestCase):
             exec(compile(module, fresh.__file__, 'exec'), fresh.__dict__)
             with self.assertRaisesRegex(AssertionError, 'external frozen source template'):
                 fresh.checked_current(changed, ROOT)
+
+# Exact c2af navigation compile predecessor layer.
+NATIVE_PRE_CONTRACT_SHA256 = 'd3fedafc9efe917220f4c52cb4c82d742f840a7307546da35e4da130a80d7fdb'
+NATIVE_PRE_FINGERPRINT = '8c8eeec9a9120b261cfe3a6c067c25718e7b5a3b3cb41f5f34897fd11523a37d'
+NATIVE_LEAF_PATHS = ('App/ProjectEditIssueNavigation.swift',)
+NATIVE_NAV_ROW = {'before_sha256': 'ff473e0c1695a05f3b983e0675f0e7cd431f5b8258dad01b6d1a73f0911b0a2b',
+ 'after_sha256': '6d10281d7c74e6664404ed359902fd3673873bce0ddd519686dbb521cf29319d',
+ 'hunks': [{'before': '    struct Destination: Identifiable {\n'
+                      '        let id = UUID()\n'
+                      '        let capture: Capture\n'
+                      '    }',
+            'after': '    struct Destination: Identifiable, Hashable {\n'
+                     '        let id = UUID()\n'
+                     '        let capture: Capture\n'
+                     '        nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id '
+                     '}\n'
+                     '        nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }\n'
+                     '    }'}]}
+NATIVE_HELPER_ROW = {'before_sha256': '1878c5c48f1da07910178409ca0b927be695e92a462497dc8cd9aa7d9a929aaf',
+ 'after_sha256': '379ada64233f6a51f52d5ca595c9092632f248e23c50825aa989ff0882fcfd88',
+ 'hunks': [{'before': "FLOOR_INPUTS = ('App/ProjectThoughtDefinitionsEditor.swift',",
+            'after': "FLOOR_INPUTS = ('App/ProjectEditIssueNavigation.swift',\n"
+                     " 'App/ProjectThoughtDefinitionsEditor.swift',"},
+           {'before': 'def restore_evolution_source(relative, raw):\n'
+                      '    return _inverse_row(relative, raw, EVOLUTION_SOURCES[relative])\n',
+            'after': 'def restore_evolution_source(relative, raw):\n'
+                     "    if relative == 'Questify.xcodeproj/project.pbxproj':\n"
+                     '        from Tests.ContractChecks.test_category_roam_registration import '
+                     'native_predecessor_source\n'
+                     '        try:\n'
+                     '            raw = native_predecessor_source(relative, raw)\n'
+                     '        except AssertionError as error:\n'
+                     '            raise ValueError(str(error)) from error\n'
+                     '    return _inverse_row(relative, raw, EVOLUTION_SOURCES[relative])\n'}]}
+NATIVE_PRE_SHA256 = {'App/ProjectEditIssueNavigation.swift': 'ff473e0c1695a05f3b983e0675f0e7cd431f5b8258dad01b6d1a73f0911b0a2b',
+ 'Tests/ContractChecks/test_category_roam_registration.py': '0af9b683f459178b3388921bd593dffd5d1ef4e4916df509e464d6620f5fd501',
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': '03c1954fe6862fe2d4651384ca6b1b3296382cba7896c6202a82520aadb95b98',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': '402c5c67484ca946d65ddd7c77352d7075445fa69064e9ffeb3f98f896cab470',
+ 'tools/club_customer_directory_admission.py': '1878c5c48f1da07910178409ca0b927be695e92a462497dc8cd9aa7d9a929aaf',
+ 'tools/run138_editor_readiness.py': '3854d1af7783eeb72ea095e53a0330d2919c823ab0fd349ae623be4206f1a642',
+ 'Questify.xcodeproj/project.pbxproj': 'a397f1c25ca67e4657846e799d8b1f55f8755d3debc7bc7609dcc6040afc9f50',
+ 'tools/run138_current_source_projection.py': 'c0e6a5351bd024bdcbf8d1152bb4e8cb683cc5ff15e370627a14e229a1158727'}
+NATIVE_PRE_SUPPORT = {'App/ProjectEditIssueNavigation.swift': 'ff473e0c1695a05f3b983e0675f0e7cd431f5b8258dad01b6d1a73f0911b0a2b',
+ 'Tests/ContractChecks/test_category_roam_registration.py': '0af9b683f459178b3388921bd593dffd5d1ef4e4916df509e464d6620f5fd501',
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': '03c1954fe6862fe2d4651384ca6b1b3296382cba7896c6202a82520aadb95b98',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': '402c5c67484ca946d65ddd7c77352d7075445fa69064e9ffeb3f98f896cab470',
+ 'tools/club_customer_directory_admission.py': '1878c5c48f1da07910178409ca0b927be695e92a462497dc8cd9aa7d9a929aaf'}
+NATIVE_CATEGORY_PREFIX_HUNKS = [{'before': 'def uncached_readiness_source(raw):\n',
+  'after': 'def uncached_readiness_source(raw):\n    raw = native_readiness_source(raw)\n'},
+ {'before': 'def checked_current(raw, root):\n'
+            '    """Read all actual current bytes on every call, before any historical cache."""\n'
+            '    root = Path(root)\n'
+            "    require((root / CONTRACT_PATH).read_bytes() == raw, 'Live current contract differs from "
+            "supplied bytes')\n",
+  'after': 'def checked_current(raw, root):\n'
+           '    """Read all actual current bytes on every call, before any historical cache."""\n'
+           '    root = Path(root)\n'
+           "    require((root / CONTRACT_PATH).read_bytes() == raw, 'Live current contract differs from "
+           "supplied bytes')\n"
+           '    require(digest((root / NATIVE_PROJECTION_PATH).read_bytes()) == '
+           "NATIVE_PROJECTION_ROW['after_sha256'], 'Changed actual current projection source')\n"},
+ {'before': '    try:\n        runner = uncached_readiness_source((root / RUNNER_PATH).read_bytes())\n',
+  'after': '    try:\n'
+           '        runner = uncached_readiness_source(native_current_readiness_source((root / '
+           'RUNNER_PATH).read_bytes()))\n'},
+ {'before': 'def repair_predecessor_source(path, raw):\n',
+  'after': 'def repair_predecessor_source(path, raw):\n    raw = native_predecessor_source(path, raw)\n'},
+ {'before': 'def repair_predecessor_contract(value):\n    value = copy.deepcopy(value)\n',
+  'after': 'def repair_predecessor_contract(value):\n    value = native_predecessor_contract(value)\n'},
+ {'before': "require(value['feature_batch_support_sha256'].get(path) == digest((ROOT / path).read_bytes()),\n"
+            "                'Changed exact parser/property support: ' + path)",
+  'after': "require(value['feature_batch_support_sha256'].get(path) == "
+           'digest(native_predecessor_source(path, (ROOT / path).read_bytes())),\n'
+           "                'Changed exact parser/property support: ' + path)"},
+ {'before': '        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS):\n'
+            '            # All 49 physical bytes are read before any predecessor/context reuse.\n'
+            '            for path, data in incoming.items():\n'
+            "                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 49-file "
+            "fixture: ' + path)\n"
+            '        else:',
+  'after': '        if files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS) | '
+           'set(NATIVE_CURRENT_INPUTS):\n'
+           '            # All 51 physical inputs precede every predecessor/context reuse.\n'
+           '            for path, data in incoming.items():\n'
+           "                require(data == (ROOT / path).read_bytes(), 'Changed/mixed current 51-file "
+           "fixture: ' + path)\n"
+           '        elif files == set(PROFILE_CONTEXT_INPUTS) | set(REPAIR_LEAF_PATHS):\n'
+           '            # This is exactly published c2af49, not current51 with missing inputs.\n'
+           '            for path, data in incoming.items():\n'
+           '                expected = native_predecessor_fixture_source(path, (ROOT / path).read_bytes(), '
+           'current_raw)\n'
+           "                require(data == expected, 'Changed/mixed historical c2af49 fixture: ' + path)\n"
+           '        else:'},
+ {'before': '    contents[PROFILE_PATH] = _profile_preimage(contents[PROFILE_PATH])\n',
+  'after': '    contents[PROFILE_PATH] = _profile_preimage((origin / PROFILE_PATH).read_bytes())\n'},
+ {'before': '    raw = _inverse_exact((root / path).read_bytes(), PROTECTED_PBX_ROW, path)\n',
+  'after': '    raw = _inverse_exact(native_predecessor_source(path, (root / path).read_bytes()), '
+           'PROTECTED_PBX_ROW, path)\n'}]
+NATIVE_CURRENT_INPUTS = ('App/ProjectEditIssueNavigation.swift', 'tools/run138_current_source_projection.py')
+NATIVE_PROJECTION_PATH = 'tools/run138_current_source_projection.py'
+NATIVE_PROJECTION_ROW = {'before_sha256': 'c0e6a5351bd024bdcbf8d1152bb4e8cb683cc5ff15e370627a14e229a1158727',
+ 'after_sha256': '7e14668c3ab789f3903971a8de30a828c1cac36c6755d67f81e92ef29356c7f1',
+ 'hunks': [{'before': "current.contract(root)['entry_contract_sha256']",
+            'after': "current.contract_member('entry_contract_sha256', root=root)"},
+           {'before': "planning().contract(root)['feature_batch_sources'].get(relative)",
+            'after': "planning().contract_member('feature_batch_sources', relative, root)"}]}
+NATIVE_READINESS_HUNKS = [{'before': 'def original_source(relative, raw, root=ROOT):\n',
+  'after': 'def contract_member(section, member=None, root=ROOT):\n'
+           '    """Copy one validated member without copying unrelated contract branches."""\n'
+           "    raw = (Path(root) / 'tools/run138_editor_readiness_contract.json').read_bytes()\n"
+           '    if digest(raw) != CONTRACT_SHA256:\n'
+           "        raise ValueError('Unreviewed current readiness planning contract')\n"
+           '    value = _parsed_contract(raw)[section]\n'
+           '    if member is not None:\n'
+           '        value = value.get(member)\n'
+           '    return deepcopy(value)\n'
+           '\n'
+           '\n'
+           'def original_source(relative, raw, root=ROOT):\n'}]
+NATIVE_READINESS_AFTER_SHA256 = '1de7d2a1238c7a6057ef592a8a272844df00f239e43cccbcfd136dd5588d77e1'
+NATIVE_PBX_REPAIR_ROW = {'before_sha256': 'a397f1c25ca67e4657846e799d8b1f55f8755d3debc7bc7609dcc6040afc9f50',
+ 'after_sha256': '211fe2e6ded15704a582d9340bb45d198620afe118b2add40d60679820b64f65',
+ 'hunks': [{'before': '\t\t\t\t"4A57125287F6AEF51C738309",\n'
+                      '\t\t\t\t"2A4F7E878F7689C47FE34583",\n'
+                      '\t\t\t\t"791E6BF02CD332B0299A3459",\n',
+            'after': '\t\t\t\t"4A57125287F6AEF51C738309",\n\t\t\t\t"791E6BF02CD332B0299A3459",\n'},
+           {'before': '\t\t\t\t"525EE1679C85AA5272DE7DF4",\n\t\t\t\t"8388C7D38F87D95825320119",\n',
+            'after': '\t\t\t\t"525EE1679C85AA5272DE7DF4",\n'
+                     '\t\t\t\t"547DD20422C04B364B7AAC62",\n'
+                     '\t\t\t\t"8388C7D38F87D95825320119",\n'},
+           {'before': '\t\t};\n'
+                      '\t\t"2A4F7E878F7689C47FE34583" = {\n'
+                      '\t\t\t"isa" = "PBXFileReference";\n'
+                      '\t\t\t"lastKnownFileType" = "sourcecode.swift";\n'
+                      '\t\t\t"path" = "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift";\n'
+                      '\t\t\t"sourceTree" = "<group>";\n'
+                      '\t\t};\n'
+                      '\t\t"4FF7D0B5D5B04E3FAAE97D5A" = {\n'
+                      '\t\t\t"isa" = "PBXBuildFile";\n'
+                      '\t\t\t"fileRef" = "2A4F7E878F7689C47FE34583";\n'
+                      '\t\t};\n'
+                      '\t\t"791E6BF02CD332B0299A3459" = {\n',
+            'after': '\t\t};\n\t\t"791E6BF02CD332B0299A3459" = {\n'},
+           {'before': '\t\t\t"fileRef" = "525EE1679C85AA5272DE7DF4";\n\t\t};\n',
+            'after': '\t\t\t"fileRef" = "525EE1679C85AA5272DE7DF4";\n'
+                     '\t\t};\n'
+                     '\t\t"547DD20422C04B364B7AAC62" = {\n'
+                     '\t\t\t"isa" = "PBXFileReference";\n'
+                     '\t\t\t"lastKnownFileType" = "sourcecode.swift";\n'
+                     '\t\t\t"path" = "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift";\n'
+                     '\t\t\t"sourceTree" = "<group>";\n'
+                     '\t\t};\n'
+                     '\t\t"7FEA355EA4D0539C58BA2CC1" = {\n'
+                     '\t\t\t"isa" = "PBXBuildFile";\n'
+                     '\t\t\t"fileRef" = "547DD20422C04B364B7AAC62";\n'
+                     '\t\t};\n'},
+           {'before': '\t\t\t"files" = (\n'
+                      '\t\t\t\t"4FF7D0B5D5B04E3FAAE97D5A",\n'
+                      '\t\t\t\t"19EC95F64576113ABFA6995C",\n',
+            'after': '\t\t\t"files" = (\n\t\t\t\t"19EC95F64576113ABFA6995C",\n'},
+           {'before': '\t\t\t\t"EBEC019FDEAE55ACE06179C2",\n\t\t\t\t"EF9ECDC20F32FC34BCA977BC",\n',
+            'after': '\t\t\t\t"EBEC019FDEAE55ACE06179C2",\n'
+                     '\t\t\t\t"7FEA355EA4D0539C58BA2CC1",\n'
+                     '\t\t\t\t"EF9ECDC20F32FC34BCA977BC",\n'}]}
+NATIVE_PRE_PBX_ROW_SHA256 = '50b8c92d4fce7371b9df3010ae38d0b4372e1b9f4432657dd553dd27c91cb36f'
+
+def _native_category_preimage(raw):
+    marker = b'\n# Exact c2af navigation compile predecessor layer.\n'
+    suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
+    require(raw.count(marker) == 1 and raw.endswith(suffix), 'Unknown native layer source boundary')
+    prefix, _ = raw.split(marker, 1)
+    for hunk in reversed(NATIVE_CATEGORY_PREFIX_HUNKS):
+        after, before = hunk['after'].encode(), hunk['before'].encode()
+        require(prefix.count(after) == 1, 'Missing/repeated native source interface span')
+        prefix = prefix.replace(after, before, 1)
+    slot = b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+    require(prefix.count(slot) == 1, 'Unknown native admission fingerprint slot')
+    old = prefix.replace(slot, b"ADMISSION_FINGERPRINT = '" + NATIVE_PRE_FINGERPRINT.encode() + b"'", 1) + suffix
+    require(digest(old) == NATIVE_PRE_SHA256[SELF_PATH], 'Complete c2af admission source not restored')
+    return old
+
+
+def native_current_readiness_source(raw):
+    """Current admission requires the entire reviewed member-copy implementation."""
+    pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", raw)
+    if len(pins) != 1 or digest(raw.replace(pins[0], NATIVE_PRE_CONTRACT_SHA256.encode(), 1)) != NATIVE_READINESS_AFTER_SHA256:
+        raise ValueError('Changed complete current readiness member-copy source')
+    return raw
+
+
+def native_readiness_source(raw):
+    """Remove only the exact member-copy optimization, retaining the live pin."""
+    pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", raw)
+    if len(pins) != 1:
+        raise ValueError('Unknown native readiness contract pin')
+    normalized = raw.replace(pins[0], NATIVE_PRE_CONTRACT_SHA256.encode(), 1)
+    if digest(normalized) == NATIVE_PRE_SHA256[RUNNER_PATH]:
+        return raw  # The explicit c2af predecessor has no member-copy extension.
+    for hunk in reversed(NATIVE_READINESS_HUNKS):
+        after, before = hunk['after'].encode(), hunk['before'].encode()
+        if raw.count(after) != 1:
+            raise ValueError('Unknown exact readiness member-copy source span')
+        raw = raw.replace(after, before, 1)
+    if digest(raw.replace(pins[0], NATIVE_PRE_CONTRACT_SHA256.encode(), 1)) != NATIVE_PRE_SHA256[RUNNER_PATH]:
+        raise ValueError('Complete c2af readiness member-copy predecessor not restored')
+    return raw
+
+
+def native_predecessor_source(path, raw):
+    """Exact historical bytes only; current admission remains checked_current."""
+    if path not in NATIVE_PRE_SHA256:
+        return raw
+    if digest(raw) == NATIVE_PRE_SHA256[path]:
+        return raw
+    if path == NATIVE_LEAF_PATHS[0]:
+        old = _inverse_exact(raw, NATIVE_NAV_ROW, path)
+    elif path == 'Questify.xcodeproj/project.pbxproj':
+        old = _inverse_exact(raw, NATIVE_PBX_REPAIR_ROW, path)
+    elif path == 'tools/club_customer_directory_admission.py':
+        old = _inverse_exact(raw, NATIVE_HELPER_ROW, path)
+    elif path == NATIVE_PROJECTION_PATH:
+        old = _inverse_exact(raw, NATIVE_PROJECTION_ROW, path)
+    elif path == SELF_PATH:
+        old = _native_category_preimage(raw)
+    elif path == PROFILE_PATH:
+        slot = b"DISCOVERY_HELPER_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+        require(raw.count(slot) == 1, 'Unknown native profile source pin')
+        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = '" + NATIVE_PRE_FINGERPRINT.encode() + b"'", 1)
+    elif path == RUNNER_PATH:
+        raw = native_readiness_source(raw)
+        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", raw)
+        require(len(pins) == 1, 'Unknown native readiness pin')
+        old = raw.replace(pins[0], NATIVE_PRE_CONTRACT_SHA256.encode(), 1)
+    elif path == CATEGORY_GATE:
+        import base64, zlib
+        normalized, source = _decoded_external_template(raw)
+        require(source == (ROOT / SELF_PATH).read_bytes(), 'Unknown native complete external template')
+        old_source = _native_category_preimage(source)
+        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()
+        first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
+        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\n'
+        suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
+        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\n' + b''.join(
+            ('    ' + repr(encoded[i:i+80]) + '\n').encode() for i in range(0, len(encoded), 80)) + b')\n' + last + suffix
+    else:
+        raise AssertionError('Unreviewed native predecessor path')
+    require(digest(old) == NATIVE_PRE_SHA256[path], 'Complete c2af source not restored: ' + path)
+    return old
+
+
+def native_predecessor_contract(value):
+    """Authenticate new bytes, then restore the entire published c2af contract."""
+    value = copy.deepcopy(value)
+    if digest(encode(value)) == NATIVE_PRE_CONTRACT_SHA256:
+        return value  # Explicit historical-only value, never current admission.
+    path = NATIVE_LEAF_PATHS[0]
+    require(value['feature_batch_sources'].get(path) == NATIVE_NAV_ROW, 'Unknown native UUID-only source row')
+    require(digest((ROOT / path).read_bytes()) == NATIVE_NAV_ROW['after_sha256'], 'Native current Navigation bytes changed')
+    require(digest((ROOT / 'tools/club_customer_directory_admission.py').read_bytes()) == NATIVE_HELPER_ROW['after_sha256'],
+            'Native current club fixture input changed')
+    require(value['entry_projection_module_sha256'] == NATIVE_PROJECTION_ROW['after_sha256'],
+            'Unknown exact current member-copy projection pin')
+    projection = (ROOT / NATIVE_PROJECTION_PATH).read_bytes()
+    require(digest(projection) == NATIVE_PROJECTION_ROW['after_sha256'], 'Changed actual member-copy projection bytes')
+    require(digest(native_predecessor_source(NATIVE_PROJECTION_PATH, projection)) == NATIVE_PROJECTION_ROW['before_sha256'],
+            'Complete c2af projection source not restored')
+    value['entry_projection_module_sha256'] = NATIVE_PROJECTION_ROW['before_sha256']
+    pbx = 'Questify.xcodeproj/project.pbxproj'
+    row = value['feature_batch_sources'][pbx]
+    hunks = NATIVE_PBX_REPAIR_ROW['hunks']
+    require(digest((ROOT / pbx).read_bytes()) == NATIVE_PBX_REPAIR_ROW['after_sha256'], 'Native canonical PBX bytes changed')
+    require(row['after_sha256'] == NATIVE_PBX_REPAIR_ROW['after_sha256'] and row['hunks'][-len(hunks):] == hunks,
+            'Unknown canonical PBX inverse extension')
+    row['after_sha256'] = NATIVE_PBX_REPAIR_ROW['before_sha256']
+    del row['hunks'][-len(hunks):]
+    require(digest(encode(row)) == NATIVE_PRE_PBX_ROW_SHA256, 'Complete original209 PBX row not restored')
+    for path, expected in NATIVE_PRE_SUPPORT.items():
+        raw = (ROOT / path).read_bytes()
+        require(value['feature_batch_support_sha256'].get(path) == digest(raw), 'Native current support changed: ' + path)
+        require(digest(native_predecessor_source(path, raw)) == expected, 'Unknown native predecessor support: ' + path)
+        value['feature_batch_support_sha256'][path] = expected
+    del value['feature_batch_sources'][NATIVE_LEAF_PATHS[0]]
+    require(digest(encode(value)) == NATIVE_PRE_CONTRACT_SHA256, 'Complete published c2af contract not restored')
+    return value
+
+
+def native_predecessor_fixture_source(path, raw, current_contract):
+    """Construct explicit c2af49 fixture bytes; never backfill a current root."""
+    if path == CONTRACT_PATH:
+        require(raw == current_contract, 'Mixed native current fixture contract')
+        return encode(native_predecessor_contract(json.loads(raw)))
+    return native_predecessor_source(path, raw)
 
 if __name__ == '__main__':
     unittest.main()

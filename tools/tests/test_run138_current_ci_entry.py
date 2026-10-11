@@ -134,6 +134,8 @@ class CurrentCIEntryTests(unittest.TestCase):
         })
         expected.update({'.github/workflows/native-ios.yml', 'tools/ci_gates.py',
                          'tools/tests/test_ci_gates.py', 'tools/tests/test_test_bundle_preflight.py'})
+        expected.update({'tools/review_availability_inverse.py',
+                         'tools/tests/test_review_availability_inverse.py'})
         self.assertEqual(set(entry.entry_contract()['files']), expected)
         entry.validate_entries()
         for relative, row in entry.entry_contract()['files'].items():

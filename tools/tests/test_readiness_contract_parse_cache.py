@@ -158,7 +158,8 @@ class UnifiedRepairCurrentInputTests(unittest.TestCase):
         for path in paths:
             file = root / path
             file.parent.mkdir(parents=True, exist_ok=True)
-            file.write_bytes((R / path).read_bytes())
+            file.write_bytes(repair.native_predecessor_fixture_source(
+                path, (R / path).read_bytes(), self.raw()))
         return root, paths
 
     def test_two_leaf_inverses_preserve_complete_parent_and_original_ending_history(self):
@@ -267,3 +268,204 @@ class UnifiedRepairCurrentInputTests(unittest.TestCase):
             with self.assertRaises(AssertionError): repair.repair_predecessor_source(path, mutant)
 
 if __name__=='__main__':unittest.main(verbosity=2)
+
+
+class NativeNavigationCompileAdmissionTests(unittest.TestCase):
+    """Current51, exact historical c2af49 and original47 remain separate."""
+
+    def fixture(self):
+        life = tempfile.TemporaryDirectory(prefix='native-current51-')
+        self.addCleanup(life.cleanup)
+        root = Path(life.name)
+        paths = set(repair.PROFILE_CONTEXT_INPUTS) | set(repair.REPAIR_LEAF_PATHS) | set(repair.NATIVE_CURRENT_INPUTS)
+        self.assertEqual(len(paths), 51)
+        for relative in paths:
+            file = root / relative; file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_bytes((R / relative).read_bytes())
+        return root, paths
+
+    def test_exact_native_leaf_and_contract_restore_published_c2af(self):
+        raw = (R / repair.CONTRACT_PATH).read_bytes()
+        before = repair.native_predecessor_contract(json.loads(raw))
+        self.assertEqual(repair.digest(repair.encode(before)),
+                         'd3fedafc9efe917220f4c52cb4c82d742f840a7307546da35e4da130a80d7fdb')
+        path = repair.NATIVE_LEAF_PATHS[0]
+        self.assertNotIn(path, before['feature_batch_sources'])
+        value = (R / path).read_bytes()
+        self.assertEqual(repair.digest(repair.native_predecessor_source(path, value)),
+                         'ff473e0c1695a05f3b983e0675f0e7cd431f5b8258dad01b6d1a73f0911b0a2b')
+        self.assertIn(b'nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }', value)
+        self.assertIn(b'nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }', value)
+
+    def test_native_source_mutants_and_missing_inverse_spans_are_rejected(self):
+        path = repair.NATIVE_LEAF_PATHS[0]; raw = (R / path).read_bytes()
+        after = repair.NATIVE_NAV_ROW['hunks'][0]['after'].encode()
+        mutants = [raw + b'\n', raw.replace(b'lhs.id == rhs.id', b'lhs.capture.location == rhs.capture.location'),
+                   raw.replace(b'hasher.combine(id)', b'hasher.combine(capture)'),
+                   raw.replace(b'let id = UUID()', b'var id = UUID()'), raw.replace(after, b'', 1), raw + after]
+        for mutant in mutants:
+            with self.subTest(mutant=repair.digest(mutant)), self.assertRaises(AssertionError):
+                repair.native_predecessor_source(path, mutant)
+
+    def test_canonical_pbx_preserves_exact_c2af_and_all_original209_hunks(self):
+        path = 'Questify.xcodeproj/project.pbxproj'
+        raw = (R / path).read_bytes()
+        self.assertEqual(repair.digest(raw), '211fe2e6ded15704a582d9340bb45d198620afe118b2add40d60679820b64f65')
+        before = repair.native_predecessor_source(path, raw)
+        self.assertEqual(repair.digest(before), 'a397f1c25ca67e4657846e799d8b1f55f8755d3debc7bc7609dcc6040afc9f50')
+        value = json.loads((R / repair.CONTRACT_PATH).read_bytes())
+        old = repair.native_predecessor_contract(value)
+        self.assertEqual(len(old['feature_batch_sources'][path]['hunks']), 209)
+        self.assertEqual(value['feature_batch_sources'][path]['hunks'][:-len(repair.NATIVE_PBX_REPAIR_ROW['hunks'])],
+                         old['feature_batch_sources'][path]['hunks'])
+        for mutant in [raw + b'\n', raw.replace(b'547DD20422C04B364B7AAC62', b'547DD20422C04B364B7AAC63')]:
+            with self.assertRaises(AssertionError): repair.native_predecessor_source(path, mutant)
+
+    def test_complete_current51_reads_precede_projection_and_missing_leaf_has_no_fallback(self):
+        root, paths = self.fixture(); raw = (R / repair.CONTRACT_PATH).read_bytes()
+        original = Path.read_bytes; reads = []
+        def read(path):
+            if path.is_relative_to(root): reads.append(str(path.relative_to(root)))
+            return original(path)
+        with patch.object(Path, 'read_bytes', read):
+            _, _, target = repair._profile_parent_inputs(root)
+        self.assertEqual(set(reads), paths); self.assertEqual(len(reads), 51)
+        self.assertEqual({str(p.relative_to(target)) for p in target.rglob('*') if p.is_file()}, set(repair.PROFILE_CONTEXT_INPUTS))
+        for path in repair.NATIVE_CURRENT_INPUTS:
+            (root / path).unlink()
+            with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        # All49 must be authentic c2af predecessors, not repaired current49.
+        for path in paths - set(repair.NATIVE_CURRENT_INPUTS):
+            (root / path).write_bytes(repair.native_predecessor_fixture_source(path, (R / path).read_bytes(), raw))
+        repair.profile_history_inputs(raw, root, 'history')
+
+    def test_warm_current51_same_size_mtime_and_missing_navigation_are_rejected(self):
+        root, _ = self.fixture(); raw = (R / repair.CONTRACT_PATH).read_bytes()
+        repair.profile_history_inputs(raw, root, 'history')
+        file = root / repair.NATIVE_LEAF_PATHS[0]; saved = file.read_bytes(); metadata = file.stat()
+        for mutant in [bytes([saved[0] ^ 1]) + saved[1:], saved.replace(b'\n', b'\r\n'), saved.replace(b'\n', b'\r')]:
+            file.write_bytes(mutant); os.utime(file, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+            with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        file.write_bytes(saved); file.unlink()
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+
+    def test_current51_navigation_symlink_and_unknown_extra_file_rejected(self):
+        root, _ = self.fixture(); raw = (R / repair.CONTRACT_PATH).read_bytes()
+        file = root / repair.NATIVE_LEAF_PATHS[0]; saved = file.read_bytes(); file.unlink(); file.symlink_to(R / repair.NATIVE_LEAF_PATHS[0])
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        file.unlink(); file.write_bytes(saved); (root / 'unknown.txt').write_text('not an admitted input')
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+
+    def test_native_helper_and_full_central_mutations_rejected(self):
+        path = 'tools/club_customer_directory_admission.py'; source = (R / path).read_bytes()
+        for mutant in [source + b'\n', source.replace(b'App/ProjectEditIssueNavigation.swift', b'App/ProjectEditIssueNavigatioX.swift')]:
+            with self.assertRaises(AssertionError): repair.native_predecessor_source(path, mutant)
+        value = json.loads((R / repair.CONTRACT_PATH).read_bytes())
+        value['feature_batch_sources'][repair.NATIVE_LEAF_PATHS[0]]['hunks'][0]['after'] += '\n'
+        with self.assertRaises(AssertionError): repair.native_predecessor_contract(value)
+
+    def test_complete_native_source_interfaces_restore_exact_c2af_files(self):
+        for path, expected in repair.NATIVE_PRE_SHA256.items():
+            with self.subTest(path=path):
+                source = (R / path).read_bytes()
+                self.assertEqual(repair.digest(repair.native_predecessor_source(path, source)), expected)
+                with self.assertRaises((AssertionError, ValueError)):
+                    repair.native_predecessor_source(path, source + b'\n')
+
+    def test_projection_exact_full_inverse_and_missing_duplicate_changed_spans_rejected(self):
+        path = repair.NATIVE_PROJECTION_PATH; raw = (R / path).read_bytes()
+        self.assertEqual(repair.digest(repair.native_predecessor_source(path, raw)),
+                         'c0e6a5351bd024bdcbf8d1152bb4e8cb683cc5ff15e370627a14e229a1158727')
+        for row in repair.NATIVE_PROJECTION_ROW['hunks']:
+            after = row['after'].encode()
+            for mutant in (raw.replace(after, b'', 1), raw + after, raw.replace(after, row['before'].encode(), 1)):
+                with self.assertRaises(AssertionError): repair.native_predecessor_source(path, mutant)
+        source = (R / repair.RUNNER_PATH).read_bytes()
+        for row in repair.NATIVE_READINESS_HUNKS:
+            after = row['after'].encode()
+            for mutant in (source.replace(after, b'', 1), source + after, source.replace(after, after[:-1] + b'X', 1)):
+                with self.assertRaises(ValueError): repair.native_readiness_source(mutant)
+
+    def test_actual_projection_old_missing_same_size_mtime_and_coherent_repin_rejected(self):
+        path = R / repair.NATIVE_PROJECTION_PATH
+        contract = R / repair.CONTRACT_PATH; runner = R / repair.RUNNER_PATH
+        saved = {p: (p.read_bytes(), p.stat()) for p in (path, contract, runner)}
+        for p, (_, metadata) in saved.items(): self.assertEqual(metadata.st_nlink, 1, str(p))
+        raw = saved[contract][0]; source = saved[path][0]
+        repair.checked_current(raw, R)
+        def restore():
+            for p, (data, metadata) in saved.items():
+                p.write_bytes(data); os.utime(p, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+        try:
+            for mutant in (repair.native_predecessor_source(repair.NATIVE_PROJECTION_PATH, source),
+                           bytes([source[0] ^ 1]) + source[1:]):
+                path.write_bytes(mutant); os.utime(path, ns=(saved[path][1].st_atime_ns, saved[path][1].st_mtime_ns))
+                with self.assertRaises((AssertionError, ValueError)): repair.checked_current(raw, R)
+            restore(); path.unlink()
+            with self.assertRaises((AssertionError, ValueError, OSError)): repair.checked_current(raw, R)
+            restore()
+            mutant = bytes([source[0] ^ 1]) + source[1:]
+            value = json.loads(raw); value['entry_projection_module_sha256'] = repair.digest(mutant)
+            changed = repair.encode(value)
+            path.write_bytes(mutant); contract.write_bytes(changed)
+            runner.write_bytes(saved[runner][0].replace(repair.digest(raw).encode(), repair.digest(changed).encode(), 1))
+            with self.assertRaises((AssertionError, ValueError)): repair.checked_current(changed, R)
+        finally:
+            restore()
+        repair.checked_current(raw, R)
+
+    def test_current_runner_cannot_reuse_historical_memberless_body_with_new_pin(self):
+        path = R / repair.RUNNER_PATH; saved = path.read_bytes(); metadata = path.stat()
+        self.assertEqual(metadata.st_nlink, 1)
+        old = repair.native_readiness_source(saved)
+        self.assertNotEqual(old, saved)
+        # This predecessor remains valid only at its explicit historical boundary.
+        self.assertEqual(repair.native_readiness_source(old), old)
+        try:
+            path.write_bytes(old)
+            with self.assertRaises((AssertionError, ValueError)):
+                repair.checked_current((R / repair.CONTRACT_PATH).read_bytes(), R)
+        finally:
+            path.write_bytes(saved); os.utime(path, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+        repair.checked_current((R / repair.CONTRACT_PATH).read_bytes(), R)
+
+    def test_current51_missing_or_old_projection_never_uses_healthy_live_source(self):
+        root, _ = self.fixture(); raw = (R / repair.CONTRACT_PATH).read_bytes()
+        file = root / repair.NATIVE_PROJECTION_PATH; source = file.read_bytes(); metadata = file.stat()
+        repair.profile_history_inputs(raw, root, 'history')
+        for mutant in (repair.native_predecessor_source(repair.NATIVE_PROJECTION_PATH, source),
+                       bytes([source[0] ^ 1]) + source[1:]):
+            file.write_bytes(mutant); os.utime(file, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+            with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        file.unlink()
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+
+
+class ReadinessMemberCopyTests(unittest.TestCase):
+    def test_every_member_call_rereads_full_raw_and_nested_results_are_independent(self):
+        source = R / repair.CONTRACT_PATH; original = Path.read_bytes; reads = []
+        def read(path):
+            if path == source: reads.append(path)
+            return original(path)
+        with patch.object(Path, 'read_bytes', read):
+            first = current.contract_member('feature_batch_sources', repair.NATIVE_LEAF_PATHS[0], R)
+            first['hunks'][0]['after'] = 'caller contamination'
+            second = current.contract_member('feature_batch_sources', repair.NATIVE_LEAF_PATHS[0], R)
+            full = current.contract(R)
+        self.assertEqual(reads, [source, source, source])
+        self.assertEqual(second, full['feature_batch_sources'][repair.NATIVE_LEAF_PATHS[0]])
+        self.assertNotEqual(first, second)
+        self.assertIsNone(current.contract_member('feature_batch_sources', 'unknown-member', R))
+        with self.assertRaises(KeyError): current.contract_member('unknown-section', root=R)
+
+    def test_member_bad_raw_is_rejected_before_unknown_key_and_after_cache_warmup(self):
+        with tempfile.TemporaryDirectory(prefix='native-member-copy-') as directory:
+            root = Path(directory); file = root / repair.CONTRACT_PATH
+            file.parent.mkdir(parents=True); raw = (R / repair.CONTRACT_PATH).read_bytes(); file.write_bytes(raw)
+            current.contract_member('entry_contract_sha256', root=root); metadata = file.stat()
+            file.write_bytes(bytes([raw[0] ^ 1]) + raw[1:]); os.utime(file, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+            self.assertEqual(file.stat().st_size, metadata.st_size)
+            self.assertEqual(file.stat().st_mtime_ns, metadata.st_mtime_ns)
+            with self.assertRaises(ValueError): current.contract_member('unknown-section', root=root)
+            file.unlink()
+            with self.assertRaises(FileNotFoundError): current.contract_member('entry_contract_sha256', root=root)

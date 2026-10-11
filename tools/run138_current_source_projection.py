@@ -32,7 +32,7 @@ def planning():
 def entry_contract(root=ROOT):
     current = planning()
     raw = (Path(root) / ENTRY_CONTRACT).read_bytes()
-    if current.digest(raw) != current.contract(root)['entry_contract_sha256']:
+    if current.digest(raw) != current.contract_member('entry_contract_sha256', root=root):
         raise ValueError('Unreviewed current CI entry inverse')
     return json.loads(raw)
 
@@ -77,7 +77,7 @@ def validate_entries(root=ROOT):
 
 def original_feature_batch_bytes(relative, raw, root=ROOT):
     """Restore the pinned input of an existing gate for this product batch only."""
-    row = planning().contract(root)['feature_batch_sources'].get(relative)
+    row = planning().contract_member('feature_batch_sources', relative, root)
     if row is None:
         return raw
     text_input = isinstance(raw, str)

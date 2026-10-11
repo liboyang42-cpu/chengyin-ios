@@ -1,5 +1,7 @@
 """Small, synthetic diagnostic controls; no Apple execution or repository copies."""
 import copy
+import atexit
+import ast
 import importlib.util
 import json
 import os
@@ -17,8 +19,49 @@ TOOLS = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('targeted_native_runner', TOOLS / 'run_targeted_native.py')
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
-SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')
-SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))
+CURRENT_TOOLS = TOOLS
+CURRENT_SELECTION = runner.read_json(TOOLS / 'targeted_native_selection.json')
+CURRENT_SOURCE = Path(os.environ.get('TARGETED_NATIVE_SOURCE_ROOT', str(TOOLS.parent)))
+
+
+def c2af_test_inputs(selection, current):
+    """Explicit historical fixture for unchanged83; current14 is checked first.
+
+    This bounded view restores only independently authenticated payload bytes.
+    It never writes through a hardlink, completes a missing current input, reads
+    another ROOT, or changes a historical assertion. Historical diagnostic source
+    checks use this runner's real code and the separate, exact v5 selection.
+    """
+    runner.validate_native_selection(selection, current)
+    restored = runner.native_predecessor_sources(selection, current)
+    old = runner.native_predecessor_selection(selection)
+    contract = json.loads(restored['tools/run138_editor_readiness_contract.json'])
+    paths = set(runner.BOUND_SOURCES) | set(runner.CREATOR_PATHS) | set(runner.REPAIR_PATHS)
+    paths.update(runner.STATIC_REPAIR_PATHS)
+    paths.update(runner.PATHS)
+    paths.update(contract['feature_batch_sources'])
+    paths.update(contract['feature_batch_support_sha256'])
+    paths.add('tools/run138_current_source_projection.py')
+    temporary = tempfile.TemporaryDirectory(prefix='targeted-c2af-inputs-')
+    atexit.register(temporary.cleanup)
+    root = Path(temporary.name)
+    for relative in sorted(paths):
+        destination = root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if relative in restored:
+            destination.write_bytes(restored[relative])
+        elif relative == 'tools/targeted_native_selection.json':
+            destination.write_bytes(runner.native_predecessor_selection_bytes(selection))
+        else:
+            source = current / relative
+            if not source.is_file():
+                raise ValueError('Missing historical fixture input: ' + relative)
+            os.link(source.resolve(strict=True), destination)
+    return old, root
+
+
+SELECTION, SOURCE = c2af_test_inputs(CURRENT_SELECTION, CURRENT_SOURCE)
+TOOLS = SOURCE / 'tools'
 UUID = '01234567-0123-0123-0123-012345678901'
 
 
@@ -1720,6 +1763,324 @@ class FixedPublicCreatorRead(unittest.TestCase):
             with self.subTest(key=key),mock.patch.object(runner,key,'f'*40),mock.patch.object(runner,'checked') as read,mock.patch.object(runner,'execute') as execute,self.assertRaisesRegex(ValueError,'fixed public creator object target'):
                 runner.ensure_creator_commit(SOURCE)
             read.assert_not_called();execute.assert_not_called()
+
+
+ORIGINAL83_IDENTITIES = ('SelectionAndCommands.test_actual_bound_source_and_all_65_declarations', 'SelectionAndCommands.test_original_29_methods_are_preserved_and_only_16_added', 'SelectionAndCommands.test_per_method_source_binding_rejects_missing_swapped_duplicate_and_wrong_target', 'SelectionAndCommands.test_repinned_changed_method_and_duplicate_source_declaration_fail', 'SelectionAndCommands.test_duplicate_declaration_is_not_a_unique_method', 'SelectionAndCommands.test_nonboolean_version_and_exact_contract', 'SelectionAndCommands.test_changed_source_hash_and_missing_guard_rejected', 'SelectionAndCommands.test_empty_duplicate_target_and_wildcard_selectors_rejected', 'SelectionAndCommands.test_core_filter_is_exact_set_without_full_suite_fallback', 'SelectionAndCommands.test_every_xcode_method_has_its_own_exact_filter', 'SelectionAndCommands.test_workflow_remains_additive_standard_and_independent', 'SelectionAndCommands.test_original_gates_project_schemes_and_product_sources_are_unchanged', 'ReviewedCompileRepair.test_complete_predecessors_and_unrelated_contract_semantics_are_preserved', 'ReviewedCompileRepair.test_real_central_projection_accepts_current_support_and_exact_inverse', 'ReviewedCompileRepair.test_repair_inverse_rejects_off_hunk_changes_even_with_rehashed_postimage', 'Results.test_xunit_reads_all_forty_four_real_cases', 'Results.test_core_transcript_proves_execution_beyond_swiftpm_xunit', 'Results.test_xunit_failures_skips_and_unknown_status_cannot_pass', 'Results.test_modern_xcresult_exact_target_and_method_set', 'Results.test_xcresult_missing_wrong_target_bad_identifier_and_unknown_schema', 'Results.test_target_url_binding_must_not_override_wrong_bundle', 'Results.test_zero_omitted_extra_duplicate_failed_skipped_timeout_and_cancel_fail', 'Results.test_hidden_repetitions_and_xunit_summary_disagreement_fail', 'Results.test_summary_counts_actual_device_and_no_boolean_counts', 'RuntimeBoundaries.test_single_installed_iphone_and_no_automatic_other_device', 'RuntimeBoundaries.test_run_requires_hosted_mac_exact_repo_branch_and_event', 'RuntimeBoundaries.test_process_exit_is_real_and_timeout_never_passes', 'RuntimeBoundaries.test_core_build_is_once_before_exact_execution_and_failure_stops', 'RuntimeBoundaries.test_core_capture_keeps_stderr_live_and_limits_only_evidence', 'RuntimeBoundaries.test_every_cleanup_wait_is_bounded_even_after_kill', 'RuntimeBoundaries.test_product_target_selection_supports_only_safe_testhost_tokens', 'RuntimeBoundaries.test_product_directory_alias_returns_canonical_safe_run', 'RuntimeBoundaries.test_ambiguous_products_and_extra_target_fail', 'RuntimeBoundaries.test_inventory_detects_product_mutation_and_escaping_links', 'RuntimeBoundaries.test_scope_requires_exact_sha_base_and_nineteen_exact_statuses', 'RuntimeBoundaries.test_duplicate_json_keys_rejected', 'RuntimeBoundaries.test_missing_receipt_reports_not_run', 'ReceiptIdentity.test_exact_same_run_sha_tree_configuration_and_65_results', 'ReceiptIdentity.test_report_revalidates_real_exported_files_not_just_receipt_counts', 'ReceiptIdentity.test_other_run_attempt_sha_tree_selection_or_workflow_rejected', 'ReceiptIdentity.test_missing_or_wrong_configuration_toolchain_simulator_or_group_rejected', 'CreatorCurrentTreeAndCounts.test_every_creator_current_tree_mode_blob_and_presence_is_exact', 'CreatorCurrentTreeAndCounts.test_receipt_counts_are_real_integers_and_outer_fields_are_exact', 'Creator65Contract.test_original_45_exact_bindings_plus_independent_20_are_exactly_65', 'Creator65Contract.test_each_of_the_65_methods_has_one_declaration_in_its_exact_source', 'Creator65Contract.test_each_new_method_rejects_repinned_replacement_or_wrong_source', 'Creator65Contract.test_each_new_declaration_is_checked_before_creator_image_validation', 'Creator65Contract.test_new_source_binding_cannot_be_dropped_even_after_outer_repin', 'Creator65Contract.test_core_44_requires_both_complete_independent_execution_streams', 'Creator65Contract.test_old_45_receipt_cannot_be_upgraded_by_renaming_or_recounting', 'Creator65Contract.test_each_new_method_is_required_in_the_65_receipt', 'Creator65Contract.test_creator_15_and_diagnostic_4_have_exact_independent_statuses', 'Creator65Contract.test_all_creator_current_bytes_sha_and_git_blobs_are_independently_bound', 'Creator65Contract.test_creator_missing_duplicate_reordered_and_changed_rows_reject_outer_repin', 'Creator65Contract.test_every_creator_path_rejects_changed_real_current_bytes', 'Creator65Contract.test_added_files_cannot_be_rehashed_or_claim_predecessors_or_hunks', 'Creator65Contract.test_modified_creator_inverse_requires_complete_predecessor', 'Creator65Contract.test_creator_baseline_requires_each_modified_blob_and_all_four_additions_absent', 'Creator65Contract.test_each_creator_current_sha_and_blob_check_remains_active_after_inner_repin', 'Creator65Contract.test_each_creator_current_file_must_exist_as_a_regular_checkout_file', 'Creator65Contract.test_added_file_null_predecessor_and_empty_hunks_are_independently_enforced', 'ShallowCheckoutBoundaries.test_current_bytes_validate_without_history_but_real_run_scope_requires_it', 'ShallowCheckoutBoundaries.test_real_git_witness_proves_predecessors_and_addition_absence_without_parent_history', 'StaticRepairBinding.test_exact_published_base_nine_paths_and_old_domains_remain_separate', 'StaticRepairBinding.test_complete_current_payload_inverts_to_independent_b75_bytes', 'StaticRepairBinding.test_manifest_cannot_widen_or_change_under_outer_repin', 'StaticRepairBinding.test_every_payload_checks_real_bytes_sha_blob_and_regular_file', 'StaticRepairBinding.test_inverse_rejects_rehashed_off_hunk_and_fabricated_addition_predecessors', 'StaticRepairBinding.test_actual_parent_nine_path_scope_and_receipt_cannot_claim_old_scope', 'StaticRepairBinding.test_each_baseline_and_current_tree_mode_blob_and_addition_absence', 'StaticRepairBinding.test_real_git_subset_witness_binds_b75_payload_and_current_mode_blobs', 'PublishedParentBridge.test_exact_eight_path_parent_bridge_preserves_old_source_domains', 'PublishedParentBridge.test_current_to_true_parent_to_b75_inverses_match_every_historical_source', 'PublishedParentBridge.test_parent_bridge_rejects_repinned_missing_reordered_or_expanded_inputs', 'PublishedParentBridge.test_each_parent_inverse_rejects_rehashed_off_hunk_and_changed_real_sources', 'PublishedParentBridge.test_every_real_parent_bridge_tree_mode_blob_and_presence_is_exact', 'PublishedParentBridge.test_parent_history_and_receipts_cannot_relabel_b75_as_current_parent', 'FixedPublicCreatorRead.test_present_exact_object_never_fetches_or_inspects_network_configuration', 'FixedPublicCreatorRead.test_missing_object_uses_one_whitelisted_bounded_noninteractive_public_read', 'FixedPublicCreatorRead.test_offline_timeout_or_unreadable_config_fail_closed_without_retry', 'FixedPublicCreatorRead.test_existing_or_fetched_wrong_tree_parent_or_duplicate_parent_is_rejected', 'FixedPublicCreatorRead.test_credential_redirect_include_and_auth_configuration_never_reach_fetch', 'FixedPublicCreatorRead.test_public_target_cannot_be_generalized_by_changing_fixed_identity')
+ORIGINAL83_AST_SHA256 = '311e211931cdd9dece95a664fcebd7ded868e5a15e323f3565cdc4e504729044'
+
+
+class NativeC2afBoundary(unittest.TestCase):
+    def fixture_root(self):
+        temporary = tempfile.TemporaryDirectory(prefix='targeted-native14-')
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        for relative in runner.NATIVE_PATHS:
+            destination = root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes((CURRENT_SOURCE / relative).read_bytes())
+        return root
+
+    def rows_pin(self, selection):
+        return runner.hashlib.sha256(runner.encode(selection['native_repair']['payload_changes']).encode()).hexdigest()
+
+    def test_original83_complete_method_asts_are_unchanged(self):
+        tree = ast.parse((CURRENT_TOOLS / 'tests/test_targeted_native.py').read_text())
+        found = {cls.name + '.' + node.name: ast.dump(node, include_attributes=False)
+                 for cls in tree.body if isinstance(cls, ast.ClassDef)
+                 for node in cls.body if isinstance(node, ast.FunctionDef)
+                 and cls.name + '.' + node.name in ORIGINAL83_IDENTITIES}
+        self.assertEqual(len(found), 83)
+        self.assertEqual(runner.hashlib.sha256(runner.encode(found).encode()).hexdigest(), ORIGINAL83_AST_SHA256)
+
+    def test_new14_old15_history34_history19_and_original65_remain_separate(self):
+        self.assertEqual(runner.NATIVE_BASE_COMMIT, 'c2af90a5e11a789ca8dc99eb8daae2c1e84e0700')
+        self.assertEqual(runner.NATIVE_BASE_TREE, 'bb341123236a28027becc55e06f35cb294bb718f')
+        expected = {'App/ProjectEditIssueNavigation.swift', 'tools/run138_editor_readiness_contract.json',
+                    'tools/run138_editor_readiness.py', 'Tests/ContractChecks/test_category_roam_registration.py',
+                    'Tests/ContractChecks/test_profile_read_failure_remote_admission.py',
+                    'Tests/ContractChecks/test_global_search_category_recovery.py',
+                    'tools/club_customer_directory_admission.py', 'tools/tests/test_readiness_contract_parse_cache.py',
+                    'tools/tests/test_run138_current_ci_entry.py', 'tools/run_targeted_native.py',
+                    'tools/targeted_native_selection.json', 'tools/tests/test_targeted_native.py',
+                    'Questify.xcodeproj/project.pbxproj', 'tools/run138_current_source_projection.py'}
+        self.assertEqual(set(runner.NATIVE_PATHS), expected)
+        self.assertEqual(len(runner.NATIVE_PATHS), 14)
+        self.assertEqual(len(runner.NATIVE_PAYLOAD_PATHS), 11)
+        self.assertEqual(set(runner.NATIVE_ALLOWED_CHANGES), {'M\t' + p for p in expected})
+        self.assertEqual([len(runner.ALLOWED_CHANGES), len(runner.PARENT_HISTORY_CHANGES),
+                          len(runner.HISTORICAL_ALLOWED_CHANGES)], [15, 34, 19])
+        self.assertEqual(runner.native_predecessor_selection(CURRENT_SELECTION), SELECTION)
+        raw = runner.native_predecessor_selection_bytes(CURRENT_SELECTION)
+        self.assertEqual(runner.hashlib.sha256(raw).hexdigest(),
+                         'c3562224a372d442434ed28bc861aef370cf18e72d69faf9b97b0a8652247bf5')
+        self.assertEqual(runner.blob_id(raw), '02ae2c0e2092a40257ecf8e9aca83f5776470853')
+        reordered = dict(reversed(list(CURRENT_SELECTION.items())))
+        with self.assertRaisesRegex(ValueError, 'selection encoding'):
+            runner.native_predecessor_selection_bytes(reordered)
+        self.assertEqual(CURRENT_SELECTION['groups'], SELECTION['groups'])
+        self.assertEqual(runner.validate_native_selection(CURRENT_SELECTION, CURRENT_SOURCE), CURRENT_SELECTION)
+
+    def test_all_eleven_physical_postimages_restore_exact_complete_c2af_sources(self):
+        restored = runner.native_predecessor_sources(CURRENT_SELECTION, CURRENT_SOURCE)
+        self.assertEqual(set(restored), set(runner.NATIVE_PAYLOAD_PATHS))
+        for relative, raw in restored.items():
+            self.assertEqual((runner.hashlib.sha256(raw).hexdigest(), runner.blob_id(raw)),
+                             runner.NATIVE_PREIMAGES[relative])
+        self.assertEqual(runner.hashlib.sha256(restored['tools/run138_editor_readiness_contract.json']).hexdigest(),
+                         'd3fedafc9efe917220f4c52cb4c82d742f840a7307546da35e4da130a80d7fdb')
+        self.assertEqual(runner.validate_static_repair(SELECTION, CURRENT_SOURCE, predecessor=restored),
+                         runner.validate_static_repair(SELECTION, SOURCE))
+        self.assertEqual(runner.validate_reviewed_repairs(SELECTION, CURRENT_SOURCE, predecessor=restored),
+                         runner.validate_reviewed_repairs(SELECTION, SOURCE))
+
+    def test_no_v5_missing_unknown_or_expanded_current_layer_is_accepted(self):
+        for mode in ('missing', 'extra-field', 'missing-row', 'duplicate', 'reorder', 'unknown-path',
+                     'old-parent', 'wrong-tree', 'status', 'diagnostic'):
+            changed = copy.deepcopy(CURRENT_SELECTION)
+            layer = changed['native_repair']
+            if mode == 'missing': del changed['native_repair']
+            elif mode == 'extra-field': layer['unknown'] = True
+            elif mode == 'missing-row': layer['payload_changes'].pop()
+            elif mode == 'duplicate': layer['payload_changes'].append(copy.deepcopy(layer['payload_changes'][0]))
+            elif mode == 'reorder': layer['payload_changes'].reverse()
+            elif mode == 'unknown-path': layer['payload_changes'][0]['path'] = 'Core/Unreviewed.swift'
+            elif mode == 'old-parent': layer['base_commit'] = runner.BASE_COMMIT
+            elif mode == 'wrong-tree': layer['base_tree'] = '0' * 40
+            elif mode == 'status': layer['allowed_changes'][0] = 'A\t' + runner.NATIVE_PATHS[0]
+            else: layer['diagnostic_before_blobs']['tools/run_targeted_native.py'] = '0' * 40
+            pin = runner.hashlib.sha256(runner.encode(changed).encode()).hexdigest()
+            with self.subTest(mode=mode), mock.patch.object(runner, 'NATIVE_SELECTION_CONTRACT_SHA256', pin), self.assertRaises(ValueError):
+                runner.validate_native_selection(changed, CURRENT_SOURCE)
+
+    def test_rehashed_rows_cannot_change_independent_predecessors_or_inverse_shape(self):
+        for field in ('before_sha256', 'before_blob', 'after_sha256', 'after_blob', 'status', 'hunks', 'unknown'):
+            changed = copy.deepcopy(CURRENT_SELECTION)
+            row = changed['native_repair']['payload_changes'][0]
+            if field.endswith('sha256'): row[field] = '0' * 64
+            elif field.endswith('blob'): row[field] = '0' * 40
+            elif field == 'status': row[field] = 'A'
+            elif field == 'hunks': row[field] = [{'before': '', 'after': 'forged'}]
+            else: row[field] = True
+            with self.subTest(field=field), mock.patch.object(runner, 'NATIVE_REPAIR_CHANGES_SHA256', self.rows_pin(changed)), self.assertRaises(ValueError):
+                runner.native_predecessor_sources(changed, CURRENT_SOURCE)
+
+    def test_each_current_source_rejects_missing_alias_stale_bytes_and_same_stat_mutation(self):
+        root = self.fixture_root()
+        originals = {p: (root / p).read_bytes() for p in runner.NATIVE_PAYLOAD_PATHS}
+        for relative, raw in originals.items():
+            path = root / relative
+            for mode in ('missing', 'symlink', 'newline', 'same-stat', 'historical'):
+                old_stat = path.stat()
+                path.unlink()
+                if mode == 'symlink': path.symlink_to(CURRENT_SOURCE / relative)
+                elif mode == 'newline': path.write_bytes(raw + b'\n')
+                elif mode == 'same-stat':
+                    path.write_bytes(bytes([raw[0] ^ 1]) + raw[1:])
+                    os.utime(path, ns=(old_stat.st_atime_ns, old_stat.st_mtime_ns))
+                elif mode == 'historical': path.write_bytes(runner.native_predecessor_sources(CURRENT_SELECTION, CURRENT_SOURCE)[relative])
+                with self.subTest(path=relative, mode=mode), self.assertRaises((ValueError, FileNotFoundError)):
+                    runner.native_predecessor_sources(CURRENT_SELECTION, root)
+                if path.is_symlink() or path.exists(): path.unlink()
+                path.write_bytes(raw)
+        runner.native_predecessor_sources(CURRENT_SELECTION, root)
+        (root / runner.NATIVE_PATHS[0]).unlink()
+        with self.assertRaises((ValueError, FileNotFoundError)):
+            runner.native_predecessor_sources(CURRENT_SELECTION, root)
+
+    def test_navigation_crlf_cr_and_rehashed_off_hunk_changes_fail_complete_inverse(self):
+        root = self.fixture_root(); relative = runner.NATIVE_PATHS[0]; path = root / relative
+        raw = path.read_bytes()
+        for mutant in (raw.replace(b'\n', b'\r\n'), raw.replace(b'\n', b'\r'), raw + b'// off-hunk\n'):
+            path.write_bytes(mutant)
+            changed = copy.deepcopy(CURRENT_SELECTION); row = changed['native_repair']['payload_changes'][0]
+            row['after_sha256'] = runner.hashlib.sha256(mutant).hexdigest(); row['after_blob'] = runner.blob_id(mutant)
+            with mock.patch.object(runner, 'NATIVE_REPAIR_CHANGES_SHA256', self.rows_pin(changed)), self.assertRaises(ValueError):
+                runner.native_predecessor_sources(changed, root)
+
+    def test_incomplete_or_forged_predecessor_maps_cannot_feed_historical_checks(self):
+        restored = runner.native_predecessor_sources(CURRENT_SELECTION, CURRENT_SOURCE)
+        for mode in ('missing', 'extra', 'changed'):
+            changed = dict(restored)
+            if mode == 'missing': changed.pop(runner.NATIVE_PATHS[0])
+            elif mode == 'extra': changed['Core/Unreviewed.swift'] = b'x'
+            else: changed['tools/run138_editor_readiness.py'] += b'\n'
+            with self.subTest(mode=mode), self.assertRaises(ValueError):
+                runner.validate_selection(SELECTION, CURRENT_SOURCE, predecessor=changed)
+
+    def test_native_receipt_requires_current_c2af_layer_before_original65_receipt_checks(self):
+        receipt, identity = ReceiptIdentity().receipt()
+        with self.assertRaises(ValueError): runner.validate_native_pass_receipt(receipt, identity, CURRENT_SELECTION)
+        receipt.update(native_base_commit=runner.NATIVE_BASE_COMMIT, native_base_tree=runner.NATIVE_BASE_TREE,
+                       native_selection=runner.NATIVE_NAME)
+        runner.validate_native_pass_receipt(receipt, identity, CURRENT_SELECTION)
+        for field in ('native_base_commit', 'native_base_tree', 'native_selection'):
+            mutant = copy.deepcopy(receipt); mutant[field] = 'wrong'
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                runner.validate_native_pass_receipt(mutant, identity, CURRENT_SELECTION)
+        receipt['groups']['core']['actual'].pop()
+        with self.assertRaises(ValueError): runner.validate_native_pass_receipt(receipt, identity, CURRENT_SELECTION)
+
+    def tree_records(self, root, before):
+        rows = ['100644 blob ' + row['before_blob' if before else 'after_blob'] + '\t' + row['path']
+                for row in CURRENT_SELECTION['native_repair']['payload_changes']]
+        rows.extend('100644 blob ' + (old if before else runner.blob_id((root / relative).read_bytes()))
+                    + '\t' + relative for relative, old in runner.NATIVE_DIAGNOSTIC_BASE_BLOBS.items())
+        return rows
+
+    def test_all_fourteen_actual_tree_modes_blobs_and_presence_are_mandatory(self):
+        for before in (True, False):
+            correct = self.tree_records(CURRENT_SOURCE, before)
+            with mock.patch.object(runner, 'checked', return_value='\0'.join(correct) + '\0'):
+                self.assertEqual(len(runner.verify_native_tree(CURRENT_SELECTION, CURRENT_SOURCE, 'synthetic', before)), 14)
+            for index in range(len(correct)):
+                for mode in ('missing', 'blob', 'mode', 'type', 'duplicate'):
+                    mutant = list(correct)
+                    if mode == 'missing': mutant.pop(index)
+                    elif mode == 'blob': mutant[index] = re.sub('[0-9a-f]{40}', '0' * 40, mutant[index], count=1)
+                    elif mode == 'mode': mutant[index] = mutant[index].replace('100644', '100755', 1)
+                    elif mode == 'type': mutant[index] = mutant[index].replace(' blob ', ' commit ', 1)
+                    else: mutant.append(mutant[index])
+                    with self.subTest(before=before, index=index, mode=mode), mock.patch.object(runner, 'checked', return_value='\0'.join(mutant) + '\0'), self.assertRaises(ValueError):
+                        runner.verify_native_tree(CURRENT_SELECTION, CURRENT_SOURCE, 'synthetic', before)
+
+    def native_transport(self, command, root):
+        if command[1:3] == ['rev-parse', runner.NATIVE_BASE_COMMIT + '^{tree}']: return runner.NATIVE_BASE_TREE
+        if command[1:3] == ['cat-file', '-p']:
+            target = command[3]
+            if target == 'a' * 40: return 'tree ' + 'b' * 40 + '\nparent ' + runner.NATIVE_BASE_COMMIT + '\n\nCurrent witness'
+            if target == runner.NATIVE_BASE_COMMIT: return 'tree ' + runner.NATIVE_BASE_TREE + '\nparent ' + runner.BASE_COMMIT + '\n\nPublished c2af witness'
+            if target == runner.BASE_COMMIT: return FixedPublicRepairRead.headers()
+        if command[1] == 'diff':
+            if command[3] == runner.NATIVE_BASE_COMMIT: return '\n'.join(runner.NATIVE_ALLOWED_CHANGES)
+        if command[1] == 'ls-tree':
+            if tuple(command[5:]) == runner.NATIVE_PATHS:
+                return '\0'.join(self.tree_records(root, command[3] == runner.NATIVE_BASE_TREE)) + '\0'
+            if command[3] == runner.NATIVE_BASE_TREE:
+                rows = ['100644 blob ' + row['after_blob'] + '\t' + row['path'] for row in SELECTION['static_repair_changes']]
+                rows.extend('100644 blob ' + blob + '\t' + path for path, blob in runner.NATIVE_DIAGNOSTIC_BASE_BLOBS.items())
+                return '\0'.join(rows) + '\0'
+        return scope_transport(command, root)
+
+    def test_exact_scope_rejects_wrong_or_missing_parent_and_each_historical_layer(self):
+        with mock.patch.object(runner, 'checked', side_effect=self.native_transport), mock.patch.dict(os.environ, {'GITHUB_SHA': 'a' * 40}):
+            identity = runner.verify_native_scope(CURRENT_SOURCE, CURRENT_SELECTION)
+            self.assertEqual(identity['native_base_commit'], runner.NATIVE_BASE_COMMIT)
+            self.assertEqual(identity['base_commit'], runner.BASE_COMMIT)
+        for mode in ('parent', 'merge', 'missing-parent', 'base-tree', 'old15', 'missing-path', 'extra-path',
+                     'status', 'c2af-parent', 'c2af-tree', 'prior15', 'history34', 'history19', 'dirty'):
+            def transport(command, root):
+                result = self.native_transport(command, root)
+                if command[1:4] == ['cat-file', '-p', 'a' * 40]:
+                    if mode == 'parent': return result.replace(runner.NATIVE_BASE_COMMIT, runner.BASE_COMMIT)
+                    if mode == 'merge': return result.replace('\n\n', '\nparent ' + 'f' * 40 + '\n\n')
+                    if mode == 'missing-parent': raise ValueError('Unavailable parent')
+                if command[1:3] == ['rev-parse', runner.NATIVE_BASE_COMMIT + '^{tree}'] and mode == 'base-tree': return '0' * 40
+                if command[1:4] == ['cat-file', '-p', runner.NATIVE_BASE_COMMIT]:
+                    if mode == 'c2af-parent': return result.replace(runner.BASE_COMMIT, runner.CREATOR_COMMIT)
+                    if mode == 'c2af-tree': return result.replace(runner.NATIVE_BASE_TREE, '0' * 40)
+                if command[1] == 'diff':
+                    if command[3] == runner.NATIVE_BASE_COMMIT:
+                        if mode == 'old15': return '\n'.join(runner.ALLOWED_CHANGES)
+                        if mode == 'missing-path': return '\n'.join(result.splitlines()[:-1])
+                        if mode == 'extra-path': return result + '\nM\tCore/Unreviewed.swift'
+                        if mode == 'status': return result.replace('M\t', 'A\t', 1)
+                    if (mode, command[3]) in [('prior15', runner.BASE_COMMIT), ('history34', runner.CREATOR_COMMIT), ('history19', runner.HISTORICAL_BASE_COMMIT)]: return ''
+                if command[1] == 'status' and mode == 'dirty': return ' M Core/Changed.swift'
+                return result
+            with self.subTest(mode=mode), mock.patch.object(runner, 'checked', side_effect=transport), mock.patch.dict(os.environ, {'GITHUB_SHA': 'a' * 40}), self.assertRaises(ValueError):
+                runner.verify_native_scope(CURRENT_SOURCE, CURRENT_SELECTION)
+
+    def test_real_git_subset_tree_witness_is_separate_from_mocked_scope_transport(self):
+        root = self.fixture_root(); gitdir = root / 'witness.git'
+        environment = dict(os.environ, GIT_DIR=str(gitdir), GIT_INDEX_FILE=str(root / 'witness.index'))
+        for key in ('GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES'): environment.pop(key, None)
+        subprocess.run(['git', 'init', '--bare', '-q', str(gitdir)], env=environment, check=True)
+        (root / '.git').write_text('gitdir: ' + str(gitdir) + '\n')
+        def git(*args, data=None):
+            return subprocess.check_output(['git', *args], input=data, env=environment).decode().strip()
+        git('read-tree', '--empty')
+        for relative in runner.NATIVE_PATHS:
+            oid = git('hash-object', '-w', '--stdin', data=(root / relative).read_bytes())
+            git('update-index', '--add', '--cacheinfo', '100644', oid, relative)
+        witness = git('write-tree')
+        # This disposable exact14 subset is not a claim to recreate the full c2af
+        # or a real new HEAD. Published full-object witness is a separate gate.
+        with mock.patch.dict(os.environ, environment, clear=True):
+            self.assertEqual(len(runner.verify_native_tree(CURRENT_SELECTION, root, witness, False)), 14)
+        for relative in runner.NATIVE_PATHS:
+            git('read-tree', witness)
+            git('update-index', '--cacheinfo', '100755', runner.blob_id((root / relative).read_bytes()), relative)
+            mutant = git('write-tree')
+            with self.subTest(path=relative), mock.patch.dict(os.environ, environment, clear=True), self.assertRaises(ValueError):
+                runner.verify_native_tree(CURRENT_SELECTION, root, mutant, False)
+
+
+class FixedPublicRepairRead(unittest.TestCase):
+    @staticmethod
+    def headers(tree=None, parent=None):
+        return 'tree ' + (tree or runner.BASE_TREE) + '\nparent ' + (parent or 'cf7b3e7f0f7c2105b23c439f2314d6163886c126') + '\n\nSynthetic 3393 metadata'
+
+    def present(self, command, root):
+        if command[1:3] == ['cat-file', '-e']: return ''
+        if command == ['git', 'cat-file', '-p', runner.BASE_COMMIT]: return self.headers()
+        raise AssertionError(command)
+
+    def missing(self, command, root):
+        if command[1:3] == ['cat-file', '-e']: raise ValueError('Synthetic unavailable 3393 object')
+        return self.present(command, root)
+
+    def test_present_exact_3393_never_fetches(self):
+        with mock.patch.object(runner, 'checked', side_effect=self.present), mock.patch.object(runner, 'execute') as execute:
+            runner.ensure_repair_commit(CURRENT_SOURCE)
+            execute.assert_not_called()
+
+    def test_missing_3393_uses_only_separate_fixed_public_bounded_fetch(self):
+        inherited = {'GITHUB_TOKEN': 'not-forwarded', 'GIT_CONFIG_COUNT': '1', 'HTTPS_PROXY': 'not-forwarded',
+                     'HOME': 'not-forwarded', 'GIT_OBJECT_DIRECTORY': 'not-forwarded', 'SSH_AUTH_SOCK': 'not-forwarded'}
+        with mock.patch.object(runner, 'checked', side_effect=self.missing), mock.patch.object(runner, 'execute', side_effect=[(0, b'core.bare\n'), (0, b'')]) as execute, mock.patch.dict(os.environ, inherited):
+            runner.ensure_repair_commit(CURRENT_SOURCE)
+        self.assertEqual(execute.call_count, 2)
+        config, fetch = execute.call_args_list
+        self.assertEqual(config.args, (['git', 'config', '--local', '--includes', '--name-only', '--list'], CURRENT_SOURCE, 10, True))
+        self.assertEqual(fetch.args[1:], (CURRENT_SOURCE, 60, True))
+        self.assertEqual(fetch.args[0][-7:], ['fetch', '--no-tags', '--no-write-fetch-head', '--depth=1', '--no-recurse-submodules',
+                                           'https://github.com/liboyang42-cpu/chengyin-ios.git', '3393ec85076a7a4e246e94e98ddf81f6b73ede2f'])
+        for flag in ('credential.helper=', 'core.askPass=', 'http.extraHeader=', 'http.followRedirects=false', 'protocol.allow=never', 'protocol.https.allow=always'):
+            self.assertIn(flag, fetch.args[0])
+        environment = fetch.kwargs['env']
+        self.assertEqual(set(environment), {'PATH', 'LANG', 'HOME', 'GIT_TERMINAL_PROMPT', 'GIT_CONFIG_NOSYSTEM', 'GIT_CONFIG_GLOBAL', 'GIT_ASKPASS', 'SSH_ASKPASS'})
+        self.assertEqual(config.kwargs['env'], environment)
+        self.assertNotIn('not-forwarded', environment.values())
+        self.assertEqual(environment['HOME'], '/dev/null')
+        self.assertEqual(environment['GIT_TERMINAL_PROMPT'], '0')
+        self.assertEqual(environment['GIT_CONFIG_GLOBAL'], '/dev/null')
+
+    def test_3393_network_failures_and_credential_configuration_refuse_without_retry(self):
+        for key in ('credential.helper', 'http.extraheader', 'http.proxy', 'url.other.insteadof',
+                    'include.path', 'includeif.gitdir:x.path', 'core.askpass', 'extensions.worktreeconfig'):
+            with self.subTest(key=key), mock.patch.object(runner, 'checked', side_effect=self.missing), mock.patch.object(runner, 'execute', return_value=(0, (key + '\n').encode())) as execute, self.assertRaises(ValueError):
+                runner.ensure_repair_commit(CURRENT_SOURCE)
+            self.assertEqual(execute.call_count, 1)
+        for outputs in ([(1, b'')], [(0, b'core.bare\n'), (1, b'')], [(0, b'core.bare\n'), (124, b'')]):
+            with mock.patch.object(runner, 'checked', side_effect=self.missing), mock.patch.object(runner, 'execute', side_effect=outputs) as execute, self.assertRaises(ValueError):
+                runner.ensure_repair_commit(CURRENT_SOURCE)
+            self.assertEqual(execute.call_count, len(outputs))
+
+    def test_3393_fixed_identity_wrong_tree_parent_merge_and_missing_headers_fail(self):
+        for field in ('BASE_COMMIT', 'BASE_TREE'):
+            with mock.patch.object(runner, field, 'f' * 40), mock.patch.object(runner, 'checked') as checked, mock.patch.object(runner, 'execute') as execute, self.assertRaises(ValueError):
+                runner.ensure_repair_commit(CURRENT_SOURCE)
+            checked.assert_not_called(); execute.assert_not_called()
+        for existing in (True, False):
+            for headers in (self.headers(tree='0' * 40), self.headers(parent=runner.CREATOR_COMMIT),
+                            self.headers().replace('\n\n', '\nparent ' + 'f' * 40 + '\n\n'), ''):
+                def read(command, root):
+                    if command[1:3] == ['cat-file', '-e']:
+                        if existing: return ''
+                        raise ValueError('Missing object')
+                    return headers
+                with mock.patch.object(runner, 'checked', side_effect=read), mock.patch.object(runner, 'execute', side_effect=[(0, b'core.bare\n'), (0, b'')]), self.assertRaises(ValueError):
+                    runner.ensure_repair_commit(CURRENT_SOURCE)
 
 
 if __name__ == '__main__':
