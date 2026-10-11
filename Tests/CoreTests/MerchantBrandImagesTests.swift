@@ -5,30 +5,30 @@ import XCTest
 import FoundationNetworking
 #endif
 
-private func brandImages(_ raw: String = #"{"id":31,"derivatives":"https://example.test/one.png,/legacy.png,https://example.test/two.png,https://example.test/one.png"}"#) throws -> MerchantBrandImages {
+private func decodedBrandImagesFixture(_ raw: String = #"{"id":31,"derivatives":"https://example.test/one.png,/legacy.png,https://example.test/two.png,https://example.test/one.png"}"#) throws -> MerchantBrandImages {
     try JSONDecoder().decode(MerchantBrandImages.self, from: Data(raw.utf8))
 }
 final class MerchantBrandImagesContractTests: XCTestCase {
     func testSourceOrderDuplicatesAndUnsupportedCandidatesArePreserved() throws {
-        let value = try brandImages(); XCTAssertEqual(value.merchantID, 31)
+        let value = try decodedBrandImagesFixture(); XCTAssertEqual(value.merchantID, 31)
         XCTAssertEqual(value.items.map(\.id), [0, 1, 2, 3]); XCTAssertNil(value.items[1].url)
         XCTAssertEqual(value.items[0].url, value.items[3].url)
     }
     func testMissingNullEmptyAndTextMerchandiseAreRealEmpty() throws {
         for raw in [#"{"id":31}"#, #"{"id":31,"derivatives":null}"#, #"{"id":31,"derivatives":""}"#,
-                    #"{"id":31,"derivatives":"Postcards, mugs"}"#] { XCTAssertTrue(try brandImages(raw).items.isEmpty) }
+                    #"{"id":31,"derivatives":"Postcards, mugs"}"#] { XCTAssertTrue(try decodedBrandImagesFixture(raw).items.isEmpty) }
     }
     func testMalformedOuterFieldOrIdentityIsNotEmptySuccess() {
         for raw in ["null", "[]", "{}", #"{"id":0}"#, #"{"id":"31"}"#,
-                    #"{"id":31,"derivatives":[]}"#, #"{"id":31,"derivatives":3}"#] { XCTAssertThrowsError(try brandImages(raw)) }
+                    #"{"id":31,"derivatives":[]}"#, #"{"id":31,"derivatives":3}"#] { XCTAssertThrowsError(try decodedBrandImagesFixture(raw)) }
     }
     func testUnsafeImageReferencesCannotCreateURL() throws {
         let raw = #"{"id":31,"derivatives":"http://example.test/a,/relative.png,//example.test/a,https://user:secret@example.test/a,https:///no-host,https://example.test/a\n.png,https://example.test/good.png"}"#
-        let value = try brandImages(raw); XCTAssertEqual(value.items.count, 7)
+        let value = try decodedBrandImagesFixture(raw); XCTAssertEqual(value.items.count, 7)
         XCTAssertTrue(value.items.prefix(6).allSatisfy { $0.url == nil }); XCTAssertNotNil(value.items.last?.url)
     }
     func testWhitespaceDoesNotBreakCSVAndUnknownFieldsAreNotImages() throws {
-        let value = try brandImages(#"{"id":31,"derivatives":"  https://example.test/a.png , text , https://example.test/b.png ","businessLicense":"https://example.test/private.png"}"#)
+        let value = try decodedBrandImagesFixture(#"{"id":31,"derivatives":"  https://example.test/a.png , text , https://example.test/b.png ","businessLicense":"https://example.test/private.png"}"#)
         XCTAssertEqual(value.items.count, 2); XCTAssertEqual(value.items[0].url?.absoluteString, "https://example.test/a.png")
     }
 }
@@ -39,7 +39,7 @@ final class MerchantBrandImagesContractTests: XCTestCase {
     var isConfigured: Bool { true }
     var isAuthenticated: Bool { fixture.isAuthenticated }
     var isOfflineExample: Bool { true }
-    var value = try! brandImages()
+    var value = try! decodedBrandImagesFixture()
     var failure: APIError?
     var suspend = false
     var pending: [CheckedContinuation<MerchantBrandImages, Error>] = []
@@ -78,7 +78,7 @@ final class MerchantBrandImagesContractTests: XCTestCase {
     }
     func testReloadRetiresImageAndUsesLatestSource() async throws {
         let (reader, owner, session) = try await setup(); defer { withExtendedLifetime(owner) {} }; await session.reload(); XCTAssertTrue(session.select(2))
-        let old = session.imageGeneration; reader.value = try brandImages(#"{"id":31,"derivatives":"https://example.test/new.png"}"#)
+        let old = session.imageGeneration; reader.value = try decodedBrandImagesFixture(#"{"id":31,"derivatives":"https://example.test/new.png"}"#)
         await session.reload(); XCTAssertNil(session.selectedIndex); XCTAssertEqual(session.items.count, 1)
         XCTAssertFalse(session.imageIsCurrent(old, index: 2)); XCTAssertTrue(session.select(0))
         XCTAssertEqual(session.currentURL?.lastPathComponent, "new.png")
@@ -86,11 +86,11 @@ final class MerchantBrandImagesContractTests: XCTestCase {
     func testFailedLoadIsNotEmptyAndRetryCanRecover() async throws {
         let (reader, owner, session) = try await setup(); defer { withExtendedLifetime(owner) {} }; reader.failure = .httpStatus(503); await session.reload()
         XCTAssertNil(session.document); XCTAssertNotNil(session.issue)
-        reader.failure = nil; reader.value = try brandImages(#"{"id":31}"#); await session.reload()
+        reader.failure = nil; reader.value = try decodedBrandImagesFixture(#"{"id":31}"#); await session.reload()
         XCTAssertNotNil(session.document); XCTAssertNil(session.issue); XCTAssertTrue(session.items.isEmpty)
     }
     func testWrongMerchantSourceIsRejected() async throws {
-        let (reader, owner, session) = try await setup(); defer { withExtendedLifetime(owner) {} }; reader.value = try brandImages(#"{"id":32,"derivatives":"https://example.test/a"}"#)
+        let (reader, owner, session) = try await setup(); defer { withExtendedLifetime(owner) {} }; reader.value = try decodedBrandImagesFixture(#"{"id":32,"derivatives":"https://example.test/a"}"#)
         await session.reload(); XCTAssertNil(session.document); XCTAssertEqual(session.issue, .key("merchant.invalidResponse"))
     }
     func testDraftChangeReviewAndScopeChangeInvalidateViewer() async throws {
@@ -114,7 +114,7 @@ final class MerchantBrandImagesContractTests: XCTestCase {
         let second = Task { await session.reload() }; while reader.pending.count < 2 { await Task.yield() }
         reader.pending.removeFirst().resume(returning: reader.value); await first.value
         XCTAssertNil(session.document); XCTAssertTrue(session.isLoading)
-        reader.pending.removeFirst().resume(returning: try brandImages(#"{"id":31}"#)); await second.value
+        reader.pending.removeFirst().resume(returning: try decodedBrandImagesFixture(#"{"id":31}"#)); await second.value
         XCTAssertNotNil(session.document); XCTAssertTrue(session.items.isEmpty); XCTAssertFalse(session.isLoading)
     }
     func testInvalidOwnerCannotStartAndRetiredSessionCannotReopen() async throws {
