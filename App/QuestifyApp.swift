@@ -248,6 +248,7 @@ struct SessionRootView: View {
             if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }
         }
         .environmentObject(session)
+        .environment(\.merchantCustomerContactFactory, { session.merchantCustomerContactFlow($0, sourceIsCurrent: $1) })
         .environment(\.projectCategoryReader, session)
             .environment(\.projectNodePlaceReader, session.searchMapReader)
         .environment(\.projectChapterAudioPlayback, session.platformConsumers.audioFactory)

@@ -491,6 +491,7 @@ import SwiftUI
     @ViewBuilder private func rowView(_ row: MerchantBusinessRecord, access: MerchantBusinessAccess) -> some View {
         let isDirectory: Bool = { switch query { case .customers, .aftercare, .batches, .redemptions: return true; default: return false } }()
         if isDirectory, let destination = row.destination {
+            VStack(alignment: .leading, spacing: 8) {
             HStack {
                 if row.kind == .customer, access.allows("merchant:crm:segment"), let id = Int(row.id) {
                     Button { if selection.contains(id) { selection.remove(id) } else if selection.count < 100 { selection.insert(id) } } label: {
@@ -504,6 +505,8 @@ import SwiftUI
                         MerchantBusinessRecordFields(row: row, access: access, compact: true)
                     }
                 }.accessibilityIdentifier("merchant.business.row.\(row.kind.rawValue).\(row.id)")
+            }
+            MerchantCustomerContactEntry(owner: model, record: row)
             }
         } else {
             VStack(alignment: .leading, spacing: 10) {

@@ -17,6 +17,9 @@ final class MerchantOnboardingModel: ObservableObject {
     @Published var step = 1
     @Published var isEditing = false
     @Published var selectedImage: MerchantOnboardingImage?
+    @Published private(set) var selectedBrandImage: MerchantOnboardingImage?
+    @Published private(set) var selectedBrandImageID: UUID?
+    private var selectedBrandDraft: MerchantOnboardingDraft?
     @Published var confirmation: MerchantOnboardingConfirmation?
     @Published var errorKey: String?
     @Published private(set) var isBusy = false
@@ -30,6 +33,7 @@ final class MerchantOnboardingModel: ObservableObject {
     func reset() {
         generation += 1; draft = .init(); step = 1; isEditing = false; selectedImage = nil
         confirmation = nil; errorKey = nil; isBusy = false
+        selectedBrandImage = nil; selectedBrandImageID = nil; selectedBrandDraft = nil
         coordinator.synchronizeSession()
         coordinator.leaveScreen() // Fresh presentation cancels any obsolete, unsubmitted confirmation.
         identity = coordinator.identity; revision += 1
@@ -64,6 +68,7 @@ final class MerchantOnboardingModel: ObservableObject {
         guard !isBusy, !coordinator.submission.isLocked else { return }
         do {
             draft = try .init(reapplying: application); isEditing = true; step = 1; errorKey = nil
+            selectedBrandImage = nil; selectedBrandImageID = nil; selectedBrandDraft = nil
 #if DEBUG
         fixtureDiagnostics?.record(.reapplyEdited, busy: isBusy, locked: coordinator.submission.isLocked, editing: isEditing, step: step)
 #endif
@@ -75,6 +80,7 @@ final class MerchantOnboardingModel: ObservableObject {
         }
     }
     func next() {
+        if step == 3, selectedBrandImage != nil { errorKey = "merchant.onboardingBrand.uploadFirst"; return }
         if step == 3, selectedImage != nil { errorKey = "merchant.onboarding.uploadSelectedFirst"; return }
         errorKey = draft.blocker(step: step)
         guard errorKey == nil else { return }
@@ -111,8 +117,66 @@ final class MerchantOnboardingModel: ObservableObject {
         guard request == generation else { return }
         isBusy = false; revision += 1
     }
+    var canEditBrandImages: Bool {
+        !isBusy && identity != nil && identity == coordinator.identity &&
+        coordinator.identityGate == .registered && !coordinator.submission.isLocked &&
+        !draft.brandImagesSourceUnavailable
+    }
+    var canUploadBrandImage: Bool {
+        canEditBrandImages && selectedBrandImage != nil && selectedBrandImageID != nil && selectedBrandDraft == draft
+    }
+    var canAddBrandImage: Bool {
+        canEditBrandImages && selectedBrandImage == nil && (draft.brandImages?.urls.count ?? 0) < MerchantOnboardingBrandImages.limit
+    }
+    func selectBrandImage(_ item: PhotosPickerItem) async {
+        await selectBrandImage(load: { try await MerchantOnboardingPhotoAdapter.load(item) })
+    }
+    /// Loader injection is local-only; the real picker uses the existing metadata-stripping adapter.
+    func selectBrandImage(load: () async throws -> MerchantOnboardingImage) async {
+        guard canAddBrandImage else { return }
+        let request = generation, original = draft, expectedIdentity = identity
+        isBusy = true; errorKey = nil
+        defer { if request == generation { isBusy = false; revision += 1 } }
+        do {
+            let image = try await load()
+            guard request == generation, expectedIdentity == coordinator.identity, draft == original,
+                  !coordinator.submission.isLocked, coordinator.identityGate == .registered, !Task.isCancelled else { return }
+            selectedBrandImage = image; selectedBrandImageID = UUID(); selectedBrandDraft = original
+        } catch {
+            if request == generation, expectedIdentity == coordinator.identity { errorKey = "merchant.onboarding.photoFailed" }
+        }
+    }
+    func discardBrandImage() {
+        guard !isBusy else { return }; selectedBrandImage = nil; selectedBrandImageID = nil; selectedBrandDraft = nil; errorKey = nil
+    }
+    func removeBrandImage(at index: Int, expected: MerchantOnboardingBrandImages?) {
+        guard canEditBrandImages, selectedBrandImage == nil, expected == draft.brandImages, var images = draft.brandImages else { return }
+        do { try images.remove(at: index); draft.brandImages = images; errorKey = nil }
+        catch { errorKey = "merchant.onboardingBrand.changed" }
+    }
+    func uploadSelectedBrandImage(expectedID: UUID) async {
+        guard canEditBrandImages, selectedBrandImageID == expectedID, let image = selectedBrandImage, let identity,
+              selectedBrandDraft == draft, (draft.brandImages?.urls.count ?? 0) < MerchantOnboardingBrandImages.limit else { return }
+        let request = generation, original = draft
+        isBusy = true; errorKey = nil
+        defer { if request == generation { isBusy = false; revision += 1 } }
+        do {
+            // Existing shared image transport and eligibility checks. This call returns
+            // a URL only; it does not assign the business license or submit a form.
+            let returned = try await coordinator.uploadLicense(image, expectedIdentity: identity)
+            guard request == generation, identity == coordinator.identity, draft == original, !Task.isCancelled else { return }
+            var images = try draft.brandImages ?? MerchantOnboardingBrandImages()
+            try images.append(serverURL: returned.url)
+            draft.brandImages = images; selectedBrandImage = nil; selectedBrandImageID = nil; selectedBrandDraft = nil
+        } catch {
+            guard request == generation, identity == coordinator.identity else { return }
+            // Do not retry an upload automatically: a timed-out file may exist remotely.
+            errorKey = "merchant.onboardingBrand.uploadFailed"
+        }
+    }
     func prepare() {
         guard !isBusy else { return }
+        guard selectedBrandImage == nil else { errorKey = "merchant.onboardingBrand.uploadFirst"; return }
         errorKey = draft.blocker()
         guard errorKey == nil else { return }
         do { confirmation = try coordinator.prepare(draft); revision += 1 }
@@ -127,6 +191,7 @@ final class MerchantOnboardingModel: ObservableObject {
         let request = generation
         // Synchronous clearing prevents dialog dismissal from cancelling a confirmed action.
         isBusy = true; self.confirmation = nil; selectedImage = nil
+        selectedBrandImage = nil; selectedBrandImageID = nil; selectedBrandDraft = nil
         Task {
             await coordinator.confirm(confirmation)
             guard request == generation, identity == coordinator.identity else { return }

@@ -11,6 +11,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     let openMerchant: (() -> Void)?
     @State private var loadedRevision: UInt64?
     @State private var photo: PhotosPickerItem?
+    @State private var showBrandPhotos = false
+    @State private var showBrandUploadConfirmation = false
     @State private var showPhotos = false
     @State private var showHours = false
     @State private var hoursEditor: MerchantOnboardingHoursSession?
@@ -39,13 +41,14 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             guard loadedRevision != session.sessionRevision else { return }
             loadedRevision = session.sessionRevision
             photo = nil; showPhotos = false; showHours = false
+            showBrandPhotos = false; showBrandUploadConfirmation = false
             showUploadConfirmation = false; showSubmitConfirmation = false
             model.reset(); await model.load()
         }
         .onDisappear {
             // Presenting a child surface is not leaving the application. Keep the draft
             // and selected item through picker/sheet/confirmation transitions.
-            guard !showPhotos, !showHours, !showUploadConfirmation, !showSubmitConfirmation else { return }
+            guard !showPhotos, !showHours, !showUploadConfirmation, !showSubmitConfirmation, !showBrandPhotos, !showBrandUploadConfirmation else { return }
             loadedRevision = nil; model.leave(); photo = nil
         }
         .photosPicker(isPresented: $showPhotos, selection: $photo, matching: .images, preferredItemEncoding: .compatible)
@@ -185,6 +188,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                     .disabled(model.coordinator.identityGate != .registered)
                     .accessibilityIdentifier("merchant.onboarding.chooseLicense")
             }
+            MerchantOnboardingBrandImagesEditor(model: model, pickerPresented: $showBrandPhotos,
+                uploadConfirmationPresented: $showBrandUploadConfirmation)
         }
         .task { if model.coordinator.identityGate == .unchecked { await model.checkIdentity() } }
     }
@@ -198,6 +203,9 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                 reviewRow("merchant.onboarding.hours", displayHours(model.draft.businessTime))
                 reviewRow("merchant.onboarding.description", model.draft.description)
                 Label("merchant.onboarding.licenseUploaded", systemImage: "doc.badge.checkmark")
+            }
+            if model.draft.brandImages?.urls.isEmpty == false {
+                Section("merchant.onboardingBrand.title") { MerchantOnboardingBrandImageRows(images: model.draft.brandImages) }
             }
             identitySection
         }

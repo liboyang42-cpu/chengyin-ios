@@ -1,0 +1,155 @@
+{
+  "merchant.contactFlow.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Contact customer"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "联系客户"
+        }
+      }
+    }
+  },
+  "merchant.contactFlow.customer": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selected customer"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已选客户"
+        }
+      }
+    }
+  },
+  "merchant.contactFlow.privacy": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Each contact request rechecks access and customer consent. The masked list number is never dialled or copied."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "每次联系都会重新确认权限与客户授权；列表脱敏号不会用于拨打或复制。"
+        }
+      }
+    }
+  },
+  "merchant.contactFlow.stale": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This customer selection has changed. Close and select the customer again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "客户或账号状态已变化，请关闭后重新选择客户。"
+        }
+      }
+    }
+  },
+  "merchant.contactFlow.prepare": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review contact request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "审核联系请求"
+        }
+      }
+    }
+  },
+  "merchant.contactFlow.deviceUnavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Device contact is not enabled for this request."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此请求未获设备联系授权。"
+        }
+      }
+    }
+  },
+  "merchant.contactFlow.completed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The contact action was handed to the device."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "联系操作已交给设备处理。"
+        }
+      }
+    }
+  },
+  "merchant.contactFlow.deviceFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The device action did not complete. Start a new request to try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "设备操作未完成；重试需要重新发起请求。"
+        }
+      }
+    }
+  },
+  "merchant.contactFlow.close": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Close"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "关闭"
+        }
+      }
+    }
+  }
+}

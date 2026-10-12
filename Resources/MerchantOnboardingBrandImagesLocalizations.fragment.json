@@ -1,0 +1,240 @@
+{
+  "merchant.onboardingBrand.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Brand images (optional)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "品牌形象图（选填）"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Add up to six images, one at a time. Selected images upload only after your confirmation."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "最多添加6张，每次选1张；选中后须确认才上传。"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.sourceUnavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Existing image data cannot be edited here. No replacement image value will be submitted."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "原图片资料暂不能在此编辑，本表单不会提交替换或清空值。"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.image": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Brand image"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "品牌形象图"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.add": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Add brand image"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "添加品牌形象图"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.remove": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove image"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除图片"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.selected": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Brand image selected locally"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已在本机选中品牌图"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.upload": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upload selected brand image"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上传已选品牌图"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.discard": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard selected image"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃已选图片"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.uploadTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upload this brand image?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上传这张品牌图？"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.uploadMessage": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The selected image will be uploaded to the existing merchant image service and attached to this application draft."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已选图片将上传至现有商家图片服务，并加入本次申请草稿。"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.uploadFirst": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upload or discard the selected brand image before continuing."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先上传或放弃已选品牌图，再继续。"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.changed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The draft changed. Discard this selection and choose the image again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "草稿已变化，请放弃当前选择后重新选图。"
+        }
+      }
+    }
+  },
+  "merchant.onboardingBrand.uploadFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upload did not finish reliably. No image was added to the draft. A remote file may exist; retry only if you choose to upload again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上传结果未确认，图片未加入草稿。远端可能已存有文件；如需重试，请主动重新上传。"
+        }
+      }
+    }
+  }
+}

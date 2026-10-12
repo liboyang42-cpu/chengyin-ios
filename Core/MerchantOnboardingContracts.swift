@@ -64,6 +64,8 @@ public struct MerchantOnboardingDraft: Equatable {
     public var name = "", preference = "", phone = "", address = "", businessTime = "", description = ""
     public var wechat = ""
     public var license: MerchantOnboardingLicense?
+    public var brandImages: MerchantOnboardingBrandImages?
+    public private(set) var brandImagesSourceUnavailable = false
     public init() {}
     public init(reapplying application: MerchantOnboardingApplication) throws {
         guard application.canReapply else { throw APIError.invalidRequest }
@@ -71,7 +73,13 @@ public struct MerchantOnboardingDraft: Equatable {
         phone = application.phone; address = application.address; businessTime = application.businessTime
         description = application.description
         license = try? MerchantOnboardingLicense(serverURL: application.businessLicense)
-        // Source deliberately does not backfill wechat/coordinates/derivatives.
+        // New optional image flow admits valid historical image URLs only.
+        // Unrecognized historical media stays omitted, not silently cleared.
+        if !application.derivatives.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            brandImages = try? .init(source: application.derivatives)
+            brandImagesSourceUnavailable = brandImages == nil
+        }
+        // Existing wechat/coordinate backfill behavior remains unchanged.
     }
     public func blocker(step: Int? = nil) -> String? {
         if step == nil || step == 1 {
@@ -95,6 +103,7 @@ public struct MerchantOnboardingDraft: Equatable {
             "address": address.merchantOnboardingTrimmed, "businessTime": businessTime.merchantOnboardingTrimmed,
             "businessLicense": license.url, "wechat": wechat.merchantOnboardingTrimmed
         ]
+        if let brandImages { fields["derivatives"] = brandImages.wireValue }
         if let id { fields["id"] = id }
         return try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
     }
