@@ -1,0 +1,21 @@
+{
+  "base_tree": "5c25f96e906d2e2b29b9aa0d9321a3f9429ecc2c",
+  "dependencies": [
+    "Existing TemplateMetadataCategorySelection strict parser/toggle/savedValue; no unpublished feature symbol needed"
+  ],
+  "app_sources": [
+    "Core/TemplateLocalCategoryRemoval.swift",
+    "App/TemplateLocalCategoryRemovalView.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateLocalCategoryRemovalViewTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateLocalCategoryRemovalTests.swift"
+  ],
+  "resources": [
+    "Resources/TemplateLocalCategoryRemoval.xcstrings"
+  ],
+  "localization_table": "TemplateLocalCategoryRemoval",
+  "integration": "Add3line local NavigationLink to existingmetadata stableVStack; do not alter reader/dropdown/sheet gates"
+}

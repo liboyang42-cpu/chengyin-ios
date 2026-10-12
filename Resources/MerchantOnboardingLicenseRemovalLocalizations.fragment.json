@@ -1,0 +1,50 @@
+{
+  "merchant.onboardingLicenseRemoval.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove uploaded license?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除已上传的营业执照？"
+        }
+      }
+    }
+  },
+  "merchant.onboardingLicenseRemoval.action": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove license"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除营业执照"
+        }
+      }
+    }
+  },
+  "merchant.onboardingLicenseRemoval.message": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This clears the license from this draft only. Upload a replacement before submitting. The uploaded file is not deleted."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅清空当前草稿中的执照。提交前需要重新上传，不会删除已上传的文件。"
+        }
+      }
+    }
+  }
+}

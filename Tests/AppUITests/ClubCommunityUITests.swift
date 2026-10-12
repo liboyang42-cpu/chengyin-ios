@@ -11,20 +11,37 @@ final class ClubCommunityUITests: XCTestCase {
     }
     func testFeedCommentAndHistoryNavigation() {
         let app = app()
+        // The normal comments action expands an inline reader. Full comments is
+        // a separate explicit sheet entry, not a push caused by that first tap.
+        func openFullComments() {
+            let fullMatches = app.buttons.matching(NSPredicate(format: "label == %@", "Open full comments"))
+            let full = fullMatches.firstMatch
+            if !full.exists {
+                let comments = app.buttons["club.community.comments.20"]
+                XCTAssertTrue(comments.waitForExistence(timeout: 5), app.debugDescription)
+                comments.tap()
+            }
+            // The panel's parent identifier propagates to its AX leaves on iOS;
+            // use the actual unique, fixed-English fixture button label.
+            XCTAssertTrue(full.waitForExistence(timeout: 5), app.debugDescription)
+            XCTAssertEqual(fullMatches.count, 1, app.debugDescription)
+            XCTAssertTrue(revealFixtureElement(full, in: app, maximumSwipes: 4), app.debugDescription)
+            full.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
         XCTAssertTrue(app.otherElements["club.community.post.20"].waitForExistence(timeout: 5))
-        app.buttons["club.community.comments.20"].tap()
+        openFullComments()
         XCTAssertTrue(app.navigationBars["Comments"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(app.otherElements["club.community.comment.30"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(app.staticTexts["Fixture comment"].exists)
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let close = app.navigationBars["Comments"].buttons["Close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 5), app.debugDescription); close.tap()
         XCTAssertTrue(app.otherElements["club.community.post.20"].waitForExistence(timeout: 5))
         let history = app.buttons["club.community.history.20"]
         for _ in 0..<4 { if history.exists && history.isHittable { break }; app.swipeUp() }
         XCTAssertTrue(history.exists); history.tap()
         XCTAssertTrue(app.staticTexts["Previous public content"].waitForExistence(timeout: 5))
         app.navigationBars.buttons.element(boundBy: 0).tap()
-        let comments = app.buttons["club.community.comments.20"]
-        XCTAssertTrue(comments.waitForExistence(timeout: 5)); comments.tap()
+        openFullComments()
         XCTAssertTrue(app.navigationBars["Comments"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(app.otherElements["club.community.comment.30"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(app.staticTexts["Fixture comment"].exists)

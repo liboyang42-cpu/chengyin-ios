@@ -75,7 +75,40 @@ final class MerchantNPCFieldFlowTests: XCTestCase {
     }
     func testAppliedKnowledgeReachesExistingReviewWithoutSending() {
         let app = launch(); tap("merchant.npcField.open.knowledge",app); replace(app.textViews["merchant.npcField.input"],"Local draft facts"); tap("merchant.npcField.apply",app); tap("merchant.operations.review",app)
-        XCTAssertTrue(app.staticTexts["Local draft facts"].waitForExistence(timeout:5))
+        let cancel = app.buttons["merchant.operations.confirm.cancel"]
+        XCTAssertTrue(cancel.exists && cancel.isEnabled && cancel.isHittable, app.debugDescription)
+        // Actual AX has the background editor collection and one foreground review collection.
+        let reviews = app.collectionViews.matching(NSPredicate(format: "identifier != %@", "merchant.operations.editor"))
+        XCTAssertEqual(reviews.count, 1, app.debugDescription)
+        guard reviews.count == 1 else { return }
+        let review = reviews.element
+        let value = review.staticTexts["Local draft facts"]
+        func revealValue() -> Bool {
+            // Only gesture inside this presented Form, never the underlying editor.
+            for attempt in 0...10 {
+                let frame = review.frame
+                let bar = app.navigationBars["Review local draft"]
+                guard bar.exists, frame.height > 0 else { return false }
+                let top = max(frame.minY, bar.frame.maxY + 4)
+                let bottom = min(frame.maxY, app.frame.maxY - 40)
+                guard bottom - top > 80 else { return false }
+                var towardTop = false
+                if value.exists {
+                    let target = value.frame
+                    if !target.isEmpty && target.minY >= top && target.maxY <= bottom { return true }
+                    if !target.isEmpty { towardTop = target.midY < (top + bottom) / 2 }
+                }
+                guard attempt < 10 else { break }
+                let start = (top + (bottom - top) * (towardTop ? 0.3 : 0.75) - frame.minY) / frame.height
+                let end = (top + (bottom - top) * (towardTop ? 0.75 : 0.3) - frame.minY) / frame.height
+                review.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: start))
+                    .press(forDuration: 0.05, thenDragTo: review.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: end)))
+            }
+            return false
+        }
+        XCTAssertTrue(revealValue(), "Knowledge must be visible in the foreground review: " + app.debugDescription)
+        XCTAssertTrue(value.waitForExistence(timeout:5), app.debugDescription)
+        XCTAssertEqual(value.label, "Local draft facts", app.debugDescription)
     }
     func testChineseLargeTextKeepAndDiscard() {
         let app = launch(chinese:true); tap("merchant.npcField.open.knowledge",app); replace(app.textViews["merchant.npcField.input"],"街角店铺资料")

@@ -1,0 +1,62 @@
+{
+  "feature": "P005 pre-live rules entry with native Back",
+  "status": "IMPLEMENTED_PENDING_CENTRAL_REGISTRATION_AND_APPLE_ACCEPTANCE",
+  "base": "ea9d4c429237aeecfb1bbc4b4f6d0713c4fa59dd",
+  "app_sources": [
+    "App/RoamPreflightRulesView.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/RoamPreflightRulesContentTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/RoamPreflightRulesFlowTests.swift"
+  ],
+  "shared_hunk": {
+    "path": "App/RoamExperienceHubView.swift",
+    "before_sha256": "b8b8aceff07e3cade3861c8acb9ed270f6760bc736e6898a4e28c6b953e225d2",
+    "input": "batch18 then19 exact Hub after",
+    "delivery": "fragment only; no existing tracked files modified",
+    "fragment": "fragments/roam-hub-preflight-rules.patch",
+    "after_sha256": "c9d577327ffa5008798484236baf15e0a8bb60b19a237c8e5e7a79623766c4e5"
+  },
+  "localizations": {
+    "roam.preflightRules.open": {
+      "en": "Before you roam",
+      "zh-Hans": "漫游前须知"
+    },
+    "roam.preflightRules.availability": {
+      "en": "Live roaming requires separate service and permission checks. Reading these rules does not start roaming or change your permissions.",
+      "zh-Hans": "实时漫游需另行核验服务与权限。查看这些规则不会开始漫游，也不会更改你的权限。"
+    }
+  },
+  "reused_localization_keys": [
+    "roam.live.rules",
+    "roam.live.ruleExploreTitle",
+    "roam.live.ruleExplore",
+    "roam.live.ruleArrivalTitle",
+    "roam.live.ruleArrival",
+    "roam.live.ruleFinishTitle",
+    "roam.live.ruleFinish",
+    "roam.live.rulePrivacyTitle",
+    "roam.live.presencePrivacy",
+    "roam.live.leaveHint"
+  ],
+  "preserved_unchanged": [
+    "App/RoamLiveSessionView.swift and its rules sheet",
+    "Resources/Localizable.xcstrings",
+    "Core location, runtime and capability implementations",
+    "Batch18 owned coupons and batch19 location settings Hub entries"
+  ],
+  "tests": {
+    "App_unit_XCTest_authored": 7,
+    "App_UI_XCTest_authored": 6,
+    "native_execution": "NOT_RUN: no Swift or Apple toolchain on this cloud computer"
+  },
+  "ordinary_acceptance": [
+    "Hub -> Before you roam -> all four rule sections -> Back -> same Hub",
+    "English/Chinese, largest Dynamic Type, VoiceOver header/body reading, dark mode",
+    "Repeat entry and Home/active return produce no permission alert, start action or network read",
+    "Existing live rules and18/19 entries stay available"
+  ],
+  "central_files_edited": false
+}

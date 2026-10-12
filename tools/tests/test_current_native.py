@@ -227,3 +227,93 @@ class DeviceOnlyAggregationControls(unittest.TestCase):
                 copies['app-unit']['expected']=[method];copies['app-unit']['actual']=[{'method':method,'status':'Passed'}]
             for receipt in copies.values():receipt['plan_sha256']=control.digest(control.encode(changed))
             with self.subTest(kind=kind),self.assertRaises(ValueError):native.aggregate_current(changed,copies,needs)
+
+
+class UIActiveArchitectureControls(unittest.TestCase):
+    def toolchain_fixture(self, architecture):
+        return dict(xcode='Xcode fixture', developer='/fixture/developer', swift='Swift fixture',
+                    sdk_version='fixture', sdk_path='/fixture/sdk', architecture=architecture)
+
+    def products_fixture(self, products):
+        import plistlib
+        app=products/'Debug-iphonesimulator/Questify.app';app.mkdir(parents=True)
+        (app/'Info.plist').write_bytes(plistlib.dumps({'CFBundleSupportedPlatforms':['iPhoneSimulator']}))
+        (app/'Questify').write_bytes(b'fixture product, not a native Mach-O')
+        bundle=products/'Debug-iphonesimulator/QuestifyUITests.xctest';bundle.mkdir()
+        (bundle/'QuestifyUITests').write_bytes(b'fixture test bundle')
+        (products/'Questify.xctestrun').write_bytes(plistlib.dumps({'QuestifyUITests':{
+            'TestBundlePath':'__TESTROOT__/Debug-iphonesimulator/QuestifyUITests.xctest',
+            'UITargetAppPath':'__TESTROOT__/Debug-iphonesimulator/Questify.app'}}))
+
+    def packed_fixture(self, directory, architecture):
+        products=directory/'built';self.products_fixture(products)
+        artifact=directory/'artifact';artifact.mkdir()
+        plan,_,_=CurrentNativeControls().fixture();toolchain=self.toolchain_fixture(architecture)
+        receipt={'identity':plan['identity'],'plan_sha256':control.digest(control.encode(plan)),
+                 'role':'ui-build','toolchain':toolchain}
+        native.pack_ui(products,artifact,receipt)
+        return plan,toolchain,artifact
+
+    def test_ui_build_uses_destination_active_architecture_once_and_preserves_checks(self):
+        import json,os,tempfile,time
+        from pathlib import Path
+        from unittest.mock import patch
+        for architecture in ('arm64','x86_64'):
+            with self.subTest(architecture=architecture),tempfile.TemporaryDirectory() as tmp:
+                base=Path(tmp);root=base/'repo';root.mkdir();start=base/'start';start.write_text(str(time.monotonic()))
+                output=base/'result';plan,_,_=CurrentNativeControls().fixture();calls=[]
+                runtime='com.apple.CoreSimulator.SimRuntime.iOS-26-0';udid='11111111-1111-1111-1111-111111111111'
+                def execute(argv,cwd,timeout,capture=False,env=None):
+                    calls.append((argv,timeout))
+                    if argv[:4]==['xcrun','simctl','list','devices']:
+                        return 0,json.dumps({'devices':{runtime:[{'name':'iPhone fixture','udid':udid,'isAvailable':True,'state':'Shutdown'}]}}).encode()
+                    if argv[:4]==['xcrun','simctl','list','runtimes']:
+                        return 0,json.dumps({'runtimes':[{'identifier':runtime,'isAvailable':True}]}).encode()
+                    if argv[0]=='xcodebuild':self.products_fixture(Path(argv[argv.index('-derivedDataPath')+1])/'Build/Products')
+                    return 0,b'fixture command success\n'
+                actual=self.toolchain_fixture(architecture)
+                with patch.dict(os.environ,{'RUNNER_TEMP':str(base)}),patch.object(native,'execute',side_effect=execute),patch.object(native,'toolchain',return_value=actual),patch.object(control,'source_identity',return_value=plan['identity']):
+                    native.execute_current(root,plan,'ui-build',output,start)
+                builds=[(argv,seconds) for argv,seconds in calls if argv[0]=='xcodebuild']
+                self.assertEqual(len(builds),1);argv,seconds=builds[0]
+                self.assertEqual(argv[-1],'build-for-testing');self.assertEqual(seconds,native.BUDGET['ui-build'])
+                self.assertEqual(argv[argv.index('-destination')+1],'platform=iOS Simulator,id='+udid)
+                self.assertEqual(argv.count('ONLY_ACTIVE_ARCH=YES'),1);self.assertNotIn('ONLY_ACTIVE_ARCH=NO',argv)
+                self.assertFalse(any(x.startswith('ARCHS=') or x=='-arch' for x in argv))
+                self.assertIn('CODE_SIGNING_ALLOWED=NO',argv)
+                self.assertTrue(any('tools/check_built_profile.py' in a for a,_ in calls))
+                self.assertTrue(any('tools/check_gltf_linked.py' in a for a,_ in calls))
+                receipt=native.read_json(output/'receipt.json')
+                self.assertEqual(receipt['status'],'BUILT');self.assertEqual(receipt['executed_methods'],[])
+                self.assertEqual(receipt['build_argv'],argv);self.assertEqual(receipt['toolchain'],actual)
+                products,run,restored=native.restore_ui(output,base/'worker',plan,actual)
+                self.assertEqual(native.split404_ledger(products),receipt['product_ledger'])
+                self.assertEqual(run.name,receipt['xctestrun']);self.assertEqual(restored,receipt)
+
+    def test_ui_restore_rejects_different_worker_architecture_and_other_toolchain_fields(self):
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as tmp:
+            base=Path(tmp);plan,actual,artifact=self.packed_fixture(base,'arm64')
+            for key in actual:
+                changed=dict(actual);changed[key]='x86_64' if key=='architecture' else 'different'
+                destination=base/('restored-'+key)
+                with self.subTest(key=key),self.assertRaisesRegex(ValueError,'toolchain/SDK/architecture'):
+                    native.restore_ui(artifact,destination,plan,changed)
+                self.assertFalse(destination.exists())
+
+    def test_ui_restore_rejects_archive_corruption_and_changed_file_with_updated_archive_hash(self):
+        import tempfile,tarfile
+        from pathlib import Path
+        for mutation in ('archive','file'):
+            with self.subTest(mutation=mutation),tempfile.TemporaryDirectory() as tmp:
+                base=Path(tmp);plan,actual,artifact=self.packed_fixture(base,'arm64')
+                archive=artifact/'products.tar.gz'
+                if mutation=='archive':archive.write_bytes(archive.read_bytes()+b'changed')
+                else:
+                    (base/'built/Debug-iphonesimulator/Questify.app/Questify').write_bytes(b'changed product')
+                    with tarfile.open(archive,'w:gz') as stream:stream.add(base/'built',arcname='Products')
+                    receipt=native.read_json(artifact/'receipt.json');receipt['archive_sha256']=native.digest(archive)
+                    native.write_json(artifact/'receipt.json',receipt)
+                message='archive changed' if mutation=='archive' else 'file ledger differs'
+                with self.assertRaisesRegex(ValueError,message):native.restore_ui(artifact,base/'worker',plan,actual)

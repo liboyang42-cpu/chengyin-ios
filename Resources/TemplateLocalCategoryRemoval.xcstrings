@@ -1,0 +1,166 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateLocalCategories.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved category IDs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选分类"
+          }
+        }
+      }
+    },
+    "templateLocalCategories.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove a saved category locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地移除已选分类"
+          }
+        }
+      }
+    },
+    "templateLocalCategories.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove an existing saved category ID without loading the catalogue. This cannot add categories. Use the existing local Save after returning."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无需加载分类目录即可移除已经保存的分类编号，此处不能新增分类。返回后可使用现有的本地保存。"
+          }
+        }
+      }
+    },
+    "templateLocalCategories.unset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved category value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未保存分类值"
+          }
+        }
+      }
+    },
+    "templateLocalCategories.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved text is not a supported ID list. It is kept unchanged; removal is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的文本不是支持的分类编号列表，原文保持不变，无法在此移除。"
+          }
+        }
+      }
+    },
+    "templateLocalCategories.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No selected categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有已选分类"
+          }
+        }
+      }
+    },
+    "templateLocalCategories.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除"
+          }
+        }
+      }
+    },
+    "templateLocalCategories.removeID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove category"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除分类"
+          }
+        }
+      }
+    },
+    "templateLocalCategories.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local draft changed or this page is inactive. Reload only when the current draft is available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地草稿已变更或当前页未激活。当前草稿可用时才能重新读取。"
+          }
+        }
+      }
+    },
+    "templateLocalCategories.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload saved selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取已选分类"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

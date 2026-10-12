@@ -1,0 +1,98 @@
+{
+  "merchant.settlementEntry.reversal": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reversal"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "冲正"
+        }
+      }
+    }
+  },
+  "merchant.settlementEntry.clawback": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clawback"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "扣划"
+        }
+      }
+    }
+  },
+  "merchant.settlementEntry.redemption": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redemption earnings"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销计酬"
+        }
+      }
+    }
+  },
+  "merchant.settlementEntry.cooperation": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cooperation revenue share"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "合作分润"
+        }
+      }
+    }
+  },
+  "merchant.settlementEntry.activity": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Activity revenue share"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "活动分润"
+        }
+      }
+    }
+  },
+  "merchant.settlementEntry.adjustment": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Adjustment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "调整项"
+        }
+      }
+    }
+  }
+}

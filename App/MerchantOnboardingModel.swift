@@ -101,6 +101,43 @@ final class MerchantOnboardingModel: ObservableObject {
         guard request == generation else { return }
         isBusy = false
     }
+    struct LicenseRemoval: Identifiable {
+        let id = UUID()
+        fileprivate let identity: ProfileReadIdentity
+        fileprivate let generation: Int
+        fileprivate let revision: Int
+        fileprivate let draft: MerchantOnboardingDraft
+    }
+    private var pendingLicenseRemovalID: UUID?
+    var canRemoveLicense: Bool {
+        guard !isBusy, !coordinator.isUploading, identity != nil, identity == coordinator.identity,
+              coordinator.isConfigured, coordinator.identityGate == .registered,
+              !coordinator.submission.isLocked, confirmation == nil,
+              selectedImage == nil, selectedBrandImage == nil, draft.license != nil else { return false }
+        switch coordinator.loadState {
+        case .loaded(.none): return true
+        case .loaded(.application(let application)): return isEditing && application.canReapply
+        default: return false
+        }
+    }
+    func prepareLicenseRemoval() -> LicenseRemoval? {
+        guard canRemoveLicense, let identity else { return nil }
+        let request = LicenseRemoval(identity: identity, generation: generation, revision: revision, draft: draft)
+        pendingLicenseRemovalID = request.id
+        return request
+    }
+    func cancelLicenseRemoval(_ request: LicenseRemoval? = nil) {
+        if request == nil || pendingLicenseRemovalID == request?.id { pendingLicenseRemovalID = nil }
+    }
+    @discardableResult func removeLicense(_ request: LicenseRemoval) -> Bool {
+        guard pendingLicenseRemovalID == request.id else { return false }
+        pendingLicenseRemovalID = nil
+        guard canRemoveLicense, request.identity == identity, request.generation == generation,
+              request.revision == revision, request.draft == draft else { return false }
+        // Local draft only. Uploaded files remain on the server; replacement uses existing upload flow.
+        draft.license = nil; errorKey = draft.blocker(step: 3); revision += 1
+        return true
+    }
     func uploadSelected() async {
         guard !isBusy, let selectedImage, let identity else { return }
         let request = generation

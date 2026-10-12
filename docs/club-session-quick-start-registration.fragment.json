@@ -1,0 +1,65 @@
+{
+  "task": "P045/P049 owner quick-start one session through real manageable topics and existing createSeries form",
+  "base": "5dd3e53c1de104735b26d75811cb4ff46b2a340f",
+  "dependencies": [
+    {
+      "path": "../club-role-assignment-picker/club-role-assignment-picker.patch",
+      "sha256": "e1ec23eea1487ba8338c7f73bd19021caeafa784547d5ffb9d2e9cd6a1c792ff",
+      "shared_path": "App/ClubGovernanceCommandForm.swift",
+      "before_sha256": "28dcfc08ed90e072e51c7a28202a9af925907c9edbe8a296cf5092678f32174f",
+      "after_sha256": "b4294f6c80afba7645ed901595cc6645785ae558817bd210e3679558904d5a86"
+    },
+    {
+      "path": "../club-series-schedule/club-series-schedule.patch",
+      "sha256": "02132fffcaa2490df7f6e0d92fa92712d9d8604f3764908c2192317cf8ee3e44",
+      "shared_path": "App/ClubGovernanceCommandForm.swift",
+      "before_sha256": "b4294f6c80afba7645ed901595cc6645785ae558817bd210e3679558904d5a86",
+      "after_sha256": "43fa80b3b4ef4b8750ec228bed479b3bc78670b99aba52d97542da57da0997b9"
+    },
+    {
+      "path": "../club-series-lead-picker/club-series-lead-picker.patch",
+      "sha256": "5c90183120f1999fe754d5b2daa8e802f199305439eecd046b0c2ff5afa38e69",
+      "shared_path": "App/ClubGovernanceCommandForm.swift",
+      "before_sha256": "43fa80b3b4ef4b8750ec228bed479b3bc78670b99aba52d97542da57da0997b9",
+      "after_sha256": "003607d769eed2b5da139a5350900cc99a8c403d3f99775ee6c4d5010940f9d6"
+    },
+    {
+      "path": "../club-invitation-feedback/club-invitation-feedback.patch",
+      "sha256": "ed4c0ae93b37a20543dbc3e301c4a378c9abe7c656dd31852819b6d60ad54405",
+      "shared_path": "App/ClubDetailView.swift",
+      "before_sha256": "31a9aef9ae59c522e7f331e15a2c772e4636fef96c51957f90ead970ea5cefac",
+      "after_sha256": "082d634262a7f235911e4e906b16c1bded0c75257d7766376924557f6a9dc4bf"
+    },
+    {
+      "path": "../club-lead-progress/club-lead-progress.patch",
+      "sha256": "79cca24825613238cae7770e18d0e5288b0e65237f3f65c3cd4d2ab6a617bf78",
+      "shared_path": "App/ClubDetailView.swift",
+      "before_sha256": "082d634262a7f235911e4e906b16c1bded0c75257d7766376924557f6a9dc4bf",
+      "after_sha256": "d060a4962207e4964d30b9943ee02006019d8087ae650dd67e813e72c408d32d"
+    },
+    {
+      "path": "../club-project-launch/club-project-launch.patch",
+      "sha256": "bba4e32b7170cf6c078b6cbd4506906d6d1c0ea932462c2f30392ccbc2a83a14",
+      "shared_path": "App/ClubDetailView.swift",
+      "before_sha256": "d060a4962207e4964d30b9943ee02006019d8087ae650dd67e813e72c408d32d",
+      "after_sha256": "6ea0693b230b5889043c9a3dfd72bd811ee7c3289de34473f956a4d959e2bbcd"
+    }
+  ],
+  "composite_preimage_tree": "626c3f1501d1b47526081d361c7a8c827996f7a0",
+  "existing_preimage_blob": "1e7b9429414a083c11de0e686a62772929caee0f",
+  "modified_app_hunk": "Only append ClubSessionQuickStartEntry(club:club, reader:reader, governance:governance) immediately after calendar.open modifier in existing governance Section. Root approved2026-10-11 19:51:47Z. Existing workspace/calendar and17/18/20 entries untouched.",
+  "app_sources": [
+    "App/ClubSessionQuickStartView.swift"
+  ],
+  "core_sources": [
+    "Core/ClubSessionQuickStart.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubSessionQuickStartViewTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubSessionQuickStartTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubSessionQuickStartLocalizations.fragment.json",
+  "merge_instructions": "Over 5dd apply immutable form chain11→12→13 and ClubDetail chain17→18→20. Apply21 only one new line after calendar.open. Register4 Swift sources/tests and13 bilingual keys centrally. Do not replace earlier packets or form; no permissions/production-reader changes."
+}

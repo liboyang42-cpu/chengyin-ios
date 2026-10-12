@@ -83,10 +83,13 @@ private struct MerchantRegistrationAvailabilitySourceRows: View {
     }
     private func row(_ key: String, _ value: MerchantContentValue) -> some View {
         LabeledContent(LocalizedStringKey(key)) {
-            if let text = value.display, !text.isEmpty { Text(verbatim: text).textSelection(.enabled) }
+            if let text = value.display, !text.isEmpty {
+                Text(verbatim: text).textSelection(.enabled)
+                    .accessibilityIdentifier(key + ".value")
+            }
             else if value == .null || value.text == "" { Text("merchant.registrationAvailability.notProvided") }
             else { Text("merchant.registrationAvailability.unrecognized") }
-        }
+        }.accessibilityElement(children: .contain)
     }
 }
 private struct MerchantRegistrationAvailabilityValues: View {

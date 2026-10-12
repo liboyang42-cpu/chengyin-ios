@@ -250,6 +250,7 @@ struct SessionRootView: View {
             if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }
         }
         .environmentObject(session)
+        .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })
         .environment(\.merchantCityTemplateHandoffFactory, {
             .init(reader: session.merchantOperationsReader, imageHost: session.retainedMerchantImages,
                   templateAssistFactory: { session.merchantTemplateAssistFlow(coordinator: $0) })

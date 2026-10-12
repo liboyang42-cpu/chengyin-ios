@@ -23,6 +23,29 @@ import Observation
     }
 }
 
+/// DEBUG-only synthetic evidence. No image bytes, file paths, credentials or real account data.
+@MainActor @Observable final class ProfileLocalCoverFixtureDiagnostics {
+    private(set) var events: [String] = []
+    private var modelNumbers: [ObjectIdentifier: Int] = [:]
+    private var sequence = 0
+    var summary: String { events.joined(separator: "\n") }
+    func record(_ event: String, model: ProfileLocalCoverModel?) {
+        sequence += 1
+        guard let model else {
+            events.append("\(sequence) \(event) model=none")
+            trim(); return
+        }
+        let identity = ObjectIdentifier(model)
+        let number: Int
+        if let known = modelNumbers[identity] { number = known }
+        else { number = modelNumbers.count + 1; modelNumbers[identity] = number }
+        let controller = model.controller
+        events.append("\(sequence) \(event) model=\(number) loaded=\(controller.loaded) owns=\(controller.ownsContext) canEdit=\(controller.canEdit) presented=\(model.isPresented) review=\(controller.review != nil) crop=\(model.crop != nil) saved=\(controller.saved != nil) message=\(controller.messageKey ?? "none")")
+        trim()
+    }
+    private func trim() { if events.count > 32 { events.removeFirst(events.count - 32) } }
+}
+
 /// Local synthetic controls never open the user's photo library or call an upload endpoint.
 @MainActor struct ProfileLocalCoverFixtureHost: View {
     @State private var reader = ProfileAuthorPostsRefreshFixtureReader()
@@ -31,6 +54,7 @@ import Observation
     private let ownerB = try! ProfileLocalCoverOwner(accountID: 82, namespace: "synthetic-local-cover")
     @State private var model: ProfileLocalCoverModel?
     @State private var showsCover = true
+    @State private var diagnostics = ProfileLocalCoverFixtureDiagnostics()
     private var owner: ProfileLocalCoverOwner { reader.identity.accountID == 82 ? ownerB : ownerA }
     private var key: ProfileLocalCoverContext { .init(owner: owner, reader: reader) }
     var body: some View {
@@ -43,9 +67,22 @@ import Observation
                         .accessibilityIdentifier("profile.localCoverFixture.logout")
                     Button("Toggle cover") { showsCover.toggle() }.accessibilityIdentifier("profile.localCoverFixture.toggle")
                     Button("Prepare synthetic cover") {
-                        guard let model, let image = try? ProfileLocalCoverSyntheticImage.make() else { return }
-                        model.open(); model.controller.prepare(image)
+                        diagnostics.record("prepare.begin", model: model)
+                        guard let model else {
+                            diagnostics.record("prepare.no-model", model: nil); return
+                        }
+                        do {
+                            let image = try ProfileLocalCoverSyntheticImage.make()
+                            diagnostics.record("prepare.image-ready", model: model)
+                            model.open()
+                            diagnostics.record("prepare.after-open", model: model)
+                            model.controller.prepare(image)
+                            diagnostics.record("prepare.after-review", model: model)
+                        } catch {
+                            diagnostics.record("prepare.image-error: \(String(describing: error))", model: model)
+                        }
                     }.accessibilityIdentifier("profile.localCoverFixture.prepare")
+                        .accessibilityValue(Text(verbatim: diagnostics.summary))
                     if let model {
                         Text(verbatim: "Writes: \(store.writes)").accessibilityIdentifier("profile.localCoverFixture.writes")
                         Text(verbatim: model.controller.saved == nil ? "Default" : "Saved").accessibilityIdentifier("profile.localCoverFixture.state")
@@ -54,12 +91,20 @@ import Observation
                 }
                 if showsCover, let model, key.isOwnAccount {
                     ProfileLocalCoverEnabledSection(model: model).id(key)
+                        .onAppear { diagnostics.record("section-input.appear", model: model) }
+                        .onDisappear { diagnostics.record("section-input.disappear", model: model) }
                 }
             }.task(id: key) {
                 let captured = key, reader = reader, owner = owner
                 let created = ProfileLocalCoverModel(context: captured, store: store, current: { .init(owner: owner, reader: reader) })
+                diagnostics.record("parent.created", model: created)
                 created.controller.load(); model = created
+                diagnostics.record("parent.loaded", model: created)
             }
+            .onChange(of: model?.isPresented) { _, _ in diagnostics.record("observed.presentation", model: model) }
+            .onChange(of: model?.controller.loaded) { _, _ in diagnostics.record("observed.loaded", model: model) }
+            .onChange(of: model?.controller.review?.id) { _, _ in diagnostics.record("observed.review", model: model) }
+            .onChange(of: key) { _, _ in diagnostics.record("observed.context", model: model) }
         }
     }
 }

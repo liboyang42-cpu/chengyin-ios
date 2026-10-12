@@ -61,6 +61,8 @@ import SwiftUI
             Section {
                 NavigationLink { RoamLocationSettingsDestination() } label: { Label("roam.locationSettings.title", systemImage: "location.circle") }
                     .accessibilityIdentifier("roam.locationSettings.open")
+                NavigationLink { RoamPreflightRulesView() } label: { Label("roam.preflightRules.open", systemImage: "book.closed") }
+                    .accessibilityIdentifier("roam.preflightRules.open")
             }
             Section("roam.motion.title") {
                 Toggle("roam.motion.reduce", isOn: $reduceMotionLocally)

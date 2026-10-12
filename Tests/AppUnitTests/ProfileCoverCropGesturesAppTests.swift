@@ -79,7 +79,8 @@ import UIKit
         let owner = try ProfileLocalCoverOwner(accountID: 81, namespace: "synthetic-cover-gesture")
         let model = ProfileLocalCoverModel(context: .init(owner: owner, reader: reader), store: store, current: { .init(owner: owner, reader: reader) })
         model.controller.load(); model.open(); model.crop = .init(source: try ProfileLocalCoverSyntheticImage.make(), aspect: .gallery)
-        model.cancelCrop(); model.close(); XCTAssertEqual(store.writes, 0); XCTAssertNil(model.controller.review)
+        model.cancelCrop(id: try XCTUnwrap(model.crop?.id)); XCTAssertNil(model.crop)
+        model.close(); XCTAssertEqual(store.writes, 0); XCTAssertNil(model.controller.review)
     }
     func testAccountSwitchRejectsGestureAndItsOldCropConfirmation() throws {
         let reader = ProfileAuthorPostsRefreshFixtureReader(), store = ProfileLocalCoverFixtureStore()

@@ -10,7 +10,15 @@ final class MerchantCityTemplateHandoffFlowTests: XCTestCase {
     func testConfigurationOpensFullEditorAndCannotReturnAnUnsavedID() {
         let app = launch()
         app.buttons["merchant.cityTemplate.configure"].tap()
-        XCTAssertTrue(app.otherElements["merchant.operations.editor"].waitForExistence(timeout: 5))
+        // Form is not guaranteed to be exposed as Other; the normal editor tests query its ID across types.
+        let editors = app.descendants(matching: .any).matching(identifier: "merchant.operations.editor")
+        let opened = editors.element.waitForExistence(timeout: 5)
+        if !opened {
+            print("QUESTIFY_CITY_TEMPLATE_EDITOR_AX_BEGIN\n\(app.debugDescription)\nQUESTIFY_CITY_TEMPLATE_EDITOR_AX_END")
+            attachFixtureScreenshot(self, app: app, name: "City template editor after one configuration tap")
+        }
+        XCTAssertTrue(opened, app.debugDescription)
+        XCTAssertEqual(editors.count, 1, app.debugDescription)
         XCTAssertTrue(app.buttons["merchant.cityTemplate.useSaved"].exists)
         XCTAssertFalse(app.buttons["merchant.cityTemplate.useSaved"].isEnabled)
     }

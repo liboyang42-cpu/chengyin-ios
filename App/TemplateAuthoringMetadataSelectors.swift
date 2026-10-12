@@ -135,6 +135,9 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
                 .buttonStyle(.borderless)
                 .accessibilityIdentifier("templateMetadata.open." + field.rawValue)
             }
+            NavigationLink { TemplateLocalCategoryRemovalView(model: model) } label: {
+                Text("templateLocalCategories.open", tableName: "TemplateLocalCategoryRemoval")
+            }.accessibilityIdentifier("templateLocalCategories.open")
         }
         .sheet(item: $presented) { field in
             NavigationStack { TemplateAuthoringMetadataSelector(model: model, reader: reader, field: field) }

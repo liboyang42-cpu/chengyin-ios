@@ -262,6 +262,9 @@ import SwiftUI
                 }
             }
             if let snapshot = state.snapshot, state.isCurrent {
+                if !state.isBusy, state.failureKey == nil, snapshot.document.query == query {
+                    MerchantLedgerInboxEntry(reader: reader, snapshot: snapshot)
+                }
                 if sourcePageMatches(snapshot) {
                 if reviewSource != nil {
                     Text("merchant.business.reviews.sourcePageNotice").font(.footnote).foregroundStyle(.secondary)
@@ -488,13 +491,16 @@ import SwiftUI
         }
     }
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
-        if !document.summary.isEmpty {
+        if !document.summary.isEmpty || document.query == .overview {
             Section("merchant.business.summary") {
                 if case .reviews = document.query {
                     Text("merchant.business.reviews.summaryScope").font(.footnote).foregroundStyle(.secondary)
                 }
                 ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount", "averageRating", "pendingReplyCount", "monthNewCount", "replyRatePct", "all", "repeat", "new", "noted", "monthlyNew"], id: \.self) { key in
-                    if let value = document.summary[key] {
+                    if document.query == .overview, key == "personalArrivedThisMonthNet" {
+                        MerchantLedgerNetSummary(presentation: .init(value: document.summary[key]))
+                            .accessibilityIdentifier("merchant.business.summary." + key)
+                    } else if let value = document.summary[key] {
                         MerchantBusinessField(key: key, value: value, money: MerchantBusinessDocument.overviewMoneyKeys.contains(key) || ["pendingAmount", "arrivedAmount"].contains(key))
                             .accessibilityIdentifier("merchant.business.summary." + key)
                     }
@@ -526,6 +532,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 10) {
                 Text(row.title).font(.headline)
                 MerchantBusinessRecordFields(row: row, access: access, compact: false,
+                    settlementEntries: { if case .batch = query { return true }; return false }(),
                     reviewPhotoOwner: model, settlementReader: reader, settlementSnapshot: {
                         guard state.isCurrent, !state.isBusy, state.failureKey == nil else { return nil }
                         return state.snapshot

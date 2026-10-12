@@ -5,6 +5,7 @@ import UIKit
 /// Host in the existing NavigationStack and retain coordinator outside this view.
 @MainActor
 struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @ObservedObject var session: Session
     @StateObject private var model: MerchantOnboardingModel
@@ -18,6 +19,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     @State private var hoursEditor: MerchantOnboardingHoursSession?
     @State private var showUploadConfirmation = false
     @State private var showSubmitConfirmation = false
+    @State private var showLicenseRemoval = false
+    @State private var licenseRemoval: MerchantOnboardingModel.LicenseRemoval?
     init(session: Session, coordinator: MerchantOnboardingCoordinator, openMerchant: (() -> Void)? = nil) {
         self.session = session; _model = StateObject(wrappedValue: MerchantOnboardingModel(coordinator: coordinator))
         self.openMerchant = openMerchant
@@ -43,12 +46,13 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             photo = nil; showPhotos = false; showHours = false
             showBrandPhotos = false; showBrandUploadConfirmation = false
             showUploadConfirmation = false; showSubmitConfirmation = false
+            showLicenseRemoval = false; licenseRemoval = nil; model.cancelLicenseRemoval()
             model.reset(); await model.load()
         }
         .onDisappear {
             // Presenting a child surface is not leaving the application. Keep the draft
             // and selected item through picker/sheet/confirmation transitions.
-            guard !showPhotos, !showHours, !showUploadConfirmation, !showSubmitConfirmation, !showBrandPhotos, !showBrandUploadConfirmation else { return }
+            guard !showPhotos, !showHours, !showUploadConfirmation, !showSubmitConfirmation, !showBrandPhotos, !showBrandUploadConfirmation, !showLicenseRemoval else { return }
             loadedRevision = nil; model.leave(); photo = nil
         }
         .photosPicker(isPresented: $showPhotos, selection: $photo, matching: .images, preferredItemEncoding: .compatible)
@@ -66,6 +70,14 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             Button("merchant.onboarding.uploadConfirm.action") { Task { await model.uploadSelected() } }
             Button("action.cancel", role: .cancel) { }
         } message: { Text("merchant.onboarding.uploadConfirm.message") }
+        .confirmationDialog("merchant.onboardingLicenseRemoval.title", isPresented: $showLicenseRemoval,
+                            titleVisibility: .visible, presenting: licenseRemoval) { request in
+            Button("merchant.onboardingLicenseRemoval.action", role: .destructive) { model.removeLicense(request) }
+            Button("action.cancel", role: .cancel) { model.cancelLicenseRemoval(request) }
+        } message: { _ in Text("merchant.onboardingLicenseRemoval.message") }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { model.cancelLicenseRemoval(); showLicenseRemoval = false; licenseRemoval = nil }
+        }
         .alert("merchant.onboarding.submitConfirm.title", isPresented: $showSubmitConfirmation) {
             Button("merchant.onboarding.submitConfirm.action") { model.submitConfirmed() }
             Button("action.cancel", role: .cancel) { model.cancelConfirmation() }
@@ -174,6 +186,10 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                 if model.draft.license != nil {
                     Label("merchant.onboarding.licenseUploaded", systemImage: "checkmark.circle")
                         .accessibilityIdentifier("merchant.onboarding.licenseUploaded")
+                    Button("merchant.onboardingLicenseRemoval.action", role: .destructive) {
+                        licenseRemoval = model.prepareLicenseRemoval(); showLicenseRemoval = licenseRemoval != nil
+                    }.disabled(!model.canRemoveLicense)
+                        .accessibilityIdentifier("merchant.onboarding.license.remove")
                 }
                 if let selectedImage = model.selectedImage {
                     if let preview = UIImage(data: selectedImage.data) {

@@ -24,6 +24,7 @@ struct MerchantBusinessField: View {
     let row: MerchantBusinessRecord
     let access: MerchantBusinessAccess
     var compact: Bool
+    var settlementEntries = false
     var reviewPhotoOwner: MerchantBusinessViewModel? = nil
     var settlementReader: (any MerchantBusinessReading)? = nil
     var settlementSnapshot: (() -> MerchantBusinessSnapshot?)? = nil
@@ -49,13 +50,27 @@ struct MerchantBusinessField: View {
     var body: some View {
         ForEach(keys, id: \.self) { key in
             if visible(key), let value = row.fields[key] {
-                if row.kind == .batch, key == "paidAt" {
+                if settlementEntries, row.kind == .entry, key == "signedAmount" {
+                    let entry = MerchantSettlementEntryPresentation(fields: row.fields)
+                    LabeledContent("merchant.business.field.signedAmount") {
+                        if let amount = entry.amount { Text(verbatim: amount).monospacedDigit() }
+                        else { Text("merchant.business.amountPending").foregroundStyle(.secondary) }
+                    }.font(.subheadline)
+                        .accessibilityIdentifier("merchant.settlementEntry.amount")
+                } else if row.kind == .batch, key == "paidAt" {
                     LabeledContent("merchant.business.field.paidAt") {
                         MerchantSettlementTimestampText(raw: value.string)
                     }.font(.subheadline)
                 } else {
                     MerchantBusinessField(key: key, value: value, money: moneyKeys.contains(key))
                 }
+            }
+        }
+        if settlementEntries, row.kind == .entry {
+            Text(LocalizedStringKey(MerchantSettlementEntryPresentation(fields: row.fields).sourceKey))
+                .font(.subheadline).accessibilityIdentifier("merchant.settlementEntry.meaning")
+            if row.fields["signedAmount"] == nil {
+                Text("merchant.business.amountPending").foregroundStyle(.secondary)
             }
         }
         if row.kind == .customer, compact {

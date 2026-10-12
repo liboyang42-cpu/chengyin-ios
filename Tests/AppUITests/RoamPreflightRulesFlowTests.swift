@@ -1,0 +1,65 @@
+import XCTest
+
+final class RoamPreflightRulesFlowTests: XCTestCase {
+    private var runningApp: XCUIApplication?
+    override func setUp() { super.setUp(); continueAfterFailure = false }
+    override func tearDown() { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil; super.tearDown() }
+    private func app(chinese: Bool = false, largeText: Bool = false) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitesting-roam-experience", "--uitesting-roam-experience-scenario", "content",
+            "--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US"]
+        if largeText { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
+        runningApp = app; app.launch(); return app
+    }
+    private func element(_ id: String, _ app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any).matching(identifier: id).firstMatch
+    }
+    private func open(_ app: XCUIApplication) {
+        let link = app.buttons["roam.preflightRules.open"]
+        XCTAssertTrue(revealFixtureElement(link, in: app)); link.tap()
+        XCTAssertTrue(element("roam.preflightRules.availability", app).waitForExistence(timeout: 5))
+    }
+    func testHubRulesAreReachableBeforeLiveAndHaveNoStartOrPermissionAction() {
+        let app = app(); open(app)
+        XCTAssertTrue(element("roam.preflightRules.body.roam.live.ruleExplore", app).exists)
+        XCTAssertFalse(app.buttons["roam.live.start"].exists)
+        XCTAssertFalse(app.buttons["roam.locationSettings.openSettings"].exists)
+        XCTAssertEqual(app.alerts.count, 0)
+    }
+    func testAllRuleSectionsIncludingPresenceAndPauseCanBeRead() {
+        let app = app(); open(app)
+        for key in ["ruleExplore", "ruleArrival", "ruleFinish", "presencePrivacy", "leaveHint"] {
+            XCTAssertTrue(revealFixtureElement(element("roam.preflightRules.body.roam.live." + key, app), in: app))
+        }
+    }
+    func testBackPreservesOwnedCouponsLocationSettingsAndLiveEntries() {
+        let app = app(); open(app); app.navigationBars.buttons.element(boundBy: 0).tap()
+        for id in ["roam.ownedCoupons.open", "roam.locationSettings.open", "roam.experience.live.open", "roam.preflightRules.open"] {
+            XCTAssertTrue(revealFixtureElement(app.buttons[id], in: app))
+        }
+    }
+    func testReopeningAndForegroundReturnDoNotStartRoaming() {
+        let app = app(); open(app); app.navigationBars.buttons.element(boundBy: 0).tap(); open(app)
+        XCUIDevice.shared.press(.home); app.activate()
+        XCTAssertTrue(element("roam.preflightRules.availability", app).waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["roam.live.start"].exists); XCTAssertEqual(app.alerts.count, 0)
+    }
+    func testSimplifiedChineseUsesExistingLocalizedRules() {
+        let app = app(chinese: true); open(app)
+        XCTAssertTrue(app.navigationBars["漫游怎么玩"].exists)
+        XCTAssertTrue(app.staticTexts["不绑定固定路线。主动开始后，步行点亮经过的街区。暂停期间、低精度定位和明显跳点不会计入距离。"].exists)
+    }
+    func testLargestDynamicTypeCanReachTheLastRuleAndReturn() {
+        let app = app(largeText: true); open(app)
+        let last = element("roam.preflightRules.body.roam.live.leaveHint", app)
+        // A single accessibility-sized paragraph may exceed the viewport height.
+        // Check reachable visible content without requiring the entire text frame to fit.
+        for _ in 0..<20 {
+            if last.exists && last.frame.intersects(app.frame.insetBy(dx: 8, dy: 100)) { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(last.exists && last.frame.intersects(app.frame.insetBy(dx: 8, dy: 100)))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(revealFixtureElement(app.buttons["roam.preflightRules.open"], in: app))
+    }
+}

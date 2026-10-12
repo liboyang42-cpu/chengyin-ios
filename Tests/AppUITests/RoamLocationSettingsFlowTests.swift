@@ -45,7 +45,9 @@ final class RoamLocationSettingsFlowTests: XCTestCase {
         app.buttons["roam.locationSettings.refresh"].tap()
         XCTAssertTrue(element("roam.locationSettings.authorization.whenInUse", app).waitForExistence(timeout: 5))
         app.navigationBars.buttons.element(boundBy: 0).tap()
-        XCTAssertTrue(revealFixtureElement(app.buttons["roam.ownedCoupons.open"], in: app))
+        // Keep this historical method ID for native failure carry. The published98 Hub
+        // has the voucher entry; owned-coupon52 is a separate, still-unpublished dependency.
+        XCTAssertTrue(revealFixtureElement(app.buttons["roam.experience.voucher.open"], in: app, towardTop: true))
         XCTAssertTrue(revealFixtureElement(app.buttons["roam.locationSettings.open"], in: app))
     }
     func testFailedOpenCanRetryWithoutLeavingAppOrPrompting() {

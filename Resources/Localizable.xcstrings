@@ -1,6 +1,470 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "merchant.ledgerInbox.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看消息"
+          }
+        }
+      }
+    },
+    "merchant.ledgerInbox.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messages could not be opened. Check your account and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法打开消息，请检查当前账号后重试。"
+          }
+        }
+      }
+    },
+    "merchant.ledgerNet.adjustment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Net adjustment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "净调整"
+          }
+        }
+      }
+    },
+    "merchant.ledgerNet.inflow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Net inflow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "净入账"
+          }
+        }
+      }
+    },
+    "merchant.ledgerNet.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态待定"
+          }
+        }
+      }
+    },
+    "merchant.onboardingLicenseRemoval.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove license"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除营业执照"
+          }
+        }
+      }
+    },
+    "merchant.onboardingLicenseRemoval.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This clears the license from this draft only. Upload a replacement before submitting. The uploaded file is not deleted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅清空当前草稿中的执照。提交前需要重新上传，不会删除已上传的文件。"
+          }
+        }
+      }
+    },
+    "merchant.onboardingLicenseRemoval.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove uploaded license?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除已上传的营业执照？"
+          }
+        }
+      }
+    },
+    "merchant.settlementEntry.activity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity revenue share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动分润"
+          }
+        }
+      }
+    },
+    "merchant.settlementEntry.adjustment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjustment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调整项"
+          }
+        }
+      }
+    },
+    "merchant.settlementEntry.clawback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clawback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扣划"
+          }
+        }
+      }
+    },
+    "merchant.settlementEntry.cooperation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation revenue share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作分润"
+          }
+        }
+      }
+    },
+    "merchant.settlementEntry.redemption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redemption earnings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销计酬"
+          }
+        }
+      }
+    },
+    "merchant.settlementEntry.reversal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reversal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冲正"
+          }
+        }
+      }
+    },
+    "club.sessionStart.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a club session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开一场"
+          }
+        }
+      }
+    },
+    "club.sessionStart.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a manageable topic. The form starts with one session; choose its schedule and lead, then use the existing review and authorization steps. Opening this form creates nothing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先选择可开场主题。表单默认单次，请选择排期与领队，再按原有审核和授权流程操作。打开表单不会创建场次。"
+          }
+        }
+      }
+    },
+    "club.sessionStart.ownerRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current club owner access is required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要当前俱乐部主理人身份。"
+          }
+        }
+      }
+    },
+    "club.sessionStart.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club access or manageable topics could not be checked. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法核对俱乐部权限或可开场主题，请重试。"
+          }
+        }
+      }
+    },
+    "club.sessionStart.topicUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic is no longer in the refreshed list. Choose another topic."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选主题已不在刷新后的可开场列表中，请重新选择。"
+          }
+        }
+      }
+    },
+    "club.sessionStart.chooseTopic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择可开场主题"
+          }
+        }
+      }
+    },
+    "club.sessionStart.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There are no manageable topics in this response."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次读取暂无可开场主题。"
+          }
+        }
+      }
+    },
+    "club.sessionStart.unnamedTopic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名主题"
+          }
+        }
+      }
+    },
+    "club.sessionStart.owned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owned by this club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自有主题"
+          }
+        }
+      }
+    },
+    "club.sessionStart.cooperative": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperative topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作主题"
+          }
+        }
+      }
+    },
+    "club.sessionStart.originUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publisher not provided"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未提供主题归属"
+          }
+        }
+      }
+    },
+    "club.sessionStart.startDate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server start date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端开始日期"
+          }
+        }
+      }
+    },
+    "club.sessionStart.endDate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server end date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端结束日期"
+          }
+        }
+      }
+    },
+    "roam.preflightRules.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before you roam"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游前须知"
+          }
+        }
+      }
+    },
+    "roam.preflightRules.availability": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live roaming requires separate service and permission checks. Reading these rules does not start roaming or change your permissions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时漫游需另行核验服务与权限。查看这些规则不会开始漫游，也不会更改你的权限。"
+          }
+        }
+      }
+    },
     "roam.locationSettings.title": {
       "localizations": {
         "en": {

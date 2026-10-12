@@ -54,9 +54,20 @@ final class MerchantProjectBrowserFlowTests: XCTestCase {
             attachFixtureScreenshot(self, app: app, name: "Merchant summary after single activation failure")
         }
         XCTAssertTrue(presentationReady, "Summary close must be visible and usable after one row activation")
-        XCTAssertTrue(app.staticTexts["merchant.projectBrowser.role.activity:301"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["merchant.projectBrowser.role.activity:301"].label, "Fulfilling merchant")
-        XCTAssertEqual(app.staticTexts["merchant.projectBrowser.pending.activity:301"].label, "Pending verification: 2")
+        // The presented Form and its underlying list both expose the same card-fact IDs.
+        // This existing summary-only text identifies the foreground collection, never an arbitrary match.
+        let summaries = app.collectionViews.containing(.staticText,
+            identifier: "Details from the loaded list. Refresh the list for the latest information.")
+        XCTAssertEqual(summaries.count, 1, "Expected one presented summary Form: " + app.debugDescription)
+        guard summaries.count == 1 else { return }
+        let summary = summaries.element(boundBy: 0)
+        let roles = summary.staticTexts.matching(identifier: "merchant.projectBrowser.role.activity:301")
+        let pending = summary.staticTexts.matching(identifier: "merchant.projectBrowser.pending.activity:301")
+        XCTAssertTrue(roles.element.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertEqual(roles.count, 1, app.debugDescription)
+        XCTAssertEqual(pending.count, 1, app.debugDescription)
+        XCTAssertEqual(roles.element.label, "Fulfilling merchant", app.debugDescription)
+        XCTAssertEqual(pending.element.label, "Pending verification: 2", app.debugDescription)
         XCTAssertFalse(app.buttons["merchant.projectWorkspace.open"].exists)
         app.buttons["merchant.projectSummary.close"].tap()
         XCTAssertTrue(app.buttons["merchant.project.row.activity:302"].waitForExistence(timeout: 5))

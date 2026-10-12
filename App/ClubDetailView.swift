@@ -82,6 +82,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             ClubEventCalendarView(clubID: id, identity: reader.clubIdentity, governance: governance)
                         } label: { Label("club.calendar.title", systemImage: "calendar") }
                             .accessibilityIdentifier("club.calendar.open")
+                        ClubSessionQuickStartEntry(club: club, reader: reader, governance: governance)
                         if club.isOwner {
                             NavigationLink {
                                 ClubStatsOverviewView(clubID: id, identity: reader.clubIdentity, governance: governance)

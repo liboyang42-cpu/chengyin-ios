@@ -622,7 +622,7 @@ def execute_current(root, plan, role, output, start_file, index=None, build=None
             sim, runtime = inventory(); receipt.update(simulator=sim, runtime=runtime); save()
             if role == 'ui-build':
                 derived = output / 'ui-build'
-                argv = ['xcodebuild', '-project', 'Questify.xcodeproj', '-scheme', 'Questify', '-configuration', 'Debug', '-sdk', 'iphonesimulator', '-destination', 'platform=iOS Simulator,id='+sim['udid'], '-destination-timeout', '60', '-derivedDataPath', str(derived), 'CODE_SIGNING_ALLOWED=NO', 'ONLY_ACTIVE_ARCH=NO', 'build-for-testing']
+                argv = ['xcodebuild', '-project', 'Questify.xcodeproj', '-scheme', 'Questify', '-configuration', 'Debug', '-sdk', 'iphonesimulator', '-destination', 'platform=iOS Simulator,id='+sim['udid'], '-destination-timeout', '60', '-derivedDataPath', str(derived), 'CODE_SIGNING_ALLOWED=NO', 'ONLY_ACTIVE_ARCH=YES', 'build-for-testing']
                 run(argv, BUDGET['ui-build'], 'ui-build'); receipt['build_argv']=argv; receipt['build_returncode']=commands[-1]['returncode']
                 require(toolchain(run) == receipt['toolchain'], 'Toolchain changed during UI build')
                 require(control.source_identity(root) == plan['identity'], 'Source changed during UI build')

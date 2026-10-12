@@ -1,0 +1,50 @@
+{
+  "merchant.ledgerNet.inflow": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Net inflow"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "净入账"
+        }
+      }
+    }
+  },
+  "merchant.ledgerNet.adjustment": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Net adjustment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "净调整"
+        }
+      }
+    }
+  },
+  "merchant.ledgerNet.pending": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Status pending"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "状态待定"
+        }
+      }
+    }
+  }
+}
