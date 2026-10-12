@@ -201,6 +201,8 @@ import Combine
                 source = .init(node: pending.node(for: original), context: .init(model: model, sourceID: "pending:\(original.id)", isCurrent: { pending.isCurrent(original) }))
                 close = { pending.close(original) }
             } else {
+                // The starter first-node destination is only offered for the first chapter.
+                model.draft.chapters = []
                 let starter = ProjectEditStarterController(model: model)
                 starter.createChapter(lease: model.captureStarterLease(), name: "New chapter")
                 let original = try XCTUnwrap(starter.destination)

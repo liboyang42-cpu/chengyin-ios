@@ -1,0 +1,146 @@
+{
+  "merchant.coopField.empty": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not entered"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未填写"
+        }
+      }
+    }
+  },
+  "merchant.coopField.boundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This changes only the current field in the local draft. Review the complete settings before saving."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这里只修改本地草稿中的当前字段。保存前仍需审核完整设置。"
+        }
+      }
+    }
+  },
+  "merchant.coopField.apply": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply to local draft"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用到本地草稿"
+        }
+      }
+    }
+  },
+  "merchant.coopField.discardTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard this field’s changes?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃这个字段的修改？"
+        }
+      }
+    }
+  },
+  "merchant.coopField.discardBody": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Only this field’s unconfirmed input will be discarded. Other draft changes will stay."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "只丢弃这个字段尚未应用的输入，其他草稿修改会保留。"
+        }
+      }
+    }
+  },
+  "merchant.coopField.discard": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard field changes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃字段修改"
+        }
+      }
+    }
+  },
+  "merchant.coopField.keepEditing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep editing"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续编辑"
+        }
+      }
+    }
+  },
+  "merchant.coopField.limit100": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use at most 100 characters; some symbols count as two. Your input is kept."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "最多100个字符，部分符号计为两个字符；已保留原输入。"
+        }
+      }
+    }
+  },
+  "merchant.coopField.limit500": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use at most 500 characters; some symbols count as two. Your input is kept."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "最多500个字符，部分符号计为两个字符；已保留原输入。"
+        }
+      }
+    }
+  }
+}

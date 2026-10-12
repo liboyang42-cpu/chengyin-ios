@@ -4,6 +4,9 @@ import SwiftUI
 struct MerchantOperationsEditor: View {
     @ObservedObject var model: MerchantOperationsViewModel
     var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
+    @StateObject private var storeFieldPresentation = MerchantStoreFieldPresentation()
+    @StateObject private var npcFieldPresentation = MerchantNPCFieldPresentation()
+    @State private var coopFieldRoute: MerchantCoopFieldSession?
     @State private var assist: MerchantTemplateAssistPresentation?
     @State private var categoryPicker: MerchantTemplateCategoryPickerModel?
     var imageContext: ((MerchantImageField) -> RetainedImageSelectionContext?)? = nil
@@ -31,6 +34,9 @@ struct MerchantOperationsEditor: View {
         .sheet(item: $assist) { presentation in MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }
         .modifier(MerchantTemplateCategoryPresentation(document: model, picker: $categoryPicker))
         .modifier(MerchantBrandImagesPresentation(document: model))
+        .modifier(MerchantStoreFieldStablePresentation(document: model, presentation: storeFieldPresentation))
+        .modifier(MerchantNPCFieldStablePresentation(document: model, presentation: npcFieldPresentation))
+        .modifier(MerchantCoopFieldStablePresentation(document: model, route: $coopFieldRoute))
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
         switch draft {
@@ -54,13 +60,7 @@ struct MerchantOperationsEditor: View {
                 profileField("merchant.operations.name", \.name, "name")
                 profileField("merchant.operations.description", \.description, "description", multiline: true)
                 profileField("merchant.operations.derivatives", \.derivatives, "derivatives")
-                TextField("merchant.operations.derivativeBenefits", text: Binding(get: {
-                    guard case .profile(let current) = coordinator.draft else { return "" }
-                    return current.derivativeBenefits ?? ""
-                }, set: { text in
-                    guard case .profile(var current) = coordinator.draft else { return }
-                    current.derivativeBenefits = text; model.edit(.profile(current))
-                }), axis: .vertical).accessibilityIdentifier("merchant.operations.field.derivativeBenefits")
+                MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: .derivativeBenefits)
                 Text("merchant.operations.benefitsHint").font(.footnote).foregroundStyle(.secondary)
                 profileField("merchant.operations.website", \.website, "website")
                 profileField("merchant.operations.preference", \.preference, "preference")
@@ -114,11 +114,7 @@ struct MerchantOperationsEditor: View {
             }
         case .story:
             Section("merchant.operations.story") {
-                TextField("merchant.operations.storyBody", text: Binding(get: {
-                    guard case .story(let value) = coordinator.draft else { return "" }; return value.profile.description
-                }, set: { text in
-                    guard case .story(var value) = coordinator.draft else { return }; value.profile.description = text; model.edit(.story(value))
-                }), axis: .vertical).lineLimit(8...18).accessibilityIdentifier("merchant.operations.field.story")
+                MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: .description)
                 Text("merchant.operations.storyHint").font(.footnote).foregroundStyle(.secondary)
             }
         case .cooperation(let value):
@@ -268,25 +264,35 @@ struct MerchantOperationsEditor: View {
               let context = imageContext?(.gallery) else { return false }
         return context.picker.enabled && context.uploads.uploader.isConfigured && !context.uploads.locked
     }
-    private func profileField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantStoreProfile, String>, _ id: String, multiline: Bool = false) -> some View {
-        TextField(title, text: Binding(get: { if case .profile(let value) = coordinator.draft { return value[keyPath: key] }; return "" }, set: { text in
-            guard case .profile(var value) = coordinator.draft else { return }; value[keyPath: key] = text; model.edit(.profile(value))
-        }), axis: multiline ? .vertical : .horizontal).accessibilityIdentifier("merchant.operations.field." + id)
+    @ViewBuilder private func profileField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantStoreProfile, String>, _ id: String, multiline: Bool = false) -> some View {
+        if let field = MerchantStoreTextField(rawValue: id) {
+            MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: field)
+        } else {
+            TextField(title, text: Binding(get: { if case .profile(let value) = coordinator.draft { return value[keyPath: key] }; return "" }, set: { text in
+                guard case .profile(var value) = coordinator.draft else { return }; value[keyPath: key] = text; model.edit(.profile(value))
+            }), axis: multiline ? .vertical : .horizontal).accessibilityIdentifier("merchant.operations.field." + id)
+        }
     }
-    private func decorField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantStoreDecor, String>, _ id: String) -> some View {
-        TextField(title, text: Binding(get: { currentDecor?[keyPath: key] ?? "" }, set: { text in
-            guard var value = currentDecor else { return }; value[keyPath: key] = text; model.edit(.decor(value))
-        }), axis: .vertical).accessibilityIdentifier("merchant.operations.field." + id)
+    @ViewBuilder private func decorField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantStoreDecor, String>, _ id: String) -> some View {
+        if let field = MerchantStoreTextField(rawValue: id) {
+            MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: field)
+        } else {
+            TextField(title, text: Binding(get: { currentDecor?[keyPath: key] ?? "" }, set: { text in
+                guard var value = currentDecor else { return }; value[keyPath: key] = text; model.edit(.decor(value))
+            }), axis: .vertical).accessibilityIdentifier("merchant.operations.field." + id)
+        }
     }
     private func coopField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantCoopSettings, String>, _ id: String, number: Bool = false) -> some View {
-        TextField(title, text: Binding(get: { if case .cooperation(let value) = coordinator.draft { return value[keyPath: key] }; return "" }, set: { text in
-            guard case .cooperation(var value) = coordinator.draft else { return }; value[keyPath: key] = text; model.edit(.cooperation(value))
-        }), axis: .vertical).keyboardType(number ? .numberPad : .default).accessibilityIdentifier("merchant.operations.field." + id)
+        MerchantCoopFieldEntry(document: model, route: $coopFieldRoute, fieldID: id)
     }
-    private func characterField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantStoreCharacter, String>, _ id: String) -> some View {
-        TextField(title, text: Binding(get: { if case .character(let value) = coordinator.draft { return value[keyPath: key] }; return "" }, set: { text in
-            guard case .character(var value) = coordinator.draft else { return }; value[keyPath: key] = text; model.edit(.character(value))
-        }), axis: .vertical).accessibilityIdentifier("merchant.operations.field." + id)
+    @ViewBuilder private func characterField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantStoreCharacter, String>, _ id: String) -> some View {
+        if let field = MerchantNPCTextField(rawValue: id == "characterName" ? "name" : id) {
+            MerchantNPCFieldEntry(document: model, presentation: npcFieldPresentation, field: field)
+        } else {
+            TextField(title, text: Binding(get: { if case .character(let value) = coordinator.draft { return value[keyPath: key] }; return "" }, set: { text in
+                guard case .character(var value) = coordinator.draft else { return }; value[keyPath: key] = text; model.edit(.character(value))
+            }), axis: .vertical).accessibilityIdentifier("merchant.operations.field." + id)
+        }
     }
     private func templateField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantNodeTemplate, String>, _ id: String) -> some View {
         TextField(title, text: Binding(get: { currentTemplate?[keyPath: key] ?? "" }, set: { text in

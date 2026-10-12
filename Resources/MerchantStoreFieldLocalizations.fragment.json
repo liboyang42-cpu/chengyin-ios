@@ -1,0 +1,258 @@
+{
+  "merchant.storeField.name": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Store name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店铺名称"
+        }
+      }
+    }
+  },
+  "merchant.storeField.preference": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business category"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "经营类目"
+        }
+      }
+    }
+  },
+  "merchant.storeField.description": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Brand story"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "品牌故事"
+        }
+      }
+    }
+  },
+  "merchant.storeField.derivativeBenefits": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Derivative benefits"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "衍生权益"
+        }
+      }
+    }
+  },
+  "merchant.storeField.slogan": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "One-line introduction"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "一句话介绍"
+        }
+      }
+    }
+  },
+  "merchant.storeField.cityRole": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "City role name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城市角色名"
+        }
+      }
+    }
+  },
+  "merchant.storeField.empty": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not entered"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未填写"
+        }
+      }
+    }
+  },
+  "merchant.storeField.boundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply changes only this field in the local draft. Review the complete draft before saving."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用仅更新本地草稿中的这一项；保存前仍需审核完整草稿。"
+        }
+      }
+    }
+  },
+  "merchant.storeField.apply": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply to draft"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用到草稿"
+        }
+      }
+    }
+  },
+  "merchant.storeField.discardTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard this field edit?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃这一项的修改？"
+        }
+      }
+    }
+  },
+  "merchant.storeField.discardBody": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Other draft changes are kept."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "其他草稿修改会保留。"
+        }
+      }
+    }
+  },
+  "merchant.storeField.discard": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard field edit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃这项修改"
+        }
+      }
+    }
+  },
+  "merchant.storeField.keepEditing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep editing"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续编辑"
+        }
+      }
+    }
+  },
+  "merchant.storeField.limit100": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep this field within 100 UTF-16 units."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这一项最多100字（按UTF-16计数）。"
+        }
+      }
+    }
+  },
+  "merchant.storeField.limit300": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep the brand story within 300 UTF-16 units."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "品牌故事最多300字（按UTF-16计数）。"
+        }
+      }
+    }
+  },
+  "merchant.storeField.nameRequired": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter a store name."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写店铺名称。"
+        }
+      }
+    }
+  }
+}

@@ -5,6 +5,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 
 class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
+    # Preserve the historical method ID; assertions below enforce the repaired outer lifetime.
     def test_real_visibility_callbacks_are_inside_keyed_content_and_navigation_host_stays_outside(self):
         library = (ROOT / 'App/WorkshopOwnedLibraryView.swift').read_text()
         package = (ROOT / 'App/WorkshopOwnedPackageView.swift').read_text()
@@ -13,10 +14,10 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
                                (package.split('@MainActor struct WorkshopOwnedPackageView:')[1].split('private struct PackageValueRow:')[0], 'package')]:
             with self.subTest(screen=screen):
                 self.assertEqual(source.count('.id(ObjectIdentifier(displayed))'), 1)
-                self.assertLess(source.index('.onAppear {'), source.index('.id(ObjectIdentifier(displayed))'))
-                self.assertLess(source.index('.onDisappear { navigation.' + screen + 'ViewDisappeared(displayed) }'), source.index('.id(ObjectIdentifier(displayed))'))
+                self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onAppear {'))
+                self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onDisappear { navigation.' + screen + 'ViewDisappeared(displayed) }'))
                 if screen != 'package':
-                    self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.navigationDestination('))
+                    self.assertLess(source.index('.onDisappear {'), source.index('.navigationDestination('))
                 self.assertIn('let displayed = navigation.' + screen + 'Appearance', source)
 
     def test_actual_hosted_back_assertions_and_original_wait_bound_remain(self):
@@ -28,3 +29,11 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
         self.assertIn('XCTAssertFalse(f.navigation.listPermit === listPermit)', source)
         self.assertIn('XCTAssertEqual(f.state.unauthorized,0)', source)
         self.assertIn('testBackBeforeOldDisappearanceUsesNewRouteBoxAndOldCallbacksCannotClearIt', source)
+
+        for token in ['same hosted detail reopens with fresh permit',
+                      'XCTAssertTrue(f.navigation.listPermit === returnedList); XCTAssertTrue(returnedList.isLive)',
+                      'XCTAssertTrue(f.navigation.detailPermit === reopenedDetail); XCTAssertTrue(reopenedDetail.isLive)',
+                      'XCTAssertTrue(f.navigation.listAppearance === inactiveBox)',
+                      'XCTAssertNil(f.navigation.listPermit); XCTAssertEqual(f.recorder.paths.count,calls)',
+                      'XCTAssertFalse(inactiveBox === retiringBox); XCTAssertFalse(retiringPermit.isLive)']:
+            self.assertIn(token, source)

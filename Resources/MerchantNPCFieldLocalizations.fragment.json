@@ -1,0 +1,258 @@
+{
+  "merchant.npcField.name": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Character name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色名字"
+        }
+      }
+    }
+  },
+  "merchant.npcField.greeting": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Greeting"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "招呼语"
+        }
+      }
+    }
+  },
+  "merchant.npcField.persona": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Personality"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "性格设定"
+        }
+      }
+    }
+  },
+  "merchant.npcField.knowledge": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Store knowledge"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店铺知识"
+        }
+      }
+    }
+  },
+  "merchant.npcField.empty": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not set"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未填写"
+        }
+      }
+    }
+  },
+  "merchant.npcField.boundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply prepares this field locally. Review and save the whole character from the previous screen."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用仅修改本地字段，请返回角色页审阅并保存完整角色。"
+        }
+      }
+    }
+  },
+  "merchant.npcField.apply": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply to draft"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用到草稿"
+        }
+      }
+    }
+  },
+  "merchant.npcField.discardTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard this field edit?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃本次字段修改？"
+        }
+      }
+    }
+  },
+  "merchant.npcField.discardBody": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Only the unsaved text in this editor will be discarded. Other character edits are kept."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅放弃当前编辑框中尚未应用的文字，其他角色修改会保留。"
+        }
+      }
+    }
+  },
+  "merchant.npcField.discard": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard edit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃修改"
+        }
+      }
+    }
+  },
+  "merchant.npcField.keepEditing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep editing"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续编辑"
+        }
+      }
+    }
+  },
+  "merchant.npcField.nameRequired": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter a character name."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写角色名字。"
+        }
+      }
+    }
+  },
+  "merchant.npcField.limit.name": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use at most 32 UTF-16 units."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "名字最多32个UTF-16字符单元。"
+        }
+      }
+    }
+  },
+  "merchant.npcField.limit.greeting": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use at most 60 UTF-16 units."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "招呼语最多60个UTF-16字符单元。"
+        }
+      }
+    }
+  },
+  "merchant.npcField.limit.persona": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use at most 500 UTF-16 units."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "性格设定最多500个UTF-16字符单元。"
+        }
+      }
+    }
+  },
+  "merchant.npcField.limit.knowledge": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use at most 2,000 UTF-16 units."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店铺知识最多2000个UTF-16字符单元。"
+        }
+      }
+    }
+  }
+}

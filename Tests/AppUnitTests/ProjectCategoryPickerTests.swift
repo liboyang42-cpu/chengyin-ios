@@ -103,17 +103,19 @@ import Combine
         for close in [false, true] {
             let (controller, _, _, reader) = try await setup(), original = try open(controller)
             var replies: [CheckedContinuation<[DiscoveryCategory], Error>] = []
-            let firstStarted = expectation(description: "first category read"), secondStarted = expectation(description: "second category read")
+            let firstStarted = expectation(description: "first category read")
+            var secondStarted: XCTestExpectation?
             reader.read = {
                 try await withCheckedThrowingContinuation { reply in
                     replies.append(reply)
-                    if replies.count == 1 { firstStarted.fulfill() } else { secondStarted.fulfill() }
+                    if replies.count == 1 { firstStarted.fulfill() } else { secondStarted?.fulfill() }
                 }
             }
             let first = Task { await controller.load(original) }; await fulfillment(of: [firstStarted], timeout: 1)
             if close { controller.close(original) }
             else {
-                let second = Task { await controller.load(original) }; await fulfillment(of: [secondStarted], timeout: 1)
+                let secondExpectation = expectation(description: "second category read"); secondStarted = secondExpectation
+                let second = Task { await controller.load(original) }; await fulfillment(of: [secondExpectation], timeout: 1)
                 replies[1].resume(returning: try categories([7])); await second.value
             }
             replies[0].resume(throwing: APIError.unauthorized); await first.value

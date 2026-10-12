@@ -55,7 +55,7 @@ final class ClubGovernanceFlowTests: XCTestCase {
             var row: [String: Any] = ["id": id, "exists": element.exists]
             if element.exists {
                 row["hittable"] = element.isHittable
-                row["frame"] = NSStringFromCGRect(element.frame)
+                row["frame"] = String(describing: element.frame)
             }
             return row
         }

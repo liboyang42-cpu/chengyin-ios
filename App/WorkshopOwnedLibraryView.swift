@@ -64,12 +64,11 @@ private struct WorkshopOwnedUnavailableView: View {
             }
         }
         .modifier(WorkshopOwnedNavigationTitle(key: "title"))
+        // Only content has a replaceable identity. Visibility and navigation stay outside it.
+        .id(ObjectIdentifier(displayed))
         .onAppear { navigation.scheduleList(navigation.listViewAppeared(displayed)) }
         .onDisappear { navigation.listViewDisappeared(displayed) }
         .refreshable { [permit = presentation] in if let action = navigation.offerList(permit) { await action() } }
-        // Recreate only visible content callbacks for the new route-owned appearance.
-        // Keep the outer navigation destination host stable while its child is pushed.
-        .id(ObjectIdentifier(displayed))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { navigation.scheduleList(presentation) } label: {
@@ -124,12 +123,11 @@ private struct WorkshopOwnedUnavailableView: View {
             }
         }
         .modifier(WorkshopOwnedNavigationTitle(key: "detail"))
+        // Only content has a replaceable identity. Visibility and navigation stay outside it.
+        .id(ObjectIdentifier(displayed))
         .onAppear { navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId) }
         .onDisappear { navigation.detailViewDisappeared(displayed) }
         .refreshable { [permit = presentation] in if let action = navigation.offerDetail(permit, claimId: claimId) { await action() } }
-        // Recreate only visible content callbacks for the new route-owned appearance.
-        // Keep the outer navigation destination host stable while its child is pushed.
-        .id(ObjectIdentifier(displayed))
         .navigationDestination(isPresented: $navigation.showsPackage) {
             if let packageBrowser = browser.packageBrowser { WorkshopOwnedPackageView(browser: packageBrowser, claimId: claimId, navigation: navigation) }
         }

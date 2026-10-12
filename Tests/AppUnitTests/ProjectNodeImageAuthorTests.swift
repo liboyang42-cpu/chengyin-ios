@@ -58,7 +58,9 @@ import UIKit
     private func upload(_ m:ProjectNodeImageAuthorModel)async throws{try await select(m);m.upload(try XCTUnwrap(m.flow.review));for _ in 0..<100 where m.flow.busy{await Task.yield()};XCTAssertNotNil(m.flow.receipt)}
     func testReplacementEditorHasDistinctStateObjectHostIdentityDespiteSameNodeIDs()async throws{
         let c=try await context(),old=try open(c),replacement=makeEditor(c.editor.draft,c.owner,c.storage,c.source)
-        await replacement.load();replacement.saveLocal()
+        await replacement.load()
+        XCTAssertTrue(replacement.canRestore)
+        replacement.restore();XCTAssertFalse(replacement.hasRestore);replacement.saveLocal()
         let chapter=Data(c.baseline.chapters[0].id.utf8),node=Data(c.baseline.chapters[0].nodes[0].id.utf8)
         let before=ProjectNodeImageHostIdentity(owner:ObjectIdentifier(c.editor),chapter:chapter,node:node)
         let after=ProjectNodeImageHostIdentity(owner:ObjectIdentifier(replacement),chapter:chapter,node:node)

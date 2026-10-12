@@ -64,16 +64,19 @@ import UIKit
         XCTAssertEqual(window.windowScene?.activationState, .foregroundActive)
         stage("list-ready")
         let listPermit = try XCTUnwrap(f.navigation.listPermit)
+        let firstListBox = f.navigation.listAppearance
         f.navigation.select(claimId:"synthetic-claim",presentation:f.navigation.listPermit)
         stage("detail-requested")
         try await wait("detail pushed and ready") { f.browser.detail?.item?.claimId == "synthetic-claim" && f.navigation.detailPermit != nil }
         stage("detail-ready")
         XCTAssertNil(f.navigation.listPermit); XCTAssertEqual(f.browser.rows.count,1)
         let detailPermit = try XCTUnwrap(f.navigation.detailPermit)
+        let firstDetailBox = f.navigation.detailAppearance
         f.navigation.openPackage(presentation:f.navigation.detailPermit)
         stage("package-requested")
         try await wait("package pushed and unavailable") { f.browser.packageBrowser?.phase == .unavailable && f.navigation.packagePermit != nil }
         stage("package-ready")
+        let firstPackageBox = f.navigation.packageAppearance
         XCTAssertNil(f.navigation.detailPermit); XCTAssertNotNil(f.browser.detail)
         f.navigation.showsPackage = false
         stage("back-detail-requested")
@@ -86,6 +89,41 @@ import UIKit
         stage("list-returned")
         XCTAssertFalse(f.navigation.listPermit === listPermit)
         XCTAssertTrue(f.recorder.paths.contains("/native/api/workshop/owned/package")); XCTAssertEqual(f.state.unauthorized,0)
+
+        // Returning and reopening must be real appearances, not content-ID replacement callbacks.
+        let returnedList = try XCTUnwrap(f.navigation.listPermit)
+        let returnedListBox = f.navigation.listAppearance
+        f.navigation.listViewDisappeared(firstListBox)
+        f.navigation.detailViewDisappeared(firstDetailBox)
+        f.navigation.packageViewDisappeared(firstPackageBox)
+        XCTAssertTrue(f.navigation.listPermit === returnedList); XCTAssertTrue(returnedList.isLive)
+        f.navigation.select(claimId:"synthetic-claim",presentation:returnedList)
+        try await wait("same hosted detail reopens with fresh permit") { f.browser.detail?.item?.claimId == "synthetic-claim" && f.navigation.detailPermit != nil }
+        let reopenedDetail = try XCTUnwrap(f.navigation.detailPermit)
+        XCTAssertFalse(reopenedDetail === detailPermit)
+        f.navigation.listViewDisappeared(returnedListBox)
+        f.navigation.detailViewDisappeared(firstDetailBox)
+        XCTAssertTrue(f.navigation.detailPermit === reopenedDetail); XCTAssertTrue(reopenedDetail.isLive)
+        f.navigation.selection = nil
+        try await wait("second Back restores live list") { f.navigation.listPermit != nil && f.browser.phase == .ready && f.navigation.detailPermit == nil }
+        XCTAssertFalse(f.navigation.listPermit === returnedList)
+
+        // Retiring visible content changes its identity once. A redraw must not manufacture
+        // another screen appearance, read, permit or recursive disappearance of the fresh box.
+        let retiringBox = f.navigation.listAppearance
+        let retiringPermit = try XCTUnwrap(f.navigation.listPermit)
+        let calls = f.recorder.paths.count
+        f.navigation.listViewDisappeared(retiringBox)
+        let inactiveBox = f.navigation.listAppearance
+        XCTAssertFalse(inactiveBox === retiringBox); XCTAssertFalse(retiringPermit.isLive)
+        for _ in 0..<5 {
+            try await Task.sleep(nanoseconds: 20_000_000)
+            XCTAssertTrue(f.navigation.listAppearance === inactiveBox)
+            XCTAssertNil(f.navigation.listPermit); XCTAssertEqual(f.recorder.paths.count,calls)
+        }
+        f.navigation.listViewDisappeared(retiringBox)
+        XCTAssertTrue(f.navigation.listAppearance === inactiveBox); XCTAssertNil(f.navigation.listPermit)
+        XCTAssertEqual(f.state.unauthorized,0)
     }
 
     func testHiddenParentDisappearanceDoesNotContinuouslyReplaceInactiveIdentities() async throws {

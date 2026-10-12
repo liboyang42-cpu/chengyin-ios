@@ -30,7 +30,14 @@ import XCTest
         let model = ProjectEditModel(coordinator: .init(initial: initial, service: service,
             store: ProjectEditLocalStore(storage: storage), currentSession: { owner.session }))
         await model.load()
-        return (.init(model: model, chapterID: model.draft.chapters[0].id, now: { clock.value }), owner, storage, clock)
+        if guest {
+            // Guest load intentionally starts blank; author this fixture in memory afterwards.
+            XCTAssertTrue(model.draft.chapters.isEmpty); XCTAssertNil(model.coordinator.session)
+            model.draft = draft
+            XCTAssertEqual(storage.writes, 0)
+        }
+        let chapter = try XCTUnwrap(model.draft.chapters.first)
+        return (.init(model: model, chapterID: chapter.id, now: { clock.value }), owner, storage, clock)
     }
     private func removeFirst(_ controller: ProjectPendingNodeRemovalController) throws {
         controller.open(offsets: IndexSet(integer: 0), captured: controller.capture())

@@ -21,16 +21,16 @@ import XCTest
         let owner: Owner, storage: Storage, source: ProjectStoryImageSynthetic
         let baseline: ProjectEditDraft, editor: ProjectEditModel, controller: ProjectStoryImagePresentation
         @MainActor var chapterID: String { editor.draft.chapters[0].id }
-        let albumID = "album-é"
+        let albumID: String
     }
     private func makeEditor(_ draft: ProjectEditDraft, _ owner: Owner, _ storage: Storage, _ source: ProjectStoryImageSynthetic) -> ProjectEditModel {
         .init(coordinator: .init(initial: .init(draft: draft), service: ProjectEditSyntheticService(), store: .init(storage: storage),
             storyImageSource: source, storyImageJournal: .init(storage: storage), currentSession: { owner.session }))
     }
-    private func context(_ count: Int = 2, active: Bool = true) async throws -> Context {
+    private func context(_ count: Int = 2, active: Bool = true, albumID: String = "album-é") async throws -> Context {
         let owner = Owner(), storage = Storage(), source = try ProjectStoryImageSynthetic(session: XCTUnwrap(owner.session), currentSession: { owner.session })
         var draft = ProjectEditSyntheticFixtures.draft(), album = ProjectEditBlock(kind: .dream)
-        album.id = "album-é"; album.sourceFields = ["title": .string("Album"), "images": .array((0..<count).map { _ in
+        album.id = albumID; album.sourceFields = ["title": .string("Album"), "images": .array((0..<count).map { _ in
             .object(["url": .string("https://example.com/same.jpg"), "line": .string(" raw caption ")])
         })]
         draft.preserved["publishMode"] = .string("pro")
@@ -38,7 +38,7 @@ import XCTest
                                     .init(kind: .node, nodeID: draft.chapters[0].nodes[0].id)]
         let editor = makeEditor(draft, owner, storage, source); await editor.load(); editor.saveLocal()
         let controller = ProjectStoryImagePresentation(editor: editor); controller.setAlbumHostActive(active)
-        return .init(owner: owner, storage: storage, source: source, baseline: draft, editor: editor, controller: controller)
+        return .init(owner: owner, storage: storage, source: source, baseline: draft, editor: editor, controller: controller, albumID: albumID)
     }
     private func open(_ c: Context) throws -> ProjectStoryImagePresentation.Presentation {
         c.controller.open(try XCTUnwrap(c.controller.captureAlbum(chapterID: c.chapterID, blockID: c.albumID)))
@@ -75,7 +75,7 @@ import XCTest
         m.close(); c.controller.close(p)
     }
     func testAlbumExplicitUploadThenAppendPreservesNeighborsAndPreparedReference() async throws {
-        let c = try await context(), p = try open(c), m = model(c, p), before = c.editor.draft
+        let c = try await context(albumID: "album-publishable"), p = try open(c), m = model(c, p), before = c.editor.draft
         try await select(m); XCTAssertEqual(c.source.uploadCount, 0)
         m.upload(try XCTUnwrap(m.flow.review)); for _ in 0..<100 where m.flow.busy { await Task.yield() }
         let receipt = try XCTUnwrap(m.flow.receipt)
@@ -85,6 +85,7 @@ import XCTest
         let old = try XCTUnwrap(before.chapters[0].blocks?[1].sourceFields?["images"]?.array)
         expected.chapters[0].blocks?[1].sourceFields?["images"] = .array(old + [.object(["url": .string(receipt.reference), "line": .string("")])])
         XCTAssertEqual(ProjectEditPendingMaterials.exactData(c.editor.draft), ProjectEditPendingMaterials.exactData(expected))
+        XCTAssertNoThrow(try ProjectEditContract.payload(c.editor.draft, topicID: nil, scope: .full, baseline: c.editor.coordinator.snapshot))
         c.editor.review(); let request = try XCTUnwrap(c.editor.confirmation)
         let value = try XCTUnwrap(request.payload["chapters"]?.array?[0].object?["blocks"]?.array?[1].object?["images"]?.array?.last?.object?["url"]?.text)
         XCTAssertEqual(Data(value.utf8), Data(receipt.reference.utf8)); XCTAssertEqual(c.source.uploadCount, 1)

@@ -147,3 +147,14 @@ final class Real: XCTestCase {
             needs={key:dict(value) for key,value in good.items()};needs[part]['result']=result
             with self.subTest(part=part,result=result),self.assertRaisesRegex(ValueError,'required current worker'):
                 native.aggregate_current({}, {}, needs)
+
+    def test_failed_ui_build_retains_small_raw_diagnostics_only(self):
+        source=(ci.ROOT/'.github/workflows/native-ios.yml').read_text()
+        step=source.split('      - name: Preserve exact command and result diagnostics\n',1)[1].split('      - name: Transfer one same-run UI build\n',1)[0]
+        self.assertIn("if: ${{ always() && (matrix.partition != 'ui-build' || failure()) }}",step)
+        for suffix in ('*.json','*.xml','*.stdout'):
+            self.assertIn('${{ runner.temp }}/current-native/'+suffix,step)
+        self.assertNotIn('products.tar.gz',step)
+        self.assertNotIn('ui-build/',step)
+        self.assertIn('if-no-files-found: error',step)
+        self.assertIn("name: ${{ matrix.partition == 'ui-build' && 'current-diagnostics' || 'current-result' }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}",step)

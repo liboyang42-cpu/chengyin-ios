@@ -52,10 +52,11 @@ import SwiftUI
             }
         }
         .modifier(PackageNavigationTitle())
+        // Only content has a replaceable identity. Visibility and navigation stay outside it.
+        .id(ObjectIdentifier(displayed))
         .onAppear { navigation.schedulePackage(navigation.packageViewAppeared(displayed, claimId: claimId), claimId: claimId) }
         .onDisappear { navigation.packageViewDisappeared(displayed) }
         .refreshable { [permit = presentation] in if let action = navigation.offerPackage(permit, claimId: claimId) { await action() } }
-        .id(ObjectIdentifier(displayed))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { navigation.schedulePackage(presentation, claimId: claimId) } label: {

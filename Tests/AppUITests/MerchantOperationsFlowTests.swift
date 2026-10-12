@@ -13,9 +13,28 @@ final class MerchantOperationsFlowTests: XCTestCase {
         XCTAssertTrue(entry.waitForExistence(timeout: 4)); entry.tap()
         XCTAssertTrue(app.descendants(matching: .any)["merchant.operations.editor"].waitForExistence(timeout: 4))
     }
+    private func openStoreField(_ id: String, app: XCUIApplication, towardTop: Bool = false) -> XCUIElement {
+        let entry = app.buttons["merchant.storeField.open." + id]
+        XCTAssertTrue(revealFixtureElement(entry, in: app, towardTop: towardTop), app.debugDescription)
+        XCTAssertTrue(entry.isEnabled, app.debugDescription); entry.tap()
+        let field = app.textFields["merchant.storeField.input"]
+        XCTAssertTrue(field.waitForExistence(timeout: 4), app.debugDescription)
+        return field
+    }
+    private func closeStoreField(_ app: XCUIApplication, field: XCUIElement, apply: Bool) {
+        let button = app.buttons[apply ? "merchant.storeField.apply" : "merchant.storeField.cancel"]
+        if apply { XCTAssertTrue(revealFixtureElement(button, in: app), app.debugDescription) }
+        // Cancel is in the sheet toolbar, outside the content viewport used for Apply.
+        XCTAssertTrue(button.waitForExistence(timeout: 4), app.debugDescription)
+        XCTAssertTrue(button.isEnabled, app.debugDescription); XCTAssertTrue(button.isHittable, app.debugDescription)
+        button.tap()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: field)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 4), .completed, app.debugDescription)
+    }
     private func editName(_ app: XCUIApplication) {
-        let field = app.textFields["merchant.operations.field.name"]
+        let field = openStoreField("name", app: app)
         XCTAssertTrue(field.waitForExistence(timeout: 4)); field.tap(); field.typeText(" edited")
+        closeStoreField(app, field: field, apply: true)
         app.swipeUp()
     }
     private func review(_ app: XCUIApplication) {
@@ -106,17 +125,20 @@ final class MerchantOperationsFlowTests: XCTestCase {
     }
     func testBenefitsReviewSaveAndReloadUsesExistingProfileEntry() {
         let app = launch(); open("profile", app: app)
-        let field = app.descendants(matching: .any)["merchant.operations.field.derivativeBenefits"].firstMatch
+        let field = openStoreField("derivativeBenefits", app: app)
         XCTAssertTrue(revealFixtureElement(field, in: app))
         field.tap(); field.typeText("Route stamp")
+        closeStoreField(app, field: field, apply: true)
         review(app)
         XCTAssertTrue(app.staticTexts["Route stamp"].waitForExistence(timeout: 4))
         let confirm = app.buttons["merchant.operations.confirm"]
         XCTAssertTrue(revealFixtureElement(confirm, in: app)); confirm.tap()
         XCTAssertTrue(app.staticTexts["merchant.operations.exampleSaved"].waitForExistence(timeout: 4))
         app.buttons["merchant.operations.reload"].tap()
-        XCTAssertTrue(field.waitForExistence(timeout: 4))
-        XCTAssertEqual(field.value as? String, "Route stamp")
+        let reloadedField = openStoreField("derivativeBenefits", app: app, towardTop: true)
+        XCTAssertTrue(reloadedField.waitForExistence(timeout: 4))
+        XCTAssertEqual(reloadedField.value as? String, "Route stamp")
+        closeStoreField(app, field: reloadedField, apply: false)
         assertReviewLocked(app)
     }
 

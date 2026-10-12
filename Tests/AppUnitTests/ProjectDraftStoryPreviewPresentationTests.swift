@@ -19,6 +19,14 @@ import XCTest
     }
     func testPreviewUsesCurrentUnsavedDraftAndNeverMutatesStorageOrReview() async throws {
         let (controller,_,storage)=try await setup(),model=controller.model
+        // A prepared-review fixture must satisfy the existing V2 chapter contract.
+        model.draft.preserved["publishMode"] = .string("pro")
+        var second = model.draft.chapters[1], node = model.draft.chapters[0].nodes[0]
+        node.id = "preview-second-node"; second.nodes = [node]
+        var voice = ProjectEditRichStoryContract.defaultBlock(.voice); voice.content = "Unsaved second"
+        second.blocks = [.init(kind: .text, content: "Second chapter story"), voice, .init(kind: .node, nodeID: node.id)]
+        model.draft.chapters[1] = second
+        XCTAssertNoThrow(try ProjectEditContract.payload(model.draft, topicID: nil, scope: .full, baseline: model.coordinator.snapshot))
         model.draft.chapters[0].blocks?[0].content="Latest unsaved text";model.review()
         let review=try XCTUnwrap(model.confirmation),bytes=ProjectEditPendingMaterials.exactData(model.draft),saved=storage.data
         let original=try open(controller);XCTAssertEqual(original.capture.projection.chapters[0].rows[0].text,"Latest unsaved text")

@@ -101,10 +101,10 @@ jobs:
       - name: Compile current products and execute the selected native group
         run: python3 -B tools/current_native.py run --plan "$RUNNER_TEMP/current-plan/plan.json" --role '${{ matrix.partition }}' --start-file "$RUNNER_TEMP/current-start" --output "$RUNNER_TEMP/current-native"
       - name: Preserve exact command and result diagnostics
-        if: ${{ always() && matrix.partition != 'ui-build' }}
+        if: ${{ always() && (matrix.partition != 'ui-build' || failure()) }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: current-result-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
+          name: ${{ matrix.partition == 'ui-build' && 'current-diagnostics' || 'current-result' }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
           path: |
             ${{ runner.temp }}/current-native/*.json
             ${{ runner.temp }}/current-native/*.xml

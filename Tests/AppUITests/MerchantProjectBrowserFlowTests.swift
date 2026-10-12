@@ -46,7 +46,7 @@ final class MerchantProjectBrowserFlowTests: XCTestCase {
             let controls = ["merchant.project.row.activity:301", "merchant.projectSummary.close", "merchant.projectWorkspace.open"]
             for id in controls {
                 let control = app.buttons[id]
-                print("QUESTIFY_MERCHANT_SUMMARY_CONTROL id=\(id) exists=\(control.exists) enabled=\(control.exists && control.isEnabled) hittable=\(control.exists && control.isHittable) frame=\(control.exists ? NSStringFromCGRect(control.frame) : "absent")")
+                print("QUESTIFY_MERCHANT_SUMMARY_CONTROL id=\(id) exists=\(control.exists) enabled=\(control.exists && control.isEnabled) hittable=\(control.exists && control.isHittable) frame=\(control.exists ? String(describing: control.frame) : "absent")")
             }
             print("QUESTIFY_MERCHANT_SUMMARY_AX_BEGIN\n\(app.debugDescription)\nQUESTIFY_MERCHANT_SUMMARY_AX_END")
             attachFixtureScreenshot(self, app: app, name: "Merchant summary after single activation failure")
