@@ -1,0 +1,21 @@
+{
+  "batch": "P045 Club-scoped received invitations and sent feedback, read-only browsing and exact-row details",
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "dependencies": [],
+  "existing_preimage_blob": "73f78c3bd232f01697466d9cc98c39126322d848",
+  "modified_app_hunk": "ClubDetailView existing if let session = reader as? AppSession block that mounts ClubMerchantDiscoveryView: append guarded independent ClubInvitationFeedbackEntry with actual clubReader, session.cooperationFlowReader and existing management.governance.access. Do not alter the existing merchant line or surrounding branches.",
+  "app_sources": [
+    "App/ClubInvitationFeedbackView.swift"
+  ],
+  "core_sources": [
+    "Core/ClubInvitationFeedback.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubInvitationFeedbackViewTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubInvitationFeedbackTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubInvitationFeedbackLocalizations.fragment.json",
+  "merge_instructions": "Independent49. Preserve all original ClubDetail bytes; only append the approved entry after existing merchant discovery. No dependency on14/15/16. Central owner registers4 Swift files and22 keys; no shared catalog/PBX edits in packet. Does not expose invitation commands; P043 remains paused."
+}

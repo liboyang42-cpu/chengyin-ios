@@ -1,5 +1,5 @@
 name: Targeted native diagnostics
-# Authorized standard-runner split. All three nonempty current1600 partitions must pass
+# Authorized standard-runner split. All three nonempty current1742 partitions must pass
 # on this exact SHA/run/attempt; this does not grant release or deployment admission.
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
         with:
           fetch-depth: 2
           persist-credentials: false
-      - name: Validate direct current1600 controls and source identities
+      - name: Validate direct current1742 controls and source identities
         run: |
           python3 -B tools/run_targeted_native.py preflight --output "$RUNNER_TEMP/native-targeted-preflight.json" --start-file "$RUNNER_TEMP/native-targeted-start"
       - name: Build fresh products and run exact partition methods
@@ -83,7 +83,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: native-command-1600-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
+          name: native-command-1742-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
           path: |
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/core.xml
             ${{ runner.temp }}/native-targeted-${{ matrix.partition }}/command-evidence/core-stdout.txt
@@ -105,7 +105,7 @@ jobs:
         if: ${{ always() && steps.report.outcome == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: native-targeted-1600-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
+          name: native-targeted-1742-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
           path: ${{ runner.temp }}/native-evidence-${{ matrix.partition }}/*
           if-no-files-found: error
           retention-days: 1
@@ -134,8 +134,8 @@ jobs:
       - name: Download only this SHA run attempt evidence
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          pattern: native-targeted-1600-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-*
+          pattern: native-targeted-1742-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-*
           path: ${{ runner.temp }}/native-targeted-artifacts
           merge-multiple: false
-      - name: Reparse exact1600 and verify same-run identities
-        run: python3 -B tools/run_targeted_native.py aggregate --start-file "$RUNNER_TEMP/native-download-start" --artifacts "$RUNNER_TEMP/native-targeted-artifacts" --needs-result "$MATRIX_RESULT" --output "$RUNNER_TEMP/native-targeted-1600-receipt.json" --summary "$GITHUB_STEP_SUMMARY"
+      - name: Reparse exact1742 and verify same-run identities
+        run: python3 -B tools/run_targeted_native.py aggregate --start-file "$RUNNER_TEMP/native-download-start" --artifacts "$RUNNER_TEMP/native-targeted-artifacts" --needs-result "$MATRIX_RESULT" --output "$RUNNER_TEMP/native-targeted-1742-receipt.json" --summary "$GITHUB_STEP_SUMMARY"

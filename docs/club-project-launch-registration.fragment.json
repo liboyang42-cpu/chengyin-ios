@@ -1,0 +1,34 @@
+{
+  "task": "P045 owner creates a Club-scoped local project through two-mode chooser and existing editor",
+  "base": "5dd3e53c1de104735b26d75811cb4ff46b2a340f",
+  "dependencies": [
+    {
+      "path": "../club-invitation-feedback/club-invitation-feedback.patch",
+      "sha256": "ed4c0ae93b37a20543dbc3e301c4a378c9abe7c656dd31852819b6d60ad54405",
+      "detail_before_sha256": "31a9aef9ae59c522e7f331e15a2c772e4636fef96c51957f90ead970ea5cefac",
+      "detail_after_sha256": "082d634262a7f235911e4e906b16c1bded0c75257d7766376924557f6a9dc4bf"
+    },
+    {
+      "path": "../club-lead-progress/club-lead-progress.patch",
+      "sha256": "79cca24825613238cae7770e18d0e5288b0e65237f3f65c3cd4d2ab6a617bf78",
+      "detail_before_sha256": "082d634262a7f235911e4e906b16c1bded0c75257d7766376924557f6a9dc4bf",
+      "detail_after_sha256": "d060a4962207e4964d30b9943ee02006019d8087ae650dd67e813e72c408d32d"
+    }
+  ],
+  "existing_preimage_blob": "33f5993650b342920690f623f109e44750be7f49",
+  "modified_app_hunk": "Within existing owner/session block append one Section containing NavigationLink to SessionClubProjectLaunchView(session:session,club:club) immediately after existing AI Section. Preserve every original byte including17/18 mounts. Root approved2026-10-11 19:41:13Z.",
+  "app_sources": [
+    "App/ClubProjectLaunchView.swift"
+  ],
+  "core_sources": [
+    "Core/ClubProjectLaunch.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubProjectLaunchViewTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubProjectLaunchTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubProjectLaunchLocalizations.fragment.json",
+  "merge_instructions": "Apply17→18 exact patches over5dd, then20 only one new owner/session Section line. Preserve original AI entry,17/18 and all other branches. Central registers4 Swift files and8 localized keys. No AppSession or project-editor changes."
+}

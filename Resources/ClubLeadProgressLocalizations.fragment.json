@@ -1,0 +1,374 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "club.leadProgress.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lead progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "带队进度"
+          }
+        }
+      }
+    },
+    "club.leadProgress.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking projects and invitations…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核对项目与邀请状态…"
+          }
+        }
+      }
+    },
+    "club.leadProgress.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current stage could not be confirmed. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法确认当前阶段，请重试。"
+          }
+        }
+      }
+    },
+    "club.leadProgress.ownerRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current club owner access is required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要当前俱乐部主理人身份。"
+          }
+        }
+      }
+    },
+    "club.leadProgress.partial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only part of the project list was returned. Acceptance may exist outside this page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目列表仅返回部分数据，其他项目可能已有承接。"
+          }
+        }
+      }
+    },
+    "club.leadProgress.timeline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Four-stage progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "带队四站"
+          }
+        }
+      }
+    },
+    "club.leadProgress.topicCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Returned club topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本俱乐部返回的主题数"
+          }
+        }
+      }
+    },
+    "club.leadProgress.sentCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sent invitations for these topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些主题已发出的邀请数"
+          }
+        }
+      }
+    },
+    "club.leadProgress.pendingCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitations awaiting a response"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待回应的邀请数"
+          }
+        }
+      }
+    },
+    "club.leadProgress.invitationTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation time (month-day)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请时间（月-日）"
+          }
+        }
+      }
+    },
+    "club.leadProgress.stage.publish": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish a club topic first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先发布一个俱乐部项目"
+          }
+        }
+      }
+    },
+    "club.leadProgress.stage.invite": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a project to invite merchants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一个项目，开始对接商家"
+          }
+        }
+      }
+    },
+    "club.leadProgress.stage.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitations sent; waiting for merchants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请已发出，等待商家回应"
+          }
+        }
+      }
+    },
+    "club.leadProgress.stage.accepted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A merchant has accepted a club project"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家已接受俱乐部项目"
+          }
+        }
+      }
+    },
+    "club.leadProgress.stage.executionAccepted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The club has accepted a project to operate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部已承接项目"
+          }
+        }
+      }
+    },
+    "club.leadProgress.stage.partial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current stage needs the remaining project records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需其余项目记录才能确认当前阶段"
+          }
+        }
+      }
+    },
+    "club.leadProgress.station.0": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish a topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布主题"
+          }
+        }
+      }
+    },
+    "club.leadProgress.station.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite merchants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请商家"
+          }
+        }
+      }
+    },
+    "club.leadProgress.station.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait for merchant responses"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待商家回应"
+          }
+        }
+      }
+    },
+    "club.leadProgress.station.3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant accepted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家已接受"
+          }
+        }
+      }
+    },
+    "club.leadProgress.node.done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到达"
+          }
+        }
+      }
+    },
+    "club.leadProgress.node.doing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current stage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前阶段"
+          }
+        }
+      }
+    },
+    "club.leadProgress.node.todo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet reached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未到达"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "club.topicMerchants.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic merchants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "专题商家"
+          }
+        }
+      }
+    },
+    "club.topicMerchants.contactBoundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact details are not available in this view."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前页面未提供联系方式。"
+          }
+        }
+      }
+    },
+    "club.topicMerchants.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No merchants have taken a station for this topic yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个主题还没有承接商家。"
+          }
+        }
+      }
+    },
+    "club.topicMerchants.unnamedMerchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed merchant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名商家"
+          }
+        }
+      }
+    },
+    "club.topicMerchants.unnamedStation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed station"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名站点"
+          }
+        }
+      }
+    },
+    "club.topicMerchants.returnedState": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Returned cooperation state"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回的合作状态"
+          }
+        }
+      }
+    },
+    "club.topicMerchants.unknownState": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation state not provided"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作状态未提供"
+          }
+        }
+      }
+    }
+  }
+}

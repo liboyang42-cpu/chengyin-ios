@@ -1,0 +1,166 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "club.roster.total": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roster total"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场名册人数"
+          }
+        }
+      }
+    },
+    "club.roster.totalNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total includes registered, arrived and no-show members; waitlist is separate."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "人数包含已报名、已到场和未到场成员；候补单独计数。"
+          }
+        }
+      }
+    },
+    "club.roster.privacy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No phone numbers or financial details are displayed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不展示手机号或财务信息。"
+          }
+        }
+      }
+    },
+    "club.roster.windowClosed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server reports that attendance cannot currently be corrected. Refresh for the latest state."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器显示当前不在出勤更正时段，可刷新查看最新状态。"
+          }
+        }
+      }
+    },
+    "club.roster.serverWindow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correction window returned by the server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器返回的更正时段"
+          }
+        }
+      }
+    },
+    "club.roster.windowStart": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始"
+          }
+        }
+      }
+    },
+    "club.roster.windowEnd": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Until"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束"
+          }
+        }
+      }
+    },
+    "club.roster.emptyBucket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No members in this category."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一类暂时没有成员。"
+          }
+        }
+      }
+    },
+    "club.roster.unnamed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed member"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名成员"
+          }
+        }
+      }
+    },
+    "club.roster.versionUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attendance version is unavailable. Refresh before correcting."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出勤版本尚未确认，请刷新后再更正。"
+          }
+        }
+      }
+    }
+  }
+}

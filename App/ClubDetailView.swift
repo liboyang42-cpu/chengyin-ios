@@ -55,11 +55,16 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
                 if club.isOwner, let session = reader as? AppSession {
                     Section { NavigationLink("context.ai.title") { SessionClubAIDesignView(session: session, clubID: id) }.accessibilityIdentifier("club.context.openAI") }
+                    Section { NavigationLink("club.projectLaunch.title") { SessionClubProjectLaunchView(session: session, club: club) }.accessibilityIdentifier("club.projectLaunch.entry") }
                 }
                 if let session = reader as? AppSession {
                     // Keep the scope binder mounted for non-owners so owner loss fences old callbacks immediately.
                     SessionClubMerchantProfileHost(session: session) {
                         ClubMerchantDiscoveryView(club: club, clubReader: reader, reader: session.cooperationFlowReader)
+                    }
+                    if let governance = management?.governance {
+                        ClubInvitationFeedbackEntry(club: club, clubReader: reader, reader: session.cooperationFlowReader, access: governance.access)
+                        ClubLeadProgressEntry(club: club, clubReader: reader, reader: session.cooperationFlowReader, access: governance.access, projects: session.creatorContentReader)
                     }
                 }
                 if let community {

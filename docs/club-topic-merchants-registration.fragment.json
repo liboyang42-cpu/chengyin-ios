@@ -1,0 +1,40 @@
+{
+  "task": "P056 current-topic cooperating merchant/station list read-filter-refresh-return flow",
+  "base": "5dd3e53c1de104735b26d75811cb4ff46b2a340f",
+  "dependencies": [
+    {
+      "path": "../club-roster-buckets/club-roster-buckets.patch",
+      "sha256": "917f88cd1c1c41aa99ac402cac365ba4c3d9b90519b1204622c56800e68e42df",
+      "governance_before_sha256": "6e765b7724f3c21554a8fc24c7e8d6c06a591d0c7390ef4480dac41b28626749",
+      "governance_after_sha256": "83d13e14d2e4b72945242bd9ffa7053548b0225bbd23e6f6baefa5bdb8bf0ccc"
+    },
+    {
+      "path": "../club-series-occurrences/club-series-occurrences.patch",
+      "sha256": "b85b1f9a78a98bc0215b02b095ce94e333dc3e9b749a3f1a94e1f26ceb6146a3",
+      "governance_before_sha256": "83d13e14d2e4b72945242bd9ffa7053548b0225bbd23e6f6baefa5bdb8bf0ccc",
+      "governance_after_sha256": "5213cb95086f8b2c01817edb36c0a7d52a219ee33fcbe759743a8b32434ab2f4"
+    },
+    {
+      "path": "../club-settlement-detail/club-settlement-detail.patch",
+      "sha256": "716e7c957f5c9b91a19d25d45e006140bb822f577834b19f971200a2f7e214ec",
+      "governance_before_sha256": "5213cb95086f8b2c01817edb36c0a7d52a219ee33fcbe759743a8b32434ab2f4",
+      "governance_after_sha256": "51e9c17c436328a94f26f8c43993cfbab51be11355fd292c04596aa452d04629"
+    }
+  ],
+  "existing_preimage_blob": "7bf0e89e7c436df721cc7230fb8f535f4b82b677",
+  "modified_app_hunk": "Only content(snapshot) insert else-if operation == .recruit branch between .roles and .topicOverview, mounts new read-only content using actual accepted parent snapshot/readContext/generations/access. Original branches/links/refresh unmodified. Root approved2026-10-11 19:30:54Z.",
+  "app_sources": [
+    "App/ClubTopicMerchantContent.swift"
+  ],
+  "core_sources": [
+    "Core/ClubTopicMerchantList.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubTopicMerchantContentTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubTopicMerchantListTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubTopicMerchantLocalizations.fragment.json",
+  "merge_instructions": "Apply14→15→16 exact patches to actual5dd. Batch19 adds only recruit branch, retaining all before bytes and previous roster/series/settlement functionality. Central registers4 new Swift files and7 localization keys. No workflow/PBX/catalog changes here."
+}

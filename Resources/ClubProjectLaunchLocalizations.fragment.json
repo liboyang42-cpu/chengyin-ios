@@ -1,0 +1,134 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "club.projectLaunch.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a club project"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建俱乐部项目"
+          }
+        }
+      }
+    },
+    "club.projectLaunch.localHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a mode to open a draft for this club. If a saved draft exists, use the editor’s restore or discard options before applying the new draft. Opening the editor does not publish."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择模式后打开本俱乐部草稿。如有本地草稿，请先处理编辑器的恢复或丢弃提示，再应用新草稿。打开编辑器不会发布。"
+          }
+        }
+      }
+    },
+    "club.projectLaunch.ownerRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current club owner access is required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要当前俱乐部主理人身份。"
+          }
+        }
+      }
+    },
+    "club.projectLaunch.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club ownership could not be checked. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法核对主理人身份，请重试。"
+          }
+        }
+      }
+    },
+    "club.projectLaunch.editorUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The editor session is unavailable. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑器会话暂不可用，请刷新后重试。"
+          }
+        }
+      }
+    },
+    "club.projectLaunch.chooseMode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an exploration mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择探索模式"
+          }
+        }
+      }
+    },
+    "club.projectLaunch.city": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City navigation · explore in order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市定向 · 顺序探索"
+          }
+        }
+      }
+    },
+    "club.projectLaunch.freeExplore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free exploration · all points open"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自由探索 · 全点开放"
+          }
+        }
+      }
+    }
+  }
+}

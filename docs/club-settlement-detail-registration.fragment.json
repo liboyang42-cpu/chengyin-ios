@@ -1,0 +1,31 @@
+{
+  "batch": "P055 Club settlement row to exact record detail, refresh and return",
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "dependencies": [
+    {
+      "path": "../club-roster-buckets/club-roster-buckets.patch",
+      "sha256": "917f88cd1c1c41aa99ac402cac365ba4c3d9b90519b1204622c56800e68e42df"
+    },
+    {
+      "path": "../club-series-occurrences/club-series-occurrences.patch",
+      "sha256": "b85b1f9a78a98bc0215b02b095ce94e333dc3e9b749a3f1a94e1f26ceb6146a3"
+    }
+  ],
+  "composite_preimage_tree": "c46c697d62de7b7f61a3e91ffeb63b191d8d9349",
+  "existing_preimage_blob": "967e00ec62933010dd57a19290a7ae461ccde5d7",
+  "modified_app_hunk": "Only content operation == .settlement branch dataRows(value[\"topics\"].array ?? []) single line becomes independent Club settlement rows/navigation with actual parent snapshot/context/reader. Preserve remaining branch header and all other bytes including14 roster and15 series.",
+  "app_sources": [
+    "App/ClubSettlementDetail.swift"
+  ],
+  "core_sources": [
+    "Core/ClubSettlementDetailPresentation.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubSettlementDetailTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubSettlementDetailPresentationTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubSettlementDetailLocalizations.fragment.json",
+  "merge_instructions": "Exact49 +14+15. Preserve every shared-file byte outside the settlement dataRows line replacement, especially prior roster/series hunks. Central owner registers4 new Swift files and21 keys; use delta hunk, never overwrite other central Club changes. Other financial sources, commands and transport unchanged. P043 remains paused."
+}

@@ -402,16 +402,19 @@ struct ClubGovernanceReadView: View {
             else if value["accountRole"] == .string("club") { Text("club.gov.hostExisting") }
             else { edit(.hostApply); Text("club.gov.identityGate") }
         } else if operation == .roster {
-            ForEach(["registered", "waitlist", "arrived", "noShow"], id: \.self) { bucket in
-                Section(LocalizedStringKey("club.gov." + bucket)) {
-                    ForEach(Array((value[bucket].array ?? []).enumerated()), id: \.offset) { _, row in
-                        ClubGovernanceFactRows(value: row, fields: ["nickname", "memberId", "state", "correctionVersion"])
-                        if let memberID = row["memberId"].int, let version = row["correctionVersion"].int {
-                            edit(.correctAttendance, scope: .init(clubID: scope.clubID, activityID: scope.activityID, memberID: memberID), seed: ["expectedVersion": .integer(version)])
-                        }
-                    }
+            if let roster = try? ClubRosterPresentation(snapshot: snapshot, context: readContext) {
+                ClubRosterBucketContent(roster: roster, context: readContext, snapshotGeneration: snapshotGeneration,
+                    namespace: access.storageNamespace,
+                    selected: Binding(get: { ClubRosterBucket(rawValue: filter) ?? .registered }, set: { filter = $0.rawValue })) { target in
+                    guard editor == nil, let route = ClubRosterInteraction.formRoute(target, snapshot: self.snapshot, context: readContext,
+                        snapshotGeneration: snapshotGeneration, readGeneration: generation, access: access) else { return }
+                    editor = route
                 }
-            }
+                .onChange(of: editor?.id) { previous, current in
+                    guard previous != nil, current == nil, snapshotContext == readContext, identity == access.identity else { return }
+                    Task { await load() }
+                }
+            } else { Text("club.gov.malformed").accessibilityIdentifier("club.roster.malformed") }
         } else if operation == .roles {
             Section("club.gov.roleDefinitions") { ForEach(Array((value["roles"].array ?? []).enumerated()), id: \.offset) { _, row in ClubGovernanceFactRows(value: row, fields: ["name", "roleCode", "scopeType"]) } }
             Section { edit(.assignRole) }
@@ -419,6 +422,8 @@ struct ClubGovernanceReadView: View {
                 ClubGovernanceFactRows(value: row, fields: ["memberName", "roleName", "scopeType", "scopeId", "version"])
                 edit(.revokeRole, seed: ["assignmentId": row["id"], "version": row["version"]])
             } }
+        } else if operation == .recruit {
+            ClubTopicMerchantContent(snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration, readGeneration: generation, access: access)
         } else if operation == .topicOverview {
             ClubGovernanceFactRows(value: value, fields: ["name", "title", "auditStatus", "rejectReason", "status", "startDate", "endDate", "playModeText", "storyReady", "gameConfiguredCount"])
             Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
@@ -446,7 +451,15 @@ struct ClubGovernanceReadView: View {
         } else if operation == .settlement {
             ClubGovernanceFactRows(value: value, fields: ["settledAmountText", "settledAmountStatus", "unverifiedSettledCount"], showUnknown: true)
             Text("club.gov.financialGate")
-            dataRows(value["topics"].array ?? [])
+            if let presentation = try? ClubSettlementDetailPresentation(snapshot: snapshot, context: readContext) {
+                let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
+                ClubSettlementRows(presentation: presentation, context: sourceContext, snapshotGeneration: sourceGeneration,
+                    namespace: sourceNamespace, identity: identity, access: access,
+                    sourceIsCurrent: {
+                        snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
+                        generation == sourceGeneration && identity == access.identity && sourceNamespace == access.storageNamespace
+                    }, onReturn: { Task { await load() } })
+            } else { Text("club.gov.malformed").accessibilityIdentifier("club.settlementDetail.malformed") }
         } else if operation == .feed {
             if let feed = try? ClubFeedPresentation(snapshot: snapshot) {
                 if feed.posts.isEmpty {
@@ -527,7 +540,17 @@ struct ClubGovernanceReadView: View {
                     link(.topicOverview, target)
                     if operation == .eventTopics { edit(.createSeries, scope: target) }
                 }
-                if operation == .series, let id = row["id"].int { link(.seriesDetail, .init(clubID: scope.clubID, topicID: row["topicId"].int, seriesID: id)) }
+                if operation == .series, let id = row["id"].int {
+                    let target = ClubGovernanceScope(clubID: scope.clubID, topicID: row["topicId"].int, seriesID: id)
+                    let sourceContext = readContext, sourceGeneration = snapshotGeneration
+                    link(.seriesDetail, target)
+                    ClubSeriesOccurrenceBrowser(scope: target, identity: identity, access: access, coordinator: coordinator,
+                        expanded: Binding(get: { filter == String(id) }, set: { filter = $0 ? String(id) : "all" }),
+                        sourceIsCurrent: {
+                            snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
+                            generation == sourceGeneration && identity == access.identity
+                        })
+                }
                 if operation == .occurrences, let id = row["activityId"].int {
                     NavigationLink { ClubGovernanceEventView(scope: .init(clubID: scope.clubID, topicID: scope.topicID, activityID: id), identity: identity, access: access, coordinator: coordinator) } label: { Text("club.gov.eventID \(id)") }
                 }

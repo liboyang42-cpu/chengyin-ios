@@ -1,0 +1,21 @@
+{
+  "batch": "P049 roster bucket reading and correction return",
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "dependencies": [],
+  "existing_preimage_blob": "6475024c837dd105f6e9062737c80e2ebd4342ec",
+  "modified_app_hunk": "Only content(_:) else-if operation == .roster body, bounded by following .roles branch. All other GovernanceViews bytes unchanged.",
+  "app_sources": [
+    "App/ClubRosterBucketContent.swift"
+  ],
+  "core_sources": [
+    "Core/ClubRosterPresentation.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubRosterInteractionTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubRosterPresentationTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubRosterBucketLocalizations.fragment.json",
+  "merge_instructions": "Independent base415. Preserve all GovernanceViews bytes outside roster branch; exact before blob matches root verified415/c265. Central owner registers new sources/tests and10 bilingual keys. Existing correction form and write grants unchanged."
+}

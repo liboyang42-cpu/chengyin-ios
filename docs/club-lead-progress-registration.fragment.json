@@ -1,0 +1,26 @@
+{
+  "batch": "P045 owner lead-progress read-only timeline with expand/collapse and coherent refresh",
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "dependencies": [
+    {
+      "path": "../club-invitation-feedback/club-invitation-feedback.patch",
+      "sha256": "ed4c0ae93b37a20543dbc3e301c4a378c9abe7c656dd31852819b6d60ad54405"
+    }
+  ],
+  "existing_preimage_blob": "c47f400ec8cc89d82a6fd5323ede0a96a65a54cf",
+  "modified_app_hunk": "Add exactly one ClubLeadProgressEntry line immediately after existing ClubInvitationFeedbackEntry in session/governance block; all existing bytes retained. Root approved 2026-10-11 19:16:32 UTC.",
+  "app_sources": [
+    "App/ClubLeadProgressView.swift"
+  ],
+  "core_sources": [
+    "Core/ClubLeadProgress.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubLeadProgressTests.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubLeadProgressViewTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubLeadProgressLocalizations.fragment.json",
+  "merge_instructions": "Apply sealed17 first, then18 against composite preimage tree1e57b599a967328394348590fd4803fed0a6c299. Keep all prior bytes, append one entry line. Register4 new Swift source/test files and23 keys centrally. No new writes, permissions or CI/PBX/catalog edits."
+}

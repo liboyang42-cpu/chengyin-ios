@@ -1,0 +1,27 @@
+{
+  "batch": "P049 inline series occurrence browser and event return",
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "dependencies": [
+    {
+      "path": "../club-roster-buckets/club-roster-buckets.patch",
+      "sha256": "917f88cd1c1c41aa99ac402cac365ba4c3d9b90519b1204622c56800e68e42df"
+    }
+  ],
+  "composite_preimage_tree": "e6fececc9f664940c0c424a406f9fd82e97cd9c2",
+  "existing_preimage_blob": "8eea210172f277bfb88694226b4f26d9fae1de3c",
+  "modified_app_hunk": "Only dataRows operation == .series single-line block expands into existing detail link plus inline browser. All remaining GovernanceViews bytes equal staged14 preimage.",
+  "app_sources": [
+    "App/ClubSeriesOccurrenceBrowser.swift"
+  ],
+  "core_sources": [
+    "Core/ClubSeriesOccurrencePresentation.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubSeriesOccurrenceBrowserTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubSeriesOccurrencePresentationTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubSeriesOccurrenceLocalizations.fragment.json",
+  "merge_instructions": "Exact49 + sealed14. Preserve roster hunk and every shared-file byte outside the series block. Register4 new Swift files and15 bilingual keys centrally. No command form, AppSession, transport, write grant, PBX, catalog or CI modifications. P043 remains paused."
+}
