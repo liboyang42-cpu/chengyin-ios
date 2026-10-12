@@ -36,6 +36,8 @@ import SwiftUI
                 switch game {
                 case .coin:
                     nested("heads", "label"); nested("heads", "action"); nested("tails", "label"); nested("tails", "action")
+                    NavigationLink("templateCoin.rehearse") { TemplateCoinFlipRehearsalView(model: model, mode: .currentConfiguration) }
+                        .accessibilityIdentifier("templateCoin.openConfiguration")
                 case .dice:
                     Picker("creatorRoot.diceMode", selection: Binding(get: { model.draft.advanced.diceMode }, set: { model.draft.advanced.setDiceMode($0) })) {
                         Text("creatorRoot.d6").tag("d6"); Text("creatorRoot.d20").tag("d20")

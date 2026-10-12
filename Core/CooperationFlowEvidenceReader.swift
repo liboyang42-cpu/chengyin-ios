@@ -39,7 +39,7 @@ import Foundation
             // Derived only from the fresh endpoint's unique source box, never from route/row hints.
             return CoopFlowEvidence(baseline: .object(["invite": row, "slots": list["slots"],
                 "invitationDirection": .string(direction.rawValue)]), permitted: allowed)
-        case .apply(let topic):
+        case .apply(let topic, _):
             let pool = try await reader.read(.pool)
             let row = try unique(pool["rows"].rows, key: "topicId", id: topic)
             return CoopFlowEvidence(baseline: .object(["pool": row, "hasClub": pool["hasClub"]]), permitted: pool["hasClub"].flag == true && ["open", "declined", "withdrawn"].contains(row["state"].text ?? ""))

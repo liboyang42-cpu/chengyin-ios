@@ -110,52 +110,55 @@ extension ProfileLocalCoverOwner {
     }
     var body: some View {
         Section("profile.localCover.title") {
-            if model.controller.ownsContext {
-                cover(model.controller.saved)
-                Text("profile.localCover.deviceOnly").font(.footnote).foregroundStyle(.secondary)
-                if let message = model.controller.messageKey {
-                    Text(LocalizedStringKey(message)).accessibilityIdentifier("profile.localCover.message")
-                }
-                Button("profile.localCover.edit") { model.open() }
-                    .disabled(!model.controller.canEdit || scenePhase != .active)
-                    .accessibilityIdentifier("profile.localCover.edit")
-                if !model.controller.loaded || model.controller.messageKey == "profile.localCover.changed" {
-                    Button("profile.localCover.reload") { model.controller.load() }
-                        .accessibilityIdentifier("profile.localCover.reload")
+            // Section expands into List children; one concrete row must own the sheet.
+            VStack(alignment: .leading, spacing: 12) {
+                if model.controller.ownsContext {
+                    cover(model.controller.saved)
+                    Text("profile.localCover.deviceOnly").font(.footnote).foregroundStyle(.secondary)
+                    if let message = model.controller.messageKey {
+                        Text(LocalizedStringKey(message)).accessibilityIdentifier("profile.localCover.message")
+                    }
+                    Button("profile.localCover.edit") { model.open() }
+                        .disabled(!model.controller.canEdit || scenePhase != .active)
+                        .accessibilityIdentifier("profile.localCover.edit")
+                    if !model.controller.loaded || model.controller.messageKey == "profile.localCover.changed" {
+                        Button("profile.localCover.reload") { model.controller.load() }
+                            .accessibilityIdentifier("profile.localCover.reload")
+                    }
                 }
             }
-        }
-        .task {
+            .task {
 #if DEBUG
-            model.diagnosticEvent?("section.task.before-load")
+                model.diagnosticEvent?("section.task.before-load")
 #endif
-            model.controller.load()
+                model.controller.load()
 #if DEBUG
-            model.diagnosticEvent?("section.task.after-load")
+                model.diagnosticEvent?("section.task.after-load")
 #endif
-        }
-        .sheet(isPresented: Binding(get: { model.isPresented && model.controller.ownsContext }, set: { if !$0 {
+            }
+            .sheet(isPresented: Binding(get: { model.isPresented && model.controller.ownsContext }, set: { if !$0 {
 #if DEBUG
-            model.diagnosticEvent?("sheet.binding.false")
+                model.diagnosticEvent?("sheet.binding.false")
 #endif
-            model.close()
-        } })) {
-            editor
-        }
-        .onChange(of: scenePhase) { _, value in
+                model.close()
+            } })) {
+                editor
+            }
+            .onChange(of: scenePhase) { _, value in
 #if DEBUG
-            model.diagnosticEvent?("section.scenePhase.\(String(describing: value))")
+                model.diagnosticEvent?("section.scenePhase.\(String(describing: value))")
 #endif
-            if value != .active { model.close() }
-        }
-        .onDisappear {
+                if value != .active { model.close() }
+            }
+            .onDisappear {
 #if DEBUG
-            model.diagnosticEvent?("section.owner.disappear.before-retire")
+                model.diagnosticEvent?("section.owner.disappear.before-retire")
 #endif
-            model.retire()
+                model.retire()
 #if DEBUG
-            model.diagnosticEvent?("section.owner.disappear.after-retire")
+                model.diagnosticEvent?("section.owner.disappear.after-retire")
 #endif
+            }
         }
     }
     private var editor: some View {

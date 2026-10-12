@@ -68,3 +68,28 @@ final class ProfileLocalCoverFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["profile.localCover.edit"].exists); XCTAssertFalse(app.images["profile.localCover.preview"].exists)
     }
 }
+
+
+extension ProfileLocalCoverFlowTests {
+    func testSinglePreparedEditorSurvivesParentUpdatesUntilExplicitClose() {
+        let app = launch()
+        tap("profile.localCoverFixture.prepare", app)
+        let confirmExists = app.buttons["profile.localCover.confirm"].waitForExistence(timeout: 3)
+        if !confirmExists { captureFirstFailure(app, expected: "profile.localCover.confirm") }
+        XCTAssertTrue(confirmExists)
+        tap("profile.localCover.close", app)
+        XCTAssertEqual(app.staticTexts["profile.localCoverFixture.writes"].label, "Writes: 0")
+        XCTAssertEqual(app.staticTexts["profile.localCoverFixture.state"].label, "Default")
+        let trace = String(describing: app.buttons["profile.localCoverFixture.prepare"].value ?? "")
+        let events = trace.split(separator: "\n").map(String.init)
+        // One user open must not create multiple simultaneous editors for Section children.
+        let creations = events.filter { $0.contains("nativePresenter[") && $0.contains("].make ") }
+        XCTAssertEqual(creations.count, 1, trace)
+        XCTAssertEqual(events.filter { $0.contains(" editor.appear ") }.count, 1, trace)
+        let closeTap = events.firstIndex { $0.contains(" editor.close.tap ") }
+        let firstClose = events.firstIndex { $0.contains(" model.close.begin ") }
+        XCTAssertNotNil(closeTap, trace)
+        XCTAssertNotNil(firstClose, trace)
+        if let closeTap, let firstClose { XCTAssertLessThan(closeTap, firstClose, trace) }
+    }
+}

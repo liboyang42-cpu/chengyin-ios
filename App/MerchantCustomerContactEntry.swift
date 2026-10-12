@@ -13,7 +13,7 @@ extension EnvironmentValues {
     @ObservedObject var owner: MerchantBusinessViewModel
     let record: MerchantBusinessRecord
     @Environment(\.merchantCustomerContactFactory) private var factory
-    @State private var flow: MerchantCustomerContactFlow?
+    @Binding var flow: MerchantCustomerContactFlow?
     private func selection(_ purpose: MerchantContactPurpose) -> MerchantCustomerContactSelection? {
         let state = owner.coordinator
         guard state.isCurrent, !state.isBusy, !state.isLocked, state.failureKey == nil else { return nil }
@@ -29,11 +29,7 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("merchant.contactFlow." + purpose.rawValue + "." + record.id)
                 }
             }
-            .sheet(item: Binding(get: { flow }, set: { next in if next == nil { flow?.invalidate() }; flow = next })) { MerchantCustomerContactSheet(flow: $0) }
-            .onReceive(owner.objectWillChange) { _ in
-                // Check after the owner's published state has changed, not before it.
-                Task { @MainActor in flow?.reconcile() }
-            }
+
         }
     }
     private func open(_ purpose: MerchantContactPurpose) {
@@ -45,5 +41,28 @@ extension EnvironmentValues {
                 selected.matches(scope: state.reader.scope, authorizationGeneration: state.reader.authorizationGeneration, snapshot: state.snapshot)
         }
         flow = factory(selected, current)
+    }
+}
+
+/// Retained by MerchantBusinessPage, not a conditional customer row.
+@MainActor struct MerchantCustomerContactStablePresentation: ViewModifier {
+    @ObservedObject var owner: MerchantBusinessViewModel
+    @Binding var flow: MerchantCustomerContactFlow?
+    func body(content: Content) -> some View {
+        let shownID = flow?.id
+        content.background {
+            Color.clear.frame(width: 0, height: 0)
+                .sheet(item: Binding(get: { flow?.id == shownID ? flow : nil }, set: { next in
+                    guard flow?.id == shownID else { return }
+                    if next == nil { flow?.invalidate() }; flow = next
+                })) { MerchantCustomerContactSheet(flow: $0) }
+                .id(flow?.id)
+        }
+        .onReceive(owner.objectWillChange) { _ in
+            // Reconcile the same captured flow; a delayed old callback cannot touch a replacement.
+            let captured = flow
+            Task { @MainActor in captured?.reconcile() }
+        }
+        .onDisappear { flow?.invalidate(); flow = nil }
     }
 }

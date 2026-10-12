@@ -1,0 +1,133 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "coopflow.poolMessage.optional": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message to the publisher (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给发布者留言（可选）"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.intent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is an application of interest, not a cooperation agreement. The source request does not select a club or merchant ID. Submission remains unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处是承接意向申请，不是合作协议。源请求不指定俱乐部或商户编号，当前仍不可提交。"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.length %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / 500 Unicode code points. Emoji and combining marks may count separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / 500 个 Unicode 码点。组合表情和附加符号可能分别计数。"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.tooLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The message exceeds 500 code points. Edit it before previewing; no text has been removed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留言超过 500 个码点，请修改后预览；内容未被截断。"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This pool item or account context changed. Return to the pool and reopen the application."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作池条目或账号上下文已变化，请返回合作池重新打开申请。"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.discardTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard this local application message?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃这份本地申请留言？"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.discard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃留言"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.keep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    }
+  }
+}

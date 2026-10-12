@@ -32,6 +32,16 @@ import SwiftUI
                         if let distance = summary.knownKilometers, summary.tripsWithDistance > 0 {
                             LabeledContent("roam.experience.knownDistance") { Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " km") }
                         }
+                        LabeledContent("roam.passport.shopVisits") {
+                            if let shops = summary.knownShops, summary.tripsWithShops > 0 {
+                                Text(shops, format: .number)
+                            } else { Text("roam.passport.unknown") }
+                        }.accessibilityIdentifier("roam.experience.history.shopVisits")
+                        if summary.tripsWithShops < summary.trips {
+                            LabeledContent("roam.passport.shopsCoverage", value: "\(summary.tripsWithShops)/\(summary.trips)")
+                                .font(.caption).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("roam.experience.history.shopCoverage")
+                        }
                         Text("roam.experience.partialStats").font(.caption).foregroundStyle(.secondary)
                     }
                     ForEach(records) { record in

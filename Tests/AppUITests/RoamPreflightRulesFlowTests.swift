@@ -14,9 +14,26 @@ final class RoamPreflightRulesFlowTests: XCTestCase {
     private func element(_ id: String, _ app: XCUIApplication) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: id).firstMatch
     }
-    private func open(_ app: XCUIApplication) {
+    private func open(_ app: XCUIApplication, pageScroll: Bool = false) {
         let link = app.buttons["roam.preflightRules.open"]
-        let revealed = revealFixtureElement(link, in: app)
+        let revealed: Bool
+        if pageScroll {
+            // At accessibility XXXL the published Hub spans eight pages. Search the
+            // real collection by pages until the lazy row exists, then align it precisely.
+            var ready = revealFixtureElement(link, in: app, maximumSwipes: 0)
+            for _ in 0..<10 {
+                if ready { break }
+                if link.exists {
+                    ready = revealFixtureElement(link, in: app, maximumSwipes: 1)
+                } else {
+                    app.collectionViews["roam.experience.hub"].swipeUp()
+                    ready = revealFixtureElement(link, in: app, maximumSwipes: 0)
+                }
+            }
+            revealed = ready
+        } else {
+            revealed = revealFixtureElement(link, in: app)
+        }
         if !revealed {
             print("ROAM_RULES_ENTRY_REVEAL_FAILED appFrame=\(app.frame) windowFrames=\(app.windows.allElementsBoundByIndex.map { $0.frame }) buttonExists=\(link.exists)")
             if link.exists { print("ROAM_RULES_ENTRY_BUTTON frame=\(link.frame) hittable=\(link.isHittable)") }
@@ -58,7 +75,7 @@ final class RoamPreflightRulesFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["不绑定固定路线。主动开始后，步行点亮经过的街区。暂停期间、低精度定位和明显跳点不会计入距离。"].exists)
     }
     func testLargestDynamicTypeCanReachTheLastRuleAndReturn() {
-        let app = app(largeText: true); open(app)
+        let app = app(largeText: true); open(app, pageScroll: true)
         let last = element("roam.preflightRules.body.roam.live.leaveHint", app)
         // A single accessibility-sized paragraph may exceed the viewport height.
         // Check reachable visible content without requiring the entire text frame to fit.

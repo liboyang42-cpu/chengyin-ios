@@ -1,0 +1,24 @@
+{
+  "task": "31 P045 cooperation-pool application message",
+  "base": "077273784d7fed5397f84f17b2a659723f3f3b22",
+  "app_sources": [
+    "App/CoopPoolApplicationEditor.swift"
+  ],
+  "core_sources": [
+    "Core/CoopPoolApplicationDraft.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/CoopPoolApplicationEditorTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/CoopPoolApplicationDraftTests.swift"
+  ],
+  "localization_fragment": "Resources/CoopPoolApplicationLocalizations.fragment.json",
+  "modified_hunks": {
+    "Core/CooperationFlowContracts.swift": "CoopFlowMutation.apply adds default-empty message; split apply body from withdraw, validate and encode message; no invite changes",
+    "Core/CooperationFlowCoordinator.swift": "One lockKey enum pattern adds ignored message; exact legacy account/topic lock key unchanged",
+    "Core/CooperationFlowEvidenceReader.swift": "One apply enum pattern adds ignored message; entire permissions/evidence body unchanged",
+    "App/CooperationFlowWorkbench.swift": "Replace only pool apply-preview entry with local message entry capturing actual reader/source pool/session/generation; withdraw/other actions preserved"
+  },
+  "merge_instructions": "Apply four existing-file narrow edits; add two sources/two test files and eight bilingual keys. Existing generic request preview and service remain byte-identical; submit is disabled. No new production enablement. This is pool/apply, not invite. Preserve all1–30sealed leaves; withdrawn28 remains excluded."
+}

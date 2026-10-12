@@ -1,0 +1,34 @@
+{
+  "merchant.customerFilters.clear": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear filters"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清除筛选"
+        }
+      }
+    }
+  },
+  "merchant.customerFilters.keepsSearch": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keeps your search and reloads all customer groups."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保留搜索词，重新加载全部客户分组。"
+        }
+      }
+    }
+  }
+}

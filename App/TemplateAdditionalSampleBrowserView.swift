@@ -105,6 +105,10 @@ import Combine
     }
     var body: some View {
         Form {
+            Section {
+                NavigationLink("templateCoin.sample") { TemplateCoinFlipRehearsalView(model: model, mode: .sourceExample) }
+                    .disabled(!controller.canBrowse).accessibilityIdentifier("templateCoin.openSample")
+            }
             Section { Text("templateSampleCoverage.scope"); Text("templateSamples.configureScope").font(.footnote) }
             if controller.unavailable { Section { Text("templateSampleCoverage.unavailable") } }
             ForEach(TemplateAdditionalSamplePreview.Choice.allCases) { choice in

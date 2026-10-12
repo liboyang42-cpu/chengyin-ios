@@ -1,0 +1,16 @@
+{
+  "task": 66,
+  "feature": "roam-history-shop-summary",
+  "source": "Fixed95 P126 scene-roam-history _sync/hs-sum shops",
+  "normal_host": "RoamExperienceHubView \u2192 RoamHistoryView summary card",
+  "existing_contract": "RoamHistorySummary.knownShops and tripsWithShops, already checked for overflow",
+  "reused_EN_ZH_keys": [
+    "roam.passport.shopVisits",
+    "roam.passport.unknown",
+    "roam.passport.shopsCoverage",
+    "roam.experience.partialStats"
+  ],
+  "PBX": "No new Swift file; existing references and CoreTests discovery unchanged",
+  "capabilities": "Only already loaded local settled records; no new API/storage access, permission or reward claim",
+  "native": "NOT_RUN"
+}

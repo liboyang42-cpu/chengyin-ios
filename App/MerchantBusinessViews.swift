@@ -215,6 +215,7 @@ import SwiftUI
     @State private var keyword = ""
     @FocusState private var aftercareSearchFocused: Bool
     @State private var segment = "all"
+    @State private var customerContactFlow: MerchantCustomerContactFlow?
     @State private var sourceType = 0
     @State private var sourceStart = ""
     @State private var sourceEnd = ""
@@ -358,6 +359,7 @@ import SwiftUI
                 Button("action.cancel", role: .cancel) { }
             } message: { _ in Text("merchant.noteDraft.discardBody") }
         .appNavigationTitle(key: query.titleKey)
+        .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
         .sheet(item: $editor, onDismiss: { draftReturn.discard(); if let mutation = pendingMutation { pendingMutation = nil; if sourcePageCanPrepare(mutation) { model.prepare(mutation) } } }) { context in
@@ -441,6 +443,24 @@ import SwiftUI
                     sourceStart = value.start; sourceEnd = value.end
                 }
                 Button("merchant.business.applyFilter", action: applyCustomerFilter)
+                if let expected = state.snapshot, expected.document.query == query, state.isCurrent,
+                   case .customers(let applied) = query,
+                   customerFilterDraft.hasWorkspaceFilters || applied.hasWorkspaceFilters {
+                    let renderedDraft = customerFilterDraft
+                    let renderedScope = reader.scope
+                    let renderedAuthorization = reader.authorizationGeneration
+                    Button("merchant.customerFilters.clear") {
+                        guard scenePhase == .active, state.isCurrent, !state.isBusy, !state.isLocked,
+                              state.failureKey == nil, state.snapshot == expected, query == expected.document.query,
+                              reader.scope == renderedScope, reader.authorizationGeneration == renderedAuthorization,
+                              customerFilterDraft == renderedDraft else { return }
+                        let cleared = renderedDraft.clearingWorkspaceFilters()
+                        segment = cleared.segment; sourceType = 0; tagID = 0; sourceStart = ""; sourceEnd = ""
+                        applyCustomerFilter()
+                    }.disabled(state.isBusy || state.isLocked || state.failureKey != nil || scenePhase != .active)
+                        .accessibilityIdentifier("merchant.business.customers.clearFilters")
+                    Text("merchant.customerFilters.keepsSearch").font(.footnote).foregroundStyle(.secondary)
+                }
             }
         }
         if case .aftercare(let bucket, _) = query {
@@ -526,7 +546,7 @@ import SwiftUI
                     }
                 }.accessibilityIdentifier("merchant.business.row.\(row.kind.rawValue).\(row.id)")
             }
-            MerchantCustomerContactEntry(owner: model, record: row)
+            MerchantCustomerContactEntry(owner: model, record: row, flow: $customerContactFlow)
             }
         } else {
             VStack(alignment: .leading, spacing: 10) {
@@ -622,11 +642,14 @@ import SwiftUI
     private func tagName(_ id: Int) -> String {
         state.snapshot?.document.payload.object?["availableTags"]?.array?.first { $0.object?["id"]?.integer == id }?.object?.mbText("tagName") ?? "#\(id)"
     }
-    private func applyCustomerFilter() {
+    private var customerFilterDraft: MerchantCustomerQuery {
         var filter = MerchantCustomerQuery(); filter.keyword = keyword; filter.segment = segment
         filter.sourceType = sourceType == 0 ? nil : sourceType; filter.tagID = tagID == 0 ? nil : tagID
         filter.sourceStart = sourceStart.isEmpty ? nil : sourceStart; filter.sourceEnd = sourceEnd.isEmpty ? nil : sourceEnd
-        query = .customers(filter); selection = []; Task { await reload() }
+        return filter
+    }
+    private func applyCustomerFilter() {
+        query = .customers(customerFilterDraft); selection = []; Task { await reload() }
     }
     private func movePage(_ page: Int) { query = query.paged(page); selection = []; Task { await reload() } }
     private func reload() async { selection = []; await model.load(query) }

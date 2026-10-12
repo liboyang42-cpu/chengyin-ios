@@ -126,3 +126,29 @@ final class RoamExperienceContractTests: XCTestCase {
         XCTAssertEqual(fix.datum, .wgs84)
     }
 }
+
+extension RoamExperienceContractTests {
+    func testHistoryShopSummaryMissingMeasurementsHaveNoMeasuredRows() throws {
+        let rows = try JSONDecoder().decode([RoamHistoryRecord].self, from: Data(#"[{"ts":1},{"ts":2}]"#.utf8))
+        let summary = RoamHistorySummary(rows)
+        XCTAssertEqual(summary.trips, 2); XCTAssertEqual(summary.tripsWithShops, 0)
+        // The UI requires measured rows before presenting this accumulator as a real zero.
+        XCTAssertEqual(summary.knownShops, 0)
+    }
+    func testHistoryShopSummaryPreservesMeasuredZeroAndPartialCoverage() throws {
+        let rows = try JSONDecoder().decode([RoamHistoryRecord].self, from: Data(#"[{"ts":1,"shops":0},{"ts":2}]"#.utf8))
+        let summary = RoamHistorySummary(rows)
+        XCTAssertEqual(summary.knownShops, 0); XCTAssertEqual(summary.tripsWithShops, 1); XCTAssertEqual(summary.trips, 2)
+    }
+    func testHistoryShopSummaryUsesVisitsAcrossWalksNotUniqueMerchantCount() throws {
+        let rows = try JSONDecoder().decode([RoamHistoryRecord].self, from: Data(#"[{"ts":1,"shops":2},{"ts":2,"shops":3}]"#.utf8))
+        let summary = RoamHistorySummary(rows)
+        XCTAssertEqual(summary.knownShops, 5); XCTAssertEqual(summary.tripsWithShops, 2)
+        XCTAssertEqual(summary.tripsWithShops, summary.trips)
+    }
+    func testHistoryShopSummaryOverflowIsUnknownNotWrappedOrSaturatedSuccess() throws {
+        let rows = try JSONDecoder().decode([RoamHistoryRecord].self, from: Data("[{\"ts\":1,\"shops\":\(Int.max)},{\"ts\":2,\"shops\":1}]".utf8))
+        let summary = RoamHistorySummary(rows)
+        XCTAssertNil(summary.knownShops); XCTAssertEqual(summary.tripsWithShops, 2)
+    }
+}

@@ -247,7 +247,7 @@ public struct CoopFlowPerkTemplate: Equatable {
 public enum CoopFlowMutation: Equatable {
     case invite(CoopFlowInvitation)
     case handle(inviteID: Int, action: CoopFlowHandle, reason: String?)
-    case apply(topicID: Int), withdraw(topicID: Int), decline(applyID: Int, scope: String?)
+    case apply(topicID: Int, message: String = ""), withdraw(topicID: Int), decline(applyID: Int, scope: String?)
     case confirm(registrationID: Int), reject(registrationID: Int)
     case createTemplate(CoopFlowPerkTemplate), deleteTemplate(id: Int)
     case attachPerks(inviteID: Int, templateIDs: [Int])
@@ -284,7 +284,10 @@ public enum CoopFlowMutation: Equatable {
         case .handle(let id, let action, let reason):
             b = ["id": try positive(id), "status": .id(action.rawValue)]
             if let reason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { b[action == .cancel ? "message" : "handleReason"] = .string(reason) }
-        case .apply(let id), .withdraw(let id): b = ["topicId": try positive(id)]
+        case .apply(let id, let message):
+            try CoopPoolApplicationDraft.validateMessage(message)
+            b = ["topicId": try positive(id), "message": .string(message)]
+        case .withdraw(let id): b = ["topicId": try positive(id)]
         case .decline(let id, let scope):
             b = ["applyId": try positive(id)]; if let scope, !scope.isEmpty { b["scope"] = .string(scope) }
         case .confirm(let id), .reject(let id): b = ["registrationId": try positive(id)]

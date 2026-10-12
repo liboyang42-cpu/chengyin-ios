@@ -13,6 +13,16 @@ public struct MerchantCustomerQuery: Equatable, Hashable {
         ["pageNum": .int(page), "pageSize": .int(20), "keyword": .string(keyword), "segment": .string(segment),
          "tagId": .optional(tagID), "sourceType": .optional(sourceType), "sourceStart": .optional(sourceStart), "sourceEnd": .optional(sourceEnd)]
     }
+    /// P085 clearFilters affects workspace filters, never the current search keyword.
+    public var hasWorkspaceFilters: Bool {
+        segment != "all" || tagID != nil || sourceType != nil || !(sourceStart ?? "").isEmpty || !(sourceEnd ?? "").isEmpty
+    }
+    public func clearingWorkspaceFilters() -> Self {
+        var result = self
+        result.page = 1; result.segment = "all"; result.tagID = nil; result.sourceType = nil
+        result.sourceStart = nil; result.sourceEnd = nil
+        return result
+    }
     public func validate() throws {
         guard page > 0, page <= Int.max / 50, ["all", "repeat", "new", "noted"].contains(segment), tagID == nil || tagID! > 0,
               sourceType == nil || [1, 2].contains(sourceType!) else { throw MerchantBusinessFailure.invalid }

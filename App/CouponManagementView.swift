@@ -113,6 +113,13 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                     Text("couponManagement.dateNotice").font(.footnote)
                     Text("couponManagement.chinaTime").font(.footnote)
                 }
+                if let code = row.publishedBatchCode {
+                    Section("couponManagement.batchCode.title") {
+                        Text(verbatim: code).font(.body.monospaced()).privacySensitive()
+                            .accessibilityIdentifier("couponManagement.batchCode.value")
+                        Text("couponManagement.batchCode.referenceOnly").font(.footnote).foregroundStyle(.secondary)
+                    }.accessibilityIdentifier("couponManagement.batchCode.section")
+                }
                 Section("couponManagement.counts") {
                     count("couponManagement.published", row.publishCount)
                     count("couponManagement.received", row.receiveCount)

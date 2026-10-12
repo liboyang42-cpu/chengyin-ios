@@ -85,6 +85,8 @@ struct CoopFlowSafetyNotice: View {
     @State private var generation = UUID()
     @State private var refresh = UUID()
     @State private var inviteContext: CoopFlowInvitationContext?
+    @StateObject private var poolApplication = CoopPoolApplicationModel()
+    @StateObject private var poolApplicationOwner = CoopPoolApplicationOwnerBinding()
     var body: some View {
         List {
             if case .finance = resource {
@@ -102,6 +104,13 @@ struct CoopFlowSafetyNotice: View {
             } else { ProgressView("cooperation.loading") }
         }
         .navigationTitle(LocalizedStringKey(title))
+        .background {
+            if resource == .pool {
+                CoopPoolApplicationHost(reader: reader, sourcePool: { value }, sourceSession: { loadedSession },
+                    sourceGeneration: { generation }, sourceIsCurrent: { issue == nil && loadedSession == reader.session },
+                    model: poolApplication, owner: poolApplicationOwner)
+            }
+        }
         .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0):\(refresh)") { await load() }
         .refreshable { await load() }
         .onDisappear { generation = UUID() }
@@ -219,7 +228,10 @@ struct CoopFlowSafetyNotice: View {
                 if let id = row["id"].integer { preview(.deleteTemplate(id: id), label: "coopflow.deleteTemplate") }
             case .pool:
                 if let id = row["topicId"].integer {
-                    if ["open", "declined", "withdrawn"].contains(row["state"].text ?? "") { preview(.apply(topicID: id), label: "coopflow.apply") }
+                    if ["open", "declined", "withdrawn"].contains(row["state"].text ?? "") {
+                        CoopPoolApplicationEntry(reader: reader, topicID: id, sourcePool: { value }, sourceSession: { loadedSession },
+                            sourceGeneration: { generation }, sourceIsCurrent: { resource == .pool && issue == nil && loadedSession == reader.session }, model: poolApplication, owner: poolApplicationOwner)
+                    }
                     if row["state"].text == "applied" { preview(.withdraw(topicID: id), label: "coopflow.withdraw") }
                 }
             case .applications:

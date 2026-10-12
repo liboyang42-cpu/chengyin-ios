@@ -18376,6 +18376,12 @@
 				"D1CB0CA02B27960091527436",
 				"0C3492425C6324567AA1E397",
 				"1537C35BA8456CEC38731BAD",
+				"53F701F32A3BD1E70687ADDE",
+				"3898F49ADA0220E7FDC72524",
+				"7012BF9F7D0DC1858EED8312",
+				"D35F2C1766229A216CF596E0",
+				"A7109C3D0E390C15B70E6C5C",
+				"9F85504E37418AC8E2EA5BB3",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -19953,6 +19959,10 @@
 				"5A886D8009411B4AE6338FE8",
 				"2FED4BB3A4B37861F3D3246A",
 				"05493883B01662BA349833B3",
+				"F93F6A92B66178A5786E4D6C",
+				"2CD27FBD58CB002B6E509016",
+				"20107ED7DBB15D54829BEDD8",
+				"01E5D087741B0442C81D86E2",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26035,6 +26045,8 @@
 				"6389BD1933B9874493036BFA",
 				"216C9870A797461F86048F96",
 				"208A600B151276EAFE88CCE9",
+				"8B251BCCE415D6990BA59D94",
+				"C50734F565D8BAFFA03E86A0",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26605,6 +26617,66 @@
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
 			"path" = "Core/TemplateSamplePreview.swift";
+			"sourceTree" = "<group>";
+		};
+		"8B251BCCE415D6990BA59D94" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "7012BF9F7D0DC1858EED8312";
+		};
+		"F93F6A92B66178A5786E4D6C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "53F701F32A3BD1E70687ADDE";
+		};
+		"2CD27FBD58CB002B6E509016" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3898F49ADA0220E7FDC72524";
+		};
+		"53F701F32A3BD1E70687ADDE" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CoopPoolApplicationEditor.swift";
+			"sourceTree" = "<group>";
+		};
+		"7012BF9F7D0DC1858EED8312" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/CoopPoolApplicationEditorTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"3898F49ADA0220E7FDC72524" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/CoopPoolApplicationDraft.swift";
+			"sourceTree" = "<group>";
+		};
+		"20107ED7DBB15D54829BEDD8" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D35F2C1766229A216CF596E0";
+		};
+		"C50734F565D8BAFFA03E86A0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9F85504E37418AC8E2EA5BB3";
+		};
+		"9F85504E37418AC8E2EA5BB3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/TemplateCoinFlipRehearsalViewTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"D35F2C1766229A216CF596E0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/TemplateCoinFlipRehearsalView.swift";
+			"sourceTree" = "<group>";
+		};
+		"01E5D087741B0442C81D86E2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A7109C3D0E390C15B70E6C5C";
+		};
+		"A7109C3D0E390C15B70E6C5C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/TemplateCoinFlipRehearsal.swift";
 			"sourceTree" = "<group>";
 		};
 	};

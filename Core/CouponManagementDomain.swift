@@ -50,8 +50,10 @@ public struct CouponDefinition: Decodable, Equatable, Identifiable {
     public let amount: Decimal?
     public let currency: String?
     public let perLimit: Int?
+    /// Publisher batch reference from SmsCoupon.code. Never use for issuing, claiming or redeeming.
+    public let publishedBatchCode: String?
     private enum CodingKeys: String, CodingKey {
-        case id, name, description, status, couponType, publishCount, receiveCount, useCount, startTime, endTime, amount, currency, perLimit
+        case id, name, description, status, couponType, publishCount, receiveCount, useCount, startTime, endTime, amount, currency, perLimit, code
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -67,6 +69,11 @@ public struct CouponDefinition: Decodable, Equatable, Identifiable {
         endTime = try c.decodeIfPresent(String.self, forKey: .endTime)
         currency = try c.decodeIfPresent(String.self, forKey: .currency)
         perLimit = try c.decodeIfPresent(Int.self, forKey: .perLimit)
+        let sourceCode = try c.decodeIfPresent(String.self, forKey: .code)
+        publishedBatchCode = sourceCode.flatMap { value in
+            guard value != "—", !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+            return value
+        }
         if !c.contains(.amount) { amount = nil }
         else if try c.decodeNil(forKey: .amount) { amount = nil }
         else if let number = try? c.decode(Decimal.self, forKey: .amount) { amount = number }

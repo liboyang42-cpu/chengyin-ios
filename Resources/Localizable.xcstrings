@@ -1,6 +1,424 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "merchant.customerFilters.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear filters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除筛选"
+          }
+        }
+      }
+    },
+    "merchant.customerFilters.keepsSearch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keeps your search and reloads all customer groups."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留搜索词，重新加载全部客户分组。"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.optional": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message to the publisher (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给发布者留言（可选）"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.intent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is an application of interest, not a cooperation agreement. The source request does not select a club or merchant ID. Submission remains unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处是承接意向申请，不是合作协议。源请求不指定俱乐部或商户编号，当前仍不可提交。"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.length %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / 500 Unicode code points. Emoji and combining marks may count separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / 500 个 Unicode 码点。组合表情和附加符号可能分别计数。"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.tooLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The message exceeds 500 code points. Edit it before previewing; no text has been removed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留言超过 500 个码点，请修改后预览；内容未被截断。"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This pool item or account context changed. Return to the pool and reopen the application."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作池条目或账号上下文已变化，请返回合作池重新打开申请。"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.discardTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard this local application message?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃这份本地申请留言？"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.discard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃留言"
+          }
+        }
+      }
+    },
+    "coopflow.poolMessage.keep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    },
+    "couponManagement.batchCode.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published batch code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布批次券码"
+          }
+        }
+      }
+    },
+    "couponManagement.batchCode.referenceOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batch reference only. It is not a redemption or claim credential."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅用于识别发布批次，不是核销码或领券凭证。"
+          }
+        }
+      }
+    },
+    "templateCoin.rehearse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rehearse coin flip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "抛硬币本地排练"
+          }
+        }
+      }
+    },
+    "templateCoin.sample": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a coin-flip sample"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体验抛硬币样例"
+          }
+        }
+      }
+    },
+    "templateCoin.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local author simulation only. No player result, payment, coin, completion or reward is created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅为作者本地模拟，不产生玩家结果、付款、发币、任务达成或奖励。"
+          }
+        }
+      }
+    },
+    "templateCoin.deterministic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heads is the source preview default. Choose either face to inspect its text; repeating never rolls a real or random outcome."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原预览默认正面。可选择正反面核对文案；再次演示不会生成真实或随机结果。"
+          }
+        }
+      }
+    },
+    "templateCoin.exampleOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Examples are filled only in this temporary copy. Their wording creates no payment or treat commitment. Your draft stays unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "样例只填入临时副本。演示文案不构成付款或请客承诺，原稿不会改变。"
+          }
+        }
+      }
+    },
+    "templateCoin.heads": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heads"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正面"
+          }
+        }
+      }
+    },
+    "templateCoin.tails": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tails"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反面"
+          }
+        }
+      }
+    },
+    "templateCoin.chooseFace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a face to inspect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择要核对的面"
+          }
+        }
+      }
+    },
+    "templateCoin.show": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show selected result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "演示所选结果"
+          }
+        }
+      }
+    },
+    "templateCoin.again": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show this face again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次演示所选面"
+          }
+        }
+      }
+    },
+    "templateCoin.result": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local example result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地演示结果"
+          }
+        }
+      }
+    },
+    "templateCoin.emptyAction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No result text configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未配置结果文案"
+          }
+        }
+      }
+    },
+    "templateCoin.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The configuration changed or cannot be read. Reload the current draft to begin a fresh local rehearsal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置已变化或无法读取。重新读取当前草稿可开始新的本地排练。"
+          }
+        }
+      }
+    },
+    "templateCoin.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前配置"
+          }
+        }
+      }
+    },
     "merchant.redemptionProgress.step.confirmed": {
       "localizations": {
         "en": {

@@ -1,0 +1,19 @@
+{
+  "base": "077273784d7fed5397f84f17b2a659723f3f3b22",
+  "dependencies": [
+    "creator-sample-browser-0772737",
+    "creator-sample-coverage-0772737"
+  ],
+  "app_sources": [
+    "Core/TemplateCoinFlipRehearsal.swift",
+    "App/TemplateCoinFlipRehearsalView.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateCoinFlipRehearsalTests.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateCoinFlipRehearsalViewTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-coin-rehearsal.json",
+  "integration_note": "Two additive host hunks only: coin config +2lines,26 browser +4lines. Preserve25/26 and earlier cumulative hosts. Register2source leaves,2XCTest and14strings centrally; private source modules excluded."
+}

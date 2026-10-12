@@ -5,7 +5,8 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 
 class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
-    # Preserve the historical method ID; assertions below enforce the repaired outer lifetime.
+    # Preserve the historical method ID. Actual c11 proved a box-keyed List still remounts.
+    # The List now has stable identity; detail/package are unchanged by this narrow repair.
     def test_real_visibility_callbacks_are_inside_keyed_content_and_navigation_host_stays_outside(self):
         library = (ROOT / 'App/WorkshopOwnedLibraryView.swift').read_text()
         package = (ROOT / 'App/WorkshopOwnedPackageView.swift').read_text()
@@ -13,12 +14,19 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
                                (library.split('@MainActor struct WorkshopOwnedDetailView:')[1].split('private struct WorkshopOwnedScopeSection:')[0], 'detail'),
                                (package.split('@MainActor struct WorkshopOwnedPackageView:')[1].split('private struct PackageValueRow:')[0], 'package')]:
             with self.subTest(screen=screen):
-                self.assertEqual(source.count('.id(ObjectIdentifier(displayed))'), 1)
-                self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onAppear {'))
-                self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onDisappear { ' + ('routeVisibility.disappear(); ' if screen != 'package' else '') + 'navigation.' + screen + 'ViewDisappeared(displayed) }'))
+                if screen == 'list':
+                    self.assertNotIn('.id(ObjectIdentifier(displayed))', source)
+                    self.assertIn('.onAppear { routeVisibility.appear(); navigation.scheduleList(navigation.listViewAppeared(displayed)) }', source)
+                    self.assertIn('.onDisappear { routeVisibility.disappear(); navigation.listViewDisappeared(displayed) }', source)
+                else:
+                    self.assertEqual(source.count('.id(ObjectIdentifier(displayed))'), 1)
+                    self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onAppear {'))
+                    self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onDisappear { ' + ('routeVisibility.disappear(); ' if screen != 'package' else '') + 'navigation.' + screen + 'ViewDisappeared(displayed) }'))
                 if screen != 'package':
                     self.assertLess(source.index('.onDisappear {'), source.index('.navigationDestination('))
                 self.assertIn('let displayed = navigation.' + screen + 'Appearance', source)
+
+        self.assertIn('WorkshopOwnedLibraryView(browser: browser).id(browser.identity)', library)
 
     def test_actual_hosted_back_assertions_and_original_wait_bound_remain(self):
         source = (ROOT / 'Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift').read_text()
@@ -29,6 +37,8 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
         self.assertIn('XCTAssertFalse(f.navigation.listPermit === listPermit)', source)
         self.assertIn('XCTAssertEqual(f.state.unauthorized,0)', source)
         self.assertIn('testBackBeforeOldDisappearanceUsesNewRouteBoxAndOldCallbacksCannotClearIt', source)
+        self.assertIn('testHostedListManualRetirementDoesNotRemountOrReissuePermit', source)
+        self.assertIn('XCTAssertNil(inactive.permit); XCTAssertNil(f.navigation.listPermit)', source)
 
         for token in ['same hosted detail reopens with fresh permit',
                       'XCTAssertTrue(f.navigation.listPermit === returnedList); XCTAssertTrue(returnedList.isLive)',

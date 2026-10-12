@@ -446,3 +446,34 @@ extension WorkshopOwnedNavigationPresentationTests {
         XCTAssertEqual(f.recorder.paths.count, 5); XCTAssertEqual(f.state.unauthorized, 0)
     }
 }
+
+
+extension WorkshopOwnedNavigationPresentationTests {
+    func testHostedListManualRetirementDoesNotRemountOrReissuePermit() async throws {
+        let f = try fixture()
+        let host = UIHostingController(rootView: NavigationStack { WorkshopOwnedLibraryView(browser: f.browser, navigation: f.navigation) })
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
+        window.rootViewController = host; window.makeKeyAndVisible()
+        defer { sceneWindow.retire() }
+        try await wait("mounted list is ready") { f.browser.phase == .ready && f.navigation.listPermit != nil }
+        XCTAssertTrue(host.view.window === window)
+        let oldBox = f.navigation.listAppearance, oldPermit = try XCTUnwrap(f.navigation.listPermit)
+        let calls = f.recorder.paths.count
+        f.navigation.listViewDisappeared(oldBox)
+        let inactive = f.navigation.listAppearance
+        XCTAssertFalse(inactive === oldBox); XCTAssertFalse(oldPermit.isLive)
+        XCTAssertNil(f.navigation.offerList(oldPermit)); XCTAssertTrue(f.browser.rows.isEmpty)
+        for _ in 0..<5 {
+            try await Task.sleep(nanoseconds: 20_000_000)
+            XCTAssertTrue(host.view.window === window)
+            XCTAssertTrue(f.navigation.listAppearance === inactive)
+            XCTAssertNil(inactive.permit); XCTAssertNil(f.navigation.listPermit)
+            XCTAssertEqual(f.recorder.paths.count, calls)
+        }
+        f.navigation.listViewDisappeared(oldBox)
+        XCTAssertTrue(f.navigation.listAppearance === inactive)
+        XCTAssertNil(f.navigation.listViewAppeared(oldBox))
+        XCTAssertNil(f.navigation.listPermit); XCTAssertEqual(f.recorder.paths.count, calls)
+        XCTAssertEqual(f.state.unauthorized, 0)
+    }
+}
