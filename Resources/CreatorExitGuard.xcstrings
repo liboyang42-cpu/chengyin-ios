@@ -1,0 +1,118 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "version": "1.0",
+  "strings": {
+    "templateAuthorExit.back": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        }
+      }
+    },
+    "templateAuthorExit.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "离开创作编辑？"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave the editor?"
+          }
+        }
+      }
+    },
+    "templateAuthorExit.leave": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不保存，直接离开"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave without saving"
+          }
+        }
+      }
+    },
+    "templateAuthorExit.continue": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep editing"
+          }
+        }
+      }
+    },
+    "templateAuthorExit.retry": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新检查保存状态"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recheck saved state"
+          }
+        }
+      }
+    },
+    "templateAuthorExit.unsaved": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前内容与本机保存记录不同，或尚未保存到本机。离开不会删除已有本机草稿；未保存的内容可能丢失。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current content differs from the local saved draft, or has not been saved locally. Leaving keeps existing local records; unsaved content may be lost."
+          }
+        }
+      }
+    },
+    "templateAuthorExit.unverified": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法确认本机保存状态。可重新检查、继续编辑，或明确选择不保存离开。已有本机记录不会被删除。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local saved state could not be verified. Recheck, keep editing, or explicitly leave without saving. Existing local records will not be deleted."
+          }
+        }
+      }
+    }
+  }
+}

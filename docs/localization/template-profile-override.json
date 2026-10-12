@@ -1,0 +1,406 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "version": "1.0",
+  "strings": {
+    "templateProfileOverride.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "咔哒覆盖规则"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guided answer override"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.scope": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为当前建档选项题配置覆盖条件和目标选项。这里不会替玩家作答。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure this profile question’s condition and target option. This does not answer for a player."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.stageScope": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改先留在当前表单，点“应用到草稿”后才会改变草稿。关闭、重新载入或离开前台会丢弃未应用的修改。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edits stay in this form until Apply. Closing, reloading or leaving the foreground discards unapplied edits."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.saveScope": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地保存会先应用有效表单，再保存当前账号的整份草稿；保存失败可重试。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local save applies the valid form, then saves the whole draft for this account. You can retry a failed save."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.question": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前问题"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current question"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.readOnly": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此规则包含手写、复杂或未识别的内容，快捷表单无法安全编辑。请返回原有通用配置编辑器。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This rule contains manual, complex or unrecognized content. Use the existing general configuration editor."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.disabled": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建档模块尚未启用。此表单不会自动启用它。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile is disabled. This form will not enable it automatically."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.enabled": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用咔哒覆盖"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable answer override"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.variable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "触发状态，如 counter.instability"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "State, e.g. counter.instability"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.threshold": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到几就触发（整数）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trigger at this value (integer)"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.bounds": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前原生条件支持 -99 到 99 的整数；空输入按小程序规则记为 0。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current native condition supports integers from -99 to 99. Blank input becomes 0, as in Mini."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.option": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改写成哪个选项"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assign this option"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.voice": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改写时的那句话（可选）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override line (optional)"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.voiceHint": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 120 个 UTF-16 字符单位。可原样使用 {picked} 和 {assigned}。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 120 UTF-16 code units. You may use literal {picked} and {assigned} placeholders."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.validation": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用前请检查"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check before applying"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.apply": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到草稿"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to draft"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.save": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用并本地保存"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply and save locally"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.reload": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "丢弃未应用修改并重新载入"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard unapplied edits and reload"
+          }
+        }
+      }
+    },
+    "templateProfileOverride.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表单已退役或草稿发生变化。重新载入后再编辑。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This form expired or the draft changed. Reload before editing."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.staged": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改尚未应用到草稿。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes have not been applied to the draft."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.applied": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已应用到当前草稿，尚未执行本地保存。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied to the current draft. Local save has not been performed."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.variableInvalid": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态须为 clue、relation 或 counter 前缀，后接小写字母开头的变量名。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use clue, relation or counter, followed by a variable name starting with a lowercase letter."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.thresholdInvalid": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "触发阈值须为 -99 到 99 的有限整数。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The threshold must be a finite integer from -99 to 99."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.optionInvalid": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择当前问题中仍存在的目标选项。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a target option that still exists in this question."
+          }
+        }
+      }
+    },
+    "templateProfileOverride.voiceInvalid": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改写文案去掉首尾空白后不能超过 120 个 UTF-16 字符单位。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The trimmed override line must not exceed 120 UTF-16 code units."
+          }
+        }
+      }
+    }
+  }
+}

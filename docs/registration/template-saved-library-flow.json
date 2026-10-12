@@ -1,0 +1,21 @@
+{
+  "feature": 36,
+  "actual_base_commit": "f329ff5180551ef3956b2718cb9ef071e2635409",
+  "production_sources": [
+    "Core/TemplateAuthoringSavedResult.swift",
+    "App/TemplateAuthoringSavedResultPresentation.swift",
+    "App/TemplateAuthoringSaveFlow.swift"
+  ],
+  "app_tests": [
+    "Tests/AppUnitTests/TemplateAuthoringSavedResultTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/TemplateAuthoringSavedResultTests.swift"
+  ],
+  "resource": "Resources/CreatorSavedResult.xcstrings",
+  "tableName": "CreatorSavedResult",
+  "EN_ZH_keys": 5,
+  "actual_PBX_registration": true,
+  "CoreTests_directory_discovery": true,
+  "native": "NOT_RUN"
+}

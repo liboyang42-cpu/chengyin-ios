@@ -35,6 +35,7 @@ public struct TemplateAuthoringPending: Codable, Equatable {
     public var terminal: Bool = false
     public var acknowledged: Bool? = nil
     public var savedDraft: TemplateAuthoringSavedDraft? = nil
+    public var publishedReceipt: TemplateAuthoringPublishReceipt? = nil
 }
 @MainActor public protocol TemplateAuthoringStorage: AnyObject {
     func read(_ key: String) throws -> Data?
@@ -74,15 +75,17 @@ public enum TemplateAuthoringRestore: Equatable {
         guard let raw = try storage.read(key(session, "pending:" + identity.draftID.uuidString)) else { return nil }
         let value = try JSONDecoder().decode(TemplateAuthoringPending.self, from: raw)
         guard value.ownerKey == session.ownerKey, value.identity == identity,
-              value.savedDraft == nil || value.savedDraft?.matches(value, session: session) == true else { throw TemplateAuthoringError.invalidContract }
+              (value.savedDraft == nil || value.savedDraft?.matches(value, session: session) == true),
+              (value.publishedReceipt == nil || value.publishedReceipt?.matches(value, session: session) == true) else { throw TemplateAuthoringError.invalidContract }
         return value
     }
     public func savePending(_ value: TemplateAuthoringPending, session: TemplateAuthoringSession) throws {
         guard value.ownerKey == session.ownerKey else { throw TemplateAuthoringError.changedSession }
-        guard value.savedDraft == nil || value.savedDraft?.matches(value, session: session) == true else { throw TemplateAuthoringError.invalidContract }
+        guard (value.savedDraft == nil || value.savedDraft?.matches(value, session: session) == true),
+              (value.publishedReceipt == nil || value.publishedReceipt?.matches(value, session: session) == true) else { throw TemplateAuthoringError.invalidContract }
         // Receipt and terminal flag occupy one existing pending record, never two independent writes.
         try storage.write(JSONEncoder().encode(value), key: key(session, "pending:" + value.identity.draftID.uuidString))
-        if value.savedDraft != nil {
+        if value.savedDraft != nil || value.publishedReceipt != nil {
             guard try pending(session: session, identity: value.identity) == value else { throw TemplateAuthoringError.storageUnavailable }
         }
     }

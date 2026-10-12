@@ -40,6 +40,12 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
               let pending, pending.identity == identity, let saved = pending.savedDraft, saved.matches(pending, session: session) else { return nil }
         return saved
     }
+    public var publishedReceipt: TemplateAuthoringPublishReceipt? {
+        guard state == .acknowledged, let session = captured, currentSession() == session,
+              let pending, pending.identity == identity, let receipt = pending.publishedReceipt,
+              receipt.matches(pending, session: session) else { return nil }
+        return receipt
+    }
     /// Explicit user action only. Keep the old acknowledged receipt/journal; unknown locks never reset.
     @discardableResult public func beginNewDraft(after saved: TemplateAuthoringSavedDraft) -> Bool {
         guard savedDraft == saved, let session = captured, currentSession() == session else { return false }
@@ -100,6 +106,15 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
         synchronizeSession(); guard captured != nil, !locked, restore == .missing, next.id == nil else { return }
         draft = next; generation += 1; review = nil; state = .editing; messageKey = nil
     }
+    /// Read-only checkpoint for an explicit editor exit decision; never changes account or draft state.
+    public func localCheckpointForExit() -> TemplateAuthoringRestore {
+        guard let session = captured, currentSession() == session, !locked, restore == .missing else { return .unavailable }
+        let originalIdentity = identity, stamp = generation
+        let checkpoint = store.load(session: session, identity: originalIdentity)
+        guard currentSession() == session, captured == session, identity == originalIdentity,
+              generation == stamp, !locked, restore == .missing else { return .unavailable }
+        return checkpoint
+    }
     public func saveLocal() {
         synchronizeSession(); guard let session = captured, !locked, restore == .missing else { return }
         do { try store.save(draft, session: session, identity: identity); messageKey = "templateAuthor.localSaved" }
@@ -142,6 +157,9 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
                 var terminal = intent; terminal.terminal = true; terminal.acknowledged = outcome == .acknowledged
                 if outcome == .acknowledged, let id = submission.savedMemberTemplateID {
                     terminal.savedDraft = try .init(operationID: value.id, ownerKey: session.ownerKey, identity: identity, memberTemplateID: id, request: value.request)
+                }
+                if outcome == .acknowledged, let id = submission.publishedMemberTemplateID {
+                    terminal.publishedReceipt = try .init(operationID: value.id, ownerKey: session.ownerKey, identity: identity, memberTemplateID: id, request: value.request)
                 }
                 try store.savePending(terminal, session: session); pending = terminal
                 state = outcome == .acknowledged ? .acknowledged : .simulated; messageKey = outcome == .acknowledged ? "templateAuthor.acknowledged" : "templateAuthor.simulated"

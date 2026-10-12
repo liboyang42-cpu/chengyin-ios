@@ -241,11 +241,14 @@ import SwiftUI
             }
         }
         .navigationTitle("templateAuthor.title")
+        .modifier(TemplateAuthoringExitGuard(model: model, overlaysOpen: { preview || discard || media.review != nil }))
         .disabled(model.busy)
         .task { model.load(); media.reload() }
         .onChange(of: model.draft) { _, _ in model.changed() }
         .onChange(of: sessionRevision) { _, _ in preview = false; step = .intro; model.load(); media.reload() }
         .onDisappear { media.retire(); model.leave() }
+        .preference(key: TemplateAuthoringSavedResultPreferenceKey.self, value: TemplateAuthoringSavedResultObservation.capture(model: model, eligible: onSavedDraft == nil))
+        .preference(key: TemplateAuthoringPublishResultPreferenceKey.self, value: TemplateAuthoringPublishResultObservation.capture(model: model, eligible: onSavedDraft == nil))
         .modifier(TemplateMediaReviewPresentation(controller: media))
         .sheet(isPresented: $preview) { NavigationStack { TemplateAuthoringPreviewView(draft: model.draft) } }
         .sheet(item: $model.review, onDismiss: { model.cancel() }) { value in
@@ -274,7 +277,7 @@ import SwiftUI
             Label("templateAuthor.introFinish", systemImage: "checkmark.circle")
             Label("templateAuthor.introStory", systemImage: "book")
             Label("templateAuthor.introReward", systemImage: "gift")
-            Button("templateAuthor.begin") { step = .name }.disabled(!model.canEdit).accessibilityIdentifier("templateAuthor.begin")
+            TemplateAuthoringIntroExperience(model: model, reader: metadataReader, onContinue: { step = .name })
         }
     }
     private var name: some View {

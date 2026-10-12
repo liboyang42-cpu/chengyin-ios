@@ -1,0 +1,29 @@
+{
+  "base": "f329ff5180551ef3956b2718cb9ef071e2635409",
+  "base_tree": "e5a30ae239ec9f4cdf0576cab3d685b2189d2cdd",
+  "feature": 34,
+  "localization_key_count": 25,
+  "contract_check": "Tests/ContractChecks/test_template_profile_override.py",
+  "host": "App/TemplateCreatorConfigurationView.swift",
+  "host_added_lines": 3,
+  "central_registration": "INTEGRATED_IN_THIS_CANDIDATE: PBX app/app-unit/resource membership and dedicated EN/ZH catalog; existing SwiftPM directory discovery unchanged.",
+  "dependency": "Only existing adfb model/domain/composition/store APIs; no 31–33 dependency.",
+  "native_status": "NOT_RUN",
+  "app_sources": [
+    "Core/TemplateProfileOverrideConfiguration.swift",
+    "App/TemplateProfileOverrideEditor.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateProfileOverrideConfigurationTests.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateProfileOverrideEditorTests.swift"
+  ],
+  "localization_fragments": [
+    "docs/localization/template-profile-override.json"
+  ],
+  "origin_base": "adfbde7c2030070f25a1fa7ff89f89ed93307d11",
+  "active_catalog": "Resources/TemplateProfileOverride.xcstrings",
+  "package_swift_modified": false,
+  "unpublished_feature_dependencies": []
+}

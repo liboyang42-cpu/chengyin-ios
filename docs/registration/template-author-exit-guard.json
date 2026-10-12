@@ -1,0 +1,29 @@
+{
+  "feature": 35,
+  "actual_base_commit": "f329ff5180551ef3956b2718cb9ef071e2635409",
+  "base_tree": "e5a30ae239ec9f4cdf0576cab3d685b2189d2cdd",
+  "app_sources": [
+    "App/TemplateAuthoringExitGuard.swift",
+    "Core/TemplateAuthoringExitDecision.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateAuthoringExitGuardTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateAuthoringExitDecisionTests.swift"
+  ],
+  "active_catalog": "Resources/CreatorExitGuard.xcstrings",
+  "localization_key_count": 7,
+  "native_counts": {
+    "Core": 12,
+    "App": 18
+  },
+  "registration": "ACTUAL_PBX_SOURCE_APP_TEST_RESOURCE_MEMBERSHIP",
+  "Package_swift": "UNCHANGED_DIRECTORY_DISCOVERY",
+  "host_additions": [
+    "App/TemplateAuthoringView.swift:one modifier line",
+    "Core/TemplateAuthoringCoordinator.swift:read-only checkpoint method"
+  ],
+  "native_status": "NOT_RUN",
+  "localization_table": "CreatorExitGuard"
+}

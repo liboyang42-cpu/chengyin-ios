@@ -123,6 +123,9 @@ import SwiftUI
                 profileRows.accessibilityIdentifier("creator.field.profile." + field.id)
             } else if field.id == "kind", let index = profileQuestionIndex, profileComposition.isSupported {
                 TemplateProfileKindFields(model: model, questionIndex: index).id(profileComposition.questions[index].key)
+                if profileComposition.questions[index].kind == "pick" {
+                    NavigationLink("templateProfileOverride.title") { TemplateProfileOverrideEditor(model: model, questionKey: profileComposition.questions[index].key) }
+                }
             } else { control.accessibilityIdentifier("creator.field." + family.rawValue + "." + field.id) }
         }
     }

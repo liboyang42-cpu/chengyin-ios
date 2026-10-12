@@ -1,0 +1,20 @@
+{
+  "feature": 37,
+  "actual_base_commit": "f329ff5180551ef3956b2718cb9ef071e2635409",
+  "production_sources": [
+    "Core/TemplateAuthoringIntroExamples.swift",
+    "App/TemplateAuthoringIntroExperience.swift"
+  ],
+  "app_tests": [
+    "Tests/AppUnitTests/TemplateIntroExperienceTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/TemplateAuthoringIntroExamplesTests.swift"
+  ],
+  "resource": "Resources/CreatorIntroExamples.xcstrings",
+  "tableName": "CreatorIntroExamples",
+  "EN_ZH_keys": 9,
+  "actual_PBX_registration": true,
+  "CoreTests_directory_discovery": true,
+  "native": "NOT_RUN"
+}

@@ -7,8 +7,16 @@ import SwiftUI
             Section { Text("templateAuthor.introBody"); Text("templateAuthor.unavailable").foregroundStyle(.secondary) }
             Section {
                 NavigationLink {
-                    TemplateAuthoringView(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session,
-                        imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
+                    let coordinator = session.templateAuthoringEditor()
+                    let library: () -> AnyView = {
+                        AnyView(TemplateAuthoringMineView(coordinator: session.templateShelfCoordinator(), sessionRevision: session.sessionRevision,
+                            memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0)) }, ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0)) },
+                            creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0)) }).id(session.templateShelfViewIdentity))
+                    }
+                    TemplateAuthoringSaveFlow(coordinator: coordinator, sessionRevision: session.sessionRevision, metadataReader: session,
+                        imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled }, library: library)
+                        .modifier(TemplateAuthoringPublishCompletion(coordinator: coordinator, library: library))
+                        .id(session.sessionRevision)
                 } label: { Label("templateAuthor.title", systemImage: "square.and.pencil") }
                     .accessibilityIdentifier("templateAuthor.openEditor")
                 NavigationLink {

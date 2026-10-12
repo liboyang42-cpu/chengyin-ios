@@ -1,0 +1,23 @@
+{
+  "feature": 40,
+  "base_commit": "8b2494eefa335b88dfc0d4bf7bade6da74a3b488",
+  "required_template34_37_tree": "8e4f36a4f1295defd74fd11688391e32c73c1f05",
+  "app_target": [
+    "Core/TemplateAuthoringPublishReceipt.swift",
+    "App/TemplateAuthoringPublishResultPresentation.swift",
+    "App/TemplateAuthoringPublishFlow.swift"
+  ],
+  "app_test_target": [
+    "Tests/AppUnitTests/TemplateAuthoringPublishResultTests.swift"
+  ],
+  "core_test_directory": [
+    "Tests/CoreTests/TemplateAuthoringPublishReceiptTests.swift"
+  ],
+  "resources": [
+    "Resources/CreatorPublishResult.xcstrings"
+  ],
+  "normal_entry": "TemplateAuthoringLaunchView existing TemplateAuthoringSaveFlow + TemplateAuthoringPublishCompletion modifier",
+  "project_return": "Existing onSavedDraft callback untouched; publish preference eligible only when onSavedDraft == nil",
+  "transport_and_default_authority": "UNCHANGED",
+  "native_compile_and_tests": "NOT_RUN"
+}

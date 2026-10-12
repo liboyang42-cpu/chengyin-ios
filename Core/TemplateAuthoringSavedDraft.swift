@@ -48,4 +48,8 @@ public struct TemplateAuthoringSavedDraft: Codable, Equatable {
 public struct TemplateAuthoringSubmission {
     public let outcome: TemplateAuthoringOutcome
     public let savedMemberTemplateID: MemberPlayTemplateID?
+    public let publishedMemberTemplateID: MemberPlayTemplateID?
+    public init(outcome: TemplateAuthoringOutcome, savedMemberTemplateID: MemberPlayTemplateID?, publishedMemberTemplateID: MemberPlayTemplateID? = nil) {
+        self.outcome = outcome; self.savedMemberTemplateID = savedMemberTemplateID; self.publishedMemberTemplateID = publishedMemberTemplateID
+    }
 }

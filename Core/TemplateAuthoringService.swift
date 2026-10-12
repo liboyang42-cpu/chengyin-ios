@@ -53,7 +53,8 @@ public enum TemplateAuthoringOutcome: Equatable {
             let outcome: TemplateAuthoringOutcome = canSimulate ? .simulated : .acknowledged
             // Preserve legacy acknowledged semantics. Missing/invalid IDs cannot become a handoff.
             let id = outcome == .acknowledged ? try? TemplateAuthoringSavedDraft.responseID(data, request: request) : nil
-            return .init(outcome: outcome, savedMemberTemplateID: id)
+            let publishedID = outcome == .acknowledged ? try? TemplateAuthoringPublishReceipt.responseID(data, request: request) : nil
+            return .init(outcome: outcome, savedMemberTemplateID: id, publishedMemberTemplateID: publishedID)
         } catch APIError.unauthorized { return .init(outcome: .unauthorized, savedMemberTemplateID: nil) }
         catch let failure as TemplateAuthoringRejection { return .init(outcome: .rejected(failure), savedMemberTemplateID: nil) }
         catch { return .init(outcome: .uncertain, savedMemberTemplateID: nil) }
