@@ -1,0 +1,11 @@
+# P067 personal-account earnings handoff
+
+Normal flow: Merchant → Business → redemption list → selected COOP_ORDER redemption detail → Personal account earnings → fresh owned merchant detail check → existing personal income history/filter/error-retry/results → Close returns to the merchant detail. A sheet preserves the existing source page; this does not replace its navigation lifecycle.
+
+Exact Mini goAssets targets assetcenter/earnings, not a transfer or withdrawal screen. WXML requires canReadFinance and settlementRoute COOP_ORDER. Native uses the same finance permission and exact route on an owned redemption-detail row. Other settlement routes, compact list rows, missing access or mismatched detail do not expose the entry.
+
+The handoff uses an existing fresh MerchantBusinessReading.snapshot, with captured source scope, authorization generation, source snapshot and row. It then requires the independently approved walletHistoryReader to belong to the same account and remain the same reader/scope after the await. The root additionally verifies the source reader is this AppSession's merchantBusinessReader. WalletIncomeView and wallet implementation remain unchanged. Missing wallet-history approval shows the existing unavailable state; no approval/grant is issued or inferred from merchant finance access. Existing cooperation-finance navigation from WalletIncomeView remains permission checked by its own reader.
+
+Closing/background invalidates presentation; an opaque presentation ID protects late sheet dismissal from clearing a newer selection. Refresh/permission changes invalidate the source. No amount comparison implies receipt, settlement completion or merchant-to-personal money movement. No actual network request, account data, payment, transfer or notification permission was used during implementation.
+
+Validation intentionally limited to this package: 8 source contracts, exact Mini goAssets/visibility checks, changed Swift syntax, project/catalog registration and exact forward/reverse trees/outside object comparison. No historical/full-suite rerun. Four Core and six AppUnit fake tests authored but NOT RUN; Swift/Xcode/device/simulator unavailable. Independent root/sixth-line review pending.

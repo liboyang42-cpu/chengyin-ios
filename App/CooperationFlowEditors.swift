@@ -44,6 +44,7 @@ struct CoopFlowRequestPreview: View {
 }
 
 struct CoopFlowTemplateEditor: View {
+    var currentCalendarSession: (() -> CoopFlowSession?)? = nil
     @State private var name = ""
     @State private var type = 0
     @State private var retail = ""
@@ -68,7 +69,14 @@ struct CoopFlowTemplateEditor: View {
                 TextField("coopflow.field.retailValue", text: $retail).keyboardType(.decimalPad)
                 TextField("coopflow.field.unitCost", text: $cost).keyboardType(.decimalPad)
                 TextField("coopflow.field.quota", text: $quota).keyboardType(.numberPad)
-                TextField("coopflow.field.validEnd", text: $validEnd)
+                if let currentCalendarSession {
+                    MerchantPerkValidityEntry(value: $validEnd, context: {
+                        guard let session = currentCalendarSession() else { return nil }
+                        return .init(session: session, value: validEnd, siblingFields: [name, String(type), retail, cost, quota])
+                    })
+                } else {
+                    TextField("coopflow.field.validEnd", text: $validEnd)
+                }
             }
             Section { Text("coopflow.template.rules"); Text("coopflow.currency") }
             if let operation { NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: operation) } }

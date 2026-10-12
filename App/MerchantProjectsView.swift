@@ -91,6 +91,20 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                         guard model.value?.id == snapshot.id else { return }
                         presentation.openWorkspace(selected, snapshot: snapshot, context: context, sourceFresh: sourceFresh)
                     }
+                    .safeAreaInset(edge: .bottom) {
+                        if snapshot.access.isOwner, let merchantID = snapshot.access.merchantID,
+                           MerchantProjectEventKey(project: selected.project) != nil, sourceFresh {
+                            NavigationLink {
+                                MerchantProjectRecentEventsView(reader: reader, project: selected.project, merchantID: merchantID,
+                                    sourceIsCurrent: {
+                                        guard let current = model.value, current.id == snapshot.id else { return false }
+                                        return sourceFresh && presentation.selectionIsCurrent(selected, snapshot: current, context: context)
+                                    })
+                            } label: { Label("merchant.projectEvents.open", systemImage: "bell") }
+                            .padding().frame(maxWidth: .infinity).background(.regularMaterial)
+                            .accessibilityIdentifier("merchant.projectEvents.open")
+                        }
+                    }
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("merchant.done") { presentation.closeSummary(id: selected.id) } } }
                     .navigationDestination(item: presentation.workspaceBinding()) { route in
                         if let contentService, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {

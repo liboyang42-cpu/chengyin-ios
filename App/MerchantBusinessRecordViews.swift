@@ -67,6 +67,9 @@ struct MerchantBusinessField: View {
             MerchantSettlementProgressView(progress: progress, reader: reader, currentSnapshot: currentSnapshot)
                 .id(row.id)
         }
+        if row.kind == .redemption, !compact, let reader = settlementReader, let currentSnapshot = settlementSnapshot {
+            MerchantPersonalIncomeEntry(row: row, reader: reader, currentSnapshot: currentSnapshot)
+        }
         if row.kind == .redemption, access.allows("merchant:finance:read"), row.fields["settlementAmount"] == nil || row.fields["settlementAmount"] == .null {
             Text(row.fields.mbText("displayState") == "NO_CASH_SETTLEMENT" ? "merchant.business.noCash" : "merchant.business.amountPending").font(.footnote).foregroundStyle(.secondary)
         }

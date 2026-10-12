@@ -1,0 +1,25 @@
+import pathlib,unittest
+R=pathlib.Path(__file__).resolve().parents[2]
+CORE=(R/'Core/MerchantOfficialRecruitment.swift').read_text();VIEW=(R/'App/MerchantOfficialRecruitmentView.swift').read_text();HOST=(R/'App/CooperationFlowWorkbench.swift').read_text();ROOT=(R/'App/QuestifyApp.swift').read_text();EVENT=(R/'Core/OfficialEventContracts.swift').read_text()
+class Contract(unittest.TestCase):
+ def test_01_status(self):self.assertIn('event.status == 1 || event.status == 2',CORE)
+ def test_02_policy(self):self.assertIn('"OPTIONAL_PARTNERS"',CORE);self.assertIn('"REQUIRED_FULFILLMENT"',CORE)
+ def test_03_gap_not_hidden(self):self.assertNotIn('recruitmentBlocked',CORE)
+ def test_04_order(self):self.assertIn('events.filter(includes)',CORE)
+ def test_05_normal_entry(self):self.assertIn('operationScope == "MERCHANT", let officialRecruitmentDestination',HOST)
+ def test_06_root_factory(self):self.assertIn('SessionMerchantOfficialRecruitmentView(session: session, source: $0)',ROOT)
+ def test_07_read_screen_reused(self):self.assertIn('OfficialReadScreen(reader: reader, isPrivate: true',VIEW)
+ def test_08_card_detail_reused(self):self.assertIn('OfficialEventCard(event: event)',VIEW);self.assertIn('OfficialEventDetailView(id: event.id, reader: reader, actions: actions)',VIEW)
+ def test_09_fresh_gate(self):self.assertIn('let access = try await merchant.merchantAccess()',VIEW);self.assertIn('guard access.active, let merchantID = access.merchantID, merchantID > 0',VIEW)
+ def test_10_context_after_await(self):self.assertEqual(VIEW.count('guard current, scope == captured else'),2);self.assertIn('originOfficialScope',VIEW);self.assertIn('originRevision',VIEW)
+ def test_11_cancellation(self):self.assertEqual(VIEW.count('try Task.checkCancellation()'),3)
+ def test_12_background_generation(self):self.assertIn('generation = UUID(); active = value',VIEW);self.assertIn('reader.setActive(phase == .active)',VIEW)
+ def test_13_no_publisher_grant(self):self.assertIn('func canPublish() async throws -> Bool { false }',VIEW)
+ def test_14_no_new_transport(self):self.assertNotIn('URLRequest',VIEW);self.assertNotIn('HTTPTransport',VIEW);self.assertNotIn('createEvent',VIEW)
+ def test_15_metadata_additive(self):self.assertIn('fulfillmentPolicy = c.text("fulfillmentPolicy")',EVENT)
+ def test_16_selection_not_authority(self):self.assertIn('display selection is never participation authority',CORE)
+ def test_17_no_city_filter(self):self.assertIn('guard city == nil else',VIEW);self.assertIn('official.events(city: nil)',VIEW)
+ def test_18_fake_negatives(self):
+  s=(R/'Tests/AppUnitTests/MerchantOfficialRecruitmentTests.swift').read_text()
+  for n in ['testBackgroundThenForegroundRetiresInflightGeneration','testMerchantChangeDuringGateStopsPublicRead','testInactiveMerchantCannotReadList','testUnsupportedPrivateReadsNeverDelegate']:self.assertIn(n,s)
+if __name__=='__main__':unittest.main()

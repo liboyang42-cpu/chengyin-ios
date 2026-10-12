@@ -1,0 +1,104 @@
+{
+  "merchant.personalIncome.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Personal account · View earnings"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "个人账户 · 查看收益"
+        }
+      }
+    }
+  },
+  "merchant.personalIncome.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Personal account earnings"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "个人账户收益"
+        }
+      }
+    }
+  },
+  "merchant.personalIncome.boundary": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This is the signed-in account’s income history, not proof that this redemption has settled."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这里是当前登录账号的收益记录，不代表本笔核销已经结算。"
+        }
+      }
+    }
+  },
+  "merchant.personalIncome.changed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Unable to continue from this detail. Retry, or close and refresh the merchant record."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法从当前详情继续，请重试或关闭后刷新商家记录。"
+        }
+      }
+    }
+  },
+  "merchant.personalIncome.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新检查"
+        }
+      }
+    }
+  },
+  "merchant.personalIncome.close": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Return to redemption detail"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "返回核销详情"
+        }
+      }
+    }
+  }
+}

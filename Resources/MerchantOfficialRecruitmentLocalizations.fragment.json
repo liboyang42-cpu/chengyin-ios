@@ -1,0 +1,53 @@
+{
+  "merchant.officialRecruitment.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Official recruitment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "官方招募活动"
+        }
+      }
+    }
+  },
+  "merchant.officialRecruitment.boundary": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upcoming or recruiting official events open to merchant partners. Information gaps remain visible; opening details does not accept an invitation."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "展示向商家开放合作的预告或招募中官方活动。信息不全的活动仍保留，查看详情不代表接受邀约。"
+        }
+      }
+    }
+  },
+  "merchant.officialRecruitment.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No official events currently match merchant recruitment."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无符合商家招募条件的官方活动。"
+        }
+      }
+    }
+  }
+}

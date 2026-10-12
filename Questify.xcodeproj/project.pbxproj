@@ -5,6 +5,126 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+		"CBFA3C5F984B93671AC1EAA6" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MerchantOfficialRecruitmentView.swift";
+			"sourceTree" = "<group>";
+		};
+		"C92ED169173E19B1E41C5C69" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CBFA3C5F984B93671AC1EAA6";
+		};
+		"D2B4C988C82A423FA9CCF17D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MerchantPerkValidityCalendar.swift";
+			"sourceTree" = "<group>";
+		};
+		"72F7548D35A423E2FA89FA9B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D2B4C988C82A423FA9CCF17D";
+		};
+		"197E0530DE3A061CD8840818" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MerchantPersonalIncomeHandoff.swift";
+			"sourceTree" = "<group>";
+		};
+		"4A85040AF011CDFC364CB721" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "197E0530DE3A061CD8840818";
+		};
+		"B3AF8CBB4262825BFDE46797" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MerchantProjectRecentEventsView.swift";
+			"sourceTree" = "<group>";
+		};
+		"BFA5A521792B146E48FC3180" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B3AF8CBB4262825BFDE46797";
+		};
+		"C70B8BF097C841B88CD8D246" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/MerchantOfficialRecruitment.swift";
+			"sourceTree" = "<group>";
+		};
+		"49E753AECBA39F4455D0A553" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C70B8BF097C841B88CD8D246";
+		};
+		"98AC11B24F867E6B1661A971" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/MerchantPerkValidityDraft.swift";
+			"sourceTree" = "<group>";
+		};
+		"19A483B5443F3743306EBA74" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "98AC11B24F867E6B1661A971";
+		};
+		"CA4C5999A2C02A3CF8AB9D33" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/MerchantPersonalIncomeEligibility.swift";
+			"sourceTree" = "<group>";
+		};
+		"2C791C0E1A92C5E875D2DE9F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CA4C5999A2C02A3CF8AB9D33";
+		};
+		"3F5D8C71BB581C7BA6F87148" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/MerchantProjectRecentEvents.swift";
+			"sourceTree" = "<group>";
+		};
+		"7822CC7C34794F7B4B9BC461" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3F5D8C71BB581C7BA6F87148";
+		};
+		"D2F693387F8E28FF749FD5BB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/MerchantOfficialRecruitmentTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"822C31470447880C0D4D7867" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D2F693387F8E28FF749FD5BB";
+		};
+		"9DEAA5941B29C48CAB63AA5B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/MerchantPerkValidityCalendarTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"EAA78E2F940E5C79694CD66C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9DEAA5941B29C48CAB63AA5B";
+		};
+		"2BACCF86978FCFEB5AFA29CA" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/MerchantPersonalIncomeHandoffTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"D2D63D9AE66ED170A7CCAAF3" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "2BACCF86978FCFEB5AFA29CA";
+		};
+		"A1ED4F58A8DE61DC0934453C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/MerchantProjectRecentEventsTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"54A03AC842E2A6EFDBCAB6D7" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A1ED4F58A8DE61DC0934453C";
+		};
 		"9B478A355D8EA24420239E7C" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -17554,6 +17674,18 @@
 				"249AE2E4AEB3A071E24A0CA8",
 				"FE1DE6A6171EE7F875D5B2DF",
 				"02E0CC25F6A369B3A10EAEC6",
+				"CBFA3C5F984B93671AC1EAA6",
+				"D2B4C988C82A423FA9CCF17D",
+				"197E0530DE3A061CD8840818",
+				"B3AF8CBB4262825BFDE46797",
+				"C70B8BF097C841B88CD8D246",
+				"98AC11B24F867E6B1661A971",
+				"CA4C5999A2C02A3CF8AB9D33",
+				"3F5D8C71BB581C7BA6F87148",
+				"D2F693387F8E28FF749FD5BB",
+				"9DEAA5941B29C48CAB63AA5B",
+				"2BACCF86978FCFEB5AFA29CA",
+				"A1ED4F58A8DE61DC0934453C",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -19057,6 +19189,14 @@
 				"5EA3443AAC9E573C7F73B3CA",
 				"C9B1BE3F8FD1F6BEC6119DDC",
 				"DB62867E7140390FD6160B22",
+				"C92ED169173E19B1E41C5C69",
+				"72F7548D35A423E2FA89FA9B",
+				"4A85040AF011CDFC364CB721",
+				"BFA5A521792B146E48FC3180",
+				"49E753AECBA39F4455D0A553",
+				"19A483B5443F3743306EBA74",
+				"2C791C0E1A92C5E875D2DE9F",
+				"7822CC7C34794F7B4B9BC461",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -25041,6 +25181,10 @@
 				"09CD4C5789DC98F2695EB81A",
 				"83A3D3C1F2237AD239CDFF92",
 				"76164B128AC3313E0B934C19",
+				"822C31470447880C0D4D7867",
+				"EAA78E2F940E5C79694CD66C",
+				"D2D63D9AE66ED170A7CCAAF3",
+				"54A03AC842E2A6EFDBCAB6D7",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};

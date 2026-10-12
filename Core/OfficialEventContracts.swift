@@ -77,6 +77,7 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     public let paused: Bool
     public let pausedReason: String?
     /// Public-list information only. These facts never grant or deny participation.
+    public let fulfillmentPolicy: String?
     public let recruitmentBlocked: Bool?
     public let recruitmentBlockedReason: String?
     public let eligible: Bool?
@@ -109,6 +110,7 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
         myProgress = c.integer("myProgress").flatMap { $0 >= 0 ? $0 : nil }
         signed = c.flag("signed"); roamEnabled = c.flag("roamEnabled") == true
         paused = c.flag("paused") == true; pausedReason = c.text("pausedReason")
+        fulfillmentPolicy = c.text("fulfillmentPolicy")
         recruitmentBlocked = c.flag("recruitmentBlocked")
         recruitmentBlockedReason = c.text("recruitmentBlockedReason")
         eligible = c.flag("eligible"); contractVersion = c.integer("contractVersion")

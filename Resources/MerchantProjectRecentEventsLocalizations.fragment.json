@@ -1,0 +1,121 @@
+{
+  "merchant.projectEvents.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recent project activity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本项目近期动态"
+        }
+      }
+    }
+  },
+  "merchant.projectEvents.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recent project activity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看本项目近期动态"
+        }
+      }
+    }
+  },
+  "merchant.projectEvents.boundary": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Only matching items from the store’s recent activity window are shown. This is not unread mail or a full project history."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅显示全店近期动态中属于本项目的记录，不代表未读消息或项目完整历史。"
+        }
+      }
+    }
+  },
+  "merchant.projectEvents.changed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This project or merchant context has changed. Go back and reopen the project."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "项目或商家身份已变化，请返回后重新打开项目。"
+        }
+      }
+    }
+  },
+  "merchant.projectEvents.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No activity for this project in the recent window."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "近期窗口内没有本项目动态。"
+        }
+      }
+    }
+  },
+  "merchant.projectEvents.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试"
+        }
+      }
+    }
+  },
+  "merchant.projectEvents.refresh": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refresh recent activity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新近期动态"
+        }
+      }
+    }
+  }
+}

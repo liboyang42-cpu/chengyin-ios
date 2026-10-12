@@ -4,8 +4,16 @@ import SwiftUI
 @MainActor struct CooperationFlowWorkbench: View {
     let reader: any CoopFlowReading
     var operationScope: String? = nil
+    @Environment(\.merchantOfficialRecruitmentDestination) private var officialRecruitmentDestination
     var body: some View {
         List {
+            if operationScope == "MERCHANT", let officialRecruitmentDestination {
+                Section {
+                    NavigationLink { officialRecruitmentDestination(reader) } label: {
+                        Label("merchant.officialRecruitment.title", systemImage: "flag.checkered")
+                    }.accessibilityIdentifier("merchant.officialRecruitment.open")
+                }
+            }
             Section("coopflow.business") {
                 link("coopflow.finance", resource: .finance)
                 link("coopflow.mybiz", resource: .myBusiness)
@@ -16,7 +24,7 @@ import SwiftUI
             }
             Section("coopflow.supply") {
                 link("coopflow.templates", resource: .templates)
-                NavigationLink { CoopFlowTemplateEditor() } label: { Label("coopflow.template.new", systemImage: "plus.circle") }
+                NavigationLink { CoopFlowTemplateEditor(currentCalendarSession: { reader.session }) } label: { Label("coopflow.template.new", systemImage: "plus.circle") }
             }
             Section("coopflow.workflows") {
                 NavigationLink { CoopFlowNewInvitationView(reader: reader, operationScope: operationScope) } label: { Label("context.coop.new", systemImage: "person.crop.circle.badge.plus") }

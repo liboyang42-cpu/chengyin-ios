@@ -41,6 +41,26 @@ public struct MerchantEvent: Decodable, Equatable {
     public let content: String
     /// Already rendered by server as MM-dd HH:mm; never reinterpret as a Date.
     public let time: String
+    /// Optional ownership metadata for the recent-project activity destination.
+    /// Preserve source strings: "01" is not the canonical owner ID "1".
+    public let projectOwnerType: String?
+    public let projectOwnerID: String?
+    public init(content: String, time: String, projectOwnerType: String? = nil, projectOwnerID: String? = nil) {
+        self.content = content; self.time = time
+        self.projectOwnerType = projectOwnerType; self.projectOwnerID = projectOwnerID
+    }
+    private enum CodingKeys: String, CodingKey { case content, time, ownerType, ownerId }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        content = try c.decode(String.self, forKey: .content)
+        time = try c.decode(String.self, forKey: .time)
+        func scalar(_ key: CodingKeys) -> String? {
+            if let value = try? c.decode(String.self, forKey: key) { return value }
+            if let value = try? c.decode(Int.self, forKey: key) { return String(value) }
+            return nil
+        }
+        projectOwnerType = scalar(.ownerType); projectOwnerID = scalar(.ownerId)
+    }
 }
 
 public enum MerchantOrderStatus: Int, CaseIterable {
