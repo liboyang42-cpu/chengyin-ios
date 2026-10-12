@@ -21,7 +21,9 @@ import Observation
 }
 @MainActor @Observable final class ProfileSelfGrowthFixtureReader: GrowthCenterReading {
     var scope=UUID();var isAuthenticated=true;var isConfigured=true;let isOfflineExample=true
-    var reads=0,boardReads=0;var scenario:String
+    var reads=0
+    var boardReads=0
+    var scenario:String
     private let source: GrowthCenterFixtureReader
     init(_ scenario:String="content") {
         self.scenario=scenario

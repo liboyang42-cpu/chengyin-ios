@@ -13,7 +13,9 @@ import Observation
     var editSession: ProfileEditSession?
     var nickname = "Synthetic profile"
     var introduction = "Original public introduction"
-    var publicReads = 0, editorReads = 0, writes = 0
+    var publicReads = 0
+    var editorReads = 0
+    var writes = 0
     var failNextPublic = false
     init(scenario: String = "own") {
         editSession = try! .init(accountID: 81, epoch: 1, token: "synthetic-not-a-credential", viewerRevision: 1)

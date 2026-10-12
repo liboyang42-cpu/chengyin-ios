@@ -181,7 +181,9 @@ extension ProfileLocalCoverOwner {
     let draft: MerchantImageCropDraft
     let confirm: (UUID, MerchantImageCropRect) -> Void
     let cancel: () -> Void
-    @State private var horizontal = 0.5, vertical = 0.5, zoom = 1.0
+    @State private var horizontal = 0.5
+    @State private var vertical = 0.5
+    @State private var zoom = 1.0
     private var rect: MerchantImageCropRect? {
         try? .init(sourceWidth: draft.source.width, sourceHeight: draft.source.height, aspect: .gallery,
                    horizontal: horizontal, vertical: vertical, zoom: zoom)
