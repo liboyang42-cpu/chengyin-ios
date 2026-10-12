@@ -1,0 +1,20 @@
+{
+  "task": "22 P045 AI idea chips and promotional-copy feedback",
+  "base": "ea9d4c429237aeecfb1bbc4b4f6d0713c4fa59dd",
+  "dependencies": [],
+  "modified_app_hunks": "Only two appended calls in ClubAIDesignView: existing idea Section after minutes; after untouched promo Section. Removing those two added lines restores the exact baseline bytes.",
+  "app_sources": [
+    "App/ClubAIDesignFeedbackViews.swift"
+  ],
+  "core_sources": [
+    "Core/ClubAIDesignFeedback.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubAIDesignFeedbackTests.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubAIDesignFeedbackViewTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubAIDesignFeedbackLocalizations.fragment.json",
+  "merge_instructions": "Register the two new Swift sources and two tests in their corresponding targets, merge four bilingual keys. Keep all existing generation/adoption lines. No dependencies on21 or changes to central registration/catalog files in this packet."
+}

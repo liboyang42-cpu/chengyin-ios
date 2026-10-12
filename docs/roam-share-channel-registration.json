@@ -1,0 +1,71 @@
+{
+  "feature": "P005 local share-channel choice, onShareVisibility with enforceable export-channel restrictions",
+  "status": "IMPLEMENTED_PENDING_CENTRAL_REGISTRATION_AND_APPLE_ACCEPTANCE",
+  "base": "077273784d7fed5397f84f17b2a659723f3f3b22",
+  "modified_sources": [
+    "App/RoamHistoryShareView.swift"
+  ],
+  "app_sources": [
+    "Core/RoamShareChannelPolicy.swift",
+    "App/RoamShareChannelPicker.swift"
+  ],
+  "core_test_discovery": "Tests/CoreTests/RoamShareChannelPolicyTests.swift via existing SwiftPM target",
+  "app_ui_test_sources": [
+    "Tests/AppUITests/RoamShareChannelFlowTests.swift"
+  ],
+  "localizations": {
+    "roam.shareChannels.title": {
+      "en": "Available actions",
+      "zh-Hans": "可用操作"
+    },
+    "roam.shareChannels.mode.allOptions": {
+      "en": "All sharing options",
+      "zh-Hans": "全部分享方式"
+    },
+    "roam.shareChannels.mode.momentsGuide": {
+      "en": "Moments guide",
+      "zh-Hans": "朋友圈指引"
+    },
+    "roam.shareChannels.mode.saveOnly": {
+      "en": "Save only",
+      "zh-Hans": "仅保存"
+    },
+    "roam.shareChannels.boundary": {
+      "en": "This only chooses available actions. It does not change another app’s audience settings or recall images already shared.",
+      "zh-Hans": "这里只选择可用操作，不会更改其他 App 的可见范围，也不会撤回已经分享的图片。"
+    },
+    "roam.shareChannels.hint.allOptions": {
+      "en": "Save the card, follow an album guide, or choose a destination in the system share sheet. Nothing is posted automatically.",
+      "zh-Hans": "可保存卡片、查看相册分享指引，或在系统分享面板中选择目的地。不会自动发布。"
+    },
+    "roam.shareChannels.hint.momentsGuide": {
+      "en": "Keep the save action and Moments instructions. Choose who can see your post in WeChat yourself.",
+      "zh-Hans": "保留保存操作和朋友圈指引。请在微信中自行选择谁可见。"
+    },
+    "roam.shareChannels.hint.saveOnly": {
+      "en": "Only the existing Save to Photos action is available for this card.",
+      "zh-Hans": "这张卡片只保留现有的存入相册操作。"
+    }
+  },
+  "mode_mapping": {
+    "allOptions": "Mini public action intent, constrained to existing native save/Moments/Xiaohongshu/system; no Square post",
+    "momentsGuide": "Mini friends action subset; save+Moments guide without claiming friend privacy enforcement",
+    "saveOnly": "Mini private action subset; save only; no output sent automatically"
+  },
+  "existing_writers_and_permissions": "Unchanged. No Photos permission request/write performed by mode selection. Existing save UI remains user initiated.",
+  "image_and_receipt_behavior": "Channel change leaves image content and completed save receipt unchanged; only retires album-guide presentation/callbacks, avoiding duplicate saved image. Route/source changes keep existing image invalidation.",
+  "Hub": "Unchanged; no dependency or reapplication of18–20",
+  "tests": {
+    "Core_XCTest_authored": 12,
+    "App_UI_XCTest_authored": 7,
+    "native_execution": "NOT_RUN: Swift/Apple toolchain unavailable"
+  },
+  "acceptance": [
+    "Ordinary existing Hub->history->record->share->choose each local mode->prepare card; only permitted actions visible",
+    "Switch mode after prepare retains same image; no automatic save or share; saved receipt reusable without duplicate write",
+    "Busy Photos save/guide blocks mode choice; stale disallowed guide callbacks rejected before guide display",
+    "Chinese/English labels distinguish channel selection from external audience privacy; dismissal reopens default allOptions",
+    "Existing include-route clipping, source owner fences, Photos and album guide behavior regressions"
+  ],
+  "central_files_edited": false
+}

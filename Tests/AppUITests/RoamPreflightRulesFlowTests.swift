@@ -16,7 +16,13 @@ final class RoamPreflightRulesFlowTests: XCTestCase {
     }
     private func open(_ app: XCUIApplication) {
         let link = app.buttons["roam.preflightRules.open"]
-        XCTAssertTrue(revealFixtureElement(link, in: app)); link.tap()
+        let revealed = revealFixtureElement(link, in: app)
+        if !revealed {
+            print("ROAM_RULES_ENTRY_REVEAL_FAILED appFrame=\(app.frame) windowFrames=\(app.windows.allElementsBoundByIndex.map { $0.frame }) buttonExists=\(link.exists)")
+            if link.exists { print("ROAM_RULES_ENTRY_BUTTON frame=\(link.frame) hittable=\(link.isHittable)") }
+            print("ROAM_RULES_ENTRY_AX \(app.debugDescription)")
+        }
+        XCTAssertTrue(revealed); link.tap()
         XCTAssertTrue(element("roam.preflightRules.availability", app).waitForExistence(timeout: 5))
     }
     func testHubRulesAreReachableBeforeLiveAndHaveNoStartOrPermissionAction() {
@@ -34,8 +40,10 @@ final class RoamPreflightRulesFlowTests: XCTestCase {
     }
     func testBackPreservesOwnedCouponsLocationSettingsAndLiveEntries() {
         let app = app(); open(app); app.navigationBars.buttons.element(boundBy: 0).tap()
-        for id in ["roam.ownedCoupons.open", "roam.locationSettings.open", "roam.experience.live.open", "roam.preflightRules.open"] {
-            XCTAssertTrue(revealFixtureElement(app.buttons[id], in: app))
+        // Retain the historical method ID for native result carry. The published Hub
+        // has the voucher entry; owned-coupon52 remains a separate unpublished dependency.
+        for id in ["roam.experience.voucher.open", "roam.locationSettings.open", "roam.experience.live.open", "roam.preflightRules.open"] {
+            XCTAssertTrue(revealFixtureElement(app.buttons[id], in: app, towardTop: id == "roam.experience.voucher.open"))
         }
     }
     func testReopeningAndForegroundReturnDoNotStartRoaming() {

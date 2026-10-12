@@ -1,0 +1,293 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateSamples.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explore local samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先看本地样例"
+          }
+        }
+      }
+    },
+    "templateSamples.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try these text-based examples before configuring a game. This browser uses the existing local rehearsal screens."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先体验这些文字交互样例，再配置玩法。此处复用已有本地试玩界面。"
+          }
+        }
+      }
+    },
+    "templateSamples.configureScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open editor uses your original draft. It does not enable a game, switch a mode, or copy sample values."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入配置会打开原草稿，不自动启用玩法、切换模式或复制样例。"
+          }
+        }
+      }
+    },
+    "templateSamples.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This configuration cannot be read safely. The original draft is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份配置无法安全读取，原草稿没有改变。"
+          }
+        }
+      }
+    },
+    "templateSamples.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View sample"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看样例"
+          }
+        }
+      }
+    },
+    "templateSamples.configure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open editor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入配置"
+          }
+        }
+      }
+    },
+    "templateSamples.previewScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A temporary copy: examples fill fields currently equal to defaults; other values are retained. Native local feedback creates no real task or reward. Source example text remains in Chinese."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "临时副本：当前仍等于默认值的字段会填入样例，其他值原样保留。本地试玩反馈不产生真实任务或奖励。原始样例文案保留中文。"
+          }
+        }
+      }
+    },
+    "templateSamples.filled %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld fields supplied with examples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个字段填入样例"
+          }
+        }
+      }
+    },
+    "templateSamples.group.questions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "问答类"
+          }
+        }
+      }
+    },
+    "templateSamples.group.interaction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interactions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "互动类"
+          }
+        }
+      }
+    },
+    "templateSamples.group.challenge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Challenges"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挑战类"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.qaText": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字问答"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.qaPick": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multiple-choice question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项问答"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.estimate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Number estimate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "猜数字"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.random": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw a card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "抽卡"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.profile": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Character profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色建档"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave a note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留言"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.typeIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typing challenge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入挑战"
+          }
+        }
+      }
+    }
+  }
+}

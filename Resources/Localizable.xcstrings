@@ -1,6 +1,726 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "merchant.redemptionProgress.step.confirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconciliation confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对账确认"
+          }
+        }
+      }
+    },
+    "merchant.redemptionProgress.step.generated": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement statement created"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成结算单"
+          }
+        }
+      }
+    },
+    "merchant.redemptionProgress.step.paid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform payment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台打款"
+          }
+        }
+      }
+    },
+    "merchant.redemptionProgress.step.redeemed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redemption completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销成功"
+          }
+        }
+      }
+    },
+    "merchant.redemptionProgress.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算进度"
+          }
+        }
+      }
+    },
+    "roam.shareChannels.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available actions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用操作"
+          }
+        }
+      }
+    },
+    "roam.shareChannels.mode.allOptions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All sharing options"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部分享方式"
+          }
+        }
+      }
+    },
+    "roam.shareChannels.mode.momentsGuide": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moments guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "朋友圈指引"
+          }
+        }
+      }
+    },
+    "roam.shareChannels.mode.saveOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅保存"
+          }
+        }
+      }
+    },
+    "roam.shareChannels.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only chooses available actions. It does not change another app’s audience settings or recall images already shared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只选择可用操作，不会更改其他 App 的可见范围，也不会撤回已经分享的图片。"
+          }
+        }
+      }
+    },
+    "roam.shareChannels.hint.allOptions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the card, follow an album guide, or choose a destination in the system share sheet. Nothing is posted automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可保存卡片、查看相册分享指引，或在系统分享面板中选择目的地。不会自动发布。"
+          }
+        }
+      }
+    },
+    "roam.shareChannels.hint.momentsGuide": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep the save action and Moments instructions. Choose who can see your post in WeChat yourself."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留保存操作和朋友圈指引。请在微信中自行选择谁可见。"
+          }
+        }
+      }
+    },
+    "roam.shareChannels.hint.saveOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the existing Save to Photos action is available for this card."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这张卡片只保留现有的存入相册操作。"
+          }
+        }
+      }
+    },
+    "club.aiFeedback.ideas": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try an idea"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试试这些点子"
+          }
+        }
+      }
+    },
+    "club.aiFeedback.copy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy promotional text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制宣传文案"
+          }
+        }
+      }
+    },
+    "club.aiFeedback.copied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Promotional text copied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "宣传文案已复制"
+          }
+        }
+      }
+    },
+    "club.aiFeedback.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t copy. Tap Copy promotional text to try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制失败，请点击“复制宣传文案”重试。"
+          }
+        }
+      }
+    },
+    "accountCollection.favorites.categories": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题类别"
+          }
+        }
+      }
+    },
+    "templateSamples.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explore local samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先看本地样例"
+          }
+        }
+      }
+    },
+    "templateSamples.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try these text-based examples before configuring a game. This browser uses the existing local rehearsal screens."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先体验这些文字交互样例，再配置玩法。此处复用已有本地试玩界面。"
+          }
+        }
+      }
+    },
+    "templateSamples.configureScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open editor uses your original draft. It does not enable a game, switch a mode, or copy sample values."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入配置会打开原草稿，不自动启用玩法、切换模式或复制样例。"
+          }
+        }
+      }
+    },
+    "templateSamples.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This configuration cannot be read safely. The original draft is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份配置无法安全读取，原草稿没有改变。"
+          }
+        }
+      }
+    },
+    "templateSamples.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View sample"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看样例"
+          }
+        }
+      }
+    },
+    "templateSamples.configure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open editor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入配置"
+          }
+        }
+      }
+    },
+    "templateSamples.previewScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A temporary copy: examples fill fields currently equal to defaults; other values are retained. Native local feedback creates no real task or reward. Source example text remains in Chinese."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "临时副本：当前仍等于默认值的字段会填入样例，其他值原样保留。本地试玩反馈不产生真实任务或奖励。原始样例文案保留中文。"
+          }
+        }
+      }
+    },
+    "templateSamples.filled %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld fields supplied with examples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个字段填入样例"
+          }
+        }
+      }
+    },
+    "templateSamples.group.questions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "问答类"
+          }
+        }
+      }
+    },
+    "templateSamples.group.interaction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interactions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "互动类"
+          }
+        }
+      }
+    },
+    "templateSamples.group.challenge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Challenges"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挑战类"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.qaText": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字问答"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.qaPick": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multiple-choice question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项问答"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.estimate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Number estimate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "猜数字"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.random": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw a card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "抽卡"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.profile": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Character profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色建档"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave a note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留言"
+          }
+        }
+      }
+    },
+    "templateSamples.choice.typeIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typing challenge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入挑战"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More local samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多本地样例"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explore the remaining supported local examples. No play session, camera, sensor, image request or reward is created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体验其余已支持的本地样例。不会创建玩家会话、调用相机传感器、请求图片或发放奖励。"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This configuration cannot be rehearsed yet. Open its editor; your original data has not been changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前配置暂不能排练，请打开原配置查看；原始数据未改变。"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.nameOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picture-choice rehearsal uses option names only. Images are not loaded. This is not a full image preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "猜图排练仅显示选项名称，不加载图片，不代表完整图片预览。"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.fixedDice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source preview uses fixed examples: 5 for one die, 5 + 4 for two. These are not player rolls."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原样例使用固定点数：单骰为 5，双骰为 5 + 4。这不是玩家掷骰结果。"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.choice.predict": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prediction choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "竞猜选项"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.choice.pricePair": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picture-choice names"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "猜图名称选项"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.choice.dice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D6 dice example"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D6 骰子样例"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.choice.d20": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D20 check example"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D20 检定样例"
+          }
+        }
+      }
+    },
     "merchant.ledgerInbox.open": {
       "localizations": {
         "en": {

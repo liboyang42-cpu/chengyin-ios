@@ -369,3 +369,80 @@ import UIKit
     }
 
 }
+
+
+extension WorkshopOwnedNavigationPresentationTests {
+    func testRouteReturnRequiresRealVisibilityAndFalseToTrueEligibility() {
+        var visibility = WorkshopVisibleRouteReturn(), resumed = 0
+        visibility.returned(wasEligible: false, isEligible: true) { resumed += 1 }
+        XCTAssertEqual(resumed, 0)
+        visibility.appear()
+        visibility.returned(wasEligible: true, isEligible: true) { resumed += 1 }
+        visibility.returned(wasEligible: true, isEligible: false) { resumed += 1 }
+        visibility.returned(wasEligible: false, isEligible: false) { resumed += 1 }
+        XCTAssertEqual(resumed, 0)
+        visibility.returned(wasEligible: false, isEligible: true) { resumed += 1 }
+        XCTAssertEqual(resumed, 1)
+        visibility.disappear()
+        visibility.returned(wasEligible: false, isEligible: true) { resumed += 1 }
+        XCTAssertEqual(resumed, 1)
+        XCTAssertFalse(visibility.isVisible)
+    }
+
+    func testVisibleRouteBackWithoutAnotherAppearanceIssuesFreshPermitsAndRejectsOldCallbacks() async throws {
+        let f = try fixture(), oldListBox = f.navigation.listAppearance
+        var listVisibility = WorkshopVisibleRouteReturn(), detailVisibility = WorkshopVisibleRouteReturn()
+        listVisibility.appear()
+        let oldList = try XCTUnwrap(f.navigation.listViewAppeared(oldListBox))
+        await f.browser.load(action: try XCTUnwrap(oldList.offer()))
+        f.navigation.select(claimId: "synthetic-claim", presentation: oldList)
+        let oldDetailBox = f.navigation.detailAppearance
+        detailVisibility.appear()
+        let oldDetail = try XCTUnwrap(f.navigation.detailViewAppeared(oldDetailBox, claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: try XCTUnwrap(oldDetail.offer()))
+        f.navigation.openPackage(presentation: oldDetail)
+        let oldPackageBox = f.navigation.packageAppearance
+        let oldPackage = try XCTUnwrap(f.navigation.packageViewAppeared(oldPackageBox, claimId: "synthetic-claim"))
+        await f.browser.packageBrowser!.load(claimId: "synthetic-claim", action: try XCTUnwrap(oldPackage.offer()))
+        f.navigation.showsPackage = false
+        let detailBox = f.navigation.detailAppearance
+        XCTAssertNil(detailBox.permit)
+        // Match the observed host sequence: no second real detail onAppear after Back.
+        detailVisibility.returned(wasEligible: false, isEligible: true) {
+            guard f.navigation.selection?.id == "synthetic-claim" && !f.navigation.showsPackage, detailBox.permit == nil else { return }
+            f.navigation.scheduleDetail(f.navigation.detailViewAppeared(detailBox, claimId: "synthetic-claim"), claimId: "synthetic-claim")
+        }
+        try await wait("retained visible detail resumes") { f.navigation.detailPermit != nil && f.browser.detail != nil && f.recorder.paths.count == 4 }
+        let detail = try XCTUnwrap(f.navigation.detailPermit)
+        XCTAssertFalse(detail === oldDetail); XCTAssertFalse(oldDetail.isLive); XCTAssertFalse(oldPackage.isLive)
+        f.navigation.detailViewDisappeared(oldDetailBox); f.navigation.packageViewDisappeared(oldPackageBox)
+        XCTAssertTrue(f.navigation.detailPermit === detail); XCTAssertTrue(detail.isLive)
+        XCTAssertNil(f.navigation.detailViewAppeared(oldDetailBox, claimId: "synthetic-claim"))
+        // An already-issued current box must not offer a duplicate read.
+        detailVisibility.returned(wasEligible: false, isEligible: true) {
+            guard detailBox.permit == nil else { return }
+            XCTFail("already-issued detail must not resume twice")
+        }
+        f.navigation.selection = nil
+        let listBox = f.navigation.listAppearance
+        listVisibility.returned(wasEligible: false, isEligible: true) {
+            guard f.navigation.selection == nil, listBox.permit == nil else { return }
+            f.navigation.scheduleList(f.navigation.listViewAppeared(listBox))
+        }
+        try await wait("retained visible list resumes") { f.navigation.listPermit != nil && f.browser.phase == .ready && f.recorder.paths.count == 5 }
+        let list = try XCTUnwrap(f.navigation.listPermit)
+        XCTAssertFalse(list === oldList); XCTAssertFalse(oldList.isLive); XCTAssertFalse(detail.isLive)
+        f.navigation.listViewDisappeared(oldListBox); f.navigation.detailViewDisappeared(detailBox)
+        XCTAssertTrue(f.navigation.listPermit === list); XCTAssertTrue(list.isLive)
+        XCTAssertNil(f.navigation.listViewAppeared(oldListBox))
+        // Manual retirement changes only the box, not eligibility: it cannot self-revive.
+        f.navigation.listViewDisappeared(listBox)
+        let retiredReplacement = f.navigation.listAppearance
+        listVisibility.returned(wasEligible: true, isEligible: true) { XCTFail("manual retirement cannot resume") }
+        XCTAssertNil(f.navigation.listPermit); XCTAssertNil(retiredReplacement.permit)
+        listVisibility.disappear()
+        listVisibility.returned(wasEligible: false, isEligible: true) { XCTFail("hidden list cannot resume") }
+        XCTAssertTrue(f.navigation.listAppearance === retiredReplacement)
+        XCTAssertEqual(f.recorder.paths.count, 5); XCTAssertEqual(f.state.unauthorized, 0)
+    }
+}

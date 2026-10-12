@@ -32,6 +32,7 @@ import SwiftUI
                 TextField("context.ai.idea", text: $idea, axis: .vertical).lineLimit(3...7).focused($focused)
                 TextField("context.ai.style", text: $style).focused($focused)
                 TextField("context.ai.minutes", text: $minutes).keyboardType(.numberPad).focused($focused)
+                ClubAIDesignIdeaChips(clubID: clubID, session: session, idea: $idea, operationID: $operationID, generating: $generating)
             }.disabled(generating)
             if !model.flow.isConfigured { Text("context.ai.disabled") }
             if generating {
@@ -77,6 +78,7 @@ import SwiftUI
                 }
                 Section("context.ai.suggestions") { ForEach(Array(result.merchantSuggestions.enumerated()), id: \.offset) { _, value in Text(verbatim: value) } }
                 if !result.promoCopy.isEmpty { Section("context.ai.promo") { Text(verbatim: result.promoCopy).textSelection(.enabled) } }
+                ClubAIDesignPromoFeedback(clubID: clubID, session: session, flow: model.flow, resultGeneration: resultGeneration, promoCopy: result.promoCopy, operationID: $operationID, generating: $generating)
                 Section {
                     Text("context.ai.adoptHint")
                     Button(showsPreviousResult ? LocalizedStringKey("clubAICandidate.adoptPrevious") : LocalizedStringKey("context.ai.adopt")) {

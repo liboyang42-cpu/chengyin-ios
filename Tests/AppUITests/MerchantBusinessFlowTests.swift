@@ -54,8 +54,20 @@ final class MerchantBusinessFlowTests: XCTestCase {
     func testBatchDetailKeepsNegativeAdjustments() {
         let app = launch(); tap("merchant.business.open.batches", app: app)
         tap("merchant.business.row.batch.66001", app: app)
-        let adjustment = app.staticTexts["CNY -12.00"]; reveal(adjustment, app: app)
-        XCTAssertTrue(adjustment.waitForExistence(timeout: 5))
+        // The batch entry uses LabeledContent; target its amount identity, not a bare-value label.
+        let amounts = app.staticTexts.matching(identifier: "merchant.settlementEntry.amount")
+        let adjustment = amounts.element; reveal(adjustment, app: app)
+        let exists = adjustment.waitForExistence(timeout: 5)
+        let expected = "Signed amount, CNY -12.00"
+        if !exists || amounts.count != 1 || adjustment.label != expected {
+            print("[MerchantBatchAmount] " + app.debugDescription)
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "Merchant batch negative adjustment failure"
+            screenshot.lifetime = .keepAlways; add(screenshot)
+        }
+        XCTAssertTrue(exists, app.debugDescription)
+        XCTAssertEqual(amounts.count, 1, app.debugDescription)
+        XCTAssertEqual(adjustment.label, expected, app.debugDescription)
     }
     func testScanOnlyClassifiesWithoutCameraOrRedemptionButton() {
         let app = launch(); tap("merchant.business.open.scan", app: app)

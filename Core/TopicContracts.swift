@@ -50,6 +50,18 @@ public struct TopicSummary: Decodable, Equatable, Identifiable {
     public let isLike: Int
     public let likeCount: Int
     public let locationCount: Int?
+    /// Optional source classification only; never inferred from category IDs or other topic fields.
+    public let categoryNames: [String]
+    public var favoriteCategoryText: String? {
+        categoryNames.isEmpty ? nil : categoryNames.joined(separator: " · ")
+    }
+    private struct CategoryLabel: Decodable {
+        let categoryName: String?
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: TopicKey.self)
+            categoryName = c.text("categoryName")
+        }
+    }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TopicKey.self)
         id = c.int("id") ?? 0
@@ -65,6 +77,12 @@ public struct TopicSummary: Decodable, Equatable, Identifiable {
         isLike = c.int("isLike") ?? 0
         likeCount = c.int("likeNum") ?? 0
         locationCount = c.int("locationCount").flatMap { $0 >= 0 ? $0 : nil }
+        let categories = (try? c.decodeIfPresent([CategoryLabel?].self, forKey: TopicKey("sysCategoryList"))) ?? []
+        categoryNames = categories.compactMap { category in
+            guard let name = category?.categoryName,
+                  !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+            return name
+        }
     }
 }
 

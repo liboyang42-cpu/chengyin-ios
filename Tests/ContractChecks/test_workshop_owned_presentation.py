@@ -19,7 +19,7 @@ class WorkshopPresentationContracts(unittest.TestCase):
   for s in [a,b]:
    self.assertIn('let presentation = displayed.permit',s);self.assertIn('.refreshable { [permit = presentation]',s);self.assertNotIn('Task {',s)
   self.assertIn('scheduleList(presentation)',a);self.assertIn('scheduleDetail(presentation, claimId: claimId)',a);self.assertIn('schedulePackage(presentation, claimId: claimId)',b)
-  self.assertIn('.onAppear { navigation.scheduleList(navigation.listViewAppeared(displayed)) }',a)
+  self.assertIn('.onAppear { routeVisibility.appear(); navigation.scheduleList(navigation.listViewAppeared(displayed)) }',a)
  def test_navigation_push_retires_actions_without_clearing_needed_rows(self):
   s=self.source('App/WorkshopOwnedNavigationState.swift')
   self.assertIn('browser.leaveList(permit, closing: false)',s);self.assertIn('browser.leaveDetail(permit, closing: false)',s)

@@ -82,6 +82,10 @@ struct MerchantBusinessField: View {
             MerchantSettlementProgressView(progress: progress, reader: reader, currentSnapshot: currentSnapshot)
                 .id(row.id)
         }
+        if row.kind == .redemption, !compact,
+           let progress = MerchantRedemptionProgress(record: row, access: access) {
+            MerchantRedemptionProgressView(progress: progress)
+        }
         if row.kind == .redemption, !compact, let reader = settlementReader, let currentSnapshot = settlementSnapshot {
             MerchantPersonalIncomeEntry(row: row, reader: reader, currentSnapshot: currentSnapshot)
         }

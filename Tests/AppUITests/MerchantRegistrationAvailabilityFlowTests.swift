@@ -57,7 +57,7 @@ final class MerchantRegistrationAvailabilityFlowTests: XCTestCase {
         let original = app.staticTexts["merchant.registrationAvailability.sourceStart.value"]
         XCTAssertTrue(revealFixtureElement(original, in: app, towardTop: true, requiresHittable: false),
             "Original source value was not visible after restore: " + app.debugDescription)
-        XCTAssertEqual(original.label, "source civil time", app.debugDescription)
+        XCTAssertEqual(original.label, "Saved first day, source civil time", app.debugDescription)
     }
     func testGroupReviewCancelAndExistingSaveReadBackServerValues() {
         let app = open(); tap("merchant.registrationAvailability.open", app); tap("merchant.registrationAvailability.apply", app)
@@ -75,7 +75,7 @@ final class MerchantRegistrationAvailabilityFlowTests: XCTestCase {
         let savedDaily = app.staticTexts["merchant.registrationAvailability.sourceDaily.value"]
         XCTAssertTrue(revealFixtureElement(savedDaily, in: app, requiresHittable: false),
             "Saved source daily value was not visible after readback: " + app.debugDescription)
-        XCTAssertEqual(savedDaily.label, "09:00-18:00", app.debugDescription)
+        XCTAssertEqual(savedDaily.label, "Saved daily hours, 09:00-18:00", app.debugDescription)
         attachFixtureScreenshot(self, app: app, name: "Synthetic registration availability source readback")
     }
     func testBackgroundDiscardsOnlyUnappliedAvailabilitySheet() {

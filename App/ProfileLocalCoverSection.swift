@@ -23,6 +23,10 @@ extension ProfileLocalCoverOwner {
     private var generation: UInt64 = 0
     @ObservationIgnored private var picker: RetainedNativeImagePicker?
     @ObservationIgnored private var task: Task<Void, Never>?
+#if DEBUG
+    /// Only the synthetic fixture installs this bounded event sink.
+    @ObservationIgnored var diagnosticEvent: ((String) -> Void)?
+#endif
     init(context: ProfileLocalCoverContext, store: any ProfileLocalCoverStoring,
          current: @escaping () -> ProfileLocalCoverContext?) {
         controller = .init(context: context, store: store, current: current)
@@ -68,9 +72,15 @@ extension ProfileLocalCoverOwner {
         if controller.review == nil, controller.messageKey == "profile.localCover.saved" { close() }
     }
     func close() {
+#if DEBUG
+        diagnosticEvent?("model.close.begin")
+#endif
         generation &+= 1; task?.cancel(); task = nil; picker?.cancel(); picker = nil
         selecting = false; crop = nil; selectionError = false; isPresented = false
         if let review = controller.review { controller.cancel(review) }
+#if DEBUG
+        diagnosticEvent?("model.close.end")
+#endif
     }
     func retire() { close(); controller.retire() }
 }
@@ -115,12 +125,38 @@ extension ProfileLocalCoverOwner {
                 }
             }
         }
-        .task { model.controller.load() }
-        .sheet(isPresented: Binding(get: { model.isPresented && model.controller.ownsContext }, set: { if !$0 { model.close() } })) {
+        .task {
+#if DEBUG
+            model.diagnosticEvent?("section.task.before-load")
+#endif
+            model.controller.load()
+#if DEBUG
+            model.diagnosticEvent?("section.task.after-load")
+#endif
+        }
+        .sheet(isPresented: Binding(get: { model.isPresented && model.controller.ownsContext }, set: { if !$0 {
+#if DEBUG
+            model.diagnosticEvent?("sheet.binding.false")
+#endif
+            model.close()
+        } })) {
             editor
         }
-        .onChange(of: scenePhase) { _, value in if value != .active { model.close() } }
-        .onDisappear { model.retire() }
+        .onChange(of: scenePhase) { _, value in
+#if DEBUG
+            model.diagnosticEvent?("section.scenePhase.\(String(describing: value))")
+#endif
+            if value != .active { model.close() }
+        }
+        .onDisappear {
+#if DEBUG
+            model.diagnosticEvent?("section.owner.disappear.before-retire")
+#endif
+            model.retire()
+#if DEBUG
+            model.diagnosticEvent?("section.owner.disappear.after-retire")
+#endif
+        }
     }
     private var editor: some View {
         NavigationStack {
@@ -162,9 +198,18 @@ extension ProfileLocalCoverOwner {
             .background(RetainedImagePresenterHost(host: model.pickerHost).frame(width: 0, height: 0))
             .appNavigationTitle("profile.localCover.title")
             .toolbar { ToolbarItem(placement: .cancellationAction) {
-                Button("action.close") { model.close() }.accessibilityIdentifier("profile.localCover.close")
+                Button("action.close") {
+#if DEBUG
+                    model.diagnosticEvent?("editor.close.tap")
+#endif
+                    model.close()
+                }.accessibilityIdentifier("profile.localCover.close")
             } }
         }
+#if DEBUG
+        .onAppear { model.diagnosticEvent?("editor.appear") }
+        .onDisappear { model.diagnosticEvent?("editor.disappear") }
+#endif
     }
     @ViewBuilder private func cover(_ selected: RetainedSelectedImage?) -> some View {
         if let selected {

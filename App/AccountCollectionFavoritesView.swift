@@ -93,6 +93,11 @@ private struct AccountCollectionFavoriteCard: View {
         QuestifyImageEntityCard(imageSource: topic.imageURL, title: topic.name,
                                fallbackTitle: "accountCollection.favorites.untitled",
                                fallbackSymbol: "photo", minimumHeight: 250) {
+            if let categories = topic.favoriteCategoryText {
+                QuestifyImageEntityMetadata(label: "accountCollection.favorites.categories", value: categories, systemImage: "tag")
+                    .lineLimit(1).truncationMode(.tail)
+                    .accessibilityIdentifier("accountCollection.favorite.categories.\(topic.id)")
+            }
             TopicTotalStops(count: topic.locationCount, identifier: "accountCollection.totalStops.\(topic.id)")
             if let place = topic.addressName, !place.isEmpty {
                 QuestifyImageEntityMetadata(label: "accountCollection.favorites.place", value: place, systemImage: "mappin.and.ellipse")

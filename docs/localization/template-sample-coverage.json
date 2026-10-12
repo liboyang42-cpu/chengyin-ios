@@ -1,0 +1,150 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateSampleCoverage.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More local samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多本地样例"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explore the remaining supported local examples. No play session, camera, sensor, image request or reward is created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体验其余已支持的本地样例。不会创建玩家会话、调用相机传感器、请求图片或发放奖励。"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This configuration cannot be rehearsed yet. Open its editor; your original data has not been changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前配置暂不能排练，请打开原配置查看；原始数据未改变。"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.nameOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picture-choice rehearsal uses option names only. Images are not loaded. This is not a full image preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "猜图排练仅显示选项名称，不加载图片，不代表完整图片预览。"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.fixedDice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source preview uses fixed examples: 5 for one die, 5 + 4 for two. These are not player rolls."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原样例使用固定点数：单骰为 5，双骰为 5 + 4。这不是玩家掷骰结果。"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.choice.predict": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prediction choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "竞猜选项"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.choice.pricePair": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picture-choice names"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "猜图名称选项"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.choice.dice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D6 dice example"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D6 骰子样例"
+          }
+        }
+      }
+    },
+    "templateSampleCoverage.choice.d20": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D20 check example"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D20 检定样例"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

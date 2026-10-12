@@ -43,7 +43,7 @@ import Observation
         events.append("\(sequence) \(event) model=\(number) loaded=\(controller.loaded) owns=\(controller.ownsContext) canEdit=\(controller.canEdit) presented=\(model.isPresented) review=\(controller.review != nil) crop=\(model.crop != nil) saved=\(controller.saved != nil) message=\(controller.messageKey ?? "none")")
         trim()
     }
-    private func trim() { if events.count > 32 { events.removeFirst(events.count - 32) } }
+    private func trim() { if events.count > 64 { events.removeFirst(events.count - 64) } }
 }
 
 /// Local synthetic controls never open the user's photo library or call an upload endpoint.
@@ -97,6 +97,11 @@ import Observation
             }.task(id: key) {
                 let captured = key, reader = reader, owner = owner
                 let created = ProfileLocalCoverModel(context: captured, store: store, current: { .init(owner: owner, reader: reader) })
+                let diagnosticSink: (String) -> Void = { [weak created, weak diagnostics] event in
+                    diagnostics?.record(event, model: created)
+                }
+                created.diagnosticEvent = diagnosticSink
+                created.pickerHost.diagnosticEvent = diagnosticSink
                 diagnostics.record("parent.created", model: created)
                 created.controller.load(); model = created
                 diagnostics.record("parent.loaded", model: created)

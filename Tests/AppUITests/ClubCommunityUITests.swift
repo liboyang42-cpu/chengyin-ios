@@ -28,9 +28,18 @@ final class ClubCommunityUITests: XCTestCase {
             XCTAssertTrue(revealFixtureElement(full, in: app, maximumSwipes: 4), app.debugDescription)
             full.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         }
+        func commentsOpened() -> Bool {
+            let opened = app.navigationBars["Comments"].waitForExistence(timeout: 5)
+            if !opened {
+                let trace = app.descendants(matching: .any).matching(identifier: "club.discussion.fixtureTrace").firstMatch
+                let evidence = trace.exists ? String(describing: trace.value) : "trace-unavailable"
+                print("QUESTIFY_CLUB_DISCUSSION_PRESENTATION_V1 " + evidence)
+            }
+            return opened
+        }
         XCTAssertTrue(app.otherElements["club.community.post.20"].waitForExistence(timeout: 5))
         openFullComments()
-        XCTAssertTrue(app.navigationBars["Comments"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(commentsOpened(), app.debugDescription)
         XCTAssertTrue(app.otherElements["club.community.comment.30"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(app.staticTexts["Fixture comment"].exists)
         let close = app.navigationBars["Comments"].buttons["Close"]
@@ -42,7 +51,7 @@ final class ClubCommunityUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Previous public content"].waitForExistence(timeout: 5))
         app.navigationBars.buttons.element(boundBy: 0).tap()
         openFullComments()
-        XCTAssertTrue(app.navigationBars["Comments"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(commentsOpened(), app.debugDescription)
         XCTAssertTrue(app.otherElements["club.community.comment.30"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(app.staticTexts["Fixture comment"].exists)
     }

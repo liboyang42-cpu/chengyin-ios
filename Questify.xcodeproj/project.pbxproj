@@ -18362,6 +18362,20 @@
 				"DD40F54D852648375ACF4657",
 				"20D616FCE5EFD984CE01365A",
 				"70C525399965EA01F9B984FA",
+				"747B23E8B5B170D8A5DC8529",
+				"15C355B4CB1FA3E998958C97",
+				"3F615476BC692A6A3ACA2085",
+				"241096F1329ACE5ADED4BF5E",
+				"A588404617E501EF808CED99",
+				"74F10D4ACC8E48E5BD1AF0E2",
+				"98C8E8C3E6C69D9DEBEE362C",
+				"CF356CE6AEF2965A05BAC45F",
+				"EE9D70EA6AFB4DE800F8E118",
+				"711FC7B30B7A620E8D9D9A5F",
+				"C8AAAE6738E1FB667F0435BA",
+				"D1CB0CA02B27960091527436",
+				"0C3492425C6324567AA1E397",
+				"1537C35BA8456CEC38731BAD",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -19929,6 +19943,16 @@
 				"ADE30D0D6EA4A4701E3C80B3",
 				"FA4401134048AA7256CB572E",
 				"965E86053841AF8D77D9396A",
+				"306AC67C3262526F682AC1F1",
+				"5850BE0EA4F96E5BC48BC1EE",
+				"974EA85832A96A2E82D7CE50",
+				"E8FAB1ADC5205A61A34AF1BC",
+				"4F2724F7B697907CDA30BC1C",
+				"C454BF01A35C5F5C858367A9",
+				"ED171826D7C9EC31C225D2A4",
+				"5A886D8009411B4AE6338FE8",
+				"2FED4BB3A4B37861F3D3246A",
+				"05493883B01662BA349833B3",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -22451,6 +22475,7 @@
 				"15121A8A89E841441CB876AF",
 				"88F9AE049D16A837BEF86A3B",
 				"5B2FE7714EB775F9C32DA260",
+				"0A1823545AC8D80E212CCE3C",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26007,6 +26032,9 @@
 				"761D80338B82CBB6D2980892",
 				"0178C659E161A90E5E3C1625",
 				"4B06A1C38F5522C742B6C582",
+				"6389BD1933B9874493036BFA",
+				"216C9870A797461F86048F96",
+				"208A600B151276EAFE88CCE9",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26438,6 +26466,146 @@
 		"4B06A1C38F5522C742B6C582" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "20D616FCE5EFD984CE01365A";
+		};
+		"15C355B4CB1FA3E998958C97" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/MerchantRedemptionProgress.swift";
+			"sourceTree" = "<group>";
+		};
+		"747B23E8B5B170D8A5DC8529" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MerchantRedemptionProgressView.swift";
+			"sourceTree" = "<group>";
+		};
+		"5850BE0EA4F96E5BC48BC1EE" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "15C355B4CB1FA3E998958C97";
+		};
+		"306AC67C3262526F682AC1F1" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "747B23E8B5B170D8A5DC8529";
+		};
+		"3F615476BC692A6A3ACA2085" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamShareChannelPolicy.swift";
+			"sourceTree" = "<group>";
+		};
+		"241096F1329ACE5ADED4BF5E" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/RoamShareChannelPicker.swift";
+			"sourceTree" = "<group>";
+		};
+		"0A1823545AC8D80E212CCE3C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A588404617E501EF808CED99";
+		};
+		"E8FAB1ADC5205A61A34AF1BC" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "241096F1329ACE5ADED4BF5E";
+		};
+		"974EA85832A96A2E82D7CE50" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3F615476BC692A6A3ACA2085";
+		};
+		"A588404617E501EF808CED99" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/RoamShareChannelFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"6389BD1933B9874493036BFA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CF356CE6AEF2965A05BAC45F";
+		};
+		"C454BF01A35C5F5C858367A9" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "98C8E8C3E6C69D9DEBEE362C";
+		};
+		"CF356CE6AEF2965A05BAC45F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ClubAIDesignFeedbackViewTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"74F10D4ACC8E48E5BD1AF0E2" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubAIDesignFeedbackViews.swift";
+			"sourceTree" = "<group>";
+		};
+		"4F2724F7B697907CDA30BC1C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "74F10D4ACC8E48E5BD1AF0E2";
+		};
+		"98C8E8C3E6C69D9DEBEE362C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubAIDesignFeedback.swift";
+			"sourceTree" = "<group>";
+		};
+		"208A600B151276EAFE88CCE9" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "1537C35BA8456CEC38731BAD";
+		};
+		"1537C35BA8456CEC38731BAD" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/TemplateSampleBrowserViewTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"0C3492425C6324567AA1E397" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/TemplateAdditionalSampleBrowserTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"05493883B01662BA349833B3" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D1CB0CA02B27960091527436";
+		};
+		"ED171826D7C9EC31C225D2A4" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "EE9D70EA6AFB4DE800F8E118";
+		};
+		"216C9870A797461F86048F96" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0C3492425C6324567AA1E397";
+		};
+		"C8AAAE6738E1FB667F0435BA" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/TemplateAdditionalSamplePreview.swift";
+			"sourceTree" = "<group>";
+		};
+		"711FC7B30B7A620E8D9D9A5F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/TemplateSampleBrowserView.swift";
+			"sourceTree" = "<group>";
+		};
+		"2FED4BB3A4B37861F3D3246A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C8AAAE6738E1FB667F0435BA";
+		};
+		"EE9D70EA6AFB4DE800F8E118" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/TemplateAdditionalSampleBrowserView.swift";
+			"sourceTree" = "<group>";
+		};
+		"5A886D8009411B4AE6338FE8" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "711FC7B30B7A620E8D9D9A5F";
+		};
+		"D1CB0CA02B27960091527436" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/TemplateSamplePreview.swift";
+			"sourceTree" = "<group>";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";

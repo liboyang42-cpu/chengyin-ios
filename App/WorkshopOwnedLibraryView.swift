@@ -1,5 +1,17 @@
 import SwiftUI
 
+/// A retained navigation parent may stay appeared across a quick push and Back.
+/// Route return supplements a real appearance; it never manufactures visibility.
+@MainActor struct WorkshopVisibleRouteReturn {
+    private(set) var isVisible = false
+    mutating func appear() { isVisible = true }
+    mutating func disappear() { isVisible = false }
+    func returned(wasEligible: Bool, isEligible: Bool, resume: () -> Void) {
+        guard isVisible, !wasEligible, isEligible else { return }
+        resume()
+    }
+}
+
 struct WorkshopOwnedAccountLink: View {
     let browser: WorkshopOwnedBrowser?
     var body: some View {
@@ -26,6 +38,7 @@ private struct WorkshopOwnedUnavailableView: View {
     }
 }
 @MainActor struct WorkshopOwnedLibraryView: View {
+    @State private var routeVisibility = WorkshopVisibleRouteReturn()
     let browser: WorkshopOwnedBrowser
     @State private var navigation: WorkshopOwnedNavigationState
     init(browser: WorkshopOwnedBrowser, navigation: WorkshopOwnedNavigationState? = nil) {
@@ -66,8 +79,14 @@ private struct WorkshopOwnedUnavailableView: View {
         .modifier(WorkshopOwnedNavigationTitle(key: "title"))
         // Only content has a replaceable identity. Visibility and navigation stay outside it.
         .id(ObjectIdentifier(displayed))
-        .onAppear { navigation.scheduleList(navigation.listViewAppeared(displayed)) }
-        .onDisappear { navigation.listViewDisappeared(displayed) }
+        .onAppear { routeVisibility.appear(); navigation.scheduleList(navigation.listViewAppeared(displayed)) }
+        .onDisappear { routeVisibility.disappear(); navigation.listViewDisappeared(displayed) }
+        .onChange(of: navigation.selection == nil) { wasEligible, isEligible in
+            routeVisibility.returned(wasEligible: wasEligible, isEligible: isEligible) {
+                guard navigation.selection == nil, displayed.permit == nil else { return }
+                navigation.scheduleList(navigation.listViewAppeared(displayed))
+            }
+        }
         .refreshable { [permit = presentation] in if let action = navigation.offerList(permit) { await action() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -81,6 +100,7 @@ private struct WorkshopOwnedUnavailableView: View {
     }
 }
 @MainActor struct WorkshopOwnedDetailView: View {
+    @State private var routeVisibility = WorkshopVisibleRouteReturn()
     let navigation: WorkshopOwnedNavigationState
     let browser: WorkshopOwnedBrowser
     let claimId: String
@@ -125,8 +145,14 @@ private struct WorkshopOwnedUnavailableView: View {
         .modifier(WorkshopOwnedNavigationTitle(key: "detail"))
         // Only content has a replaceable identity. Visibility and navigation stay outside it.
         .id(ObjectIdentifier(displayed))
-        .onAppear { navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId) }
-        .onDisappear { navigation.detailViewDisappeared(displayed) }
+        .onAppear { routeVisibility.appear(); navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId) }
+        .onDisappear { routeVisibility.disappear(); navigation.detailViewDisappeared(displayed) }
+        .onChange(of: navigation.selection?.id == claimId && !navigation.showsPackage) { wasEligible, isEligible in
+            routeVisibility.returned(wasEligible: wasEligible, isEligible: isEligible) {
+                guard navigation.selection?.id == claimId && !navigation.showsPackage, displayed.permit == nil else { return }
+                navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId)
+            }
+        }
         .refreshable { [permit = presentation] in if let action = navigation.offerDetail(permit, claimId: claimId) { await action() } }
         .navigationDestination(isPresented: $navigation.showsPackage) {
             if let packageBrowser = browser.packageBrowser { WorkshopOwnedPackageView(browser: packageBrowser, claimId: claimId, navigation: navigation) }

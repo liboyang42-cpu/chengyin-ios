@@ -90,7 +90,7 @@ import SwiftUI
                     HStack {
                         Text("club.community.comments").font(.headline)
                         Spacer()
-                        Button("club.discussion.collapse") { active = false; reader.invalidate(); close() }
+                        Button("club.discussion.collapse") { trace("collapse"); active = false; reader.invalidate(); close() }
                             .accessibilityIdentifier("club.discussion.close.\(target.post.id)")
                     }
                     switch reader.phase {
@@ -120,19 +120,28 @@ import SwiftUI
                             .disabled(!reader.hasNext || reader.phase == .loading)
                     }
                     Button("club.community.refresh") { load(reader.page) }.disabled(reader.phase == .loading)
-                    Button("club.discussion.full") { if current { fullComments = true } }
+                    Button("club.discussion.full") { trace("full"); if current { fullComments = true; trace("full-requested") } }
                         .accessibilityIdentifier("club.discussion.full.\(target.post.id)")
                 }.padding(.vertical, 8)
+                    .buttonStyle(.borderless)
+                    .accessibilityElement(children: .contain)
                     .accessibilityIdentifier("club.discussion.panel.\(target.post.id)")
             }
         }
+        .onAppear { trace("panel-appear") }
         .task(id: target.id) { active = true; await reader.load(page: 1, isCurrent: { current }) }
-        .onChange(of: current) { _, valid in if !valid { fullComments = false; reader.invalidate() } }
-        .onDisappear { active = false; reader.invalidate() }
-        .sheet(isPresented: $fullComments, onDismiss: { load(reader.page) }) {
+        .onChange(of: current) { _, valid in trace(valid ? "current-true" : "current-false"); if !valid { fullComments = false; reader.invalidate() } }
+        .onDisappear { trace("panel-disappear"); active = false; reader.invalidate() }
+        .sheet(isPresented: $fullComments, onDismiss: { trace("sheet-dismiss"); load(reader.page) }) {
             ClubPostFullComments(target: target, source: source)
                 .presentationDetents([.large]).presentationCompactAdaptation(.sheet)
+                .onAppear { trace("sheet-appear") }
+                .onDisappear { trace("sheet-disappear") }
         }
+    }
+    private func trace(_ event: String) {
+        ClubPostDiscussionFixtureTrace.record(event, postID: target.post.id,
+            active: active, current: current, fullComments: fullComments)
     }
     private func load(_ page: Int) {
         guard current else { return }
@@ -162,3 +171,51 @@ import SwiftUI
         .onChange(of: current) { _, valid in if !valid { dismiss() } }
     }
 }
+
+
+/// Synthetic presentation evidence only; never records user content or production events.
+#if DEBUG
+@MainActor enum ClubPostDiscussionFixtureTrace {
+    static let events = ClubPostDiscussionFixtureEvents()
+    static var enabled: Bool { ProcessInfo.processInfo.arguments.contains("--club-community-fixture") }
+    static func record(_ event: String, postID: Int, active: Bool, current: Bool, fullComments: Bool) {
+        guard enabled else { return }
+        events.record("\(event):post=\(postID),active=\(active),current=\(current),full=\(fullComments)")
+    }
+}
+
+@MainActor final class ClubPostDiscussionFixtureEvents: ObservableObject {
+    @Published private(set) var value = "events=0"
+    private var count = 0
+    private var recent: [String] = []
+    func record(_ event: String) {
+        count += 1; recent.append("\(count):" + event)
+        if recent.count > 16 { recent.removeFirst(recent.count - 16) }
+        value = "events=\(count);" + recent.joined(separator: ";")
+    }
+}
+
+@MainActor private struct ClubPostDiscussionFixtureTraceLabel: View {
+    @ObservedObject private var events = ClubPostDiscussionFixtureTrace.events
+    var body: some View {
+        Text("Fixture discussion events").font(.system(size: 1)).frame(width: 1, height: 1).clipped()
+            .accessibilityElement(children: .ignore)
+            .accessibilityIdentifier("club.discussion.fixtureTrace")
+            .accessibilityLabel("Fixture discussion events").accessibilityValue(events.value)
+            .allowsHitTesting(false)
+    }
+}
+
+@MainActor struct ClubPostDiscussionFixtureTraceView: View {
+    var body: some View {
+        if ClubPostDiscussionFixtureTrace.enabled { ClubPostDiscussionFixtureTraceLabel() }
+    }
+}
+#else
+@MainActor enum ClubPostDiscussionFixtureTrace {
+    static func record(_ event: String, postID: Int, active: Bool, current: Bool, fullComments: Bool) {}
+}
+@MainActor struct ClubPostDiscussionFixtureTraceView: View {
+    var body: some View { EmptyView() }
+}
+#endif

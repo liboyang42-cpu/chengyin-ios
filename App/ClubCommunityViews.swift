@@ -152,6 +152,7 @@ struct ClubCommunityFeedView: View {
             if model.context.coordinator?.permitsInjectedWrites != true { Text("club.community.offline").foregroundStyle(.secondary) }
         }
         .navigationTitle(Text("club.community.posts"))
+        .background(alignment: .topLeading) { ClubPostDiscussionFixtureTraceView() }
         .navigationDestination(item: $destination) { target in
             switch target.screen {
             case .comments:

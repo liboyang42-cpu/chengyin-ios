@@ -1,0 +1,16 @@
+{
+  "base": "077273784d7fed5397f84f17b2a659723f3f3b22",
+  "dependencies": [],
+  "app_sources": [
+    "Core/TemplateSamplePreview.swift",
+    "App/TemplateSampleBrowserView.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateSamplePreviewTests.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateSampleBrowserViewTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-sample-browser.json",
+  "integration_note": "One additive section in TemplateAuthoringAdvancedView only. Preserve earlier detail-form20/22 hunks; existing rehearsal and editor components are reused without edits. Register2 sources,2 XCTest files and18 strings centrally; source originals/private evidence excluded from product patch."
+}

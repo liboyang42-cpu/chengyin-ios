@@ -107,7 +107,30 @@ final class EntryFlowTests: XCTestCase {
     private func openSettings(title:String,file:StaticString=#filePath,line:UInt=#line) {
         let button=app.buttons["welcome.settings"]
         let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == true AND hittable == true"),object:button)
-        XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed,app.debugDescription,file:file,line:line)
+        let outcome = XCTWaiter.wait(for: [ready], timeout: 10)
+        if outcome != .completed && name.contains("testSettingsReopensAfterRepeatedColdLaunch") {
+            // Observe the original failure without activating, relaunching, or extending its wait.
+            let windowCount = app.windows.count
+            let windowFrames = (0..<min(windowCount, 4)).map {
+                String(describing: app.windows.element(boundBy: $0).frame)
+            }
+            let buttonExists = button.exists
+            let report = "ENTRY_COLD_LAUNCH_FIRST_FAILURE outcome=\(outcome.rawValue) state=\(app.state.rawValue)"
+                + " appFrame=\(String(describing: app.frame)) windows=\(windowCount) frames=\(windowFrames)"
+                + " settingsExists=\(buttonExists) settingsHittable=\(buttonExists && button.isHittable)"
+                + " settingsFrame=\(buttonExists ? String(describing: button.frame) : "missing")\nAX:\n"
+                + app.debugDescription
+            print(report)
+            let state = XCTAttachment(string: report)
+            state.name = "Cold-launch first failure state"
+            state.lifetime = .keepAlways
+            add(state)
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "Cold-launch first failure screenshot"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+        }
+        XCTAssertEqual(outcome,.completed,app.debugDescription,file:file,line:line)
         button.tap()
         XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout:10),app.debugDescription,file:file,line:line)
     }

@@ -1,0 +1,18 @@
+{
+  "base": "077273784d7fed5397f84f17b2a659723f3f3b22",
+  "dependencies": [
+    "creator-sample-browser-0772737"
+  ],
+  "app_sources": [
+    "Core/TemplateAdditionalSamplePreview.swift",
+    "App/TemplateAdditionalSampleBrowserView.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateAdditionalSamplePreviewTests.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateAdditionalSampleBrowserTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-sample-coverage.json",
+  "integration_note": "Depends on25; one additive4-line section in its browser. Keep25 and all earlier host hunks. Register2sources/2XCTest/9newstrings centrally. Original Mini modules remain outside product patch."
+}

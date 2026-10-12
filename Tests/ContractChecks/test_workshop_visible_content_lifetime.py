@@ -15,7 +15,7 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
             with self.subTest(screen=screen):
                 self.assertEqual(source.count('.id(ObjectIdentifier(displayed))'), 1)
                 self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onAppear {'))
-                self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onDisappear { navigation.' + screen + 'ViewDisappeared(displayed) }'))
+                self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onDisappear { ' + ('routeVisibility.disappear(); ' if screen != 'package' else '') + 'navigation.' + screen + 'ViewDisappeared(displayed) }'))
                 if screen != 'package':
                     self.assertLess(source.index('.onDisappear {'), source.index('.navigationDestination('))
                 self.assertIn('let displayed = navigation.' + screen + 'Appearance', source)
@@ -59,3 +59,28 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
         self.assertIn('for _ in 0..<100', purchased)
         self.assertIn('Task.sleep(nanoseconds:20_000_000)', purchased)
         self.assertIn('navigation.listPermit != nil && browser.phase == .ready', purchased)
+
+    def test_route_return_supplements_only_real_visible_false_to_true_transition(self):
+        owned = (ROOT / 'App/WorkshopOwnedLibraryView.swift').read_text()
+        purchased = (ROOT / 'App/WorkshopPurchasedLibraryView.swift').read_text()
+        self.assertIn('guard isVisible, !wasEligible, isEligible else { return }', owned)
+        self.assertIn('mutating func appear() { isVisible = true }', owned)
+        self.assertIn('mutating func disappear() { isVisible = false }', owned)
+        for source, count in [(owned, 2), (purchased, 1)]:
+            self.assertEqual(source.count('@State private var routeVisibility = WorkshopVisibleRouteReturn()'), count)
+            self.assertEqual(source.count('routeVisibility.appear();'), count)
+            self.assertEqual(source.count('routeVisibility.disappear();'), count)
+            self.assertEqual(source.count('routeVisibility.returned(wasEligible: wasEligible, isEligible: isEligible)'), count)
+            self.assertEqual(source.count('displayed.permit == nil else { return }'), count)
+            self.assertNotIn('.onChange(of: ObjectIdentifier(', source)
+            self.assertIn('.onChange(of: navigation.selection == nil)', source)
+        self.assertIn('.onChange(of: navigation.selection?.id == claimId && !navigation.showsPackage)', owned)
+        owned_tests = (ROOT / 'Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift').read_text()
+        purchased_tests = (ROOT / 'Tests/AppUnitTests/WorkshopPurchasedNormalAccountTests.swift').read_text()
+        for token in ['testRouteReturnRequiresRealVisibilityAndFalseToTrueEligibility',
+                      'testVisibleRouteBackWithoutAnotherAppearanceIssuesFreshPermitsAndRejectsOldCallbacks',
+                      'manual retirement cannot resume', 'hidden list cannot resume']:
+            self.assertIn(token, owned_tests)
+        for token in ['testVisiblePurchasedBackWithoutAnotherAppearanceResumesOnlyFreshCurrentList',
+                      'manual retirement cannot resume', 'hidden purchased list cannot resume']:
+            self.assertIn(token, purchased_tests)

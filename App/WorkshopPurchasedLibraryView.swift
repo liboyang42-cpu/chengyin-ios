@@ -15,6 +15,7 @@ struct WorkshopPurchasedAccountLink: View {
     }
 }
 @MainActor struct WorkshopPurchasedLibraryView: View {
+    @State private var routeVisibility = WorkshopVisibleRouteReturn()
     let browser: WorkshopPurchasedBrowser
     @State private var navigation: WorkshopPurchasedNavigationState
     let makeProfessional: WorkshopPaidProfessionalControllerFactory
@@ -55,8 +56,14 @@ struct WorkshopPurchasedAccountLink: View {
         }
         .modifier(PurchasedTitle("title"))
         .privacySensitive()
-        .onAppear { navigation.scheduleList(navigation.listViewAppeared(displayed)) }
-        .onDisappear { navigation.listViewDisappeared(displayed) }
+        .onAppear { routeVisibility.appear(); navigation.scheduleList(navigation.listViewAppeared(displayed)) }
+        .onDisappear { routeVisibility.disappear(); navigation.listViewDisappeared(displayed) }
+        .onChange(of: navigation.selection == nil) { wasEligible, isEligible in
+            routeVisibility.returned(wasEligible: wasEligible, isEligible: isEligible) {
+                guard navigation.selection == nil, displayed.permit == nil else { return }
+                navigation.scheduleList(navigation.listViewAppeared(displayed))
+            }
+        }
         .refreshable { if let action = navigation.offerList(rendered) { await action() } }
         .toolbar { ToolbarItem(placement: .topBarTrailing) {
             Button { navigation.scheduleList(rendered) } label: { Label { purchasedText("refresh") } icon: { Image(systemName: "arrow.clockwise") } }

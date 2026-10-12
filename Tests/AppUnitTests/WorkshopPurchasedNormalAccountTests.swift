@@ -501,3 +501,46 @@ import UIKit
         }
     }
 }
+
+
+extension WorkshopPurchasedNormalAccountTests {
+    func testVisiblePurchasedBackWithoutAnotherAppearanceResumesOnlyFreshCurrentList() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve()
+        let browser = try XCTUnwrap(h.session.workshopPurchasedBrowser)
+        let navigation = WorkshopPurchasedNavigationState(browser: browser), oldBox = navigation.listAppearance
+        var visibility = WorkshopVisibleRouteReturn()
+        visibility.appear()
+        let oldList = try XCTUnwrap(navigation.listViewAppeared(oldBox))
+        await browser.load(action: try XCTUnwrap(oldList.offer()))
+        navigation.select(licenseId: "w18-paid-11", presentation: oldList)
+        let detailBox = navigation.detailAppearance
+        let detail = try XCTUnwrap(navigation.detailViewAppeared(detailBox, licenseId: "w18-paid-11"))
+        await browser.open(licenseId: "w18-paid-11", action: try XCTUnwrap(detail.offer()))
+        navigation.selection = nil
+        let returningBox = navigation.listAppearance
+        XCTAssertNil(returningBox.permit)
+        // The real trace contains no second list onAppear before this eligible route returns.
+        visibility.returned(wasEligible: false, isEligible: true) {
+            guard navigation.selection == nil, returningBox.permit == nil else { return }
+            navigation.scheduleList(navigation.listViewAppeared(returningBox))
+        }
+        try await wait("retained purchased list resumes") { navigation.listPermit != nil && browser.phase == .ready && h.wire.owned.count == 3 }
+        let returned = try XCTUnwrap(navigation.listPermit)
+        XCTAssertFalse(returned === oldList); XCTAssertFalse(oldList.isLive); XCTAssertFalse(detail.isLive)
+        navigation.listViewDisappeared(oldBox); navigation.detailViewDisappeared(detailBox)
+        XCTAssertTrue(navigation.listPermit === returned); XCTAssertTrue(returned.isLive)
+        XCTAssertNil(navigation.listViewAppeared(oldBox))
+        visibility.returned(wasEligible: false, isEligible: true) {
+            guard returningBox.permit == nil else { return }
+            XCTFail("already-issued purchased list must not resume twice")
+        }
+        navigation.listViewDisappeared(returningBox)
+        let inactive = navigation.listAppearance
+        visibility.returned(wasEligible: true, isEligible: true) { XCTFail("manual retirement cannot resume") }
+        XCTAssertNil(navigation.listPermit); XCTAssertNil(inactive.permit)
+        visibility.disappear()
+        visibility.returned(wasEligible: false, isEligible: true) { XCTFail("hidden purchased list cannot resume") }
+        XCTAssertTrue(navigation.listAppearance === inactive)
+        XCTAssertEqual(h.wire.owned.count, 3); XCTAssertTrue(h.session.isSignedIn)
+    }
+}

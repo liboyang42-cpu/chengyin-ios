@@ -229,6 +229,10 @@ import SwiftUI
     @ObservedObject var model: TemplateAuthoringModel
     var body: some View {
         Form {
+            Section {
+                NavigationLink("templateSamples.open") { TemplateSampleBrowserView(model: model) }
+                    .accessibilityIdentifier("templateSamples.open")
+            }
             Section("templateAuthor.advanced") {
                 ForEach(TemplateAdvancedGame.allCases) { game in
                     NavigationLink {

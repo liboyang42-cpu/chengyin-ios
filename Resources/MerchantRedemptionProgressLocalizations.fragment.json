@@ -1,0 +1,82 @@
+{
+  "merchant.redemptionProgress.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Settlement progress"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结算进度"
+        }
+      }
+    }
+  },
+  "merchant.redemptionProgress.step.redeemed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redemption completed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销成功"
+        }
+      }
+    }
+  },
+  "merchant.redemptionProgress.step.generated": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Settlement statement created"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "生成结算单"
+        }
+      }
+    }
+  },
+  "merchant.redemptionProgress.step.confirmed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reconciliation confirmed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "对账确认"
+        }
+      }
+    }
+  },
+  "merchant.redemptionProgress.step.paid": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Platform payment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "平台打款"
+        }
+      }
+    }
+  }
+}
