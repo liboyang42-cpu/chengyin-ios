@@ -1,0 +1,41 @@
+{
+  "status": "READY_FOR_CENTRAL_REGISTRATION",
+  "app_sources": [
+    "App/ProfileInviteRewardReviewSection.swift",
+    "App/ProfileInviteRewardReviewFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileInviteRewardReview.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileInviteRewardReviewTests.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileInviteRewardReviewAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileInviteRewardReviewFlowTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileInviteRewardReviewLocalizations.fragment.json",
+  "new_localization_keys": 7,
+  "fixture_launch": {
+    "flag": "--uitesting-profile-invite-reward-review",
+    "scenario_flag": "--profile-invite-reward-review-scenario",
+    "host": "ProfileInviteRewardReviewFixtureHost(scenario: scenario)",
+    "debug_only": true
+  },
+  "ordinary_wiring": "Existing Account invitation-history route already mounts the changed SocialInviteHistoryView; no optional nil adapter.",
+  "dependencies": "Independent base49 increment; no earlier profile overlay. Preserve newer central SocialInviteHistoryView additively.",
+  "existing_reuse": [
+    "SocialAccountReading.invitationHistory",
+    "SocialInviteHistoryModel permit/start/refresh",
+    "SocialRewardScan",
+    "SocialInvitePagination"
+  ],
+  "new_endpoints": [],
+  "new_approvals": [],
+  "central_files_modified": [],
+  "necessary_existing_source_test_update": "test_social_invitation_lifetime exact synchronous captured-permit entry count2->3 plus new section assertion; no ownership guards removed",
+  "known_baseline_failure": "test_social_account_contracts localized key count107!=114, reproduced against equivalent base49; leave to central",
+  "apple": "NOT_RUN"
+}

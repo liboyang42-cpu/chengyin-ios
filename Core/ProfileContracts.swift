@@ -76,6 +76,7 @@ public struct ProfileOrderTicketSchedule: Decodable, Equatable {
 
 public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let id: Int
+    public let historyFacts: ProfileOrderHistoryFacts
     public let memberID: Int?
     public let ticketID: Int?
     public let ownerType: Int?
@@ -169,6 +170,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)
+        historyFacts = try ProfileOrderHistoryFacts(from: decoder)
         guard id > 0 else { throw APIError.malformedResponse }
         memberID = try c.decodeIfPresent(Int.self, forKey: .memberId)
         ticketID = try c.decodeIfPresent(Int.self, forKey: .ticketId)

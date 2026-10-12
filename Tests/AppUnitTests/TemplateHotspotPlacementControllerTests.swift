@@ -106,6 +106,15 @@ import XCTest
             }
             let before = model.draft; editor.imageReady(request); tap(90, 90, 100, 100); label.wrappedValue = "Stale"
             XCTAssertEqual(model.draft, before, action); XCTAssertFalse(editor.isSceneReady, action)
+            if action == "leave" {
+                XCTAssertFalse(editor.canEdit); model.load()
+                editor.imageReady(request); tap(90, 90, 100, 100); label.wrappedValue = "Revived"
+                XCTAssertEqual(model.draft, before); XCTAssertFalse(editor.isSceneReady)
+                let fresh = TemplateHotspotPlacementController(model: model)
+                XCTAssertTrue(fresh.canEdit); XCTAssertNil(fresh.scene); try loaded(fresh)
+                fresh.label("spot_1").wrappedValue = "Fresh after return"
+                XCTAssertEqual(fresh.targets.first?.label, "Fresh after return"); XCTAssertTrue(fresh.isSceneReady)
+            }
         }
     }
     func testLocalSaveRestoreRetainsPositionsButNeverRestoresImageOrArming() throws {

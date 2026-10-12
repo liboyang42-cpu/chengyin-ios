@@ -1,0 +1,43 @@
+{
+  "title": "本地时间提示完成，生产参与读取仍阻塞",
+  "status": "LOCAL_READY_PRODUCTION_PARTICIPATION_READ_BLOCKED",
+  "app_sources": [
+    "App/ProfileParticipationScheduleSection.swift",
+    "App/ProfileParticipationScheduleFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileParticipationSchedule.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileParticipationScheduleTests.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileParticipationScheduleAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileParticipationScheduleLocalizations.fragment.json",
+  "new_localization_keys": 4,
+  "fixture_launch": {
+    "flag": "--uitesting-profile-participation-schedule",
+    "scenario_flag": "--profile-participation-schedule-scenario",
+    "host": "ProfileParticipationScheduleFixtureHost(scenario: scenario)",
+    "debug_only": true,
+    "no_reader_or_service": true
+  },
+  "ordinary_mount": "Two-line additive section in existing ParticipationDetailView. Normal reads remain blocked, so no end-to-end availability claim.",
+  "dependencies": "Independent base49; no earlier overlay. Preserve newer PlayerJourneyViews changes additively.",
+  "existing_reuse": [
+    "OrderLifecycleTime.date",
+    "ParticipationDetail.record.order.ownerStartDate/ownerEndDate"
+  ],
+  "new_endpoints": [],
+  "new_approvals": [],
+  "central_files_modified": [],
+  "production_read_blockers": [
+    "PlayerJourneyService.readsEnabled defaultsfalse; normal AppSession does not supply independently accepted participation read configuration",
+    "OwnedOrderReadApproval separate guard/lease unchanged, not a fallback"
+  ],
+  "apple": "NOT_RUN"
+}

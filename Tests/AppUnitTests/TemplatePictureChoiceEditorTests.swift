@@ -83,6 +83,14 @@ import XCTest
             default: editor.retire()
             }
             let before = model.draft; binding.wrappedValue = "Stale"; choose(); add(); XCTAssertEqual(model.draft, before, operation)
+            if operation == "leave" {
+                XCTAssertFalse(editor.canEdit); model.load()
+                binding.wrappedValue = "Revived"; choose(); add(); XCTAssertEqual(model.draft, before)
+                let fresh = TemplatePictureChoiceController(model: model)
+                XCTAssertTrue(fresh.canEdit); let freshID = try XCTUnwrap(fresh.rows.first?.id)
+                fresh.text(freshID, field: .name).wrappedValue = "Fresh after return"
+                XCTAssertEqual(fresh.rows.first?.name, "Fresh after return")
+            }
         }
     }
     func testReopenKeepsWireAnswerAndUsesFreshLocalRowIdentities() throws {
@@ -99,12 +107,15 @@ import XCTest
         XCTAssertEqual(reopened.draft, expected); XCTAssertEqual(fresh.rows.filter(\.isCorrect).map(\.wireID), [row.wireID]); XCTAssertEqual(fresh.rows[2].imageURL, "/media/choice.jpg"); XCTAssertFalse(reopened.coordinator.canSubmit)
     }
     func testPendingLockDeniesPictureEdits() throws {
-        let (seedModel, _, owner) = try setup(), session = try XCTUnwrap(owner.session)
+        let (seedModel, seedEditor, owner) = try setup(), session = try XCTUnwrap(owner.session)
+        seedEditor.chooseAction(try XCTUnwrap(seedEditor.rows.first?.id))()
+        XCTAssertTrue(seedModel.draft.advanced.enabled("pricePair")); XCTAssertTrue(seedModel.draft.advanced.issues.isEmpty)
         let store = TemplateAuthoringLocalStore(storage: TemplateAuthoringMemoryStorage()), identity = TemplateAuthoringIdentity(), seed = seedModel.draft
         try store.save(seed, session: session, identity: identity)
         try store.savePending(.init(operationID: UUID(), ownerKey: session.ownerKey, identity: identity,
             request: TemplateAuthoringContract.request(seed, intent: .saveDraft), createdAt: Date()), session: session)
         let model = TemplateAuthoringModel(coordinator: .init(store: store, currentSession: { session })); model.load(); model.draft = seed
+        XCTAssertNotNil(model.coordinator.pending); XCTAssertTrue(model.coordinator.locked)
         let editor = TemplatePictureChoiceController(model: model); editor.addAction()(); XCTAssertFalse(editor.canEdit); XCTAssertEqual(model.draft, seed)
     }
 }

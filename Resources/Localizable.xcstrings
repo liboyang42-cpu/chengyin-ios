@@ -162654,6 +162654,902 @@
           }
         }
       }
+    },
+    "profile.complaint.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare a complaint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备投诉内容"
+          }
+        }
+      }
+    },
+    "profile.complaint.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read eligible activities and prepare text on this screen only. Nothing is submitted or saved. Leaving this screen or moving the app to the background clears the draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取可投诉活动，仅在当前页面准备内容。不会提交或保存；退出页面或将 App 切至后台会清除草稿。"
+          }
+        }
+      }
+    },
+    "profile.complaint.topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投诉活动"
+          }
+        }
+      }
+    },
+    "profile.complaint.chooseTopic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择活动"
+          }
+        }
+      }
+    },
+    "profile.complaint.kind": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complaint type (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投诉类型（可选）"
+          }
+        }
+      }
+    },
+    "profile.complaint.optional": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not provided"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未填写"
+          }
+        }
+      }
+    },
+    "profile.complaint.reason": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What happened"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投诉内容"
+          }
+        }
+      }
+    },
+    "profile.complaint.reasonHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter at least 5 and at most 500 UTF-16 text units. Overlength text is not silently truncated."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "至少 5、最多 500 个文本单位（UTF-16）；超长内容不会被静默截断。"
+          }
+        }
+      }
+    },
+    "profile.complaint.contact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact details (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系方式（可选）"
+          }
+        }
+      }
+    },
+    "profile.complaint.contactHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At most 50 UTF-16 text units. Contact details are included in the review text only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 50 个文本单位（UTF-16），仅合并到本页审阅内容。"
+          }
+        }
+      }
+    },
+    "profile.complaint.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review prepared text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审阅准备的内容"
+          }
+        }
+      }
+    },
+    "profile.complaint.reviewTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepared text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待提交内容审阅"
+          }
+        }
+      }
+    },
+    "profile.complaint.notSubmitted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This complaint has not been submitted. The platform has not received it. Submission is not available in this version."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投诉尚未提交，平台未收到这些内容。当前版本未开放受理提交。"
+          }
+        }
+      }
+    },
+    "profile.complaint.continueEditing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    },
+    "profile.complaint.unnamed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动"
+          }
+        }
+      }
+    },
+    "profile.complaint.retired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This preparation session is closed. Return and reopen to start again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次准备已结束，请返回后重新打开。"
+          }
+        }
+      }
+    },
+    "profile.complaint.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No eligible activities. Eligibility comes from your paid participation records on the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可投诉活动，资格以服务端已支付参与记录为准。"
+          }
+        }
+      }
+    },
+    "profile.complaint.kind.service": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service and fulfillment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务与履约"
+          }
+        }
+      }
+    },
+    "profile.complaint.kind.fees": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fees and refunds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "费用与退款"
+          }
+        }
+      }
+    },
+    "profile.complaint.kind.safety": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safety and disputes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全与纠纷"
+          }
+        }
+      }
+    },
+    "profile.complaint.kind.advertising": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Misleading advertising"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "虚假宣传"
+          }
+        }
+      }
+    },
+    "profile.complaint.kind.other": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他"
+          }
+        }
+      }
+    },
+    "profile.complaint.validation.topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an activity from the current list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择当前列表中的活动。"
+          }
+        }
+      }
+    },
+    "profile.complaint.validation.reasonShort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe the issue in at least 5 UTF-16 text units."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写至少 5 个文本单位的投诉内容。"
+          }
+        }
+      }
+    },
+    "profile.complaint.validation.reasonLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The issue exceeds the 500-unit limit. Shorten it before reviewing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投诉内容超过 500 个文本单位，请缩短后再审阅。"
+          }
+        }
+      }
+    },
+    "profile.complaint.validation.contactLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact details exceed the 50-unit limit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系方式超过 50 个文本单位。"
+          }
+        }
+      }
+    },
+    "profile.complaint.read.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eligible activities could not be refreshed. Your local text remains, but review is paused until retry succeeds."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可投诉活动暂时没能刷新。本页文字仍保留，重试成功后才能审阅。"
+          }
+        }
+      }
+    },
+    "profile.complaint.read.signIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again before preparing a complaint."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录后准备投诉内容。"
+          }
+        }
+      }
+    },
+    "profile.complaint.read.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The activity selector is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前无法读取可投诉活动。"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation reward review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请奖励核对"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.total": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumulative first-purchase reward points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计首购奖励积分"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reward records are not fully synchronized. A cumulative total is not available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励流水尚未完整同步，暂不显示累计积分。"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload invitations and rewards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载邀请与奖励"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.monthScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Month subtotals cover loaded invitees only. The cumulative total uses the complete reward scan, including invitees not yet loaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分月小计仅覆盖已加载的受邀人；累计积分来自完整奖励流水，包含尚未加载的受邀人。"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.partialPoints": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synced reward points so far"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已同步部分奖励积分"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.loadedPeople": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loaded invitees"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加载受邀人"
+          }
+        }
+      }
+    },
+    "profile.orderFilter.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Order status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单状态"
+          }
+        }
+      }
+    },
+    "profile.orderFilter.all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部订单"
+          }
+        }
+      }
+    },
+    "profile.orderFilter.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No orders match this status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前筛选暂无订单。"
+          }
+        }
+      }
+    },
+    "profile.orderFilter.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show all orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看全部订单"
+          }
+        }
+      }
+    },
+    "profile.orderFilter.localHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local categories use loaded order facts and device time. They do not determine refund eligibility."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按已读取的订单事实和本机时间分类，不用于判断退款资格。"
+          }
+        }
+      }
+    },
+    "profile.participantValidation.check": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查填写内容"
+          }
+        }
+      }
+    },
+    "profile.participantValidation.name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the participant’s name."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写参与人姓名。"
+          }
+        }
+      }
+    },
+    "profile.participantValidation.phone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an 11-digit mobile number beginning with 13–19. Do not use a masked number."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写以 13–19 开头的 11 位手机号，不要使用隐藏号码。"
+          }
+        }
+      }
+    },
+    "profile.participationSchedule.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participation schedule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与日程"
+          }
+        }
+      }
+    },
+    "profile.participationSchedule.soon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting soon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即将开始"
+          }
+        }
+      }
+    },
+    "profile.participationSchedule.days": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendar days until start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距离开始的日历天数"
+          }
+        }
+      }
+    },
+    "profile.participationSchedule.clockNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shanghai business dates, based on device time. This is a schedule hint only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按上海日历和本机时间显示，仅为行程提示。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My order preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的订单预览"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View all orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看全部订单"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No orders yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无订单。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previously loaded orders are shown. Refresh before opening them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在保留此前读取的订单，请刷新后再打开。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.readFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orders could not be loaded. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单未能加载，请重试。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.signIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again to view your orders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录后查看本人订单。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Order reading is not available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单读取暂未开放。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.previewNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 8 orders in the returned order. Open the list to see all loaded orders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按返回顺序预览最多 8 条，打开列表查看全部订单。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

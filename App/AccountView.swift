@@ -47,7 +47,7 @@ struct AccountView: View {
                     }.accessibilityIdentifier("account.editProfile")
                 }
                 Section {
-                    NavigationLink { SocialPublicProfileView(memberID: account.id, reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner).id(session.socialAccountReader.identity) } label: {
+                    NavigationLink { SocialPublicProfileView(memberID: account.id, reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner).id(session.socialAccountReader.identity) } label: {
                         Label("social.profile", systemImage: "person.crop.rectangle")
                     }.accessibilityIdentifier("account.publicProfile")
                     NavigationLink { SocialInviteHistoryView(reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.socialAccountReader.identity) } label: {
@@ -101,6 +101,7 @@ struct AccountView: View {
                         Label("objects.title", systemImage: "rectangle.stack")
                     }.accessibilityIdentifier("account.objectCards")
                 }
+                Section { ProfileComplaintPreparationLink(session: session) }
                 PlayerJourneyAccountLinks()
                 ProfileAccountLinks(reader:session.profileReader,ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
                 Section {

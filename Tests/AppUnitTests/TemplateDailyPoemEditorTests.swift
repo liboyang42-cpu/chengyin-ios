@@ -78,6 +78,14 @@ import XCTest
             default: editor.retire()
             }
             let before = model.draft; input.wrappedValue = "Stale"; add(); XCTAssertEqual(model.draft, before, operation)
+            if operation == "leave" {
+                XCTAssertFalse(editor.canEdit); model.load()
+                input.wrappedValue = "Revived"; add(); XCTAssertEqual(model.draft, before)
+                let fresh = TemplateDailyPoemController(model: model)
+                XCTAssertTrue(fresh.canEdit); let freshID = try XCTUnwrap(fresh.rows.first?.id)
+                fresh.text(freshID).wrappedValue = "Fresh after return"
+                XCTAssertEqual(fresh.rows.first?.text, "Fresh after return")
+            }
         }
     }
     func testDismissalAndReopenUsesCanonicalTextAndFreshBindings() throws {
@@ -96,12 +104,16 @@ import XCTest
         XCTAssertEqual(reopened.draft, expected); XCTAssertEqual(fresh.rows.first?.text, "First\nSecond"); XCTAssertFalse(reopened.coordinator.canSubmit)
     }
     func testPendingLockDeniesPoemWrites() throws {
-        let (seedModel, _, owner) = try setup(), session = try XCTUnwrap(owner.session)
+        let (seedModel, seedEditor, owner) = try setup(), session = try XCTUnwrap(owner.session)
+        seedEditor.addAction()(); let seedID = try XCTUnwrap(seedEditor.rows.first?.id)
+        seedEditor.text(seedID).wrappedValue = "A valid pending poem"
+        XCTAssertTrue(seedModel.draft.advanced.enabled("dailySign")); XCTAssertTrue(seedModel.draft.advanced.issues.isEmpty)
         let store = TemplateAuthoringLocalStore(storage: TemplateAuthoringMemoryStorage()), identity = TemplateAuthoringIdentity(), seed = seedModel.draft
         try store.save(seed, session: session, identity: identity)
         try store.savePending(.init(operationID: UUID(), ownerKey: session.ownerKey, identity: identity,
             request: TemplateAuthoringContract.request(seed, intent: .saveDraft), createdAt: Date()), session: session)
         let model = TemplateAuthoringModel(coordinator: .init(store: store, currentSession: { session })); model.load(); model.draft = seed
+        XCTAssertNotNil(model.coordinator.pending); XCTAssertTrue(model.coordinator.locked)
         let editor = TemplateDailyPoemController(model: model); editor.addAction()(); XCTAssertFalse(editor.canEdit); XCTAssertEqual(model.draft, seed)
     }
 }

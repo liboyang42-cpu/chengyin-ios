@@ -14,6 +14,7 @@ final class ParticipantFormModel: ObservableObject {
     @Published private(set) var operation: ParticipantMutationState = .idle
     @Published private(set) var readback: ParticipantReadbackState = .idle
     @Published var showConfirmation = false
+    @Published private(set) var validationReview = ProfileParticipantValidationReview()
     private(set) var confirmationSummary = ""
     private(set) var confirmation: ParticipantConfirmation?
     private var loadedIdentity: ProfileReadIdentity?
@@ -27,6 +28,22 @@ final class ParticipantFormModel: ObservableObject {
     }
     var canMutate: Bool { loaded && coordinator.canPrepare && loadedIdentity == coordinator.identity }
     var busy: Bool { operation == .submitting || readback == .loading }
+    var canReviewForSave: Bool {
+        canMutate && !busy && reader.isConfigured && coordinator.isConfigured
+            && loadedIdentity != nil && reader.identity == loadedIdentity
+    }
+    var validationIssue: ProfileParticipantValidationField? {
+        guard canReviewForSave else { return nil }
+        return validationReview.issue(in: draft)
+    }
+    /// Invalid input only reveals local feedback. Valid input uses the original
+    /// confirmation, never dispatching a mutation from this action.
+    func reviewForSave() -> ProfileParticipantValidationField? {
+        guard canReviewForSave else { return nil }
+        let field = validationReview.request(in: draft)
+        if field == nil { prepareSave() }
+        return field
+    }
     func sync() {
         coordinator.synchronizeSession()
         operation = coordinator.state; readback = coordinator.readbackState
@@ -37,6 +54,7 @@ final class ParticipantFormModel: ObservableObject {
         generation &+= 1
         let stamp = generation
         loaded = false; loading = true; issue = nil; draft = ParticipantFormDraft()
+        validationReview = ProfileParticipantValidationReview()
         loadedIdentity = nil; sync()
         guard reader.isConfigured, coordinator.isConfigured else { loading = false; return }
         guard let identity = reader.identity, identity == coordinator.identity else { loading = false; return }
@@ -99,6 +117,7 @@ final class ParticipantFormModel: ObservableObject {
         if let loadedIdentity { coordinator.discardReadback(expectedIdentity: loadedIdentity) }
         confirmation = nil; confirmationSummary = ""; showConfirmation = false
         draft = ParticipantFormDraft(); loaded = false; loadedIdentity = nil
+        validationReview = ProfileParticipantValidationReview()
     }
 }
 
@@ -106,8 +125,7 @@ final class ParticipantFormModel: ObservableObject {
 struct ParticipantFormView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: ParticipantFormModel
-    @FocusState private var focusedField: Field?
-    private enum Field { case name, phone }
+    @FocusState private var focusedField: ProfileParticipantValidationField?
     let onSaved: () -> Void
     let onCreated: (ProfileParticipant, ProfileReadIdentity) -> Void
 
@@ -145,12 +163,15 @@ struct ParticipantFormView: View {
                         TextField("profile.participants.phone", text: $model.draft.mobilePhone)
                             .textContentType(.telephoneNumber).keyboardType(.phonePad)
                             .submitLabel(.done).focused($focusedField, equals: .phone)
-                            .onSubmit { model.prepareSave() }
+                            .onSubmit { focusedField = model.reviewForSave() }
                             .accessibilityIdentifier("participant.form.phone")
                     } footer: { Text("participant.form.purpose") }
                     .disabled(model.operation.preventsNewMutation)
-                    if !model.draft.mobilePhone.isEmpty, model.draft.validation == .invalidPhone {
-                        Section { Text("participant.form.phoneHint").foregroundStyle(.secondary) }
+                    if let field = model.validationIssue {
+                        Section {
+                            Text(LocalizedStringKey(field.messageKey)).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("profile.participantValidation.issue." + field.rawValue)
+                        }
                     }
                     if let issue = model.issue {
                         Section { ParticipantIssueText(issue: issue) }
@@ -161,11 +182,12 @@ struct ParticipantFormView: View {
                 }
                 .scrollDismissesKeyboard(.interactively)
                 .safeAreaInset(edge: .bottom) {
-                    Button { focusedField = nil; model.prepareSave() } label: {
-                        Text(LocalizedStringKey(model.operation == .submitting ? "participant.form.saving" : "participant.form.save"))
+                    Button { focusedField = model.reviewForSave() } label: {
+                        Text(LocalizedStringKey(model.operation == .submitting ? "participant.form.saving"
+                            : model.draft.validation == nil ? "participant.form.save" : "profile.participantValidation.check"))
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
-                    .buttonStyle(.borderedProminent).disabled(!model.canSave)
+                    .buttonStyle(.borderedProminent).disabled(!model.canReviewForSave)
                     .accessibilityIdentifier("participant.form.save")
                     .padding().background(.regularMaterial)
                 }

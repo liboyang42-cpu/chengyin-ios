@@ -29,6 +29,9 @@ import SwiftUI
                     LabeledContent("social.invites.loaded", value: String(model.pagination.members.count))
                     if model.scan?.isComplete != true { Text("social.invites.partial").font(.footnote).accessibilityIdentifier("social.invites.partial") }
                 }
+                ProfileInviteRewardReviewSection(review: .init(scan: model.scan), isLoading: model.loading) {
+                    model.start(reader, permit: permit, reset: true)
+                }
                 ForEach(groups, id: \.0) { group in
                     Section {
                         ForEach(group.1) { member in
@@ -37,8 +40,12 @@ import SwiftUI
                             } label: { memberRow(member) }.accessibilityIdentifier("social.invite.\(member.id)")
                         }
                     } header: {
-                        if group.0.isEmpty { Text("social.invites.otherMonth") }
-                        else { Text(verbatim: group.0) }
+                        HStack(alignment: .top) {
+                            if group.0.isEmpty { Text("social.invites.otherMonth") }
+                            else { Text(verbatim: group.0) }
+                            Spacer()
+                            ProfileInviteMonthReward(month: ProfileInviteRewardReview(scan: model.scan).month(members: group.1))
+                        }
                     }
                 }
                 if !model.loading && model.pagination.members.isEmpty && model.error == nil { Text("social.invites.empty") }

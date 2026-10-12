@@ -14,6 +14,7 @@
     "ProjectPendingStoryAudioFlowTests.swift": "48a4937a51d290aa3d5851eca59a259a17e570dd0ca5c24764f7c3a6286102c5",
     "OwnerDraftReceiptFlowTests.swift": "f02e2cff62a7fdc0840e87815023c63bad054c6e150a39f0968a11118b194cf1",
     "AccessibilityPresentationFlowTests.swift": "34b15121fb2f5eb93efcf0709c4f7d4c50b31db1b1e8765e424a4f24fbd201f0",
+    "ProfileOrderFilterFlowTests.swift": "c8ace7a318ba8168ecfeb7a2ad4aead918f5524c6e058369b58c96832edc6753",
     "RegionalEntryFlowTests.swift": "a5993099e207811a32c6ebf139d76d3ce97d9ee309ad7b82c5c2d4a6cb362642",
     "ProjectOwnedModeCopyFlowTests.swift": "4f45e3e382bf3d9988b82d4667580f2d61d8264fa072918f0c6e5840a991cec7",
     "ClubCommunityUITests.swift": "bd56adbfe7555d5ddb841c325956ac4b68b32fa77f8286017b8c01e877b3691c",
@@ -46,6 +47,7 @@
     "ProfileSelfGrowthFlowTests.swift": "304bdc7f0e8f5b6a54fe3fe3b7c9babef1b7234be2f514f8e5862a8ebc041e15",
     "NativeSettingsReuseFlowTests.swift": "08f355f90f680f33af778ae60da46d7f635d801fccbc64f83deb4b456d757fae",
     "ReferenceMapCardFlowTests.swift": "d5891be32187229dc059e54c45770165550731b60a2dab62f969c7c2fba19e15",
+    "ProfileParticipantValidationFlowTests.swift": "ca649bd4cfa5b2e2092dd61167eacae193b57133bd20d0eb696f0299ef917dbd",
     "RoamOfficialTasksFlowTests.swift": "d222ff1d9cca119039ab140da1410af48b9eb24d47350ac944a895a0264a7e08",
     "TemplateSensorDraftFlowTests.swift": "c6953c1caa1123229985fa2d5fae7381166d3d3232cad8e6dd1e47f59dc44f9d",
     "ProfileSelfMedalsFlowTests.swift": "7fc1095156027e65c8c887cea5cb35608c861675b191ff4b1a9f5cabf776f4e4",
@@ -57,10 +59,12 @@
     "ProjectStoryImageFlowTests.swift": "dbe83155026481a333a2be69ea2ba5a00a2ae133b070338bf461d727f0f080d6",
     "TopicTemplateNameSearchFlowTests.swift": "c4e6bb1724ebac6bcefec3389f639b9a532dcc76f8d698f90ae5b1826433ce04",
     "PlayBranchHistoryFlowTests.swift": "66d9552a55f04d286ff267803786d434c08da35977338042c31c229cdc88729c",
+    "ProfileComplaintPreparationFlowTests.swift": "f0e1eb9b5d4f3e2139be92b86116297051fcca58e02f0f022343180808da52b6",
     "NearbyTeamUITests.swift": "7c408b308478448e6a8176c89433cd431f480e112f7d2e120f227baa5714d3b9",
     "RoamPassportOverviewFlowTests.swift": "da6bed79ef9c6ad24b379958f414f8fff5a704adaf04be2daf7398c23b0cd812",
     "ApprovedTopicFrozenCoverPublicationFlowTests.swift": "7a746e2711cf2b6a0de6f90c0c96c6762113cc0212b16eaca4331786ba3b1d90",
     "MerchantStoreIndustryFlowTests.swift": "7ee62eec88dc920ce961e4f3c9bc04a4e24ebca645a6244fe0e9a896e196a04d",
+    "ProfileInviteRewardReviewFlowTests.swift": "8384e4f97b8747773bd2e1f059617b30467457988f8c4651df7f67b68b41062d",
     "PublisherLifecycleUITests.swift": "85d6d3c53b726ec4eded7a4581c77b3fe2dfbd20846da92bba0187813909a4c4",
     "SquareWorkspaceFlowTests.swift": "b7e7f7e894b1789c75ef3005284e7597319ad6e6f6df8a45cb7072f5ee70bf2c",
     "OwnedTopicCoverSelectionFlowTests.swift": "eccef38b0bca7d50aa67b299b0252089c292bc6d96f539a3477e3997d237f30b",
@@ -153,6 +157,7 @@
     "ProjectStoryTemplateAlbumFirstFlowTests.swift": "fa8008549f9c942efa8206c2346fdefdeba8ffe69e988bdabc3d000b9d9d6d8d",
     "GroupPollUITests.swift": "b5bafcac4f364f38178e8dd74dced246e7b1fb2390023952205ea78600683086",
     "ProfilePreferenceRemovalFlowTests.swift": "306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca",
+    "ProfileSelfOrdersFlowTests.swift": "e5c2b9175988e881798985243694cdead489db78685d443080240ca48a929c2e",
     "RegistrationWaitlistOrderUITests.swift": "41b1adbf4ea544490337879865000eb08d8b37ec14d0a1bbe26430eb4b8dc648",
     "ProfileSelfEditReturnFlowTests.swift": "da98cb0e30c85ddbc63ba3e5f2033f95054eec2a0393b961d9be5ab99890d11b",
     "SquareFlowTests.swift": "ad1287b0eb9a6a47f18145ec844e13679c0036fbcfe2af33b94b82077639b07f",
@@ -183,6 +188,7 @@
     "WalletCommerceFlowTests.swift": "b10534587a9b4404222f0d3b87b0fd271f2905531ceb02ba780aeea76131d31a",
     "ClubStoryNavigationFlowTests.swift": "28af5b75320b585e93edeb80ba5ce6493c666b05632f3e61e6698a4cd4c086d3",
     "ApprovedTopicReviewPersistenceFlowTests.swift": "920404b722b8c1c4a646e636f5d2665a1364adbdf542038d624fa6fdc22a222b",
+    "ProfileParticipationScheduleFlowTests.swift": "2c6f85a68061e211ace0f61dc8c3aac66c8c12eb4b174ed80f137025346126a4",
     "ProfileSelfProjectsFlowTests.swift": "07764572d720dd8a168c02a945430e57d18dbb8d8c4d95e416b41f2dcbe3f78d",
     "EntryFlowTests.swift": "3b37248790bc7f8b1ea372e9f194050492ba331c843f08c754d82d2ca7d33a40",
     "TemplateMediaReviewFlowTests.swift": "8e052ab35f47a07eaed5ee7332489254d1791e1faabb4b3c232650f1738de438",
@@ -378,11 +384,11 @@
     "ApprovedTopicReviewRequestFlowTests.swift": "1f1e787a1beb9d46675f2662fd61890b0f2d90926bf6bc3d228bf2af3efe8a6b",
     "ClubEnrollmentFlowTests.swift": "fb6bf952ef69e09eb0aef75153752a5515d62e9d27f32048726849b3f9a8ea24"
   },
-  "current_inventory_sha256": "69cfa3912144afa81513d576a579d3b39ec5b4047e0a5c5a5c9359456e95717a",
+  "current_inventory_sha256": "587ad0dec512751b17f8cfcdeea332b8b39f669af837409537c3d7698b906293",
   "previous_inventory_sha256": "3eff90afa8092ff9d54db78c792fd362da4392c0d479231b84bd31f627b54216",
-  "method_count": 868,
+  "method_count": 901,
   "class_count_before": 162,
-  "class_count_after": 195,
+  "class_count_after": 201,
   "helper_copy_sha256": "74ae59e50a36d4781536dc66dd42f2854f931450a158294c5f3f80d83916959c",
   "method_costs": {
     "ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation": {
@@ -555,9 +561,15 @@
     "RoamPassportOverviewFlowTests": 650,
     "RoamOfficialTasksFlowTests": 1200,
     "RoamBadgeWallFlowTests": 1030,
-    "RoamEnrolledChaptersFlowTests": 1060
+    "RoamEnrolledChaptersFlowTests": 1060,
+    "ProfileInviteRewardReviewFlowTests": 800,
+    "ProfileParticipationScheduleFlowTests": 780,
+    "ProfileParticipantValidationFlowTests": 580,
+    "ProfileOrderFilterFlowTests": 610,
+    "ProfileSelfOrdersFlowTests": 1300,
+    "ProfileComplaintPreparationFlowTests": 1180
   },
-  "added_total_seconds": 40273.948,
+  "added_total_seconds": 45523.948,
   "shard_count": 79,
   "deadline_seconds": 1800,
   "startup_reserve_seconds": 300,
@@ -947,7 +959,7 @@
     },
     "Questify.xcodeproj/project.pbxproj": {
       "before_sha256": "0497d3ffb5b6dfd9c3aa0cd67a27594cfcb412fcda57fa3ac5ec63d8cc462ed1",
-      "after_sha256": "6442d66ca811bf2277ba4ec98253680554851533dec08676895b4a909c33b673",
+      "after_sha256": "0890a421a644ae386a6ef2f1ed878a547707a72f462858e746972c0137bfc276",
       "hunks": [
         {
           "before": "\t\t\"F2C416E5BF616602CFE89B81\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"588CE027521446DF6EC81070\";\n\t\t};\n\t\t\"74E41CC929B3EEB9D9C0C251\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n",
@@ -3372,6 +3384,174 @@
         {
           "before": "\t\t\t\t\"14B0700446BE94EA5B04E200\",\n\t\t\t\t\"5560C1DE6B883E862414EFC6\",\n",
           "after": "\t\t\t\t\"14B0700446BE94EA5B04E200\",\n\t\t\t\t\"8104E9C878F773C13DA68F30\",\n\t\t\t\t\"5560C1DE6B883E862414EFC6\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"4EACECCB7D53281738EFBF75\" = {\n",
+          "after": "\t\t};\n\t\t\"3831B902EDBCDB1102190592\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileComplaintPreparationFixture.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"63DFBBAB3F4FB9576BEB94E6\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"3831B902EDBCDB1102190592\";\n\t\t};\n\t\t\"18BBE3283654C4EBB8CE38E3\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileComplaintPreparationView.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"787103E8311F027D3312B724\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"18BBE3283654C4EBB8CE38E3\";\n\t\t};\n\t\t\"4EACECCB7D53281738EFBF75\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"88F52D5527980EFDD27F7FAE\" = {\n",
+          "after": "\t\t};\n\t\t\"9B3BA20F1E10024727E9313B\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileInviteRewardReviewFixture.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"777C68272157AC19A39F1052\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"9B3BA20F1E10024727E9313B\";\n\t\t};\n\t\t\"8D593A6255F1B77AF213A258\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileInviteRewardReviewSection.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"B617011E2555CD3FB65866C9\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"8D593A6255F1B77AF213A258\";\n\t\t};\n\t\t\"88F52D5527980EFDD27F7FAE\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"DEEA91197642B4B295A6A184\" = {\n",
+          "after": "\t\t};\n\t\t\"BE96841A88ED0AFBE7571307\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileOrderFilterFixture.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"D9CB44054F4D8FD83908171F\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"BE96841A88ED0AFBE7571307\";\n\t\t};\n\t\t\"7E5F42DECD95BB1BFC956BBD\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileOrderFilterSection.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"61EE839C629FCEC63E3C12A2\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"7E5F42DECD95BB1BFC956BBD\";\n\t\t};\n\t\t\"DEEA91197642B4B295A6A184\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"1A57C6B00B001786B24583CC\" = {\n",
+          "after": "\t\t};\n\t\t\"59812EA4E309B0702C867CC6\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileParticipationScheduleFixture.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"FA4F5598E8B9B6DFEF363CA7\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"59812EA4E309B0702C867CC6\";\n\t\t};\n\t\t\"DE0C162051BC8F988B8942C9\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileParticipationScheduleSection.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"EC319970F7BE0FD42972F4F6\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"DE0C162051BC8F988B8942C9\";\n\t\t};\n\t\t\"1A57C6B00B001786B24583CC\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"E30A4DF80D02F01889A580AB\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"E30A4DF80D02F01889A580AB\";\n\t\t};\n\t\t\"A676580F46889F5BE7F66068\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileSelfOrdersFixture.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"4E828ADAB92EC09745169A84\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"A676580F46889F5BE7F66068\";\n\t\t};\n\t\t\"31AB0179F77E70569840E971\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileSelfOrdersSection.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"1AB850BD2CFE8E5294560738\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"31AB0179F77E70569840E971\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"E1C0F976FD130942E76791ED\" = {\n",
+          "after": "\t\t};\n\t\t\"47577B8A854CC924F309ADC5\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ProfileComplaintPreparation.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"959150AF9503315792C4B77F\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"47577B8A854CC924F309ADC5\";\n\t\t};\n\t\t\"E1C0F976FD130942E76791ED\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"7F30D230DE620349E0C05CDC\" = {\n",
+          "after": "\t\t};\n\t\t\"492C52004A2A69F7307C9422\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ProfileInviteRewardReview.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"C9DD2C0BEBE425BA4D4A443F\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"492C52004A2A69F7307C9422\";\n\t\t};\n\t\t\"7F30D230DE620349E0C05CDC\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"9C264276DBE43FC8B5837AB3\" = {\n",
+          "after": "\t\t};\n\t\t\"76C08C1C15A5B92F702F94D4\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ProfileOrderHistoryFilter.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"7D7A44C4809FCE75478EA790\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"76C08C1C15A5B92F702F94D4\";\n\t\t};\n\t\t\"08599088BBD23F9DA2350E37\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ProfileParticipantValidationReview.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"9CBA37D84E0FBFA1C939BCEE\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"08599088BBD23F9DA2350E37\";\n\t\t};\n\t\t\"1CC4A29CD964207D8B2B6F44\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ProfileParticipationSchedule.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"C76A4BE97D3A78A2BADBCA8E\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"1CC4A29CD964207D8B2B6F44\";\n\t\t};\n\t\t\"9C264276DBE43FC8B5837AB3\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"C05D2492DF0BB3C43F759EF7\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"C05D2492DF0BB3C43F759EF7\";\n\t\t};\n\t\t\"2B42E5A8FC61CA19457CDC66\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ProfileSelfOrders.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"EF4979436C263D26173E0EEC\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"2B42E5A8FC61CA19457CDC66\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"5A8D8C25FDE552A6518EEAD2\",\n\t\t\t\t\"4EACECCB7D53281738EFBF75\",\n",
+          "after": "\t\t\t\t\"5A8D8C25FDE552A6518EEAD2\",\n\t\t\t\t\"3831B902EDBCDB1102190592\",\n\t\t\t\t\"18BBE3283654C4EBB8CE38E3\",\n\t\t\t\t\"4EACECCB7D53281738EFBF75\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"5C2631078332A2912D0A5F5C\",\n\t\t\t\t\"88F52D5527980EFDD27F7FAE\",\n\t\t\t\t\"0F750A009570965CDB480532\",\n\t\t\t\t\"DEEA91197642B4B295A6A184\",\n\t\t\t\t\"13E3B23250A44787F31332B4\",\n\t\t\t\t\"1A57C6B00B001786B24583CC\",\n",
+          "after": "\t\t\t\t\"5C2631078332A2912D0A5F5C\",\n\t\t\t\t\"9B3BA20F1E10024727E9313B\",\n\t\t\t\t\"8D593A6255F1B77AF213A258\",\n\t\t\t\t\"88F52D5527980EFDD27F7FAE\",\n\t\t\t\t\"0F750A009570965CDB480532\",\n\t\t\t\t\"BE96841A88ED0AFBE7571307\",\n\t\t\t\t\"7E5F42DECD95BB1BFC956BBD\",\n\t\t\t\t\"DEEA91197642B4B295A6A184\",\n\t\t\t\t\"13E3B23250A44787F31332B4\",\n\t\t\t\t\"59812EA4E309B0702C867CC6\",\n\t\t\t\t\"DE0C162051BC8F988B8942C9\",\n\t\t\t\t\"1A57C6B00B001786B24583CC\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"E30A4DF80D02F01889A580AB\",\n\t\t\t\t\"1B678967FD8E7D9E6B45FD24\",\n",
+          "after": "\t\t\t\t\"E30A4DF80D02F01889A580AB\",\n\t\t\t\t\"A676580F46889F5BE7F66068\",\n\t\t\t\t\"31AB0179F77E70569840E971\",\n\t\t\t\t\"1B678967FD8E7D9E6B45FD24\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"575FB8789A33D2CA09A296EA\",\n\t\t\t\t\"E1C0F976FD130942E76791ED\",\n",
+          "after": "\t\t\t\t\"575FB8789A33D2CA09A296EA\",\n\t\t\t\t\"47577B8A854CC924F309ADC5\",\n\t\t\t\t\"E1C0F976FD130942E76791ED\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"744E4B9DED2F8826BDAB45DD\",\n\t\t\t\t\"7F30D230DE620349E0C05CDC\",\n\t\t\t\t\"B08988C9878F9E25A8FB828D\",\n\t\t\t\t\"9C264276DBE43FC8B5837AB3\",\n",
+          "after": "\t\t\t\t\"744E4B9DED2F8826BDAB45DD\",\n\t\t\t\t\"492C52004A2A69F7307C9422\",\n\t\t\t\t\"7F30D230DE620349E0C05CDC\",\n\t\t\t\t\"B08988C9878F9E25A8FB828D\",\n\t\t\t\t\"76C08C1C15A5B92F702F94D4\",\n\t\t\t\t\"08599088BBD23F9DA2350E37\",\n\t\t\t\t\"1CC4A29CD964207D8B2B6F44\",\n\t\t\t\t\"9C264276DBE43FC8B5837AB3\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"C05D2492DF0BB3C43F759EF7\",\n\t\t\t\t\"CCD1C5F9F0F84F3EF737D460\",\n",
+          "after": "\t\t\t\t\"C05D2492DF0BB3C43F759EF7\",\n\t\t\t\t\"2B42E5A8FC61CA19457CDC66\",\n\t\t\t\t\"CCD1C5F9F0F84F3EF737D460\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"B8390AF2DAEBBC1CE5F66B41\",\n\t\t\t\t\"AF16AE672F9BD66482E650F1\",\n",
+          "after": "\t\t\t\t\"B8390AF2DAEBBC1CE5F66B41\",\n\t\t\t\t\"2B178BD4C16ECEE45EEDD271\",\n\t\t\t\t\"AF16AE672F9BD66482E650F1\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"7B53C52BBF19B1186F0C5DA5\",\n\t\t\t\t\"A662D6FBFA79BA56FC87AEEF\",\n\t\t\t\t\"F16823981022AEDEEB0BB792\",\n",
+          "after": "\t\t\t\t\"7B53C52BBF19B1186F0C5DA5\",\n\t\t\t\t\"8AAE3AF21A7A3714ACF78A6A\",\n\t\t\t\t\"A662D6FBFA79BA56FC87AEEF\",\n\t\t\t\t\"120AD93842863C354D1EE62E\",\n\t\t\t\t\"40BB9B33EDC855A7B4E37E46\",\n\t\t\t\t\"F9EBCF62273D38822ADDE8C4\",\n\t\t\t\t\"F16823981022AEDEEB0BB792\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"93EC1CC303BAB07A52531016\",\n\t\t\t\t\"246384430E1664022B625189\",\n",
+          "after": "\t\t\t\t\"93EC1CC303BAB07A52531016\",\n\t\t\t\t\"06E46BCD121275500C3BA74D\",\n\t\t\t\t\"246384430E1664022B625189\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"76E148E3F33F46E1F9C2974A\",\n\t\t\t\t\"137BBAD514297E8321CEC40E\",\n",
+          "after": "\t\t\t\t\"76E148E3F33F46E1F9C2974A\",\n\t\t\t\t\"43BB7D386F18959B73E7BAC4\",\n\t\t\t\t\"137BBAD514297E8321CEC40E\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"47108501C7A89FB3CB62B361\",\n\t\t\t\t\"0BF25EA7839230B28F29C24B\",\n\t\t\t\t\"7DE7B98C49AE6829DE2A5BFF\",\n\t\t\t\t\"C4CEBB2FE841F16329B2021C\",\n\t\t\t\t\"F4C617421421008CE7E057C5\",\n",
+          "after": "\t\t\t\t\"47108501C7A89FB3CB62B361\",\n\t\t\t\t\"0110692CEDEB52198A53D008\",\n\t\t\t\t\"0BF25EA7839230B28F29C24B\",\n\t\t\t\t\"F22AFC52A4726DFCC9B931A7\",\n\t\t\t\t\"7DE7B98C49AE6829DE2A5BFF\",\n\t\t\t\t\"C4CEBB2FE841F16329B2021C\",\n\t\t\t\t\"82904CF5F8C72002F798D69F\",\n\t\t\t\t\"2AD580E5B3D80FE858FC3011\",\n\t\t\t\t\"F4C617421421008CE7E057C5\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"E79A35D53CFBC3E10E31A3A2\",\n\t\t\t\t\"62916AD5C6092BA10E771DCA\",\n",
+          "after": "\t\t\t\t\"E79A35D53CFBC3E10E31A3A2\",\n\t\t\t\t\"BFDD3BFFB6E90FD6834446F3\",\n\t\t\t\t\"62916AD5C6092BA10E771DCA\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"F88AB917BA152B491DDF3620\",\n\t\t\t\t\"B0745F7B87EFB6911B99A4DC\",\n",
+          "after": "\t\t\t\t\"F88AB917BA152B491DDF3620\",\n\t\t\t\t\"63DFBBAB3F4FB9576BEB94E6\",\n\t\t\t\t\"787103E8311F027D3312B724\",\n\t\t\t\t\"B0745F7B87EFB6911B99A4DC\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"E734CF4271091DCB1AA025FB\",\n\t\t\t\t\"A58B9C9831A76D78CD75B140\",\n\t\t\t\t\"805AAE7490B7F251F31FB02B\",\n\t\t\t\t\"E7D797B4AB3C3ACFE88D5BAF\",\n\t\t\t\t\"BA8142009EB964EA83E45805\",\n\t\t\t\t\"FB3F5B9E55B1370066DC4C8D\",\n",
+          "after": "\t\t\t\t\"E734CF4271091DCB1AA025FB\",\n\t\t\t\t\"777C68272157AC19A39F1052\",\n\t\t\t\t\"B617011E2555CD3FB65866C9\",\n\t\t\t\t\"A58B9C9831A76D78CD75B140\",\n\t\t\t\t\"805AAE7490B7F251F31FB02B\",\n\t\t\t\t\"D9CB44054F4D8FD83908171F\",\n\t\t\t\t\"61EE839C629FCEC63E3C12A2\",\n\t\t\t\t\"E7D797B4AB3C3ACFE88D5BAF\",\n\t\t\t\t\"BA8142009EB964EA83E45805\",\n\t\t\t\t\"FA4F5598E8B9B6DFEF363CA7\",\n\t\t\t\t\"EC319970F7BE0FD42972F4F6\",\n\t\t\t\t\"FB3F5B9E55B1370066DC4C8D\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"53B4D4ECC00AF87532E64A91\",\n\t\t\t\t\"B10C695343FB4F04EAE2474B\",\n",
+          "after": "\t\t\t\t\"53B4D4ECC00AF87532E64A91\",\n\t\t\t\t\"4E828ADAB92EC09745169A84\",\n\t\t\t\t\"1AB850BD2CFE8E5294560738\",\n\t\t\t\t\"B10C695343FB4F04EAE2474B\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"A6DDC0A241D2F510C5FBC265\",\n\t\t\t\t\"6824DDCBBDF7B04003B34320\",\n",
+          "after": "\t\t\t\t\"A6DDC0A241D2F510C5FBC265\",\n\t\t\t\t\"959150AF9503315792C4B77F\",\n\t\t\t\t\"6824DDCBBDF7B04003B34320\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"BE769A23D5BF4A80969276C4\",\n\t\t\t\t\"B1ACD5715FF24E857708C015\",\n\t\t\t\t\"29820FCEC5A98D19B854A185\",\n\t\t\t\t\"89EF236A118BEEF236CB3915\",\n",
+          "after": "\t\t\t\t\"BE769A23D5BF4A80969276C4\",\n\t\t\t\t\"C9DD2C0BEBE425BA4D4A443F\",\n\t\t\t\t\"B1ACD5715FF24E857708C015\",\n\t\t\t\t\"29820FCEC5A98D19B854A185\",\n\t\t\t\t\"7D7A44C4809FCE75478EA790\",\n\t\t\t\t\"9CBA37D84E0FBFA1C939BCEE\",\n\t\t\t\t\"C76A4BE97D3A78A2BADBCA8E\",\n\t\t\t\t\"89EF236A118BEEF236CB3915\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"242844ECFC1DE72C70D08510\",\n\t\t\t\t\"64C6D8D70CD18FEE8A1BB882\",\n",
+          "after": "\t\t\t\t\"242844ECFC1DE72C70D08510\",\n\t\t\t\t\"EF4979436C263D26173E0EEC\",\n\t\t\t\t\"64C6D8D70CD18FEE8A1BB882\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"AF16AE672F9BD66482E650F1\" = {\n",
+          "after": "\t\t};\n\t\t\"2B178BD4C16ECEE45EEDD271\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileComplaintPreparationFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"4C8368115427035D794F271F\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"2B178BD4C16ECEE45EEDD271\";\n\t\t};\n\t\t\"AF16AE672F9BD66482E650F1\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"A662D6FBFA79BA56FC87AEEF\" = {\n",
+          "after": "\t\t};\n\t\t\"8AAE3AF21A7A3714ACF78A6A\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileInviteRewardReviewFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"4E0A4CB0030A3A0189B8CB52\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"8AAE3AF21A7A3714ACF78A6A\";\n\t\t};\n\t\t\"A662D6FBFA79BA56FC87AEEF\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"F16823981022AEDEEB0BB792\" = {\n",
+          "after": "\t\t};\n\t\t\"120AD93842863C354D1EE62E\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileOrderFilterFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"EB0A3DE0AF5DB61CE2DF4D90\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"120AD93842863C354D1EE62E\";\n\t\t};\n\t\t\"40BB9B33EDC855A7B4E37E46\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileParticipantValidationFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"F028DD945CD65C5DDD8FF583\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"40BB9B33EDC855A7B4E37E46\";\n\t\t};\n\t\t\"F9EBCF62273D38822ADDE8C4\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"13C9FA2623F15A13B6582AB8\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"F9EBCF62273D38822ADDE8C4\";\n\t\t};\n\t\t\"F16823981022AEDEEB0BB792\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"93EC1CC303BAB07A52531016\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"93EC1CC303BAB07A52531016\";\n\t\t};\n\t\t\"06E46BCD121275500C3BA74D\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileSelfOrdersFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"70C07831D20B168AF0B3F407\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"06E46BCD121275500C3BA74D\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"2E23CF17F5150BB1AEBBE205\",\n\t\t\t\t\"7625D95ED36C10BF4AD01D3E\",\n",
+          "after": "\t\t\t\t\"2E23CF17F5150BB1AEBBE205\",\n\t\t\t\t\"4C8368115427035D794F271F\",\n\t\t\t\t\"7625D95ED36C10BF4AD01D3E\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"581DA0F79161241E98F73615\",\n\t\t\t\t\"877BEFADF8FC586003FA8089\",\n\t\t\t\t\"882AFBB33966DF13876C740D\",\n",
+          "after": "\t\t\t\t\"581DA0F79161241E98F73615\",\n\t\t\t\t\"4E0A4CB0030A3A0189B8CB52\",\n\t\t\t\t\"877BEFADF8FC586003FA8089\",\n\t\t\t\t\"EB0A3DE0AF5DB61CE2DF4D90\",\n\t\t\t\t\"F028DD945CD65C5DDD8FF583\",\n\t\t\t\t\"13C9FA2623F15A13B6582AB8\",\n\t\t\t\t\"882AFBB33966DF13876C740D\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"2E08BAE90710788DA161A47D\",\n\t\t\t\t\"C401062784A48E4746A61D88\",\n",
+          "after": "\t\t\t\t\"2E08BAE90710788DA161A47D\",\n\t\t\t\t\"70C07831D20B168AF0B3F407\",\n\t\t\t\t\"C401062784A48E4746A61D88\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"137BBAD514297E8321CEC40E\" = {\n",
+          "after": "\t\t};\n\t\t\"43BB7D386F18959B73E7BAC4\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileComplaintPreparationAppTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"36B343769C6C24E71B8CC750\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"43BB7D386F18959B73E7BAC4\";\n\t\t};\n\t\t\"137BBAD514297E8321CEC40E\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"0BF25EA7839230B28F29C24B\" = {\n",
+          "after": "\t\t};\n\t\t\"0110692CEDEB52198A53D008\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileInviteRewardReviewAppTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"90D02D1A9559C6F4244712E8\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"0110692CEDEB52198A53D008\";\n\t\t};\n\t\t\"0BF25EA7839230B28F29C24B\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"7DE7B98C49AE6829DE2A5BFF\" = {\n",
+          "after": "\t\t};\n\t\t\"F22AFC52A4726DFCC9B931A7\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileOrderFilterAppTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"F011AD4669A6AB244E805EC9\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"F22AFC52A4726DFCC9B931A7\";\n\t\t};\n\t\t\"7DE7B98C49AE6829DE2A5BFF\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"F4C617421421008CE7E057C5\" = {\n",
+          "after": "\t\t};\n\t\t\"82904CF5F8C72002F798D69F\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileParticipantValidationAppTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"94B24B53FEAA20C024649101\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"82904CF5F8C72002F798D69F\";\n\t\t};\n\t\t\"2AD580E5B3D80FE858FC3011\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileParticipationScheduleAppTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"521F7D2CEF474DD8985D5DB1\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"2AD580E5B3D80FE858FC3011\";\n\t\t};\n\t\t\"F4C617421421008CE7E057C5\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"E79A35D53CFBC3E10E31A3A2\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"E79A35D53CFBC3E10E31A3A2\";\n\t\t};\n\t\t\"BFDD3BFFB6E90FD6834446F3\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileSelfOrdersAppTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"75955D04BE7BDCF96DC8B787\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"BFDD3BFFB6E90FD6834446F3\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"16F74F0875B8EECAC99D65E9\",\n\t\t\t\t\"88F0CFA986947BD3FFB032B4\",\n",
+          "after": "\t\t\t\t\"16F74F0875B8EECAC99D65E9\",\n\t\t\t\t\"36B343769C6C24E71B8CC750\",\n\t\t\t\t\"88F0CFA986947BD3FFB032B4\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"78777F752F074423B578CFE5\",\n\t\t\t\t\"0BBF9CE29448EFEFE9E74892\",\n\t\t\t\t\"DF4261EE9537BB2565AC3DC3\",\n\t\t\t\t\"365154B02B459B703B9B896B\",\n\t\t\t\t\"32FAF698395E8AB6C751025B\",\n",
+          "after": "\t\t\t\t\"78777F752F074423B578CFE5\",\n\t\t\t\t\"90D02D1A9559C6F4244712E8\",\n\t\t\t\t\"0BBF9CE29448EFEFE9E74892\",\n\t\t\t\t\"F011AD4669A6AB244E805EC9\",\n\t\t\t\t\"DF4261EE9537BB2565AC3DC3\",\n\t\t\t\t\"365154B02B459B703B9B896B\",\n\t\t\t\t\"94B24B53FEAA20C024649101\",\n\t\t\t\t\"521F7D2CEF474DD8985D5DB1\",\n\t\t\t\t\"32FAF698395E8AB6C751025B\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"C1493BAC51B5FC93CC036D5F\",\n\t\t\t\t\"27B575F89E04D05818674C94\",\n",
+          "after": "\t\t\t\t\"C1493BAC51B5FC93CC036D5F\",\n\t\t\t\t\"75955D04BE7BDCF96DC8B787\",\n\t\t\t\t\"27B575F89E04D05818674C94\",\n"
         }
       ]
     },
@@ -3797,7 +3977,7 @@
     },
     "App/QuestifyApp.swift": {
       "before_sha256": "5afc5b2698d07cc17a05ed5ccadc97d7005a61e563157354eb0d238d8a248f63",
-      "after_sha256": "83990b2a78b36f57f518c3508c82f85f26ac8252cfaaecf2f0d118bd0285d684",
+      "after_sha256": "a1eb70f7ef0259f3a84229c0d2ac761b441ac2baa125f5f6b8935302d8c76ec2",
       "hunks": [
         {
           "before": "                TabView(selection:$selectedTab) {\n                    SessionHomeFeedView(onSignIn:{ selectedTab=4 }).tabItem { Label(\"homeFeed.title\",systemImage:\"house\") }.tag(0)\n                    ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label(\"activity.browse\",systemImage:\"map\") }.tag(1)\n                    RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true },experienceReader:session.roamExperienceReader, cityDestination: { AnyView(SessionCityPlayerView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView()) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController())) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)\n                        .tabItem { Label(\"roam.title\",systemImage:\"map\") }.tag(3)\n                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }) }\n                        .id(session.sessionRevision)\n",
@@ -3826,6 +4006,14 @@
         {
           "before": "           ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-author-posts-refresh\") ||\n",
           "after": "           ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-local-cover\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-favorite-removal\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-self-edit-return\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-self-medals\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-self-growth\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-self-projects\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-author-posts-refresh\") ||\n"
+        },
+        {
+          "before": "                    ClubManagementFixtureRootView(scenario:clubManagement)\n                } else if ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-local-cover\") {\n",
+          "after": "                    ClubManagementFixtureRootView(scenario:clubManagement)\n                } else if ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-invite-reward-review\") {\n                    ProfileInviteRewardReviewFixtureHost(scenario: fixtureArgument(\"--profile-invite-reward-review-scenario\") ?? \"complete\")\n                } else if ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-participation-schedule\") {\n                    ProfileParticipationScheduleFixtureHost(scenario: fixtureArgument(\"--profile-participation-schedule-scenario\") ?? \"near\")\n                } else if ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-order-filters\") {\n                    ProfileOrderFilterFixtureHost(empty: ProcessInfo.processInfo.arguments.contains(\"--profile-order-filters-empty\"))\n                } else if ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-self-orders\") {\n                    ProfileSelfOrdersFixtureHost(scenario: fixtureArgument(\"--profile-self-orders-scenario\") ?? \"content\")\n                } else if ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-complaint\") {\n                    ProfileComplaintPreparationFixtureView(scenario: fixtureArgument(\"--profile-complaint-scenario\") ?? \"content\")\n                } else if ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-local-cover\") {\n"
+        },
+        {
+          "before": "           ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-local-cover\") ||\n",
+          "after": "           ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-invite-reward-review\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-participation-schedule\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-order-filters\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-self-orders\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-complaint\") ||\n           ProcessInfo.processInfo.arguments.contains(\"--uitesting-profile-local-cover\") ||\n"
         }
       ]
     },
@@ -5043,7 +5231,7 @@
     },
     "App/AccountView.swift": {
       "before_sha256": "d2d966ea0a45ba1b7113da40c3c34ff78be20883cbb53c3da1a38f99b4e46b2b",
-      "after_sha256": "13e107fa8b048339624fe71fbd350034977292bfe7ebedc9c42a0c2b193eccc5",
+      "after_sha256": "e264d41cf1d777fc217570b86ea63111bc5090ed6eca396573f7fbe237eb9833",
       "hunks": [
         {
           "before": "                    NavigationLink { SocialInviteHistoryView(reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.socialAccountReader.identity) } label: {\n                        Label(\"social.invites.title\", systemImage: \"person.2.badge.plus\")\n                    }.accessibilityIdentifier(\"account.inviteHistory\")\n                    NavigationLink { SocialPlayGuideView(reader: session.socialAccountReader, onOpenDestination: onOpenGuideDestination).id(session.socialAccountReader.identity) } label: {\n                        Label(\"social.guide.title\", systemImage: \"book\")\n                    }.accessibilityIdentifier(\"account.playGuide\")\n                }\n",
@@ -5072,6 +5260,14 @@
         {
           "before": "                Section {\n                    NavigationLink { SocialPublicProfileView(memberID: account.id, reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.socialAccountReader.identity) } label: {\n                        Label(\"social.profile\", systemImage: \"person.crop.rectangle\")\n",
           "after": "                Section {\n                    NavigationLink { SocialPublicProfileView(memberID: account.id, reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner).id(session.socialAccountReader.identity) } label: {\n                        Label(\"social.profile\", systemImage: \"person.crop.rectangle\")\n"
+        },
+        {
+          "before": "                Section {\n                    NavigationLink { SocialPublicProfileView(memberID: account.id, reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner).id(session.socialAccountReader.identity) } label: {\n                        Label(\"social.profile\", systemImage: \"person.crop.rectangle\")\n",
+          "after": "                Section {\n                    NavigationLink { SocialPublicProfileView(memberID: account.id, reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner).id(session.socialAccountReader.identity) } label: {\n                        Label(\"social.profile\", systemImage: \"person.crop.rectangle\")\n"
+        },
+        {
+          "before": "                }\n                PlayerJourneyAccountLinks()\n",
+          "after": "                }\n                Section { ProfileComplaintPreparationLink(session: session) }\n                PlayerJourneyAccountLinks()\n"
         }
       ]
     },
@@ -5147,7 +5343,7 @@
     },
     "App/TemplateAuthoringView.swift": {
       "before_sha256": "00b46d721e00dbb2f493b2b8932336a94ef44d0424d728ad6a2320b43f026cc4",
-      "after_sha256": "fdbdcc7a44c5f8eb6331531110cb35d84204d72765c90d4c6df6782067f227e4",
+      "after_sha256": "6cbf6c271051c87b892e8eb562f7c0391af972e4009a891f8b791a5557eee6e0",
       "hunks": [
         {
           "before": "    @State private var discard = false\n    let sessionRevision: UInt64\n    let metadataReader: (any DiscoveryReading)?\n    init(coordinator: TemplateAuthoringCoordinator, sessionRevision: UInt64, metadataReader: (any DiscoveryReading)? = nil,\n         imageSelectionApproved: @escaping () -> Bool = { false }, mediaFixtureMode: String? = nil) {\n        let value = TemplateAuthoringModel(coordinator: coordinator)\n        value.mediaImageSelectionApproved = imageSelectionApproved; value.mediaFixtureMode = mediaFixtureMode\n        _model = StateObject(wrappedValue: value)\n        _media = StateObject(wrappedValue: .init(model: value, imageSelectionApproved: imageSelectionApproved, fixtureMode: mediaFixtureMode))\n        self.sessionRevision = sessionRevision; self.metadataReader = metadataReader\n    }\n    var body: some View {\n        Form {\n",
@@ -5172,6 +5368,10 @@
         {
           "before": "            TemplateAuthoringRewardStoryFields(model: model)\n            Section(String(localized: LocalizedStringResource(\"templateMedia.title\", defaultValue: \"Local media review\", locale: locale))) {\n",
           "after": "            TemplateAuthoringRewardStoryFields(model: model)\n            Section {\n                NavigationLink(\"templateModules.title\") { TemplateOptionalModuleManager(model: model) }\n                    .accessibilityIdentifier(\"templateModules.open\")\n            }\n            Section(String(localized: LocalizedStringResource(\"templateMedia.title\", defaultValue: \"Local media review\", locale: locale))) {\n"
+        },
+        {
+          "before": "    func confirm(_ value: TemplateAuthoringReview) async { busy = true; review = nil; await coordinator.confirm(value); busy = false; revision += 1 }\n    func leave() { metadataGeneration = UUID(); coordinator.leaveScreen(); review = nil }\n    private func retireMediaReviews() {\n",
+          "after": "    func confirm(_ value: TemplateAuthoringReview) async { busy = true; review = nil; await coordinator.confirm(value); busy = false; revision += 1 }\n    func leave() {\n        // Retained child callbacks must expire even when the same draft returns later.\n        retireMediaReviews()\n        metadataGeneration = UUID()\n        storyEditorGeneration += 1; legacyHintGeneration = UUID(); optionMediaGeneration += 1\n        coordinator.leaveScreen(); review = nil\n    }\n    private func retireMediaReviews() {\n"
         }
       ]
     },
@@ -5265,7 +5465,7 @@
     },
     "App/ProfileOrdersView.swift": {
       "before_sha256": "7d7d595276985ee09c6a21d963233acca9943a5d77c58babce9aed36707e2abf",
-      "after_sha256": "06259529c65743396c6a888c3ec332a57f7012fb3696b843250c89075c84f080",
+      "after_sha256": "ee91eb5cd673da6401d13745ad57e1ca79f784b613bc0b3d0b9f14e7d3d8975a",
       "hunks": [
         {
           "before": "    var lifecycleCoordinator: OrderLifecycleCoordinator? = nil\n    var mediaScope: UUID = UUID()\n    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil\n    var body: some View {\n        ProfileReadScreen(reader: reader, accessibilityPrefix: \"profile.orders\", load: { try await reader.profileOrders() }) { orders in\n            if orders.isEmpty {\n",
@@ -5286,6 +5486,18 @@
         {
           "before": "                        }.accessibilityIdentifier(\"profile.order.lifecycle\")\n                    }\n                }\n                Section { Text(\"profile.readOnly\").foregroundStyle(.secondary) }\n            }\n        }\n        .appNavigationTitle(\"profile.orders.detail\")\n        .navigationBarTitleDisplayMode(.inline)\n    }\n}\n\n",
           "after": "                        }.accessibilityIdentifier(\"profile.order.lifecycle\")\n                    }\n                }\n                if let ticketReader {\n                    Section { ticketEntry(order: order, tickets: ticketReader) }\n                }\n                ExploreCompletionEntry(order: order, requestedID: id, origin: reader)\n                Section { Text(\"profile.readOnly\").foregroundStyle(.secondary) }\n            }\n        }\n        .appNavigationTitle(\"profile.orders.detail\")\n        .navigationBarTitleDisplayMode(.inline)\n        .navigationDestination(item: $ticketTarget) { target in\n            if let ticketReader, target.registrationID == id, target.matches(origin: reader, tickets: ticketReader) {\n                ProfileOrderTicketDestination(target: target, origin: reader, tickets: ticketReader)\n                    .id(target.id)\n            } else { ProfileOrderTicketUnavailableView() }\n        }\n        .onAppear { ticketEntryVisible = true; ticketPresentationID = UUID() }\n        // A push must not remove its destination. Retire only activation callbacks here.\n        .onDisappear { ticketEntryVisible = false; ticketPresentationID = UUID() }\n        .onChange(of: reader.identity) { _, _ in retireTicketEntry() }\n        .onChange(of: reader.isConfigured) { _, _ in retireTicketEntry() }\n        .onChange(of: ObjectIdentifier(reader)) { _, _ in retireTicketEntry() }\n        .onChange(of: ticketReader.map { ObjectIdentifier($0) }) { _, _ in retireTicketEntry() }\n        .onChange(of: ticketReader?.scope) { _, _ in retireTicketEntry() }\n        .onChange(of: ticketReader?.isAuthenticated) { _, _ in retireTicketEntry() }\n        .onChange(of: ticketReader?.isConfigured) { _, _ in retireTicketEntry() }\n        .onChange(of: id) { _, _ in retireTicketEntry() }\n    }\n    @ViewBuilder private func ticketEntry(order: ProfileOrder, tickets: any TicketWalletReading) -> some View {\n        let renderedPresentation = ticketPresentationID\n        let target = ProfileOrderTicketTarget(order: order, requestedID: id, origin: reader, tickets: tickets)\n        Button {\n            guard ticketEntryVisible, ticketTarget == nil, renderedPresentation == ticketPresentationID,\n                  let target, target.matches(origin: reader, tickets: tickets) else { return }\n            ticketTarget = target\n        } label: { Label(\"orderTicketEntry.open\", systemImage: \"ticket\") }\n            .frame(minHeight: 44).disabled(target == nil || !ticketEntryVisible)\n            .accessibilityIdentifier(\"orderTicketEntry.open\")\n        Text(target == nil ? \"orderTicketEntry.unavailable\" : \"orderTicketEntry.freshRead\")\n            .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)\n    }\n    private func retireTicketEntry() { ticketTarget = nil; ticketPresentationID = UUID() }\n}\n\n/// Presentation only; the enclosing ProfileReadScreen owns the existing reader/scope lifetime.\nstruct ProfileOrderTicketScheduleRows: View {\n    let order: ProfileOrder\n    var body: some View {\n        let schedule = ProfileOrderSchedulePresentation(order)\n        if schedule.isTicket {\n            Text(\"profileTicketSchedule.title\").font(.subheadline.weight(.semibold))\n                .accessibilityIdentifier(\"profile.order.ticketSchedule\")\n            ProfileOrderTicketTimeRow(label: \"profile.orders.start\", value: schedule.start)\n            ProfileOrderTicketTimeRow(label: \"profile.orders.end\", value: schedule.end)\n            Text(\"profileTicketSchedule.phoneTimeZone\").font(.caption).foregroundStyle(.secondary)\n        } else {\n            if schedule.start != .absent || schedule.end != .absent {\n                Text(\"profileTicketSchedule.ownerTimes\").font(.caption).foregroundStyle(.secondary)\n                    .accessibilityIdentifier(\"profile.order.ownerSchedule\")\n            }\n            if schedule.start != .absent { ProfileOrderTicketTimeRow(label: \"profile.orders.start\", value: schedule.start) }\n            if schedule.end != .absent { ProfileOrderTicketTimeRow(label: \"profile.orders.end\", value: schedule.end) }\n        }\n    }\n}\nstruct ProfileOrderSchedulePresentation {\n    let isTicket: Bool\n    let start: ProfileOrderTicketTime\n    let end: ProfileOrderTicketTime\n    init(_ order: ProfileOrder) {\n        if let schedule = order.ticketSchedule {\n            isTicket = true; start = schedule.start; end = schedule.end\n        } else {\n            func source(_ value: String?) -> ProfileOrderTicketTime {\n                guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return .absent }\n                return .source(value)\n            }\n            isTicket = false; start = source(order.startDate); end = source(order.endDate)\n        }\n    }\n}\nstruct ProfileOrderTicketTimeRow: View {\n    let label: LocalizedStringKey\n    let value: ProfileOrderTicketTime\n    @Environment(\\.timeZone) private var phoneTimeZone\n    var body: some View {\n        LabeledContent(label) {\n            if let display = value.display(phoneTimeZone: phoneTimeZone) {\n                Text(verbatim: display).textSelection(.enabled).monospacedDigit()\n            } else if case .source(let raw) = value {\n                VStack(alignment: .trailing, spacing: 4) {\n                    Text(verbatim: raw).textSelection(.enabled)\n                    Text(\"profileTicketSchedule.unparsed\").font(.caption).foregroundStyle(.secondary)\n                }.fixedSize(horizontal: false, vertical: true)\n            } else { Text(\"profile.orders.unknown\") }\n        }\n    }\n}\n\n"
+        },
+        {
+          "before": "    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil\n    var ticketReader: (any TicketWalletReading)? = nil\n    var body: some View {\n        ProfileReadScreen(reader: reader, accessibilityPrefix: \"profile.orders\", load: { try await reader.profileOrders() }) { orders in\n",
+          "after": "    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil\n    var ticketReader: (any TicketWalletReading)? = nil\n    @State private var filterSelection = ProfileOrderFilterSelection()\n    private var filterOwner: ProfileOrderFilterOwner {\n        .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)\n    }\n    var body: some View {\n        ProfileReadScreen(reader: reader, accessibilityPrefix: \"profile.orders\", load: { try await reader.profileOrders() }) { orders in\n"
+        },
+        {
+          "before": "                ProfileEmptyState(title: \"profile.orders.empty\", hint: \"profile.orders.emptyHint\", symbol: \"ticket\", identifier: \"profile.orders.empty\")\n            } else {\n                List {\n                    Section {\n                        ForEach(orders) { order in\n                            NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader) } label: {\n                                ProfileOrderRow(order: order)\n                            }.accessibilityIdentifier(\"profile.order.\\(order.id)\")\n                        }\n                    } footer: { Text(\"profile.readOnly\") }\n                }\n            }\n        }\n        .appNavigationTitle(\"profile.orders.title\")\n    }\n}\n",
+          "after": "                ProfileEmptyState(title: \"profile.orders.empty\", hint: \"profile.orders.emptyHint\", symbol: \"ticket\", identifier: \"profile.orders.empty\")\n            } else {\n                // Local time may move an already-loaded order between categories.\n                // No timer-triggered read or financial action is performed here.\n                TimelineView(.periodic(from: .now, by: 60)) { clock in\n                    let owner = filterOwner\n                    let filter = filterSelection.value(for: owner)\n                    let visible = filter.orders(in: orders, now: clock.date)\n                    List {\n                        ProfileOrderFilterSection(selection: Binding(\n                            get: { filterSelection.value(for: filterOwner) },\n                            set: { filterSelection.choose($0, rendered: owner, current: filterOwner) }),\n                            isEmpty: visible.isEmpty)\n                        Section {\n                            ForEach(visible) { order in\n                                NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader) } label: {\n                                    ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date))\n                                }.accessibilityIdentifier(\"profile.order.\\(order.id)\")\n                            }\n                        } footer: { Text(\"profile.readOnly\") }\n                    }\n                }\n            }\n        }\n        .appNavigationTitle(\"profile.orders.title\")\n        .onChange(of: filterOwner) { _, _ in filterSelection.retire() }\n    }\n}\n"
+        },
+        {
+          "before": "private struct ProfileOrderRow: View {\n    let order: ProfileOrder\n    var body: some View {\n        VStack(alignment: .leading, spacing: 8) {\n            if let title = order.title, !title.isEmpty { Text(verbatim: title).font(.headline) }\n            else { Text(\"profile.orders.untitled\").font(.headline) }\n            ProfileOrderStatus(order: order).font(.subheadline)\n            if let date = order.participateDate ?? order.startDate, !date.isEmpty {\n                Label { Text(verbatim: date) } icon: { Image(systemName: \"calendar\") }.font(.subheadline)\n",
+          "after": "private struct ProfileOrderRow: View {\n    let order: ProfileOrder\n    let historyState: OrderLifecycleState\n    var body: some View {\n        VStack(alignment: .leading, spacing: 8) {\n            if let title = order.title, !title.isEmpty { Text(verbatim: title).font(.headline) }\n            else { Text(\"profile.orders.untitled\").font(.headline) }\n            Text(LocalizedStringKey(\"orderLifecycle.state.\" + historyState.rawValue)).font(.subheadline)\n            if let date = order.participateDate ?? order.startDate, !date.isEmpty {\n                Label { Text(verbatim: date) } icon: { Image(systemName: \"calendar\") }.font(.subheadline)\n"
         }
       ]
     },
@@ -5313,7 +5525,7 @@
     },
     "Core/ProfileContracts.swift": {
       "before_sha256": "30f162c18a98140ee99c33c3339200d561c5f634b20a54660b803843daabe511",
-      "after_sha256": "d22d0536ab3e1248bc4bfe652aa49895c42be69ec46f9d3d04544e0f1f745920",
+      "after_sha256": "95ae8970a79f9457568359f8bf89b2afdabf592fbe421c8552ce1e02d9a248ba",
       "hunks": [
         {
           "before": "/// Shared read projection of MyRegistration and RegistrationDetail. Detail is always fetched\n/// from /info; list snapshots are never treated as a fresh detail response. Unknown values\n/// and missing prices remain unknown, including absent refund applications versus payout 0.\npublic struct ProfileOrder: Decodable, Equatable, Identifiable {\n    public let id: Int\n    public let memberID: Int?\n",
@@ -5338,6 +5550,14 @@
         {
           "before": "        addressName = owner?.addressName\n        let meeting = try c.decodeIfPresent(MeetingTicket.self, forKey: .omsTicket)\n        meetingPoint = meeting?.meetingPoint\n        gatherLatitude = meeting?.gatherLat; gatherLongitude = meeting?.gatherLng\n        participateDate = try c.decodeIfPresent(String.self, forKey: .participateDate)\n        if c.contains(.payableAmount), !(try c.decodeNil(forKey: .payableAmount)) {\n",
           "after": "        addressName = owner?.addressName\n        let meeting = try c.decodeIfPresent(MeetingTicket.self, forKey: .omsTicket)\n        meetingPoint = meeting?.meetingPoint\n        ticketSchedule = meeting?.schedule\n        gatherLatitude = meeting?.gatherLat; gatherLongitude = meeting?.gatherLng\n        participateDate = try c.decodeIfPresent(String.self, forKey: .participateDate)\n        if c.contains(.payableAmount), !(try c.decodeNil(forKey: .payableAmount)) {\n"
+        },
+        {
+          "before": "public struct ProfileOrder: Decodable, Equatable, Identifiable {\n    public let id: Int\n    public let memberID: Int?\n    public let ticketID: Int?\n",
+          "after": "public struct ProfileOrder: Decodable, Equatable, Identifiable {\n    public let id: Int\n    public let historyFacts: ProfileOrderHistoryFacts\n    public let memberID: Int?\n    public let ticketID: Int?\n"
+        },
+        {
+          "before": "        let c = try decoder.container(keyedBy: CodingKeys.self)\n        id = try c.decode(Int.self, forKey: .id)\n        guard id > 0 else { throw APIError.malformedResponse }\n        memberID = try c.decodeIfPresent(Int.self, forKey: .memberId)\n",
+          "after": "        let c = try decoder.container(keyedBy: CodingKeys.self)\n        id = try c.decode(Int.self, forKey: .id)\n        historyFacts = try ProfileOrderHistoryFacts(from: decoder)\n        guard id > 0 else { throw APIError.malformedResponse }\n        memberID = try c.decodeIfPresent(Int.self, forKey: .memberId)\n"
         }
       ]
     },
@@ -6633,7 +6853,7 @@
     },
     "Resources/Localizable.xcstrings": {
       "before_sha256": "8f552d5a3f34a86c19a370c411a08669dfb4440a15f3b3037cd635595b4ff995",
-      "after_sha256": "2a2795b7d79256dc0e16e3a8ec0d28d891dc5557634ec27cfb2d662a12918eeb",
+      "after_sha256": "8c5fb8c77cb12ccd7697597bab0fc532ec80331ff4ab34eef6bf560ad6d3a7d3",
       "hunks": [
         {
           "before": "          }\n        }\n      }\n    }\n  },\n  \"version\": \"1.0\"\n",
@@ -6702,6 +6922,10 @@
         {
           "before": "      }\n    }\n",
           "after": "      }\n    },\n    \"templateMemo.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choice memory\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"选项记忆\"\n          }\n        }\n      }\n    },\n    \"templateMemo.remember\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remember this choice\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"记住这个选择\"\n          }\n        }\n      }\n    },\n    \"templateMemo.scope\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saves an automatic tag effect for this option. This editor does not apply tags to any player.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"为此选项保存自动标签效果。此编辑页不会向玩家添加标签。\"\n          }\n        }\n      }\n    },\n    \"templateMemo.reopen\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The option changed. Reopen its editor before changing memory.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"选项已变化，请重新进入此选项后修改记忆。\"\n          }\n        }\n      }\n    },\n    \"templateMemo.capacity\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"All 16 effect slots are in use. Remove an existing effect before enabling memory.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"16 条效果已用满，请先删除一条已有效果再开启记忆。\"\n          }\n        }\n      }\n    },\n    \"templateMemo.off\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This option has no automatic memory tag.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"此选项没有自动记忆标签。\"\n          }\n        }\n      }\n    },\n    \"templateMemo.removeScope\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Turning this off removes only its automatic memory tags; other effects stay unchanged.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"关闭时仅移除此选项的自动记忆标签，其他效果保留。\"\n          }\n        }\n      }\n    },\n    \"templateMemo.otherEffects %lld\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Other effects retained: %lld\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保留的其他效果：%lld 条\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Try this question locally\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本地演练此题\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.scope\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Try the text or choice question from your current draft. Answers and hints stay in this local rehearsal; no completion record, score or reward is sent. Attachments are not played or fetched here.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"使用当前草稿中的文字或选择题演练。输入和提示仅留在本地演练，不发送完成记录、分数或奖励；此处不播放或加载附件。\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.changed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The draft or editing session changed. Reload to start a fresh attempt.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"草稿或编辑会话已变化，请重新读取开始新一轮演练。\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.reload\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reload current question\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重新读取当前题目\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.incomplete\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Complete the question and its answer first. Choice questions need at least two filled options and a correct answer that is present. Advanced primary games use their own rehearsal.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请先填写题目和答案。选择题需至少两个已填选项，正确答案必须对应已有内容。高级主玩法请使用对应的演练入口。\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.question\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Current question\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前题目\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.answer\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter your answer\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"输入你的答案\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.completed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Local answer matched\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本地演练答案匹配\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.noAward\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This is only the author’s local preview. No real completion or reward was granted.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这只是作者本地预览，未产生真实完成记录或发放奖励。\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.emptyAliases\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The saved answer contains only separators. The Mini preview rule accepts any nonempty answer in this case. Return to editing to set answer keywords if that is not intended.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已存答案只有分隔符，小程序预览规则在此情况下接受任意非空答案。如不符合预期，请返回编辑答案关键词。\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.blankOption\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Unfilled option\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"未填写的选项\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.selected\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Selected\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已选择\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.unselected\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Not selected\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"未选择\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.wrong\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"That answer did not match. Try again.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"回答不匹配，再试一次。\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.hint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Show configured hint\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"查看已配置提示\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.submit\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Check local answer\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"检查本地答案\"\n          }\n        }\n      }\n    },\n    \"templateLegacyQuiz.restart\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Try again from the start\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重新开始演练\"\n          }\n        }\n      }\n    },\n    \"templateModules.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Optional modules\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"可选模块管理\"\n          }\n        }\n      }\n    },\n    \"templateModules.instructions\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Review an optional module, clear its content and remove it, or add it again. Ordinary enable switches keep their existing behavior. Adding a previously disabled module keeps its retained content.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"先查看可选模块内容，再确认清空并移除，也可以重新添加。原有启用开关保持原行为；添加曾被停用的模块会保留其已有内容。\"\n          }\n        }\n      }\n    },\n    \"templateModules.changed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The draft or editing session changed. Reopen this manager before continuing.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"草稿或编辑会话已变化，请重新读取后继续。\"\n          }\n        }\n      }\n    },\n    \"templateModules.reload\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reload current draft\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重新读取当前草稿\"\n          }\n        }\n      }\n    },\n    \"templateModules.enabled\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Added\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已添加\"\n          }\n        }\n      }\n    },\n    \"templateModules.available\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Available to add\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"可添加\"\n          }\n        }\n      }\n    },\n    \"templateModules.add\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Add module\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"添加模块\"\n          }\n        }\n      }\n    },\n    \"templateModules.inspect\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Review clear and remove\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"查看清空并移除\"\n          }\n        }\n      }\n    },\n    \"templateModules.savedScope\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Save uses the existing local draft storage. It does not publish or grant rewards.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存使用现有本地草稿存储，不发布或发放奖励。\"\n          }\n        }\n      }\n    },\n    \"templateModules.removeNotice\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Confirm to clear the fields shown below and turn off this module. Adding it again will not restore the cleared content. Cancel keeps all content.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"确认后将清空下列内容并停用该模块，重新添加不会恢复已清空的内容。取消则保留全部内容。\"\n          }\n        }\n      }\n    },\n    \"templateModules.storyNotice\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Story text and timeline are cleared. The legacy story image is retained. Opening the timeline after adding creates its existing empty editing row.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"清空故事正文和时间线，保留旧版故事图片。重新添加后打开时间线，将按现有行为显示一个空白编辑行。\"\n          }\n        }\n      }\n    },\n    \"templateModules.rewardNotice\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This only clears this draft’s coupon reference, feedback and medal fields; medal style resets to glow. It does not cancel coupons or affect rewards already granted.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这里只清空草稿中的优惠券引用、反馈和勋章字段，勋章样式重置为流光；不会注销优惠券或影响已发放的奖励。\"\n          }\n        }\n      }\n    },\n    \"templateModules.empty\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Empty\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"空\"\n          }\n        }\n      }\n    },\n    \"templateModules.confirm\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Confirm clear and remove\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"确认清空并移除\"\n          }\n        }\n      }\n    },\n    \"templateModules.review\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Review module removal\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"确认移除范围\"\n          }\n        }\n      }\n    },\n    \"templateModules.timeline\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Stored story timeline\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已存故事时间线\"\n          }\n        }\n      }\n    },\n    \"templateFrame.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Photo framing outline\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"取景轮廓\"\n          }\n        }\n      }\n    },\n    \"templateFrame.instructions\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Set an existing frame address, load it explicitly to preview, then adjust its opacity. This does not upload images or perform photo review.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"填写已有轮廓图地址，点击加载预览后调整浓淡。此处不上传图片或执行拍照审核。\"\n          }\n        }\n      }\n    },\n    \"templateFrame.changed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The draft or screen state changed. Reload before editing.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"草稿或页面状态已变化，请重新载入后编辑。\"\n          }\n        }\n      }\n    },\n    \"templateFrame.reload\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reload frame settings\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重新载入轮廓配置\"\n          }\n        }\n      }\n    },\n    \"templateFrame.unsupported\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This older frame configuration uses a different format. Its original data is preserved.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这份旧轮廓配置格式不同，原始数据已保留。\"\n          }\n        }\n      }\n    },\n    \"templateFrame.addressHint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Existing HTTPS addresses and site paths can be saved. Preview only loads a validated absolute HTTPS address.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"可保存已有 HTTPS 地址或站内路径。预览仅加载经过校验的完整 HTTPS 地址。\"\n          }\n        }\n      }\n    },\n    \"templateFrame.clear\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Clear framing outline\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"清空取景轮廓\"\n          }\n        }\n      }\n    },\n    \"templateFrame.opacity %lld\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Opacity: %lld%%\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"浓淡：%lld%%\"\n          }\n        }\n      }\n    },\n    \"templateFrame.preview\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Frame preview\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"轮廓预览\"\n          }\n        }\n      }\n    },\n    \"templateFrame.load\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Load or retry preview\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"加载或重试预览\"\n          }\n        }\n      }\n    },\n    \"templateFrame.previewUnavailable\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter a supported HTTPS address to load a preview. Site paths remain saved without loading.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"填写受支持的 HTTPS 地址后可加载预览。站内路径会保留，但不在此加载。\"\n          }\n        }\n      }\n    },\n    \"templateFrame.backgroundHint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The two-tone background is only for checking transparency; it is not part of the frame image.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"双色背景仅用于查看透明效果，不属于轮廓图。\"\n          }\n        }\n      }\n    },\n    \"templateFrame.loadFailed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The image could not be loaded. Check the address and retry.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"图片未能加载，请检查地址后重试。\"\n          }\n        }\n      }\n    },\n    \"templateFrame.loading\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Loading frame preview\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"正在加载轮廓预览\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Prediction plan\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"竞猜配置\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.scope\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Edit the current prediction question, choices and relative reveal schedule. Save with the existing local draft action.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"编辑当前竞猜的题目、选项和相对揭晓时间，并沿用现有草稿保存。\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.changed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The draft or editing session changed. Reload before continuing.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"草稿或编辑会话已变化，请重新载入后继续。\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.reload\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reload current draft\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重新载入当前草稿\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.unsupported\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This stored configuration needs the standard editor. Return to the configuration form to inspect its fields.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"此配置需要标准编辑器，请返回配置表单查看原始字段。\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.question\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Question and instructions\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"题目与说明\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.options\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choices\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"竞猜选项\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.keysNotice\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Keys are generated automatically and shown for reference. Removing a choice removes only that row. A valid plan needs 2–4 choices.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"选项标识自动生成，仅供查看。删除只移除对应行；有效配置需要 2–4 个选项。\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.count %lld\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"%lld choices\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"%lld 个选项\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.schedule\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Cutoff and reveal schedule\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"截止与揭晓时间\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.conflict\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"For a same-day reveal, the reveal hour must be at or after the cutoff hour. Adjust either hour or choose a later day.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当天揭晓时间不得早于截止时间。请调整小时或选择更晚的相对天数。\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.summary\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Current schedule\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前时间安排\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.relative\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"These are relative day offsets and whole hours, not a calendar date or a notification. This editor does not determine or announce a prediction result.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这里保存的是相对天数和整点，不是日历日期或通知。本编辑器不会判定或公布竞猜结果。\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.sameDay\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Same day\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当天\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.nextDay\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Next day\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"明天\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.secondDay\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Two days later\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"后天\"\n          }\n        }\n      }\n    },\n    \"templatePrediction.day %lld\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Day %lld\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"第 %lld 天\"\n          }\n        }\n      }\n    },\n    \"templateScan.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Scan response and reveal\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"扫码回复与显形\"\n          }\n        }\n      }\n    },\n    \"templateScan.instructions\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Configure what a scan should return using existing references. Changing modes keeps the other fields. This editor does not scan, play audio, upload files or run AR.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"使用已有地址配置扫码后的回复。切换模式会保留其他字段。此编辑页不执行扫码、音频播放、上传或 AR。\"\n          }\n        }\n      }\n    },\n    \"templateScan.changed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The draft or session changed. Reload before continuing.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"草稿或会话已变化，请重新读取后继续。\"\n          }\n        }\n      }\n    },\n    \"templateScan.reload\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reload current draft\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重新读取当前草稿\"\n          }\n        }\n      }\n    },\n    \"templateScan.unsupported\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This stored configuration cannot use the guided editor. Return to the original fields to inspect it.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"此历史配置暂不适用引导编辑，请返回原有字段查看。\"\n          }\n        }\n      }\n    },\n    \"templateScan.response\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Response content\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"回复内容\"\n          }\n        }\n      }\n    },\n    \"templateScan.overlay\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reveal image size and placement settings\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"显形图大小与放置设置\"\n          }\n        }\n      }\n    },\n    \"templateScan.width %lld\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Canvas width: %lld%%\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"画面宽度：%lld%%\"\n          }\n        }\n      }\n    },\n    \"templateScan.retained\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Retained settings from other modes\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"其他模式保留的设置\"\n          }\n        }\n      }\n    },\n    \"templateScan.retainedNotice\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"These saved values are not used by the current response mode. They remain editable because the existing validator still checks them. Choose NONE for retained AR when outside OVERLAY; clear a model reference explicitly if it conflicts.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这些已存内容不属于当前回复模式，但现有校验仍会检查，因此保留编辑入口。非显形模式如保留了 AR，请手动选“不开”；模型引用有冲突时可明确清除。\"\n          }\n        }\n      }\n    },\n    \"templateScan.preview\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Image sizing preview\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"图片大小预览\"\n          }\n        }\n      }\n    },\n    \"templateScan.previewNotice\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Load only after tapping. This neutral canvas shows the linked image at the configured width; it is not a camera, scan result or AR placement. Relative paths stay saved but are not resolved here.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"点击后才加载图片。在中性底图上按配置宽度查看已有图片，不代表相机画面、扫码结果或 AR 放置。相对地址可以保存，此处不解析加载。\"\n          }\n        }\n      }\n    },\n    \"templateScan.load\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Load / retry image\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"加载 / 重试图片\"\n          }\n        }\n      }\n    },\n    \"templateScan.loading\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Loading image\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"正在加载图片\"\n          }\n        }\n      }\n    },\n    \"templateScan.failed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The image could not load. Check its address and retry.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"图片加载失败，请检查地址后重试。\"\n          }\n        }\n      }\n    },\n    \"templateScan.modelNotice\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Use an existing .glb reference. This field does not upload or execute a 3D model.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"填写已有 .glb 模型地址，此处不上传或运行三维模型。\"\n          }\n        }\n      }\n    },\n    \"templateScan.clearModel\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Clear model reference\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"清除模型引用\"\n          }\n        }\n      }\n    }\n"
+        },
+        {
+          "before": "      }\n    }\n",
+          "after": "      }\n    },\n    \"profile.complaint.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Prepare a complaint\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"准备投诉内容\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.localOnly\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Read eligible activities and prepare text on this screen only. Nothing is submitted or saved. Leaving this screen or moving the app to the background clears the draft.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"读取可投诉活动，仅在当前页面准备内容。不会提交或保存；退出页面或将 App 切至后台会清除草稿。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.topic\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Activity\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"投诉活动\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.chooseTopic\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose an activity\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请选择活动\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.kind\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Complaint type (optional)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"投诉类型（可选）\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.optional\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Not provided\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"未填写\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.reason\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"What happened\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"投诉内容\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.reasonHint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter at least 5 and at most 500 UTF-16 text units. Overlength text is not silently truncated.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"至少 5、最多 500 个文本单位（UTF-16）；超长内容不会被静默截断。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.contact\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Contact details (optional)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"联系方式（可选）\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.contactHint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"At most 50 UTF-16 text units. Contact details are included in the review text only.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"最多 50 个文本单位（UTF-16），仅合并到本页审阅内容。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.review\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Review prepared text\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"审阅准备的内容\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.reviewTitle\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Prepared text\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"待提交内容审阅\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.notSubmitted\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This complaint has not been submitted. The platform has not received it. Submission is not available in this version.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"投诉尚未提交，平台未收到这些内容。当前版本未开放受理提交。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.continueEditing\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Continue editing\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"继续编辑\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.unnamed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Activity\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"活动\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.retired\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This preparation session is closed. Return and reopen to start again.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本次准备已结束，请返回后重新打开。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.empty\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No eligible activities. Eligibility comes from your paid participation records on the server.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无可投诉活动，资格以服务端已支付参与记录为准。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.kind.service\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Service and fulfillment\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"服务与履约\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.kind.fees\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Fees and refunds\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"费用与退款\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.kind.safety\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Safety and disputes\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"安全与纠纷\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.kind.advertising\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Misleading advertising\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"虚假宣传\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.kind.other\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Other\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"其他\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.validation.topic\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose an activity from the current list.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请选择当前列表中的活动。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.validation.reasonShort\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Describe the issue in at least 5 UTF-16 text units.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写至少 5 个文本单位的投诉内容。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.validation.reasonLong\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The issue exceeds the 500-unit limit. Shorten it before reviewing.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"投诉内容超过 500 个文本单位，请缩短后再审阅。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.validation.contactLong\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Contact details exceed the 50-unit limit.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"联系方式超过 50 个文本单位。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.read.failed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Eligible activities could not be refreshed. Your local text remains, but review is paused until retry succeeds.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"可投诉活动暂时没能刷新。本页文字仍保留，重试成功后才能审阅。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.read.signIn\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Sign in again before preparing a complaint.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请重新登录后准备投诉内容。\"\n          }\n        }\n      }\n    },\n    \"profile.complaint.read.unavailable\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The activity selector is unavailable.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前无法读取可投诉活动。\"\n          }\n        }\n      }\n    },\n    \"profile.inviteRewards.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Invitation reward review\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"邀请奖励核对\"\n          }\n        }\n      }\n    },\n    \"profile.inviteRewards.total\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Cumulative first-purchase reward points\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"累计首购奖励积分\"\n          }\n        }\n      }\n    },\n    \"profile.inviteRewards.incomplete\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reward records are not fully synchronized. A cumulative total is not available.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"奖励流水尚未完整同步，暂不显示累计积分。\"\n          }\n        }\n      }\n    },\n    \"profile.inviteRewards.reload\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Reload invitations and rewards\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重新加载邀请与奖励\"\n          }\n        }\n      }\n    },\n    \"profile.inviteRewards.monthScope\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Month subtotals cover loaded invitees only. The cumulative total uses the complete reward scan, including invitees not yet loaded.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"分月小计仅覆盖已加载的受邀人；累计积分来自完整奖励流水，包含尚未加载的受邀人。\"\n          }\n        }\n      }\n    },\n    \"profile.inviteRewards.partialPoints\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Synced reward points so far\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已同步部分奖励积分\"\n          }\n        }\n      }\n    },\n    \"profile.inviteRewards.loadedPeople\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Loaded invitees\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已加载受邀人\"\n          }\n        }\n      }\n    },\n    \"profile.orderFilter.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Order status\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"订单状态\"\n          }\n        }\n      }\n    },\n    \"profile.orderFilter.all\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"All orders\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"全部订单\"\n          }\n        }\n      }\n    },\n    \"profile.orderFilter.empty\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No orders match this status.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前筛选暂无订单。\"\n          }\n        }\n      }\n    },\n    \"profile.orderFilter.clear\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Show all orders\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"查看全部订单\"\n          }\n        }\n      }\n    },\n    \"profile.orderFilter.localHint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Local categories use loaded order facts and device time. They do not determine refund eligibility.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"按已读取的订单事实和本机时间分类，不用于判断退款资格。\"\n          }\n        }\n      }\n    },\n    \"profile.participantValidation.check\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Check details\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"检查填写内容\"\n          }\n        }\n      }\n    },\n    \"profile.participantValidation.name\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter the participant’s name.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写参与人姓名。\"\n          }\n        }\n      }\n    },\n    \"profile.participantValidation.phone\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter an 11-digit mobile number beginning with 13–19. Do not use a masked number.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写以 13–19 开头的 11 位手机号，不要使用隐藏号码。\"\n          }\n        }\n      }\n    },\n    \"profile.participationSchedule.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Participation schedule\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"参与日程\"\n          }\n        }\n      }\n    },\n    \"profile.participationSchedule.soon\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Starting soon\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"即将开始\"\n          }\n        }\n      }\n    },\n    \"profile.participationSchedule.days\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Calendar days until start\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"距离开始的日历天数\"\n          }\n        }\n      }\n    },\n    \"profile.participationSchedule.clockNote\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Shanghai business dates, based on device time. This is a schedule hint only.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"按上海日历和本机时间显示，仅为行程提示。\"\n          }\n        }\n      }\n    },\n    \"profile.selfOrders.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"My order preview\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"我的订单预览\"\n          }\n        }\n      }\n    },\n    \"profile.selfOrders.all\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"View all orders\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"查看全部订单\"\n          }\n        }\n      }\n    },\n    \"profile.selfOrders.empty\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No orders yet.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无订单。\"\n          }\n        }\n      }\n    },\n    \"profile.selfOrders.stale\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Previously loaded orders are shown. Refresh before opening them.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"正在保留此前读取的订单，请刷新后再打开。\"\n          }\n        }\n      }\n    },\n    \"profile.selfOrders.readFailed\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Orders could not be loaded. Try again.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"订单未能加载，请重试。\"\n          }\n        }\n      }\n    },\n    \"profile.selfOrders.signIn\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Sign in again to view your orders.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请重新登录后查看本人订单。\"\n          }\n        }\n      }\n    },\n    \"profile.selfOrders.unavailable\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Order reading is not available.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"订单读取暂未开放。\"\n          }\n        }\n      }\n    },\n    \"profile.selfOrders.previewNote\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Up to 8 orders in the returned order. Open the list to see all loaded orders.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"按返回顺序预览最多 8 条，打开列表查看全部订单。\"\n          }\n        }\n      }\n    }\n"
         }
       ]
     },
@@ -6835,7 +7059,7 @@
     "Core/RoamRetainedRead.swift": "7864b357ca7c20ad9f60f767a788f7a72ac3cd80edcc4554a87ef15d7db0bbe0",
     "Core/SearchMapLayerVisibility.swift": "2e95d0a1b587228fcf6f7b1b893d31c1ef67b3679702953810fb5e39feeec6b5",
     "Core/SearchMapViewportSelection.swift": "8cb68c5decb74da1b172da29507953f5b3fae9ece71eac4cce947c0cc84bcfc7",
-    "Resources/Localizable.xcstrings": "2a2795b7d79256dc0e16e3a8ec0d28d891dc5557634ec27cfb2d662a12918eeb",
+    "Resources/Localizable.xcstrings": "8c5fb8c77cb12ccd7697597bab0fc532ec80331ff4ab34eef6bf560ad6d3a7d3",
     "Resources/MerchantCityClaimWithdrawalLocalizations.fragment.json": "a19e4d670bc4be11489d8a45e4e5e1d4b68e2e074abacd86301f75a44fde800e",
     "Resources/MerchantCityQuotaLocalizations.fragment.json": "8c0b7f0fa055ae9cfd55517319138c01d58ca7fd5c1368196eeb608237bca3be",
     "Resources/MerchantCustomerContactLocalizations.fragment.json": "45fbb42eb318bd44ac1a0c728c1510941701d10aa5bb945fd135686147ca3cc6",
@@ -7300,7 +7524,7 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "bff582ca1fa40ecf157a6e1c573ef54a3b826c487eb69361b558c39f4da5b944",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "ff0a0cf8218733f1af6a2f0537fa7398e4f18b7bd472e6797746964e5957471c",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "616a5e7f28ff5bd6814c91bf10e8f7efd99b8091ad4a8b9dc9d895f8bd2e0ad4",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
@@ -7314,14 +7538,14 @@
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "7a49c832150d629b76c73618020364ebb2245876377ca201cb2064a451d911b0",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "02613cdfc5fbb6bd852ebccf9fd089a2a12b86b2af218242c17e3cec697be8f9",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
-    "Tests/ContractChecks/test_roam_route_replay.py": "a29d397bab8d13e1c973b495366bac09889ac87a3b6519277757d8260afbfde4",
+    "Tests/ContractChecks/test_roam_route_replay.py": "2a66869077c70af1a8281954d926285f74d23d1378a424b771377e239b22c9ac",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "eafaefef12d5bf19fdbdf5ae410c18628aa8b00469d07564bc95f94c436c13c0",
+    "Tests/ContractChecks/test_category_roam_registration.py": "b09feaad2cd693c096831b111b0cea21bd89d0a37d3d17881216f7ec66f1720d",
     "Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift": "91a1011295933822da752baaf3912cc8e36551bbe58597352dff171bf8c96222",
     "Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
     "Tests/ContractChecks/test_club_leaderboard_member_navigation.py": "f76bc1c7da34ef0e3df056a02eac732079e2b5103e0b872136dbf2d2e4b8c1a6",
@@ -7352,7 +7576,7 @@
     "docs/template-story-image-removal.md": "cbe5a2f317c50f0f9928dbefda60f5cb135536c516d0d23e64491684dfa5cbf0",
     "docs/template-venue-selection.md": "87576577256bacb75af887898ef3dbe5a60d6e1d29c10cae2fa972804d223042",
     "tools/template_story_localizations.json": "70f45636bc45c799eadbd879a4493ca6be435c21664fb1ed8c0a416452e4f1a1",
-    "App/SocialPublicProfileView.swift": "b3e029346b6dcdda6d2218d4422bcfd4f53ee3aec6a69ae1181bf688b7e69608",
+    "App/SocialPublicProfileView.swift": "f08ed45a4ee9397f7e51c62509cfb364755b68e02c778e509a6d9cd30409b723",
     "tools/tests/test_ci138_followon_integration.py": "66f212f14c18f2b7d60d6bbae29fb6403d121c708e6e78bab8292f1e81453568",
     ".gitleaks.toml": "8c70890fb95d2adf158ed995c779a7d6bc2f02c791ac46d4ef2fe7200ef5e84b",
     "tools/tests/test_gitleaks_exact_source_digest.py": "7f461e3ed23083321efbede3bd0636dc3a405e34d7f14eb21f0208dd7fea6e07",
@@ -7657,7 +7881,7 @@
     "docs/localization/template-reward-kinds.json": "09d2d4abe049378ae527eaffbeed0af2c5e836e6737f1c0c490744b70583ddf7",
     "docs/registration/template-branch-composition.json": "6a802111a938fdf95da163431b4666a16b10eb33a88209ac48293bf4258a7144",
     "Core/TemplateD6Rehearsal.swift": "72a4a5f668778f901c1be5323c87d7ea0d65962542000314f0420f2d81c21940",
-    "Tests/AppUnitTests/TemplateHotspotPlacementControllerTests.swift": "960b122f1a12e90484a5695754a10f7da384d559e6743bb6a7297440509a49e8",
+    "Tests/AppUnitTests/TemplateHotspotPlacementControllerTests.swift": "986b3e86c2c7ce2ec2b6f5d24b03964fd4045c849bfa7ac6fe09d272f4ab13f1",
     "docs/template-qa-answer-selection.md": "10052ebfaccea3a8ced4f99d7f46c15ebb1544d193f00806f408c1f5dabffb28",
     "Tests/AppUnitTests/TemplateBranchCompositionControllerTests.swift": "22b5d1121cfbbe17b1ce05ddd38332e714281fb6fa8e86a815ad11e74ac6a4de",
     "docs/registration/template-qa-answer-selection.json": "af234d755c3c089fa3c5faed4bda20aad10d1bb6c1414c9c727427e91a89fa62",
@@ -7671,7 +7895,7 @@
     "Tests/CoreTests/TemplateEffectListTests.swift": "f7021a366b2c04ba1beb7c2d159612165d963d6e87d6420eecd92640b15b58e6",
     "Tests/AppUnitTests/TemplateRewardKindEditorTests.swift": "855c148a392423da6103967b5b5111f49fc5bb32a406f1c55c7410108f40f378",
     "docs/registration/template-effect-lists.json": "d3dc281a3f0902eb769e4d0245064c3267f2ecc37818f4f865ab96562a5cab5e",
-    "Tests/AppUnitTests/TemplateMultiplayerPlanEditorTests.swift": "8a5b4845e5525488046eb78f274ed9db4dbb1cb80bb0589e24a1e9a30bf8ca5a",
+    "Tests/AppUnitTests/TemplateMultiplayerPlanEditorTests.swift": "7f5ebae563f6a76d0641bba61465fe9bcbdfb87efdac63dc3a1d6d0562065429",
     "Tests/CoreTests/TemplatePictureChoicesTests.swift": "a24412f73660d52064dc2bd0848e94319c1b97fbce07c3832e03f114ddf54902",
     "docs/registration/template-blind-options.json": "f4ee94a185378deea0335fe7390a295ed6fac32128955668e50376187a81d002",
     "docs/registration/template-daily-poems.json": "889d4a6923ce0521085c61b854b339028c3c2bb00977d0a8cca7c62d2bbdb45a",
@@ -7683,12 +7907,12 @@
     "App/TemplateCreatorConfigurationView.swift": "0297649b05ec47166f96cf6df7cc78059d7552002bf50a0f44a177f1127781d1",
     "Tests/AppUnitTests/TemplateD6RehearsalControllerTests.swift": "73a105e74aad334aceba49226de54ce8d6b0ace809a0952c5e9259a2715c4c30",
     "Tests/CoreTests/TemplateDailyPoemPoolTests.swift": "a591d31888e5a42b16190b70e2944ac7f51f8b1a6132a773799206f111e697ed",
-    "Tests/AppUnitTests/TemplatePictureChoiceEditorTests.swift": "3ff4ffc4a60a70705228eb281b6f4d53086a53cf08c3e39d2db1b3a2a8cccb1c",
+    "Tests/AppUnitTests/TemplatePictureChoiceEditorTests.swift": "58381c3113a51675c202db583f208ceb266bd45ca64db2062e7e3582d2f5fafc",
     "docs/localization/template-effect-lists.json": "bc4dd4cc6f47dabdb2eebaa559507063e092c177d3a30c4a3e66b2a9fd142876",
     "App/TemplateAdvancedGameConfigurationView.swift": "5f436b2ac14a1d61e2394cf86b91be5b921ff2d47aabaa0b804e78267b772edc",
     "docs/template-d6-rehearsal.md": "e936b1727d7ec8a30d0acbb19c2c6b7025dbd8e0f194ab4740bb94b005f78d3b",
     "docs/template-daily-poems.md": "cbc8281ca8ba821d137f6a586fea5be9740c77dfe7e1d35aa55841dfb5da299a",
-    "App/TemplateEffectListView.swift": "ac95b92478bef6d02fe0a0a9caa411f34a173b7c94b63d9826e43ef224c8d8a6",
+    "App/TemplateEffectListView.swift": "cf76f5601078e08c4de9c39b5f209339d83527da2c42e1f218ed5640a06f315e",
     "docs/localization/template-profile-questions.json": "b649fe1f2aa948aa0e9e7dde25afdfc0f5971131e5d38fb70640243ac20c77fc",
     "Core/TemplateQAAnswerSelection.swift": "5dabf8e19a6ff1ab55851cd06bbcf0b03b4683195603e0f1e88ff6068ec6622c",
     "docs/localization/template-multiplayer-plan.json": "c5a53115dedb5f09751fceb5f2f8ad1e5c33ad0653e08a7c3d3717da239b993f",
@@ -7700,14 +7924,14 @@
     "docs/template-picture-choices.md": "7badf51dc6893dc698ff877035eb8e1ec08ade52d20ba493807f90fa3536662e",
     "Core/TemplateRewardKinds.swift": "36a7b51e51371f975e283b8937e0afc3f35c785d25a71fd5657654448b5bf860",
     "Core/TemplateBranchComposition.swift": "4ecd1bc337dc4b99cbb76fa0ab73e8009db5267acb8bb8635def200d6f8466db",
-    "Tests/AppUnitTests/TemplateEffectListControllerTests.swift": "a95e9e7f3d0e9febf727667a1aa20003e306a4a42eec201b5c556f661ae0de2d",
+    "Tests/AppUnitTests/TemplateEffectListControllerTests.swift": "5dc53ebf3f1645d8482323b1177f1571546f18e602e62233b5485062209a3382",
     "Tests/AppUnitTests/TemplateProfileQuestionControllerTests.swift": "acbe9de2ca29dc94ac80e6dd557d4e2f835be2d29f60bdd97802f461a5b06cd4",
     "docs/registration/template-profile-questions.json": "1dae7db1b9adc1ec766a01e1ae0f6a349bd386b5dde0e0ba94fc01a4d54d66c7",
     "docs/template-blind-options.md": "5f6b58bd1fdfc4af65d18c1dab2161a6f18a57d054106f4eae16ce90c9dd0d57",
     "Tests/ContractChecks/test_template_profile_questions.py": "f8b4564729e60f3bed0c701cc41e4131835db31b30f366f4883a6d0493a595b8",
     "Tests/CoreTests/TemplateHotspotPlacementTests.swift": "3176a86bddf20dcb18e130788db3dd4c8ace40a632ca32ea90a869871619445e",
     "Core/TemplateProfileQuestionComposition.swift": "a6821f74775c688ee123b1430917714dcaba0c76199ed20be1519573427802df",
-    "Tests/AppUnitTests/TemplateDailyPoemEditorTests.swift": "d7c58c979bf81ae58e496754927735ecb076000757dba1776e923180201d94b0",
+    "Tests/AppUnitTests/TemplateDailyPoemEditorTests.swift": "c8d12b94c9b6b8abff951b05adcae2d4e68cf5f27c6b0433f323eaf78f09a061",
     "Tests/ContractChecks/test_template_picture_choices.py": "da1f0e39cfa6af5cd977171f9466c3db319e42add4b8e04750cf13282a3c7a6e",
     "docs/localization/template-picture-choices.json": "92bb31816b9d928ee104bdc3ffd2d50269aef2465ebfcf5da5993282355c8861",
     "Core/TemplateBlindOptions.swift": "b7084fe1aac17ec5dd97828a90ff3ea90fec7cc93d8dbe1ec56561540035e1a5",
@@ -7960,6 +8184,68 @@
     "docs/localization/template-photo-frame.json": "bd79f8c1245592af56cd60cec3b2a9068b0e7eb5a806db8ec19a5a58f8d1c19f",
     "docs/localization/template-optional-modules.json": "0d30b8a98fa0548c6c41cd5fb20f8dda6df4a3ac9ce387d14b7eea639535662a",
     "Core/TemplateLegacyQuestionRehearsal.swift": "0546717e59d5e93683f34ac4ae51476111ccb567610508842c2c3efc13b6df7d",
+    "Tests/CoreTests/ProfileComplaintPreparationTests.swift": "ecc9f7ac891b9f4c1f7d81f4dd2825f0f6400e8dc2146964ce3d7a5db1af1963",
+    "Tests/AppUnitTests/ProfileInviteRewardReviewAppTests.swift": "4d43c18616fdf39c184ef3d5ddc6c86b732ff4a07a8a814cad0a0516da025eb7",
+    "App/ProfileSelfOrdersSection.swift": "c45b73c34028bd0507c202475d334df0bd460054b0fa6d335869837107d7ec1e",
+    "App/ProfileOrderFilterFixture.swift": "bf6228e31eb16e220b15c6112005a6a7e1210b0a82deb252d986efbe0070f104",
+    "Tests/AppUnitTests/ProfileParticipantValidationAppTests.swift": "71a858e5415a6731ec0e421eb6e73a8f5adc6d931c58e6e79e52ab020a060d1c",
+    "Tests/AppUITests/ProfileParticipantValidationFlowTests.swift": "ca649bd4cfa5b2e2092dd61167eacae193b57133bd20d0eb696f0299ef917dbd",
+    "Tests/AppUITests/ProfileOrderFilterFlowTests.swift": "c8ace7a318ba8168ecfeb7a2ad4aead918f5524c6e058369b58c96832edc6753",
+    "Tests/AppUnitTests/ProfileOrderFilterAppTests.swift": "597574937b5e3e819a338d0ce52783e57f1ddda5d10364358c3dcc697a8a55ee",
+    "docs/profile-participation-schedule.md": "6b4ae11437e1139be346e9d220672d1f1b856f6fca94ce315158685c01fbce27",
+    "Resources/ProfileParticipationScheduleLocalizations.fragment.json": "0ba13f7a7b9445d2acbec6a542e5020a229e1f65720c39c28c80f8e5f7a91090",
+    "Tests/AppUITests/ProfileInviteRewardReviewFlowTests.swift": "8384e4f97b8747773bd2e1f059617b30467457988f8c4651df7f67b68b41062d",
+    "Core/ProfileInviteRewardReview.swift": "b29eb285eb0b6fbe392396fc700ae83d0baac7594f5ef82dd2d977100bcef01b",
+    "docs/profile-complaint-preparation-registration.fragment.json": "e8bc7972335e375af4e7b56587270726c5f92d842ee4126b6fcbf9573d045524",
+    "Resources/ProfileOrderFilterLocalizations.fragment.json": "4c905a19139dab3d5271512285df13cdc696c780ca378e171465ed23fa4b52b3",
+    "docs/profile-self-orders.md": "310216fa99c26a348d0f1534e536ba02d4affc63736e3232ea6f13078ef99deb",
+    "Tests/CoreTests/ProfileParticipantValidationReviewTests.swift": "1fb481f139cda6ae1b4b84b3fa6f0e25477fde7d4cbf166d3da5586b48bdb527",
+    "Tests/AppUnitTests/ProfileSelfOrdersAppTests.swift": "500ec765c3646007183372067edd78890c2602c071b6a79ddbd22b0a491ced62",
+    "Tests/CoreTests/ProfileSelfOrdersTests.swift": "5ba6e1fbae66b669f204fed15f23e4cf90ee5c45809adc627cfd6579e6c8cd78",
+    "docs/profile-order-filters-registration.fragment.json": "6e1aee2763765768e0cff52e7ec6d4aeaf948d7ab046de5111ac391eb77fc4e9",
+    "App/ProfileOrderFilterSection.swift": "daf8c4828bbc03b6b8f3d078e43e4fe9f416ea4d7a92cb0d67ea18d96987705a",
+    "docs/profile-complaint-preparation.md": "128e644272cc268ed2c7bb98f5b9799fd7a471de737fbd4b41312db130b3fdae",
+    "App/ProfileParticipationScheduleFixture.swift": "b388804e3862f479cf9070d8b188b952a69d27756929f3b35423adbabfab6669",
+    "docs/profile-order-filters.md": "58bf69a0bc81d152d733617644be60b696820ce0a7ea8268c14749e6b85e0bde",
+    "Tests/ContractChecks/test_profile_self_orders.py": "f54c4226d048a8e4192d18b3bb9ba92e68c96c83d999ccdb13ccbdfc94b7dbab",
+    "Tests/AppUnitTests/ProfileComplaintPreparationAppTests.swift": "2ede08197f276efea23914e8dcd0fe7362775a6339e0568085dcc0c6eb630a9d",
+    "Core/ProfileParticipantValidationReview.swift": "84d3de1ceab15c9ccfbff80c7bc647ef6fa21e374435294a3810f4fc55f9f4d7",
+    "App/ProfileSelfOrdersFixture.swift": "685e4c67c7c27fbfb80312d10a8676f8fb15e860ebbaca353817a695e5939ec2",
+    "docs/profile-invite-reward-review.md": "74b51115d8d269396f9cd064b90c381c1a7fd0170ff217583adfd48304e72b5b",
+    "Tests/ContractChecks/test_profile_order_filters.py": "77ae00114536bd74c40ae74635f024aeb0fc0acf2e3d91a21dde15fbf8369932",
+    "App/SocialInviteHistoryView.swift": "2656f9df6ff2e9b11eeb1392e579f40502804970a67cbc48abc565ca47a98501",
+    "Core/ProfileParticipationSchedule.swift": "c0dc853ae2b388fc33748a6caa91aae7c9656e7d02547602b0f0276472c2b7d1",
+    "Tests/AppUnitTests/ProfileParticipationScheduleAppTests.swift": "8648c037616a5c00a7d9033b1759af4522c40001c55386fccd49e8951bce2284",
+    "Tests/ContractChecks/test_social_invitation_lifetime.py": "5321ad28e13e444e4678ac07800a9d126fe0a4260ac1df320c6244d77ed34f51",
+    "App/ParticipantFormView.swift": "ab526bb15bf945f5299be80d2c6fa120a11397f94455a7f80e4fec67ba7a3093",
+    "Resources/ProfileInviteRewardReviewLocalizations.fragment.json": "ef05f48dda52c3649c4e805575492c138788d1d9d6a5379fa8ca2ea254946fa7",
+    "Tests/ContractChecks/test_profile_participation_schedule.py": "ae425c511ba947a1650767caa2c4862ddd936e330abc1f7ed7c15d541ee81f72",
+    "Tests/CoreTests/ProfileOrderHistoryFilterTests.swift": "1e228d5c4391690876e87b0bc0c581dacb9d5c6eb66b14c61daf2d892cef33ab",
+    "Tests/CoreTests/ProfileInviteRewardReviewTests.swift": "84407aaa14e4f6d1e9b56c2f103b8eee0ecee1f13617c0d039d2e3b9cb24c1c9",
+    "App/ProfileInviteRewardReviewFixture.swift": "f1f8cb329cacff182dada8f388e68278c0cc9bcf43685e68df626836f3e0827f",
+    "Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift": "2c6f85a68061e211ace0f61dc8c3aac66c8c12eb4b174ed80f137025346126a4",
+    "Tests/ContractChecks/test_profile_participant_validation.py": "cda2172f2f342bdc9b4df096bcf15cca63902896b5beb00020ccda84dc068362",
+    "Resources/ProfileComplaintPreparationLocalizations.fragment.json": "1c2726217810fee4812e9076ca3cad24eac28fefd8e2b2916a43dfcba5a721e5",
+    "docs/profile-self-orders-registration.fragment.json": "f88de735b3481a3c255fcc1e69e830f83de8962bcc359ebfecd2e0511bc801b6",
+    "Resources/ProfileParticipantValidationLocalizations.fragment.json": "bd996638f33aabab00ad43012154f0f79d0ac4a822b39796d96b32f32ce392b5",
+    "Tests/ContractChecks/test_profile_invite_reward_review.py": "d0eb9d76de0614bedd833a3d57ca702cb00d8ac986c4c917b1e2a9e0f24d6934",
+    "Tests/CoreTests/ProfileParticipationScheduleTests.swift": "5d57fa22059a06e299784829d5efda067f1d96f5ebfbe3bd38e1755d081ded7d",
+    "Tests/AppUITests/ProfileComplaintPreparationFlowTests.swift": "f0e1eb9b5d4f3e2139be92b86116297051fcca58e02f0f022343180808da52b6",
+    "docs/profile-participant-validation-registration.fragment.json": "2c6f60a16330a9ed309acfc4ec73a39dc3737d90e683af5b95f941f69f0b6803",
+    "App/ProfileParticipationScheduleSection.swift": "64d72351923434a74f326eb64c60962a61e1549a3f16aef3d9e5c1d026831096",
+    "docs/profile-invite-reward-review-registration.fragment.json": "db594ed5dee6c9c33e04f7e1b8b2f4e472c26d8a5cff1901e8ef90918ed68c97",
+    "Core/ProfileSelfOrders.swift": "812d9a5a6ebd21ddd39c3c64ddd085af83931a72f18a1bf597120e22448929af",
+    "Resources/ProfileSelfOrdersLocalizations.fragment.json": "a846aba001816a06c180604569bed8467a57c81b8a6d752f963698018051a9bf",
+    "App/ProfileComplaintPreparationFixture.swift": "6ddd0225c694c920262872f646255b7d50910cc0e91dd3aa519294da9331548c",
+    "Core/ProfileComplaintPreparation.swift": "bdd9729c39032492b7acaf5eec4c783ebd247fc45f7b8db15ef61eabbb43e8b0",
+    "Tests/ContractChecks/test_profile_complaint_preparation.py": "58d3c4ae666d4c2f2829b6c0c2c9e74912e998678b87fc0eb5b9427ae270e647",
+    "App/ProfileComplaintPreparationView.swift": "b926704b37f47a109c5f80fb235bf1be4045cae0332c06335d2be4e458deabdb",
+    "docs/profile-participation-schedule-registration.fragment.json": "0a976873f577fb934bf785caee3a6d7b4798fca48e61b3bdc084f1f026badb47",
+    "Core/ProfileOrderHistoryFilter.swift": "a9697cf021d1b9a2d69c19b78cb1a217f268e1d6765e82b8c9fbb1644211eb10",
+    "App/PlayerJourneyViews.swift": "e4f47ca0666226076c31ed43d9ef6546ac5246ac4e86ba93a25ee70ce8bc7622",
+    "App/ProfileInviteRewardReviewSection.swift": "9c6ee6025f75e8ea24f06dea9319dbfae2e24d66484aa1b95cfeb2e92f3a2ef4",
+    "Tests/AppUITests/ProfileSelfOrdersFlowTests.swift": "e5c2b9175988e881798985243694cdead489db78685d443080240ca48a929c2e",
+    "docs/profile-participant-validation.md": "3c9dd70a16d5971d64633edd74a390b35798cd64172e2377dec9ea51ded8f37f",
     "tools/tests/test_readiness_contract_parse_cache.py": "a05486842d224477efc0c91a25c0fb9458858295eb069869c37923903613f3b0"
   },
   "current_method_replacements": {
@@ -8058,10 +8344,10 @@
   "product_ui_budget": {
     "status": "UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT",
     "measured": false,
-    "new_methods": 126,
+    "new_methods": 159,
     "changed_existing_methods": 3,
-    "method_count_after": 868,
-    "class_count_after": 195,
+    "method_count_after": 901,
+    "class_count_after": 201,
     "assumptions": {
       "per_reveal_seconds": 40,
       "per_reveal_maximum_swipes": 10,
@@ -8092,15 +8378,21 @@
       "Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift": "72f8a3ec5625ca00f14d6dfd9c8d1618501d5d5051b29d9deeb32012d7360735",
       "Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift": "d028a95bb912648cb8571e67fed2f552720ce42a52ea62b6ee4172f007a04ee7",
       "Tests/AppUITests/ProfileCasePortfolioFlowTests.swift": "171eb446703ca5240139d43fa1acbe3c764b848116e8f97c6b603dd2059d4455",
+      "Tests/AppUITests/ProfileComplaintPreparationFlowTests.swift": "f0e1eb9b5d4f3e2139be92b86116297051fcca58e02f0f022343180808da52b6",
       "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift": "b2e650c4b6733546dc24ca36cce3538f487f476a122ea8e17c50597fd53d02d6",
       "Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift": "2477449bcf10fdd6a1805ebdd26e4c00f0822843f8ec63c214ec067b597d3486",
       "Tests/AppUITests/ProfileEditFlowTests.swift": "e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067",
       "Tests/AppUITests/ProfileFavoriteRemovalFlowTests.swift": "da790fe7e6b2a7ca2a20aa8d7f9173502320591b079f2db684a556b1910ea5dd",
+      "Tests/AppUITests/ProfileInviteRewardReviewFlowTests.swift": "8384e4f97b8747773bd2e1f059617b30467457988f8c4651df7f67b68b41062d",
       "Tests/AppUITests/ProfileLocalCoverFlowTests.swift": "01d62fe24a6679528f355af8ad42dce00c89904f072abec12387ffcea5b6d4e0",
+      "Tests/AppUITests/ProfileOrderFilterFlowTests.swift": "c8ace7a318ba8168ecfeb7a2ad4aead918f5524c6e058369b58c96832edc6753",
+      "Tests/AppUITests/ProfileParticipantValidationFlowTests.swift": "ca649bd4cfa5b2e2092dd61167eacae193b57133bd20d0eb696f0299ef917dbd",
+      "Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift": "2c6f85a68061e211ace0f61dc8c3aac66c8c12eb4b174ed80f137025346126a4",
       "Tests/AppUITests/ProfilePreferenceRemovalFlowTests.swift": "306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca",
       "Tests/AppUITests/ProfileSelfEditReturnFlowTests.swift": "da98cb0e30c85ddbc63ba3e5f2033f95054eec2a0393b961d9be5ab99890d11b",
       "Tests/AppUITests/ProfileSelfGrowthFlowTests.swift": "304bdc7f0e8f5b6a54fe3fe3b7c9babef1b7234be2f514f8e5862a8ebc041e15",
       "Tests/AppUITests/ProfileSelfMedalsFlowTests.swift": "7fc1095156027e65c8c887cea5cb35608c861675b191ff4b1a9f5cabf776f4e4",
+      "Tests/AppUITests/ProfileSelfOrdersFlowTests.swift": "e5c2b9175988e881798985243694cdead489db78685d443080240ca48a929c2e",
       "Tests/AppUITests/ProfileSelfProjectsFlowTests.swift": "07764572d720dd8a168c02a945430e57d18dbb8d8c4d95e416b41f2dcbe3f78d",
       "Tests/AppUITests/RoamBadgeWallFlowTests.swift": "6e83b207b7ccba6adf7274d9b6b10b18d25ae8aad625f7619be38415b8b4dfb5",
       "Tests/AppUITests/RoamEnrolledChaptersFlowTests.swift": "8d3460ca1313a764b2ef224c7fd9a8eea32bd93e1f3a1e240deee672501ebf2f",
@@ -9915,6 +10207,468 @@
         "typed_characters": 0,
         "unrounded_seconds": 159.0,
         "seconds": 160
+      },
+      "ProfileInviteRewardReviewFlowTests.testCompleteGlobalAndMonthlyTotalsAreDifferentScopes": {
+        "source": "Tests/AppUITests/ProfileInviteRewardReviewFlowTests.swift",
+        "declaration_sha256": "42b69b0f0b87afa3e2faf4a6013df54d9eddbcc2e0c0551a26f48001993d70d4",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 25,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 123.0,
+        "seconds": 130
+      },
+      "ProfileInviteRewardReviewFlowTests.testPartialLedgerHasNoFakeCumulativeAndReloadRecovers": {
+        "source": "Tests/AppUITests/ProfileInviteRewardReviewFlowTests.swift",
+        "declaration_sha256": "b611f848d77f737517e08841a51c54ecdad9aa8ce120b51eff835ef7e7747b3a",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 133.0,
+        "seconds": 140
+      },
+      "ProfileInviteRewardReviewFlowTests.testUnavailableLedgerReloadRecovers": {
+        "source": "Tests/AppUITests/ProfileInviteRewardReviewFlowTests.swift",
+        "declaration_sha256": "7b268d452fc80f1fdfc9997e82df17c85b9f7c5a2467150a66b4fbb20b1ff4e3",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 131.0,
+        "seconds": 140
+      },
+      "ProfileInviteRewardReviewFlowTests.testTrueZeroRemainsDisplayable": {
+        "source": "Tests/AppUITests/ProfileInviteRewardReviewFlowTests.swift",
+        "declaration_sha256": "c32b82f62d4b72368d5d946eed582e833b06360f01797dc8469a6d1ef7ce6882",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 25,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 121.0,
+        "seconds": 130
+      },
+      "ProfileInviteRewardReviewFlowTests.testLoadMoreAddsOtherMonthWithoutInventedReward": {
+        "source": "Tests/AppUITests/ProfileInviteRewardReviewFlowTests.swift",
+        "declaration_sha256": "c8eff2baf73445c6a90d2f174c915ad9045e9cd0154bdbe954515324edd64f6b",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 2,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 138.0,
+        "seconds": 140
+      },
+      "ProfileInviteRewardReviewFlowTests.testGuestCannotLoadRewardReview": {
+        "source": "Tests/AppUITests/ProfileInviteRewardReviewFlowTests.swift",
+        "declaration_sha256": "9a0f3b3db2d28cdadf6242ffed2a808abd157115b26ce50695282b37d95e986c",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 20,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 116.0,
+        "seconds": 120
+      },
+      "ProfileParticipationScheduleFlowTests.testNearStartShowsTwoDaysAndRange": {
+        "source": "Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift",
+        "declaration_sha256": "6dbfe3204145289594accc48554909a8c418c0ada4112a3c28bdfe3b0f5797d2",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 108.0,
+        "seconds": 110
+      },
+      "ProfileParticipationScheduleFlowTests.testAdvancingToStartRemovesReminderWithoutRead": {
+        "source": "Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift",
+        "declaration_sha256": "6dab27ed266855f89bafe9e6e0604e04d4d9184906f6d2cf359e84dae450cf91",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 111.0,
+        "seconds": 120
+      },
+      "ProfileParticipationScheduleFlowTests.testChangingDisplayTimezoneKeepsShanghaiDays": {
+        "source": "Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift",
+        "declaration_sha256": "ffbe23455401426b0154e2c13a01c5dcb56dbcaf05620bd86286bedc65de3432",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 2,
+        "typed_characters": 0,
+        "unrounded_seconds": 109.0,
+        "seconds": 110
+      },
+      "ProfileParticipationScheduleFlowTests.testFarFutureShowsRangeWithoutUrgency": {
+        "source": "Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift",
+        "declaration_sha256": "374062b3ef7c1ca1a359991c3379049787d3365043c2fd7b380c168a5b7b38ca",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 106.0,
+        "seconds": 110
+      },
+      "ProfileParticipationScheduleFlowTests.testSameDayDoesNotClaimOneDayRemaining": {
+        "source": "Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift",
+        "declaration_sha256": "1446835f53d0c88b9039e6618c2612c2ffff3b09c450f277a9e1114e4384624a",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 106.0,
+        "seconds": 110
+      },
+      "ProfileParticipationScheduleFlowTests.testMissingAndReversedSchedulesAreNotInvented": {
+        "source": "Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift",
+        "declaration_sha256": "b64bf689d04be036619fa90732f7c5d87d5772c5bcd974be560d7939305099cb",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 180,
+        "explicit_wait_seconds": 20,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 6,
+        "typed_characters": 0,
+        "unrounded_seconds": 212.0,
+        "seconds": 220
+      },
+      "ProfileParticipantValidationFlowTests.testEmptyCheckExplainsNameWithoutOpeningConfirmation": {
+        "source": "Tests/AppUITests/ProfileParticipantValidationFlowTests.swift",
+        "declaration_sha256": "50769458b313aa2f3fc4d0ca47b349472f298b84ba9c69483dba51fad5ff592f",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 18,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 2,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 126.0,
+        "seconds": 130
+      },
+      "ProfileParticipantValidationFlowTests.testNameCorrectionThenPhoneCorrectionReachesExistingConfirmation": {
+        "source": "Tests/AppUITests/ProfileParticipantValidationFlowTests.swift",
+        "declaration_sha256": "c1f98f9694a7013854b984595f6a9a5744c9d13f1c3a7956bf70c229c249842a",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 18,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 7,
+        "direct_ax_assertion_count": 6,
+        "typed_characters": 24,
+        "unrounded_seconds": 161.0,
+        "seconds": 170
+      },
+      "ProfileParticipantValidationFlowTests.testRepeatedCheckDoesNotCreateRowOrAlert": {
+        "source": "Tests/AppUITests/ProfileParticipantValidationFlowTests.swift",
+        "declaration_sha256": "fbdbd064d2f61f8ebabf9ed4907de07738a4629802447041548d991623485dbd",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 15,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 5,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 138.0,
+        "seconds": 140
+      },
+      "ProfileParticipantValidationFlowTests.testReenterStartsWithoutOldFeedbackOrDraft": {
+        "source": "Tests/AppUITests/ProfileParticipantValidationFlowTests.swift",
+        "declaration_sha256": "7ab0b81c4a3a162c181b02917bab68e1388c3a910bb4650a6f6db4ef2d5f8c9e",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 15,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 4,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 133.0,
+        "seconds": 140
+      },
+      "ProfileOrderFilterFlowTests.testFilterAndClearDoNotReload": {
+        "source": "Tests/AppUITests/ProfileOrderFilterFlowTests.swift",
+        "declaration_sha256": "9befd5b867a04680bfc8160a5674a3f633468a72ac30d0df93a14fba2088da5c",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 11,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 3,
+        "direct_ax_assertion_count": 5,
+        "typed_characters": 0,
+        "unrounded_seconds": 126.0,
+        "seconds": 130
+      },
+      "ProfileOrderFilterFlowTests.testRefunderRowOpensItsOriginalDetail": {
+        "source": "Tests/AppUITests/ProfileOrderFilterFlowTests.swift",
+        "declaration_sha256": "5bf98e96b74196ef956aea548204dc94f98df1d7339054d1ab571ca4beb79a41",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 13,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 3,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 126.0,
+        "seconds": 130
+      },
+      "ProfileOrderFilterFlowTests.testTrueEmptyIsNotFilteredEmpty": {
+        "source": "Tests/AppUITests/ProfileOrderFilterFlowTests.swift",
+        "declaration_sha256": "40ade54183a65d9601b1e0ba8823e190f7d2ca08ba1973a4269d245692eee5a0",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 5,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 2,
+        "typed_characters": 0,
+        "unrounded_seconds": 99.0,
+        "seconds": 100
+      },
+      "ProfileOrderFilterFlowTests.testRevocationHidesLoadedList": {
+        "source": "Tests/AppUITests/ProfileOrderFilterFlowTests.swift",
+        "declaration_sha256": "bf7f46b7be3ca742997e9181d12470d1aac1a068b02b2f62889fdafbc3342d6b",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 111.0,
+        "seconds": 120
+      },
+      "ProfileOrderFilterFlowTests.testAccountSwitchRemovesPreviousRows": {
+        "source": "Tests/AppUITests/ProfileOrderFilterFlowTests.swift",
+        "declaration_sha256": "135ac23d210fafd77e387d9edb69411d6e51cfb209f4ff0f6fd228baf193aea0",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 13,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 3,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 126.0,
+        "seconds": 130
+      },
+      "ProfileSelfOrdersFlowTests.testCardOpensFreshExactOrderDetail": {
+        "source": "Tests/AppUITests/ProfileSelfOrdersFlowTests.swift",
+        "declaration_sha256": "88ee9339d9e2f7d8861f8c598f90eaba2dbc17b12f0dd8b0a5646b286cdf9b16",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 1,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 153.0,
+        "seconds": 160
+      },
+      "ProfileSelfOrdersFlowTests.testInitialFailureRetriesWithoutFalseEmpty": {
+        "source": "Tests/AppUITests/ProfileSelfOrdersFlowTests.swift",
+        "declaration_sha256": "652516661175b20aee49bf630d240139a5f1113290323855cfaeb998b611cd52",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 1,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 0,
+        "unrounded_seconds": 153.0,
+        "seconds": 160
+      },
+      "ProfileSelfOrdersFlowTests.testRefreshFailureKeepsDisabledRowsAndRecovers": {
+        "source": "Tests/AppUITests/ProfileSelfOrdersFlowTests.swift",
+        "declaration_sha256": "618ebc1632acd9f57b726e8cec52d255fd1db47bdc080294c695d5bb05f9f01f",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 2,
+        "direct_action_count": 3,
+        "direct_ax_assertion_count": 6,
+        "typed_characters": 0,
+        "unrounded_seconds": 207.0,
+        "seconds": 210
+      },
+      "ProfileSelfOrdersFlowTests.testSuccessfulEmptyHasItsOwnState": {
+        "source": "Tests/AppUITests/ProfileSelfOrdersFlowTests.swift",
+        "declaration_sha256": "e9a050de068fafbd449168ceb4e1af6e3ee63d767ef3dfb6c89c9df0e77af756",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 5,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 2,
+        "typed_characters": 0,
+        "unrounded_seconds": 99.0,
+        "seconds": 100
+      },
+      "ProfileSelfOrdersFlowTests.testAllOrdersUsesExistingList": {
+        "source": "Tests/AppUITests/ProfileSelfOrdersFlowTests.swift",
+        "declaration_sha256": "70a985a9b1655c575d4897c45484f9a765df9076ca6f92255973b363d54e40df",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 15,
+        "bounded_reveal_calls": 2,
+        "direct_action_count": 2,
+        "direct_ax_assertion_count": 5,
+        "typed_characters": 0,
+        "unrounded_seconds": 205.0,
+        "seconds": 210
+      },
+      "ProfileSelfOrdersFlowTests.testOtherGuestAndUnapprovedDoNotRead": {
+        "source": "Tests/AppUITests/ProfileSelfOrdersFlowTests.swift",
+        "declaration_sha256": "6c1f1575f77ecf02e78f6ff64f8f2a504840fb23d168ef507851cb8a31791a39",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 270,
+        "explicit_wait_seconds": 15,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 9,
+        "typed_characters": 0,
+        "unrounded_seconds": 303.0,
+        "seconds": 310
+      },
+      "ProfileSelfOrdersFlowTests.testRevocationHidesPreview": {
+        "source": "Tests/AppUITests/ProfileSelfOrdersFlowTests.swift",
+        "declaration_sha256": "77f9b3e56f3b0623acd354658fcde35a341eee2f946de343cd4c1bdeec2d5d6d",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 5,
+        "bounded_reveal_calls": 1,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 146.0,
+        "seconds": 150
+      },
+      "ProfileComplaintPreparationFlowTests.testPrepareReviewReturnAndNoSubmitControl": {
+        "source": "Tests/AppUITests/ProfileComplaintPreparationFlowTests.swift",
+        "declaration_sha256": "184277ff3e265e5cab286dec141f9260e9b84f69bf0a78a1ba7c08541ccf4532",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 5,
+        "direct_action_count": 7,
+        "direct_ax_assertion_count": 9,
+        "typed_characters": 23,
+        "unrounded_seconds": 378.75,
+        "seconds": 380
+      },
+      "ProfileComplaintPreparationFlowTests.testInitialFailureRetry": {
+        "source": "Tests/AppUITests/ProfileComplaintPreparationFlowTests.swift",
+        "declaration_sha256": "5825783d8f5d3879e2e0af0fef70b2e3c91077d67fa57a8c81a429cc147e52c4",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 1,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 151.0,
+        "seconds": 160
+      },
+      "ProfileComplaintPreparationFlowTests.testSuccessfulEmptyHasNoForm": {
+        "source": "Tests/AppUITests/ProfileComplaintPreparationFlowTests.swift",
+        "declaration_sha256": "a62b2045ee6a0fc9248ce099dbe2502784066fa804a878b3847f3c5abb78c60e",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 5,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 0,
+        "direct_ax_assertion_count": 2,
+        "typed_characters": 0,
+        "unrounded_seconds": 99.0,
+        "seconds": 100
+      },
+      "ProfileComplaintPreparationFlowTests.testMissingTopicGetsInlineValidation": {
+        "source": "Tests/AppUITests/ProfileComplaintPreparationFlowTests.swift",
+        "declaration_sha256": "19b9e6a161cc5f936dc6a822c6e6e33cd46e6a8c553a67725bf0444c6568054b",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 10,
+        "bounded_reveal_calls": 1,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 151.0,
+        "seconds": 160
+      },
+      "ProfileComplaintPreparationFlowTests.testAccountChangeClearsPreparedReview": {
+        "source": "Tests/AppUITests/ProfileComplaintPreparationFlowTests.swift",
+        "declaration_sha256": "0e5c4225df3d22ae2d73b07875952ff9ec72f997c38e4d87d9e7d9288ba5f5b8",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 5,
+        "direct_action_count": 7,
+        "direct_ax_assertion_count": 7,
+        "typed_characters": 23,
+        "unrounded_seconds": 374.75,
+        "seconds": 380
       }
     },
     "class_increment_seconds": {
@@ -9949,9 +10703,15 @@
       "RoamPassportOverviewFlowTests": 650,
       "RoamOfficialTasksFlowTests": 1200,
       "RoamBadgeWallFlowTests": 1030,
-      "RoamEnrolledChaptersFlowTests": 1060
+      "RoamEnrolledChaptersFlowTests": 1060,
+      "ProfileInviteRewardReviewFlowTests": 800,
+      "ProfileParticipationScheduleFlowTests": 780,
+      "ProfileParticipantValidationFlowTests": 580,
+      "ProfileOrderFilterFlowTests": 610,
+      "ProfileSelfOrdersFlowTests": 1300,
+      "ProfileComplaintPreparationFlowTests": 1180
     },
-    "added_seconds": 38560,
+    "added_seconds": 43810,
     "prior_profile_class_seconds": 81.645
   }
 }

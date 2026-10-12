@@ -1,0 +1,69 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.participationSchedule.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participation schedule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与日程"
+          }
+        }
+      }
+    },
+    "profile.participationSchedule.soon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting soon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即将开始"
+          }
+        }
+      }
+    },
+    "profile.participationSchedule.days": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendar days until start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距离开始的日历天数"
+          }
+        }
+      }
+    },
+    "profile.participationSchedule.clockNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shanghai business dates, based on device time. This is a schedule hint only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按上海日历和本机时间显示，仅为行程提示。"
+          }
+        }
+      }
+    }
+  }
+}

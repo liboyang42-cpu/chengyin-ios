@@ -95,7 +95,13 @@ import SwiftUI
     func prepare(_ intent: TemplateAuthoringIntent) { guard canEdit else { return }; metadataGeneration = UUID(); coordinator.change(draft); coordinator.prepare(intent); review = coordinator.review; revision += 1 }
     func cancel() { coordinator.cancelReview(); review = nil; revision += 1 }
     func confirm(_ value: TemplateAuthoringReview) async { busy = true; review = nil; await coordinator.confirm(value); busy = false; revision += 1 }
-    func leave() { metadataGeneration = UUID(); coordinator.leaveScreen(); review = nil }
+    func leave() {
+        // Retained child callbacks must expire even when the same draft returns later.
+        retireMediaReviews()
+        metadataGeneration = UUID()
+        storyEditorGeneration += 1; legacyHintGeneration = UUID(); optionMediaGeneration += 1
+        coordinator.leaveScreen(); review = nil
+    }
     private func retireMediaReviews() {
         mediaReviewGeneration = UUID()
         mediaReviewControllers = mediaReviewControllers.filter { $0.value != nil }

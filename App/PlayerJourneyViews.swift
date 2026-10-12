@@ -173,6 +173,8 @@ private struct ParticipationRow: View {
             if let issue { PlayerJourneyIssue(key: issue, retry: { Task { await load() } }) }
             if let detail {
                 Section { ParticipationRow(record: detail.record) }
+                ProfileParticipationScheduleSection(start: detail.record.order.ownerStartDate,
+                    end: detail.record.order.ownerEndDate)
                 if let description = detail.description { Section("playerJourney.description") { Text(verbatim: description) } }
                 Section {
                     if let end = detail.record.order.ownerEndDate { LabeledContent("playerJourney.end") { Text(verbatim: end) } }

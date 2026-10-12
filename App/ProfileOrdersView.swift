@@ -7,33 +7,50 @@ struct ProfileOrdersView: View {
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var ticketReader: (any TicketWalletReading)? = nil
+    @State private var filterSelection = ProfileOrderFilterSelection()
+    private var filterOwner: ProfileOrderFilterOwner {
+        .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
+    }
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", load: { try await reader.profileOrders() }) { orders in
             if orders.isEmpty {
                 ProfileEmptyState(title: "profile.orders.empty", hint: "profile.orders.emptyHint", symbol: "ticket", identifier: "profile.orders.empty")
             } else {
-                List {
-                    Section {
-                        ForEach(orders) { order in
-                            NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader) } label: {
-                                ProfileOrderRow(order: order)
-                            }.accessibilityIdentifier("profile.order.\(order.id)")
-                        }
-                    } footer: { Text("profile.readOnly") }
+                // Local time may move an already-loaded order between categories.
+                // No timer-triggered read or financial action is performed here.
+                TimelineView(.periodic(from: .now, by: 60)) { clock in
+                    let owner = filterOwner
+                    let filter = filterSelection.value(for: owner)
+                    let visible = filter.orders(in: orders, now: clock.date)
+                    List {
+                        ProfileOrderFilterSection(selection: Binding(
+                            get: { filterSelection.value(for: filterOwner) },
+                            set: { filterSelection.choose($0, rendered: owner, current: filterOwner) }),
+                            isEmpty: visible.isEmpty)
+                        Section {
+                            ForEach(visible) { order in
+                                NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader) } label: {
+                                    ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date))
+                                }.accessibilityIdentifier("profile.order.\(order.id)")
+                            }
+                        } footer: { Text("profile.readOnly") }
+                    }
                 }
             }
         }
         .appNavigationTitle("profile.orders.title")
+        .onChange(of: filterOwner) { _, _ in filterSelection.retire() }
     }
 }
 
 private struct ProfileOrderRow: View {
     let order: ProfileOrder
+    let historyState: OrderLifecycleState
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let title = order.title, !title.isEmpty { Text(verbatim: title).font(.headline) }
             else { Text("profile.orders.untitled").font(.headline) }
-            ProfileOrderStatus(order: order).font(.subheadline)
+            Text(LocalizedStringKey("orderLifecycle.state." + historyState.rawValue)).font(.subheadline)
             if let date = order.participateDate ?? order.startDate, !date.isEmpty {
                 Label { Text(verbatim: date) } icon: { Image(systemName: "calendar") }.font(.subheadline)
             }

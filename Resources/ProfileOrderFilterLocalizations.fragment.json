@@ -1,0 +1,85 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.orderFilter.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Order status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单状态"
+          }
+        }
+      }
+    },
+    "profile.orderFilter.all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部订单"
+          }
+        }
+      }
+    },
+    "profile.orderFilter.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No orders match this status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前筛选暂无订单。"
+          }
+        }
+      }
+    },
+    "profile.orderFilter.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show all orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看全部订单"
+          }
+        }
+      }
+    },
+    "profile.orderFilter.localHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local categories use loaded order facts and device time. They do not determine refund eligibility."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按已读取的订单事实和本机时间分类，不用于判断退款资格。"
+          }
+        }
+      }
+    }
+  }
+}

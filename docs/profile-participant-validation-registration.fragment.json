@@ -1,0 +1,37 @@
+{
+  "title": "参与人资料本地校验与修正",
+  "status": "LOCAL_VALIDATION_READY_EXISTING_SAVE_AUTHORITY_UNCHANGED",
+  "app_sources": [],
+  "modified_app_sources": [
+    "App/ParticipantFormView.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileParticipantValidationReview.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileParticipantValidationReviewTests.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileParticipantValidationAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileParticipantValidationFlowTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileParticipantValidationLocalizations.fragment.json",
+  "new_localization_keys": 3,
+  "fixture_launch": {
+    "existing_module": "participants",
+    "arguments": [
+      "--uitesting-module",
+      "participants"
+    ],
+    "host": "ParticipantFixtureHostView",
+    "no_new_router": true
+  },
+  "ordinary_mount": "Existing ProfileParticipantsView / ParticipantFormView (also reused by registration entry)",
+  "dependencies": "Independent actual49, no prior package overlay; preserve central ParticipantFormView changes additively.",
+  "new_endpoints": [],
+  "new_approvals": [],
+  "central_files_modified": [],
+  "apple": "NOT_RUN"
+}

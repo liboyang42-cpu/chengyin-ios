@@ -5,13 +5,14 @@ import SwiftUI
     let reader: any SocialAccountReading
     let squareReader: any SquareReading
     var actions: SocialActionCoordinator? = nil
+    var selfOrdersAccess: ProfileSelfOrdersAccess? = nil
     var selfProjectsAccess: ProfileSelfProjectsAccess? = nil
     var selfGrowthAccess: ProfileSelfGrowthAccess? = nil
     var selfMedalsReader: (any ProfileReading)? = nil
     var selfEditAccess: ProfileSelfEditAccess? = nil
     var localCoverOwner: ProfileLocalCoverOwner? = nil
     var isCurrent: @MainActor () -> Bool = { true }
-    private enum Tab: String, CaseIterable { case posts, achievements, about, projects }
+    private enum Tab: String, CaseIterable { case posts, achievements, about, projects, orders }
     @State private var tab = Tab.posts
     @State private var selfEditNavigation = ProfileSelfEditNavigation()
     private var selfEditContext: ProfileSelfEditContext? {
@@ -60,11 +61,18 @@ import SwiftUI
                         Text("social.posts").tag(Tab.posts)
                         Text("social.achievements").tag(Tab.achievements)
                         Text("social.about").tag(Tab.about)
+                        if let selfOrdersAccess, selfOrdersAccess.context(memberID: memberID, social: reader, isCurrent: isCurrent()) != nil {
+                            Text("profile.selfOrders.title").tag(Tab.orders)
+                        }
                         if let selfProjectsAccess, selfProjectsAccess.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) != nil {
                             Text("profile.selfProjects.title").tag(Tab.projects)
                         }
                     }.accessibilityIdentifier("social.profile.tabs")
                     switch tab {
+                    case .orders:
+                        if let selfOrdersAccess {
+                            ProfileSelfOrdersEntry(memberID: memberID, social: reader, access: selfOrdersAccess, isCurrent: isCurrent)
+                        }
                     case .projects:
                         if let selfProjectsAccess {
                             ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent)
@@ -113,5 +121,8 @@ import SwiftUI
                     isCurrent: { selfEditNavigation.isCurrent(ticket, context: selfEditContext) })
             }
             .accessibilityIdentifier("social.profile")
+            .onChange(of: selfOrdersAccess?.context(memberID: memberID, social: reader, isCurrent: isCurrent())) { _, context in
+                if context == nil && tab == .orders { tab = .posts }
+            }
     }
 }

@@ -1,0 +1,41 @@
+{
+  "title": "P111 complaint selector and local preparation only",
+  "status": "LOCAL_PREPARATION_READY_REPORT_DISABLED",
+  "app_sources": [
+    "App/ProfileComplaintPreparationView.swift",
+    "App/ProfileComplaintPreparationFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileComplaintPreparation.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileComplaintPreparationTests.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileComplaintPreparationAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileComplaintPreparationFlowTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileComplaintPreparationLocalizations.fragment.json",
+  "new_localization_keys": 29,
+  "fixture_launch": {
+    "flag": "--uitesting-profile-complaint",
+    "scenario_flag": "--profile-complaint-scenario",
+    "host": "ProfileComplaintPreparationFixtureView(scenario: scenario)",
+    "DEBUG_only": true
+  },
+  "personal_mount": {
+    "status": "NOT_APPLIED",
+    "path": "App/AccountView.swift",
+    "base5dd_sha256": "906c2359586203dbc9d56958dbf6b3a9ed77f0ccc275f4d402da988655b371a0",
+    "latest_after13_sha256": "13e107fa8b048339624fe71fbd350034977292bfe7ebedc9c42a0c2b193eccc5",
+    "requires_prior_packages": [],
+    "coexistence": "All-new feature builds on5dd; additive AccountView one-line mount must preserve8→10→11→12→13 and18 public-page changes. Never replace AccountView with this base image.",
+    "unified_diff": "--- a/App/AccountView.swift\n+++ b/App/AccountView.swift\n@@ -97,6 +97,7 @@\n                         Label(\"objects.title\", systemImage: \"rectangle.stack\")\n                     }.accessibilityIdentifier(\"account.objectCards\")\n                 }\n+                Section { ProfileComplaintPreparationLink(session: session) }\n                 PlayerJourneyAccountLinks()\n                 ProfileAccountLinks(reader:session.profileReader,ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)\n                 Section {\n"
+  },
+  "reader": "Existing session.cooperationFlowReader; only .complaintTopics; normal composition present and does not require PlayerJourney/OwnedOrder leases",
+  "report_dispatch": "NONE. Existing protected complaint report stays disabled. No production permission is issued by this component.",
+  "central_files_modified": [],
+  "native_test_status": "NOT_RUN"
+}

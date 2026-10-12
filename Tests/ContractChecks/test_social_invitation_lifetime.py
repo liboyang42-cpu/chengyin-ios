@@ -20,7 +20,8 @@ class InvitationHistoryLifetimeContracts(unittest.TestCase):
                          ".refreshable { await model.refresh(reader, permit: permit) }",
                          ".onDisappear { model.suspend() }"]:
             self.assertIn(required, self.view)
-        self.assertEqual(self.view.count("model.start(reader, permit: permit,"), 2)
+        self.assertEqual(self.view.count("model.start(reader, permit: permit,"), 3)
+        self.assertIn("ProfileInviteRewardReviewSection(review: .init(scan: model.scan), isLoading: model.loading)", self.view)
         self.assertNotIn("Task {", self.view)
         self.assertNotIn(".task(", self.view)
         self.assertNotIn("loadedIdentity", self.view)

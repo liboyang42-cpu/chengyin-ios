@@ -1,4 +1,5 @@
 import XCTest
+import Combine
 @testable import Questify
 
 @MainActor final class TemplateEffectListControllerTests: XCTestCase {
@@ -40,10 +41,21 @@ import XCTest
     }
     func testReorderingAndRemovingRetiresOldRowIndexControls() throws {
         let (model, editor, _) = try setup(); editor.addAction()(); editor.addAction()()
-        let old = editor.input(0, .variable), remove = editor.removeAction(1)
+        let old = editor.input(0, .variable), remove = editor.removeAction(1), sameRows = model.draft
+        var publications = 0
+        let observation = editor.objectWillChange.sink { publications += 1 }; defer { observation.cancel() }
         editor.moveAction(0, 1)(); let expected = model.draft
+        XCTAssertEqual(expected, sameRows) // Equal wire rows still retire their old index controls.
+        XCTAssertGreaterThan(publications, 0) // The visible form must obtain the new binding generations.
         old.wrappedValue = "counter.wrong"; remove(); XCTAssertEqual(model.draft, expected)
+        let removed = editor.input(0, .variable), shifted = editor.input(1, .variable), staleMove = editor.moveAction(1, 0)
         editor.removeAction(0)(); XCTAssertEqual(editor.rows.count, 1)
+        let afterRemoval = model.draft
+        removed.wrappedValue = "counter.removed"; shifted.wrappedValue = "counter.shifted"; staleMove()
+        XCTAssertEqual(model.draft, afterRemoval)
+        let fresh = editor.input(0, .variable)
+        fresh.wrappedValue = "counter.f"; fresh.wrappedValue = "counter.fresh"
+        XCTAssertEqual(editor.rows[0].variable, "counter.fresh"); XCTAssertEqual(model.coordinator.draft, model.draft)
     }
     func testEnclosingOptionChangeCannotSilentlyRetargetEvenAfterReload() throws {
         let (model, editor, _) = try setup(); editor.addAction()()

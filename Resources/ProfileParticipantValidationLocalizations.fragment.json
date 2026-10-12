@@ -1,0 +1,53 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.participantValidation.check": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查填写内容"
+          }
+        }
+      }
+    },
+    "profile.participantValidation.name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the participant’s name."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写参与人姓名。"
+          }
+        }
+      }
+    },
+    "profile.participantValidation.phone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an 11-digit mobile number beginning with 13–19. Do not use a masked number."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写以 13–19 开头的 11 位手机号，不要使用隐藏号码。"
+          }
+        }
+      }
+    }
+  }
+}

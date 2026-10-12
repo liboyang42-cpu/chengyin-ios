@@ -54,6 +54,10 @@ import Combine
         return { [weak self] in
             guard let self, self.canEdit, self.actionGeneration == stamp, self.model.metadataGeneration == metadata,
                   let next = snapshot.applying(edit, to: self.model.draft.advanced) else { return }
+            // Equal rows still change index ownership when moved. Retire callbacks even
+            // if apply has no new wire value to publish; ordinary typing keeps its lease.
+            self.objectWillChange.send()
+            self.actionGeneration = UUID(); self.textGeneration = UUID()
             self.apply(next)
         }
     }

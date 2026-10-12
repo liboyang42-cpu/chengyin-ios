@@ -1,0 +1,40 @@
+{
+  "title": "本地订单状态筛选完成，生产订单读取仍阻塞",
+  "status": "LOCAL_FILTER_READY_PRODUCTION_OWNED_ORDER_READ_BLOCKED",
+  "app_sources": [
+    "App/ProfileOrderFilterSection.swift",
+    "App/ProfileOrderFilterFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileOrderHistoryFilter.swift"
+  ],
+  "modified_sources": [
+    "App/ProfileOrdersView.swift",
+    "Core/ProfileContracts.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileOrderHistoryFilterTests.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileOrderFilterAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileOrderFilterFlowTests.swift"
+  ],
+  "fixture_launch": {
+    "flag": "--uitesting-profile-order-filters",
+    "empty_flag": "--profile-order-filters-empty",
+    "host": "ProfileOrderFilterFixtureHost(empty: args.contains(\"--profile-order-filters-empty\"))",
+    "DEBUG_only": true,
+    "synthetic_only": true
+  },
+  "localization_fragment": "Resources/ProfileOrderFilterLocalizations.fragment.json",
+  "new_localization_keys": 5,
+  "reused_localization": "orderLifecycle.state.*",
+  "dependencies": "Independent actual49; no previous overlay. Preserve central changes in two shared paths additively.",
+  "new_endpoints": [],
+  "new_approvals": [],
+  "central_files_modified": [],
+  "apple": "NOT_RUN",
+  "ordinary_mount": "Existing ProfileOrdersView reader remains session.ownedOrderReader with independent default-nil lease"
+}

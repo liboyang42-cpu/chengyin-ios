@@ -1,0 +1,117 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.inviteRewards.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation reward review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请奖励核对"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.total": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumulative first-purchase reward points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计首购奖励积分"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reward records are not fully synchronized. A cumulative total is not available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励流水尚未完整同步，暂不显示累计积分。"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload invitations and rewards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载邀请与奖励"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.monthScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Month subtotals cover loaded invitees only. The cumulative total uses the complete reward scan, including invitees not yet loaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分月小计仅覆盖已加载的受邀人；累计积分来自完整奖励流水，包含尚未加载的受邀人。"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.partialPoints": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synced reward points so far"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已同步部分奖励积分"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.loadedPeople": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loaded invitees"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加载受邀人"
+          }
+        }
+      }
+    }
+  }
+}

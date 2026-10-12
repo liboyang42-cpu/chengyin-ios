@@ -1,0 +1,133 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.selfOrders.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My order preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的订单预览"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View all orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看全部订单"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No orders yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无订单。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previously loaded orders are shown. Refresh before opening them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在保留此前读取的订单，请刷新后再打开。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.readFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orders could not be loaded. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单未能加载，请重试。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.signIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again to view your orders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录后查看本人订单。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Order reading is not available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单读取暂未开放。"
+          }
+        }
+      }
+    },
+    "profile.selfOrders.previewNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 8 orders in the returned order. Open the list to see all loaded orders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按返回顺序预览最多 8 条，打开列表查看全部订单。"
+          }
+        }
+      }
+    }
+  }
+}

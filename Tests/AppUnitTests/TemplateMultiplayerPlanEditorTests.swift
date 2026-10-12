@@ -76,6 +76,14 @@ import XCTest
             default: editor.retire()
             }
             let before = model.draft; role.wrappedValue = "Stale"; order.wrappedValue = "stale"; add(); XCTAssertEqual(model.draft, before, operation)
+            if operation == "leave" {
+                XCTAssertFalse(editor.canEdit); model.load()
+                role.wrappedValue = "Revived"; order.wrappedValue = "revived"; add(); XCTAssertEqual(model.draft, before)
+                let fresh = TemplateMultiplayerPlanController(model: model)
+                XCTAssertTrue(fresh.canEdit); let freshID = try XCTUnwrap(fresh.roles.first?.id)
+                fresh.text(freshID, field: .label).wrappedValue = "Fresh after return"
+                XCTAssertEqual(fresh.roles.first?.label, "Fresh after return")
+            }
         }
     }
     func testReopeningUsesCanonicalOrderAndFreshLocalRoleIdentity() throws {

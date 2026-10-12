@@ -1,0 +1,59 @@
+{
+  "title": "本人订单预览独立组件；宿主挂接及生产读取待依赖",
+  "status": "COMPONENT_READY_PUBLIC_MOUNT_AND_READ_APPROVAL_PENDING",
+  "app_sources": [
+    "App/ProfileSelfOrdersSection.swift",
+    "App/ProfileSelfOrdersFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileSelfOrders.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileSelfOrdersTests.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileSelfOrdersAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileSelfOrdersFlowTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileSelfOrdersLocalizations.fragment.json",
+  "new_localization_keys": 8,
+  "fixture_launch": {
+    "flag": "--uitesting-profile-self-orders",
+    "scenario_flag": "--profile-self-orders-scenario",
+    "host": "ProfileSelfOrdersFixtureHost(scenario: scenario)",
+    "DEBUG_only": true
+  },
+  "public_mount": {
+    "status": "NOT_APPLIED",
+    "requires_prior_packages": [
+      8,
+      10,
+      11,
+      12,
+      13
+    ],
+    "base_shared_beforeimages": "START.shared_mount_fragment_dependencies",
+    "targets": [
+      {
+        "path": "App/AccountView.swift",
+        "before_after13_sha256": "13e107fa8b048339624fe71fbd350034977292bfe7ebedc9c42a0c2b193eccc5",
+        "candidate_mounted_sha256": "b9b129b40e5b9d150b0ad8a258c971cd57618442b23527192976002e630043be"
+      },
+      {
+        "path": "App/SocialPublicProfileView.swift",
+        "before_after13_sha256": "b3e029346b6dcdda6d2218d4422bcfd4f53ee3aec6a69ae1181bf688b7e69608",
+        "candidate_mounted_sha256": "f08ed45a4ee9397f7e51c62509cfb364755b68e02c778e509a6d9cd30409b723"
+      }
+    ],
+    "unified_diff": "diff --git a/App/AccountView.swift b/App/AccountView.swift\n--- a/App/AccountView.swift\n+++ b/App/AccountView.swift\n@@ -47,7 +47,7 @@\n                     }.accessibilityIdentifier(\"account.editProfile\")\n                 }\n                 Section {\n-                    NavigationLink { SocialPublicProfileView(memberID: account.id, reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner).id(session.socialAccountReader.identity) } label: {\n+                    NavigationLink { SocialPublicProfileView(memberID: account.id, reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner).id(session.socialAccountReader.identity) } label: {\n                         Label(\"social.profile\", systemImage: \"person.crop.rectangle\")\n                     }.accessibilityIdentifier(\"account.publicProfile\")\n                     NavigationLink { SocialInviteHistoryView(reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.socialAccountReader.identity) } label: {\ndiff --git a/App/SocialPublicProfileView.swift b/App/SocialPublicProfileView.swift\n--- a/App/SocialPublicProfileView.swift\n+++ b/App/SocialPublicProfileView.swift\n@@ -5,13 +5,14 @@\n     let reader: any SocialAccountReading\n     let squareReader: any SquareReading\n     var actions: SocialActionCoordinator? = nil\n+    var selfOrdersAccess: ProfileSelfOrdersAccess? = nil\n     var selfProjectsAccess: ProfileSelfProjectsAccess? = nil\n     var selfGrowthAccess: ProfileSelfGrowthAccess? = nil\n     var selfMedalsReader: (any ProfileReading)? = nil\n     var selfEditAccess: ProfileSelfEditAccess? = nil\n     var localCoverOwner: ProfileLocalCoverOwner? = nil\n     var isCurrent: @MainActor () -> Bool = { true }\n-    private enum Tab: String, CaseIterable { case posts, achievements, about, projects }\n+    private enum Tab: String, CaseIterable { case posts, achievements, about, projects, orders }\n     @State private var tab = Tab.posts\n     @State private var selfEditNavigation = ProfileSelfEditNavigation()\n     private var selfEditContext: ProfileSelfEditContext? {\n@@ -60,11 +61,18 @@\n                         Text(\"social.posts\").tag(Tab.posts)\n                         Text(\"social.achievements\").tag(Tab.achievements)\n                         Text(\"social.about\").tag(Tab.about)\n+                        if let selfOrdersAccess, selfOrdersAccess.context(memberID: memberID, social: reader, isCurrent: isCurrent()) != nil {\n+                            Text(\"profile.selfOrders.title\").tag(Tab.orders)\n+                        }\n                         if let selfProjectsAccess, selfProjectsAccess.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) != nil {\n                             Text(\"profile.selfProjects.title\").tag(Tab.projects)\n                         }\n                     }.accessibilityIdentifier(\"social.profile.tabs\")\n                     switch tab {\n+                    case .orders:\n+                        if let selfOrdersAccess {\n+                            ProfileSelfOrdersEntry(memberID: memberID, social: reader, access: selfOrdersAccess, isCurrent: isCurrent)\n+                        }\n                     case .projects:\n                         if let selfProjectsAccess {\n                             ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent)\n@@ -113,5 +121,8 @@\n                     isCurrent: { selfEditNavigation.isCurrent(ticket, context: selfEditContext) })\n             }\n             .accessibilityIdentifier(\"social.profile\")\n+            .onChange(of: selfOrdersAccess?.context(memberID: memberID, social: reader, isCurrent: isCurrent())) { _, context in\n+                if context == nil && tab == .orders { tab = .posts }\n+            }\n     }\n }\n",
+    "guard": "Show orders tab only when selfOrdersAccess.context is nonnil; do not show a default-disabled empty entry or borrow legacy reader",
+    "central_merge": "Rebase these additive hunks onto central after13-plus changes; do not copy complete old shared files"
+  },
+  "normal_access_helper": "ProfileSelfOrdersAccess(session:) uses only session.ownedOrderReader and independent session.ticketWalletReader",
+  "new_endpoints": [],
+  "new_approvals": [],
+  "central_files_modified": [],
+  "apple": "NOT_RUN"
+}

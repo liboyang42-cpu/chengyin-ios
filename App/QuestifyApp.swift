@@ -86,6 +86,16 @@ struct QuestifyApp: App {
                     ClubOperationsFixtureHostView(scenario: clubOperations)
                 } else if let clubManagement=ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ClubManagementFixtureRootView(scenario:clubManagement)
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-invite-reward-review") {
+                    ProfileInviteRewardReviewFixtureHost(scenario: fixtureArgument("--profile-invite-reward-review-scenario") ?? "complete")
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-participation-schedule") {
+                    ProfileParticipationScheduleFixtureHost(scenario: fixtureArgument("--profile-participation-schedule-scenario") ?? "near")
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-order-filters") {
+                    ProfileOrderFilterFixtureHost(empty: ProcessInfo.processInfo.arguments.contains("--profile-order-filters-empty"))
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-orders") {
+                    ProfileSelfOrdersFixtureHost(scenario: fixtureArgument("--profile-self-orders-scenario") ?? "content")
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-complaint") {
+                    ProfileComplaintPreparationFixtureView(scenario: fixtureArgument("--profile-complaint-scenario") ?? "content")
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-local-cover") {
                     ProfileLocalCoverFixtureHost()
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-favorite-removal") {
@@ -175,6 +185,11 @@ final class AppSessionContainer: ObservableObject {
            ClubActionFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            ClubOperationsFixtureHostView.selected(arguments: ProcessInfo.processInfo.arguments) != nil ||
            ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-invite-reward-review") ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-participation-schedule") ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-order-filters") ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-orders") ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-complaint") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-local-cover") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-favorite-removal") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-edit-return") ||
