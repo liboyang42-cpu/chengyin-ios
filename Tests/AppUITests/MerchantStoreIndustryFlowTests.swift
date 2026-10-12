@@ -4,6 +4,20 @@ final class MerchantStoreIndustryFlowTests: XCTestCase {
     private var app: XCUIApplication?
     override func setUp() { super.setUp(); continueAfterFailure = false }
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
+    private func nativeAlertAction(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
+        let matches = app.alerts.buttons.matching(identifier: identifier)
+        // Native alerts expose a wrapper and its native button with the same ID.
+        // Reject two business actions; choose the sole leaf, not an arbitrary index.
+        let candidates = matches.allElementsBoundByAccessibilityElement
+        // If presentation is still pending, retain the caller's original bounded
+        // wait. Only assert leaf uniqueness after an alert candidate exists.
+        guard !candidates.isEmpty else { return matches.firstMatch }
+        let leaves = candidates.filter {
+            $0.descendants(matching: .button).count == 0
+        }
+        XCTAssertEqual(leaves.count, 1)
+        return leaves.first ?? matches.firstMatch
+    }
     private func open() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-merchant-operations-fixture"]
@@ -13,12 +27,12 @@ final class MerchantStoreIndustryFlowTests: XCTestCase {
     }
     private func choose(_ app: XCUIApplication) {
         let button = app.buttons["merchant.industry.open"]
-        XCTAssertTrue(revealFixtureElement(button, in: app) || revealFixtureElement(button, in: app, towardTop: true)); button.tap()
+        XCTAssertTrue(revealFixtureElement(button, in: app, towardTop: true)); button.tap()
         XCTAssertTrue(app.buttons["merchant.industry.option.8"].waitForExistence(timeout: 5))
     }
     private func current(_ app: XCUIApplication, id: Int) {
         let label = app.staticTexts["merchant.industry.currentID"]
-        XCTAssertTrue(revealFixtureElement(label, in: app) || revealFixtureElement(label, in: app, towardTop: true))
+        XCTAssertTrue(revealFixtureElement(label, in: app, towardTop: true))
         XCTAssertEqual(label.label, "Store industry ID: \(id)")
     }
     private func apply(_ app: XCUIApplication, id: Int) {
@@ -43,10 +57,10 @@ final class MerchantStoreIndustryFlowTests: XCTestCase {
         }
         app.buttons["merchant.operations.confirm.cancel"].tap()
         app.buttons["merchant.operations.reload"].tap()
-        let keepEditing = app.alerts.buttons["merchant.operations.keepEditing"]
+        let keepEditing = nativeAlertAction("merchant.operations.keepEditing", in: app)
         XCTAssertTrue(keepEditing.waitForExistence(timeout: 5)); keepEditing.tap(); current(app, id: 9)
         app.buttons["merchant.operations.reload"].tap()
-        let discardReload = app.alerts.buttons["merchant.operations.discardReload"]
+        let discardReload = nativeAlertAction("merchant.operations.discardReload", in: app)
         XCTAssertTrue(discardReload.waitForExistence(timeout: 5)); discardReload.tap(); current(app, id: 8)
         apply(app, id: 9); review(app)
         let confirm = app.buttons["merchant.operations.confirm"]

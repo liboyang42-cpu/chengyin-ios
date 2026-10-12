@@ -582,17 +582,94 @@ def flatten(suite):
             yield test
 
 
+def discovery_identities(tests, root, *, report_invalid_duplicates=False):
+    """Stable transport keys without mutating any historical test or module.
+
+    Random physical e2b namespaces are admitted only through the existing exact
+    context. Logs retain both the original test.id() and its source-bound key.
+    Ordinary methods, including every approved skip ID, remain byte-identical.
+    """
+    tests = list(tests)
+    rows = [{'observed_id': test.id(), 'transport_id': test.id()} for test in tests]
+    if any(row['observed_id'].startswith('historical_e2b_') for row in rows):
+        raise ValueError('Reserved historical transport identity cannot be an observed test ID')
+    historical = [(test, row) for test, row in zip(tests, rows)
+                  if row['observed_id'].startswith('_club_e2b_')]
+    if historical:
+        from tools import club_customer_directory_admission as admission
+        root = Path(root).resolve(strict=True)
+        if (Path(admission.__file__).resolve(strict=True) != root / 'tools/club_customer_directory_admission.py'
+                or Path(admission._CLUB_CURRENT_ROOT).resolve(strict=True) != root):
+            raise ValueError('Historical identity helper belongs to another current root')
+        context = admission._club_context_cache
+        if (context is None or not getattr(context, '_club_e2b_guarded', False)
+                or dict(context.file_sha256) != admission._CLUB_E2B_SHA256):
+            raise ValueError('Historical identity lacks its exact authenticated context')
+        context.verify()
+        namespace = '_club_e2b_' + digest(str(context.root).encode())[:24]
+        file_hashes = {}
+        for test, row in historical:
+            case = type(test)
+            module_name = case.__module__
+            if not module_name.startswith(namespace + '.'):
+                raise ValueError('Historical method has an unauthenticated temporary namespace')
+            local = module_name[len(namespace) + 1:]
+            relative = local.replace('.', '/') + '.py'
+            module = sys.modules.get(module_name)
+            method = getattr(test, '_testMethodName', None)
+            path = Path(context.root) / relative
+            if (module is None or getattr(module, '__file__', None) != str(path)
+                    or relative not in context.file_sha256
+                    or getattr(module, case.__name__, None) is not case
+                    or case.__qualname__ != case.__name__
+                    or not isinstance(method, str) or not re.fullmatch(r'test\w+', method)
+                    or not callable(getattr(case, method, None))
+                    or row['observed_id'] != module_name + '.' + case.__name__ + '.' + method):
+                raise ValueError('Historical test class/method is not its admitted module instance')
+            if relative not in file_hashes:
+                file_hashes[relative] = digest(path.read_bytes())
+            source_hash = file_hashes[relative]
+            if source_hash != context.file_sha256[relative]:
+                raise ValueError('Historical identity source changed after admission')
+            row.update(transport_id='historical_e2b_' + source_hash + '.' + local + '.' + case.__name__ + '.' + method,
+                       historical_source=relative, historical_source_sha256=source_hash)
+        context.verify()
+    for key in ('observed_id', 'transport_id'):
+        values = [row[key] for row in rows]
+        if (any(not isinstance(value, str) or not value for value in values)
+                or (len(values) != len(set(values)) and not report_invalid_duplicates)):
+            raise ValueError('Duplicate or malformed discovered identity mapping')
+    observed_by_transport = {}
+    for row in rows:
+        observed_by_transport.setdefault(row['transport_id'], set()).add(row['observed_id'])
+    if any(len(values) != 1 for values in observed_by_transport.values()):
+        raise ValueError('Historical transport identity collision')
+    # The original unsharded failure path emits duplicate-ID diagnostics before
+    # validate_report rejects them. Plan and selected-shard paths stay strict.
+    return rows
+
+
+def emit_identity_evidence(rows):
+    for row in rows:
+        if row['observed_id'] != row['transport_id']:
+            print('STATIC_TEST_IDENTITY ' + encode(row), file=sys.stderr, flush=True)
+
+
 class RecordingResult(unittest.TextTestResult):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, identity=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.identity = identity or (lambda test: test.id())
         # unittest startTest IDs include individual skips; class setup skips
         # never start their methods and are accounted separately in affected_ids.
         self.executed_ids = []
         self.success_ids = []
+        self.raw_executed_ids = []
+        self.raw_success_ids = []
         self.test_started = {}
 
     def startTest(self, test):
-        self.executed_ids.append(test.id())
+        self.executed_ids.append(self.identity(test))
+        self.raw_executed_ids.append(test.id())
         self.test_started[id(test)] = time.monotonic()
         self.stream.writeln('START ' + test.id())
         self.stream.flush()
@@ -605,7 +682,8 @@ class RecordingResult(unittest.TextTestResult):
         self.stream.flush()
 
     def addSuccess(self, test):
-        self.success_ids.append(test.id())
+        self.success_ids.append(self.identity(test))
+        self.raw_success_ids.append(test.id())
         super().addSuccess(test)
 
 
@@ -650,7 +728,40 @@ def diagnostic_stacks():
             worker.join()
 
 
-def suite_report(name, root):
+def discover_original_suite(loader, root, specification):
+    # Keep the complete original unittest discovery, including dynamically
+    # imported historical classes whose test.id is not an importable module.
+    # Native repositories provide the authenticated, process-local admission
+    # transaction. Generic small fixtures do not have that native layer.
+    from contextlib import nullcontext
+    admission = root / 'tools/club_customer_directory_admission.py'
+    if (root / 'tools/run138_editor_readiness_contract.json').exists() and not admission.is_file():
+        raise ValueError('Missing native authenticated admission helper')
+    if admission.exists():
+        from tools.club_customer_directory_admission import club_authenticated_transaction
+        transaction = club_authenticated_transaction(root)
+    else:
+        transaction = nullcontext()
+    with transaction:
+        return loader.discover(str(root / specification['directory']), pattern=specification['pattern'])
+
+
+def select_discovered_suite(suite, test_ids, root=None):
+    if not isinstance(test_ids, list) or not test_ids or not all(isinstance(x, str) and x for x in test_ids) or len(set(test_ids)) != len(test_ids):
+        raise ValueError('Invalid assigned test IDs')
+    tests = list(flatten(suite))
+    rows = discovery_identities(tests, Path(__file__).resolve().parents[1] if root is None else root)
+    by_id = {row['transport_id']: test for test, row in zip(tests, rows)}
+    if len(by_id) != len(tests) or any(identifier not in by_id for identifier in test_ids):
+        raise ValueError('Assigned test missing or duplicated in full discovery')
+    selected = unittest.TestSuite(by_id[identifier] for identifier in test_ids)
+    # Preserve the same real instances and their authenticated one-to-one map.
+    selected._static_identity_rows = {id(test): row for test, row in zip(tests, rows)
+                                      if row['transport_id'] in test_ids}
+    return selected
+
+
+def suite_report(name, root, test_ids=None, *, evidence=None):
     if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
         raise ValueError('Optimized Python is forbidden for static assertions')
     check_configured_sources()
@@ -662,20 +773,38 @@ def suite_report(name, root):
         print('DISCOVERY START ' + name, file=sys.stderr, flush=True)
         try:
             try:
-                suite = loader.discover(str(root / specification['directory']), pattern=specification['pattern'])
+                suite = discover_original_suite(loader, root, specification)
                 discovery_errors = list(loader.errors)
+                if test_ids is not None:
+                    if discovery_errors:
+                        raise ValueError('Static discovery failed: ' + str(discovery_errors))
+                    suite = select_discovered_suite(suite, test_ids, root)
             except (ImportError, OSError) as error:
                 suite = unittest.TestSuite()
                 discovery_errors = [str(error)]
-            discovered = [test.id() for test in flatten(suite)]
+            tests = list(flatten(suite))
+            if test_ids is not None and not discovery_errors:
+                identity_rows = [suite._static_identity_rows[id(test)] for test in tests]
+            else:
+                identity_rows = discovery_identities(tests, root, report_invalid_duplicates=True)
+            emit_identity_evidence(identity_rows)
+            identities = {id(test): row for test, row in zip(tests, identity_rows)}
+            def identifier_for(test):
+                row = identities.get(id(test))
+                if row is None:
+                    return test.id()  # Original class/setup error and skip holders.
+                if test.id() != row['observed_id']:
+                    raise ValueError('Test identity changed after authenticated discovery')
+                return row['transport_id']
+            discovered = [identifier_for(test) for test in tests]
         finally:
             elapsed = time.monotonic() - discovery_started
             print(f'DISCOVERY END {name} duration_seconds={elapsed:.6f}', file=sys.stderr, flush=True)
         started = time.monotonic()
-        result = unittest.TextTestRunner(verbosity=2, resultclass=RecordingResult).run(suite)
+        result = unittest.TextTestRunner(verbosity=2, resultclass=lambda *args, **kwargs: RecordingResult(*args, identity=identifier_for, **kwargs)).run(suite)
     skipped = []
     for test, reason in result.skipped:
-        identifier = test.id()
+        identifier = identifier_for(test)
         affected = [identifier] if identifier in discovered else []
         match = re.fullmatch(r'setUpClass \((.+)\)', identifier)
         if match:
@@ -683,16 +812,104 @@ def suite_report(name, root):
         skipped.append({'id': identifier, 'reason': reason, 'affected_ids': affected})
     report = {'suite': name, 'discovery': specification, 'discovery_errors': discovery_errors, 'discovered_ids': discovered,
               'executed_ids': result.executed_ids, 'tests_run': result.testsRun,
-              'successes': result.success_ids, 'failures': [test.id() for test, _ in result.failures],
-              'errors': [test.id() for test, _ in result.errors],
-              'expected_failures': [test.id() for test, _ in result.expectedFailures],
-              'unexpected_successes': [test.id() for test in result.unexpectedSuccesses],
+              'successes': result.success_ids, 'failures': [identifier_for(test) for test, _ in result.failures],
+              'errors': [identifier_for(test) for test, _ in result.errors],
+              'expected_failures': [identifier_for(test) for test, _ in result.expectedFailures],
+              'unexpected_successes': [identifier_for(test) for test in result.unexpectedSuccesses],
               'skipped': skipped, 'duration_seconds': time.monotonic() - started,
               'process_id': os.getpid(), 'discovered_count': len(discovered), 'executed_count': len(result.executed_ids),
               'skip_count': len(skipped),
               'outcome_counts': {key: 0 for key in OUTCOMES}}
     report['outcome_counts'] = {key: len(report[key]) for key in OUTCOMES}
+    # Keep the actual original unittest report, not only transport identifiers.
+    # Both report forms share the same events, duration, counts and process.
+    raw_report = dict(report, discovered_ids=[row['observed_id'] for row in identity_rows],
+                      executed_ids=result.raw_executed_ids, successes=result.raw_success_ids,
+                      failures=[test.id() for test, _ in result.failures],
+                      errors=[test.id() for test, _ in result.errors],
+                      expected_failures=[test.id() for test, _ in result.expectedFailures],
+                      unexpected_successes=[test.id() for test in result.unexpectedSuccesses])
+    raw_report['skipped'] = []
+    for test, reason in result.skipped:
+        identifier = test.id()
+        affected = [identifier] if identifier in raw_report['discovered_ids'] else []
+        match = re.fullmatch(r'setUpClass \((.+)\)', identifier)
+        if match:
+            affected = [item for item in raw_report['discovered_ids'] if item.startswith(match.group(1) + '.')]
+        raw_report['skipped'].append({'id': identifier, 'reason': reason, 'affected_ids': affected})
+    payload = {'raw_report': raw_report, 'identities': identity_rows}
+    if evidence is not None:
+        evidence.update(payload)
+    print('STATIC_RAW_REPORT ' + encode(payload), file=sys.stderr, flush=True)
     return report
+
+
+def validate_identity_report(report, payload, root):
+    """Require a complete one-to-one source-bound mapping of the raw report.
+
+    The authenticated discovery proves real module/class ownership. Consumers
+    independently verify the finite historical source map and exact report
+    projection; the existing log digest binds the original evidence end to end.
+    """
+    if not isinstance(payload, dict) or set(payload) != {'raw_report', 'identities'}:
+        raise ValueError('Missing exact original report and identity mapping')
+    raw, rows = payload['raw_report'], payload['identities']
+    name = report['suite']
+    validate_report(raw, name, root)
+    validate_report(report, name, root)
+    if not isinstance(rows, list) or len(rows) != len(raw['discovered_ids']):
+        raise ValueError('Incomplete original report identity mapping')
+    mapping = {}
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get('observed_id'), str) or not isinstance(row.get('transport_id'), str):
+            raise ValueError('Malformed original report mapping')
+        observed, transport = row['observed_id'], row['transport_id']
+        if observed in mapping or observed.startswith('historical_e2b_'):
+            raise ValueError('Duplicate or forged original identity')
+        if observed.startswith('_club_e2b_'):
+            if set(row) != {'observed_id', 'transport_id', 'historical_source', 'historical_source_sha256'}:
+                raise ValueError('Incomplete historical source identity')
+            match = re.fullmatch(r'_club_e2b_[0-9a-f]{24}\.((?:[A-Za-z_]\w*\.)+)([A-Za-z_]\w*)\.(test\w+)', observed)
+            if match is None:
+                raise ValueError('Malformed historical observed identity')
+            local = match.group(1).rstrip('.')
+            relative = local.replace('.', '/') + '.py'
+            from tools import club_customer_directory_admission as admission
+            if (Path(admission.__file__).resolve(strict=True) != Path(root).resolve(strict=True) / 'tools/club_customer_directory_admission.py'
+                    or Path(admission._CLUB_CURRENT_ROOT).resolve(strict=True) != Path(root).resolve(strict=True)):
+                raise ValueError('Historical report helper belongs to another current root')
+            source_hash = admission._CLUB_E2B_SHA256.get(relative)
+            if (not source_hash or row['historical_source'] != relative or row['historical_source_sha256'] != source_hash
+                    or transport != 'historical_e2b_' + source_hash + '.' + local + '.' + match.group(2) + '.' + match.group(3)):
+                raise ValueError('Historical raw report mapping changed its source or method')
+        elif set(row) != {'observed_id', 'transport_id'} or observed != transport:
+            raise ValueError('Ordinary test identity was rewritten')
+        mapping[observed] = transport
+    if list(mapping) != raw['discovered_ids'] or len(set(mapping.values())) != len(mapping):
+        raise ValueError('Missing, reordered or colliding raw report mapping')
+    projected = dict(raw)
+    for key in ['discovered_ids', 'executed_ids', *OUTCOMES]:
+        projected[key] = [mapping.get(identifier, identifier) for identifier in raw[key]]
+    projected['skipped'] = [dict(row, id=mapping.get(row['id'], row['id']),
+                               affected_ids=[mapping[identifier] for identifier in row['affected_ids']]) for row in raw['skipped']]
+    if projected != report:
+        raise ValueError('Transport report differs from its exact raw report projection')
+    return payload
+
+
+def validate_log_identity_report(log, report, root):
+    records = [line[len('STATIC_RAW_REPORT '):] for line in log.decode('utf-8').splitlines()
+               if line.startswith('STATIC_RAW_REPORT ')]
+    if len(records) != 1:
+        raise ValueError('Missing or duplicate raw report in hash-bound shard log')
+    def unique(pairs):
+        value = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError('Duplicate raw report JSON key')
+            value[key] = item
+        return value
+    return validate_identity_report(report, json.loads(records[0], object_pairs_hook=unique), root)
 
 
 def validate_report(report, name, root, environ=None):
@@ -944,13 +1161,37 @@ def main():
     child = sub.add_parser('_suite')
     child.add_argument('--suite', choices=SUITES, required=True)
     child.add_argument('--report', type=Path, required=True)
+    child.add_argument('--test-ids', type=Path)
+    discovery = sub.add_parser('_discover')
+    discovery.add_argument('--suite', choices=SUITES, required=True)
+    discovery.add_argument('--report', type=Path, required=True)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    if args.action == '_suite':
+    if args.action == '_discover':
+        if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
+            raise ValueError('Optimized Python is forbidden for static assertions')
+        check_configured_sources()
+        sys.path.insert(0, str(root))
+        loader = unittest.TestLoader()
+        spec = SUITES[args.suite]
+        suite = discover_original_suite(loader, root, spec)
+        if loader.errors:
+            raise ValueError('Static discovery failed: ' + str(loader.errors))
+        rows = discovery_identities(list(flatten(suite)), root)
+        emit_identity_evidence(rows)
+        atomic_json(checked_output(args.report, root), [row['transport_id'] for row in rows])
+        atomic_json(checked_output(args.report.with_suffix('.identities.json'), root), rows)
+        atomic_json(checked_output(args.report.with_suffix('.raw.json'), root), [row['observed_id'] for row in rows])
+    elif args.action == '_suite':
         report_path = checked_output(args.report, root)
-        report = suite_report(args.suite, root)
+        ids = read_json(checked_output(args.test_ids, root)) if args.test_ids is not None else None
+        evidence = {}
+        report = suite_report(args.suite, root, ids, evidence=evidence)
         atomic_json(report_path, report)
+        atomic_json(report_path.with_suffix('.raw.json'), evidence['raw_report'])
+        atomic_json(report_path.with_suffix('.identities.json'), evidence['identities'])
         validate_report(report, args.suite, root)
+        validate_identity_report(report, evidence, root)
     else:
         write_output(args.github_output, run_all(root, args.output))
 

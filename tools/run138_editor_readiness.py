@@ -18,7 +18,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = '9f498d0f672d0a3b206f5ff49905b388911d8a57e4333b48e7c7d8a441ce8b0f'
+CONTRACT_SHA256 = '0cb2cf393fc6b633f098e069aa45b150ccbffdc75a2b92a2d6120f91f7cc8a7a'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'
@@ -134,6 +134,14 @@ def inventory(directory):
 
 
 def validate_current(directory, profile_path, root=ROOT):
+    # Admit the actual tree once for the complete operation. Each nested history
+    # read still rehashes the transaction inputs before/after using old bytes.
+    from tools.club_customer_directory_admission import club_authenticated_transaction
+    with club_authenticated_transaction(root):
+        return _validate_current(directory, profile_path, root)
+
+
+def _validate_current(directory, profile_path, root=ROOT):
     root, directory = Path(root), Path(directory)
     c = contract(root)
     if digest((root / 'tools/run138_editor_readiness.py').read_bytes()) != IMPLEMENTATION_SHA256:
@@ -145,9 +153,9 @@ def validate_current(directory, profile_path, root=ROOT):
     if digest(Path(profile_path).read_bytes()) != c['unchanged_profile_sha256']:
         raise ValueError('Old profile, floors or historical observations changed')
     keys, classes = inventory(directory)
-    if (len(keys) != 798 or len(classes) != 180
+    if (len(keys) != 901 or len(classes) != 201
             or canonical(keys) != c['current_inventory_sha256']):
-        raise ValueError('Current 798 complete methods are not preserved')
+        raise ValueError('Current 901 complete methods are not preserved')
     for relative, expected in c['followon_support_sha256'].items():
         if digest(entry_projection().historical_entry_bytes(root, relative)) != expected:
             raise ValueError('Follow-on source or cost adapter changed: ' + relative)
@@ -204,8 +212,8 @@ def validate_current(directory, profile_path, root=ROOT):
         raise ValueError('Direction-only story helper added work or changed other semantics')
     if (c['new_over900_exceptions'] != {CHINESE: 948, CURRENT_REVIEW: 946, 'ProjectStoryImageFlowTests.testChosenStoryImageAppliesOnlyAfterUploadAndRestoresIntoExactPreparedOrder': 905, RELEASE_RECOVERY: 944, COVER_RECOVERY: 942, 'ApprovedTopicFrozenCoverPublicationFlowTests.testApprovedCoverConfirmationAndUnknownPublicationRestoreOriginalManifest': 940, 'ProjectStoryAudioRecoveryFlowTests.testChineseMaximumTextUnknownUploadChecksSameRequestWithoutSecondUpload': 980}
             or c['preserved_historical_exceptions'] != {CHINESE: 908, CURRENT_REVIEW: 906, RELEASE_RECOVERY: 904, COVER_RECOVERY: 902}
-            or c['added_total_seconds'] != 31193.948 or c['deadline_seconds'] != 1800
-            or c['startup_reserve_seconds'] != 300 or c['shard_count'] != 79):
+            or c['added_total_seconds'] != 42653.948 or c['deadline_seconds'] != 1800
+            or c['startup_reserve_seconds'] != 300 or c['shard_count'] != 111):
         raise ValueError('Exception scope, added work, reserve or deadline changed')
     validate_club_leaderboard_budget(c, directory, root)
     validate_product_ui_budget(c, directory, root)
@@ -214,6 +222,20 @@ def validate_current(directory, profile_path, root=ROOT):
 
 def previous_directory(directory, profile_path, root=ROOT):
     c = validate_current(directory, profile_path, root)
+    if Path(root).resolve() == ROOT.resolve():
+        from tools.club_customer_directory_admission import club_original_current_context
+        predecessor = club_original_current_context(root)
+        historical = predecessor.load('tools/run138_editor_readiness.py')
+        target = historical.previous_directory(predecessor.root / 'Tests/AppUITests',
+                                               predecessor.root / 'tools/ui_duration_weights.json',
+                                               predecessor.root)
+        actual = {p.name: digest(p.read_bytes()) for p in target.glob('*.swift')}
+        keys, classes = inventory(target)
+        if (actual != c['previous_ui_sources'] or len(keys) != 736 or len(classes) != 162
+                or canonical(keys) != c['previous_inventory_sha256']):
+            raise ValueError('Exact historical complete UI domain changed')
+        predecessor.verify()
+        return target
     key = (str(Path(directory).resolve()), str(Path(root).resolve()), canonical(c['current_ui_sources']))
     cached = _ui_projections.get(key)
     if cached is not None and cached.exists():
@@ -250,6 +272,14 @@ def previous_directory(directory, profile_path, root=ROOT):
 
 
 def weights(directory=ROOT / 'Tests/AppUITests', profile_path=ROOT / 'tools/ui_duration_weights.json', root=ROOT):
+    # One complete calculation owns the existing pre/post authenticated boundary.
+    # Nested readers still hash every current input before using prior bytes.
+    from tools.club_customer_directory_admission import club_authenticated_transaction
+    with club_authenticated_transaction(root):
+        return _weights(directory, profile_path, root)
+
+
+def _weights(directory, profile_path, root):
     c = validate_current(directory, profile_path, root)
     old = previous_directory(directory, profile_path, root)
     try:
@@ -281,7 +311,7 @@ def weights(directory=ROOT / 'Tests/AppUITests', profile_path=ROOT / 'tools/ui_d
         raise ValueError('Prior profile whole-class floor changed')
     for name,seconds in increments.items():result[name]=result.get(name,0)+seconds
     if ({name: result[name] for name in c['candidate_class_seconds']} != c['candidate_class_seconds']
-            or not math.isclose(sum(result.values()) - sum(before.values()), 31193.948, abs_tol=1e-7)):
+            or not math.isclose(sum(result.values()) - sum(before.values()), 42653.948, abs_tol=1e-7)):
         raise ValueError('New full-method work was omitted or an old cost decreased')
     return result
 
@@ -294,20 +324,86 @@ def report(root=ROOT):
         from .run_ui_shard import partition
     except ImportError:
         from run_ui_shard import partition
-    groups = partition(costs, 79)
-    loads = [sum(costs[name] for name in group) for group in groups]
+    from tools.run138_current_ui_shards import current_plan
+    plan = current_plan(costs, root)
+    groups = plan['shards']
+    loads = plan['shard_seconds']
     if max(loads) + 300 > 1800:
         raise ValueError('A complete class/shard exceeds the unchanged deadline and reserve')
     return {'status': c['status'], 'active_ci_runner_modified': True, 'apple_executed': False,
-            'method_count': 798, 'class_count': len(costs), 'shard_count': 79,
+            'method_count': 901, 'class_count': len(costs), 'shard_count': plan['shard_count'],
             'candidate_class_seconds': c['candidate_class_seconds'],
-            'added_total_seconds': 31193.948, 'total_seconds': sum(costs.values()),
+            'added_total_seconds': 42653.948, 'total_seconds': sum(costs.values()),
             'maximum_shard_seconds': max(loads), 'maximum_with_startup_reserve_seconds': max(loads) + 300,
             'deadline_seconds': 1800, 'startup_reserve_seconds': 300,
-            'shards': [{'index': index, 'classes': group, 'seconds': loads[index]} for index, group in enumerate(groups)]}
+            'shards': [{'index': index, 'classes': sorted({unit.split('/')[0] for unit in group}), 'execution_units': group, 'method_count': plan['shard_method_counts'][index], 'seconds': loads[index]} for index, group in enumerate(groups)]}
 
 # P045 complete-method budgets. These source-bound allowances are UNMEASURED.
-_CLUB_BUDGET = {'status': 'UNMEASURED_RECONSTRUCTED_SOURCE_BOUND_PROPOSAL', 'measured': False, 'complete_class_seconds': 1190, 'explicit_wait_seconds': 177, 'held_response_counter_wait_calls': 8, 'maximum_swipes_per_reveal': 10, 'maximum_viewport_evaluations_per_reveal': 11, 'source_sha256': {'App/ClubGovernanceFixtureHost.swift': '77e6f477469531673b73f6317bbb2a7504662642bbb4e4067cf99bfe3d0c993d', 'Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift': '742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d', 'Tests/AppUITests/ClubGovernanceFlowTests.swift': '4d41464ed772a0c371669e5dd55c8a06700b5980e2cb6f17e6ece58a7d1ce7ee', 'Tests/AppUITests/FailureScreenshot.swift': '705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49'}, 'methods': {'testLeaderboardMemberPublicProfileBackAndReopen': {'declaration_sha256': '78b021023aaba4bf2506416fbd86eb728dd6846953d79e430030323ccdf81ead', 'measured': False, 'explicit_wait_seconds': 40, 'reveal_calls_with_loop_expansion': 3, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 10, 'unrounded_complete_seconds': 260, 'complete_seconds': 260}, 'testLeaderboardAccountSwitchRetiresVisiblePublicProfile': {'declaration_sha256': '6fa4c2645c06bb0971749d1f42548aa93c22742f47f50a3f03930c58ecbafa56', 'measured': False, 'explicit_wait_seconds': 30, 'reveal_calls_with_loop_expansion': 2, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 10, 'unrounded_complete_seconds': 210, 'complete_seconds': 210}, 'testLeaderboardSwitchDuringProfileLoadRejectsLatePresentation': {'declaration_sha256': 'abe2d9f80518c935f1e032e7a6874878981ccca61a97a6a4a902dc9d8059f569', 'measured': False, 'explicit_wait_seconds': 62, 'reveal_calls_with_loop_expansion': 2, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 20, 'unrounded_complete_seconds': 252, 'complete_seconds': 260}, 'testLeaderboardMissingProfileReaderKeepsReadOnlyFacts': {'declaration_sha256': 'fb19942e35e3eb799ac3f88cc5b833201f5cf298d96ecf189937e55e91e06f12', 'measured': False, 'explicit_wait_seconds': 15, 'reveal_calls_with_loop_expansion': 1, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 10, 'unrounded_complete_seconds': 155, 'complete_seconds': 160}, 'testLeaderboardMismatchedProfileAccountCannotOpenMember': {'declaration_sha256': '87a0023eb5865cd1f94c8cbca0b097cfeee4b6379961ad47a9be4ff9c180322b', 'measured': False, 'explicit_wait_seconds': 15, 'reveal_calls_with_loop_expansion': 1, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 5, 'unrounded_complete_seconds': 150, 'complete_seconds': 150}, 'testLeaderboardMissingMemberIDCannotCreateDestination': {'declaration_sha256': '5da76474f68766c8a27acba8ab14af319ee12551d1acfccc746d93cf471d3b1b', 'measured': False, 'explicit_wait_seconds': 15, 'reveal_calls_with_loop_expansion': 1, 'lifecycle_and_failure_seconds': 90, 'per_reveal_seconds': 40, 'direct_ax_allowance_seconds': 5, 'unrounded_complete_seconds': 150, 'complete_seconds': 150}}}
+_CLUB_BUDGET = {'status': 'UNMEASURED_RECONSTRUCTED_SOURCE_BOUND_PROPOSAL',
+ 'measured': False,
+ 'complete_class_seconds': 1190,
+ 'explicit_wait_seconds': 177,
+ 'held_response_counter_wait_calls': 8,
+ 'maximum_swipes_per_reveal': 10,
+ 'maximum_viewport_evaluations_per_reveal': 11,
+ 'source_sha256': {'App/ClubGovernanceFixtureHost.swift': '77e6f477469531673b73f6317bbb2a7504662642bbb4e4067cf99bfe3d0c993d',
+                   'Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift': '742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d',
+                   'Tests/AppUITests/ClubGovernanceFlowTests.swift': '4d41464ed772a0c371669e5dd55c8a06700b5980e2cb6f17e6ece58a7d1ce7ee',
+                   'Tests/AppUITests/FailureScreenshot.swift': 'a875b7c0672ae267d14bca68d3955188d4955f3f4268e441ff04541ed37b07fc'},
+ 'methods': {'testLeaderboardMemberPublicProfileBackAndReopen': {'declaration_sha256': '78b021023aaba4bf2506416fbd86eb728dd6846953d79e430030323ccdf81ead',
+                                                                 'measured': False,
+                                                                 'explicit_wait_seconds': 40,
+                                                                 'reveal_calls_with_loop_expansion': 3,
+                                                                 'lifecycle_and_failure_seconds': 90,
+                                                                 'per_reveal_seconds': 40,
+                                                                 'direct_ax_allowance_seconds': 10,
+                                                                 'unrounded_complete_seconds': 260,
+                                                                 'complete_seconds': 260},
+             'testLeaderboardAccountSwitchRetiresVisiblePublicProfile': {'declaration_sha256': '6fa4c2645c06bb0971749d1f42548aa93c22742f47f50a3f03930c58ecbafa56',
+                                                                         'measured': False,
+                                                                         'explicit_wait_seconds': 30,
+                                                                         'reveal_calls_with_loop_expansion': 2,
+                                                                         'lifecycle_and_failure_seconds': 90,
+                                                                         'per_reveal_seconds': 40,
+                                                                         'direct_ax_allowance_seconds': 10,
+                                                                         'unrounded_complete_seconds': 210,
+                                                                         'complete_seconds': 210},
+             'testLeaderboardSwitchDuringProfileLoadRejectsLatePresentation': {'declaration_sha256': 'abe2d9f80518c935f1e032e7a6874878981ccca61a97a6a4a902dc9d8059f569',
+                                                                               'measured': False,
+                                                                               'explicit_wait_seconds': 62,
+                                                                               'reveal_calls_with_loop_expansion': 2,
+                                                                               'lifecycle_and_failure_seconds': 90,
+                                                                               'per_reveal_seconds': 40,
+                                                                               'direct_ax_allowance_seconds': 20,
+                                                                               'unrounded_complete_seconds': 252,
+                                                                               'complete_seconds': 260},
+             'testLeaderboardMissingProfileReaderKeepsReadOnlyFacts': {'declaration_sha256': 'fb19942e35e3eb799ac3f88cc5b833201f5cf298d96ecf189937e55e91e06f12',
+                                                                       'measured': False,
+                                                                       'explicit_wait_seconds': 15,
+                                                                       'reveal_calls_with_loop_expansion': 1,
+                                                                       'lifecycle_and_failure_seconds': 90,
+                                                                       'per_reveal_seconds': 40,
+                                                                       'direct_ax_allowance_seconds': 10,
+                                                                       'unrounded_complete_seconds': 155,
+                                                                       'complete_seconds': 160},
+             'testLeaderboardMismatchedProfileAccountCannotOpenMember': {'declaration_sha256': '87a0023eb5865cd1f94c8cbca0b097cfeee4b6379961ad47a9be4ff9c180322b',
+                                                                         'measured': False,
+                                                                         'explicit_wait_seconds': 15,
+                                                                         'reveal_calls_with_loop_expansion': 1,
+                                                                         'lifecycle_and_failure_seconds': 90,
+                                                                         'per_reveal_seconds': 40,
+                                                                         'direct_ax_allowance_seconds': 5,
+                                                                         'unrounded_complete_seconds': 150,
+                                                                         'complete_seconds': 150},
+             'testLeaderboardMissingMemberIDCannotCreateDestination': {'declaration_sha256': '5da76474f68766c8a27acba8ab14af319ee12551d1acfccc746d93cf471d3b1b',
+                                                                       'measured': False,
+                                                                       'explicit_wait_seconds': 15,
+                                                                       'reveal_calls_with_loop_expansion': 1,
+                                                                       'lifecycle_and_failure_seconds': 90,
+                                                                       'per_reveal_seconds': 40,
+                                                                       'direct_ax_allowance_seconds': 5,
+                                                                       'unrounded_complete_seconds': 150,
+                                                                       'complete_seconds': 150}}}
 
 
 def validate_club_leaderboard_budget(c, directory, root):
@@ -368,23 +464,30 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                  'per_direct_action_seconds': 5,
                  'per_direct_ax_assertion_seconds': 2,
                  'per_typed_character_seconds': 0.25,
-                 'round_up_seconds': 10},
+                 'round_up_seconds': 10,
+                 'per_local_reveal_seconds': 10,
+                 'per_local_reveal_maximum_swipes': 1,
+                 'per_local_reveal_maximum_viewports': 2,
+                 'local_reveal_initial_lookup_seconds': 4,
+                 'local_reveal_query_phase_seconds': 1,
+                 'local_reveal_gesture_and_settle_seconds': 2,
+                 'per_direct_ax_query_seconds': 2},
  'source_sha256': {'App/MerchantOperationsEditor.swift': '15206efd15238957c20c435b78e8463ef8da5d0067467e0579ac37968f4ce658',
                    'App/ProfileEditView.swift': '69e4a0d9ec41ea5d3a525516951c7f43586ddd06148063de6b2d5b8dbf33bff9',
                    'Tests/AppUITests/FailureScreenshot.swift': 'a875b7c0672ae267d14bca68d3955188d4955f3f4268e441ff04541ed37b07fc',
                    'Tests/AppUITests/MerchantBrandImagesFlowTests.swift': 'a9d6e4daf86461e90566204e62c21d1e2367b843002841b963f7fc130c37f778',
                    'Tests/AppUITests/MerchantProjectBrowserFlowTests.swift': 'cd307f7f147b783c8fc706351bf2e7cab0fa422c52a81327eb5b8d5475401f73',
-                   'Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift': 'd173e18869e461f229ff48b773f2645efa573b021bcf866b2e9e7a155a67d9de',
-                   'Tests/AppUITests/MerchantStoreIndustryFlowTests.swift': '7ee62eec88dc920ce961e4f3c9bc04a4e24ebca645a6244fe0e9a896e196a04d',
+                   'Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift': '51a68f530e4aa48ff9ccbdef87a536af7790f95874916f4b6e3da88734ca5ce7',
+                   'Tests/AppUITests/MerchantStoreIndustryFlowTests.swift': 'a8dafae66f24d9c14abfbca20200fc51306d057854c6b590dc279db522ed07ff',
                    'Tests/AppUITests/MerchantTemplateBrowserFlowTests.swift': '60cdf4e3dd95cf223638594ae126f8163a6ec3a1b970931f92287fa2fd8311c6',
                    'Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift': '71fe2b737b41bfa12ee2140ea2330158d890c0992cb0400a63083189466bee11',
                    'Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift': '23bd4804a9a9de93deeef8e33975f619aa9bb244ecff7aa712fad05063f14d5c',
-                   'Tests/AppUITests/MerchantTemplateHintsFlowTests.swift': 'a308236f3065c49cdc41fee2c09267111d8bc4b102358e8e14ee456867673e2a',
+                   'Tests/AppUITests/MerchantTemplateHintsFlowTests.swift': '6474783a268098e9eee3b118a7f7825a454d7ac7b485b07ab1e26a2348b21f4e',
                    'Tests/AppUITests/MerchantTemplateMetadataFlowTests.swift': '4212ff99e168ef270480c497ab9d1fb1f95bcf79bc803e161a256e0f857c3074',
                    'Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift': 'bdde78569545ec1c0fd1636b0d7a3657cf759aa489e77f612f9060fe7b3e3cd8',
                    'Tests/AppUITests/MerchantTemplatePreparationFlowTests.swift': '3df219af5ae4da07224b2f284ce80231a8d9da508e6f9406d17713c463b77279',
-                   'Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift': 'd642a90cc72fcde380a2eba26bc383dabf1c603a37a6998fb88c8d7074544095',
-                   'Tests/AppUITests/MerchantTemplateStoryTimelineFlowTests.swift': 'a440453aad80b63a80bbe49e64b94e4438d22e126c5ce5cde5b5ac5cdf061b2d',
+                   'Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift': '9f747d453da1f5e5722e5f2b06cc5518a3674fc1e2f28aae21c5033e92721d15',
+                   'Tests/AppUITests/MerchantTemplateStoryTimelineFlowTests.swift': 'f8f087b6ca6363f71cd962e86bf5416b2abea0b9387d70b68c5de345ae67fa42',
                    'Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift': '72f8a3ec5625ca00f14d6dfd9c8d1618501d5d5051b29d9deeb32012d7360735',
                    'Tests/AppUITests/ProfileCasePictureRemovalFlowTests.swift': 'd028a95bb912648cb8571e67fed2f552720ce42a52ea62b6ee4172f007a04ee7',
                    'Tests/AppUITests/ProfileCasePortfolioFlowTests.swift': '171eb446703ca5240139d43fa1acbe3c764b848116e8f97c6b603dd2059d4455',
@@ -471,17 +574,17 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                                                                                                                                  'unrounded_seconds': 322.0,
                                                                                                                                  'seconds': 330},
              'MerchantTemplateParticipationPlanFlowTests.testCompletePlanReviewCannotSubmitAndCancelRetainsLocalFields': {'source': 'Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift',
-                                                                                                                          'declaration_sha256': '9413b591e0cab9096f42346d9b21a84722f14581fa2b29baa2aedec6c14290ff',
+                                                                                                                          'declaration_sha256': 'ea3d1baa97ccc7f730e76e918faec8b17044082093ca8898827199ebda5a8e8c',
                                                                                                                           'measured': False,
                                                                                                                           'existing_method_increment': False,
                                                                                                                           'lifecycle_seconds': 90,
                                                                                                                           'explicit_wait_seconds': 4,
-                                                                                                                          'bounded_reveal_calls': 11,
+                                                                                                                          'bounded_reveal_calls': 12,
                                                                                                                           'direct_action_count': 13,
-                                                                                                                          'direct_ax_assertion_count': 6,
+                                                                                                                          'direct_ax_assertion_count': 7,
                                                                                                                           'typed_characters': 3,
-                                                                                                                          'unrounded_seconds': 611.75,
-                                                                                                                          'seconds': 620},
+                                                                                                                          'unrounded_seconds': 653.75,
+                                                                                                                          'seconds': 660},
              'MerchantTemplateExitPlanFlowTests.testEmptyExitPlanBlocksReviewAndExplicitRemovalLeavesOriginalTemplate': {'source': 'Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift',
                                                                                                                          'declaration_sha256': '2ef4229746d838c0603da3fc6f804b908cb5d268894ebf72863b83fcb1bca7f2',
                                                                                                                          'measured': False,
@@ -596,24 +699,28 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                                                                                                              'existing_method_increment': False,
                                                                                                              'lifecycle_seconds': 90,
                                                                                                              'explicit_wait_seconds': 0,
-                                                                                                             'bounded_reveal_calls': 18,
+                                                                                                             'bounded_reveal_calls': 15,
                                                                                                              'direct_action_count': 16,
                                                                                                              'direct_ax_assertion_count': 5,
                                                                                                              'typed_characters': 40,
-                                                                                                             'unrounded_seconds': 910.0,
-                                                                                                             'seconds': 910},
+                                                                                                             'unrounded_seconds': 790.0,
+                                                                                                             'seconds': 790,
+                                                                                                             'local_reveal_calls': 0,
+                                                                                                             'direct_ax_query_count': 0},
              'MerchantTemplateRuleStepsFlowTests.testClearExistingRulesRequiresReviewAndDiscardRestoresSavedText': {'source': 'Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift',
-                                                                                                                    'declaration_sha256': '0a24f454538c1cf1a6f23f6da8be71ecd73a617a08674c476e3d73fa5b547fad',
+                                                                                                                    'declaration_sha256': '140c7a29bab07f0d632aba838c72e3b9cb643e006228348822fbe49e8b4f07a2',
                                                                                                                     'measured': False,
                                                                                                                     'existing_method_increment': False,
                                                                                                                     'lifecycle_seconds': 90,
                                                                                                                     'explicit_wait_seconds': 10,
-                                                                                                                    'bounded_reveal_calls': 19,
+                                                                                                                    'bounded_reveal_calls': 16,
                                                                                                                     'direct_action_count': 18,
-                                                                                                                    'direct_ax_assertion_count': 8,
+                                                                                                                    'direct_ax_assertion_count': 10,
                                                                                                                     'typed_characters': 39,
-                                                                                                                    'unrounded_seconds': 975.75,
-                                                                                                                    'seconds': 980},
+                                                                                                                    'unrounded_seconds': 871.75,
+                                                                                                                    'seconds': 880,
+                                                                                                                    'local_reveal_calls': 0,
+                                                                                                                    'direct_ax_query_count': 6},
              'ProfileCasePortfolioFlowTests.testCancelReopenThenStageDescriptionWithoutLosingOtherFields': {'source': 'Tests/AppUITests/ProfileCasePortfolioFlowTests.swift',
                                                                                                             'declaration_sha256': '7e1f7457e36c4704bd8e176b8735021a3fa58b39bdb37b518b272f35b1fa9e3c',
                                                                                                             'measured': False,
@@ -723,31 +830,35 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                                                                                            'unrounded_seconds': 157.0,
                                                                                            'seconds': 160},
              'MerchantTemplateHintsFlowTests.testThreeStagePreviewResetsAfterEditAndSaveReadbackRetainsHints': {'source': 'Tests/AppUITests/MerchantTemplateHintsFlowTests.swift',
-                                                                                                                'declaration_sha256': '6a0bd1afcdb11810ccedae0a11b1758230ccbb722be37c21cb332c7e49db6611',
+                                                                                                                'declaration_sha256': '8925b380590d5a359574841f4ce024679cd4fc5c80067b2dc796385a8d52afdf',
                                                                                                                 'measured': False,
                                                                                                                 'existing_method_increment': False,
                                                                                                                 'lifecycle_seconds': 90,
                                                                                                                 'explicit_wait_seconds': 0,
-                                                                                                                'bounded_reveal_calls': 27,
+                                                                                                                'bounded_reveal_calls': 10,
                                                                                                                 'direct_action_count': 21,
-                                                                                                                'direct_ax_assertion_count': 7,
+                                                                                                                'direct_ax_assertion_count': 8,
                                                                                                                 'typed_characters': 44,
-                                                                                                                'unrounded_seconds': 1300.0,
-                                                                                                                'seconds': 1300},
+                                                                                                                'unrounded_seconds': 748.0,
+                                                                                                                'seconds': 750,
+                                                                                                                'local_reveal_calls': 12,
+                                                                                                                'direct_ax_query_count': 3},
              'MerchantTemplateHintsFlowTests.testDisableReviewCancelDiscardAndConfirmedClear': {'source': 'Tests/AppUITests/MerchantTemplateHintsFlowTests.swift',
-                                                                                                'declaration_sha256': '0344b39acde05b59f3bfe22ec5ac9d710749c3ab893b84fbe97a0680590027b2',
+                                                                                                'declaration_sha256': '7a7e370a3aa27ea8f4aff4767c81ccfffe8a1f63b4bbb11203a09b42a70b1756',
                                                                                                 'measured': False,
                                                                                                 'existing_method_increment': False,
                                                                                                 'lifecycle_seconds': 90,
                                                                                                 'explicit_wait_seconds': 10,
-                                                                                                'bounded_reveal_calls': 28,
+                                                                                                'bounded_reveal_calls': 13,
                                                                                                 'direct_action_count': 22,
-                                                                                                'direct_ax_assertion_count': 8,
+                                                                                                'direct_ax_assertion_count': 13,
                                                                                                 'typed_characters': 36,
-                                                                                                'unrounded_seconds': 1355.0,
-                                                                                                'seconds': 1360},
+                                                                                                'unrounded_seconds': 895.0,
+                                                                                                'seconds': 900,
+                                                                                                'local_reveal_calls': 10,
+                                                                                                'direct_ax_query_count': 15},
              'MerchantTemplateHintsFlowTests.testUnsupportedMethodRequiresExplicitHintDisableBeforeReview': {'source': 'Tests/AppUITests/MerchantTemplateHintsFlowTests.swift',
-                                                                                                             'declaration_sha256': 'f0e1e79d154b8e9fa506da96ac2542bb2b2edac9213265d9c136cfdf0a84f641',
+                                                                                                             'declaration_sha256': '1c9305e877d77d5c04d86e402fcf1121d13a55c82d9f5f6a39cebd1cc15d5e62',
                                                                                                              'measured': False,
                                                                                                              'existing_method_increment': False,
                                                                                                              'lifecycle_seconds': 90,
@@ -764,36 +875,42 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                                                                                                               'existing_method_increment': False,
                                                                                                               'lifecycle_seconds': 90,
                                                                                                               'explicit_wait_seconds': 0,
-                                                                                                              'bounded_reveal_calls': 22,
+                                                                                                              'bounded_reveal_calls': 11,
                                                                                                               'direct_action_count': 18,
-                                                                                                              'direct_ax_assertion_count': 5,
+                                                                                                              'direct_ax_assertion_count': 6,
                                                                                                               'typed_characters': 39,
-                                                                                                              'unrounded_seconds': 1079.75,
-                                                                                                              'seconds': 1080},
+                                                                                                              'unrounded_seconds': 707.75,
+                                                                                                              'seconds': 710,
+                                                                                                              'local_reveal_calls': 6,
+                                                                                                              'direct_ax_query_count': 3},
              'MerchantTemplateStoryTimelineFlowTests.testDisableReviewCancelDiscardAndConfirmedTimelineClear': {'source': 'Tests/AppUITests/MerchantTemplateStoryTimelineFlowTests.swift',
-                                                                                                                'declaration_sha256': '36b1e0f08baa834d10cd24bac9f5bc514921139f14177b3de2f2369e6af20032',
+                                                                                                                'declaration_sha256': 'd3c552be69a1cb22a7aa7f4a5b47117dd8869de0ee317729e6277c1642db28e8',
                                                                                                                 'measured': False,
                                                                                                                 'existing_method_increment': False,
                                                                                                                 'lifecycle_seconds': 90,
                                                                                                                 'explicit_wait_seconds': 10,
-                                                                                                                'bounded_reveal_calls': 24,
+                                                                                                                'bounded_reveal_calls': 13,
                                                                                                                 'direct_action_count': 20,
-                                                                                                                'direct_ax_assertion_count': 8,
+                                                                                                                'direct_ax_assertion_count': 13,
                                                                                                                 'typed_characters': 19,
-                                                                                                                'unrounded_seconds': 1180.75,
-                                                                                                                'seconds': 1190},
+                                                                                                                'unrounded_seconds': 850.75,
+                                                                                                                'seconds': 860,
+                                                                                                                'local_reveal_calls': 7,
+                                                                                                                'direct_ax_query_count': 15},
              'MerchantTemplateStoryTimelineFlowTests.testRemovedSavedMomentAppearsInReviewAndDiscardRestoresIt': {'source': 'Tests/AppUITests/MerchantTemplateStoryTimelineFlowTests.swift',
-                                                                                                                  'declaration_sha256': '28687c4ed7b2794451d42e9573b4a6661f53039ce4167c66ebf0d1e353c9fe25',
+                                                                                                                  'declaration_sha256': 'f398f38c142ace53ceb28735f20fa04820a7729fe7af6af671ad37899ee9249d',
                                                                                                                   'measured': False,
                                                                                                                   'existing_method_increment': False,
                                                                                                                   'lifecycle_seconds': 90,
                                                                                                                   'explicit_wait_seconds': 5,
-                                                                                                                  'bounded_reveal_calls': 21,
+                                                                                                                  'bounded_reveal_calls': 10,
                                                                                                                   'direct_action_count': 19,
-                                                                                                                  'direct_ax_assertion_count': 4,
+                                                                                                                  'direct_ax_assertion_count': 6,
                                                                                                                   'typed_characters': 39,
-                                                                                                                  'unrounded_seconds': 1047.75,
-                                                                                                                  'seconds': 1050},
+                                                                                                                  'unrounded_seconds': 683.75,
+                                                                                                                  'seconds': 690,
+                                                                                                                  'local_reveal_calls': 6,
+                                                                                                                  'direct_ax_query_count': 6},
              'MerchantTemplateCategoryFlowTests.testPickerCancelLeavesTemplateUnchangedAndReopensWithoutSelection': {'source': 'Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift',
                                                                                                                      'declaration_sha256': 'fd16e9568458eef279593bc92ebfc1fabc8e8c532bc57771b94312ba5c7343d6',
                                                                                                                      'measured': False,
@@ -1179,17 +1296,19 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                                                                                             'unrounded_seconds': 536.0,
                                                                                             'seconds': 540},
              'MerchantStoreIndustryFlowTests.testIndustryChangeReviewCancelDiscardSaveAndSourceReadback': {'source': 'Tests/AppUITests/MerchantStoreIndustryFlowTests.swift',
-                                                                                                           'declaration_sha256': '70609f6eee077f7892c80110d748c533f88b44858ef29688dfa5d10eb921646f',
+                                                                                                           'declaration_sha256': '985374b7c286a8a43061a8b9fd3cc5de18662a2a55483b4c4386d36d91abf47f',
                                                                                                            'measured': False,
                                                                                                            'existing_method_increment': False,
                                                                                                            'lifecycle_seconds': 90,
                                                                                                            'explicit_wait_seconds': 20,
-                                                                                                           'bounded_reveal_calls': 21,
+                                                                                                           'bounded_reveal_calls': 14,
                                                                                                            'direct_action_count': 16,
-                                                                                                           'direct_ax_assertion_count': 9,
+                                                                                                           'direct_ax_assertion_count': 11,
                                                                                                            'typed_characters': 0,
-                                                                                                           'unrounded_seconds': 1048.0,
-                                                                                                           'seconds': 1050},
+                                                                                                           'unrounded_seconds': 784.0,
+                                                                                                           'seconds': 790,
+                                                                                                           'local_reveal_calls': 0,
+                                                                                                           'direct_ax_query_count': 6},
              'MerchantStoreIndustryFlowTests.testReloadKeepsOnlyTheLatestSingleIndustryChoice': {'source': 'Tests/AppUITests/MerchantStoreIndustryFlowTests.swift',
                                                                                                  'declaration_sha256': 'ab6ac3f6e95db8088e2edf9cd53ec5c5a07881fc3c6450d68db76496404fabba',
                                                                                                  'measured': False,
@@ -1256,12 +1375,14 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                                                                                                                     'existing_method_increment': False,
                                                                                                                     'lifecycle_seconds': 90,
                                                                                                                     'explicit_wait_seconds': 5,
-                                                                                                                    'bounded_reveal_calls': 21,
+                                                                                                                    'bounded_reveal_calls': 12,
                                                                                                                     'direct_action_count': 9,
                                                                                                                     'direct_ax_assertion_count': 2,
                                                                                                                     'typed_characters': 0,
-                                                                                                                    'unrounded_seconds': 984.0,
-                                                                                                                    'seconds': 990},
+                                                                                                                    'unrounded_seconds': 624.0,
+                                                                                                                    'seconds': 630,
+                                                                                                                    'local_reveal_calls': 0,
+                                                                                                                    'direct_ax_query_count': 0},
              'MerchantRegistrationAvailabilityFlowTests.testBackgroundDiscardsOnlyUnappliedAvailabilitySheet': {'source': 'Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift',
                                                                                                                 'declaration_sha256': '1b923a43b75ed35043dac00fed1826536b24448011e00493db5e6b2575be85c7',
                                                                                                                 'measured': False,
@@ -2355,15 +2476,15 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                                                                                             'unrounded_seconds': 374.75,
                                                                                             'seconds': 380}},
  'class_increment_seconds': {'ProfileEditFlowTests': 890,
-                             'MerchantTemplateParticipationPlanFlowTests': 950,
+                             'MerchantTemplateParticipationPlanFlowTests': 990,
                              'MerchantTemplateExitPlanFlowTests': 850,
                              'MerchantTemplateMetadataFlowTests': 870,
                              'MerchantTemplatePreparationFlowTests': 1060,
-                             'MerchantTemplateRuleStepsFlowTests': 1890,
+                             'MerchantTemplateRuleStepsFlowTests': 1670,
                              'ProfileCasePortfolioFlowTests': 670,
                              'ProfileContactQRRemovalFlowTests': 840,
-                             'MerchantTemplateHintsFlowTests': 3560,
-                             'MerchantTemplateStoryTimelineFlowTests': 3320,
+                             'MerchantTemplateHintsFlowTests': 2550,
+                             'MerchantTemplateStoryTimelineFlowTests': 2260,
                              'MerchantTemplateCategoryFlowTests': 1510,
                              'ProfilePreferenceRemovalFlowTests': 820,
                              'ProfileCasePictureRemovalFlowTests': 830,
@@ -2372,9 +2493,9 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                              'RoamReducedMotionFlowTests': 1180,
                              'RoamFinishedHistoryFlowTests': 810,
                              'MerchantTemplateBrowserFlowTests': 1490,
-                             'MerchantStoreIndustryFlowTests': 2150,
+                             'MerchantStoreIndustryFlowTests': 1890,
                              'MerchantBrandImagesFlowTests': 920,
-                             'MerchantRegistrationAvailabilityFlowTests': 2380,
+                             'MerchantRegistrationAvailabilityFlowTests': 2020,
                              'MerchantProjectBrowserFlowTests': 930,
                              'ProfileLocalCoverFlowTests': 800,
                              'ProfileFavoriteRemovalFlowTests': 720,
@@ -2392,7 +2513,7 @@ _PRODUCT_UI_BUDGET = {'status': 'UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT',
                              'ProfileOrderFilterFlowTests': 610,
                              'ProfileSelfOrdersFlowTests': 1300,
                              'ProfileComplaintPreparationFlowTests': 1180},
- 'added_seconds': 43810,
+ 'added_seconds': 40940,
  'prior_profile_class_seconds': 81.645}
 
 def validate_product_ui_budget(c, directory, root):
@@ -2410,7 +2531,7 @@ def validate_product_ui_budget(c, directory, root):
             match=re.search(r'(?m)^    func '+re.escape(name)+r'\b[^\n]*}\s*$',text)
         if match is None or digest(match.group().encode())!=row['declaration_sha256']:
             raise ValueError('Product complete UI method changed: '+identity)
-        seconds=row['lifecycle_seconds']+row['explicit_wait_seconds']+40*row['bounded_reveal_calls']+5*row['direct_action_count']+2*row['direct_ax_assertion_count']+0.25*row['typed_characters']
+        seconds=row['lifecycle_seconds']+row['explicit_wait_seconds']+40*row['bounded_reveal_calls']+10*row.get('local_reveal_calls',0)+5*row['direct_action_count']+2*(row['direct_ax_assertion_count']+row.get('direct_ax_query_count',0))+0.25*row['typed_characters']
         if row['measured'] is not False or seconds!=row['unrounded_seconds'] or math.ceil(seconds/10)*10!=row['seconds'] or not 0<row['seconds']<=900:
             raise ValueError('Product UI action/wait allowance changed')
         cls=identity.split('.')[0];totals[cls]=totals.get(cls,0)+row['seconds']

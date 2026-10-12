@@ -17,7 +17,7 @@ from test_products import toolchain
 import run_static_checks as static_checks
 
 REQUIRED_JOBS = {'static-checks', 'native', 'device-build', 'us-build', 'secrets', 'app-unit-tests', 'ui-tests'}
-SHARD_COUNT = 79
+SHARD_COUNT = 111
 
 
 def validate_commit(commit):

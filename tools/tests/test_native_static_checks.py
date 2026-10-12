@@ -404,7 +404,7 @@ class StaticRunnerFixtures(unittest.TestCase):
             needs[name]['outputs']['build_fingerprint'] = fingerprint
         for name in ['static-checks', 'native']:
             needs[name]['outputs']['static_receipt'] = receipt
-        needs['ui-tests']['outputs'] = dict(gates.ui_completion(index, fingerprint, commit) for index in range(79))
+        needs['ui-tests']['outputs'] = dict(gates.ui_completion(index, fingerprint, commit) for index in range(111))
         env = dict(self.environment, EXPECTED_STATIC_RECEIPT=receipt, NEEDS_JSON=json.dumps(needs))
         command = [sys.executable, '-B', str(self.root / 'tools/ci_gates.py')]
         native = subprocess.run(command + ['verify-static', '--static-artifact', str(self.output),
@@ -429,7 +429,7 @@ class StaticRunnerFixtures(unittest.TestCase):
                     gates.aggregate(changed, commit, receipt, '1234', '2')
             changed = copy.deepcopy(needs); changed[name]['outputs'].pop('static_receipt')
             with self.assertRaises(ValueError): gates.aggregate(changed, commit, receipt, '1234', '2')
-        for index in range(79):
+        for index in range(111):
             changed = copy.deepcopy(needs); changed['ui-tests']['outputs'].pop('shard_' + str(index))
             with self.assertRaises(ValueError): gates.aggregate(changed, commit, receipt, '1234', '2')
         needs['static-checks']['result'] = 'skipped'; env['NEEDS_JSON'] = json.dumps(needs)
@@ -817,12 +817,16 @@ class LiveStaticWorkflowTests(unittest.TestCase):
                                    self.workflow.split('jobs:\n', 1)[1], re.M | re.S))
 
     def test_live_graph_keeps_all_gates_and_static_success_precedes_any_apple_work(self):
-        self.assertEqual(set(self.jobs), gates.REQUIRED_JOBS | {'required-native-gates'})
+        self.assertEqual(set(self.jobs), gates.REQUIRED_JOBS | {'required-native-gates', 'static-plan', 'static-shards'})
         static, native, aggregate = (self.jobs[name] for name in ['static-checks', 'native', 'required-native-gates'])
         self.assertIn('runs-on: ubuntu-24.04', static)
-        self.assertIn('timeout-minutes: 30', static)
-        self.assertNotIn('    needs:', static)
-        self.assertIn('run_static_checks.py run', static)
+        self.assertIn('timeout-minutes: 30', self.jobs['static-shards'])
+        self.assertIn('timeout-minutes: 10', static)
+        self.assertIn('needs: [static-plan, static-shards]', static)
+        self.assertNotIn('    needs:', self.jobs['static-plan'])
+        self.assertIn('static_shard_checks.py merge', static)
+        self.assertIn('static_shard_checks.py plan', self.jobs['static-plan'])
+        self.assertIn('static_shard_checks.py shard', self.jobs['static-shards'])
         self.assertIn('id: static', static)
         self.assertIn('static_receipt: ${{ steps.static.outputs.static_receipt }}', static)
         self.assertIn('needs: static-checks', native)
@@ -850,6 +854,24 @@ class LiveStaticWorkflowTests(unittest.TestCase):
         self.assertIn('ci_gates.py aggregate --static-artifact', aggregate)
         self.assertNotIn('if:', aggregate.split('    steps:\n', 1)[1])
 
+    def test_static_shards_keep_complete_plan_and_exact_same_run_artifacts(self):
+        plan, workers, merge = (self.jobs[n] for n in ['static-plan', 'static-shards', 'static-checks'])
+        self.assertIn('needs: static-plan', workers)
+        self.assertIn('fail-fast: false', workers)
+        self.assertIn('max-parallel: 6', workers)
+        self.assertIn('shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]', workers)
+        self.assertIn('--index ${{ matrix.shard }}', workers)
+        self.assertIn('if: ${{ always() }}', workers)
+        self.assertIn('merge-multiple: true', merge)
+        for body in [plan, workers, merge]:
+            self.assertIn('if-no-files-found: error', body)
+            self.assertIn('github.sha', body)
+            self.assertIn('github.run_id', body)
+            self.assertIn('github.run_attempt', body)
+        self.assertNotIn('if: ${{ always() }}', merge)
+        self.assertIn('--plan "$RUNNER_TEMP/static-plan/plan.json"', merge)
+        self.assertIn('--input "$RUNNER_TEMP/static-workers"', merge)
+
     def test_artifact_is_same_run_same_attempt_and_fail_closed_with_read_only_pinned_actions(self):
         artifact = 'name: static-checks-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
         self.assertEqual(self.workflow.count(artifact), 3)
@@ -873,10 +895,11 @@ class LiveStaticWorkflowTests(unittest.TestCase):
         ui = self.jobs['ui-tests']
         self.assertIn('timeout-minutes: 37', ui)
         self.assertIn('--deadline-seconds 1800', ui)
-        self.assertIn('--count 79', ui)
+        self.assertIn('--count 111', ui)
+        self.assertIn('max-parallel: 79', ui)
         self.assertIn('fail-fast: false', ui)
         self.assertNotIn('-skip-testing', self.workflow)
-        self.assertEqual(len(re.findall(r'^      shard_\d+:', ui, re.M)), 79)
+        self.assertEqual(len(re.findall(r'^      shard_\d+:', ui, re.M)), 111)
         self.assertIn('timeout-minutes: 20', self.jobs['app-unit-tests'])
         self.assertIn('-only-testing:QuestifyAppUnitTests test-without-building', self.jobs['app-unit-tests'])
         self.assertEqual(self.workflow.count('name: test-products-${{ github.sha }}'), 3)

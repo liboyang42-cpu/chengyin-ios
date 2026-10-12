@@ -71,6 +71,15 @@ final class MerchantContentContractTests: XCTestCase {
         XCTAssertThrowsError(try MerchantContentCommand.updateRegistration(id: 22, topicID: 70, draft: d).validate(against: won))
     }
     func testRegistrationEditUsesExactBackendStatePairs() throws {
+        // The UI fixture must itself be a source-authorized rejection state.
+        let fixture = try value(MerchantContentFixtureData.registration)
+        XCTAssertEqual(fixture["status"].integer, 2)
+        XCTAssertEqual(fixture["auditStatus"].integer, 2)
+        XCTAssertTrue(MerchantRegistrationEditEligibility.allows(status: fixture["status"].integer, auditStatus: fixture["auditStatus"].integer))
+        XCTAssertFalse(MerchantRegistrationEditEligibility.allows(status: 2, auditStatus: 0))
+        let fixtureState = try snapshot(.registration(id: 22), MerchantContentFixtureData.registration)
+        let fixtureDraft = MerchantRegistrationContentDraft(detail: fixture)
+        XCTAssertNoThrow(try MerchantContentCommand.updateRegistration(id: 22, topicID: 70, draft: fixtureDraft).validate(against: fixtureState))
         for status in -1...4 {
             for audit in -1...3 {
                 let expected = (status == 0 && audit == 0) || ((status == 2 || status == 3) && audit == 2)

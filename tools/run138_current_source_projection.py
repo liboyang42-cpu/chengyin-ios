@@ -57,7 +57,15 @@ def original_entry_bytes(relative, raw, root=ROOT):
 
 
 def historical_entry_bytes(root, relative):
-    return original_entry_bytes(relative, (Path(root) / relative).read_bytes(), root)
+    raw = (Path(root) / relative).read_bytes()
+    if Path(root).resolve() == ROOT.resolve():
+        # This boundary may also be called directly. Authenticate the actual
+        # candidate before composing the complete product inverse with the older
+        # entry inverse; an e2b support hash is never a current-source admission.
+        from tools.club_customer_directory_admission import club_authenticated_transaction, _club_registration
+        with club_authenticated_transaction(root):
+            raw = _club_registration().club_predecessor_source(relative, raw)
+    return original_entry_bytes(relative, raw, root)
 
 
 def validate_entries(root=ROOT):
@@ -65,6 +73,10 @@ def validate_entries(root=ROOT):
     c = entry_contract(root)
     for relative, row in c['files'].items():
         raw = (root / relative).read_bytes()
+        if root.resolve() == ROOT.resolve():
+            from tools.club_customer_directory_admission import club_authenticated_transaction, _club_registration
+            with club_authenticated_transaction(root):
+                raw = _club_registration().club_predecessor_source(relative, raw)
         if hashlib.sha256(raw).hexdigest() != row['after_sha256']:
             raise ValueError('Missing or changed active CI entry: ' + relative)
         original_entry_bytes(relative, raw, root)
@@ -247,6 +259,17 @@ def frozen_context(stage='all', root=ROOT):
     c = current.validate_current(root / 'Tests/AppUITests', root / 'tools/ui_duration_weights.json', root)
     if stage not in {'all', 'ui52', 'coupon', 'review'}:
         raise ValueError('Unknown reviewed historical context')
+    if root.resolve() == ROOT.resolve():
+        # The immutable reader materializes only its finite, hash-verified e2b
+        # inputs. Never copy the growing current repository or leak new UI classes
+        # into historical 736-method assertions. Its guarded loader also prevents
+        # direct/package imports from falling back to current source modules.
+        from tools.club_customer_directory_admission import club_original_current_context
+        predecessor = club_original_current_context(root)
+        historical = predecessor.load('tools/run138_current_source_projection.py')
+        result = historical.frozen_context(stage, predecessor.root)
+        predecessor.verify()
+        return result
     key = (str(root.resolve()), current.canonical(c), stage)
     cached = _contexts.get(key)
     if cached is not None and cached.root.exists():

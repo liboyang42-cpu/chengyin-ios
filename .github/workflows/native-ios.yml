@@ -10,33 +10,76 @@ concurrency:
   group: native-ios-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  static-checks:
+  static-plan:
     runs-on: ubuntu-24.04
-    # Full tools and contract discoveries run in independent Python processes.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Inventory both complete static discoveries at exact source
+        run: python3 -B tools/static_shard_checks.py plan --output "$RUNNER_TEMP/static-plan"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: static-plan-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/static-plan/
+          if-no-files-found: error
+          retention-days: 1
+  static-shards:
+    needs: static-plan
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: static-plan-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/static-plan
+      - name: Run every assigned class without changing test or skip policy
+        run: python3 -B tools/static_shard_checks.py shard --plan "$RUNNER_TEMP/static-plan/plan.json" --index ${{ matrix.shard }} --output "$RUNNER_TEMP/static-worker/shard-${{ matrix.shard }}"
+      - name: Retain exact shard results and diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: static-shard-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.shard }}
+          path: ${{ runner.temp }}/static-worker/
+          if-no-files-found: error
+          retention-days: 1
+  static-checks:
+    needs: [static-plan, static-shards]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     outputs:
       static_receipt: ${{ steps.static.outputs.static_receipt }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Run complete native-local Python checks and attest exact source
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: static-plan-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/static-plan
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: static-shard-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-*
+          path: ${{ runner.temp }}/static-workers
+          merge-multiple: true
+      - name: Verify exact complete coverage and emit original static receipt
         id: static
-        run: python3 -B tools/run_static_checks.py run --output "$RUNNER_TEMP/native-static-checks" --github-output "$GITHUB_OUTPUT"
+        run: python3 -B tools/static_shard_checks.py merge --plan "$RUNNER_TEMP/static-plan/plan.json" --input "$RUNNER_TEMP/static-workers" --output "$RUNNER_TEMP/native-static-checks" --github-output "$GITHUB_OUTPUT"
       - name: Share successful same-run static receipt and full reports
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: static-checks-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/native-static-checks/
           if-no-files-found: error
-          retention-days: 1
-      - name: Retain actual static logs and incomplete reports on failure
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: static-checks-failure-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/native-static-checks/
-          if-no-files-found: warn
           retention-days: 1
   native:
     name: native-products
@@ -317,8 +360,9 @@ jobs:
   ui-tests:
     strategy:
       fail-fast: false
+      max-parallel: 79
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
     needs: native
     env:
       EXPECTED_BUILD_FINGERPRINT: ${{ needs.native.outputs.build_fingerprint }}
@@ -402,6 +446,38 @@ jobs:
       shard_76: ${{ steps.completion.outputs.shard_76 }}
       shard_77: ${{ steps.completion.outputs.shard_77 }}
       shard_78: ${{ steps.completion.outputs.shard_78 }}
+      shard_79: ${{ steps.completion.outputs.shard_79 }}
+      shard_80: ${{ steps.completion.outputs.shard_80 }}
+      shard_81: ${{ steps.completion.outputs.shard_81 }}
+      shard_82: ${{ steps.completion.outputs.shard_82 }}
+      shard_83: ${{ steps.completion.outputs.shard_83 }}
+      shard_84: ${{ steps.completion.outputs.shard_84 }}
+      shard_85: ${{ steps.completion.outputs.shard_85 }}
+      shard_86: ${{ steps.completion.outputs.shard_86 }}
+      shard_87: ${{ steps.completion.outputs.shard_87 }}
+      shard_88: ${{ steps.completion.outputs.shard_88 }}
+      shard_89: ${{ steps.completion.outputs.shard_89 }}
+      shard_90: ${{ steps.completion.outputs.shard_90 }}
+      shard_91: ${{ steps.completion.outputs.shard_91 }}
+      shard_92: ${{ steps.completion.outputs.shard_92 }}
+      shard_93: ${{ steps.completion.outputs.shard_93 }}
+      shard_94: ${{ steps.completion.outputs.shard_94 }}
+      shard_95: ${{ steps.completion.outputs.shard_95 }}
+      shard_96: ${{ steps.completion.outputs.shard_96 }}
+      shard_97: ${{ steps.completion.outputs.shard_97 }}
+      shard_98: ${{ steps.completion.outputs.shard_98 }}
+      shard_99: ${{ steps.completion.outputs.shard_99 }}
+      shard_100: ${{ steps.completion.outputs.shard_100 }}
+      shard_101: ${{ steps.completion.outputs.shard_101 }}
+      shard_102: ${{ steps.completion.outputs.shard_102 }}
+      shard_103: ${{ steps.completion.outputs.shard_103 }}
+      shard_104: ${{ steps.completion.outputs.shard_104 }}
+      shard_105: ${{ steps.completion.outputs.shard_105 }}
+      shard_106: ${{ steps.completion.outputs.shard_106 }}
+      shard_107: ${{ steps.completion.outputs.shard_107 }}
+      shard_108: ${{ steps.completion.outputs.shard_108 }}
+      shard_109: ${{ steps.completion.outputs.shard_109 }}
+      shard_110: ${{ steps.completion.outputs.shard_110 }}
     runs-on: macos-26
     # Run49 spent 9–13 minutes on setup/build/launch before executing methods.
     # Reuse products; keep a bounded margin for the full shard and result export.
@@ -442,7 +518,7 @@ jobs:
         run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
       - name: Test native module flows and session boundaries
         run: |
-          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 79 \
+          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 111 \
             --simulator "$TEST_SIMULATOR_ID" \
             --xctestrun "$UI_XCTESTRUN" --deadline-seconds 1800 \
             --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult" \

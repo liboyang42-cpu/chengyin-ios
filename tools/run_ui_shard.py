@@ -6,6 +6,7 @@ import re
 import subprocess
 import os
 import signal
+import sys
 import json
 import math
 import hashlib
@@ -15,7 +16,11 @@ except ModuleNotFoundError:
     from tools.ui_failure_evidence import EvidenceStream
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DEFAULT_SHARD_COUNT = 79
+# The direct CLI must use this checked-out repository for current admission.
+# Do not depend on a caller's PYTHONPATH or import another installed tools package.
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+DEFAULT_SHARD_COUNT = 111
 PLAYER_MAP_HISTORY_CONTRACT_PATH = ROOT / 'tools/player_map_history_planning_contract.json'
 PLAYER_MAP_HISTORY_CONTRACT_SHA256 = '233f2dad8e06d49e10fcb9af868221979c3ead3b7a2bf987d9a567bdfe7faa67'
 STORY_TEMPLATE_CONTRACT_PATH = ROOT / 'tools/story_template_planning_contract.json'
@@ -358,11 +363,20 @@ def main():
     args = parser.parse_args()
     weights = discover(ROOT / 'Tests/AppUITests')
     costs = measured_weights(ROOT / 'Tests/AppUITests', args.duration_profile)
-    groups = partition(costs, args.count)
+    try:
+        from run138_current_ui_shards import current_plan
+    except ModuleNotFoundError:
+        from tools.run138_current_ui_shards import current_plan
+    plan = current_plan(costs, ROOT)
+    if args.count != plan['shard_count']:
+        parser.error('current UI count differs from the source-bound complete-method plan')
+    groups = plan['shards']
+    costs = plan['unit_seconds']
+    weights = {unit: len(methods) for unit, methods in plan['unit_methods'].items()}
     if not 0 <= args.shard < args.count:
         parser.error('shard index out of range')
     selected = groups[args.shard]
-    print(f'Inventory: {sum(weights.values())} tests in {len(weights)} classes; shard {args.shard}: '
+    print(f'Inventory: {plan["method_count"]} tests in {plan["class_count"]} classes; shard {args.shard}: '
           f'{sum(weights[name] for name in selected)} tests, estimated {sum(costs[name] for name in selected):.1f}s in {selected}', flush=True)
     if args.dry_run:
         return 0
