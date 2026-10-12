@@ -43,6 +43,10 @@ import SwiftUI
                         if let name = profile.nickname { Text(verbatim: name).font(.title2.bold()) }
                         else { Text("square.unknownAuthor").font(.title2.bold()) }
                         if let avatar = profile.avatar { SquareImage(source: avatar).frame(maxHeight: 120) }
+                        if profile.id == memberID, reader.identity.accountID == memberID {
+                            ProfileIdentityShareSection(profile: profile, reader: reader, isCurrent: isCurrent)
+                                .id(ProfileIdentityShareViewIdentity(profile: profile, reader: reader))
+                        }
                         SocialOptionalCount(title: "social.level", count: profile.level)
                         LabeledContent("social.followStatus") {
                             switch profile.isFollowed {

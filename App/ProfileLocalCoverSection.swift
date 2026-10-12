@@ -125,7 +125,9 @@ extension ProfileLocalCoverOwner {
                 Section { Text("profile.localCover.deviceOnly").font(.footnote) }
                 if let crop = model.crop {
                     Section {
-                        ProfileLocalCoverCropView(draft: crop, confirm: model.acceptCrop, cancel: model.cancelCrop)
+                        ProfileLocalCoverCropView(draft: crop, confirm: model.acceptCrop, cancel: model.cancelCrop,
+                            isCurrent: { model.isPresented && model.controller.canEdit && model.crop?.id == crop.id })
+                            .id(crop.id)
                     }
                 } else if let review = model.controller.review {
                     Section {
@@ -181,22 +183,23 @@ extension ProfileLocalCoverOwner {
     let draft: MerchantImageCropDraft
     let confirm: (UUID, MerchantImageCropRect) -> Void
     let cancel: () -> Void
-    @State private var horizontal = 0.5
-    @State private var vertical = 0.5
-    @State private var zoom = 1.0
+    let isCurrent: () -> Bool
+    @State private var position = ProfileCoverCropPosition()
     private var rect: MerchantImageCropRect? {
-        try? .init(sourceWidth: draft.source.width, sourceHeight: draft.source.height, aspect: .gallery,
-                   horizontal: horizontal, vertical: vertical, zoom: zoom)
+        try? position.rect(sourceWidth: draft.source.width, sourceHeight: draft.source.height)
     }
     var body: some View {
         VStack(alignment: .leading) {
             Text("profile.localCover.crop")
-            if let rect, let preview = try? MerchantImageCropRenderer.preview(draft.source, rect: rect) {
-                Image(uiImage: preview).resizable().scaledToFit().frame(maxHeight: 240)
-                Slider(value: $horizontal, in: 0...1).accessibilityLabel("image.crop.horizontal")
-                Slider(value: $vertical, in: 0...1).accessibilityLabel("image.crop.vertical")
-                Slider(value: $zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
-                Button("image.crop.confirm") { confirm(draft.id, rect) }.accessibilityIdentifier("profile.localCover.cropConfirm")
+            if let rect {
+                ProfileCoverGesturePreview(draftID: draft.id, source: draft.source, position: $position, isCurrent: isCurrent)
+                    .aspectRatio(16.0 / 9.0, contentMode: .fit).frame(maxHeight: 240)
+                Text("profile.localCover.gestureHint").font(.footnote).foregroundStyle(.secondary)
+                Slider(value: $position.horizontal, in: 0...1).accessibilityLabel("image.crop.horizontal")
+                Slider(value: $position.vertical, in: 0...1).accessibilityLabel("image.crop.vertical")
+                Slider(value: $position.zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
+                Button("image.crop.confirm") { guard isCurrent() else { return }; confirm(draft.id, rect) }
+                    .accessibilityIdentifier("profile.localCover.cropConfirm")
             }
             Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.localCover.cropCancel")
         }

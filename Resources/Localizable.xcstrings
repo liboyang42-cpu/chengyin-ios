@@ -1,6 +1,140 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "profile.localCover.gestureHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag the image to move it. Pinch to zoom. You can also use the sliders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拖动图片调整位置，双指缩放，也可使用下方滑杆。"
+          }
+        }
+      }
+    },
+    "profile.localCover.gesturePreview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local cover crop preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机封面裁剪预览"
+          }
+        }
+      }
+    },
+    "profile.identityShare.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share identity card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享身份卡"
+          }
+        }
+      }
+    },
+    "profile.identityShare.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City identity card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市身份卡"
+          }
+        }
+      }
+    },
+    "profile.identityShare.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字预览"
+          }
+        }
+      }
+    },
+    "profile.identityShare.disclosure": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the displayed public name and introduction are shared. Review them before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅分享这里展示的公开昵称和个人介绍，请先核对。"
+          }
+        }
+      }
+    },
+    "profile.identityShare.destination": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a text card, not a link to your profile. Choose the recipient in the system share sheet. Once sent to another app, the text cannot be recalled here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是文字身份卡，不是主页链接。请在系统分享面板选择接收方。交给其他应用后，无法在这里撤回。"
+          }
+        }
+      }
+    },
+    "profile.identityShare.continue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose where to share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择分享对象"
+          }
+        }
+      }
+    },
     "Questify": {
       "extractionState": "manual",
       "localizations": {
