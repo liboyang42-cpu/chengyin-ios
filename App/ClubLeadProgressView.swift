@@ -63,12 +63,13 @@ import SwiftUI
     let reader: any CoopFlowReading
     let access: any ClubGovernanceAccess
     let projects: any CreatorContentReading
+    var destinations = ClubLeadPrimaryDestinations()
     var body: some View {
         let context = ClubLeadProgressContext(club: club, clubReader: clubReader, reader: reader, access: access, projects: projects)
         if context.canRead {
             Section {
                 NavigationLink {
-                    ClubLeadProgressView(club: club, clubReader: clubReader, reader: reader, access: access, projects: projects)
+                    ClubLeadProgressView(club: club, clubReader: clubReader, reader: reader, access: access, projects: projects, destinations: destinations)
                 } label: { Label("club.leadProgress.title", systemImage: "list.bullet.indent") }
                     .accessibilityIdentifier("club.leadProgress.entry")
             }
@@ -82,6 +83,7 @@ import SwiftUI
     let reader: any CoopFlowReading
     let access: any ClubGovernanceAccess
     let projects: any CreatorContentReading
+    var destinations = ClubLeadPrimaryDestinations()
     @StateObject private var model = ClubLeadProgressReadModel()
     @State private var expanded = false
     private var context: ClubLeadProgressContext { .init(club: club, clubReader: clubReader, reader: reader, access: access, projects: projects) }
@@ -118,6 +120,15 @@ import SwiftUI
                         }
                     }
                 }
+                ClubLeadPrimaryActionSection(context: scope,
+                    snapshot: model.accepted(scope, clubReader: clubReader, reader: reader, access: access, projects: projects),
+                    destinations: destinations,
+                    isCurrent: { context == scope && scope.matches(clubReader: clubReader, reader: reader, access: access, projects: projects) },
+                    refresh: {
+                        guard context == scope, let permit = model.permit(in: scope) else { return nil }
+                        await model.load(permit, clubReader: clubReader, reader: reader, access: access, projects: projects)
+                        return model.accepted(scope, clubReader: clubReader, reader: reader, access: access, projects: projects)
+                    }, onReturn: { reload(scope) })
                 Button(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh")) { reload(scope) }
                     .disabled(model.phase == .loading || model.permit(in: scope) == nil).accessibilityIdentifier("club.leadProgress.reload")
             }

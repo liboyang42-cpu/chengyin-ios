@@ -1,0 +1,102 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "club.ownerFunds.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owner account funds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主理人账户资金"
+          }
+        }
+      }
+    },
+    "club.ownerFunds.accountScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are your account funds, not this club’s settlement total."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里是本人账户资金，不是本俱乐部结算合计。"
+          }
+        }
+      }
+    },
+    "club.ownerFunds.zero": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing is currently withdrawable. Settlement and the complaint period must finish first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前可提现为 0，需等待分润到账及客诉期结束。"
+          }
+        }
+      }
+    },
+    "club.ownerFunds.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawable funds are not yet confirmed. Contact is unavailable until a positive balance is confirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可提现余额待确认，确认有可提现余额后才能进入客服联系。"
+          }
+        }
+      }
+    },
+    "club.ownerFunds.manual": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact support for manual handling. Opening this page does not request a payout."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请联系平台客服线下处理。打开客服页不会发起提现。"
+          }
+        }
+      }
+    },
+    "club.ownerFunds.contact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact support about withdrawal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系平台客服提现"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

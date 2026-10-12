@@ -99,7 +99,12 @@ struct ClubOperationsWorkspaceView: View {
                 Text(value.accountRole != "club" ? "club.ops.leaderRequired" : "club.ops.clubLimit")
             }
         } else {
-            ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true)
+            ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true,
+                choiceContext: ClubProfileChoiceContext(target: target, identity: identity, access: access, profile: value.profile, sourceRevision: artworkRevision),
+                choiceIsCurrent: { expected in
+                    screenIdentity == identity && !loading && !state.locksForm && review == nil &&
+                        expected.matches(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)
+                })
                 .disabled(loading || state.locksForm)
             Section {
                 Button("club.ops.reviewProfile") {
@@ -246,20 +251,27 @@ private struct ClubOperationsProfileForm: View {
     let isCreate: Bool
     let isOwner: Bool
     let joinPolicySupported: Bool
+    var choiceContext: ClubProfileChoiceContext? = nil
+    var choiceIsCurrent: (ClubProfileChoiceContext) -> Bool = { _ in false }
     var body: some View {
         Section("club.ops.profile") {
             field("name", text: $draft.name)
             field("city", text: $draft.city)
+            if isCreate {
             Picker("club.ops.clubType", selection: $draft.clubType) {
                 Text("club.ops.chooseType").tag("")
                 ForEach(ClubOperationsCatalog.types, id: \.self) { Text(LocalizedStringKey("club.ops.value." + $0)).tag($0) }
                 if !draft.clubType.isEmpty, !ClubOperationsCatalog.types.contains(draft.clubType) { Text(verbatim: draft.clubType).tag(draft.clubType) }
             }.accessibilityIdentifier("club.ops.clubType")
+            } else {
+                ClubProfileChoiceControl(kind: .type, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent)
+            }
             field("description", text: $draft.description, axis: .vertical)
             field("keywords", text: $draft.keywords)
             field("style", text: $draft.style)
         }
         Section("club.ops.directions") {
+            if isCreate {
             ForEach(ClubOperationsCatalog.directions, id: \.self) { value in
                 Toggle(isOn: Binding(get: { draft.activityPrefs.contains(value) }, set: { enabled in
                     if enabled { if draft.activityPrefs.count < 3 { draft.activityPrefs.append(value) } }
@@ -271,6 +283,9 @@ private struct ClubOperationsProfileForm: View {
                 Text(verbatim: draft.activityPrefs.filter { !ClubOperationsCatalog.directions.contains($0) }.joined(separator: ", "))
             }
             Text("club.ops.directionsHint").font(.footnote).foregroundStyle(.secondary)
+            } else {
+                ClubProfileChoiceControl(kind: .directions, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent)
+            }
         }
         if !isCreate && isOwner {
             Section("club.ops.signupSettings") {

@@ -1,4 +1,7 @@
 import XCTest
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 @testable import Questify
 
 @MainActor final class ClubLeadProgressViewTests: XCTestCase {
@@ -162,4 +165,52 @@ import XCTest
         return page
     }
     func center() async throws -> CreatorContentCenter { throw CreatorContentReadFailure.unavailable }
+}
+
+// Real decoder/service/session reader feed the unchanged club read model; transport is local-only.
+extension ClubLeadProgressViewTests {
+    func testMalformedProjectRowsCannotBecomePublishStage() async throws {
+        for data in [#"{}"#, #"{"rows":null}"#, #"{"rows":{}}"#, #"{"rows":false}"#] {
+            let f = LeadFixture(); f.access.topicIDs = []
+            let transport = LeadRowsTransport(["{\"code\":200,\"data\":\(data)}"])
+            let session = try CreatorContentReadSession(accountID: 701, epoch: 1, token: "synthetic-token")
+            let service = try CreatorContentService(configuration: APIConfiguration(baseURL: URL(string: "https://example.com/")!), transport: transport)
+            let projects = CreatorContentSessionReader(service: service, currentSession: { session })
+            let context = ClubLeadProgressContext(club: f.club.returned, clubReader: f.club, reader: f.flow, access: f.access, projects: projects)
+            let model = ClubLeadProgressReadModel(); model.bind(context); let permit = try XCTUnwrap(model.activate(context))
+            await model.load(permit, clubReader: f.club, reader: f.flow, access: f.access, projects: projects)
+            XCTAssertEqual(model.phase, .failed); XCTAssertNil(model.snapshot)
+            XCTAssertNil(model.accepted(context, clubReader: f.club, reader: f.flow, access: f.access, projects: projects))
+            XCTAssertEqual(f.access.sends, 0)
+        }
+    }
+    func testExplicitEmptyRowsRefreshFailureThenRetryRestoresOnlyValidStage() async throws {
+        let f = LeadFixture(); f.access.topicIDs = []
+        let valid = #"{"code":200,"data":{"rows":[],"total":0}}"#
+        let transport = LeadRowsTransport([valid, #"{"code":200,"data":{}}"#, valid])
+        let session = try CreatorContentReadSession(accountID: 701, epoch: 1, token: "synthetic-token")
+        let service = try CreatorContentService(configuration: APIConfiguration(baseURL: URL(string: "https://example.com/")!), transport: transport)
+        let projects = CreatorContentSessionReader(service: service, currentSession: { session })
+        let context = ClubLeadProgressContext(club: f.club.returned, clubReader: f.club, reader: f.flow, access: f.access, projects: projects)
+        let model = ClubLeadProgressReadModel(); model.bind(context); let permit = try XCTUnwrap(model.activate(context))
+        await model.load(permit, clubReader: f.club, reader: f.flow, access: f.access, projects: projects)
+        XCTAssertEqual(model.snapshot?.stage, .publish); XCTAssertEqual(model.phase, .ready)
+        await model.load(permit, clubReader: f.club, reader: f.flow, access: f.access, projects: projects)
+        XCTAssertNil(model.snapshot); XCTAssertEqual(model.phase, .failed)
+        await model.load(permit, clubReader: f.club, reader: f.flow, access: f.access, projects: projects)
+        XCTAssertEqual(model.snapshot?.stage, .publish); XCTAssertEqual(model.phase, .ready)
+        let requests = await transport.requests
+        XCTAssertEqual(requests.count, 3); XCTAssertTrue(requests.allSatisfy { $0.url?.path == "/api/project/my" })
+        XCTAssertEqual(f.access.sends, 0)
+    }
+}
+private actor LeadRowsTransport: HTTPTransport {
+    private var replies: [String]
+    private(set) var requests: [URLRequest] = []
+    init(_ replies: [String]) { self.replies = replies }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        guard !replies.isEmpty else { throw APIError.malformedResponse }
+        return (Data(replies.removeFirst().utf8), 200)
+    }
 }

@@ -134,3 +134,50 @@ final class CreatorContentTests: XCTestCase {
         let count = await transport.requests.count; XCTAssertEqual(count, 0)
     }
 }
+
+// Regression: an absent/malformed project rows field is not a successful empty page.
+extension CreatorContentTests {
+    func testProjectRowsMissingNullAndWrongKindsFailClosed() {
+        for json in [#"{}"#, #"{"rows":null}"#, #"{"rows":{}}"#, #"{"rows":""}"#,
+                     #"{"rows":0}"#, #"{"rows":false}"#, #"{"rows":[null]}"#, #"{"rows":[{"id":0,"bizType":"topic"}]}"#] {
+            XCTAssertThrowsError(try decode(CreatorContentProjectPage.self, json), json)
+        }
+    }
+    func testProjectRowsRealEmptyArrayPreservesEmptyAndTruncationSemantics() throws {
+        for json in [#"{"rows":[]}"#, #"{"rows":[],"total":0}"#] {
+            let page = try decode(CreatorContentProjectPage.self, json)
+            XCTAssertTrue(page.rows.isEmpty); XCTAssertEqual(page.total, 0); XCTAssertFalse(page.isTruncated)
+        }
+        let partial = try decode(CreatorContentProjectPage.self, #"{"rows":[],"total":5}"#)
+        XCTAssertTrue(partial.rows.isEmpty); XCTAssertEqual(partial.total, 5); XCTAssertTrue(partial.isTruncated)
+    }
+    func testStrictRowsRetainsExistingDedupAndTotalFallback() throws {
+        let page = try decode(CreatorContentProjectPage.self, #"{"rows":[{"id":1,"bizType":"topic"},{"id":1,"bizType":"topic"}],"total":"bad"}"#)
+        XCTAssertEqual(page.rows.map(\.id), ["topic:1"]); XCTAssertEqual(page.total, 2); XCTAssertTrue(page.isTruncated)
+    }
+    func testProjectServiceRejectsMalformedRowsWithoutInventingEmptySuccess() async throws {
+        for data in [#"{}"#, #"{"rows":null}"#, #"{"rows":{}}"#, #"{"rows":false}"#] {
+            let transport = CreatorContentTransport("{\"code\":200,\"data\":\(data)}")
+            do { _ = try await service(transport).projects(query: .init(type: "all", state: "all", ownerType: "club"), token: "synthetic-token"); XCTFail(data) }
+            catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+            let requests = await transport.requests
+            XCTAssertEqual(requests.count, 1); XCTAssertEqual(requests.first?.url?.path, "/test/api/project/my")
+        }
+    }
+    func testProjectServiceAcceptsExplicitEmptyRows() async throws {
+        let transport = CreatorContentTransport(#"{"code":200,"data":{"rows":[],"total":0}}"#)
+        let page = try await service(transport).projects(query: .init(ownerType: "club"), token: "synthetic-token")
+        XCTAssertTrue(page.rows.isEmpty); XCTAssertEqual(page.total, 0)
+    }
+    @MainActor func testProjectReadModelClearsPriorValueForMalformedRowsAndRetryRecovers() async throws {
+        let model = CreatorContentReadModel<CreatorContentProjectPage>(), scope = UUID()
+        let good = try service(CreatorContentTransport(#"{"code":200,"data":{"rows":[],"total":0}}"#))
+        let bad = try service(CreatorContentTransport(#"{"code":200,"data":{}}"#))
+        await model.load(scope: scope, currentScope: { scope }) { try await good.projects(token: "synthetic-token") }
+        XCTAssertNotNil(model.visibleValue(scope: scope)); XCTAssertNil(model.visibleIssue(scope: scope))
+        await model.load(scope: scope, currentScope: { scope }) { try await bad.projects(token: "synthetic-token") }
+        XCTAssertNil(model.visibleValue(scope: scope)); XCTAssertNotNil(model.visibleIssue(scope: scope)); XCTAssertFalse(model.isLoading)
+        await model.load(scope: scope, currentScope: { scope }) { try await good.projects(token: "synthetic-token") }
+        XCTAssertEqual(model.visibleValue(scope: scope)?.rows.count, 0); XCTAssertNil(model.visibleIssue(scope: scope))
+    }
+}

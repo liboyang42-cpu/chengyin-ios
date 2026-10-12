@@ -82,6 +82,11 @@ import SwiftUI
     @StateObject private var model = ClubInvitationFeedbackReadModel()
     @State private var direction = ClubInvitationFeedbackDirection.received
     @State private var selected: ClubInvitationFeedbackTarget?
+    init(club: ClubRecord, clubReader: ClubReader, reader: any CoopFlowReading,
+         access: any ClubGovernanceAccess, initialDirection: ClubInvitationFeedbackDirection = .received) {
+        self.club = club; self.clubReader = clubReader; self.reader = reader; self.access = access
+        _direction = State(initialValue: initialDirection)
+    }
     private var context: ClubInvitationFeedbackContext { .init(club: club, clubReader: clubReader, reader: reader, access: access) }
     private func accepted(_ scope: ClubInvitationFeedbackContext) -> ClubInvitationFeedbackSnapshot? { model.accepted(scope, clubReader: clubReader, reader: reader, access: access) }
     var body: some View {

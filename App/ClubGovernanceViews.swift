@@ -41,6 +41,7 @@ struct ClubGovernanceEntryButton: View {
     var opsTimeFactory: ((Int) -> ClubOpsTimeCoordinator?)? = nil
     var customerTopics = ClubCustomerTopicContext()
     var storyTemplates = ClubStoryTemplateContext()
+    var ownerFunds = ClubOwnerFundsContext()
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: { Label("club.gov.workspace", systemImage: "person.3.sequence.fill") }
@@ -52,6 +53,7 @@ struct ClubGovernanceEntryButton: View {
                     .environment(\.clubOpsTimeFactory, opsTimeFactory)
                     .environment(\.clubCustomerTopics, customerTopics)
                     .environment(\.clubStoryTemplates, storyTemplates)
+                    .environment(\.clubOwnerFunds, ownerFunds)
             }
     }
 }
@@ -139,6 +141,7 @@ struct ClubGovernanceReadView: View {
     @Environment(\.clubCustomerTopics) private var customerTopics
     @Environment(\.clubGovernanceFeed) private var feedContext
     @Environment(\.clubStoryTemplates) private var storyTemplates
+    @Environment(\.clubOwnerFunds) private var ownerFunds
     let operation: ClubGovernanceRead
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
@@ -449,6 +452,14 @@ struct ClubGovernanceReadView: View {
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
             Text("club.gov.financialGate"); edit(.dissolve)
         } else if operation == .settlement {
+            if let target = ClubOwnerFundsTarget(snapshot: snapshot, context: readContext) {
+                let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
+                ClubOwnerFundsSection(target: target, access: access, context: ownerFunds, sourceGeneration: sourceGeneration,
+                    sourceIsCurrent: {
+                        snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
+                        generation == sourceGeneration && identity == access.identity && sourceNamespace == access.storageNamespace
+                    }).id(sourceContext)
+            }
             ClubGovernanceFactRows(value: value, fields: ["settledAmountText", "settledAmountStatus", "unverifiedSettledCount"], showUnknown: true)
             Text("club.gov.financialGate")
             if let presentation = try? ClubSettlementDetailPresentation(snapshot: snapshot, context: readContext) {

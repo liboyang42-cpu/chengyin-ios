@@ -64,7 +64,9 @@ public struct CreatorContentProjectPage: Decodable, Equatable {
     private enum CodingKeys: String, CodingKey { case rows, total }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        let raw = try c.decodeIfPresent([CreatorContentProject].self, forKey: .rows) ?? []
+        // Only a real array proves an empty page. Missing/null/wrong-type rows
+        // are malformed responses, not an instruction to display an empty list.
+        let raw = try c.decode([CreatorContentProject].self, forKey: .rows)
         var seen = Set<String>()
         rows = raw.filter { seen.insert($0.id).inserted }
         let number = (try? c.decode(Int.self, forKey: .total)) ?? (try? c.decode(String.self, forKey: .total)).flatMap(Int.init)

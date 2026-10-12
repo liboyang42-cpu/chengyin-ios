@@ -64,7 +64,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                     if let governance = management?.governance {
                         ClubInvitationFeedbackEntry(club: club, clubReader: reader, reader: session.cooperationFlowReader, access: governance.access)
-                        ClubLeadProgressEntry(club: club, clubReader: reader, reader: session.cooperationFlowReader, access: governance.access, projects: session.creatorContentReader)
+                        ClubLeadProgressEntry(club: club, clubReader: reader, reader: session.cooperationFlowReader, access: governance.access, projects: session.creatorContentReader, destinations: session.clubLeadPrimaryDestinations(club: club, governance: governance))
                     }
                 }
                 if let community {
@@ -88,7 +88,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             } label: { Label("club.statsOverview.title", systemImage: "chart.bar") }
                                 .accessibilityIdentifier("club.statsOverview.open")
                         }
-                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates)
+                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates, ownerFunds: governance.ownerFunds)
                     }
                 }
                 if (club.isOwner || club.viewerIsAdmin),let management {
