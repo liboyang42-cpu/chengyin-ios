@@ -77,6 +77,8 @@ localizable_ui=re.sub(r'(?:systemImage|systemName):\s*"(?:\\.|[^"\\])*"', '', lo
 # These four values are explicit nonlocalized identifiers at these exact calls.
 # Do not exclude the same strings when used by Text or localization lookup.
 localizable_ui=localizable_ui.replace('.accessibilityIdentifier(effectiveReduceMotion ? "roam.motion.status.reduced" : "roam.motion.status.system")', '')
+localizable_ui=localizable_ui.replace('.accessibilityIdentifier(snapshot.alwaysAuthorized ? "roam.locationSettings.always.granted" : "roam.locationSettings.always.notGranted")', '')
+localizable_ui=localizable_ui.replace('.accessibilityIdentifier(snapshot.servicesEnabled ? "roam.locationSettings.services.enabled" : "roam.locationSettings.services.disabled")', '')
 localizable_ui=localizable_ui.replace('OfficialReadScreen(reader: reader, isPrivate: true, requestID: "merchant.officialRecruitment",', 'OfficialReadScreen(reader: reader, isPrivate: true,')
 localizable_ui=localizable_ui.replace('MerchantTemplateStoryTimelineContent(timeline: timeline, prefix: "merchant.storyTimeline.review")', 'MerchantTemplateStoryTimelineContent(timeline: timeline)')
 keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account|activity|scanner|discovery|profile|merchant|club|roam|messaging|participant|play|message|topic|region|homeFeed|usApple|ticketWallet|square|cooperation|accountCollection|creatorContent|growth|official|officialAction|projectEdit|nearby|team|orderLifecycle|templateAuthor|publishModes|wallet|couponManagement|im)\.[A-Za-z0-9.]+)"',localizable_ui))

@@ -1,0 +1,20 @@
+{
+  "task": "27 P045 edit-post dirty exit confirmation",
+  "base": "077273784d7fed5397f84f17b2a659723f3f3b22",
+  "dependencies": [],
+  "app_sources": [
+    "App/ClubPostEditExitControl.swift"
+  ],
+  "core_sources": [
+    "Core/ClubPostEditDraft.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/ClubPostEditExitControlTests.swift"
+  ],
+  "core_tests": [
+    "Tests/CoreTests/ClubPostEditDraftTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubPostEditExitLocalizations.fragment.json",
+  "modified_app_hunk": "Composer toolbar edit-only cancel control, original create-mode cancel retained; additive edit-only interactiveDismissDisabled after NavigationStack. All original stage/review/update and other community code unchanged.",
+  "merge_instructions": "Apply exact composer-only hunks to reviewed current ClubCommunityViews; register two new source and two test files and merge four bilingual keys. Do not enable publishing/upload or replace other community blocks."
+}

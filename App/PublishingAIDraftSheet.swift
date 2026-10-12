@@ -11,6 +11,8 @@ import SwiftUI
 @MainActor struct PublishingAIDraftSheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: PublishingAIDraftModel
+    @StateObject private var inspiration = PublishingAIPromptController()
+    @FocusState private var ideaFocused: Bool
     let accept: (QuickPublishDraft) -> Void
     init(client: (any PublishingAIDraftServing)?, product: ProjectEditProduct, accept: @escaping (QuickPublishDraft) -> Void) {
         _model = StateObject(wrappedValue: PublishingAIDraftModel(client: client, product: product)); self.accept = accept
@@ -20,8 +22,10 @@ import SwiftUI
             Form {
                 Section {
                     Text("contextPublish.ai.notice")
+                    PublishingAIPromptControls(controller:inspiration,flow:model.flow,applied:{ ideaFocused = true })
                     TextField("contextPublish.ai.prompt", text: Binding(get: { model.flow.idea }, set: { model.flow.idea = $0; model.revision += 1 }), axis: .vertical)
                         .lineLimit(3...8).disabled(model.flow.busy).accessibilityIdentifier("contextPublish.ai.prompt")
+                        .focused($ideaFocused)
                     if let key = model.flow.messageKey { Text(LocalizedStringKey(key)) }
                     if let message = model.flow.serverMessage { Text(verbatim: message) }
                     if model.flow.busy { ProgressView("contextPublish.ai.generating") }
@@ -50,6 +54,7 @@ import SwiftUI
                     }
                 }
             }.navigationTitle("contextPublish.ai.title")
+            .modifier(PublishingAIPromptLifetime(controller:inspiration))
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.flow.close(); dismiss() } } }
             .task { await model.flow.loadQuota() }.onDisappear { model.flow.close() }
         }

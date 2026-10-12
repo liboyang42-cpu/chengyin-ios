@@ -23,7 +23,7 @@ import UIKit
     }
     func testCropCancelAndSheetCloseNeverPersist() throws {
         let r=ProfileAuthorPostsRefreshFixtureReader(), s=ProfileLocalCoverFixtureStore(), m=try make(s,reader:r)
-        m.open(); m.crop = .init(source:try ProfileLocalCoverSyntheticImage.make(),aspect:.gallery); m.cancelCrop()
+        m.open(); m.crop = .init(source:try ProfileLocalCoverSyntheticImage.make(),aspect:.gallery); m.cancelCrop(id: try XCTUnwrap(m.crop).id)
         XCTAssertNil(m.crop); m.controller.prepare(try ProfileLocalCoverSyntheticImage.make()); m.close()
         XCTAssertNil(m.controller.review); XCTAssertEqual(s.writes,0)
     }
@@ -63,5 +63,52 @@ import UIKit
         XCTAssertNotEqual(a,ProfileLocalCoverOwner.make(accountID:7,configuration:config,build:other))
         let mismatch=RegionalLaunchConfiguration.BuildMetadata(market:RegionalMarket.china.rawValue,baseURL:"https://other.example/native",bundleIdentifier:"test.profile.cover",realm:"synthetic-a")
         XCTAssertNil(ProfileLocalCoverOwner.make(accountID:7,configuration:config,build:mismatch)); XCTAssertNil(ProfileLocalCoverOwner.make(accountID:7,configuration:nil,build:build))
+    }
+}
+
+extension ProfileLocalCoverAppTests {
+    func testOldCropCancelCannotClearReplacementDraftInSamePresentation() throws {
+        let r = ProfileAuthorPostsRefreshFixtureReader(), s = ProfileLocalCoverFixtureStore(), m = try make(s, reader: r)
+        m.open(); let source = try ProfileLocalCoverSyntheticImage.make()
+        let first = MerchantImageCropDraft(source: source, aspect: .gallery)
+        m.crop = first
+        let oldCancel = { m.cancelCrop(id: first.id) }
+        let fresh = MerchantImageCropDraft(source: source, aspect: .gallery); m.crop = fresh
+        oldCancel(); oldCancel()
+        XCTAssertEqual(m.crop?.id, fresh.id); XCTAssertTrue(m.isPresented)
+        XCTAssertNil(m.controller.review); XCTAssertEqual(s.writes, 0)
+        m.cancelCrop(id: fresh.id); XCTAssertNil(m.crop); XCTAssertEqual(s.writes, 0)
+    }
+    func testClosedCropCallbackCannotCancelReopenedSelection() throws {
+        let r = ProfileAuthorPostsRefreshFixtureReader(), s = ProfileLocalCoverFixtureStore(), m = try make(s, reader: r)
+        m.open(); let source = try ProfileLocalCoverSyntheticImage.make(), old = MerchantImageCropDraft(source: source, aspect: .gallery)
+        m.crop = old; let oldCancel = { m.cancelCrop(id: old.id) }
+        m.close(); m.open()
+        let fresh = MerchantImageCropDraft(source: source, aspect: .gallery); m.crop = fresh
+        oldCancel(); XCTAssertEqual(m.crop?.id, fresh.id); XCTAssertTrue(m.isPresented)
+        XCTAssertNil(m.controller.review); XCTAssertEqual(s.writes, 0)
+    }
+    func testCancelRequiresPresentedCurrentOwnerAndExactID() throws {
+        let r = ProfileAuthorPostsRefreshFixtureReader(), s = ProfileLocalCoverFixtureStore(), m = try make(s, reader: r)
+        let source = try ProfileLocalCoverSyntheticImage.make(), draft = MerchantImageCropDraft(source: source, aspect: .gallery)
+        // A delayed assignment on a closed model cannot turn an old cancel into active work.
+        m.crop = draft; m.cancelCrop(id: draft.id); XCTAssertEqual(m.crop?.id, draft.id)
+        m.open(); m.crop = draft; m.cancelCrop(id: UUID()); XCTAssertEqual(m.crop?.id, draft.id)
+        r.switchAccount(); m.cancelCrop(id: draft.id)
+        XCTAssertEqual(m.crop?.id, draft.id); XCTAssertFalse(m.controller.ownsContext)
+        XCTAssertNil(m.controller.review); XCTAssertEqual(s.writes, 0)
+        m.retire(); XCTAssertNil(m.crop)
+    }
+    func testCurrentCancelPreservesSavedCoverAndNeverCommitsReview() throws {
+        let r = ProfileAuthorPostsRefreshFixtureReader(), s = ProfileLocalCoverFixtureStore(), m = try make(s, reader: r)
+        let image = try ProfileLocalCoverSyntheticImage.make()
+        m.open(); m.controller.prepare(image); m.confirm(try XCTUnwrap(m.controller.review))
+        XCTAssertEqual(s.writes, 1); let saved = m.controller.saved
+        m.open(); let draft = MerchantImageCropDraft(source: image, aspect: .gallery); m.crop = draft
+        m.cancelCrop(id: draft.id); m.cancelCrop(id: draft.id)
+        XCTAssertNil(m.crop); XCTAssertNil(m.controller.review); XCTAssertTrue(m.isPresented)
+        XCTAssertTrue(ProfileLocalCoverController.sameImage(saved, m.controller.saved)); XCTAssertEqual(s.writes, 1)
+        let fresh = MerchantImageCropDraft(source: image, aspect: .gallery); m.crop = fresh
+        m.cancelCrop(id: draft.id); XCTAssertEqual(m.crop?.id, fresh.id); XCTAssertEqual(s.writes, 1)
     }
 }

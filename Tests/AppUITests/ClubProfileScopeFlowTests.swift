@@ -35,7 +35,43 @@ final class ClubProfileScopeFlowTests: XCTestCase {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-club-operations", scenario]
         app.launch(); XCTAssertTrue(element("club.ops.fixtureNotice").waitForExistence(timeout: 10))
     }
+    private var emittedProfileRevealFailure = false
+    private func emitProfileRevealFailure() {
+        guard !emittedProfileRevealFailure else { return }
+        emittedProfileRevealFailure = true
+        let notice = app.staticTexts["club.ops.fixtureNotice"].firstMatch
+        let workspace = element("club.ops.fixture.workspace")
+        let keyboard = app.keyboards.firstMatch
+        let review = app.buttons["club.ops.reviewProfile"].firstMatch
+        let payload: [String: Any] = ["version": 1, "fixture": "club-profile-scope",
+            "phase": "review-profile-not-exposed",
+            "presentation": notice.exists ? ((notice.value as? String) ?? "unavailable") : "absent",
+            "workspaceExists": workspace.exists,
+            "keyboardFrame": keyboard.exists ? String(describing: keyboard.frame) : "absent",
+            "reviewExists": review.exists,
+            "reviewFrame": review.exists ? String(describing: review.frame) : "absent",
+            "reviewHittable": review.exists && review.isHittable]
+        if let bytes = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]),
+           let message = String(data: bytes, encoding: .utf8) {
+            print("QUESTIFY_CLUB_PROFILE_REVEAL_EVIDENCE_V1 " + message)
+            fflush(stdout)
+        }
+        attachFixtureScreenshot(self, app: app, name: "Club profile review reveal failure")
+    }
     private func tap(_ id: String) {
+        if id == "club.ops.reviewProfile" {
+            // The live form may remain behind an editing keyboard. Whole-app
+            // swipes can hit that input window instead of scrolling the form.
+            let buttons = app.collectionViews["club.ops.fixture.workspace"].buttons.matching(identifier: id)
+            let control = buttons.firstMatch
+            guard revealFixtureElement(control, in: app, maximumSwipes: 14), buttons.count == 1,
+                  control.exists, control.isHittable, control.isEnabled else {
+                emitProfileRevealFailure()
+                XCTFail("Profile review is not fully exposed: " + app.debugDescription); return
+            }
+            control.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            return
+        }
         _ = reveal(id)
         let buttons = app.buttons.matching(identifier: id)
         guard let control = buttons.allElementsBoundByIndex.reversed().first(where: { $0.exists && $0.isHittable }) else {

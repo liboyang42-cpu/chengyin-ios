@@ -4,9 +4,10 @@ final class MerchantProjectBrowserFlowTests: XCTestCase {
     private var app: XCUIApplication?
     override func setUp() { super.setUp(); continueAfterFailure = false }
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
-    private func open(_ scenario: String = "projectBrowser") -> XCUIApplication {
+    private func open(_ scenario: String = "projectBrowser", traceSummary: Bool = false) -> XCUIApplication {
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-merchant-fixture", scenario]
+        if traceSummary { app.launchArguments.append("--merchant-project-summary-trace") }
         app.launch()
         let entry = app.buttons["merchant.projects.entry"]
         XCTAssertTrue(revealFixtureElement(entry, in: app)); entry.tap()
@@ -32,7 +33,7 @@ final class MerchantProjectBrowserFlowTests: XCTestCase {
         attachFixtureScreenshot(self, app: app, name: "Synthetic merchant project type browser and priority")
     }
     func testFulfillmentFactsAndSummaryReturnKeepSelectedType() {
-        let app = open(); tab("Activities", app)
+        let app = open(traceSummary: true); tab("Activities", app)
         let row = app.buttons["merchant.project.row.activity:301"]
         XCTAssertTrue(revealFixtureElement(row, in: app)); row.tap()
         // Card facts also exist in the underlying list: prove the actual sheet opened first.
@@ -41,6 +42,7 @@ final class MerchantProjectBrowserFlowTests: XCTestCase {
             close.exists && close.isEnabled && close.isHittable
         }, object: nil)
         let presentationReady = XCTWaiter.wait(for: [shown], timeout: 5) == .completed
+        print("QUESTIFY_MERCHANT_SUMMARY_TRACE \(row.exists ? String(describing: row.value) : "row absent")")
         if !presentationReady {
             // One activation only. Preserve the failed state before any further gesture.
             let controls = ["merchant.project.row.activity:301", "merchant.projectSummary.close", "merchant.projectWorkspace.open"]

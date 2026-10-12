@@ -58,7 +58,10 @@ extension ProfileLocalCoverOwner {
             controller.prepare(image); self.crop = nil
         } catch { selectionError = true }
     }
-    func cancelCrop() { crop = nil }
+    func cancelCrop(id: UUID) {
+        guard isPresented, controller.canEdit, crop?.id == id else { return }
+        crop = nil
+    }
     func confirm(_ review: ProfileLocalCoverReview) {
         guard isPresented, !selecting else { return }
         controller.confirm(review)
@@ -125,7 +128,7 @@ extension ProfileLocalCoverOwner {
                 Section { Text("profile.localCover.deviceOnly").font(.footnote) }
                 if let crop = model.crop {
                     Section {
-                        ProfileLocalCoverCropView(draft: crop, confirm: model.acceptCrop, cancel: model.cancelCrop,
+                        ProfileLocalCoverCropView(draft: crop, confirm: model.acceptCrop, cancel: { model.cancelCrop(id: crop.id) },
                             isCurrent: { model.isPresented && model.controller.canEdit && model.crop?.id == crop.id })
                             .id(crop.id)
                     }

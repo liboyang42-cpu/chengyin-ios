@@ -8,7 +8,7 @@ from tools import current_ci as control
 class CurrentNativeControls(unittest.TestCase):
     def fixture(self):
         groups={'core':['QuestifyCoreTests/A/testOne'],'app-unit':['QuestifyAppUnitTests/B/testTwo'],'ui':['QuestifyUITests/C/testThree']}
-        plan={'identity':{'sha':'a'*40,'tree':'b'*40,'run_id':'1','attempt':'1'},'groups':groups,'ui_shards':[{'methods':groups['ui'],'seconds':60}],'scope':'current-related-and-smoke','complete_native_ledger_count':10}
+        plan={'identity':{'sha':'a'*40,'tree':'b'*40,'run_id':'1','attempt':'1'},'groups':groups,'ui_shards':[{'methods':groups['ui'],'seconds':60}],'scope':'current-related-and-smoke','complete_native_ledger_count':11, 'device_only_not_run':control.device_only_not_run({'native_methods':control.device_only_ledger(),'device_only_methods':control.device_only_ledger()}), 'execution_platforms':['macos-host','ios-simulator']}
         receipts={}
         for role,methods in groups.items():
             key='ui-0' if role=='ui' else role
@@ -17,7 +17,7 @@ class CurrentNativeControls(unittest.TestCase):
 
     def test_exact_current_selection_union_passes(self):
         plan,receipts,needs=self.fixture();result=native.aggregate_current(plan,receipts,needs)
-        self.assertEqual(result['executed_count'],3);self.assertEqual(result['full_ledger_count'],10)
+        self.assertEqual(result['executed_count'],3);self.assertEqual(result['full_ledger_count'],11)
         self.assertEqual(result['scope'],'current-related-and-smoke')
 
     def test_missing_duplicate_foreign_or_nonpassing_evidence_rejected(self):
@@ -203,3 +203,27 @@ class XCTestDiagnosticControls(unittest.TestCase):
         with self.assertRaises(ValueError):native.validate_outcomes(rows,expected,0)
         data,case=self.document();case['nodeIdentifierURL']='test://com.apple.xcode/Questify/QuestifyAppUnitTests/Case/testOne'
         with self.assertRaises(ValueError):native.parse_xcresult(data,'QuestifyUITests')
+
+
+class DeviceOnlyAggregationControls(unittest.TestCase):
+    fixture = CurrentNativeControls.fixture
+    def test_device_methods_are_explicit_not_run_and_not_counted_as_passed(self):
+        plan,receipts,needs=self.fixture()
+        plan['device_only_not_run']=control.device_only_not_run({'native_methods':control.device_only_ledger(),'device_only_methods':control.device_only_ledger()})
+        for receipt in receipts.values():receipt['plan_sha256']=control.digest(control.encode(plan))
+        result=native.aggregate_current(plan,receipts,needs)
+        self.assertEqual(result['executed_count'],3);self.assertEqual(result['selected_count'],3)
+        self.assertEqual(result['device_only_executed_count'],0);self.assertEqual(len(result['device_only_not_run']),8)
+        for kind in ('false-pass','partial','foreign','executed','entire-ledger-omitted','empty-ledger','platforms-omitted'):
+            changed=copy.deepcopy(plan);copies=copy.deepcopy(receipts)
+            if kind=='false-pass':changed['device_only_not_run'][0]['status']='Passed'
+            elif kind=='partial':changed['device_only_not_run'].pop()
+            elif kind=='foreign':changed['device_only_not_run'][0]['method']='QuestifyAppUnitTests/A/testOther'
+            elif kind=='entire-ledger-omitted':del changed['device_only_not_run']
+            elif kind=='empty-ledger':changed['device_only_not_run']=[]
+            elif kind=='platforms-omitted':del changed['execution_platforms']
+            else:
+                method=changed['device_only_not_run'][0]['method'];changed['groups']['app-unit']=[method]
+                copies['app-unit']['expected']=[method];copies['app-unit']['actual']=[{'method':method,'status':'Passed'}]
+            for receipt in copies.values():receipt['plan_sha256']=control.digest(control.encode(changed))
+            with self.subTest(kind=kind),self.assertRaises(ValueError):native.aggregate_current(changed,copies,needs)

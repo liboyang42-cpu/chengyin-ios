@@ -5,6 +5,41 @@ import Observation
 /// row/package actions revoke the departing screen synchronously, before pushing navigation.
 @MainActor @Observable final class WorkshopPurchasedNavigationState {
     struct Selection: Hashable, Identifiable { let id: String }
+#if DEBUG
+    enum SyntheticEvent: String { case listAppear, listAppearReturned, listDisappear, listDisappearReturned, detailAppear, detailAppearReturned, detailDisappear, detailDisappearReturned, selectionChanged }
+    struct SyntheticSnapshot {
+        let event: SyntheticEvent
+        let currentAppearance: Bool
+        let displayedAppeared: Bool
+        let displayedClosed: Bool
+        let displayedLive: Bool
+        let currentAppeared: Bool
+        let currentClosed: Bool
+        let eligible: Bool
+        let list: Bool
+        let detail: Bool
+        let selected: Bool
+    }
+    @ObservationIgnored var syntheticTrace: ((SyntheticSnapshot) -> Void)? = nil
+    @ObservationIgnored private var syntheticTraceCount = 0
+    private func traceSynthetic(_ event: SyntheticEvent, displayed: WorkshopPurchasedViewAppearance) {
+        guard let syntheticTrace, syntheticTraceCount < 24 else { return }
+        syntheticTraceCount += 1
+        let current: WorkshopPurchasedViewAppearance
+        let eligible: Bool
+        switch event {
+        case .detailAppear, .detailAppearReturned, .detailDisappear, .detailDisappearReturned:
+            current = detailAppearance; eligible = selection != nil
+        default:
+            current = listAppearance; eligible = selection == nil
+        }
+        syntheticTrace(.init(event: event, currentAppearance: current === displayed,
+            displayedAppeared: displayed.syntheticAppeared, displayedClosed: displayed.syntheticClosed,
+            displayedLive: displayed.permit?.isLive == true,
+            currentAppeared: current.syntheticAppeared, currentClosed: current.syntheticClosed,
+            eligible: eligible, list: listPermit != nil, detail: detailPermit != nil, selected: selection != nil))
+    }
+#endif
     var selection: Selection? {
         willSet {
             // SwiftUI's Back binding changes before disappearance/animation callbacks. Retire the
@@ -16,6 +51,11 @@ import Observation
                 detailAppearance = WorkshopPurchasedViewAppearance()
                 detailTask?.cancel(); detailTask = nil; detailPermit = nil; browser.closeDetail()
             }
+        }
+        didSet {
+#if DEBUG
+            if oldValue != selection { traceSynthetic(.selectionChanged, displayed: listAppearance) }
+#endif
         }
     }
     private(set) var listAppearance = WorkshopPurchasedViewAppearance()
@@ -53,18 +93,34 @@ import Observation
     // The navigation transition creates the next presentation BEFORE SwiftUI returns to it.
     // A cached View's previous box must never be reused if Back arrives before old onDisappear.
     func listViewAppeared(_ displayed: WorkshopPurchasedViewAppearance) -> WorkshopPurchasedPresentationPermit? {
+#if DEBUG
+        traceSynthetic(.listAppear, displayed: displayed)
+        defer { traceSynthetic(.listAppearReturned, displayed: displayed) }
+#endif
         guard listAppearance === displayed, selection == nil else { return nil }
         return displayed.appear { listAppeared() }
     }
     func detailViewAppeared(_ displayed: WorkshopPurchasedViewAppearance, licenseId: String) -> WorkshopPurchasedPresentationPermit? {
+#if DEBUG
+        traceSynthetic(.detailAppear, displayed: displayed)
+        defer { traceSynthetic(.detailAppearReturned, displayed: displayed) }
+#endif
         guard detailAppearance === displayed, selection?.id == licenseId else { return nil }
         return displayed.appear { detailAppeared(licenseId: licenseId) }
     }
     func listViewDisappeared(_ displayed: WorkshopPurchasedViewAppearance) {
+#if DEBUG
+        traceSynthetic(.listDisappear, displayed: displayed)
+        defer { traceSynthetic(.listDisappearReturned, displayed: displayed) }
+#endif
         displayed.disappear { listDisappeared($0) }
         if listAppearance === displayed { listAppearance = WorkshopPurchasedViewAppearance() }
     }
     func detailViewDisappeared(_ displayed: WorkshopPurchasedViewAppearance) {
+#if DEBUG
+        traceSynthetic(.detailDisappear, displayed: displayed)
+        defer { traceSynthetic(.detailDisappearReturned, displayed: displayed) }
+#endif
         displayed.disappear { detailDisappeared($0) }
         if detailAppearance === displayed { detailAppearance = WorkshopPurchasedViewAppearance() }
     }
@@ -91,6 +147,10 @@ import Observation
     private(set) var permit: WorkshopPurchasedPresentationPermit?
     private var appeared = false
     private var closed = false
+#if DEBUG
+    var syntheticAppeared: Bool { appeared }
+    var syntheticClosed: Bool { closed }
+#endif
     func appear(_ issue: () -> WorkshopPurchasedPresentationPermit?) -> WorkshopPurchasedPresentationPermit? {
         guard !closed else { return nil }
         if !appeared { appeared = true; permit = issue() }

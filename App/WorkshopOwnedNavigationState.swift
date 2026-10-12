@@ -6,11 +6,21 @@ import Observation
 @MainActor @Observable final class WorkshopOwnedNavigationState {
     struct Selection: Hashable, Identifiable { let id: String }
 #if DEBUG
-    enum SyntheticEvent: String { case listAppear, listAppearReturned, listDisappear, listDisappearReturned }
+    enum SyntheticEvent: String {
+        case listAppear, listAppearReturned, listDisappear, listDisappearReturned
+        case detailAppear, detailAppearReturned, detailDisappear, detailDisappearReturned
+        case packageAppear, packageAppearReturned, packageDisappear, packageDisappearReturned
+        case selectionChanged, packageRouteChanged
+    }
     struct SyntheticSnapshot {
         let event: SyntheticEvent
         let currentAppearance: Bool
+        let displayedAppeared: Bool
+        let displayedClosed: Bool
         let displayedLive: Bool
+        let currentAppeared: Bool
+        let currentClosed: Bool
+        let eligible: Bool
         let list: Bool
         let detail: Bool
         let package: Bool
@@ -20,13 +30,25 @@ import Observation
     @ObservationIgnored var syntheticTrace: ((SyntheticSnapshot) -> Void)? = nil
     @ObservationIgnored private var syntheticTraceCount = 0
     private func traceSynthetic(_ event: SyntheticEvent, displayed: WorkshopOwnedViewAppearance) {
-        // At most twelve new events plus the existing twelve fixed test stages.
-        guard let syntheticTrace, syntheticTraceCount < 12 else { return }
+        // A sealed hosted fixture opts in. Only bounded lifecycle booleans, never content or IDs.
+        guard let syntheticTrace, syntheticTraceCount < 48 else { return }
         syntheticTraceCount += 1
-        syntheticTrace(.init(event: event, currentAppearance: listAppearance === displayed,
-            displayedLive: displayed.permit?.isLive == true, list: listPermit != nil,
-            detail: detailPermit != nil, package: packagePermit != nil,
-            selected: selection != nil, showsPackage: showsPackage))
+        let current: WorkshopOwnedViewAppearance
+        let eligible: Bool
+        switch event {
+        case .detailAppear, .detailAppearReturned, .detailDisappear, .detailDisappearReturned, .packageRouteChanged:
+            current = detailAppearance; eligible = selection != nil && !showsPackage
+        case .packageAppear, .packageAppearReturned, .packageDisappear, .packageDisappearReturned:
+            current = packageAppearance; eligible = selection != nil && showsPackage
+        default:
+            current = listAppearance; eligible = selection == nil
+        }
+        syntheticTrace(.init(event: event, currentAppearance: current === displayed,
+            displayedAppeared: displayed.syntheticAppeared, displayedClosed: displayed.syntheticClosed,
+            displayedLive: displayed.permit?.isLive == true,
+            currentAppeared: current.syntheticAppeared, currentClosed: current.syntheticClosed,
+            eligible: eligible, list: listPermit != nil, detail: detailPermit != nil,
+            package: packagePermit != nil, selected: selection != nil, showsPackage: showsPackage))
     }
 #endif
     var selection: Selection? {
@@ -43,6 +65,11 @@ import Observation
             browser.closeDetail()
             if showsPackage { showsPackage = false }
         }
+        didSet {
+#if DEBUG
+            if oldValue != selection { traceSynthetic(.selectionChanged, displayed: listAppearance) }
+#endif
+        }
     }
     var showsPackage = false {
         willSet {
@@ -57,6 +84,11 @@ import Observation
                 packageTask?.cancel(); packageTask = nil; packagePermit = nil
                 browser.packageBrowser?.close()
             }
+        }
+        didSet {
+#if DEBUG
+            if oldValue != showsPackage { traceSynthetic(.packageRouteChanged, displayed: detailAppearance) }
+#endif
         }
     }
     private(set) var listAppearance = WorkshopOwnedViewAppearance()
@@ -121,10 +153,18 @@ import Observation
         return displayed.appear { listAppeared() }
     }
     func detailViewAppeared(_ displayed: WorkshopOwnedViewAppearance, claimId: String) -> WorkshopOwnedPresentationPermit? {
+#if DEBUG
+        traceSynthetic(.detailAppear, displayed: displayed)
+        defer { traceSynthetic(.detailAppearReturned, displayed: displayed) }
+#endif
         guard detailAppearance === displayed, selection?.id == claimId, !showsPackage else { return nil }
         return displayed.appear { detailAppeared(claimId: claimId) }
     }
     func packageViewAppeared(_ displayed: WorkshopOwnedViewAppearance, claimId: String) -> WorkshopOwnedPresentationPermit? {
+#if DEBUG
+        traceSynthetic(.packageAppear, displayed: displayed)
+        defer { traceSynthetic(.packageAppearReturned, displayed: displayed) }
+#endif
         guard packageAppearance === displayed, selection?.id == claimId, showsPackage else { return nil }
         return displayed.appear { packageAppeared(claimId: claimId) }
     }
@@ -142,6 +182,10 @@ import Observation
         }
     }
     func detailViewDisappeared(_ displayed: WorkshopOwnedViewAppearance) {
+#if DEBUG
+        traceSynthetic(.detailDisappear, displayed: displayed)
+        defer { traceSynthetic(.detailDisappearReturned, displayed: displayed) }
+#endif
         let presentedClaim = displayed.permit.flatMap { detailPermit === $0 && $0.isLive ? $0.claimID : nil }
         displayed.disappear { detailDisappeared($0) }
         if let presentedClaim, detailAppearance === displayed,
@@ -150,6 +194,10 @@ import Observation
         }
     }
     func packageViewDisappeared(_ displayed: WorkshopOwnedViewAppearance) {
+#if DEBUG
+        traceSynthetic(.packageDisappear, displayed: displayed)
+        defer { traceSynthetic(.packageDisappearReturned, displayed: displayed) }
+#endif
         let presentedClaim = displayed.permit.flatMap { packagePermit === $0 && $0.isLive ? $0.claimID : nil }
         displayed.disappear { packageDisappeared($0) }
         if let presentedClaim, packageAppearance === displayed,
@@ -187,6 +235,10 @@ import Observation
     private(set) var permit: WorkshopOwnedPresentationPermit?
     private var appeared = false
     private var closed = false
+#if DEBUG
+    var syntheticAppeared: Bool { appeared }
+    var syntheticClosed: Bool { closed }
+#endif
     func appear(_ issue: () -> WorkshopOwnedPresentationPermit?) -> WorkshopOwnedPresentationPermit? {
         guard !closed else { return nil }
         if !appeared { appeared = true; permit = issue() }

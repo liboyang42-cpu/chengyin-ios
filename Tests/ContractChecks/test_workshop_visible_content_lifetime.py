@@ -37,3 +37,25 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
                       'XCTAssertNil(f.navigation.listPermit); XCTAssertEqual(f.recorder.paths.count,calls)',
                       'XCTAssertFalse(inactiveBox === retiringBox); XCTAssertFalse(retiringPermit.isLive)']:
             self.assertIn(token, source)
+
+    def test_back_diagnostics_are_debug_only_bounded_and_opted_in_by_two_existing_hosts(self):
+        for family, limit in [('Owned', 48), ('Purchased', 24)]:
+            source = (ROOT / ('App/Workshop' + family + 'NavigationState.swift')).read_text()
+            self.assertIn('syntheticTraceCount < ' + str(limit), source)
+            self.assertIn('@ObservationIgnored var syntheticTrace: ((SyntheticSnapshot) -> Void)? = nil', source)
+            for token in ['displayedAppeared', 'displayedClosed', 'currentAppeared', 'currentClosed', 'eligible',
+                          'selectionChanged', 'detailAppearReturned', 'detailDisappearReturned']:
+                self.assertIn(token, source)
+            self.assertIn('var syntheticAppeared: Bool { appeared }', source)
+            self.assertIn('var syntheticClosed: Bool { closed }', source)
+            self.assertIn('guard !closed else { return nil }', source)
+            self.assertIn('closed = true; retire(permit)', source)
+        owned = (ROOT / 'Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift').read_text()
+        purchased = (ROOT / 'Tests/AppUnitTests/WorkshopPurchasedNormalAccountTests.swift').read_text()
+        self.assertEqual(owned.count('.syntheticTrace = '), 1)
+        self.assertEqual(purchased.count('.syntheticTrace = '), 1)
+        self.assertIn('WORKSHOP_SYNTHETIC_OWNED', owned)
+        self.assertIn('WORKSHOP_SYNTHETIC_PURCHASED', purchased)
+        self.assertIn('for _ in 0..<100', purchased)
+        self.assertIn('Task.sleep(nanoseconds:20_000_000)', purchased)
+        self.assertIn('navigation.listPermit != nil && browser.phase == .ready', purchased)

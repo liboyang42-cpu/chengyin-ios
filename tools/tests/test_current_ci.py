@@ -158,3 +158,44 @@ final class Real: XCTestCase {
         self.assertNotIn('ui-build/',step)
         self.assertIn('if-no-files-found: error',step)
         self.assertIn("name: ${{ matrix.partition == 'ui-build' && 'current-diagnostics' || 'current-result' }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}",step)
+
+
+class DeviceOnlyClassificationControls(unittest.TestCase):
+    def actual(self):
+        sources={row['path']:('QuestifyAppUnitTests',(ci.ROOT/row['path']).read_text()) for row in ci.DEVICE_ONLY_SOURCES}
+        native={method:path for path,(target,source) in sources.items() for method in ci.swift_methods(source,target)}
+        return sources,native
+
+    def test_actual_eight_remain_in_complete_ledger_but_never_simulator_groups(self):
+        sources,native=self.actual();classified=ci.classify_device_only(sources,native)
+        self.assertEqual(len(classified),8);self.assertEqual(classified,native)
+        ledger={'native_methods':dict(native,**{'QuestifyAppUnitTests/Simulator/testLive':'Tests/AppUnitTests/Simulator.swift'}),'device_only_methods':classified}
+        for mode in ('related','full'):
+            groups=ci.select(ledger,[],list(ledger['native_methods']),mode=mode)
+            self.assertEqual(groups['app-unit'],['QuestifyAppUnitTests/Simulator/testLive'])
+        rows=ci.device_only_not_run(ledger)
+        self.assertEqual({row['method'] for row in rows},set(native))
+        self.assertTrue(all(row['status']=='NOT_RUN' and row['platform']=='physical-ios-device' for row in rows))
+        self.assertEqual(len(ledger['native_methods']),9)
+
+    def test_guard_method_path_source_or_module_mutations_require_explicit_review(self):
+        import copy
+        sources,native=self.actual();path=ci.DEVICE_ONLY_SOURCES[0]['path']
+        for kind in ('guard','method','outside','extra','missing','module','path','source'):
+            changed=copy.deepcopy(sources);current=dict(native);target,source=changed[path]
+            if kind=='guard':source=source.replace('!targetEnvironment(simulator)','targetEnvironment(simulator)')
+            elif kind=='method':source=source.replace('func testRealExclusiveCiphertextFileBoundedReadAndCleanup','func testChanged')
+            elif kind=='outside':source=source.replace('#endif','')+'\n#endif\nfinal class Extra: XCTestCase { func testOutside() {} }'
+            elif kind=='extra':source=source.replace('#endif','final class Extra: XCTestCase { func testExtra() {} }\n#endif')
+            elif kind=='missing':del changed[path]
+            elif kind=='module':target='QuestifyCoreTests'
+            elif kind=='path':current[next(iter(current))]='Tests/AppUnitTests/Foreign.swift'
+            elif kind=='source':source+='\n// unreviewed change\n'
+            if kind!='missing':changed[path]=(target,source)
+            with self.subTest(kind=kind),self.assertRaises(ValueError):ci.classify_device_only(changed,current)
+
+    def test_foreign_or_partial_classification_cannot_hide_a_simulator_method(self):
+        ledger={'native_methods':{'QuestifyAppUnitTests/A/testOne':'Tests/AppUnitTests/A.swift'},'device_only_methods':{'QuestifyAppUnitTests/A/testOne':'Tests/AppUnitTests/A.swift'}}
+        with self.assertRaises(ValueError):ci.select(ledger,[],list(ledger['native_methods']))
+        sources,native=self.actual();partial=ci.classify_device_only(sources,native);partial.pop(next(iter(partial)))
+        with self.assertRaises(ValueError):ci.device_only_not_run({'native_methods':native,'device_only_methods':partial})

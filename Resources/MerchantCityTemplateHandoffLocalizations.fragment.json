@@ -1,0 +1,274 @@
+{
+  "merchant.cityTemplate.configure": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Configure a game"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "配置玩法"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.scope": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open the full merchant game editor. Your unfinished location stays here."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打开完整的商家玩法编辑页，保留本页未完成的点位信息。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.savedOnly": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Return is available only after the existing save confirmation and authoritative template readback. Unsaved changes cannot be used."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "完成既有保存确认并回读真实模板后才能返回，未保存的内容不能用于投放。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.useSaved": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use saved game and return"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "使用已保存玩法并返回"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.unavailable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Game configuration is unavailable for the current store or session."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前门店或登录状态无法配置玩法。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.contextChanged": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The store, draft or source changed. Close this handoff and open it again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "门店、草稿或来源已变化，请关闭后重新打开。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.missingTemplate": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The saved game is not in the refreshed owned-template list. The original selection is unchanged."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新的本人模板列表中没有该玩法，已保留原选择。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.albumOnly": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Album games can only be used in stories and cannot be returned to a city location."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "相册玩法仅可用于故事，不能用于城市点位。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.invalidMetadata": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The template configuration could not be verified. The original selection is unchanged."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法核对模板配置，已保留原选择。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.readFailed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The saved game could not be read back. Your location fields are unchanged."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未能回读已保存的玩法，点位信息保持不变。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.readbackScope": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refreshing the existing owned-template list before changing this location’s selection. This does not submit the location or repeat the template save."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "先刷新本人模板列表，再更新本点位的玩法选择。此步骤不会提交点位，也不会重复保存模板。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.retryRead": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read saved game again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新读取已保存玩法"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.returnTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Return game to location"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "将玩法带回点位"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.applied": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved game selected. Your other location fields are preserved; the location is still a draft."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已选择保存的玩法，其余点位信息已保留，点位仍为草稿。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.fixtureBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Synthetic local example. No live template or city location is created."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本地合成示例，不创建真实模板或城市点位。"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.fixtureTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Location game handoff"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "点位玩法配置交接"
+        }
+      }
+    }
+  },
+  "merchant.cityTemplate.retryPlacementRead": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read location data again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新读取点位资料"
+        }
+      }
+    }
+  }
+}

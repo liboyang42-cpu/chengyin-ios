@@ -72,6 +72,7 @@ public struct PublishingAIThemeDraft: Equatable {
 @MainActor public final class PublishingAIDraftFlow {
     public enum QuotaReadState: Equatable { case unavailable, idle, loading, fresh, stale, failed }
     public var idea = ""
+    private var ideaSuggestionRevision = 0
     private var storedCandidate: PublishingAIThemeDraft?
     private var storedCandidateIdea: String?
     private var storedCandidateGeneration: Int?
@@ -113,6 +114,25 @@ public struct PublishingAIThemeDraft: Equatable {
     }
     public init(client: (any PublishingAIDraftServing)?, product: ProjectEditProduct, now: @escaping () -> Date = Date.init) {
         self.client = client; self.product = product; openedSession = client?.session; self.now = now
+    }
+    /// Local inspiration remains usable without a provider. An attached account must
+    /// still be the sheet's original owner; existing candidates are never replaced.
+    public var canUseIdeaSuggestion: Bool {
+        guard !closed, !ownerRetired, !busy else { return false }
+        if openedSession != nil { guard isCurrent else { return false } }
+        else if client != nil { return false }
+        return storedCandidate == nil
+    }
+    public func ideaSuggestionAction(_ suggestion: PublishingAIPromptSuggestion, languageCode: String) -> () -> Bool {
+        let stamp = generation, revision = ideaSuggestionRevision, original = Data(idea.utf8)
+        return { [weak self] in
+            guard let self, self.canUseIdeaSuggestion, self.generation == stamp,
+                  self.ideaSuggestionRevision == revision, Data(self.idea.utf8) == original else { return false }
+            self.ideaSuggestionRevision += 1
+            self.idea = suggestion.text(languageCode:languageCode)
+            self.messageKey = nil; self.serverMessage = nil; self.onChange?()
+            return true
+        }
     }
     public var canGenerate: Bool { isCurrent && !busy && quotaTask == nil && client?.canGenerate == true && !((quota?.exhausted) ?? false) }
     public var canRefreshQuota: Bool { isCurrent && !busy && quotaTask == nil && client != nil }

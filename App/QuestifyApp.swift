@@ -60,6 +60,8 @@ struct QuestifyApp: App {
                     MerchantEngagementFixtureHostView()
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-business-fixture") {
                     MerchantBusinessFixtureHostView()
+                } else if ProcessInfo.processInfo.arguments.contains("--merchant-city-template-handoff-fixture") {
+                    MerchantCityTemplateHandoffFixtureHost()
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-content-fixture") {
                     MerchantContentFixtureScenarioView()
                 } else if ProcessInfo.processInfo.arguments.contains("--cooperation-flow-fixture") {
@@ -248,6 +250,10 @@ struct SessionRootView: View {
             if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }
         }
         .environmentObject(session)
+        .environment(\.merchantCityTemplateHandoffFactory, {
+            .init(reader: session.merchantOperationsReader, imageHost: session.retainedMerchantImages,
+                  templateAssistFactory: { session.merchantTemplateAssistFlow(coordinator: $0) })
+        })
         .environment(\.merchantCustomerContactFactory, { session.merchantCustomerContactFlow($0, sourceIsCurrent: $1) })
         .environment(\.projectCategoryReader, session)
             .environment(\.projectNodePlaceReader, session.searchMapReader)

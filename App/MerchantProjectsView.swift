@@ -9,6 +9,17 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
     @StateObject private var model = MerchantLoadModel<MerchantProjectWorkspaceSnapshot>()
     @StateObject private var presentation = MerchantProjectWorkspacePresentation()
     @State private var tab: MerchantProjectBrowserTab = .topic
+    #if DEBUG
+    @State private var summaryFixtureEvents: [String] = []
+    private var summaryFixtureTracing: Bool {
+        ProcessInfo.processInfo.arguments.contains("--merchant-project-summary-trace") &&
+            MerchantFixtureScenario.selected(arguments: ProcessInfo.processInfo.arguments) == .projectBrowser
+    }
+    private func recordSummaryFixture(_ event: String) {
+        guard summaryFixtureTracing, summaryFixtureEvents.count < 8 else { return }
+        summaryFixtureEvents.append(event)
+    }
+    #endif
     private var context: MerchantProjectWorkspaceContext { .init(reader: reader, service: contentService) }
     private var sourceFresh: Bool { !model.isLoading && model.errorKey == nil && model.loadedRevision == reader.sessionRevision }
     var body: some View {
@@ -52,9 +63,16 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     }
                     ForEach(browser.rows) { project in
                         Button {
+                            #if DEBUG
+                            recordSummaryFixture("action snapshot=\(model.value?.id == snapshot.id) tab=\(tab == shownTab) row=\(browser.rows.contains(project)) " +
+                                presentation.summaryFixtureGuards(project: project, snapshot: snapshot, context: context, permit: permit))
+                            #endif
                             guard model.value?.id == snapshot.id else { return }
                             guard tab == shownTab, browser.rows.contains(project) else { return }
                             presentation.openSummary(project: project, snapshot: snapshot, context: context, permit: permit)
+                            #if DEBUG
+                            recordSummaryFixture("selected=\(presentation.selection != nil)")
+                            #endif
                         } label: {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title).font(.headline)
@@ -63,9 +81,14 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                                 MerchantProjectCardContext(project: project)
                                 if let text = project.startTime, !text.isEmpty { Label(text, systemImage: "calendar").font(.caption) }
                             }.padding(.vertical, 4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("merchant.project.row.\(project.id)")
+                        #if DEBUG
+                        .accessibilityValue(summaryFixtureTracing ? summaryFixtureEvents.joined(separator: " | ") : "")
+                        #endif
                     }
                 }.refreshable { await reload() }
             } else if let error = model.errorKey {
@@ -117,7 +140,11 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                         } else { Text("merchant.projectWorkspace.changed") }
                     }
                 } else { ContentUnavailableView("merchant.projectWorkspace.changed", systemImage: "lock") }
-            }.onDisappear { presentation.closeSummary(id: selected.id) }
+            }
+            #if DEBUG
+            .onAppear { recordSummaryFixture("sheet appeared") }
+            #endif
+            .onDisappear { presentation.closeSummary(id: selected.id) }
         }
         // SwiftUI may retain the original sheet binding across tab/context changes.
         // Rebuild only its owner, never the loaded list or selected tab.
@@ -228,6 +255,11 @@ struct MerchantProjectWorkspaceSnapshot {
     private func current(_ snapshot: MerchantProjectWorkspaceSnapshot, _ context: MerchantProjectWorkspaceContext) -> Bool {
         active && context == snapshot.context && context.configured && context.signedIn && snapshot.access.allows(.projects) && (snapshot.access.merchantID ?? 0) > 0
     }
+    #if DEBUG
+    func summaryFixtureGuards(project: MerchantProject, snapshot: MerchantProjectWorkspaceSnapshot, context: MerchantProjectWorkspaceContext, permit: Permit) -> String {
+        "empty=\(selection == nil) current=\(current(snapshot, context)) epoch=\(permit.generation == generation) snapshotPermit=\(permit.snapshotID == snapshot.id) unique=\(snapshot.page.rows.filter { $0.id == project.id }.count == 1) member=\(snapshot.page.rows.contains(project))"
+    }
+    #endif
     func openSummary(project: MerchantProject, snapshot: MerchantProjectWorkspaceSnapshot, context: MerchantProjectWorkspaceContext, permit: Permit) {
         guard selection == nil, current(snapshot, context), permit.generation == generation, permit.snapshotID == snapshot.id,
               snapshot.page.rows.filter({ $0.id == project.id }).count == 1, snapshot.page.rows.contains(project) else { return }

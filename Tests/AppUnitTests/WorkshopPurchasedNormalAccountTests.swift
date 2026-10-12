@@ -311,6 +311,11 @@ import UIKit
         for role in ["merchant","club"] {
             let h=try Harness();defer{h.clean()};h.wire.role=role;await h.login();try h.approve();h.strictExpectedContext=try h.context()
             let browser=try XCTUnwrap(h.session.workshopPurchasedBrowser),navigation=WorkshopPurchasedNavigationState(browser:browser)
+#if DEBUG
+            navigation.syntheticTrace = { snapshot in
+                print("WORKSHOP_SYNTHETIC_PURCHASED role=\(role) event=\(snapshot.event.rawValue) current=\(snapshot.currentAppearance) appeared=\(snapshot.displayedAppeared) closed=\(snapshot.displayedClosed) currentAppeared=\(snapshot.currentAppeared) currentClosed=\(snapshot.currentClosed) eligible=\(snapshot.eligible) live=\(snapshot.displayedLive) list=\(snapshot.list) detail=\(snapshot.detail) selected=\(snapshot.selected)")
+            }
+#endif
             XCTAssertNil(h.session.workshopOwnedBrowser,"Paid approval cannot enable FREE library")
             let host=UIHostingController(rootView:NavigationStack{WorkshopPurchasedLibraryView(browser:browser,navigation:navigation)})
             let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window

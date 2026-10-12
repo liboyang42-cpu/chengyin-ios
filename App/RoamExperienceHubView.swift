@@ -58,6 +58,10 @@ import SwiftUI
                 NavigationLink { RoamHangoutUnavailableView() } label: { Label("roam.experience.hangout", systemImage: "person.3") }
                     .accessibilityIdentifier("roam.experience.hangout.open")
             }
+            Section {
+                NavigationLink { RoamLocationSettingsDestination() } label: { Label("roam.locationSettings.title", systemImage: "location.circle") }
+                    .accessibilityIdentifier("roam.locationSettings.open")
+            }
             Section("roam.motion.title") {
                 Toggle("roam.motion.reduce", isOn: $reduceMotionLocally)
                     .accessibilityIdentifier("roam.motion.reduce")

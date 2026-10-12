@@ -285,9 +285,18 @@ struct ClubCommunityComposer: View {
                     .accessibilityIdentifier("club.community.reviewDraft")
             }
             .navigationTitle(Text(post == nil ? "club.community.create" : "club.community.edit"))
-            .toolbar { Button("club.community.cancel") { dismiss() } }
+            .toolbar {
+                if let post {
+                    ClubPostEditExitControl(post: post, clubID: clubID, source: model,
+                        content: $content, images: $images, canExit: { !model.busy && !uploading }, close: { dismiss() })
+                } else { Button("club.community.cancel") { dismiss() } }
+            }
             .onAppear { content = post?.content ?? ""; images = post?.images ?? [] }
         }
+        .interactiveDismissDisabled(post.map {
+            model.busy || uploading || ClubPostEditDraft(content: content, images: images) !=
+                ClubPostEditDraft(content: $0.content, images: $0.images)
+        } ?? false)
     }
 }
 

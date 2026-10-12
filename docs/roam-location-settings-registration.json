@@ -1,0 +1,132 @@
+{
+  "feature": "P005 read-only system location status and explicit App Settings round trip",
+  "status": "IMPLEMENTED_PENDING_CENTRAL_REGISTRATION_AND_APPLE_ACCEPTANCE",
+  "base": "ea9d4c429237aeecfb1bbc4b4f6d0713c4fa59dd",
+  "app_sources": [
+    "Core/RoamLocationSettingsState.swift",
+    "App/RoamLocationSettingsDestination.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/RoamLocationSettingsModelTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/RoamLocationSettingsFlowTests.swift"
+  ],
+  "core_test_discovery": "Tests/CoreTests/RoamLocationSettingsStateTests.swift via existing SwiftPM target",
+  "shared_hunk": {
+    "path": "App/RoamExperienceHubView.swift",
+    "fragment": "fragments/roam-hub-location-settings.patch",
+    "before_sha256": "c58618cadbe0f765c75e22176f04d1090bc33f6f75fcbc7dc2aba31a687dda27",
+    "after_sha256": "b8b8aceff07e3cade3861c8acb9ed270f6760bc736e6898a4e28c6b953e225d2",
+    "dependency": "Apply batch18 exact owned-coupons Hub hunk first. Existing10-14 and reduced-motion contents preserved. No dependency on15-17."
+  },
+  "localizations": {
+    "roam.locationSettings.title": {
+      "en": "Location settings",
+      "zh-Hans": "定位设置"
+    },
+    "roam.locationSettings.hint": {
+      "en": "View this device’s current location authorization. Only you can change it in the app’s system settings.",
+      "zh-Hans": "查看此设备当前的定位授权。只有你能在 App 系统设置中更改授权。"
+    },
+    "roam.locationSettings.status": {
+      "en": "System status",
+      "zh-Hans": "系统状态"
+    },
+    "roam.locationSettings.readFailed": {
+      "en": "Could not read location status. Try again.",
+      "zh-Hans": "无法读取定位状态，请重试。"
+    },
+    "roam.locationSettings.retry": {
+      "en": "Retry status check",
+      "zh-Hans": "重试读取状态"
+    },
+    "roam.locationSettings.authorization": {
+      "en": "Location authorization",
+      "zh-Hans": "定位授权"
+    },
+    "roam.locationSettings.authorization.notDetermined": {
+      "en": "Not requested",
+      "zh-Hans": "尚未请求"
+    },
+    "roam.locationSettings.authorization.denied": {
+      "en": "Denied",
+      "zh-Hans": "已拒绝"
+    },
+    "roam.locationSettings.authorization.restricted": {
+      "en": "Restricted by the system",
+      "zh-Hans": "受系统限制"
+    },
+    "roam.locationSettings.authorization.whenInUse": {
+      "en": "While using the app",
+      "zh-Hans": "使用 App 期间"
+    },
+    "roam.locationSettings.authorization.always": {
+      "en": "Always allowed",
+      "zh-Hans": "始终允许"
+    },
+    "roam.locationSettings.authorization.unknown": {
+      "en": "Unknown system status",
+      "zh-Hans": "未知系统状态"
+    },
+    "roam.locationSettings.always": {
+      "en": "Always authorization",
+      "zh-Hans": "始终定位授权"
+    },
+    "roam.locationSettings.granted": {
+      "en": "Granted",
+      "zh-Hans": "已允许"
+    },
+    "roam.locationSettings.notGranted": {
+      "en": "Not granted",
+      "zh-Hans": "未授予"
+    },
+    "roam.locationSettings.services": {
+      "en": "Device location services",
+      "zh-Hans": "设备定位服务"
+    },
+    "roam.locationSettings.enabled": {
+      "en": "On",
+      "zh-Hans": "已开启"
+    },
+    "roam.locationSettings.disabled": {
+      "en": "Off",
+      "zh-Hans": "已关闭"
+    },
+    "roam.locationSettings.capabilityHint": {
+      "en": "System permission does not enable live roaming, background recording, or arrival reminders in this app.",
+      "zh-Hans": "系统授权不代表此 App 已启用实时漫游、后台记录或到点提醒。"
+    },
+    "roam.locationSettings.openSettings": {
+      "en": "Open app settings",
+      "zh-Hans": "打开 App 设置"
+    },
+    "roam.locationSettings.openFailed": {
+      "en": "App settings could not be opened. Tap again to retry, or open Settings manually.",
+      "zh-Hans": "无法打开 App 设置。可再次点击重试，或手动打开系统设置。"
+    },
+    "roam.locationSettings.refresh": {
+      "en": "Refresh status",
+      "zh-Hans": "刷新状态"
+    }
+  },
+  "frameworks": [
+    "CoreLocation (already linked)",
+    "UIKit (already linked)"
+  ],
+  "permissions_or_info_plist_changes": [],
+  "tests": {
+    "Core_XCTest_authored": 15,
+    "App_unit_XCTest_authored": 11,
+    "App_UI_XCTest_authored": 10,
+    "native_execution": "NOT_RUN: no Swift compiler or Apple toolchain on selected cloud computer"
+  },
+  "native_acceptance": [
+    "Register sources/tests/localizations, apply exact Hub fragment after batch18, run XCTest and unsigned Apple builds.",
+    "Ordinary Roam Hub -> location settings -> actual OS state -> explicit app-settings tap -> active return refresh -> Back.",
+    "Check notDetermined/denied/restricted/whenInUse/always, services-off and unknown independently; no permission prompt or coordinate read.",
+    "Check failed-open retry, read failure, repeated taps, refresh while pending, background and dismissed completions.",
+    "No GPS/background recording/arrival capabilities inferred from authorization."
+  ],
+  "central_files_edited": false
+}

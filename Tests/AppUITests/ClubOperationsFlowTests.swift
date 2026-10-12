@@ -36,7 +36,7 @@ final class ClubOperationsFlowTests: XCTestCase {
         app.launch(); XCTAssertTrue(element("club.ops.fixtureNotice").waitForExistence(timeout: 10))
     }
     private var emittedPresentationFailure = false
-    private func emitPresentationFailure(_ phase: String) {
+    private func emitPresentationFailure(_ phase: String, scopedReadiness: [String: Bool] = [:]) {
         guard !emittedPresentationFailure else { return }
         emittedPresentationFailure = true
         // Only this offline fixture's fixed counters/controls. stdout is retained
@@ -55,7 +55,8 @@ final class ClubOperationsFlowTests: XCTestCase {
             "presentation": presentation,
             "reviewExists": element("club.ops.reviewSheet").exists,
             "workspaceExists": element("club.ops.fixture.workspace").exists,
-            "profileFieldExists": element("club.ops.field.name").exists, "controls": rows]
+            "profileFieldExists": element("club.ops.field.name").exists,
+            "scopedReadiness": scopedReadiness, "controls": rows]
         if let bytes = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]),
            let message = String(data: bytes, encoding: .utf8) {
             print("QUESTIFY_CLUB_PRESENTATION_EVIDENCE_V1 " + message)
@@ -105,14 +106,21 @@ final class ClubOperationsFlowTests: XCTestCase {
     }
     private func openCreateProfile() -> Bool {
         tap("club.ops.openCreate")
-        // A create tap must reach the real workspace and finish its initial read
-        // before searching the long form. Never swipe the unacknowledged root.
-        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            self.element("club.ops.fixture.workspace").exists && self.element("club.ops.field.name").exists
-        }, object: app)
-        guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed else {
-            emitPresentationFailure("create-profile-missing-after-single-tap")
-            XCTFail("Create tap did not reach its profile form. " + app.debugDescription); return false
+        // The name exists only after the create snapshot is rendered. Require
+        // its exact workspace ancestor in one typed query, rather than two
+        // global accessibility queries inside a block-predicate poll. Keep the
+        // same five-second budget and never swipe/replay an unconfirmed entry.
+        let workspace = app.collectionViews["club.ops.fixture.workspace"].firstMatch
+        let name = workspace.textFields["club.ops.field.name"].firstMatch
+        guard name.waitForExistence(timeout: 5) else {
+            // One observation of these exact typed queries, without another
+            // wait, action, or retry. Diagnostics may be later than the timeout.
+            emitPresentationFailure("create-profile-missing-after-single-tap", scopedReadiness: [
+                "readyWithinFiveSeconds": false,
+                "workspaceExistsAfterTimeout": workspace.exists,
+                "workspaceNameExistsAfterTimeout": name.exists
+            ])
+            XCTFail("Create workspace did not expose its profile name within five seconds. " + app.debugDescription); return false
         }
         return true
     }

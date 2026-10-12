@@ -30,7 +30,8 @@ final class MerchantRegistrationAvailabilityFlowTests: XCTestCase {
             XCTAssertTrue(control.exists && control.isEnabled && control.isHittable)
             control.tap()
         } else {
-            XCTAssertTrue(revealFixtureElement(button, in: app, towardTop: id == "merchant.registrationAvailability.restore")); button.tap()
+            // Restore is AFTER newDaily/pending in the Form; an unmaterialized row is below it.
+            XCTAssertTrue(revealFixtureElement(button, in: app), "Could not reveal \(id): " + app.debugDescription); button.tap()
         }
         if id == "merchant.registrationAvailability.open" {
             // Wait for the presented sheet before resolving any of its toolbar elements.
@@ -61,7 +62,10 @@ final class MerchantRegistrationAvailabilityFlowTests: XCTestCase {
         tap("merchant.content.review.cancel", app)
         XCTAssertTrue(revealFixtureElement(app.buttons["merchant.registrationAvailability.restore"], in: app))
         tap("merchant.content.review", app); tap("merchant.content.confirm", app)
-        XCTAssertTrue(app.staticTexts["merchant.content.issue"].waitForExistence(timeout: 5))
+        // Confirmation was reached at the bottom. Materialize the top status row first.
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["merchant.content.issue"], in: app,
+            towardTop: true, requiresHittable: false), "Readback status was not visible after confirm: " + app.debugDescription)
+        XCTAssertTrue(app.staticTexts["merchant.content.issue"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(app.staticTexts["merchant.content.issue"].label, "Availability was refreshed from the saved registration.")
         XCTAssertFalse(app.buttons["merchant.registrationAvailability.restore"].exists)
         XCTAssertTrue(revealFixtureElement(app.staticTexts["09:00-18:00"].firstMatch, in: app, requiresHittable: false))

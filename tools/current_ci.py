@@ -24,6 +24,45 @@ SHARD_LIMIT = 1500
 METHOD_LIMIT = 900
 LIMIT = 10 * 1024 * 1024
 
+# These eight declarations are absent from simulator binaries by their existing
+# outer compile guard. Keep their identities in the complete ledger and report
+# physical-device acceptance as NOT_RUN, never as passed simulator coverage.
+# Any source change requires an explicit review of this exact classification.
+DEVICE_ONLY_SOURCES = [{'path': 'Tests/AppUnitTests/ContentDraftDeviceStorageAcceptanceTests.swift', 'sha256': 'f6e68e77cc1f9b5bd80efdb31f5ded921a1c25142caafc2900e8f2a4073f7189', 'class': 'ContentDraftDeviceStorageAcceptanceTests', 'methods': ['testRealExclusiveCiphertextFileBoundedReadAndCleanup', 'testRealPresenceMarkerIsExclusivePermanentAndEmpty', 'testSyntheticFilesystemPrerequisitesReportNumericStage', 'testSyntheticFoundationClassAIndependentControl', 'testSyntheticRegularFileClassAIndependentControl']}, {'path': 'Tests/AppUnitTests/PlayRecoveryDeviceStorageAcceptanceTests.swift', 'sha256': '2b01f4132b1ddfafde26491f4d8534ca46efa2d346b6784043992ecf855e3dbf', 'class': 'PlayRecoveryDeviceStorageAcceptanceTests', 'methods': ['testConcreteOSRelaunchCASAndNoPlaintextOrCredentialFiles', 'testMissingKeychainAfterWrittenPresenceFailsClosedWithoutReplacement', 'testPartialCiphertextAndForeignRoleNeverUnlockOSPending']}]
+
+
+def device_only_ledger():
+    return {"QuestifyAppUnitTests/"+row['class']+"/"+method: row['path']
+            for row in DEVICE_ONLY_SOURCES for method in row['methods']}
+
+
+def classify_device_only(native_sources, native):
+    expected = device_only_ledger()
+    for row in DEVICE_ONLY_SOURCES:
+        path = row['path']
+        require(path in native_sources, 'Missing explicit device-only source: '+path)
+        target, source = native_sources[path]
+        require(target == 'QuestifyAppUnitTests' and digest(source.encode()) == row['sha256'],
+                'Device-only source requires renewed explicit platform review: '+path)
+        directives = re.findall(r'^\s*#(?:if|elseif|else|endif)\b[^\n]*', source, re.M)
+        require([line.strip() for line in directives] == ['#if os(iOS) && !targetEnvironment(simulator)', '#endif'],
+                'Device-only compile guard changed')
+        require({method for method, owner in native.items() if owner == path} ==
+                {method for method, owner in expected.items() if owner == path}, 'Device-only declaration set changed')
+    require(all(native.get(method) == path for method, path in expected.items()), 'Device-only identity or path changed')
+    return expected
+
+
+def device_only_not_run(snapshot):
+    classified = snapshot.get('device_only_methods', {})
+    require(type(classified) is dict and (not classified or classified == device_only_ledger()),
+            'Unknown physical-device classification')
+    require(all(snapshot['native_methods'].get(method) == path for method,path in classified.items()),
+            'Physical-device classification is outside the complete ledger')
+    return [{'method':method, 'path':path, 'platform':'physical-ios-device', 'status':'NOT_RUN',
+             'reason':'Excluded from simulator by existing compile guard; hardware acceptance not executed'}
+            for method,path in sorted(classified.items())]
+
 
 def require(condition, message):
     if not condition:
@@ -203,7 +242,7 @@ def snapshot(root=ROOT, revision=None):
         for method in swift_methods(source,target,cases[target]):
             require(method not in native,'Duplicate native identity across files'); native[method]=path
     require(bool(native) and bool(portable), 'Empty complete source test ledger')
-    return {'sources': [{'path':p,'sha256':h} for p,h in sorted(sources.items())], 'native_methods': native, 'portable_methods': portable}
+    return {'sources': [{'path':p,'sha256':h} for p,h in sorted(sources.items())], 'native_methods': native, 'portable_methods': portable, 'device_only_methods': classify_device_only(native_sources,native)}
 
 
 def audit(previous, current, retired=None):
@@ -300,6 +339,7 @@ def select(snapshot, changed_paths, smoke, mode='related', dependencies=None, re
             selected.update(method for method, test in all_methods.items() if test in tests or test in named_ui)
     for method, path in all_methods.items():
         if full or (broad_units and not method.startswith('QuestifyUITests/')) or path in changed: selected.add(method)
+    selected.difference_update(row['method'] for row in device_only_not_run(snapshot))
     return {part: sorted(m for m in selected if PARTITIONS[m.split('/')[0]] == part) for part in ('core', 'app-unit', 'ui')}
 
 
@@ -461,7 +501,7 @@ def make_plan(root, manifest, base, mode, environ=None):
     shards = partition({method: manifest['ui_costs'][method] for method in groups['ui']})
     return {'version': 1, 'scope': 'full-current-regression' if mode == 'full' else 'current-related-and-smoke', 'identity': identity,
             'base': base, 'exact_source_renames':exact_renames, 'pbx_pure_registration':registration_only, 'ui_selection_policy':'Related explicit groups plus smoke; global/unmapped changes require full unit coverage, full UI is manual full mode', 'manifest_sha256': digest(encode(manifest)), 'changed_paths': changed, 'groups': groups, 'ui_shards': shards,
-            'complete_native_ledger_count': len(manifest['snapshot']['native_methods']), 'test_audit': actual_audit,
+            'complete_native_ledger_count': len(manifest['snapshot']['native_methods']), 'device_only_not_run': device_only_not_run(manifest['snapshot']), 'execution_platforms': ['macos-host', 'ios-simulator'], 'test_audit': actual_audit,
             'limits': {'worker_seconds': 2700, 'finalization_reserve_seconds': 240, 'macos_parallel': 3, 'method_seconds': 900, 'ui_shard_seconds': 1500}}
 
 

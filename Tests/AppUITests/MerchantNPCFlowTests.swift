@@ -7,7 +7,18 @@ final class MerchantNPCFlowTests: XCTestCase {
     func testMerchantChatCompleteReply() {
         let app = launch(); app.buttons["merchantNPC.fixture.chat"].tap()
         let input = app.textFields["merchantNPC.input"]; XCTAssertTrue(input.waitForExistence(timeout: 5)); input.tap(); input.typeText("Hello merchant")
-        app.buttons["merchantNPC.send"].tap(); XCTAssertTrue(app.staticTexts["merchantNPC.reply"].waitForExistence(timeout: 5))
+        app.buttons["merchantNPC.send"].tap()
+        // Completed replies move into the retained turn; the transient reply ID is no longer rendered.
+        let turns = app.otherElements.matching(identifier: "merchantNPCHistory.turn")
+        let reply = turns.firstMatch.staticTexts["Synthetic merchant-row reply"]
+        let received = reply.waitForExistence(timeout: 5)
+        if !received {
+            print("QUESTIFY_MERCHANT_NPC_REPLY_AX_BEGIN\n\(app.debugDescription)\nQUESTIFY_MERCHANT_NPC_REPLY_AX_END")
+        }
+        XCTAssertTrue(received, "The completed merchant reply must be shown in its history turn")
+        XCTAssertEqual(turns.count, 1)
+        XCTAssertEqual(reply.label, "Synthetic merchant-row reply")
+        XCTAssertTrue(turns.firstMatch.staticTexts["Hello merchant"].exists)
     }
     func testResourcesRequireConsentAndNoCapture() {
         let app = launch(); app.buttons["merchantNPC.fixture.resources"].tap()

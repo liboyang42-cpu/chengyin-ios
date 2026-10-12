@@ -128,6 +128,11 @@ class SimulatedEntitlementTests(unittest.TestCase):
             self.assertEqual(command[0], 'xcodebuild')
             self.assertEqual(command[command.index('-scheme')+1], 'QuestifyAppUnitTests')
             self.assertIn('CODE_SIGNING_ALLOWED=NO', command)
+            self.assertIn('ONLY_ACTIVE_ARCH=YES', command)
+            self.assertNotIn('ONLY_ACTIVE_ARCH=NO', command)
+            self.assertFalse(any(str(arg).startswith(('ARCHS=', 'EXCLUDED_ARCHS=', '-only-testing:')) for arg in command))
+            self.assertEqual(command[command.index('-destination')+1], 'platform=iOS Simulator,id='+simulator)
+            self.assertEqual(command[-1], 'build-for-testing')
             derived=Path(command[command.index('-derivedDataPath')+1]); products=derived/'Build/Products'
             app=products/host.HOST_RELATIVE; app.mkdir(parents=True)
             (app/'Questify').write_bytes(executable())
@@ -150,3 +155,15 @@ class SimulatedEntitlementTests(unittest.TestCase):
                 with self.assertRaises(ValueError): build.build(temp,temp,commit,uuid)
             with self.assertRaises(ValueError):
                 build.build(temp,temp,'a'*40,'01234567-0123-0123-0123-012345678901',lambda *a,**k: SimpleNamespace(stdout=b'b'*40))
+
+    def test_thin_active_architecture_keeps_simulator_and_entitlement_guards(self):
+        for cpu in (0x0100000c, 0x01000007):
+            with self.subTest(cpu=cpu):
+                thin = bytearray(executable()); struct.pack_into('<I', thin, 4, cpu)
+                self.verify(bytes(thin))
+                wrong_platform = bytearray(executable(platform=2)); struct.pack_into('<I', wrong_platform, 4, cpu)
+                with self.assertRaises(ValueError): self.verify(bytes(wrong_platform))
+                wrong_entitlements = bytearray(executable(plistlib.dumps({}))); struct.pack_into('<I', wrong_entitlements, 4, cpu)
+                with self.assertRaises(ValueError): self.verify(bytes(wrong_entitlements))
+        unsupported = bytearray(executable()); struct.pack_into('<I', unsupported, 4, 12)
+        with self.assertRaises(ValueError): self.verify(bytes(unsupported))

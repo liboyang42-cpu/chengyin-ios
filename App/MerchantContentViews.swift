@@ -170,6 +170,7 @@ struct MerchantContentBoundary: View {
     @ObservedObject var model: MerchantContentViewModel
     @State private var confirmsRetry = false
     var allowsReload = true
+    var reload: (() async -> Void)? = nil
     var body: some View {
         let c = model.coordinator
         if c.loadedScope == c.service.scope {
@@ -184,7 +185,9 @@ struct MerchantContentBoundary: View {
                     }
             }
         }
-        if !c.busy && allowsReload { Button("action.retry") { Task { await model.load() } }.accessibilityIdentifier("merchant.content.reload") }
+        if !c.busy && allowsReload { Button("action.retry") { Task {
+            if let reload { await reload() } else { await model.load() }
+        } }.accessibilityIdentifier("merchant.content.reload") }
     }
 }
 struct MerchantContentFields: View {

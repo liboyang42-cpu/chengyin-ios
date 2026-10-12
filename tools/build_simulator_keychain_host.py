@@ -82,7 +82,7 @@ def build(source_root, runner_temp, commit, simulator, run=subprocess.run):
     run(['xcodebuild', '-project', str(project.parent), '-scheme', 'QuestifyAppUnitTests',
          '-configuration', 'Debug', '-sdk', 'iphonesimulator', '-destination',
          'platform=iOS Simulator,id=' + simulator, '-destination-timeout', '60',
-         '-derivedDataPath', str(derived), 'CODE_SIGNING_ALLOWED=NO', 'ONLY_ACTIVE_ARCH=NO',
+         '-derivedDataPath', str(derived), 'CODE_SIGNING_ALLOWED=NO', 'ONLY_ACTIVE_ARCH=YES',
          'build-for-testing'], check=True)
     built = checked_path(work, derived / 'Build/Products')
     products = work / 'Products'

@@ -714,7 +714,14 @@ def aggregate_current(plan, artifacts, needs):
         validate_outcomes(receipt.get('actual'), methods, 0); actual.extend(row['method'] for row in receipt['actual'])
     union = [m for methods in plan['groups'].values() for m in methods]
     require(len(actual) == len(set(actual)) and set(actual) == set(union), 'Current selected execution union is incomplete or duplicated')
-    return {'version': 1, 'scope': plan['scope'], 'status': 'PASS', 'identity': plan['identity'], 'selected_count': len(union), 'executed_count': len(actual), 'full_ledger_count': plan['complete_native_ledger_count'], 'plan_sha256': control.digest(control.encode(plan))}
+    device = plan.get('device_only_not_run')
+    expected_device = control.device_only_not_run({'native_methods':control.device_only_ledger(),
+                                                 'device_only_methods':control.device_only_ledger()})
+    require(device == expected_device, 'Missing, unknown, or falsely passing physical-device ledger')
+    require(plan.get('execution_platforms') == ['macos-host', 'ios-simulator'], 'Missing explicit native execution platforms')
+    require(not set(union).intersection(row['method'] for row in device), 'Physical-device method counted as simulator execution')
+
+    return {'version': 1, 'scope': plan['scope'], 'status': 'PASS', 'identity': plan['identity'], 'selected_count': len(union), 'executed_count': len(actual), 'full_ledger_count': plan['complete_native_ledger_count'], 'device_only_not_run': device, 'device_only_executed_count': 0, 'execution_platforms': ['macos-host', 'ios-simulator'], 'plan_sha256': control.digest(control.encode(plan))}
 
 
 def main():

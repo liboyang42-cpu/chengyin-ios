@@ -123,12 +123,14 @@ struct MerchantOperationsDocumentView: View {
     let destination: MerchantOperationsDestination
     let imageHost: MerchantRetainedImageHost?
     var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
+    var templateReturn: MerchantCityTemplateReturnAction? = nil
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: MerchantOperationsViewModel
     @State private var confirmDiscard = false
     @State private var confirmReload = false
-    init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil, templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil) {
+    init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil, templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil, templateReturn: MerchantCityTemplateReturnAction? = nil) {
+        self.templateReturn = templateReturn
         self.reader = reader; self.destination = destination; self.imageHost = imageHost; self.templateAssistFactory = templateAssistFactory
         _model = StateObject(wrappedValue: .init(reader: reader, destination: destination, imageHost: imageHost))
     }
@@ -156,8 +158,17 @@ struct MerchantOperationsDocumentView: View {
             } else { ProgressView("merchant.loading") }
         }
         .appNavigationTitle(key: destination.titleKey)
+        .safeAreaInset(edge: .bottom) {
+            if let templateReturn { MerchantCityTemplateReturnFooter(coordinator: coordinator, action: templateReturn) }
+        }
         .navigationBarBackButtonHidden(coordinator.isDirty)
         .toolbar {
+            if templateReturn != nil, !coordinator.isDirty {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.cancel") { dismiss() }.disabled(coordinator.isBusy)
+                        .accessibilityIdentifier("merchant.cityTemplate.cancelEditor")
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("merchant.operations.reloadSource", systemImage: "arrow.clockwise") {
                     if coordinator.isDirty { confirmReload = true } else { Task { await model.load() } }

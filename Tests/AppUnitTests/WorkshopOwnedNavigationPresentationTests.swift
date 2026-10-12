@@ -43,7 +43,7 @@ import UIKit
         let f = try fixture()
 #if DEBUG
         f.navigation.syntheticTrace = { snapshot in
-            print("WORKSHOP_SYNTHETIC_LIST event=\(snapshot.event.rawValue) current=\(snapshot.currentAppearance) live=\(snapshot.displayedLive) list=\(snapshot.list) detail=\(snapshot.detail) package=\(snapshot.package) selected=\(snapshot.selected) showsPackage=\(snapshot.showsPackage)")
+            print("WORKSHOP_SYNTHETIC_OWNED event=\(snapshot.event.rawValue) current=\(snapshot.currentAppearance) appeared=\(snapshot.displayedAppeared) closed=\(snapshot.displayedClosed) currentAppeared=\(snapshot.currentAppeared) currentClosed=\(snapshot.currentClosed) eligible=\(snapshot.eligible) live=\(snapshot.displayedLive) list=\(snapshot.list) detail=\(snapshot.detail) package=\(snapshot.package) selected=\(snapshot.selected) showsPackage=\(snapshot.showsPackage)")
         }
 #endif
         // This one sealed-fixture method emits at most twelve fixed stages. No IDs,
