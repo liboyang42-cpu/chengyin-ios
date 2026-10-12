@@ -10,10 +10,10 @@ import SwiftUI
     let source: MerchantRegistrationAvailabilitySource
     let replacement: MerchantRegistrationAvailability?
     let canEdit: Bool
+    @Binding var editor: Session?
     let apply: (MerchantRegistrationAvailability?) -> Bool
     @Environment(\.scenePhase) private var scenePhase
-    @State private var editor: Session?
-    private struct Session: Identifiable {
+    struct Session: Identifiable {
         let id = UUID()
         let context: Context
         let source: MerchantRegistrationAvailabilitySource
@@ -38,11 +38,26 @@ import SwiftUI
             }.disabled(!canEdit).accessibilityIdentifier("merchant.registrationAvailability.open")
             Text("merchant.registrationAvailability.preserve").font(.footnote).foregroundStyle(.secondary)
         }
+
+    }
+}
+
+/// The sheet belongs to the stable editor page, never a virtualized Form section.
+@MainActor struct MerchantRegistrationAvailabilityPresentation: ViewModifier {
+    @Binding var editor: MerchantRegistrationAvailabilityPicker.Session?
+    let context: MerchantRegistrationAvailabilityPicker.Context?
+    let source: MerchantRegistrationAvailabilitySource?
+    let replacement: MerchantRegistrationAvailability?
+    let canEdit: Bool
+    let apply: (MerchantRegistrationAvailability?) -> Bool
+    @Environment(\.scenePhase) private var scenePhase
+    func body(content: Content) -> some View {
+        content
         .sheet(item: $editor) { captured in
             MerchantRegistrationAvailabilitySheet(initial: captured.initial,
                 unrecognized: MerchantRegistrationAvailability(source: captured.source) == nil,
                 cancel: { editor = nil }) { value in
-                guard canEdit, scenePhase == .active, context == captured.context,
+                guard let source, canEdit, scenePhase == .active, context == captured.context,
                       source == captured.source, replacement == captured.replacement, value.isValid else { return false }
                 // An unchanged representable source is an omission, not normalization.
                 let next = value == MerchantRegistrationAvailability(source: source) ? nil : value
@@ -55,7 +70,7 @@ import SwiftUI
         .onChange(of: replacement) { _, _ in editor = nil }
         .onChange(of: canEdit) { _, value in if !value { editor = nil } }
         .onChange(of: scenePhase) { _, value in if value != .active { editor = nil } }
-        .onDisappear { editor = nil }
+
     }
 }
 

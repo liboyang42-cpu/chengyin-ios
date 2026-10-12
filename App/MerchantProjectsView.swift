@@ -84,6 +84,8 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
         }
         .onAppear { if scenePhase == .active { presentation.activate() } }
         .onDisappear { if presentation.selection == nil { presentation.retire() } }
+        .background {
+            Color.clear.frame(width: 0, height: 0)
         .sheet(item: presentation.summaryBinding()) { selected in
             NavigationStack {
                 if let snapshot = model.value, presentation.selectionIsCurrent(selected, snapshot: snapshot, context: context) {
@@ -116,6 +118,10 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     }
                 } else { ContentUnavailableView("merchant.projectWorkspace.changed", systemImage: "lock") }
             }.onDisappear { presentation.closeSummary(id: selected.id) }
+        }
+        // SwiftUI may retain the original sheet binding across tab/context changes.
+        // Rebuild only its owner, never the loaded list or selected tab.
+        .id(presentation.presentationIdentity)
         }
     }
     private func reload(discardOldValue: Bool = false) async {
@@ -213,6 +219,7 @@ struct MerchantProjectWorkspaceSnapshot {
     @Published private(set) var selection: Selection?
     @Published private(set) var route: Route?
     private var generation = UUID()
+    var presentationIdentity: UUID { generation }
     private(set) var active = true
     func permit(snapshot: MerchantProjectWorkspaceSnapshot) -> Permit { .init(generation: generation, snapshotID: snapshot.id) }
     func activate() { if !active { active = true; invalidate() } }

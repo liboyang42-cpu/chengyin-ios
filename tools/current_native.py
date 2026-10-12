@@ -101,6 +101,81 @@ def core_command(group, output):
             '^(?:' + '|'.join(alternatives) + ')$', '--xunit-output', str(output)]
 
 
+
+def core_serial_command(group):
+    # SwiftPM6.3.3's parallel runner launches one process per method even with
+    # one worker. Its serial XCTest path runs the same explicit filter once.
+    original = core_command(group, 'unused-serial-xunit.xml')
+    return original[:4] + ['--no-parallel', '--disable-swift-testing', '--filter',
+                           original[original.index('--filter') + 1]]
+
+
+def validate_core_serial_evidence(raw, expected, returncode):
+    """Real Darwin events plus real suite summaries, never invented xUnit XML."""
+    require(type(returncode) is int and returncode == 0,
+            'Core serial test command failed: returncode=' + str(returncode) +
+            '; raw stdout is retained (124 means the unchanged execution window expired)')
+    require(len(raw) <= LIMIT, 'Oversized Core serial transcript')
+    lines = raw.decode('utf-8').splitlines()
+    case = re.compile(r"^Test Case '-\[(QuestifyCoreTests)\.([A-Za-z][A-Za-z0-9_]*) (test[A-Za-z0-9_]+)\]' (.+)$")
+    suite = re.compile(r"^Test Suite '([^']+)' (started|passed|failed) at (.+)\.$")
+    count = re.compile(r'^\s*Executed ([0-9]+) tests?, with ([0-9]+) failures? \(([0-9]+) unexpected\) in [0-9]+(?:\.[0-9]+)? \([0-9]+(?:\.[0-9]+)?\) seconds\s*$')
+    stack = []; started = []; seen = set(); finished = []; active = None; awaiting_count = None
+    root_seen = False; root_complete = False; bundle_seen = False; summaries = {}
+    for line in lines:
+        if line.startswith('Test Suite '):
+            match = suite.fullmatch(line)
+            require(match is not None and active is None and awaiting_count is None,
+                    'Malformed, interleaved, or unfinished Core suite event')
+            name, status, _ = match.groups()
+            if status == 'started':
+                require(not root_complete, 'Extra Core suite after final summary')
+                if not stack:
+                    require(not root_seen and name in {'Selected tests', 'All tests'}, 'Missing or duplicate Core root suite')
+                    root_seen = True
+                elif len(stack) == 1:
+                    require(not bundle_seen and name == 'QuestifyCorePackageTests.xctest', 'Wrong or duplicate Core test bundle')
+                    bundle_seen = True
+                stack.append((name, len(started), len(finished), len(stack)))
+            else:
+                require(status == 'passed' and stack and stack[-1][0] == name, 'Unmatched/nonpassing Core suite terminal')
+                awaiting_count = stack.pop()
+        elif line.startswith('Test Case '):
+            match = case.fullmatch(line)
+            require(match is not None and awaiting_count is None and len(stack) >= 2 and not root_complete,
+                    'Malformed Core method event outside current bundle')
+            target, cls, method, outcome = match.groups(); identity = target + '/' + cls + '/' + method
+            if outcome == 'started.':
+                require(active is None and identity not in seen, 'Duplicate/interleaved Core method start')
+                started.append(identity); seen.add(identity); active = identity
+            else:
+                terminal = re.fullmatch(r'(passed|failed|skipped) \([0-9]+(?:\.[0-9]+)? seconds\)\.', outcome)
+                require(terminal is not None and active == identity, 'Core method terminal has no matching active start')
+                require(terminal[1] == 'passed', 'Nonpassing Core serial method')
+                finished.append(identity); active = None
+        elif line.lstrip().startswith('Executed '):
+            match = count.fullmatch(line)
+            require(match is not None and awaiting_count is not None, 'Unknown, skipped, or unattached Core count summary')
+            tests, failures, unexpected = map(int, match.groups()); name, begins, ends, level = awaiting_count
+            require(failures == unexpected == 0 and tests == len(started)-begins == len(finished)-ends,
+                    'Native Core summary does not match real completed method events')
+            if level in (0, 1):
+                require(tests == len(expected) and name not in summaries, 'Wrong/duplicate top-level Core execution count')
+                summaries[name] = {'tests':tests, 'failures':failures, 'unexpected':unexpected, 'status':'passed'}
+            if level == 0: root_complete = True
+            awaiting_count = None
+        elif awaiting_count is not None and line.strip():
+            raise ValueError('Core suite terminal is not followed by its native summary')
+    require(root_seen and bundle_seen and root_complete and not stack and active is None and awaiting_count is None,
+            'Truncated Core serial execution or missing final native summary')
+    # The original exact Darwin method parser remains an independent second
+    # check of method IDs/statuses after ordered lifecycle validation above.
+    rows = parse_core_transcript(raw); validate_outcomes(rows, expected, returncode)
+    require(started == finished and set(started) == set(expected) and len(started) == len(expected),
+            'Core serial method union differs from exact selected set')
+    return rows, {'format':'darwin-native-suite-summaries-v1', 'suites':summaries}
+
+
 def xcode_test_command(group, run, simulator, result):
     allowance = '120' if group['name'] == 'app-unit' else '900'
     return ['xcodebuild', '-xctestrun', str(run), '-destination', 'platform=iOS Simulator,id=' + simulator,
@@ -197,7 +272,16 @@ def parse_xcresult(data, target):
                 identifier = target + '/' + identifier
             require(METHOD.fullmatch(identifier) is not None and identifier.startswith(target + '/'), 'Malformed XCTest method')
             require(isinstance(node.get('result'), str), 'Missing XCTest outcome')
-            require(node['result'] != 'Passed' or not node.get('children'), 'Unexpected nested result/repetition in passed XCTest case')
+            if node['result'] == 'Passed':
+                # xcresult26 emits plain Runtime Warning diagnostic leaves even
+                # for successful methods. Never accept nested test execution,
+                # outcomes, identities, repetitions, or unknown diagnostic types.
+                children = node.get('children', [])
+                require(isinstance(children, list) and all(
+                    isinstance(child, dict) and set(child) == {'name', 'nodeType'} and
+                    child['nodeType'] == 'Runtime Warning' and
+                    isinstance(child['name'], str) and bool(child['name'].strip())
+                    for child in children), 'Unexpected nested result/repetition in passed XCTest case')
             result.append({'method': identifier, 'status': node['result']})
         for child in node.get('children', []):
             # Test Case children include diagnostics/activities, not new methods.
@@ -527,11 +611,13 @@ def execute_current(root, plan, role, output, start_file, index=None, build=None
             before=core_bundle_ledger(root);receipt['product_ledger_sha256']=split404_hash(before)
             for checker in ['check_content_draft_api_boundary.py','check_play_recovery_api_boundary.py']:
                 run([sys.executable,'-B','tools/'+checker,'--module-path','.build/debug/Modules'],60,checker)
-            result = output / 'core.xml'; argv = core_command(g, result)+host_args
+            receipt['core_evidence_format'] = 'darwin-serial-v1'; save()
+            argv = core_serial_command(g)+host_args
             raw = run(argv, BUDGET['core-test'], 'core-test', True)
-            rows = validate_core_evidence(result.read_bytes(), raw, g['methods'], commands[-1]['returncode'])
+            rows, summary = validate_core_serial_evidence(raw, g['methods'], commands[-1]['returncode'])
+            write_json(output/'core-native-summary.json', summary)
             require(core_bundle_ledger(root)==before,'Core test bundle changed during skip-build execution')
-            receipt['actual'] = rows; receipt['raw_sha256']={name:digest(output/name) for name in ['core.xml','core-test.stdout']}
+            receipt['actual'] = rows; receipt['raw_sha256']={name:digest(output/name) for name in ['core-native-summary.json','core-test.stdout']}
         else:
             sim, runtime = inventory(); receipt.update(simulator=sim, runtime=runtime); save()
             if role == 'ui-build':
@@ -583,8 +669,17 @@ def reparse_actual_result(directory, plan):
     tests=[row for row in commands if row.get('stem')==stem]
     require(len(tests)==1 and tests[0].get('returncode')==0,'Missing or failed unique actual native command')
     for name, expected in receipt.get('raw_sha256',{}).items():
-        require(name in {'core.xml','core-test.stdout','summary.json','tests.json'} and digest(directory/name)==expected,'Actual result bytes changed')
-    if role=='core':
+        require(name in {'core.xml','core-test.stdout','core-native-summary.json','summary.json','tests.json'} and digest(directory/name)==expected,'Actual result bytes changed')
+    if role=='core' and receipt.get('core_evidence_format')=='darwin-serial-v1':
+        require(set(receipt['raw_sha256'])=={'core-native-summary.json','core-test.stdout'},'Missing serial Core raw evidence')
+        host=receipt['host_target'];require(set(host)=={'sdk_path','sdk_version','triple'} and all(type(v) is str and v for v in host.values()),'Missing actual Core host identity')
+        require(tests[0]['argv']==core_serial_command(g)+['--sdk',host['sdk_path'],'--triple',host['triple']],'Actual serial Core filter/SDK/target differs from selected set')
+        raw=(directory/'core-test.stdout').read_bytes()
+        require(control.digest(raw)==tests[0]['stdout_sha256'],'Core serial transcript not bound to actual command')
+        actual,summary=validate_core_serial_evidence(raw,g['methods'],tests[0]['returncode'])
+        require(read_json(directory/'core-native-summary.json')==summary,'Recorded summary differs from actual native suite counts')
+    elif role=='core':
+        require(receipt.get('core_evidence_format') is None,'Unknown Core evidence format')
         require(set(receipt['raw_sha256'])=={'core.xml','core-test.stdout'},'Missing Core raw evidence')
         argv=tests[0]['argv']; marker=argv.index('--xunit-output') if '--xunit-output' in argv else -1
         host=receipt['host_target'];require(set(host)=={'sdk_path','sdk_version','triple'} and all(type(v) is str and v for v in host.values()),'Missing actual Core host identity')

@@ -29,22 +29,30 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
         // A presented sheet can leave its presenter's bars in the AX tree.
         // Structural bars need not have an activation point. Check their native
         // action leaves instead, preferring the last (presented) container.
-        func foregroundBar(_ bars: [XCUIElement]) -> XCUIElement? {
-            bars.reversed().first { bar in
-                guard bar.exists else { return false }
+        func foregroundBarFrame(_ bars: XCUIElementQuery) -> CGRect? {
+            // Identity-bound array elements become invalid during sheet transitions.
+            // Re-resolve each index and sample its frame once; never retain a bar snapshot handle.
+            for index in (0..<bars.count).reversed() {
+                let bar = bars.element(boundBy: index)
+                guard bar.exists else { continue }
                 let frame = bar.frame
-                guard !frame.isEmpty, app.frame.intersects(frame) else { return false }
-                let actions = bar.buttons.allElementsBoundByAccessibilityElement.filter {
-                    $0.descendants(matching: .button).count == 0
+                guard !frame.isEmpty, app.frame.intersects(frame) else { continue }
+                let buttons = bar.buttons
+                var leafCount = 0
+                var hasHittableAction = false
+                for actionIndex in 0..<buttons.count {
+                    let action = buttons.element(boundBy: actionIndex)
+                    guard action.exists, action.descendants(matching: .button).count == 0 else { continue }
+                    leafCount += 1
+                    if action.isHittable { hasHittableAction = true; break }
                 }
-                return actions.isEmpty || actions.contains { $0.isHittable }
+                if leafCount == 0 || hasHittableAction { return frame }
             }
+            return nil
         }
-        let navigationBar = foregroundBar(app.navigationBars.allElementsBoundByAccessibilityElement)
-        if let navigationBar { bounds.origin.y = max(bounds.minY, navigationBar.frame.maxY + 4) }
+        if let frame = foregroundBarFrame(app.navigationBars) { bounds.origin.y = max(bounds.minY, frame.maxY + 4) }
         var bottom = app.frame.maxY - 40
-        let toolbar = foregroundBar(app.toolbars.allElementsBoundByAccessibilityElement)
-        if let toolbar { bottom = min(bottom, toolbar.frame.minY - 4) }
+        if let frame = foregroundBarFrame(app.toolbars) { bottom = min(bottom, frame.minY - 4) }
         let keyboard = app.keyboards.firstMatch
         if keyboard.exists { bottom = min(bottom, keyboard.frame.minY - 4) }
         bounds.size.height = max(0, bottom - bounds.minY)

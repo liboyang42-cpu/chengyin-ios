@@ -49,8 +49,17 @@ class MerchantRegistrationAvailabilityChecks(unittest.TestCase):
         app = read('App/MerchantRegistrationAvailabilityPicker.swift')
         for text in ['context == captured.context', 'source == captured.source', 'replacement == captured.replacement', 'scenePhase == .active',
                      '.onChange(of: context)', '.onChange(of: source)', '.onChange(of: replacement)', '.onChange(of: canEdit)',
-                     '.onChange(of: scenePhase)', '.onDisappear { editor = nil }']:
+                     '.onChange(of: scenePhase)']:
             self.assertIn(text, app)
+        editor = read('App/MerchantContentEditor.swift')
+        self.assertIn('@State private var availabilityEditor: MerchantRegistrationAvailabilityPicker.Session?', editor)
+        self.assertIn('.modifier(MerchantRegistrationAvailabilityPresentation(editor: $availabilityEditor,', editor)
+        picker = app.split('struct MerchantRegistrationAvailabilityPicker:')[1].split('struct MerchantRegistrationAvailabilityPresentation:')[0]
+        self.assertNotIn('.sheet(', picker)
+        self.assertNotIn('.onDisappear', picker)
+        self.assertNotIn('@State private var editor', picker)
+        presentation = app.split('struct MerchantRegistrationAvailabilityPresentation:')[1].split('private struct MerchantRegistrationAvailabilitySourceRows:')[0]
+        self.assertIn('.sheet(item: $editor)', presentation)
 
     def test_calendar_carrier_and_off_step_minutes_are_preserved(self):
         app = read('App/MerchantRegistrationAvailabilityPicker.swift')

@@ -249,9 +249,10 @@ struct ClubGovernanceReadView: View {
                 }
             }
         }
-        .task(id: readContext) { snapshot = nil; editor = nil; customerTopic = nil; feedClub = nil; coordinator.cancelReview(); await load() }
-        .onChange(of: readContext) { _, _ in invalidateRead() }
-        .onChange(of: identity) { _, _ in invalidateRead() }
+        // One owner clears the previous account and starts its replacement read.
+        // Separate onChange invalidations can run after a fast forbidden response
+        // and erase its error. Context checks still hide old PII synchronously.
+        .task(id: readContext) { invalidateRead(); await load() }
         .onDisappear {
             if operation == .customers {
                 customerKeywordDebounce.cancel()

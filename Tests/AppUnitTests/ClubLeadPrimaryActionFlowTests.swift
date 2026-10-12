@@ -202,13 +202,13 @@ import XCTest
 }
 @MainActor private final class PrimaryFixture {
     let club = PrimaryClubReader(), flow = PrimaryFlowReader(), access = PrimaryAccess(), projects = PrimaryProjectReader()
-    var context: ClubPrimaryProgressContext { .init(club: club.returned, clubReader: club, reader: flow, access: access, projects: projects) }
+    var context: ClubLeadProgressContext { .init(club: club.returned, clubReader: club, reader: flow, access: access, projects: projects) }
     func row(_ id: Int, topic: Int = 91, clubID: Int = 81, status: CoopFlowJSON = .id(0)) -> CoopFlowJSON {
         .object(["id": .id(id), "topicId": .id(topic), "toType": .string("club"), "toId": .id(clubID), "status": status,
             "partner": .object(["name": .string("Partner \(id)")]), "topicName": .string("Topic \(topic)"), "createTime": .string("2026-10-11 09:00"), "message": .string("Invitation note")])
     }
     func value(received: [CoopFlowJSON] = [], sent: [CoopFlowJSON] = []) -> CoopFlowJSON { .object(["received": .array(received), "sent": .array(sent)]) }
-    func snapshot(received: [CoopFlowJSON] = [], sent: [CoopFlowJSON] = []) throws -> ClubPrimaryProgressSnapshot {
+    func snapshot(received: [CoopFlowJSON] = [], sent: [CoopFlowJSON] = []) throws -> ClubLeadProgressSnapshot {
         try .init(context: context, topics: access.topics(), invitations: value(received: received, sent: sent), projects: projects.page)
     }
     func project(_ id: Int, club: Int = 81, kind: String = "topic", accepted: Bool = false) -> CreatorContentProject {

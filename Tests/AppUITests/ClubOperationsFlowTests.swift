@@ -35,10 +35,37 @@ final class ClubOperationsFlowTests: XCTestCase {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-club-operations", scenario]
         app.launch(); XCTAssertTrue(element("club.ops.fixtureNotice").waitForExistence(timeout: 10))
     }
+    private var emittedPresentationFailure = false
+    private func emitPresentationFailure(_ phase: String) {
+        guard !emittedPresentationFailure else { return }
+        emittedPresentationFailure = true
+        // Only this offline fixture's fixed counters/controls. stdout is retained
+        // even when the runner does not export the xcresult screenshot attachments.
+        let notice = app.staticTexts["club.ops.fixtureNotice"].firstMatch
+        var presentation = "absent"
+        if notice.exists { presentation = (notice.value as? String) ?? "unavailable" }
+        let controls = ["club.ops.openManage", "club.ops.setting.publicVisible", "club.ops.confirm", "club.ops.close"]
+        let rows: [[String: Any]] = controls.map { id in
+            let control = app.buttons.matching(identifier: id).allElementsBoundByIndex
+                .reversed().first(where: { $0.exists && $0.isHittable }) ?? app.buttons[id].firstMatch
+            return ["id": id, "exists": control.exists, "hittable": control.exists && control.isHittable,
+                    "frame": control.exists ? String(describing: control.frame) : "absent"]
+        }
+        let payload: [String: Any] = ["version": 1, "fixture": "club-operations", "phase": phase,
+            "presentation": presentation,
+            "reviewExists": element("club.ops.reviewSheet").exists, "controls": rows]
+        if let bytes = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]),
+           let message = String(data: bytes, encoding: .utf8) {
+            print("QUESTIFY_CLUB_PRESENTATION_EVIDENCE_V1 " + message)
+            fflush(stdout)
+        }
+        attachFixtureScreenshot(self, app: app, name: "Club presentation before further gestures")
+    }
     private func tap(_ id: String) {
         _ = reveal(id)
         let buttons = app.buttons.matching(identifier: id)
         guard let control = buttons.allElementsBoundByIndex.reversed().first(where: { $0.exists && $0.isHittable }) else {
+            emitPresentationFailure("missing-button:" + id)
             XCTFail("Missing presented button: \(id). \(app.debugDescription)"); return
         }
         XCTAssertTrue(control.isEnabled, app.debugDescription); control.tap()
@@ -61,7 +88,15 @@ final class ClubOperationsFlowTests: XCTestCase {
         }, object: app)
         XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed, app.debugDescription)
     }
-    private func reviewSetting() { tap("club.ops.openManage"); tap("club.ops.setting.publicVisible") }
+    private func reviewSetting() {
+        tap("club.ops.openManage"); tap("club.ops.setting.publicVisible")
+        // A single tap must produce the actual review before looking/scrolling
+        // for Confirm. Preserve the original business assertions in each case.
+        guard element("club.ops.reviewSheet").waitForExistence(timeout: 5) else {
+            emitPresentationFailure("review-missing-after-setting-tap")
+            XCTFail("Setting tap did not present a review. " + app.debugDescription); return
+        }
+    }
     func testOwnerSettingRequiresReviewAndSingleConfirmation() {
         launch(); reviewSetting(); XCTAssertTrue(element("club.ops.reviewSheet").waitForExistence(timeout: 5))
         tap("club.ops.confirm"); count(1)

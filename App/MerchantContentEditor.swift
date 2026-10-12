@@ -12,6 +12,7 @@ import SwiftUI
     @State private var text: [String: String] = [:]
     @State private var checked: [String: Bool] = [:]
     @State private var availabilityReplacement: MerchantRegistrationAvailability?
+    @State private var availabilityEditor: MerchantRegistrationAvailabilityPicker.Session?
     @State private var templateID = 0
     @State private var pauseFallback: MerchantStationPauseChoice?
     @State private var approve = true
@@ -24,7 +25,23 @@ import SwiftUI
         _model = StateObject(wrappedValue: .init(service: service, query: query))
     }
     private var c: MerchantContentCoordinator { model.coordinator }
+    private var availabilityContext: MerchantRegistrationAvailabilityPicker.Context? {
+        guard case .registrationEdit(let id) = kind, c.isCurrent, let snapshot = c.snapshot else { return nil }
+        return .init(scope: snapshot.scope, registrationID: id, observedAt: snapshot.observedAt)
+    }
+    private var canEditAvailability: Bool {
+        availabilityContext != nil && !c.busy && !c.locked && c.review == nil && c.receipt == nil
+    }
+    private func applyAvailability(_ replacement: MerchantRegistrationAvailability?,
+                                   expected: MerchantRegistrationAvailabilityPicker.Context?,
+                                   source: MerchantRegistrationAvailabilitySource?) -> Bool {
+        guard canEditAvailability, availabilityContext == expected,
+              c.snapshot.map({ MerchantRegistrationAvailabilitySource($0.value) }) == source else { return false }
+        availabilityReplacement = replacement; dirty = true; model.cancel(); return true
+    }
     var body: some View {
+        let currentAvailabilityContext = availabilityContext
+        let currentAvailabilitySource = c.snapshot.map { MerchantRegistrationAvailabilitySource($0.value) }
         Form {
             Section { MerchantContentBoundary(); MerchantContentStatus(model: model, allowsReload: !dirty) }
             if availabilityReplacement != nil, c.receipt != nil, c.snapshot == nil, !c.busy {
@@ -50,6 +67,10 @@ import SwiftUI
             } else if c.busy { ProgressView("merchant.loading") }
         }
         .accessibilityIdentifier("merchant.content.editor")
+        .modifier(MerchantRegistrationAvailabilityPresentation(editor: $availabilityEditor,
+            context: currentAvailabilityContext, source: currentAvailabilitySource,
+            replacement: availabilityReplacement, canEdit: canEditAvailability,
+            apply: { applyAvailability($0, expected: currentAvailabilityContext, source: currentAvailabilitySource) }))
         .appNavigationTitle(key: "merchant.content." + query.key)
         .task(id: service.scope) { text = [:]; availabilityReplacement = nil; pauseFallback = nil; dirty = false; await model.load(); if c.isCurrent, let s = c.snapshot { seed(s) } }
         .navigationBarBackButtonHidden(dirty)
@@ -86,7 +107,7 @@ import SwiftUI
             if case .registrationEdit(let id) = kind {
                 MerchantRegistrationAvailabilityPicker(context: .init(scope: s.scope, registrationID: id, observedAt: s.observedAt),
                     source: .init(s.value), replacement: availabilityReplacement,
-                    canEdit: c.isCurrent && !c.busy && !c.locked && c.review == nil && c.receipt == nil) { replacement in
+                    canEdit: canEditAvailability, editor: $availabilityEditor) { replacement in
                     guard c.isCurrent, !c.busy, !c.locked, c.review == nil, c.receipt == nil,
                           c.snapshot == s, c.snapshot?.observedAt == s.observedAt else { return false }
                     availabilityReplacement = replacement; dirty = true; model.cancel(); return true

@@ -35,11 +35,12 @@ final class MerchantProjectBrowserFlowTests: XCTestCase {
         let app = open(); tab("Activities", app)
         let row = app.buttons["merchant.project.row.activity:301"]
         XCTAssertTrue(revealFixtureElement(row, in: app)); row.tap()
+        // Card facts also exist in the underlying list: prove the actual sheet opened first.
+        XCTAssertTrue(app.buttons["merchant.projectSummary.close"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["merchant.projectBrowser.role.activity:301"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["merchant.projectBrowser.role.activity:301"].label, "Fulfilling merchant")
         XCTAssertEqual(app.staticTexts["merchant.projectBrowser.pending.activity:301"].label, "Pending verification: 2")
         XCTAssertFalse(app.buttons["merchant.projectWorkspace.open"].exists)
-        XCTAssertTrue(app.buttons["merchant.projectSummary.close"].waitForExistence(timeout: 5))
         app.buttons["merchant.projectSummary.close"].tap()
         XCTAssertTrue(app.buttons["merchant.project.row.activity:302"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["merchant.projectBrowser.fixture.readCount"].label, "1")
