@@ -1,0 +1,230 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateFrame.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo framing outline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取景轮廓"
+          }
+        }
+      }
+    },
+    "templateFrame.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set an existing frame address, load it explicitly to preview, then adjust its opacity. This does not upload images or perform photo review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写已有轮廓图地址，点击加载预览后调整浓淡。此处不上传图片或执行拍照审核。"
+          }
+        }
+      }
+    },
+    "templateFrame.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or screen state changed. Reload before editing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或页面状态已变化，请重新载入后编辑。"
+          }
+        }
+      }
+    },
+    "templateFrame.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload frame settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新载入轮廓配置"
+          }
+        }
+      }
+    },
+    "templateFrame.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This older frame configuration uses a different format. Its original data is preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份旧轮廓配置格式不同，原始数据已保留。"
+          }
+        }
+      }
+    },
+    "templateFrame.addressHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing HTTPS addresses and site paths can be saved. Preview only loads a validated absolute HTTPS address."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可保存已有 HTTPS 地址或站内路径。预览仅加载经过校验的完整 HTTPS 地址。"
+          }
+        }
+      }
+    },
+    "templateFrame.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear framing outline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空取景轮廓"
+          }
+        }
+      }
+    },
+    "templateFrame.opacity %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opacity: %lld%%"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浓淡：%lld%%"
+          }
+        }
+      }
+    },
+    "templateFrame.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轮廓预览"
+          }
+        }
+      }
+    },
+    "templateFrame.load": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load or retry preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载或重试预览"
+          }
+        }
+      }
+    },
+    "templateFrame.previewUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a supported HTTPS address to load a preview. Site paths remain saved without loading."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写受支持的 HTTPS 地址后可加载预览。站内路径会保留，但不在此加载。"
+          }
+        }
+      }
+    },
+    "templateFrame.backgroundHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The two-tone background is only for checking transparency; it is not part of the frame image."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双色背景仅用于查看透明效果，不属于轮廓图。"
+          }
+        }
+      }
+    },
+    "templateFrame.loadFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The image could not be loaded. Check the address and retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片未能加载，请检查地址后重试。"
+          }
+        }
+      }
+    },
+    "templateFrame.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading frame preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载轮廓预览"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

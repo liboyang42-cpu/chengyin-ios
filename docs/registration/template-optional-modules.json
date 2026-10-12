@@ -1,0 +1,16 @@
+{
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplateOptionalModuleManager.swift",
+    "Core/TemplateOptionalModules.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateOptionalModuleManagerTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateOptionalModulesTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-optional-modules.json",
+  "integration_note": "Add exactly the two TemplateAuthoringView seams from incremental patch: scoped model commit helper and manager NavigationLink. Do not replace cumulative view from after. Keep earlier Creator common-form changes and root lifecycle fixes. No new grants or wire fields."
+}

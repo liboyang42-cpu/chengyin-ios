@@ -1,0 +1,16 @@
+{
+  "base": "5dd3e53c1de104735b26d75811cb4ff46b2a340f",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplateLegacyQuestionRehearsalView.swift",
+    "Core/TemplateLegacyQuestionRehearsal.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateLegacyQuestionRehearsalViewTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateLegacyQuestionRehearsalTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-legacy-question-rehearsal.json",
+  "integration_note": "Add only the4-line legacy rehearsal destination immediately after TemplateLegacyHintFields in TemplateAuthoringCompletionFields. Preserve the published reward-kind form and all previous fields. No16–19 dependency or central file change."
+}

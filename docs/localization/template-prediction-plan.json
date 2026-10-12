@@ -1,0 +1,277 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templatePrediction.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prediction plan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "竞猜配置"
+          }
+        }
+      }
+    },
+    "templatePrediction.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit the current prediction question, choices and relative reveal schedule. Save with the existing local draft action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑当前竞猜的题目、选项和相对揭晓时间，并沿用现有草稿保存。"
+          }
+        }
+      }
+    },
+    "templatePrediction.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or editing session changed. Reload before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或编辑会话已变化，请重新载入后继续。"
+          }
+        }
+      }
+    },
+    "templatePrediction.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新载入当前草稿"
+          }
+        }
+      }
+    },
+    "templatePrediction.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stored configuration needs the standard editor. Return to the configuration form to inspect its fields."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此配置需要标准编辑器，请返回配置表单查看原始字段。"
+          }
+        }
+      }
+    },
+    "templatePrediction.question": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question and instructions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题目与说明"
+          }
+        }
+      }
+    },
+    "templatePrediction.options": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "竞猜选项"
+          }
+        }
+      }
+    },
+    "templatePrediction.keysNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keys are generated automatically and shown for reference. Removing a choice removes only that row. A valid plan needs 2–4 choices."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项标识自动生成，仅供查看。删除只移除对应行；有效配置需要 2–4 个选项。"
+          }
+        }
+      }
+    },
+    "templatePrediction.count %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个选项"
+          }
+        }
+      }
+    },
+    "templatePrediction.schedule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutoff and reveal schedule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截止与揭晓时间"
+          }
+        }
+      }
+    },
+    "templatePrediction.conflict": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For a same-day reveal, the reveal hour must be at or after the cutoff hour. Adjust either hour or choose a later day."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当天揭晓时间不得早于截止时间。请调整小时或选择更晚的相对天数。"
+          }
+        }
+      }
+    },
+    "templatePrediction.summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current schedule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前时间安排"
+          }
+        }
+      }
+    },
+    "templatePrediction.relative": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are relative day offsets and whole hours, not a calendar date or a notification. This editor does not determine or announce a prediction result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里保存的是相对天数和整点，不是日历日期或通知。本编辑器不会判定或公布竞猜结果。"
+          }
+        }
+      }
+    },
+    "templatePrediction.sameDay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Same day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当天"
+          }
+        }
+      }
+    },
+    "templatePrediction.nextDay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明天"
+          }
+        }
+      }
+    },
+    "templatePrediction.secondDay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two days later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后天"
+          }
+        }
+      }
+    },
+    "templatePrediction.day %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 天"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateMemo.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choice memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项记忆"
+          }
+        }
+      }
+    },
+    "templateMemo.remember": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remember this choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记住这个选择"
+          }
+        }
+      }
+    },
+    "templateMemo.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saves an automatic tag effect for this option. This editor does not apply tags to any player."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为此选项保存自动标签效果。此编辑页不会向玩家添加标签。"
+          }
+        }
+      }
+    },
+    "templateMemo.reopen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The option changed. Reopen its editor before changing memory."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项已变化，请重新进入此选项后修改记忆。"
+          }
+        }
+      }
+    },
+    "templateMemo.capacity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All 16 effect slots are in use. Remove an existing effect before enabling memory."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "16 条效果已用满，请先删除一条已有效果再开启记忆。"
+          }
+        }
+      }
+    },
+    "templateMemo.off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This option has no automatic memory tag."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此选项没有自动记忆标签。"
+          }
+        }
+      }
+    },
+    "templateMemo.removeScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turning this off removes only its automatic memory tags; other effects stay unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭时仅移除此选项的自动记忆标签，其他效果保留。"
+          }
+        }
+      }
+    },
+    "templateMemo.otherEffects %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other effects retained: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留的其他效果：%lld 条"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

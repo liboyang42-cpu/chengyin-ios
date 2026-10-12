@@ -11,6 +11,10 @@ import SwiftUI
             TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) },
                 includesHints: false, includesChoiceOptions: false)
             TemplateLegacyHintFields(model: model)
+            if TemplateLegacyQuestionRehearsal(model.draft).isAvailable {
+                NavigationLink("templateLegacyQuiz.title") { TemplateLegacyQuestionRehearsalView(model: model) }
+                    .accessibilityIdentifier("templateLegacyQuiz.open")
+            }
             if model.draft.validationMethod == .choice {
                 TemplateChoiceOptionRowsFields(model: model)
             }

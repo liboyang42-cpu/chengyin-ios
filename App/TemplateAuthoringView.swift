@@ -55,6 +55,12 @@ import SwiftUI
         coordinator.change(draft); review = nil; revision += 1
         refreshMediaReviews()
     }
+    /// Optional-module manager commits only its captured draft and retires media/timeline callbacks first.
+    @discardableResult func commitOptionalModuleChange(_ change: TemplateOptionalModules.Change, matching scope: TemplateOptionalModules) -> Bool {
+        guard canEdit, !busy, review == nil, let next = scope.applying(change, to: draft) else { return false }
+        retireMediaReviews(); storyEditorGeneration += 1
+        draft = next; changed(); reloadMediaReviews(); return true
+    }
     func setGameEnabled(_ game: TemplateAdvancedGame, _ enabled: Bool) {
 #if DEBUG
         gameInputAttempts += 1
@@ -297,6 +303,10 @@ import SwiftUI
                 }
             }
             TemplateAuthoringRewardStoryFields(model: model)
+            Section {
+                NavigationLink("templateModules.title") { TemplateOptionalModuleManager(model: model) }
+                    .accessibilityIdentifier("templateModules.open")
+            }
             Section(String(localized: LocalizedStringResource("templateMedia.title", defaultValue: "Local media review", locale: locale))) {
                 TemplateMediaReviewFields(controller: media)
             }

@@ -1,0 +1,16 @@
+{
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplateChoiceMemoryFields.swift",
+    "Core/TemplateChoiceMemory.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateChoiceMemoryFieldsTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateChoiceMemoryTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-choice-memory.json",
+  "integration_note": "Use explicit ViewBuilder on existing TemplateCreatorFieldsView and prepend only supported QA/profile option memory fields. Preserve all original generic fields and earlier routing."
+}

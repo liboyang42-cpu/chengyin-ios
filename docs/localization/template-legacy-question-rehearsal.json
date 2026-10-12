@@ -1,0 +1,277 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateLegacyQuiz.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try this question locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地演练此题"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try the text or choice question from your current draft. Answers and hints stay in this local rehearsal; no completion record, score or reward is sent. Attachments are not played or fetched here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用当前草稿中的文字或选择题演练。输入和提示仅留在本地演练，不发送完成记录、分数或奖励；此处不播放或加载附件。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or editing session changed. Reload to start a fresh attempt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或编辑会话已变化，请重新读取开始新一轮演练。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前题目"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete the question and its answer first. Choice questions need at least two filled options and a correct answer that is present. Advanced primary games use their own rehearsal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先填写题目和答案。选择题需至少两个已填选项，正确答案必须对应已有内容。高级主玩法请使用对应的演练入口。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.question": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前题目"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.answer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入你的答案"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.completed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local answer matched"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地演练答案匹配"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.noAward": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is only the author’s local preview. No real completion or reward was granted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这只是作者本地预览，未产生真实完成记录或发放奖励。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.emptyAliases": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved answer contains only separators. The Mini preview rule accepts any nonempty answer in this case. Return to editing to set answer keywords if that is not intended."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已存答案只有分隔符，小程序预览规则在此情况下接受任意非空答案。如不符合预期，请返回编辑答案关键词。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.blankOption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unfilled option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未填写的选项"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.unselected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选择"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.wrong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That answer did not match. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回答不匹配，再试一次。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show configured hint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看已配置提示"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.submit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check local answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查本地答案"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.restart": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again from the start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新开始演练"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "base": "5dd3e53c1de104735b26d75811cb4ff46b2a340f",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplateScanResponseEditor.swift",
+    "Core/TemplateScanResponseConfiguration.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateScanResponseEditorTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateScanResponseConfigurationTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-scan-response.json",
+  "integration_note": "Add only specialized supported scan destination and managed-field filtering around the existing configurationFields call. Preserve published root usesHotspotPlacement and all earlier Creator seams. Packages16–18 are not dependencies. Do not replace cumulative common view with standalone after."
+}

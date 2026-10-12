@@ -1,0 +1,261 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateModules.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional modules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选模块管理"
+          }
+        }
+      }
+    },
+    "templateModules.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review an optional module, clear its content and remove it, or add it again. Ordinary enable switches keep their existing behavior. Adding a previously disabled module keeps its retained content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先查看可选模块内容，再确认清空并移除，也可以重新添加。原有启用开关保持原行为；添加曾被停用的模块会保留其已有内容。"
+          }
+        }
+      }
+    },
+    "templateModules.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or editing session changed. Reopen this manager before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或编辑会话已变化，请重新读取后继续。"
+          }
+        }
+      }
+    },
+    "templateModules.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前草稿"
+          }
+        }
+      }
+    },
+    "templateModules.enabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已添加"
+          }
+        }
+      }
+    },
+    "templateModules.available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available to add"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可添加"
+          }
+        }
+      }
+    },
+    "templateModules.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add module"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加模块"
+          }
+        }
+      }
+    },
+    "templateModules.inspect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review clear and remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看清空并移除"
+          }
+        }
+      }
+    },
+    "templateModules.savedScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save uses the existing local draft storage. It does not publish or grant rewards."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存使用现有本地草稿存储，不发布或发放奖励。"
+          }
+        }
+      }
+    },
+    "templateModules.removeNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm to clear the fields shown below and turn off this module. Adding it again will not restore the cleared content. Cancel keeps all content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后将清空下列内容并停用该模块，重新添加不会恢复已清空的内容。取消则保留全部内容。"
+          }
+        }
+      }
+    },
+    "templateModules.storyNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story text and timeline are cleared. The legacy story image is retained. Opening the timeline after adding creates its existing empty editing row."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空故事正文和时间线，保留旧版故事图片。重新添加后打开时间线，将按现有行为显示一个空白编辑行。"
+          }
+        }
+      }
+    },
+    "templateModules.rewardNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only clears this draft’s coupon reference, feedback and medal fields; medal style resets to glow. It does not cancel coupons or affect rewards already granted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只清空草稿中的优惠券引用、反馈和勋章字段，勋章样式重置为流光；不会注销优惠券或影响已发放的奖励。"
+          }
+        }
+      }
+    },
+    "templateModules.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空"
+          }
+        }
+      }
+    },
+    "templateModules.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm clear and remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认清空并移除"
+          }
+        }
+      }
+    },
+    "templateModules.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review module removal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认移除范围"
+          }
+        }
+      }
+    },
+    "templateModules.timeline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stored story timeline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已存故事时间线"
+          }
+        }
+      }
+    }
+  }
+}

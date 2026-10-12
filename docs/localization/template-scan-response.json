@@ -1,0 +1,277 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateScan.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan response and reveal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫码回复与显形"
+          }
+        }
+      }
+    },
+    "templateScan.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure what a scan should return using existing references. Changing modes keeps the other fields. This editor does not scan, play audio, upload files or run AR."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用已有地址配置扫码后的回复。切换模式会保留其他字段。此编辑页不执行扫码、音频播放、上传或 AR。"
+          }
+        }
+      }
+    },
+    "templateScan.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or session changed. Reload before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或会话已变化，请重新读取后继续。"
+          }
+        }
+      }
+    },
+    "templateScan.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前草稿"
+          }
+        }
+      }
+    },
+    "templateScan.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stored configuration cannot use the guided editor. Return to the original fields to inspect it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此历史配置暂不适用引导编辑，请返回原有字段查看。"
+          }
+        }
+      }
+    },
+    "templateScan.response": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Response content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回复内容"
+          }
+        }
+      }
+    },
+    "templateScan.overlay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reveal image size and placement settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显形图大小与放置设置"
+          }
+        }
+      }
+    },
+    "templateScan.width %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canvas width: %lld%%"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面宽度：%lld%%"
+          }
+        }
+      }
+    },
+    "templateScan.retained": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retained settings from other modes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他模式保留的设置"
+          }
+        }
+      }
+    },
+    "templateScan.retainedNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These saved values are not used by the current response mode. They remain editable because the existing validator still checks them. Choose NONE for retained AR when outside OVERLAY; clear a model reference explicitly if it conflicts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些已存内容不属于当前回复模式，但现有校验仍会检查，因此保留编辑入口。非显形模式如保留了 AR，请手动选“不开”；模型引用有冲突时可明确清除。"
+          }
+        }
+      }
+    },
+    "templateScan.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image sizing preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片大小预览"
+          }
+        }
+      }
+    },
+    "templateScan.previewNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load only after tapping. This neutral canvas shows the linked image at the configured width; it is not a camera, scan result or AR placement. Relative paths stay saved but are not resolved here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击后才加载图片。在中性底图上按配置宽度查看已有图片，不代表相机画面、扫码结果或 AR 放置。相对地址可以保存，此处不解析加载。"
+          }
+        }
+      }
+    },
+    "templateScan.load": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load / retry image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载 / 重试图片"
+          }
+        }
+      }
+    },
+    "templateScan.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载图片"
+          }
+        }
+      }
+    },
+    "templateScan.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The image could not load. Check its address and retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片加载失败，请检查地址后重试。"
+          }
+        }
+      }
+    },
+    "templateScan.modelNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use an existing .glb reference. This field does not upload or execute a 3D model."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写已有 .glb 模型地址，此处不上传或运行三维模型。"
+          }
+        }
+      }
+    },
+    "templateScan.clearModel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear model reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除模型引用"
+          }
+        }
+      }
+    }
+  }
+}

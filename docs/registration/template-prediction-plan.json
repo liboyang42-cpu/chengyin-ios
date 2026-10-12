@@ -1,0 +1,16 @@
+{
+  "base": "5dd3e53c1de104735b26d75811cb4ff46b2a340f",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplatePredictionPlanEditor.swift",
+    "Core/TemplatePredictionPlan.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplatePredictionPlanEditorTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplatePredictionPlanTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-prediction-plan.json",
+  "integration_note": "Merge only three scoped common-form hunks: usesPredictionPlan, AND-filter preserving usesHotspotPlacement, and prediction NavigationLink after the existing hotspot entry. Preserve cumulative16/17/19 fields and source routing. No prior local packet prerequisite or central edits."
+}

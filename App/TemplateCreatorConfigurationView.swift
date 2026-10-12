@@ -5,7 +5,8 @@ import SwiftUI
     let family: TemplateCreatorFamily
     private var issues: [TemplateCreatorIssue] { model.draft.advanced.creatorIssues(family) }
     private var usesHotspotPlacement: Bool { family == .hiddenObject && TemplateHotspotPlacement(model.draft.advanced).isSupported && TemplateHotspotPlacement(model.draft.advanced).sceneURL != nil }
-    private var configurationFields: [TemplateCreatorField] { TemplateCreatorSchema.fields(family).filter { !usesHotspotPlacement || $0.id != "hotspots" } }
+    private var usesPredictionPlan: Bool { family == .predict && TemplatePredictionPlan(model.draft.advanced).isSupported }
+    private var configurationFields: [TemplateCreatorField] { TemplateCreatorSchema.fields(family).filter { (!usesHotspotPlacement || $0.id != "hotspots") && (!usesPredictionPlan || !TemplatePredictionPlan.managedFields.contains($0.id)) } }
     var body: some View {
         Form {
             Section {
@@ -13,9 +14,17 @@ import SwiftUI
                 Text(LocalizedStringKey(family.providerKey)).font(.footnote).foregroundStyle(.secondary)
             }
             if model.draft.advanced.enabled(family.rawValue) {
+                if family == .scan && TemplateScanResponseConfiguration(model.draft.advanced).isSupported {
+                    Section { NavigationLink("templateScan.title") { TemplateScanResponseEditor(model: model) } }
+                    TemplateCreatorFieldsView(model: model, family: family, fields: configurationFields.filter { !TemplateScanResponseConfiguration.managedFields.contains($0.id) }, path: [])
+                } else {
                 TemplateCreatorFieldsView(model: model, family: family, fields: configurationFields, path: [])
+                }
                 if usesHotspotPlacement {
                     Section { NavigationLink("templateHotspots.title") { TemplateHotspotPlacementView(model: model) } }
+                }
+                if usesPredictionPlan {
+                    Section { NavigationLink("templatePrediction.title") { TemplatePredictionPlanEditor(model: model) } }
                 }
                 Section("creator.review") {
                     NavigationLink("creator.rehearse") { TemplateCreatorRehearsalView(draft: model.draft.advanced, family: family) }.disabled(!issues.isEmpty)
@@ -40,7 +49,13 @@ import SwiftUI
     let family: TemplateCreatorFamily
     let fields: [TemplateCreatorField]
     let path: [TemplateCreatorPath]
-    var body: some View {
+    @ViewBuilder var body: some View {
+            if TemplateChoiceMemory.isOptionPath(family, path) {
+                let memory = TemplateChoiceMemory(model.draft.advanced, family: family, optionPath: path)
+                if memory.isSupported {
+                    TemplateChoiceMemoryFields(model: model, family: family, optionPath: path).id(memory.scopeFingerprint)
+                }
+            }
         ForEach(fields) { field in
             if family == .multiplayer, path.isEmpty, ["roles", "turnOrder"].contains(field.id), TemplateMultiplayerPlan(model.draft.advanced).isSupported {
                 if field.id == "roles" {
@@ -81,6 +96,7 @@ import SwiftUI
         if field.id == "nodeId" && object["op"]?.string != "NODE_COMPLETED" { return true }
         if field.id == "value" && object["op"]?.string == "NODE_COMPLETED" { return true }
         if family == .hiddenObject && field.id == "r" { return true }
+        if family == .photoCheck && path == [.field("frameOpacity")] && TemplatePhotoFrameConfiguration(model.draft.advanced).isSupported { return true }
         if family == .compare && field.id == "effects" { return true }
         if let step = branchStep {
             if ["outcomeCode", "outcomeLabel"].contains(field.id) && !step.terminal { return true }
@@ -113,9 +129,13 @@ import SwiftUI
     @ViewBuilder private var control: some View {
         switch field.kind {
         case .text(let max, let required, _):
+            if family == .photoCheck, path == [.field("frameUrl")], TemplatePhotoFrameConfiguration(model.draft.advanced).isSupported {
+                NavigationLink("templateFrame.title") { TemplatePhotoFrameEditor(model: model) }
+            } else {
             VStack(alignment: .leading) {
                 TextField(LocalizedStringKey(field.labelKey), text: text, axis: .vertical).textInputAutocapitalization(.never)
                 HStack { if required { Text("creator.required") }; Spacer(); Text(verbatim: "\(text.wrappedValue.utf16.count)/\(max)") }.font(.caption).foregroundStyle(.secondary)
+            }
             }
         case .number(let min, let max, let integer):
             VStack(alignment: .leading) {

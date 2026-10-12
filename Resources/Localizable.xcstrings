@@ -161230,6 +161230,1430 @@
           }
         }
       }
+    },
+    "templateMemo.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choice memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项记忆"
+          }
+        }
+      }
+    },
+    "templateMemo.remember": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remember this choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记住这个选择"
+          }
+        }
+      }
+    },
+    "templateMemo.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saves an automatic tag effect for this option. This editor does not apply tags to any player."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为此选项保存自动标签效果。此编辑页不会向玩家添加标签。"
+          }
+        }
+      }
+    },
+    "templateMemo.reopen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The option changed. Reopen its editor before changing memory."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项已变化，请重新进入此选项后修改记忆。"
+          }
+        }
+      }
+    },
+    "templateMemo.capacity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All 16 effect slots are in use. Remove an existing effect before enabling memory."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "16 条效果已用满，请先删除一条已有效果再开启记忆。"
+          }
+        }
+      }
+    },
+    "templateMemo.off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This option has no automatic memory tag."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此选项没有自动记忆标签。"
+          }
+        }
+      }
+    },
+    "templateMemo.removeScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turning this off removes only its automatic memory tags; other effects stay unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭时仅移除此选项的自动记忆标签，其他效果保留。"
+          }
+        }
+      }
+    },
+    "templateMemo.otherEffects %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other effects retained: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留的其他效果：%lld 条"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try this question locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地演练此题"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try the text or choice question from your current draft. Answers and hints stay in this local rehearsal; no completion record, score or reward is sent. Attachments are not played or fetched here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用当前草稿中的文字或选择题演练。输入和提示仅留在本地演练，不发送完成记录、分数或奖励；此处不播放或加载附件。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or editing session changed. Reload to start a fresh attempt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或编辑会话已变化，请重新读取开始新一轮演练。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前题目"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete the question and its answer first. Choice questions need at least two filled options and a correct answer that is present. Advanced primary games use their own rehearsal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先填写题目和答案。选择题需至少两个已填选项，正确答案必须对应已有内容。高级主玩法请使用对应的演练入口。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.question": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前题目"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.answer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入你的答案"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.completed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local answer matched"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地演练答案匹配"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.noAward": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is only the author’s local preview. No real completion or reward was granted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这只是作者本地预览，未产生真实完成记录或发放奖励。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.emptyAliases": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved answer contains only separators. The Mini preview rule accepts any nonempty answer in this case. Return to editing to set answer keywords if that is not intended."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已存答案只有分隔符，小程序预览规则在此情况下接受任意非空答案。如不符合预期，请返回编辑答案关键词。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.blankOption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unfilled option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未填写的选项"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.unselected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选择"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.wrong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That answer did not match. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回答不匹配，再试一次。"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show configured hint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看已配置提示"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.submit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check local answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查本地答案"
+          }
+        }
+      }
+    },
+    "templateLegacyQuiz.restart": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again from the start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新开始演练"
+          }
+        }
+      }
+    },
+    "templateModules.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional modules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选模块管理"
+          }
+        }
+      }
+    },
+    "templateModules.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review an optional module, clear its content and remove it, or add it again. Ordinary enable switches keep their existing behavior. Adding a previously disabled module keeps its retained content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先查看可选模块内容，再确认清空并移除，也可以重新添加。原有启用开关保持原行为；添加曾被停用的模块会保留其已有内容。"
+          }
+        }
+      }
+    },
+    "templateModules.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or editing session changed. Reopen this manager before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或编辑会话已变化，请重新读取后继续。"
+          }
+        }
+      }
+    },
+    "templateModules.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前草稿"
+          }
+        }
+      }
+    },
+    "templateModules.enabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已添加"
+          }
+        }
+      }
+    },
+    "templateModules.available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available to add"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可添加"
+          }
+        }
+      }
+    },
+    "templateModules.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add module"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加模块"
+          }
+        }
+      }
+    },
+    "templateModules.inspect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review clear and remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看清空并移除"
+          }
+        }
+      }
+    },
+    "templateModules.savedScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save uses the existing local draft storage. It does not publish or grant rewards."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存使用现有本地草稿存储，不发布或发放奖励。"
+          }
+        }
+      }
+    },
+    "templateModules.removeNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm to clear the fields shown below and turn off this module. Adding it again will not restore the cleared content. Cancel keeps all content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后将清空下列内容并停用该模块，重新添加不会恢复已清空的内容。取消则保留全部内容。"
+          }
+        }
+      }
+    },
+    "templateModules.storyNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story text and timeline are cleared. The legacy story image is retained. Opening the timeline after adding creates its existing empty editing row."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空故事正文和时间线，保留旧版故事图片。重新添加后打开时间线，将按现有行为显示一个空白编辑行。"
+          }
+        }
+      }
+    },
+    "templateModules.rewardNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only clears this draft’s coupon reference, feedback and medal fields; medal style resets to glow. It does not cancel coupons or affect rewards already granted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只清空草稿中的优惠券引用、反馈和勋章字段，勋章样式重置为流光；不会注销优惠券或影响已发放的奖励。"
+          }
+        }
+      }
+    },
+    "templateModules.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空"
+          }
+        }
+      }
+    },
+    "templateModules.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm clear and remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认清空并移除"
+          }
+        }
+      }
+    },
+    "templateModules.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review module removal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认移除范围"
+          }
+        }
+      }
+    },
+    "templateModules.timeline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stored story timeline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已存故事时间线"
+          }
+        }
+      }
+    },
+    "templateFrame.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo framing outline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取景轮廓"
+          }
+        }
+      }
+    },
+    "templateFrame.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set an existing frame address, load it explicitly to preview, then adjust its opacity. This does not upload images or perform photo review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写已有轮廓图地址，点击加载预览后调整浓淡。此处不上传图片或执行拍照审核。"
+          }
+        }
+      }
+    },
+    "templateFrame.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or screen state changed. Reload before editing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或页面状态已变化，请重新载入后编辑。"
+          }
+        }
+      }
+    },
+    "templateFrame.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload frame settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新载入轮廓配置"
+          }
+        }
+      }
+    },
+    "templateFrame.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This older frame configuration uses a different format. Its original data is preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份旧轮廓配置格式不同，原始数据已保留。"
+          }
+        }
+      }
+    },
+    "templateFrame.addressHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing HTTPS addresses and site paths can be saved. Preview only loads a validated absolute HTTPS address."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可保存已有 HTTPS 地址或站内路径。预览仅加载经过校验的完整 HTTPS 地址。"
+          }
+        }
+      }
+    },
+    "templateFrame.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear framing outline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空取景轮廓"
+          }
+        }
+      }
+    },
+    "templateFrame.opacity %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opacity: %lld%%"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浓淡：%lld%%"
+          }
+        }
+      }
+    },
+    "templateFrame.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轮廓预览"
+          }
+        }
+      }
+    },
+    "templateFrame.load": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load or retry preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载或重试预览"
+          }
+        }
+      }
+    },
+    "templateFrame.previewUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a supported HTTPS address to load a preview. Site paths remain saved without loading."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写受支持的 HTTPS 地址后可加载预览。站内路径会保留，但不在此加载。"
+          }
+        }
+      }
+    },
+    "templateFrame.backgroundHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The two-tone background is only for checking transparency; it is not part of the frame image."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双色背景仅用于查看透明效果，不属于轮廓图。"
+          }
+        }
+      }
+    },
+    "templateFrame.loadFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The image could not be loaded. Check the address and retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片未能加载，请检查地址后重试。"
+          }
+        }
+      }
+    },
+    "templateFrame.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading frame preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载轮廓预览"
+          }
+        }
+      }
+    },
+    "templatePrediction.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prediction plan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "竞猜配置"
+          }
+        }
+      }
+    },
+    "templatePrediction.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit the current prediction question, choices and relative reveal schedule. Save with the existing local draft action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑当前竞猜的题目、选项和相对揭晓时间，并沿用现有草稿保存。"
+          }
+        }
+      }
+    },
+    "templatePrediction.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or editing session changed. Reload before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或编辑会话已变化，请重新载入后继续。"
+          }
+        }
+      }
+    },
+    "templatePrediction.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新载入当前草稿"
+          }
+        }
+      }
+    },
+    "templatePrediction.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stored configuration needs the standard editor. Return to the configuration form to inspect its fields."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此配置需要标准编辑器，请返回配置表单查看原始字段。"
+          }
+        }
+      }
+    },
+    "templatePrediction.question": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question and instructions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题目与说明"
+          }
+        }
+      }
+    },
+    "templatePrediction.options": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "竞猜选项"
+          }
+        }
+      }
+    },
+    "templatePrediction.keysNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keys are generated automatically and shown for reference. Removing a choice removes only that row. A valid plan needs 2–4 choices."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项标识自动生成，仅供查看。删除只移除对应行；有效配置需要 2–4 个选项。"
+          }
+        }
+      }
+    },
+    "templatePrediction.count %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个选项"
+          }
+        }
+      }
+    },
+    "templatePrediction.schedule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutoff and reveal schedule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截止与揭晓时间"
+          }
+        }
+      }
+    },
+    "templatePrediction.conflict": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For a same-day reveal, the reveal hour must be at or after the cutoff hour. Adjust either hour or choose a later day."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当天揭晓时间不得早于截止时间。请调整小时或选择更晚的相对天数。"
+          }
+        }
+      }
+    },
+    "templatePrediction.summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current schedule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前时间安排"
+          }
+        }
+      }
+    },
+    "templatePrediction.relative": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are relative day offsets and whole hours, not a calendar date or a notification. This editor does not determine or announce a prediction result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里保存的是相对天数和整点，不是日历日期或通知。本编辑器不会判定或公布竞猜结果。"
+          }
+        }
+      }
+    },
+    "templatePrediction.sameDay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Same day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当天"
+          }
+        }
+      }
+    },
+    "templatePrediction.nextDay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明天"
+          }
+        }
+      }
+    },
+    "templatePrediction.secondDay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two days later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后天"
+          }
+        }
+      }
+    },
+    "templatePrediction.day %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 天"
+          }
+        }
+      }
+    },
+    "templateScan.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan response and reveal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫码回复与显形"
+          }
+        }
+      }
+    },
+    "templateScan.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure what a scan should return using existing references. Changing modes keeps the other fields. This editor does not scan, play audio, upload files or run AR."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用已有地址配置扫码后的回复。切换模式会保留其他字段。此编辑页不执行扫码、音频播放、上传或 AR。"
+          }
+        }
+      }
+    },
+    "templateScan.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or session changed. Reload before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或会话已变化，请重新读取后继续。"
+          }
+        }
+      }
+    },
+    "templateScan.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前草稿"
+          }
+        }
+      }
+    },
+    "templateScan.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stored configuration cannot use the guided editor. Return to the original fields to inspect it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此历史配置暂不适用引导编辑，请返回原有字段查看。"
+          }
+        }
+      }
+    },
+    "templateScan.response": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Response content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回复内容"
+          }
+        }
+      }
+    },
+    "templateScan.overlay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reveal image size and placement settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显形图大小与放置设置"
+          }
+        }
+      }
+    },
+    "templateScan.width %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canvas width: %lld%%"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面宽度：%lld%%"
+          }
+        }
+      }
+    },
+    "templateScan.retained": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retained settings from other modes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他模式保留的设置"
+          }
+        }
+      }
+    },
+    "templateScan.retainedNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These saved values are not used by the current response mode. They remain editable because the existing validator still checks them. Choose NONE for retained AR when outside OVERLAY; clear a model reference explicitly if it conflicts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些已存内容不属于当前回复模式，但现有校验仍会检查，因此保留编辑入口。非显形模式如保留了 AR，请手动选“不开”；模型引用有冲突时可明确清除。"
+          }
+        }
+      }
+    },
+    "templateScan.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image sizing preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片大小预览"
+          }
+        }
+      }
+    },
+    "templateScan.previewNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load only after tapping. This neutral canvas shows the linked image at the configured width; it is not a camera, scan result or AR placement. Relative paths stay saved but are not resolved here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击后才加载图片。在中性底图上按配置宽度查看已有图片，不代表相机画面、扫码结果或 AR 放置。相对地址可以保存，此处不解析加载。"
+          }
+        }
+      }
+    },
+    "templateScan.load": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load / retry image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载 / 重试图片"
+          }
+        }
+      }
+    },
+    "templateScan.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载图片"
+          }
+        }
+      }
+    },
+    "templateScan.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The image could not load. Check its address and retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片加载失败，请检查地址后重试。"
+          }
+        }
+      }
+    },
+    "templateScan.modelNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use an existing .glb reference. This field does not upload or execute a 3D model."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写已有 .glb 模型地址，此处不上传或运行三维模型。"
+          }
+        }
+      }
+    },
+    "templateScan.clearModel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear model reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除模型引用"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
