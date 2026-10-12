@@ -34,13 +34,13 @@ enum RoamShareAlbumGuideCopy {
         var parts: [String] = []
         if let date = copy.recordedAt { parts.append(date.formatted(.dateTime.year().month().day().locale(locale))) }
         if let shops = copy.shops {
-            parts.append(String(localized: "roam.experience.shops", locale: locale) + ": " + shops.formatted(.number.locale(locale)))
+            parts.append(appLocalized("roam.experience.shops", locale: locale) + ": " + shops.formatted(.number.locale(locale)))
         }
         if let distance = copy.kilometers {
             parts.append(distance.formatted(.number.precision(.fractionLength(0...1)).locale(locale)) + " km")
         }
         if let exploration = copy.explorationPercent {
-            parts.append(String(localized: "roam.albumGuide.exploration", locale: locale) + ": " + exploration.formatted(.number.locale(locale)) + "%")
+            parts.append(appLocalized("roam.albumGuide.exploration", locale: locale) + ": " + exploration.formatted(.number.locale(locale)) + "%")
         }
         parts.append("#城瘾CityFog")
         return parts.joined(separator: " · ")

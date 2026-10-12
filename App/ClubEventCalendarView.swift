@@ -139,7 +139,7 @@ import SwiftUI
             } else {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 7), spacing: 8) {
                     ForEach(1...7, id: \.self) { day in
-                        Text(LocalizedStringKey("club.calendar.weekday.\(day)")).font(.caption).accessibilityHidden(true)
+                        Text(LocalizedStringKey("club.calendar.weekday." + String(day))).font(.caption).accessibilityHidden(true)
                     }
                     ForEach(cells) { cell in
                         Button { selectedDay = cell.day } label: {

@@ -153,11 +153,12 @@ import UIKit
 }
 
 @MainActor struct RoamNativeStampCamera: UIViewControllerRepresentable {
+    @Environment(\.locale) private var locale
     let finished: (Result<RetainedSelectedImage?, Error>) -> Void
     func makeUIViewController(context: Context) -> RoamStampFramingCameraController {
-        RoamStampFramingCameraController(finished: finished)
+        RoamStampFramingCameraController(locale: locale, finished: finished)
     }
-    func updateUIViewController(_ controller: RoamStampFramingCameraController, context: Context) {}
+    func updateUIViewController(_ controller: RoamStampFramingCameraController, context: Context) { controller.updateLocale(locale) }
     static func dismantleUIViewController(_ controller: RoamStampFramingCameraController, coordinator: ()) { controller.invalidate() }
 }
 /// Explicit 4:5 center crop is shown for review before upload. Redraw normalizes orientation,

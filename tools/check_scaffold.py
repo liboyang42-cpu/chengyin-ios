@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Offline structural checks, NOT a Swift compiler or runtime test."""
-import hashlib, json, pathlib, re, subprocess, xml.etree.ElementTree as ET
+import hashlib, json, pathlib, re, shutil, subprocess, tempfile, xml.etree.ElementTree as ET
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 # Independent parser for the generated OpenStep subset (quoted keys/values, integers).
 def parse_project(text):
@@ -74,6 +74,11 @@ localizable_ui=re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', ui)
 localizable_ui=re.sub(r'(?:accessibilityPrefix|identifier):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'\.accessibilityIdentifier\s*=\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
 localizable_ui=re.sub(r'(?:systemImage|systemName):\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
+# These four values are explicit nonlocalized identifiers at these exact calls.
+# Do not exclude the same strings when used by Text or localization lookup.
+localizable_ui=localizable_ui.replace('.accessibilityIdentifier(effectiveReduceMotion ? "roam.motion.status.reduced" : "roam.motion.status.system")', '')
+localizable_ui=localizable_ui.replace('OfficialReadScreen(reader: reader, isPrivate: true, requestID: "merchant.officialRecruitment",', 'OfficialReadScreen(reader: reader, isPrivate: true,')
+localizable_ui=localizable_ui.replace('MerchantTemplateStoryTimelineContent(timeline: timeline, prefix: "merchant.storyTimeline.review")', 'MerchantTemplateStoryTimelineContent(timeline: timeline)')
 keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account|activity|scanner|discovery|profile|merchant|club|roam|messaging|participant|play|message|topic|region|homeFeed|usApple|ticketWallet|square|cooperation|accountCollection|creatorContent|growth|official|officialAction|projectEdit|nearby|team|orderLifecycle|templateAuthor|publishModes|wallet|couponManagement|im)\.[A-Za-z0-9.]+)"',localizable_ui))
 keys={key for key in keys if not key.endswith('.')}  # Prefixes concatenate a separately validated dynamic key.
 assert not keys-set(catalog['strings']),keys-set(catalog['strings'])
@@ -91,8 +96,42 @@ assert 'invalid.example.questify.ios' in config
 assert 'NSAllowsArbitraryLoads' not in config
 scheme=ET.parse(ROOT/'Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme')
 for ref in scheme.iter('BuildableReference'): assert ref.attrib['BlueprintIdentifier'] in objects
+def semantic_project(document):
+    """Preserve every setting/member while ignoring opaque file IDs/list order."""
+    objects=document['objects']; aliases={}
+    for key,obj in objects.items():
+        if obj['isa']=='PBXFileReference':
+            aliases[key]='file:'+json.dumps(obj,sort_keys=True,separators=(',',':'))
+    for key,obj in objects.items():
+        if obj['isa']=='PBXBuildFile':
+            stable={k:(aliases.get(v,v) if k=='fileRef' else v) for k,v in obj.items()}
+            aliases[key]='build:'+json.dumps(stable,sort_keys=True,separators=(',',':'))
+    assert len(set(aliases.values()))==len(aliases),'Duplicate file/build registration'
+    def replace(value):
+        if isinstance(value,str): return aliases.get(value,value)
+        if isinstance(value,list): return [replace(v) for v in value]
+        if isinstance(value,dict): return {aliases.get(k,k):replace(v) for k,v in value.items()}
+        return value
+    result=replace(document)
+    for obj in result['objects'].values():
+        field='children' if obj['isa']=='PBXGroup' else 'files' if obj['isa'] in {'PBXSourcesBuildPhase','PBXResourcesBuildPhase'} else None
+        if field:
+            values=obj[field];assert len(values)==len(set(values)),'Duplicate target/group member';obj[field]=sorted(values)
+    return result
+
+# Generate the expected project only in an isolated temporary directory. The
+# checkout remains read-only; compare all configs, phases, references and schemes.
 before=hashlib.sha256(project_path.read_bytes()).hexdigest()
-subprocess.run(['python3',str(ROOT/'tools/generate_project.py')],check=True,capture_output=True)
+with tempfile.TemporaryDirectory(prefix='questify-current-scaffold-') as directory:
+    scratch=pathlib.Path(directory)
+    for name in ('App','Core','Tests','Resources'):(scratch/name).symlink_to(ROOT/name,target_is_directory=True)
+    (scratch/'tools').mkdir();shutil.copyfile(ROOT/'tools/generate_project.py',scratch/'tools/generate_project.py')
+    subprocess.run(['python3','-B',str(scratch/'tools/generate_project.py')],check=True,capture_output=True)
+    expected=parse_project((scratch/'Questify.xcodeproj/project.pbxproj').read_text())
+    assert semantic_project(project)==semantic_project(expected),'Current project settings/targets/membership differ from generator'
+    for name in ('Questify.xcscheme','QuestifyAppUnitTests.xcscheme'):
+        relative='Questify.xcodeproj/xcshareddata/xcschemes/'+name
+        assert ET.canonicalize((ROOT/relative).read_text())==ET.canonicalize((scratch/relative).read_text()),('Current scheme differs',name)
 assert hashlib.sha256(project_path.read_bytes()).hexdigest()==before
-print(f'PASS structural checks: {len(source_paths)} Swift source files, {len(catalog["strings"])} bilingual keys, references, scheme, deterministic regeneration')
+print(f'PASS structural checks: {len(source_paths)} Swift source files, {len(catalog["strings"])} bilingual keys, references, scheme, read-only expected project equivalence')
 print('SCOPE: this script does not run Swift/Xcode, previews, simulator/device, accessibility or live backend checks; see separate evidence')

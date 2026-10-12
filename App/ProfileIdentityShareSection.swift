@@ -73,6 +73,7 @@ struct ProfileIdentityShareViewIdentity: Hashable {
 @MainActor struct ProfileIdentityShareSection: View {
     @StateObject private var model: ProfileIdentityShareModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     init(profile: SocialPublicProfile, reader: any SocialAccountReading,
          isCurrent: @escaping @MainActor () -> Bool) {
         _model = StateObject(wrappedValue: ProfileIdentityShareModel(profile: profile, reader: reader, isCurrent: isCurrent))
@@ -85,7 +86,7 @@ struct ProfileIdentityShareViewIdentity: Hashable {
     }
     var body: some View {
         Button("profile.identityShare.open", systemImage: "square.and.arrow.up") {
-            model.open(title: String(localized: "profile.identityShare.title"))
+            model.open(title: appLocalized("profile.identityShare.title", locale: locale))
         }
         .disabled(!model.canShare)
         .accessibilityIdentifier("profile.identityShare.open")

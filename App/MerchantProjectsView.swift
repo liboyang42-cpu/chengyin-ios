@@ -105,7 +105,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                             .accessibilityIdentifier("merchant.projectEvents.open")
                         }
                     }
-                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("merchant.done") { presentation.closeSummary(id: selected.id) } } }
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("merchant.done") { presentation.closeSummary(id: selected.id) }.accessibilityIdentifier("merchant.projectSummary.close") } }
                     .navigationDestination(item: presentation.workspaceBinding()) { route in
                         if let contentService, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
                             MerchantContentDocumentView(service: contentService, query: .project(topicID: route.topicID),

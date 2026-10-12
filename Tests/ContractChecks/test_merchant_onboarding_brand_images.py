@@ -4,7 +4,7 @@ R=Path(__file__).resolve().parents[2]
 class BrandImageContracts(unittest.TestCase):
  @classmethod
  def setUpClass(c):
-  c.core=(R/'Core/MerchantOnboardingBrandImages.swift').read_text();c.draft=(R/'Core/MerchantOnboardingContracts.swift').read_text();c.model=(R/'App/MerchantOnboardingModel.swift').read_text();c.ui=(R/'App/MerchantOnboardingBrandImages.swift').read_text();c.host=(R/'App/MerchantOnboardingView.swift').read_text()
+  c.core=(R/'Core/MerchantOnboardingBrandImages.swift').read_text();c.draft=(R/'Core/MerchantOnboardingContracts.swift').read_text();c.model=(R/'App/MerchantOnboardingModel.swift').read_text();c.ui=(R/'App/MerchantOnboardingBrandImagesView.swift').read_text();c.host=(R/'App/MerchantOnboardingView.swift').read_text()
  def test_six_image_source_limit(self):self.assertIn('static let limit = 6',self.core)
  def test_ordered_source_wire(self):self.assertIn('urls.joined(separator: ",")',self.core);self.assertNotIn('Set(',self.core)
  def test_explicit_clear_preserved(self):self.assertIn('if let brandImages { fields["derivatives"] = brandImages.wireValue }',self.draft)

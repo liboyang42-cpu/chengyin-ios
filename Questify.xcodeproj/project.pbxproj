@@ -28,7 +28,7 @@
 		"76D793A807422A1E3749A198" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "App/MerchantOnboardingBrandImages.swift";
+			"path" = "App/MerchantOnboardingBrandImagesView.swift";
 			"sourceTree" = "<group>";
 		};
 		"0C68EB44804495A798144DE4" = {

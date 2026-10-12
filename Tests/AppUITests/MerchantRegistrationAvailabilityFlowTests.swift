@@ -6,7 +6,7 @@ final class MerchantRegistrationAvailabilityFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
     private func tap(_ id: String, _ app: XCUIApplication) {
         let button = app.buttons[id]
-        XCTAssertTrue(revealFixtureElement(button, in: app, towardTop: id == "merchant.registrationAvailability.open" || id == "merchant.registrationAvailability.restore")); button.tap()
+        XCTAssertTrue(revealFixtureElement(button, in: app, towardTop: id == "merchant.registrationAvailability.restore")); button.tap()
     }
     private func open() -> XCUIApplication {
         let app = XCUIApplication(); self.app = app

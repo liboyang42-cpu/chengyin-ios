@@ -18,9 +18,10 @@ import UIKit
     private var ready = false
     private var shotFailed = false
     private let finished: (Result<RetainedSelectedImage?, Error>) -> Void
+    private var locale: Locale
 
-    init(finished: @escaping (Result<RetainedSelectedImage?, Error>) -> Void) {
-        self.finished = finished; super.init(nibName: nil, bundle: nil)
+    init(locale: Locale, finished: @escaping (Result<RetainedSelectedImage?, Error>) -> Void) {
+        self.locale = locale; self.finished = finished; super.init(nibName: nil, bundle: nil)
     }
     required init?(coder: NSCoder) { return nil }
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { .portrait }
@@ -33,18 +34,18 @@ import UIKit
         preview.addGestureRecognizer(UIPinchGestureRecognizer(target: self, action: #selector(pinched(_:))))
         scale.minimumValue = Float(RoamStampFramingState.minimumRatio)
         scale.maximumValue = Float(RoamStampFramingState.maximumRatio)
-        scale.accessibilityLabel = String(localized: "roam.stampFraming.range")
+        scale.accessibilityLabel = appLocalized("roam.stampFraming.range", locale: locale)
         scale.accessibilityIdentifier = "roam.stampFraming.range"
         scale.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
         percent.textAlignment = .center; percent.font = .preferredFont(forTextStyle: .headline)
         percent.adjustsFontForContentSizeCategory = true
-        hint.text = String(localized: "roam.stampFraming.hint"); hint.numberOfLines = 0
+        hint.text = appLocalized("roam.stampFraming.hint", locale: locale); hint.numberOfLines = 0
         hint.textAlignment = .center; hint.font = .preferredFont(forTextStyle: .caption1)
         hint.adjustsFontForContentSizeCategory = true
-        shutter.setTitle(String(localized: "media.stamp.capture"), for: .normal)
+        shutter.setTitle(appLocalized("media.stamp.capture", locale: locale), for: .normal)
         shutter.configuration = .filled(); shutter.accessibilityIdentifier = "roam.stampFraming.shutter"
         shutter.addTarget(self, action: #selector(capture), for: .touchUpInside)
-        close.setTitle(String(localized: "action.cancel"), for: .normal)
+        close.setTitle(appLocalized("action.cancel", locale: locale), for: .normal)
         close.accessibilityIdentifier = "roam.stampFraming.cancel"
         close.addTarget(self, action: #selector(cancel), for: .touchUpInside)
         [preview, scale, percent, hint, shutter, close].forEach(view.addSubview)
@@ -82,6 +83,14 @@ import UIKit
     }
     override func viewDidDisappear(_ animated: Bool) { super.viewDidDisappear(animated); invalidate() }
     func invalidate() { framing.cancel(); ready = false; engine.stop() }
+    func updateLocale(_ value: Locale) {
+        guard locale != value else { return }; locale = value
+        guard isViewLoaded else { return }
+        scale.accessibilityLabel = appLocalized("roam.stampFraming.range", locale: locale)
+        shutter.setTitle(appLocalized("media.stamp.capture", locale: locale), for: .normal)
+        close.setTitle(appLocalized("action.cancel", locale: locale), for: .normal)
+        refreshControls()
+    }
     private func refreshControls() {
         scale.value = Float(framing.ratio)
         let value = framing.ratio.formatted(.percent.precision(.fractionLength(0)))
@@ -89,7 +98,7 @@ import UIKit
         let idle = ready && framing.isActive && framing.pending == nil && view.bounds.height >= view.bounds.width && preview.bounds.width >= 16
         scale.isEnabled = idle; shutter.isEnabled = idle
         close.isEnabled = framing.isActive
-        let message = String(localized: view.bounds.width > view.bounds.height ? "roam.stampFraming.portrait" : (framing.pending != nil ? "roam.stampFraming.capturing" : (shotFailed ? "roam.stampFraming.retry" : "roam.stampFraming.hint")))
+        let message = appLocalized(view.bounds.width > view.bounds.height ? "roam.stampFraming.portrait" : (framing.pending != nil ? "roam.stampFraming.capturing" : (shotFailed ? "roam.stampFraming.retry" : "roam.stampFraming.hint")), locale: locale)
         if hint.text != message { hint.text = message; view.setNeedsLayout() }
     }
     @objc private func sliderChanged() { framing.adjust(to: Double(scale.value)); refreshControls() }
