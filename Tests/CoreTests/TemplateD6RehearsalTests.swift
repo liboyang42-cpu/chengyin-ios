@@ -36,7 +36,7 @@ final class TemplateD6RehearsalTests: XCTestCase {
     func testExistingNumericTextAndAbsentCountUseExistingContract() throws {
         XCTAssertEqual(try TemplateD6Rehearsal(draft: fixture(count: .string("2"))).diceCount, 2)
         XCTAssertEqual(try TemplateD6Rehearsal(draft: fixture(count: nil)).diceCount, 1)
-        let invalid: [TemplateAuthoringJSON] = [.number(0), .number(3), .number(1.5), .number(.infinity), .string(" "), .string("two")]
+        let invalid: [TemplateAuthoringJSON] = [.number(0), .number(3), .number(1.5), .number(.infinity), .string(" "), .string("two"), .null, .bool(true), .array([]), .object([:])]
         for value in invalid { XCTAssertThrowsError(try TemplateD6Rehearsal(draft: fixture(count: value))) }
     }
     func testDisabledD20UnknownAndWrongTypedModesRefusePreview() {

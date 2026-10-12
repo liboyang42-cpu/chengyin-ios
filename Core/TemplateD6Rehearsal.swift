@@ -21,6 +21,11 @@ public struct TemplateD6Rehearsal: Equatable {
         var isolated = TemplateAdvancedDraft()
         isolated.value["diceRoll"] = .object(fields)
         guard isolated.issues.isEmpty else { throw TemplateAuthoringError.invalidDraft }
+        if let rawCount = fields["diceCount"] {
+            guard let count = rawCount.integer, (1...2).contains(count) else {
+                throw TemplateAuthoringError.invalidDraft
+            }
+        }
         diceCount = fields["diceCount"]?.integer ?? 1
         kicker = draft.text("diceRoll", "kicker").trimmingCharacters(in: .whitespacesAndNewlines)
         faces = (fields["faces"]?.array ?? []).map { ($0.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines) }

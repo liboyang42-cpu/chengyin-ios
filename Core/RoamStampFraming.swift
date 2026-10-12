@@ -36,7 +36,10 @@ public struct RoamStampFrame: Equatable {
         let sourceX = max(0, (x - left) / scale), sourceY = max(0, (y - top) / scale)
         let right = min(imageWidth, (x + width - left) / scale)
         let bottom = min(imageHeight, (y + height - top) / scale)
-        let sourceWidth = min(right - sourceX, (bottom - sourceY) * 0.8)
+        // Divide frame dimensions directly to avoid cancellation at exact pixel boundaries.
+        // Clamp to the source image before quantizing; never round output up or stretch.
+        let sourceWidth = min(min(width / scale, (height / scale) * 0.8),
+                              min(imageWidth - sourceX, (imageHeight - sourceY) * 0.8))
         let sourceHeight = sourceWidth / 0.8
         // Quantize output width, not the source geometry: exact 4:5 pixels, never stretch or upscale.
         guard sourceWidth.isFinite, sourceHeight.isFinite, sourceWidth >= 4 else { throw RoamStampFramingFailure.invalidGeometry }
