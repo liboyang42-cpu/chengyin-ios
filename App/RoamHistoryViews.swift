@@ -7,6 +7,7 @@ import SwiftUI
     @State private var error: Error?
     @State private var loaded = false
     @State private var liveEntry = RoamHistoryLiveEntry()
+    @State private var localWalk = RoamHistoryLocalWalkState()
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16) {
@@ -14,9 +15,20 @@ import SwiftUI
                 if let error { RoamExperienceIssue(error: error, retry: load) }
                 else if !loaded { ProgressView("roam.loading") }
                 else if records.isEmpty {
-                    ContentUnavailableView("roam.experience.historyEmpty", systemImage: "figure.walk", description: Text("roam.experience.historyEmptyHint"))
-                        .accessibilityElement(children: .contain)
-                        .accessibilityIdentifier("roam.experience.history.empty")
+                    if let keys = localWalk.noticeKeys(reader: reader) {
+                        ContentUnavailableView(LocalizedStringKey(keys.title), systemImage: "pause.circle",
+                            description: Text(LocalizedStringKey(keys.hint)))
+                            .accessibilityIdentifier("roam.experience.history.unfinished")
+                    } else {
+                        ContentUnavailableView("roam.experience.historyEmpty", systemImage: "figure.walk", description: Text("roam.experience.historyEmptyHint"))
+                            .accessibilityElement(children: .contain)
+                            .accessibilityIdentifier("roam.experience.history.empty")
+                    }
+                    if localWalk.failed(reader: reader) {
+                        Label("roam.historyLocal.unreadable", systemImage: "exclamationmark.circle")
+                            .font(.caption).foregroundStyle(.secondary)
+                        Button("action.retry", action: load).accessibilityIdentifier("roam.historyLocal.retry")
+                    }
                     if liveEntry.canOpen(reader: reader, hasDestination: liveDestination != nil) {
                         let presentationID = liveEntry.presentationID
                         Button("roam.experience.live", systemImage: "figure.walk") {
@@ -78,12 +90,45 @@ import SwiftUI
             .accessibilityIdentifier("roam.experience.history")
     }
     private func load() {
-        records = []; error = nil; loaded = false
+        records = []; error = nil; loaded = false; localWalk.invalidate()
         let snapshot = liveEntry.beginRead(reader: reader)
         do {
             records = try reader.history(); loaded = true
+            if records.isEmpty { localWalk.load(reader: reader) }
             liveEntry.acceptRead(isEmpty: records.isEmpty, snapshot: snapshot, reader: reader)
         } catch { self.error = error }
+    }
+}
+
+/// A local read result is visible only to the exact reader/account/epoch that produced it.
+@MainActor struct RoamHistoryLocalWalkState {
+    private var owner: RoamHistoryLiveOwner?
+    private var status: RoamLocalWalkStatus = .unavailable
+    private var readFailed = false
+    mutating func invalidate() { owner = nil; status = .unavailable; readFailed = false }
+    mutating func load(reader: any RoamExperienceReading) {
+        invalidate()
+        let captured = RoamHistoryLiveOwner(reader: reader)
+        guard captured.scopeKey != nil else { return }
+        do {
+            let value = try reader.localWalkStatus()
+            guard captured == RoamHistoryLiveOwner(reader: reader) else { return }
+            owner = captured; status = value
+        } catch {
+            guard captured == RoamHistoryLiveOwner(reader: reader) else { return }
+            owner = captured; readFailed = true
+        }
+    }
+    func failed(reader: any RoamExperienceReading) -> Bool {
+        owner == RoamHistoryLiveOwner(reader: reader) && readFailed
+    }
+    func noticeKeys(reader: any RoamExperienceReading) -> (title: String, hint: String)? {
+        guard owner == RoamHistoryLiveOwner(reader: reader), !readFailed else { return nil }
+        switch status {
+        case .unfinished: return ("roam.historyLocal.unfinished", "roam.historyLocal.unfinishedHint")
+        case .finishPending: return ("roam.historyLocal.finishPending", "roam.historyLocal.finishPendingHint")
+        case .unavailable, .none: return nil
+        }
     }
 }
 

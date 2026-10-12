@@ -49,14 +49,16 @@ import XCTest
         let name = app.textFields["couponManagement.name"]; XCTAssertTrue(name.waitForExistence(timeout: 5)); name.tap(); name.typeText("Normal root coupon")
         tap("couponManagement.type"); tap(chinese ? "礼品券" : "Gift coupon")
         let quantity = app.textFields["couponManagement.quantity"]; XCTAssertTrue(revealFixtureElement(quantity, in: app)); quantity.tap(); quantity.typeText("3")
-        let start = app.switches["couponManagement.setStart"]
+        tap("couponManagement.range.open")
+        let start = app.switches["couponManagement.range.setStart"]
         tapFixtureNativeSwitch(start, in: app)
         // The source validates emitted whole seconds, so prove the second has advanced.
         let later = Date().addingTimeInterval(1.1)
         let advanced = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in Date() >= later }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [advanced], timeout: 3), .completed)
-        let end = app.switches["couponManagement.setEnd"]
+        let end = app.switches["couponManagement.range.setEnd"]
         tapFixtureNativeSwitch(end, in: app)
+        tap("couponManagement.range.apply")
         tap("couponManagement.publish.review")
         if expectReview {
             XCTAssertTrue(revealFixtureElement(app.staticTexts["couponManagement.review"], in: app, requiresHittable: false), app.debugDescription)

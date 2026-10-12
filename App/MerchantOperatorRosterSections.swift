@@ -5,16 +5,31 @@ import SwiftUI
 @MainActor struct MerchantOperatorRosterSections<RowContent: View>: View {
     let roster: MerchantOperatorRoster
     let access: MerchantBusinessAccess
+    @Binding var detailsExpanded: Bool
     let rowContent: (MerchantBusinessRecord) -> RowContent
 
-    init(roster: MerchantOperatorRoster, access: MerchantBusinessAccess,
+    init(roster: MerchantOperatorRoster, access: MerchantBusinessAccess, detailsExpanded: Binding<Bool>,
          @ViewBuilder rowContent: @escaping (MerchantBusinessRecord) -> RowContent) {
         self.roster = roster; self.access = access; self.rowContent = rowContent
+        _detailsExpanded = detailsExpanded
     }
 
     var body: some View {
         Group {
             if access.canManageOperators {
+                Section("merchant.operatorRoster.currentAccess") {
+                    if let name = access.name, !name.isEmpty {
+                        LabeledContent("merchant.business.field.storeName", value: name)
+                    }
+                    LabeledContent("merchant.business.role") {
+                        Text(LocalizedStringKey("merchant.business.role." + access.role))
+                    }
+                    DisclosureGroup("merchant.operatorRoster.accessDetails", isExpanded: $detailsExpanded) {
+                        LabeledContent("merchant.business.storeID", value: String(access.merchantID))
+                        LabeledContent("merchant.business.field.roleCode", value: access.role)
+                        Text("merchant.operatorRoster.currentAccessBoundary").font(.footnote).foregroundStyle(.secondary)
+                    }.accessibilityIdentifier("merchant.operatorRoster.accessDetails")
+                }
                 Section {
                     Text("merchant.operatorRoster.loadedScope").font(.footnote).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

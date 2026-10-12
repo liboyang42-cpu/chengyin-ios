@@ -1,0 +1,50 @@
+{
+  "merchant.operatorRoster.currentAccess": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Current store role"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前门店岗位"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.accessDetails": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Role details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "岗位详情"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.currentAccessBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This is the role returned for your current store access. Changes still require the existing review and current server authorization."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这里显示服务端返回的当前门店岗位。调整岗位仍须经过既有确认，并由服务端重新校验权限。"
+        }
+      }
+    }
+  }
+}

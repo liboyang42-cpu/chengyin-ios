@@ -2430,6 +2430,7 @@ final class AppSession: ObservableObject {
         self?.currentRoamExperienceSession?.identity.scope
     })
     lazy var roamExperienceReader = RoamExperienceSessionReader(service: roamExperienceService, store: roamHistoryStore,
+        localJournal: RoamLiveJournal(storage: RoamHistoryKeychainStorage()),
         currentSession: { [weak self] in self?.currentRoamExperienceSession }, onUnauthorized: { [weak self] captured in
             guard let self, self.currentRoamExperienceSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)

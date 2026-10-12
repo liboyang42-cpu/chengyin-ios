@@ -1,0 +1,20 @@
+{
+  "base": "077273784d7fed5397f84f17b2a659723f3f3b22",
+  "dependencies": [
+    "creator-sample-browser-0772737",
+    "creator-sample-coverage-0772737",
+    "creator-coin-rehearsal-0772737"
+  ],
+  "app_sources": [
+    "Core/TemplateTimerRehearsal.swift",
+    "App/TemplateTimerRehearsalView.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateTimerRehearsalTests.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateTimerRehearsalViewTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-timer-rehearsal.json",
+  "integration_note": "Two config entries(+2+2lines) and one6line sample section. Preserve25/26/27 exact hunks. Register2source leaves,2XCTest,33UI strings centrally; private originals excluded."
+}

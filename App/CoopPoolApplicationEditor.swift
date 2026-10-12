@@ -6,7 +6,7 @@ import SwiftUI
         let readerID: ObjectIdentifier
         let generation: UUID
         let selection: CoopPoolApplicationSelection
-        init?(reader: any CoopFlowReading, topicID: Int, pool: CoopFlowJSON?, loadedSession: CoopFlowSession?, generation: UUID) {
+        @MainActor init?(reader: any CoopFlowReading, topicID: Int, pool: CoopFlowJSON?, loadedSession: CoopFlowSession?, generation: UUID) {
             guard let loadedSession, loadedSession == reader.session, let pool,
                   let selection = try? CoopPoolApplicationSelection(pool: pool, topicID: topicID) else { return nil }
             session = loadedSession; readerID = ObjectIdentifier(reader); self.generation = generation; self.selection = selection

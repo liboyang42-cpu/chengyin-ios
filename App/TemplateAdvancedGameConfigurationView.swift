@@ -62,7 +62,11 @@ import SwiftUI
                     if model.draft.advanced.value[game.section]?.object?["timed"]?.bool == true { field(game.section, "seconds") }
                 case .quiet: field(game.section, "sub"); field(game.section, "seconds")
                 case .countdown: field(game.section, "seconds"); field(game.section, "doneText")
+                    NavigationLink("templateTimer.kind.countdown") { TemplateTimerRehearsalView(model: model, kind: .countdown, mode: .currentConfiguration) }
+                        .accessibilityIdentifier("templateTimer.openConfiguration.countdown")
                 case .stopwatch: field(game.section, "targetSeconds"); field(game.section, "toleranceMs"); field(game.section, "tries")
+                    NavigationLink("templateTimer.kind.stopwatch") { TemplateTimerRehearsalView(model: model, kind: .stopwatch, mode: .currentConfiguration) }
+                        .accessibilityIdentifier("templateTimer.openConfiguration.stopwatch")
                 case .sort, .match, .classify, .compass, .shout: EmptyView()
                 }
                 }

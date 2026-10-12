@@ -1,0 +1,17 @@
+{
+  "feature": "roam-local-history-state",
+  "task": 65,
+  "source": "P126/P005 fixed95 scene-roam-history readRecoveryState + inProgress empty state",
+  "normal_host": "RoamExperienceHubView \u2192 RoamHistoryView \u2192 source-backed local journal notice; original live entry retained",
+  "implementation": "Optional RoamExperienceReading.localWalkStatus(), owner-fenced pure journal read; normal AppSession reader receives existing keychain journal",
+  "new_EN_ZH_keys": [
+    "roam.historyLocal.unfinished",
+    "roam.historyLocal.unfinishedHint",
+    "roam.historyLocal.finishPending",
+    "roam.historyLocal.finishPendingHint",
+    "roam.historyLocal.unreadable"
+  ],
+  "PBX": "All changed Swift source/test leaves already registered; no new Swift paths",
+  "production": "Local keychain read connected; default live approvals unchanged; status is not active GPS or server settlement proof",
+  "native": "NOT_RUN"
+}

@@ -152,14 +152,11 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     @ObservedObject var model: CouponManagementScreenModel
     @Environment(\.dismiss) private var dismiss
     @State private var discard = false
+    @State private var rangeEditor: CouponValidityRangeEditorModel?
     private func binding<T>(_ keyPath: WritableKeyPath<CouponManagementDraft, T>) -> Binding<T> {
         Binding(get: { model.core.draft[keyPath: keyPath] }, set: { value in var draft = model.core.draft; draft[keyPath: keyPath] = value; model.update(draft) })
     }
-    private func date(_ start: Bool) -> Binding<Date> {
-        Binding(get: { (start ? model.core.draft.startTime : model.core.draft.endTime) ?? Date() }, set: { value in
-            var draft = model.core.draft; if start { draft.startTime = value } else { draft.endTime = value }; model.update(draft)
-        })
-    }
+    private func closeRangeEditor() { rangeEditor?.cancel(); rangeEditor = nil }
     var body: some View {
         Form {
             CouponManagementNotice(model: model, surface: .editor)
@@ -174,10 +171,15 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
             }.disabled(model.working)
             Section("couponManagement.dates") {
                 Text("couponManagement.chinaTime").font(.footnote)
-                Toggle("couponManagement.setStart", isOn: Binding(get: { model.core.draft.startTime != nil }, set: { value in var draft = model.core.draft; draft.startTime = value ? Date() : nil; model.update(draft) })).accessibilityIdentifier("couponManagement.setStart")
-                if model.core.draft.startTime != nil { DatePicker("couponManagement.start", selection: date(true), displayedComponents: [.date, .hourAndMinute]) }
-                Toggle("couponManagement.setEnd", isOn: Binding(get: { model.core.draft.endTime != nil }, set: { value in var draft = model.core.draft; draft.endTime = value ? Date() : nil; model.update(draft) })).accessibilityIdentifier("couponManagement.setEnd")
-                if model.core.draft.endTime != nil { DatePicker("couponManagement.end", selection: date(false), displayedComponents: [.date, .hourAndMinute]) }
+                if let start = model.core.draft.startTime {
+                    LabeledContent("couponManagement.start", value: CouponValidityTime.display(start))
+                }
+                if let end = model.core.draft.endTime {
+                    LabeledContent("couponManagement.end", value: CouponValidityTime.display(end))
+                }
+                Button("couponManagement.range.edit") {
+                    closeRangeEditor(); rangeEditor = CouponValidityRangeEditorModel.make(screen: model)
+                }.disabled(model.core.session == nil).accessibilityIdentifier("couponManagement.range.open")
             }.disabled(model.working)
             if let blocker = model.core.draft.blocker { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary) }
             Button("couponManagement.reviewPublish") { model.run { await model.core.preparePublish() } }
@@ -193,7 +195,10 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
             Button("couponManagement.discard", role: .destructive) { model.core.discardDraft(); model.revision += 1; dismiss() }
             Button("couponManagement.keepEditing", role: .cancel) {}
         }
-        .onDisappear { model.cancelReview() }
+        .sheet(item: $rangeEditor) { editor in NavigationStack { CouponValidityRangeEditor(model: editor) } }
+        .onChange(of: model.core.session) { _, _ in closeRangeEditor() }
+        .onChange(of: model.revision) { _, _ in closeRangeEditor() }
+        .onDisappear { closeRangeEditor(); model.cancelReview() }
     }
 }
 @MainActor private struct CouponManagementReviewSection: View {

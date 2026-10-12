@@ -27,3 +27,25 @@ public struct MerchantOperatorRoster: Equatable {
 
     public var hasHistory: Bool { !previousMembers.isEmpty || !previousInvites.isEmpty }
 }
+
+/// A local no-change return ticket, never an operator mutation or permission grant.
+public struct MerchantOperatorRoleNoChange {
+    public let editorID: UUID
+    private let record: MerchantBusinessRecord
+    private let role: String
+    private let document: MerchantBusinessDocument
+    public init?(editorID: UUID, record: MerchantBusinessRecord, selectedRole: String, document: MerchantBusinessDocument) {
+        guard document.query == .operators, record.kind == .operatorMember,
+              document.rows.filter({ $0.kind == .operatorMember && $0.id == record.id }).count == 1,
+              document.rows.contains(record), record.fields.mbText("status") == "ACTIVE",
+              let version = record.fields["version"]?.integer, version >= 0,
+              !selectedRole.isEmpty, record.fields.mbText("roleCode") == selectedRole else { return nil }
+        self.editorID = editorID; self.record = record; role = selectedRole; self.document = document
+    }
+    public func matches(editorID: UUID, record: MerchantBusinessRecord, selectedRole: String, document: MerchantBusinessDocument) -> Bool {
+        self.editorID == editorID && self.record == record && role == selectedRole && self.document == document
+    }
+    public func matches(editorID: UUID, document: MerchantBusinessDocument) -> Bool {
+        self.editorID == editorID && self.document == document
+    }
+}

@@ -127,6 +127,96 @@ final class RoamExperienceContractTests: XCTestCase {
     }
 }
 
+@MainActor private final class LocalWalkStorageFixture: RoamHistoryDataStoring {
+    var bytes: [String: Data] = [:]
+    var reads = 0, writes = 0
+    var failRead = false
+    var onRead: (() -> Void)?
+    func read(key: String) throws -> Data? {
+        reads += 1; onRead?()
+        if failRead { throw RoamLiveFailure.journalUnavailable }
+        return bytes[key]
+    }
+    func write(_ data: Data, key: String) throws { writes += 1; bytes[key] = data }
+}
+@MainActor final class RoamLocalWalkReadingTests: XCTestCase {
+    private func scope(_ account: Int = 7) throws -> RoamHistoryScope {
+        try .init(market: "cn", deployment: XCTUnwrap(URL(string: "https://example.com/roam")), accountID: account, namespace: "local-history")
+    }
+    private func session(_ scope: RoamHistoryScope, epoch: UInt64 = 1) throws -> RoamExperienceSession {
+        try .init(scope: scope, epoch: epoch, token: "synthetic-token")
+    }
+    private func record(_ scope: RoamHistoryScope) -> RoamLiveRecord {
+        .init(scope: scope, clientSessionKey: String(repeating: "a", count: 32), startedAt: Date(timeIntervalSince1970: 1000))
+    }
+    func testOptionalJournalAndMissingRecordAreDistinctWithoutAnyWrite() throws {
+        let storage = LocalWalkStorageFixture(), s = try scope(), owner = try session(s)
+        let store = RoamHistoryStore(storage: storage, currentScope: { s })
+        let unavailable = RoamExperienceSessionReader(service: nil, store: store, currentSession: { owner })
+        XCTAssertEqual(try unavailable.localWalkStatus(), .unavailable); XCTAssertEqual(storage.reads, 0)
+        let reader = RoamExperienceSessionReader(service: nil, store: store,
+            localJournal: RoamLiveJournal(storage: storage), currentSession: { owner })
+        XCTAssertFalse(reader.isConfigured) // Remote approval is not local-storage read permission.
+        XCTAssertEqual(try reader.localWalkStatus(), .none); XCTAssertEqual(storage.reads, 1)
+        XCTAssertEqual(storage.writes, 0); XCTAssertTrue(storage.bytes.isEmpty)
+    }
+    func testOnlyValidatedMetadataClassifiesUnfinishedOrPendingFinish() throws {
+        let storage = LocalWalkStorageFixture(), s = try scope(), owner = try session(s)
+        let journal = RoamLiveJournal(storage: storage)
+        let reader = RoamExperienceSessionReader(service: nil,
+            store: RoamHistoryStore(storage: storage, currentScope: { s }), localJournal: journal, currentSession: { owner })
+        var value = record(s); try journal.write(value)
+        var writes = storage.writes
+        XCTAssertEqual(try reader.localWalkStatus(), .unfinished); XCTAssertEqual(storage.writes, writes)
+        value.finishRequested = true; try journal.write(value); writes = storage.writes
+        XCTAssertEqual(try reader.localWalkStatus(), .finishPending); XCTAssertEqual(storage.writes, writes)
+        value.finishRequested = false; value.pendingWrite = .finish; try journal.write(value); writes = storage.writes
+        XCTAssertEqual(try reader.localWalkStatus(), .finishPending); XCTAssertEqual(storage.writes, writes)
+        value.pendingWrite = .reveal; try journal.write(value); writes = storage.writes
+        XCTAssertEqual(try reader.localWalkStatus(), .unfinished); XCTAssertEqual(storage.writes, writes)
+    }
+    func testUnreadableAndCorruptJournalNeverBecomeMissingAndBytesRemainUnchanged() throws {
+        let storage = LocalWalkStorageFixture(), s = try scope(), owner = try session(s)
+        let journal = RoamLiveJournal(storage: storage); try journal.write(record(s))
+        let reader = RoamExperienceSessionReader(service: nil,
+            store: RoamHistoryStore(storage: storage, currentScope: { s }), localJournal: journal, currentSession: { owner })
+        storage.failRead = true; let original = storage.bytes, writes = storage.writes
+        XCTAssertThrowsError(try reader.localWalkStatus()); XCTAssertEqual(storage.bytes, original)
+        storage.failRead = false
+        for key in Array(storage.bytes.keys) { storage.bytes[key] = Data("corrupt".utf8) }
+        let corrupt = storage.bytes
+        XCTAssertThrowsError(try reader.localWalkStatus()); XCTAssertEqual(storage.bytes, corrupt)
+        XCTAssertEqual(storage.writes, writes)
+        storage.bytes = original
+        XCTAssertEqual(try reader.localWalkStatus(), .unfinished) // Only a new successful read clears failure.
+    }
+    func testAccountAndEpochReplacementDuringReadRejectOldMetadata() throws {
+        for changeAccount in [false, true] {
+            let storage = LocalWalkStorageFixture(), s = try scope()
+            var owner: RoamExperienceSession? = try session(s)
+            let replacement = try session(changeAccount ? scope(8) : s, epoch: 2)
+            let journal = RoamLiveJournal(storage: storage); try journal.write(record(s))
+            let reader = RoamExperienceSessionReader(service: nil,
+                store: RoamHistoryStore(storage: storage, currentScope: { owner?.identity.scope }),
+                localJournal: journal, currentSession: { owner })
+            storage.onRead = { owner = replacement }
+            XCTAssertThrowsError(try reader.localWalkStatus()) { XCTAssertTrue($0 is CancellationError) }
+        }
+    }
+    func testOtherAccountDoesNotReadFirstAccountRecordAndLogoutDoesNotTouchStorage() throws {
+        let storage = LocalWalkStorageFixture(), first = try scope(), second = try scope(8)
+        let journal = RoamLiveJournal(storage: storage); try journal.write(record(first))
+        var owner: RoamExperienceSession? = try session(second)
+        let reader = RoamExperienceSessionReader(service: nil,
+            store: RoamHistoryStore(storage: storage, currentScope: { owner?.identity.scope }),
+            localJournal: journal, currentSession: { owner })
+        XCTAssertEqual(try reader.localWalkStatus(), .none)
+        let reads = storage.reads, writes = storage.writes; owner = nil
+        XCTAssertThrowsError(try reader.localWalkStatus()) { XCTAssertEqual($0 as? APIError, .unauthorized) }
+        XCTAssertEqual(storage.reads, reads); XCTAssertEqual(storage.writes, writes)
+    }
+}
+
 extension RoamExperienceContractTests {
     func testHistoryShopSummaryMissingMeasurementsHaveNoMeasuredRows() throws {
         let rows = try JSONDecoder().decode([RoamHistoryRecord].self, from: Data(#"[{"ts":1},{"ts":2}]"#.utf8))

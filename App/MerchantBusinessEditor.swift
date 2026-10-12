@@ -16,6 +16,7 @@ struct MerchantBusinessEditorContext: Identifiable {
     var noteDrafts: MerchantCustomerNoteDraft? = nil
     var reviewInitialContent: String? = nil
     var aftercareEvidenceOwner: (() -> MerchantAftercareEvidenceOwner?)? = nil
+    var onUnchangedRole: ((MerchantOperatorRoleNoChange) -> Bool)? = nil
     let onReview: (MerchantBusinessMutation) -> Void
     @State private var noteDraftContextID: UUID?
     @State private var confirmClearNote = false
@@ -95,7 +96,16 @@ struct MerchantBusinessEditorContext: Identifiable {
                     TextField("merchant.business.reason", text: $content, axis: .vertical).lineLimit(3...8)
                 }
                 if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(.red) }
-                Button("merchant.business.reviewDraft") {
+                let unchangedRole = roleNoChange
+                Button(unchangedRole == nil ? "merchant.business.reviewDraft" : "merchant.done") {
+                    if let unchangedRole {
+                        guard let current = roleNoChange,
+                              current.editorID == unchangedRole.editorID,
+                              case .role(let row) = context.kind, let snapshot,
+                              unchangedRole.matches(editorID: context.id, record: row, selectedRole: role, document: snapshot.document),
+                              onUnchangedRole?(unchangedRole) == true else { issue = "merchant.business.invalid"; return }
+                        return
+                    }
                     retireEvidenceFlow()
                     retireAftercareDecision()
                     do { let mutation = try makeMutation(); _ = try mutation.request(requestID: "validation-only"); onReview(mutation) }
@@ -216,6 +226,10 @@ struct MerchantBusinessEditorContext: Identifiable {
         retireAftercareDecision()
     }
     private func retireAftercareDecision() { pendingAftercareDecision = nil; confirmAftercareDecision = false }
+    private var roleNoChange: MerchantOperatorRoleNoChange? {
+        guard case .role(let row) = context.kind, let snapshot else { return nil }
+        return .init(editorID: context.id, record: row, selectedRole: role, document: snapshot.document)
+    }
     private func makeMutation() throws -> MerchantBusinessMutation {
         func id(_ row: MerchantBusinessRecord) throws -> Int { guard let id = Int(row.id), id > 0 else { throw MerchantBusinessFailure.invalid }; return id }
         switch context.kind {

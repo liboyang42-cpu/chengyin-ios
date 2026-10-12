@@ -14,6 +14,27 @@ final class MerchantOperatorRosterTests: XCTestCase {
         try .init(query: .operators, payload: .object(["operators": .array(members), "invites": .array(invites)]))
     }
 
+    func testSameRoleTicketIsLocalAndRejectsChangedRole() throws {
+        let doc = try document([member(1)]), row = try XCTUnwrap(doc.rows.first), editor = UUID()
+        let ticket = try XCTUnwrap(MerchantOperatorRoleNoChange(editorID: editor, record: row, selectedRole: "MERCHANT_CHECKIN", document: doc))
+        XCTAssertTrue(ticket.matches(editorID: editor, record: row, selectedRole: "MERCHANT_CHECKIN", document: doc))
+        XCTAssertNil(MerchantOperatorRoleNoChange(editorID: editor, record: row, selectedRole: "MERCHANT_MARKETING", document: doc))
+        XCTAssertFalse(ticket.matches(editorID: editor, record: row, selectedRole: "MERCHANT_MARKETING", document: doc))
+    }
+    func testOldRoleTicketCannotCloseReplacementOrRefreshedEditor() throws {
+        let doc = try document([member(1)]), row = try XCTUnwrap(doc.rows.first), editor = UUID()
+        let ticket = try XCTUnwrap(MerchantOperatorRoleNoChange(editorID: editor, record: row, selectedRole: "MERCHANT_CHECKIN", document: doc))
+        XCTAssertFalse(ticket.matches(editorID: UUID(), document: doc))
+        XCTAssertFalse(ticket.matches(editorID: editor, document: try document([member(1, version: 1)])))
+        XCTAssertFalse(ticket.matches(editorID: editor, document: try document([member(2)])))
+    }
+    func testNoChangeDoesNotAcceptInvitationOrInactiveMember() throws {
+        for doc in [try document([member(1, "REVOKED")]), try document([], [invite(1)])] {
+            let row = try XCTUnwrap(doc.rows.first)
+            XCTAssertNil(MerchantOperatorRoleNoChange(editorID: UUID(), record: row, selectedRole: row.fields.mbText("roleCode") ?? "", document: doc))
+        }
+    }
+
     func testExactServerStatusesPartitionCurrentRowsAndAllHistory() throws {
         let roster = try MerchantOperatorRoster(document: document(
             [member(1), member(2, "REVOKED")],

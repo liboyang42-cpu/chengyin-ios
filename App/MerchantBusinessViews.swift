@@ -215,6 +215,7 @@ import SwiftUI
     @State private var keyword = ""
     @FocusState private var aftercareSearchFocused: Bool
     @State private var segment = "all"
+    @State private var teamAccessDetailsExpanded = false
     @State private var customerContactFlow: MerchantCustomerContactFlow?
     @State private var sourceType = 0
     @State private var sourceStart = ""
@@ -240,6 +241,8 @@ import SwiftUI
     private var state: MerchantBusinessCoordinator { model.coordinator }
     var body: some View {
         let presentedReview = state.confirmation
+        let renderedTeamScope = reader.scope
+        let renderedTeamAuthorization = reader.authorizationGeneration
         List {
             if reader.isOfflineExample { Text("merchant.business.synthetic").font(.footnote).foregroundStyle(.secondary) }
             filters
@@ -297,7 +300,13 @@ import SwiftUI
                 }
                 if query == .operators {
                     if let roster = try? MerchantOperatorRoster(document: snapshot.document) {
-                        MerchantOperatorRosterSections(roster: roster, access: snapshot.access) { row in
+                        MerchantOperatorRosterSections(roster: roster, access: snapshot.access,
+                            detailsExpanded: Binding(get: { teamAccessDetailsExpanded }, set: { expanded in
+                                guard scenePhase == .active, state.isCurrent, !state.isBusy, state.failureKey == nil,
+                                      query == .operators, state.snapshot == snapshot,
+                                      reader.scope == renderedTeamScope, reader.authorizationGeneration == renderedTeamAuthorization else { return }
+                                teamAccessDetailsExpanded = expanded
+                            })) { row in
                             rowView(row, access: snapshot.access)
                         }
                     } else { Text("merchant.operatorRoster.unavailable").foregroundStyle(.secondary) }
@@ -363,9 +372,21 @@ import SwiftUI
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
         .sheet(item: $editor, onDismiss: { draftReturn.discard(); if let mutation = pendingMutation { pendingMutation = nil; if sourcePageCanPrepare(mutation) { model.prepare(mutation) } } }) { context in
+            let roleReturnScope = reader.scope
+            let roleReturnAuthorization = reader.authorizationGeneration
+            let roleReturnSnapshot = state.snapshot
             MerchantBusinessEditor(context: context, snapshot: state.snapshot, noteDrafts: noteDrafts, reviewInitialContent: draftReturn.initialContent(for: context.id), aftercareEvidenceOwner: {
                 MerchantAftercareEvidenceOwner(editorID: context.id, document: model,
                     editorIsCurrent: { editor?.id == context.id && pendingMutation == nil })
+            }, onUnchangedRole: { ticket in
+                guard scenePhase == .active, editor?.id == context.id, ticket.editorID == context.id,
+                      pendingMutation == nil, state.isCurrent, !state.isBusy, !state.isLocked, state.failureKey == nil,
+                      reader.scope == roleReturnScope, reader.authorizationGeneration == roleReturnAuthorization,
+                      state.snapshot == roleReturnSnapshot, let snapshot = state.snapshot,
+                      snapshot.access.canManageOperators,
+                      ticket.matches(editorID: context.id, document: snapshot.document) else { return false }
+                editor = nil
+                return true
             }, onReview: { mutation in
                 if case .note = context.kind {
                     guard noteDrafts.retireForReview(editorID: context.id) else { editor = nil; return }
@@ -414,9 +435,9 @@ import SwiftUI
             if phase == .active { draftReturn.activate(); noteDrafts.activate() }
             else if let retired = draftReturn.retire(), editor?.id == retired { editor = nil }
         }
-        .onChange(of: reader.scope) { _, _ in noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onChange(of: reader.authorizationGeneration) { _, _ in noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onDisappear { noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }
+        .onChange(of: reader.scope) { _, _ in teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onChange(of: reader.authorizationGeneration) { _, _ in teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onDisappear { teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }
     }
     @ViewBuilder private var filters: some View {
         if case .customers = query {

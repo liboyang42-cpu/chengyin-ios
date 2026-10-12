@@ -6,10 +6,19 @@ import XCTest
     var isConfigured = true
     let isOfflineExample = true
     var calls = 0
+    var localStatus: RoamLocalWalkStatus = .unavailable
+    var localError: Error?
+    var localReads = 0
+    var onLocalRead: (() -> Void)?
     init() throws { identity = try Self.identity() }
     static func identity(account: Int = 7, epoch: UInt64 = 1, market: String = "cn",
                          deployment: String = "https://example.com/roam", namespace: String = "history") throws -> RoamExperienceIdentity {
         .init(scope: try .init(market: market, deployment: XCTUnwrap(URL(string: deployment)), accountID: account, namespace: namespace), epoch: epoch)
+    }
+    func localWalkStatus() throws -> RoamLocalWalkStatus {
+        localReads += 1; onLocalRead?()
+        if let localError { throw localError }
+        return localStatus
     }
     func history() throws -> [RoamHistoryRecord] { calls += 1; return [] }
     func sessionFact(_ query: RoamRecoveryQuery) async throws -> RoamSessionFact { calls += 1; throw APIError.notConfigured }
@@ -128,5 +137,49 @@ import XCTest
         XCTAssertFalse(entry.canOpen(reader: reader, hasDestination: true))
         entry.acceptRead(isEmpty: true, snapshot: snapshot, reader: reader)
         XCTAssertTrue(entry.canOpen(reader: reader, hasDestination: true)); XCTAssertEqual(reader.calls, 0)
+    }
+}
+
+@MainActor extension RoamHistoryLiveEntryTests {
+    func testLocalHistoryNoticeUsesOnlyReadStatusAndDoesNotInvokeHistoryOrNetwork() throws {
+        let reader = try HistoryLiveEntryReaderFixture(); var state = RoamHistoryLocalWalkState()
+        XCTAssertNil(state.noticeKeys(reader: reader)); XCTAssertFalse(state.failed(reader: reader))
+        for status in [RoamLocalWalkStatus.unavailable, .none] {
+            reader.localStatus = status; state.load(reader: reader)
+            XCTAssertNil(state.noticeKeys(reader: reader)); XCTAssertFalse(state.failed(reader: reader))
+        }
+        reader.localStatus = .unfinished; state.load(reader: reader)
+        XCTAssertEqual(state.noticeKeys(reader: reader)?.title, "roam.historyLocal.unfinished")
+        reader.localStatus = .finishPending; state.load(reader: reader)
+        XCTAssertEqual(state.noticeKeys(reader: reader)?.title, "roam.historyLocal.finishPending")
+        XCTAssertEqual(reader.localReads, 4); XCTAssertEqual(reader.calls, 0)
+    }
+    func testFailedLocalMetadataReadRemainsUnknownUntilSuccessfulRetry() throws {
+        let reader = try HistoryLiveEntryReaderFixture(); var state = RoamHistoryLocalWalkState()
+        reader.localStatus = .unfinished; state.load(reader: reader)
+        reader.localError = RoamLiveFailure.journalUnavailable; state.load(reader: reader)
+        XCTAssertTrue(state.failed(reader: reader)); XCTAssertNil(state.noticeKeys(reader: reader))
+        reader.localError = nil; reader.localStatus = .none; state.load(reader: reader)
+        XCTAssertFalse(state.failed(reader: reader)); XCTAssertNil(state.noticeKeys(reader: reader))
+        XCTAssertEqual(reader.calls, 0)
+    }
+    func testLocalMetadataNoticeRetiresForAccountEpochReaderChangeAndExplicitInvalidation() throws {
+        let reader = try HistoryLiveEntryReaderFixture(), replacement = try HistoryLiveEntryReaderFixture()
+        var state = RoamHistoryLocalWalkState(); reader.localStatus = .unfinished; state.load(reader: reader)
+        XCTAssertNotNil(state.noticeKeys(reader: reader)); XCTAssertNil(state.noticeKeys(reader: replacement))
+        reader.identity = try HistoryLiveEntryReaderFixture.identity(epoch: 2)
+        XCTAssertNil(state.noticeKeys(reader: reader))
+        state.load(reader: reader); reader.identity = try HistoryLiveEntryReaderFixture.identity(account: 8, epoch: 2)
+        XCTAssertNil(state.noticeKeys(reader: reader))
+        state.load(reader: reader); state.invalidate(); XCTAssertNil(state.noticeKeys(reader: reader))
+        XCTAssertEqual(reader.calls, 0)
+    }
+    func testOwnerChangedInsideLocalReadCannotPublishOldNoticeOrFailure() throws {
+        let reader = try HistoryLiveEntryReaderFixture(); var state = RoamHistoryLocalWalkState()
+        reader.localStatus = .unfinished
+        reader.onLocalRead = { reader.identity = nil }; state.load(reader: reader)
+        XCTAssertNil(state.noticeKeys(reader: reader)); XCTAssertFalse(state.failed(reader: reader))
+        let reads = reader.localReads; state.load(reader: reader)
+        XCTAssertEqual(reader.localReads, reads); XCTAssertEqual(reader.calls, 0)
     }
 }

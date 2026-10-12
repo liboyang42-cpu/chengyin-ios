@@ -106,6 +106,12 @@ import Combine
     var body: some View {
         Form {
             Section {
+                NavigationLink("templateTimer.sample.countdown") { TemplateTimerRehearsalView(model: model, kind: .countdown, mode: .sourceExample) }
+                    .disabled(!controller.canBrowse).accessibilityIdentifier("templateTimer.openSample.countdown")
+                NavigationLink("templateTimer.sample.stopwatch") { TemplateTimerRehearsalView(model: model, kind: .stopwatch, mode: .sourceExample) }
+                    .disabled(!controller.canBrowse).accessibilityIdentifier("templateTimer.openSample.stopwatch")
+            }
+            Section {
                 NavigationLink("templateCoin.sample") { TemplateCoinFlipRehearsalView(model: model, mode: .sourceExample) }
                     .disabled(!controller.canBrowse).accessibilityIdentifier("templateCoin.openSample")
             }
