@@ -1,6 +1,6 @@
 import SwiftUI
 
-@MainActor private final class MerchantBrandImagesModel: ObservableObject, Identifiable {
+@MainActor final class MerchantBrandImagesModel: ObservableObject, Identifiable {
     let id = UUID()
     let session: MerchantBrandImagesSession
     let isExample: Bool
@@ -20,17 +20,30 @@ import SwiftUI
 @MainActor struct MerchantBrandImagesEntry: View {
     @ObservedObject var document: MerchantOperationsViewModel
     @Environment(\.scenePhase) private var scenePhase
-    @State private var presentation: MerchantBrandImagesModel?
     var body: some View {
         Section("merchant.brandImages.title") {
             Button("merchant.brandImages.open", systemImage: "photo.on.rectangle") {
-                guard scenePhase == .active, presentation == nil else { return }
-                presentation = .init(document: document)
+                guard scenePhase == .active, document.brandImagesPresentation == nil else { return }
+                document.brandImagesPresentation = .init(document: document)
             }.disabled(!document.coordinator.isCurrent || document.coordinator.isBusy || document.coordinator.isLocked || document.coordinator.confirmation != nil)
                 .accessibilityIdentifier("merchant.brandImages.open")
             Text("merchant.brandImages.sourceHint").font(.footnote).foregroundStyle(.secondary)
         }
-        .sheet(item: $presentation) { value in MerchantBrandImagesSheet(model: value) { close() } }
+    }
+}
+
+/// Presentation belongs to the stable editor, not a recycled Form section.
+@MainActor struct MerchantBrandImagesPresentation: ViewModifier {
+    @ObservedObject var document: MerchantOperationsViewModel
+    @Environment(\.scenePhase) private var scenePhase
+    func body(content: Content) -> some View {
+        content
+        .sheet(item: $document.brandImagesPresentation) { value in
+            MerchantBrandImagesSheet(model: value) {
+                guard document.brandImagesPresentation?.id == value.id else { return }
+                close()
+            }
+        }
         .onChange(of: document.coordinator.reader.scope) { _, _ in close() }
         .onChange(of: document.coordinator.draftIdentity) { _, _ in close() }
         .onChange(of: document.coordinator.draft) { _, _ in close() }
@@ -38,7 +51,7 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in if phase != .active { close() } }
         .onDisappear { close() }
     }
-    private func close() { presentation?.retire(); presentation = nil }
+    private func close() { document.brandImagesPresentation?.retire(); document.brandImagesPresentation = nil }
 }
 
 @MainActor private struct MerchantBrandImagesSheet: View {

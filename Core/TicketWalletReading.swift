@@ -5,9 +5,13 @@ public struct TicketWalletReadSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
     fileprivate let token: String
-    public init(accountID: Int, epoch: UInt64, token: String) throws {
+    public let viewerRevision: UInt64
+    public let role: String?
+    private let roleBytes: Data?
+    public init(accountID: Int, epoch: UInt64, token: String, viewerRevision: UInt64 = 0, role: String? = nil) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         self.accountID = accountID; self.epoch = epoch; self.token = token
+        self.viewerRevision = viewerRevision; self.role = role; self.roleBytes = role.map { Data($0.utf8) }
     }
 }
 @MainActor public protocol TicketWalletReading: AnyObject {

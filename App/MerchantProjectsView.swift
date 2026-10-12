@@ -239,13 +239,29 @@ struct MerchantProjectWorkspaceSnapshot {
     }
     func closeSummary(id: UUID) { guard selection?.id == id else { return }; invalidate() }
     func summaryBinding() -> Binding<Selection?> {
-        let captured = selection?.id
-        return Binding(get: { [weak self] in self?.selection?.id == captured ? self?.selection : nil },
-                       set: { [weak self] value in if value == nil, let captured { self?.closeSummary(id: captured) } })
+        let epoch = generation
+        var captured = selection?.id
+        return Binding(get: { [weak self] in
+            guard let self, self.generation == epoch, let selected = self.selection else { return nil }
+            // SwiftUI may retain the binding installed before the first selection.
+            // Adopt that first identity once; never adopt a reopened presentation.
+            if captured == nil { captured = selected.id }
+            return selected.id == captured ? selected : nil
+        }, set: { [weak self] value in
+            guard let self, self.generation == epoch, value == nil, let captured else { return }
+            self.closeSummary(id: captured)
+        })
     }
     func workspaceBinding() -> Binding<Route?> {
-        let captured = route?.id
-        return Binding(get: { [weak self] in self?.route?.id == captured ? self?.route : nil },
-                       set: { [weak self] value in if value == nil, let captured, self?.route?.id == captured { self?.route = nil } })
+        let epoch = generation
+        var captured = route?.id
+        return Binding(get: { [weak self] in
+            guard let self, self.generation == epoch, let current = self.route else { return nil }
+            if captured == nil { captured = current.id }
+            return current.id == captured ? current : nil
+        }, set: { [weak self] value in
+            guard let self, self.generation == epoch, value == nil, let captured, self.route?.id == captured else { return }
+            self.route = nil
+        })
     }
 }

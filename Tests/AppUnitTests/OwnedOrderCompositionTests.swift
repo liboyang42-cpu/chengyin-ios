@@ -102,7 +102,7 @@ import XCTest
             let exact=try form("api/registration/info",["id":"41"])
             _=try await clone.send(exact);_=try await clone.send(form("api/registration/list",["owner_type":"3"]))
             var invalid:[URLRequest]=[]
-            for fields in [["owner_type":"1"],["owner_type":"3","memberId":"7"],["owner_type":"3","pageNum":"1"],["owner_type":"3","status":"0"]]{invalid.append(try form("api/registration/list",fields))}
+            for fields in [["owner_type":"4"],["owner_type":"3","memberId":"7"],["owner_type":"3","pageNum":"1"],["owner_type":"3","status":"0"]]{invalid.append(try form("api/registration/list",fields))}
             for path in ["api/registration/create","api/registration/pay","api/registration/pay/app","api/registration/cancel","api/registration/cancel-refund","api/activity/info","api/play/nodes","api/map/nearby","api/template/topic-template/info"]{invalid.append(try form(path,["id":"41"]))}
             var v=exact;v.setValue("old-token",forHTTPHeaderField:"Authorization");invalid.append(v)
             v=exact;v.httpMethod="GET";invalid.append(v)

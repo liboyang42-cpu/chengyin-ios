@@ -44,7 +44,13 @@ final class MerchantTemplateBrowserFlowTests: XCTestCase {
         let row = app.buttons["merchant.operations.template.71"]
         XCTAssertTrue(revealFixtureElement(row, in: app)); row.tap()
         let title = app.descendants(matching: .any)["merchant.operations.field.title"].firstMatch
-        XCTAssertTrue(revealFixtureElement(title, in: app)); title.tap(); title.typeText(" refreshed")
+        XCTAssertTrue(revealFixtureElement(title, in: app))
+        XCTAssertEqual(title.value as? String, "Synthetic template 1")
+        // A center tap can place the caret inside the existing title. Select its
+        // trailing edge explicitly and prove the exact value before reviewing.
+        title.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.9)).tap()
+        title.typeText(" refreshed")
+        XCTAssertEqual(title.value as? String, "Synthetic template 1 refreshed")
         let review = app.buttons["merchant.operations.review"]
         XCTAssertTrue(revealFixtureElement(review, in: app, maximumSwipes: 25)); review.tap()
         let confirm = app.buttons["merchant.operations.confirm"]

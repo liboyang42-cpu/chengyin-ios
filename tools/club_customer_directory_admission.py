@@ -1629,6 +1629,54 @@ def _club_make_pure(function, row, raw, *, _hash=_club_hashlib.sha256, _dumps=js
         raise ValueError('Unknown finite pure kind')
     return pure
 
+
+def _club_make_replay_inverse(function, raw):
+    # No I/O or result cache. Same exact two-argument byte algorithm per invocation.
+    if _club_hashlib.sha256(raw).hexdigest() != _CLUB_E2B_SHA256['Tests/ContractChecks/test_roam_route_replay.py']:
+        raise ValueError('Unknown complete replay inverse source')
+    tree = _club_ast.parse(raw)
+    nodes = [n for n in tree.body if isinstance(n, _club_ast.FunctionDef) and n.name == 'project_saved_route_source']
+    tables = [n for n in tree.body if isinstance(n, _club_ast.Assign)
+              and len(n.targets) == 1 and getattr(n.targets[0], 'id', None) == 'SOURCE_INVERSES']
+    if len(nodes) != 1 or len(tables) != 1:
+        raise ValueError('Ambiguous exact replay inverse declaration')
+    node = nodes[0]
+    source = ''.join(raw.decode().splitlines(True)[node.lineno-1:node.end_lineno]).encode()
+    if (_club_hashlib.sha256(source).hexdigest() != '5758eabc28fe9a772d92fd60137518de3cfd3bb4ac9e1b7af7d021ab344c8de5'
+            or _club_ast.dump(node.args, include_attributes=False) != "arguments(posonlyargs=[], args=[arg(arg='path'), arg(arg='raw')], kwonlyargs=[], kw_defaults=[], defaults=[])"):
+        raise ValueError('Changed complete replay inverse function or arguments')
+    # ast.literal_eval creates an independent finite data tree, containing only
+    # immutable bytes/strings/integers and its private container structure.
+    expected = _club_ast.literal_eval(tables[0].value)
+    import marshal
+    code = function.__code__
+    expected_code = next(value for value in compile(raw, code.co_filename, 'exec', dont_inherit=True).co_consts
+                         if type(value) is type(code) and value.co_name == 'project_saved_route_source')
+    if marshal.dumps(code) != marshal.dumps(expected_code):
+        raise ValueError('Loaded replay inverse does not match its fixed AST')
+    if function.__globals__.get('SOURCE_INVERSES') != expected:
+        raise ValueError('Changed complete replay inverse table')
+    @_club_wraps(function)
+    def inverse(path, raw):
+        if (function.__code__ is not code or function.__defaults__ is not None
+                or function.__kwdefaults__ is not None
+                or function.__globals__.get('SOURCE_INVERSES') != expected):
+            raise ValueError('Changed loaded replay inverse function or table')
+        if type(path) is not str or type(raw) is not bytes:
+            raise TypeError('Exact replay path and immutable bytes required')
+        row = expected[path]
+        if _club_hashlib.sha256(raw).hexdigest() != row['after']:
+            raise AssertionError('Unknown saved-route postimage: ' + path)
+        restored = raw
+        for after, before in reversed(row['spans']):
+            if restored.count(after) != 1:
+                raise AssertionError('Missing or repeated saved-route span')
+            restored = restored.replace(after, before, 1)
+        if _club_hashlib.sha256(restored).hexdigest() != row['before']:
+            raise AssertionError('Original saved-route source not restored exactly')
+        return restored
+    return inverse
+
 def _club_guard_context(context):
     """Isolate imports and functions in this context's exact physical namespace.
 
@@ -1755,7 +1803,10 @@ def _club_guard_context(context):
             for attribute, value in tuple(vars(module).items()):
                 if _club_inspect.isfunction(value) and value.__module__ == qualified:
                     row = _CLUB_PURE_ROWS.get((relative, attribute))
-                    wrapped = _club_make_pure(value, row, raw) if row is not None else guard_function(value)
+                    if relative == 'Tests/ContractChecks/test_roam_route_replay.py' and attribute == 'project_saved_route_source':
+                        wrapped = _club_make_replay_inverse(value, raw)
+                    else:
+                        wrapped = _club_make_pure(value, row, raw) if row is not None else guard_function(value)
                     setattr(module, attribute, wrapped)
                     if row is not None:
                         guarded_functions[id(wrapped)] = (wrapped, wrapped)

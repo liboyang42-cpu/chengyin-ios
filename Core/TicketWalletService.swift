@@ -11,7 +11,7 @@ public struct TicketWalletService {
         let data = try await post("api/registration/list", fields: ["owner_type": String(lane.rawValue)], token: token)
         switch lane {
         case .route: return try decode(RouteEnvelope.self, data).rows
-        case .activity: return try decode(ActivityEnvelope.self, data).data ?? []
+        case .activity: return try decode(RouteEnvelope.self, data).rows
         }
     }
     public func wallet(token: String) async throws -> TicketWalletSnapshot {
@@ -20,11 +20,15 @@ public struct TicketWalletService {
         async let activity = outcome(lane: .activity, token: token)
         let results = await (route, activity)
         try Task.checkCancellation()
-        // A current authorization failure always closes the private wallet, even if one half succeeds.
+        // Cancellation of either lane retires the aggregate before any earlier
+        // authorization response can invalidate a newer viewer.
         for result in [results.0, results.1] {
-            if case .failure(let error) = result {
-                if error is CancellationError { throw error }
-                if error as? APIError == .unauthorized { throw APIError.unauthorized }
+            if case .failure(let error) = result, error is CancellationError { throw error }
+        }
+        // A still-current authorization failure closes the private wallet.
+        for result in [results.0, results.1] {
+            if case .failure(let error) = result, error as? APIError == .unauthorized {
+                throw APIError.unauthorized
             }
         }
         switch results {

@@ -2105,7 +2105,7 @@ final class AppSession: ObservableObject {
     private let ticketWalletService:TicketWalletService?
     private var currentTicketWalletSession:TicketWalletReadSession? {
         guard let account,let token else { return nil }
-        return try? TicketWalletReadSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+        return try? TicketWalletReadSession(accountID:account.id,epoch:gate.currentStamp,token:token,viewerRevision:compositionViewerRevision,role:account.effectiveRole)
     }
     lazy var ticketWalletReader=TicketWalletSessionReader(service:ticketWalletService,currentSession:{ [weak self] in self?.currentTicketWalletSession },onUnauthorized:{ [weak self] captured in
         guard let self,self.currentTicketWalletSession == captured else { return }

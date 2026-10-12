@@ -60,8 +60,8 @@ final class MerchantTemplateCategoryFlowTests: XCTestCase {
         app.buttons["merchant.categories.option.101"].tap(); XCTAssertFalse(app.buttons["merchant.categories.apply"].isEnabled)
         app.buttons["merchant.categories.option.103"].tap(); app.buttons["merchant.categories.apply"].tap()
         XCTAssertTrue(revealFixtureElement(selected(app, id: 103), in: app, requiresHittable: false))
-        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.keepEditing"].tap()
-        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.discardReload"].tap()
+        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.keepEditing"].firstMatch.waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.keepEditing"].firstMatch.tap()
+        app.buttons["merchant.operations.reload"].tap(); XCTAssertTrue(app.alerts.buttons["merchant.operations.discardReload"].firstMatch.waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.discardReload"].firstMatch.tap()
         choose(app); XCTAssertFalse(app.buttons["merchant.categories.apply"].isEnabled)
         app.buttons["merchant.categories.cancel"].tap()
     }

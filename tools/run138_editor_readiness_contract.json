@@ -87,7 +87,7 @@
     "ProjectSubmissionEvidenceUITestSupport.swift": "49a420e87068cbc4b28e8b570ec7faceec09d3b9b7521cd2c3e75f53803db3c6",
     "ModuleFlowTests.swift": "bb8a6103f9b878d4f86355dc88acef53ff0f51ce830707aa17787abc51cdb37f",
     "ProfileCasePictureRemovalFlowTests.swift": "d028a95bb912648cb8571e67fed2f552720ce42a52ea62b6ee4172f007a04ee7",
-    "MerchantProjectBrowserFlowTests.swift": "cd307f7f147b783c8fc706351bf2e7cab0fa422c52a81327eb5b8d5475401f73",
+    "MerchantProjectBrowserFlowTests.swift": "19ef90b1a62298bd32a7a566d35cdac6654f24c9af23b92a930288c9901e716e",
     "ApprovedTopicSelectedCoverChineseFlowTests.swift": "f56a803a8581e9ba340fff97f76bce3929c63ba6c9baf74de8ed522ccd688d81",
     "JourneyContentFlowTests.swift": "cd56d905e1d42c413d921f48106872ea27e334e9213d68fc384a786acaa9cebc",
     "MerchantClubDiscoveryFlowTests.swift": "4ef4f6534ab84a98978711196f98ad0b41d822411fb08e342f494c422ef9f5eb",
@@ -98,7 +98,7 @@
     "ProjectStoryImageFirstGapFlowTests.swift": "8e1a7dba152edf2108aef8d277208a0b1e27ba9d11089a0cfa998d2e6fa5754c",
     "TopicFlowTests.swift": "7f10c301530c999528b055414dc9e2a8f3cab099b556b5f950ee9a9e97271313",
     "PlayRouteMapCameraFallbackFlowTests.swift": "4f9bfb0535abbb3b61b40847d040b07ca476cef323016ab29925dac2ad2c156c",
-    "MerchantTemplateCategoryFlowTests.swift": "71fe2b737b41bfa12ee2140ea2330158d890c0992cb0400a63083189466bee11",
+    "MerchantTemplateCategoryFlowTests.swift": "630070b234f3fa9207725034f5230288cce8cf40f685d18599fb979ae0416e33",
     "FailureScreenshot.swift": "a875b7c0672ae267d14bca68d3955188d4955f3f4268e441ff04541ed37b07fc",
     "ClubProfileScopeFlowTests.swift": "8cae5d6cb5f38bc4c65ac213251a400056bf305614b9449530321809189bbd9a",
     "RoamFinishedHistoryFlowTests.swift": "879d620461e5d0cfb6bf4806f973b8a1986bb23a9ad00a67bbb36b261007aceb",
@@ -143,7 +143,7 @@
     "PlayCompareFlowTests.swift": "77ab14431d332b6f30ede7c5425f8d97b9ebdce7f3aac413cd1659b67a5c8aa5",
     "TemplateCompositionFlowTests.swift": "2786ec402ff09027d1bd96b1981fb92d287cffcb94c3c4add30de3b5d6530393",
     "AccountSavedPostCollectionFlowTests.swift": "da788dddda108d6f13970424e9d3b8b88a15dbce3ff911d713c25f38204abacf",
-    "MerchantTemplateBrowserFlowTests.swift": "60cdf4e3dd95cf223638594ae126f8163a6ec3a1b970931f92287fa2fd8311c6",
+    "MerchantTemplateBrowserFlowTests.swift": "aaef865953117bbbc1120bf70d53d4aaa1f108d5a9972deee62ea863283687b3",
     "ProjectStoryTemplateGameMiddleFlowTests.swift": "b4f91805d7ccf4ca6504ce88cc441997c2762d85b68b0038e01d02444e0d79f2",
     "ClubOperationsFlowTests.swift": "1b1de2b71ed658e09a004b15102201b9ee9a66fb702d4797e93f4df68d70192a",
     "ProjectStoryMediaGapFlowSupport.swift": "2700c2aa085765facb8c443e7981baec5a4484d35dbf07e08b970eeafae09014",
@@ -153,7 +153,7 @@
     "ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
     "ApprovedReleasePreparationChineseFlowTests.swift": "720f17dbc1a0d613c29d426e8d5405e24def9143b2669cc22cfba2c5ea15065c",
     "RoamEnrolledChaptersFlowTests.swift": "8d3460ca1313a764b2ef224c7fd9a8eea32bd93e1f3a1e240deee672501ebf2f",
-    "MerchantBrandImagesFlowTests.swift": "a9d6e4daf86461e90566204e62c21d1e2367b843002841b963f7fc130c37f778",
+    "MerchantBrandImagesFlowTests.swift": "355d8eb1ad0db3c691a8584804fc5dc0a6814a30cdd37f739ca83183e5263655",
     "ProjectStoryTemplateAlbumFirstFlowTests.swift": "fa8008549f9c942efa8206c2346fdefdeba8ffe69e988bdabc3d000b9d9d6d8d",
     "GroupPollUITests.swift": "b5bafcac4f364f38178e8dd74dced246e7b1fb2390023952205ea78600683086",
     "ProfilePreferenceRemovalFlowTests.swift": "306e4d7cd16e4ab226aa072f8848524e1de89c3af5f22700f6b5191dd36c9bca",
@@ -959,7 +959,7 @@
     },
     "Questify.xcodeproj/project.pbxproj": {
       "before_sha256": "0497d3ffb5b6dfd9c3aa0cd67a27594cfcb412fcda57fa3ac5ec63d8cc462ed1",
-      "after_sha256": "0890a421a644ae386a6ef2f1ed878a547707a72f462858e746972c0137bfc276",
+      "after_sha256": "9d9c0af9ac73e4ffd12f174b7117c31ca371d42e32ce80be7ae45b2809761243",
       "hunks": [
         {
           "before": "\t\t\"F2C416E5BF616602CFE89B81\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"588CE027521446DF6EC81070\";\n\t\t};\n\t\t\"74E41CC929B3EEB9D9C0C251\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n",
@@ -3552,6 +3552,30 @@
         {
           "before": "\t\t\t\t\"C1493BAC51B5FC93CC036D5F\",\n\t\t\t\t\"27B575F89E04D05818674C94\",\n",
           "after": "\t\t\t\t\"C1493BAC51B5FC93CC036D5F\",\n\t\t\t\t\"75955D04BE7BDCF96DC8B787\",\n\t\t\t\t\"27B575F89E04D05818674C94\",\n"
+        },
+        {
+          "before": "9FA669D4\";\n\t\t};\n",
+          "after": "9FA669D4\";\n\t\t};\n\t\t\"17891CA89A2E94D70524BC74\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/TicketWalletListReadRoute.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"9C031D20742629980DE999B1\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"17891CA89A2E94D70524BC74\";\n\t\t};\n"
+        },
+        {
+          "before": "9FA669D4\",\n\t\t\t\t\"8B74361A925AF9B9",
+          "after": "9FA669D4\",\n\t\t\t\t\"17891CA89A2E94D70524BC74\",\n\t\t\t\t\"8B74361A925AF9B9"
+        },
+        {
+          "before": "CC8D503\",\n\t\t\t\t\"18FB9152CD57870DE",
+          "after": "CC8D503\",\n\t\t\t\t\"1AD2AE2F1FCA60183F6C08CD\",\n\t\t\t\t\"18FB9152CD57870DE"
+        },
+        {
+          "before": "A077DDD\",\n\t\t\t\t\"932CEDDFDBD84629B",
+          "after": "A077DDD\",\n\t\t\t\t\"9C031D20742629980DE999B1\",\n\t\t\t\t\"932CEDDFDBD84629B"
+        },
+        {
+          "before": "4CC8D503\";\n\t\t};\n",
+          "after": "4CC8D503\";\n\t\t};\n\t\t\"1AD2AE2F1FCA60183F6C08CD\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/TicketWalletListCompositionTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"544C040690BA50E6876AB04A\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"1AD2AE2F1FCA60183F6C08CD\";\n\t\t};\n"
+        },
+        {
+          "before": "54888991\",\n\t\t\t\t\"A9480660AE2AD5A9",
+          "after": "54888991\",\n\t\t\t\t\"544C040690BA50E6876AB04A\",\n\t\t\t\t\"A9480660AE2AD5A9"
         }
       ]
     },
@@ -3577,7 +3601,7 @@
     },
     "App/AppSession.swift": {
       "before_sha256": "5ac846ff656a7b74f0c9bd28200f11a257ae260f5c881f201c2a3b026af6dd09",
-      "after_sha256": "56e188e6c1cf80050ea642a4ebe53a7fd03645d0dda9635ce189b7e9a4d033f0",
+      "after_sha256": "7e684d41ad55f7624ba53c723ea2c8a3b91879ae0ce3d33a4208b52739c2815c",
       "hunks": [
         {
           "before": "    private var projectConfigurationChanging = false\n    /// The owner of a reviewed project selector must use this synchronous boundary BEFORE\n    /// changing any projectRead/projectWrite or approvedTopicReview*/approvedTopicRelease*\n    /// capability, merchantDraftSelectionList/Resolve, ownedTopicCoverApproval, projectStoryImageUploadApproval or projectStoryAudioUploadApproval, including A → nil → identical A.\n    /// The counter only retires prior contexts. It neither grants routes nor changes stored ownership.\n    func withProjectEditConfigurationChange(_ mutation: () -> Void) {\n        let alreadyChanging = projectConfigurationChanging\n",
@@ -3602,6 +3626,10 @@
         {
           "before": "    func templateMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]> {\n        templateMetadataRequest { try await $0.categories(type: 4, token: $1) }\n    }\n    // Only an accepted, still-present selector can expire its captured identity.\n    private func templateMetadataRequest<Value>(\n        _ operation: @escaping (DiscoveryService, String?) async throws -> Value\n",
           "after": "    func templateMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]> {\n        templateMetadataRequest { try await $0.categories(type: 4, token: $1) }\n    }\n    func projectMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]> {\n        templateMetadataRequest { try await $0.categories(type: 1, token: $1) }\n    }\n    // Only an accepted, still-present selector can expire its captured identity.\n    private func templateMetadataRequest<Value>(\n        _ operation: @escaping (DiscoveryService, String?) async throws -> Value\n"
+        },
+        {
+          "before": "t token else { return nil }\n        return try? TicketWalletReadSession(accountID:account.id,epoch:gate.currentStamp,token:token)\n    }\n",
+          "after": "t token else { return nil }\n        return try? TicketWalletReadSession(accountID:account.id,epoch:gate.currentStamp,token:token,viewerRevision:compositionViewerRevision,role:account.effectiveRole)\n    }\n"
         }
       ]
     },
@@ -3841,7 +3869,7 @@
     },
     "App/MerchantOperationsEditor.swift": {
       "before_sha256": "2b9a71ae8f0462dd244b6e577db7f640292372c14e21ebefd7d65abdc9987c76",
-      "after_sha256": "15206efd15238957c20c435b78e8463ef8da5d0067467e0579ac37968f4ce658",
+      "after_sha256": "fe32ebe7224d99276548aaaf46428cf482d9e51add6dc86683cc73a5c9470ebc",
       "hunks": [
         {
           "before": "            Section(\"merchant.operations.decor\") {\n                decorField(\"merchant.operations.slogan\", \\.slogan, \"slogan\")\n                decorField(\"merchant.operations.cityRole\", \\.cityRole, \"cityRole\")\n                Text(\"merchant.operations.decorPreserved\").font(.footnote).foregroundStyle(.secondary)\n                if let category = value.categoryID { LabeledContent(\"merchant.operations.category\", value: String(category)) }\n                if let type = value.featuredType, let id = value.featuredID { LabeledContent(\"merchant.operations.featured\", value: \"\\(type) / \\(id)\") }\n            }\n            Section(\"merchant.operations.tags\") {\n                TextField(\"merchant.operations.tags\", text: Binding(get: { currentDecor?.tags.joined(separator: \";\") ?? \"\" }, set: { raw in\n                    guard var value = currentDecor else { return }; value.tags = raw.components(separatedBy: \";\").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }; model.edit(.decor(value))\n                }), axis: .vertical).accessibilityIdentifier(\"merchant.operations.field.tags\")\n                Text(\"merchant.operations.tagsHint\").font(.footnote).foregroundStyle(.secondary)\n            }\n            mediaSection(\"merchant.operations.cover\", field: .coverImage)\n        case .gallery(let value):\n",
@@ -3930,12 +3958,16 @@
         {
           "before": "            }\n            MerchantTemplateCategoryPicker(document: model)\n            MerchantTemplateStoryTimelineFields(model: model)\n",
           "after": "            }\n            MerchantTemplateCategoryPicker(document: model) { categoryPicker = .init(document: model) }\n            MerchantTemplateStoryTimelineFields(model: model)\n"
+        },
+        {
+          "before": "oryPicker))\n    }\n",
+          "after": "oryPicker))\n        .modifier(MerchantBrandImagesPresentation(document: model))\n    }\n"
         }
       ]
     },
     "App/MerchantOperationsViews.swift": {
       "before_sha256": "af90ffe83b625ea53927c06b86d71723029e76e19a9e71a928d4e5dbb896388f",
-      "after_sha256": "3e8f69fd5c1da77904c6cb0d9e71c0e24fae5d3067d91a65d75e164414c12670",
+      "after_sha256": "69e28b1c3d7f2a84174780182d8ab1342b55a935f63b15c9451a425d50ef1893",
       "hunks": [
         {
           "before": "                case .draft:\n                    MerchantOperationsEditor(model: model, templateAssistFactory: templateAssistFactory, imageContext: model.imageContext)\n                case .cityNodes(let catalog): MerchantOperationsCityView(catalog: catalog)\n                case .templates(let rows): MerchantOperationsTemplatesView(reader: reader, rows: rows, imageHost: imageHost, templateAssistFactory: templateAssistFactory)\n                case .assets(let resources): MerchantOperationsAssetsView(resources: resources)\n                }\n            } else if let issue = coordinator.issue, coordinator.loadedScope == reader.scope {\n",
@@ -3972,6 +4004,10 @@
         {
           "before": "        case .server(let text): Text(verbatim: text).foregroundStyle(.secondary).accessibilityIdentifier(\"merchant.operations.issue\")\n        }\n    }\n}\n\n@MainActor\nprivate struct MerchantOperationsTemplatesView: View {\n    let reader: any MerchantOperationsReading\n    let rows: [MerchantTemplateRecord]\n    let imageHost: MerchantRetainedImageHost?\n    let artworkVersion: String\n    var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil\n    var body: some View {\n        ScrollView {\n            LazyVStack(spacing: 18) {\n                MerchantOperationsBoundary(isExample: reader.isOfflineExample)\n                Text(\"merchant.operations.templatePageLimit\").font(.footnote).foregroundStyle(.secondary)\n                NavigationLink(\"merchant.operations.newTemplate\") { MerchantOperationsDocumentView(reader: reader, destination: .template(nil), imageHost: imageHost, templateAssistFactory: templateAssistFactory) }\n                    .accessibilityIdentifier(\"merchant.operations.newTemplate\")\n                if rows.isEmpty { ContentUnavailableView(\"merchant.operations.empty\", systemImage: \"square.grid.2x2\") }\n                ForEach(rows) { row in\n                    NavigationLink { MerchantOperationsDocumentView(reader: reader, destination: .template(row.id), imageHost: imageHost, templateAssistFactory: templateAssistFactory) } label: {\n                        QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imgUrl, title: row.title, subtitle: row.description, fallbackTitle: \"merchant.operations.untitled\", minimumHeight: 230,\n                            progressiveBlur: .cover, artworkIdentity: .init(owner: reader.scope.uuidString, content: \"merchant-template:\\(row.id)\", version: artworkVersion)) {\n                            Text(LocalizedStringKey(templateStatus(row.status)))\n                            if let method = row.validationMethod.flatMap(MerchantTemplateMethod.init(rawValue:)) { Text(LocalizedStringKey(method.titleKey)) }\n                        }\n                    }.buttonStyle(.plain).accessibilityIdentifier(\"merchant.operations.template.\" + String(row.id))\n                }\n            }.padding()\n        }\n    }\n    private func templateStatus(_ status: Int?) -> String {\n        switch status { case 0: return \"merchant.operations.template.unpublished\"; case 1: return \"merchant.operations.template.published\"\n        case 2: return \"merchant.operations.review.pending\"; default: return \"merchant.operations.review.unknown\" }\n    }\n}\n",
           "after": "        case .server(let text): Text(verbatim: text).foregroundStyle(.secondary).accessibilityIdentifier(\"merchant.operations.issue\")\n        }\n    }\n}\n"
+        },
+        {
+          "before": "evision = 0\n    let galleryBatch",
+          "after": "evision = 0\n    @Published var brandImagesPresentation: MerchantBrandImagesModel?\n    let galleryBatch"
         }
       ]
     },
@@ -6325,11 +6361,15 @@
     },
     "Core/TicketWalletReading.swift": {
       "before_sha256": "db34bca08640a61bbf8f49528f890c8a336dea7bbfd891138088c18bf6679653",
-      "after_sha256": "ff0b7f497b1945a24f105126e4a37372ea7d8e3ced6d9acf98f6ad804060bfb1",
+      "after_sha256": "f438bf7080945d6107fdac0bd128bf21be7542894a65f86898bba4614aafd075",
       "hunks": [
         {
           "before": "    }\n}\n\n/// Generation guard shared by both screens; fresh reads clear all previous private content.\n/// It stays framework-independent so overlap, cancellation and scope hiding can be unit tested.\n@MainActor public final class TicketWalletReadModel<Value> {\n    public private(set) var value: Value?\n    public private(set) var issue: TicketWalletIssue?\n    public private(set) var loadedScope: UUID?\n    public private(set) var isLoading = false\n    private var generation: UInt64 = 0\n    public init() {}\n    public func visibleValue(scope: UUID) -> Value? { loadedScope == scope ? value : nil }\n    public func visibleIssue(scope: UUID) -> TicketWalletIssue? { loadedScope == scope ? issue : nil }\n    public func invalidate() {\n        generation &+= 1; value = nil; issue = nil; loadedScope = nil; isLoading = false\n    }\n    /// Preserve the current same-scope navigation rows while a pushed screen is visible.\n    public func cancelPending() { generation &+= 1; isLoading = false }\n    public func load(scope: UUID, currentScope: () -> UUID, operation: () async throws -> Value) async {\n        invalidate()\n        let captured = generation\n        isLoading = true\n        defer { if generation == captured { isLoading = false } }\n        do {\n            let result = try await operation()\n            guard !Task.isCancelled, generation == captured, currentScope() == scope else { return }\n            value = result; loadedScope = scope\n        } catch {\n            guard !Task.isCancelled, !(error is CancellationError), generation == captured, currentScope() == scope else { return }\n            issue = TicketWalletIssue(error); loadedScope = scope\n        }\n    }\n}\n",
           "after": "    }\n}\n\n/// A local read owner is not a grant. It binds visible results and callbacks to the exact reader,\n/// scope, configuration, authentication state and requested registration (nil means the wallet list).\npublic struct TicketWalletReadOwner: Hashable {\n    public let readerID: ObjectIdentifier\n    public let scope: UUID\n    public let configured: Bool\n    public let authenticated: Bool\n    public let id: Int?\n    @MainActor public init(reader: any TicketWalletReading, id: Int? = nil) {\n        readerID = ObjectIdentifier(reader); scope = reader.scope\n        configured = reader.isConfigured; authenticated = reader.isAuthenticated; self.id = id\n    }\n    public var canRead: Bool { configured && authenticated && (id.map { $0 > 0 } ?? true) }\n}\npublic struct TicketWalletReadPresentation: Equatable {\n    fileprivate let nonce = UUID()\n    public let owner: TicketWalletReadOwner\n    fileprivate init(owner: TicketWalletReadOwner) { self.owner = owner }\n}\n\n/// The UI captures a permit before queueing work. Departure retires that permit even when\n/// account and reader scope stay unchanged. Same-owner rows may remain for a pushed destination.\n@MainActor public final class TicketWalletReadModel<Value> {\n    public private(set) var value: Value?\n    public private(set) var issue: TicketWalletIssue?\n    public private(set) var loadedOwner: TicketWalletReadOwner?\n    public var loadedScope: UUID? { loadedOwner?.scope }\n    public private(set) var isLoading = false\n    public private(set) var presentation: TicketWalletReadPresentation?\n    private var generation = UUID()\n    public init() {}\n    public func visibleValue(owner: TicketWalletReadOwner) -> Value? { loadedOwner == owner ? value : nil }\n    public func visibleIssue(owner: TicketWalletReadOwner) -> TicketWalletIssue? { loadedOwner == owner ? issue : nil }\n    public func invalidate() {\n        generation = UUID(); value = nil; issue = nil; loadedOwner = nil; isLoading = false\n    }\n    public func cancelPending() { generation = UUID(); isLoading = false }\n    @discardableResult public func beginPresentation(owner: TicketWalletReadOwner) -> TicketWalletReadPresentation? {\n        if loadedOwner != owner { invalidate() } else { cancelPending() }\n        presentation = owner.canRead ? TicketWalletReadPresentation(owner: owner) : nil\n        return presentation\n    }\n    public func endPresentation(preservingValues: Bool = true) {\n        presentation = nil\n        if preservingValues { cancelPending() } else { invalidate() }\n    }\n    public func accepts(_ permit: TicketWalletReadPresentation, currentOwner: TicketWalletReadOwner) -> Bool {\n        presentation == permit && permit.owner == currentOwner && currentOwner.canRead\n    }\n    public func load(presentation permit: TicketWalletReadPresentation, currentOwner: () -> TicketWalletReadOwner,\n                     operation: () async throws -> Value) async {\n        // Reject old queued work before clearing rows or changing a newer request generation.\n        guard !Task.isCancelled, accepts(permit, currentOwner: currentOwner()) else { return }\n        invalidate()\n        let captured = generation\n        isLoading = true\n        defer { if generation == captured { isLoading = false } }\n        do {\n            let result = try await operation()\n            guard !Task.isCancelled, generation == captured, accepts(permit, currentOwner: currentOwner()) else { return }\n            value = result; loadedOwner = permit.owner\n        } catch {\n            guard !Task.isCancelled, !(error is CancellationError), generation == captured,\n                  accepts(permit, currentOwner: currentOwner()) else { return }\n            issue = TicketWalletIssue(error); loadedOwner = permit.owner\n        }\n    }\n}\n"
+        },
+        {
+          "before": "ring\n    public init(accountID: Int, epoch: UInt64, token: String) throws {\n        guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }\n        self.accountID = accountID; self.epoch = epoch; self.token = token\n    }\n",
+          "after": "ring\n    public let viewerRevision: UInt64\n    public let role: String?\n    private let roleBytes: Data?\n    public init(accountID: Int, epoch: UInt64, token: String, viewerRevision: UInt64 = 0, role: String? = nil) throws {\n        guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }\n        self.accountID = accountID; self.epoch = epoch; self.token = token\n        self.viewerRevision = viewerRevision; self.role = role; self.roleBytes = role.map { Data($0.utf8) }\n    }\n"
         }
       ]
     },
@@ -6589,7 +6629,7 @@
     },
     "App/AppCompositionRoot.swift": {
       "before_sha256": "006923cb90a730259ba135784ae802350125c31cfb584d89a88d4209f8986dbb",
-      "after_sha256": "ed3ef356f8762a0690bcfdfad8fe5c053381df72ec0b60a108a7f9c7a7ffdde1",
+      "after_sha256": "c562d7c4b16350ae08a8a331546ba33104cc2eb0001698dde429f02593df514e",
       "hunks": [
         {
           "before": "    let makeProjectTopicImageUploadTransport: @MainActor () -> any HTTPTransport\n    let projectStoryImageUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryImageUploadApproval?\n    let makeProjectStoryImageUploadTransport: @MainActor () -> any HTTPTransport\n    let ownedTopicCoverApproval: @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval?\n    let makeOwnedTopicCoverTransport: @MainActor (Int) -> any HTTPTransport\n    let ownedOrderReadApproval: @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval?\n",
@@ -6602,12 +6642,24 @@
         {
           "before": "        self.projectStoryAudioUploadApproval = projectStoryAudioUploadApproval; self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport\n        self.projectTopicImageUploadApproval = projectTopicImageUploadApproval; self.makeProjectTopicImageUploadTransport = makeProjectTopicImageUploadTransport\n        self.projectStoryImageUploadApproval = projectStoryImageUploadApproval; self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport\n        self.ownedTopicCoverApproval = ownedTopicCoverApproval; self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport\n        self.sessionDependencies = sessionDependencies ?? { _ in .dormant }\n        self.couponLocks = couponLocks\n",
           "after": "        self.projectStoryAudioUploadApproval = projectStoryAudioUploadApproval; self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport\n        self.projectTopicImageUploadApproval = projectTopicImageUploadApproval; self.makeProjectTopicImageUploadTransport = makeProjectTopicImageUploadTransport\n        self.projectStoryImageUploadApproval = projectStoryImageUploadApproval; self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport\n        self.projectNodeImageUploadApproval = projectNodeImageUploadApproval; self.makeProjectNodeImageUploadTransport = makeProjectNodeImageUploadTransport\n        self.ownedTopicCoverApproval = ownedTopicCoverApproval; self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport\n        self.sessionDependencies = sessionDependencies ?? { _ in .dormant }\n        self.couponLocks = couponLocks\n"
+        },
+        {
+          "before": "aseURL)\n        guard url.query ",
+          "after": "aseURL)\n        let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)\n        guard url.query "
+        },
+        {
+          "before": "      } else if OwnedOrderReadRo",
+          "after": "      } else if ticketWalletList != nil {\n            // Only the existing wallet owner_type1/2 lists; no order/detail/write grant.\n            guard deployment.regional.market == .china, captured.isSignedInContentViewer else { throw APIError.notConfigured }\n        } else if OwnedOrderReadRo"
+        },
+        {
+          "before": ") }\n            return result\n",
+          "after": ") }\n            if let ticketWalletList {\n                try ticketWalletList.validateResponse(result, expectedAccountID: captured.accountID ?? 0)\n            }\n            return result\n"
         }
       ]
     },
     "App/MerchantProjectsView.swift": {
       "before_sha256": "b9cd63020d33ed4d39ff03573fcc133550cde2203253683d5761c9f676331493",
-      "after_sha256": "488bd9ad640a75aa03d39c79d1a2caaa9c28b2bd331f4c15d539d0b1c3904e56",
+      "after_sha256": "3369e77ca91c11e5522c0d5a49cad1897fe117332ef5c1b74aa8916a693d78b5",
       "hunks": [
         {
           "before": "@MainActor\nstruct MerchantProjectsView<Reader: MerchantReading>: View {\n    @Environment(\\.locale) private var locale\n    @ObservedObject var reader: Reader\n    @StateObject private var model = MerchantLoadModel<MerchantProjectPage>()\n    @State private var selection: ProjectSelection?\n    private struct ProjectSelection: Identifiable {\n        let id = UUID()\n        let project: MerchantProject\n        let revision: UInt64\n    }\n    var body: some View {\n        ZStack {\n            if !reader.isConfigured {\n                ContentUnavailableView(\"merchant.projects\", systemImage: \"network.slash\", description: Text(\"auth.notConfigured\"))\n            } else if !reader.isSignedIn {\n                ContentUnavailableView(\"merchant.projects\", systemImage: \"lock\", description: Text(\"merchant.signIn\"))\n            } else if model.loadedRevision == reader.sessionRevision, let page = model.value {\n                List {\n                    Section {\n                        Text(\"merchant.projects.scope\").font(.footnote).foregroundStyle(.secondary)\n",
@@ -6656,6 +6708,10 @@
         {
           "before": "                Text(\"merchant.summarySnapshot\").font(.footnote).foregroundStyle(.secondary)\n                MerchantCountRow(\"merchant.recordID\", value: project.projectID)\n",
           "after": "                Text(\"merchant.summarySnapshot\").font(.footnote).foregroundStyle(.secondary)\n                MerchantProjectCardContext(project: project)\n                MerchantCountRow(\"merchant.recordID\", value: project.projectID)\n"
+        },
+        {
+          "before": "> {\n        let captured = selection?.id\n        return Binding(get: { [weak self] in self?.selection?.id == captured ? self?.selection : nil },\n                       set: { [weak self] value in if value == nil, let captured { self?.closeSummary(id: captured) } })\n    }\n    func workspaceBinding() -> Binding<Route?> {\n        let captured = route?.id\n        return Binding(get: { [weak self] in self?.route?.id == captured ? self?.route : nil },\n                       set: { [weak self] value in if value == nil, let captured, self?.route?.id == captured { self?.route = nil } })\n    }\n}\n",
+          "after": "> {\n        let epoch = generation\n        var captured = selection?.id\n        return Binding(get: { [weak self] in\n            guard let self, self.generation == epoch, let selected = self.selection else { return nil }\n            // SwiftUI may retain the binding installed before the first selection.\n            // Adopt that first identity once; never adopt a reopened presentation.\n            if captured == nil { captured = selected.id }\n            return selected.id == captured ? selected : nil\n        }, set: { [weak self] value in\n            guard let self, self.generation == epoch, value == nil, let captured else { return }\n            self.closeSummary(id: captured)\n        })\n    }\n    func workspaceBinding() -> Binding<Route?> {\n        let epoch = generation\n        var captured = route?.id\n        return Binding(get: { [weak self] in\n            guard let self, self.generation == epoch, let current = self.route else { return nil }\n            if captured == nil { captured = current.id }\n            return current.id == captured ? current : nil\n        }, set: { [weak self] value in\n            guard let self, self.generation == epoch, value == nil, let captured, self.route?.id == captured else { return }\n            self.route = nil\n        })\n    }\n}\n"
         }
       ]
     },
@@ -7416,7 +7472,7 @@
     "Tests/CoreTests/ProfileAvatarTests.swift": "343516e9937a123b8907d89981e64f92650f1135e7883633a707624afc30db2e",
     "Tests/CoreTests/ProjectEmptyStoryTextRemovalTests.swift": "45fd7bb2f0b9a90709b77691091fe4f5b41f60efd2fe8d0315475f0d3d1be03c",
     "Tests/CoreTests/ProjectStoryTextInsertionTests.swift": "7e48ce88da282d8d7947141a8e5827eac2d75d547f1c5a6038b04ca3779af7bb",
-    "Tests/CoreTests/TicketWalletTests.swift": "900fb953876fa45e25ddfabd3ad70d2df9c8e36fd39d9504ac4413cbf8314d20",
+    "Tests/CoreTests/TicketWalletTests.swift": "11d55b64d7639073f67e1c66c3a7847327819e91712413c9bd9d44bc93656198",
     "App/TicketWalletTeamView.swift": "3213fc9e3661a87dd0803fa2dd40d8db16161c699e85fd5664cbb3db62a5a1f6",
     "Core/ProjectChapterRecruitmentCarryOver.swift": "75ef2554e55ff7aaaa8ecacc739e98159e47ea82e4cd699a188237d7440357e0",
     "Resources/TicketWalletTeamLocalizations.fragment.json": "24044cb2fa66435c21a4542e39a33d5b81862297d4a6a8973622631e7c711e04",
@@ -7498,8 +7554,8 @@
     "Tests/CoreTests/ProjectNodeImageTests.swift": "e3e88537f9d8d0668168c18da545766f606c0ab0f7dfeff62cac4d9ab75d50b6",
     "Core/ProjectTopicBudgetCarryOver.swift": "86a33035e9eb430a5d1ddf8f35fabe03ae7c994d0ef7a39c88a058f828203f1d",
     "Resources/MerchantProjectWorkspaceLocalizations.fragment.json": "866291d97ef6fa86c67c582fe6d309f5a64a0707c2ab5a7d5e50e68095063285",
-    "Tests/AppUnitTests/MerchantProjectWorkspaceEntryTests.swift": "e6ec7120e171c0dc72708922add8e0a65e3049f486084fd8671db3173d8b5506",
-    "Tests/ContractChecks/test_merchant_project_workspace_entry.py": "c55acff39bd788e3531a63621a1d3645e8cc7667f54ae08c85fd1335bc2943b9",
+    "Tests/AppUnitTests/MerchantProjectWorkspaceEntryTests.swift": "bfb095f16c95e8e851bfa4ea82d5028bb6a9aafe2b7e30c177ec9807ca8cdece",
+    "Tests/ContractChecks/test_merchant_project_workspace_entry.py": "339f650e37b0a17fd6b00667b316f0139110272ec4f0350e1244b7f76f9c1089",
     "Tests/ContractChecks/test_project_topic_budget_carryover.py": "8df5462f4556866f73a478c04a88b3bb54dfe7f005e4509071380e2dad90846b",
     "Tests/CoreTests/MerchantProjectWorkspaceScopeTests.swift": "48bcbc83acb56611eb9e03d18332d9dee1863a88c2c4929085586532fe8a34a3",
     "Tests/CoreTests/ProjectTopicBudgetCarryOverTests.swift": "04dd929044737f46dc59a89f0ad0795c690079aeb917878ba04b2f59204b7cf7",
@@ -7524,28 +7580,28 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "37c62f28113b703233f0db7ea8f758eb624d00b78f085a5a3deee681dc3d7e1c",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "9a2c0da457766bbb0afd4dc92fd57cdbeac9fcf498f98c08ff84ffebfd8e46a4",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "616a5e7f28ff5bd6814c91bf10e8f7efd99b8091ad4a8b9dc9d895f8bd2e0ad4",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
     "Tests/ContractChecks/test_club_customer_permissions.py": "773186689d0583d41d6ab75298e4b815e86dc688a2ce5043cdba43d0a5b2ffba",
     "docs/club-customer-permissions.md": "f32d0102eeb5bb2bc696b139389a5e674140623f7597973ffce5468629cd1f10",
     "Tests/ContractChecks/test_club_customer_directory_remote_admission.py": "09b5c57129442da635c71ff664b9a8c22ff0d694184592b86058312eb073e11e",
-    "tools/club_customer_directory_admission.py": "734a206112622a6a119356eb27a4969550cd43f7bfe31c82bc22335157312a9e",
+    "tools/club_customer_directory_admission.py": "56a22fa2bc824e725af4c71601704c94762f6bf97f4b49556d94d7b99b338f21",
     "Tests/ContractChecks/test_club_customer_keyword_debounce.py": "099ace7f23e8d42292beb5034535b391547eee1c9ae8782cb3f5c96e106a3235",
     "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift": "2c3cfc1da3d145221e13d9561c1bfb9166b58c84807bfd93034fcaff44b303a5",
     "docs/club-customer-keyword-debounce.md": "1fa12a8011cb1b2c3d7425dcd8f1f8ca07f27be08adb8a545c1be98f97806f0e",
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "3f141cb571ee224bad4582052def07af53f7c2141ab2267f1c24d2d36faaeda5",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "7b08cb1ad5ed4aeb4a237d6ef49cd264f50c89b1a27adf3704f1afffb6f8a35b",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
-    "Tests/ContractChecks/test_roam_route_replay.py": "2a66869077c70af1a8281954d926285f74d23d1378a424b771377e239b22c9ac",
+    "Tests/ContractChecks/test_roam_route_replay.py": "87c2e8c87c6f84c90c99d7e2e68d0b82b7a6392eecce83472831ae80dd1bc06d",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "2da8fbd9e46ca2b179b82f9658d58334b03009ffb3cb6eabf357be7316fb54db",
+    "Tests/ContractChecks/test_category_roam_registration.py": "78514a28aa2193deaee1e895051077cd432bdba85db598838c19063c95034324",
     "Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift": "91a1011295933822da752baaf3912cc8e36551bbe58597352dff171bf8c96222",
     "Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
     "Tests/ContractChecks/test_club_leaderboard_member_navigation.py": "f76bc1c7da34ef0e3df056a02eac732079e2b5103e0b872136dbf2d2e4b8c1a6",
@@ -7721,7 +7777,7 @@
     "Tests/AppUITests/MerchantTemplateHintsFlowTests.swift": "6474783a268098e9eee3b118a7f7825a454d7ac7b485b07ab1e26a2348b21f4e",
     "docs/merchant-template-story-timeline.md": "2e4dfd568f43117989b120b19223b9f6eb95cffd4d90b7ba75d1ad0c82d2ada9",
     "Tests/ContractChecks/test_merchant_template_categories.py": "d0be01450ad8610069ccba1146a08934c94afb835e8ca755cab8a0b4d43234bf",
-    "Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift": "71fe2b737b41bfa12ee2140ea2330158d890c0992cb0400a63083189466bee11",
+    "Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift": "630070b234f3fa9207725034f5230288cce8cf40f685d18599fb979ae0416e33",
     "docs/merchant-template-categories.md": "4454f8aafb873e3d0f32c2a8108b0889604f85dbcf86c4009f982b4712df44bb",
     "Tests/ContractChecks/test_merchant_template_hints.py": "2a1f8730bdfd778f0572f3c2080a4c2306858b74ece26c7e52cc558bdd348c0a",
     "Tests/ContractChecks/test_merchant_template_story_timeline.py": "15c3d542991ad86b15d6f310abd57d3edf0e456d9d63911647709f42e76ec049",
@@ -7829,7 +7885,7 @@
     "Tests/AppUITests/MerchantStoreIndustryFlowTests.swift": "a8dafae66f24d9c14abfbca20200fc51306d057854c6b590dc279db522ed07ff",
     "Core/MerchantRegistrationAvailability.swift": "edfa9c8485da3bc9a8022416c4a4bda45739bd6d6e06cc927bb4bfcb71bde2ff",
     "Core/MerchantContentCoordinator.swift": "c6e12e4a2ea8368b8657cf01fcee223f659ac95e7c21f74b66511b7849905c08",
-    "Tests/AppUITests/MerchantProjectBrowserFlowTests.swift": "cd307f7f147b783c8fc706351bf2e7cab0fa422c52a81327eb5b8d5475401f73",
+    "Tests/AppUITests/MerchantProjectBrowserFlowTests.swift": "19ef90b1a62298bd32a7a566d35cdac6654f24c9af23b92a930288c9901e716e",
     "Tests/ContractChecks/test_merchant_template_browser.py": "3a8f4a61d02d4a9218e6b1900561035efce0c310a2820d67f80442009ef86f69",
     "App/MerchantProjectBrowserControls.swift": "63cda888c8c278cfd2dfe6d6024dc55581719fc71f2686e38d185b658d97dd02",
     "Tests/ContractChecks/test_merchant_project_browser.py": "70a89456b41a236d76bb21c76b89bd70c26b299c9360f96c51ce3ac88a752ac2",
@@ -7844,15 +7900,15 @@
     "Core/MerchantProjectBrowser.swift": "8b54cff15e229031af715a5a230be3a8833f11274654ecfff87957c2c375f49c",
     "Resources/MerchantTemplateBrowserLocalizations.fragment.json": "437bee3e31aad36c78d7d6027bede53f7557b061b1dac0f718b20d29bd8e1648",
     "Tests/CoreTests/MerchantBrandImagesTests.swift": "0860caab294bdbb6a036ad016a82631c148107431e1306bae0a62e96fd20ea7b",
-    "Tests/AppUITests/MerchantBrandImagesFlowTests.swift": "a9d6e4daf86461e90566204e62c21d1e2367b843002841b963f7fc130c37f778",
+    "Tests/AppUITests/MerchantBrandImagesFlowTests.swift": "355d8eb1ad0db3c691a8584804fc5dc0a6814a30cdd37f739ca83183e5263655",
     "Tests/CoreTests/MerchantRegistrationAvailabilityTests.swift": "810b920f7f17de58301daf55a9fea126febce07a55763119a78ab50772df683b",
     "Core/MerchantContentSyntheticFixtures.swift": "1f97e1640c7eb9c148c94833f535512e82152a1e0ecb46d8de5e056b34cdee01",
-    "App/MerchantBrandImagesView.swift": "ebee991a7768311528b2cb91d94682f21b9212a85c4f926d775bea4ce5a9d036",
+    "App/MerchantBrandImagesView.swift": "eae694a513e67f5badb526d4a23957e5afceedeedb461cfb9403ebc52bcb21a6",
     "Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift": "51a68f530e4aa48ff9ccbdef87a536af7790f95874916f4b6e3da88734ca5ce7",
     "Core/MerchantContentDomain.swift": "72d3d77381b028ff0947bf149659d1037124e22c3df7ac027df3afec69ae8e81",
     "App/MerchantFixtureSupport.swift": "3880e1cd6b53170662bd88c933608e8c4b5ad3c859b4f6989bdde1bf48e22cb1",
     "Resources/MerchantBrandImagesLocalizations.fragment.json": "bd0f756e276b9f477e0d8f6c85587dfd5f3ecda61a64dfe4f20b593372a93ea3",
-    "Tests/AppUITests/MerchantTemplateBrowserFlowTests.swift": "60cdf4e3dd95cf223638594ae126f8163a6ec3a1b970931f92287fa2fd8311c6",
+    "Tests/AppUITests/MerchantTemplateBrowserFlowTests.swift": "aaef865953117bbbc1120bf70d53d4aaa1f108d5a9972deee62ea863283687b3",
     "docs/merchant-registration-availability.md": "e268b60a7b07b2d8539a078d5ff0bad533508a9eeb29e8af201904f84463ac32",
     "Core/TemplatePictureChoices.swift": "bbd1220884e1f836d28bb5ee9a1d11927ae195a681498e4427fdf26d3ec85f00",
     "Tests/CoreTests/TemplateMultiplayerPlanTests.swift": "8565da3b21be6b18a9fc75a9bc2128f911ce062402105dc4fd6119f9bcc33f49",
@@ -8094,7 +8150,7 @@
     "docs/club-project-launch-registration.fragment.json": "f1df3bf1acf863032fa338ee0e1e20ea480b682588353a2cbf007ff4517d1ecf",
     "App/ClubSeriesOccurrenceBrowser.swift": "6bc0c2b75d520115f067559bb23e2c038e5c8088e6fe309769b216e6aa72cdb2",
     "Core/ClubLeadProgress.swift": "57ab57f1943118da9ebc742dfdab378ce8a30a340164ea1446d2105c2af165d3",
-    "Tests/AppUnitTests/ClubRosterInteractionTests.swift": "3cd621c68a4b241ea8e78ceada31e6d945e643f188922ca3055500b517638bbf",
+    "Tests/AppUnitTests/ClubRosterInteractionTests.swift": "6e2efa5e934499bfbecde31ce6c18571ccb5f711d593320110db3c63e53c0bab",
     "Core/ClubSeriesOccurrencePresentation.swift": "1ea7278afa385c2e4d5773e33eda09a726f4b312bffcb2f8ce6783ed833e1c33",
     "Tests/AppUnitTests/ClubSettlementDetailTests.swift": "732d51891b4b45ad58bc0d51d1daefb1d4b931cb2b15877467c125cae18362e6",
     "Tests/AppUnitTests/ClubLeadProgressViewTests.swift": "8a7e33e4413c9d3593d12dbb8ad2e471d7e5472716f48fb57ee2ba70fd216d59",
@@ -8221,7 +8277,7 @@
     "Resources/ProfileInviteRewardReviewLocalizations.fragment.json": "ef05f48dda52c3649c4e805575492c138788d1d9d6a5379fa8ca2ea254946fa7",
     "Tests/ContractChecks/test_profile_participation_schedule.py": "ae425c511ba947a1650767caa2c4862ddd936e330abc1f7ed7c15d541ee81f72",
     "Tests/CoreTests/ProfileOrderHistoryFilterTests.swift": "1e228d5c4391690876e87b0bc0c581dacb9d5c6eb66b14c61daf2d892cef33ab",
-    "Tests/CoreTests/ProfileInviteRewardReviewTests.swift": "84407aaa14e4f6d1e9b56c2f103b8eee0ecee1f13617c0d039d2e3b9cb24c1c9",
+    "Tests/CoreTests/ProfileInviteRewardReviewTests.swift": "a6f333113c98127450159d921efbc64d5bdbeb9535660000c8eee7e5725af693",
     "App/ProfileInviteRewardReviewFixture.swift": "f1f8cb329cacff182dada8f388e68278c0cc9bcf43685e68df626836f3e0827f",
     "Tests/AppUITests/ProfileParticipationScheduleFlowTests.swift": "2c6f85a68061e211ace0f61dc8c3aac66c8c12eb4b174ed80f137025346126a4",
     "Tests/ContractChecks/test_profile_participant_validation.py": "cda2172f2f342bdc9b4df096bcf15cca63902896b5beb00020ccda84dc068362",
@@ -8252,10 +8308,22 @@
     "tools/run138_current_ui_shards.py": "bd19978d2fe1184fc0c5d167770f3a8db4d6d24efb503254bd802d3225035491",
     "tools/tests/test_current_ui_shards.py": "dd05c15fcdd11b0018964f8b8802f4df22e397088fd56ab9e742da42185edef2",
     ".github/workflows/native-ios.yml": "a8605c8e62301b943caa188725b1b998c39df5fcd5e675ca20037c2aeb45c838",
-    "tools/run_static_checks.py": "b98a7d9932898b92174583c905eef28d40473cffdf026cc0ed7af77aa399ebe0",
+    "tools/run_static_checks.py": "cdab1e55b4571bd9051256e02984b1a0cb84fb2947dcd0a3cec46c15c40764f3",
     "tools/ci_gates.py": "d89184031d5a294d86d535fd0ad9774ee475e242504b56ce4b7a223826d6a616",
     "tools/run_ui_shard.py": "38fd6d1de3521e35b24ba35ecc721755cfe41b85875b50634380992f92926adc",
     "tools/tests/test_readiness_current_budget.py": "75df12b192946b035ac8795b708fe3fa44b87f41976648ad3d55e1286d3a342a",
+    "Tests/CoreTests/TicketWalletPairCancellationRegressionTests.swift": "b53a41385d637f42ce724f3bf392237f644f7983846e1b641d8da27117f9311c",
+    "Core/TicketWalletService.swift": "51e2cee6fde61f16446bf43461556d90bedcd8f93b12105ddc8131731d27ceba",
+    "Tests/CoreTests/TicketWalletListReadRouteTests.swift": "79744b9c67138358efd3ec162e5e97b1129892acc67886fabe985d011151f4b5",
+    "tools/tests/test_wallet_ui_history_admission.py": "3577ca5c8f1e216d21bf824b25969e4cf7f03a024ab5343e18e2723c4307faed",
+    "App/MerchantReading.swift": "d2e42ca2521e0044cc4d61840c7f637b6bc0a189b6f119eef79746e3687bb378",
+    "Tests/ContractChecks/test_wallet_ui_first_current_bindings.py": "8187d5f251bc0c3aa066f70e54812a1e46face56df7511b11b96f5af10f99cb2",
+    "Core/MerchantAccess.swift": "1b1c35dfe2d0bc2144484bc9a73ad816d98ea89df76cf221044c6ffcbfc30443",
+    "Tests/AppUnitTests/OwnedOrderCompositionTests.swift": "a5f8dfcac866f1fee99f438b0274ce6cac0c18544a4ba56845f0b49d8a5b9a3f",
+    "Core/MerchantService.swift": "3d2f2b5636417c8e95f278020cc96fe0fba1f44791d905030465603c8772d00f",
+    ".github/workflows/native-targeted.yml": "a4c927da15528df1c6f953cf24530b46560aae6a7a28b35918c13d0202f78643",
+    "Core/TicketWalletListReadRoute.swift": "8c6347062df9c64e739a9f2d853d4da1a124871a94bf2beb2496544f3b373ec6",
+    "Tests/AppUnitTests/TicketWalletListCompositionTests.swift": "e23619fbd224b556c614bec91f81ae9894df832ee8cfe9e69cef007cc251145b",
     "tools/tests/test_readiness_contract_parse_cache.py": "a05486842d224477efc0c91a25c0fb9458858295eb069869c37923903613f3b0"
   },
   "current_method_replacements": {
@@ -8376,15 +8444,15 @@
       "per_direct_ax_query_seconds": 2
     },
     "source_sha256": {
-      "App/MerchantOperationsEditor.swift": "15206efd15238957c20c435b78e8463ef8da5d0067467e0579ac37968f4ce658",
+      "App/MerchantOperationsEditor.swift": "fe32ebe7224d99276548aaaf46428cf482d9e51add6dc86683cc73a5c9470ebc",
       "App/ProfileEditView.swift": "69e4a0d9ec41ea5d3a525516951c7f43586ddd06148063de6b2d5b8dbf33bff9",
       "Tests/AppUITests/FailureScreenshot.swift": "a875b7c0672ae267d14bca68d3955188d4955f3f4268e441ff04541ed37b07fc",
-      "Tests/AppUITests/MerchantBrandImagesFlowTests.swift": "a9d6e4daf86461e90566204e62c21d1e2367b843002841b963f7fc130c37f778",
-      "Tests/AppUITests/MerchantProjectBrowserFlowTests.swift": "cd307f7f147b783c8fc706351bf2e7cab0fa422c52a81327eb5b8d5475401f73",
+      "Tests/AppUITests/MerchantBrandImagesFlowTests.swift": "355d8eb1ad0db3c691a8584804fc5dc0a6814a30cdd37f739ca83183e5263655",
+      "Tests/AppUITests/MerchantProjectBrowserFlowTests.swift": "19ef90b1a62298bd32a7a566d35cdac6654f24c9af23b92a930288c9901e716e",
       "Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift": "51a68f530e4aa48ff9ccbdef87a536af7790f95874916f4b6e3da88734ca5ce7",
       "Tests/AppUITests/MerchantStoreIndustryFlowTests.swift": "a8dafae66f24d9c14abfbca20200fc51306d057854c6b590dc279db522ed07ff",
-      "Tests/AppUITests/MerchantTemplateBrowserFlowTests.swift": "60cdf4e3dd95cf223638594ae126f8163a6ec3a1b970931f92287fa2fd8311c6",
-      "Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift": "71fe2b737b41bfa12ee2140ea2330158d890c0992cb0400a63083189466bee11",
+      "Tests/AppUITests/MerchantTemplateBrowserFlowTests.swift": "aaef865953117bbbc1120bf70d53d4aaa1f108d5a9972deee62ea863283687b3",
+      "Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift": "630070b234f3fa9207725034f5230288cce8cf40f685d18599fb979ae0416e33",
       "Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift": "23bd4804a9a9de93deeef8e33975f619aa9bb244ecff7aa712fad05063f14d5c",
       "Tests/AppUITests/MerchantTemplateHintsFlowTests.swift": "6474783a268098e9eee3b118a7f7825a454d7ac7b485b07ab1e26a2348b21f4e",
       "Tests/AppUITests/MerchantTemplateMetadataFlowTests.swift": "4212ff99e168ef270480c497ab9d1fb1f95bcf79bc803e161a256e0f857c3074",
@@ -8911,7 +8979,7 @@
       },
       "MerchantTemplateCategoryFlowTests.testReloadKeepsBufferAndEmptySelectionCannotApply": {
         "source": "Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift",
-        "declaration_sha256": "b947ee52d26d4a6428a4b1c54f069152e766c791dd0234534e8fc07d0b0d6702",
+        "declaration_sha256": "19e1e51b0c51602119f51add8a770c34e21f12037ab22e938da1287cedfdcd98",
         "measured": false,
         "existing_method_increment": false,
         "lifecycle_seconds": 90,
@@ -9214,7 +9282,7 @@
         "direct_action_count": 3,
         "direct_ax_assertion_count": 11,
         "typed_characters": 0,
-        "unrounded_seconds": 737,
+        "unrounded_seconds": 737.0,
         "seconds": 740
       },
       "RoamReducedMotionFlowTests.testChineseMaximumTypeLocalOffCannotOverrideExistingReducedMotionFixture": {
@@ -9228,7 +9296,7 @@
         "direct_action_count": 2,
         "direct_ax_assertion_count": 8,
         "typed_characters": 0,
-        "unrounded_seconds": 436,
+        "unrounded_seconds": 436.0,
         "seconds": 440
       },
       "RoamFinishedHistoryFlowTests.testFinishedWalkOpensItsActualStoredRecordAndHistoryThenReturns": {
@@ -9242,7 +9310,7 @@
         "direct_action_count": 9,
         "direct_ax_assertion_count": 10,
         "typed_characters": 0,
-        "unrounded_seconds": 465,
+        "unrounded_seconds": 465.0,
         "seconds": 470
       },
       "RoamFinishedHistoryFlowTests.testUnknownOrRecoveredActiveSessionHasNoSavedContinuation": {
@@ -9256,7 +9324,7 @@
         "direct_action_count": 4,
         "direct_ax_assertion_count": 7,
         "typed_characters": 0,
-        "unrounded_seconds": 334,
+        "unrounded_seconds": 334.0,
         "seconds": 340
       },
       "MerchantTemplateBrowserFlowTests.testInitialFailureRetriesIntoRealFirstPageNotEmptyState": {
@@ -9289,17 +9357,18 @@
       },
       "MerchantTemplateBrowserFlowTests.testSavedEditorTitleComesBackThroughFreshListRead": {
         "source": "Tests/AppUITests/MerchantTemplateBrowserFlowTests.swift",
-        "declaration_sha256": "804fca539aa9b68580012cbc28bf552373d8968d7daf14d8d79789170793a4e7",
+        "declaration_sha256": "b5c29514b145fe53049e5d02eae853505ba5f6a0997e838d02c6cdc7907154c8",
         "measured": false,
         "existing_method_increment": false,
         "lifecycle_seconds": 90,
         "explicit_wait_seconds": 0,
         "bounded_reveal_calls": 9,
         "direct_action_count": 7,
-        "direct_ax_assertion_count": 2,
+        "direct_ax_assertion_count": 4,
         "typed_characters": 10,
-        "unrounded_seconds": 491.5,
-        "seconds": 500
+        "unrounded_seconds": 497.5,
+        "seconds": 500,
+        "direct_ax_query_count": 1
       },
       "MerchantTemplateBrowserFlowTests.testGenuineEmptyHasCreateEntryWithoutLoadMoreOrFailure": {
         "source": "Tests/AppUITests/MerchantTemplateBrowserFlowTests.swift",
@@ -9368,9 +9437,9 @@
         "explicit_wait_seconds": 15,
         "bounded_reveal_calls": 3,
         "direct_action_count": 8,
-        "direct_ax_assertion_count": 6,
+        "direct_ax_assertion_count": 7,
         "typed_characters": 0,
-        "unrounded_seconds": 277.0,
+        "unrounded_seconds": 279.0,
         "seconds": 280
       },
       "MerchantBrandImagesFlowTests.testReloadReturnsToCurrentSourceListAndRepeatedOpenStartsUnzoomed": {
@@ -9382,9 +9451,9 @@
         "explicit_wait_seconds": 15,
         "bounded_reveal_calls": 4,
         "direct_action_count": 8,
-        "direct_ax_assertion_count": 1,
+        "direct_ax_assertion_count": 2,
         "typed_characters": 0,
-        "unrounded_seconds": 307.0,
+        "unrounded_seconds": 309.0,
         "seconds": 310
       },
       "MerchantBrandImagesFlowTests.testBackgroundRetiresSelectedImageAndRequiresExplicitReopen": {
@@ -9396,9 +9465,9 @@
         "explicit_wait_seconds": 10,
         "bounded_reveal_calls": 4,
         "direct_action_count": 6,
-        "direct_ax_assertion_count": 1,
+        "direct_ax_assertion_count": 2,
         "typed_characters": 0,
-        "unrounded_seconds": 322.0,
+        "unrounded_seconds": 324.0,
         "seconds": 330
       },
       "MerchantRegistrationAvailabilityFlowTests.testCancelAndRestorePreserveOriginalUnrecognizedSource": {
@@ -9461,16 +9530,16 @@
       },
       "MerchantProjectBrowserFlowTests.testFulfillmentFactsAndSummaryReturnKeepSelectedType": {
         "source": "Tests/AppUITests/MerchantProjectBrowserFlowTests.swift",
-        "declaration_sha256": "98126d403435ed4dd8cd56d8c4566ada916d96ac6d21b980bec70afc133b539a",
+        "declaration_sha256": "06b47f9a4ed25671e73ca432b3daf546e6f73920735558974f0eb271e0a83cff",
         "measured": false,
         "existing_method_increment": false,
         "lifecycle_seconds": 90,
-        "explicit_wait_seconds": 15,
+        "explicit_wait_seconds": 20,
         "bounded_reveal_calls": 4,
         "direct_action_count": 4,
         "direct_ax_assertion_count": 4,
         "typed_characters": 0,
-        "unrounded_seconds": 293.0,
+        "unrounded_seconds": 298.0,
         "seconds": 300
       },
       "MerchantProjectBrowserFlowTests.testEmptyThemeTabOffersExistingActivitiesWithoutInventingProjects": {

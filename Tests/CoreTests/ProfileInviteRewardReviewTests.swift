@@ -22,6 +22,13 @@ final class ProfileInviteRewardReviewTests: XCTestCase {
     func testOtherEventsAndNegativeRewardsNeverContribute() throws {let rows = #"[{"eventType":6,"eventId":"201","changePoints":"99"},{"eventType":5,"eventId":"201","changePoints":"-3"}]"#;XCTAssertEqual(ProfileInviteRewardReview(scan:try scan(rows,total:2)).cumulativePoints,0)}
     func testDecimalSumPreservesFractionalValuesExactly() {XCTAssertEqual(ProfileInviteRewardReview.exactSum([Decimal(string:"0.1")!,Decimal(string:"0.2")!]),Decimal(string:"0.3"))}
     func testNaNAndNegativeArithmeticAreRejected() {XCTAssertNil(ProfileInviteRewardReview.exactSum([.nan]));XCTAssertNil(ProfileInviteRewardReview.exactSum([-1]))}
-    func testOverflowDoesNotProduceDisplayableTotal() {let huge=Decimal(sign:.plus,exponent:127,significand:Decimal(string:"99999999999999999999999999999999999999")!);XCTAssertNil(ProfileInviteRewardReview.exactSum([huge,huge]))}
+    func testOverflowDoesNotProduceDisplayableTotal() {
+        let huge = NSDecimalNumber.maximum.decimalValue
+        XCTAssertFalse(huge.isNaN)
+        XCTAssertGreaterThan(huge, 0)
+        var lhs = huge, rhs = huge, overflow = Decimal.zero
+        XCTAssertEqual(NSDecimalAdd(&overflow, &lhs, &rhs, .plain), .overflow)
+        XCTAssertNil(ProfileInviteRewardReview.exactSum([huge, huge]))
+    }
     func testNewCompleteSnapshotReplacesPartialWithoutPersistentCache() throws {let a=ProfileInviteRewardReview(scan:try scan(ledger,total:201));let b=ProfileInviteRewardReview(scan:try scan(ledger,total:4));XCTAssertNil(a.cumulativePoints);XCTAssertEqual(b.cumulativePoints,11)}
 }

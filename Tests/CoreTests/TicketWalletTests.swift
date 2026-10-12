@@ -63,9 +63,11 @@ final class TicketWalletTests: XCTestCase {
     }
     func testListEnvelopeContractAndMalformedRowsNeverBecomeEmptySuccess() async throws {
         for json in [#"{"code":200,"data":[{"id":7}]}"#, #"{"code":200,"data":{"rows":[{"id":7}]}}"#] {
-            let t = TicketWalletTransport(["route": .init(json: json)])
-            let rows = try await service(t).list(lane: .route, token: "synthetic-token")
-            XCTAssertEqual(rows.map(\.id), [7])
+            for lane in TicketWalletLane.allCases {
+                let t = TicketWalletTransport(["route": .init(json: json), "activity": .init(json: json)])
+                let rows = try await service(t).list(lane: lane, token: "synthetic-token")
+                XCTAssertEqual(rows.map(\.id), [7])
+            }
         }
         for json in [#"{"code":200}"#, #"{"code":200,"data":null}"#, #"{"code":200,"data":[]}"#] {
             for lane in TicketWalletLane.allCases {
@@ -74,7 +76,7 @@ final class TicketWalletTests: XCTestCase {
                 XCTAssertTrue(rows.isEmpty)
             }
         }
-        for (lane, json) in [(TicketWalletLane.activity, #"{"code":200,"data":{"rows":[]}}"#), (.route, #"{"code":200,"data":[{"id":7},3]}"#), (.activity, #"{"code":200,"data":[{}]}"#), (.route, #"{"code":200,"data":"bad"}"#)] {
+        for (lane, json) in [(TicketWalletLane.activity, #"{"code":200,"data":{"rows":{}}}"#), (.route, #"{"code":200,"data":[{"id":7},3]}"#), (.activity, #"{"code":200,"data":[{}]}"#), (.route, #"{"code":200,"data":"bad"}"#)] {
             let t = TicketWalletTransport(["route": .init(json: json), "activity": .init(json: json)])
             do { _ = try await service(t).list(lane: lane, token: "synthetic-token"); XCTFail("Malformed list accepted") }
             catch { XCTAssertEqual(error as? APIError, .malformedResponse) }

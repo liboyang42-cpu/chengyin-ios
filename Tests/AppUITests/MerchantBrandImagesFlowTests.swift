@@ -11,7 +11,7 @@ final class MerchantBrandImagesFlowTests: XCTestCase {
         let entry = app.buttons["merchant.operations.entry.merchant.operations.profile"]
         XCTAssertTrue(revealFixtureElement(entry, in: app)); entry.tap()
         let images = app.buttons["merchant.brandImages.open"]
-        XCTAssertTrue(revealFixtureElement(images, in: app)); images.tap()
+        XCTAssertTrue(revealFixtureElement(images, in: app)); XCTAssertTrue(images.isEnabled); images.tap()
         XCTAssertTrue(app.buttons["merchant.brandImages.image.0"].waitForExistence(timeout: 5)); return app
     }
     func testSavedGalleryNavigationZoomResetAndCloseLeaveEditorClean() {

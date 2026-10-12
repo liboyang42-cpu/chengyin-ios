@@ -483,6 +483,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let cityRead = CityReadRoute(request: request, baseURL: api.baseURL)
         let playRead = PlayReadRoute(request: request, baseURL: api.baseURL)
         let ownedCover = OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)
+        let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
         guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
@@ -652,6 +653,9 @@ extension KeychainTokenStore: AppTokenStorage {}
                 guard let currentApproval = messagingHistoryReadApproval(context) else { return false }
                 return currentApproval.revision == approval.revision && currentApproval.matches(context)
             }
+        } else if ticketWalletList != nil {
+            // Only the existing wallet owner_type1/2 lists; no order/detail/write grant.
+            guard deployment.regional.market == .china, captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if OwnedOrderReadRoute(request: request, baseURL: api.baseURL) != nil {
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
@@ -806,6 +810,9 @@ extension KeychainTokenStore: AppTokenStorage {}
             let result = try await underlying.send(request)
             try Task.checkCancellation()
             guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
+            if let ticketWalletList {
+                try ticketWalletList.validateResponse(result, expectedAccountID: captured.accountID ?? 0)
+            }
             return result
         } catch {
             guard current() == captured, !Task.isCancelled, readApprovalStillValid?() != false else { throw CancellationError() }

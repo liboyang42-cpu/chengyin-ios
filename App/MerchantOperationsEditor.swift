@@ -30,6 +30,7 @@ struct MerchantOperationsEditor: View {
         .accessibilityIdentifier("merchant.operations.editor")
         .sheet(item: $assist) { presentation in MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }
         .modifier(MerchantTemplateCategoryPresentation(document: model, picker: $categoryPicker))
+        .modifier(MerchantBrandImagesPresentation(document: model))
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
         switch draft {

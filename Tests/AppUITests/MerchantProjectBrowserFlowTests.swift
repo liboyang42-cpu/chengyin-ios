@@ -39,6 +39,7 @@ final class MerchantProjectBrowserFlowTests: XCTestCase {
         XCTAssertEqual(app.staticTexts["merchant.projectBrowser.role.activity:301"].label, "Fulfilling merchant")
         XCTAssertEqual(app.staticTexts["merchant.projectBrowser.pending.activity:301"].label, "Pending verification: 2")
         XCTAssertFalse(app.buttons["merchant.projectWorkspace.open"].exists)
+        XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 5))
         app.buttons["Done"].tap()
         XCTAssertTrue(app.buttons["merchant.project.row.activity:302"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["merchant.projectBrowser.fixture.readCount"].label, "1")

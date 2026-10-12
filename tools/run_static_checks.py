@@ -582,6 +582,63 @@ def flatten(suite):
             yield test
 
 
+
+_WORKSPACE_HISTORY_IDENTITY_PATH = 'Tests/ContractChecks/test_merchant_project_workspace_entry.py'
+_WORKSPACE_HISTORY_IDENTITY_SHA256 = '8cd437913c3f7e66cd3e7de6d8bdd894c4dd22a073952e7d17278a4e4cab8eea'
+_WORKSPACE_HISTORY_METHODS = frozenset({
+    'test_exact_inverse_of_all_five_existing_files',
+    'test_existing_transactions_grants_sensitive_routes_and_invitation_remain_exact',
+    'test_hosted_lifecycle_tests_are_authored',
+    'test_old_summary_and_navigation_bindings_are_id_bound',
+})
+
+def require_workspace_history_method(relative, class_name, method):
+    if (relative != _WORKSPACE_HISTORY_IDENTITY_PATH or class_name != 'ProjectWorkspaceContracts'
+            or method not in _WORKSPACE_HISTORY_METHODS):
+        raise ValueError('Method outside the exact workspace historical quartet')
+
+
+def workspace_history_identity_context(root, admission):
+    """One explicit physical history, never an arbitrary namespace/provider."""
+    import ast
+    import marshal
+    path = Path(root) / _WORKSPACE_HISTORY_IDENTITY_PATH
+    modules = [module for name, module in tuple(sys.modules.items())
+               if name in {'test_merchant_project_workspace_entry',
+                           'Tests.ContractChecks.test_merchant_project_workspace_entry'}
+               and getattr(module, '_workspace_history_context', None) is not None]
+    if not modules:
+        return None
+    if len(modules) != 1:
+        raise ValueError('Ambiguous workspace historical provider')
+    module = modules[0]
+    if getattr(module, '__file__', None) != str(path) or getattr(module, 'ROOT', None) != Path(root):
+        raise ValueError('Workspace historical provider belongs to a foreign source')
+    admission._club_authenticate_raw(root)
+    raw = path.read_bytes()
+    nodes = [node for node in ast.parse(raw).body
+             if isinstance(node, ast.FunctionDef) and node.name == '_workspace_fixed_history']
+    factory = getattr(module, '_workspace_fixed_history', None)
+    if len(nodes) != 1 or not callable(factory):
+        raise ValueError('Missing exact workspace history factory')
+    module_code = compile(raw, str(path), 'exec', dont_inherit=True)
+    code = next(value for value in module_code.co_consts
+                if type(value) is type(module_code) and value.co_name == '_workspace_fixed_history')
+    if not hasattr(factory, '__code__') or marshal.dumps(factory.__code__) != marshal.dumps(code):
+        raise ValueError('Changed loaded workspace history factory')
+    expected = getattr(module, '_WORKSPACE_HISTORY_SHA256', None)
+    if (type(expected) is not dict or len(expected) != 24
+            or digest(json.dumps(expected, sort_keys=True, separators=(',', ':')).encode()) != _WORKSPACE_HISTORY_IDENTITY_SHA256):
+        raise ValueError('Changed complete workspace history membership')
+    context = factory()
+    if (context is not module._workspace_history_context
+            or not getattr(context, '_club_e2b_guarded', False)
+            or dict(context.file_sha256) != expected
+            or admission._club_tree_sha256(context.root) != expected):
+        raise ValueError('Changed exact workspace history context')
+    context.verify()
+    return context
+
 def discovery_identities(tests, root, *, report_invalid_duplicates=False):
     """Stable transport keys without mutating any historical test or module.
 
@@ -606,18 +663,25 @@ def discovery_identities(tests, root, *, report_invalid_duplicates=False):
                 or dict(context.file_sha256) != admission._CLUB_E2B_SHA256):
             raise ValueError('Historical identity lacks its exact authenticated context')
         context.verify()
-        namespace = '_club_e2b_' + digest(str(context.root).encode())[:24]
+        contexts = {'_club_e2b_' + digest(str(context.root).encode())[:24]: (context, None)}
+        workspace = workspace_history_identity_context(root, admission)
+        if workspace is not None:
+            contexts['_club_e2b_' + digest(str(workspace.root).encode())[:24]] = (workspace, _WORKSPACE_HISTORY_METHODS)
         file_hashes = {}
         for test, row in historical:
             case = type(test)
             module_name = case.__module__
-            if not module_name.startswith(namespace + '.'):
+            namespace = module_name.split('.', 1)[0]
+            if namespace not in contexts:
                 raise ValueError('Historical method has an unauthenticated temporary namespace')
+            context, allowed_methods = contexts[namespace]
             local = module_name[len(namespace) + 1:]
             relative = local.replace('.', '/') + '.py'
             module = sys.modules.get(module_name)
             method = getattr(test, '_testMethodName', None)
             path = Path(context.root) / relative
+            if allowed_methods is not None:
+                require_workspace_history_method(relative, case.__name__, method)
             if (module is None or getattr(module, '__file__', None) != str(path)
                     or relative not in context.file_sha256
                     or getattr(module, case.__name__, None) is not case
@@ -633,7 +697,8 @@ def discovery_identities(tests, root, *, report_invalid_duplicates=False):
                 raise ValueError('Historical identity source changed after admission')
             row.update(transport_id='historical_e2b_' + source_hash + '.' + local + '.' + case.__name__ + '.' + method,
                        historical_source=relative, historical_source_sha256=source_hash)
-        context.verify()
+        for context, _ in contexts.values():
+            context.verify()
     for key in ('observed_id', 'transport_id'):
         values = [row[key] for row in rows]
         if (any(not isinstance(value, str) or not value for value in values)

@@ -64,6 +64,7 @@ struct MerchantOperationsHomeView: View {
 final class MerchantOperationsViewModel: ObservableObject {
     let coordinator: MerchantOperationsCoordinator
     @Published private(set) var revision = 0
+    @Published var brandImagesPresentation: MerchantBrandImagesModel?
     let galleryBatch = MerchantGalleryBatchModel()
     private let imageHost: MerchantRetainedImageHost?
     private(set) var imageOwner: MerchantRetainedImageDocumentOwner?

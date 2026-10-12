@@ -73,7 +73,7 @@ import XCTest
         var draft = ClubGovernanceFormDraft(operation: route.operation, scope: route.scope, seed: route.seed); draft.text["reason"] = "Correction"
         access.version = 5; let coordinator = ClubGovernanceCoordinator(access: access)
         do { _ = try await coordinator.prepare(draft.command()); XCTFail("Expected stale member") }
-        catch { XCTAssertEqual(error as? ClubGovernanceFailure, .targetChanged) }
+        catch { XCTAssertEqual(error as? ClubGovernanceFailure, .staleReview) }
         XCTAssertEqual(access.sends, 0)
     }
     func testExistingFreshPermissionCheckStillRejectsBeforeWrite() async throws {

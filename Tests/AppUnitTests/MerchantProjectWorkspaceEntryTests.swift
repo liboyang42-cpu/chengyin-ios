@@ -57,6 +57,56 @@ import SwiftUI
             return try XCTUnwrap(model.selection)
         }
     }
+    func testInitiallyEmptySummaryBindingObservesFirstSelectionAndDismissesOnlyIt() throws {
+        let h = Harness(), snapshot = try h.snapshot()
+        let binding = h.model.summaryBinding()
+        XCTAssertNil(binding.wrappedValue)
+        let first = try h.open(snapshot)
+        XCTAssertEqual(binding.wrappedValue?.id, first.id)
+        binding.wrappedValue = nil
+        XCTAssertNil(h.model.selection)
+        let second = try h.open(snapshot)
+        XCTAssertNil(binding.wrappedValue)
+        binding.wrappedValue = nil
+        XCTAssertEqual(h.model.selection?.id, second.id)
+    }
+    func testUnreadEmptySummaryBindingCannotDismissAfterGenerationRetirement() throws {
+        let h = Harness(), snapshot = try h.snapshot()
+        let binding = h.model.summaryBinding()
+        h.model.invalidate()
+        let current = try h.open(snapshot)
+        XCTAssertNil(binding.wrappedValue)
+        binding.wrappedValue = nil
+        XCTAssertEqual(h.model.selection?.id, current.id)
+    }
+    func testInitiallyEmptyWorkspaceBindingObservesOnlyFirstRoute() throws {
+        let h = Harness(), snapshot = try h.snapshot()
+        let selected = try h.open(snapshot)
+        let binding = h.model.workspaceBinding()
+        XCTAssertNil(binding.wrappedValue)
+        h.model.openWorkspace(selected, snapshot: snapshot, context: h.context, sourceFresh: true)
+        let first = try XCTUnwrap(h.model.route)
+        XCTAssertEqual(binding.wrappedValue?.id, first.id)
+        binding.wrappedValue = nil
+        XCTAssertNil(h.model.route)
+        h.model.openWorkspace(selected, snapshot: snapshot, context: h.context, sourceFresh: true)
+        let second = try XCTUnwrap(h.model.route)
+        XCTAssertNotEqual(first.id, second.id)
+        XCTAssertNil(binding.wrappedValue)
+        binding.wrappedValue = nil
+        XCTAssertEqual(h.model.route?.id, second.id)
+    }
+    func testUnreadEmptyWorkspaceBindingCannotDismissAfterScopeGenerationChanges() throws {
+        let h = Harness(), snapshot = try h.snapshot()
+        let binding = h.model.workspaceBinding()
+        h.model.retire(); h.model.activate()
+        let selected = try h.open(snapshot)
+        h.model.openWorkspace(selected, snapshot: snapshot, context: h.context, sourceFresh: true)
+        let current = try XCTUnwrap(h.model.route)
+        XCTAssertNil(binding.wrappedValue)
+        binding.wrappedValue = nil
+        XCTAssertEqual(h.model.route?.id, current.id)
+    }
     func testCurrentTopicSelectionOpensExactExistingWorkspaceWithoutAnyRequest() throws {
         let h = Harness(), snapshot = try h.snapshot(); let selected = try h.open(snapshot)
         h.model.openWorkspace(selected, snapshot: snapshot, context: h.context, sourceFresh: true)

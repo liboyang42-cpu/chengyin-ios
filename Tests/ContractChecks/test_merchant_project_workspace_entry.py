@@ -170,4 +170,66 @@ class ProjectWorkspaceContracts(unittest.TestCase):
         for value in fragment.values():self.assertEqual(set(value['localizations']),{'en','zh-Hans'})
         self.assertIn('server checks access again',fragment['merchant.projectWorkspace.explanation']['localizations']['en']['stringUnit']['value'])
 
+# Finite original assertions only. Every current dependency is authenticated first;
+# each physical historical leaf is restored and matched to its immutable hash.
+_WORKSPACE_HISTORY_SHA256 = {'App/AccountView.swift': '75efa83972f6265c69849969b1e40de488508d58e04ffda9f1a8530f17bb4012', 'App/ActivityDetailView.swift': '3553c0524eac4f2858801c6cefe2b65b932e8e50a075faba8a48e6f01ace9c35', 'App/AppSession.swift': '56e188e6c1cf80050ea642a4ebe53a7fd03645d0dda9635ce189b7e9a4d033f0', 'App/MerchantBusinessViews.swift': 'ff06016dfbaf4c95c82fee87379905d8e6ea9261ab8e0fa74430a7f56eee91a7', 'App/MerchantContentEditor.swift': '6cb6e94542efe2d4b25a163b5be5d504961c5c42694c4ce31722f502c865637b', 'App/MerchantContentViews.swift': '4aa343a5f78feb285c1539634aa65c921f47886fe9e565c34ec313e62496fc6f', 'App/MerchantEngagementViews.swift': '7664daffbe1e9846bac66b8de675761fffd2cd0e93b2e792699ae04cae5c1128', 'App/MerchantHomeView.swift': '563f5316fb58ad94549236c06491447db87ad4cc0ea9b61d1b270a694dcbc4a2', 'App/MerchantNPCViews.swift': 'a3ef38e33c2154a8c9951d0abbf3ca3cf234c69ac92330572efdf7a75d14ccd5', 'App/MerchantOperatorInvitationReceiptView.swift': 'cab6567b0fd9969b1b38f3632d1e786cfcad84de419aab21c6ffb54004749829', 'App/MerchantProjectsView.swift': 'e3411a33a94faa115d05f86f6c5177f44f0e2c51d9173f4c46ad4a7f93296be0', 'App/MerchantReading.swift': 'd2e42ca2521e0044cc4d61840c7f637b6bc0a189b6f119eef79746e3687bb378', 'Core/MerchantAccess.swift': '1b1c35dfe2d0bc2144484bc9a73ad816d98ea89df76cf221044c6ffcbfc30443', 'Core/MerchantBusinessCoordinator.swift': 'b3977dd4e64edeaa9ecf8b168cf0a6de8ad53bb1a9f8d71ae1099f03dfda9899', 'Core/MerchantContentCommands.swift': 'bd0b132835c2e2fdc19ed7dcacc87de08d435cff8e828599b40a11eb261940c5', 'Core/MerchantContentCoordinator.swift': '9648d423ec3e1648ef6b764a7ca708b91f9c005f096fd2c683760c3267ee9b84', 'Core/MerchantContentDomain.swift': '3b0c38a01132ed9bfbb164b0b2b5e81113df6869e0afa48376df3afded7ae19f', 'Core/MerchantContentService.swift': '79e1c23ef89749048b723976ebf09b3ad5b655cd523cdc1529571a0700218d7f', 'Core/MerchantContracts.swift': '1ca6e11dbd92af3fca350a0735dfb39cde70ec3faf8ca186593bc60595b681bc', 'Core/MerchantOperatorInvitationPresentation.swift': '91de455344f7d34dda4880b507847a5dd1730d8f8224ea377bc2b7dee772bc1a', 'Core/MerchantService.swift': '3d2f2b5636417c8e95f278020cc96fe0fba1f44791d905030465603c8772d00f', 'Tests/AppUnitTests/MerchantProjectWorkspaceEntryTests.swift': 'e6ec7120e171c0dc72708922add8e0a65e3049f486084fd8671db3173d8b5506', 'Tests/ContractChecks/test_merchant_project_workspace_entry.py': 'c55acff39bd788e3531a63621a1d3645e8cc7667f54ae08c85fd1335bc2943b9', 'Tests/CoreTests/MerchantContentContractTests.swift': '9bca6b1e9cb49be328d1eace7728dcf0e81de2d3412fa2cec1f89bd02dcb4b1e'}
+_WORKSPACE_ACCOUNT_PREIMAGE = (b'            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\\.ticketWalletPlayProvider, ticketPlayProvider).environment(\\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope) }\n            .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible) {\n                Button("auth.signOut",role:.destructive) { Task { await session.logout() } }\n                Button("action.cancel",role:.cancel) {}\n            }\n        }\n    }\n\n    @MainActor private var ticketPendingOrderProvider: TicketWalletPendingOrderProvider {\n        TicketWalletPendingOrderProvider(reader: session.ticketWalletReader, coordinator: session.orderLifecycleCoordinator,\n            revision: session.sessionRevision, currentRevision: { session.sessionRevision })\n', b'            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\\.ticketWalletPlayProvider, ticketPlayProvider).id(session.ticketWalletReader.scope) }\n            .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible) {\n                Button("auth.signOut",role:.destructive) { Task { await session.logout() } }\n                Button("action.cancel",role:.cancel) {}\n            }\n        }\n')
+_workspace_history_context = None
+
+def _workspace_fixed_history():
+    global _workspace_history_context
+    from types import SimpleNamespace
+    import tempfile
+    from tools.club_customer_directory_admission import _club_authenticate_raw, _club_guard_context
+    from Tests.ContractChecks.test_category_roam_registration import club_predecessor_source
+    _club_authenticate_raw(ROOT)
+    if _workspace_history_context is not None:
+        _workspace_history_context.verify()
+        return _workspace_history_context
+    life = tempfile.TemporaryDirectory(prefix='workspace-fixed-history-')
+    target = Path(life.name) / 'source'
+    try:
+        for relative, expected in _WORKSPACE_HISTORY_SHA256.items():
+            raw = club_predecessor_source(relative, (ROOT / relative).read_bytes())
+            if relative == 'App/AccountView.swift':
+                after, before = _WORKSPACE_ACCOUNT_PREIMAGE
+                if raw.count(after) != 1:
+                    raise ValueError('Unknown exact workspace AccountView predecessor')
+                raw = raw.replace(after, before, 1)
+            if hashlib.sha256(raw).hexdigest() != expected:
+                raise ValueError('Unknown exact workspace history: ' + relative)
+            destination = target / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(raw)
+        context = _club_guard_context(SimpleNamespace(root=target, lifetime=life,
+            file_sha256=dict(_WORKSPACE_HISTORY_SHA256)))
+        context.verify()
+    except BaseException:
+        life.cleanup()
+        raise
+    _workspace_history_context = context
+    return context
+
+def load_tests(loader, standard_tests, pattern):
+    # Only fixed historical hashes/counts/spelling use the authenticated old domain.
+    # The other sixteen behavior assertions continue to read the current source.
+    import sys
+    if str(ROOT) not in sys.path: sys.path.insert(0, str(ROOT))
+    from tools.club_customer_directory_admission import club_original_current_context
+    historical = _workspace_fixed_history().load('Tests/ContractChecks/test_merchant_project_workspace_entry.py')
+    historical_names = frozenset({
+        'test_exact_inverse_of_all_five_existing_files',
+        'test_existing_transactions_grants_sensitive_routes_and_invitation_remain_exact',
+        'test_hosted_lifecycle_tests_are_authored',
+        'test_old_summary_and_navigation_bindings_are_id_bound',
+    })
+    names = loader.getTestCaseNames(ProjectWorkspaceContracts)
+    old_names = loader.getTestCaseNames(historical.ProjectWorkspaceContracts)
+    if names != old_names or not historical_names <= set(names):
+        raise ValueError('workspace historical/current method identity mismatch')
+    return unittest.TestSuite(
+        (historical.ProjectWorkspaceContracts if name in historical_names
+         else ProjectWorkspaceContracts)(name) for name in names
+    )
+
 if __name__=='__main__':unittest.main(verbosity=2)
