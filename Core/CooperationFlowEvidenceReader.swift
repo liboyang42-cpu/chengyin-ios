@@ -33,8 +33,12 @@ import Foundation
             guard let sent = list["sent"].rows, let received = list["received"].rows else { throw CoopFlowFailure.malformed }
             let row = try unique(sent + received, key: "id", id: id)
             let from = sent.contains(row), to = received.contains(row)
-            let allowed = CoopFlowContractState(invite: row).actions(isFrom: from, isTo: to).contains(action)
-            return CoopFlowEvidence(baseline: .object(["invite": row, "slots": list["slots"]]), permitted: allowed)
+            guard from != to else { throw CoopFlowFailure.conflict }
+            let direction: CooperationDirection = from ? .sent : .received
+            let allowed = CoopFlowContractState(invite: row).actions(direction: direction).contains(action)
+            // Derived only from the fresh endpoint's unique source box, never from route/row hints.
+            return CoopFlowEvidence(baseline: .object(["invite": row, "slots": list["slots"],
+                "invitationDirection": .string(direction.rawValue)]), permitted: allowed)
         case .apply(let topic):
             let pool = try await reader.read(.pool)
             let row = try unique(pool["rows"].rows, key: "topicId", id: topic)

@@ -24,6 +24,14 @@ public struct MerchantPerkValidityDraft: Equatable {
         let f = formatter(); guard let date = f.date(from: raw), f.string(from: date) == raw else { return nil }; return date
     }
     public static func wire(_ day: Date) -> String { formatter().string(from: day) }
+    /// Write boundary only. Historical readback and untouched local values remain permissive.
+    /// The client date-only contract uses China midnight; today is already expired.
+    public static func validateForCreation(_ value: String?, now: Date) throws {
+        guard let value else { return } // nil is the existing no-expiry wire contract.
+        guard let day = parse(value), day >= minimum(now: now) else {
+            throw CoopFlowFailure.invalid("validEnd")
+        }
+    }
     public mutating func setEnabled(_ enabled: Bool, now: Date) {
         self.enabled = enabled; edited = true
         if enabled, day < Self.minimum(now: now) { day = Self.minimum(now: now) }

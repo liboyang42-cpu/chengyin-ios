@@ -19,7 +19,8 @@ import FoundationNetworking
             if unknownChat { throw URLError(.timedOut) }
             let fields = try JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as! [String: Any]
             let reply: [String: Any] = ["code": 200, "data": ["requestId": badReceipt ? UUID().uuidString : fields["requestId"]!,
-                "outcomeStatus": outcome, "retryable": retryable, "safeText": "Synthetic reply"]]
+                "outcomeStatus": outcome, "retryable": retryable, "safeText": "Synthetic reply",
+                "safetyDecision": outcome == "SUCCEEDED" ? "PASS" : "NOT_RUN"]]
             return (try JSONSerialization.data(withJSONObject: reply), 200)
         }
         var chats: [URLRequest] { requests.filter { $0.url?.path.hasSuffix("merchant-chat") == true } }

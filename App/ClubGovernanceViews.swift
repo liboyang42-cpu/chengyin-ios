@@ -78,6 +78,7 @@ struct ClubGovernanceWorkspaceView: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ClubGovernanceReadView(operation: .access, scope: .init(clubID: clubID), identity: identity, access: access, coordinator: coordinator)
+            .accessibilityIdentifier("club.gov.workspace.root")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { dismiss() } } }
     }
 }

@@ -1,0 +1,18 @@
+{
+  "merchant.perkSubmission.invalidDate": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Expiry must be tomorrow or later in China time. Choose another date or clear the expiry."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "有效期至少要到中国时间明天。请选择其他日期，或清除有效期。"
+        }
+      }
+    }
+  }
+}

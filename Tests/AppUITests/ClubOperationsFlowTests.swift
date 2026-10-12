@@ -44,7 +44,7 @@ final class ClubOperationsFlowTests: XCTestCase {
         let notice = app.staticTexts["club.ops.fixtureNotice"].firstMatch
         var presentation = "absent"
         if notice.exists { presentation = (notice.value as? String) ?? "unavailable" }
-        let controls = ["club.ops.openManage", "club.ops.setting.publicVisible", "club.ops.confirm", "club.ops.close"]
+        let controls = ["club.ops.openCreate", "club.ops.openManage", "club.ops.reviewProfile", "club.ops.setting.publicVisible", "club.ops.confirm", "club.ops.close"]
         let rows: [[String: Any]] = controls.map { id in
             let control = app.buttons.matching(identifier: id).allElementsBoundByIndex
                 .reversed().first(where: { $0.exists && $0.isHittable }) ?? app.buttons[id].firstMatch
@@ -53,7 +53,9 @@ final class ClubOperationsFlowTests: XCTestCase {
         }
         let payload: [String: Any] = ["version": 1, "fixture": "club-operations", "phase": phase,
             "presentation": presentation,
-            "reviewExists": element("club.ops.reviewSheet").exists, "controls": rows]
+            "reviewExists": element("club.ops.reviewSheet").exists,
+            "workspaceExists": element("club.ops.fixture.workspace").exists,
+            "profileFieldExists": element("club.ops.field.name").exists, "controls": rows]
         if let bytes = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]),
            let message = String(data: bytes, encoding: .utf8) {
             print("QUESTIFY_CLUB_PRESENTATION_EVIDENCE_V1 " + message)
@@ -62,6 +64,19 @@ final class ClubOperationsFlowTests: XCTestCase {
         attachFixtureScreenshot(self, app: app, name: "Club presentation before further gestures")
     }
     private func tap(_ id: String) {
+        if id.hasPrefix("club.ops.setting.") {
+            // A partially exposed List row can report isHittable while its
+            // center is under the foreground bottom toolbar. Reveal the whole
+            // row using the existing bar/keyboard-aware viewport before tapping.
+            let setting = app.buttons.matching(identifier: id).firstMatch
+            guard revealFixtureElement(setting, in: app), setting.exists,
+                  setting.isHittable, setting.isEnabled else {
+                emitPresentationFailure("setting-not-clear-of-bars:" + id)
+                XCTFail("Setting row is not fully exposed: " + app.debugDescription); return
+            }
+            setting.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            return
+        }
         _ = reveal(id)
         let buttons = app.buttons.matching(identifier: id)
         guard let control = buttons.allElementsBoundByIndex.reversed().first(where: { $0.exists && $0.isHittable }) else {
@@ -87,6 +102,19 @@ final class ClubOperationsFlowTests: XCTestCase {
             return counters.count == 1 && counters[0].label == String(value)
         }, object: app)
         XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed, app.debugDescription)
+    }
+    private func openCreateProfile() -> Bool {
+        tap("club.ops.openCreate")
+        // A create tap must reach the real workspace and finish its initial read
+        // before searching the long form. Never swipe the unacknowledged root.
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            self.element("club.ops.fixture.workspace").exists && self.element("club.ops.field.name").exists
+        }, object: app)
+        guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed else {
+            emitPresentationFailure("create-profile-missing-after-single-tap")
+            XCTFail("Create tap did not reach its profile form. " + app.debugDescription); return false
+        }
+        return true
     }
     private func reviewSetting() {
         tap("club.ops.openManage"); tap("club.ops.setting.publicVisible")
@@ -173,7 +201,9 @@ final class ClubOperationsFlowTests: XCTestCase {
         tap("club.ops.confirm"); count(1)
     }
     func testChineseProfileValidationAndDiscard() {
-        launch(chinese: true); tap("club.ops.openCreate"); tap("club.ops.reviewProfile")
+        launch(chinese: true)
+        guard openCreateProfile() else { return }
+        tap("club.ops.reviewProfile")
         XCTAssertTrue(reveal("club.ops.error").exists); count(0)
         let name = element("club.ops.field.name"); app.swipeDown(); name.tap(); name.typeText("本地社群")
         tap("club.ops.close"); app.buttons["离开表单"].tap()

@@ -30,6 +30,7 @@ private final class UnmarkedProtectedWire: HTTPTransport {
         calls += 1; hook?()
         return CoopFlowEvidence(baseline: .object([
             "id": .id(8), "status": .id(0), "fromId": .id(9), "inviteType": .id(0),
+            "invitationDirection": .string("received"),
             "revision": .id(revision), "termsMode": .string("TRAFFIC")
         ]), permitted: allowed)
     }

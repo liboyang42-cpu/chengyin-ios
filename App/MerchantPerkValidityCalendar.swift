@@ -42,18 +42,10 @@ struct MerchantPerkValidityContext: Equatable {
 
 @MainActor struct MerchantPerkValidityEntry: View {
     @Binding var value: String
+    @Binding var session: MerchantPerkValiditySession?
+    @Binding var appliedValue: String?
+    @Binding var appliedContext: MerchantPerkValidityContext?
     let context: () -> MerchantPerkValidityContext?
-    @Environment(\.scenePhase) private var scenePhase
-    @State private var session: MerchantPerkValiditySession?
-    @State private var appliedValue: String?
-    @State private var appliedContext: MerchantPerkValidityContext?
-    private var presentation: Binding<MerchantPerkValiditySession?> {
-        let shownID = session?.id
-        return Binding(get: { session }, set: { next in
-            guard session?.id == shownID else { return }
-            if next == nil { session?.cancel() }; session = next
-        })
-    }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Button {
@@ -72,17 +64,39 @@ struct MerchantPerkValidityContext: Equatable {
                     .accessibilityIdentifier("merchant.perkCalendar.result")
             }
         }
+    }
+}
+
+@MainActor struct MerchantPerkValidityStablePresentation: ViewModifier {
+    @Binding var value: String
+    @Binding var session: MerchantPerkValiditySession?
+    @Binding var appliedValue: String?
+    @Binding var appliedContext: MerchantPerkValidityContext?
+    let context: () -> MerchantPerkValidityContext?
+    @Environment(\.scenePhase) private var scenePhase
+    private var presentation: Binding<MerchantPerkValiditySession?> {
+        let shownID = session?.id
+        return Binding(get: { session }, set: { next in
+            guard session?.id == shownID else { return }
+            if next == nil { session?.cancel() }; session = next
+        })
+    }
+    func body(content: Content) -> some View {
+        content.background {
+            Color.clear.frame(width: 0, height: 0)
         .sheet(item: presentation) { shown in
             MerchantPerkValiditySheet(session: shown, close: { if session?.id == shown.id { session = nil } }, apply: {
                 guard session?.id == shown.id, let next = shown.apply() else { return }
                 value = next; appliedValue = next; appliedContext = context(); session = nil
             })
         }
+                .id(session?.id)
+        }
         .onChange(of: context()) { _, new in
             if let session, session.context != new { session.cancel(); self.session = nil; appliedValue = nil }
         }
         .onChange(of: scenePhase) { _, phase in if phase != .active { session?.cancel(); session = nil } }
-        .onDisappear { if session == nil { appliedValue = nil; appliedContext = nil } }
+        .onDisappear { session?.cancel(); session = nil; appliedValue = nil; appliedContext = nil }
     }
 }
 @MainActor private struct MerchantPerkValiditySheet: View {

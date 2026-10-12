@@ -36,7 +36,22 @@ final class MerchantProjectBrowserFlowTests: XCTestCase {
         let row = app.buttons["merchant.project.row.activity:301"]
         XCTAssertTrue(revealFixtureElement(row, in: app)); row.tap()
         // Card facts also exist in the underlying list: prove the actual sheet opened first.
-        XCTAssertTrue(app.buttons["merchant.projectSummary.close"].waitForExistence(timeout: 5))
+        let close = app.buttons["merchant.projectSummary.close"]
+        let shown = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            close.exists && close.isEnabled && close.isHittable
+        }, object: nil)
+        let presentationReady = XCTWaiter.wait(for: [shown], timeout: 5) == .completed
+        if !presentationReady {
+            // One activation only. Preserve the failed state before any further gesture.
+            let controls = ["merchant.project.row.activity:301", "merchant.projectSummary.close", "merchant.projectWorkspace.open"]
+            for id in controls {
+                let control = app.buttons[id]
+                print("QUESTIFY_MERCHANT_SUMMARY_CONTROL id=\(id) exists=\(control.exists) enabled=\(control.exists && control.isEnabled) hittable=\(control.exists && control.isHittable) frame=\(control.exists ? NSStringFromCGRect(control.frame) : "absent")")
+            }
+            print("QUESTIFY_MERCHANT_SUMMARY_AX_BEGIN\n\(app.debugDescription)\nQUESTIFY_MERCHANT_SUMMARY_AX_END")
+            attachFixtureScreenshot(self, app: app, name: "Merchant summary after single activation failure")
+        }
+        XCTAssertTrue(presentationReady, "Summary close must be visible and usable after one row activation")
         XCTAssertTrue(app.staticTexts["merchant.projectBrowser.role.activity:301"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["merchant.projectBrowser.role.activity:301"].label, "Fulfilling merchant")
         XCTAssertEqual(app.staticTexts["merchant.projectBrowser.pending.activity:301"].label, "Pending verification: 2")

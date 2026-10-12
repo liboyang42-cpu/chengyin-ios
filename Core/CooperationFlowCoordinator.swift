@@ -137,10 +137,11 @@ public struct CoopFlowReview: Equatable {
         case .handle(_, let action, let reason):
             let row = fresh.baseline["invite"] == .null ? fresh.baseline : fresh.baseline["invite"]
             let state = CoopFlowContractState(invite: row)
-            let isFrom = row["fromId"].integer == session.accountID
-            // toId club space is not memberId. Evidence must establish club authority separately.
-            let isTo = fresh.permitted && !isFrom
-            guard state.actions(isFrom: isFrom, isTo: isTo).contains(action) else { throw CoopFlowFailure.permission }
+            // The fresh evidence reader resolves owner/employee identity through source membership.
+            // Missing or unrecognized evidence cannot fall back to principal or route inference.
+            guard let rawDirection = fresh.baseline["invitationDirection"].text,
+                  let direction = CooperationDirection(rawValue: rawDirection),
+                  state.actions(direction: direction).contains(action) else { throw CoopFlowFailure.permission }
             if action == .cancel, row["status"].integer == 1,
                reason?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false { throw CoopFlowFailure.invalid("reason") }
         default: break

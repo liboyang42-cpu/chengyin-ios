@@ -271,7 +271,7 @@ public enum CoopFlowMutation: Equatable {
     public var requiresSeparateEnablement: Bool {
         switch self { case .invite, .handle, .contact, .complaint, .enrollOffer: return true; default: return false }
     }
-    public func body() throws -> CoopFlowJSON {
+    public func body(now: Date = Date()) throws -> CoopFlowJSON {
         var b: [String: CoopFlowJSON] = [:]
         func positive(_ n: Int) throws -> CoopFlowJSON { guard n > 0 else { throw CoopFlowFailure.invalid("id") }; return .id(n) }
         switch self {
@@ -289,6 +289,7 @@ public enum CoopFlowMutation: Equatable {
             b = ["applyId": try positive(id)]; if let scope, !scope.isEmpty { b["scope"] = .string(scope) }
         case .confirm(let id), .reject(let id): b = ["registrationId": try positive(id)]
         case .createTemplate(let f):
+            try MerchantPerkValidityDraft.validateForCreation(f.validEnd, now: now)
             b = ["name": .string(f.name), "perkType": .id(f.type), "retailValue": .number(f.retailValue), "quota": .id(f.quota), "validEnd": f.validEnd.map(CoopFlowJSON.string) ?? .null]
             if let cost = f.unitCost { b["unitCost"] = .number(cost) }
         case .deleteTemplate(let id): b = ["id": try positive(id)]
@@ -360,6 +361,12 @@ public enum CoopFlowContractState: Equatable {
         if invite["inviteType"].integer == 2 { self = .historicalReadOnly }
         else if invite["termsFrozen"].flag == true { self = .frozen }
         else { switch invite["status"].integer { case 0: self = .pending; case 1: self = .accepted; case 2, 3, 4, 5: self = .ended; default: self = .unknown } }
+    }
+    /// Use the server's source box, not the login principal: merchant employees act for an owner.
+    /// This selects UI affordances only; it does not grant authorization or bypass fresh evidence.
+    public func actions(direction: CooperationDirection?) -> [CoopFlowHandle] {
+        guard let direction else { return [] }
+        return actions(isFrom: direction == .sent, isTo: direction == .received)
     }
     /// UI affordance only. Server permissions must be re-read immediately before dispatch.
     public func actions(isFrom: Bool, isTo: Bool) -> [CoopFlowHandle] {

@@ -74,6 +74,7 @@ struct CoopFlowSafetyNotice: View {
     }
 }
 @MainActor struct CoopFlowReadView: View {
+    @Environment(\.merchantAcceptedProjectDestination) private var acceptedProjectDestination
     @Environment(\.locale) private var locale
     let reader: any CoopFlowReading
     let resource: CoopFlowRead
@@ -134,8 +135,8 @@ struct CoopFlowSafetyNotice: View {
             }
             settlementRows(value["settlements"].rows ?? [], source: .mybiz)
         case .invitations:
-            rows(value["received"].rows ?? [], section: "cooperation.received")
-            rows(value["sent"].rows ?? [], section: "cooperation.sent")
+            rows(value["received"].rows ?? [], section: "cooperation.received", direction: .received)
+            rows(value["sent"].rows ?? [], section: "cooperation.sent", direction: .sent)
         case .pool: rows(value["rows"].rows ?? [], section: title)
         case .registrations: rows(value["rows"].rows ?? [], section: title)
         default:
@@ -162,14 +163,14 @@ struct CoopFlowSafetyNotice: View {
             }
         }
     }
-    @ViewBuilder private func rows(_ values: [CoopFlowJSON], section: String) -> some View {
+    @ViewBuilder private func rows(_ values: [CoopFlowJSON], section: String, direction: CooperationDirection? = nil) -> some View {
         Section(LocalizedStringKey(section)) {
             if values.isEmpty { Text("coopflow.empty") }
             ForEach(Array(values.enumerated()), id: \.offset) { index, row in
                 NavigationLink {
                     List {
                         CoopFlowFields(value: row, keys: ["name", "topicName", "clubName", "merchantName", "type", "id", "memberId", "topicId", "applyId", "scope", "state", "status", "auditStatus", "toType", "fromId", "toId", "message", "handleReason", "termsFrozen", "retailValue", "unitCost", "quota", "validEnd", "address", "distance", "category"])
-                        sourceActions(row)
+                        sourceActions(row, direction: direction)
                         Section { CoopFlowSafetyNotice() }
                     }.navigationTitle("coopflow.details")
                 } label: {
@@ -183,13 +184,23 @@ struct CoopFlowSafetyNotice: View {
             }
         }
     }
-    @ViewBuilder private func sourceActions(_ row: CoopFlowJSON) -> some View {
+    @ViewBuilder private func sourceActions(_ row: CoopFlowJSON, direction: CooperationDirection? = nil) -> some View {
         Section("coopflow.reviewAction") {
             switch resource {
             case .invitations:
-                if let id = row["id"].integer, let status = row["status"].integer {
-                    let isFrom = row["fromId"].integer == reader.session?.accountID
-                    let actions = CoopFlowContractState(invite: row).actions(isFrom: isFrom, isTo: !isFrom)
+                if let direction, let acceptedProjectDestination,
+                   let source = MerchantAcceptedProjectSource(reader: reader, row: row, direction: direction, currentRows: {
+                       guard loadedSession != nil, loadedSession == reader.session, issue == nil,
+                             let value else { return nil }
+                       return value[direction == .received ? "received" : "sent"].rows
+                   }) {
+                    NavigationLink { acceptedProjectDestination(source) } label: {
+                        Label("merchant.acceptedProject.open", systemImage: "building.2")
+                    }.accessibilityIdentifier("merchant.acceptedProject.open")
+                }
+                if let direction, let id = row["id"].integer, let status = row["status"].integer {
+                    let isFrom = direction == .sent
+                    let actions = CoopFlowContractState(invite: row).actions(direction: direction)
                     ForEach(actions, id: \.rawValue) { action in
                         NavigationLink { CoopFlowHandleEditor(inviteID: id, action: action, currentStatus: status) } label: { Text(LocalizedStringKey("coopflow.handle." + String(action.rawValue))) }
                     }

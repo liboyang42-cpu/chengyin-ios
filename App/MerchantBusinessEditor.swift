@@ -13,9 +13,12 @@ struct MerchantBusinessEditorContext: Identifiable {
     @Environment(\.merchantAftercareEvidenceDependencies) private var evidenceDependencies
     let context: MerchantBusinessEditorContext
     let snapshot: MerchantBusinessSnapshot?
+    var noteDrafts: MerchantCustomerNoteDraft? = nil
     var reviewInitialContent: String? = nil
     var aftercareEvidenceOwner: (() -> MerchantAftercareEvidenceOwner?)? = nil
     let onReview: (MerchantBusinessMutation) -> Void
+    @State private var noteDraftContextID: UUID?
+    @State private var confirmClearNote = false
     @State private var content = ""
     @State private var reviewContentContextID: UUID?
     @State private var name = ""
@@ -50,6 +53,11 @@ struct MerchantBusinessEditorContext: Identifiable {
                             .accessibilityIdentifier("merchant.noteCorrection.cancel")
                     }
                     TextField("merchant.business.noteContent", text: $content, axis: .vertical).lineLimit(3...8).accessibilityIdentifier("merchant.business.editor.content")
+                    if noteDrafts != nil {
+                        Text("merchant.noteDraft.localBoundary").font(.footnote).foregroundStyle(.secondary)
+                        Button("merchant.noteDraft.clear") { confirmClearNote = true }
+                            .disabled(content.isEmpty).accessibilityIdentifier("merchant.noteDraft.clear")
+                    }
                 case .tag:
                     TextField("merchant.business.tagName", text: $name).accessibilityIdentifier("merchant.business.editor.tagName")
                     TextField("merchant.business.tagColor", text: $color).textInputAutocapitalization(.characters).autocorrectionDisabled()
@@ -118,8 +126,29 @@ struct MerchantBusinessEditorContext: Identifiable {
             .onChange(of: snapshot) { _, _ in retireEvidenceFlow() }
             .onChange(of: aftercareEvidenceDraft) { _, _ in retireEvidenceFlow() }
             .onChange(of: confirmAftercareDecision) { _, showing in if showing { retireEvidenceFlow() } }
-            .onAppear { initializeEditorStateOnAppear() }
+            .confirmationDialog("merchant.noteDraft.clearTitle", isPresented: $confirmClearNote, titleVisibility: .visible) {
+                Button("merchant.noteDraft.clear", role: .destructive) {
+                    guard noteDrafts?.value(for: context.id) != nil else { return }
+                    content = ""; issue = nil
+                    saveNoteDraft()
+                }
+                Button("action.cancel", role: .cancel) { }
+            } message: { Text("merchant.noteDraft.clearBody") }
+            .onChange(of: content) { _, _ in saveNoteDraft() }
+            .onChange(of: noteCorrectionCancelled) { _, _ in saveNoteDraft() }
+            .onDisappear { saveNoteDraft(); noteDrafts?.close(editorID: context.id) }
+            .onAppear { initializeEditorStateOnAppear(); initializeNoteDraft() }
         }
+    }
+    private func initializeNoteDraft() {
+        guard noteDraftContextID != context.id, case .note = context.kind,
+              let value = noteDrafts?.value(for: context.id) else { return }
+        noteDraftContextID = context.id
+        content = value.content; noteCorrectionCancelled = value.correctionCancelled
+    }
+    private func saveNoteDraft() {
+        guard noteDraftContextID == context.id, case .note = context.kind else { return }
+        noteDrafts?.update(editorID: context.id, content: content, correctionCancelled: noteCorrectionCancelled)
     }
     private func initializeEditorStateOnAppear() {
         if case .aftercare(let row) = context.kind {

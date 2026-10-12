@@ -1,0 +1,50 @@
+{
+  "merchant.acceptedProject.open": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open accepted project"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打开已承接项目"
+        }
+      }
+    }
+  },
+  "merchant.acceptedProject.changed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This invitation or merchant identity changed. Go back and refresh."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀约或商家身份已变化，请返回刷新。"
+        }
+      }
+    }
+  },
+  "merchant.acceptedProject.boundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Accepted terms do not create chapters or stations. The project shows only the workspace and participation returned for your current merchant identity."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "接受合作条款不会自动生成章节或站点。这里只展示服务端为当前商家身份返回的项目工作区和承接记录。"
+        }
+      }
+    }
+  }
+}

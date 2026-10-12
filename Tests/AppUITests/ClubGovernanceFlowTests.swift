@@ -30,6 +30,42 @@ final class ClubGovernanceFlowTests: XCTestCase {
         }
         return true
     }
+    private func openWorkspace(app: XCUIApplication) -> Bool {
+        tap("club.gov.open", app: app)
+        let workspace = app.descendants(matching: .any)["club.gov.workspace.root"].firstMatch
+        let customers = app.buttons["club.gov.route.customers"]
+        // The entry presents a real sheet. Do not scroll the old fixture root
+        // while presentation or its initial permission read is still pending.
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            workspace.exists && customers.exists
+        }, object: nil)
+        guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed else {
+            emitWorkspaceEntryEvidence(app)
+            attachFixtureScreenshot(self, app: app, name: "Club workspace missing after one entry tap")
+            XCTFail(app.debugDescription); return false
+        }
+        return true
+    }
+    private func emitWorkspaceEntryEvidence(_ app: XCUIApplication) {
+        guard app.launchArguments.contains("--uitesting-club-governance") else { return }
+        let identifiers = ["club.gov.fixture.root", "club.gov.open", "club.gov.workspace.root",
+                           "club.gov.loading", "club.gov.error", "club.gov.route.customers"]
+        let rows: [[String: Any]] = identifiers.map { id in
+            let element = app.descendants(matching: .any)[id].firstMatch
+            var row: [String: Any] = ["id": id, "exists": element.exists]
+            if element.exists {
+                row["hittable"] = element.isHittable
+                row["frame"] = NSStringFromCGRect(element.frame)
+            }
+            return row
+        }
+        let payload: [String: Any] = ["version": 1, "stage": "workspace-after-single-tap",
+                                      "elements": rows, "fixtureAccessibilityTree": app.debugDescription]
+        if let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]),
+           let text = String(data: data, encoding: .utf8) {
+            print("QUESTIFY_CLUB_WORKSPACE_ENTRY_EVIDENCE_V1 " + text); fflush(stdout)
+        }
+    }
     private func fact(_ key: String, containing text: String, app: XCUIApplication) -> XCUIElement {
         // LabeledContent exposes its label and value together on some iOS versions.
         app.descendants(matching: .any).matching(NSPredicate(
@@ -61,7 +97,7 @@ final class ClubGovernanceFlowTests: XCTestCase {
     }
     func testWorkspaceCustomerHistoryUsesTheSameTopicDestination() {
         let app = launch()
-        tap("club.gov.open", app: app)
+        guard openWorkspace(app: app) else { return }
         tap("club.gov.route.customers", app: app)
         tap("club.gov.route.customer", app: app)
         tap("club.gov.customer.topic.91", app: app)

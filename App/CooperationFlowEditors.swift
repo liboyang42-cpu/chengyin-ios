@@ -51,6 +51,12 @@ struct CoopFlowTemplateEditor: View {
     @State private var cost = ""
     @State private var quota = ""
     @State private var validEnd = ""
+    @State private var calendarSession: MerchantPerkValiditySession?
+    @State private var calendarAppliedValue: String?
+    @State private var calendarAppliedContext: MerchantPerkValidityContext?
+    @State private var validityIssue = false
+    @State private var reviewedOperation: CoopFlowMutation?
+    @State private var showingReview = false
     private var operation: CoopFlowMutation? {
         guard let retail = Decimal(string: retail, locale: Locale(identifier: "en_US_POSIX")), let quota = Int(quota),
               cost.isEmpty || Decimal(string: cost, locale: Locale(identifier: "en_US_POSIX")) != nil,
@@ -70,7 +76,8 @@ struct CoopFlowTemplateEditor: View {
                 TextField("coopflow.field.unitCost", text: $cost).keyboardType(.decimalPad)
                 TextField("coopflow.field.quota", text: $quota).keyboardType(.numberPad)
                 if let currentCalendarSession {
-                    MerchantPerkValidityEntry(value: $validEnd, context: {
+                    MerchantPerkValidityEntry(value: $validEnd, session: $calendarSession,
+                        appliedValue: $calendarAppliedValue, appliedContext: $calendarAppliedContext, context: {
                         guard let session = currentCalendarSession() else { return nil }
                         return .init(session: session, value: validEnd, siblingFields: [name, String(type), retail, cost, quota])
                     })
@@ -79,10 +86,31 @@ struct CoopFlowTemplateEditor: View {
                 }
             }
             Section { Text("coopflow.template.rules"); Text("coopflow.currency") }
-            if let operation { NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: operation) } }
+            if validityIssue {
+                Text("merchant.perkSubmission.invalidDate").foregroundStyle(.red)
+                    .accessibilityIdentifier("merchant.perkSubmission.invalidDate")
+            }
+            if let operation {
+                Button("coopflow.reviewAction") {
+                    do {
+                        // Evaluate the clock on this tap, not when the calendar first opened.
+                        _ = try operation.body()
+                        validityIssue = false; reviewedOperation = operation; showingReview = true
+                    } catch { validityIssue = true }
+                }.accessibilityIdentifier("merchant.perkSubmission.review")
+            }
             else { Text("coopflow.template.required").foregroundStyle(.secondary) }
             CoopFlowSafetyNotice()
         }.navigationTitle("coopflow.template.new")
+            .modifier(MerchantPerkValidityStablePresentation(value: $validEnd, session: $calendarSession,
+                appliedValue: $calendarAppliedValue, appliedContext: $calendarAppliedContext, context: {
+                    guard let session = currentCalendarSession?() else { return nil }
+                    return .init(session: session, value: validEnd, siblingFields: [name, String(type), retail, cost, quota])
+                }))
+            .onChange(of: validEnd) { _, _ in validityIssue = false }
+            .navigationDestination(isPresented: $showingReview) {
+                if let reviewedOperation { CoopFlowRequestPreview(operation: reviewedOperation) }
+            }
     }
 }
 struct CoopFlowReasonEditor: View {

@@ -67,7 +67,7 @@ final class MerchantContentContractTests: XCTestCase {
         let s = try snapshot(.registration(id: 22), MerchantContentFixtureData.registration)
         let d = MerchantRegistrationContentDraft(detail: s.value)
         XCTAssertThrowsError(try MerchantContentCommand.updateRegistration(id: 22, topicID: 71, draft: d).validate(against: s))
-        let won = try snapshot(.registration(id: 22), MerchantContentFixtureData.registration.replacingOccurrences(of: #""auditStatus":0"#, with: #""auditStatus":1"#))
+        let won = try snapshot(.registration(id: 22), MerchantContentFixtureData.registration.replacingOccurrences(of: #""auditStatus":2"#, with: #""auditStatus":1"#))
         XCTAssertThrowsError(try MerchantContentCommand.updateRegistration(id: 22, topicID: 70, draft: d).validate(against: won))
     }
     func testRegistrationEditUsesExactBackendStatePairs() throws {

@@ -1,0 +1,162 @@
+{
+  "merchant.noteDraft.localBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Draft text stays on this customer page only. Closing the editor keeps it; leaving the page, switching identity, or entering review removes it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "草稿仅保留在当前客户页面。关闭编辑器可继续；离开页面、切换身份或进入复核即清除。"
+        }
+      }
+    }
+  },
+  "merchant.noteDraft.clear": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear text"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清空正文"
+        }
+      }
+    }
+  },
+  "merchant.noteDraft.clearTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear this note text?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清空这条备注正文？"
+        }
+      }
+    }
+  },
+  "merchant.noteDraft.clearBody": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The correction target stays unchanged. This does not hide or delete any saved note."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更正目标保持不变，不会隐藏或删除已保存的备注。"
+        }
+      }
+    }
+  },
+  "merchant.noteDraft.continueCorrection": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Continue correction draft"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续更正草稿"
+        }
+      }
+    }
+  },
+  "merchant.noteDraft.continueNew": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Continue note draft"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续备注草稿"
+        }
+      }
+    }
+  },
+  "merchant.noteDraft.saved": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Unsubmitted note drafts are available on this page."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前页面有尚未提交的备注草稿。"
+        }
+      }
+    }
+  },
+  "merchant.noteDraft.discard": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard local note drafts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃本地备注草稿"
+        }
+      }
+    }
+  },
+  "merchant.noteDraft.discardTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard all note drafts on this page?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃当前页面的所有备注草稿？"
+        }
+      }
+    }
+  },
+  "merchant.noteDraft.discardBody": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This removes only unsubmitted text and correction selections. Saved notes and pending server requests are unaffected."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅清除尚未提交的正文和更正选择，不影响已保存备注或服务端待处理请求。"
+        }
+      }
+    }
+  }
+}

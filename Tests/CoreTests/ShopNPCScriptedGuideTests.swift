@@ -28,7 +28,7 @@ import FoundationNetworking
         .init(sessionID: "synthetic:1:activity:41", accountID: account, roleID: "player", accessRevision: access, nodeID: ShopNPCNodeID(node)!)
     }
     private func runtime(_ wire: ScriptGuideWire, session: ScriptGuideSession) throws -> PlayExperienceCoordinator {
-        .init(scope: .activity(41), service: .init(configuration: try .init(baseURL: URL(string: "https://synthetic.invalid")!), transport: wire, enabled: [.reads]),
+        .init(scope: .activity(41), service: .init(configuration: try .init(baseURL: URL(string: "https://synthetic.test")!), transport: wire, enabled: [.reads]),
               recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { session.current })
     }
     func testProjectsOnlyReturnedRulesAndMaterialsWithoutNewRequestOrAIGrant() async throws {

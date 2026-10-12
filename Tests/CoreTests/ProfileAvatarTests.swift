@@ -65,7 +65,7 @@ import FoundationNetworking
     func snapshot() throws -> ProfileEditSnapshot { try JSONDecoder().decode(ProfileEditSnapshot.self, from: JSONSerialization.data(withJSONObject: row)) }
 }
 @MainActor private final class AvatarHarness {
-    let configuration = try! APIConfiguration(baseURL: URL(string: "https://profile.invalid/")!)
+    let configuration = try! APIConfiguration(baseURL: URL(string: "https://profile.test/")!)
     var session = try! ProfileEditSession(accountID: 41, epoch: 1, token: "fixture-token", viewerRevision: 3)
     let approved: ProfileAvatarApproval
     var currentApproval: ProfileAvatarApproval?

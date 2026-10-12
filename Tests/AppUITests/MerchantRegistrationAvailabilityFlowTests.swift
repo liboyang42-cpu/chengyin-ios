@@ -6,7 +6,32 @@ final class MerchantRegistrationAvailabilityFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
     private func tap(_ id: String, _ app: XCUIApplication) {
         let button = app.buttons[id]
-        XCTAssertTrue(revealFixtureElement(button, in: app, towardTop: id == "merchant.registrationAvailability.restore")); button.tap()
+        if id == "merchant.registrationAvailability.cancel" || id == "merchant.registrationAvailability.apply" {
+            // These controls live IN the sheet navigation bar. The lazy-row helper
+            // intentionally excludes that region and must not scroll to reveal them.
+            XCTAssertTrue(button.waitForExistence(timeout: 4))
+            let controls = app.navigationBars.buttons.matching(identifier: id)
+            func visibleIndex() -> Int? {
+                var match: Int?
+                for index in 0..<controls.count {
+                    let control = controls.element(boundBy: index)
+                    guard control.exists, control.isEnabled, control.isHittable else { continue }
+                    let frame = control.frame
+                    guard !frame.isEmpty, app.frame.contains(frame) else { continue }
+                    guard match == nil else { return nil }
+                    match = index
+                }
+                return match
+            }
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in visibleIndex() != nil }, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 4), .completed, "Current sheet toolbar button must be uniquely visible and enabled: \(id)")
+            guard let index = visibleIndex() else { XCTFail(app.debugDescription); return }
+            let control = controls.element(boundBy: index)
+            XCTAssertTrue(control.exists && control.isEnabled && control.isHittable)
+            control.tap()
+        } else {
+            XCTAssertTrue(revealFixtureElement(button, in: app, towardTop: id == "merchant.registrationAvailability.restore")); button.tap()
+        }
         if id == "merchant.registrationAvailability.open" {
             // Wait for the presented sheet before resolving any of its toolbar elements.
             XCTAssertTrue(app.buttons["merchant.registrationAvailability.apply"].waitForExistence(timeout: 4))

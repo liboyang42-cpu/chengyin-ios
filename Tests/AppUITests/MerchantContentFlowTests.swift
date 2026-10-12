@@ -77,7 +77,11 @@ final class MerchantContentFlowTests: XCTestCase {
     func testGameReadyEditorUsesChecklistAndDoesNotExposePlayerCommands() {
         let app = launch(); tap("merchant.content.entry.games", in: app); tap("merchant.content.open.game", in: app)
         tap("merchant.content.STATION_READY", in: app)
-        XCTAssertTrue(app.switches["merchant.content.check.KIT"].waitForExistence(timeout: 4))
+        let editor = app.descendants(matching: .any)["merchant.content.editor"].firstMatch
+        XCTAssertTrue(editor.waitForExistence(timeout: 4), app.debugDescription)
+        // The checklist follows capacity, service-time and note rows in the lazy Form.
+        XCTAssertTrue(revealFixtureElement(app.switches["merchant.content.check.KIT"], in: app), app.debugDescription)
+        XCTAssertTrue(app.switches["merchant.content.check.KIT"].waitForExistence(timeout: 4), app.debugDescription)
         XCTAssertFalse(app.buttons["merchant.content.PLAYER_SUBMIT"].exists)
     }
 }

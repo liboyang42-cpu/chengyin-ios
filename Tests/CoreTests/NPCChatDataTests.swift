@@ -90,7 +90,7 @@ private final class NPCDataHTTP: HTTPTransport {
 }
 @MainActor final class NPCChatDataServiceTests: XCTestCase {
     private let session = ComplianceSession(accountID: 7, epoch: 1, market: "CN", namespace: "synthetic.invalid")
-    private var configuration: APIConfiguration { try! .init(baseURL: URL(string: "https://synthetic.invalid")!) }
+    private var configuration: APIConfiguration { try! .init(baseURL: URL(string: "https://synthetic.test")!) }
     private func approval(account: Int = 7, namespace: String = "synthetic.invalid", path: String = NPCChatData.path) throws -> OperationEndpointApproval {
         try .init(baseURL: configuration.baseURL, namespace: namespace, accountID: account, paths: [path])
     }

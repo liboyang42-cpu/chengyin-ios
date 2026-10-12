@@ -4,12 +4,13 @@ import SwiftUI
 @MainActor struct ClubOperationsFixtureHostView: View {
     @StateObject private var store: ClubOperationsFixtureStore
     @State private var destination: Destination?
+    @State private var createTapCount = 0
     @State private var manageTapCount = 0
     @State private var sheetAppearCount = 0
     @State private var sheetDisappearCount = 0
     @State private var sheetVisible = false
     private var presentationDiagnostic: String {
-        "scenario=\(store.access.scenario.rawValue);manageTaps=\(manageTapCount);destinationSet=\(destination != nil);sheetVisible=\(sheetVisible);appeared=\(sheetAppearCount);disappeared=\(sheetDisappearCount);reads=\(store.access.readCount);writes=\(store.writeCount)"
+        "scenario=\(store.access.scenario.rawValue);createTaps=\(createTapCount);manageTaps=\(manageTapCount);destinationSet=\(destination != nil);sheetVisible=\(sheetVisible);appeared=\(sheetAppearCount);disappeared=\(sheetDisappearCount);reads=\(store.access.readCount);writes=\(store.writeCount)"
     }
     private struct Destination: Identifiable { let id = UUID(); let target: ClubOperationsTarget }
     init(scenario: ClubOperationsFixtureScenario = .owner) { _store = StateObject(wrappedValue: ClubOperationsFixtureStore(scenario: scenario)) }
@@ -22,7 +23,7 @@ import SwiftUI
             List {
                 Text("club.ops.fixtureOnly").accessibilityIdentifier("club.ops.fixtureNotice")
                     .accessibilityValue(presentationDiagnostic)
-                Button("club.ops.create") { destination = .init(target: .create) }.accessibilityIdentifier("club.ops.openCreate")
+                Button("club.ops.create") { createTapCount += 1; destination = .init(target: .create) }.accessibilityIdentifier("club.ops.openCreate")
                 Button("club.ops.manage") { manageTapCount += 1; destination = .init(target: .club(81)) }.accessibilityIdentifier("club.ops.openManage")
                 controls
             }.navigationTitle("club.ops.manage")
@@ -30,6 +31,7 @@ import SwiftUI
         .sheet(item: $destination) { value in
             NavigationStack {
                 ClubOperationsWorkspaceView(target: value.target, identity: store.identity, access: store.access, coordinator: store.coordinator)
+                    .accessibilityIdentifier("club.ops.fixture.workspace")
                     .toolbar { ToolbarItemGroup(placement: .bottomBar) { controls } }
             }
             .onAppear { sheetAppearCount += 1; sheetVisible = true }

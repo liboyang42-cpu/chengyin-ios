@@ -1,0 +1,98 @@
+{
+  "cooperation.topicFilter.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Topic scope"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "主题范围"
+        }
+      }
+    }
+  },
+  "cooperation.topicFilter.choose": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Show topic"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看主题"
+        }
+      }
+    }
+  },
+  "cooperation.topicFilter.all": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All loaded topics"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全部已加载主题"
+        }
+      }
+    }
+  },
+  "cooperation.topicFilter.loadedOnly": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Filters loaded invitations, applications and registrations only. Source failures and pagination still apply."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅筛选已加载的邀约、申请和报名；原数据源错误及分页范围仍然适用。"
+        }
+      }
+    }
+  },
+  "cooperation.topicFilter.clear": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Show all topics"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清除筛选，查看全部主题"
+        }
+      }
+    }
+  },
+  "cooperation.topicFilter.empty": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No loaded records for this topic in this section."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前分区已加载记录中没有该主题的数据。"
+        }
+      }
+    }
+  }
+}

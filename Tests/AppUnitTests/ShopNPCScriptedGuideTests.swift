@@ -16,7 +16,7 @@ private final class ScriptGuideAppRead: HTTPTransport {
 @MainActor final class ShopNPCScriptedGuideAppTests: XCTestCase {
     private func setup() async throws -> (PlayExperienceCoordinator, ShopNPCScriptedGuideSource, ShopNPCCoordinator, ScriptGuideAppChat) {
         let session = try PlayExperienceSession(accountID: 7, epoch: 1, namespace: "synthetic", token: "synthetic-token")
-        let runtime = PlayExperienceCoordinator(scope: .activity(41), service: .init(configuration: try .init(baseURL: URL(string: "https://synthetic.invalid")!), transport: ScriptGuideAppRead(), enabled: [.reads]), recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { session })
+        let runtime = PlayExperienceCoordinator(scope: .activity(41), service: .init(configuration: try .init(baseURL: URL(string: "https://synthetic.test")!), transport: ScriptGuideAppRead(), enabled: [.reads]), recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { session })
         await runtime.load()
         let scope = ShopNPCScope(sessionID: "synthetic:1:activity:41", accountID: "7", roleID: "player", accessRevision: 1, nodeID: ShopNPCNodeID(701)!)
         let chat = ScriptGuideAppChat()

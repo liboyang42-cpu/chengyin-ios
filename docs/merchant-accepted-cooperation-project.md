@@ -1,0 +1,11 @@
+# P090 accepted merchant cooperation → project workspace
+
+Normal route: merchant cooperation workbench → invitations → received/sent row detail → Open accepted project. Source-box direction is carried from the actual received/sent array, not inferred from account ID. The entry follows Mini openAcceptedProject: accepted status 1, nonlegacy, type 0 received or type 1 sent, valid invitation/topic IDs. Conflicting identity aliases are rejected. Numeric IDs must be JavaScript safe; digit-only strings may represent exact positive signed Long IDs, matching the real parseInviteId helper.
+
+On entry, freshly read merchant access with project permission, then re-read the same invitations source. A unique row in the exact source box must retain the same identity, accepted role, topic and canonical row bytes. Source disappearance, replaced session/reader, account revision, service scope, permissions, cancellation and background retirement prevent presentation. Network failures expose retry; retries repeat fresh access and source reads.
+
+The destination reuses MerchantContentDocumentView with focused topic/merchant and a live entry guard. Existing MerchantContentService sends scope=MERCHANT to api/project/home and refreshes merchant/access itself. Project response identity is validated by the existing workspace guard. Host/join projections are rendered as returned: accepting an invitation does not invent registrations, nodes or chapters. Existing write approvals remain disabled/unchanged. Leaving and returning revalidates the route; normal navigation Back is retained.
+
+Source: master P090, Mini invite-detail/index.js blob 09f26597e8ce6b0b45885c40a98b0b9a6a497db2 plus coop-invite-view.js blob f58379f0734f67c495ab92580c267b00a40020d5. Raw source remains private /tmp. ClubInvitationFeedbackView, club invitation facade/scope and old isFrom decision logic are untouched; that old account-vs-owner concern is handed to root.
+
+App/Core/AppUnit registrations and EN/ZH are included. Core tests use existing SwiftPM discovery. 20 native tests authored (7 route + 13 AppUnit fake/integration); Swift/Xcode are unavailable, so native NOT_RUN. No real request/production operation was executed. Root must preserve its independent branding App file rename when merging PBX.

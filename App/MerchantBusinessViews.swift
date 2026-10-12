@@ -210,6 +210,8 @@ import SwiftUI
     @State private var query: MerchantBusinessQuery
     @StateObject private var model: MerchantBusinessViewModel
     @StateObject private var draftReturn: MerchantReviewDraftReturn
+    @StateObject private var noteDrafts: MerchantCustomerNoteDraft
+    @State private var discardNoteDraftGeneration: UUID?
     @State private var keyword = ""
     @FocusState private var aftercareSearchFocused: Bool
     @State private var segment = "all"
@@ -227,6 +229,7 @@ import SwiftUI
         let owner = MerchantBusinessViewModel(reader: reader, journal: journal)
         _query = State(initialValue: query); _model = StateObject(wrappedValue: owner)
         _draftReturn = StateObject(wrappedValue: .init(owner: owner))
+        _noteDrafts = StateObject(wrappedValue: .init(owner: owner))
         if case .customers(let filter) = query {
             _keyword = State(initialValue: filter.keyword); _segment = State(initialValue: filter.segment)
             _sourceType = State(initialValue: filter.sourceType ?? 0); _tagID = State(initialValue: filter.tagID ?? 0)
@@ -345,14 +348,23 @@ import SwiftUI
             }
             if !state.isBusy { Button("merchant.business.refresh") { Task { await reload() } }.accessibilityIdentifier("merchant.business.refresh") }
         }
+        .confirmationDialog("merchant.noteDraft.discardTitle", isPresented: Binding(
+            get: { discardNoteDraftGeneration != nil }, set: { if !$0 { discardNoteDraftGeneration = nil } }),
+            titleVisibility: .visible, presenting: discardNoteDraftGeneration) { generation in
+                Button("merchant.noteDraft.discard", role: .destructive) { noteDrafts.discard(ifGeneration: generation) }
+                Button("action.cancel", role: .cancel) { }
+            } message: { _ in Text("merchant.noteDraft.discardBody") }
         .appNavigationTitle(key: query.titleKey)
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
         .sheet(item: $editor, onDismiss: { draftReturn.discard(); if let mutation = pendingMutation { pendingMutation = nil; if sourcePageCanPrepare(mutation) { model.prepare(mutation) } } }) { context in
-            MerchantBusinessEditor(context: context, snapshot: state.snapshot, reviewInitialContent: draftReturn.initialContent(for: context.id), aftercareEvidenceOwner: {
+            MerchantBusinessEditor(context: context, snapshot: state.snapshot, noteDrafts: noteDrafts, reviewInitialContent: draftReturn.initialContent(for: context.id), aftercareEvidenceOwner: {
                 MerchantAftercareEvidenceOwner(editorID: context.id, document: model,
                     editorIsCurrent: { editor?.id == context.id && pendingMutation == nil })
             }, onReview: { mutation in
+                if case .note = context.kind {
+                    guard noteDrafts.retireForReview(editorID: context.id) else { editor = nil; return }
+                }
                 draftReturn.discard()
                 guard sourcePageCanPrepare(mutation) else { pendingMutation = nil; editor = nil; return }
                 pendingMutation = mutation; editor = nil
@@ -387,17 +399,19 @@ import SwiftUI
                     } }
             }
         }
-        .onAppear { if scenePhase == .active { draftReturn.activate() } }
+        .onAppear { if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
         .onChange(of: model.revision) { _, _ in
+            if let retired = noteDrafts.synchronize(), editor?.id == retired { editor = nil }
             if let retired = draftReturn.synchronize(), editor?.id == retired { editor = nil }
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { draftReturn.activate() }
+            if phase != .active, let retired = noteDrafts.retire(), editor?.id == retired { editor = nil }
+            if phase == .active { draftReturn.activate(); noteDrafts.activate() }
             else if let retired = draftReturn.retire(), editor?.id == retired { editor = nil }
         }
-        .onChange(of: reader.scope) { _, _ in draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onChange(of: reader.authorizationGeneration) { _, _ in draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onDisappear { draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }
+        .onChange(of: reader.scope) { _, _ in noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onChange(of: reader.authorizationGeneration) { _, _ in noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onDisappear { noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }
     }
     @ViewBuilder private var filters: some View {
         if case .customers = query {
@@ -545,7 +559,7 @@ import SwiftUI
             }
             if row.kind == .timeline, ["NOTE", "NOTE_CORRECTION"].contains(row.fields.mbText("type") ?? ""),
                let note = row.fields["noteId"]?.integer, let version = row.fields["noteVersion"]?.integer {
-                Button("merchant.business.correctNote") { editor = .init(kind: .note(customer, corrects: note)) }
+                Button(noteDrafts.hasDraft(corrects: note) ? "merchant.noteDraft.continueCorrection" : "merchant.business.correctNote") { editor = noteDrafts.open(customer: customer, corrects: note) }
                 Button("merchant.business.hideNote") { model.prepare(.hideNote(customer: customer, noteID: note, expectedVersion: version)) }
             }
         }
@@ -562,8 +576,13 @@ import SwiftUI
     @ViewBuilder private func pageActions(_ snapshot: MerchantBusinessSnapshot) -> some View {
         if case .customer(let id) = query, snapshot.access.allows("merchant:crm:segment") {
             Section("merchant.business.localActions") {
-                Button("merchant.business.addNote") { editor = .init(kind: .note(id, corrects: nil)) }.accessibilityIdentifier("merchant.business.addNote")
+                Button(noteDrafts.hasDraft(corrects: nil) ? "merchant.noteDraft.continueNew" : "merchant.business.addNote") { editor = noteDrafts.open(customer: id, corrects: nil) }.accessibilityIdentifier("merchant.business.addNote")
                 Button("merchant.business.assignTag") { editor = .init(kind: .tag([id])) }
+                if noteDrafts.hasDrafts {
+                    Text("merchant.noteDraft.saved").font(.footnote).foregroundStyle(.secondary)
+                    Button("merchant.noteDraft.discard", role: .destructive) { discardNoteDraftGeneration = noteDrafts.generation }
+                        .accessibilityIdentifier("merchant.noteDraft.discard")
+                }
             }
         }
         if case .customers = query, !selection.isEmpty, snapshot.access.allows("merchant:crm:segment") {

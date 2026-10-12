@@ -29,8 +29,8 @@ import UIKit
     let service = try! AvatarProfileFixture()
     var session = try! ProfileEditSession(accountID: 41, epoch: 1, token: "fixture-token", viewerRevision: 1)
     let transport = AvatarPresentationTransport()
-    let configuration = try! APIConfiguration(baseURL: URL(string: "https://profile.invalid/")!)
-    let approval = try! ProfileAvatarApproval(baseURL: URL(string: "https://profile.invalid/")!, namespace: "fixture", accountID: 41, approvedOrigins: ["https://avatar.invalid"], nativePicker: true)
+    let configuration = try! APIConfiguration(baseURL: URL(string: "https://profile.test/")!)
+    let approval = try! ProfileAvatarApproval(baseURL: URL(string: "https://profile.test/")!, namespace: "fixture", accountID: 41, approvedOrigins: ["https://avatar.invalid"], nativePicker: true)
     var storage: [String: Data] = [:]
     lazy var coordinator = ProfileEditCoordinator(service: service, currentSession: { [unowned self] in session })
     lazy var model = ProfileEditModel(coordinator: coordinator)
