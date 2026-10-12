@@ -56,6 +56,8 @@ import SwiftUI
                         .accessibilityIdentifier("templateD6.open")
                     }
                 case .react: field(game.section, "rounds"); field(game.section, "goalMs")
+                    NavigationLink("templateReaction.rehearse") { TemplateReactionRehearsalView(model: model, mode: .currentConfiguration) }
+                        .accessibilityIdentifier("templateReaction.openConfiguration")
                 case .shake:
                     field(game.section, "goal")
                     Toggle("templateAuthor.field.timed", isOn: .init(get: { model.draft.advanced.value[game.section]?.object?["timed"]?.bool ?? false }, set: { model.draft.advanced.set(game.section, "timed", .bool($0)) }))

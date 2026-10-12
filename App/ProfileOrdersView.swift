@@ -79,6 +79,7 @@ struct ProfileOrderDetailView: View {
                 Section("profile.orders.summary") {
                     ProfileOptionalRow(key: "profile.orders.name", value: order.title)
                     ProfileOptionalRow(key: "profile.orders.number", value: order.registrationNo)
+                    ProfileOrderNumberCopySection(order: order, requestedID: id, reader: reader)
                     LabeledContent("profile.orders.state") { ProfileOrderStatus(order: order) }
                     ProfileOptionalRow(key: "profile.orders.serverHint", value: order.orderHint)
                     LabeledContent("profile.orders.amount") { ProfileOrderAmountLabel(amount: order.payableAmount) }

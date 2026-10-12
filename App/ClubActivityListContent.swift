@@ -4,6 +4,7 @@ import SwiftUI
     let overview: ClubActivityOverview
     let canOpen: Bool
     let open: (ClubActivityRow) -> Void
+    var report: ((ClubActivityRow) -> AnyView)? = nil
     var body: some View {
         Section("club.activityList.current") {
             Text("club.activityList.timeZone").font(.caption).foregroundStyle(.secondary)
@@ -21,6 +22,7 @@ import SwiftUI
                 .buttonStyle(.plain).accessibilityHint("roamEvent.openTopic")
                 .accessibilityIdentifier("club.calendar.topic.\(row.id)")
         } else { ClubActivityCard(row: row) }
+        if let report { report(row) }
     }
 }
 

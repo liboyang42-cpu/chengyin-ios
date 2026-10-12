@@ -477,3 +477,89 @@ extension WorkshopOwnedNavigationPresentationTests {
         XCTAssertEqual(f.state.unauthorized, 0)
     }
 }
+
+
+extension WorkshopOwnedNavigationPresentationTests {
+    func testHostedDetailManualRetirementDoesNotRemountOrReissuePermit() async throws {
+        let f = try fixture()
+        let host = UIHostingController(rootView: NavigationStack { WorkshopOwnedLibraryView(browser: f.browser, navigation: f.navigation) })
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
+        window.rootViewController = host; window.makeKeyAndVisible()
+        defer { sceneWindow.retire() }
+        try await wait("mounted list is ready for detail retirement") { f.browser.phase == .ready && f.navigation.listPermit != nil }
+        f.navigation.select(claimId: "synthetic-claim", presentation: f.navigation.listPermit)
+        try await wait("mounted detail is ready for retirement") { f.browser.detail?.item?.claimId == "synthetic-claim" && f.navigation.detailPermit != nil }
+        XCTAssertTrue(host.view.window === window)
+        let oldBox = f.navigation.detailAppearance, oldPermit = try XCTUnwrap(f.navigation.detailPermit)
+        let calls = f.recorder.paths.count
+        f.navigation.detailViewDisappeared(oldBox)
+        let inactive = f.navigation.detailAppearance
+        XCTAssertFalse(inactive === oldBox); XCTAssertFalse(oldPermit.isLive)
+        XCTAssertNil(f.navigation.offerDetail(oldPermit, claimId: "synthetic-claim")); XCTAssertNil(f.browser.detail)
+        XCTAssertEqual(f.navigation.selection?.id, "synthetic-claim"); XCTAssertFalse(f.navigation.showsPackage)
+        for _ in 0..<5 {
+            try await Task.sleep(nanoseconds: 20_000_000)
+            XCTAssertTrue(host.view.window === window)
+            XCTAssertTrue(f.navigation.detailAppearance === inactive)
+            XCTAssertNil(inactive.permit); XCTAssertNil(f.navigation.detailPermit)
+            XCTAssertEqual(f.recorder.paths.count, calls)
+        }
+        f.navigation.detailViewDisappeared(oldBox)
+        XCTAssertTrue(f.navigation.detailAppearance === inactive)
+        XCTAssertNil(f.navigation.detailViewAppeared(oldBox, claimId: "synthetic-claim"))
+        XCTAssertNil(f.navigation.detailPermit); XCTAssertEqual(f.recorder.paths.count, calls)
+        f.navigation.selection = nil
+        try await wait("real Back after manual detail retirement restores list") { f.navigation.listPermit != nil && f.browser.phase == .ready && f.navigation.detailPermit == nil }
+        XCTAssertEqual(f.state.unauthorized, 0)
+    }
+}
+
+
+extension WorkshopOwnedNavigationPresentationTests {
+    func testHostedPackageReopenAndManualRetirementKeepPermitsScopedWithoutRemount() async throws {
+        let f = try fixture()
+        let host = UIHostingController(rootView: NavigationStack { WorkshopOwnedLibraryView(browser: f.browser, navigation: f.navigation) })
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
+        window.rootViewController = host; window.makeKeyAndVisible()
+        defer { sceneWindow.retire() }
+        try await wait("mounted list ready for package reopen") { f.browser.phase == .ready && f.navigation.listPermit != nil }
+        f.navigation.select(claimId: "synthetic-claim", presentation: f.navigation.listPermit)
+        try await wait("mounted detail ready for package reopen") { f.browser.detail?.item?.claimId == "synthetic-claim" && f.navigation.detailPermit != nil }
+        f.navigation.openPackage(presentation: f.navigation.detailPermit)
+        try await wait("first hosted package ready") { f.browser.packageBrowser?.phase == .unavailable && f.navigation.packagePermit != nil }
+        let firstBox = f.navigation.packageAppearance, firstPermit = try XCTUnwrap(f.navigation.packagePermit)
+        f.navigation.showsPackage = false
+        try await wait("first package Back restores detail") { f.navigation.detailPermit != nil && f.browser.detail != nil && f.navigation.packagePermit == nil }
+        XCTAssertFalse(firstPermit.isLive)
+        f.navigation.openPackage(presentation: f.navigation.detailPermit)
+        try await wait("second hosted package ready with fresh permit") { f.browser.packageBrowser?.phase == .unavailable && f.navigation.packagePermit != nil }
+        let secondBox = f.navigation.packageAppearance, secondPermit = try XCTUnwrap(f.navigation.packagePermit)
+        XCTAssertFalse(secondBox === firstBox); XCTAssertFalse(secondPermit === firstPermit)
+        f.navigation.packageViewDisappeared(firstBox)
+        XCTAssertTrue(f.navigation.packagePermit === secondPermit); XCTAssertTrue(secondPermit.isLive)
+        XCTAssertNil(f.navigation.packageViewAppeared(firstBox, claimId: "synthetic-claim"))
+        let calls = f.recorder.paths.count
+        f.navigation.packageViewDisappeared(secondBox)
+        let inactive = f.navigation.packageAppearance
+        XCTAssertFalse(inactive === secondBox); XCTAssertFalse(secondPermit.isLive)
+        XCTAssertNil(f.navigation.offerPackage(secondPermit, claimId: "synthetic-claim"))
+        XCTAssertNil(f.browser.packageBrowser?.value); XCTAssertEqual(f.browser.packageBrowser?.phase, .idle)
+        XCTAssertTrue(f.navigation.showsPackage); XCTAssertEqual(f.navigation.selection?.id, "synthetic-claim")
+        for _ in 0..<5 {
+            try await Task.sleep(nanoseconds: 20_000_000)
+            XCTAssertTrue(host.view.window === window)
+            XCTAssertTrue(f.navigation.packageAppearance === inactive)
+            XCTAssertNil(inactive.permit); XCTAssertNil(f.navigation.packagePermit)
+            XCTAssertEqual(f.recorder.paths.count, calls)
+        }
+        f.navigation.packageViewDisappeared(firstBox); f.navigation.packageViewDisappeared(secondBox)
+        XCTAssertTrue(f.navigation.packageAppearance === inactive)
+        XCTAssertNil(f.navigation.packageViewAppeared(secondBox, claimId: "synthetic-claim"))
+        XCTAssertNil(f.navigation.packagePermit); XCTAssertEqual(f.recorder.paths.count, calls)
+        f.navigation.showsPackage = false
+        try await wait("second package Back after retirement restores detail") { f.navigation.detailPermit != nil && f.browser.detail != nil && f.navigation.packagePermit == nil }
+        f.navigation.selection = nil
+        try await wait("package reopen round trip returns to list") { f.navigation.listPermit != nil && f.browser.phase == .ready && f.navigation.detailPermit == nil }
+        XCTAssertEqual(f.state.unauthorized, 0)
+    }
+}

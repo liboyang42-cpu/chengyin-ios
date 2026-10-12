@@ -1,0 +1,13 @@
+{
+  "task": 67,
+  "feature": "roam-account-entry",
+  "source": "P005 goProfile, fixed95 JS660/WXML121",
+  "normal_route": "RoamBrowser toolbar \u2192 supplied onOpenAccount \u2192 SessionRootView selectedTab4 \u2192 existing AccountView/WelcomeView",
+  "default": "onOpenAccount nil hides button; no substitute route",
+  "reused_EN_ZH_keys": [
+    "account.title"
+  ],
+  "PBX": "Existing App files only; existing registration retained",
+  "native": "NOT_RUN",
+  "capability": "Local tab selection only; no new API, grant, ID route, profile renderer or image source"
+}

@@ -106,6 +106,10 @@ import Combine
     var body: some View {
         Form {
             Section {
+                NavigationLink("templateReaction.sample") { TemplateReactionRehearsalView(model: model, mode: .sourceExample) }
+                    .disabled(!controller.canBrowse).accessibilityIdentifier("templateReaction.openSample")
+            }
+            Section {
                 NavigationLink("templateTimer.sample.countdown") { TemplateTimerRehearsalView(model: model, kind: .countdown, mode: .sourceExample) }
                     .disabled(!controller.canBrowse).accessibilityIdentifier("templateTimer.openSample.countdown")
                 NavigationLink("templateTimer.sample.stopwatch") { TemplateTimerRehearsalView(model: model, kind: .stopwatch, mode: .sourceExample) }

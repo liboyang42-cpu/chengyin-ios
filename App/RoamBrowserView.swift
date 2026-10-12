@@ -6,6 +6,7 @@ import SwiftUI
 struct RoamBrowserView: View {
     let reader: any RoamReading
     var onChooseArea: (() -> Void)? = nil
+    var onOpenAccount: (() -> Void)? = nil
     var experienceReader: (any RoamExperienceReading)? = nil
     var cityDestination: (() -> AnyView)? = nil
     var nearbyTeamsDestination: (() -> AnyView)? = nil
@@ -120,6 +121,12 @@ struct RoamBrowserView: View {
                 RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDestination, playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
             }
             .toolbar {
+                if let onOpenAccount {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("account.title", systemImage: "person.crop.circle", action: onOpenAccount)
+                            .accessibilityIdentifier("roam.account.open")
+                    }
+                }
                 if let cityDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("city.read.title", destination: cityDestination) } }
                 if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
                 if let experienceReader {

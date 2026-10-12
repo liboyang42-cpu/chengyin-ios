@@ -10,6 +10,7 @@ struct MerchantBusinessEditorContext: Identifiable {
 }
 @MainActor struct MerchantBusinessEditor: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.merchantAftercareEvidenceDependencies) private var evidenceDependencies
     let context: MerchantBusinessEditorContext
     let snapshot: MerchantBusinessSnapshot?
@@ -76,6 +77,22 @@ struct MerchantBusinessEditorContext: Identifiable {
                     TextField("merchant.business.responseContent", text: $content, axis: .vertical).lineLimit(3...8)
                     TextField("merchant.business.evidenceKey", text: $evidence).textInputAutocapitalization(.never).autocorrectionDisabled()
                     Text("merchant.business.evidenceHint").font(.footnote).foregroundStyle(.secondary)
+                    if !evidence.isEmpty {
+                        let removalDraft = aftercareEvidenceDraft
+                        let removalOwner = aftercareEvidenceOwner?()
+                        Button("merchant.aftercareRemoveEvidence.remove") {
+                            guard scenePhase == .active, evidenceFlow == nil, pendingAftercareDecision == nil,
+                                  let removalOwner, removalOwner.isCurrent, removalOwner.editorID == context.id,
+                                  removalOwner.snapshot == snapshot, case .aftercare(let currentRow) = context.kind,
+                                  currentRow == row, removalOwner.snapshot.document.rows.contains(row),
+                                  aftercareEvidenceDraft == removalDraft else { return }
+                            let cleared = removalDraft.removingEvidence()
+                            evidence = cleared.evidence; issue = nil
+                        }
+                        .disabled(evidenceFlow != nil || pendingAftercareDecision != nil || removalOwner?.isCurrent != true)
+                        .accessibilityIdentifier("merchant.aftercareRemoveEvidence.remove")
+                        Text("merchant.aftercareRemoveEvidence.localOnly").font(.footnote).foregroundStyle(.secondary)
+                    }
                     Button("merchant.aftercareEvidence.open") { openAftercareEvidence(row) }
                         .disabled(evidenceDependencies == nil || pendingAftercareDecision != nil)
                         .accessibilityIdentifier("merchant.aftercareEvidence.open")

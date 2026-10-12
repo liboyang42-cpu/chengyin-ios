@@ -1,0 +1,34 @@
+{
+  "merchant.aftercareRemoveEvidence.remove": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove draft evidence"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除草稿凭证"
+        }
+      }
+    }
+  },
+  "merchant.aftercareRemoveEvidence.localOnly": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Removes only this draft attachment. The uploaded file is not deleted."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅移除本次草稿中的凭证引用，不删除已上传的文件。"
+        }
+      }
+    }
+  }
+}

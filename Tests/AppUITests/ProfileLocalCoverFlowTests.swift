@@ -59,8 +59,16 @@ final class ProfileLocalCoverFlowTests: XCTestCase {
     func testSwitchAccountDoesNotDisplayFormerCover() {
         let app=launch(); tap("profile.localCoverFixture.prepare",app); tap("profile.localCover.confirm",app)
         tap("profile.localCoverFixture.switch",app)
-        XCTAssertTrue(app.otherElements["profile.localCover.default"].waitForExistence(timeout:3))
-        XCTAssertFalse(app.images["profile.localCover.preview"].exists)
+        let defaultCover = app.descendants(matching: .any).matching(identifier: "profile.localCover.default").firstMatch
+        let defaultExists = defaultCover.waitForExistence(timeout:3)
+        if !defaultExists { captureFirstFailure(app, expected: "profile.localCover.default") }
+        XCTAssertTrue(defaultExists)
+        let defaultState = app.staticTexts["profile.localCoverFixture.state"].label
+        if defaultState != "Default" { captureFirstFailure(app, expected: "Default for switched account") }
+        XCTAssertEqual(defaultState, "Default")
+        let oldPreviewExists = app.images["profile.localCover.preview"].exists
+        if oldPreviewExists { captureFirstFailure(app, expected: "former account preview absent") }
+        XCTAssertFalse(oldPreviewExists)
     }
     func testSignedOutAccountCannotEditOrDisplayCover() {
         let app=launch(); tap("profile.localCoverFixture.prepare",app); tap("profile.localCover.confirm",app)

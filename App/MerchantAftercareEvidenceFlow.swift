@@ -46,6 +46,8 @@ struct MerchantAftercareEvidenceDraft: Equatable {
     let decision: MerchantAftercareDecision
     let content: String
     let evidence: String
+    /// Only clears the local attachment reference; no server object is deleted.
+    func removingEvidence() -> Self { .init(decision: decision, content: content, evidence: "") }
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.decision == rhs.decision && lhs.content.utf8.elementsEqual(rhs.content.utf8)
             && lhs.evidence.utf8.elementsEqual(rhs.evidence.utf8)

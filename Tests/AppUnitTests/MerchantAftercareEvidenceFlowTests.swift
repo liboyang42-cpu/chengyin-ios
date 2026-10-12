@@ -87,6 +87,20 @@ import UIKit
         let review = try XCTUnwrap(h.flow.review)
         let task = try XCTUnwrap(h.flow.confirm(review)); await task.value
     }
+    func testRemoveAttachedEvidenceKeepsDecisionAndExactOpinionBytes() {
+        let original = MerchantAftercareEvidenceDraft(decision: .agree, content: " e\u{0301} 原意见 ", evidence: "private/object-key")
+        let cleared = original.removingEvidence()
+        XCTAssertEqual(cleared.decision, original.decision)
+        XCTAssertEqual(Data(cleared.content.utf8), Data(original.content.utf8))
+        XCTAssertEqual(cleared.evidence, "")
+        XCTAssertEqual(original.evidence, "private/object-key")
+    }
+    func testRemovingEmptyAttachmentIsIdempotent() {
+        let original = MerchantAftercareEvidenceDraft(decision: .agree, content: "Keep", evidence: "")
+        XCTAssertEqual(original.removingEvidence(), original)
+        XCTAssertEqual(original.removingEvidence().removingEvidence(), original)
+    }
+
     func testOpeningIsLocalAndSelectionDoesNotUploadOrChangeDraft() async throws {
         let h = try await harness(), original = h.draft.value
         XCTAssertEqual(h.reader.proofCount, 0); XCTAssertEqual(h.reader.executeCount, 0)

@@ -18388,6 +18388,15 @@
 				"96091C05559D9FD3FF48DA4A",
 				"2CCD4E1C68899F98CCFA8B6F",
 				"66953658D1A344A0D4F7D3FD",
+				"1B281EA8DF8889180CD4E719",
+				"1507C9051260EE94C820CC16",
+				"A31CC4634CA5DF0B2815FE9D",
+				"2789037A8EFD25A6FD1B163F",
+				"4489BED31E99633C5546A02D",
+				"4F72B9CACA3699914DC0ECBB",
+				"A6B91C5BFA1D990BB181B319",
+				"5E3D27FC3C5E42B3CCBFB25F",
+				"DE0079787DD53D91792910C3",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -19973,6 +19982,12 @@
 				"2435AA9E62ABFDCCF6B52332",
 				"8F5FB0F2FCC843789FBE7E18",
 				"68723160640DC60F580DFBFB",
+				"2C399C680E390D4C5A8917D0",
+				"642DDF8D1B8A013116F701B5",
+				"6E75E9D5F97622CCC8A14555",
+				"6821D55194C3082E6C4EAFD1",
+				"0EBE142BDD3F084826DEE36B",
+				"CA1B35BF43A321513FD3FD4F",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26059,6 +26074,9 @@
 				"C50734F565D8BAFFA03E86A0",
 				"40030568B890EEB3C2BF4B97",
 				"3AA11E234B89F6D8A4C3E6EB",
+				"FDA9FD5A5080A29B91050F0E",
+				"368D49DC1742DB19A13749E3",
+				"B5903D9A635E903CF9BB012D",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26750,6 +26768,96 @@
 		"68723160640DC60F580DFBFB" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "2CCD4E1C68899F98CCFA8B6F";
+		};
+		"1B281EA8DF8889180CD4E719" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ProfileOrderNumberCopySectionTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"1507C9051260EE94C820CC16" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ProfileOrderNumberCopy.swift";
+			"sourceTree" = "<group>";
+		};
+		"A31CC4634CA5DF0B2815FE9D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ProfileOrderNumberCopySection.swift";
+			"sourceTree" = "<group>";
+		};
+		"2C399C680E390D4C5A8917D0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "1507C9051260EE94C820CC16";
+		};
+		"642DDF8D1B8A013116F701B5" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A31CC4634CA5DF0B2815FE9D";
+		};
+		"FDA9FD5A5080A29B91050F0E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "1B281EA8DF8889180CD4E719";
+		};
+		"4F72B9CACA3699914DC0ECBB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/TemplateReactionRehearsalViewTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"2789037A8EFD25A6FD1B163F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/TemplateReactionRehearsalView.swift";
+			"sourceTree" = "<group>";
+		};
+		"6821D55194C3082E6C4EAFD1" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4489BED31E99633C5546A02D";
+		};
+		"6E75E9D5F97622CCC8A14555" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "2789037A8EFD25A6FD1B163F";
+		};
+		"368D49DC1742DB19A13749E3" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4F72B9CACA3699914DC0ECBB";
+		};
+		"4489BED31E99633C5546A02D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/TemplateReactionRehearsal.swift";
+			"sourceTree" = "<group>";
+		};
+		"A6B91C5BFA1D990BB181B319" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubActivityReportView.swift";
+			"sourceTree" = "<group>";
+		};
+		"5E3D27FC3C5E42B3CCBFB25F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubActivityReportSelection.swift";
+			"sourceTree" = "<group>";
+		};
+		"B5903D9A635E903CF9BB012D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DE0079787DD53D91792910C3";
+		};
+		"CA1B35BF43A321513FD3FD4F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "5E3D27FC3C5E42B3CCBFB25F";
+		};
+		"0EBE142BDD3F084826DEE36B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A6B91C5BFA1D990BB181B319";
+		};
+		"DE0079787DD53D91792910C3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ClubActivityReportFlowTests.swift";
+			"sourceTree" = "<group>";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";

@@ -1,5 +1,6 @@
 import XCTest
 import UIKit
+import Observation
 @testable import Questify
 
 @MainActor final class ProfileLocalCoverAppTests: XCTestCase {
@@ -110,5 +111,32 @@ extension ProfileLocalCoverAppTests {
         XCTAssertTrue(ProfileLocalCoverController.sameImage(saved, m.controller.saved)); XCTAssertEqual(s.writes, 1)
         let fresh = MerchantImageCropDraft(source: image, aspect: .gallery); m.crop = fresh
         m.cancelCrop(id: draft.id); XCTAssertEqual(m.crop?.id, fresh.id); XCTAssertEqual(s.writes, 1)
+    }
+}
+
+
+extension ProfileLocalCoverAppTests {
+    func testFixtureWriteCountObservesExplicitSaveAndRestoreOnSameStore() async throws {
+        let reader = ProfileAuthorPostsRefreshFixtureReader(), store = ProfileLocalCoverFixtureStore()
+        let model = try make(store, reader: reader)
+        let savedCountChanged = expectation(description: "Displayed fixture count observes save")
+        let initialCount = withObservationTracking { store.writes } onChange: { savedCountChanged.fulfill() }
+        XCTAssertEqual(initialCount, 0)
+        model.open(); model.controller.prepare(try ProfileLocalCoverSyntheticImage.make())
+        model.confirm(try XCTUnwrap(model.controller.review))
+        await fulfillment(of: [savedCountChanged], timeout: 1)
+        XCTAssertEqual(store.writes, 1); XCTAssertNotNil(model.controller.saved)
+        model.controller.load()
+        XCTAssertEqual(store.writes, 1); XCTAssertNotNil(model.controller.saved)
+
+        let restoredCountChanged = expectation(description: "Displayed fixture count observes restore")
+        let savedCount = withObservationTracking { store.writes } onChange: { restoredCountChanged.fulfill() }
+        XCTAssertEqual(savedCount, 1)
+        model.open(); model.controller.prepareDefault()
+        model.confirm(try XCTUnwrap(model.controller.review))
+        await fulfillment(of: [restoredCountChanged], timeout: 1)
+        XCTAssertEqual(store.writes, 2); XCTAssertNil(model.controller.saved)
+        model.controller.load()
+        XCTAssertEqual(store.writes, 2); XCTAssertNil(model.controller.saved)
     }
 }

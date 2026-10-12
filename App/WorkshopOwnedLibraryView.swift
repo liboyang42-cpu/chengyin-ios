@@ -142,8 +142,7 @@ private struct WorkshopOwnedUnavailableView: View {
             }
         }
         .modifier(WorkshopOwnedNavigationTitle(key: "detail"))
-        // Only content has a replaceable identity. Visibility and navigation stay outside it.
-        .id(ObjectIdentifier(displayed))
+        // A permit box is not a view identity: retiring it must not remount the detail.
         .onAppear { routeVisibility.appear(); navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId) }
         .onDisappear { routeVisibility.disappear(); navigation.detailViewDisappeared(displayed) }
         .onChange(of: navigation.selection?.id == claimId && !navigation.showsPackage) { wasEligible, isEligible in

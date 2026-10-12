@@ -5,6 +5,7 @@ import SwiftUI
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
+    let validateTarget: (() async throws -> Void)?
     @Environment(\.dismiss) private var dismiss
     @StateObject private var rolePicker = ClubRoleAssignmentReadModel()
     @StateObject private var seriesLeadPicker = ClubSeriesLeadReadModel()
@@ -19,8 +20,8 @@ import SwiftUI
     @State private var locked = false
     @State private var showDiscard = false
     @State private var generation: UInt64 = 0
-    init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator) {
-        self.route = route; self.identity = identity; self.access = access; self.coordinator = coordinator
+    init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator, validateTarget: (() async throws -> Void)? = nil) {
+        self.route = route; self.identity = identity; self.access = access; self.coordinator = coordinator; self.validateTarget = validateTarget
         var initial = ClubGovernanceFormDraft(operation: route.operation, scope: route.scope, seed: route.seed)
         if route.operation == .assignRole { initial.text["roleCode"] = "" }
         _draft = State(initialValue: initial)
@@ -163,6 +164,10 @@ import SwiftUI
         guard roleAssignmentReady && seriesScheduleReady && seriesLeadReady else { return }
         let revision = generation, expected = identity; busy = true; failure = nil
         do {
+            if let validateTarget {
+                try await validateTarget()
+                guard revision == generation, expected == identity, expected == access.identity, !Task.isCancelled else { return }
+            }
             let pending = try await coordinator.prepare(draft.command())
             guard revision == generation, expected == identity, expected == access.identity else { return }
             review = pending
@@ -172,6 +177,10 @@ import SwiftUI
     private func confirm(_ review: ClubGovernanceReview) async {
         let revision = generation, expected = identity; busy = true; failure = nil
         do {
+            if let validateTarget {
+                try await validateTarget()
+                guard revision == generation, expected == identity, expected == access.identity, !Task.isCancelled else { return }
+            }
             let value = try await coordinator.confirm(review)
             guard revision == generation, expected == identity, expected == access.identity else { return }
             receipt = value; self.review = nil; locked = true

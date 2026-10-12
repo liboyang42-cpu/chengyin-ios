@@ -52,8 +52,7 @@ import SwiftUI
             }
         }
         .modifier(PackageNavigationTitle())
-        // Only content has a replaceable identity. Visibility and navigation stay outside it.
-        .id(ObjectIdentifier(displayed))
+        // A permit box is not a view identity: retiring it must not remount the package.
         .onAppear { navigation.schedulePackage(navigation.packageViewAppeared(displayed, claimId: claimId), claimId: claimId) }
         .onDisappear { navigation.packageViewDisappeared(displayed) }
         .refreshable { [permit = presentation] in if let action = navigation.offerPackage(permit, claimId: claimId) { await action() } }

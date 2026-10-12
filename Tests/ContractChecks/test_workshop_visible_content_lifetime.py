@@ -5,8 +5,8 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 
 class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
-    # Preserve the historical method ID. Actual c11 proved a box-keyed List still remounts.
-    # The List now has stable identity; detail/package are unchanged by this narrow repair.
+    # Preserve the historical method ID. Actual c11 list and782 detail traces exposed
+    # permit-box content remounts. Package uses the same stable-identity boundary preventively.
     def test_real_visibility_callbacks_are_inside_keyed_content_and_navigation_host_stays_outside(self):
         library = (ROOT / 'App/WorkshopOwnedLibraryView.swift').read_text()
         package = (ROOT / 'App/WorkshopOwnedPackageView.swift').read_text()
@@ -14,19 +14,20 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
                                (library.split('@MainActor struct WorkshopOwnedDetailView:')[1].split('private struct WorkshopOwnedScopeSection:')[0], 'detail'),
                                (package.split('@MainActor struct WorkshopOwnedPackageView:')[1].split('private struct PackageValueRow:')[0], 'package')]:
             with self.subTest(screen=screen):
+                self.assertNotIn('.id(ObjectIdentifier(displayed))', source)
                 if screen == 'list':
-                    self.assertNotIn('.id(ObjectIdentifier(displayed))', source)
                     self.assertIn('.onAppear { routeVisibility.appear(); navigation.scheduleList(navigation.listViewAppeared(displayed)) }', source)
-                    self.assertIn('.onDisappear { routeVisibility.disappear(); navigation.listViewDisappeared(displayed) }', source)
+                elif screen == 'detail':
+                    self.assertIn('.onAppear { routeVisibility.appear(); navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId) }', source)
                 else:
-                    self.assertEqual(source.count('.id(ObjectIdentifier(displayed))'), 1)
-                    self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onAppear {'))
-                    self.assertLess(source.index('.id(ObjectIdentifier(displayed))'), source.index('.onDisappear { ' + ('routeVisibility.disappear(); ' if screen != 'package' else '') + 'navigation.' + screen + 'ViewDisappeared(displayed) }'))
+                    self.assertIn('.onAppear { navigation.schedulePackage(navigation.packageViewAppeared(displayed, claimId: claimId), claimId: claimId) }', source)
+                self.assertIn('.onDisappear { ' + ('routeVisibility.disappear(); ' if screen != 'package' else '') + 'navigation.' + screen + 'ViewDisappeared(displayed) }', source)
                 if screen != 'package':
                     self.assertLess(source.index('.onDisappear {'), source.index('.navigationDestination('))
                 self.assertIn('let displayed = navigation.' + screen + 'Appearance', source)
 
         self.assertIn('WorkshopOwnedLibraryView(browser: browser).id(browser.identity)', library)
+        self.assertIn('WorkshopOwnedDetailView(browser: browser, claimId: selection.id, navigation: navigation).id(selection.id)', library)
 
     def test_actual_hosted_back_assertions_and_original_wait_bound_remain(self):
         source = (ROOT / 'Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift').read_text()
@@ -38,6 +39,15 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
         self.assertIn('XCTAssertEqual(f.state.unauthorized,0)', source)
         self.assertIn('testBackBeforeOldDisappearanceUsesNewRouteBoxAndOldCallbacksCannotClearIt', source)
         self.assertIn('testHostedListManualRetirementDoesNotRemountOrReissuePermit', source)
+        self.assertIn('testHostedDetailManualRetirementDoesNotRemountOrReissuePermit', source)
+        self.assertIn('XCTAssertNil(inactive.permit); XCTAssertNil(f.navigation.detailPermit)', source)
+        self.assertIn('XCTAssertNil(f.navigation.offerDetail(oldPermit, claimId: "synthetic-claim")); XCTAssertNil(f.browser.detail)', source)
+        self.assertIn('real Back after manual detail retirement restores list', source)
+        self.assertIn('testHostedPackageReopenAndManualRetirementKeepPermitsScopedWithoutRemount', source)
+        self.assertIn('second hosted package ready with fresh permit', source)
+        self.assertIn('XCTAssertTrue(f.navigation.packagePermit === secondPermit); XCTAssertTrue(secondPermit.isLive)', source)
+        self.assertIn('XCTAssertNil(inactive.permit); XCTAssertNil(f.navigation.packagePermit)', source)
+        self.assertIn('second package Back after retirement restores detail', source)
         self.assertIn('XCTAssertNil(inactive.permit); XCTAssertNil(f.navigation.listPermit)', source)
 
         for token in ['same hosted detail reopens with fresh permit',

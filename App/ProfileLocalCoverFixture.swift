@@ -2,7 +2,7 @@
 import SwiftUI
 import Observation
 
-@MainActor final class ProfileLocalCoverFixtureStore: ProfileLocalCoverStoring {
+@MainActor @Observable final class ProfileLocalCoverFixtureStore: ProfileLocalCoverStoring {
     var images: [ProfileLocalCoverOwner: RetainedSelectedImage] = [:]
     var writes = 0
     var fails = false
@@ -49,7 +49,7 @@ import Observation
 /// Local synthetic controls never open the user's photo library or call an upload endpoint.
 @MainActor struct ProfileLocalCoverFixtureHost: View {
     @State private var reader = ProfileAuthorPostsRefreshFixtureReader()
-    private let store = ProfileLocalCoverFixtureStore()
+    @State private var store = ProfileLocalCoverFixtureStore()
     private let ownerA = try! ProfileLocalCoverOwner(accountID: 81, namespace: "synthetic-local-cover")
     private let ownerB = try! ProfileLocalCoverOwner(accountID: 82, namespace: "synthetic-local-cover")
     @State private var model: ProfileLocalCoverModel?

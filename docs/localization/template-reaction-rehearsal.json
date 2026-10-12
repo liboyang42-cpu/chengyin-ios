@@ -1,0 +1,486 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateReaction.rehearse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local reaction rehearsal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反应速度本地预演"
+          }
+        }
+      }
+    },
+    "templateReaction.sample": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reaction source example"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反应速度源样例"
+          }
+        }
+      }
+    },
+    "templateReaction.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author-only rehearsal. These local readings are not verified scores, rewards or task results."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供作者本地预演。这些读数不是经验证的成绩、奖励或任务结果。"
+          }
+        }
+      }
+    },
+    "templateReaction.background": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leaving or going to the background clears this local run. Returning starts fresh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "离开或切到后台会清空本地过程，返回后重新开始。"
+          }
+        }
+      }
+    },
+    "templateReaction.exampleOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A source example is filled only in this temporary copy where the title is still pristine."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "源样例只填入此临时副本中仍为初始值的标题。"
+          }
+        }
+      }
+    },
+    "templateReaction.rounds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configured rounds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置轮数"
+          }
+        }
+      }
+    },
+    "templateReaction.goal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local target"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地目标"
+          }
+        }
+      }
+    },
+    "templateReaction.round": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前轮次"
+          }
+        }
+      }
+    },
+    "templateReaction.rule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait for the signal. Early taps and readings below 120 ms do not count. After all rounds, compare the fastest reading with the target."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待信号。提前点或低于120毫秒不计轮次；完成全部轮次后，取最快读数与目标比较。"
+          }
+        }
+      }
+    },
+    "templateReaction.last": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last accepted reading"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近有效读数"
+          }
+        }
+      }
+    },
+    "templateReaction.readings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepted local readings (ms)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地有效读数（毫秒）"
+          }
+        }
+      }
+    },
+    "templateReaction.localResult": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local comparison only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供本地比较"
+          }
+        }
+      }
+    },
+    "templateReaction.best": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fastest accepted reading"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最快有效读数"
+          }
+        }
+      }
+    },
+    "templateReaction.matched": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Within the configured target locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地读数符合配置目标"
+          }
+        }
+      }
+    },
+    "templateReaction.missed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Above the configured target locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地读数超出配置目标"
+          }
+        }
+      }
+    },
+    "templateReaction.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft changed or cannot be rehearsed. Check the title (up to 32 units), whole rounds (1–10) and source-supported target (120–2000 ms), then reload."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿已变化或暂不能预演。请检查标题（最多32单位）、整数轮数（1–10）和源端支持的目标（120–2000毫秒），再重新读取。"
+          }
+        }
+      }
+    },
+    "templateReaction.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前草稿"
+          }
+        }
+      }
+    },
+    "templateReaction.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点一下开始"
+          }
+        }
+      }
+    },
+    "templateReaction.next": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一轮"
+          }
+        }
+      }
+    },
+    "templateReaction.wait": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等"
+          }
+        }
+      }
+    },
+    "templateReaction.tap": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点！"
+          }
+        }
+      }
+    },
+    "templateReaction.early": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too early"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "抢跑"
+          }
+        }
+      }
+    },
+    "templateReaction.finished": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local run finished"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地预演结束"
+          }
+        }
+      }
+    },
+    "templateReaction.clockInvalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clock unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计时不可用"
+          }
+        }
+      }
+    },
+    "templateReaction.readyHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to enter a randomly timed wait."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点一下，进入随机时长的等候。"
+          }
+        }
+      }
+    },
+    "templateReaction.waitHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait for the signal text and green background before tapping."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等出现“点！”和绿色背景后再点，早点算抢跑。"
+          }
+        }
+      }
+    },
+    "templateReaction.tapHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap now to record this local reaction."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现在点，记录本地反应读数。"
+          }
+        }
+      }
+    },
+    "templateReaction.tooFast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Below 120 ms does not count. Tap to retry this round."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低于120毫秒不计入轮次。点一下重试本轮。"
+          }
+        }
+      }
+    },
+    "templateReaction.retryHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait for the signal. Tap to retry this round."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出现信号后才能点。点一下重试本轮。"
+          }
+        }
+      }
+    },
+    "templateReaction.resetHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Reset to begin a fresh local run."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点“重置”开始新的本地预演。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

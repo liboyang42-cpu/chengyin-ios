@@ -1,0 +1,21 @@
+{
+  "base": "077273784d7fed5397f84f17b2a659723f3f3b22",
+  "dependencies": [
+    "creator-sample-browser-0772737",
+    "creator-sample-coverage-0772737",
+    "creator-coin-rehearsal-0772737",
+    "creator-timer-rehearsal-0772737"
+  ],
+  "app_sources": [
+    "Core/TemplateReactionRehearsal.swift",
+    "App/TemplateReactionRehearsalView.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateReactionRehearsalTests.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateReactionRehearsalViewTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-reaction-rehearsal.json",
+  "integration_note": "Reuse sealed28 scheduler unchanged. Two config-entry lines plus4line sample section; preserve25/26/27/28. Register2newsource leaves,2XCTest and30bilingual strings centrally. Private originals excluded."
+}
