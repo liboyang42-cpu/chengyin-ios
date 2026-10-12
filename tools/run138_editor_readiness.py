@@ -18,7 +18,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = '724d544dab6599cbb48429752f1e3c09986f12a219d29805b72fa027dfb1f175'
+CONTRACT_SHA256 = '83d558d2a863fe0d8217de263530b5f43851615d41d82c3604afeb57ec5c8898'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'
@@ -221,6 +221,14 @@ def _validate_current(directory, profile_path, root=ROOT):
 
 
 def previous_directory(directory, profile_path, root=ROOT):
+    # One complete projection owns the existing current admission boundary.
+    # Nested historical reads still hash all actual inputs and finite old bytes.
+    from tools.club_customer_directory_admission import club_authenticated_transaction
+    with club_authenticated_transaction(root):
+        return _previous_directory(directory, profile_path, root)
+
+
+def _previous_directory(directory, profile_path, root):
     c = validate_current(directory, profile_path, root)
     if Path(root).resolve() == ROOT.resolve():
         from tools.club_customer_directory_admission import club_original_current_context

@@ -32,3 +32,14 @@ condition = "AND"
 regexTarget = "secret"
 paths = ['^tools/run138_editor_readiness_contract\.json$']
 regexes = ['^b6f39b68254a69cfba77701b9354dba0298aab692e07bea6817f8c02abcf5e38$']
+
+[[rules.allowlists]]
+description = "Exact verified MerchantAccess source digest in three historical source registries"
+condition = "AND"
+regexTarget = "secret"
+paths = [
+    '''^Tests/ContractChecks/test_merchant_project_workspace_entry\.py$''',
+  '''^tools/run138_editor_readiness_contract\.json$''',
+  '''^tools/targeted_native_selection\.json$''',
+]
+regexes = ['''^1b1c35dfe2d0bc2144484bc9a73ad816d98ea89df76cf221044c6ffcbfc30443$''']

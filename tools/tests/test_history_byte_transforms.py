@@ -18,15 +18,19 @@ class HistoryByteTransformTests(unittest.TestCase):
 
     def test_encodings_are_byte_identical_to_original_operations(self):
         root = Path(__file__).resolve().parents[2]
-        for raw in (b'', bytes(range(256)), '原始字节\n'.encode(),
-                    (root / 'Tests/ContractChecks/test_category_roam_registration.py').read_bytes()):
+        samples = (b'', bytes(range(256)), '原始字节\n'.encode(),
+                   (root / 'Tests/ContractChecks/test_category_roam_registration.py').read_bytes())
+        for raw in samples:
             expected = base64.b85encode(zlib.compress(raw, 9))
             self.assertEqual(transforms.encode_frozen_source(raw), expected)
             self.assertEqual(transforms.decode_frozen_source(expected), raw)
             self.assertEqual(transforms.encode_frozen_source(raw), expected)
             self.assertEqual(transforms.decode_frozen_source(expected), raw)
-        self.assertEqual(transforms._encoded_bytes.cache_info().hits, 4)
-        self.assertEqual(transforms._compressed_bytes.cache_info().hits, 4)
+        encoded_hits = sum(len(raw) <= transforms.MAX_INPUT_BYTES for raw in samples)
+        decoded_hits = sum(len(base64.b85encode(zlib.compress(raw, 9))) <= transforms.MAX_INPUT_BYTES
+                           for raw in samples)
+        self.assertEqual(transforms._encoded_bytes.cache_info().hits, encoded_hits)
+        self.assertEqual(transforms._compressed_bytes.cache_info().hits, decoded_hits)
 
     def test_only_immutable_byte_inputs_and_outputs_are_accepted(self):
         for value in (bytearray(b'input'), memoryview(b'input'), 'input', {}):
@@ -230,6 +234,7 @@ class Native54ByteTransformClosureTests(unittest.TestCase):
                 path.write_bytes(raw)
                 os.utime(path, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
             worker.submit(transforms.checked_current, current, transforms.ROOT).result()
+
 
 
 if __name__ == '__main__':
