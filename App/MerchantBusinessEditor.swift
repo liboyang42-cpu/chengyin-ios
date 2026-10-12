@@ -37,7 +37,10 @@ struct MerchantBusinessEditorContext: Identifiable {
         return correction
     }
     var body: some View {
-        NavigationStack {
+        NavigationStack { editorDraftLifecycle }
+    }
+
+    private var editorForm: some View {
             Form {
                 Text("merchant.business.localDraft").foregroundStyle(.secondary)
                 switch context.kind {
@@ -99,6 +102,10 @@ struct MerchantBusinessEditorContext: Identifiable {
                     catch { issue = "merchant.business.invalid" }
                 }.accessibilityIdentifier("merchant.business.editor.review")
             }
+    }
+
+    private var editorDialogs: some View {
+        editorForm
             .navigationTitle("merchant.business.localActions")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } } }
             .confirmationDialog("merchant.noteCorrection.cancelTitle", isPresented: $confirmCancelCorrection, titleVisibility: .visible) {
@@ -112,6 +119,10 @@ struct MerchantBusinessEditorContext: Identifiable {
                     .accessibilityIdentifier("merchant.aftercareDecision.discard")
                 Button("merchant.aftercareDecision.keep", role: .cancel) { retireAftercareDecision() }
             } message: { _ in Text("merchant.aftercareDecision.changeBody") }
+    }
+
+    private var editorDecisionLifecycle: some View {
+        editorDialogs
             .onChange(of: confirmAftercareDecision) { _, showing in if !showing { pendingAftercareDecision = nil } }
             .onChange(of: context.id) { _, _ in retireAftercareDecision() }
             .onChange(of: snapshot) { _, _ in retireAftercareDecision() }
@@ -119,6 +130,10 @@ struct MerchantBusinessEditorContext: Identifiable {
             .onChange(of: content) { _, _ in retireAftercareDecision() }
             .onChange(of: evidence) { _, _ in retireAftercareDecision() }
             .onDisappear { retireAftercareDecision() }
+    }
+
+    private var editorEvidencePresentation: some View {
+        editorDecisionLifecycle
             .sheet(item: $evidenceFlow, onDismiss: { retireEvidenceFlow() }) { flow in
                 MerchantAftercareEvidenceSheet(model: flow)
             }
@@ -126,6 +141,10 @@ struct MerchantBusinessEditorContext: Identifiable {
             .onChange(of: snapshot) { _, _ in retireEvidenceFlow() }
             .onChange(of: aftercareEvidenceDraft) { _, _ in retireEvidenceFlow() }
             .onChange(of: confirmAftercareDecision) { _, showing in if showing { retireEvidenceFlow() } }
+    }
+
+    private var editorDraftLifecycle: some View {
+        editorEvidencePresentation
             .confirmationDialog("merchant.noteDraft.clearTitle", isPresented: $confirmClearNote, titleVisibility: .visible) {
                 Button("merchant.noteDraft.clear", role: .destructive) {
                     guard noteDrafts?.value(for: context.id) != nil else { return }
@@ -138,7 +157,6 @@ struct MerchantBusinessEditorContext: Identifiable {
             .onChange(of: noteCorrectionCancelled) { _, _ in saveNoteDraft() }
             .onDisappear { saveNoteDraft(); noteDrafts?.close(editorID: context.id) }
             .onAppear { initializeEditorStateOnAppear(); initializeNoteDraft() }
-        }
     }
     private func initializeNoteDraft() {
         guard noteDraftContextID != context.id, case .note = context.kind,

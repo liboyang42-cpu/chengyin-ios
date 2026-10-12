@@ -124,3 +124,26 @@ final class Real: XCTestCase {
         self.assertEqual(ci.source_hashes({'sources':rows}),{'App/AuthChannelModel.swift':'a'*64})
         for bad in [rows+rows,[{'path':'A','sha256':'not-a-hash'}],[{'path':'A','sha256':'a'*64,'extra':True}],[['A','a'*64]]]:
             with self.assertRaises(ValueError):ci.source_hashes({'sources':bad})
+
+    def test_ui_workers_require_successful_same_run_build_artifact(self):
+        source=(ci.ROOT/'.github/workflows/native-ios.yml').read_text()
+        native=source.split('  native:\n',1)[1].split('  ui:\n',1)[0]
+        ui=source.split('  ui:\n',1)[1].split('  platforms:\n',1)[0]
+        self.assertIn("ui_build_artifact: ${{ steps.ui_build_upload.outputs.artifact-id }}", native)
+        self.assertIn("id: ui_build_upload\n        if: ${{ success() && matrix.partition == 'ui-build' }}", native)
+        self.assertIn("if: ${{ always() && needs.controls.result == 'success' && needs.native.outputs.ui_build_artifact != '' }}", ui)
+        self.assertIn('needs: [controls, native]', ui)
+        self.assertNotIn("needs.native.result == 'success'", ui)
+        name='current-ui-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
+        self.assertIn('name: '+name,native);self.assertIn('name: '+name,ui)
+        for section in (native,ui):
+            self.assertIn('max-parallel: 3',section);self.assertIn('timeout-minutes: 45',section)
+
+    def test_missing_ui_execution_or_failed_units_still_fail_current_aggregate(self):
+        from tools import current_native as native
+        good={key:{'result':'success'} for key in ['controls','secrets','native','ui']}
+        good['platforms']={'result':'skipped'}
+        for part,result in [('ui','skipped'),('ui','failure'),('ui','cancelled'),('native','failure')]:
+            needs={key:dict(value) for key,value in good.items()};needs[part]['result']=result
+            with self.subTest(part=part,result=result),self.assertRaisesRegex(ValueError,'required current worker'):
+                native.aggregate_current({}, {}, needs)

@@ -19,7 +19,7 @@ import XCTest
         return try JSONDecoder().decode(RoamHistoryRecord.self, from: raw)
     }
     private func identity(account: Int = 1, epoch: UInt64 = 1) throws -> RoamExperienceIdentity {
-        .init(scope: try .init(market: "cn", deployment: URL(string: "https://roam-replay.example.invalid")!, accountID: account), epoch: epoch)
+        .init(scope: try .init(market: "cn", deployment: URL(string: "https://roam-replay.example.test")!, accountID: account), epoch: epoch)
     }
     private func prepared(_ reader: Reader, _ record: RoamHistoryRecord, reduceMotion: Bool = false) -> (RoamRouteReplayState, RoamRouteReplayState.Owner) {
         let owner = RoamRouteReplayState.Owner(reader: reader, record: record)
@@ -149,7 +149,7 @@ import XCTest
     }
     func testCanonicallyEquivalentNamespaceBytesStillRetireReplayAuthority() throws {
         let reader = Reader(); let value = try record()
-        let endpoint = URL(string: "https://roam-replay.example.invalid")!
+        let endpoint = URL(string: "https://roam-replay.example.test")!
         reader.identity = .init(scope: try .init(market: "cn", deployment: endpoint, accountID: 1, namespace: "e\u{301}"), epoch: 1)
         var (state, owner) = prepared(reader, value)
         let run = try XCTUnwrap(state.start(in: XCTUnwrap(state.context(for: owner)), current: owner))
