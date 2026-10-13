@@ -9,6 +9,7 @@ import SwiftUI
     let caseSubmissionReturn: ClubCaseSubmissionReturn.Callbacks?
     let attendanceReturn: ClubAttendanceCorrectionReturn.Callbacks?
     let roleManagementReturn: ClubRoleManagementReturn.Callbacks?
+    let topicSettingsReturn: ClubTopicSettingsReturn.Callbacks?
     @Environment(\.dismiss) private var dismiss
     @StateObject private var hostMaterials = ClubHostApplicationMaterials()
     @StateObject private var rolePicker = ClubRoleAssignmentReadModel()
@@ -27,11 +28,12 @@ import SwiftUI
     @State private var locked = false
     @State private var showDiscard = false
     @State private var generation: UInt64 = 0
-    init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator, validateTarget: (() async throws -> Void)? = nil, caseSubmissionReturn: ClubCaseSubmissionReturn.Callbacks? = nil, attendanceReturn: ClubAttendanceCorrectionReturn.Callbacks? = nil, roleManagementReturn: ClubRoleManagementReturn.Callbacks? = nil) {
+    init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator, validateTarget: (() async throws -> Void)? = nil, caseSubmissionReturn: ClubCaseSubmissionReturn.Callbacks? = nil, attendanceReturn: ClubAttendanceCorrectionReturn.Callbacks? = nil, roleManagementReturn: ClubRoleManagementReturn.Callbacks? = nil, topicSettingsReturn: ClubTopicSettingsReturn.Callbacks? = nil) {
         self.route = route; self.identity = identity; self.access = access; self.coordinator = coordinator; self.validateTarget = validateTarget
         self.caseSubmissionReturn = caseSubmissionReturn
         self.attendanceReturn = attendanceReturn
         self.roleManagementReturn = roleManagementReturn
+        self.topicSettingsReturn = topicSettingsReturn
         var initial = ClubGovernanceFormDraft(operation: route.operation, scope: route.scope, seed: route.seed)
         if route.operation == .assignRole { initial.text["roleCode"] = "" }
         _draft = State(initialValue: initial)
@@ -266,12 +268,14 @@ import SwiftUI
             if let caseSubmissionReturn, !caseSubmissionReturn.begin(review) { throw ClubGovernanceFailure.staleReview }
             let returnsToRoster = route.operation == .correctAttendance && attendanceReturn?.begin(review) == true
             let returnsToRoles = [ClubGovernanceMutation.assignRole, .revokeRole].contains(route.operation) && roleManagementReturn?.begin(review) == true
+            let returnsToTopicSettings = route.operation == .saveTopicSettings && topicSettingsReturn?.begin(review) == true
             let value = try await coordinator.confirm(review)
             guard revision == generation, expected == identity, expected == access.identity else { return }
             receipt = value; self.review = nil; locked = true
             if returnsToRoster { attendanceReturn?.acknowledged(review, value) }
             caseSubmissionReturn?.acknowledged(review)
             if returnsToRoles { roleManagementReturn?.acknowledged(review, value) }
+            if returnsToTopicSettings { topicSettingsReturn?.acknowledged(review, value) }
             if route.operation == .issueGroupCode { groupCode = try ClubGovernanceGroupCode(receipt: value, receivedAt: Date()) }
         } catch {
             if revision == generation && expected == identity {

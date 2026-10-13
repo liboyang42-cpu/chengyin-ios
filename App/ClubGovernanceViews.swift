@@ -169,6 +169,8 @@ struct ClubGovernanceReadView: View {
     @StateObject private var attendanceReads = ClubAttendanceRosterRead()
     @StateObject private var roleManagementReturn = ClubRoleManagementReturn()
     @StateObject private var roleReads = ClubRoleListRead()
+    @StateObject private var topicSettingsReturn = ClubTopicSettingsReturn()
+    @StateObject private var topicSettingsReads = ClubTopicSettingsRead()
     @StateObject private var terminalPresentation = ClubTerminalSessionPresentation()
     @StateObject private var caseSubmissionReturn = ClubCaseSubmissionReturn()
     @State private var caseHostVisible = false
@@ -335,6 +337,34 @@ struct ClubGovernanceReadView: View {
                 else { Task { await loadRolesIfNeeded() } }
             }
         }
+        .background {
+            if operation == .topicSettings, let attachment = topicSettingsReturn.attachment {
+                ClubTopicSettingsReturnLifetime {
+                    topicSettingsReturn.depart(attachment, reads: topicSettingsReads) { generation &+= 1; loading = false }
+                }.id(attachment)
+            }
+            if let item = topicSettingsReturn.item {
+                ClubTopicSettingsPresentationOwner(item: item, owner: topicSettingsReturn,
+                    source: { topicSettingsSource }, active: { scenePhase == .active },
+                    access: access, coordinator: coordinator, didDismiss: finishTopicSettingsReturn).id(item.id)
+            }
+        }
+        .onAppear {
+            if operation == .topicSettings {
+                topicSettingsReturn.appear()
+                finishTopicSettingsReturn()
+                Task { await loadTopicSettingsIfNeeded() }
+            }
+        }
+        .onChange(of: topicSettingsSource) { _, source in
+            topicSettingsReturn.invalidateUnlessCurrent(source: source, active: scenePhase == .active)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if operation == .topicSettings {
+                if phase != .active { topicSettingsReturn.retire(); topicSettingsReads.retire(); generation &+= 1; loading = false }
+                else { Task { await loadTopicSettingsIfNeeded() } }
+            }
+        }
         .onAppear { terminalPresentation.bind(terminalSource) }
         .onChange(of: terminalSource, initial: true) { _, source in terminalPresentation.bind(source) }
         // A covering child owns dismissal; recycling content rows cannot retire it.
@@ -358,6 +388,13 @@ struct ClubGovernanceReadView: View {
                 roleManagementReturn.invalidateUnlessCurrent(source: roleManagementSource, active: scenePhase == .active)
                 if let ticket = roleManagementReturn.readTicket, ticket.source.context != readContext { roleManagementReturn.retire() }
                 await loadRolesIfNeeded()
+            } else if operation == .topicSettings {
+                if topicSettingsReads.synchronize(readContext) {
+                    topicSettingsReturn.retire(); invalidateRead(); loading = false
+                }
+                topicSettingsReturn.invalidateUnlessCurrent(source: topicSettingsSource, active: scenePhase == .active)
+                if let ticket = topicSettingsReturn.readTicket, ticket.source.context != readContext { topicSettingsReturn.retire() }
+                await loadTopicSettingsIfNeeded()
             } else { invalidateRead(); await load() }
 
         }
@@ -397,6 +434,9 @@ struct ClubGovernanceReadView: View {
             } else if operation == .roles {
                 roleManagementReturn.hide()
                 if !roleManagementReturn.retainsReturn { roleReads.retire(); generation &+= 1; loading = false }
+            } else if operation == .topicSettings {
+                topicSettingsReturn.hide()
+                if !topicSettingsReturn.retainsReturn { topicSettingsReads.retire(); generation &+= 1; loading = false }
             } else if operation != .cases || caseSubmissionReturn.item == nil {
                 if operation == .cases { caseSubmissionReturn.retire() }
                 generation &+= 1
@@ -477,6 +517,31 @@ struct ClubGovernanceReadView: View {
         operation != .roles || (attachment != nil && roleManagementReturn.attachment == attachment &&
             roleManagementReturn.visible && scenePhase == .active)
     }
+    @MainActor private var topicSettingsSource: ClubTopicSettingsReturn.Source? {
+        guard operation == .topicSettings, !loading, failure == nil, let snapshot,
+              snapshotContext == readContext, snapshotGeneration == generation else { return nil }
+        return .init(context: readContext, snapshot: snapshot, generation: generation, access: access)
+    }
+    @MainActor private func loadTopicSettingsIfNeeded() async {
+        guard operation == .topicSettings, topicSettingsReturn.visible, scenePhase == .active,
+              !topicSettingsReturn.retainsReturn, !topicSettingsReads.loading,
+              snapshotContext != readContext || snapshotGeneration != generation else { return }
+        invalidateRead(); await load()
+    }
+    @MainActor private func finishTopicSettingsReturn() {
+        guard operation == .topicSettings,
+              let ticket = topicSettingsReturn.consume(source: topicSettingsSource, active: scenePhase == .active) else { return }
+        Task {
+            defer { topicSettingsReturn.finishRead(ticket) }
+            guard topicSettingsReturn.isReading(ticket, context: readContext, active: scenePhase == .active),
+                  topicSettingsSource == ticket.source, !Task.isCancelled else { return }
+            await load()
+        }
+    }
+    @MainActor private func topicSettingsReadIsCurrent(_ attachment: UUID?) -> Bool {
+        operation != .topicSettings || (attachment != nil && topicSettingsReturn.attachment == attachment &&
+            topicSettingsReturn.visible && scenePhase == .active)
+    }
     private var terminalSource: ClubTerminalSessionPresentation.Source? {
         guard operation == .topicOverview, !loading, scenePhase == .active,
               let snapshot, snapshotContext == readContext, identity == access.identity else { return nil }
@@ -550,6 +615,8 @@ struct ClubGovernanceReadView: View {
         guard rosterReadIsCurrent(rosterAttachment), operation != .roster || !attendanceReads.loading else { return }
         let roleAttachment = roleManagementReturn.attachment
         guard roleReadIsCurrent(roleAttachment), operation != .roles || !roleReads.loading else { return }
+        let topicSettingsAttachment = topicSettingsReturn.attachment
+        guard topicSettingsReadIsCurrent(topicSettingsAttachment), operation != .topicSettings || !topicSettingsReads.loading else { return }
         if operation == .customers { customerKeywordDebounce.cancel() }
         generation &+= 1; let revision = generation; let expected = identity; let context = readContext
         let customerQuery = customerFilters
@@ -566,22 +633,24 @@ struct ClubGovernanceReadView: View {
         do {
             let check: @MainActor () throws -> Void = {
                 guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity,
-                      rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), access.identity == expected, !Task.isCancelled else { throw CancellationError() }
+                      rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), access.identity == expected, !Task.isCancelled else { throw CancellationError() }
             }
             let result: ClubGovernanceSnapshot
             if operation == .roster {
                 result = try await attendanceReads.load(context: context, access: access, check: check)
             } else if operation == .roles {
                 result = try await roleReads.load(context: context, access: access, check: check)
+            } else if operation == .topicSettings {
+                result = try await topicSettingsReads.load(context: context, access: access, check: check)
             } else {
                 result = try await access.read(operation, scope: scope, options: options, check: check)
             }
-            guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity, rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), access.identity == expected, !Task.isCancelled else { return }
+            guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity, rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), access.identity == expected, !Task.isCancelled else { return }
             guard context.accepts(result) else { throw ClubGovernanceFailure.targetChanged }
             snapshotContext = context; snapshotGeneration = revision; snapshot = result
             snapshotCustomerFilters = operation == .customers ? customerQuery : nil
         } catch {
-            guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity, rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), access.identity == expected, !Task.isCancelled else { return }
+            guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity, rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), access.identity == expected, !Task.isCancelled else { return }
             failure = error as? ClubGovernanceFailure ?? .malformed
         }
         if revision == generation { loading = false }
@@ -590,6 +659,7 @@ struct ClubGovernanceReadView: View {
         caseSubmissionReturn.retire()
         if operation == .roster { attendanceReads.retire() }
         if operation == .roles { roleReads.retire() }
+        if operation == .topicSettings { topicSettingsReads.retire() }
         if operation == .customers { customerKeywordDebounce.cancel() }
         generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID(); coordinator.cancelReview()
         leaderboardMember = nil
@@ -653,8 +723,13 @@ struct ClubGovernanceReadView: View {
     }
     private func edit(_ operation: ClubGovernanceMutation, scope: ClubGovernanceScope? = nil, seed: [String: ClubGovernanceValue] = [:]) -> some View {
         let source = roleManagementSource
+        let settingsSource = topicSettingsSource
         return Button(LocalizedStringKey("club.gov.action." + operation.rawValue)) {
-            if self.operation == .roles, [.assignRole, .revokeRole].contains(operation) {
+            if self.operation == .topicSettings, operation == .saveTopicSettings {
+                let source = settingsSource
+                guard editor == nil, source == topicSettingsSource, scope == nil || scope == self.scope else { return }
+                topicSettingsReturn.open(seed: seed, source: source, active: scenePhase == .active)
+            } else if self.operation == .roles, [.assignRole, .revokeRole].contains(operation) {
                 guard editor == nil, source == roleManagementSource, scope == nil || scope == self.scope else { return }
                 roleManagementReturn.open(operation, seed: seed, source: source, active: scenePhase == .active)
             } else if self.operation == .cases, [.report, .appeal].contains(operation) {
@@ -662,7 +737,8 @@ struct ClubGovernanceReadView: View {
                                           visible: caseHostVisible, active: scenePhase == .active)
             } else { editor = .init(operation: operation, scope: scope ?? self.scope, seed: seed) }
         }
-        .disabled(self.operation == .roles && roleManagementReturn.retainsReturn)
+        .disabled((self.operation == .roles && roleManagementReturn.retainsReturn) ||
+                  (self.operation == .topicSettings && topicSettingsReturn.retainsReturn))
         .accessibilityIdentifier("club.gov.action." + operation.rawValue)
     }
     @ViewBuilder private func content(_ snapshot: ClubGovernanceSnapshot) -> some View {

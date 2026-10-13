@@ -12,26 +12,40 @@ import Observation
     public private(set) var hasLoaded = false
     public private(set) var failure: ClubGovernanceFailure?
     public private(set) var identity: ClubReadIdentity?
+    public private(set) var presentationRevision: UInt64 = 0
+    public private(set) var completedRefreshRevision: UInt64 = 0
     public let clubID: Int
     private let focusTopicID: Int?
     private let access: any ClubGovernanceAccess
+    private let authorization: UUID?
+    private let namespace: String
+    private let realm: String
     private var generation: UInt64 = 0
     private var detailGenerations: [Int: UInt64] = [:]
     private var didFocus = false
     public init(clubID: Int, focusTopicID: Int? = nil, access: any ClubGovernanceAccess) {
         self.clubID = clubID; self.focusTopicID = focusTopicID; self.access = access
+        authorization = access.authorizationGeneration; namespace = access.storageNamespace; realm = access.journalRealm
+    }
+    public var isCurrentAccess: Bool {
+        access.isConfigured && access.authorizationGeneration == authorization &&
+            access.storageNamespace == namespace && access.journalRealm == realm
+    }
+    public func usesAccess(_ candidate: any ClubGovernanceAccess) -> Bool {
+        ObjectIdentifier(access) == ObjectIdentifier(candidate) && isCurrentAccess
     }
     public func activate(identity: ClubReadIdentity?) async {
         if self.identity != identity { clear(); self.identity = identity }
-        if !hasLoaded { await refresh() }
+        if !hasLoaded && !loading { await refresh() }
     }
     public func suspend() { generation &+= 1; detailGenerations.removeAll(); detailLoading.removeAll(); loading = false }
     private func clear() {
+        presentationRevision &+= 1
         suspend(); teams = []; rosters = [:]; expanded = []; detailFailures = [:]
         failure = nil; hasLoaded = false; didFocus = false
     }
     private func current(_ expected: ClubReadIdentity?, _ revision: UInt64) -> Bool {
-        generation == revision && identity == expected && access.identity == expected && !Task.isCancelled
+        isCurrentAccess && generation == revision && identity == expected && access.identity == expected && !Task.isCancelled
     }
     private func check(_ snapshot: ClubGovernanceSnapshot, operation: ClubGovernanceRead, scope: ClubGovernanceScope) throws {
         guard snapshot.operation == operation, snapshot.scope == scope else { throw ClubGovernanceFailure.targetChanged }
@@ -42,11 +56,15 @@ import Observation
     public func refresh() async {
         guard identity?.isSignedIn == true, identity == access.identity else { clear(); failure = .signedOut; return }
         guard access.isConfigured else { clear(); failure = .notConfigured; return }
+        guard isCurrentAccess else { clear(); failure = .staleReview; return }
+        presentationRevision &+= 1
         generation &+= 1; let revision = generation, expected = identity
         detailGenerations.removeAll(); detailLoading.removeAll(); loading = true; failure = nil
         do {
             let scope = ClubGovernanceScope(clubID: clubID)
-            let snapshot = try await access.read(.topics, scope: scope, options: [:])
+            let snapshot = try await access.read(.topics, scope: scope, options: [:], check: {
+                guard self.current(expected, revision) else { throw ClubGovernanceFailure.staleReview }
+            })
             guard current(expected, revision) else { return }
             try check(snapshot, operation: .topics, scope: scope)
             let accepted = try ClubEnrollmentTeam.list(snapshot.value, clubID: clubID)
@@ -59,6 +77,8 @@ import Observation
                 guard current(expected, revision) else { return }
                 await loadDetail(topicID: id)
             }
+            guard current(expected, revision), detailFailures.isEmpty else { return }
+            completedRefreshRevision &+= 1
         } catch {
             guard current(expected, revision) else { return }
             let issue = self.error(error)
@@ -67,18 +87,23 @@ import Observation
         }
     }
     public func toggle(topicID: Int) async {
-        guard teams.contains(where: { $0.id == topicID }), !loading else { return }
+        guard isCurrentAccess, teams.contains(where: { $0.id == topicID }), !loading else { return }
         if expanded.contains(topicID) { expanded.remove(topicID) }
         else { expanded.insert(topicID); if rosters[topicID] == nil { await loadDetail(topicID: topicID) } }
     }
     public func loadDetail(topicID: Int) async {
-        guard identity?.isSignedIn == true, identity == access.identity, teams.contains(where: { $0.id == topicID }), !detailLoading.contains(topicID) else { return }
+        guard isCurrentAccess, identity?.isSignedIn == true, identity == access.identity, teams.contains(where: { $0.id == topicID }), !detailLoading.contains(topicID) else { return }
+        presentationRevision &+= 1
         let expected = identity, revision = generation
         let detailRevision = (detailGenerations[topicID] ?? 0) &+ 1
         detailGenerations[topicID] = detailRevision; detailLoading.insert(topicID); detailFailures[topicID] = nil
         do {
             let scope = ClubGovernanceScope(clubID: clubID, topicID: topicID)
-            let snapshot = try await access.read(.registrations, scope: scope, options: [:])
+            let snapshot = try await access.read(.registrations, scope: scope, options: [:], check: {
+                guard self.current(expected, revision), self.detailGenerations[topicID] == detailRevision else {
+                    throw ClubGovernanceFailure.staleReview
+                }
+            })
             guard current(expected, revision), detailGenerations[topicID] == detailRevision else { return }
             try check(snapshot, operation: .registrations, scope: scope)
             rosters[topicID] = try ClubEnrollmentRoster(value: snapshot.value, scope: scope)
