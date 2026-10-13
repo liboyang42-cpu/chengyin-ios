@@ -86,3 +86,139 @@ import XCTest
         XCTAssertNil(replacement.ruleInstructions); XCTAssertNil(replacement.storyJson); XCTAssertNil(replacement.hint1)
     }
 }
+
+@MainActor final class TemplateBasicFieldClearTests: XCTestCase {
+    private final class Owner {
+        var session: TemplateAuthoringSession?
+        init(_ session: TemplateAuthoringSession) { self.session = session }
+    }
+    private struct Fixture {
+        let model: TemplateAuthoringModel
+        let owner: Owner
+        let storage: TemplateAuthoringMemoryStorage
+        let clear: TemplateBasicFieldClearController
+    }
+    private func fixture(_ field: TemplateBasicClearField = .title, visible: Bool = true) throws -> Fixture {
+        let owner = Owner(try .init(accountID: 995, namespace: "basic-clear", epoch: 1, authorizationRevision: "member"))
+        let storage = TemplateAuthoringMemoryStorage()
+        let model = TemplateAuthoringModel(coordinator: .init(store: .init(storage: storage), currentSession: { owner.session }))
+        model.load(); model.draft.title = "  e\u{0301} title  "; model.draft.description = " Original 👩🏽‍💻 description "
+        model.draft.ruleInstructions = "First\nSecond"; model.draft.questionAnswer = "Do not clear"
+        model.draft.advanced.value["future"] = .object(["raw": .string("keep")]); model.changed()
+        let clear = TemplateBasicFieldClearController(model: model, field: field)
+        if visible { clear.appear(sceneIsActive: true) }
+        return .init(model: model, owner: owner, storage: storage, clear: clear)
+    }
+    func testTitleClearChangesOnlyTitleAndKeepsRequiredValidation() throws {
+        let f = try fixture(); var expected = f.model.draft; expected.title = ""
+        XCTAssertTrue(f.clear.canClear); f.clear.clearAction()()
+        XCTAssertEqual(f.model.draft, expected); XCTAssertEqual(f.model.coordinator.draft, expected)
+        XCTAssertFalse(f.model.draft.canSave); XCTAssertTrue(f.model.draft.publishIssues.contains("templateAuthor.validation.title"))
+        XCTAssertFalse(f.clear.canClear)
+    }
+    func testDescriptionClearChangesOnlyDescriptionAndKeepsRequiredValidation() throws {
+        let f = try fixture(.description); var expected = f.model.draft; expected.description = ""
+        f.clear.clearAction()()
+        XCTAssertEqual(f.model.draft, expected); XCTAssertEqual(f.model.coordinator.draft, expected)
+        XCTAssertTrue(f.model.draft.canSave); XCTAssertTrue(f.model.draft.publishIssues.contains("templateAuthor.validation.description"))
+    }
+    func testClearDoesNotSaveSubmitPrepareOrReserve() throws {
+        let f = try fixture(.description); f.clear.clearAction()()
+        XCTAssertTrue(f.storage.values.isEmpty); XCTAssertNil(f.model.review); XCTAssertNil(f.model.coordinator.review)
+        XCTAssertNil(f.model.coordinator.pending); XCTAssertFalse(f.model.coordinator.canSubmit)
+    }
+    func testRetainedClearCannotClearNewTextAfterFirstUse() throws {
+        let f = try fixture(), clear = f.clear.clearAction(); clear()
+        f.model.draft.title = "New text"; f.model.changed(); clear()
+        XCTAssertEqual(f.model.draft.title, "New text")
+        f.clear.clearAction()(); XCTAssertEqual(f.model.draft.title, "")
+    }
+    func testTypingBeforeTapInvalidatesPreviouslyCapturedClear() throws {
+        let f = try fixture(.description), clear = f.clear.clearAction()
+        f.model.draft.description = "Replacement description"
+        clear(); XCTAssertEqual(f.model.draft.description, "Replacement description")
+        f.clear.clearAction()(); XCTAssertEqual(f.model.draft.description, "")
+    }
+    func testByteEqualDraftABAStillInvalidatesOldAction() throws {
+        let f = try fixture(), original = f.model.draft, clear = f.clear.clearAction()
+        f.model.draft.title = "Temporary"; f.model.draft = original
+        clear(); XCTAssertEqual(f.model.draft, original)
+        f.clear.clearAction()(); XCTAssertEqual(f.model.draft.title, "")
+    }
+    func testOldCallbackCannotClearReappearedControl() throws {
+        let f = try fixture(), original = f.model.draft, clear = f.clear.clearAction()
+        f.clear.disappear(); f.clear.appear(sceneIsActive: true)
+        clear(); XCTAssertEqual(f.model.draft, original)
+        f.clear.clearAction()(); XCTAssertEqual(f.model.draft.title, "")
+    }
+    func testHiddenForegroundAndFreshCallbackRemainDisabled() throws {
+        let f = try fixture(), original = f.model.draft
+        f.clear.disappear(); f.clear.sceneChanged(isActive: false); f.clear.sceneChanged(isActive: true)
+        XCTAssertFalse(f.clear.canClear); f.clear.clearAction()(); XCTAssertEqual(f.model.draft, original)
+    }
+    func testBackgroundRetiresOldActionAndInactiveAppearDoesNotEnable() throws {
+        let f = try fixture(), original = f.model.draft, clear = f.clear.clearAction()
+        f.clear.sceneChanged(isActive: false); clear(); XCTAssertEqual(f.model.draft, original)
+        f.clear.sceneChanged(isActive: true); clear(); XCTAssertEqual(f.model.draft, original)
+        f.clear.disappear(); f.clear.appear(sceneIsActive: false)
+        XCTAssertFalse(f.clear.canClear); f.clear.clearAction()(); XCTAssertEqual(f.model.draft, original)
+    }
+    func testRepeatedVisibleAppearDoesNotNeedAReplacementOwner() throws {
+        let f = try fixture(), clear = f.clear.clearAction()
+        f.clear.appear(sceneIsActive: true); f.clear.appear(sceneIsActive: true)
+        clear(); XCTAssertEqual(f.model.draft.title, "")
+    }
+    func testAccountReplacementBeforeViewUpdateRejectsOldAndFreshCallbacks() throws {
+        let f = try fixture(), original = f.model.draft, clear = f.clear.clearAction()
+        f.owner.session = try .init(accountID: 996, namespace: "basic-clear", epoch: 2, authorizationRevision: "member")
+        clear(); f.clear.clearAction()(); XCTAssertEqual(f.model.draft, original); XCTAssertFalse(f.clear.canClear)
+    }
+    func testLoadRestoreDiscardAndLeaveRetireCapturedActions() throws {
+        for operation in ["load", "restore", "discard", "leave"] {
+            let f = try fixture(), clear = f.clear.clearAction()
+            switch operation {
+            case "load": f.model.load()
+            case "restore": f.model.restore()
+            case "discard": f.model.discard()
+            default: f.model.leave()
+            }
+            let expected = f.model.draft; clear(); XCTAssertEqual(f.model.draft, expected, operation)
+        }
+    }
+    func testBusyAndReviewPreventClearAndCancelPreservesText() throws {
+        let f = try fixture(), original = f.model.draft, clear = f.clear.clearAction()
+        f.model.busy = true; clear(); f.clear.clearAction()(); XCTAssertEqual(f.model.draft, original)
+        f.model.busy = false
+        // Unknown configuration is preserved; use an otherwise valid current draft for review.
+        f.model.draft.advanced.value.removeValue(forKey: "future"); f.model.changed()
+        let beforeReview = f.model.draft; f.model.prepare(.saveDraft)
+        XCTAssertNotNil(f.model.review); XCTAssertFalse(f.clear.canClear)
+        f.clear.clearAction()(); XCTAssertEqual(f.model.draft, beforeReview)
+        f.model.cancel(); XCTAssertEqual(f.model.draft, beforeReview)
+    }
+    func testEmptyClearIsANoopWithoutPublishingModelChanges() throws {
+        let f = try fixture(.description); f.clear.clearAction()()
+        let revision = f.model.revision; XCTAssertFalse(f.clear.canClear)
+        f.clear.clearAction()(); XCTAssertEqual(f.model.revision, revision)
+    }
+    func testExplicitLocalSaveStillControlsPersistenceAfterClear() throws {
+        let f = try fixture(.description); f.model.save()
+        let saved = f.storage.values; f.clear.clearAction()()
+        XCTAssertEqual(f.storage.values, saved)
+        f.model.save(); XCTAssertNotEqual(f.storage.values, saved)
+        let reopened = TemplateAuthoringModel(coordinator: .init(store: .init(storage: f.storage), currentSession: { f.owner.session }))
+        reopened.load(); reopened.restore(); XCTAssertEqual(reopened.draft.description, "")
+        XCTAssertEqual(Data(reopened.draft.title.utf8), Data(f.model.draft.title.utf8))
+    }
+    func testPendingWriteLockRejectsClear() throws {
+        let f = try fixture(); f.model.draft.advanced.value.removeValue(forKey: "future"); f.model.changed()
+        let seed = f.model.draft, session = try XCTUnwrap(f.owner.session), identity = TemplateAuthoringIdentity()
+        let store = TemplateAuthoringLocalStore(storage: TemplateAuthoringMemoryStorage())
+        try store.save(seed, session: session, identity: identity)
+        try store.savePending(.init(operationID: UUID(), ownerKey: session.ownerKey, identity: identity,
+            request: TemplateAuthoringContract.request(seed, intent: .saveDraft), createdAt: Date()), session: session)
+        let model = TemplateAuthoringModel(coordinator: .init(store: store, currentSession: { session })); model.load(); model.draft = seed
+        let clear = TemplateBasicFieldClearController(model: model, field: .title); clear.appear(sceneIsActive: true)
+        XCTAssertFalse(clear.canClear); clear.clearAction()(); XCTAssertEqual(model.draft, seed)
+    }
+}

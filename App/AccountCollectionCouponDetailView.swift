@@ -35,7 +35,11 @@ import SwiftUI
                         NavigationLink {
                             OwnedCouponCodeDestinationView(destination: destination, reader: reader, factory: makeCode).id(destination.id)
                         } label: {
-                            Label("couponCode.show", systemImage: "qrcode")
+                            if coupon.futureStartDay(relativeTo: Date()) != nil {
+                                Label("accountCollection.coupon.viewAvailability", systemImage: "calendar")
+                            } else {
+                                Label("couponCode.show", systemImage: "qrcode")
+                            }
                         }.accessibilityIdentifier("couponCode.open")
                     }
                 }

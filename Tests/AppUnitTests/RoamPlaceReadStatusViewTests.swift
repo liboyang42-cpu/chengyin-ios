@@ -403,3 +403,181 @@ import UIKit
         XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
     }
 }
+
+@MainActor private final class RoamPlaceMemoryUIService: RoamLiveServing {
+    let base: RoamCoverageUIService
+    let row: RoamPlace
+    var identity: RoamExperienceIdentity? { base.identity }
+    var isAvailable: Bool { base.isAvailable }
+    var presenceAvailable: Bool { false }
+    var discoveries = 0
+    init(identity: RoamExperienceIdentity) throws {
+        base = RoamCoverageUIService(identity: identity)
+        row = try JSONDecoder().decode(RoamPlace.self,
+            from: Data(#"{"id":6,"type":1,"lat":31.2,"lng":121.4,"name":"Returned place"}"#.utf8))
+    }
+    func reveal(sessionID: Int?, clientSessionKey: String, tiles: [String]) async throws -> RoamLiveRevealReceipt {
+        try await base.reveal(sessionID: sessionID, clientSessionKey: clientSessionKey, tiles: tiles)
+    }
+    func fact(key: String) async throws -> RoamSessionFact { try await base.fact(key: key) }
+    func places(fix: RoamDeviceFix) async throws -> [RoamPlace] { [row] }
+    func registeredShops(fix: RoamDeviceFix) async throws -> [RoamRouteNode] { [] }
+    func discover(sessionID: Int, poiID: Int, fix: RoamDeviceFix) async throws -> RoamLiveDiscoveryReceipt {
+        discoveries += 1
+        return try JSONDecoder().decode(RoamLiveDiscoveryReceipt.self,
+            from: Data(#"{"discovered":false,"poiId":6,"meaning":"Returned place description"}"#.utf8))
+    }
+    func shopVisit(sessionID: Int, sourceType: Int, sourceID: Int, fix: RoamDeviceFix) async throws -> RoamLiveShopReceipt {
+        try await base.shopVisit(sessionID: sessionID, sourceType: sourceType, sourceID: sourceID, fix: fix)
+    }
+    func presence(sessionID: Int, fix: RoamDeviceFix, explorationPercent: Int) async throws {
+        try await base.presence(sessionID: sessionID, fix: fix, explorationPercent: explorationPercent)
+    }
+    func finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int) async throws {
+        try await base.finish(sessionID: sessionID, poiIDs: poiIDs, distanceMeters: distanceMeters)
+    }
+}
+@MainActor final class RoamPlaceMemoryViewTests: XCTestCase {
+    func testLocalLabelsAndProvidedTextMountInBothLanguagesWithLargeText() {
+        for (language, title, close) in [("en", "Place memory", "Close place note"), ("zh-Hans", "地点记忆", "关闭地点提示")] {
+            let locale = Locale(identifier: language), copy = RoamPlaceMemoryCopy(locale: locale)
+            XCTAssertEqual(copy.title, title); XCTAssertEqual(copy.close, close)
+            var closes = 0
+            let section = RoamPlaceMemorySection(placeName: "Returned place", text: "  Cafe\u{301} memory\n", close: { closes += 1 })
+            XCTAssertEqual(Array(section.text.utf8), Array("  Cafe\u{301} memory\n".utf8))
+            let host = UIHostingController(rootView: List { section }
+                .environment(\.locale, locale).environment(\.dynamicTypeSize, .accessibility3))
+            host.loadViewIfNeeded(); host.view.layoutIfNeeded(); XCTAssertNotNil(host.view); XCTAssertEqual(closes, 0)
+            section.close(); XCTAssertEqual(closes, 1)
+        }
+    }
+    func testNormalLiveHostUsesCurrentReceiptAndClosingDoesNoProviderWork() async throws {
+        let date = Date(timeIntervalSince1970: 1_790_932_200)
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://memory-ui.example/native/")), accountID: 7)
+        let service = try RoamPlaceMemoryUIService(identity: .init(scope: scope, epoch: 1))
+        let storage = RoamCoverageUIStorage(), location = try RoamCoverageUILocation(date: date)
+        let owner = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage), now: { date })
+        owner.prepare(); await owner.start(purposeAccepted: true); await owner.discover(service.row)
+        let value = try XCTUnwrap(owner.placeMemory)
+        let calls = service.base.calls, discoveries = service.discoveries, fixes = location.calls, bytes = storage.bytes
+        let host = UIHostingController(rootView: NavigationStack { RoamLiveSessionView(controller: owner) })
+        host.loadViewIfNeeded(); host.view.layoutIfNeeded(); XCTAssertNotNil(host.view)
+        let row = RoamPlaceMemorySection(placeName: value.placeName, text: value.text) { owner.dismissPlaceMemory(id: value.id) }
+        XCTAssertNotNil(owner.placeMemory); row.close(); XCTAssertNil(owner.placeMemory)
+        XCTAssertEqual(service.base.calls, calls); XCTAssertEqual(service.discoveries, discoveries)
+        XCTAssertEqual(location.calls, fixes); XCTAssertEqual(storage.bytes, bytes)
+    }
+}
+
+@MainActor final class RoamFinishedStoryViewTests: XCTestCase {
+    private let key = String(repeating: "c", count: 32)
+    private func fact(_ story: Any? = "Returned reflection", complete: Bool = true,
+                      sessionID: Int = 12) throws -> RoamSessionFact {
+        var result: [String: Any] = ["tileXp": 1, "poiXp": 2, "totalXp": 3,
+            "newTiles": 1, "newPois": 1, "tilesEver": 1, "sessionShops": 1]
+        if let story { result["routeStory"] = story }
+        let object: [String: Any] = ["state": "FINISHED", "sessionId": sessionID,
+            "clientSessionKey": key, "resultComplete": complete, "result": result]
+        return try JSONDecoder().decode(RoamSessionFact.self, from: JSONSerialization.data(withJSONObject: object))
+    }
+    private func fixture(_ response: RoamSessionFact? = nil) throws
+        -> (RoamLiveSessionController, RoamFinishedMedalsService, RoamFinishedMedalsStorage, RoamFinishedMedalsLocation) {
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://story.example/native/")), accountID: 7)
+        let service = try RoamFinishedMedalsService(identity: .init(scope: scope, epoch: 1), response: response ?? fact())
+        let storage = RoamFinishedMedalsStorage(), location = RoamFinishedMedalsLocation()
+        let journal = RoamLiveJournal(storage: storage)
+        var record = RoamLiveRecord(scope: scope, clientSessionKey: key, startedAt: Date(timeIntervalSince1970: 1_790_932_200))
+        record.sessionID = 12; record.finishRequested = true
+        try journal.write(record)
+        let history = RoamHistoryStore(storage: storage, currentScope: { service.identity?.scope })
+        let owner = RoamLiveSessionController(service: service, location: location, journal: journal, history: history)
+        owner.prepare(); return (owner, service, storage, location)
+    }
+    func testOnlyCurrentSavedCompleteSettlementShowsStoryWithoutAdditionalWork() async throws {
+        let (owner, service, storage, location) = try fixture()
+        XCTAssertNil(RoamFinishedStoryPresentation(controller: owner))
+        await owner.recover()
+        XCTAssertEqual(owner.phase, .finished); XCTAssertNil(owner.record)
+        XCTAssertEqual(owner.completedHistory?.serverSessionID, 12)
+        let value = try XCTUnwrap(RoamFinishedStoryPresentation(controller: owner))
+        XCTAssertEqual(value.text, "Returned reflection")
+        let calls = service.factCalls, writes = storage.writes, bytes = storage.bytes
+        for _ in 0..<3 { XCTAssertEqual(RoamFinishedStoryPresentation(controller: owner), value) }
+        XCTAssertEqual(service.factCalls, calls); XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+        XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
+    }
+    func testMissingNullEmptyAndWrongTypeHaveNoFallbackButStillFinish() async throws {
+        for text in [nil, NSNull(), "", " \n", 2, ["text": "Do not coerce"]] as [Any?] {
+            let (owner, service, _, location) = try fixture(fact(text))
+            await owner.recover()
+            XCTAssertEqual(owner.phase, .finished); XCTAssertNotNil(owner.completedHistory)
+            XCTAssertNil(RoamFinishedStoryPresentation(controller: owner))
+            XCTAssertEqual(owner.settlement?.result?.totalXp, 3)
+            XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+        }
+    }
+    func testArchiveOrJournalClearFailureCannotShowStory() async throws {
+        for failure in [RoamFinishedMedalsStorage.Failure.history, .clear] {
+            let (owner, service, storage, location) = try fixture(); storage.failure = failure
+            await owner.recover()
+            XCTAssertTrue(owner.settlement?.hasCompleteSettlement == true)
+            XCTAssertNotEqual(owner.phase, .finished); XCTAssertNil(owner.completedHistory)
+            let writes = storage.writes, bytes = storage.bytes
+            XCTAssertNil(RoamFinishedStoryPresentation(controller: owner))
+            XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
+            XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+        }
+    }
+    func testIncompleteWrongSessionAndLateOwnerFactCannotShowStory() async throws {
+        for response in [try fact(complete: false), try fact(sessionID: 99)] {
+            let (owner, service, _, location) = try fixture(response); await owner.recover()
+            XCTAssertNil(owner.completedHistory); XCTAssertNil(RoamFinishedStoryPresentation(controller: owner))
+            XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+        }
+        let (owner, service, storage, location) = try fixture()
+        let bytes = storage.bytes, writes = storage.writes
+        service.onFact = { service.identity = .init(scope: service.captured.scope, epoch: 2) }
+        await owner.recover()
+        XCTAssertNil(owner.completedHistory); XCTAssertNil(RoamFinishedStoryPresentation(controller: owner))
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
+        XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+    }
+    func testBackgroundAccountEpochRevocationAndInvalidationHideFinishedStory() async throws {
+        let (owner, service, storage, location) = try fixture(); await owner.recover()
+        XCTAssertNotNil(RoamFinishedStoryPresentation(controller: owner))
+        let writes = storage.writes, bytes = storage.bytes, calls = service.factCalls
+        owner.setForeground(false); XCTAssertNil(RoamFinishedStoryPresentation(controller: owner))
+        owner.setForeground(true); XCTAssertNotNil(RoamFinishedStoryPresentation(controller: owner))
+        service.identity = .init(scope: service.captured.scope, epoch: 2)
+        XCTAssertNil(RoamFinishedStoryPresentation(controller: owner))
+        let other = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://story.example/native/")), accountID: 8)
+        service.identity = .init(scope: other, epoch: 1)
+        XCTAssertNil(RoamFinishedStoryPresentation(controller: owner))
+        service.identity = service.captured; service.enabled = false
+        XCTAssertNil(RoamFinishedStoryPresentation(controller: owner))
+        service.enabled = true; owner.invalidate()
+        XCTAssertNil(RoamFinishedStoryPresentation(controller: owner))
+        XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
+        XCTAssertEqual(service.factCalls, calls); XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+    }
+    func testNormalFinishedHostAndStorySectionUseBothLanguagesWithLargeText() async throws {
+        let text = "  Returned e\u{301} reflection 👩🏽‍🚀\n"
+        let (owner, service, storage, location) = try fixture(fact(text)); await owner.recover()
+        let value = try XCTUnwrap(RoamFinishedStoryPresentation(controller: owner))
+        XCTAssertEqual(Array(value.text.utf8), Array(text.utf8))
+        let calls = service.factCalls, writes = storage.writes, bytes = storage.bytes
+        for (language, title) in [("en", "This walk"), ("zh-Hans", "这段足迹")] {
+            let locale = Locale(identifier: language), copy = RoamFinishedStoryCopy(locale: Locale(identifier: language))
+            XCTAssertEqual(copy.title, title)
+            XCTAssertTrue(copy.hint.contains(language == "en" ? "saved settlement" : "已保存的结算"))
+            let section = UIHostingController(rootView: List { RoamFinishedStorySection(presentation: value) }
+                .environment(\.locale, locale).environment(\.dynamicTypeSize, .accessibility3))
+            section.loadViewIfNeeded(); section.view.layoutIfNeeded(); XCTAssertNotNil(section.view)
+            let normal = UIHostingController(rootView: NavigationStack { RoamLiveSessionView(controller: owner) }
+                .environment(\.locale, locale).environment(\.dynamicTypeSize, .accessibility3))
+            normal.loadViewIfNeeded(); normal.view.layoutIfNeeded(); XCTAssertNotNil(normal.view)
+        }
+        XCTAssertEqual(service.factCalls, calls); XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+        XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
+    }
+}

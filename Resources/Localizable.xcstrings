@@ -1,6 +1,72 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "profile.localCover.cropFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The crop could not be prepared. Adjust it and retry, or cancel to keep your saved cover."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪未能完成。可以调整后重试，或取消以保留已保存的封面。"
+          }
+        }
+      }
+    },
+    "profile.localCover.cropRetry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry crop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试裁剪"
+          }
+        }
+      }
+    },
+    "accountCollection.coupon.startsLater": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet started"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未到使用日期"
+          }
+        }
+      }
+    },
+    "accountCollection.coupon.viewAvailability": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View availability"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看可用时间"
+          }
+        }
+      }
+    },
     "club.audience.chooseEvent": {
       "localizations": {
         "en": {

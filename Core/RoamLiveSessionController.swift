@@ -38,6 +38,28 @@ import Foundation
         let clientSessionKey: String
         var clock: RoamForegroundElapsedClock
     }
+    private var capturedPlaceMemory: CapturedPlaceMemory?
+    private struct CapturedPlaceMemory {
+        let identity: RoamExperienceIdentity
+        let clientSessionKey: String
+        let sessionID: Int
+        let value: RoamLivePlaceMemory
+    }
+    /// Ephemeral text from one already committed discovery receipt. Reading never starts work.
+    public var placeMemory: RoamLivePlaceMemory? {
+        guard let memory = capturedPlaceMemory, isAvailable, foreground, phase == .active,
+              service?.identity == memory.identity, boundIdentity == memory.identity,
+              let record, record.scope.storageKey == memory.identity.scope.storageKey,
+              record.clientSessionKey == memory.clientSessionKey, record.sessionID == memory.sessionID,
+              !record.finishRequested, record.pendingWrite == nil,
+              record.confirmedPOIIDs.contains(memory.value.poiID),
+              !record.unresolvedActions.contains("poi:\(memory.value.poiID)") else { return nil }
+        return memory.value
+    }
+    public func dismissPlaceMemory(id: UUID) {
+        guard placeMemory?.id == id else { return }
+        capturedPlaceMemory = nil; changed()
+    }
     private let key: () -> String
     private var boundIdentity: RoamExperienceIdentity?
     private var generation = 0
@@ -144,6 +166,7 @@ import Foundation
         } catch { fail(error, token: token, locationFailure: true) }
     }
     public func pause() {
+        capturedPlaceMemory = nil
         pauseLocalElapsed()
         unstartedContinuation = nil
         generation += 1; operation = nil; busy = false; location?.stop()
@@ -163,6 +186,7 @@ import Foundation
     }
     public func recover() async {
         guard record != nil, phase != .active, let token = begin() else { return }
+        capturedPlaceMemory = nil
         localElapsed = nil // Recovery has no trustworthy accumulated-duration field.
         defer { end(token) }
         do {
@@ -235,6 +259,7 @@ import Foundation
         changed()
     }
     public func finish() async {
+        capturedPlaceMemory = nil
         guard [.active, .paused].contains(phase), let token = begin() else { return }
         defer { end(token) }
         pauseLocalElapsed()
@@ -300,6 +325,7 @@ import Foundation
             guard gapMeters(place, shop: shop) == 0 else { throw RoamLiveFailure.outOfRange }
             let action = actionKey(place, shop: shop)
             draft.unresolvedActions.append(action); try persist(draft) // Before dispatch, even if canceled or killed.
+            var receivedMeaning: String?
             if shop {
                 let receipt = try await service!.shopVisit(sessionID: id, sourceType: 1, sourceID: place.id, fix: fix)
                 try check(token); guard receipt.recorded else { throw RoamLiveFailure.unresolvedVisit }
@@ -307,9 +333,22 @@ import Foundation
             } else {
                 let receipt = try await service!.discover(sessionID: id, poiID: place.id, fix: fix)
                 try check(token); guard receipt.poiId == place.id else { throw APIError.malformedResponse }
+                receivedMeaning = receipt.meaning
                 draft.confirmedPOIIDs.append(place.id)
             }
             draft.unresolvedActions.removeAll { $0 == action }; try persist(draft); error = nil
+            if !shop, operation == token, !Task.isCancelled, phase == .active, foreground, isAvailable,
+               let identity = boundIdentity, service?.identity == identity,
+               record?.scope.storageKey == identity.scope.storageKey,
+               record?.clientSessionKey == draft.clientSessionKey, record?.sessionID == id,
+               record?.confirmedPOIIDs.contains(place.id) == true,
+               record?.unresolvedActions.contains(action) == false {
+                capturedPlaceMemory = nil
+                if let text = receivedMeaning, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    capturedPlaceMemory = .init(identity: identity, clientSessionKey: draft.clientSessionKey,
+                        sessionID: id, value: .init(poiID: place.id, placeName: place.name, text: text))
+                }
+            }
         } catch {
             guard operation == token else { return }
             self.error = error // Keep uncertain target locked; only final server settlement can reconcile aggregate rewards.
@@ -422,12 +461,14 @@ import Foundation
     private func fail(_ error: Error, token: UUID, locationFailure: Bool = false) {
         guard operation == token else { return }
         guard service?.identity == boundIdentity, isAvailable else { invalidate(); return }
+        capturedPlaceMemory = nil
         pauseLocalElapsed()
         location?.stop(); previousFix = nil; lastFix = nil; presenceEnabled = false; self.error = error
         phase = record?.pendingWrite != nil ? .recoveryRequired : (record == nil ? (locationFailure ? .locationDenied : .unavailable) : .paused)
         if phase == .paused, record?.finishRequested == true { phase = .recoveryRequired }
     }
     public func invalidate() {
+        capturedPlaceMemory = nil
         localElapsed = nil
         unstartedContinuation = nil
         placesReadError = nil; registeredShopsReadError = nil
@@ -466,4 +507,12 @@ struct RoamForegroundElapsedClock {
         guard value(at: now) != nil, anchor == nil else { return }
         anchor = now
     }
+}
+
+/// A server-provided description, not an award receipt or a persisted history field.
+public struct RoamLivePlaceMemory: Equatable, Identifiable {
+    public let id = UUID()
+    public let poiID: Int
+    public let placeName: String
+    public let text: String
 }

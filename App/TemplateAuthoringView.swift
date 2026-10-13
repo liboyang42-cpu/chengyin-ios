@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 @MainActor final class TemplateAuthoringModel: ObservableObject {
     let coordinator: TemplateAuthoringCoordinator
@@ -285,6 +286,7 @@ import SwiftUI
     private var name: some View {
         Section("templateAuthor.nameStep") {
             TextField("templateAuthor.field.title", text: $model.draft.title).accessibilityIdentifier("templateAuthor.field.title")
+            TemplateBasicFieldClearButton(model: model, field: .title)
             Button("templateAuthor.continue") { step = .edit }.disabled(!model.draft.canSave || !model.canEdit).accessibilityIdentifier("templateAuthor.continue")
         }
     }
@@ -292,7 +294,9 @@ import SwiftUI
         Group {
             Section("templateAuthor.basics") {
                 TemplateAuthoringField("title", text: $model.draft.title)
+                TemplateBasicFieldClearButton(model: model, field: .title)
                 TemplateAuthoringField("description", text: $model.draft.description, multiline: true)
+                TemplateBasicFieldClearButton(model: model, field: .description)
                 TemplateAuthoringMetadataFields(model: model, reader: metadataReader)
                 TemplateAuthoringField("difficulty", text: model.optional(\.difficulty))
                 TemplateAuthoringVenueField(model: model)
@@ -448,5 +452,79 @@ struct TemplateAuthoringReviewView: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) { if let configuredRehearsals {
                 TemplateConfiguredRehearsalCloseButton(controller: configuredRehearsals)
             } else { Button("templateAuthor.close") { dismiss() } } } }
+    }
+}
+
+// These actions affect only the current unsaved basic fields.
+enum TemplateBasicClearField: String, CaseIterable {
+    case title, description
+    func value(in draft: TemplateAuthoringDraft) -> String {
+        switch self { case .title: return draft.title; case .description: return draft.description }
+    }
+    func label(_ locale: Locale) -> String {
+        let chinese = locale.language.languageCode?.identifier == "zh"
+        switch self {
+        case .title: return chinese ? "清空标题" : "Clear title"
+        case .description: return chinese ? "清空描述" : "Clear description"
+        }
+    }
+}
+
+@MainActor final class TemplateBasicFieldClearController: ObservableObject {
+    private let model: TemplateAuthoringModel
+    let field: TemplateBasicClearField
+    private var observation: AnyCancellable?
+    private var visible = false, active = false
+    @Published private(set) var generation = UUID()
+    init(model: TemplateAuthoringModel, field: TemplateBasicClearField) {
+        self.model = model; self.field = field
+        observation = model.objectWillChange.sink { [weak self] _ in self?.generation = UUID() }
+    }
+    var canClear: Bool {
+        visible && active && model.canEdit && !model.busy && model.review == nil &&
+        model.coordinator.review == nil && !field.value(in: model.draft).isEmpty
+    }
+    func appear(sceneIsActive: Bool) {
+        if !visible || active != sceneIsActive { generation = UUID() }
+        visible = true; active = sceneIsActive
+    }
+    func disappear() { visible = false; active = false; generation = UUID() }
+    func sceneChanged(isActive: Bool) {
+        let next = visible && isActive
+        if next != active { generation = UUID() }
+        active = next
+    }
+    func clearAction() -> () -> Void {
+        let stamp = generation, session = model.coordinator.session, identity = model.coordinator.identity
+        let metadata = model.metadataGeneration, media = model.mediaReviewGeneration
+        let source = TemplateSamplePreview.snapshot(model.draft)
+        return { [weak self] in
+            guard let self, self.canClear, self.generation == stamp, session != nil,
+                  self.model.coordinator.session == session, self.model.coordinator.identity == identity,
+                  self.model.metadataGeneration == metadata, self.model.mediaReviewGeneration == media,
+                  source != nil, source == TemplateSamplePreview.snapshot(self.model.draft) else { return }
+            switch self.field {
+            case .title: self.model.draft.title = ""
+            case .description: self.model.draft.description = ""
+            }
+            self.model.changed()
+        }
+    }
+}
+
+@MainActor struct TemplateBasicFieldClearButton: View {
+    @StateObject private var controller: TemplateBasicFieldClearController
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
+    init(model: TemplateAuthoringModel, field: TemplateBasicClearField) {
+        _controller = StateObject(wrappedValue: .init(model: model, field: field))
+    }
+    var body: some View {
+        Button(controller.field.label(locale), action: controller.clearAction())
+            .disabled(!controller.canClear)
+            .accessibilityIdentifier("templateBasicClear." + controller.field.rawValue)
+            .onAppear { controller.appear(sceneIsActive: scenePhase == .active) }
+            .onDisappear { controller.disappear() }
+            .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
     }
 }

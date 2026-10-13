@@ -230,7 +230,7 @@ import XCTest
             throw URLError(.timedOut)
         }
     }
-    private final class Harness {
+    @MainActor private final class Harness {
         let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
         let owner: MerchantBusinessViewModel
         let flow: MerchantAftercareDraftReturn

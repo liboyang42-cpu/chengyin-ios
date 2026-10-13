@@ -784,3 +784,184 @@ private final class LiveTransport: HTTPTransport {
         clock.resume(at: 200); XCTAssertNil(clock.seconds(at: 201))
     }
 }
+
+@MainActor private final class PlaceMemoryService: RoamLiveServing {
+    let base: LiveService
+    var identity: RoamExperienceIdentity? { base.identity }
+    var isAvailable: Bool { base.isAvailable }
+    var presenceAvailable: Bool { base.presenceAvailable }
+    var text: String? = "Returned place description"
+    var returnedPOIID: Int?
+    var onDiscover: (() -> Void)?
+    init(_ base: LiveService) { self.base = base }
+    func reveal(sessionID: Int?, clientSessionKey: String, tiles: [String]) async throws -> RoamLiveRevealReceipt {
+        try await base.reveal(sessionID: sessionID, clientSessionKey: clientSessionKey, tiles: tiles)
+    }
+    func fact(key: String) async throws -> RoamSessionFact { try await base.fact(key: key) }
+    func places(fix: RoamDeviceFix) async throws -> [RoamPlace] { try await base.places(fix: fix) }
+    func registeredShops(fix: RoamDeviceFix) async throws -> [RoamRouteNode] { try await base.registeredShops(fix: fix) }
+    func discover(sessionID: Int, poiID: Int, fix: RoamDeviceFix) async throws -> RoamLiveDiscoveryReceipt {
+        _ = try await base.discover(sessionID: sessionID, poiID: poiID, fix: fix)
+        onDiscover?()
+        var payload: [String: Any] = ["discovered": false, "poiId": returnedPOIID ?? poiID]
+        if let text { payload["meaning"] = text }
+        return try JSONDecoder().decode(RoamLiveDiscoveryReceipt.self, from: JSONSerialization.data(withJSONObject: payload))
+    }
+    func shopVisit(sessionID: Int, sourceType: Int, sourceID: Int, fix: RoamDeviceFix) async throws -> RoamLiveShopReceipt {
+        try await base.shopVisit(sessionID: sessionID, sourceType: sourceType, sourceID: sourceID, fix: fix)
+    }
+    func presence(sessionID: Int, fix: RoamDeviceFix, explorationPercent: Int) async throws {
+        try await base.presence(sessionID: sessionID, fix: fix, explorationPercent: explorationPercent)
+    }
+    func finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int) async throws {
+        try await base.finish(sessionID: sessionID, poiIDs: poiIDs, distanceMeters: distanceMeters)
+    }
+}
+
+@MainActor final class RoamPlaceMemoryTests: XCTestCase {
+    private let date = Date(timeIntervalSince1970: 1_790_932_200)
+    private let key = String(repeating: "a", count: 32)
+    private func fixture() throws -> (RoamLiveSessionController, PlaceMemoryService, LiveLocation, LiveStorage, RoamHistoryScope) {
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://memory.example/native/")), accountID: 7)
+        let base = LiveService(.init(scope: scope, epoch: 1)), service = PlaceMemoryService(base)
+        base.rows = try [6, 7, 8].map { id in
+            try base.decode(RoamPlace.self, "{\"id\":\(id),\"type\":1,\"lat\":31.2,\"lng\":121.4,\"name\":\"Place \(id)\"}")
+        }
+        let location = LiveLocation(date), storage = LiveStorage()
+        let history = RoamHistoryStore(storage: storage, currentScope: { base.identity?.scope })
+        let owner = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage), history: history,
+            now: { self.date }, key: { self.key })
+        owner.prepare(); return (owner, service, location, storage, scope)
+    }
+    func testConfirmedReceiptPublishesVerbatimOnlyAfterJournalConfirmation() async throws {
+        let (owner, service, location, storage, scope) = try fixture(); await owner.start(purposeAccepted: true)
+        let place = service.base.rows[0]; service.text = "  Cafe\u{301} memory\n"
+        service.onDiscover = {
+            XCTAssertNil(owner.placeMemory)
+            XCTAssertTrue((try? RoamLiveJournal(storage: storage).read(scope: scope)?.unresolvedActions.contains("poi:6")) == true)
+        }
+        await owner.discover(place)
+        let memory = try XCTUnwrap(owner.placeMemory)
+        XCTAssertEqual(memory.poiID, place.id); XCTAssertEqual(memory.placeName, place.name)
+        XCTAssertEqual(Array(memory.text.utf8), Array(try XCTUnwrap(service.text).utf8))
+        XCTAssertTrue(owner.actionConfirmed(place, shop: false)); XCTAssertFalse(owner.actionUnresolved(place, shop: false))
+        let record = try XCTUnwrap(RoamLiveJournal(storage: storage).read(scope: scope))
+        XCTAssertTrue(record.confirmedPOIIDs.contains(place.id)); XCTAssertTrue(record.unresolvedActions.isEmpty)
+        let bytes = storage.bytes, calls = service.base.discoveries, fixes = location.calls
+        for _ in 0..<3 { XCTAssertEqual(owner.placeMemory, memory) }
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(service.base.discoveries, calls); XCTAssertEqual(location.calls, fixes)
+        XCTAssertFalse(storage.bytes.values.contains { String(decoding: $0, as: UTF8.self).contains("\"meaning\"") })
+    }
+    func testUnknownWrongPOIAndFailedConfirmationNeverPublishOrUnlock() async throws {
+        for mode in 0..<3 {
+            let (owner, service, _, storage, scope) = try fixture(); await owner.start(purposeAccepted: true)
+            if mode == 0 { service.base.failDiscover = true }
+            if mode == 1 { service.returnedPOIID = 99 }
+            if mode == 2 { service.onDiscover = { storage.failWrites = true } }
+            await owner.discover(service.base.rows[0])
+            XCTAssertNil(owner.placeMemory); XCTAssertTrue(owner.actionUnresolved(service.base.rows[0], shop: false))
+            storage.failWrites = false
+            XCTAssertTrue(try XCTUnwrap(RoamLiveJournal(storage: storage).read(scope: scope)).unresolvedActions.contains("poi:6"))
+            await owner.discover(service.base.rows[0]); XCTAssertEqual(service.base.discoveries, 1)
+        }
+    }
+    func testLateReceiptAfterPauseBackgroundInvalidationOrOwnerChangeCannotPublish() async throws {
+        for mode in 0..<4 {
+            let (owner, service, _, storage, scope) = try fixture(); await owner.start(purposeAccepted: true)
+            service.onDiscover = {
+                if mode == 0 { owner.pause() }
+                if mode == 1 { owner.setForeground(false) }
+                if mode == 2 { owner.invalidate() }
+                if mode == 3 { service.base.identity = .init(scope: scope, epoch: 2) }
+            }
+            await owner.discover(service.base.rows[0]); XCTAssertNil(owner.placeMemory)
+            XCTAssertTrue(try XCTUnwrap(RoamLiveJournal(storage: storage).read(scope: scope)).unresolvedActions.contains("poi:6"))
+        }
+    }
+    func testDismissConsumesOnlyCurrentUUIDAndCannotCloseReplacement() async throws {
+        let (owner, service, location, storage, _) = try fixture(); await owner.start(purposeAccepted: true)
+        await owner.discover(service.base.rows[0]); let old = try XCTUnwrap(owner.placeMemory)
+        await owner.discover(service.base.rows[1]); let current = try XCTUnwrap(owner.placeMemory)
+        XCTAssertNotEqual(old.id, current.id)
+        let bytes = storage.bytes, calls = service.base.discoveries, fixes = location.calls
+        owner.dismissPlaceMemory(id: old.id); XCTAssertEqual(owner.placeMemory, current)
+        owner.dismissPlaceMemory(id: current.id); XCTAssertNil(owner.placeMemory)
+        owner.dismissPlaceMemory(id: current.id); XCTAssertNil(owner.placeMemory)
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(service.base.discoveries, calls); XCTAssertEqual(location.calls, fixes)
+    }
+    func testMissingAndBlankNewMeaningRetireEarlierTextWithoutInventingFallback() async throws {
+        for text in [nil, "", " \n\t"] as [String?] {
+            let (owner, service, _, _, _) = try fixture(); await owner.start(purposeAccepted: true)
+            await owner.discover(service.base.rows[0]); XCTAssertNotNil(owner.placeMemory)
+            service.text = text; await owner.discover(service.base.rows[1])
+            XCTAssertNil(owner.placeMemory); XCTAssertTrue(owner.actionConfirmed(service.base.rows[1], shop: false))
+        }
+    }
+    func testPauseRecoveryAndReconstructionDoNotRestoreEphemeralMeaning() async throws {
+        let (owner, service, location, storage, _) = try fixture(); await owner.start(purposeAccepted: true)
+        await owner.discover(service.base.rows[0]); XCTAssertNotNil(owner.placeMemory)
+        owner.pause(); XCTAssertNil(owner.placeMemory); await owner.recover(); XCTAssertNil(owner.placeMemory)
+        await owner.resume(purposeAccepted: true); XCTAssertNil(owner.placeMemory)
+        let restored = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage), now: { self.date })
+        restored.prepare(); XCTAssertNil(restored.placeMemory)
+    }
+    func testEpochAccountAndRevocationPreventViewingOrClosingOwnedText() async throws {
+        let (owner, service, _, storage, scope) = try fixture(); await owner.start(purposeAccepted: true)
+        await owner.discover(service.base.rows[0]); let memory = try XCTUnwrap(owner.placeMemory); let bytes = storage.bytes
+        service.base.identity = .init(scope: scope, epoch: 2)
+        XCTAssertNil(owner.placeMemory); owner.dismissPlaceMemory(id: memory.id)
+        let other = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://memory.example/native/")), accountID: 8)
+        service.base.identity = .init(scope: other, epoch: 1); XCTAssertNil(owner.placeMemory)
+        service.base.identity = .init(scope: scope, epoch: 1); service.base.isAvailable = false
+        XCTAssertNil(owner.placeMemory); XCTAssertEqual(storage.bytes, bytes)
+    }
+    func testFinishRetiresPlaceTextWithoutTreatingItAsSettlementOrReward() async throws {
+        let (owner, service, _, _, _) = try fixture(); await owner.start(purposeAccepted: true)
+        await owner.discover(service.base.rows[0]); XCTAssertNotNil(owner.placeMemory); XCTAssertNil(owner.settlement)
+        await owner.finish(); XCTAssertNil(owner.placeMemory); XCTAssertEqual(owner.phase, .finished)
+        XCTAssertEqual(service.base.finishes, 1); XCTAssertEqual(service.base.discoveries, 1)
+    }
+}
+
+@MainActor private final class PlaceMemoryPostWriteStorage: RoamHistoryDataStoring {
+    let base = LiveStorage()
+    var afterWrite: (() -> Void)?
+    func read(key: String) throws -> Data? { try base.read(key: key) }
+    func write(_ data: Data, key: String) throws { try base.write(data, key: key); afterWrite?() }
+}
+@MainActor extension RoamPlaceMemoryTests {
+    func testOwnerRetiredInsideConfirmationStorageCallbackCannotPublishMeaning() async throws {
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://memory.example/native/")), accountID: 7)
+        let base = LiveService(.init(scope: scope, epoch: 1)), service = PlaceMemoryService(base)
+        let row = try base.decode(RoamPlace.self, #"{"id":6,"type":1,"lat":31.2,"lng":121.4,"name":"Place"}"#)
+        base.rows = [row]
+        let storage = PlaceMemoryPostWriteStorage(), location = LiveLocation(date)
+        let owner = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage), now: { self.date }, key: { self.key })
+        owner.prepare(); await owner.start(purposeAccepted: true)
+        service.onDiscover = {
+            storage.afterWrite = { storage.afterWrite = nil; owner.pause() }
+        }
+        await owner.discover(row)
+        XCTAssertNil(owner.placeMemory); XCTAssertEqual(owner.phase, .paused)
+        XCTAssertEqual(base.discoveries, 1)
+        XCTAssertTrue(try XCTUnwrap(RoamLiveJournal(storage: storage).read(scope: scope)).confirmedPOIIDs.contains(row.id))
+    }
+}
+
+@MainActor extension RoamPlaceMemoryTests {
+    func testFailedPulsePauseThenResumeCannotReviveEarlierMeaningWithoutDiscovery() async throws {
+        let (owner, service, location, _, _) = try fixture(); await owner.start(purposeAccepted: true)
+        await owner.discover(service.base.rows[0]); XCTAssertNotNil(owner.placeMemory)
+        let originalFix = location.value, discoveries = service.base.discoveries
+        location.value = try RoamDeviceFix(coordinate: originalFix.coordinate, accuracyMeters: 81,
+            measuredAt: originalFix.measuredAt, datum: originalFix.datum)
+        await owner.pulse()
+        XCTAssertEqual(owner.phase, .paused); XCTAssertNil(owner.placeMemory)
+        XCTAssertEqual(owner.error as? RoamLiveFailure, .locationQuality)
+        location.value = originalFix
+        await owner.resume(purposeAccepted: true)
+        XCTAssertEqual(owner.phase, .active); XCTAssertNil(owner.placeMemory)
+        XCTAssertEqual(service.base.discoveries, discoveries)
+        XCTAssertTrue(owner.actionConfirmed(service.base.rows[0], shop: false))
+    }
+}

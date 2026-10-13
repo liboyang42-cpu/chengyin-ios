@@ -19,6 +19,8 @@ public struct ClubStoryStop: Equatable, Identifiable {
     public let nodeID: Int?
     public let sequence: Int
     public let businessTime: String?
+    /// Display-only estimate from the immediately preceding stop in this chapter.
+    public let estimatedWalkingMinutes: Int?
     public let name: String?
     public let address: String?
     public let imgUrl: String?
@@ -72,13 +74,15 @@ public struct ClubStoryPresentation: Equatable {
             let chapterID = Self.uniqueID(chapter["id"], counts: chapterIDs)
             var stops: [ClubStoryStop] = []
             var gameplay: [ClubStoryGameplay] = []
-            for node in nodesByChapter[index] {
+            for (nodeIndex, node) in nodesByChapter[index].enumerated() {
                 sequence += 1
                 let nodeID = chapterID == nil ? nil : Self.uniqueID(node["id"], counts: nodeIDs)
                 let name = Self.text(node["name"])
                 let cover = Self.image(node["imgUrl"])
                 stops.append(.init(id: sequence, nodeID: nodeID, sequence: sequence,
-                    businessTime: Self.text(node["businessTime"]), name: name,
+                    businessTime: Self.text(node["businessTime"]),
+                    estimatedWalkingMinutes: nodeIndex > 0
+                        ? Self.walkingMinutes(from: nodesByChapter[index][nodeIndex - 1], to: node) : nil, name: name,
                     address: Self.text(node["address"]), imgUrl: cover))
                 let template = node["cmsMemberTemplate"]
                 guard template.object != nil else { continue }
@@ -99,6 +103,23 @@ public struct ClubStoryPresentation: Equatable {
                 stops: stops, gameplay: gameplay)
         }
         self.topicID = topicID
+    }
+    private static func coordinate(_ node: ClubGovernanceValue) -> RoamCoordinate? {
+        func number(_ value: ClubGovernanceValue) -> Double? {
+            if case .string(let raw) = value {
+                return Double(raw.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            return value.number
+        }
+        guard let latitude = number(node["latitude"]), let longitude = number(node["longitude"]),
+              latitude != 0, longitude != 0 else { return nil }
+        return RoamCoordinate(latitude: latitude, longitude: longitude)
+    }
+    private static func walkingMinutes(from previous: ClubGovernanceValue, to current: ClubGovernanceValue) -> Int? {
+        guard let origin = coordinate(previous), let destination = coordinate(current) else { return nil }
+        let meters = RoamExperienceMath.distanceMeters(origin, destination)
+        guard meters.isFinite, meters > 0 else { return nil }
+        return max(1, Int((meters / 80).rounded()))
     }
     private static func rows(_ value: ClubGovernanceValue) throws -> [ClubGovernanceValue] {
         if value == .null { return [] }

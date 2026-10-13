@@ -99,6 +99,11 @@ struct AccountCollectionCouponRow: View {
                 Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            if let day = coupon.futureStartDay(relativeTo: Date()) {
+                Text("accountCollection.coupon.startsLater").font(.footnote.weight(.semibold))
+                    .accessibilityIdentifier("accountCollection.coupon.futureStart")
+                QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
+            }
             if coupon.status == .invalid {
                 Label("accountCollection.coupon.invalidHint", systemImage: "xmark.circle").font(.footnote)
             } else if let day = AccountCollectionCoupon.calendarDay(coupon.endTime) {

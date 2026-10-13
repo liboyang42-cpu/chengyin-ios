@@ -38,6 +38,9 @@ import SwiftUI
                 if let medals = RoamFinishedMedalsPresentation(controller: owner) {
                     RoamFinishedMedalsSection(presentation: medals)
                 }
+                if let story = RoamFinishedStoryPresentation(controller: owner) {
+                    RoamFinishedStorySection(presentation: story)
+                }
                 if owner.canContinueUnstartedRoam {
                     Section {
                         Button("roam.unstarted.continue", systemImage: "arrow.uturn.backward") { owner.continueUnstartedRoam() }
@@ -81,6 +84,11 @@ import SwiftUI
                         Button("roam.live.pause", systemImage: "pause.fill") { owner.pause() }.accessibilityIdentifier("roam.live.pause")
                         Label(owner.presenceEnabled ? "roam.live.presenceOn" : "roam.live.presenceOff", systemImage: "person.crop.circle")
                         if owner.presenceError { Text("roam.live.presenceFailed").foregroundStyle(.secondary) }
+                    }
+                    if let memory = owner.placeMemory {
+                        RoamPlaceMemorySection(placeName: memory.placeName, text: memory.text) {
+                            owner.dismissPlaceMemory(id: memory.id)
+                        }
                     }
                     trace
                     nearby
@@ -387,6 +395,76 @@ struct RoamFinishedMedalsSection: View {
                 Text(verbatim: presentation.shop ?? copy.unavailable)
             } label: { Text(verbatim: copy.shop) }
                 .accessibilityIdentifier("roam.live.finishedMedals.shop")
+            Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
+        } header: { Text(verbatim: copy.title) }
+    }
+}
+
+struct RoamPlaceMemoryCopy {
+    let title: String
+    let close: String
+    init(locale: Locale) {
+        if locale.language.languageCode?.identifier == "zh" {
+            title = "地点记忆"; close = "关闭地点提示"
+        } else {
+            title = "Place memory"; close = "Close place note"
+        }
+    }
+}
+struct RoamPlaceMemorySection: View {
+    let placeName: String
+    let text: String
+    let close: () -> Void
+    @Environment(\.locale) private var locale
+    var body: some View {
+        let copy = RoamPlaceMemoryCopy(locale: locale)
+        Section {
+            if !placeName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(verbatim: placeName).font(.headline)
+            }
+            Text(verbatim: text).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("roam.live.placeMemory.text")
+            Button(action: close) { Text(verbatim: copy.close) }
+                .accessibilityIdentifier("roam.live.placeMemory.close")
+        } header: { Text(verbatim: copy.title) }
+    }
+}
+
+/// Only the currently owned, fully archived settlement may provide this display text.
+struct RoamFinishedStoryPresentation: Equatable {
+    let text: String
+    @MainActor init?(controller: RoamLiveSessionController) {
+        guard controller.phase == .finished, controller.isAvailable, controller.foreground,
+              !controller.busy, controller.record == nil,
+              controller.makeFinishedHistoryReader().identity != nil,
+              let reference = controller.completedHistory,
+              let fact = controller.settlement, fact.hasCompleteSettlement,
+              fact.sessionID == reference.serverSessionID,
+              let text = fact.result?.routeStory else { return nil }
+        self.text = text
+    }
+}
+struct RoamFinishedStoryCopy {
+    let title: String
+    let hint: String
+    init(locale: Locale) {
+        if locale.language.languageCode?.identifier == "zh" {
+            title = "这段足迹"
+            hint = "来自本次已保存的结算回顾。"
+        } else {
+            title = "This walk"
+            hint = "A reflection returned with this saved settlement."
+        }
+    }
+}
+struct RoamFinishedStorySection: View {
+    let presentation: RoamFinishedStoryPresentation
+    @Environment(\.locale) private var locale
+    var body: some View {
+        let copy = RoamFinishedStoryCopy(locale: locale)
+        Section {
+            Text(verbatim: presentation.text)
+                .accessibilityIdentifier("roam.live.finishedStory.text")
             Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
         } header: { Text(verbatim: copy.title) }
     }
