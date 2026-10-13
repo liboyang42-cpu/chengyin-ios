@@ -175,6 +175,7 @@ struct ClubGovernanceReadView: View {
     @StateObject private var banReads = ClubBanListRead()
     @StateObject private var terminalPresentation = ClubTerminalSessionPresentation()
     @StateObject private var seriesOccurrences = ClubSeriesOccurrenceHost()
+    @StateObject private var settlementReturn = ClubSettlementReturnOwner()
     @StateObject private var caseSubmissionReturn = ClubCaseSubmissionReturn()
     @State private var caseHostVisible = false
     @State private var snapshot: ClubGovernanceSnapshot?
@@ -421,6 +422,36 @@ struct ClubGovernanceReadView: View {
                 else { Task { await loadBansIfNeeded() } }
             }
         }
+        .background {
+            if operation == .settlement, let attachment = settlementReturn.attachment {
+                ClubSettlementParentLifetime {
+                    if settlementReturn.depart(attachment) { generation &+= 1; loading = false }
+                }.id(attachment)
+            }
+            if let item = settlementReturn.item {
+                ClubSettlementPresentationOwner(item: item, owner: settlementReturn, source: { settlementSource },
+                    active: { scenePhase == .active }, access: access,
+                    returned: { Task { await loadSettlementIfNeeded() } }).id(item.id)
+            }
+        }
+        .onAppear {
+            if operation == .settlement {
+                activateSettlementParent()
+                Task { await loadSettlementIfNeeded() }
+            }
+        }
+        .onChange(of: settlementSource) { _, source in settlementReturn.invalidate(source: source, active: scenePhase == .active) }
+        .onChange(of: scenePhase) { _, phase in
+            if operation == .settlement {
+                if phase != .active { settlementReturn.background(); generation &+= 1; loading = false }
+                else { Task { await loadSettlementIfNeeded() } }
+            }
+        }
+        .task(id: settlementReadKey) {
+            guard operation == .settlement else { return }
+            if settlementReturn.synchronize(readContext, namespace: access.storageNamespace) { invalidateRead(); loading = false }
+            await loadSettlementIfNeeded()
+        }
         .onAppear { terminalPresentation.bind(terminalSource) }
         .onChange(of: terminalSource, initial: true) { _, source in terminalPresentation.bind(source) }
         // A covering child owns dismissal; recycling content rows cannot retire it.
@@ -429,7 +460,7 @@ struct ClubGovernanceReadView: View {
         // Separate onChange invalidations can run after a fast forbidden response
         // and erase its error. Context checks still hide old PII synchronously.
         .task(id: readContext) {
-            guard operation != .cases else { return }
+            guard operation != .cases, operation != .settlement else { return }
             if operation == .series {
                 if snapshotContext != readContext || snapshotGeneration != generation {
                     seriesOccurrences.retire(); invalidateRead(); loading = false; await load()
@@ -496,7 +527,12 @@ struct ClubGovernanceReadView: View {
         }
         .onDisappear {
             caseHostVisible = false
-            if operation == .series {
+            if operation == .settlement {
+                settlementReturn.hide()
+                if !settlementReturn.retainsChild, let attachment = settlementReturn.attachment {
+                    if settlementReturn.depart(attachment) { generation &+= 1; loading = false }
+                }
+            } else if operation == .series {
                 seriesOccurrences.hide()
                 if !seriesOccurrences.retainsDestination { seriesOccurrences.retire(); generation &+= 1; loading = false }
             } else if operation == .roster {
@@ -616,6 +652,33 @@ struct ClubGovernanceReadView: View {
         operation != .topicSettings || (attachment != nil && topicSettingsReturn.attachment == attachment &&
             topicSettingsReturn.visible && scenePhase == .active)
     }
+    private struct SettlementReadKey: Hashable { let context: ClubGovernanceReadContext; let namespace: String }
+    private var settlementReadKey: SettlementReadKey { .init(context: readContext, namespace: access.storageNamespace) }
+    @MainActor private var settlementSource: ClubSettlementReturnOwner.Source? {
+        guard operation == .settlement, !loading, failure == nil, let snapshot,
+              settlementReturn.context == readContext, settlementReturn.namespace == access.storageNamespace,
+              snapshotContext == readContext, snapshotGeneration == generation,
+              let presentation = try? ClubSettlementDetailPresentation(snapshot: snapshot, context: readContext) else { return nil }
+        return .init(presentation: presentation, context: readContext, generation: snapshotGeneration, namespace: access.storageNamespace)
+    }
+    @MainActor private func activateSettlementParent() {
+        if settlementReturn.synchronize(readContext, namespace: access.storageNamespace) { invalidateRead(); loading = false }
+        settlementReturn.appear(readContext, namespace: access.storageNamespace)
+    }
+    @MainActor private func settlementReadIsCurrent(_ attachment: UUID?) -> Bool {
+        operation != .settlement || settlementReturn.acceptsRead(attachment, context: readContext,
+            namespace: access.storageNamespace, active: scenePhase == .active)
+    }
+    @MainActor private func loadSettlementIfNeeded() async {
+        guard operation == .settlement, let attachment = settlementReturn.attachment,
+              settlementReadIsCurrent(attachment), !loading,
+              settlementReturn.needsRefresh || snapshotContext != readContext || snapshotGeneration != generation else { return }
+        let context = readContext, namespace = access.storageNamespace, before = generation
+        await load()
+        guard generation != before else { return }
+        settlementReturn.finishedRead(attachment, context: context, namespace: namespace, active: scenePhase == .active,
+            succeeded: failure == nil && snapshot != nil && snapshotContext == context && snapshotGeneration == generation)
+    }
     @MainActor private func occurrenceSource(seriesID: Int) -> ClubSeriesOccurrenceHost.Source? {
         guard operation == .series, !loading, failure == nil, let snapshot,
               snapshotContext == readContext, snapshotGeneration == generation else { return nil }
@@ -731,6 +794,8 @@ struct ClubGovernanceReadView: View {
         guard topicSettingsReadIsCurrent(topicSettingsAttachment), operation != .topicSettings || !topicSettingsReads.loading else { return }
         let banAttachment = banRemovalReturn.attachment
         guard banReadIsCurrent(banAttachment), operation != .bans || !banReads.loading else { return }
+        let settlementAttachment = settlementReturn.attachment
+        guard settlementReadIsCurrent(settlementAttachment), operation != .settlement || !loading else { return }
         if operation == .customers { customerKeywordDebounce.cancel() }
         generation &+= 1; let revision = generation; let expected = identity; let context = readContext
         let customerQuery = customerFilters
@@ -747,7 +812,7 @@ struct ClubGovernanceReadView: View {
         do {
             let check: @MainActor () throws -> Void = {
                 guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity,
-                      rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), banReadIsCurrent(banAttachment), access.identity == expected, !Task.isCancelled else { throw CancellationError() }
+                      rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), banReadIsCurrent(banAttachment), settlementReadIsCurrent(settlementAttachment), access.identity == expected, !Task.isCancelled else { throw CancellationError() }
             }
             let result: ClubGovernanceSnapshot
             if operation == .roster {
@@ -761,12 +826,12 @@ struct ClubGovernanceReadView: View {
             } else {
                 result = try await access.read(operation, scope: scope, options: options, check: check)
             }
-            guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity, rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), banReadIsCurrent(banAttachment), access.identity == expected, !Task.isCancelled else { return }
+            guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity, rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), banReadIsCurrent(banAttachment), settlementReadIsCurrent(settlementAttachment), access.identity == expected, !Task.isCancelled else { return }
             guard context.accepts(result) else { throw ClubGovernanceFailure.targetChanged }
             snapshotContext = context; snapshotGeneration = revision; snapshot = result
             snapshotCustomerFilters = operation == .customers ? customerQuery : nil
         } catch {
-            guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity, rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), banReadIsCurrent(banAttachment), access.identity == expected, !Task.isCancelled else { return }
+            guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity, rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), banReadIsCurrent(banAttachment), settlementReadIsCurrent(settlementAttachment), access.identity == expected, !Task.isCancelled else { return }
             failure = error as? ClubGovernanceFailure ?? .malformed
         }
         if revision == generation { loading = false }
@@ -955,12 +1020,14 @@ struct ClubGovernanceReadView: View {
             Text("club.gov.financialGate")
             if let presentation = try? ClubSettlementDetailPresentation(snapshot: snapshot, context: readContext) {
                 let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
+                let source = ClubSettlementReturnOwner.Source(presentation: presentation, context: sourceContext,
+                    generation: sourceGeneration, namespace: sourceNamespace)
                 ClubSettlementRows(presentation: presentation, context: sourceContext, snapshotGeneration: sourceGeneration,
                     namespace: sourceNamespace, identity: identity, access: access,
                     sourceIsCurrent: {
                         snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
                         generation == sourceGeneration && identity == access.identity && sourceNamespace == access.storageNamespace
-                    }, onReturn: { Task { await load() } })
+                    }, source: source, owner: settlementReturn, currentSource: { settlementSource }, active: { scenePhase == .active })
             } else { Text("club.gov.malformed").accessibilityIdentifier("club.settlementDetail.malformed") }
         } else if operation == .feed {
             if let feed = try? ClubFeedPresentation(snapshot: snapshot) {

@@ -18637,6 +18637,8 @@
 				"9B8FB2A2037C0E9F5FCFED41",
 				"68FDE2F932D264274632E14E",
 				"3CBDC5E9CADDD344EBB3973B",
+				"116B1CE4261DB4CF0910BABC",
+				"AE0B9FD4BA9608539EB03163",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20275,6 +20277,7 @@
 				"07A8F7F5ABBEFC3C92BE1BB8",
 				"A4D538C628E4E15A79A913D0",
 				"5CDD013E8AE8886E7989909A",
+				"7CD8A5367328BC9C0E09FB6D",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26427,6 +26430,7 @@
 				"31425068694C0EA35824496A",
 				"64D3AAF6BC268AD9D619C68B",
 				"962F4D82308CDA75338E8F5A",
+				"94C079B8EA6F1ACB11526A02",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -28058,6 +28062,26 @@
 		"5CDD013E8AE8886E7989909A" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "3CBDC5E9CADDD344EBB3973B";
+		};
+		"116B1CE4261DB4CF0910BABC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MerchantCityAddressChoice.swift";
+			"sourceTree" = "<group>";
+		};
+		"7CD8A5367328BC9C0E09FB6D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "116B1CE4261DB4CF0910BABC";
+		};
+		"AE0B9FD4BA9608539EB03163" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/MerchantCityAddressChoiceTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"94C079B8EA6F1ACB11526A02" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "AE0B9FD4BA9608539EB03163";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 @MainActor final class ClubSettlementDetailReadModel: ObservableObject {
     struct Context: Hashable { let read: ClubGovernanceReadContext; let namespace: String; let targetID: UUID }
@@ -78,6 +79,131 @@ import SwiftUI
     }
 }
 
+/// Whole-page owner for the existing read-only settlement record journey.
+@MainActor final class ClubSettlementReturnOwner: ObservableObject {
+    struct Source: Equatable {
+        let presentation: ClubSettlementDetailPresentation
+        let context: ClubGovernanceReadContext
+        let generation: UInt64
+        let namespace: String
+    }
+    struct Item: Identifiable, Equatable {
+        var id: UUID { target.id }
+        let attachment: UUID
+        let source: Source
+        let target: ClubSettlementDetailTarget
+    }
+    @Published private(set) var item: Item?
+    @Published private(set) var isPresented = false
+    @Published private(set) var attachment: UUID?
+    private(set) var context: ClubGovernanceReadContext?
+    private(set) var namespace: String?
+    private(set) var visible = false
+    private(set) var needsRefresh = true
+    var retainsChild: Bool { item != nil }
+    @discardableResult func synchronize(_ context: ClubGovernanceReadContext, namespace: String) -> Bool {
+        guard self.context != context || self.namespace != namespace else { return false }
+        self.context = context; self.namespace = namespace; attachment = UUID(); item = nil; isPresented = false; needsRefresh = true
+        return true
+    }
+    func appear(_ context: ClubGovernanceReadContext, namespace: String) {
+        synchronize(context, namespace: namespace)
+        if attachment == nil { attachment = UUID() }
+        visible = true
+    }
+    func hide() { visible = false }
+    @discardableResult func depart(_ expected: UUID) -> Bool {
+        guard attachment == expected else { return false }
+        item = nil; isPresented = false; attachment = nil; context = nil; namespace = nil; visible = false; needsRefresh = true
+        return true
+    }
+    func background() { item = nil; isPresented = false; needsRefresh = true }
+    func open(_ target: ClubSettlementDetailTarget, source: Source, current: Source?, active: Bool) {
+        guard visible, active, let attachment, item == nil, source == current, context == source.context, namespace == source.namespace,
+              target.isCurrent(presentation: source.presentation, context: source.context,
+                               snapshotGeneration: source.generation, namespace: source.namespace) else { return }
+        item = Item(attachment: attachment, source: source, target: target); isPresented = true
+    }
+    private func matches(_ expected: Item, source: Source?, active: Bool) -> Bool {
+        active && item == expected && attachment == expected.attachment && expected.source == source && context == expected.source.context && namespace == expected.source.namespace
+    }
+    func current(_ expected: Item, source: Source?, active: Bool) -> Bool {
+        isPresented && matches(expected, source: source, active: active)
+    }
+    func binding(_ expected: Item, source: @escaping () -> Source?, active: @escaping () -> Bool) -> Binding<Bool> {
+        Binding(get: { self.isPresented && self.current(expected, source: source(), active: active()) }, set: { presented in
+            guard !presented, self.current(expected, source: source(), active: active()) else { return }
+            self.isPresented = false
+        })
+    }
+    @discardableResult func dismissed(_ expected: Item, source: Source?, active: Bool) -> Bool {
+        guard !isPresented, matches(expected, source: source, active: active) else { return false }
+        item = nil; needsRefresh = true; return true
+    }
+    func invalidate(source: Source?, active: Bool) {
+        if let item, !matches(item, source: source, active: active) { background() }
+    }
+    func acceptsRead(_ expected: UUID?, context: ClubGovernanceReadContext, namespace: String, active: Bool) -> Bool {
+        expected != nil && attachment == expected && self.context == context && self.namespace == namespace && visible && active && item == nil
+    }
+    func finishedRead(_ expected: UUID, context: ClubGovernanceReadContext, namespace: String, active: Bool, succeeded: Bool) {
+        guard acceptsRead(expected, context: context, namespace: namespace, active: active) else { return }
+        needsRefresh = !succeeded
+    }
+}
+
+@MainActor struct ClubSettlementPresentationOwner: View {
+    let item: ClubSettlementReturnOwner.Item
+    @ObservedObject var owner: ClubSettlementReturnOwner
+    let source: () -> ClubSettlementReturnOwner.Source?
+    let active: () -> Bool
+    let access: any ClubGovernanceAccess
+    let returned: () -> Void
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(isPresented: owner.binding(item, source: source, active: active), onDismiss: {
+                if owner.dismissed(item, source: source(), active: active()) { returned() }
+            }) {
+                NavigationStack {
+                    Group {
+                        if owner.current(item, source: source(), active: active()) {
+                            ClubSettlementDetail(target: item.target, identity: item.source.context.identity, access: access,
+                                sourceIsCurrent: { owner.current(item, source: source(), active: active()) })
+                        } else { Color.clear }
+                    }
+                    .toolbar { ToolbarItem(placement: .cancellationAction) {
+                        Button("club.gov.close") { owner.binding(item, source: source, active: active).wrappedValue = false }
+                    } }
+                }
+            }
+    }
+}
+
+@MainActor struct ClubSettlementParentLifetime: UIViewControllerRepresentable {
+    let leave: () -> Void
+    func makeUIViewController(context: Context) -> Controller { Controller(leave: leave) }
+    func updateUIViewController(_ controller: Controller, context: Context) { controller.leave = leave }
+    static func dismantleUIViewController(_ controller: Controller, coordinator: ()) { controller.leave() }
+    @MainActor final class Controller: UIViewController {
+        var leave: () -> Void
+        private var wasAttached = false
+        init(leave: @escaping () -> Void) { self.leave = leave; super.init(nibName: nil, bundle: nil) }
+        required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }
+        override func didMove(toParent parent: UIViewController?) {
+            super.didMove(toParent: parent)
+            if parent != nil { wasAttached = true } else if wasAttached { leave() }
+        }
+        override func viewDidDisappear(_ animated: Bool) {
+            super.viewDidDisappear(animated)
+            var current: UIViewController? = self
+            while let value = current {
+                if value.isBeingDismissed || value.isMovingFromParent { leave(); return }
+                current = value.parent
+            }
+        }
+    }
+}
+
 /// Owns only the new Club row-to-detail route. Other finance sources are untouched.
 @MainActor struct ClubSettlementRows: View {
     let presentation: ClubSettlementDetailPresentation
@@ -87,15 +213,18 @@ import SwiftUI
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
     let sourceIsCurrent: () -> Bool
-    let onReturn: () -> Void
-    @State private var selected: ClubSettlementDetailTarget?
+    let source: ClubSettlementReturnOwner.Source
+    @ObservedObject var owner: ClubSettlementReturnOwner
+    let currentSource: () -> ClubSettlementReturnOwner.Source?
+    let active: () -> Bool
     var body: some View {
         Group {
             if presentation.records.isEmpty { Text("club.gov.empty") }
             ForEach(presentation.records) { row in
                 if let target = presentation.target(recordID: row.id, context: context, snapshotGeneration: snapshotGeneration, namespace: namespace) {
                     Button {
-                        guard selected == nil, current(target) else { return }; selected = target
+                        guard current(target) else { return }
+                        owner.open(target, source: source, current: currentSource(), active: active())
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(verbatim: row.name).font(.headline)
@@ -113,21 +242,6 @@ import SwiftUI
                 }
             }
         }
-        .sheet(item: $selected, onDismiss: { if sourceIsCurrent() { onReturn() } }) { target in
-            NavigationStack {
-                Group {
-                    if current(target) {
-                        ClubSettlementDetail(target: target, identity: identity, access: access, sourceIsCurrent: { current(target) })
-                    } else { Color.clear }
-                }
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { selected = nil } } }
-                .onChange(of: current(target), initial: true) { _, valid in if !valid { selected = nil } }
-            }
-        }
-        .onChange(of: context) { _, _ in selected = nil }
-        .onChange(of: snapshotGeneration) { _, _ in selected = nil }
-        .onChange(of: namespace) { _, _ in selected = nil }
-        .onDisappear { selected = nil }
     }
     private func current(_ target: ClubSettlementDetailTarget) -> Bool {
         sourceIsCurrent() && identity == access.identity && access.isConfigured &&

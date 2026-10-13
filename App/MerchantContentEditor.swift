@@ -8,6 +8,9 @@ import SwiftUI
     let service: any MerchantContentServing
     let query: MerchantContentQuery
     let kind: Kind
+    let placeSearch: (any PublishingPlaceSearching)?
+    @Environment(\.scenePhase) private var addressScenePhase
+    @StateObject private var addressChoice = MerchantCityAddressChoice()
     @StateObject private var model: MerchantContentViewModel
     @StateObject private var cityTemplateHandoff = MerchantCityTemplateHandoffModel()
     @State private var text: [String: String] = [:]
@@ -30,8 +33,8 @@ import SwiftUI
     @State private var placementTemplateReturnReadback = false
     @State private var placementTemplateProtectedReadback: Date?
     @Environment(\.dismiss) private var dismiss
-    init(service: any MerchantContentServing, query: MerchantContentQuery, kind: Kind) {
-        self.service = service; self.query = query; self.kind = kind
+    init(service: any MerchantContentServing, query: MerchantContentQuery, kind: Kind, placeSearch: (any PublishingPlaceSearching)? = nil) {
+        self.service = service; self.query = query; self.kind = kind; self.placeSearch = placeSearch
         _model = StateObject(wrappedValue: .init(service: service, query: query))
     }
     private var c: MerchantContentCoordinator { model.coordinator }
@@ -101,6 +104,20 @@ import SwiftUI
             replacement: availabilityReplacement, canEdit: canEditAvailability,
             apply: { applyAvailability($0, expected: currentAvailabilityContext, source: currentAvailabilitySource) }))
         .modifier(MerchantCityTemplateHandoffPresentation(model: cityTemplateHandoff, binding: placementTemplateBinding))
+        .background {
+            if case .placement = kind {
+                if let attachment = addressChoice.attachment {
+                    MerchantCityAddressChoiceLifetime(owner: addressChoice, attachment: attachment).id(attachment)
+                }
+                if let original = addressChoice.item {
+                    MerchantCityAddressChoicePresentation(owner: addressChoice, original: original,
+                        current: { addressChoiceSource }, apply: applyChosenAddress).id(original.id)
+                }
+            }
+        }
+        .onAppear { if case .placement = kind { addressChoice.appear(active: addressScenePhase == .active) } }
+        .onChange(of: addressScenePhase) { _, phase in addressChoice.sceneChanged(active: phase == .active) }
+        .onChange(of: service.scope) { _, _ in addressChoice.invalidate() }
         .appNavigationTitle(key: "merchant.content." + query.key)
         .task(id: service.scope) { addressGeneration = UUID(); addressConfirmation = nil; placementTemplateReturnReadback = false; placementTemplateProtectedReadback = nil; text = [:]; availabilityReplacement = nil; pauseFallback = nil; dirty = false; addressGeneration = UUID(); await model.load(); if c.isCurrent, let s = c.snapshot { seed(s) } }
         .navigationBarBackButtonHidden(dirty)
@@ -144,6 +161,20 @@ import SwiftUI
             templateID = id; dirty = true; model.cancel(); return true
         })
     }
+    private var addressChoiceSource: MerchantCityAddressChoice.Source? {
+        guard case .placement = kind, service.isAuthenticated, c.isCurrent, !c.busy, !c.locked,
+              c.review == nil, c.receipt == nil, let snapshot = c.snapshot,
+              let merchantID = snapshot.access.merchantID else { return nil }
+        return .init(scope: service.scope, observedAt: snapshot.observedAt, merchantID: merchantID,
+            templateID: templateID, addressGeneration: addressGeneration, fields: text.mapValues { Data($0.utf8) },
+            addressConfirmed: addressConfirmation == addressContext(snapshot))
+    }
+    private func applyChosenAddress(_ original: MerchantCityAddressChoice.Source, _ place: PublishingPlace) -> Bool {
+        guard addressChoiceSource == original, let snapshot = c.snapshot else { return false }
+        text = MerchantCityAddressChoice.replacingAddress(in: text, with: place)
+        addressGeneration = UUID(); addressConfirmation = addressContext(snapshot)
+        dirty = true; model.cancel(); return true
+    }
     private func binding(_ name: String) -> Binding<String> { Binding(get: { text[name] ?? "" }, set: {
         if Self.addressFields.contains(name), text[name]?.utf8.elementsEqual($0.utf8) != true { addressGeneration = UUID(); addressConfirmation = nil }
         text[name] = $0; dirty = true; model.cancel()
@@ -182,6 +213,16 @@ import SwiftUI
         case .placement:
             let renderedAddress = addressContext(s)
             Section { MerchantCityQuotaSummary(quota: .init(catalog: s.value["catalog"])) }
+            Section {
+                let original = addressChoiceSource
+                let choose: () -> Void = original.map {
+                    addressChoice.openAction($0, provider: placeSearch, current: { addressChoiceSource })
+                } ?? {}
+                Button("publishModes.choosePlace", action: choose).disabled(original == nil || placeSearch == nil)
+                    .accessibilityIdentifier("merchant.cityAddress.choose")
+                if placeSearch == nil { Text("publishModes.mapUnavailable") }
+            }
+
             Section { templates(s); ForEach(["name", "address", "latitude", "longitude", "tags", "coverImg", "cityCode"], id: \.self) { field($0) }
                 Toggle("merchant.content.confirmAddress", isOn: Binding(get: { addressConfirmation == renderedAddress && addressContext(s) == renderedAddress }, set: {
                     guard c.isCurrent, !c.busy, !c.locked, c.review == nil, c.receipt == nil,

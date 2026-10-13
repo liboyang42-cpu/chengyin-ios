@@ -49,7 +49,7 @@ class ClubBanRemovalReturnContracts(unittest.TestCase):
     def test_read_admission_and_all_await_fences_include_specific_owner(self):
         code = self.text('App/ClubGovernanceViews.swift')
         self.assertIn('operation != .bans || !banReads.loading', code)
-        self.assertEqual(code.count('banReadIsCurrent(banAttachment), access.identity == expected'), 3)
+        self.assertEqual(code.count('banReadIsCurrent(banAttachment), settlementReadIsCurrent(settlementAttachment), access.identity == expected'), 3)
         self.assertIn('result = try await banReads.load(context: context, access: access, check: check)', code)
         self.assertIn('banRemovalSource == ticket.source, !Task.isCancelled', code)
     def test_read_context_change_and_actual_departure_retire_inflight_owner(self):
