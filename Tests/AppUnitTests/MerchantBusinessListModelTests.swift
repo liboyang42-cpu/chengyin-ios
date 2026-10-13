@@ -725,3 +725,121 @@ extension MerchantTeamResultRefreshTests {
         XCTAssertEqual(reader.sends, 1)
     }
 }
+
+@MainActor final class MerchantReviewResultRefreshTests: XCTestCase {
+    @MainActor private final class Reader: MerchantBusinessReading {
+        var scope: MerchantBusinessScope? = .init(realm: "synthetic://review-return", accountID: 99001, epoch: 1)
+        var authorizationGeneration: UUID? = UUID()
+        let isConfigured = true, isOfflineExample = true, canExecuteSyntheticMutation = true
+        var queries: [MerchantBusinessQuery] = []
+        var sends = 0, merchantID = 610
+        var action: MerchantReviewReplyAction = .reply
+        var readFailure: MerchantBusinessFailure?, sendFailure: MerchantBusinessFailure?
+        var holdReturn = false
+        var continuation: CheckedContinuation<Void, Never>?
+        var entered: XCTestExpectation?
+        func access() async throws -> MerchantBusinessAccess {
+            var fields = try MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object!
+            fields["merchant"] = .object(["id": .int(merchantID), "name": .string("Synthetic review store")])
+            return try .init(fields)
+        }
+        func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
+            queries.append(query)
+            if sends > 0 {
+                if holdReturn { await withCheckedContinuation { continuation = $0; entered?.fulfill() } }
+                if let readFailure { throw readFailure }
+            }
+            let grant = try await access(); try grant.require(query.permissions)
+            var payload = try MerchantBusinessSyntheticFixtures.payload(query).object!
+            var row = try MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.review).object!
+            row["canReply"] = .bool(action == .reply)
+            row["canEditReply"] = .bool(action == .update || action == .delete)
+            if action == .update || action == .delete { row["merchantReply"] = .string("Original reply") }
+            if sends > 0 { row["version"] = .int(1); row["merchantReply"] = action == .delete ? .null : .string("Server fresh reply") }
+            payload["items"] = .array([.object(row)])
+            return try .init(access: grant, document: .init(query: query, payload: .object(payload)))
+        }
+        func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt {
+            sends += 1
+            if let sendFailure { throw sendFailure }
+            var data: MerchantBusinessObject = ["reviewId": .int(63001), "version": .int(1), "replayed": .bool(false)]
+            data["status"] = .string(action == .report ? "PENDING_PLATFORM_REVIEW" : "VISIBLE")
+            if action == .report { data["auditTaskId"] = .int(77) }
+            return try .init(mutation: mutation, message: "Synthetic review acknowledged", data: .object(data))
+        }
+    }
+    private func setup(_ action: MerchantReviewReplyAction = .reply) async throws -> (Reader, MerchantBusinessViewModel, MerchantBusinessConfirmation) {
+        let r = Reader(); r.action = action
+        let m = MerchantBusinessViewModel(reader: r, journal: MerchantBusinessMemoryIntentStore())
+        m.teamPageAppeared(active: true); await m.load(.reviews(page: 1))
+        m.prepare(.review(id: try .init(63001), version: 0, action: action, content: "Synthetic reply"))
+        return (r, m, try XCTUnwrap(m.coordinator.confirmation))
+    }
+    func testReplyUpdateDeleteAcknowledgementsReadFirstPageAndKeepExactReceipt() async throws {
+        for action in [MerchantReviewReplyAction.reply, .update, .delete] {
+            let (r, m, review) = try await setup(action)
+            m.listFilters.review = .pending; await m.confirm(review)
+            XCTAssertEqual(r.sends, 1); XCTAssertEqual(r.queries, [.reviews(page: 1), .reviews(page: 1), .reviews(page: 1)])
+            XCTAssertEqual(m.coordinator.snapshot?.document.query, .reviews(page: 1))
+            XCTAssertEqual(m.coordinator.snapshot?.document.rows.first?.fields["version"], .int(1))
+            XCTAssertEqual(m.teamReturnReceipt?.message, "Synthetic review acknowledged")
+            XCTAssertEqual(m.listFilters.review, .pending); XCTAssertFalse(m.coordinator.isLocked)
+        }
+    }
+    func testReadFailurePreservesAcknowledgementAndRetryDoesNotSendAgain() async throws {
+        let (r, m, review) = try await setup(); r.readFailure = .malformed
+        await m.confirm(review); let receipt = try XCTUnwrap(m.teamReturnReceipt)
+        XCTAssertNil(m.coordinator.snapshot); XCTAssertNotNil(m.coordinator.failureKey)
+        r.readFailure = nil; await m.load(.reviews(page: 1))
+        XCTAssertEqual(m.teamReturnReceipt, receipt); XCTAssertNotNil(m.coordinator.snapshot)
+        XCTAssertEqual(r.sends, 1); XCTAssertEqual(r.queries.count, 4)
+    }
+    func testUnknownAndCancelledDoNotRefreshOrReleaseWriteLock() async throws {
+        let (r, m, review) = try await setup(); r.sendFailure = .unknown
+        await m.confirm(review); XCTAssertEqual(r.sends, 1); XCTAssertEqual(r.queries.count, 2)
+        XCTAssertTrue(m.coordinator.isLocked); XCTAssertNil(m.teamReturnReceipt)
+        let (r2, m2, review2) = try await setup(); m2.cancel(); await m2.confirm(review2)
+        XCTAssertEqual(r2.sends, 0); XCTAssertEqual(r2.queries.count, 1); XCTAssertNil(m2.teamReturnReceipt)
+    }
+    func testReportKeepsOriginalReceiptWithoutReplyRefresh() async throws {
+        let (r, m, review) = try await setup(.report); await m.confirm(review)
+        XCTAssertEqual(r.queries.count, 2); XCTAssertEqual(r.sends, 1)
+        XCTAssertNotNil(m.coordinator.receipt); XCTAssertNil(m.teamReturnReceipt)
+    }
+    func testBackgroundInterruptedReadOffersReadOnlyRecoveryAndHiddenCannotUseIt() async throws {
+        let (r, m, review) = try await setup(); r.holdReturn = true
+        let held = expectation(description: "return read"); r.entered = held
+        let task = Task { await m.confirm(review) }; await fulfillment(of: [held], timeout: 1)
+        m.teamPageSceneChanged(active: false); r.continuation?.resume(); r.continuation = nil; await task.value
+        XCTAssertNil(m.coordinator.snapshot); XCTAssertNil(m.teamRecoveryID)
+        m.teamPageSceneChanged(active: true); let ticket = try XCTUnwrap(m.teamRecoveryID)
+        r.holdReturn = false; await m.retryTeamRead(ticket)
+        XCTAssertEqual(m.coordinator.snapshot?.document.query, .reviews(page: 1)); XCTAssertEqual(r.sends, 1)
+        m.teamPageDisappeared(); m.teamPageSceneChanged(active: true); let count = r.queries.count
+        await m.retryTeamRead(ticket); XCTAssertEqual(r.queries.count, count)
+    }
+    func testSameScopeDifferentMerchantCannotPublishFreshRowsOrReceipt() async throws {
+        let (r, m, review) = try await setup(); r.holdReturn = true
+        let held = expectation(description: "return read"); r.entered = held
+        let task = Task { await m.confirm(review) }; await fulfillment(of: [held], timeout: 1)
+        r.merchantID = 611; r.continuation?.resume(); r.continuation = nil; await task.value
+        XCTAssertNil(m.coordinator.snapshot); XCTAssertNil(m.teamReturnReceipt)
+        XCTAssertEqual(m.aftercareLoadFailureKey, "merchant.business.stale"); XCTAssertEqual(r.sends, 1)
+    }
+    func testAuthorizationChangeAndDepartureRejectLateAcknowledgedRead() async throws {
+        for departure in [false, true] {
+            let (r, m, review) = try await setup(); r.holdReturn = true
+            let held = expectation(description: "return read"); r.entered = held
+            let task = Task { await m.confirm(review) }; await fulfillment(of: [held], timeout: 1)
+            if departure { m.teamPageDisappeared(); m.invalidate() } else { r.authorizationGeneration = UUID() }
+            r.continuation?.resume(); r.continuation = nil; await task.value
+            XCTAssertNil(m.coordinator.snapshot); XCTAssertNil(m.teamReturnReceipt); XCTAssertEqual(r.sends, 1)
+        }
+    }
+    func testQueryProjectionOnlySupportsOriginalTeamAndReviewReadFamilies() {
+        XCTAssertEqual(MerchantBusinessViewModel.resultRefreshQuery(.reviews(page: 4)), .reviews(page: 1))
+        XCTAssertEqual(MerchantBusinessViewModel.resultRefreshQuery(.operators), .operators)
+        XCTAssertNil(MerchantBusinessViewModel.resultRefreshQuery(.overview))
+        XCTAssertNil(MerchantBusinessViewModel.resultRefreshQuery(.aftercare(.pending, page: 1)))
+    }
+}

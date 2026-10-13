@@ -9,6 +9,7 @@ import SwiftUI
     private(set) var reviewLoadedPages: MerchantReviewLoadedPages?
     private var loadGeneration = 0
     private struct TeamResult {
+        let query: MerchantBusinessQuery
         let id: UUID
         let scope: MerchantBusinessScope
         let authorization: UUID?
@@ -16,6 +17,7 @@ import SwiftUI
         let receipt: MerchantBusinessReceipt
     }
     private struct TeamReadRecovery {
+        let query: MerchantBusinessQuery
         let id: UUID
         let scope: MerchantBusinessScope
         let authorization: UUID?
@@ -30,7 +32,7 @@ import SwiftUI
     }
     func retryTeamRead(_ id: UUID) async {
         guard teamRecoveryID == id, let recovery = teamReadRecovery, !coordinator.isBusy else { return }
-        await load(.operators, appendAftercare: false, expectedTeamRecovery: id,
+        await load(recovery.query, appendAftercare: false, expectedTeamRecovery: id,
                    expectedTeamMerchantID: recovery.merchantID)
     }
     private var teamResult: TeamResult?
@@ -47,7 +49,7 @@ import SwiftUI
         teamPageActive = teamPageVisible && active
         if !teamPageActive {
             if teamPageVisible, let result = teamResult {
-                teamReadRecovery = .init(id: result.id, scope: result.scope,
+                teamReadRecovery = .init(query: result.query, id: result.id, scope: result.scope,
                                          authorization: result.authorization, merchantID: result.merchantID)
             }
             teamResult = nil
@@ -55,6 +57,10 @@ import SwiftUI
         revision += 1
     }
     func teamPageDisappeared() { teamPageVisible = false; teamPageSceneChanged(active: false); teamReadRecovery = nil }
+
+    static func resultRefreshQuery(_ query: MerchantBusinessQuery) -> MerchantBusinessQuery? {
+        switch query { case .operators: return .operators; case .reviews: return .reviews(page: 1); default: return nil }
+    }
 
     private var filterScope: MerchantBusinessScope?
     private var filterMerchantID: Int?
@@ -86,10 +92,12 @@ import SwiftUI
     private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool, appendReviews: Bool = false, expectedTeamResult: UUID? = nil, expectedTeamRecovery: UUID? = nil, expectedTeamMerchantID: Int? = nil) async {
         // A refresh always starts a fresh page-one generation. No old rows survive
         // a refresh, failed replacement, bucket/context change or dismissal.
-        if requested != .operators { teamReadRecovery = nil }
-        if requested != .operators || teamReturnReceipt == nil { teamResult = nil }
+        let resultQuery = Self.resultRefreshQuery(requested)
+        if teamReadRecovery?.query != resultQuery { teamReadRecovery = nil }
+        if teamResult?.query != resultQuery || teamReturnReceipt == nil { teamResult = nil }
         let query: MerchantBusinessQuery
         if case .aftercare = requested, !appendAftercare { query = requested.paged(1) }
+        else if !appendReviews, let result = teamResult, result.query == resultQuery { query = result.query }
         else { query = requested }
         if filterScope != coordinator.reader.scope { listFilters = .init(); filterMerchantID = nil }
         filterScope = coordinator.reader.scope
@@ -170,24 +178,28 @@ import SwiftUI
     func cancel() { coordinator.cancelConfirmation(); revision += 1 }
     func confirm(_ review: MerchantBusinessConfirmation) async {
         let generation = loadGeneration
-        let eligible: Bool
+        let returnQuery: MerchantBusinessQuery?
         switch review.mutation {
-        case .operatorRole, .removeOperator, .revokeInvite: eligible = review.baseline.document.query == .operators
-        default: eligible = false
+        case .operatorRole, .removeOperator, .revokeInvite:
+            returnQuery = review.baseline.document.query == .operators ? .operators : nil
+        case .review(_, _, let action, _) where action != .report:
+            if case .reviews = review.baseline.document.query { returnQuery = .reviews(page: 1) }
+            else { returnQuery = nil }
+        default: returnQuery = nil
         }
         let ownsReview = coordinator.confirmation == review
         revision += 1; await coordinator.confirm(review); revision += 1
-        guard eligible, ownsReview, generation == loadGeneration,
+        guard let returnQuery, ownsReview, generation == loadGeneration,
               teamPageVisible, teamPageActive, !Task.isCancelled,
               coordinator.reader.scope == review.scope,
               coordinator.reader.authorizationGeneration == review.authorizationGeneration,
               !coordinator.isBusy, !coordinator.isLocked, coordinator.failureKey == nil,
               let receipt = coordinator.receipt else { return }
-        teamResult = .init(id: review.id, scope: review.scope, authorization: review.authorizationGeneration,
+        teamResult = .init(query: returnQuery, id: review.id, scope: review.scope, authorization: review.authorizationGeneration,
                            merchantID: review.baseline.access.merchantID, receipt: receipt)
         // The existing coordinator has already confirmed the response. This is one read,
         // never a retry of the acknowledged mutation. Read errors retain the result.
-        await load(.operators, appendAftercare: false, expectedTeamResult: review.id)
+        await load(returnQuery, appendAftercare: false, expectedTeamResult: review.id)
     }
     func invalidate() {
         teamReadRecovery = nil; teamResult = nil
@@ -342,7 +354,7 @@ import SwiftUI
                 }
             }
             if state.isLocked { Text("merchant.business.unknownResult").accessibilityIdentifier("merchant.business.locked") }
-            if query == .operators, let recoveryID = model.teamRecoveryID {
+            if MerchantBusinessViewModel.resultRefreshQuery(query) != nil, let recoveryID = model.teamRecoveryID {
                 Section {
                     Text("merchant.business.stale")
                     Button("action.retry") { Task { await model.retryTeamRead(recoveryID) } }

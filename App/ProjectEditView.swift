@@ -48,6 +48,7 @@ import SwiftUI
     private var loadedSession: ProjectEditSession?
     private var generation = 0
     private var autosave: Task<Void, Never>?
+    private var confirmedLocalExit: (incarnation: UUID, revision: Int, session: ProjectEditSession?)?
     private var observedDraftRevision = -1
     private var observedDraftBytes: Data?
     @Published private(set) var incomingSeed: ProjectEditDraft?
@@ -176,6 +177,14 @@ import SwiftUI
         draft = value; acknowledgeDraftObservation(); revision += 1; return true
     }
     func saveLocal() { guard canSaveLocal else { return }; if coordinator.saveLocal(draft) { acknowledgeDraftObservation() }; revision += 1 }
+    /// The normal Back decision needs the actual existing local-save result.
+    func saveLocalForExit() -> Bool {
+        autosave?.cancel()
+        guard canSaveLocal else { return false }
+        let saved = coordinator.saveLocal(draft)
+        if saved { acknowledgeDraftObservation() }; revision += 1; return saved
+    }
+    func confirmLocalExit() { autosave?.cancel(); confirmedLocalExit = (editorIncarnation, draftMutationRevision, coordinator.session) }
     func restore() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); autosave?.cancel(); if let value = coordinator.restoredDraft() { draft = value }; acknowledgeDraftObservation(); revision += 1 }
     func discard() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); autosave?.cancel(); coordinator.discardLocalDraft(); acknowledgeDraftObservation(); revision += 1 }
     func review() {
@@ -204,7 +213,13 @@ import SwiftUI
         revision += 1
     }
     func check() async { guard ownsVisit else { return }; let stamp = generation; busy = true; await coordinator.checkOutcome(); guard generation == stamp, ownsVisit else { return }; busy = false; revision += 1 }
-    func leave() { if visit == nil { leftBeforeInitialLoad = true }; guard ownsVisit else { return }; generation += 1; editorIncarnation = UUID(); autosave?.cancel(); saveLocal(); coordinator.leaveScreen(); cancelReview(); busy = false; revision += 1 }
+    func leave() {
+        if visit == nil { leftBeforeInitialLoad = true }; guard ownsVisit else { return }
+        let confirmed = confirmedLocalExit.map { $0.incarnation == editorIncarnation && $0.revision == draftMutationRevision && $0.session == coordinator.session } == true
+        confirmedLocalExit = nil; generation += 1; editorIncarnation = UUID(); autosave?.cancel()
+        if !confirmed { saveLocal() }
+        coordinator.leaveScreen(); cancelReview(); busy = false; revision += 1
+    }
     func chapter(_ id: String) -> Binding<ProjectEditChapter> {
         Binding(get: { self.draft.chapters.first { $0.id == id } ?? .init() }, set: { value in
             guard self.fullEdit, let i = self.draft.chapters.firstIndex(where: { $0.id == id }) else { return }; self.draft.chapters[i] = value
@@ -399,6 +414,12 @@ import SwiftUI
         }
         .task(id: sessionRevision) { await model.load() }
         .modifier(ProjectEditAutosaveObservation(model: model))
+        .modifier(ProjectEditExitGuard(model: model, overlaysOpen: {
+            discardConfirmation || showingCopy || submittedResource != nil || submission != nil ||
+                modeReview.presentation != nil || ownedCover.presentation != nil || approvedRelease.presentation != nil ||
+                reviewRequest.presentation != nil || starter.destination != nil || pending.destination != nil ||
+                issueNavigation.destination != nil || model.confirmation != nil
+        }))
         .modifier(ProjectEditIssueNavigationPresentation(controller: issueNavigation))
         .onChange(of: model.revision) { _, _ in
             if model.coordinator.state == .acknowledged, let next = model.submittedHandoff, next.id != handledSubmission {
