@@ -47,15 +47,26 @@ final class ProfileEditFlowTests: XCTestCase {
         field.tap(); field.typeText(" Updated"); applyField()
         app.swipeUp()
         app.buttons["profile.edit.reload"].tap()
+        // A dirty draft requires explicit reload consent before the second read can fail.
+        let reload = app.buttons["profile.reloadDiscard.confirm"]
+        XCTAssertTrue(reload.waitForExistence(timeout: 5), app.debugDescription)
+        reload.tap()
         let status = app.staticTexts["profile.edit.status"]
-        XCTAssertTrue(status.waitForExistence(timeout: 10))
-        XCTAssertTrue(status.label.contains("unsaved changes are kept"))
-        XCTAssertTrue(app.buttons["profile.fieldEdit.open.name"].label.contains("Trail Friend Updated"))
-        XCTAssertTrue(app.buttons["profile.edit.review"].isEnabled)
-        app.buttons["profile.edit.review"].tap()
+        XCTAssertTrue(status.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(status.label.contains("unsaved changes are kept"), app.debugDescription)
+        // These fields and actions are different rows of a scrolling Form.
+        app.swipeDown()
+        let name = app.buttons["profile.fieldEdit.open.name"]
+        XCTAssertTrue(name.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(name.label.contains("Trail Friend Updated"), app.debugDescription)
+        app.swipeUp()
+        let review = app.buttons["profile.edit.review"]
+        XCTAssertTrue(review.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(review.isEnabled, app.debugDescription)
+        review.tap()
         confirm()
-        XCTAssertTrue(status.waitForExistence(timeout: 10))
-        XCTAssertEqual(status.label, "Your profile was saved and verified.")
+        XCTAssertTrue(status.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertEqual(status.label, "Your profile was saved and verified.", app.debugDescription)
     }
     func testConfirmedProfileSaveIsReadBack() {
         launch("success"); editAndReview(); confirm()
@@ -84,8 +95,12 @@ final class ProfileEditFlowTests: XCTestCase {
         app.buttons["profile.fieldEdit.cancel"].tap()
         let reopened = openField("name"); XCTAssertEqual(reopened.value as? String, original)
         reopened.tap(); reopened.typeText(" Staged"); applyField()
-        XCTAssertTrue(app.buttons["profile.fieldEdit.open.name"].label.contains("Staged"))
-        XCTAssertTrue(app.buttons["profile.edit.review"].isEnabled)
+        XCTAssertTrue(app.buttons["profile.fieldEdit.open.name"].label.contains("Staged"), app.debugDescription)
+        // Match the normal save flow: expose the lower Form action after applying the field.
+        app.swipeUp()
+        let review = app.buttons["profile.edit.review"]
+        XCTAssertTrue(review.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(review.isEnabled, app.debugDescription)
     }
     func testIntroductionCancelDoesNotRevertPreviouslyStagedNickname() {
         launch("success")

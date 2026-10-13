@@ -144,7 +144,7 @@ final class MerchantMarketingUITests: XCTestCase {
                 options.element(boundBy: options.count - 1).tap()
                 // The unavailable error is shared by all dormant sections. Require the
                 // actual selection and unobstructed picker before starting another one.
-                let expectedPickerLabel = "\(language == "en" ? "Section" : "栏目"), \(section)"
+                let expectedPickerLabel = language == "en" ? "Section, \(section)" : "栏目、\(section)"
                 let selectionSettled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
                     guard picker.exists else { return false }
                     let selected = picker.label == expectedPickerLabel || (picker.value as? String) == section
