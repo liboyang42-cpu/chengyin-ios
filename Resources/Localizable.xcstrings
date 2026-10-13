@@ -170853,6 +170853,374 @@
           }
         }
       }
+    },
+    "coopflow.circle.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给详情"
+          }
+        }
+      }
+    },
+    "coopflow.circle.name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给名称"
+          }
+        }
+      }
+    },
+    "coopflow.circle.kind": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给类型"
+          }
+        }
+      }
+    },
+    "coopflow.circle.kind.SERVICE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regular service"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常规服务"
+          }
+        }
+      }
+    },
+    "coopflow.circle.kind.PRODUCT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing product"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正常商品"
+          }
+        }
+      }
+    },
+    "coopflow.circle.kind.EVENT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有活动"
+          }
+        }
+      }
+    },
+    "coopflow.circle.kind.ZERO_BROWSE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free browsing or trial"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免费浏览或试用"
+          }
+        }
+      }
+    },
+    "coopflow.circle.price": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regular price (CNY)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常规价格（人民币）"
+          }
+        }
+      }
+    },
+    "coopflow.circle.duration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration in minutes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时长（分钟）"
+          }
+        }
+      }
+    },
+    "coopflow.circle.hours": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用时段"
+          }
+        }
+      }
+    },
+    "coopflow.circle.minPeople": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum participants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最少人数"
+          }
+        }
+      }
+    },
+    "coopflow.circle.maxPeople": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum participants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多人数"
+          }
+        }
+      }
+    },
+    "coopflow.circle.split": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow separate bookings or turns"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许分开预约或轮换"
+          }
+        }
+      }
+    },
+    "coopflow.circle.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customer action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与方式"
+          }
+        }
+      }
+    },
+    "coopflow.circle.action.NAVIGATE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navigate to store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导航到店"
+          }
+        }
+      }
+    },
+    "coopflow.circle.action.BOOK": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Booking entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预约入口"
+          }
+        }
+      }
+    },
+    "coopflow.circle.action.BUY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买入口"
+          }
+        }
+      }
+    },
+    "coopflow.circle.actionValue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action address or reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与地址或引用"
+          }
+        }
+      }
+    },
+    "coopflow.circle.benefit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional benefit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附加权益（可选）"
+          }
+        }
+      }
+    },
+    "coopflow.circle.benefitRules": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benefit source, validity and redemption rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权益来源、有效期与核销规则"
+          }
+        }
+      }
+    },
+    "coopflow.circle.merchantRules": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant participation rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户参与规则"
+          }
+        }
+      }
+    },
+    "coopflow.circle.complete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete the supply details. Single-person capacity requires separate bookings; benefits require their terms."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请完整填写供给信息；单人容量需允许分开预约，附加权益需填写规则。"
+          }
+        }
+      }
+    },
+    "coopflow.circle.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local preview only. This description does not reserve stock, promise a reward, open links or send an application."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅本地预览。本描述不会预留库存、承诺奖励、打开链接或发送申请。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

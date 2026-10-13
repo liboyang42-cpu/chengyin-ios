@@ -150,25 +150,47 @@ struct CoopFlowHandleEditor: View {
     }
 }
 /// Context is supplied only by a current, approved merchant chapter application.
+struct CoopCircleSupplyDraft: Equatable {
+    var name = "", price = "", duration = "", hours = "", minPeople = "1", maxPeople = "1"
+    var kind: CoopFlowCircleSupplyProfile.SupplyKind = .service
+    var split = false
+    var action: CoopFlowCircleSupplyProfile.ActionType = .navigate
+    var actionValue = "", benefit = "", benefitRules = "", merchantRules = ""
+    var profile: CoopFlowCircleSupplyProfile? {
+        guard price.range(of: #"^[0-9]+(?:\.[0-9]+)?$"#, options: .regularExpression) != nil,
+              let price = Decimal(string: price, locale: Locale(identifier: "en_US_POSIX")),
+              let duration = Int(duration), let min = Int(minPeople), let max = Int(maxPeople) else { return nil }
+        return try? .init(supplyName: name, supplyKind: kind, regularPrice: price, durationMinutes: duration,
+            availableHours: hours, minPeople: min, maxPeople: max, splitBookingAllowed: split,
+            actionType: action, actionValue: actionValue, optionalBenefit: benefit, benefitRules: benefitRules, merchantRules: merchantRules)
+    }
+}
+
 struct CoopFlowOfferEditor: View {
     let context: CoopFlowOfferContext
     let eligibleTemplates: [CoopFlowJSON]
+    var circleMode = false
+    var sourceIsCurrent: () -> Bool = { true }
+    @State private var circle = CoopCircleSupplyDraft()
     @State private var selectedTemplate = 0
     @State private var quota = ""
     @State private var fee = ""
     private var draft: CoopFlowOfferDraft? {
+        guard sourceIsCurrent(), !circleMode || circle.profile != nil else { return nil }
+        let profile = circleMode ? circle.profile : nil
         switch context.termsMode {
-        case .traffic: return try? CoopFlowOfferDraft(context: context)
+        case .traffic: return try? CoopFlowOfferDraft(context: context, circleSupplyProfile: profile)
         case .perk:
             guard eligibleTemplates.contains(where: { $0["id"].integer == selectedTemplate && (CoopFlowMoney($0["retailValue"]).amount ?? 0) > 0 && ($0["quota"].integer ?? 0) > 0 }) else { return nil }
-            return try? CoopFlowOfferDraft(context: context, templateID: selectedTemplate, quota: Int(quota))
-        case .revshare: return try? CoopFlowOfferDraft(context: context, perHeadFee: Decimal(string: fee, locale: Locale(identifier: "en_US_POSIX")))
+            return try? CoopFlowOfferDraft(context: context, templateID: selectedTemplate, quota: Int(quota), circleSupplyProfile: profile)
+        case .revshare: return try? CoopFlowOfferDraft(context: context, perHeadFee: Decimal(string: fee, locale: Locale(identifier: "en_US_POSIX")), circleSupplyProfile: profile)
         }
     }
     var body: some View {
         Form {
             LabeledContent("coopflow.field.chapterId", value: String(context.chapterID))
             LabeledContent("coopflow.field.termsMode", value: context.termsMode.rawValue)
+            if circleMode { circleFields }
             if context.termsMode == .perk {
                 Picker("coopflow.templates", selection: $selectedTemplate) {
                     Text("coopflow.choose").tag(0)
@@ -181,11 +203,38 @@ struct CoopFlowOfferEditor: View {
                 TextField("coopflow.field.quotaTotal", text: $quota).keyboardType(.numberPad)
             }
             if context.termsMode == .revshare { TextField("coopflow.field.perHeadFee", text: $fee).keyboardType(.decimalPad) }
-            if let draft { NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: draft.mutation) } }
+            if let draft { NavigationLink("coopflow.reviewAction") {
+                if sourceIsCurrent() { CoopFlowRequestPreview(operation: draft.mutation) }
+                else { Text("coopflow.invalid") }
+            } }
+            if circleMode && circle.profile == nil { Text("coopflow.circle.complete") }
             Text("coopflow.offer.rules")
             CoopFlowSafetyNotice()
-        }.navigationTitle("coopflow.offer.title")
+        }.disabled(!sourceIsCurrent()).navigationTitle("coopflow.offer.title")
     }
+    @ViewBuilder private var circleFields: some View {
+        Section("coopflow.circle.title") {
+            TextField("coopflow.circle.name", text: $circle.name)
+            Picker("coopflow.circle.kind", selection: $circle.kind) {
+                ForEach(CoopFlowCircleSupplyProfile.SupplyKind.allCases, id: \.rawValue) { value in Text(LocalizedStringKey("coopflow.circle.kind." + value.rawValue)).tag(value) }
+            }
+            TextField("coopflow.circle.price", text: $circle.price).keyboardType(.decimalPad)
+            TextField("coopflow.circle.duration", text: $circle.duration).keyboardType(.numberPad)
+            TextField("coopflow.circle.hours", text: $circle.hours)
+            TextField("coopflow.circle.minPeople", text: $circle.minPeople).keyboardType(.numberPad)
+            TextField("coopflow.circle.maxPeople", text: $circle.maxPeople).keyboardType(.numberPad)
+            Toggle("coopflow.circle.split", isOn: $circle.split)
+            Picker("coopflow.circle.action", selection: $circle.action) {
+                ForEach(CoopFlowCircleSupplyProfile.ActionType.allCases, id: \.rawValue) { value in Text(LocalizedStringKey("coopflow.circle.action." + value.rawValue)).tag(value) }
+            }
+            TextField("coopflow.circle.actionValue", text: $circle.actionValue)
+            TextField("coopflow.circle.benefit", text: $circle.benefit)
+            TextField("coopflow.circle.benefitRules", text: $circle.benefitRules, axis: .vertical)
+            TextField("coopflow.circle.merchantRules", text: $circle.merchantRules, axis: .vertical)
+            Text("coopflow.circle.localOnly").font(.footnote)
+        }
+    }
+
 }
 /// A bounded composition sheet; the immutable local review pushes within this same stack.
 @MainActor struct CoopFlowInviteEditor: View {

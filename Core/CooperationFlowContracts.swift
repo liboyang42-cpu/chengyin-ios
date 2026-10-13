@@ -151,7 +151,15 @@ public enum CoopFlowRequestReviewValue: Equatable {
 public struct CoopFlowRequestReviewRow: Identifiable, Equatable {
     public let id: String
     public let value: CoopFlowRequestReviewValue
-    public var labelKey: String { "coopflow.field." + id }
+    public var labelKey: String {
+        let labels = ["supplyName": "name", "supplyKind": "kind", "regularPrice": "price", "durationMinutes": "duration",
+                      "availableHours": "hours", "minPeople": "minPeople", "maxPeople": "maxPeople", "splitBookingAllowed": "split",
+                      "actionType": "action", "actionValue": "actionValue", "optionalBenefit": "benefit", "benefitRules": "benefitRules", "merchantRules": "merchantRules"]
+        if id.hasPrefix("circleSupplyProfile."), let label = labels[String(id.dropFirst("circleSupplyProfile.".count))] {
+            return "coopflow.circle." + label
+        }
+        return "coopflow.field." + id
+    }
 }
 
 /// A local presentation snapshot, never a submission grant or a replacement fingerprint.
@@ -177,7 +185,20 @@ public struct CoopFlowRequestReviewContext: Equatable {
         // Show who/what first; retain every remaining serialized field, including source IDs.
         let priority = ["toId", "toType", "inviteType", "shareMode", "fixedFee", "scope", "originApplyId", "topicId"]
         let keys = priority.filter { fields[$0] != nil } + fields.keys.filter { !priority.contains($0) }.sorted()
-        self.rows = keys.map { key in
+        self.rows = keys.flatMap { key -> [CoopFlowRequestReviewRow] in
+            if key == "circleSupplyProfile", case .enrollOffer = operation,
+               let profileRaw = fields[key], case .object(let profile) = profileRaw {
+                // Only the validated fixed supply schema is expanded, never arbitrary objects.
+                return ["supplyName", "supplyKind", "regularPrice", "durationMinutes", "availableHours", "minPeople", "maxPeople",
+                        "splitBookingAllowed", "actionType", "actionValue", "optionalBenefit", "benefitRules", "merchantRules"].map { field in
+                    let raw = profile[field]?.text ?? ""
+                    let value: CoopFlowRequestReviewValue
+                    if field == "supplyKind" { value = .localized(key: "coopflow.circle.kind." + raw, rawValue: raw) }
+                    else if field == "actionType" { value = .localized(key: "coopflow.circle.action." + raw, rawValue: raw) }
+                    else { value = .text(raw) }
+                    return .init(id: "circleSupplyProfile." + field, value: value)
+                }
+            }
             let raw = fields[key] ?? .null
             var value: CoopFlowRequestReviewValue = raw.text.map(CoopFlowRequestReviewValue.text)
                 ?? raw.rows.map { .text($0.compactMap(\.text).joined(separator: ", ")) } ?? .notProvided
@@ -214,7 +235,7 @@ public struct CoopFlowRequestReviewContext: Equatable {
                 }
             default: break
             }
-            return CoopFlowRequestReviewRow(id: key, value: value)
+            return [CoopFlowRequestReviewRow(id: key, value: value)]
         }
     }
 }
@@ -303,7 +324,8 @@ public enum CoopFlowMutation: Equatable {
             b = fields.filter { !["id", "topicId", "merchantId", "quotaUsed", "status"].contains($0.key) }
             guard (b["chapterId"]?.integer ?? 0) > 0, let mode = b["termsMode"]?.text,
                   ["PERK", "REVSHARE", "TRAFFIC"].contains(mode),
-                  Set(b.keys).isSubset(of: ["chapterId", "termsMode", "perkTemplateId", "quotaTotal", "perHeadFee"]) else { throw CoopFlowFailure.invalid("offerShape") }
+                  Set(b.keys).isSubset(of: ["chapterId", "termsMode", "perkTemplateId", "quotaTotal", "perHeadFee", "circleSupplyProfile"]) else { throw CoopFlowFailure.invalid("offerShape") }
+            if let profile = b["circleSupplyProfile"] { b["circleSupplyProfile"] = try CoopFlowCircleSupplyProfile(fields: profile).fields }
             if mode == "PERK" {
                 guard (b["perkTemplateId"]?.integer ?? 0) > 0, (b["quotaTotal"]?.integer ?? 0) > 0, b["perHeadFee"] == nil else { throw CoopFlowFailure.invalid("perk") }
             } else if mode == "REVSHARE" {
@@ -335,25 +357,84 @@ public struct CoopFlowOfferContext: Equatable {
         self.chapterID = chapterID; self.termsMode = termsMode; self.offerID = offerID
     }
 }
+/// A local supply description. It does not reserve inventory or authorize an operation.
+public struct CoopFlowCircleSupplyProfile: Equatable {
+    public enum SupplyKind: String, CaseIterable { case service = "SERVICE", product = "PRODUCT", event = "EVENT", zeroBrowse = "ZERO_BROWSE" }
+    public enum ActionType: String, CaseIterable { case navigate = "NAVIGATE", book = "BOOK", buy = "BUY" }
+    public let supplyName: String
+    public let supplyKind: SupplyKind
+    public let regularPrice: Decimal
+    public let durationMinutes: Int
+    public let availableHours: String
+    public let minPeople: Int
+    public let maxPeople: Int
+    public let splitBookingAllowed: Bool
+    public let actionType: ActionType
+    public let actionValue: String
+    public let optionalBenefit: String
+    public let benefitRules: String
+    public let merchantRules: String
+    public init(supplyName: String, supplyKind: SupplyKind, regularPrice: Decimal, durationMinutes: Int,
+                availableHours: String, minPeople: Int, maxPeople: Int, splitBookingAllowed: Bool,
+                actionType: ActionType, actionValue: String, optionalBenefit: String, benefitRules: String, merchantRules: String) throws {
+        func trimmed(_ value: String) -> String { value.trimmingCharacters(in: .whitespacesAndNewlines) }
+        guard !trimmed(supplyName).isEmpty, !regularPrice.isNaN, regularPrice >= 0,
+              durationMinutes > 0, !trimmed(availableHours).isEmpty, minPeople > 0, maxPeople >= minPeople,
+              maxPeople >= 2 || splitBookingAllowed, !trimmed(actionValue).isEmpty,
+              trimmed(optionalBenefit).isEmpty || !trimmed(benefitRules).isEmpty,
+              !trimmed(merchantRules).isEmpty else { throw CoopFlowFailure.invalid("circleSupplyProfile") }
+        self.supplyName = trimmed(supplyName); self.supplyKind = supplyKind; self.regularPrice = regularPrice
+        self.durationMinutes = durationMinutes; self.availableHours = trimmed(availableHours)
+        self.minPeople = minPeople; self.maxPeople = maxPeople; self.splitBookingAllowed = splitBookingAllowed
+        self.actionType = actionType; self.actionValue = trimmed(actionValue)
+        self.optionalBenefit = trimmed(optionalBenefit); self.benefitRules = trimmed(benefitRules); self.merchantRules = trimmed(merchantRules)
+    }
+    public var fields: CoopFlowJSON {
+        .object(["supplyName": .string(supplyName), "supplyKind": .string(supplyKind.rawValue), "regularPrice": .number(regularPrice),
+                 "durationMinutes": .id(durationMinutes), "availableHours": .string(availableHours), "minPeople": .id(minPeople),
+                 "maxPeople": .id(maxPeople), "splitBookingAllowed": .id(splitBookingAllowed ? 1 : 0),
+                 "actionType": .string(actionType.rawValue), "actionValue": .string(actionValue),
+                 "optionalBenefit": .string(optionalBenefit), "benefitRules": .string(benefitRules), "merchantRules": .string(merchantRules)])
+    }
+    public init(fields: CoopFlowJSON) throws {
+        guard case .object(let values) = fields,
+              Set(values.keys) == Set(["supplyName", "supplyKind", "regularPrice", "durationMinutes", "availableHours", "minPeople", "maxPeople", "splitBookingAllowed", "actionType", "actionValue", "optionalBenefit", "benefitRules", "merchantRules"]),
+              let kind = SupplyKind(rawValue: fields["supplyKind"].text ?? ""),
+              let action = ActionType(rawValue: fields["actionType"].text ?? ""),
+              case .number(let price) = fields["regularPrice"],
+              let duration = fields["durationMinutes"].integer, let min = fields["minPeople"].integer,
+              let max = fields["maxPeople"].integer, let split = fields["splitBookingAllowed"].integer, [0, 1].contains(split),
+              case .string(let name) = fields["supplyName"], case .string(let hours) = fields["availableHours"],
+              case .string(let value) = fields["actionValue"], case .string(let benefit) = fields["optionalBenefit"],
+              case .string(let benefitRules) = fields["benefitRules"], case .string(let rules) = fields["merchantRules"]
+        else { throw CoopFlowFailure.invalid("circleSupplyProfile") }
+        try self.init(supplyName: name, supplyKind: kind, regularPrice: price, durationMinutes: duration,
+            availableHours: hours, minPeople: min, maxPeople: max, splitBookingAllowed: split == 1,
+            actionType: action, actionValue: value, optionalBenefit: benefit, benefitRules: benefitRules, merchantRules: rules)
+    }
+}
+
 public struct CoopFlowOfferDraft: Equatable {
     public let context: CoopFlowOfferContext
     public let templateID: Int?
     public let quota: Int?
     public let perHeadFee: Decimal?
-    public init(context: CoopFlowOfferContext, templateID: Int? = nil, quota: Int? = nil, perHeadFee: Decimal? = nil) throws {
+    public let circleSupplyProfile: CoopFlowCircleSupplyProfile?
+    public init(context: CoopFlowOfferContext, templateID: Int? = nil, quota: Int? = nil, perHeadFee: Decimal? = nil, circleSupplyProfile: CoopFlowCircleSupplyProfile? = nil) throws {
         guard context.offerID == nil else { throw CoopFlowFailure.invalid("offerAlreadyActive") }
         switch context.termsMode {
         case .perk: guard (templateID ?? 0) > 0, (quota ?? 0) > 0, perHeadFee == nil else { throw CoopFlowFailure.invalid("perk") }
         case .revshare: guard let fee = perHeadFee, fee >= 0, templateID == nil, quota == nil else { throw CoopFlowFailure.invalid("perHeadFee") }
         case .traffic: guard templateID == nil, quota == nil, perHeadFee == nil else { throw CoopFlowFailure.invalid("traffic") }
         }
-        self.context = context; self.templateID = templateID; self.quota = quota; self.perHeadFee = perHeadFee
+        self.context = context; self.templateID = templateID; self.quota = quota; self.perHeadFee = perHeadFee; self.circleSupplyProfile = circleSupplyProfile
     }
     public var mutation: CoopFlowMutation {
         var fields: [String: CoopFlowJSON] = ["chapterId": .id(context.chapterID), "termsMode": .string(context.termsMode.rawValue)]
         if let templateID { fields["perkTemplateId"] = .id(templateID) }
         if let quota { fields["quotaTotal"] = .id(quota) }
         if let perHeadFee { fields["perHeadFee"] = .number(perHeadFee) }
+        if let circleSupplyProfile { fields["circleSupplyProfile"] = circleSupplyProfile.fields }
         return .enrollOffer(fields: fields)
     }
 }

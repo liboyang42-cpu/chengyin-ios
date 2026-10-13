@@ -18648,6 +18648,7 @@
 				"4D9C6686365856620DB72DC4",
 				"9AF1BB84BAB59E879FA9E6F5",
 				"B5058DF65D3D74DF7D0DCA4F",
+				"AF7F7AE7EEB8EEF8B60F59DC",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -26449,6 +26450,7 @@
 				"B3FC76D8B4FB6200D761A0A2",
 				"DD1E6A28AAD04ECCFD80C81F",
 				"86C81D670A208C08D8BCCECC",
+				"F19AD6AB6061A056876C6721",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -28190,6 +28192,16 @@
 		"B0BAE0EAA77F2287BC231598" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "B5058DF65D3D74DF7D0DCA4F";
+		};
+		"AF7F7AE7EEB8EEF8B60F59DC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/MerchantCircleSupplyDraftTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"F19AD6AB6061A056876C6721" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "AF7F7AE7EEB8EEF8B60F59DC";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";
