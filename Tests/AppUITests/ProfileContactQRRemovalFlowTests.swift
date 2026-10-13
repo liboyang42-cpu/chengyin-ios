@@ -44,7 +44,11 @@ final class ProfileContactQRRemovalFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["media.gallery.position"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["media.gallery.position"].label, "1 / 1")
         app.buttons["media.gallery.close"].tap(); XCTAssertTrue(app.buttons["profile.contactQR.remove"].exists)
-        app.buttons["profile.contactQR.cancel"].tap(); XCTAssertFalse(app.buttons["profile.edit.review"].isEnabled)
+        app.buttons["profile.contactQR.cancel"].tap()
+        let review = app.buttons["profile.edit.review"]
+        if !review.isHittable { app.swipeUp() }
+        XCTAssertTrue(review.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(review.isEnabled)
     }
     func testSwipeDismissDoesNotStageLocalRemoval() {
         launch(); openQR(); app.buttons["profile.contactQR.remove"].tap()

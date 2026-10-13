@@ -11,6 +11,7 @@ import SwiftUI
     var weeklyPointsAccess: ProfileWeeklyPointsAccess? = nil
     var selfMedalsReader: (any ProfileReading)? = nil
     var selfEditAccess: ProfileSelfEditAccess? = nil
+    var selfEditDiagnostics: (@MainActor (ProfileSelfEditTicket?, ProfileSelfEditTicket, ProfileSelfEditContext?) -> String)? = nil
     var localCoverOwner: ProfileLocalCoverOwner? = nil
     var isCurrent: @MainActor () -> Bool = { true }
     private enum Tab: String, CaseIterable { case posts, achievements, about, projects, orders }
@@ -24,6 +25,10 @@ import SwiftUI
         return Binding(get: { selfEditNavigation.ticket }, set: { next in
             if next == nil, let captured { selfEditNavigation.finish(captured.id, context: selfEditContext) }
         })
+    }
+    private func selfEditDiagnostic(for ticket: ProfileSelfEditTicket) -> (@MainActor () -> String)? {
+        guard let selfEditDiagnostics else { return nil }
+        return { selfEditDiagnostics(selfEditNavigation.ticket, ticket, selfEditContext) }
     }
     var body: some View {
         List {
@@ -128,7 +133,8 @@ import SwiftUI
         }.appNavigationTitle("social.profile").navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: selfEditBinding) { ticket in
                 ProfileSelfEditDestination(ticket: ticket, access: selfEditAccess,
-                    isCurrent: { selfEditNavigation.isCurrent(ticket, context: selfEditContext) })
+                    isCurrent: { selfEditNavigation.isCurrent(ticket, context: selfEditContext) },
+                    diagnosticText: selfEditDiagnostic(for: ticket))
             }
             .accessibilityIdentifier("social.profile")
             .onChange(of: selfOrdersAccess?.context(memberID: memberID, social: reader, isCurrent: isCurrent())) { _, context in

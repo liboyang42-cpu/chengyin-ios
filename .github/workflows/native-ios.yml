@@ -1,8 +1,5 @@
 name: Current native checks
 on:
-  pull_request:
-  push:
-    branches: [main, migration/native-ios]
   workflow_dispatch:
     inputs:
       mode:
@@ -160,6 +157,14 @@ jobs:
             ${{ runner.temp }}/current-native/*.json
             ${{ runner.temp }}/current-native/*.stdout
           if-no-files-found: error
+          retention-days: 1
+      - name: Preserve bounded synthetic failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-ui-failure-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-ui-${{ matrix.index }}
+          path: ${{ runner.temp }}/current-ui-failure-evidence/
+          if-no-files-found: ignore
           retention-days: 1
   platforms:
     needs: [controls, native, ui]

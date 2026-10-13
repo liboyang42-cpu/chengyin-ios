@@ -13,8 +13,8 @@ import XCTest
     }
     private func tap(_ id: String, in app: XCUIApplication, fixed: Bool = false) {
         let button = app.buttons[id]
-        XCTAssertTrue(button.waitForExistence(timeout: 5), app.debugDescription)
         if !fixed { XCTAssertTrue(revealFixtureElement(button, in: app, maximumSwipes: 50), app.debugDescription) }
+        XCTAssertTrue(button.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(app.buttons.matching(identifier: id).count, 1); XCTAssertTrue(button.isEnabled && button.isHittable)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(button.frame)); button.tap()
     }

@@ -33,6 +33,12 @@ final class PlayRouteMapContinuationFlowTests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Journey runtime"].waitForExistence(timeout: 5), app.debugDescription)
         openMap(); XCTAssertTrue(app.staticTexts["Synthetic second-account stop"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Synthetic current stop"].exists)
+        // Keep the footer gesture in the stop list rather than the interactive map.
+        let toggleMap = app.buttons["playRoute.toggleMap"]
+        XCTAssertTrue(toggleMap.exists, app.debugDescription)
+        XCTAssertTrue(toggleMap.isEnabled, app.debugDescription)
+        XCTAssertTrue(toggleMap.isHittable, app.debugDescription)
+        toggleMap.tap()
         tap("playRoute.back"); openMap()
         XCTAssertTrue(app.navigationBars["Route map"].exists); XCTAssertFalse(app.navigationBars["Journey task"].exists)
         app.terminate(); launch(); openMap()

@@ -215,7 +215,23 @@ final class ProfileEditModel: ObservableObject {
         draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures, casePictureSubset: draft.casePictureSubset)
     }
     func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }
-    func retireAvatar() { retireTextEdit(); retireSavedReturn(); cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
+    func retireAvatar() { retireTextEdit(); retireAvatarResources() }
+    /// App suspension is not an explicit cancellation of same-owner text scratch.
+    /// Removal/media editors retain the stricter retirement behavior.
+    func suspendForBackground() {
+        let retainsText: Bool
+        if let edit = textEdit, [.name, .introduction, .caseIntroduction].contains(edit.field),
+           edit.identity == coordinator.identity, edit.viewerRevision == coordinator.viewerRevision,
+           edit.generation == generation, edit.modelRevision == revision,
+           edit.draftRevision == avatarDraftRevision, Self.sameDraft(edit.draft, draft),
+           let snapshot = coordinator.snapshot, Self.sameSnapshot(edit.snapshot, snapshot) {
+            retainsText = true
+        } else { retainsText = false }
+        if !retainsText { retireTextEdit() }
+        // The existing confirmTextEdit avatarActive guard denies late Apply while suspended.
+        retireAvatarResources()
+    }
+    private func retireAvatarResources() { retireSavedReturn(); cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
     func activateAvatar() { avatarActive = true }
     private func avatarSaveValidity(for captured: ProfileEditDraft) -> ProfileAvatarSaveValidity? {
         guard let replacement = captured.avatarReplacement else { return nil }
@@ -540,7 +556,7 @@ struct ProfileEditView: View {
     var body: some View {
         editorNavigation
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { model.retireReload(); model.retireAvatar() } else { model.activateAvatar() }
+            if phase != .active { model.retireReload(); model.suspendForBackground() } else { model.activateAvatar() }
         }
         .task(id: sessionRevision) { showPreferences = false; await model.resetAndLoad() }
         .background {

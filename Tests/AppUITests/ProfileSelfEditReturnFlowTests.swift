@@ -40,7 +40,30 @@ final class ProfileSelfEditReturnFlowTests: XCTestCase {
         XCTAssertEqual(leaves.count, 1, app.debugDescription)
         guard leaves.count == 1, let field = leaves.first else { return }
         XCTAssertTrue(field.exists && field.isEnabled && field.isHittable, app.debugDescription)
-        field.tap();field.typeText(" updated")
+        guard let original = field.value as? String else {
+            XCTFail("Expected the current editable text value: " + app.debugDescription); return
+        }
+        let expected = original + " updated"
+        field.tap(); field.press(forDuration: 1.1)
+        let selectAllQuery = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label IN %@", ["Select All", "全选"]))
+        func selectAllLeaves() -> [XCUIElement] {
+            selectAllQuery.allElementsBoundByIndex.filter {
+                ($0.elementType == .button || $0.elementType == .menuItem)
+                    && $0.descendants(matching: .button).count == 0
+                    && $0.descendants(matching: .menuItem).count == 0
+                    && $0.isEnabled && $0.isHittable
+            }
+        }
+        let selectionReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            selectAllLeaves().count == 1
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [selectionReady], timeout: 5), .completed, app.debugDescription)
+        let actions = selectAllLeaves()
+        XCTAssertEqual(actions.count, 1, app.debugDescription)
+        guard actions.count == 1 else { return }
+        actions[0].tap(); field.typeText(expected)
+        XCTAssertEqual(field.value as? String, expected, app.debugDescription)
         app.buttons["profile.fieldEdit.apply"].tap()
     }
     func testOwnPublicAboutCanOpenAndCancelExistingEditor() {

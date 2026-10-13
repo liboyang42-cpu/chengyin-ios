@@ -17,7 +17,7 @@ import XCTest
         XCTAssertEqual(app.buttons.matching(identifier: "workshopPending.author").count, 1)
         XCTAssertTrue(author.isEnabled && author.isHittable)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(author.frame)); author.tap()
-        let retry = app.buttons["workshopPending.retry"]; reveal(retry, app: app, top: true); XCTAssertTrue(retry.isEnabled)
+        let retry = app.buttons["workshopPending.retry"]; reveal(retry, app: app); XCTAssertTrue(retry.isEnabled)
         app.navigationBars.buttons.firstMatch.tap(); reveal(open, app: app); open.tap(); reveal(retry, app: app); XCTAssertTrue(retry.isEnabled)
         XCTAssertFalse(app.buttons["workshopPending.author"].exists); XCTAssertFalse(app.buttons["workshopCreator.declare"].exists)
     }

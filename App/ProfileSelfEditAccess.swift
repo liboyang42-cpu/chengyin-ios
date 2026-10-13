@@ -16,6 +16,7 @@ import SwiftUI
     let ticket: ProfileSelfEditTicket
     let access: ProfileSelfEditAccess?
     let isCurrent: () -> Bool
+    var diagnosticText: (@MainActor () -> String)? = nil
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         Group {
@@ -31,6 +32,12 @@ import SwiftUI
                 } actions: {
                     Button("action.close") { dismiss() }.accessibilityIdentifier("profile.selfEdit.closeChanged")
                 }
+                #if DEBUG
+                if let diagnosticText {
+                    Text(verbatim: diagnosticText()).font(.caption)
+                        .accessibilityIdentifier("profile.selfEdit.fixture.context")
+                }
+                #endif
             }
         }.accessibilityIdentifier("profile.selfEdit.destination")
     }

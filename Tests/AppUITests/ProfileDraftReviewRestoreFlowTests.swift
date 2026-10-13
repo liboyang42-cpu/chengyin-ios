@@ -17,6 +17,16 @@ final class ProfileDraftReviewRestoreFlowTests: XCTestCase {
         let button = app.buttons["profile.edit.review"]; if !button.isHittable { app.swipeUp() }; button.tap()
         XCTAssertTrue(app.buttons["profile.reviewRestore.open"].waitForExistence(timeout: 5))
     }
+    private func confirmLocalDiscard() {
+        let candidates = app.buttons.matching(identifier: "profile.reviewRestore.confirm")
+        let exists = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in candidates.count > 0 }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [exists], timeout: 5), .completed, app.debugDescription)
+        let leaves = candidates.allElementsBoundByIndex.filter { $0.descendants(matching: .button).count == 0 }
+        XCTAssertEqual(leaves.count, 1, app.debugDescription)
+        guard leaves.count == 1, let confirm = leaves.first else { return }
+        XCTAssertTrue(confirm.exists); XCTAssertTrue(confirm.isEnabled); XCTAssertTrue(confirm.isHittable)
+        confirm.tap()
+    }
     func testCompareShowsBeforeAndAfterForChangedFieldOnly() {
         launch(); changeName(); review(); app.buttons["profile.reviewRestore.compare"].tap()
         XCTAssertTrue(app.staticTexts["Before"].exists); XCTAssertTrue(app.staticTexts["After saving"].exists)
@@ -29,7 +39,8 @@ final class ProfileDraftReviewRestoreFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["profile.fieldEdit.open.name"].label.contains("Local"))
     }
     func testDiscardStaysOnPageAndDoesNotReportServerSave() {
-        launch(); changeName(); review(); app.buttons["profile.reviewRestore.open"].tap(); app.buttons["profile.reviewRestore.confirm"].tap()
+        launch(); changeName(); review(); app.buttons["profile.reviewRestore.open"].tap()
+        confirmLocalDiscard()
         let status = app.staticTexts["profile.edit.status"]; XCTAssertTrue(status.waitForExistence(timeout: 5))
         XCTAssertEqual(status.label, "Local changes were discarded. Nothing was saved.")
         XCTAssertFalse(app.buttons["profile.edit.review"].isEnabled); XCTAssertTrue(app.buttons["profile.fieldEdit.open.name"].exists)
@@ -37,7 +48,7 @@ final class ProfileDraftReviewRestoreFlowTests: XCTestCase {
     func testDiscardRestoresImagesAsWellAsText() {
         launch(); changeName(); app.buttons["profile.caseRemoval.open"].tap()
         app.buttons["profile.caseRemoval.remove"].tap(); app.buttons["profile.caseRemoval.apply"].tap(); review()
-        app.buttons["profile.reviewRestore.open"].tap(); app.buttons["profile.reviewRestore.confirm"].tap()
+        app.buttons["profile.reviewRestore.open"].tap(); confirmLocalDiscard()
         let images = app.buttons["profile.caseRemoval.open"]; if !images.isHittable { app.swipeDown() }; images.tap()
         XCTAssertTrue(app.buttons["profile.caseRemoval.remove"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["profile.caseRemoval.restore"].exists)
     }

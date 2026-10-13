@@ -210,13 +210,13 @@ import XCTest
         var reason = "Original reason"
         var denied = false, succeeds = false
         func access() async throws -> MerchantBusinessAccess {
-            var fields = MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object!
+            var fields = try MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object!
             if denied { fields["permissions"] = .array([]) }
             return try .init(fields)
         }
         func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
             reads += 1
-            var fields = MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.refund).object!
+            var fields = try MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.refund).object!
             fields["reason"] = .string(reason)
             return try .init(access: await access(), document: .init(query: query, payload: .object(fields)))
         }
