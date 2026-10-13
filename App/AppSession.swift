@@ -2591,6 +2591,20 @@ final class AppSession: ObservableObject {
                   ContentDraftContextFence.matches(captured, current) else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
+    lazy var roamNearbyEventsReader = RoamNearbyEventsReader(configuration: regionalConfiguration?.apiConfiguration,
+        transport: compositionTransport.scopedForManualMap(roamMapSelection),
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        area: { [weak self] in self?.roamMapSelection.snapshot },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.roamNearbyEventsReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
     lazy var roamNearbyPlayersReader = RoamNearbyPlayersReader(configuration: regionalConfiguration?.apiConfiguration,
         transport: compositionTransport.scopedForManualMap(roamMapSelection),
         current: { [weak self] in self?.currentRuntimeDependencyContext },

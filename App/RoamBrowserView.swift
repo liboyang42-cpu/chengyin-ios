@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 struct RoamBrowserView: View {
     let reader: any RoamReading
+    var nearbyEventsReader: RoamNearbyEventsReader? = nil
     var nearbyPlayersReader: RoamNearbyPlayersReader? = nil
     var onChooseArea: (() -> Void)? = nil
     var onOpenAccount: (() -> Void)? = nil
@@ -37,6 +38,7 @@ struct RoamBrowserView: View {
     @State private var retainedRead = RoamRetainedRead()
 
     private var effectiveReader: any RoamReading {
+        if layer == .events, let nearbyEventsReader { return nearbyEventsReader }
         if layer == .players, let nearbyPlayersReader { return nearbyPlayersReader }
         return reader
     }
