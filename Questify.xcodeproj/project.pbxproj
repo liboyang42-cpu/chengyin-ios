@@ -18622,6 +18622,8 @@
 				"3D6D9A6F8979937CAEA4A5BD",
 				"AE94B4B1B5813C447D6BA3EC",
 				"C0D6E35E47B1A47F543E2AE8",
+				"7D6539293A626AE2A5276CD6",
+				"49F6051E220B8FFDA57B4FD4",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20253,6 +20255,7 @@
 				"48A347194DF9931485768C22",
 				"D2C501C26C0D09DEB9A198A6",
 				"1DBCC9105A8BEC9B023DDA7F",
+				"BE644054A1A01162A4736EFA",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26397,6 +26400,7 @@
 				"E3BF4E85DA72BF723AEB4B46",
 				"7D22DD8F525D0F8EAACDA64F",
 				"D74A7518403073C1B581C4C0",
+				"BBF242D3E9085BABEE1F3097",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -27878,6 +27882,26 @@
 		"1DBCC9105A8BEC9B023DDA7F" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "AE94B4B1B5813C447D6BA3EC";
+		};
+		"49F6051E220B8FFDA57B4FD4" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/RoamSessionFactReadAccessTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"BBF242D3E9085BABEE1F3097" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "49F6051E220B8FFDA57B4FD4";
+		};
+		"7D6539293A626AE2A5276CD6" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamSessionFactReadAccess.swift";
+			"sourceTree" = "<group>";
+		};
+		"BE644054A1A01162A4736EFA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "7D6539293A626AE2A5276CD6";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";

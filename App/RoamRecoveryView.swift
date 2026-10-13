@@ -1,30 +1,31 @@
 import SwiftUI
+import Observation
 
 @MainActor struct RoamRecoveryView: View {
     let reader: any RoamExperienceReading
-    @State private var sessionID = ""
-    @State private var coordinator: RoamRecoveryCoordinator
-    @State private var revision = 0
-    @State private var loading = false
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var presentation: RoamRecoveryPresentation
     init(reader: any RoamExperienceReading) {
-        self.reader = reader; _coordinator = State(initialValue: RoamRecoveryCoordinator(reader: reader))
+        self.reader = reader; _presentation = State(initialValue: RoamRecoveryPresentation(reader: reader))
     }
     var body: some View {
+        let recover = presentation.recoveryAction()
+        let coordinator = presentation.coordinator
         List {
             Section {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
                 Text("roam.experience.recoveryHint").font(.subheadline)
-                TextField("roam.experience.sessionID", text: $sessionID)
+                TextField("roam.experience.sessionID", text: $presentation.sessionID)
                     .keyboardType(.numberPad).textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityIdentifier("roam.experience.recovery.id")
-                Button("roam.experience.checkSession") { Task { await recover() } }
-                    .disabled(loading || (Int(sessionID) ?? 0) <= 0 || reader.identity == nil || !reader.isConfigured)
+                Button("roam.experience.checkSession") { recover() }
+                    .disabled(!presentation.canRead)
                     .accessibilityIdentifier("roam.experience.recovery.check")
                 if reader.identity == nil { Text("roam.signInRequired") }
                 else if !reader.isConfigured { Text("roam.notConfigured") }
             }
             Section {
-                if loading { ProgressView("roam.loading") }
+                if presentation.loading { ProgressView("roam.loading") }
                 else {
                     switch coordinator.phase {
                     case .idle, .loading: EmptyView()
@@ -48,20 +49,72 @@ import SwiftUI
                         }
                         Text("roam.experience.recoveryNoTrack").font(.caption).foregroundStyle(.secondary)
                     case .failed:
-                        if let error = coordinator.error { RoamExperienceIssue(error: error) { Task { await recover() } } }
+                        if let error = coordinator.error { RoamExperienceIssue(error: error) { recover() } }
                     }
                 }
             }.accessibilityIdentifier("roam.experience.recovery.result")
         }.navigationTitle("roam.experience.recovery")
-            .onChange(of: sessionID) { _, _ in coordinator.reset(); loading = false; revision += 1 }
-            .onDisappear { coordinator.reset(); loading = false; revision += 1 }
+            .onAppear { presentation.setForeground(scenePhase == .active); presentation.setVisible(true) }
+            .onChange(of: scenePhase) { _, value in presentation.setForeground(value == .active) }
+            .onChange(of: presentation.readScope) { _, _ in presentation.reset() }
+            .onChange(of: reader.identity) { _, _ in presentation.reset() }
+            .onDisappear { presentation.setVisible(false) }
             .accessibilityIdentifier("roam.experience.recovery")
     }
-    private func recover() async {
-        guard let id = Int(sessionID), id > 0 else { return }
-        revision += 1; let ticket = revision
-        loading = true
-        await coordinator.recover(.sessionID(id))
-        if revision == ticket { loading = false; revision += 1 }
+}
+
+/// Each explicit read belongs to one visible input and current reader scope.
+@MainActor @Observable final class RoamRecoveryPresentation {
+    let reader: any RoamExperienceReading
+    let coordinator: RoamRecoveryCoordinator
+    var sessionID = "" { didSet { if oldValue != sessionID { reset() } } }
+    private(set) var loading = false
+    private(set) var visible = false
+    private var isPresented = false
+    private var isForeground = true
+    private var revision = UUID()
+    private var task: Task<Void, Never>?
+    init(reader: any RoamExperienceReading) {
+        self.reader = reader; coordinator = RoamRecoveryCoordinator(reader: reader)
+    }
+    var readScope: UUID? { (reader as? RoamSessionFactReader)?.scope }
+    var canRead: Bool {
+        guard let id = Int(sessionID), id > 0, String(id) == sessionID else { return false }
+        return visible && !loading && reader.identity != nil && reader.isConfigured
+    }
+    func setVisible(_ value: Bool) {
+        isPresented = value; updateVisibility()
+    }
+    func setForeground(_ value: Bool) {
+        isForeground = value; updateVisibility()
+    }
+    private func updateVisibility() {
+        let value = isPresented && isForeground
+        guard visible != value else { return }
+        visible = value; reset()
+    }
+    func reset() {
+        revision = UUID(); task?.cancel(); task = nil
+        loading = false; coordinator.reset()
+    }
+    func recoveryAction() -> () -> Void {
+        let offered = revision, input = sessionID, identity = reader.identity, scope = readScope
+        return { [weak self] in
+            guard let self, self.revision == offered, self.sessionID == input,
+                  self.reader.identity == identity, self.readScope == scope, self.canRead,
+                  let id = Int(input) else { return }
+            self.revision = UUID(); let operation = self.revision
+            self.loading = true
+            self.task = Task { [weak self] in
+                guard let self, self.revision == operation else { return }
+                guard self.visible, self.reader.identity == identity, self.readScope == scope,
+                      self.reader.isConfigured, !Task.isCancelled else { self.reset(); return }
+                await self.coordinator.recover(.sessionID(id))
+                guard self.revision == operation else { return }
+                guard self.visible, self.reader.identity == identity, self.readScope == scope,
+                      self.reader.isConfigured, !Task.isCancelled else { self.reset(); return }
+                self.loading = false; self.task = nil; self.revision = UUID()
+            }
+        }
     }
 }

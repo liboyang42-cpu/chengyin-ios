@@ -4,15 +4,20 @@ import SwiftUI
 @MainActor struct RoamExperienceHubView: View {
     let reader: any RoamExperienceReading
     var tileMemoryReader: RoamTileMemoryReader? = nil
+    var sessionFactReader: RoamSessionFactReader? = nil
     var stampDestination: (() -> AnyView)? = nil
     var liveDestination: (() -> AnyView)? = nil
     var body: some View {
-        RoamExperienceMenu(reader: reader, tileMemoryReader: tileMemoryReader, stampDestination: stampDestination, liveDestination: liveDestination).id(reader.identity)
+        RoamExperienceMenu(reader: reader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination).id(reader.identity)
     }
 }
 @MainActor private struct RoamExperienceMenu: View {
     let reader: any RoamExperienceReading
     let tileMemoryReader: RoamTileMemoryReader?
+    let sessionFactReader: RoamSessionFactReader?
+    private var effectiveSessionReader: any RoamExperienceReading {
+        if let sessionFactReader { return sessionFactReader }; return reader
+    }
     let stampDestination: (() -> AnyView)?
     let liveDestination: (() -> AnyView)?
     private var effectiveTileReader: any RoamExperienceReading {
@@ -41,7 +46,7 @@ import SwiftUI
                     .accessibilityIdentifier("roam.tasks.open")
                 NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination) } label: { Label("roam.experience.history", systemImage: "clock.arrow.circlepath") }
                     .accessibilityIdentifier("roam.experience.history.open")
-                NavigationLink { RoamRecoveryView(reader: reader) } label: { Label("roam.experience.recovery", systemImage: "arrow.clockwise.circle") }
+                NavigationLink { RoamRecoveryView(reader: effectiveSessionReader).id(sessionFactReader?.scope) } label: { Label("roam.experience.recovery", systemImage: "arrow.clockwise.circle") }
                     .accessibilityIdentifier("roam.experience.recovery.open")
                 NavigationLink { if let liveDestination { liveDestination() } else { AnyView(RoamLivePreparationView(reader: reader)) } } label: { Label("roam.experience.live", systemImage: "figure.walk") }
                     .accessibilityIdentifier("roam.experience.live.open")

@@ -2561,6 +2561,18 @@ final class AppSession: ObservableObject {
                   ContentDraftContextFence.matches(captured, current) else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
+    lazy var roamSessionFactReader = RoamSessionFactReader(service: roamExperienceService,
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.roamSessionFactReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
     private let roamService: RoamService?
     // Exact dormant IM adapter exists, but ordinary production composition has no live grant.
     private var imExpandedCoordinators: [IMScope: IMExpandedCoordinator] = [:]
