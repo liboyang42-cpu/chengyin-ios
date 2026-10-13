@@ -7,9 +7,22 @@ import SwiftUI
     @State private var seed: ProjectEditDraft?
     @State private var showEditor = false
     @State private var resource: PublishedResource?
+    private func activityTemplateCreator() -> AnyView {
+        let coordinator = session.templateAuthoringEditor()
+        let library: () -> AnyView = {
+            AnyView(TemplateAuthoringMineView(coordinator: session.templateShelfCoordinator(), sessionRevision: session.sessionRevision,
+                memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0)) },
+                ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0)) },
+                creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0)) }).id(session.templateShelfViewIdentity))
+        }
+        return AnyView(TemplateAuthoringSaveFlow(coordinator: coordinator, sessionRevision: session.sessionRevision, metadataReader: session,
+            imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled }, library: library)
+            .modifier(TemplateAuthoringPublishCompletion(coordinator: coordinator, library: library)).id(session.sessionRevision))
+    }
     var body: some View {
         PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.publishingAIDraftFactory,
                             makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
+                            makeActivityTemplate: { activityTemplateCreator() },
                             placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
                             openResource: { resource = $0 })
             .navigationDestination(isPresented: $showEditor) {
