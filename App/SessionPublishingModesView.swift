@@ -21,7 +21,14 @@ import SwiftUI
                 switch destination.kind {
                 case .topic: SessionTopicDetailView(id: destination.value, session: session).id(session.topicReader.scope)
                 case .activity: ActivityDetailView(id: destination.value, reader: session)
-                    .toolbar { PublisherLifecycleNavigationLink(session: session, resource: destination) }
+                    .toolbar {
+                        PublisherLifecycleNavigationLink(session: session, resource: destination)
+                        if let editor = session.activityEditingController(id: destination.value) {
+                            NavigationLink { ActivityEditingView(owner: editor).id(session.publishingSession?.epoch) } label: {
+                                Text("entry", tableName: "ActivityEditing")
+                            }.accessibilityIdentifier("activityEdit.entry")
+                        }
+                    }
                 case .template: DiscoveryTemplateDetailView(id: destination.value, reader: session,
                     authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision).id(session.templateAuthoringViewIdentity)
                 }

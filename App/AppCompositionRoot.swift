@@ -221,7 +221,8 @@ extension KeychainTokenStore: AppTokenStorage {}
 /// require a one-use confirmed dispatch ticket. Private home keeps its separate owner grant.
 /// All other paths stay closed.
 /// No device/provider work or authorization is inferred from a feature grant.
-@MainActor final class CompositionHTTPTransport: CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
+@MainActor final class CompositionHTTPTransport: ActivityEditingHTTPTransport, CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
+    var activityEditingApproval: @MainActor (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() }
     var workshopPaidInstallBeforeForward: (() async -> Void)?
     struct SessionIdentity: Equatable {
         let epoch: UInt64
@@ -356,6 +357,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         // Retain the identity source across temporary clone chains. Its AppSession
         // callback is weak, so this does not retain or extend the signed-in session.
         transport.current = { self.current() }
+        transport.activityEditingApproval = { self.activityEditingApproval($0) }
         transport.workshopPaidInstallBeforeForward = { if let barrier = self.workshopPaidInstallBeforeForward { await barrier() } }
         transport.couponBeforeForward = { if let barrier = self.couponBeforeForward { await barrier() } }
         // Forward the mutable selector itself: later installation or revocation on
@@ -487,6 +489,36 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard valid(), !Task.isCancelled else { throw CancellationError() }; try authorization.validate(); throw error
         }
     }
+    func sendActivityEditing(_ request: URLRequest, activityID: Int, session: PublishingSession,
+                             grants: ActivityEditingGrants) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.market == .china, let api = deployment.regional.apiConfiguration,
+              let captured = current(), captured.isSignedInContentViewer,
+              let account = captured.accountID, let role = captured.role, let token = captured.token,
+              ["club", "merchant"].contains(role), session.region == .china, session.accountID == account, session.role == role,
+              session.namespace == deployment.storageScope.service,
+              request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) == Data(token.utf8),
+              let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                  namespace: deployment.storageScope.service, token: token),
+              let path = ActivityEditingWire.path(request, activityID: activityID, configuration: api) else { throw APIError.notConfigured }
+        if path == ActivityEditingService.updatePath {
+            guard let body = request.httpBody, let fields = try? JSONDecoder().decode([String: ProjectEditJSON].self, from: body),
+                  fields["scope"] == (role == "merchant" ? .string("MERCHANT") : nil) else { throw APIError.notConfigured }
+        }
+        let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: role, session: runtime)
+        func permitted() -> Bool {
+            let currentGrant = activityEditingApproval(context)
+            let approval = path == ActivityEditingService.readPath ? currentGrant.read : currentGrant.update
+            return currentGrant == grants && currentGrant.revision != nil &&
+                approval?.allows(configuration: api, namespace: session.namespace, accountID: account, path: path) == true
+        }
+        try Task.checkCancellation()
+        guard current() == captured, permitted() else { throw APIError.notConfigured }
+        let reply = try await underlying.send(request)
+        try Task.checkCancellation()
+        guard current() == captured, permitted() else { throw CancellationError() }
+        return reply
+    }
+
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         guard let deployment, let api = deployment.regional.apiConfiguration,
               let url = request.url, url.fragment == nil else { throw APIError.notConfigured }
