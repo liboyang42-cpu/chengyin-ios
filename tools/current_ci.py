@@ -440,8 +440,62 @@ def refresh(root, base, required_since=None):
         if row is not None:deps.setdefault('reviewed_impacts',{})[path]=row
     data = {'version':1, 'required_current_methods':required, 'required_since':required_since, 'comparison_base':base, 'snapshot':current, 'audit':audit(prior,current), 'smoke':smoke,
             'source_dependencies':deps, 'ui_costs':current_ui_costs(root,current)}
+    data['additional_base_test_reviews'] = existing.get('additional_base_test_reviews', {})
+    additional_base_test_reviews(root, data)
     raw=encode(data)+b'\n'; require(len(raw)<=LIMIT,'Current manifest exceeds unchanged10MiB limit'); (Path(root)/MANIFEST).write_bytes(raw)
     return data
+
+
+def additional_base_test_reviews(root, manifest):
+    """Validate reviewed migrations for named Git bases, never a general waiver."""
+    entries = manifest.get('additional_base_test_reviews', {})
+    require(type(entries) is dict, 'Invalid additional-base test review map')
+    current = manifest['snapshot']
+    identities = dict(current['native_methods']); identities.update(current['portable_methods'])
+    hashes = source_hashes(current)
+    reviewed = {}
+    for base, entry in entries.items():
+        require(type(base) is str and re.fullmatch('[a-f0-9]{40}', base) is not None,
+                'Additional test review requires exact base SHA')
+        require(base != manifest['comparison_base'], 'Additional review cannot shadow comparison-base audit')
+        require(type(entry) is dict and set(entry) == {'base_tree', 'retirements'},
+                'Invalid additional-base test review fields')
+        require(type(entry['base_tree']) is str and re.fullmatch('[a-f0-9]{40}', entry['base_tree']) is not None,
+                'Additional test review requires exact base tree')
+        require(git(root, 'cat-file', '-t', base).decode().strip() == 'commit', 'Review base is not a commit')
+        require(git(root, 'rev-parse', base+'^{tree}').decode().strip() == entry['base_tree'], 'Review base tree differs')
+        retirements = entry['retirements']
+        require(type(retirements) is dict and bool(retirements), 'Empty additional-base migration review')
+        reasons = {}
+        for old, row in retirements.items():
+            require(type(old) is str and old.strip() == old and old and old not in identities,
+                    'Invalid or still-current reviewed old identity')
+            require(type(row) is dict and set(row) == {'reason', 'replacements'}, 'Invalid migration review fields')
+            require(type(row['reason']) is str and bool(row['reason'].strip()), 'Missing migration review reason')
+            replacements = row['replacements']
+            require(type(replacements) is list and bool(replacements), 'Missing current replacement test')
+            seen = set()
+            for replacement in replacements:
+                require(type(replacement) is dict and set(replacement) == {'method', 'path', 'sha256'},
+                        'Invalid replacement test binding fields')
+                method, path, source_hash = replacement['method'], replacement['path'], replacement['sha256']
+                require(type(method) is str and method in identities and method not in seen,
+                        'Missing or duplicate current replacement identity')
+                require(type(path) is str and identities[method] == path, 'Replacement test path differs')
+                require(type(source_hash) is str and re.fullmatch('[a-f0-9]{64}', source_hash) is not None
+                        and hashes.get(path) == source_hash, 'Replacement test source changed; review required')
+                seen.add(method)
+            reasons[old] = row['reason']
+        reviewed[base] = reasons
+    return reviewed
+
+
+def retirement_review_for_base(root, manifest, base):
+    reviewed = additional_base_test_reviews(root, manifest)
+    if base == manifest['comparison_base']:
+        return manifest['audit']['retirement_review']
+    # No fallback to another base, even if old method names happen to coincide.
+    return reviewed.get(base, {})
 
 
 def verified_manifest(root=ROOT):
@@ -449,6 +503,7 @@ def verified_manifest(root=ROOT):
     require(data.get('version') == 1 and type(data.get('version')) is int, 'Unknown current ledger version')
     actual = snapshot(root)
     require(data['snapshot'] == actual, 'Current source or test inventory changed without manifest audit')
+    additional_base_test_reviews(root, data)
     return data
 
 
@@ -475,7 +530,7 @@ def make_plan(root, manifest, base, mode, environ=None):
     identity = source_identity(root, environ)
     require(re.fullmatch('[a-f0-9]{40}', base) is not None, 'Exact comparison base required')
     changed = git(root, 'diff', '--no-renames', '--name-only', base, identity['sha']).decode().splitlines()
-    actual_audit=audit_changed_test_declarations(root,base,manifest['snapshot'],manifest['audit']['retirement_review'])
+    actual_audit=audit_changed_test_declarations(root,base,manifest['snapshot'],retirement_review_for_base(root,manifest,base))
     for path,row in manifest['source_dependencies'].get('reviewed_impacts',{}).items():
         if path not in changed: continue
         original=git(root,'show',base+':'+path); actual=(Path(root)/path).read_bytes()

@@ -48,8 +48,19 @@ final class ProfileEditFlowTests: XCTestCase {
         app.swipeUp()
         app.buttons["profile.edit.reload"].tap()
         // A dirty draft requires explicit reload consent before the second read can fail.
-        let reload = app.buttons["profile.reloadDiscard.confirm"]
-        XCTAssertTrue(reload.waitForExistence(timeout: 5), app.debugDescription)
+        // SwiftUI exposes a same-ID parent Button and its actionable child in this dialog.
+        let reloadID = "profile.reloadDiscard.confirm"
+        let reloadCandidates = app.buttons.matching(identifier: reloadID)
+        let reloadReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            reloadCandidates.count > 0
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [reloadReady], timeout: 5), .completed, app.debugDescription)
+        let reloadLeaves = reloadCandidates.allElementsBoundByIndex.filter {
+            $0.descendants(matching: .button).count == 0
+        }
+        XCTAssertEqual(reloadLeaves.count, 1, app.debugDescription)
+        guard reloadLeaves.count == 1, let reload = reloadLeaves.first else { return }
+        XCTAssertTrue(reload.exists && reload.isEnabled && reload.isHittable, app.debugDescription)
         reload.tap()
         let status = app.staticTexts["profile.edit.status"]
         XCTAssertTrue(status.waitForExistence(timeout: 10), app.debugDescription)

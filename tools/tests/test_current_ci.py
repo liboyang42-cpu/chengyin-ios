@@ -199,3 +199,149 @@ class DeviceOnlyClassificationControls(unittest.TestCase):
         with self.assertRaises(ValueError):ci.select(ledger,[],list(ledger['native_methods']))
         sources,native=self.actual();partial=ci.classify_device_only(sources,native);partial.pop(next(iter(partial)))
         with self.assertRaises(ValueError):ci.device_only_not_run({'native_methods':native,'device_only_methods':partial})
+
+
+class ExactBaseMigrationReviewControls(unittest.TestCase):
+    MAIN = 'a'*40
+    DEV = 'b'*40
+    TREE = 'c'*40
+    METHOD = 'QuestifyCoreTests/CurrentTests/testReplacement'
+    PATH = 'Tests/CoreTests/CurrentTests.swift'
+    HASH = 'd'*64
+
+    def manifest(self):
+        return {'comparison_base':self.DEV,'audit':{'retirement_review':{}},
+                'snapshot':{'native_methods':{self.METHOD:self.PATH},'portable_methods':{},
+                            'sources':[{'path':self.PATH,'sha256':self.HASH}]},
+                'additional_base_test_reviews':{self.MAIN:{'base_tree':self.TREE,'retirements':{
+                    'QuestifyCoreTests/OldTests/testOld'+str(i):{'reason':'Reviewed identity migration '+str(i),
+                    'replacements':[{'method':self.METHOD,'path':self.PATH,'sha256':self.HASH}]} for i in range(27)}}}}
+
+    def git(self, root, *args):
+        if args == ('cat-file','-t',self.MAIN): return b'commit\n'
+        if args == ('rev-parse',self.MAIN+'^{tree}'): return (self.TREE+'\n').encode()
+        raise ValueError('Unknown exact reviewed base')
+
+    def review(self, manifest, base=None):
+        from unittest.mock import patch
+        with patch.object(ci,'git',side_effect=self.git):
+            return ci.retirement_review_for_base('.',manifest,base or self.MAIN)
+
+    def audit(self, manifest, base, before):
+        import tempfile
+        from pathlib import Path
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        review=self.review(manifest,base)
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);p=root/'Tests/CoreTests/OldTests.swift';p.parent.mkdir(parents=True);p.write_text('')
+            with patch.object(ci,'git',return_value=b'Tests/CoreTests/OldTests.swift\n'),patch.object(ci.subprocess,'run',return_value=SimpleNamespace(returncode=0,stdout=before)):
+                return ci.audit_changed_test_declarations(root,base,manifest['snapshot'],review)
+
+    def old_source(self):
+        return ('final class OldTests: XCTestCase {'+' '.join('func testOld'+str(i)+'() {}' for i in range(27))+'}').encode()
+
+    def test_exact_main_27_and_dev_zero_use_distinct_reviews(self):
+        data=self.manifest()
+        self.assertEqual(len(self.audit(data,self.MAIN,self.old_source())['removed']),27)
+        self.assertEqual(self.audit(data,self.DEV,b'')['removed'],[])
+        self.assertEqual(self.review(data,self.DEV),{})
+
+    def test_missing_or_extra_old_identity_never_relaxes_exact_removed_set(self):
+        import copy
+        for variant in ('missing','extra'):
+            data=copy.deepcopy(self.manifest());rows=data['additional_base_test_reviews'][self.MAIN]['retirements']
+            if variant=='missing':rows.pop(next(iter(rows)))
+            else:rows['QuestifyCoreTests/OldTests/testUnreviewedExtra']=copy.deepcopy(next(iter(rows.values())))
+            with self.subTest(variant=variant),self.assertRaisesRegex(ValueError,'Actual diff removes tests'):
+                self.audit(data,self.MAIN,self.old_source())
+
+    def test_missing_entire_map_and_unlisted_base_cannot_borrow_other_review(self):
+        data=self.manifest();data.pop('additional_base_test_reviews')
+        with self.assertRaisesRegex(ValueError,'Actual diff removes tests'):self.audit(data,self.MAIN,self.old_source())
+        data=self.manifest()
+        with self.assertRaisesRegex(ValueError,'Actual diff removes tests'):self.audit(data,'e'*40,self.old_source())
+        self.assertEqual(self.audit(data,'e'*40,b'')['removed'],[])
+
+    def test_original_comparison_base_review_remains_compatible_but_not_global(self):
+        data=self.manifest();data.pop('additional_base_test_reviews');reason={'QuestifyCoreTests/OldTests/testOld0':'Existing explicit reason'};data['audit']['retirement_review']=reason
+        self.assertEqual(self.review(data,self.DEV),reason)
+        self.assertEqual(self.review(data,self.MAIN),{})
+
+    def test_wrong_base_and_tree_and_shadow_are_rejected(self):
+        import copy
+        for kind in ('short','different','tree','tree_format','shadow'):
+            data=copy.deepcopy(self.manifest());entries=data['additional_base_test_reviews']
+            if kind=='short':entries['a'*39]=entries.pop(self.MAIN)
+            if kind=='different':entries['e'*40]=entries.pop(self.MAIN)
+            if kind=='tree':entries[self.MAIN]['base_tree']='e'*40
+            if kind=='tree_format':entries[self.MAIN]['base_tree']=True
+            if kind=='shadow':data['comparison_base']=self.MAIN
+            with self.subTest(kind=kind),self.assertRaises(ValueError):self.review(data)
+
+    def test_blank_reason_missing_replacement_or_changed_hash_are_rejected(self):
+        import copy
+        for kind in ('reason','empty','unknown','path','hash','hash_format','duplicate','current_old'):
+            data=copy.deepcopy(self.manifest());rows=data['additional_base_test_reviews'][self.MAIN]['retirements'];key=next(iter(rows));row=rows[key];replacement=row['replacements'][0]
+            if kind=='reason':row['reason']=' \n'
+            if kind=='empty':row['replacements']=[]
+            if kind=='unknown':replacement['method']='QuestifyCoreTests/CurrentTests/testMissing'
+            if kind=='path':replacement['path']='Tests/CoreTests/Another.swift'
+            if kind=='hash':replacement['sha256']='e'*64
+            if kind=='hash_format':replacement['sha256']=True
+            if kind=='duplicate':row['replacements'].append(dict(replacement))
+            if kind=='current_old':rows[self.METHOD]=rows.pop(key)
+            with self.subTest(kind=kind),self.assertRaises(ValueError):self.review(data)
+
+    def test_unknown_fields_empty_record_and_wrong_shapes_are_rejected(self):
+        import copy
+        for kind in ('map','empty_row','base_extra','record_extra','replacement_extra','record_array'):
+            data=copy.deepcopy(self.manifest());entry=data['additional_base_test_reviews'][self.MAIN];key=next(iter(entry['retirements']));row=entry['retirements'][key]
+            if kind=='map':data['additional_base_test_reviews']=[]
+            if kind=='empty_row':entry['retirements']={}
+            if kind=='base_extra':entry['allow_any']=True
+            if kind=='record_extra':row['allow_any']=True
+            if kind=='replacement_extra':row['replacements'][0]['optional']=True
+            if kind=='record_array':entry['retirements']=[row]
+            with self.subTest(kind=kind),self.assertRaises(ValueError):self.review(data)
+
+    def test_replacement_source_changes_require_renewed_review(self):
+        data=self.manifest();self.assertEqual(len(self.review(data)),27)
+        data['snapshot']['sources'][0]['sha256']='f'*64
+        with self.assertRaisesRegex(ValueError,'source changed'):self.review(data)
+
+    def test_portable_replacement_uses_exact_current_identity_and_source(self):
+        data=self.manifest();source='Tests/ContractChecks/test_current.py';method=source+'::Current.test_case'
+        data['snapshot']['portable_methods'][method]=source;data['snapshot']['sources'].append({'path':source,'sha256':'e'*64})
+        row=next(iter(data['additional_base_test_reviews'][self.MAIN]['retirements'].values()))
+        row['replacements']=[{'method':method,'path':source,'sha256':'e'*64}]
+        self.assertEqual(len(self.review(data)),27)
+        del data['snapshot']['portable_methods'][method]
+        with self.assertRaisesRegex(ValueError,'replacement identity'):self.review(data)
+
+    def test_refresh_preserves_exact_review_and_refuses_stale_replacement_binding(self):
+        import copy,tempfile,json
+        from pathlib import Path
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        original=self.manifest();snapshot=copy.deepcopy(original['snapshot'])
+        for method in ['QuestifyCoreTests/RegionalConfigurationTests/testFirstLaunchDefaultsAndExistingChoices',
+                       'QuestifyAppUnitTests/NormalHomeRuntimeRecoveryTests/testUnconfiguredLaunchNeverReadsVaultOrDispatches',
+                       'QuestifyUITests/EntryFlowTests/testSettingsReopensAfterRepeatedColdLaunch']:
+            path='Tests/'+method.split('/')[0]+'/'+method.split('/')[1]+'.swift'
+            snapshot['native_methods'][method]=path;snapshot['sources'].append({'path':path,'sha256':'f'*64})
+        original['snapshot']=copy.deepcopy(snapshot)
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);source=root/'App/MerchantProjectsView.swift';source.parent.mkdir(parents=True);source.write_text('unchanged')
+            path=root/ci.MANIFEST;path.parent.mkdir(parents=True);path.write_text(json.dumps(original))
+            def read_git(where,*args):
+                if args[0]=='diff':return b''
+                if args[0]=='show':return b'unchanged'
+                return self.git(where,*args)
+            with patch.object(ci,'snapshot',return_value=snapshot),patch.object(ci,'source_dependencies',return_value={}),patch.object(ci,'current_ui_costs',return_value={}),patch.object(ci,'REVIEWED_DISPLAY_IMPACTS',{}),patch.object(ci,'git',side_effect=read_git),patch.object(ci.subprocess,'run',return_value=SimpleNamespace(returncode=0,stdout=json.dumps(original).encode())):
+                refreshed=ci.refresh(root,self.DEV,self.DEV)
+                self.assertEqual(refreshed['additional_base_test_reviews'],original['additional_base_test_reviews'])
+                saved=path.read_bytes()
+                snapshot['sources'][0]['sha256']='e'*64
+                with self.assertRaisesRegex(ValueError,'source changed'):ci.refresh(root,self.DEV,self.DEV)
+                self.assertEqual(path.read_bytes(),saved)
