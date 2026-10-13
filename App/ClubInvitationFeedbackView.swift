@@ -1,5 +1,38 @@
 import SwiftUI
 
+struct ClubInvitationFeedbackTerms: Equatable {
+    let shareMode: Int?
+    let shareRate: Double?
+    let fixedFee: Double?
+    let handleReason: String?
+    let termsFrozen: Bool
+
+    init(_ value: CoopFlowJSON) throws {
+        let fields = ["id", "shareMode", "shareRate", "fixedFee", "handleReason", "termsFrozen"]
+        let safeValue = CoopFlowJSON.object(Dictionary(uniqueKeysWithValues: fields.map { ($0, value[$0]) }))
+        let decoded = try JSONDecoder().decode(CooperationInvite.self, from: safeValue.canonical())
+        shareMode = decoded.shareMode; shareRate = decoded.shareRate; fixedFee = decoded.fixedFee
+        handleReason = decoded.handleReason; termsFrozen = decoded.termsFrozen
+    }
+    static func project(_ snapshot: ClubInvitationFeedbackSnapshot,
+                        invitations: CoopFlowJSON) throws -> [ClubInvitationFeedbackKey: Self] {
+        var result: [ClubInvitationFeedbackKey: Self] = [:]
+        for row in snapshot.rows {
+            guard let rows = invitations[row.id.direction.rawValue].rows else { throw ClubGovernanceFailure.malformed }
+            let matches = rows.filter { raw in
+                guard raw["id"].integer == row.id.invitationID,
+                      raw["topicId"].integer.flatMap({ $0 > 0 ? $0 : nil }) == row.topicID else { return false }
+                return row.id.direction == .received
+                    ? raw["toType"].text == "club" && raw["toId"].integer == snapshot.clubID
+                    : row.topicID != nil
+            }
+            guard matches.count == 1, let raw = matches.first else { throw ClubGovernanceFailure.malformed }
+            result[row.id] = try Self(raw)
+        }
+        return result
+    }
+}
+
 @MainActor final class ClubInvitationFeedbackReadModel: ObservableObject {
     struct Permit: Equatable { let context: ClubInvitationFeedbackContext; let visibility: UUID }
     enum Phase: Equatable { case idle, loading, ready, failed, denied }
@@ -7,15 +40,16 @@ import SwiftUI
     @Published private(set) var snapshot: ClubInvitationFeedbackSnapshot?
     private var bound: ClubInvitationFeedbackContext?
     private var loaded: ClubInvitationFeedbackContext?
+    private var termSnapshots: [ClubInvitationFeedbackKey: ClubInvitationFeedbackTerms] = [:]
     private var visibility: UUID?
     private var generation = UUID()
     private(set) var snapshotID = UUID()
     func bind(_ context: ClubInvitationFeedbackContext) {
-        guard bound != context else { return }; bound = context; visibility = nil; generation = UUID()
+        guard bound != context else { return }; bound = context; visibility = nil; generation = UUID(); termSnapshots = [:]
     }
     func activate(_ context: ClubInvitationFeedbackContext) -> Permit? {
         guard bound == context, context.canRead, !Task.isCancelled else { return nil }
-        if visibility == nil { visibility = UUID(); generation = UUID(); snapshotID = UUID(); loaded = nil; snapshot = nil; phase = .idle }
+        if visibility == nil { visibility = UUID(); generation = UUID(); snapshotID = UUID(); loaded = nil; snapshot = nil; termSnapshots = [:]; phase = .idle }
         return permit(in: context)
     }
     func permit(in context: ClubInvitationFeedbackContext) -> Permit? {
@@ -26,13 +60,20 @@ import SwiftUI
         guard permit(in: context) != nil, loaded == context, phase == .ready,
               context.matches(clubReader: clubReader, reader: reader, access: access) else { return nil }; return snapshot
     }
+    func terms(for target: ClubInvitationFeedbackTarget, in context: ClubInvitationFeedbackContext,
+               clubReader: any ClubReading, reader: any CoopFlowReading,
+               access: any ClubGovernanceAccess) -> ClubInvitationFeedbackTerms? {
+        guard let snapshot = accepted(context, clubReader: clubReader, reader: reader, access: access),
+              target.isCurrent(snapshot: snapshot, context: context, snapshotID: snapshotID) else { return nil }
+        return termSnapshots[target.row.id]
+    }
     func leave(_ context: ClubInvitationFeedbackContext) {
-        guard bound == context else { return }; visibility = nil; generation = UUID(); snapshotID = UUID(); loaded = nil; snapshot = nil; phase = .idle
+        guard bound == context else { return }; visibility = nil; generation = UUID(); snapshotID = UUID(); loaded = nil; snapshot = nil; termSnapshots = [:]; phase = .idle
     }
     func load(_ permit: Permit, clubReader: any ClubReading, reader: any CoopFlowReading, access: any ClubGovernanceAccess) async {
         guard accepts(permit), permit.context.matches(clubReader: clubReader, reader: reader, access: access), !Task.isCancelled else { return }
         generation = UUID(); let request = generation
-        snapshot = nil; loaded = nil; snapshotID = UUID(); phase = .loading
+        snapshot = nil; loaded = nil; termSnapshots = [:]; snapshotID = UUID(); phase = .loading
         let current = { [self] in
             accepts(permit) && generation == request && !Task.isCancelled && permit.context.matches(clubReader: clubReader, reader: reader, access: access)
         }
@@ -48,7 +89,9 @@ import SwiftUI
             let invitations = try await reader.read(.invitations, isCurrent: current)
             guard current() else { return }
             let projected = try ClubInvitationFeedbackSnapshot(context: permit.context, topics: topics, invitations: invitations)
+            let projectedTerms = try ClubInvitationFeedbackTerms.project(projected, invitations: invitations)
             guard current() else { return }
+            termSnapshots = projectedTerms
             loaded = permit.context; snapshot = projected; phase = .ready
         } catch {
             guard current() else { return }; phase = .failed
@@ -135,6 +178,10 @@ import SwiftUI
                             LabeledContent("club.inviteFeedback.invitationID", value: String(target.row.id.invitationID))
                             if let topicID = target.row.topicID { LabeledContent("club.gov.field.topicId", value: String(topicID)) }
                             if let message = target.row.message { Section("club.inviteFeedback.message") { Text(verbatim: message).textSelection(.enabled) } }
+                            if let terms = model.terms(for: target, in: context,
+                                clubReader: clubReader, reader: reader, access: access) {
+                                ClubInvitationFeedbackTermsView(terms: terms)
+                            }
                             Text("club.inviteFeedback.readOnly").font(.footnote)
                         }
                     } else { Color.clear }
@@ -166,5 +213,38 @@ private struct ClubInvitationFeedbackRowLabel: View {
             if let date = row.createdAt { LabeledContent("club.inviteFeedback.serverTime") { Text(verbatim: date) } }
             Label("club.inviteFeedback.detail", systemImage: "info.circle")
         }
+    }
+}
+
+private struct ClubInvitationFeedbackTermsView: View {
+    let terms: ClubInvitationFeedbackTerms
+    var body: some View {
+        Section("cooperation.terms") {
+            switch terms.shareMode {
+            case 0: Text("cooperation.terms.traffic")
+            case 1:
+                Text("cooperation.terms.share")
+                if let rate = terms.shareRate {
+                    LabeledContent("cooperation.shareRate", value: "\(number(rate))%")
+                        .accessibilityIdentifier("club.inviteFeedback.shareRate")
+                } else { Text("cooperation.amountUnknown") }
+            case 2:
+                Text("cooperation.terms.fixed")
+                if let fee = terms.fixedFee {
+                    LabeledContent("cooperation.fixedFee", value: number(fee))
+                        .accessibilityIdentifier("club.inviteFeedback.fixedFee")
+                    Text("cooperation.currencyUnknown").font(.footnote)
+                } else { Text("cooperation.amountUnknown") }
+            default: Text("cooperation.termsUnknown")
+            }
+            if terms.termsFrozen { Label("cooperation.termsFrozen", systemImage: "lock") }
+            if let reason = terms.handleReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                LabeledContent("cooperation.handleReason") { Text(verbatim: reason).textSelection(.enabled) }
+                    .accessibilityIdentifier("club.inviteFeedback.handleReason")
+            }
+        }
+    }
+    private func number(_ value: Double) -> String {
+        value.formatted(.number.precision(.fractionLength(0...8)))
     }
 }

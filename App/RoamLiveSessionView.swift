@@ -128,6 +128,7 @@ import SwiftUI
             if owner.busy { ProgressView("roam.loading") }
             if let record = owner.record {
                 LabeledContent("roam.live.measuredDistance", value: Measurement(value: record.distanceMeters, unit: UnitLength.meters).formatted(.measurement(width: .abbreviated, usage: .asProvided)))
+                RoamLiveCoverageRow(presentation: .init(controller: owner))
                 LabeledContent("roam.live.tiles", value: String(record.allTiles.count - record.pendingTiles.count))
                 if !record.pendingTiles.isEmpty { LabeledContent("roam.live.pendingTiles", value: String(record.pendingTiles.count)) }
                 if owner.pendingActionCount > 0 { Text("roam.live.unknownVisit").foregroundStyle(.secondary) }
@@ -242,5 +243,52 @@ import SwiftUI
             Section("roam.live.rulePrivacyTitle") { Text("roam.live.presencePrivacy"); Text("roam.live.leaveHint") }
         }.navigationTitle("roam.live.rules")
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
+    }
+}
+
+/// A display-only projection of the current controller's accepted in-memory samples.
+/// Saved tile totals and timestamps do not establish this local-area estimate.
+struct RoamLiveCoveragePresentation: Equatable {
+    let percentage: Int?
+    @MainActor init(controller: RoamLiveSessionController) {
+        guard controller.isAvailable, controller.foreground,
+              [.active, .paused].contains(controller.phase),
+              let record = controller.record, !record.finishRequested, record.pendingWrite == nil,
+              !controller.track.isEmpty else { percentage = nil; return }
+        percentage = controller.explorationPercent
+    }
+    func value(locale: Locale) -> String {
+        percentage.map { "\($0)%" } ?? RoamLiveCoverageCopy(locale: locale).unknown
+    }
+}
+
+struct RoamLiveCoverageCopy {
+    let title: String
+    let unknown: String
+    let hint: String
+    init(locale: Locale) {
+        if locale.language.languageCode?.identifier == "zh" {
+            title = "本地片区探索度"
+            unknown = "暂无可靠数据"
+            hint = "仅反映当前内存保留的局部片区，不代表全城覆盖或服务器确认结果。恢复记录不能还原这一比例。"
+        } else {
+            title = "Local area explored"
+            unknown = "Unavailable"
+            hint = "Based on the local area retained in memory, not citywide coverage or a server-confirmed result. Recovery records cannot reconstruct this percentage."
+        }
+    }
+}
+
+@MainActor struct RoamLiveCoverageRow: View {
+    let presentation: RoamLiveCoveragePresentation
+    @Environment(\.locale) private var locale
+    var body: some View {
+        let copy = RoamLiveCoverageCopy(locale: locale)
+        VStack(alignment: .leading, spacing: 6) {
+            LabeledContent { Text(verbatim: presentation.value(locale: locale)) } label: { Text(verbatim: copy.title) }
+            Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("roam.live.localCoverage")
     }
 }

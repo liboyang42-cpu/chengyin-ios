@@ -43,13 +43,13 @@ import SwiftUI
                 // A newly selected session gets a fresh sheet binding owner, including first open.
                 .id(presentation.session?.id)
         }
-        .onAppear { if scenePhase == .active { presentation.activate() } }
+        .onAppear { presentation.viewAppeared(sceneIsActive: scenePhase == .active) }
         .onChange(of: document.revision) { _, _ in if presentation.session?.isCurrent == false { presentation.invalidate() } }
         .onChange(of: document.coordinator.draftIdentity) { _, _ in presentation.invalidate() }
         .onChange(of: document.coordinator.reader.scope) { _, _ in presentation.invalidate() }
         .onChange(of: editable) { _, value in if !value { presentation.invalidate() } }
-        .onChange(of: scenePhase) { _, phase in if phase == .active { presentation.activate() } else { presentation.deactivate() } }
-        .onDisappear { presentation.deactivate() }
+        .onChange(of: scenePhase) { _, phase in presentation.sceneChanged(isActive: phase == .active) }
+        .onDisappear { presentation.viewDisappeared() }
     }
 }
 

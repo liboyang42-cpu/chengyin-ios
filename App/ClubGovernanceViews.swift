@@ -30,6 +30,19 @@ import SwiftUI
     }
 }
 
+struct ClubCustomerFilters: Equatable {
+    var filter = "all"
+    var keyword = ""
+    var isFiltered: Bool { filter != "all" || !keyword.isEmpty }
+
+    @discardableResult mutating func clear() -> Bool {
+        guard isFiltered else { return false }
+        filter = "all"
+        keyword = ""
+        return true
+    }
+}
+
 /// Mount independently of legacy isOwner/viewerIsAdmin. access/me decides each row.
 struct ClubGovernanceEntryButton: View {
     let clubID: Int
@@ -170,7 +183,8 @@ struct ClubGovernanceReadView: View {
     @State private var generation: UInt64 = 0
     @State private var filter = "all"
     @State private var topicCustomerFilter: ClubTopicCustomerFilter = .all
-    @State private var keyword = ""
+    @State private var customerFilters = ClubCustomerFilters()
+    @State private var snapshotCustomerFilters: ClubCustomerFilters?
     @State private var customerKeywordDebounce = ClubCustomerKeywordDebounce()
     @State private var sort = "composite"
     @State private var page = 1
@@ -184,12 +198,10 @@ struct ClubGovernanceReadView: View {
             }
             if operation == .customers {
                 Section {
-                    Picker("club.gov.filter", selection: $filter) {
+                    Picker("club.gov.filter", selection: customerFilterBinding) {
                         ForEach(["all", "repeat", "new", "remark"], id: \.self) { Text(LocalizedStringKey("club.gov.filter." + $0)).tag($0) }
                     }
-                    .onChange(of: filter) { _, _ in loadCustomersNow() }
-                    TextField("club.gov.keyword", text: $keyword).submitLabel(.search)
-                        .onChange(of: keyword) { _, _ in scheduleCustomerKeywordRead() }
+                    TextField("club.gov.keyword", text: customerKeywordBinding).submitLabel(.search)
                         .onSubmit { loadCustomersNow() }
                     Button("club.gov.search") { loadCustomersNow() }.disabled(loading)
                 }
@@ -284,6 +296,46 @@ struct ClubGovernanceReadView: View {
         return .init(context: readContext, generation: snapshotGeneration, snapshot: snapshot,
                      approvalID: terminalSessions.approvalID, viewerRevision: terminalSessions.viewerRevision)
     }
+    private var customerFilterBinding: Binding<String> {
+        Binding(get: { customerFilters.filter }, set: { value in
+            guard customerFilters.filter != value else { return }
+            customerFilters.filter = value
+            loadCustomersNow()
+        })
+    }
+    private var customerKeywordBinding: Binding<String> {
+        Binding(get: { customerFilters.keyword }, set: { value in
+            guard customerFilters.keyword != value else { return }
+            customerFilters.keyword = value
+            scheduleCustomerKeywordRead()
+        })
+    }
+    @MainActor private func clearCustomerFilters(source: ClubGovernanceSnapshot,
+                                                 context: ClubGovernanceReadContext,
+                                                 sourceGeneration: UInt64,
+                                                 filters: ClubCustomerFilters) {
+        guard operation == .customers, !loading, failure == nil,
+              identity?.isSignedIn == true, identity == access.identity,
+              scenePhase == .active, readContext == context, snapshotContext == context,
+              snapshot == source, snapshotGeneration == sourceGeneration,
+              generation == sourceGeneration, customerFilters == filters,
+              snapshotCustomerFilters == filters,
+              filters.isFiltered, source.value["items"].array?.isEmpty == true else { return }
+        customerKeywordDebounce.cancel()
+        guard customerFilters.clear() else { return }
+        // Programmatic reset bypasses the input bindings and retires old results
+        // before scheduling exactly one immediate, context-bound replacement read.
+        generation &+= 1
+        snapshot = nil; snapshotContext = nil; failure = nil; loading = false
+        let revision = generation
+        let expected = identity
+        Task {
+            guard revision == generation, readContext == context, identity == expected,
+                  access.identity == expected, customerFilters == ClubCustomerFilters(),
+                  scenePhase == .active, !Task.isCancelled else { return }
+            await load()
+        }
+    }
     @MainActor private func loadCustomersNow() {
         customerKeywordDebounce.cancel()
         Task { await load() }
@@ -291,7 +343,7 @@ struct ClubGovernanceReadView: View {
     @MainActor private func scheduleCustomerKeywordRead() {
         guard operation == .customers else { return }
         let context = readContext; let expected = identity
-        let expectedFilter = filter; let expectedKeyword = keyword
+        let expectedFilter = customerFilters.filter; let expectedKeyword = customerFilters.keyword
         // Invalidate an older response immediately, including the 300ms wait.
         generation &+= 1
         snapshot = nil; snapshotContext = nil; failure = nil; loading = false
@@ -299,7 +351,7 @@ struct ClubGovernanceReadView: View {
         customerKeywordDebounce.schedule {
             guard operation == .customers, context == readContext, expected == identity,
                   access.identity == expected, keywordRevision == generation,
-                  filter == expectedFilter, keyword == expectedKeyword,
+                  customerFilters.filter == expectedFilter, customerFilters.keyword == expectedKeyword,
                   !Task.isCancelled else { return }
             await load()
         }
@@ -307,12 +359,13 @@ struct ClubGovernanceReadView: View {
     @MainActor private func load() async {
         if operation == .customers { customerKeywordDebounce.cancel() }
         generation &+= 1; let revision = generation; let expected = identity; let context = readContext
+        let customerQuery = customerFilters
         snapshot = nil; failure = nil; loading = true
         snapshotContext = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID()
         leaderboardMember = nil
         guard expected?.isSignedIn == true else { loading = false; failure = .signedOut; return }
         var options: [String: ClubGovernanceValue] = [:]
-        if operation == .customers { options = ["filter": .string(filter), "keyword": .string(keyword)] }
+        if operation == .customers { options = ["filter": .string(customerQuery.filter), "keyword": .string(customerQuery.keyword)] }
         if operation == .topicCustomers { options = topicCustomerFilter.options }
         if operation == .leaderboard { options = ["sortBy": .string(sort)] }
         if operation == .feed { options = ["limit": .integer(20)] }
@@ -325,6 +378,7 @@ struct ClubGovernanceReadView: View {
             guard revision == generation, context == readContext, expected == identity, access.identity == expected, !Task.isCancelled else { return }
             guard context.accepts(result) else { throw ClubGovernanceFailure.targetChanged }
             snapshotContext = context; snapshotGeneration = revision; snapshot = result
+            snapshotCustomerFilters = operation == .customers ? customerQuery : nil
         } catch {
             guard revision == generation, context == readContext, expected == identity, access.identity == expected, !Task.isCancelled else { return }
             failure = error as? ClubGovernanceFailure ?? .malformed
@@ -525,6 +579,17 @@ struct ClubGovernanceReadView: View {
             ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)
             if operation == .customers { ClubGovernanceFactRows(value: value, fields: ["total", "monthNew"]) }
             dataRows(value.array ?? value["items"].array ?? value["rows"].array ?? value["topics"].array ?? value["nodes"].array ?? [])
+            if operation == .customers, !loading, failure == nil,
+               value["items"].array?.isEmpty == true, customerFilters.isFiltered,
+               snapshotCustomerFilters == customerFilters {
+                let sourceContext = readContext, sourceGeneration = snapshotGeneration
+                let sourceFilters = customerFilters
+                Button("discovery.clearFilters") {
+                    clearCustomerFilters(source: snapshot, context: sourceContext,
+                                         sourceGeneration: sourceGeneration, filters: sourceFilters)
+                }.buttonStyle(.borderless)
+                    .accessibilityIdentifier("club.gov.customers.clearFilters")
+            }
             if operation == .topicSettings {
                 if value["canManage"] == .bool(true) { edit(.saveTopicSettings, seed: ["coopOpen": value["coopOpen"], "pinned": value["pinned"], "memberOnly": value["memberOnly"]]); edit(.endTopic) }
                 Section("club.gov.chapters") { ForEach(Array((value["chapters"].array ?? []).enumerated()), id: \.offset) { _, row in

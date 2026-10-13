@@ -147,3 +147,121 @@ import XCTest
         guard case .object(let object) = row else { return row }; return .object(object.merging(fields) { _, new in new })
     }
 }
+
+extension ClubInvitationFeedbackViewTests {
+    func testInvitationTermsPreserveMissingValuesWithoutInventingAmounts() throws {
+        let f = FeedbackFixture()
+        let terms = try ClubInvitationFeedbackTerms(f.row(1))
+        XCTAssertNil(terms.shareMode); XCTAssertNil(terms.shareRate); XCTAssertNil(terms.fixedFee)
+        XCTAssertNil(terms.handleReason); XCTAssertFalse(terms.termsFrozen)
+        for mode in [1, 2, 99] {
+            let missing = try ClubInvitationFeedbackTerms(f.replacing(f.row(1), ["shareMode": .id(mode)]))
+            XCTAssertEqual(missing.shareMode, mode)
+            XCTAssertNil(missing.shareRate); XCTAssertNil(missing.fixedFee)
+        }
+    }
+    func testInvitationTermsPreserveProvidedModesAmountsAndVerbatimReason() throws {
+        let f = FeedbackFixture()
+        let terms = try ClubInvitationFeedbackTerms(f.replacing(f.row(1), [
+            "shareMode": .id(1), "shareRate": .number(12.5), "fixedFee": .number(8.25),
+            "handleReason": .string("  Recorded reply\nSecond line  "), "termsFrozen": .bool(true)]))
+        XCTAssertEqual(terms.shareMode, 1); XCTAssertEqual(terms.shareRate, 12.5)
+        XCTAssertEqual(terms.fixedFee, 8.25); XCTAssertEqual(terms.handleReason, "  Recorded reply\nSecond line  ")
+        XCTAssertTrue(terms.termsFrozen)
+        let traffic = try ClubInvitationFeedbackTerms(f.replacing(f.row(1), ["shareMode": .id(0)]))
+        XCTAssertEqual(traffic.shareMode, 0); XCTAssertNil(traffic.fixedFee)
+        let zero = try ClubInvitationFeedbackTerms(f.replacing(f.row(1), ["shareMode": .id(2), "fixedFee": .id(0)]))
+        XCTAssertEqual(zero.fixedFee, 0)
+    }
+    func testInvitationTermsRejectMalformedProvidedTypesWithoutReadingUnrelatedFields() throws {
+        let f = FeedbackFixture()
+        for (field, value) in [("shareMode", CoopFlowJSON.string("1")), ("shareRate", .bool(true)),
+                               ("fixedFee", .string("unknown")), ("handleReason", .id(7)),
+                               ("termsFrozen", .string("yes"))] {
+            XCTAssertThrowsError(try ClubInvitationFeedbackTerms(f.replacing(f.row(1), [field: value])), field)
+        }
+        let terms = try ClubInvitationFeedbackTerms(f.replacing(f.row(1), ["partner": .bool(false), "depositAmount": .string("not displayed")]))
+        XCTAssertNil(terms.fixedFee); XCTAssertNil(terms.handleReason)
+    }
+    func testInvitationTermsKeepSameNumericIDSeparatedByDirection() async throws {
+        let f = FeedbackFixture(), model = ClubInvitationFeedbackReadModel(), permit = try activate(model, f.context)
+        f.flow.value = f.value(received: [f.replacing(f.row(7), ["shareMode": .id(1), "shareRate": .id(15), "handleReason": .string("Received reply")])],
+                              sent: [f.replacing(f.row(7), ["shareMode": .id(2), "fixedFee": .number(8.25), "handleReason": .string("Sent reply")])])
+        await load(model, f, permit)
+        let snapshot = try XCTUnwrap(accepted(model, f))
+        for row in snapshot.rows {
+            let target = try XCTUnwrap(snapshot.target(key: row.id, context: f.context, snapshotID: model.snapshotID))
+            let terms = try XCTUnwrap(model.terms(for: target, in: f.context, clubReader: f.club, reader: f.flow, access: f.access))
+            XCTAssertEqual(terms.handleReason, row.id.direction == .received ? "Received reply" : "Sent reply")
+            XCTAssertEqual(terms.shareMode, row.id.direction == .received ? 1 : 2)
+        }
+        XCTAssertEqual(f.flow.resources, [.invitations]); XCTAssertEqual(f.access.sends, 0)
+    }
+    func testInvitationTermsProjectOnlyRowsInTheAcceptedClubScope() throws {
+        let f = FeedbackFixture()
+        let payload = f.value(received: [f.row(1), f.row(1, clubID: 82)], sent: [f.row(2), f.row(3, topic: 999)])
+        let snapshot = try ClubInvitationFeedbackSnapshot(context: f.context, topics: f.access.topics(), invitations: payload)
+        let terms = try ClubInvitationFeedbackTerms.project(snapshot, invitations: payload)
+        XCTAssertEqual(terms.count, 2)
+        XCTAssertEqual(Set(terms.keys), Set(snapshot.rows.map(\.id)))
+        XCTAssertThrowsError(try ClubInvitationFeedbackTerms.project(snapshot, invitations: f.value()))
+    }
+    func testInvitationTermsMalformedReadFailsWithoutPublishingPartialSnapshot() async throws {
+        let f = FeedbackFixture(), model = ClubInvitationFeedbackReadModel(), permit = try activate(model, f.context)
+        f.flow.value = f.value(received: [f.replacing(f.row(1), ["fixedFee": .string("invalid")])])
+        await load(model, f, permit)
+        XCTAssertEqual(model.phase, .failed); XCTAssertNil(accepted(model, f)); XCTAssertNil(model.snapshot)
+        XCTAssertEqual(f.access.sends, 0)
+    }
+    func testInvitationTermsReloadRejectsOldTargetAndPublishesNewReply() async throws {
+        let f = FeedbackFixture(), model = ClubInvitationFeedbackReadModel(), permit = try activate(model, f.context)
+        f.flow.value = f.value(received: [f.replacing(f.row(1), ["handleReason": .string("First")])])
+        await load(model, f, permit)
+        let first = try XCTUnwrap(accepted(model, f))
+        let old = try XCTUnwrap(first.target(key: first.rows[0].id, context: f.context, snapshotID: model.snapshotID))
+        f.flow.value = f.value(received: [f.replacing(f.row(1), ["handleReason": .string("Updated")])])
+        await load(model, f, permit)
+        XCTAssertNil(model.terms(for: old, in: f.context, clubReader: f.club, reader: f.flow, access: f.access))
+        let second = try XCTUnwrap(accepted(model, f))
+        let current = try XCTUnwrap(second.target(key: second.rows[0].id, context: f.context, snapshotID: model.snapshotID))
+        XCTAssertEqual(model.terms(for: current, in: f.context, clubReader: f.club, reader: f.flow, access: f.access)?.handleReason, "Updated")
+        XCTAssertEqual(f.access.sends, 0)
+    }
+    func testInvitationTermsRejectAuthorityReaderAccountAndLeaveChanges() async throws {
+        let f = FeedbackFixture(), model = ClubInvitationFeedbackReadModel(), scope = f.context, permit = try activate(model, scope)
+        f.flow.value = f.value(received: [f.replacing(f.row(1), ["handleReason": .string("Reply")])])
+        await load(model, f, permit)
+        let snapshot = try XCTUnwrap(accepted(model, f))
+        let target = try XCTUnwrap(snapshot.target(key: snapshot.rows[0].id, context: scope, snapshotID: model.snapshotID))
+        XCTAssertNotNil(model.terms(for: target, in: scope, clubReader: f.club, reader: f.flow, access: f.access))
+        f.access.authorizationGeneration = UUID()
+        XCTAssertNil(model.terms(for: target, in: scope, clubReader: f.club, reader: f.flow, access: f.access))
+        f.access.authorizationGeneration = scope.authorizationGeneration
+        f.access.storageNamespace = "changed"
+        XCTAssertNil(model.terms(for: target, in: scope, clubReader: f.club, reader: f.flow, access: f.access))
+        f.access.storageNamespace = scope.namespace
+        XCTAssertNil(model.terms(for: target, in: scope, clubReader: f.club, reader: FeedbackFlowReader(), access: f.access))
+        f.club.clubIdentity = .init(accountID: 702, epoch: 1)
+        XCTAssertNil(model.terms(for: target, in: scope, clubReader: f.club, reader: f.flow, access: f.access))
+        f.club.clubIdentity = scope.identity
+        model.leave(scope); _ = model.activate(scope)
+        XCTAssertNil(model.terms(for: target, in: scope, clubReader: f.club, reader: f.flow, access: f.access))
+        XCTAssertEqual(f.access.sends, 0)
+    }
+    func testInvitationTermsLateOlderReadCannotReplaceNewerTerms() async throws {
+        let f = FeedbackFixture(), model = ClubInvitationFeedbackReadModel(), permit = try activate(model, f.context)
+        f.flow.held = true
+        let first = expectation(description: "old terms"), second = expectation(description: "new terms")
+        f.flow.entered = { f.flow.pending.count == 1 ? first.fulfill() : second.fulfill() }
+        let old = Task { await self.load(model, f, permit) }; await fulfillment(of: [first], timeout: 1)
+        let new = Task { await self.load(model, f, permit) }; await fulfillment(of: [second], timeout: 1)
+        f.flow.pending[1].resume(returning: f.value(received: [f.replacing(f.row(1), ["handleReason": .string("New")])]))
+        await new.value
+        f.flow.pending[0].resume(returning: f.value(received: [f.replacing(f.row(1), ["handleReason": .string("Old")])]))
+        await old.value
+        let snapshot = try XCTUnwrap(accepted(model, f))
+        let target = try XCTUnwrap(snapshot.target(key: snapshot.rows[0].id, context: f.context, snapshotID: model.snapshotID))
+        XCTAssertEqual(model.terms(for: target, in: f.context, clubReader: f.club, reader: f.flow, access: f.access)?.handleReason, "New")
+        XCTAssertEqual(f.access.sends, 0)
+    }
+}

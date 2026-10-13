@@ -109,4 +109,60 @@ import XCTest
         let (d,_)=await harness(); let p=MerchantStoreFieldPresentation(); p.activate(); let empty=p.presentationBinding(); p.open(permit:p.generation,document:d,field:.name)
         let new=try XCTUnwrap(p.session); empty.wrappedValue=nil; XCTAssertNil(empty.wrappedValue); XCTAssertTrue(p.session === new)
     }
+    func testHiddenForegroundReturnCannotReopenStoreField() async throws {
+        let (d, r) = await harness()
+        let p = MerchantStoreFieldPresentation()
+        p.viewAppeared(sceneIsActive: true)
+        p.open(permit: p.generation, document: d, field: .name)
+        let old = try XCTUnwrap(p.session)
+        XCTAssertTrue(old.update("Private scratch"))
+        let original = try XCTUnwrap(d.coordinator.draft), reads = r.accessCount
+        p.viewDisappeared()
+        p.sceneChanged(isActive: false)
+        p.sceneChanged(isActive: true)
+        XCTAssertFalse(p.isVisible); XCTAssertFalse(p.active)
+        XCTAssertNil(p.session); XCTAssertEqual(old.buffer.value, "")
+        XCTAssertFalse(old.apply())
+        p.open(permit: p.generation, document: d, field: .name)
+        XCTAssertNil(p.session)
+        XCTAssertTrue(MerchantStoreFieldDraft.sameDraft(try XCTUnwrap(d.coordinator.draft), original))
+        XCTAssertEqual(r.accessCount, reads); XCTAssertEqual(r.saveCount, 0)
+    }
+    func testExplicitReappearanceRequiresFreshPermitAndKeepsOldBindingRetired() async throws {
+        let (d, r) = await harness()
+        let p = MerchantStoreFieldPresentation()
+        p.viewAppeared(sceneIsActive: true)
+        let oldPermit = p.generation
+        p.open(permit: oldPermit, document: d, field: .name)
+        let old = try XCTUnwrap(p.session), binding = p.presentationBinding()
+        p.viewDisappeared(); p.sceneChanged(isActive: true)
+        p.viewAppeared(sceneIsActive: true)
+        XCTAssertTrue(p.isVisible); XCTAssertTrue(p.active)
+        p.open(permit: oldPermit, document: d, field: .name)
+        XCTAssertNil(p.session)
+        p.open(permit: p.generation, document: d, field: .preference)
+        let current = try XCTUnwrap(p.session)
+        XCTAssertFalse(old.update("Stale")); XCTAssertNil(binding.wrappedValue)
+        binding.wrappedValue = nil; p.close(old.id)
+        XCTAssertTrue(p.session === current); XCTAssertEqual(r.saveCount, 0)
+    }
+    func testVisibleBackgroundReturnAndInactiveAppearanceUseSceneGate() async throws {
+        let (d, r) = await harness()
+        let p = MerchantStoreFieldPresentation()
+        p.viewAppeared(sceneIsActive: false)
+        XCTAssertTrue(p.isVisible); XCTAssertFalse(p.active)
+        p.open(permit: p.generation, document: d, field: .name)
+        XCTAssertNil(p.session)
+        p.sceneChanged(isActive: true)
+        p.open(permit: p.generation, document: d, field: .name)
+        let old = try XCTUnwrap(p.session), permit = p.generation
+        p.sceneChanged(isActive: false)
+        XCTAssertTrue(p.isVisible); XCTAssertFalse(p.active); XCTAssertNil(p.session)
+        p.sceneChanged(isActive: true)
+        XCTAssertTrue(p.active); XCTAssertFalse(old.isCurrent)
+        p.open(permit: permit, document: d, field: .name)
+        XCTAssertNil(p.session)
+        p.open(permit: p.generation, document: d, field: .name)
+        XCTAssertNotNil(p.session); XCTAssertEqual(r.saveCount, 0)
+    }
 }

@@ -271,6 +271,9 @@ import SwiftUI
                 Toggle("templateAuthor.moduleEnabled", isOn: .init(get: { model.draft.advanced.enabled("timer") }, set: { model.draft.advanced.set("timer", "enabled", .bool($0)) }))
                     .accessibilityIdentifier("creatorComposition.timerEnabled")
                 if model.draft.advanced.enabled("timer") { field("timer", "durationSeconds") }
+                NavigationLink { TemplateTimerOutcomeEditorView(model: model) } label: {
+                    TemplateTimerOutcomeEntryLabel()
+                }.accessibilityIdentifier("templateTimerOutcome.open")
             }
             if !model.draft.advanced.issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)) } } }
         }.disabled(!model.canEdit).navigationTitle("templateAuthor.advanced")
