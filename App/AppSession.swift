@@ -1933,6 +1933,24 @@ final class AppSession: ObservableObject {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
             })
     }
+    func makeProfileFavoriteTopicReader(_ selection: ProfileFavoriteTopicSelection) -> ProfileFavoriteTopicReader {
+        let api = regionalConfiguration?.apiConfiguration
+        let service = api.map {
+            TopicService(configuration: $0, transport: compositionTransport.scopedForProfileFavoriteTopic(selection))
+        }
+        return ProfileFavoriteTopicReader(selection: selection, service: service,
+            current: { [weak self] in self?.currentRuntimeDependencyContext },
+            viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+            access: { [weak self] context in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(context, fresh) else { return nil }
+                return self.composition.profileFavoriteTopicReadAccess(context)
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, fresh) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
     private let cooperationService:CooperationService?
     private var currentCooperationSession:CooperationReadSession? {
         guard let account,let token else { return nil }

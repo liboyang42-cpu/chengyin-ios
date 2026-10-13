@@ -42,6 +42,8 @@ import Observation
     private var observedViewer: UInt64?
     private var observedAccess: UUID?
     private var stamp = UUID()
+    private var topicReceipt = UUID()
+    private var acceptedTopics = Set<Int>()
     private var postReceipt = UUID()
     private var acceptedPosts = Set<Int>()
     public init(service: AccountCollectionService?, current: @escaping () -> RuntimeDependencyContext?,
@@ -63,12 +65,20 @@ import Observation
         else { same = context == nil && observedContext == nil }
         if !same || viewer != observedViewer || selected?.revision != observedAccess {
             observedContext = context; observedViewer = viewer; observedAccess = selected?.revision; stamp = UUID()
+            topicReceipt = UUID(); acceptedTopics.removeAll()
             postReceipt = UUID(); acceptedPosts.removeAll()
         }
         return selected
     }
     public func favoriteTopics(pageNumber: Int, pageSize: Int) async throws -> TopicPage {
-        try await read { try await $0.favorites(pageNumber: pageNumber, pageSize: pageSize, token: $1) }
+        guard pageNumber > 0, (1...100).contains(pageSize) else { throw APIError.invalidRequest }
+        _ = synchronize()
+        if pageNumber == 1 { topicReceipt = UUID(); acceptedTopics.removeAll() }
+        let receipt = topicReceipt, capturedScope = scope
+        let page = try await read { try await $0.favorites(pageNumber: pageNumber, pageSize: pageSize, token: $1) }
+        guard isConfigured, scope == capturedScope, topicReceipt == receipt else { throw CancellationError() }
+        acceptedTopics.formUnion(page.rows.map(\.id))
+        return page
     }
     public func favoritePosts(pageNumber: Int, pageSize: Int) async throws -> AccountCollectionPostPage {
         guard pageNumber > 0, (1...100).contains(pageSize) else { throw APIError.invalidRequest }
@@ -88,6 +98,16 @@ import Observation
             guard let self, let fresh = self.current(), ContentDraftContextFence.matches(context, fresh),
                   self.viewerRevision() == viewer, self.isConfigured, self.scope == renderedScope else { return false }
             return self.postReceipt == receipt && self.acceptedPosts.contains(route.id)
+        }
+    }
+    public func selectTopic(_ id: Int, renderedScope: UUID) -> ProfileFavoriteTopicSelection? {
+        guard id > 0, isConfigured, scope == renderedScope, acceptedTopics.contains(id),
+              let context = current() else { return nil }
+        let receipt = topicReceipt, viewer = viewerRevision()
+        return ProfileFavoriteTopicSelection(topicID: id, context: context, viewerRevision: viewer) { [weak self] in
+            guard let self, let fresh = self.current(), ContentDraftContextFence.matches(context, fresh),
+                  self.viewerRevision() == viewer, self.isConfigured, self.scope == renderedScope else { return false }
+            return self.topicReceipt == receipt && self.acceptedTopics.contains(id)
         }
     }
     public func ownedCoupons(keyword: String?) async throws -> [AccountCollectionCoupon] { throw APIError.notConfigured }

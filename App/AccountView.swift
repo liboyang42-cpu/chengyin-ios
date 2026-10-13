@@ -5,8 +5,7 @@ import SwiftUI
     var privateHomeCoordinator: PrivateHomeCoordinator? = nil
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
     @EnvironmentObject private var session: AppSession
-    private struct SavedTopicRoute: Identifiable, Hashable { let id: Int; let scope: UUID }
-    @State private var savedTopic: SavedTopicRoute?
+    @State private var savedTopicOwner = ProfileFavoriteTopicNavigationOwner()
     @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
     @Environment(\.scenePhase) private var scenePhase
     @State private var showsSettings=false
@@ -90,7 +89,8 @@ import SwiftUI
                     }.accessibilityIdentifier("account.wallet")
                 }
                 AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{
-                    savedTopic = SavedTopicRoute(id: $0, scope: session.profileFavoritesReader.scope)
+                    guard let selected = session.profileFavoritesReader.selectTopic($0, renderedScope: session.profileFavoritesReader.scope) else { return }
+                    _ = savedTopicOwner.open(selected, scope: session.profileFavoritesReader.scope)
                 },rewards:session.nonCashRewardReader,onOpenPost:{
                     guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
                     _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
@@ -134,12 +134,11 @@ import SwiftUI
             .navigationDestination(isPresented:$showsMerchantApplication) {
                 MerchantOnboardingView(session:session,coordinator:session.merchantOnboardingCoordinator)
             }
-            .navigationDestination(item:$savedTopic) { route in
-                if route.scope == session.profileFavoritesReader.scope, session.profileFavoritesReader.isConfigured {
-                    SessionTopicDetailView(id: route.id, session: session).id(session.topicReader.scope)
-                } else { AccountCollectionIssueView(issue: .login) }
-            }
             .background {
+                ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
+                    ProfileFavoriteTopicDestination(selection: selected, session: session,
+                        makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
+                }
                 ProfileFavoriteNavigationLayer(owner: savedPostOwner) { selected in
                     ProfileFavoriteDetailDestination(selection: selected,
                         makeReader: { session.makeProfileFavoriteDetailReader(selected) },
@@ -148,7 +147,7 @@ import SwiftUI
                 }
             }
             .onChange(of: session.profileFavoritesReader.scope) { _, scope in
-                savedPostOwner.updateScope(scope); savedTopic = nil
+                savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)
             }
             .sheet(isPresented:$showsSettings) { SettingsView() }
             .sheet(isPresented:$showsCooperation) { CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader).id(session.cooperationReader.scope) }
@@ -158,9 +157,9 @@ import SwiftUI
                 Button("action.cancel",role:.cancel) {}
             }
         }
-        .onAppear { savedPostOwner.appear(scope: session.profileFavoritesReader.scope, foreground: scenePhase == .active) }
-        .onDisappear { savedPostOwner.disappear() }
-        .onChange(of: scenePhase) { _, phase in savedPostOwner.setForeground(phase == .active) }
+        .onAppear { savedPostOwner.appear(scope: session.profileFavoritesReader.scope, foreground: scenePhase == .active); savedTopicOwner.appear(scope: session.profileFavoritesReader.scope, foreground: scenePhase == .active) }
+        .onDisappear { savedPostOwner.disappear(); savedTopicOwner.disappear() }
+        .onChange(of: scenePhase) { _, phase in savedPostOwner.setForeground(phase == .active); savedTopicOwner.setForeground(phase == .active) }
     }
 
     @MainActor private var ticketPendingOrderProvider: TicketWalletPendingOrderProvider {

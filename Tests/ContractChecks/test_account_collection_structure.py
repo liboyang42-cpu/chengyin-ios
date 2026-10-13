@@ -108,7 +108,7 @@ class AccountCollectionStructureTests(unittest.TestCase):
         self.assertIn('makeReader: { session.makeProfileFavoriteDetailReader(selected) }', destination)
         self.assertIn('.id(selected.id)', destination)
         self.assertIn('.onChange(of: session.profileFavoritesReader.scope)', destination)
-        self.assertIn('savedPostOwner.updateScope(scope); savedTopic = nil', destination)
+        self.assertIn('savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)', destination)
         owner = self.text('App/ProfileFavoriteDetailDestination.swift')
         self.assertIn('if let reader, selection.isCurrent', owner)
         self.assertIn('SquareDetailView(id: selection.route.id, contentGeneration: selection.route.generation,', owner)
@@ -117,7 +117,20 @@ class AccountCollectionStructureTests(unittest.TestCase):
         self.assertIn('if value == nil { _ = self.close(id: id) }', owner)
         self.assertIn('selected.id == id', owner)
         self.assertIn('.navigationDestination(item: owner.binding(for: selected), destination: destination)', owner)
-        self.assertIn('.onDisappear { savedPostOwner.disappear() }', root)
+        self.assertIn('.onDisappear { savedPostOwner.disappear(); savedTopicOwner.disappear() }', root)
+        self.assertIn('session.profileFavoritesReader.selectTopic($0, renderedScope: session.profileFavoritesReader.scope)', entry)
+        self.assertIn('savedTopicOwner.open(selected, scope: session.profileFavoritesReader.scope)', entry)
+        topic = root.split('ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner)', 1)[1].split('ProfileFavoriteNavigationLayer(owner: savedPostOwner)', 1)[0]
+        self.assertIn('ProfileFavoriteTopicDestination(selection: selected, session: session,', topic)
+        self.assertIn('makeReader: { session.makeProfileFavoriteTopicReader(selected) }', topic)
+        topic_host = self.text('App/ProfileFavoriteTopicDestination.swift')
+        self.assertIn('SessionTopicDetailView(id: selection.topicID, session: session, topicReaderOverride: reader)', topic_host)
+        self.assertIn('self.selection?.id == id, selected.isCurrent', topic_host)
+        self.assertIn('if value == nil { _ = self.close(id: id) }', topic_host)
+        self.assertNotIn('.onDisappear', topic_host.split('struct ProfileFavoriteTopicDestination: View', 1)[1])
+        full = self.text('App/PlatformConsumerSessionOwner.swift').split('struct SessionTopicDetailView: View', 1)[1].split('#if DEBUG', 1)[0]
+        self.assertIn('var topicReaderOverride: (any TopicReading)? = nil', full)
+        self.assertIn('TopicDetailView(id: id, reader: topicReaderOverride ?? session.topicReader,', full)
         detail = owner.split('struct ProfileFavoriteDetailDestination: View', 1)[1]
         self.assertNotIn('.onDisappear', detail)
 

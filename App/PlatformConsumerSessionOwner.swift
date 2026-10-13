@@ -33,6 +33,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
 @MainActor struct SessionTopicDetailView: View {
     let id: Int
     @ObservedObject var session: AppSession
+    var topicReaderOverride: (any TopicReading)? = nil
     var body: some View {
         Group {
             if session.account == nil {
@@ -41,7 +42,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                 ContentUnavailableView("topic.detail", systemImage: "network.slash", description: Text(LocalizedStringKey(message)))
                     .accessibilityIdentifier("topic.detail.configurationUnavailable")
             } else {
-                TopicDetailView(id: id, reader: session.topicReader,
+                TopicDetailView(id: id, reader: topicReaderOverride ?? session.topicReader,
                     activityDestination: { AnyView(ActivityDetailView(id: $0, reader: session)) },
                     publicMerchant: session.publicMerchantHomeContext,
                     makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory,
