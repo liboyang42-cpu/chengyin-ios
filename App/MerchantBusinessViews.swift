@@ -8,6 +8,54 @@ import SwiftUI
     private(set) var aftercareLoadFailureKey: String?
     private(set) var reviewLoadedPages: MerchantReviewLoadedPages?
     private var loadGeneration = 0
+    private struct TeamResult {
+        let id: UUID
+        let scope: MerchantBusinessScope
+        let authorization: UUID?
+        let merchantID: Int
+        let receipt: MerchantBusinessReceipt
+    }
+    private struct TeamReadRecovery {
+        let id: UUID
+        let scope: MerchantBusinessScope
+        let authorization: UUID?
+        let merchantID: Int
+    }
+    private var teamReadRecovery: TeamReadRecovery?
+    var teamRecoveryID: UUID? {
+        guard teamPageVisible, teamPageActive, let recovery = teamReadRecovery,
+              coordinator.reader.scope == recovery.scope,
+              coordinator.reader.authorizationGeneration == recovery.authorization else { return nil }
+        return recovery.id
+    }
+    func retryTeamRead(_ id: UUID) async {
+        guard teamRecoveryID == id, let recovery = teamReadRecovery, !coordinator.isBusy else { return }
+        await load(.operators, appendAftercare: false, expectedTeamRecovery: id,
+                   expectedTeamMerchantID: recovery.merchantID)
+    }
+    private var teamResult: TeamResult?
+    private var teamPageVisible = false
+    private var teamPageActive = false
+    var teamReturnReceipt: MerchantBusinessReceipt? {
+        guard teamPageVisible, teamPageActive, let result = teamResult,
+              coordinator.reader.scope == result.scope,
+              coordinator.reader.authorizationGeneration == result.authorization else { return nil }
+        return result.receipt
+    }
+    func teamPageAppeared(active: Bool) { teamPageVisible = true; teamPageSceneChanged(active: active) }
+    func teamPageSceneChanged(active: Bool) {
+        teamPageActive = teamPageVisible && active
+        if !teamPageActive {
+            if teamPageVisible, let result = teamResult {
+                teamReadRecovery = .init(id: result.id, scope: result.scope,
+                                         authorization: result.authorization, merchantID: result.merchantID)
+            }
+            teamResult = nil
+        }
+        revision += 1
+    }
+    func teamPageDisappeared() { teamPageVisible = false; teamPageSceneChanged(active: false); teamReadRecovery = nil }
+
     private var filterScope: MerchantBusinessScope?
     private var filterMerchantID: Int?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore) { coordinator = .init(reader: reader, journal: journal) }
@@ -35,9 +83,11 @@ import SwiftUI
               pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else { return nil }
         return pages.sourcePage(for: row)
     }
-    private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool, appendReviews: Bool = false) async {
+    private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool, appendReviews: Bool = false, expectedTeamResult: UUID? = nil, expectedTeamRecovery: UUID? = nil, expectedTeamMerchantID: Int? = nil) async {
         // A refresh always starts a fresh page-one generation. No old rows survive
         // a refresh, failed replacement, bucket/context change or dismissal.
+        if requested != .operators { teamReadRecovery = nil }
+        if requested != .operators || teamReturnReceipt == nil { teamResult = nil }
         let query: MerchantBusinessQuery
         if case .aftercare = requested, !appendAftercare { query = requested.paged(1) }
         else { query = requested }
@@ -54,8 +104,21 @@ import SwiftUI
         guard !Task.isCancelled, scope == coordinator.reader.scope, authorization == coordinator.reader.authorizationGeneration else {
             aftercareLoadedPages = nil; reviewLoadedPages = nil; coordinator.invalidate(); return
         }
+        if let expectedTeamResult, (teamResult?.id != expectedTeamResult || teamReturnReceipt == nil) {
+            coordinator.invalidate(); return
+        }
+        if let expectedTeamRecovery, teamRecoveryID != expectedTeamRecovery {
+            coordinator.invalidate(); return
+        }
         guard coordinator.isCurrent, let snapshot = coordinator.snapshot, snapshot.document.query == query, coordinator.failureKey == nil else {
             aftercareLoadedPages = nil; reviewLoadedPages = nil; return
+        }
+        if let expectedTeamMerchantID, snapshot.access.merchantID != expectedTeamMerchantID {
+            teamReadRecovery = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"; return
+        }
+        if expectedTeamRecovery != nil { teamReadRecovery = nil }
+        if let result = teamResult, snapshot.access.merchantID != result.merchantID {
+            teamResult = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"; revision += 1; return
         }
         let currentMerchant = snapshot.access.merchantID
         if let filterMerchantID, filterMerchantID != currentMerchant { listFilters = .init() }
@@ -103,10 +166,31 @@ import SwiftUI
         guard let presentation = try? MerchantBusinessSection(section.id, rows: unfilteredRows(in: section, query: query)) else { return [] }
         return listFilters.rows(in: presentation, query: query)
     }
-    func prepare(_ mutation: MerchantBusinessMutation) { coordinator.prepare(mutation); revision += 1 }
+    func prepare(_ mutation: MerchantBusinessMutation) { teamReadRecovery = nil; teamResult = nil; coordinator.prepare(mutation); revision += 1 }
     func cancel() { coordinator.cancelConfirmation(); revision += 1 }
-    func confirm(_ review: MerchantBusinessConfirmation) async { revision += 1; await coordinator.confirm(review); revision += 1 }
+    func confirm(_ review: MerchantBusinessConfirmation) async {
+        let generation = loadGeneration
+        let eligible: Bool
+        switch review.mutation {
+        case .operatorRole, .removeOperator, .revokeInvite: eligible = review.baseline.document.query == .operators
+        default: eligible = false
+        }
+        let ownsReview = coordinator.confirmation == review
+        revision += 1; await coordinator.confirm(review); revision += 1
+        guard eligible, ownsReview, generation == loadGeneration,
+              teamPageVisible, teamPageActive, !Task.isCancelled,
+              coordinator.reader.scope == review.scope,
+              coordinator.reader.authorizationGeneration == review.authorizationGeneration,
+              !coordinator.isBusy, !coordinator.isLocked, coordinator.failureKey == nil,
+              let receipt = coordinator.receipt else { return }
+        teamResult = .init(id: review.id, scope: review.scope, authorization: review.authorizationGeneration,
+                           merchantID: review.baseline.access.merchantID, receipt: receipt)
+        // The existing coordinator has already confirmed the response. This is one read,
+        // never a retry of the acknowledged mutation. Read errors retain the result.
+        await load(.operators, appendAftercare: false, expectedTeamResult: review.id)
+    }
     func invalidate() {
+        teamReadRecovery = nil; teamResult = nil
         loadGeneration += 1; aftercareLoadedPages = nil; reviewLoadedPages = nil; aftercareLoadFailureKey = nil
         coordinator.invalidate(); listFilters = .init(); filterScope = nil; filterMerchantID = nil; revision += 1
     }
@@ -258,7 +342,14 @@ import SwiftUI
                 }
             }
             if state.isLocked { Text("merchant.business.unknownResult").accessibilityIdentifier("merchant.business.locked") }
-            if let receipt = state.receipt {
+            if query == .operators, let recoveryID = model.teamRecoveryID {
+                Section {
+                    Text("merchant.business.stale")
+                    Button("action.retry") { Task { await model.retryTeamRead(recoveryID) } }
+                        .disabled(state.isBusy).accessibilityIdentifier("merchant.team.resultRetry")
+                }
+            }
+            if let receipt = state.receipt ?? model.teamReturnReceipt {
                 Section("merchant.business.receipt") {
                     Text(reader.isOfflineExample ? "merchant.business.syntheticSaved" : "merchant.business.productionSaved")
                     if let message = receipt.message { Text(message) }
@@ -459,13 +550,14 @@ import SwiftUI
                     } }
             }
         }
-        .onAppear { aftercareReturn.appear(active: scenePhase == .active); customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
+        .onAppear { model.teamPageAppeared(active: scenePhase == .active); aftercareReturn.appear(active: scenePhase == .active); customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
         .onChange(of: model.revision) { _, _ in
             if let retired = aftercareReturn.synchronize(), editor?.id == retired { editor = nil }
             if let retired = noteDrafts.synchronize(), editor?.id == retired { editor = nil }
             if let retired = draftReturn.synchronize(), editor?.id == retired { editor = nil }
         }
         .onChange(of: scenePhase) { _, phase in
+            model.teamPageSceneChanged(active: phase == .active)
             if let retired = aftercareReturn.sceneChanged(active: phase == .active), editor?.id == retired { editor = nil }
             customerFilterDisclosure.sceneChanged(isActive: phase == .active)
             if phase != .active, let retired = noteDrafts.retire(), editor?.id == retired { editor = nil }
@@ -474,7 +566,7 @@ import SwiftUI
         }
         .onChange(of: reader.scope) { _, _ in aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
         .onChange(of: reader.authorizationGeneration) { _, _ in aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onDisappear { aftercareReturn.disappear(); customerFilterDisclosure.viewDisappeared(); teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }
+        .onDisappear { model.teamPageDisappeared(); aftercareReturn.disappear(); customerFilterDisclosure.viewDisappeared(); teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }
     }
     private var customerFilterExpansion: Binding<Bool> {
         let scope = reader.scope, authorization = reader.authorizationGeneration

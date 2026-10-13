@@ -66,6 +66,41 @@ final class MerchantOperationsViewModel: ObservableObject {
     @Published private(set) var revision = 0
     @Published var brandImagesPresentation: MerchantBrandImagesModel?
     let galleryBatch = MerchantGalleryBatchModel()
+    @Published private(set) var decorNavigation: MerchantDecorEditorRoute?
+    private var decorReturn: MerchantDecorEditorRoute?
+    private(set) var decorNavigationGeneration = UUID()
+    func openDecorEditor(_ route: MerchantDecorEditorRoute) {
+        guard decorNavigation == nil, route.isCurrent(document: self) else { return }
+        decorReturn = route; decorNavigation = route
+    }
+    func decorNavigationBinding() -> Binding<MerchantDecorEditorRoute?> {
+        let original = decorNavigation
+        return Binding(get: { [weak self] in
+            guard let self, let original, self.decorNavigation?.id == original.id,
+                  original.isCurrent(document: self) else { return nil }
+            return original
+        }, set: { [weak self] value in
+            guard value == nil, let self, let original, self.decorNavigation?.id == original.id else { return }
+            self.decorNavigation = nil
+        })
+    }
+    /// Called by the actual document task when its navigation host appears again.
+    func loadForAppearance() async {
+        if let returning = decorReturn, returning.isCurrent(document: self) {
+            retireDecorNavigation()
+            await refreshImages()
+            return
+        }
+        retireDecorNavigation()
+        await load()
+    }
+    func documentDisappeared() {
+        let returningFromChild = decorReturn?.isCurrent(document: self) == true
+        leaveImages()
+        if coordinator.destination == .decor, !returningFromChild { invalidate() }
+    }
+    func retireDecorNavigation() { decorNavigation = nil; decorReturn = nil; decorNavigationGeneration = UUID() }
+
     private let imageHost: MerchantRetainedImageHost?
     private(set) var imageOwner: MerchantRetainedImageDocumentOwner?
     init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil) {
@@ -74,6 +109,7 @@ final class MerchantOperationsViewModel: ObservableObject {
         imageOwner = imageHost?.document(reader: reader, destination: destination)
     }
     func load() async {
+        retireDecorNavigation()
         galleryBatch.cancel(); imageOwner?.invalidate(); revision += 1
         await coordinator.load(); await imageOwner?.refresh(coordinator: coordinator); revision += 1
     }
@@ -112,7 +148,7 @@ final class MerchantOperationsViewModel: ObservableObject {
         }
         await imageOwner?.refresh(coordinator: coordinator); revision += 1
     }
-    func invalidate() { galleryBatch.cancel(); imageOwner?.invalidate(); coordinator.invalidate(); revision += 1 }
+    func invalidate() { retireDecorNavigation(); galleryBatch.cancel(); imageOwner?.invalidate(); coordinator.invalidate(); revision += 1 }
     func leaveImages() { galleryBatch.cancel(); imageOwner?.invalidate(); revision += 1 }
     func refreshImages() async { galleryBatch.cancel(); await imageOwner?.refresh(coordinator: coordinator); revision += 1 }
 }
@@ -161,8 +197,25 @@ struct MerchantOperationsDocumentView: View {
         .safeAreaInset(edge: .bottom) {
             if let templateReturn { MerchantCityTemplateReturnFooter(coordinator: coordinator, action: templateReturn) }
         }
+        .navigationDestination(item: model.decorNavigationBinding()) { route in
+            if route.isCurrent(document: model) {
+                MerchantOperationsDocumentView(reader: route.reader, destination: route.destination,
+                    imageHost: imageHost, templateAssistFactory: templateAssistFactory).id(route.id)
+            } else { Text("merchant.business.stale") }
+        }
         .navigationBarBackButtonHidden(coordinator.isDirty)
         .toolbar {
+            if destination == .decor {
+                ToolbarItemGroup(placement: .bottomBar) {
+                    ForEach(MerchantDecorEditorTarget.allCases, id: \.self) { target in
+                        if let route = MerchantDecorEditorRoute(document: model, target: target) {
+                            Button { model.openDecorEditor(route) } label: {
+                                Text(LocalizedStringKey(target.destination.titleKey))
+                            }.accessibilityIdentifier("merchant.decor.open." + target.rawValue)
+                        }
+                    }
+                }
+            }
             if templateReturn != nil, !coordinator.isDirty {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") { dismiss() }.disabled(coordinator.isBusy)
@@ -196,11 +249,11 @@ struct MerchantOperationsDocumentView: View {
         .sheet(item: Binding(get: { coordinator.isCurrent ? coordinator.confirmation : nil }, set: { if $0 == nil { model.cancel() } })) { confirmation in
             MerchantOperationsConfirmationView(model: model, confirmation: confirmation)
         }
-        .task(id: reader.scope) { await model.load() }
+        .task(id: reader.scope) { await model.loadForAppearance() }
         .onChange(of: reader.scope) { _, _ in model.invalidate() }
-        .onDisappear { model.leaveImages() }
+        .onDisappear { model.documentDisappeared() }
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { model.leaveImages() }
+            if phase != .active { model.retireDecorNavigation(); model.leaveImages() }
             else { Task { await model.refreshImages() } }
         }
     }
@@ -287,4 +340,42 @@ private struct MerchantOperationsAssetsView: View {
             }
         }
     }
+}
+
+
+/// Value navigation freezes an existing editor target and never mutates the source draft.
+enum MerchantDecorEditorTarget: String, CaseIterable {
+    case gallery, cooperation
+    var destination: MerchantOperationsDestination {
+        switch self { case .gallery: return .gallery; case .cooperation: return .cooperation }
+    }
+}
+@MainActor struct MerchantDecorEditorRoute: Hashable, Identifiable {
+    let id = UUID()
+    let reader: any MerchantOperationsReading
+    let destination: MerchantOperationsDestination
+    private let source: ObjectIdentifier
+    private let scope: UUID
+    private let draftIdentity: UUID
+    private let navigationGeneration: UUID
+    init?(document: MerchantOperationsViewModel, target: MerchantDecorEditorTarget) {
+        let coordinator = document.coordinator
+        guard coordinator.destination == .decor, coordinator.isCurrent,
+              coordinator.reader.isConfigured, !coordinator.isBusy, !coordinator.isLocked,
+              coordinator.confirmation == nil, case .decor = coordinator.draft else { return nil }
+        reader = coordinator.reader; destination = target.destination
+        source = ObjectIdentifier(document); scope = reader.scope; draftIdentity = coordinator.draftIdentity
+        navigationGeneration = document.decorNavigationGeneration
+    }
+    func isCurrent(document: MerchantOperationsViewModel) -> Bool {
+        let coordinator = document.coordinator
+        return navigationGeneration == document.decorNavigationGeneration
+            && !reader.hasPending(.decor)
+            && source == ObjectIdentifier(document) && ObjectIdentifier(reader) == ObjectIdentifier(coordinator.reader)
+            && reader.scope == scope && reader.isConfigured && reader.isAuthenticated
+            && coordinator.destination == .decor && coordinator.isCurrent && coordinator.draftIdentity == draftIdentity
+            && !coordinator.isBusy && !coordinator.isLocked && coordinator.confirmation == nil
+    }
+    nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+    nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }

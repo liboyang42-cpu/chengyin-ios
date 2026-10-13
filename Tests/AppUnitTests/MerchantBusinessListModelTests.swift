@@ -525,3 +525,203 @@ extension MerchantBusinessListModelTests {
         hidden.wrappedValue = false; XCTAssertTrue(presentation.isExpanded)
     }
 }
+
+@MainActor final class MerchantTeamResultRefreshTests: XCTestCase {
+    @MainActor private final class Reader: MerchantBusinessReading {
+        var scope: MerchantBusinessScope? = .init(realm: "synthetic://team-result", accountID: 99001, epoch: 1)
+        var authorizationGeneration: UUID? = UUID()
+        let isConfigured = true, isOfflineExample = true, canExecuteSyntheticMutation = true
+        var reads = 0, sends = 0, merchantID = 610
+        var readFailure: MerchantBusinessFailure?, sendFailure: MerchantBusinessFailure?
+        var mutation: MerchantBusinessMutation?
+        var holdSend = false, holdResultRead = false
+        var sendContinuation: CheckedContinuation<Void, Never>?
+        var readContinuation: CheckedContinuation<Void, Never>?
+        var entered: XCTestExpectation?
+        func access() async throws -> MerchantBusinessAccess {
+            var fields = try MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object!
+            fields["merchant"] = .object(["id": .int(merchantID), "name": .string("Synthetic team")])
+            return try .init(fields)
+        }
+        func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
+            reads += 1
+            if sends > 0 {
+                if holdResultRead { await withCheckedContinuation { readContinuation = $0; entered?.fulfill() } }
+                if let readFailure { throw readFailure }
+            }
+            let grant = try await access(); try grant.require(query.permissions)
+            var payload = try MerchantBusinessSyntheticFixtures.payload(query)
+            if query == .operators, let mutation {
+                var fields = try XCTUnwrap(payload.object)
+                let key: String
+                switch mutation { case .revokeInvite: key = "invites"; default: key = "operators" }
+                var rows = try XCTUnwrap(fields[key]?.array)
+                var row = try XCTUnwrap(rows.first?.object)
+                switch mutation {
+                case .operatorRole(_, _, let role): row["roleCode"] = .string(role); row["version"] = .int(3)
+                case .removeOperator: row["status"] = .string("REVOKED"); row["version"] = .int(3)
+                case .revokeInvite: row["status"] = .string("REVOKED"); row["version"] = .int(1)
+                default: XCTFail("Unexpected team mutation")
+                }
+                rows[0] = .object(row); fields[key] = .array(rows); payload = .object(fields)
+            }
+            let roles = try MerchantBusinessDocument(query: .roles, payload: MerchantBusinessSyntheticFixtures.payload(.roles))
+            return try .init(access: grant, document: .init(query: query, payload: payload), roles: query == .operators ? roles : nil)
+        }
+        func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt {
+            sends += 1
+            if holdSend { await withCheckedContinuation { sendContinuation = $0; entered?.fulfill() } }
+            if let sendFailure { throw sendFailure }
+            self.mutation = mutation
+            var fields: MerchantBusinessObject
+            switch mutation {
+            case .operatorRole(let id, let version, let role):
+                fields = ["id": .int(id.rawValue), "version": .int(version + 1), "roleCode": .string(role), "status": .string("ACTIVE")]
+            case .removeOperator(let id, let version, _):
+                fields = ["id": .int(id.rawValue), "version": .int(version + 1), "roleCode": .string("MERCHANT_CHECKIN"), "status": .string("REVOKED")]
+            case .revokeInvite(let id, let version, _):
+                fields = ["id": .int(id.rawValue), "version": .int(version + 1), "roleCode": .string("MERCHANT_MARKETING"), "status": .string("REVOKED")]
+            default: throw MerchantBusinessFailure.invalid
+            }
+            switch mutation {
+            case .revokeInvite: fields["expiresAt"] = .string("2026-10-08 09:00:00")
+            default: fields["acceptedAt"] = .string("2026-09-01 09:00:00")
+            }
+            fields["mutationState"] = .string("EXACT_RESULT")
+            return try .init(mutation: mutation, message: "Synthetic acknowledged", data: .object(fields))
+        }
+    }
+    private func setup(_ mutation: MerchantBusinessMutation) async throws -> (Reader, MerchantBusinessViewModel, MerchantBusinessConfirmation) {
+        let reader = Reader(), model = MerchantBusinessViewModel(reader: reader, journal: MerchantBusinessMemoryIntentStore())
+        model.teamPageAppeared(active: true); await model.load(.operators); model.prepare(mutation)
+        return (reader, model, try XCTUnwrap(model.coordinator.confirmation))
+    }
+    private func removal() throws -> MerchantBusinessMutation { .removeOperator(id: try .init(67001), version: 2, reason: "Synthetic removal") }
+    func testThreeAcknowledgedMutationsReadCurrentTeamOnceAndRetainReceipt() async throws {
+        for mutation in [try removal(), .operatorRole(id: try .init(67001), version: 2, role: "MERCHANT_FINANCE"), .revokeInvite(id: try .init(68001), version: 0, reason: "Synthetic revoke")] {
+            let (reader, model, review) = try await setup(mutation)
+            await model.confirm(review)
+            XCTAssertEqual(reader.sends, 1); XCTAssertEqual(reader.reads, 3)
+            XCTAssertEqual(model.coordinator.snapshot?.document.query, .operators)
+            XCTAssertNotNil(model.teamReturnReceipt); XCTAssertNil(model.coordinator.receipt)
+            XCTAssertFalse(model.coordinator.isLocked); XCTAssertNil(model.coordinator.failureKey)
+            XCTAssertEqual(model.teamReturnReceipt?.message, "Synthetic acknowledged")
+        }
+    }
+    func testFreshReadFailureKeepsReceiptAndRetryNeverRepeatsMutation() async throws {
+        let (reader, model, review) = try await setup(removal()); reader.readFailure = .malformed
+        await model.confirm(review)
+        let receipt = try XCTUnwrap(model.teamReturnReceipt)
+        XCTAssertNil(model.coordinator.snapshot); XCTAssertNotNil(model.coordinator.failureKey)
+        reader.readFailure = nil; await model.load(.operators)
+        XCTAssertEqual(model.teamReturnReceipt, receipt); XCTAssertNotNil(model.coordinator.snapshot)
+        XCTAssertEqual(reader.sends, 1); XCTAssertEqual(reader.reads, 4)
+    }
+    func testUnknownDoesNotReadReturnOrUnlock() async throws {
+        let (reader, model, review) = try await setup(removal()); reader.sendFailure = .unknown
+        await model.confirm(review)
+        XCTAssertEqual(reader.sends, 1); XCTAssertEqual(reader.reads, 2)
+        XCTAssertTrue(model.coordinator.isLocked); XCTAssertNil(model.teamReturnReceipt)
+    }
+    func testCancelledReviewCannotTriggerReturnReadOrWrite() async throws {
+        let (reader, model, review) = try await setup(removal()); model.cancel()
+        await model.confirm(review)
+        XCTAssertEqual(reader.sends, 0); XCTAssertEqual(reader.reads, 1); XCTAssertNil(model.teamReturnReceipt)
+    }
+    func testDepartureDuringSendRejectsLateReceiptAndAutoRead() async throws {
+        let (reader, model, review) = try await setup(removal())
+        reader.holdSend = true; let entered = expectation(description: "send"); reader.entered = entered
+        let task = Task { await model.confirm(review) }; await fulfillment(of: [entered], timeout: 1)
+        model.teamPageDisappeared(); model.invalidate()
+        reader.sendContinuation?.resume(); reader.sendContinuation = nil; await task.value
+        XCTAssertNil(model.teamReturnReceipt); XCTAssertNil(model.coordinator.snapshot)
+        XCTAssertEqual(reader.reads, 2); XCTAssertEqual(reader.sends, 1)
+    }
+    func testBackgroundDuringReturnReadCannotPublishLateTeam() async throws {
+        let (reader, model, review) = try await setup(removal())
+        reader.holdResultRead = true; let entered = expectation(description: "return read"); reader.entered = entered
+        let task = Task { await model.confirm(review) }; await fulfillment(of: [entered], timeout: 1)
+        model.teamPageSceneChanged(active: false)
+        reader.readContinuation?.resume(); reader.readContinuation = nil; await task.value
+        XCTAssertNil(model.teamReturnReceipt); XCTAssertNil(model.coordinator.snapshot); XCTAssertEqual(reader.sends, 1)
+        model.teamPageDisappeared(); model.teamPageSceneChanged(active: true)
+        XCTAssertNil(model.teamReturnReceipt)
+    }
+    func testSameScopeDifferentMerchantReturnDoesNotPublishOtherTeam() async throws {
+        let (reader, model, review) = try await setup(removal())
+        reader.holdResultRead = true; let entered = expectation(description: "return read"); reader.entered = entered
+        let task = Task { await model.confirm(review) }; await fulfillment(of: [entered], timeout: 1)
+        reader.merchantID = 611
+        reader.readContinuation?.resume(); reader.readContinuation = nil; await task.value
+        XCTAssertNil(model.teamReturnReceipt); XCTAssertNil(model.coordinator.snapshot)
+        XCTAssertEqual(model.aftercareLoadFailureKey, "merchant.business.stale"); XCTAssertEqual(reader.sends, 1)
+    }
+    func testAuthorizationSwitchDuringReturnReadRejectsReceiptAndRows() async throws {
+        let (reader, model, review) = try await setup(removal())
+        reader.holdResultRead = true; let entered = expectation(description: "return read"); reader.entered = entered
+        let task = Task { await model.confirm(review) }; await fulfillment(of: [entered], timeout: 1)
+        reader.authorizationGeneration = UUID()
+        reader.readContinuation?.resume(); reader.readContinuation = nil; await task.value
+        XCTAssertNil(model.teamReturnReceipt); XCTAssertNil(model.coordinator.snapshot); XCTAssertEqual(reader.sends, 1)
+    }
+}
+
+extension MerchantTeamResultRefreshTests {
+    func testForegroundAfterInterruptedReturnOffersExplicitReadRecoveryWithoutResending() async throws {
+        let (reader, model, review) = try await setup(removal())
+        reader.holdResultRead = true; let entered = expectation(description: "return read"); reader.entered = entered
+        let task = Task { await model.confirm(review) }; await fulfillment(of: [entered], timeout: 1)
+        model.teamPageSceneChanged(active: false)
+        reader.readContinuation?.resume(); reader.readContinuation = nil; await task.value
+        XCTAssertNil(model.teamRecoveryID); XCTAssertNil(model.coordinator.snapshot)
+        model.teamPageSceneChanged(active: true)
+        let ticket = try XCTUnwrap(model.teamRecoveryID)
+        XCTAssertEqual(ticket, review.id); XCTAssertEqual(reader.reads, 3); XCTAssertEqual(reader.sends, 1)
+        reader.holdResultRead = false; reader.readFailure = .malformed
+        await model.retryTeamRead(ticket)
+        XCTAssertEqual(model.teamRecoveryID, ticket); XCTAssertNil(model.coordinator.snapshot)
+        reader.readFailure = nil; await model.retryTeamRead(ticket)
+        XCTAssertNil(model.teamRecoveryID); XCTAssertNotNil(model.coordinator.snapshot)
+        XCTAssertEqual(reader.reads, 5); XCTAssertEqual(reader.sends, 1)
+        await model.retryTeamRead(ticket); XCTAssertEqual(reader.reads, 5)
+    }
+    func testHiddenParentCannotUseRecoveryAndAppearanceDoesNotReviveOldTicket() async throws {
+        let (reader, model, review) = try await setup(removal()); await model.confirm(review)
+        model.teamPageSceneChanged(active: false); model.teamPageSceneChanged(active: true)
+        let ticket = try XCTUnwrap(model.teamRecoveryID), reads = reader.reads
+        model.teamPageDisappeared(); model.teamPageSceneChanged(active: true)
+        await model.retryTeamRead(ticket); XCTAssertEqual(reader.reads, reads)
+        model.teamPageAppeared(active: true)
+        XCTAssertNil(model.teamRecoveryID); await model.retryTeamRead(ticket)
+        XCTAssertEqual(reader.reads, reads); XCTAssertEqual(reader.sends, 1)
+    }
+    func testOldRecoveryAfterAccountChangeCannotReadOrClearNewSnapshot() async throws {
+        let (reader, model, review) = try await setup(removal()); await model.confirm(review)
+        model.teamPageSceneChanged(active: false); model.teamPageSceneChanged(active: true)
+        let old = try XCTUnwrap(model.teamRecoveryID)
+        reader.scope = .init(realm: "synthetic://team-result", accountID: 99002, epoch: 2)
+        model.invalidate(); model.teamPageAppeared(active: true); await model.load(.operators)
+        let newer = model.coordinator.snapshot, reads = reader.reads
+        await model.retryTeamRead(old)
+        XCTAssertNil(model.teamRecoveryID); XCTAssertEqual(model.coordinator.snapshot, newer)
+        XCTAssertEqual(reader.reads, reads); XCTAssertEqual(reader.sends, 1)
+    }
+}
+
+extension MerchantTeamResultRefreshTests {
+    func testLateRecoveryReadCannotReplaceNewOwnerRows() async throws {
+        let (reader, model, review) = try await setup(removal()); await model.confirm(review)
+        model.teamPageSceneChanged(active: false); model.teamPageSceneChanged(active: true)
+        let ticket = try XCTUnwrap(model.teamRecoveryID)
+        reader.holdResultRead = true; let entered = expectation(description: "recovery read"); reader.entered = entered
+        let old = Task { await model.retryTeamRead(ticket) }; await fulfillment(of: [entered], timeout: 1)
+        let continuation = reader.readContinuation; reader.readContinuation = nil
+        reader.scope = .init(realm: "synthetic://team-result", accountID: 99002, epoch: 2)
+        reader.merchantID = 611; reader.holdResultRead = false
+        model.invalidate(); model.teamPageAppeared(active: true); await model.load(.operators)
+        let newer = model.coordinator.snapshot; XCTAssertEqual(newer?.access.merchantID, 611)
+        continuation?.resume(); await old.value
+        XCTAssertEqual(model.coordinator.snapshot, newer); XCTAssertNil(model.teamRecoveryID)
+        XCTAssertEqual(reader.sends, 1)
+    }
+}
