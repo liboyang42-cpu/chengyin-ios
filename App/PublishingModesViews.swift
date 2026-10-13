@@ -26,67 +26,54 @@ import MapKit
 }
 @MainActor struct QuickPublishingView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var journey = QuickPublishingJourneyOwner()
     var placeSearch: (any PublishingPlaceSearching)?
     var account: PublishingSession? = nil
     var draftStore: PublishingDraftStore? = nil
     var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
     var openProfessional: (ProjectEditDraft) -> Void
-    @State private var showAI = false
-    @State private var draft = QuickPublishDraft()
-    @State private var selecting: UUID?
-    @State private var problem = false
-    @State private var draftID = UUID()
-    @State private var storageMessage = ""
     var body: some View {
+        let _ = journey.bind(account: account)
+        let draft = journey.draftBinding()
         Form {
             Section {
                 Text("publishModes.aiNotice")
-                Button("contextPublish.ai.title") { showAI = true }.accessibilityIdentifier("contextPublish.ai.open")
+                Button("contextPublish.ai.title", action: journey.openAIAction(makeClient: makeAIDraft))
+                    .accessibilityIdentifier("contextPublish.ai.open")
             }
             Section("publishModes.details") {
-                TextField("publishModes.name", text: $draft.title).accessibilityIdentifier("publishModes.quick.name")
-                TextField("publishModes.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
-                Picker("publishModes.product", selection: $draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
+                TextField("publishModes.name", text: draft.title).accessibilityIdentifier("publishModes.quick.name")
+                TextField("publishModes.description", text: draft.description, axis: .vertical).lineLimit(3...8)
+                Picker("publishModes.product", selection: draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
             }
-            ForEach($draft.nodes) { $node in
+            ForEach(draft.nodes) { $node in
                 Section {
                     TextField("publishModes.name", text: $node.name)
                     TextField("publishModes.description", text: $node.description, axis: .vertical)
-                    Button { selecting = node.id } label: { Label(node.confirmedPlace?.name ?? appLocalized("publishModes.choosePlace", locale: locale), systemImage: "mappin.and.ellipse") }
+                    Button(action: journey.openPlaceAction(node.id)) { Label(node.confirmedPlace?.name ?? appLocalized("publishModes.choosePlace", locale: locale), systemImage: "mappin.and.ellipse") }
                     if let place = node.confirmedPlace { Text(place.address).foregroundStyle(.secondary); Text("\(place.latitude), \(place.longitude)").font(.caption) }
-                    Button("publishModes.remove", role: .destructive) { draft.nodes.removeAll { $0.id == node.id } }
+                    Button("publishModes.remove", role: .destructive, action: journey.removeNodeAction(node.id))
                 }
             }
             Section {
-                Button("publishModes.saveLocal") {
-                    guard let account, let draftStore else { return }
-                    do { try draftStore.saveActive(PublishingLocalDraft(session: account, identity: draftID, quick: draft), session: account); storageMessage = "publishModes.savedLocal" }
-                    catch { storageMessage = "publishModes.storageFailed" }
-                }.disabled(account == nil || draftStore == nil)
-                Button("publishModes.restoreLocal") {
-                    guard let account, let draftStore else { return }
-                    do {
-                        if let saved = try draftStore.loadActive(activity: false, session: account), let quick = saved.quick { draft = quick; draftID = saved.identity; storageMessage = "publishModes.restoredLocal" }
-                        else { storageMessage = "publishModes.noSavedLocal" }
-                    } catch { storageMessage = "publishModes.storageFailed" }
-                }.disabled(account == nil || draftStore == nil)
-                if !storageMessage.isEmpty { Text(LocalizedStringKey(storageMessage)) }
+                Button("publishModes.saveLocal", action: journey.saveAction(store: draftStore))
+                    .disabled(account == nil || draftStore == nil)
+                Button("publishModes.restoreLocal", action: journey.restoreAction(store: draftStore))
+                    .disabled(account == nil || draftStore == nil)
+                if !journey.storageMessage.isEmpty { Text(LocalizedStringKey(journey.storageMessage)) }
             }
-            Button("publishModes.addNode") { draft.nodes.append(.init()) }.accessibilityIdentifier("publishModes.quick.add")
-            if problem { Text("publishModes.confirmEveryPlace").foregroundStyle(.red) }
-            Button("publishModes.continueEditor") {
-                do { openProfessional(try draft.professionalSeed()); problem = false } catch { problem = true }
-            }.accessibilityIdentifier("publishModes.quick.continue")
-        }.navigationTitle(Text("publishModes.quick"))
-        .onChange(of: account) { _, _ in showAI = false; selecting = nil; draft = .init(); draftID = UUID(); storageMessage = "" }
-        .sheet(isPresented: $showAI) {
-            PublishingAIDraftSheet(client: makeAIDraft?(), product: draft.product) { value in
-                draft = value; draftID = UUID(); problem = false; storageMessage = ""
-            }
-        }
-        .sheet(isPresented: Binding(get: { selecting != nil }, set: { if !$0 { selecting = nil } })) {
-            PublishingPlacePicker(provider: placeSearch) { place in
-                if let index = draft.nodes.firstIndex(where: { $0.id == selecting }) { draft.nodes[index].confirmedPlace = place }; selecting = nil
+            Button("publishModes.addNode", action: journey.addNodeAction()).accessibilityIdentifier("publishModes.quick.add")
+            if journey.problem { Text("publishModes.confirmEveryPlace").foregroundStyle(.red) }
+            Button("publishModes.continueEditor", action: journey.handoffAction(openProfessional))
+                .accessibilityIdentifier("publishModes.quick.continue")
+        }.disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
+        .onAppear { journey.appear(active: scenePhase == .active) }
+        .onChange(of: scenePhase) { _, phase in journey.setActive(phase == .active) }
+        .background { QuickPublishingJourneyLifetime(owner: journey).frame(width: 0, height: 0) }
+        .background {
+            if let original = journey.presentation {
+                QuickPublishingJourneyPresenter(owner: journey, original: original, placeSearch: placeSearch).id(original.id)
             }
         }
     }
