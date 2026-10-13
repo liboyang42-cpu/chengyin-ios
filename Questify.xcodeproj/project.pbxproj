@@ -18581,6 +18581,11 @@
 				"289A9D84649605FC2D8012A3",
 				"71422C49038FDE467F2F58C0",
 				"8521945BB8F3490D56F090B1",
+				"0A36A56D2FB28B181F9D873A",
+				"AC0327F8F1A36853D581F09C",
+				"97DADC2F42DD7D53B022EDFB",
+				"195CD29E3927BC015F01A6EA",
+				"0DEF618F717D649D0A621EC6",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20193,6 +20198,8 @@
 				"DD8704A83B562D6BB0EFB521",
 				"965BF105DBA965ED6EB1930E",
 				"E567C0707531FC4D527B1C89",
+				"EDC09A0891B0678D538A36D7",
+				"5B257C0D7BC7F14C3E722164",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -20256,6 +20263,7 @@
 				"28D2749B9E8EDCD472F56752",
 				"B4D47817C3C0551CF1A2A120",
 				"334CE4F241AD6B5786B4BFA2",
+				"A4782B2F9C03F6C33DDA6A7A",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26315,6 +26323,8 @@
 				"B116793D3D8981820EF92A9A",
 				"437E79EC739CADF4D2904313",
 				"47B32A01379FA42F46007EDC",
+				"A044F9BF8FDFF151132ED0FD",
+				"8B522581BC35DCBDF443D0CE",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -27386,6 +27396,56 @@
 		"47B32A01379FA42F46007EDC" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "8521945BB8F3490D56F090B1";
+		};
+		"0A36A56D2FB28B181F9D873A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.json.xcstrings";
+			"path" = "Resources/WalletNumberLocalization.xcstrings";
+			"sourceTree" = "<group>";
+		};
+		"A4782B2F9C03F6C33DDA6A7A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0A36A56D2FB28B181F9D873A";
+		};
+		"AC0327F8F1A36853D581F09C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/WalletNumberLocalizationTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"A044F9BF8FDFF151132ED0FD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "AC0327F8F1A36853D581F09C";
+		};
+		"97DADC2F42DD7D53B022EDFB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/WalletNumberLocalization.swift";
+			"sourceTree" = "<group>";
+		};
+		"EDC09A0891B0678D538A36D7" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "97DADC2F42DD7D53B022EDFB";
+		};
+		"195CD29E3927BC015F01A6EA" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/WalletCivilDateLocalizationTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"8B522581BC35DCBDF443D0CE" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "195CD29E3927BC015F01A6EA";
+		};
+		"0DEF618F717D649D0A621EC6" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/WalletCivilDateLocalization.swift";
+			"sourceTree" = "<group>";
+		};
+		"5B257C0D7BC7F14C3E722164" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0DEF618F717D649D0A621EC6";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";

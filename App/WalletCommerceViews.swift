@@ -48,17 +48,6 @@ enum WalletReadFailurePresentation {
         }
     }
 }
-private struct WalletFormatting {
-    let locale: Locale
-    func amount(_ value: WalletAmount?, currency: String? = nil) -> String {
-        guard let value else { return appLocalized("wallet.unknown", locale: locale) }
-        return value.text + " " + (currency ?? appLocalized("wallet.currencyUnknown", locale: locale))
-    }
-    func points(_ value: WalletAmount?) -> String {
-        guard let value else { return appLocalized("wallet.unknownPoints", locale: locale) }
-        return value.text + " " + appLocalized("wallet.pointsUnit", locale: locale)
-    }
-}
 /// Additive destination only. Host must keep existing entry gates and reset .id(reader.scope)
 /// whenever deployment/account/epoch changes; no new root navigation entry is installed here.
 @MainActor struct WalletCommerceHomeView: View {
@@ -94,7 +83,7 @@ private struct WalletFormatting {
                     if value.pendingSettlement.value > 0 { LabeledContent("wallet.pendingSettlement", value: format.amount(value.pendingSettlement, currency: value.currency)) }
                     ForEach(Array(value.complaintPeriod.enumerated()), id: \.offset) { _, item in
                         LabeledContent { Text(format.amount(item.amount, currency: value.currency)) } label: {
-                            Text("wallet.complaintPeriod"); Text(verbatim: item.availableDate)
+                            Text("wallet.complaintPeriod"); Text(verbatim: WalletCivilDateLocalization.text(item.availableDate, locale: locale))
                         }
                     }
                     if value.disputed.value > 0 { LabeledContent("wallet.disputed", value: format.amount(value.disputed, currency: value.currency)) }
@@ -150,8 +139,8 @@ private struct WalletFormatting {
                         if income { Text(LocalizedStringKey(row.incomeEventKey)) }
                         Text(LocalizedStringKey("wallet.direction." + (income ? row.incomeDirection : row.assetDirection).rawValue))
                         HStack {
-                            Text(verbatim: row.signedText(points: points, income: income) ?? appLocalized("wallet.unknown", locale: locale))
-                            if points { Text("wallet.pointsUnit") }
+                            Text(verbatim: format.signed(row, points: points, income: income))
+                            if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
                             else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                         }
                         if !points, let balance = row.afterBalance { LabeledContent("wallet.balanceAfter", value: format.amount(balance, currency: row.currency)) }
@@ -238,12 +227,12 @@ private struct WalletFormatting {
             else if let item = model.value, model.loadedScope == reader.scope {
                 Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale)).font(.title2)
                 LabeledContent("wallet.price", value: format.points(item.price))
-                LabeledContent("wallet.stock", value: item.stock.map(String.init) ?? appLocalized("wallet.unknown", locale: locale))
+                LabeledContent("wallet.stock", value: format.count(item.stock))
                 ForEach(item.skuList ?? []) { sku in
                     VStack(alignment: .leading) {
                         Text(verbatim: sku.skuName ?? appLocalized("wallet.sku", locale: locale))
                         Text(format.points(sku.price))
-                        LabeledContent("wallet.stock", value: sku.stock.map(String.init) ?? appLocalized("wallet.unknown", locale: locale))
+                        LabeledContent("wallet.stock", value: format.count(sku.stock))
                     }.accessibilityElement(children: .combine)
                 }
                 if let html = item.detailHtml {
@@ -274,7 +263,7 @@ private struct WalletFormatting {
                         VStack(alignment: .leading) {
                             Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale))
                             Text(format.points(item.price))
-                            LabeledContent("wallet.quantity", value: String(item.quantity))
+                            LabeledContent("wallet.quantity", value: format.count(item.quantity))
                             LabeledContent("wallet.subtotal", value: format.points(item.subtotalPoints.map(WalletAmount.init)))
                         }
                     }.accessibilityIdentifier("wallet.cart.\(item.id)")
@@ -361,7 +350,7 @@ private struct WalletFormatting {
                         Text(verbatim: item.title ?? appLocalized("wallet.entry", locale: locale))
                         if let description = item.description { Text(verbatim: description) }
                         Text(format.points(item.value))
-                        LabeledContent("wallet.doneCount", value: item.pointsNum.map(String.init) ?? appLocalized("wallet.unknown", locale: locale))
+                        LabeledContent("wallet.doneCount", value: format.count(item.pointsNum))
                     }.accessibilityElement(children: .combine)
                 }
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
