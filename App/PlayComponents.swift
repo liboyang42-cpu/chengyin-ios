@@ -82,6 +82,9 @@ final class PlayViewModel {
     private(set) var receipt: PlayAnswerReceipt?
     private(set) var needsProgressCheck = false
     private var generation: UInt64 = 0
+    private var answerVisit: UUID?
+    private var pendingAnswerReview: PlayAnswerReview?
+    private var answerReviewConfirmed = false
     private var issueIdentity: PlayReadIdentity?
     private var receiptIdentity: PlayReadIdentity?
     private var receiptChoice: String?
@@ -97,12 +100,14 @@ final class PlayViewModel {
         loadedIdentity != nil && loadedIdentity == reader.identity ? snapshot : nil
     }
     func invalidate() {
+        clearAnswerReview(); answerVisit = nil
         generation &+= 1; snapshot = nil; loadedIdentity = nil
         issue = nil; actionIssue = nil; receipt = nil; receiptChoice = nil; needsProgressCheck = false
         isLoading = false; isSubmitting = false
     }
     func load(keepingReceipt: Bool = false) async {
         guard !isSubmitting else { return }
+        clearAnswerReview()
         generation &+= 1
         let request = generation, identity = reader.identity
         snapshot = nil; loadedIdentity = nil; issue = nil; isLoading = true
@@ -119,10 +124,69 @@ final class PlayViewModel {
             issue = PlayLoadIssue(error); issueIdentity = identity
         }
     }
+    func beginAnswerVisit() -> UUID {
+        clearAnswerReview()
+        let visit = UUID(); answerVisit = visit; return visit
+    }
+    func endAnswerVisit(_ visit: UUID?) {
+        guard let visit, visit == answerVisit else { return }
+        clearAnswerReview(); answerVisit = nil
+    }
+    func answerReviewGeneration(visit: UUID) -> UInt64? {
+        guard answerVisit == visit, loadedIdentity != nil, loadedIdentity == reader.identity else { return nil }
+        return generation
+    }
+    func prepareAnswerReview(nodeID: Int, answer: String, visit: UUID?) throws -> PlayAnswerReview {
+        guard let visit, visit == answerVisit, pendingAnswerReview == nil,
+              !isLoading, !isSubmitting, !needsProgressCheck, reader.supportsAnswerSubmission, reader.canSubmitAnswer,
+              let identity = loadedIdentity, identity == reader.identity, let snapshot = visibleSnapshot,
+              let node = snapshot.visibleNodes.first(where: { $0.id == nodeID }), let question = node.question else {
+            throw APIError.invalidRequest
+        }
+        try snapshot.validateAnswer(nodeID: nodeID, answer: answer)
+        let displayAnswer = node.validationMethod == 3 ? answer + ". " + (node.options?[answer] ?? "") : answer
+        let review = PlayAnswerReview(id: UUID(), visit: visit, generation: generation, identity: identity,
+            snapshot: snapshot, nodeID: nodeID, question: question, answer: answer, displayAnswer: displayAnswer)
+        pendingAnswerReview = review; answerReviewConfirmed = false
+        return review
+    }
+    func canConfirmAnswerReview(_ review: PlayAnswerReview) -> Bool {
+        !answerReviewConfirmed && matchesAnswerReview(review)
+    }
+    /// Claim synchronously before closing the sheet or scheduling an asynchronous send.
+    func confirmAnswerReview(_ review: PlayAnswerReview) -> Bool {
+        guard canConfirmAnswerReview(review) else { return false }
+        answerReviewConfirmed = true; return true
+    }
+    func cancelAnswerReview(_ review: PlayAnswerReview) {
+        // Adaptive dismissal after a confirmed tap must not cancel that claimed send.
+        guard pendingAnswerReview?.id == review.id, !answerReviewConfirmed else { return }
+        clearAnswerReview()
+    }
+    private func matchesAnswerReview(_ review: PlayAnswerReview) -> Bool {
+        guard let pending = pendingAnswerReview else { return false }
+        return answerVisit == review.visit && pending == review && generation == review.generation &&
+            pending.answer.utf8.elementsEqual(review.answer.utf8) &&
+            pending.question.utf8.elementsEqual(review.question.utf8) &&
+            pending.displayAnswer.utf8.elementsEqual(review.displayAnswer.utf8) &&
+            loadedIdentity == review.identity && reader.identity == review.identity && visibleSnapshot == review.snapshot &&
+            !isLoading && !isSubmitting && !needsProgressCheck && reader.supportsAnswerSubmission && reader.canSubmitAnswer
+    }
+    private func clearAnswerReview() { pendingAnswerReview = nil; answerReviewConfirmed = false }
+    func submit(_ review: PlayAnswerReview) async {
+        await dispatchAnswer(nodeID: review.nodeID, answer: review.answer, reviewed: review)
+    }
     func submit(nodeID: Int, answer: String) async {
+        await dispatchAnswer(nodeID: nodeID, answer: answer, reviewed: nil)
+    }
+    private func dispatchAnswer(nodeID: Int, answer: String, reviewed: PlayAnswerReview?) async {
         guard !isLoading, !isSubmitting, reader.canSubmitAnswer,
               let snapshot = visibleSnapshot else { return }
+        if let reviewed {
+            guard answerReviewConfirmed, matchesAnswerReview(reviewed) else { return }
+        }
         do { try snapshot.validateAnswer(nodeID: nodeID, answer: answer) } catch { return }
+        clearAnswerReview()
         generation &+= 1
         let request = generation, identity = loadedIdentity
         isSubmitting = true; receipt = nil; receiptChoice = nil; actionIssue = nil; needsProgressCheck = true
