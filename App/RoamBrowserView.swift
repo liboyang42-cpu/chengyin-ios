@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 struct RoamBrowserView: View {
     let reader: any RoamReading
+    var nearbyPlayersReader: RoamNearbyPlayersReader? = nil
     var onChooseArea: (() -> Void)? = nil
     var onOpenAccount: (() -> Void)? = nil
     var experienceReader: (any RoamExperienceReading)? = nil
@@ -35,6 +36,16 @@ struct RoamBrowserView: View {
     @State private var generation = 0
     @State private var retainedRead = RoamRetainedRead()
 
+    private var effectiveReader: any RoamReading {
+        if layer == .players, let nearbyPlayersReader { return nearbyPlayersReader }
+        return reader
+    }
+    private var radiusOptions: [Int] {
+        nearbyPlayersReader != nil && layer == .players ? [1000, 3000] : [1000, 3000, 5000, 10000, 20000]
+    }
+    private var effectiveRadiusM: Int {
+        nearbyPlayersReader != nil && layer == .players ? min(radiusM, RoamNearbyPlayersReadRoute.maximumRadius) : radiusM
+    }
     private struct RequestKey: Hashable {
         let readerID: ObjectIdentifier
         let identity: RoamReadIdentity?
@@ -44,10 +55,12 @@ struct RoamBrowserView: View {
         let configured: Bool
     }
     private var requestKey: RequestKey {
-        RequestKey(readerID: ObjectIdentifier(reader), identity: reader.identity, area: reader.searchArea, layer: layer, radius: radiusM, configured: reader.isConfigured)
+        let reader = effectiveReader
+        return RequestKey(readerID: ObjectIdentifier(reader), identity: reader.identity, area: reader.searchArea, layer: layer, radius: effectiveRadiusM, configured: reader.isConfigured)
     }
     private var cameraScope: RoamMapCameraScope? {
-        RoamMapCameraScope(readerID: ObjectIdentifier(reader), identity: reader.identity,
+        let reader = effectiveReader
+        return RoamMapCameraScope(readerID: ObjectIdentifier(reader), identity: reader.identity,
             area: reader.searchArea, isConfigured: reader.isConfigured)
     }
     private struct PresentationKey: Hashable {
@@ -73,8 +86,9 @@ struct RoamBrowserView: View {
         }
     }
     private var retentionScope: RoamRetainedRead.Scope? {
-        .init(readerID: ObjectIdentifier(reader), identity: reader.identity, area: reader.searchArea,
-              layer: layer, radius: radiusM, query: query, placeFilter: placeFilter,
+        let reader = effectiveReader
+        return .init(readerID: ObjectIdentifier(reader), identity: reader.identity, area: reader.searchArea,
+              layer: layer, radius: effectiveRadiusM, query: query, placeFilter: placeFilter,
               eventFilter: eventFilter, isConfigured: reader.isConfigured)
     }
     private var readSnapshot: RoamRetainedRead.Snapshot? { retainedRead.snapshot(in: retentionScope) }
@@ -90,6 +104,7 @@ struct RoamBrowserView: View {
         }
     }
     var body: some View {
+        let reader = effectiveReader
         NavigationStack {
             VStack(spacing: 0) {
                 controls
@@ -159,7 +174,8 @@ struct RoamBrowserView: View {
         }
     }
     private var controls: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let reader = effectiveReader
+        return VStack(alignment: .leading, spacing: 10) {
             if reader.isOfflineExample {
                 Label("roam.offlineExample", systemImage: "testtube.2")
                     .font(.caption).accessibilityIdentifier("roam.fixture.notice")
@@ -171,6 +187,10 @@ struct RoamBrowserView: View {
                 .font(.subheadline)
             }
             Text("roam.locationNotice").font(.caption).foregroundStyle(.secondary)
+            if nearbyPlayersReader != nil && layer == .players {
+                Text("roam.players.readScope").font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             HStack {
                 Picker("roam.layer", selection: $layer) {
                     ForEach(RoamLayer.allCases, id: \.self) { value in
@@ -179,8 +199,8 @@ struct RoamBrowserView: View {
                 }
                 .accessibilityIdentifier("roam.layer")
                 Spacer()
-                Picker("roam.radius", selection: $radiusM) {
-                    ForEach([1000, 3000, 5000, 10000, 20000], id: \.self) { radius in
+                Picker("roam.radius", selection: Binding(get: { effectiveRadiusM }, set: { radiusM = $0 })) {
+                    ForEach(radiusOptions, id: \.self) { radius in
                         Text(verbatim: "\(radius / 1000) km").tag(radius)
                     }
                 }
@@ -273,6 +293,7 @@ struct RoamBrowserView: View {
     // Both map members and ordinary rows resolve against the same current read.
     // Closures from a previous refresh/filter/session may not reopen stale detail.
     private func select(_ item: RoamMapItem, key: PresentationKey, snapshot: [RoamMapItem]) {
+        let reader = effectiveReader
         guard reader.isConfigured, reader.identity != nil, reader.searchArea != nil,
               key == presentationKey, loadedKey == key.request,
               !loading, issue == nil, snapshot == visibleItems,
@@ -288,6 +309,7 @@ struct RoamBrowserView: View {
         await readOwner.run { await performLoad() }
     }
     private func performLoad() async {
+        let reader = effectiveReader
         generation += 1
         let operation = generation
         let key = requestKey

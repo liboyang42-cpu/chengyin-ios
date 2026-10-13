@@ -7,10 +7,12 @@ public struct RoamReadIdentity: Hashable {
     public let viewerRevision: UInt64
     public let areaRevision: UInt64
     public let manualMapApprovalRevision: UUID?
-    public init(accountID: Int, epoch: UInt64, role: String? = nil, viewerRevision: UInt64 = 0, areaRevision: UInt64 = 0, manualMapApprovalRevision: UUID? = nil) {
+    public let nearbyPlayersApprovalRevision: UUID?
+    public init(accountID: Int, epoch: UInt64, role: String? = nil, viewerRevision: UInt64 = 0, areaRevision: UInt64 = 0, manualMapApprovalRevision: UUID? = nil, nearbyPlayersApprovalRevision: UUID? = nil) {
         self.accountID = accountID; self.epoch = epoch; self.role = role
         self.viewerRevision = viewerRevision; self.areaRevision = areaRevision
         self.manualMapApprovalRevision = manualMapApprovalRevision
+        self.nearbyPlayersApprovalRevision = nearbyPlayersApprovalRevision
     }
 }
 /// Ephemeral presentation identity, deliberately separate from a query/read generation.

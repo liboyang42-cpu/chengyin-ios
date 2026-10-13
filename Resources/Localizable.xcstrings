@@ -1,6 +1,22 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "roam.players.readScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearby players are a read snapshot within at most 3 km. Reading does not publish your location to other players."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近玩家为上次读取的快照，范围最多3公里。读取不会向其他玩家公开你的位置。"
+          }
+        }
+      }
+    },
     "merchantVoice.reset.open": {
       "localizations": {
         "en": {

@@ -18627,6 +18627,8 @@
 				"1CF76709186FCCB89268F67C",
 				"D6A07B7CB5AFB78E92E7BE6D",
 				"9F788F19ECB648D9D387E422",
+				"C64B4C787457D2BBCD4585B0",
+				"DCAF18BB0B19F5270C06B7BE",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20261,6 +20263,7 @@
 				"BE644054A1A01162A4736EFA",
 				"3C976BC21091F48F8E40317E",
 				"C980CF28B2A01B9A5F817AE2",
+				"8897A7C5B3DAA8EBCDABA897",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26407,6 +26410,7 @@
 				"D74A7518403073C1B581C4C0",
 				"BBF242D3E9085BABEE1F3097",
 				"EF543908D1F33548F71991A6",
+				"A3CE012B1DB6D6CA8012AF83",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -27938,6 +27942,26 @@
 		"C980CF28B2A01B9A5F817AE2" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "D6A07B7CB5AFB78E92E7BE6D";
+		};
+		"DCAF18BB0B19F5270C06B7BE" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/RoamNearbyPlayersReadAccessTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"A3CE012B1DB6D6CA8012AF83" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DCAF18BB0B19F5270C06B7BE";
+		};
+		"C64B4C787457D2BBCD4585B0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamNearbyPlayersReadAccess.swift";
+			"sourceTree" = "<group>";
+		};
+		"8897A7C5B3DAA8EBCDABA897" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C64B4C787457D2BBCD4585B0";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";
