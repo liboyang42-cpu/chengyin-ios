@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var session: AppSession
+    @StateObject private var profileOwner = ProfileSettingsProfileOwner()
     @AppStorage("preferences.language") private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     @Environment(\.dismiss) private var dismiss
 
@@ -13,6 +14,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                ProfileSettingsProfileEntry(session: session, owner: profileOwner)
                 Section {
                     LabeledContent { Text(verbatim:RegionalLaunchConfiguration.market?.rawValue ?? "—").accessibilityIdentifier("region.market.value") } label: { Text("region.market") }
                     Text("region.languageBoundary").font(.footnote).foregroundStyle(.secondary)
@@ -27,6 +29,7 @@ struct SettingsView: View {
                 } footer: { Text("settings.languageNotice") }
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
             }
+            .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .appNavigationTitle("settings.title")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -34,6 +37,8 @@ struct SettingsView: View {
                 }
             }
         }
+        .onAppear { profileOwner.appear() }
+        .onDisappear { profileOwner.retire() }
         // Explicitly update sheets as well as the app root when preference changes.
         .environment(\.locale, RegionalLaunchConfiguration.language(storedLanguage).locale)
     }

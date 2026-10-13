@@ -76,9 +76,10 @@ struct MerchantNPCPresetArtwork: View {
 
 @MainActor struct MerchantNPCPresetSection: View {
     @ObservedObject var document: MerchantOperationsViewModel
-    @State private var picker: MerchantNPCPresetPickerModel?
+    @ObservedObject var presentation: MerchantNPCPresetPresentation
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
+        let permit = presentation.generation
         Section("merchant.operations.avatar") {
             if case .character(let value) = document.coordinator.draft {
                 if let avatar = MerchantNPCPresetAvatar.matching(code: value.avatar) {
@@ -91,28 +92,75 @@ struct MerchantNPCPresetArtwork: View {
                     Text("merchantPreset.unsupportedCode").accessibilityIdentifier("merchantPreset.unsupportedCode")
                 }
             }
-            Button("merchantPreset.choose") { picker = .init(document: document) }
-                .disabled(!document.coordinator.isCurrent || document.coordinator.isBusy || document.coordinator.isLocked || document.coordinator.confirmation != nil)
+            Button("merchantPreset.choose") {
+                guard scenePhase == .active else { return }
+                presentation.open(permit: permit, document: document)
+            }
+                .disabled(!presentation.active || !document.coordinator.isCurrent || document.coordinator.isBusy || document.coordinator.isLocked || document.coordinator.confirmation != nil)
                 .frame(minHeight: 44).accessibilityIdentifier("merchantPreset.open")
             Text("merchantPreset.localSelection").font(.footnote).foregroundStyle(.secondary)
         }
-        .sheet(item: $picker, onDismiss: cancelPicker) { selection in
-            MerchantNPCPresetPicker(model: selection)
-        }
-        .onDisappear { cancelPicker() }
-        .onChange(of: document.coordinator.draftIdentity) { _, _ in cancelPicker() }
-        .onChange(of: document.coordinator.reader.scope) { _, _ in cancelPicker() }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { cancelPicker() } }
     }
-    private func cancelPicker() { picker?.cancel(); picker = nil }
+}
+
+/// The full editor retains selection independently of virtualized rows.
+@MainActor final class MerchantNPCPresetPresentation: ObservableObject {
+    @Published private(set) var picker: MerchantNPCPresetPickerModel?
+    @Published private(set) var generation = UUID()
+    @Published private(set) var active = false
+    private(set) var visible = false
+    func appear(active: Bool) { visible = true; sceneChanged(active: active) }
+    func disappear() { visible = false; active = false; invalidate() }
+    func sceneChanged(active: Bool) {
+        self.active = visible && active
+        if !self.active { invalidate() }
+    }
+    func invalidate() { picker?.cancel(); picker = nil; generation = UUID() }
+    func open(permit: UUID, document: MerchantOperationsViewModel) {
+        guard visible, active, permit == generation, picker == nil else { return }
+        picker = MerchantNPCPresetPickerModel(document: document)
+    }
+    func close(_ id: UUID) {
+        guard picker?.id == id else { return }
+        invalidate()
+    }
+    func binding(_ original: MerchantNPCPresetPickerModel) -> Binding<MerchantNPCPresetPickerModel?> {
+        Binding(get: { self.picker?.id == original.id && original.isCurrent ? original : nil }, set: { value in
+            if value == nil { self.close(original.id) }
+        })
+    }
+}
+
+@MainActor struct MerchantNPCPresetStablePresentation: ViewModifier {
+    @ObservedObject var document: MerchantOperationsViewModel
+    @ObservedObject var presentation: MerchantNPCPresetPresentation
+    @Environment(\.scenePhase) private var scenePhase
+    func body(content: Content) -> some View {
+        content.background {
+            if let original = presentation.picker {
+                Color.clear.frame(width: 0, height: 0)
+                    .sheet(item: presentation.binding(original), onDismiss: { presentation.close(original.id) }) { picker in
+                        MerchantNPCPresetPicker(model: picker) { presentation.close(original.id) }
+                    }.id(original.id)
+            }
+        }
+        .onAppear { presentation.appear(active: scenePhase == .active) }
+        .onDisappear { presentation.disappear() }
+        .onChange(of: scenePhase) { _, phase in presentation.sceneChanged(active: phase == .active) }
+        .onChange(of: document.coordinator.draftIdentity) { _, _ in presentation.invalidate() }
+        .onChange(of: document.coordinator.reader.scope) { _, _ in presentation.invalidate() }
+        .onChange(of: document.revision) { _, _ in
+            if presentation.picker?.isCurrent == false { presentation.invalidate() }
+        }
+    }
 }
 
 @MainActor private struct MerchantNPCPresetPicker: View {
     @ObservedObject var model: MerchantNPCPresetPickerModel
     @ObservedObject private var document: MerchantOperationsViewModel
-    @Environment(\.dismiss) private var dismiss
-    init(model: MerchantNPCPresetPickerModel) {
-        self.model = model; document = model.document
+    let close: () -> Void
+    init(model: MerchantNPCPresetPickerModel, close: @escaping () -> Void) {
+        self.model = model; document = model.document; self.close = close
     }
     var body: some View {
         NavigationStack {
@@ -142,10 +190,10 @@ struct MerchantNPCPresetArtwork: View {
             .navigationTitle("merchantPreset.choose").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { model.cancel(); dismiss() }.accessibilityIdentifier("merchantPreset.cancel")
+                    Button("action.cancel") { model.cancel(); close() }.accessibilityIdentifier("merchantPreset.cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("merchantPreset.use") { if model.apply() { dismiss() } }
+                    Button("merchantPreset.use") { if model.apply() { close() } }
                         .disabled(!model.canApply).accessibilityIdentifier("merchantPreset.apply")
                 }
             }
