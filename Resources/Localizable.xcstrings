@@ -1,6 +1,70 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "merchantVoice.reset.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start local samples over"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新录制本地样本"
+          }
+        }
+      }
+    },
+    "merchantVoice.reset.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear recordings that have not been uploaded?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空尚未上传的录音？"
+          }
+        }
+      }
+    },
+    "merchantVoice.reset.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear local recordings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空本地录音"
+          }
+        }
+      }
+    },
+    "merchantVoice.reset.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only unuploaded samples on this device will be cleared. No server files will be deleted and the microphone will stay off until you tap Record again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅清除当前设备上尚未上传的样本。不会删除服务器文件或开启麦克风；继续时需再次点击录制。"
+          }
+        }
+      }
+    },
     "profile.localCover.cropFailed": {
       "localizations": {
         "en": {

@@ -117,3 +117,116 @@ import FoundationNetworking
         XCTAssertThrowsError(try limits().validate(.init(bytes: clip().bytes, duration: 11)))
     }
 }
+
+extension MerchantNPCVoiceSamplesTests {
+    func testConfirmedLocalResetClearsOnlyUnuploadedSamplesAndRequiresManualRecord() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal()
+        let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
+        let starts = d.starts, cancelled = d.cancels
+        c.prepareLocalReset(); let reset = try XCTUnwrap(c.resetReview)
+        XCTAssertTrue(c.confirmLocalReset(reset.id)); XCTAssertFalse(c.confirmLocalReset(reset.id))
+        XCTAssertTrue(c.clips.isEmpty); XCTAssertTrue(c.uploaded.isEmpty); XCTAssertNil(c.resetReview)
+        XCTAssertEqual(d.starts, starts); XCTAssertEqual(d.cancels, cancelled + 1)
+        XCTAssertTrue(u.calls.isEmpty); XCTAssertTrue(j.records.isEmpty)
+        XCTAssertTrue(c.ownsVoice); XCTAssertTrue(c.consent); XCTAssertTrue(c.ready)
+        await c.record(1); XCTAssertEqual(d.starts, starts)
+        d.next = clip(); await c.record(0); c.finish(); XCTAssertEqual(d.starts, starts + 1)
+        XCTAssertEqual(c.clips.count, 1); XCTAssertTrue(u.calls.isEmpty)
+    }
+    func testCancelLocalResetPreservesExactClipsAndDoesNotTouchDeviceOrJournal() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal()
+        let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
+        let clips = c.clips, cancels = d.cancels, starts = d.starts
+        c.prepareLocalReset(); let reset = try XCTUnwrap(c.resetReview); c.cancelLocalReset(reset.id)
+        XCTAssertNil(c.resetReview); XCTAssertEqual(c.clips.mapValues(\.id), clips.mapValues(\.id))
+        XCTAssertEqual(c.clips.mapValues(\.bytes), clips.mapValues(\.bytes))
+        XCTAssertEqual(d.cancels, cancels); XCTAssertEqual(d.starts, starts); XCTAssertTrue(u.calls.isEmpty); XCTAssertTrue(j.records.isEmpty)
+    }
+    func testOldResetCancelAndConfirmCannotClearNewConfirmation() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal()
+        let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
+        c.prepareLocalReset(); let old = try XCTUnwrap(c.resetReview); c.cancelLocalReset(old.id)
+        c.prepareLocalReset(); let current = try XCTUnwrap(c.resetReview)
+        XCTAssertNotEqual(old.id, current.id); c.cancelLocalReset(old.id)
+        XCTAssertFalse(c.confirmLocalReset(old.id)); XCTAssertEqual(c.resetReview?.id, current.id)
+        XCTAssertEqual(c.clips.count, 5); XCTAssertTrue(u.calls.isEmpty)
+    }
+    func testRerecordedSampleVersionRejectsStaleResetWithoutClearingNewClip() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal()
+        let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
+        c.prepareLocalReset(); let reset = try XCTUnwrap(c.resetReview)
+        d.next = clip(); await c.record(0); c.finish(); let newID = c.clips[0]?.id
+        XCTAssertFalse(c.confirmLocalReset(reset.id)); XCTAssertEqual(c.clips[0]?.id, newID)
+        XCTAssertEqual(c.clips.count, 5); XCTAssertTrue(u.calls.isEmpty)
+    }
+    func testRecordingAndUploadReviewRefuseReset() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal()
+        let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
+        await c.record(0); c.prepareLocalReset(); XCTAssertNil(c.resetReview); XCTAssertFalse(c.canResetLocalSamples)
+        c.finish(); c.prepareUpload(); let uploadID = try XCTUnwrap(c.review).id
+        c.prepareLocalReset(); XCTAssertNil(c.resetReview); XCTAssertEqual(c.review?.id, uploadID)
+        XCTAssertEqual(c.clips.count, 5); XCTAssertTrue(u.calls.isEmpty)
+    }
+    func testConfirmedUploadRefusesResetAndDoesNotDeleteRemoteReference() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal()
+        let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
+        c.prepareUpload(); await c.confirmUpload(try XCTUnwrap(c.review).id)
+        let reference = c.uploaded[0]; c.prepareLocalReset()
+        XCTAssertFalse(c.canResetLocalSamples); XCTAssertNil(c.resetReview)
+        XCTAssertEqual(c.uploaded[0], reference); XCTAssertEqual(c.uploaded.count, 1)
+        XCTAssertEqual(u.calls, [0]); XCTAssertEqual(c.clips.count, 5)
+    }
+    func testUnknownUploadKeepsDurableLockAndRejectsLocalReset() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal(); u.unknown = true
+        let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
+        c.prepareLocalReset(); let reset = try XCTUnwrap(c.resetReview)
+        c.prepareUpload(); await c.confirmUpload(try XCTUnwrap(c.review).id)
+        let journal = try JSONEncoder().encode(j.records)
+        XCTAssertTrue(c.unresolved); XCTAssertFalse(c.confirmLocalReset(reset.id)); c.prepareLocalReset()
+        XCTAssertNil(c.resetReview); XCTAssertEqual(try JSONEncoder().encode(j.records), journal)
+        XCTAssertEqual(c.clips.count, 5); XCTAssertEqual(u.calls, [0])
+    }
+    func testConsentCycleInvalidatesOldResetEvenWithNewSamples() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal()
+        let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
+        c.prepareLocalReset(); let reset = try XCTUnwrap(c.resetReview)
+        c.attest(ownsVoice: true, consent: false); await fill(c, d)
+        let IDs = c.clips.mapValues(\.id)
+        XCTAssertFalse(c.confirmLocalReset(reset.id)); XCTAssertEqual(c.clips.mapValues(\.id), IDs)
+        XCTAssertTrue(u.calls.isEmpty)
+    }
+    func testHiddenOwnerInvalidationRejectsQueuedOpenAndConfirmation() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal()
+        let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
+        c.prepareLocalReset(); let reset = try XCTUnwrap(c.resetReview); c.invalidate()
+        let cancels = d.cancels; c.prepareLocalReset()
+        XCTAssertFalse(c.confirmLocalReset(reset.id)); XCTAssertNil(c.resetReview)
+        XCTAssertEqual(d.cancels, cancels); XCTAssertTrue(u.calls.isEmpty); XCTAssertTrue(j.records.isEmpty)
+    }
+    func testRetiredResourceOwnerRejectsResetWithoutTouchingExistingSamples() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal()
+        let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
+        c.prepareLocalReset(); let reset = try XCTUnwrap(c.resetReview); let IDs = c.clips.mapValues(\.id)
+        c.resources.invalidate(); XCTAssertFalse(c.confirmLocalReset(reset.id))
+        XCTAssertEqual(c.clips.mapValues(\.id), IDs); XCTAssertTrue(u.calls.isEmpty)
+    }
+}
+
+extension MerchantNPCVoiceSamplesTests {
+    func testSameAccountNewAccessScopeRejectsOldResetBeforeObserverRuns() async throws {
+        let h = Fixture(), d = Device(), u = Upload(), j = MerchantNPCTests.Journal()
+        var current: MerchantNPCScope? = h.scope
+        let reader = MerchantOperationsFixtureReader()
+        let voice = try JSONDecoder().decode(MerchantVoiceResource.self, from: Data(#"{"voiceStatus":0}"#.utf8))
+        let avatar = try JSONDecoder().decode(MerchantAvatarResource.self, from: Data(#"{"available":true,"styles":["realistic"],"job":null}"#.utf8))
+        reader.replace(.assets, with: .assets(.init(voice: voice, avatar: avatar)))
+        let resources = MerchantNPCResourcesCoordinator(scope: h.scope, client: .init(transport: MerchantNPCTests.HTTP()), reader: reader, journal: j, currentScope: { current }, grants: { h.grants() })
+        await resources.refresh()
+        let c = MerchantNPCVoiceSamplesCoordinator(resources: resources, configuration: try limits(), device: d, uploader: u, journal: j, grants: { h.grants() }, localGrants: { self.local() })
+        await fill(c, d); c.prepareLocalReset(); let reset = try XCTUnwrap(c.resetReview)
+        let originalIDs = c.clips.mapValues(\.id)
+        current = .init(accountID: h.scope.accountID, namespace: h.scope.namespace, epoch: UUID(), merchantRowID: h.scope.merchantRowID, accessRevision: UUID())
+        XCTAssertFalse(c.confirmLocalReset(reset.id)); XCTAssertEqual(c.clips.mapValues(\.id), originalIDs)
+        XCTAssertTrue(u.calls.isEmpty); XCTAssertTrue(j.records.isEmpty)
+    }
+}

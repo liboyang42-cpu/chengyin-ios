@@ -107,6 +107,13 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             .id(businessReader.scope)
                     } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
                         .accessibilityIdentifier("merchant.business.open")
+                    ForEach(MerchantWorkbenchBusinessShortcut.allCases) { shortcut in
+                        if let route = MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: businessReader, journal: businessJournal) {
+                            NavigationLink(value: route) {
+                                Label(LocalizedStringKey(shortcut.query.titleKey), systemImage: shortcut.symbol)
+                            }.accessibilityIdentifier("merchant.workbench.direct." + shortcut.rawValue)
+                        }
+                    }
                 }
             }
             if let engagementReader, let businessJournal, let exportRecovery {
@@ -186,6 +193,16 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 Text("merchant.access.noReadSurfaces").foregroundStyle(.secondary)
             }
             Button("merchant.refreshAccess") { Task { await refreshAccess() } }
+        }
+        .navigationDestination(for: MerchantWorkbenchBusinessRoute.self) { route in
+            if let businessReader, let businessJournal,
+               route.isCurrent(reader: businessReader, journal: businessJournal) {
+                MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
+                    .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
+                    .id(route)
+            } else {
+                Text("merchant.business.stale")
+            }
         }
         .refreshable { await refreshAccess() }
         .task {
@@ -268,5 +285,43 @@ struct MerchantFailureView: View {
                 Button("action.retry", action: retry).accessibilityIdentifier(identifier + ".retry")
             }
         }
+    }
+}
+
+/// Entry choices carry no grant. The existing page performs its own fresh authorization read.
+enum MerchantWorkbenchBusinessShortcut: String, CaseIterable, Identifiable {
+    case customers, finance, aftercare
+    var id: String { rawValue }
+    var query: MerchantBusinessQuery {
+        switch self {
+        case .customers: return .customers(.init())
+        case .finance: return .overview
+        case .aftercare: return .aftercare(.pending, page: 1)
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .customers: return "person.2"
+        case .finance: return "list.bullet.rectangle"
+        case .aftercare: return "arrow.uturn.backward.circle"
+        }
+    }
+}
+
+/// Freeze the original dependencies, including authorization generation, before navigation.
+/// Leaving Home for a child does not replace this route; a changed context invalidates it.
+struct MerchantWorkbenchBusinessRoute: Hashable {
+    let shortcut: MerchantWorkbenchBusinessShortcut
+    private let value: MerchantBusinessHomeRoute
+    var reader: any MerchantBusinessReading { value.reader }
+    var journal: any MerchantBusinessIntentStore { value.journal }
+    @MainActor init?(shortcut: MerchantWorkbenchBusinessShortcut, reader: any MerchantBusinessReading,
+                     journal: any MerchantBusinessIntentStore) {
+        guard reader.isConfigured, reader.scope != nil else { return nil }
+        self.shortcut = shortcut
+        value = .init(target: .query(shortcut.query), reader: reader, journal: journal)
+    }
+    @MainActor func isCurrent(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore) -> Bool {
+        value.isCurrent(reader: reader, journal: journal)
     }
 }
