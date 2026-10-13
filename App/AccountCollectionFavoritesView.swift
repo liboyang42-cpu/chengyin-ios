@@ -114,6 +114,8 @@ private struct AccountCollectionFavoriteCard: View {
     var rewards: (any NonCashRewardReading)? = nil
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
+    var couponReader: (any AccountCollectionReading)? = nil
+    private var ownedCouponReader: any AccountCollectionReading { couponReader ?? reader }
     var body: some View {
         Section {
             NavigationLink {
@@ -125,7 +127,7 @@ private struct AccountCollectionFavoriteCard: View {
             } label: { Label("accountCollection.favorites.title", systemImage: "heart") }
             .accessibilityIdentifier("accountCollection.openFavorites")
             NavigationLink {
-                AccountCollectionCouponsView(reader: reader).id(reader.scope)
+                AccountCollectionCouponsView(reader: ownedCouponReader).id(ownedCouponReader.scope)
             } label: { Label("accountCollection.coupons.title", systemImage: "ticket") }
             .accessibilityIdentifier("accountCollection.openCoupons")
         }

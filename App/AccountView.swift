@@ -95,7 +95,7 @@ struct AccountView: View {
                 }
                 AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{ savedTopic=SavedTopicRoute(id:$0) },rewards:session.nonCashRewardReader,onOpenPost:{
                     savedPost = SavedPostRoute(route: $0, scope: session.accountCollectionReader.scope)
-                }).id(session.accountCollectionReader.scope)
+                }, couponReader: session.profileOwnedCouponReader).id(session.accountCollectionReader.scope)
                 Section {
                     NavigationLink { SessionObjectCardsView() } label: {
                         Label("objects.title", systemImage: "rectangle.stack")

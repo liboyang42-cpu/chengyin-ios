@@ -1879,6 +1879,18 @@ final class AppSession: ObservableObject {
         guard let self,self.currentAccountCollectionSession == captured else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
+    lazy var profileOwnedCouponReader = ProfileOwnedCouponReader(service: accountCollectionService,
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.profileOwnedCouponReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
     private let cooperationService:CooperationService?
     private var currentCooperationSession:CooperationReadSession? {
         guard let account,let token else { return nil }
