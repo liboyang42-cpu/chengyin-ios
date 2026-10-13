@@ -8,6 +8,7 @@ struct RoamBrowserView: View {
     var onChooseArea: (() -> Void)? = nil
     var onOpenAccount: (() -> Void)? = nil
     var experienceReader: (any RoamExperienceReading)? = nil
+    var tileMemoryReader: RoamTileMemoryReader? = nil
     var cityDestination: (() -> AnyView)? = nil
     var nearbyTeamsDestination: (() -> AnyView)? = nil
     var stampDestination: (() -> AnyView)? = nil
@@ -131,7 +132,7 @@ struct RoamBrowserView: View {
                 if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
                 if let experienceReader {
                     ToolbarItem(placement: .topBarLeading) {
-                        NavigationLink { RoamExperienceHubView(reader: experienceReader, stampDestination: stampDestination, liveDestination: liveDestination) } label: {
+                        NavigationLink { RoamExperienceHubView(reader: experienceReader, tileMemoryReader: tileMemoryReader, stampDestination: stampDestination, liveDestination: liveDestination) } label: {
                             Label("roam.experience.title", systemImage: "book.closed")
                         }.accessibilityIdentifier("roam.experience.open")
                     }

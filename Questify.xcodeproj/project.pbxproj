@@ -18604,6 +18604,8 @@
 				"AA389D41793C352E761B1F26",
 				"7D3C9A672CE167DE60F41DE7",
 				"C4159AA9F137BC055601A99D",
+				"6ACFD6909A0932490C76B9E7",
+				"8C2783A805B93142C9583A87",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20226,6 +20228,7 @@
 				"A81E4ECA97FD596E23FB7904",
 				"6DE10C8D65ABF43D8D20F9F4",
 				"B261B325BCAD4EF80C19F7A2",
+				"794FB3F0E44D283BA7B843DC",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26361,6 +26364,7 @@
 				"E46001348F9F49AECFE72B7F",
 				"49C7CF34F29285A269C4D7D9",
 				"A8C7ACDFB4AA021FA252D926",
+				"D259FF111877439FB511AAC4",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -27662,6 +27666,26 @@
 		"B261B325BCAD4EF80C19F7A2" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "4D59CB8B0FB58904A472A50C";
+		};
+		"8C2783A805B93142C9583A87" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/RoamTileMemoryReadAccessTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"D259FF111877439FB511AAC4" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8C2783A805B93142C9583A87";
+		};
+		"6ACFD6909A0932490C76B9E7" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamTileMemoryReadAccess.swift";
+			"sourceTree" = "<group>";
+		};
+		"794FB3F0E44D283BA7B843DC" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "6ACFD6909A0932490C76B9E7";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";

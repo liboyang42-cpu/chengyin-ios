@@ -3,16 +3,21 @@ import SwiftUI
 /// Mount inside a NavigationStack. Identity resets clear drafts, private results, navigation and tasks.
 @MainActor struct RoamExperienceHubView: View {
     let reader: any RoamExperienceReading
+    var tileMemoryReader: RoamTileMemoryReader? = nil
     var stampDestination: (() -> AnyView)? = nil
     var liveDestination: (() -> AnyView)? = nil
     var body: some View {
-        RoamExperienceMenu(reader: reader, stampDestination: stampDestination, liveDestination: liveDestination).id(reader.identity)
+        RoamExperienceMenu(reader: reader, tileMemoryReader: tileMemoryReader, stampDestination: stampDestination, liveDestination: liveDestination).id(reader.identity)
     }
 }
 @MainActor private struct RoamExperienceMenu: View {
     let reader: any RoamExperienceReading
+    let tileMemoryReader: RoamTileMemoryReader?
     let stampDestination: (() -> AnyView)?
     let liveDestination: (() -> AnyView)?
+    private var effectiveTileReader: any RoamExperienceReading {
+        if let tileMemoryReader { return tileMemoryReader }; return reader
+    }
     @State private var passport = RoamPassportOverviewState()
     @AppStorage(ReducedMotionPreference.storageKey) private var reduceMotionLocally = ReducedMotionPreference.defaultValue
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
@@ -42,7 +47,7 @@ import SwiftUI
                     .accessibilityIdentifier("roam.experience.live.open")
             }
             Section("roam.experience.collect") {
-                NavigationLink { RoamTileMemoryView(reader: reader) } label: { Label("roam.experience.tileMemory", systemImage: "map") }
+                NavigationLink { RoamTileMemoryView(reader: effectiveTileReader).id(tileMemoryReader?.scope) } label: { Label("roam.experience.tileMemory", systemImage: "map") }
                     .accessibilityIdentifier("roam.experience.tiles.open")
                 NavigationLink { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) } label: { Label("roam.experience.album", systemImage: "rectangle.stack") }
                     .accessibilityIdentifier("roam.experience.album.open")

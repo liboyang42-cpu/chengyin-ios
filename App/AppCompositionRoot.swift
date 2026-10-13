@@ -99,6 +99,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let templateShelfReadApproval: @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval?
     let messagingHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval?
     let profileOwnedCouponReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?
+    let roamTileMemoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess?
     let profileInviteHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess?
     let profileWeeklyPointsReadApproval: @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval?
     let walletHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?
@@ -141,6 +142,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          messagingHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval? = { _ in nil },
          walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
          profileOwnedCouponReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? = { _ in nil },
+         roamTileMemoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess? = { _ in nil },
          profileInviteHistoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? = { _ in nil },
          profileWeeklyPointsReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval? = { _ in nil },
          cityPlayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval? = { _ in nil },
@@ -173,6 +175,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.messagingHistoryReadApproval = messagingHistoryReadApproval
         self.walletHistoryReadApproval = walletHistoryReadApproval
         self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess
+        self.roamTileMemoryReadAccess = roamTileMemoryReadAccess
         self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
@@ -215,7 +218,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         return .available
     }
     func transport() -> CompositionHTTPTransport {
-        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
+        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
     }
     func makeSession() -> AppSession { AppSession(composition: self) }
 }
@@ -281,6 +284,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     private let manualMapSelection: ManualMapAreaSelection?
     private let messagingHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval?
     private let profileOwnedCouponReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?
+    private let roamTileMemoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess?
     private let profileInviteHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess?
     private let profileWeeklyPointsReadApproval: @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval?
     private let walletHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?
@@ -306,6 +310,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          messagingHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval? = { _ in nil },
          walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
          profileOwnedCouponReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? = { _ in nil },
+         roamTileMemoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess? = { _ in nil },
          profileInviteHistoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? = { _ in nil },
          profileWeeklyPointsReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval? = { _ in nil },
          cityPlayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval? = { _ in nil },
@@ -330,6 +335,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.messagingHistoryReadApproval = messagingHistoryReadApproval
         self.walletHistoryReadApproval = walletHistoryReadApproval
         self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess
+        self.roamTileMemoryReadAccess = roamTileMemoryReadAccess
         self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
@@ -359,7 +365,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     private func copy(underlying: any HTTPTransport, manualMapSelection: ManualMapAreaSelection?) -> CompositionHTTPTransport {
         let transport = CompositionHTTPTransport(deployment: deployment, underlying: underlying,
             couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval,
-            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
+            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
             manualMapSelection: manualMapSelection, ownedOrderReadApproval: ownedOrderReadApproval)
         // Retain the identity source across temporary clone chains. Its AppSession
         // callback is weak, so this does not retain or extend the signed-in session.
@@ -560,8 +566,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         let playRead = PlayReadRoute(request: request, baseURL: api.baseURL)
         let ownedCover = OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)
         let ownedCoupon = ProfileOwnedCouponReadRoute(request: request, baseURL: api.baseURL)
+        let tileMemory = RoamTileMemoryReadRoute(request: request, baseURL: api.baseURL)
         let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
-        guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil else { throw APIError.notConfigured }
+        guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -686,6 +693,19 @@ extension KeychainTokenStore: AppTokenStorage {}
                     accountID: account, path: ProfileOwnedCouponReadRoute.path) else { throw APIError.notConfigured }
             readApprovalStillValid = { [profileOwnedCouponReadAccess] in
                 guard let fresh = profileOwnedCouponReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if tileMemory != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = roamTileMemoryReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: RoamTileMemoryReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [roamTileMemoryReadAccess] in
+                guard let fresh = roamTileMemoryReadAccess(context) else { return false }
                 return fresh === selected && fresh.matches(context)
             }
         } else if let inviteRoute = ProfileInviteHistoryReadRoute(request: request, baseURL: api.baseURL) {
@@ -928,6 +948,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                 try ticketWalletList.validateResponse(result, expectedAccountID: captured.accountID ?? 0)
             }
             try ownedCoupon?.validateResponse(result, accountID: captured.accountID ?? 0)
+            try tileMemory?.validateResponse(result)
             return result
         } catch {
             guard current() == captured, !Task.isCancelled, readApprovalStillValid?() != false else { throw CancellationError() }
