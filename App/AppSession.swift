@@ -1882,6 +1882,14 @@ final class AppSession: ObservableObject {
         guard let self, self.currentSocialAccountSession == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
     })
+    private var currentProfileInviteHistoryAccess: ProfileInviteHistoryReadAccess? {
+        guard let context = currentRuntimeDependencyContext,
+              let selected = composition.profileInviteHistoryReadAccess(context),
+              selected.matches(context) else { return nil }
+        return selected
+    }
+    lazy var profileInviteHistoryReader = ProfileInviteHistoryReader(base: socialAccountReader,
+        currentAccess: { [weak self] in self?.currentProfileInviteHistoryAccess })
     // Only exact member-action grants can authorize this path; Square writes stay separate.
     private var socialMemberActionJournal: any OperationPendingJournal { composition.storage.operationJournal() }
     private var retainedSocialMemberActions: SocialMemberActionSessionOwner?

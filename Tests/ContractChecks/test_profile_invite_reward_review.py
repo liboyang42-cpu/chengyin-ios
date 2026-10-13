@@ -28,7 +28,9 @@ class ProfileInviteRewardReviewSourceTests(unittest.TestCase):
  def test_22_privacy(self):self.assertIn('.privacySensitive()',V);self.assertIn('if reader.identity.accountID == nil',V)
  def test_23_no_new_io(self):
   for s in ['URLSession','http://','https://','UserDefaults','token:','HTTPTransport','WalletCommerceReading']:self.assertNotIn(s,C+A)
- def test_24_ordinary_host(self):self.assertIn('SocialInviteHistoryView(reader: session.socialAccountReader',(W/'App/AccountView.swift').read_text())
+ def test_24_ordinary_host(self):
+  self.assertIn('SocialInviteHistoryView(reader: session.profileInviteHistoryReader',(W/'App/AccountView.swift').read_text())
+  self.assertIn('ProfileInviteHistoryReader(base: socialAccountReader',(W/'App/AppSession.swift').read_text())
  def test_25_bilingual(self):
   f=json.loads((W/'Resources/ProfileInviteRewardReviewLocalizations.fragment.json').read_text())['strings'];self.assertEqual(len(f),7)
   for v in f.values():self.assertEqual(set(v['localizations']),{'en','zh-Hans'})

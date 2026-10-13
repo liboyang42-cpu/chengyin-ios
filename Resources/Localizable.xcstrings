@@ -4313,7 +4313,7 @@
         }
       }
     },
-    "merchant.coopField.apply" : {
+    "merchant.coopField.apply": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4329,7 +4329,7 @@
         }
       }
     },
-    "merchant.coopField.boundary" : {
+    "merchant.coopField.boundary": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4345,7 +4345,7 @@
         }
       }
     },
-    "merchant.coopField.discard" : {
+    "merchant.coopField.discard": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4361,7 +4361,7 @@
         }
       }
     },
-    "merchant.coopField.discardBody" : {
+    "merchant.coopField.discardBody": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4377,7 +4377,7 @@
         }
       }
     },
-    "merchant.coopField.discardTitle" : {
+    "merchant.coopField.discardTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4393,7 +4393,7 @@
         }
       }
     },
-    "merchant.coopField.empty" : {
+    "merchant.coopField.empty": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4409,7 +4409,7 @@
         }
       }
     },
-    "merchant.coopField.keepEditing" : {
+    "merchant.coopField.keepEditing": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4425,7 +4425,7 @@
         }
       }
     },
-    "merchant.coopField.limit100" : {
+    "merchant.coopField.limit100": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4441,7 +4441,7 @@
         }
       }
     },
-    "merchant.coopField.limit500" : {
+    "merchant.coopField.limit500": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4457,7 +4457,7 @@
         }
       }
     },
-    "merchant.npcField.apply" : {
+    "merchant.npcField.apply": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4473,7 +4473,7 @@
         }
       }
     },
-    "merchant.npcField.boundary" : {
+    "merchant.npcField.boundary": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4489,7 +4489,7 @@
         }
       }
     },
-    "merchant.npcField.discard" : {
+    "merchant.npcField.discard": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4505,7 +4505,7 @@
         }
       }
     },
-    "merchant.npcField.discardBody" : {
+    "merchant.npcField.discardBody": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4521,7 +4521,7 @@
         }
       }
     },
-    "merchant.npcField.discardTitle" : {
+    "merchant.npcField.discardTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4537,7 +4537,7 @@
         }
       }
     },
-    "merchant.npcField.empty" : {
+    "merchant.npcField.empty": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4553,7 +4553,7 @@
         }
       }
     },
-    "merchant.npcField.greeting" : {
+    "merchant.npcField.greeting": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4569,7 +4569,7 @@
         }
       }
     },
-    "merchant.npcField.keepEditing" : {
+    "merchant.npcField.keepEditing": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4585,7 +4585,7 @@
         }
       }
     },
-    "merchant.npcField.knowledge" : {
+    "merchant.npcField.knowledge": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4601,7 +4601,7 @@
         }
       }
     },
-    "merchant.npcField.limit.greeting" : {
+    "merchant.npcField.limit.greeting": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4617,7 +4617,7 @@
         }
       }
     },
-    "merchant.npcField.limit.knowledge" : {
+    "merchant.npcField.limit.knowledge": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4633,7 +4633,7 @@
         }
       }
     },
-    "merchant.npcField.limit.name" : {
+    "merchant.npcField.limit.name": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4649,7 +4649,7 @@
         }
       }
     },
-    "merchant.npcField.limit.persona" : {
+    "merchant.npcField.limit.persona": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4665,7 +4665,7 @@
         }
       }
     },
-    "merchant.npcField.name" : {
+    "merchant.npcField.name": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4681,7 +4681,7 @@
         }
       }
     },
-    "merchant.npcField.nameRequired" : {
+    "merchant.npcField.nameRequired": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4697,7 +4697,7 @@
         }
       }
     },
-    "merchant.npcField.persona" : {
+    "merchant.npcField.persona": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4713,7 +4713,7 @@
         }
       }
     },
-    "merchant.storeField.apply" : {
+    "merchant.storeField.apply": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4729,7 +4729,7 @@
         }
       }
     },
-    "merchant.storeField.boundary" : {
+    "merchant.storeField.boundary": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4745,7 +4745,7 @@
         }
       }
     },
-    "merchant.storeField.cityRole" : {
+    "merchant.storeField.cityRole": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4761,7 +4761,7 @@
         }
       }
     },
-    "merchant.storeField.derivativeBenefits" : {
+    "merchant.storeField.derivativeBenefits": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4777,7 +4777,7 @@
         }
       }
     },
-    "merchant.storeField.description" : {
+    "merchant.storeField.description": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4793,7 +4793,7 @@
         }
       }
     },
-    "merchant.storeField.discard" : {
+    "merchant.storeField.discard": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4809,7 +4809,7 @@
         }
       }
     },
-    "merchant.storeField.discardBody" : {
+    "merchant.storeField.discardBody": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4825,7 +4825,7 @@
         }
       }
     },
-    "merchant.storeField.discardTitle" : {
+    "merchant.storeField.discardTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4841,7 +4841,7 @@
         }
       }
     },
-    "merchant.storeField.empty" : {
+    "merchant.storeField.empty": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4857,7 +4857,7 @@
         }
       }
     },
-    "merchant.storeField.keepEditing" : {
+    "merchant.storeField.keepEditing": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4873,7 +4873,7 @@
         }
       }
     },
-    "merchant.storeField.limit100" : {
+    "merchant.storeField.limit100": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4889,7 +4889,7 @@
         }
       }
     },
-    "merchant.storeField.limit300" : {
+    "merchant.storeField.limit300": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4905,7 +4905,7 @@
         }
       }
     },
-    "merchant.storeField.name" : {
+    "merchant.storeField.name": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4921,7 +4921,7 @@
         }
       }
     },
-    "merchant.storeField.nameRequired" : {
+    "merchant.storeField.nameRequired": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4937,7 +4937,7 @@
         }
       }
     },
-    "merchant.storeField.preference" : {
+    "merchant.storeField.preference": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4953,7 +4953,7 @@
         }
       }
     },
-    "merchant.storeField.slogan" : {
+    "merchant.storeField.slogan": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4969,7 +4969,7 @@
         }
       }
     },
-    "cooperation.topicFilter.all" : {
+    "cooperation.topicFilter.all": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4985,7 +4985,7 @@
         }
       }
     },
-    "cooperation.topicFilter.choose" : {
+    "cooperation.topicFilter.choose": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5001,7 +5001,7 @@
         }
       }
     },
-    "cooperation.topicFilter.clear" : {
+    "cooperation.topicFilter.clear": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5017,7 +5017,7 @@
         }
       }
     },
-    "cooperation.topicFilter.empty" : {
+    "cooperation.topicFilter.empty": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5033,7 +5033,7 @@
         }
       }
     },
-    "cooperation.topicFilter.loadedOnly" : {
+    "cooperation.topicFilter.loadedOnly": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5049,7 +5049,7 @@
         }
       }
     },
-    "cooperation.topicFilter.title" : {
+    "cooperation.topicFilter.title": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5065,7 +5065,7 @@
         }
       }
     },
-    "merchant.acceptedProject.boundary" : {
+    "merchant.acceptedProject.boundary": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5081,7 +5081,7 @@
         }
       }
     },
-    "merchant.acceptedProject.changed" : {
+    "merchant.acceptedProject.changed": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5097,7 +5097,7 @@
         }
       }
     },
-    "merchant.acceptedProject.open" : {
+    "merchant.acceptedProject.open": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5113,7 +5113,7 @@
         }
       }
     },
-    "merchant.noteDraft.clear" : {
+    "merchant.noteDraft.clear": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5129,7 +5129,7 @@
         }
       }
     },
-    "merchant.noteDraft.clearBody" : {
+    "merchant.noteDraft.clearBody": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5145,7 +5145,7 @@
         }
       }
     },
-    "merchant.noteDraft.clearTitle" : {
+    "merchant.noteDraft.clearTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5161,7 +5161,7 @@
         }
       }
     },
-    "merchant.noteDraft.continueCorrection" : {
+    "merchant.noteDraft.continueCorrection": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5177,7 +5177,7 @@
         }
       }
     },
-    "merchant.noteDraft.continueNew" : {
+    "merchant.noteDraft.continueNew": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5193,7 +5193,7 @@
         }
       }
     },
-    "merchant.noteDraft.discard" : {
+    "merchant.noteDraft.discard": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5209,7 +5209,7 @@
         }
       }
     },
-    "merchant.noteDraft.discardBody" : {
+    "merchant.noteDraft.discardBody": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5225,7 +5225,7 @@
         }
       }
     },
-    "merchant.noteDraft.discardTitle" : {
+    "merchant.noteDraft.discardTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5241,7 +5241,7 @@
         }
       }
     },
-    "merchant.noteDraft.localBoundary" : {
+    "merchant.noteDraft.localBoundary": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5257,7 +5257,7 @@
         }
       }
     },
-    "merchant.noteDraft.saved" : {
+    "merchant.noteDraft.saved": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5273,7 +5273,7 @@
         }
       }
     },
-    "merchant.perkSubmission.invalidDate" : {
+    "merchant.perkSubmission.invalidDate": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -170590,6 +170590,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "The trimmed override line must not exceed 120 UTF-16 code units."
+          }
+        }
+      }
+    },
+    "profile.inviteTimeline.invitationTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请时间"
+          }
+        }
+      }
+    },
+    "profile.inviteTimeline.rewardTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reward record time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励记录时间"
+          }
+        }
+      }
+    },
+    "profile.inviteTimeline.timeUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未记录"
+          }
+        }
+      }
+    },
+    "profile.inviteTimeline.zoneHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grouped by invitation month in China time. Times follow your device time zone; date-only records keep their original day."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按中国日历的邀请月份分组。具体时刻按设备时区显示；仅日期的记录保持原日。"
           }
         }
       }
