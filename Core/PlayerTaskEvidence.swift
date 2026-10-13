@@ -64,3 +64,37 @@ extension PlayPlayerGameCoordinator {
         return command
     }
 }
+
+/// A read-derived, memory-only owner for a specific evidence review. Constructed by
+/// the existing coordinator; a presentation cannot substitute a newer projection.
+public struct PlayerTaskEvidenceReviewContext {
+    public let target: PlayerTaskEvidenceTarget
+    fileprivate let projection: PlayPlayerGameProjection
+    fileprivate let owner: PlayExperienceSession
+}
+public struct PlayerTaskEvidencePreparedReview {
+    public let command: PlayPlayerCommand
+    fileprivate let context: PlayerTaskEvidenceReviewContext
+}
+extension PlayPlayerGameCoordinator {
+    public func captureEvidenceReview(_ target: PlayerTaskEvidenceTarget) throws -> PlayerTaskEvidenceReviewContext {
+        guard acceptsEvidence(target), let projection, let owner = currentSession() else { throw PlayExperienceError.staleSession }
+        return .init(target: target, projection: projection, owner: owner)
+    }
+    public func ownsEvidenceReview(_ context: PlayerTaskEvidenceReviewContext) -> Bool {
+        currentSession() == context.owner && hasCurrentProjection
+    }
+    public func acceptsEvidenceReview(_ context: PlayerTaskEvidenceReviewContext) -> Bool {
+        ownsEvidenceReview(context) && acceptsEvidence(context.target) && pending == nil && projection == context.projection
+    }
+    public func prepareEvidenceReview(_ context: PlayerTaskEvidenceReviewContext, scan: String? = nil,
+                                      photo: PlayCompletionEvidence? = nil) throws -> PlayerTaskEvidencePreparedReview {
+        guard acceptsEvidenceReview(context) else { throw PlayExperienceError.staleSession }
+        return .init(command: try reviewEvidence(context.target, scan: scan, photo: photo), context: context)
+    }
+    /// Recheck the captured owner immediately before the original one-command path.
+    public func submitEvidenceReview(_ review: PlayerTaskEvidencePreparedReview) async {
+        guard !Task.isCancelled, acceptsEvidenceReview(review.context) else { return }
+        await submit(review.command)
+    }
+}

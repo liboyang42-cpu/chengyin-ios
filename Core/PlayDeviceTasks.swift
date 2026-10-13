@@ -181,7 +181,8 @@ public enum PlayDeviceOutput: Equatable {
     }
     /// Explicit user upload step. Completion still requires the journey's separate review.
     public func uploadPhoto(expectedOutputID: UUID? = nil) async {
-        guard capturedInteraction == nil || (expectedOutputID != nil && expectedOutputID == outputID),
+        guard expectedOutputID == nil || expectedOutputID == outputID,
+              capturedInteraction == nil || expectedOutputID != nil,
               canUpload, let upload, let context = capturedContext, current() == context,
               case .photo(let bytes, let mime) = output else { issue = .disabled; return }
         generation &+= 1; let generation = generation; busy = true; issue = nil; uploadedPhoto = nil
@@ -194,7 +195,8 @@ public enum PlayDeviceOutput: Equatable {
         } catch { if self.generation == generation, current() == context { issue = error as? PlayExperienceError ?? .unknownResult } }
     }
     public func reviewedPhoto(expectedOutputID: UUID? = nil) -> PlayCompletionEvidence? {
-        guard capturedInteraction == nil || (expectedOutputID != nil && expectedOutputID == outputID),
+        guard expectedOutputID == nil || expectedOutputID == outputID,
+              capturedInteraction == nil || expectedOutputID != nil,
               canReviewOutput else { return nil }; return uploadedPhoto
     }
     public var supportsLibraryPhotos: Bool { supports(.photo) && provider is any PlayKitPhotoLibraryProviding }

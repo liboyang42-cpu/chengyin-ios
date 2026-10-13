@@ -18645,6 +18645,9 @@
 				"9615B73A11CAD77D793E01A4",
 				"65F331E6ADA50C4817553CE1",
 				"3E6E3A3301704699199B8333",
+				"4D9C6686365856620DB72DC4",
+				"9AF1BB84BAB59E879FA9E6F5",
+				"B5058DF65D3D74DF7D0DCA4F",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20288,6 +20291,7 @@
 				"B2741479054C36A15544ED8E",
 				"588C2A759047F5CE5C7B3730",
 				"129C594AD20C2067E2501E09",
+				"B0BAE0EAA77F2287BC231598",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -20358,6 +20362,7 @@
 				"47F913CC84E98A3C9208C40A",
 				"9E9AB58BF3BA892CD4823A4F",
 				"C15482E274E542A1830C3793",
+				"C5F91A53FC572F0D294C7BC2",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26443,6 +26448,7 @@
 				"94C079B8EA6F1ACB11526A02",
 				"B3FC76D8B4FB6200D761A0A2",
 				"DD1E6A28AAD04ECCFD80C81F",
+				"86C81D670A208C08D8BCCECC",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -28154,6 +28160,36 @@
 		"B2741479054C36A15544ED8E" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "3DC4B3D59C180C4CE82245B8";
+		};
+		"4D9C6686365856620DB72DC4" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.json.xcstrings";
+			"path" = "Resources/PlayerTaskEvidenceReview.xcstrings";
+			"sourceTree" = "<group>";
+		};
+		"C5F91A53FC572F0D294C7BC2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4D9C6686365856620DB72DC4";
+		};
+		"9AF1BB84BAB59E879FA9E6F5" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/PlayerTaskEvidenceReviewControllerTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"86C81D670A208C08D8BCCECC" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9AF1BB84BAB59E879FA9E6F5";
+		};
+		"B5058DF65D3D74DF7D0DCA4F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayerTaskEvidenceReview.swift";
+			"sourceTree" = "<group>";
+		};
+		"B0BAE0EAA77F2287BC231598" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B5058DF65D3D74DF7D0DCA4F";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";
