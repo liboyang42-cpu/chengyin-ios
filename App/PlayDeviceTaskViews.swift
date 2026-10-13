@@ -59,14 +59,15 @@ import SwiftUI
 
 @MainActor struct PlayStopwatchView: View {
     @State private var machine = PlayStopwatchMachine()
+    @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         List {
             Section("playx.stopwatch") {
                 Text("playx.stopwatch.local").font(.footnote)
-                LabeledContent("playx.stopwatch.target") { Text(verbatim: String(format: "%.2f s", machine.target)) }
+                LabeledContent("playx.stopwatch.target") { Text(verbatim: PlayTimedDisplayLocalization.seconds(machine.target, locale: locale)) }
                 TimelineView(.periodic(from: .now, by: 0.05)) { _ in
-                    Text(verbatim: machine.visibleElapsed(now: ProcessInfo.processInfo.systemUptime).map { String(format: "%.2f", $0) } ?? "—.—")
+                    Text(verbatim: machine.visibleElapsed(now: ProcessInfo.processInfo.systemUptime).map { PlayTimedDisplayLocalization.number($0, locale: locale) } ?? "—.—")
                         .font(.system(.largeTitle, design: .rounded).monospacedDigit())
                         .accessibilityLabel(Text("playx.stopwatch.clock"))
                         .accessibilityValue(Text(LocalizedStringKey(machine.phase == .running ? "playx.stopwatch.running" : "playx.stopwatch.ready")))
@@ -76,12 +77,12 @@ import SwiftUI
                     else { machine.begin(now: ProcessInfo.processInfo.systemUptime) }
                 }.buttonStyle(.borderedProminent).accessibilityIdentifier("playx.stopwatch.toggle")
                 if let result = machine.result {
-                    LabeledContent("playx.stopwatch.stars") { Text(verbatim: String(result.stars)) }
-                    LabeledContent("playx.stopwatch.diff") { Text(verbatim: String(format: "%.2f s", result.difference)) }
+                    LabeledContent("playx.stopwatch.stars") { Text(verbatim: PlayTimedDisplayLocalization.count(result.stars, locale: locale)) }
+                    LabeledContent("playx.stopwatch.diff") { Text(verbatim: PlayTimedDisplayLocalization.seconds(result.difference, locale: locale)) }
                     Text(LocalizedStringKey(result.late ? "playx.stopwatch.late" : "playx.stopwatch.early"))
                 }
-                LabeledContent("playx.stopwatch.rounds") { Text(verbatim: String(machine.rounds)) }
-                if let best = machine.bestDifference { LabeledContent("playx.stopwatch.best") { Text(verbatim: String(format: "%.2f s", best)) } }
+                LabeledContent("playx.stopwatch.rounds") { Text(verbatim: PlayTimedDisplayLocalization.count(machine.rounds, locale: locale)) }
+                if let best = machine.bestDifference { LabeledContent("playx.stopwatch.best") { Text(verbatim: PlayTimedDisplayLocalization.seconds(best, locale: locale)) } }
             }
         }.navigationTitle("playx.stopwatch").accessibilityIdentifier("playx.stopwatch.view")
             .onChange(of: scenePhase) { _, phase in if phase != .active { machine.interrupt() } }
