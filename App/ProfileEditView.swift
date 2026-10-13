@@ -386,6 +386,18 @@ struct ProfileEditView: View {
                 Text("profile.edit.unavailable")
             } else {
                 if model.coordinator.snapshot != nil {
+                    if let phone = model.coordinator.phoneDisplay {
+                        Section {
+                            LabeledContent("profile.phone.title") {
+                                switch phone {
+                                case .masked(let value): Text(verbatim: value).monospacedDigit()
+                                case .unbound: Text("profile.phone.unbound")
+                                case .unavailable: Text("profile.phone.unavailable")
+                                }
+                            }.privacySensitive().accessibilityIdentifier("profile.phone.value")
+                            Text("profile.phone.readOnly").font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
                     Section {
                         textFieldRow(.name, value: model.draft.name)
                         textFieldRow(.introduction, value: model.draft.introduction)

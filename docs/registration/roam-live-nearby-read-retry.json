@@ -1,0 +1,18 @@
+{
+  "task": 69,
+  "feature": "roam-live-nearby-read-retry",
+  "source": "Fixed95 P005 onPoiRetry JS2704\u20132707/WXML436",
+  "normal_host": "RoamLiveSessionView nearby read-failure section \u2192 existing refreshPlaces",
+  "existing_endpoints": [
+    "GET api/roam/pois",
+    "read-only POST api/map/nearby"
+  ],
+  "grant": "Only existing RoamLiveServing original configured availability; no default change or new route",
+  "new_EN_ZH_keys": [
+    "roam.liveRead.failed",
+    "roam.liveRead.hint"
+  ],
+  "PBX": "Existing Swift files/test references reused",
+  "native": "NOT_RUN",
+  "production": "PARTIAL until existing live dependencies independently approved; no real request/location performed"
+}

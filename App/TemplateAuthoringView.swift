@@ -250,7 +250,9 @@ import SwiftUI
         .preference(key: TemplateAuthoringSavedResultPreferenceKey.self, value: TemplateAuthoringSavedResultObservation.capture(model: model, eligible: onSavedDraft == nil))
         .preference(key: TemplateAuthoringPublishResultPreferenceKey.self, value: TemplateAuthoringPublishResultObservation.capture(model: model, eligible: onSavedDraft == nil))
         .modifier(TemplateMediaReviewPresentation(controller: media))
-        .sheet(isPresented: $preview) { NavigationStack { TemplateAuthoringPreviewView(draft: model.draft) } }
+        .sheet(isPresented: $preview) {
+            TemplateConfiguredRehearsalPreview(model: model) { TemplateAuthoringPreviewView(draft: model.draft) }
+        }
         .sheet(item: $model.review, onDismiss: { model.cancel() }) { value in
             NavigationStack { TemplateAuthoringReviewView(review: value, canSimulate: model.coordinator.canSimulate, canSubmit: model.coordinator.canSubmit, confirm: { Task { await model.confirm(value) } }, cancel: { model.cancel() }) }
         }
@@ -386,9 +388,10 @@ struct TemplateAuthoringReviewView: View {
     }
 }
 
-struct TemplateAuthoringPreviewView: View {
+@MainActor struct TemplateAuthoringPreviewView: View {
     @Environment(\.dismiss) private var dismiss
     let draft: TemplateAuthoringDraft
+    @Environment(\.templateConfiguredRehearsals) private var configuredRehearsals
     var body: some View {
         List {
             Section { Text("templateAuthor.previewNotice").foregroundStyle(.secondary); Text(verbatim: draft.title).font(.title2); Text(verbatim: draft.description) }
@@ -403,10 +406,16 @@ struct TemplateAuthoringPreviewView: View {
                     TemplateChoiceOptionMediaFields(configuration: draft.choiceOptionMedia,
                         field: { letter, kind in .constant(draft.choiceOptionMedia.text(letter, kind) ?? "") }, readOnly: true)
                 }
+                if let configuredRehearsals, configuredRehearsals.offersLegacyQuestion {
+                    TemplateConfiguredLegacyRehearsalPreviewButton(controller: configuredRehearsals)
+                }
                 ForEach(draft.advanced.enabledGames) { game in
                     Text(LocalizedStringKey(game.labelKey))
                     if game.isMiniProgramAddition { NavigationLink("playkitAuthor.preview") { TemplateMiniGamePreviewView(draft: draft.advanced, game: game) } }
                     else if game == .dice && draft.advanced.diceMode == "d20" { NavigationLink("creatorRoot.d20Preview") { TemplateD20RehearsalView(draft: draft.advanced) } }
+                    else if let configuredRehearsals, configuredRehearsals.route(for: game) != nil {
+                        TemplateConfiguredRehearsalPreviewButton(controller: configuredRehearsals, game: game)
+                    }
                     else { Text("templateAuthor.noGameplay").foregroundStyle(.secondary) }
                 }
             }
@@ -436,6 +445,8 @@ struct TemplateAuthoringPreviewView: View {
                 }
             } }
         }.navigationTitle("templateAuthor.preview")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("templateAuthor.close") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { if let configuredRehearsals {
+                TemplateConfiguredRehearsalCloseButton(controller: configuredRehearsals)
+            } else { Button("templateAuthor.close") { dismiss() } } } }
     }
 }

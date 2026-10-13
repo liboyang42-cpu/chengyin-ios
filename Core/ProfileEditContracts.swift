@@ -1,5 +1,27 @@
 import Foundation
 
+/// Read-only current-self phone display. Raw server phone bytes are never retained.
+public enum ProfileBoundPhoneDisplay: Equatable {
+    case unavailable
+    case unbound
+    case masked(String)
+
+    public static func masking(_ source: String) -> Self {
+        let value = source.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return .unbound }
+        guard value.utf8.count <= 64 else { return .unavailable }
+        let bytes = Array(value.utf8)
+        guard bytes.allSatisfy({ (48...57).contains($0) || [32, 40, 41, 43, 45, 46].contains($0) }) else { return .unavailable }
+        let digits = bytes.filter { (48...57).contains($0) }
+        // Supported current mobile/E.164 lengths hide at least four digits. Unknown
+        // legacy shapes must not be printed raw or mistaken for an unbound account.
+        guard (11...15).contains(digits.count) else { return .unavailable }
+        let prefix = String(decoding: digits.prefix(3), as: UTF8.self)
+        let suffix = String(decoding: digits.suffix(4), as: UTF8.self)
+        return .masked(prefix + "****" + suffix)
+    }
+}
+
 /// Text edits are staged together. The remaining replacement fields retain their
 /// wire values, including whitespace and delimiter order; do not round-trip image URLs.
 public struct ProfileEditSnapshot: Decodable, Equatable {
@@ -14,14 +36,20 @@ public struct ProfileEditSnapshot: Decodable, Equatable {
     public let tagIds: String
     /// Display-only labels from the existing self response; never sent back.
     public let preferenceNames: [Int: String]
+    /// Metadata only; not part of the editable draft, payload or avatar replacement hash.
+    public let phoneDisplay: ProfileBoundPhoneDisplay
     enum CodingKeys: String, CodingKey {
-        case id, nickname, introduction, avatar, wechat, casePics, tagIds, sysCategoryList
+        case id, nickname, introduction, avatar, wechat, casePics, tagIds, sysCategoryList, phone
         case caseIntroduction = "caseIntroducton"
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)
         guard id > 0 else { throw APIError.malformedResponse }
+        if !c.contains(.phone) { phoneDisplay = .unavailable }
+        else if try c.decodeNil(forKey: .phone) { phoneDisplay = .unbound }
+        else if let phone = try? c.decode(String.self, forKey: .phone) { phoneDisplay = .masking(phone) }
+        else { phoneDisplay = .unavailable }
         nickname = try c.decode(String.self, forKey: .nickname)
         // Explicit null is the source contract's empty value. Missing replacement fields
         // cannot safely be inferred as empty when this read is used for a destructive update.

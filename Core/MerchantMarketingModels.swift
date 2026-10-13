@@ -109,6 +109,7 @@ public enum MerchantInsightDestination: Hashable {
     case topicCooperation, decoration, content
     case recommendation(MerchantInsightRecommendationRoute)
     case cooperationSettings(MerchantInsightOrigin)
+    case cooperationCenter(MerchantInsightOrigin)
     /// The legacy AI string whitelist stays finite. Recommendation IDs are never parsed from AI type/URL text.
     public static let allCases: [Self] = [.topicCooperation, .decoration, .content]
     public init?(rawValue: String) {
@@ -120,6 +121,7 @@ public enum MerchantInsightDestination: Hashable {
         case .topicCooperation: return "/merchant/coop"; case .decoration: return "/merchant/decor"; case .content: return "/publish/pro"
         case .recommendation(let route): return route.kind == .topic ? "/merchant/coop" : "/merchant/home"
         case .cooperationSettings: return "/merchant/decor/coop-setting"
+        case .cooperationCenter: return "/merchant/coop-center"
         }
     }
 }

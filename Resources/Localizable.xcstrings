@@ -1,6 +1,358 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "merchant.insightCooperationCenter.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse cooperation opportunities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去合作中心看看"
+          }
+        }
+      }
+    },
+    "merchant.insightCooperationCenter.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse existing opportunities. Opening this page does not submit an application."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看现有合作机会。打开页面不会提交申请。"
+          }
+        }
+      }
+    },
+    "club.terminal.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This session context changed. Reopen from the topic."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次上下文已变化，请从专题重新进入。"
+          }
+        }
+      }
+    },
+    "club.terminal.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic has no sessions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个专题还没有场次"
+          }
+        }
+      }
+    },
+    "club.terminal.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading current session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取当前场次"
+          }
+        }
+      }
+    },
+    "club.terminal.notTerminal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This session has not ended. Settlement is unavailable here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场尚未结束，暂不提供此结算入口。"
+          }
+        }
+      }
+    },
+    "club.terminal.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session status and settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看场次状态与结算"
+          }
+        }
+      }
+    },
+    "club.terminal.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh selected session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新当前场次"
+          }
+        }
+      }
+    },
+    "club.terminal.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前场次"
+          }
+        }
+      }
+    },
+    "club.terminal.settlement": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View club settlement report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看俱乐部结算报告"
+          }
+        }
+      }
+    },
+    "club.terminal.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次状态"
+          }
+        }
+      }
+    },
+    "club.terminal.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session status reading is not configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次状态读取尚未接入"
+          }
+        }
+      }
+    },
+    "profile.phone.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机号"
+          }
+        }
+      }
+    },
+    "profile.phone.unbound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not linked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未绑定"
+          }
+        }
+      }
+    },
+    "profile.phone.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone information unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机号信息暂不可用"
+          }
+        }
+      }
+    },
+    "profile.phone.readOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only, masked information for your current account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示当前账号的脱敏手机号。"
+          }
+        }
+      }
+    },
+    "roam.unstarted.continue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep preparing this walk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续准备本次漫游"
+          }
+        }
+      }
+    },
+    "roam.unstarted.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The latest check found no created session and no pending actions in the local record at that time. This only cancels the local finish intent. Tracking stays paused; resuming still requires your separate action and consent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近核对未发现已创建的会话，当时的本地记录也无待确认操作。此按钮仅撤销本地结束意图，定位仍暂停；恢复漫游仍需另行操作和同意。"
+          }
+        }
+      }
+    },
+    "roam.liveRead.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some nearby places could not be read. Previously loaded results are retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分附近地点未能读取，已加载的结果仍保留。"
+          }
+        }
+      }
+    },
+    "roam.liveRead.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry uses the current accepted location only. It is available while this walk is active with a recent fix; it does not request a new location or record a visit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试仅使用当前已接受的位置。在本次漫游进行中且位置仍新鲜时可用；不会重新请求定位，也不会记录到访。"
+          }
+        }
+      }
+    },
+    "roam.liveRead.placesFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place read failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "据点读取失败"
+          }
+        }
+      }
+    },
+    "roam.liveRead.shopsFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant read failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家读取失败"
+          }
+        }
+      }
+    },
     "merchant.aftercareRemoveEvidence.remove": {
       "localizations": {
         "en": {

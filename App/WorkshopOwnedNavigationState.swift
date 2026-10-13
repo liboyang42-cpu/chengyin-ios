@@ -1,10 +1,51 @@
 import Foundation
 import Observation
+import SwiftUI
 
 /// One navigation stack's visible-screen permits. Only appearance callbacks issue permits;
 /// row/package actions revoke the departing screen synchronously, before pushing navigation.
 @MainActor @Observable final class WorkshopOwnedNavigationState {
-    struct Selection: Hashable, Identifiable { let id: String }
+    struct Selection: Hashable, Identifiable {
+        let id: String
+        // Business claim identity is stable; a new navigation occurrence is not.
+        let routeID = UUID()
+    }
+    struct PackageRoute: Hashable, Identifiable {
+        let id: UUID
+        let detailRouteID: UUID
+        let claimId: String
+    }
+    private(set) var detailVisitID = UUID()
+    private(set) var packageRoute: PackageRoute?
+    var selectionBinding: Binding<Selection?> {
+        let expected = selection
+        return .init(get: { [weak self] in
+            guard let self, self.selection == expected else { return nil }
+            return expected
+        }, set: { [weak self] value in
+            guard let self, value == nil, let expected, self.selection == expected else { return }
+            self.selection = nil
+        })
+    }
+    func packageBinding(detailRouteID: UUID, visitID: UUID) -> Binding<PackageRoute?> {
+        let expected = packageRoute
+        return .init(get: { [weak self] in
+            guard let self, self.isCurrentDetailVisit(routeID: detailRouteID, visitID: visitID),
+                  let expected, self.isCurrentPackageVisit(expected) else { return nil }
+            return expected
+        }, set: { [weak self] value in
+            guard let self, value == nil,
+                  self.isCurrentDetailVisit(routeID: detailRouteID, visitID: visitID),
+                  let expected, self.isCurrentPackageVisit(expected) else { return }
+            self.showsPackage = false
+        })
+    }
+    func isCurrentDetailVisit(routeID: UUID, visitID: UUID) -> Bool {
+        selection?.routeID == routeID && detailVisitID == visitID
+    }
+    func isCurrentPackageVisit(_ route: PackageRoute) -> Bool {
+        showsPackage && selection?.routeID == route.detailRouteID && packageRoute == route
+    }
 #if DEBUG
     enum SyntheticEvent: String {
         case listAppear, listAppearReturned, listDisappear, listDisappearReturned
@@ -54,6 +95,7 @@ import Observation
     var selection: Selection? {
         willSet {
             guard selection != newValue else { return }
+            detailVisitID = UUID(); packageRoute = nil
             // Back/selection bindings retire work before delayed animation callbacks.
             if let permit = listPermit { browser.leaveList(permit, closing: false) }
             listTask?.cancel(); listTask = nil; listPermit = nil
@@ -74,6 +116,13 @@ import Observation
     var showsPackage = false {
         willSet {
             guard showsPackage != newValue else { return }
+            if newValue, let selection {
+                packageRoute = .init(id: UUID(), detailRouteID: selection.routeID, claimId: selection.id)
+            } else {
+                packageRoute = nil
+                // Returning from a child is a new visible visit of this same detail route.
+                detailVisitID = UUID()
+            }
             detailAppearance = WorkshopOwnedViewAppearance()
             packageAppearance = WorkshopOwnedViewAppearance()
             if newValue {
@@ -247,5 +296,55 @@ import Observation
     func disappear(_ retire: (WorkshopOwnedPresentationPermit?) -> Void) {
         guard !closed else { return }
         closed = true; retire(permit)
+    }
+}
+
+
+/// A retained View may really leave and return without changing its navigation route.
+/// Box replacement is permitted only after its own real disappearance, never after a redraw.
+@MainActor @Observable final class WorkshopOwnedMountedAppearance {
+    struct Cycle {
+        let id: UUID
+        let appearance: WorkshopOwnedViewAppearance
+    }
+    /// One body evaluation's actual appearance/disappearance pair. It may record a new
+    /// cycle during onAppear before SwiftUI redraws, without letting another old pair borrow it.
+    @MainActor final class Callbacks {
+        private weak var owner: WorkshopOwnedMountedAppearance?
+        private var captured: Cycle
+        init(owner: WorkshopOwnedMountedAppearance, cycle: Cycle) {
+            self.owner = owner; captured = cycle
+        }
+        func appear(current: WorkshopOwnedViewAppearance) -> Cycle? {
+            guard let owner, owner.cycle.id == captured.id,
+                  owner.cycle.appearance === captured.appearance else { return nil }
+            let appearing = owner.appear(current: current)
+            captured = appearing
+            return appearing
+        }
+        func disappear() -> Cycle? {
+            guard let owner, owner.disappear(captured) else { return nil }
+            return captured
+        }
+    }
+    func callbacks() -> Callbacks { Callbacks(owner: self, cycle: cycle) }
+    private(set) var cycle: Cycle
+    private var isVisible = false
+    private var didDisappear = false
+    init(appearance: WorkshopOwnedViewAppearance) {
+        cycle = .init(id: UUID(), appearance: appearance)
+    }
+    func appear(current: WorkshopOwnedViewAppearance) -> Cycle {
+        if didDisappear {
+            cycle = .init(id: UUID(), appearance: current)
+            didDisappear = false
+        }
+        isVisible = true
+        return cycle
+    }
+    @discardableResult func disappear(_ captured: Cycle) -> Bool {
+        guard isVisible, cycle.id == captured.id, cycle.appearance === captured.appearance else { return false }
+        isVisible = false; didDisappear = true
+        return true
     }
 }

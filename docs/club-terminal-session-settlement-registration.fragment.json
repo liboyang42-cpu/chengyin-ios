@@ -1,0 +1,20 @@
+{
+  "base": "f329ff5180551ef3956b2718cb9ef071e2635409",
+  "status": "CONSUMED_EXACTLY_IN_THIS_ISOLATED_BATCH",
+  "xcode_source_refs": [
+    "Core/ClubTerminalSessionProjection.swift",
+    "App/ClubTerminalSessionView.swift"
+  ],
+  "xcode_app_test_refs": [
+    "Tests/AppUnitTests/ClubTerminalSessionFlowTests.swift"
+  ],
+  "swiftpm_auto_paths": [
+    "Core/ClubTerminalSessionProjection.swift",
+    "Tests/CoreTests/ClubTerminalSessionProjectionTests.swift"
+  ],
+  "localization_fragment": "Resources/ClubTerminalSessionLocalizations.fragment.json",
+  "localization_keys": 10,
+  "configuration_changes": [],
+  "registered_project": "Questify.xcodeproj/project.pbxproj",
+  "merged_catalog": "Resources/Localizable.xcstrings"
+}

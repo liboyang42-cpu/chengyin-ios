@@ -5,8 +5,8 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 
 class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
-    # Preserve the historical method ID. Actual c11 list and782 detail traces exposed
-    # permit-box content remounts. Package uses the same stable-identity boundary preventively.
+    # Preserve the historical method ID. Permit retirement never changes view identity;
+    # actual201 additionally requires a captured box per real navigation/visible visit.
     def test_real_visibility_callbacks_are_inside_keyed_content_and_navigation_host_stays_outside(self):
         library = (ROOT / 'App/WorkshopOwnedLibraryView.swift').read_text()
         package = (ROOT / 'App/WorkshopOwnedPackageView.swift').read_text()
@@ -18,16 +18,30 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
                 if screen == 'list':
                     self.assertIn('.onAppear { routeVisibility.appear(); navigation.scheduleList(navigation.listViewAppeared(displayed)) }', source)
                 elif screen == 'detail':
-                    self.assertIn('.onAppear { routeVisibility.appear(); navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId) }', source)
+                    self.assertIn('guard navigation.isCurrentDetailVisit(routeID: routeID, visitID: visitID) else { return }', source)
+                    self.assertIn('routeVisibility.appear(); navigation.scheduleDetail(navigation.detailViewAppeared(appearing.appearance, claimId: claimId), claimId: claimId)', source)
                 else:
-                    self.assertIn('.onAppear { navigation.schedulePackage(navigation.packageViewAppeared(displayed, claimId: claimId), claimId: claimId) }', source)
-                self.assertIn('.onDisappear { ' + ('routeVisibility.disappear(); ' if screen != 'package' else '') + 'navigation.' + screen + 'ViewDisappeared(displayed) }', source)
+                    self.assertIn('guard navigation.isCurrentPackageVisit(route) else { return }', source)
+                    self.assertIn('navigation.schedulePackage(navigation.packageViewAppeared(appearing.appearance, claimId: claimId), claimId: claimId)', source)
+                if screen == 'list':
+                    self.assertIn('.onDisappear { routeVisibility.disappear(); navigation.listViewDisappeared(displayed) }', source)
+                else:
+                    self.assertIn('guard let departing = callbacks.disappear() else { return }', source)
+                    self.assertIn('navigation.' + screen + 'ViewDisappeared(departing.appearance)', source)
                 if screen != 'package':
                     self.assertLess(source.index('.onDisappear {'), source.index('.navigationDestination('))
-                self.assertIn('let displayed = navigation.' + screen + 'Appearance', source)
+                if screen == 'list':
+                    self.assertIn('let displayed = navigation.listAppearance', source)
+                else:
+                    self.assertIn('@State private var mount: WorkshopOwnedMountedAppearance', source)
+                    self.assertIn('_mount = State(initialValue: WorkshopOwnedMountedAppearance(appearance: appearance))', source)
+                    self.assertNotIn('let displayed = navigation.' + screen + 'Appearance', source)
 
         self.assertIn('WorkshopOwnedLibraryView(browser: browser).id(browser.identity)', library)
-        self.assertIn('WorkshopOwnedDetailView(browser: browser, claimId: selection.id, navigation: navigation).id(selection.id)', library)
+        self.assertIn('routeID: selection.routeID, visitID: navigation.detailVisitID, appearance: navigation.detailAppearance)', library)
+        self.assertIn('.id(navigation.detailVisitID)', library)
+        self.assertIn('route: route, appearance: navigation.packageAppearance).id(route.id)', library)
+        self.assertNotIn('.id(selection.id)', library)
 
     def test_actual_hosted_back_assertions_and_original_wait_bound_remain(self):
         source = (ROOT / 'Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift').read_text()
@@ -89,7 +103,7 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
         for source, count in [(owned, 2), (purchased, 1)]:
             self.assertEqual(source.count('@State private var routeVisibility = WorkshopVisibleRouteReturn()'), count)
             self.assertEqual(source.count('routeVisibility.appear();'), count)
-            self.assertEqual(source.count('routeVisibility.disappear();'), count)
+            self.assertEqual(source.count('routeVisibility.disappear()'), count)
             self.assertEqual(source.count('routeVisibility.returned(wasEligible: wasEligible, isEligible: isEligible)'), count)
             self.assertEqual(source.count('displayed.permit == nil else { return }'), count)
             self.assertNotIn('.onChange(of: ObjectIdentifier(', source)
@@ -104,3 +118,61 @@ class WorkshopVisibleContentLifetimeChecks(unittest.TestCase):
         for token in ['testVisiblePurchasedBackWithoutAnotherAppearanceResumesOnlyFreshCurrentList',
                       'manual retirement cannot resume', 'hidden purchased list cannot resume']:
             self.assertIn(token, purchased_tests)
+
+    def test_route_occurrence_bindings_are_captured_and_manual_retirement_cannot_remount(self):
+        source = (ROOT / 'App/WorkshopOwnedNavigationState.swift').read_text()
+        for token in ['let routeID = UUID()', 'struct PackageRoute: Hashable, Identifiable',
+                      'let expected = selection', 'self.selection == expected',
+                      'let expected = packageRoute', 'self.isCurrentPackageVisit(expected)',
+                      'self.isCurrentDetailVisit(routeID: detailRouteID, visitID: visitID)',
+                      'let expected, self.selection == expected else { return }',
+                      'packageRoute = .init(id: UUID(), detailRouteID: selection.routeID, claimId: selection.id)']:
+            self.assertIn(token, source)
+        for scope in ['list', 'detail', 'package']:
+            body = source.split('func ' + scope + 'ViewDisappeared(', 1)[1].split('    }', 1)[0]
+            self.assertNotIn('detailVisitID =', body)
+            self.assertNotIn('packageRoute =', body)
+        tests = (ROOT / 'Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift').read_text()
+        for token in ['testSameClaimReopenHasDistinctRouteAndOldSelectionBindingCannotReadOrCloseIt',
+                      'testPackageReturnCreatesDetailVisitAndOldPackageBindingsCannotReadOrCloseReopen',
+                      'XCTAssertNotEqual(first.routeID, second.routeID)',
+                      'XCTAssertNotEqual(returnedVisit, firstVisit)',
+                      'XCTAssertNil(firstBinding.wrappedValue); XCTAssertNil(emptyBinding.wrappedValue)',
+                      'XCTAssertEqual(f.navigation.packageRoute, secondRoute)']:
+            self.assertIn(token, tests)
+
+    def test_real_retained_hide_is_the_only_box_replacement_boundary(self):
+        source = (ROOT / 'App/WorkshopOwnedNavigationState.swift').read_text()
+        helper = source.split('final class WorkshopOwnedMountedAppearance', 1)[1]
+        for token in ['let id: UUID', 'let appearance: WorkshopOwnedViewAppearance',
+                      'if didDisappear {', 'cycle = .init(id: UUID(), appearance: current)',
+                      'guard isVisible, cycle.id == captured.id, cycle.appearance === captured.appearance',
+                      'isVisible = false; didDisappear = true']:
+            self.assertIn(token, helper)
+        for path in ['App/WorkshopOwnedLibraryView.swift', 'App/WorkshopOwnedPackageView.swift']:
+            body = (ROOT / path).read_text()
+            self.assertIn('let callbacks = mount.callbacks()', body)
+            self.assertIn('let displayed = mount.cycle.appearance', body)
+            self.assertIn('guard let departing = callbacks.disappear() else { return }', body)
+        tests = (ROOT / 'Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift').read_text()
+        for token in ['testMountedCycleRejectsOldDisappearanceAndOnlyRealHideAllowsFreshBox',
+                      'testHostedRetainedTabReturnsToSameDetailAndPackageVisitWithFreshPermits',
+                      'tabs.selectedIndex = 1', 'tabs.selectedIndex = 0',
+                      'XCTAssertFalse(mount.disappear(firstCycle))',
+                      'XCTAssertEqual(repeated.id, firstCycle.id)']:
+            self.assertIn(token, tests)
+
+    def test_first_frame_callbacks_pair_actual_cycle_without_old_pair_adoption(self):
+        source = (ROOT / 'App/WorkshopOwnedNavigationState.swift').read_text()
+        pair = source.split('final class Callbacks', 1)[1].split('func callbacks()', 1)[0]
+        for token in ['owner.cycle.id == captured.id', 'owner.cycle.appearance === captured.appearance',
+                      'let appearing = owner.appear(current: current)', 'captured = appearing',
+                      'owner.disappear(captured)', 'return captured']:
+            self.assertIn(token, pair)
+        self.assertLess(pair.index('owner.cycle.id == captured.id'), pair.index('owner.appear(current: current)'))
+        tests = (ROOT / 'Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift').read_text()
+        for token in ['testSameRenderedCallbacksRetireReturnedFirstFrameAndOldPairCannotAdoptIt',
+                      'XCTAssertNil(oldPair.appear(current: f.navigation.detailAppearance))',
+                      'XCTAssertNil(oldPair.disappear())',
+                      'XCTAssertEqual(immediateDeparture.id, returned.id)']:
+            self.assertIn(token, tests)

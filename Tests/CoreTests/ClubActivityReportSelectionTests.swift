@@ -6,7 +6,7 @@ final class ClubActivityReportSelectionTests: XCTestCase {
         try JSONDecoder().decode(ClubRecord.self, from: JSONSerialization.data(withJSONObject: ["id": id, "isJoined": joined]))
     }
     private func context(account: Int? = 701, clubID: Int = 81) -> ClubGovernanceReadContext {
-        .init(operation: .topics, scope: .init(clubID: clubID), identity: .init(accountID: account, epoch: 2), viewerRevision: 5)
+        .init(operation: .topics, scope: .init(clubID: clubID), identity: .init(accountID: account, epoch: 2), viewerRevision: 5, authorizationGeneration: nil)
     }
     private func snapshot(_ op: ClubGovernanceRead, _ scope: ClubGovernanceScope, _ value: ClubGovernanceValue) throws -> ClubGovernanceSnapshot {
         let permissions = try ClubGovernancePermissions(value: .object(["active": .bool(true), "club": .object(["id": .integer(scope.clubID ?? 81)]), "roleCodes": .array([.string("CLUB_MEMBER")]), "permissions": .array([])]), scope: scope)

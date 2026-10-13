@@ -1,0 +1,34 @@
+{
+  "merchant.insightCooperationCenter.open": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Browse cooperation opportunities"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "去合作中心看看"
+        }
+      }
+    }
+  },
+  "merchant.insightCooperationCenter.boundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Browse existing opportunities. Opening this page does not submit an application."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看现有合作机会。打开页面不会提交申请。"
+        }
+      }
+    }
+  }
+}

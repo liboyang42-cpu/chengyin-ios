@@ -1,0 +1,21 @@
+{
+  "base_tree": "583f81fb8dd67d5b40929fd54cd4c64e70d82e19",
+  "dependencies": [
+    "Existing normal TemplateAuthoringPreviewView; preserve mini/D20/family routes",
+    "53 TemplateSamplePreview.snapshot",
+    "55 coin / 56 timer / 57 reaction and their existing visible lifecycle fixes",
+    "Existing D6 rehearsal and schema; no new gameplay or network capability"
+  ],
+  "app_sources": [
+    "App/TemplateConfiguredRehearsalPreview.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateConfiguredRehearsalPreviewTests.swift"
+  ],
+  "package_tests": [],
+  "resources": [
+    "Resources/TemplateConfiguredRehearsal.xcstrings"
+  ],
+  "localization_table": "TemplateConfiguredRehearsal",
+  "integration": "Replace normal preview sheet host one line; add optional five-route bridge to existing summary. Stable outer NavigationStack owns lifecycle and existing branches remain exact."
+}

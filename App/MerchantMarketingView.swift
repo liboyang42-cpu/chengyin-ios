@@ -16,6 +16,7 @@ import SwiftUI
                     .navigationDestination(item: $selectedSuggestion) { route in
                         if case .recommendation(let target) = route, target.origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
                         else if case .cooperationSettings(let origin) = route, origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
+                        else if case .cooperationCenter(let origin) = route, origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
                         else if let suggestionDestination { suggestionDestination(route) }
                         else { AnyView(Text("merchantMarketing.unavailable")) }
                     }
@@ -28,6 +29,7 @@ import SwiftUI
 }
 
 @MainActor struct MerchantMarketingView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Bindable var model: MerchantMarketingCoordinator
     var onSuggestion: (MerchantInsightDestination) -> Void = { _ in }
@@ -186,6 +188,16 @@ import SwiftUI
         }
         Section("merchantMarketing.recommendedTopics") {
             recommendationRows(insight.recommendedTopics, kind: .topic, insight: insight)
+            if let origin = loadedRecommendationOrigin, origin == recommendationOrigin,
+               let scope = model.service.scope, !model.busy, model.failure == nil {
+                Button("merchant.insightCooperationCenter.open") {
+                    guard scenePhase == .active, model.service.scope == scope, !model.busy, model.failure == nil,
+                          model.insight == insight, recommendationOrigin == origin,
+                          loadedRecommendationOrigin == origin else { return }
+                    onSuggestion(.cooperationCenter(origin))
+                }.accessibilityIdentifier("merchant.insightCooperationCenter.open")
+                Text("merchant.insightCooperationCenter.boundary").font(.footnote).foregroundStyle(.secondary)
+            }
         }
         Section("merchantMarketing.recommendedPartners") {
             recommendationRows(insight.recommendedPartners, kind: .partner, insight: insight)

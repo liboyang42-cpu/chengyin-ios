@@ -4,13 +4,20 @@ import SwiftUI
     let navigation: WorkshopOwnedNavigationState
     let browser: WorkshopOwnedPackageBrowser
     let claimId: String
-    init(browser: WorkshopOwnedPackageBrowser, claimId: String, navigation: WorkshopOwnedNavigationState) {
+    let route: WorkshopOwnedNavigationState.PackageRoute
+    @State private var mount: WorkshopOwnedMountedAppearance
+    init(browser: WorkshopOwnedPackageBrowser, claimId: String, navigation: WorkshopOwnedNavigationState,
+         route: WorkshopOwnedNavigationState.PackageRoute, appearance: WorkshopOwnedViewAppearance) {
         self.browser = browser; self.claimId = claimId; self.navigation = navigation
+        self.route = route; _mount = State(initialValue: WorkshopOwnedMountedAppearance(appearance: appearance))
     }
     var body: some View {
-        let displayed = navigation.packageAppearance
+        // Old callbacks retain both this cycle and its box across a later real return.
+        let callbacks = mount.callbacks()
+        let displayed = mount.cycle.appearance
         let presentation = displayed.permit
         Form {
+          if navigation.isCurrentPackageVisit(route) {
             Section { packageText("scope").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
             switch browser.phase {
             case .idle, .loading: ProgressView { packageText("loading") }.accessibilityIdentifier("workshopOwned.package.loading")
@@ -51,10 +58,18 @@ import SwiftUI
                 }
             }
         }
+        }
         .modifier(PackageNavigationTitle())
-        // A permit box is not a view identity: retiring it must not remount the package.
-        .onAppear { navigation.schedulePackage(navigation.packageViewAppeared(displayed, claimId: claimId), claimId: claimId) }
-        .onDisappear { navigation.packageViewDisappeared(displayed) }
+        // Package item identity changes only on a real new navigation occurrence.
+        .onAppear {
+            guard navigation.isCurrentPackageVisit(route) else { return }
+            guard let appearing = callbacks.appear(current: navigation.packageAppearance) else { return }
+            navigation.schedulePackage(navigation.packageViewAppeared(appearing.appearance, claimId: claimId), claimId: claimId)
+        }
+        .onDisappear {
+            guard let departing = callbacks.disappear() else { return }
+            navigation.packageViewDisappeared(departing.appearance)
+        }
         .refreshable { [permit = presentation] in if let action = navigation.offerPackage(permit, claimId: claimId) { await action() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

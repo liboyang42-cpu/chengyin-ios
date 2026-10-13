@@ -38,6 +38,13 @@ public final class ProfileEditCoordinator {
     public private(set) var isBusy = false
     public private(set) var messageKey: String?
     public private(set) var remoteMessage: String?
+    /// Hide private metadata immediately when the live context changes, even before
+    /// the page's asynchronous reload calls synchronizeSession().
+    public var phoneDisplay: ProfileBoundPhoneDisplay? {
+        guard let session, currentSession() == session,
+              let snapshot, snapshot.id == session.identity.accountID else { return nil }
+        return snapshot.phoneDisplay
+    }
     public var identity: ProfileReadIdentity? { currentSession()?.identity }
     public var viewerRevision: UInt64? { currentSession()?.viewerRevision }
     public var isConfigured: Bool { service != nil }

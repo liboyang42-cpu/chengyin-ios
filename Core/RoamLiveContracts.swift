@@ -49,6 +49,12 @@ public struct RoamLiveRecord: Codable, Equatable {
               confirmedShops.count <= 10_000, unresolvedActions.count <= 10_000 else { throw RoamLiveFailure.journalUnavailable }
     }
 }
+/// Private capability for one byte-exact, actor-serialized local intent change.
+struct RoamUnstartedJournalSnapshot {
+    let journalID: ObjectIdentifier
+    let bytes: Data
+    let record: RoamLiveRecord
+}
 @MainActor public final class RoamLiveJournal {
     private struct Envelope: Codable { let version: Int; let scope: RoamHistoryScope; let record: RoamLiveRecord? }
     private let storage: any RoamHistoryDataStoring
@@ -62,6 +68,52 @@ public struct RoamLiveRecord: Codable, Equatable {
             guard envelope.version == 1, envelope.scope == scope, envelope.record == nil || envelope.record?.scope == scope else { throw RoamLiveFailure.journalUnavailable }
             try envelope.record?.validate(); return envelope.record
         } catch { throw RoamLiveFailure.journalUnavailable }
+    }
+    /// Only the controller's validated NOT_FOUND path calls this; no receipt is inferred from storage.
+    func captureUnstarted(_ expected: RoamLiveRecord) throws -> RoamUnstartedJournalSnapshot {
+        guard Self.canContinueUnstarted(expected), let bytes = try storage.read(key: key(expected.scope)),
+              bytes.count <= 1_000_000 else { throw RoamLiveFailure.journalUnavailable }
+        let envelope = try JSONDecoder().decode(Envelope.self, from: bytes)
+        guard envelope.version == 1, envelope.scope.storageKey == expected.scope.storageKey,
+              envelope.record == expected, envelope.record?.scope.storageKey == expected.scope.storageKey else {
+            throw RoamLiveFailure.journalUnavailable
+        }
+        try expected.validate()
+        return .init(journalID: ObjectIdentifier(self), bytes: bytes, record: expected)
+    }
+    func matchesUnstarted(_ snapshot: RoamUnstartedJournalSnapshot) throws -> Bool {
+        guard snapshot.journalID == ObjectIdentifier(self) else { return false }
+        return try storage.read(key: key(snapshot.record.scope)) == snapshot.bytes
+    }
+    static func canContinueUnstarted(_ record: RoamLiveRecord) -> Bool {
+        record.finishRequested && record.sessionID == nil && record.pendingWrite == nil
+            && record.pendingTiles.isEmpty && record.unresolvedActions.isEmpty
+            && record.allTiles.isEmpty && record.confirmedPOIIDs.isEmpty && record.confirmedShops.isEmpty
+            && record.distanceMeters == 0
+    }
+    /// Synchronous @MainActor storage access has no suspension between compare and replacement.
+    /// Preserve unknown envelope/record fields instead of rewriting them through Codable.
+    func continueUnstarted(_ snapshot: RoamUnstartedJournalSnapshot, isCurrent: () -> Bool) throws -> RoamLiveRecord {
+        guard snapshot.journalID == ObjectIdentifier(self), Self.canContinueUnstarted(snapshot.record), isCurrent(),
+              try storage.read(key: key(snapshot.record.scope)) == snapshot.bytes, isCurrent() else {
+            throw RoamLiveFailure.journalUnavailable
+        }
+        guard var envelope = try JSONSerialization.jsonObject(with: snapshot.bytes) as? [String: Any],
+              var recordFields = envelope["record"] as? [String: Any] else { throw RoamLiveFailure.journalUnavailable }
+        recordFields["finishRequested"] = false; envelope["record"] = recordFields
+        let replacement = try JSONSerialization.data(withJSONObject: envelope, options: [.sortedKeys])
+        guard replacement.count <= 1_000_000 else { throw RoamLiveFailure.journalUnavailable }
+        var expected = snapshot.record; expected.finishRequested = false
+        let decoded = try JSONDecoder().decode(Envelope.self, from: replacement)
+        guard decoded.record == expected, decoded.scope.storageKey == expected.scope.storageKey,
+              decoded.record?.scope.storageKey == expected.scope.storageKey, isCurrent() else {
+            throw RoamLiveFailure.journalUnavailable
+        }
+        try storage.write(replacement, key: key(expected.scope))
+        guard try storage.read(key: key(expected.scope)) == replacement, isCurrent() else {
+            throw RoamLiveFailure.journalUnavailable
+        }
+        return expected
     }
     public func write(_ record: RoamLiveRecord) throws {
         try record.validate()

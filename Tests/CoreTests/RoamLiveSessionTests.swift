@@ -26,6 +26,11 @@ import FoundationNetworking
     var onReveal: (() -> Void)?
     var factState = "ACTIVE"
     var returnedKey = String(repeating: "a", count: 32)
+    var placesReads = 0, registeredReads = 0
+    var failPlacesRead = false, failRegisteredRead = false
+    var onPlacesRead: (() -> Void)?
+    var lastPlacesReadFix: RoamDeviceFix?
+    var lastRegisteredReadFix: RoamDeviceFix?
     var rows: [RoamPlace] = []
     var shops: [RoamRouteNode] = []
     var lastShopType: Int?
@@ -42,8 +47,14 @@ import FoundationNetworking
         let result = factState == "FINISHED" ? #", "resultComplete":true,"result":{"tileXp":1,"poiXp":0,"totalXp":1,"newTiles":1,"newPois":0,"tilesEver":1,"sessionShops":0}"# : ""
         return try decode(RoamSessionFact.self, "{\"state\":\"\(factState)\",\"sessionId\":12,\"clientSessionKey\":\"\(returnedKey)\"\(result)}")
     }
-    func places(fix: RoamDeviceFix) async throws -> [RoamPlace] { rows }
-    func registeredShops(fix: RoamDeviceFix) async throws -> [RoamRouteNode] { shops }
+    func places(fix: RoamDeviceFix) async throws -> [RoamPlace] {
+        placesReads += 1; lastPlacesReadFix = fix; onPlacesRead?()
+        if failPlacesRead { throw APIError.httpStatus(503) }; return rows
+    }
+    func registeredShops(fix: RoamDeviceFix) async throws -> [RoamRouteNode] {
+        registeredReads += 1; lastRegisteredReadFix = fix
+        if failRegisteredRead { throw APIError.httpStatus(503) }; return shops
+    }
     func discover(sessionID: Int, poiID: Int, fix: RoamDeviceFix) async throws -> RoamLiveDiscoveryReceipt {
         discoveries += 1; if failDiscover { throw APIError.httpStatus(503) }
         return try decode(RoamLiveDiscoveryReceipt.self, "{\"discovered\":false,\"poiId\":\(poiID)}")
@@ -233,5 +244,373 @@ private final class LiveTransport: HTTPTransport {
             XCTAssertEqual(error as? RoamLiveFailure, .unavailable)
         }
         XCTAssertEqual(transport.requests.count, 1)
+    }
+}
+
+@MainActor private final class UnstartedStorageFixture: RoamHistoryDataStoring {
+    var bytes: [String: Data] = [:]
+    var writes = 0
+    var failWrite = false
+    var corruptReadback = false
+    func read(key: String) throws -> Data? { bytes[key] }
+    func write(_ data: Data, key: String) throws {
+        writes += 1
+        if failWrite { throw RoamLiveFailure.journalUnavailable }
+        bytes[key] = corruptReadback ? Data("corrupt".utf8) : data
+    }
+}
+@MainActor private final class UnstartedFactFixture: RoamLiveServing {
+    var identity: RoamExperienceIdentity?
+    var isAvailable = true
+    let presenceAvailable = false
+    var reads = 0, commands = 0
+    var factJSON = #"{"state":"NOT_FOUND"}"#
+    var onFact: (() -> Void)?
+    var holdFact = false
+    var pendingFact: CheckedContinuation<Void, Never>?
+    init(_ identity: RoamExperienceIdentity) { self.identity = identity }
+    func fact(key: String) async throws -> RoamSessionFact {
+        reads += 1
+        if holdFact { await withCheckedContinuation { pendingFact = $0 } }
+        onFact?()
+        return try JSONDecoder().decode(RoamSessionFact.self, from: Data(factJSON.utf8))
+    }
+    func reveal(sessionID: Int?, clientSessionKey: String, tiles: [String]) async throws -> RoamLiveRevealReceipt { commands += 1; throw APIError.notConfigured }
+    func places(fix: RoamDeviceFix) async throws -> [RoamPlace] { commands += 1; throw APIError.notConfigured }
+    func registeredShops(fix: RoamDeviceFix) async throws -> [RoamRouteNode] { commands += 1; throw APIError.notConfigured }
+    func discover(sessionID: Int, poiID: Int, fix: RoamDeviceFix) async throws -> RoamLiveDiscoveryReceipt { commands += 1; throw APIError.notConfigured }
+    func shopVisit(sessionID: Int, sourceType: Int, sourceID: Int, fix: RoamDeviceFix) async throws -> RoamLiveShopReceipt { commands += 1; throw APIError.notConfigured }
+    func presence(sessionID: Int, fix: RoamDeviceFix, explorationPercent: Int) async throws { commands += 1; throw APIError.notConfigured }
+    func finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int) async throws { commands += 1; throw APIError.notConfigured }
+}
+@MainActor final class RoamUnstartedContinuationTests: XCTestCase {
+    private let date = Date(timeIntervalSince1970: 1_790_932_200)
+    private func fixture(edit: (inout RoamLiveRecord) -> Void = { _ in }) throws -> (RoamLiveSessionController, UnstartedFactFixture, LiveLocation, UnstartedStorageFixture, RoamLiveJournal, RoamLiveRecord) {
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://example.com/api/")), accountID: 7)
+        let service = UnstartedFactFixture(.init(scope: scope, epoch: 1)), location = LiveLocation(date)
+        let storage = UnstartedStorageFixture(), journal = RoamLiveJournal(storage: storage)
+        var record = RoamLiveRecord(scope: scope, clientSessionKey: String(repeating: "a", count: 32), startedAt: date)
+        record.finishRequested = true; edit(&record); try journal.write(record)
+        let owner = RoamLiveSessionController(service: service, location: location, journal: journal, now: { self.date })
+        owner.prepare(); return (owner, service, location, storage, journal, record)
+    }
+    func testCurrentNotFoundAndExplicitClickOnlyFlipFinishIntentWithoutRequestsOrLocation() async throws {
+        let (owner, service, location, storage, journal, original) = try fixture()
+        XCTAssertFalse(owner.canContinueUnstartedRoam); let before = storage.bytes, writes = storage.writes
+        await owner.recover()
+        XCTAssertTrue(owner.canContinueUnstartedRoam); XCTAssertEqual(storage.bytes, before); XCTAssertEqual(storage.writes, writes)
+        XCTAssertEqual(service.reads, 1)
+        owner.continueUnstartedRoam()
+        var expected = original; expected.finishRequested = false
+        XCTAssertEqual(try journal.read(scope: original.scope), expected); XCTAssertEqual(owner.record, expected)
+        XCTAssertEqual(owner.phase, .paused); XCTAssertFalse(owner.canContinueUnstartedRoam)
+        XCTAssertEqual(service.reads, 1); XCTAssertEqual(service.commands, 0); XCTAssertEqual(location.calls, 0)
+        let committed = storage.bytes, committedWrites = storage.writes
+        owner.continueUnstartedRoam(); XCTAssertEqual(storage.bytes, committed); XCTAssertEqual(storage.writes, committedWrites)
+    }
+    func testPrepareActiveOrInvalidReplyNeverAuthorizeContinuation() async throws {
+        for reply in [#"{"state":"ACTIVE","sessionId":12,"clientSessionKey":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}"#,
+                      #"{"state":"NOT_FOUND","sessionId":12}"#,
+                      #"{"state":"NOT_FOUND","clientSessionKey":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}"#,
+                      #"{"state":"UNKNOWN"}"#] {
+            let (owner, service, location, storage, _, _) = try fixture()
+            owner.continueUnstartedRoam(); XCTAssertFalse(owner.canContinueUnstartedRoam)
+            service.factJSON = reply; await owner.recover(); XCTAssertFalse(owner.canContinueUnstartedRoam)
+            let before = storage.bytes; owner.continueUnstartedRoam(); XCTAssertEqual(storage.bytes, before)
+            XCTAssertEqual(service.commands, 0); XCTAssertEqual(location.calls, 0)
+        }
+    }
+    func testSessionAndEveryPendingOrRecordedProgressKindRejectContinuation() async throws {
+        let edits: [(inout RoamLiveRecord) -> Void] = [
+            { $0.sessionID = 12 }, { $0.pendingWrite = .reveal }, { $0.pendingWrite = .finish },
+            { $0.allTiles = ["wtw3sjq"]; $0.pendingTiles = ["wtw3sjq"] },
+            { $0.unresolvedActions = ["shop:1:7"] }, { $0.allTiles = ["wtw3sjq"] },
+            { $0.confirmedPOIIDs = [7] }, { $0.confirmedShops = ["shop:1:7"] }, { $0.distanceMeters = 1 }
+        ]
+        for edit in edits {
+            let (owner, service, location, storage, _, _) = try fixture(edit: edit)
+            await owner.recover(); XCTAssertFalse(owner.canContinueUnstartedRoam)
+            let before = storage.bytes; owner.continueUnstartedRoam(); XCTAssertEqual(storage.bytes, before)
+            XCTAssertEqual(service.commands, 0); XCTAssertEqual(location.calls, 0)
+        }
+    }
+    func testFullJournalChangeDuringFactReadCannotBeOverwrittenOrIssueProof() async throws {
+        let (owner, service, _, storage, _, _) = try fixture(); let writes = storage.writes
+        service.onFact = {
+            for key in Array(storage.bytes.keys) { storage.bytes[key]?.append(32) } // Valid JSON, same decoded record, different full preimage.
+        }
+        await owner.recover()
+        XCTAssertFalse(owner.canContinueUnstartedRoam); XCTAssertEqual(storage.writes, writes)
+        let changed = storage.bytes; owner.continueUnstartedRoam(); XCTAssertEqual(storage.bytes, changed)
+    }
+    func testFullJournalChangeAfterReadFailsCASAndCannotRetryOldProof() async throws {
+        let (owner, _, _, storage, _, _) = try fixture(); await owner.recover()
+        XCTAssertTrue(owner.canContinueUnstartedRoam)
+        for key in Array(storage.bytes.keys) { storage.bytes[key]?.append(32) }
+        let changed = storage.bytes, writes = storage.writes
+        owner.continueUnstartedRoam()
+        XCTAssertEqual(owner.phase, .recoveryRequired); XCTAssertFalse(owner.canContinueUnstartedRoam)
+        XCTAssertEqual(storage.bytes, changed); XCTAssertEqual(storage.writes, writes)
+        owner.continueUnstartedRoam(); XCTAssertEqual(storage.bytes, changed)
+    }
+    func testAccountEpochForegroundAndConfigurationChangesRejectOldProof() async throws {
+        for change in 0..<4 {
+            let (owner, service, location, storage, _, original) = try fixture(); await owner.recover()
+            if change == 0 { service.identity = .init(scope: original.scope, epoch: 2) }
+            if change == 1 {
+                let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://example.com/api/")), accountID: 8)
+                service.identity = .init(scope: scope, epoch: 1)
+            }
+            if change == 2 { owner.setForeground(false) }
+            if change == 3 { service.isAvailable = false }
+            XCTAssertFalse(owner.canContinueUnstartedRoam)
+            let bytes = storage.bytes, writes = storage.writes; owner.continueUnstartedRoam()
+            XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
+            service.isAvailable = true
+            XCTAssertFalse(owner.canContinueUnstartedRoam); XCTAssertEqual(location.calls, 0)
+        }
+    }
+    func testStorageFailureConsumesProofAndRequiresFreshRecovery() async throws {
+        for corruptReadback in [false, true] {
+            let (owner, service, location, storage, _, _) = try fixture(); await owner.recover()
+            storage.failWrite = !corruptReadback; storage.corruptReadback = corruptReadback
+            owner.continueUnstartedRoam(); XCTAssertFalse(owner.canContinueUnstartedRoam)
+            XCTAssertEqual(owner.phase, .recoveryRequired); XCTAssertEqual(owner.record?.finishRequested, true)
+            let writes = storage.writes, bytes = storage.bytes
+            owner.continueUnstartedRoam(); XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
+            XCTAssertEqual(service.commands, 0); XCTAssertEqual(location.calls, 0)
+        }
+    }
+    func testLateNotFoundAfterLeavingCannotReviveProofOrWrite() async throws {
+        let (owner, service, location, storage, _, _) = try fixture(); service.holdFact = true
+        let task = Task { await owner.recover() }
+        for _ in 0..<100 where service.pendingFact == nil { await Task.yield() }
+        let pending = try XCTUnwrap(service.pendingFact); service.pendingFact = nil
+        let bytes = storage.bytes, writes = storage.writes
+        owner.pause(); pending.resume(); await task.value
+        XCTAssertFalse(owner.canContinueUnstartedRoam); owner.continueUnstartedRoam()
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
+        XCTAssertEqual(service.commands, 0); XCTAssertEqual(location.calls, 0)
+    }
+    func testNewRecoveryConsumesOldProofEvenWhenNewReadFails() async throws {
+        let (owner, service, _, storage, _, _) = try fixture(); await owner.recover()
+        XCTAssertTrue(owner.canContinueUnstartedRoam)
+        service.factJSON = #"{"state":"UNKNOWN"}"#; await owner.recover()
+        XCTAssertFalse(owner.canContinueUnstartedRoam)
+        let bytes = storage.bytes; owner.continueUnstartedRoam(); XCTAssertEqual(storage.bytes, bytes)
+    }
+    func testLocalIntentChangePreservesUnknownEnvelopeAndRecordFields() async throws {
+        let (owner, _, _, storage, _, original) = try fixture()
+        for key in Array(storage.bytes.keys) {
+            var json = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(storage.bytes[key])) as? [String: Any])
+            json["futureEnvelope"] = "retained"
+            var row = try XCTUnwrap(json["record"] as? [String: Any]); row["futureRecord"] = "retained"; json["record"] = row
+            storage.bytes[key] = try JSONSerialization.data(withJSONObject: json, options: [.sortedKeys])
+        }
+        await owner.recover(); XCTAssertTrue(owner.canContinueUnstartedRoam); owner.continueUnstartedRoam()
+        for bytes in storage.bytes.values {
+            let json = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
+            XCTAssertEqual(json["futureEnvelope"] as? String, "retained")
+            let row = try XCTUnwrap(json["record"] as? [String: Any])
+            XCTAssertEqual(row["futureRecord"] as? String, "retained"); XCTAssertEqual(row["finishRequested"] as? Bool, false)
+        }
+        XCTAssertEqual(owner.record?.clientSessionKey, original.clientSessionKey)
+    }
+}
+
+@MainActor final class RoamLiveNearbyReadRetryTests: XCTestCase {
+    private let date = Date(timeIntervalSince1970: 1_790_932_200)
+    private func fixture(now: (() -> Date)? = nil) throws -> (RoamLiveSessionController, LiveService, LiveLocation, LiveStorage, RoamHistoryScope) {
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://example.com/api/")), accountID: 7)
+        let service = LiveService(.init(scope: scope, epoch: 1)), location = LiveLocation(date), storage = LiveStorage()
+        let owner = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage),
+            now: now ?? { self.date }, key: { String(repeating: "a", count: 32) })
+        owner.prepare(); return (owner, service, location, storage, scope)
+    }
+    func testExplicitRetryUsesAcceptedFixWithoutLocationMutationOrJournalWork() async throws {
+        let (owner, service, location, storage, _) = try fixture()
+        service.failPlacesRead = true; service.failRegisteredRead = true
+        await owner.start(purposeAccepted: true)
+        XCTAssertTrue(owner.nearbyReadFailed); XCTAssertTrue(owner.canRetryNearbyRead)
+        let fix = try XCTUnwrap(owner.lastFix), bytes = storage.bytes, calls = location.calls, reveals = service.reveals
+        service.failPlacesRead = false; service.failRegisteredRead = false
+        await owner.retryNearbyRead()
+        XCTAssertFalse(owner.nearbyReadFailed); XCTAssertFalse(owner.canRetryNearbyRead)
+        XCTAssertEqual(service.placesReads, 2); XCTAssertEqual(service.registeredReads, 2)
+        XCTAssertEqual(service.lastPlacesReadFix, fix); XCTAssertEqual(service.lastRegisteredReadFix, fix)
+        XCTAssertEqual(location.calls, calls); XCTAssertEqual(service.reveals, reveals)
+        XCTAssertEqual(service.finishes, 0); XCTAssertEqual(service.visits, 0); XCTAssertEqual(service.discoveries, 0)
+        XCTAssertEqual(service.heartbeats, 0); XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(owner.phase, .active)
+        await owner.retryNearbyRead(); XCTAssertEqual(service.placesReads, 2)
+    }
+    func testPartialFailureRetainsActualRowsAndIndependentSourceFailureFlags() async throws {
+        let (owner, service, _, _, _) = try fixture()
+        let row = try service.decode(RoamPlace.self, #"{"id":6,"type":1,"name":"Actual POI","lat":31.2,"lng":121.4}"#)
+        service.rows = [row]; service.failRegisteredRead = true; await owner.start(purposeAccepted: true)
+        XCTAssertFalse(owner.placesReadFailed); XCTAssertTrue(owner.registeredShopsReadFailed); XCTAssertEqual(owner.places, [row])
+        service.failPlacesRead = true; service.rows = []; await owner.retryNearbyRead()
+        XCTAssertTrue(owner.placesReadFailed); XCTAssertTrue(owner.registeredShopsReadFailed)
+        XCTAssertEqual(owner.places, [row])
+        service.failPlacesRead = false; service.failRegisteredRead = false; await owner.retryNearbyRead()
+        XCTAssertTrue(owner.places.isEmpty); XCTAssertFalse(owner.nearbyReadFailed)
+    }
+    func testStaleOrFutureFixDoesNotReadAndDoesNotAcquireAReplacement() async throws {
+        for offset in [31.0, -3.0] {
+            var now = date
+            let (owner, service, location, storage, _) = try fixture(now: { now })
+            service.failPlacesRead = true; await owner.start(purposeAccepted: true)
+            XCTAssertTrue(owner.canRetryNearbyRead); now = date.addingTimeInterval(offset)
+            let reads = service.placesReads, calls = location.calls, bytes = storage.bytes
+            XCTAssertFalse(owner.canRetryNearbyRead); await owner.retryNearbyRead()
+            XCTAssertEqual(service.placesReads, reads); XCTAssertEqual(location.calls, calls); XCTAssertEqual(storage.bytes, bytes)
+        }
+    }
+    func testPauseEpochAccountAndConfigurationLossRejectRetry() async throws {
+        for change in 0..<4 {
+            let (owner, service, location, storage, scope) = try fixture()
+            service.failPlacesRead = true; await owner.start(purposeAccepted: true)
+            if change == 0 { owner.pause() }
+            if change == 1 { service.identity = .init(scope: scope, epoch: 2) }
+            if change == 2 {
+                let other = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://example.com/api/")), accountID: 8)
+                service.identity = .init(scope: other, epoch: 1)
+            }
+            if change == 3 { service.isAvailable = false }
+            let reads = service.placesReads, calls = location.calls, bytes = storage.bytes
+            XCTAssertFalse(owner.canRetryNearbyRead); await owner.retryNearbyRead()
+            XCTAssertEqual(service.placesReads, reads); XCTAssertEqual(location.calls, calls); XCTAssertEqual(storage.bytes, bytes)
+        }
+    }
+    func testLeaveDuringFirstRetryReadDropsRowsAndSkipsSecondSource() async throws {
+        let (owner, service, location, storage, _) = try fixture()
+        service.failPlacesRead = true; await owner.start(purposeAccepted: true)
+        service.failPlacesRead = false; service.rows = [try service.decode(RoamPlace.self, #"{"id":8,"type":1,"lat":31.2,"lng":121.4}"#)]
+        service.onPlacesRead = { owner.pause() }
+        let reads = service.registeredReads, calls = location.calls, bytes = storage.bytes
+        await owner.retryNearbyRead()
+        XCTAssertTrue(owner.places.isEmpty); XCTAssertEqual(service.registeredReads, reads)
+        XCTAssertFalse(owner.canRetryNearbyRead); XCTAssertEqual(owner.phase, .paused)
+        XCTAssertEqual(location.calls, calls); XCTAssertEqual(storage.bytes, bytes)
+    }
+    func testBusyRetryAndUnconfiguredControllerCannotDispatch() async throws {
+        let (owner, service, location, _, _) = try fixture(); service.failPlacesRead = true
+        await owner.start(purposeAccepted: true); service.failPlacesRead = false
+        service.onPlacesRead = { XCTAssertFalse(owner.canRetryNearbyRead) }
+        await owner.retryNearbyRead(); XCTAssertEqual(service.placesReads, 2)
+        let disabled = RoamLiveSessionController(location: location, journal: .init(storage: LiveStorage()))
+        disabled.prepare(); let calls = location.calls
+        XCTAssertFalse(disabled.canRetryNearbyRead); await disabled.retryNearbyRead()
+        XCTAssertEqual(location.calls, calls); XCTAssertEqual(service.placesReads, 2)
+    }
+}
+
+@MainActor extension RoamUnstartedContinuationTests {
+    func testUnknownPendingMarkerSurvivesTwoLookupsAndReconstructedController() async throws {
+        for pending in [RoamLivePending.reveal, .finish] {
+            let (owner, service, location, storage, journal, original) = try fixture(edit: { $0.pendingWrite = pending })
+            let bytes = storage.bytes, writes = storage.writes
+            for _ in 0..<2 {
+                await owner.recover()
+                XCTAssertEqual(owner.phase, .recoveryRequired); XCTAssertFalse(owner.canContinueUnstartedRoam)
+                XCTAssertEqual(owner.record?.pendingWrite, pending)
+                owner.continueUnstartedRoam()
+                XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
+                XCTAssertEqual(try journal.read(scope: original.scope), original)
+            }
+            let recreated = RoamLiveSessionController(service: service, location: location, journal: journal, now: { self.date })
+            recreated.prepare(); await recreated.recover()
+            XCTAssertEqual(recreated.phase, .recoveryRequired); XCTAssertFalse(recreated.canContinueUnstartedRoam)
+            recreated.continueUnstartedRoam()
+            XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
+            XCTAssertEqual(try journal.read(scope: original.scope)?.pendingWrite, pending)
+            XCTAssertEqual(service.reads, 3); XCTAssertEqual(service.commands, 0); XCTAssertEqual(location.calls, 0)
+        }
+    }
+    func testUnknownPendingCannotBeLaunderedThroughFinishAndAnotherRecovery() async throws {
+        for pending in [RoamLivePending.reveal, .finish] {
+            let (owner, service, location, storage, journal, original) = try fixture(edit: { $0.pendingWrite = pending })
+            let bytes = storage.bytes, writes = storage.writes
+            await owner.recover(); await owner.finish(); await owner.recover()
+            XCTAssertFalse(owner.canContinueUnstartedRoam); XCTAssertEqual(owner.phase, .recoveryRequired)
+            owner.continueUnstartedRoam()
+            XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
+            XCTAssertEqual(try journal.read(scope: original.scope), original)
+            XCTAssertEqual(service.commands, 0); XCTAssertEqual(location.calls, 0)
+        }
+    }
+}
+@MainActor extension RoamLiveNearbyReadRetryTests {
+    func testReadErrorsStaySourceOwnedAndEachSuccessClearsOnlyItsOwnFailure() async throws {
+        let (owner, service, location, storage, _) = try fixture()
+        service.failPlacesRead = true; service.failRegisteredRead = true
+        await owner.start(purposeAccepted: true)
+        XCTAssertNil(owner.error); XCTAssertNotNil(owner.placesReadError); XCTAssertNotNil(owner.registeredShopsReadError)
+        let calls = location.calls, bytes = storage.bytes
+        service.failPlacesRead = false; await owner.retryNearbyRead()
+        XCTAssertNil(owner.error); XCTAssertNil(owner.placesReadError); XCTAssertNotNil(owner.registeredShopsReadError)
+        XCTAssertTrue(owner.nearbyReadFailed)
+        service.failRegisteredRead = false; await owner.retryNearbyRead()
+        XCTAssertNil(owner.error); XCTAssertNil(owner.placesReadError); XCTAssertNil(owner.registeredShopsReadError)
+        XCTAssertFalse(owner.nearbyReadFailed); XCTAssertEqual(location.calls, calls); XCTAssertEqual(storage.bytes, bytes)
+    }
+    func testSuccessfulReadRetryNeverClearsUnrelatedLocationOperationError() async throws {
+        let (owner, service, location, storage, _) = try fixture()
+        let row = try service.decode(RoamPlace.self, #"{"id":6,"type":1,"lat":31.2,"lng":121.4}"#)
+        service.rows = [row]; service.failRegisteredRead = true; await owner.start(purposeAccepted: true)
+        location.value = try .init(coordinate: XCTUnwrap(RoamCoordinate(latitude: 31.2, longitude: 121.4)), accuracyMeters: 100, measuredAt: date, datum: .wgs84)
+        await owner.discover(row)
+        XCTAssertEqual(owner.error as? RoamLiveFailure, .locationQuality)
+        let calls = location.calls, bytes = storage.bytes
+        service.failRegisteredRead = false; await owner.retryNearbyRead()
+        XCTAssertFalse(owner.nearbyReadFailed); XCTAssertEqual(owner.error as? RoamLiveFailure, .locationQuality)
+        XCTAssertEqual(location.calls, calls); XCTAssertEqual(storage.bytes, bytes)
+    }
+    func testStaleReadCannotOverwritePriorGlobalErrorOrStartSecondRead() async throws {
+        let (owner, service, location, storage, scope) = try fixture()
+        let row = try service.decode(RoamPlace.self, #"{"id":6,"type":1,"lat":31.2,"lng":121.4}"#)
+        service.rows = [row]; service.failRegisteredRead = true; await owner.start(purposeAccepted: true)
+        location.value = try .init(coordinate: XCTUnwrap(RoamCoordinate(latitude: 31.2, longitude: 121.4)), accuracyMeters: 100, measuredAt: date, datum: .wgs84)
+        await owner.discover(row); XCTAssertEqual(owner.error as? RoamLiveFailure, .locationQuality)
+        let calls = location.calls, reads = service.registeredReads, bytes = storage.bytes
+        service.onPlacesRead = { service.identity = .init(scope: scope, epoch: 2) }
+        await owner.retryNearbyRead()
+        XCTAssertEqual(owner.error as? RoamLiveFailure, .locationQuality)
+        XCTAssertEqual(service.registeredReads, reads); XCTAssertEqual(location.calls, calls); XCTAssertEqual(storage.bytes, bytes)
+        XCTAssertFalse(owner.canRetryNearbyRead)
+    }
+    func testFinishUnknownErrorIsNeitherClearedNorOverwrittenByReadRetry() async throws {
+        let (owner, service, location, storage, _) = try fixture()
+        service.failRegisteredRead = true; await owner.start(purposeAccepted: true)
+        service.failFinish = true; await owner.finish()
+        XCTAssertEqual(owner.phase, .recoveryRequired); XCTAssertEqual(owner.record?.pendingWrite, .finish)
+        XCTAssertEqual(owner.error as? APIError, .httpStatus(503))
+        let calls = location.calls, reads = service.placesReads, bytes = storage.bytes
+        await owner.retryNearbyRead()
+        XCTAssertEqual(owner.error as? APIError, .httpStatus(503)); XCTAssertEqual(owner.record?.pendingWrite, .finish)
+        XCTAssertEqual(service.placesReads, reads); XCTAssertEqual(location.calls, calls); XCTAssertEqual(storage.bytes, bytes)
+    }
+}
+
+@MainActor extension RoamUnstartedContinuationTests {
+    func testUnknownPendingWithoutFinishIntentCannotBecomeAuthorityViaFinishOrRecreation() async throws {
+        for pending in [RoamLivePending.reveal, .finish] {
+            let (owner, service, location, storage, journal, original) = try fixture(edit: {
+                $0.finishRequested = false; $0.pendingWrite = pending
+            })
+            let bytes = storage.bytes, writes = storage.writes
+            await owner.recover(); await owner.finish(); await owner.recover()
+            XCTAssertEqual(owner.phase, .recoveryRequired); XCTAssertFalse(owner.canContinueUnstartedRoam)
+            XCTAssertEqual(owner.record?.pendingWrite, pending); XCTAssertEqual(owner.record?.finishRequested, false)
+            owner.continueUnstartedRoam()
+            XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
+            XCTAssertEqual(try journal.read(scope: original.scope), original)
+            let recreated = RoamLiveSessionController(service: service, location: location, journal: journal, now: { self.date })
+            recreated.prepare(); await recreated.recover(); await recreated.finish(); await recreated.recover()
+            XCTAssertEqual(recreated.phase, .recoveryRequired); XCTAssertFalse(recreated.canContinueUnstartedRoam)
+            recreated.continueUnstartedRoam()
+            XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
+            XCTAssertEqual(try journal.read(scope: original.scope), original)
+            XCTAssertEqual(service.reads, 4); XCTAssertEqual(service.commands, 0); XCTAssertEqual(location.calls, 0)
+        }
     }
 }

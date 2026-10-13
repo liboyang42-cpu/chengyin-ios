@@ -1,0 +1,17 @@
+{
+  "task": 70,
+  "kind": "Minimal root-authorized repair overlay for68/69",
+  "base": "a1c0816dff0fc625b9bbcd1320756537f1db3285",
+  "repairs": [
+    "68 preserves original unknown pending marker durably before any NOT_FOUND cleanup",
+    "69 per-source read errors clear only on matching current success; shared operation error untouched"
+  ],
+  "original_sealed_packets": "Unchanged; apply70 after69",
+  "new_EN_ZH_keys": [
+    "roam.liveRead.placesFailed",
+    "roam.liveRead.shopsFailed"
+  ],
+  "PBX": "Existing Swift/test paths reused",
+  "native": "NOT_RUN",
+  "production": "Original approval/transport defaults remain unchanged; no actual journal or API operation"
+}

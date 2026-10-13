@@ -38,6 +38,7 @@ import SwiftUI
                         Text(verbatim: String(reader.listReads)).accessibilityIdentifier("profile.orderFilter.fixture.listReads")
                         Text(verbatim: String(reader.detailReads)).accessibilityIdentifier("profile.orderFilter.fixture.detailReads")
                         Button("Revoke") { reader.isConfigured = false }.accessibilityIdentifier("profile.orderFilter.fixture.revoke")
+                            .accessibilityValue(reader.isConfigured ? "configured" : "revoked")
                         Button("Switch account") { reader.identity = .init(accountID: 7002, epoch: 2) }.accessibilityIdentifier("profile.orderFilter.fixture.switch")
                     }
                 }.font(.caption)

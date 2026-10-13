@@ -1,0 +1,14 @@
+{
+  "task": 68,
+  "feature": "roam-unstarted-continuation",
+  "source": "P005 fixed95 continueUnstartedRoam JS1835\u20131841/WXML954",
+  "normal_host": "RoamLiveSessionView current NOT_FOUND preparation action",
+  "authority": "Same owner/epoch/generation and full pending-free preimage; one-use local proof, byte-exact journal CAS under existing synchronous MainActor contract",
+  "production": "Original live approval required to obtain actual fact; defaults unchanged, local click never starts GPS or requests",
+  "new_EN_ZH_keys": [
+    "roam.unstarted.continue",
+    "roam.unstarted.hint"
+  ],
+  "PBX": "Existing Swift file/test references reused",
+  "native": "NOT_RUN"
+}

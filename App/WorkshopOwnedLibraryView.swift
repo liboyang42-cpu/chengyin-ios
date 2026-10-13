@@ -95,7 +95,13 @@ private struct WorkshopOwnedUnavailableView: View {
                     .accessibilityIdentifier("workshopOwned.refresh")
             }
         }
-        .navigationDestination(item: $navigation.selection) { selection in WorkshopOwnedDetailView(browser: browser, claimId: selection.id, navigation: navigation).id(selection.id) }
+        .navigationDestination(item: navigation.selectionBinding) { selection in
+            if navigation.selection?.routeID == selection.routeID {
+                WorkshopOwnedDetailView(browser: browser, claimId: selection.id, navigation: navigation,
+                    routeID: selection.routeID, visitID: navigation.detailVisitID, appearance: navigation.detailAppearance)
+                    .id(navigation.detailVisitID)
+            }
+        }
     }
 }
 @MainActor struct WorkshopOwnedDetailView: View {
@@ -103,14 +109,23 @@ private struct WorkshopOwnedUnavailableView: View {
     let navigation: WorkshopOwnedNavigationState
     let browser: WorkshopOwnedBrowser
     let claimId: String
-    init(browser: WorkshopOwnedBrowser, claimId: String, navigation: WorkshopOwnedNavigationState) {
+    let routeID: UUID
+    let visitID: UUID
+    @State private var mount: WorkshopOwnedMountedAppearance
+    init(browser: WorkshopOwnedBrowser, claimId: String, navigation: WorkshopOwnedNavigationState,
+         routeID: UUID, visitID: UUID, appearance: WorkshopOwnedViewAppearance) {
         self.browser = browser; self.claimId = claimId; self.navigation = navigation
+        self.routeID = routeID; self.visitID = visitID
+        _mount = State(initialValue: WorkshopOwnedMountedAppearance(appearance: appearance))
     }
     var body: some View {
         @Bindable var navigation = navigation
-        let displayed = navigation.detailAppearance
+        // A redraw captures the same cycle; only real hide/appear can adopt the next box.
+        let callbacks = mount.callbacks()
+        let displayed = mount.cycle.appearance
         let presentation = displayed.permit
         Form {
+          if navigation.isCurrentDetailVisit(routeID: routeID, visitID: visitID) {
             WorkshopOwnedScopeSection()
             if browser.detailLoading {
                 ProgressView { workshopText("loading") }.accessibilityIdentifier("workshopOwned.detailLoading")
@@ -141,19 +156,32 @@ private struct WorkshopOwnedUnavailableView: View {
                 }
             }
         }
+        }
         .modifier(WorkshopOwnedNavigationTitle(key: "detail"))
-        // A permit box is not a view identity: retiring it must not remount the detail.
-        .onAppear { routeVisibility.appear(); navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId) }
-        .onDisappear { routeVisibility.disappear(); navigation.detailViewDisappeared(displayed) }
+        // Only a real navigation visit changes identity; manual permit retirement does not.
+        .onAppear {
+            guard navigation.isCurrentDetailVisit(routeID: routeID, visitID: visitID) else { return }
+            guard let appearing = callbacks.appear(current: navigation.detailAppearance) else { return }
+            routeVisibility.appear(); navigation.scheduleDetail(navigation.detailViewAppeared(appearing.appearance, claimId: claimId), claimId: claimId)
+        }
+        .onDisappear {
+            guard let departing = callbacks.disappear() else { return }
+            routeVisibility.disappear()
+            navigation.detailViewDisappeared(departing.appearance)
+        }
         .onChange(of: navigation.selection?.id == claimId && !navigation.showsPackage) { wasEligible, isEligible in
             routeVisibility.returned(wasEligible: wasEligible, isEligible: isEligible) {
-                guard navigation.selection?.id == claimId && !navigation.showsPackage, displayed.permit == nil else { return }
+                guard navigation.isCurrentDetailVisit(routeID: routeID, visitID: visitID),
+                      navigation.selection?.id == claimId && !navigation.showsPackage, displayed.permit == nil else { return }
                 navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId)
             }
         }
         .refreshable { [permit = presentation] in if let action = navigation.offerDetail(permit, claimId: claimId) { await action() } }
-        .navigationDestination(isPresented: $navigation.showsPackage) {
-            if let packageBrowser = browser.packageBrowser { WorkshopOwnedPackageView(browser: packageBrowser, claimId: claimId, navigation: navigation) }
+        .navigationDestination(item: navigation.packageBinding(detailRouteID: routeID, visitID: visitID)) { route in
+            if navigation.isCurrentPackageVisit(route), let packageBrowser = browser.packageBrowser {
+                WorkshopOwnedPackageView(browser: packageBrowser, claimId: route.claimId, navigation: navigation,
+                    route: route, appearance: navigation.packageAppearance).id(route.id)
+            }
         }
     }
 }

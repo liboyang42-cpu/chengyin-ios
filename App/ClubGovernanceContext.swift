@@ -10,6 +10,7 @@ import SwiftUI
     var opsTimeFactory: ((Int) -> ClubOpsTimeCoordinator?)? = nil
     var topicDestination: ((Int) -> AnyView)? = nil
     var storyTemplates = ClubStoryTemplateContext()
+    var terminalSessions = ClubTerminalSessionContext()
     var ownerFunds = ClubOwnerFundsContext()
     var customerTopics: ClubCustomerTopicContext { .init(viewerRevision: viewerRevision, destination: topicDestination) }
 }

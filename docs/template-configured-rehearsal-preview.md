@@ -1,0 +1,11 @@
+# Normal current-configuration rehearsal preview
+
+P036 `openPreview` and `tryCurrentGame` pass the current unsaved advanced configuration to the local preview builder. The native normal preview summary previously displayed `templateAuthor.noGameplay` for coin, D6, reaction, countdown and stopwatch even though their complete local rehearsal pages were reachable from their configuration pages.
+
+This bridge exposes those five existing pages from the normal preview summary. It does not alter the games, switch the selected game, fill samples, persist configuration, submit evidence, or award anything. Mini additions, D20, root variants, preference and creator-family summary routes remain in their existing branches. Unsupported/device-dependent games retain the existing notice. The local pages keep their existing deterministic coin/D6 choices and timer/reaction lifecycle.
+
+One sheet-level owner lives outside NavigationStack content. It captures the current draft, full source snapshot, owner/session/identity, metadata and media generations. Publication, hidden visibility and background permanently retire that sheet snapshot. Closing and reopening creates a fresh owner; neither a delayed foreground event nor an old row callback can revive it. Each push has a fresh destination ID, and a pop binding accepts only removal of its exact current destination. Old destinations cannot read a replacement route. Lazy row buttons observe the stable owner and never own a sheet or StateObject, so their action generations update after Back.
+
+The optional environment bridge preserves direct immutable summary construction without requiring an environment object. The normal host wraps its unchanged `TemplateAuthoringPreviewView(draft: model.draft)` expression in the new stable sheet owner. All original controller/Core bytes, old native assertions, existing CI and Workshop diagnostics are unchanged.
+
+Validation: targeted source contracts, six exact Mini reference scenarios, Swift grammar, registration and positive/reverse tree checks are recorded in the packet. Sixteen App native methods, including two UIHostingController navigation-lifetime tests, are authored but NOT_RUN. Grammar and source checks are not an Xcode compilation or runtime pass.

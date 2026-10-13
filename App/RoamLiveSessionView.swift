@@ -35,6 +35,13 @@ import SwiftUI
                 }
             } else {
                 status
+                if owner.canContinueUnstartedRoam {
+                    Section {
+                        Button("roam.unstarted.continue", systemImage: "arrow.uturn.backward") { owner.continueUnstartedRoam() }
+                            .accessibilityIdentifier("roam.unstarted.continue")
+                        Text("roam.unstarted.hint").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
                 if owner.phase == .finished, let saved = owner.completedHistory, model.finishedHistory.identity != nil {
                     Section("roam.finishedHistory.title") {
                         Text("roam.finishedHistory.hint").font(.caption).foregroundStyle(.secondary)
@@ -163,7 +170,25 @@ import SwiftUI
     }
     @ViewBuilder private var nearby: some View {
         Section("roam.live.nearby") {
-            if owner.places.isEmpty && owner.registeredShops.isEmpty { Text("roam.live.noPlaces").foregroundStyle(.secondary) }
+            if owner.nearbyReadFailed {
+                if let error = owner.placesReadError {
+                    Label("roam.liveRead.placesFailed", systemImage: "exclamationmark.triangle")
+                        .accessibilityIdentifier("roam.liveRead.placesFailed")
+                    Text(errorText(error)).font(.caption).foregroundStyle(.secondary)
+                }
+                if let error = owner.registeredShopsReadError {
+                    Label("roam.liveRead.shopsFailed", systemImage: "exclamationmark.triangle")
+                        .accessibilityIdentifier("roam.liveRead.shopsFailed")
+                    Text(errorText(error)).font(.caption).foregroundStyle(.secondary)
+                }
+                Text("roam.liveRead.failed").font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("roam.liveRead.failed")
+                Button("action.retry") { Task { await owner.retryNearbyRead() } }
+                    .disabled(!owner.canRetryNearbyRead).accessibilityIdentifier("roam.liveRead.retry")
+                Text("roam.liveRead.hint").font(.caption).foregroundStyle(.secondary)
+            } else if owner.places.isEmpty && owner.registeredShops.isEmpty {
+                Text("roam.live.noPlaces").foregroundStyle(.secondary)
+            }
             ForEach(owner.registeredShops) { shop in
                 VStack(alignment: .leading, spacing: 8) {
                     Text(shop.addressName.isEmpty ? "#\(shop.id)" : shop.addressName).font(.headline)

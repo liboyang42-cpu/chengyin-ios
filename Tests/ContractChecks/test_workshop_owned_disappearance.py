@@ -12,10 +12,13 @@ class WorkshopOwnedDisappearanceChecks(unittest.TestCase):
  def test_real_views_capture_prebuilt_appearance_for_first_frame_and_late_closure(self):
   for file,scopes in [('WorkshopOwnedLibraryView.swift',['list','detail']),('WorkshopOwnedPackageView.swift',['package'])]:
    source=(ROOT/'App'/file).read_text()
-   self.assertIn('let displayed = navigation.',source)
+   if file == 'WorkshopOwnedLibraryView.swift':self.assertIn('let displayed = navigation.listAppearance',source)
+   self.assertIn('@State private var mount: WorkshopOwnedMountedAppearance',source)
+   self.assertIn('_mount = State(initialValue: WorkshopOwnedMountedAppearance(appearance: appearance))',source)
    self.assertIn('let presentation = displayed.permit',source)
-   for scope in scopes:self.assertIn('navigation.'+scope+'ViewDisappeared(displayed)',source)
-   self.assertIn('navigation.'+scopes[0]+'ViewAppeared(displayed',source)
+   for scope in scopes:self.assertIn('navigation.'+scope+'ViewDisappeared(' + ('displayed' if scope == 'list' else 'departing.appearance') + ')',source)
+   if file == 'WorkshopOwnedLibraryView.swift':self.assertIn('navigation.listViewAppeared(displayed',source)
+   else:self.assertIn('navigation.packageViewAppeared(appearing.appearance',source)
  def test_real_reader_and_hosted_journey_assertions_remain(self):
   source=(ROOT/'Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift').read_text()
   for marker in ['testHostedListDetailPackageBackAndReopenIssueFreshPermits','testOldListDisappearance','testOldDetailDisappearance','testOldPackageDisappearance','testVisibleAppearanceClosesBeforeFirstRedraw','testBackBindingRetiresQueuedDetailAndPackage','testCurrentDisappearanceSuppressesHeld401','file: StaticString = #filePath','0..<100','20_000_000']:

@@ -34,9 +34,9 @@ class WorkshopOwnedPackageContracts(unittest.TestCase):
   self.assertIn('packageBrowser?.invalidate()',parent);self.assertIn('packageBrowser?.close()',parent)
  def test_vertical_detail_navigation_and_long_accessible_metadata(self):
   s=self.source('App/WorkshopOwnedPackageView.swift');parent=self.source('App/WorkshopOwnedLibraryView.swift')
-  self.assertIn('.navigationDestination(isPresented: $navigation.showsPackage)',parent)
-  self.assertIn('navigation.detailViewDisappeared(displayed)',parent)
-  for value in ['.onAppear {', 'navigation.packageViewDisappeared(displayed)', 'frozenRights','limitNotice','manifestUnavailable','editorUnavailable','Text(verbatim:']:
+  self.assertIn('.navigationDestination(item: navigation.packageBinding(detailRouteID: routeID, visitID: visitID))',parent)
+  self.assertIn('navigation.detailViewDisappeared(departing.appearance)',parent)
+  for value in ['.onAppear {', 'navigation.packageViewDisappeared(departing.appearance)', 'frozenRights','limitNotice','manifestUnavailable','editorUnavailable','Text(verbatim:']:
    self.assertIn(value,s)
   for value in ['TextEditor','WebView','URLSession','AsyncImage','Link(','.lineLimit(1)','height:']:self.assertNotIn(value,s)
  def test_copy_is_bilingual_and_explicitly_not_runtime_capability(self):

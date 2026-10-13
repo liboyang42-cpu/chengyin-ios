@@ -89,7 +89,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             } label: { Label("club.statsOverview.title", systemImage: "chart.bar") }
                                 .accessibilityIdentifier("club.statsOverview.open")
                         }
-                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates, ownerFunds: governance.ownerFunds)
+                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates, terminalSessions: governance.terminalSessions, ownerFunds: governance.ownerFunds)
                     }
                 }
                 if (club.isOwner || club.viewerIsAdmin),let management {

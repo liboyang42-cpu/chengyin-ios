@@ -883,6 +883,26 @@ final class AppSession: ObservableObject {
             currentSession: { [weak self] in self?.currentPlayRuntimeSession })
         retainedPlaySummaries[key] = model; return model
     }
+    /// P056 reuses an already accepted read configuration. This creates no approval
+    /// and deliberately exposes no PlayDirectorCoordinator/write API to the club UI.
+    private var currentClubTerminalReadLease: ClubTerminalReadLease? {
+        guard let context = currentRuntimeDependencyContext,
+              let factory = runtimeDependencyFactory, let approved = factory.accepted,
+              approved.play.contains(.reads), let issuance = approved.playReadApprovalID,
+              approved.endpoints.paths.contains("api/game/session/view") else { return nil }
+        return .init(context: context, approvalID: issuance, viewerRevision: compositionViewerRevision,
+                     paths: approved.endpoints.paths)
+    }
+    private func makeClubTerminalProjectionProvider() -> (any ClubTerminalProjectionReading)? {
+        guard let lease = currentClubTerminalReadLease, let factory = runtimeDependencyFactory else { return nil }
+        return ClubTerminalProjectionProvider(service: factory.playService(), lease: lease,
+            current: { [weak self] in self?.currentClubTerminalReadLease })
+    }
+    private var clubTerminalSessionContext: ClubTerminalSessionContext {
+        guard let lease = currentClubTerminalReadLease else { return .init(viewerRevision: compositionViewerRevision) }
+        return .init(viewerRevision: compositionViewerRevision, approvalID: lease.approvalID,
+                     makeProvider: { [weak self] in self?.makeClubTerminalProjectionProvider() })
+    }
     func playDirector(activityID: Int) -> PlayDirectorCoordinator? {
         guard activityID > 0, let api = dormantPlayRuntimeService() else { return nil }
         let key = playRuntimeKey(.activity(activityID), suffix: "director")
@@ -2332,7 +2352,7 @@ final class AppSession: ObservableObject {
     var clubGovernanceContext: ClubGovernanceContext { .init(viewerRevision: compositionViewerRevision, access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator, enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader, actions: socialActionCoordinator), ownerRefund: clubOwnerRefundCoordinator, opsTimeFactory: { [weak self] in self?.clubOpsTimeHost?.coordinator(activityID: $0) }, topicDestination: { [weak self] id in
         guard let self else { return AnyView(EmptyView()) }
         return AnyView(SessionTopicDetailView(id: id, session: self))
-    }, storyTemplates: clubStoryTemplateContext(viewerRevision: compositionViewerRevision), ownerFunds: clubOwnerFundsContext()) }
+    }, storyTemplates: clubStoryTemplateContext(viewerRevision: compositionViewerRevision), terminalSessions: clubTerminalSessionContext, ownerFunds: clubOwnerFundsContext()) }
     private var currentClubOperationsSession: ClubOperationsSession? {
         guard let account, let token else { return nil }
         return try? ClubOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "")

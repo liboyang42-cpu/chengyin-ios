@@ -5,6 +5,20 @@ import XCTest
 final class MerchantInsightRecommendationTests: XCTestCase {
     private func value(_ raw: String) throws -> MerchantMarketingValue { try JSONDecoder().decode(MerchantMarketingValue.self, from: Data(raw.utf8)) }
     private func content(_ raw: String) throws -> MerchantContentValue { try JSONDecoder().decode(MerchantContentValue.self, from: Data(raw.utf8)) }
+    func testCooperationCenterRequiresTypedOriginAndDoesNotExpandAIWhitelist() throws {
+        let origin = try XCTUnwrap(MerchantInsightOrigin(merchantID: 9, readerScope: UUID()))
+        XCTAssertEqual(MerchantInsightDestination.cooperationCenter(origin).sourcePath, "/merchant/coop-center")
+        XCTAssertFalse(MerchantInsightDestination.allCases.contains(.cooperationCenter(origin)))
+        for raw in ["cooperationCenter", "coop_center", "/merchant/coop-center"] { XCTAssertNil(MerchantInsightDestination(rawValue: raw)) }
+        XCTAssertNil(MerchantInsightOrigin(merchantID: nil, readerScope: UUID()))
+        XCTAssertNil(MerchantInsightOrigin(merchantID: 9, readerScope: nil))
+    }
+    func testCooperationCenterIdentityIncludesStoreAndReaderSession() throws {
+        let scope = UUID(), origin = try XCTUnwrap(MerchantInsightOrigin(merchantID: 9, readerScope: scope))
+        XCTAssertNotEqual(MerchantInsightDestination.cooperationCenter(origin), .cooperationCenter(try XCTUnwrap(MerchantInsightOrigin(merchantID: 10, readerScope: scope))))
+        XCTAssertNotEqual(MerchantInsightDestination.cooperationCenter(origin), .cooperationCenter(try XCTUnwrap(MerchantInsightOrigin(merchantID: 9, readerScope: UUID()))))
+    }
+
     func testTopicUsesFinalResponseTopicIDAndNeverInternalAIOrDisplayID() throws {
         let row = try value(#"{"topicId":7,"id":99,"name":"Same name","hostName":"Host"}"#)
         let item = MerchantInsightRecommendation(row: row, kind: .topic, siblings: [row])

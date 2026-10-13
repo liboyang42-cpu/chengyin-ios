@@ -41,6 +41,7 @@ struct ClubGovernanceEntryButton: View {
     var opsTimeFactory: ((Int) -> ClubOpsTimeCoordinator?)? = nil
     var customerTopics = ClubCustomerTopicContext()
     var storyTemplates = ClubStoryTemplateContext()
+    var terminalSessions = ClubTerminalSessionContext()
     var ownerFunds = ClubOwnerFundsContext()
     @State private var presented = false
     var body: some View {
@@ -53,6 +54,7 @@ struct ClubGovernanceEntryButton: View {
                     .environment(\.clubOpsTimeFactory, opsTimeFactory)
                     .environment(\.clubCustomerTopics, customerTopics)
                     .environment(\.clubStoryTemplates, storyTemplates)
+                    .environment(\.clubTerminalSessions, terminalSessions)
                     .environment(\.clubOwnerFunds, ownerFunds)
             }
     }
@@ -142,12 +144,15 @@ struct ClubGovernanceReadView: View {
     @Environment(\.clubCustomerTopics) private var customerTopics
     @Environment(\.clubGovernanceFeed) private var feedContext
     @Environment(\.clubStoryTemplates) private var storyTemplates
+    @Environment(\.clubTerminalSessions) private var terminalSessions
     @Environment(\.clubOwnerFunds) private var ownerFunds
     let operation: ClubGovernanceRead
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var terminalPresentation = ClubTerminalSessionPresentation()
     @State private var snapshot: ClubGovernanceSnapshot?
     @State private var snapshotContext: ClubGovernanceReadContext?
     @State private var snapshotGeneration: UInt64 = 0
@@ -250,6 +255,16 @@ struct ClubGovernanceReadView: View {
                 }
             }
         }
+        .background {
+            if let item = terminalPresentation.presented {
+                ClubTerminalSessionOwner(item: item, presentation: terminalPresentation,
+                    access: access, coordinator: coordinator).id(item.id)
+            }
+        }
+        .onAppear { terminalPresentation.bind(terminalSource) }
+        .onChange(of: terminalSource, initial: true) { _, source in terminalPresentation.bind(source) }
+        // A covering child owns dismissal; recycling content rows cannot retire it.
+        .onDisappear { if terminalPresentation.presented == nil { terminalPresentation.leave() } }
         // One owner clears the previous account and starts its replacement read.
         // Separate onChange invalidations can run after a fast forbidden response
         // and erase its error. Context checks still hide old PII synchronously.
@@ -262,6 +277,12 @@ struct ClubGovernanceReadView: View {
         }
         .onDisappear { generation &+= 1 }
         .refreshable { await load() }
+    }
+    private var terminalSource: ClubTerminalSessionPresentation.Source? {
+        guard operation == .topicOverview, !loading, scenePhase == .active,
+              let snapshot, snapshotContext == readContext, identity == access.identity else { return nil }
+        return .init(context: readContext, generation: snapshotGeneration, snapshot: snapshot,
+                     approvalID: terminalSessions.approvalID, viewerRevision: terminalSessions.viewerRevision)
     }
     @MainActor private func loadCustomersNow() {
         customerKeywordDebounce.cancel()
@@ -430,6 +451,12 @@ struct ClubGovernanceReadView: View {
         } else if operation == .recruit {
             ClubTopicMerchantContent(snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration, readGeneration: generation, access: access)
         } else if operation == .topicOverview {
+            let terminalContext = readContext, terminalGeneration = snapshotGeneration
+            ClubTerminalSessionEntry(snapshot: snapshot, context: terminalContext, snapshotGeneration: terminalGeneration,
+                host: terminalSessions, access: access, sourceIsCurrent: {
+                    !loading && self.snapshot == snapshot && snapshotContext == terminalContext && readContext == terminalContext &&
+                    snapshotGeneration == terminalGeneration && identity == access.identity && scenePhase == .active
+                }, presentation: terminalPresentation)
             ClubGovernanceFactRows(value: value, fields: ["name", "title", "auditStatus", "rejectReason", "status", "startDate", "endDate", "playModeText", "storyReady", "gameConfiguredCount"])
             Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }

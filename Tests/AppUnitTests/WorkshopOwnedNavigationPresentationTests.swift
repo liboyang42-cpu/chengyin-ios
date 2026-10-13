@@ -563,3 +563,210 @@ extension WorkshopOwnedNavigationPresentationTests {
         XCTAssertEqual(f.state.unauthorized, 0)
     }
 }
+
+
+extension WorkshopOwnedNavigationPresentationTests {
+    func testSameClaimReopenHasDistinctRouteAndOldSelectionBindingCannotReadOrCloseIt() async throws {
+        let f = try fixture()
+        let initialBinding = f.navigation.selectionBinding
+        let list = try XCTUnwrap(f.navigation.listViewAppeared(f.navigation.listAppearance))
+        await f.browser.load(action: list.offer()!)
+        f.navigation.select(claimId: "synthetic-claim", presentation: list)
+        let first = try XCTUnwrap(f.navigation.selection), firstVisit = f.navigation.detailVisitID
+        let firstBox = f.navigation.detailAppearance, firstBinding = f.navigation.selectionBinding
+        let detail = try XCTUnwrap(f.navigation.detailViewAppeared(firstBox, claimId: first.id))
+        await f.browser.open(claimId: first.id, action: detail.offer()!)
+        XCTAssertEqual(firstBinding.wrappedValue, first)
+        XCTAssertNil(initialBinding.wrappedValue)
+        initialBinding.wrappedValue = nil
+        XCTAssertEqual(f.navigation.selection, first)
+        firstBinding.wrappedValue = nil
+        XCTAssertNil(f.navigation.selection); XCTAssertFalse(detail.isLive)
+        let returnedList = try XCTUnwrap(f.navigation.listViewAppeared(f.navigation.listAppearance))
+        await f.browser.load(action: returnedList.offer()!)
+        f.navigation.select(claimId: first.id, presentation: returnedList)
+        let second = try XCTUnwrap(f.navigation.selection), secondVisit = f.navigation.detailVisitID
+        XCTAssertEqual(first.id, second.id); XCTAssertNotEqual(first.routeID, second.routeID)
+        XCTAssertNotEqual(first, second); XCTAssertNotEqual(firstVisit, secondVisit)
+        XCTAssertFalse(f.navigation.isCurrentDetailVisit(routeID: first.routeID, visitID: firstVisit))
+        XCTAssertNil(firstBinding.wrappedValue)
+        firstBinding.wrappedValue = nil
+        XCTAssertEqual(f.navigation.selection, second)
+        let currentBinding = f.navigation.selectionBinding
+        XCTAssertEqual(currentBinding.wrappedValue, second)
+        let currentBox = f.navigation.detailAppearance
+        let current = try XCTUnwrap(f.navigation.detailViewAppeared(currentBox, claimId: second.id))
+        await f.browser.open(claimId: second.id, action: current.offer()!)
+        f.navigation.detailViewDisappeared(firstBox)
+        XCTAssertTrue(f.navigation.detailPermit === current); XCTAssertTrue(current.isLive)
+        XCTAssertNil(f.navigation.detailViewAppeared(firstBox, claimId: first.id))
+        f.navigation.detailViewDisappeared(currentBox)
+        XCTAssertNil(f.navigation.detailPermit); XCTAssertFalse(current.isLive)
+        XCTAssertEqual(f.navigation.detailVisitID, secondVisit)
+        XCTAssertEqual(f.navigation.selection?.routeID, second.routeID)
+        currentBinding.wrappedValue = nil
+        XCTAssertNil(f.navigation.selection); XCTAssertEqual(f.state.unauthorized, 0)
+    }
+
+    func testPackageReturnCreatesDetailVisitAndOldPackageBindingsCannotReadOrCloseReopen() async throws {
+        let f = try fixture()
+        let list = try XCTUnwrap(f.navigation.listViewAppeared(f.navigation.listAppearance))
+        await f.browser.load(action: list.offer()!)
+        f.navigation.select(claimId: "synthetic-claim", presentation: list)
+        let selection = try XCTUnwrap(f.navigation.selection), firstVisit = f.navigation.detailVisitID
+        let oldDetailBox = f.navigation.detailAppearance
+        let detail = try XCTUnwrap(f.navigation.detailViewAppeared(oldDetailBox, claimId: selection.id))
+        await f.browser.open(claimId: selection.id, action: detail.offer()!)
+        let emptyBinding = f.navigation.packageBinding(detailRouteID: selection.routeID, visitID: firstVisit)
+        f.navigation.openPackage(presentation: detail)
+        let firstRoute = try XCTUnwrap(f.navigation.packageRoute)
+        let firstBinding = f.navigation.packageBinding(detailRouteID: selection.routeID, visitID: firstVisit)
+        XCTAssertEqual(firstBinding.wrappedValue, firstRoute); XCTAssertNil(emptyBinding.wrappedValue)
+        emptyBinding.wrappedValue = nil
+        XCTAssertTrue(f.navigation.showsPackage); XCTAssertEqual(f.navigation.packageRoute, firstRoute)
+        let oldPackageBox = f.navigation.packageAppearance
+        let firstPermit = try XCTUnwrap(f.navigation.packageViewAppeared(oldPackageBox, claimId: selection.id))
+        await f.browser.packageBrowser?.load(claimId: selection.id, action: firstPermit.offer()!)
+        firstBinding.wrappedValue = nil
+        XCTAssertFalse(f.navigation.showsPackage); XCTAssertNil(f.navigation.packageRoute)
+        XCTAssertFalse(firstPermit.isLive)
+        let returnedVisit = f.navigation.detailVisitID
+        XCTAssertNotEqual(returnedVisit, firstVisit)
+        XCTAssertEqual(f.navigation.selection?.routeID, selection.routeID)
+        XCTAssertFalse(f.navigation.isCurrentDetailVisit(routeID: selection.routeID, visitID: firstVisit))
+        let returningDetailBox = f.navigation.detailAppearance
+        let returned = try XCTUnwrap(f.navigation.detailViewAppeared(returningDetailBox, claimId: selection.id))
+        await f.browser.open(claimId: selection.id, action: returned.offer()!)
+        f.navigation.detailViewDisappeared(oldDetailBox)
+        XCTAssertTrue(f.navigation.detailPermit === returned); XCTAssertTrue(returned.isLive)
+        f.navigation.openPackage(presentation: returned)
+        let secondRoute = try XCTUnwrap(f.navigation.packageRoute)
+        XCTAssertNotEqual(firstRoute.id, secondRoute.id)
+        XCTAssertEqual(firstRoute.detailRouteID, secondRoute.detailRouteID)
+        XCTAssertEqual(f.navigation.detailVisitID, returnedVisit)
+        XCTAssertNil(firstBinding.wrappedValue); XCTAssertNil(emptyBinding.wrappedValue)
+        firstBinding.wrappedValue = nil; emptyBinding.wrappedValue = nil
+        XCTAssertTrue(f.navigation.showsPackage); XCTAssertEqual(f.navigation.packageRoute, secondRoute)
+        let currentBinding = f.navigation.packageBinding(detailRouteID: selection.routeID, visitID: returnedVisit)
+        XCTAssertEqual(currentBinding.wrappedValue, secondRoute)
+        let currentBox = f.navigation.packageAppearance
+        let current = try XCTUnwrap(f.navigation.packageViewAppeared(currentBox, claimId: selection.id))
+        await f.browser.packageBrowser?.load(claimId: selection.id, action: current.offer()!)
+        f.navigation.packageViewDisappeared(oldPackageBox)
+        XCTAssertTrue(f.navigation.packagePermit === current); XCTAssertTrue(current.isLive)
+        f.navigation.packageViewDisappeared(currentBox)
+        XCTAssertNil(f.navigation.packagePermit); XCTAssertFalse(current.isLive)
+        XCTAssertEqual(f.navigation.packageRoute, secondRoute)
+        XCTAssertEqual(f.navigation.detailVisitID, returnedVisit)
+        XCTAssertEqual(currentBinding.wrappedValue, secondRoute)
+        currentBinding.wrappedValue = nil
+        XCTAssertFalse(f.navigation.showsPackage); XCTAssertNil(f.navigation.packageRoute)
+        XCTAssertEqual(f.state.unauthorized, 0)
+    }
+}
+
+
+extension WorkshopOwnedNavigationPresentationTests {
+    func testMountedCycleRejectsOldDisappearanceAndOnlyRealHideAllowsFreshBox() async throws {
+        let f = try fixture()
+        let list = try XCTUnwrap(f.navigation.listViewAppeared(f.navigation.listAppearance))
+        await f.browser.load(action: list.offer()!)
+        f.navigation.select(claimId: "synthetic-claim", presentation: list)
+        let firstBox = f.navigation.detailAppearance
+        let mount = WorkshopOwnedMountedAppearance(appearance: firstBox)
+        let firstCycle = mount.appear(current: firstBox)
+        let first = try XCTUnwrap(f.navigation.detailViewAppeared(firstCycle.appearance, claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: first.offer()!)
+        let visit = f.navigation.detailVisitID
+        f.navigation.detailViewDisappeared(firstBox)
+        let freshBox = f.navigation.detailAppearance
+        XCTAssertFalse(first.isLive); XCTAssertFalse(freshBox === firstBox)
+        // Still-visible manual retirement plus a repeated appearance cannot adopt the fresh box.
+        let repeated = mount.appear(current: freshBox)
+        XCTAssertEqual(repeated.id, firstCycle.id); XCTAssertTrue(repeated.appearance === firstBox)
+        XCTAssertNil(f.navigation.detailViewAppeared(repeated.appearance, claimId: "synthetic-claim"))
+        XCTAssertNil(f.navigation.detailPermit); XCTAssertEqual(f.navigation.detailVisitID, visit)
+        XCTAssertTrue(mount.disappear(firstCycle))
+        let returned = mount.appear(current: freshBox)
+        XCTAssertNotEqual(returned.id, firstCycle.id); XCTAssertTrue(returned.appearance === freshBox)
+        let current = try XCTUnwrap(f.navigation.detailViewAppeared(returned.appearance, claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: current.offer()!)
+        XCTAssertFalse(mount.disappear(firstCycle))
+        f.navigation.detailViewDisappeared(firstCycle.appearance)
+        XCTAssertTrue(f.navigation.detailPermit === current); XCTAssertTrue(current.isLive)
+        XCTAssertEqual(mount.appear(current: freshBox).id, returned.id)
+        XCTAssertEqual(f.navigation.detailVisitID, visit)
+        XCTAssertTrue(mount.disappear(returned))
+        f.navigation.detailViewDisappeared(returned.appearance)
+        XCTAssertFalse(current.isLive); XCTAssertNil(f.navigation.detailPermit)
+        XCTAssertFalse(mount.disappear(returned)); XCTAssertEqual(f.state.unauthorized, 0)
+    }
+
+    func testHostedRetainedTabReturnsToSameDetailAndPackageVisitWithFreshPermits() async throws {
+        let f = try fixture()
+        let host = UIHostingController(rootView: NavigationStack { WorkshopOwnedLibraryView(browser: f.browser, navigation: f.navigation) })
+        let tabs = UITabBarController(), other = UIViewController()
+        tabs.viewControllers = [host, other]; tabs.selectedIndex = 0
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
+        window.rootViewController = tabs; window.makeKeyAndVisible()
+        defer { sceneWindow.retire() }
+        try await wait("tab list ready") { f.browser.phase == .ready && f.navigation.listPermit != nil }
+        f.navigation.select(claimId: "synthetic-claim", presentation: f.navigation.listPermit)
+        try await wait("tab detail ready") { f.browser.detail != nil && f.navigation.detailPermit != nil }
+        let detail = try XCTUnwrap(f.navigation.detailPermit), detailVisit = f.navigation.detailVisitID
+        let selection = try XCTUnwrap(f.navigation.selection)
+        tabs.selectedIndex = 1
+        try await wait("actual tab departure retires detail") { f.navigation.detailPermit == nil }
+        XCTAssertFalse(detail.isLive); XCTAssertEqual(f.navigation.detailVisitID, detailVisit)
+        XCTAssertEqual(f.navigation.selection, selection)
+        tabs.selectedIndex = 0
+        try await wait("same retained tab detail returns with fresh permit") { f.browser.detail != nil && f.navigation.detailPermit != nil }
+        XCTAssertTrue(tabs.viewControllers?.first === host)
+        XCTAssertEqual(f.navigation.detailVisitID, detailVisit); XCTAssertEqual(f.navigation.selection, selection)
+        XCTAssertFalse(f.navigation.detailPermit === detail)
+        f.navigation.openPackage(presentation: f.navigation.detailPermit)
+        try await wait("tab package ready") { f.browser.packageBrowser?.phase == .unavailable && f.navigation.packagePermit != nil }
+        let package = try XCTUnwrap(f.navigation.packagePermit), packageRoute = try XCTUnwrap(f.navigation.packageRoute)
+        tabs.selectedIndex = 1
+        try await wait("actual tab departure retires package") { f.navigation.packagePermit == nil }
+        XCTAssertFalse(package.isLive); XCTAssertEqual(f.navigation.packageRoute, packageRoute)
+        tabs.selectedIndex = 0
+        try await wait("same retained tab package returns with fresh permit") { f.browser.packageBrowser?.phase == .unavailable && f.navigation.packagePermit != nil }
+        XCTAssertTrue(tabs.viewControllers?.first === host)
+        XCTAssertEqual(f.navigation.packageRoute, packageRoute)
+        XCTAssertFalse(f.navigation.packagePermit === package)
+        XCTAssertEqual(f.state.unauthorized, 0)
+    }
+}
+
+
+extension WorkshopOwnedNavigationPresentationTests {
+    func testSameRenderedCallbacksRetireReturnedFirstFrameAndOldPairCannotAdoptIt() async throws {
+        let f = try fixture()
+        let list = try XCTUnwrap(f.navigation.listViewAppeared(f.navigation.listAppearance))
+        await f.browser.load(action: list.offer()!)
+        f.navigation.select(claimId: "synthetic-claim", presentation: list)
+        let mount = WorkshopOwnedMountedAppearance(appearance: f.navigation.detailAppearance)
+        let callbacks = mount.callbacks(), oldPair = mount.callbacks()
+        let first = try XCTUnwrap(callbacks.appear(current: f.navigation.detailAppearance))
+        let permit = try XCTUnwrap(f.navigation.detailViewAppeared(first.appearance, claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: permit.offer()!)
+        let firstDeparture = try XCTUnwrap(callbacks.disappear())
+        f.navigation.detailViewDisappeared(firstDeparture.appearance)
+        XCTAssertFalse(permit.isLive); XCTAssertNil(f.navigation.detailPermit)
+        // Reuse exactly the same closures, without evaluating a new body/callback pair.
+        let returned = try XCTUnwrap(callbacks.appear(current: f.navigation.detailAppearance))
+        XCTAssertNotEqual(returned.id, first.id)
+        let current = try XCTUnwrap(f.navigation.detailViewAppeared(returned.appearance, claimId: "synthetic-claim"))
+        XCTAssertTrue(current.isLive)
+        XCTAssertNil(oldPair.appear(current: f.navigation.detailAppearance))
+        XCTAssertNil(oldPair.disappear())
+        XCTAssertTrue(f.navigation.detailPermit === current); XCTAssertTrue(current.isLive)
+        let immediateDeparture = try XCTUnwrap(callbacks.disappear())
+        XCTAssertEqual(immediateDeparture.id, returned.id)
+        XCTAssertTrue(immediateDeparture.appearance === returned.appearance)
+        f.navigation.detailViewDisappeared(immediateDeparture.appearance)
+        XCTAssertFalse(current.isLive); XCTAssertNil(f.navigation.detailPermit)
+        XCTAssertNil(callbacks.disappear()); XCTAssertEqual(f.state.unauthorized, 0)
+    }
+}

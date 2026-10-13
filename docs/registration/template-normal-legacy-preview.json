@@ -1,0 +1,16 @@
+{
+  "base_tree": "0c7776a9970e2eebd1857870701f389df193a658",
+  "new_build_members": [],
+  "changed_registered_sources": [
+    "App/TemplateAuthoringView.swift",
+    "App/TemplateConfiguredRehearsalPreview.swift",
+    "Tests/AppUnitTests/TemplateConfiguredRehearsalPreviewTests.swift"
+  ],
+  "reused_sources": [
+    "Core/TemplateLegacyQuestionRehearsal.swift",
+    "App/TemplateLegacyQuestionRehearsalView.swift"
+  ],
+  "existing_localization_keys": ["templateLegacyQuiz.title"],
+  "dependencies": ["66 normal preview owner plus read-side lease repair", "Existing legacy-question Core/App already in the base"],
+  "integration": "Three summary-host lines, one legacy route in the existing immutable preview owner, and an observed row button. No lazy StateObject, PBX, catalog, new request or persistence."
+}

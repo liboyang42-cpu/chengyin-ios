@@ -77,7 +77,12 @@ struct ProfileOrderDetailView: View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", load: { try await reader.profileOrder(id: id) }) { order in
             List {
                 Section("profile.orders.summary") {
-                    ProfileOptionalRow(key: "profile.orders.name", value: order.title)
+                    if let title = order.title, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        ProfileOptionalRow(key: "profile.orders.name", value: title)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityValue(Text(verbatim: title))
+                            .accessibilityIdentifier("profile.order.detail.name")
+                    }
                     ProfileOptionalRow(key: "profile.orders.number", value: order.registrationNo)
                     ProfileOrderNumberCopySection(order: order, requestedID: id, reader: reader)
                     LabeledContent("profile.orders.state") { ProfileOrderStatus(order: order) }

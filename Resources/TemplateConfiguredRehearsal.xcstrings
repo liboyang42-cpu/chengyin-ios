@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateConfiguredRehearsal.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try this configuration locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地试玩当前配置"
+          }
+        }
+      }
+    },
+    "templateConfiguredRehearsal.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This preview is no longer current. Close it and open a fresh preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次预览已失效，请关闭后重新打开。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

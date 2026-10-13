@@ -9,6 +9,11 @@ import Foundation
     public private(set) var completedHistory: RoamFinishedHistoryReference?
     public private(set) var places: [RoamPlace] = []
     public private(set) var registeredShops: [RoamRouteNode] = []
+    public private(set) var placesReadError: Error?
+    public private(set) var registeredShopsReadError: Error?
+    public var placesReadFailed: Bool { placesReadError != nil }
+    public var registeredShopsReadFailed: Bool { registeredShopsReadError != nil }
+    public var nearbyReadFailed: Bool { placesReadFailed || registeredShopsReadFailed }
     public private(set) var track: [RoamHistoryPoint] = []
     public private(set) var lastFix: RoamDeviceFix?
     public private(set) var error: Error?
@@ -30,6 +35,12 @@ import Foundation
     private var boundIdentity: RoamExperienceIdentity?
     private var generation = 0
     private var operation: UUID?
+    private struct UnstartedContinuation {
+        let identity: RoamExperienceIdentity
+        let generation: Int
+        let snapshot: RoamUnstartedJournalSnapshot
+    }
+    private var unstartedContinuation: UnstartedContinuation?
     private var previousFix: RoamDeviceFix?
     private var origin: RoamCoordinate?
     private var grid: Set<String> = []
@@ -94,6 +105,7 @@ import Foundation
         } catch { fail(error, token: token, locationFailure: true) }
     }
     public func pause() {
+        unstartedContinuation = nil
         generation += 1; operation = nil; busy = false; location?.stop()
         previousFix = nil; lastFix = nil; presenceEnabled = false
         if phase != .finished && record != nil { phase = record?.pendingWrite == nil ? .paused : .recoveryRequired }
@@ -113,10 +125,35 @@ import Foundation
         defer { end(token) }
         do {
             guard let record else { throw RoamLiveFailure.recoveryRequired }
+            // Capture the complete bytes before the asynchronous fact read. A concurrent journal
+            // change must not be overwritten by either proof creation or the eventual user action.
+            let unstartedSnapshot: RoamUnstartedJournalSnapshot?
+            if RoamLiveJournal.canContinueUnstarted(record) { unstartedSnapshot = try journal.captureUnstarted(record) }
+            else { unstartedSnapshot = nil }
+            try check(token) // Storage callbacks cannot switch the owner before the fact request.
             phase = .recovering; error = nil; changed()
             let fact = try await service!.fact(key: record.clientSessionKey); try check(token)
             try validate(fact, record: record)
             if fact.state == .finished { try archive(fact); return }
+            // A missing server row is not permission to erase an uncertain local write.
+            // Keep its durable marker: a second lookup or a new controller must see it too.
+            if fact.state == .notFound, record.sessionID == nil,
+               record.pendingWrite != nil, record.pendingTiles.isEmpty, record.allTiles.isEmpty,
+               record.unresolvedActions.isEmpty, record.confirmedPOIIDs.isEmpty,
+               record.confirmedShops.isEmpty, record.distanceMeters == 0 {
+                throw RoamLiveFailure.recoveryRequired
+            }
+            if fact.state == .notFound, let snapshot = unstartedSnapshot {
+                guard fact.sessionID == nil,
+                      fact.clientSessionKey == nil || fact.clientSessionKey == record.clientSessionKey,
+                      try journal.matchesUnstarted(snapshot), let identity = boundIdentity else {
+                    throw RoamLiveFailure.journalUnavailable
+                }
+                try check(token)
+                phase = .paused
+                unstartedContinuation = .init(identity: identity, generation: generation, snapshot: snapshot)
+                return // Pending-free NOT_FOUND preparation does not rewrite the journal.
+            }
             var draft = record
             if fact.state == .active { draft.sessionID = fact.sessionID }
             else if record.sessionID != nil { throw RoamLiveFailure.recoveryRequired }
@@ -124,6 +161,36 @@ import Foundation
             // An ACTIVE read is proof that a prior finish did not settle at read time, never automatic retry authority.
             draft.pendingWrite = nil; try persist(draft); phase = .paused
         } catch { fail(error, token: token) }
+    }
+    /// A NOT_FOUND reply is authority only for this exact unchanged, pending-free local intent.
+    public var canContinueUnstartedRoam: Bool {
+        guard let proof = unstartedContinuation else { return false }
+        return acceptsUnstartedContinuation(proof)
+    }
+    private func acceptsUnstartedContinuation(_ proof: UnstartedContinuation) -> Bool {
+        guard !busy, foreground, phase == .paused, isAvailable,
+              proof.generation == generation, let current = service?.identity,
+              current == proof.identity, boundIdentity == proof.identity,
+              current.scope.storageKey == proof.identity.scope.storageKey,
+              let record, record == proof.snapshot.record,
+              record.scope.storageKey == proof.identity.scope.storageKey else { return false }
+        return RoamLiveJournal.canContinueUnstarted(record)
+    }
+    /// Explicit user gesture changes local intent only. Resume/location remains a separate consented action.
+    public func continueUnstartedRoam() {
+        guard let proof = unstartedContinuation else { return }
+        guard acceptsUnstartedContinuation(proof) else { unstartedContinuation = nil; changed(); return }
+        unstartedContinuation = nil // Consume before any storage callback or failure; never blind-retry.
+        do {
+            let draft = try journal.continueUnstarted(proof.snapshot) { self.acceptsUnstartedContinuation(proof) }
+            guard acceptsUnstartedContinuation(proof) else { throw RoamLiveFailure.staleIdentity }
+            record = draft; error = nil; phase = .paused
+        } catch {
+            guard service?.identity == proof.identity, boundIdentity == proof.identity,
+                  service?.identity?.scope.storageKey == proof.identity.scope.storageKey else { invalidate(); return }
+            self.error = error; phase = .recoveryRequired
+        }
+        changed()
     }
     public func finish() async {
         guard [.active, .paused].contains(phase), let token = begin() else { return }
@@ -141,6 +208,29 @@ import Foundation
             try validate(fact, record: draft); guard fact.state == .finished else { throw RoamLiveFailure.recoveryRequired }
             try archive(fact)
         } catch { fail(error, token: token) }
+    }
+    /// Read retry needs the same already accepted foreground fix. It never asks for a location.
+    public var canRetryNearbyRead: Bool {
+        guard nearbyReadFailed, phase == .active, foreground, !busy, isAvailable,
+              let current = service?.identity, let boundIdentity, current == boundIdentity,
+              current.scope.storageKey == boundIdentity.scope.storageKey,
+              let record, record.scope.storageKey == boundIdentity.scope.storageKey,
+              record.sessionID != nil, !record.finishRequested, record.pendingWrite == nil,
+              let fix = lastFix, fix.datum == .gcj02, fix.accuracyMeters <= 80,
+              (-2...30).contains(now().timeIntervalSince(fix.measuredAt)) else { return false }
+        return true
+    }
+    public func retryNearbyRead() async {
+        guard canRetryNearbyRead, let fix = lastFix, let token = begin() else { return }
+        defer { end(token) }
+        do {
+            try checkForeground(); try check(token)
+            try await refreshPlaces(fix, token: token)
+        } catch {
+            // Source failures are recorded by refreshPlaces. Its only escaping errors invalidate
+            // this read's lifecycle; cancellation/stale ownership must not replace a global error.
+            return
+        }
     }
     /// No automatic proximity rewards. The user chooses each verified source POI.
     public func discover(_ place: RoamPlace) async { await visit(place, shop: false) }
@@ -250,10 +340,10 @@ import Foundation
         try persist(draft); lastReveal = now()
     }
     private func refreshPlaces(_ fix: RoamDeviceFix, token: UUID) async throws {
-        do { let values = try await service!.places(fix: fix); try check(token); places = values; lastPlaces = now() }
-        catch { try check(token); self.error = error } // Nearby read failure does not invent POIs or stop accepted tracking.
-        do { let values = try await service!.registeredShops(fix: fix); try check(token); registeredShops = values }
-        catch { try check(token); self.error = error }
+        do { let values = try await service!.places(fix: fix); try check(token); places = values; lastPlaces = now(); placesReadError = nil }
+        catch { try check(token); placesReadError = error } // This source owns only its own read failure, never a visit/location/finish error.
+        do { let values = try await service!.registeredShops(fix: fix); try check(token); registeredShops = values; registeredShopsReadError = nil }
+        catch { try check(token); registeredShopsReadError = error }
     }
     private func validate(_ fact: RoamSessionFact, record: RoamLiveRecord) throws {
         guard RoamRecoveryQuery.clientSessionKey(record.clientSessionKey).matches(fact),
@@ -277,6 +367,7 @@ import Foundation
     private func checkForeground() throws { guard foreground else { throw RoamLiveFailure.foregroundRequired } }
     private func begin() -> UUID? {
         guard !busy else { return nil }
+        unstartedContinuation = nil
         guard isAvailable, let identity = service?.identity, identity == boundIdentity else { invalidate(); phase = .unavailable; changed(); return nil }
         let token = UUID(); operation = token; busy = true; changed(); return token
     }
@@ -293,6 +384,8 @@ import Foundation
         if phase == .paused, record?.finishRequested == true { phase = .recoveryRequired }
     }
     public func invalidate() {
+        unstartedContinuation = nil
+        placesReadError = nil; registeredShopsReadError = nil
         completedHistory = nil
         generation += 1; operation = nil; busy = false; location?.stop(); record = nil; settlement = nil; places = []; registeredShops = []; track = []
         lastFix = nil; previousFix = nil; origin = nil; grid = []; boundIdentity = nil; presenceEnabled = false; error = nil; phase = .unavailable; changed()
