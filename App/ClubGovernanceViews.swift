@@ -172,6 +172,7 @@ struct ClubGovernanceReadView: View {
     @StateObject private var topicSettingsReturn = ClubTopicSettingsReturn()
     @StateObject private var topicSettingsReads = ClubTopicSettingsRead()
     @StateObject private var terminalPresentation = ClubTerminalSessionPresentation()
+    @StateObject private var seriesOccurrences = ClubSeriesOccurrenceHost()
     @StateObject private var caseSubmissionReturn = ClubCaseSubmissionReturn()
     @State private var caseHostVisible = false
     @State private var snapshot: ClubGovernanceSnapshot?
@@ -365,6 +366,31 @@ struct ClubGovernanceReadView: View {
                 else { Task { await loadTopicSettingsIfNeeded() } }
             }
         }
+        .background {
+            if operation == .series, let attachment = seriesOccurrences.attachment {
+                ClubSeriesOccurrenceLifetime {
+                    if seriesOccurrences.depart(attachment) { generation &+= 1; loading = false }
+                }.id(attachment)
+            }
+            if let item = seriesOccurrences.selected {
+                ClubSeriesOccurrencePresentationOwner(item: item, host: seriesOccurrences,
+                    access: access, coordinator: coordinator, current: { currentOccurrenceSource },
+                    active: { scenePhase == .active }, returned: {
+                        Task { await loadSeriesOccurrencesIfNeeded() }
+                    }).id(item.id)
+            }
+        }
+        .onAppear {
+            if operation == .series { seriesOccurrences.appear(); Task { await loadSeriesOccurrencesIfNeeded() } }
+        }
+        .onChange(of: currentOccurrenceSource) { _, source in seriesOccurrences.invalidateUnlessCurrent(source) }
+        .onChange(of: scenePhase) { _, phase in
+            if operation == .series {
+                if phase != .active { seriesOccurrences.background() }
+                else { Task { await loadSeriesOccurrencesIfNeeded() } }
+            }
+        }
+        .task(id: seriesOccurrences.source) { await loadSeriesOccurrencesIfNeeded() }
         .onAppear { terminalPresentation.bind(terminalSource) }
         .onChange(of: terminalSource, initial: true) { _, source in terminalPresentation.bind(source) }
         // A covering child owns dismissal; recycling content rows cannot retire it.
@@ -374,7 +400,12 @@ struct ClubGovernanceReadView: View {
         // and erase its error. Context checks still hide old PII synchronously.
         .task(id: readContext) {
             guard operation != .cases else { return }
-            if operation == .roster {
+            if operation == .series {
+                if snapshotContext != readContext || snapshotGeneration != generation {
+                    seriesOccurrences.retire(); invalidateRead(); loading = false; await load()
+                }
+                await loadSeriesOccurrencesIfNeeded()
+            } else if operation == .roster {
                 if attendanceReads.synchronize(readContext) {
                     attendanceReturn.retire(); invalidateRead(); loading = false
                 }
@@ -428,7 +459,10 @@ struct ClubGovernanceReadView: View {
         }
         .onDisappear {
             caseHostVisible = false
-            if operation == .roster {
+            if operation == .series {
+                seriesOccurrences.hide()
+                if !seriesOccurrences.retainsDestination { seriesOccurrences.retire(); generation &+= 1; loading = false }
+            } else if operation == .roster {
                 attendanceReturn.hide()
                 if !attendanceReturn.retainsReturn { attendanceReads.retire(); generation &+= 1; loading = false }
             } else if operation == .roles {
@@ -541,6 +575,19 @@ struct ClubGovernanceReadView: View {
     @MainActor private func topicSettingsReadIsCurrent(_ attachment: UUID?) -> Bool {
         operation != .topicSettings || (attachment != nil && topicSettingsReturn.attachment == attachment &&
             topicSettingsReturn.visible && scenePhase == .active)
+    }
+    @MainActor private func occurrenceSource(seriesID: Int) -> ClubSeriesOccurrenceHost.Source? {
+        guard operation == .series, !loading, failure == nil, let snapshot,
+              snapshotContext == readContext, snapshotGeneration == generation else { return nil }
+        return .init(snapshot: snapshot, context: readContext, generation: generation, seriesID: seriesID, access: access)
+    }
+    @MainActor private var currentOccurrenceSource: ClubSeriesOccurrenceHost.Source? {
+        guard let id = seriesOccurrences.source?.scope.seriesID else { return nil }
+        return occurrenceSource(seriesID: id)
+    }
+    @MainActor private func loadSeriesOccurrencesIfNeeded() async {
+        guard operation == .series else { return }
+        await seriesOccurrences.loadIfNeeded(access: access, current: { currentOccurrenceSource }, active: { scenePhase == .active })
     }
     private var terminalSource: ClubTerminalSessionPresentation.Source? {
         guard operation == .topicOverview, !loading, scenePhase == .active,
@@ -933,14 +980,12 @@ struct ClubGovernanceReadView: View {
                 }
                 if operation == .series, let id = row["id"].int {
                     let target = ClubGovernanceScope(clubID: scope.clubID, topicID: row["topicId"].int, seriesID: id)
-                    let sourceContext = readContext, sourceGeneration = snapshotGeneration
                     link(.seriesDetail, target)
-                    ClubSeriesOccurrenceBrowser(scope: target, identity: identity, access: access, coordinator: coordinator,
-                        expanded: Binding(get: { filter == String(id) }, set: { filter = $0 ? String(id) : "all" }),
-                        sourceIsCurrent: {
-                            snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
-                            generation == sourceGeneration && identity == access.identity
-                        })
+                    if let source = occurrenceSource(seriesID: id) {
+                        ClubSeriesOccurrenceBrowser(source: source, access: access, host: seriesOccurrences, model: seriesOccurrences.model,
+                            currentSource: { occurrenceSource(seriesID: id) }, active: { scenePhase == .active },
+                            reload: { Task { await loadSeriesOccurrencesIfNeeded() } })
+                    }
                 }
                 if operation == .occurrences, let id = row["activityId"].int {
                     NavigationLink { ClubGovernanceEventView(scope: .init(clubID: scope.clubID, topicID: scope.topicID, activityID: id), identity: identity, access: access, coordinator: coordinator) } label: { Text("club.gov.eventID \(id)") }
