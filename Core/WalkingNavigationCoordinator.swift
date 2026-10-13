@@ -213,3 +213,16 @@ import Observation
         if failure == .targetUnavailable || failure == .coordinateUnsupported || failure == .staleContext { target = nil }
     }
 }
+
+/// Noncritical polling policy. Foreground navigation always retains its existing
+/// cadence; this does not alter location accuracy, routing or user pause choices.
+public struct WalkingNavigationRefreshPolicy: Equatable, Sendable {
+    public let inactiveLowPowerInterval: TimeInterval
+    public init(inactiveLowPowerInterval: TimeInterval = 15) {
+        self.inactiveLowPowerInterval = inactiveLowPowerInterval.isFinite
+            && (3...60).contains(inactiveLowPowerInterval) ? inactiveLowPowerInterval : 3
+    }
+    public func interval(foreground: Bool, lowPowerMode: Bool) -> TimeInterval {
+        !foreground && lowPowerMode ? inactiveLowPowerInterval : 3
+    }
+}

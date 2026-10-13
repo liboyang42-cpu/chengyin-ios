@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 
 @MainActor struct SearchRoutePreviewView: View {
     @Environment(\.walkingNavigationFactory) private var walkingFactory
@@ -35,6 +36,10 @@ import SwiftUI
                         WalkingNavigationView(reference: navigationReference, factory: walkingFactory, offline: offline)
                     } label: { Label("walking.title", systemImage: "figure.walk") }
                         .accessibilityIdentifier("walking.open")
+                }
+                if let walkingFactory, walkingFactory.available, !offline {
+                    WalkingSavedDestinationSection(factory: walkingFactory)
+                        .id(walkingFactory.checkpointPresentationID)
                 }
                 if owner != nil, let route = loader.route {
                     SearchMapCanvas(area: RoamSearchArea(coordinate: origin, label: ""),
@@ -75,5 +80,79 @@ import SwiftUI
         await loader.load(owner) {
             planner ?? owner.input.reference.flatMap { walkingFactory?.makePreviewPlanner(reference: $0) }
         }
+    }
+}
+
+
+/// Reading this local reference never requests a route, a device fix, or new authorization.
+@MainActor private struct WalkingSavedDestinationSection: View {
+    let factory: NativeWalkingNavigationFactory
+    @State private var saved: WalkingSavedDestination?
+    @State private var failed = false
+    @State private var attempted = false
+    @State private var readGate = WalkingCheckpointReadGate()
+    @Environment(\.scenePhase) private var scenePhase
+    var body: some View {
+        let offered = readGate.ticket
+        VStack(alignment: .leading, spacing: 8) {
+            if let saved, factory.savedDestinationIsCurrent(saved) {
+                NavigationLink {
+                    WalkingNavigationView(reference: saved.record.reference, factory: factory,
+                                          restoringDestination: saved)
+                } label: { Label("walking.saved.open", systemImage: "bookmark") }
+                    .accessibilityIdentifier("walking.saved.open")
+                Text("walking.saved.notice").font(.footnote)
+                Button("walking.saved.remove") {
+                    do { try factory.removeSavedDestination(saved); self.saved = nil; failed = false }
+                    catch { failed = true }
+                }.accessibilityIdentifier("walking.saved.remove")
+            }
+            if failed {
+                Text("walking.saved.failed").font(.footnote).accessibilityIdentifier("walking.saved.failed")
+                Button("walking.saved.retryRead") { load(offered) }
+                    .disabled(offered == nil || !factory.available)
+                    .accessibilityIdentifier("walking.saved.retryRead")
+            }
+        }
+        .onAppear { readGate.appear(active: scenePhase == .active); load(readGate.ticket) }
+        .onDisappear { readGate.disappear() }
+        .onChange(of: scenePhase) { _, value in
+            readGate.setActive(value == .active)
+            if !attempted { load(readGate.ticket) }
+        }
+    }
+    private func load(_ offered: UUID?) {
+        guard readGate.accepts(offered), factory.available else { return }
+        attempted = true
+        do { saved = try readGate.read(offered, factory: factory); failed = false }
+        catch { failed = true }
+    }
+}
+
+/// A synchronous local-read gesture belongs to one visible visit. Retiring a visit
+/// keeps rendered values intact so a pushed destination is not removed by its parent.
+@MainActor @Observable final class WalkingCheckpointReadGate {
+    private var visit = UUID()
+    private var visible = false
+    private var active = false
+    var ticket: UUID? { visible && active ? visit : nil }
+    func appear(active: Bool) { visit = UUID(); visible = true; self.active = active }
+    func disappear() { visit = UUID(); visible = false; active = false }
+    func setActive(_ value: Bool) {
+        if !value { visit = UUID() }
+        active = value
+    }
+    func accepts(_ offered: UUID?) -> Bool {
+        guard let offered else { return false }
+        return visible && active && offered == visit
+    }
+    func read(_ offered: UUID?, factory: NativeWalkingNavigationFactory) throws -> WalkingSavedDestination? {
+        guard accepts(offered), factory.available else { throw WalkingCheckpointFailure.unavailable }
+        return try factory.savedDestination()
+    }
+    func restore(_ offered: UUID?, saved: WalkingSavedDestination,
+                 factory: NativeWalkingNavigationFactory) -> WalkingNavigationCoordinator? {
+        guard accepts(offered), factory.savedDestinationIsCurrent(saved) else { return nil }
+        return factory.restoreSavedDestination(saved)
     }
 }

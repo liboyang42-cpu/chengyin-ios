@@ -170674,6 +170674,121 @@
           }
         }
       }
+    },
+    "walking.saved.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved destination could not be updated. Navigation has not been saved or restored by this message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能更新已保存目的地。此提示不表示导航已保存或恢复。"
+          }
+        }
+      }
+    },
+    "walking.saved.notice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this destination is saved on this device. Starting again checks current access and location. No route or travel history is saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在本机保存此目的地。再次开始时会重新检查当前访问资格和定位；不会保存路线或行走轨迹。"
+          }
+        }
+      }
+    },
+    "walking.saved.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved walking destination"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的步行目的地"
+          }
+        }
+      }
+    },
+    "walking.saved.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove saved destination"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除已保存目的地"
+          }
+        }
+      }
+    },
+    "walking.power.notice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low Power Mode is on. Foreground navigation keeps its normal updates; inactive checks are less frequent. You can pause at any time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低电量模式已开启。前台导航保持正常更新，非活跃时减少检查频率。你可随时主动暂停。"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "walking.saved.retryRead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry local read"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试本机读取"
+          }
+        }
+      }
+    },
+    "walking.saved.restoreUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved reference could not be reopened. Retry the local read, or go back to refresh the saved destination. Navigation has not started."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法重新打开此保存记录。可重试本机读取，或返回刷新已保存目的地。导航尚未开始。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

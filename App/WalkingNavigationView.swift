@@ -1,11 +1,17 @@
 import SwiftUI
 import MapKit
+import Observation
 
 @MainActor struct WalkingNavigationView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var model: WalkingNavigationCoordinator?
     @State private var showsSteps = false
+    @State private var savedDestination: WalkingSavedDestination?
+    @State private var checkpointFailed = false
+    @State private var power = WalkingPowerPresentation()
+    @State private var restoreReadGate = WalkingCheckpointReadGate()
+    @State private var restorationAttempted = false
     // Explicit controls adjust the camera within one authorized scope. Same-scope
     // refresh preserves manual pan; a privacy boundary discards the old viewport.
     @State private var cameraPosition: MapCameraPosition = WalkingNavigationView.neutralCamera
@@ -19,10 +25,14 @@ import MapKit
     let factory: NativeWalkingNavigationFactory
     var offline = false
     var onOpenVerification: (() -> Void)? = nil
+    var restoringDestination: WalkingSavedDestination? = nil
+    var powerPolicy = WalkingNavigationRefreshPolicy()
+    var readLowPowerMode: () -> Bool = { ProcessInfo.processInfo.isLowPowerModeEnabled }
 
     var body: some View {
         GeometryReader { geometry in
             mapContent
+                .transaction { if power.isLowPowerMode { $0.animation = nil } }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 // This reduces the map's safe area; it never paints over Apple attribution.
                 .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -34,6 +44,14 @@ import MapKit
                         } else {
                             ContentUnavailableView("walking.error.unavailable", systemImage: "figure.walk")
                                 .accessibilityIdentifier("walking.unavailable")
+                            if restoringDestination != nil {
+                                let offered = restoreReadGate.ticket
+                                Text("walking.saved.restoreUnavailable").font(.footnote)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Button("walking.saved.retryRead") { restoreSavedDestination(offered) }
+                                    .disabled(offered == nil || !factory.available)
+                                    .accessibilityIdentifier("walking.saved.retryRestore")
+                            }
                         }
                     }
                     .frame(maxHeight: geometry.size.height * (typeSize.isAccessibilitySize ? 0.72 : 0.54))
@@ -50,24 +68,47 @@ import MapKit
             .presentationDetents(typeSize.isAccessibilitySize ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
         }
-        .task {
-            if model == nil { model = factory.make(reference: reference) }
+        .task(id: scenePhase) {
+            guard !Task.isCancelled else { return }
+            restoreReadGate.appear(active: scenePhase == .active)
+            power.refresh(using: readLowPowerMode)
+            if model == nil {
+                if restoringDestination != nil {
+                    if !restorationAttempted { restoreSavedDestination(restoreReadGate.ticket) }
+                } else { model = factory.make(reference: reference) }
+            }
             model?.setForeground(scenePhase == .active)
             while !Task.isCancelled {
                 model?.synchronize()
                 synchronizeCamera()
                 if scenePhase == .active { await model?.update() }
                 synchronizeCamera()
-                do { try await Task.sleep(for: .seconds(3)) } catch { break }
+                let interval = powerPolicy.interval(foreground: scenePhase == .active, lowPowerMode: power.isLowPowerMode)
+                do { try await Task.sleep(for: .seconds(interval)) } catch { break }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange)) { _ in
+            power.refresh(using: readLowPowerMode)
         }
         .onChange(of: model?.phase) { _, _ in
             if model?.route == nil { showsSteps = false }
         }
         .onChange(of: model?.cameraSnapshot) { _, _ in cameraGate.invalidate() }
         .onChange(of: model?.cameraScope) { _, _ in synchronizeCamera() }
-        .onChange(of: scenePhase) { _, value in model?.setForeground(value == .active) }
-        .onDisappear { cameraGate.invalidate(); showsSteps = false; model?.pause(); synchronizeCamera() }
+        .onChange(of: scenePhase) { _, value in
+            restoreReadGate.setActive(value == .active)
+            model?.setForeground(value == .active)
+        }
+        .onDisappear { restoreReadGate.disappear(); cameraGate.invalidate(); showsSteps = false; model?.pause(); synchronizeCamera() }
+    }
+
+    private func restoreSavedDestination(_ offered: UUID?) {
+        guard restoreReadGate.accepts(offered), model == nil, let restoringDestination,
+              factory.savedDestinationIsCurrent(restoringDestination) else { return }
+        restorationAttempted = true
+        model = restoreReadGate.restore(offered, saved: restoringDestination, factory: factory)
+        if model != nil { savedDestination = restoringDestination }
+        // The restored model remains ready. This local read never calls start or update.
     }
 
     @ViewBuilder private var mapContent: some View {
@@ -162,6 +203,7 @@ import MapKit
     }
 
     @ViewBuilder private func actions(_ model: WalkingNavigationCoordinator) -> some View {
+        WalkingPowerNotice(presentation: power)
         if isCameraScopeCurrent(model), model.cameraSnapshot != nil {
             cameraControl(model, action: .route)
             cameraControl(model, action: .target)
@@ -176,7 +218,14 @@ import MapKit
                 .buttonStyle(.borderedProminent).frame(minHeight: 44)
         }
         if model.phase.mayStart {
-            Button { Task { await model.start() } } label: {
+            Button {
+                Task {
+                    await model.start()
+                    guard !offline, model.phase == .navigating || model.phase == .nearDestination else { return }
+                    do { savedDestination = try factory.saveDestination(from: model); checkpointFailed = false }
+                    catch { checkpointFailed = true }
+                }
+            } label: {
                 Text(LocalizedStringKey(model.phase == .ready ? "walking.start" : "walking.resume"))
             }.buttonStyle(.borderedProminent).frame(minHeight: 44).accessibilityIdentifier("walking.start")
         }
@@ -184,7 +233,18 @@ import MapKit
             Button("walking.pause") { model.pause() }
                 .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("walking.pause")
         }
-        Button("walking.cancel") { model.cancel() }
+        if checkpointFailed {
+            Text("walking.saved.failed").font(.footnote).accessibilityIdentifier("walking.saved.failed")
+        } else if let savedDestination, factory.savedDestinationIsCurrent(savedDestination) {
+            Text("walking.saved.notice").font(.footnote).accessibilityIdentifier("walking.saved.notice")
+        }
+        Button("walking.cancel") {
+            model.cancel()
+            if let savedDestination {
+                do { try factory.removeSavedDestination(savedDestination); self.savedDestination = nil; checkpointFailed = false }
+                catch { checkpointFailed = true }
+            }
+        }
             .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("walking.cancel")
     }
 }
@@ -249,5 +309,22 @@ import MapKit
                 }
                 #endif
             }
+    }
+}
+
+/// Observes a local OS setting only. Changes never invoke a navigation action.
+@MainActor @Observable final class WalkingPowerPresentation {
+    private(set) var isLowPowerMode = false
+    func refresh(using read: () -> Bool) { isLowPowerMode = read() }
+}
+
+@MainActor struct WalkingPowerNotice: View {
+    let presentation: WalkingPowerPresentation
+    var body: some View {
+        if presentation.isLowPowerMode {
+            Label("walking.power.notice", systemImage: "battery.25percent")
+                .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("walking.power.notice")
+        }
     }
 }
