@@ -9,6 +9,7 @@ import SwiftUI
     @State private var resource: PublishedResource?
     var body: some View {
         PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.publishingAIDraftFactory,
+                            makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
                             placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
                             openResource: { resource = $0 })
             .navigationDestination(isPresented: $showEditor) {

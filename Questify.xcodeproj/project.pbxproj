@@ -18589,6 +18589,10 @@
 				"2178621840F6B267157A05C0",
 				"98070C0A4CBCB2379652276F",
 				"151FD7EAD397A556CA77EF89",
+				"1C5E4934FD808D9D07D35801",
+				"E71524380F88B3CF40500275",
+				"2DAE17E9155E55AE1011915D",
+				"0247DD98E673E0D7D772AC80",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20205,6 +20209,8 @@
 				"5B257C0D7BC7F14C3E722164",
 				"091B05B195C54F754599FB7C",
 				"25B6AFDCE0F438D871A5B630",
+				"CB99AE20E9FFB1EC41F1E5AA",
+				"DABCE03E23E302529010F123",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -20269,6 +20275,7 @@
 				"B4D47817C3C0551CF1A2A120",
 				"334CE4F241AD6B5786B4BFA2",
 				"A4782B2F9C03F6C33DDA6A7A",
+				"3774311449A79C98CF2B386C",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26331,6 +26338,7 @@
 				"A044F9BF8FDFF151132ED0FD",
 				"8B522581BC35DCBDF443D0CE",
 				"791D26B3D794662EF976A055",
+				"750F9FF2BB5CDA0728D30D86",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -27482,6 +27490,46 @@
 		"25B6AFDCE0F438D871A5B630" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "98070C0A4CBCB2379652276F";
+		};
+		"0247DD98E673E0D7D772AC80" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.json.xcstrings";
+			"path" = "Resources/PublisherIdentityRegistration.xcstrings";
+			"sourceTree" = "<group>";
+		};
+		"3774311449A79C98CF2B386C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0247DD98E673E0D7D772AC80";
+		};
+		"2DAE17E9155E55AE1011915D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/PublisherIdentityRegistrationOwnerTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"750F9FF2BB5CDA0728D30D86" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "2DAE17E9155E55AE1011915D";
+		};
+		"E71524380F88B3CF40500275" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PublisherIdentityRegistrationView.swift";
+			"sourceTree" = "<group>";
+		};
+		"CB99AE20E9FFB1EC41F1E5AA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E71524380F88B3CF40500275";
+		};
+		"1C5E4934FD808D9D07D35801" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PublisherIdentityRegistration.swift";
+			"sourceTree" = "<group>";
+		};
+		"DABCE03E23E302529010F123" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "1C5E4934FD808D9D07D35801";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";

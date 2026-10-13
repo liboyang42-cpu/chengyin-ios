@@ -224,7 +224,8 @@ extension KeychainTokenStore: AppTokenStorage {}
 /// require a one-use confirmed dispatch ticket. Private home keeps its separate owner grant.
 /// All other paths stay closed.
 /// No device/provider work or authorization is inferred from a feature grant.
-@MainActor final class CompositionHTTPTransport: ActivityEditingHTTPTransport, CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
+@MainActor final class CompositionHTTPTransport: PublisherIdentityRegistrationHTTPTransport, ActivityEditingHTTPTransport, CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
+    var publisherIdentityRegistrationApproval: @MainActor (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() }
     var activityEditingApproval: @MainActor (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() }
     var workshopPaidInstallBeforeForward: (() async -> Void)?
     struct SessionIdentity: Equatable {
@@ -364,6 +365,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         // callback is weak, so this does not retain or extend the signed-in session.
         transport.current = { self.current() }
         transport.activityEditingApproval = { self.activityEditingApproval($0) }
+        transport.publisherIdentityRegistrationApproval = { self.publisherIdentityRegistrationApproval($0) }
         transport.workshopPaidInstallBeforeForward = { if let barrier = self.workshopPaidInstallBeforeForward { await barrier() } }
         transport.couponBeforeForward = { if let barrier = self.couponBeforeForward { await barrier() } }
         // Forward the mutable selector itself: later installation or revocation on
@@ -495,6 +497,30 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard valid(), !Task.isCancelled else { throw CancellationError() }; try authorization.validate(); throw error
         }
     }
+    func sendPublisherIdentityRegistration(_ request: URLRequest, session: PublishingSession,
+        grants: PublisherIdentityRegistrationGrants) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.market == .china, let api = deployment.regional.apiConfiguration,
+              let captured = current(), captured.isSignedInContentViewer,
+              let account = captured.accountID, let role = captured.role, role == "club", let token = captured.token,
+              session.region == .china, session.accountID == account, session.role == role,
+              session.namespace == deployment.storageScope.service,
+              request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) == Data(token.utf8),
+              let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                  namespace: deployment.storageScope.service, token: token),
+              let path = PublisherIdentityRegistrationWire.path(request, configuration: api) else { throw APIError.notConfigured }
+        let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: role, session: runtime)
+        func permitted() -> Bool {
+            let live = publisherIdentityRegistrationApproval(context)
+            let approval = path == PublisherIdentityRegistrationWire.statusPath ? live.read : live.register
+            return live == grants && live.revision != nil &&
+                approval?.allows(configuration: api, namespace: session.namespace, accountID: account, path: path) == true
+        }
+        try Task.checkCancellation(); guard current() == captured, permitted() else { throw APIError.notConfigured }
+        let response = try await underlying.send(request)
+        try Task.checkCancellation(); guard current() == captured, permitted() else { throw CancellationError() }
+        return response
+    }
+
     func sendActivityEditing(_ request: URLRequest, activityID: Int, session: PublishingSession,
                              grants: ActivityEditingGrants) async throws -> (Data, Int) {
         guard let deployment, deployment.regional.market == .china, let api = deployment.regional.apiConfiguration,

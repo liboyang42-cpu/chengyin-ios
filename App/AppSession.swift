@@ -1416,6 +1416,18 @@ final class AppSession: ObservableObject {
         return try await reader.freshAuthority(resource, session: captured)
     }
     /// Existing-content editing is independently approved. Create permission never supplies these grants.
+    private let publisherIdentityRegistrationApproval: (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants
+    func makePublisherIdentityRegistrationService() -> PublisherIdentityRegistrationService? {
+        guard let captured = publishingSession, let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let grants = publisherIdentityRegistrationApproval(context), viewerRevision = compositionViewerRevision
+        return PublisherIdentityRegistrationService(configuration: configuration, transport: runtimeHTTPTransport,
+            grants: grants, journal: composition.storage.operationJournal(), session: captured, credentials: { [weak self] in
+                guard let self, self.publishingSession == captured, self.currentRuntimeDependencyContext == context,
+                      self.compositionViewerRevision == viewerRevision, self.publisherIdentityRegistrationApproval(context) == grants, let token = self.token else { return nil }
+                return try? PublishingCredentials(session: captured, token: token)
+            })
+    }
     private let activityEditingApproval: (RuntimeDependencyContext) -> ActivityEditingGrants
     func activityEditingController(id: Int) -> ActivityEditingController? {
         guard let captured = publishingSession, let context = currentRuntimeDependencyContext,
@@ -2847,9 +2859,11 @@ final class AppSession: ObservableObject {
     init(composition: AppCompositionRoot? = nil, runtimeDependencies: NativeRuntimeDependencies? = nil, roamLiveDependencies: NativeRoamLiveDependencies? = nil,
          registrationApproval: RegistrationProductionApproval? = nil,
          activityEditingApproval: @escaping (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() },
+         publisherIdentityRegistrationApproval: @escaping (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() },
          registrationStorefront: @escaping () -> String? = { nil }) {
         let composition = composition ?? RegionalLaunchConfiguration.composition
         self.activityEditingApproval = activityEditingApproval
+        self.publisherIdentityRegistrationApproval = publisherIdentityRegistrationApproval
         self.registrationApproval = registrationApproval; self.registrationStorefront = registrationStorefront
         self.roamLiveDependencies = roamLiveDependencies ?? .dormant
         self.composition = composition
@@ -2940,6 +2954,10 @@ final class AppSession: ObservableObject {
             // Re-read the reviewed selector at the boundary: retained providers must not
             // keep a revoked read grant alive for an otherwise unchanged viewer.
             return (self.injectedRuntimeDependencies ?? self.composition.sessionDependencies(context)).configuration
+        }
+        compositionTransport.publisherIdentityRegistrationApproval = { [weak self] context in
+            guard let self, self.currentRuntimeDependencyContext == context else { return .init() }
+            return self.publisherIdentityRegistrationApproval(context)
         }
         compositionTransport.activityEditingApproval = { [weak self] context in
             guard let self, self.currentRuntimeDependencyContext == context else { return .init() }
