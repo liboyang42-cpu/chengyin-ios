@@ -126,6 +126,8 @@ localizable_ui=localizable_ui.replace('.accessibilityIdentifier(snapshot.service
 localizable_ui=localizable_ui.replace('.accessibilityIdentifier(result == .copied ? "profile.orderNumberCopy.copied" : "profile.orderNumberCopy.failed")', '')
 localizable_ui=localizable_ui.replace('OfficialReadScreen(reader: reader, isPrivate: true, requestID: "merchant.officialRecruitment",', 'OfficialReadScreen(reader: reader, isPrivate: true,')
 localizable_ui=localizable_ui.replace('MerchantTemplateStoryTimelineContent(timeline: timeline, prefix: "merchant.storyTimeline.review")', 'MerchantTemplateStoryTimelineContent(timeline: timeline)')
+# Exact computed accessibility IDs only; identical literals in Text still require translations.
+localizable_ui=localizable_ui.replace('var accessibilityID: String { switch self { case .history: return "roam.live.pausedHistory.open"; case .settings: return "roam.live.pausedSettings.open"; case .album: return "roam.live.pausedAlbum.open" } }', '')
 localizable_ui=validate_literal_text_tables(localizable_ui,ROOT,objects,project_obj)
 keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account|activity|scanner|discovery|profile|merchant|club|roam|messaging|participant|play|message|topic|region|homeFeed|usApple|ticketWallet|square|cooperation|accountCollection|creatorContent|growth|official|officialAction|projectEdit|nearby|team|orderLifecycle|templateAuthor|publishModes|wallet|couponManagement|im)\.[A-Za-z0-9.]+)"',localizable_ui))
 keys={key for key in keys if not key.endswith('.')}  # Prefixes concatenate a separately validated dynamic key.

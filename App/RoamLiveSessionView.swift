@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 @MainActor private final class RoamLiveViewModel: ObservableObject {
     let controller: RoamLiveSessionController
@@ -12,13 +13,21 @@ import SwiftUI
 }
 @MainActor struct RoamLiveSessionView: View {
     let offlineExample: Bool
+    let localHistoryReader: (any RoamExperienceReading)?
+    @StateObject private var browse: RoamPausedBrowsePresentation
     @StateObject private var model: RoamLiveViewModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State private var purposeAccepted = false
     @State private var presenceAccepted = false
     @State private var confirmFinish = false
     @State private var showRules = false
-    init(controller: RoamLiveSessionController, offlineExample: Bool = false) { self.offlineExample = offlineExample; _model = StateObject(wrappedValue: RoamLiveViewModel(controller, offlineExample: offlineExample)) }
+    @State private var nearbyExpanded = true
+    init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
+        self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader
+        _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
+        _model = StateObject(wrappedValue: RoamLiveViewModel(controller, offlineExample: offlineExample))
+    }
     private var owner: RoamLiveSessionController { model.controller }
     var body: some View {
         List {
@@ -40,6 +49,9 @@ import SwiftUI
                 }
                 if let story = RoamFinishedStoryPresentation(controller: owner) {
                     RoamFinishedStorySection(presentation: story)
+                }
+                if let track = owner.finishedRouteTrack {
+                    RoamLiveRouteOverviewSection(track: track, paused: false, finished: true)
                 }
                 if owner.canContinueUnstartedRoam {
                     Section {
@@ -93,6 +105,8 @@ import SwiftUI
                     trace
                     nearby
                 }
+                if owner.phase == .paused { trace }
+                pauseAndBrowse
                 if [.active, .paused].contains(owner.phase), owner.record != nil {
                     Section {
                         Button("roam.live.finish", systemImage: "checkmark.circle") { confirmFinish = true }
@@ -116,9 +130,20 @@ import SwiftUI
         }
         .navigationTitle("roam.experience.live")
         .accessibilityIdentifier("roam.live.session")
-        .onAppear { owner.setForeground(scenePhase == .active); owner.prepare() }
-        .onDisappear { owner.pause() }
-        .onChange(of: scenePhase) { _, value in owner.setForeground(value == .active) }
+        .onAppear { owner.setForeground(scenePhase == .active); owner.prepare(); browse.appear() }
+        .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
+        .onChange(of: owner.phase) { _, phase in
+            if phase != .active { nearbyExpanded = true }
+            browse.retireIfStale(owner: owner, reader: localHistoryReader)
+        }
+        .onChange(of: scenePhase) { _, value in
+            if value != .active { browse.retire() }
+            owner.setForeground(value == .active)
+        }
+        .onChange(of: owner.localBrowseIdentity) { _, _ in browse.retireIfStale(owner: owner, reader: localHistoryReader) }
+        .onChange(of: owner.record?.clientSessionKey) { _, _ in browse.retireIfStale(owner: owner, reader: localHistoryReader) }
+        .onChange(of: localHistoryReader?.identity) { _, _ in browse.retireIfStale(owner: owner, reader: localHistoryReader) }
+        .onChange(of: localHistoryReader.map { ObjectIdentifier($0) }) { _, _ in browse.retireIfStale(owner: owner, reader: localHistoryReader) }
         .task(id: owner.phase) {
             guard owner.phase == .active else { return }
             while !Task.isCancelled && owner.phase == .active {
@@ -132,6 +157,33 @@ import SwiftUI
             Button("action.cancel", role: .cancel) {}
         } message: { Text("roam.live.finishHint") }
         .sheet(isPresented: $showRules) { NavigationStack { RoamLiveRulesView() } }
+        .background {
+            RoamPausedBrowseLifetimeAnchor(presentation: browse).frame(width: 0, height: 0)
+        }
+        .background {
+            if let target = browse.target {
+                RoamPausedBrowseSheetOwner(presentation: browse, target: target,
+                    owner: owner, reader: localHistoryReader).id(target.id)
+            }
+        }
+    }
+    @ViewBuilder private var pauseAndBrowse: some View {
+        if owner.localBrowseIdentity != nil {
+            let copy = RoamPausedBrowseCopy(locale: locale)
+            Section {
+                Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
+                ForEach(RoamPausedBrowseKind.allCases, id: \.self) { kind in
+                    let entryID = browse.entryID
+                    let context = RoamPausedBrowseContext.capture(kind: kind, owner: owner, reader: localHistoryReader)
+                    Button {
+                        if let context { browse.open(context, entryID: entryID, owner: owner, reader: localHistoryReader) }
+                    } label: {
+                        Label(copy.label(kind), systemImage: kind.symbol)
+                    }.disabled(context == nil)
+                        .accessibilityIdentifier(kind.accessibilityID)
+                }
+            } header: { Text(verbatim: copy.title) }
+        }
     }
     @ViewBuilder private var status: some View {
         Section("roam.live.sessionStatus") {
@@ -168,19 +220,8 @@ import SwiftUI
         }
     }
     @ViewBuilder private var trace: some View {
-        if owner.track.count > 1 {
-            Section("roam.experience.routeSketch") {
-                let sketch = RoamRouteSketch(track: owner.track, places: [])
-                Canvas { context, size in
-                    var path = Path()
-                    for (index, point) in sketch.track.enumerated() {
-                        let value = CGPoint(x: point.x * size.width, y: point.y * size.height)
-                        if index == 0 { path.move(to: value) } else { path.addLine(to: value) }
-                    }
-                    context.stroke(path, with: .color(.accentColor), style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                }.frame(height: 180).accessibilityHidden(true)
-                Text("roam.live.tracePrivacy").font(.caption).foregroundStyle(.secondary)
-            }
+        if let track = owner.currentRouteTrack, owner.phase == .paused || track.count > 1 {
+            RoamLiveRouteOverviewSection(track: track, paused: owner.phase == .paused)
         }
     }
     @ViewBuilder private var nearby: some View {
@@ -204,24 +245,35 @@ import SwiftUI
             } else if owner.places.isEmpty && owner.registeredShops.isEmpty {
                 Text("roam.live.noPlaces").foregroundStyle(.secondary)
             }
+            if !owner.places.isEmpty || !owner.registeredShops.isEmpty {
+                RoamNearbyVisibilityButton(expanded: $nearbyExpanded)
+            }
             ForEach(owner.registeredShops) { shop in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(shop.addressName.isEmpty ? "#\(shop.id)" : shop.addressName).font(.headline)
-                    if owner.registeredShopUnresolved(shop) { Text("roam.live.unknownVisit").font(.caption) }
-                    else if owner.registeredShopConfirmed(shop) { Label("roam.live.arrivalConfirmed", systemImage: "checkmark.circle") }
-                    else {
-                        Button("roam.live.visitShop") { Task { await owner.visitRegisteredShop(shop) } }
-                            .disabled(owner.busy || owner.registeredShopGap(shop) != 0)
-                        if let gap = owner.registeredShopGap(shop), gap > 0 { Text("roam.live.walkCloser").font(.caption) + Text(" \(gap) m").font(.caption) }
-                    }
-                }.padding(.vertical, 4)
+                if nearbyExpanded || owner.busy || owner.error != nil || owner.registeredShopUnresolved(shop) || owner.registeredShopConfirmed(shop) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(shop.addressName.isEmpty ? "#\(shop.id)" : shop.addressName).font(.headline)
+                        if owner.registeredShopUnresolved(shop) { Text("roam.live.unknownVisit").font(.caption) }
+                        else if owner.registeredShopConfirmed(shop) { Label("roam.live.arrivalConfirmed", systemImage: "checkmark.circle") }
+                        else {
+                            Button("roam.live.visitShop") { Task { await owner.visitRegisteredShop(shop) } }
+                                .disabled(owner.busy || owner.registeredShopGap(shop) != 0)
+                            if let gap = owner.registeredShopGap(shop), gap > 0 { Text("roam.live.walkCloser").font(.caption) + Text(" \(gap) m").font(.caption) }
+                        }
+                    }.padding(.vertical, 4)
+                }
             }
             ForEach(owner.places) { place in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(place.name).font(.headline)
-                    arrivalButton(place, shop: false)
-                    if place.type == 2 { arrivalButton(place, shop: true) }
-                }.padding(.vertical, 4)
+                if nearbyExpanded || owner.busy || owner.error != nil || owner.actionUnresolved(place, shop: false) || owner.actionUnresolved(place, shop: true)
+                    || owner.actionConfirmed(place, shop: false) || owner.actionConfirmed(place, shop: true) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(place.name).font(.headline)
+                        if let text = owner.merchantDescription(for: place) {
+                            RoamLiveMerchantDescriptionRow(text: text)
+                        }
+                        arrivalButton(place, shop: false)
+                        if place.type == 2 { arrivalButton(place, shop: true) }
+                    }.padding(.vertical, 4)
+                }
             }
         }
     }
@@ -467,5 +519,313 @@ struct RoamFinishedStorySection: View {
                 .accessibilityIdentifier("roam.live.finishedStory.text")
             Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
         } header: { Text(verbatim: copy.title) }
+    }
+}
+
+struct RoamLiveMerchantDescriptionCopy {
+    let title: String
+    init(locale: Locale) {
+        title = locale.language.languageCode?.identifier == "zh" ? "商家介绍" : "About this merchant"
+    }
+}
+struct RoamLiveMerchantDescriptionRow: View {
+    let text: String
+    @Environment(\.locale) private var locale
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: RoamLiveMerchantDescriptionCopy(locale: locale).title)
+                .font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: text).fixedSize(horizontal: false, vertical: true)
+        }.accessibilityIdentifier("roam.live.merchantDescription")
+    }
+}
+
+struct RoamNearbyVisibilityCopy {
+    let hide, show, expanded, collapsed, hint: String
+    init(locale: Locale) {
+        if locale.language.languageCode?.identifier == "zh" {
+            hide = "收起附近卡片"; show = "展开附近卡片"
+            expanded = "已展开"; collapsed = "已收起"
+            hint = "只收起普通卡片。到场状态、待确认结果和重试仍会显示。"
+        } else {
+            hide = "Hide nearby cards"; show = "Show nearby cards"
+            expanded = "Expanded"; collapsed = "Collapsed"
+            hint = "Only ordinary cards are hidden. Arrival status, pending results and retries stay visible."
+        }
+    }
+}
+struct RoamNearbyVisibilityButton: View {
+    @Binding var expanded: Bool
+    @Environment(\.locale) private var locale
+    func toggle() { expanded = !expanded }
+    var body: some View {
+        let copy = RoamNearbyVisibilityCopy(locale: locale)
+        VStack(alignment: .leading, spacing: 4) {
+            Button(action: toggle) {
+                Label(expanded ? copy.hide : copy.show, systemImage: expanded ? "chevron.up" : "chevron.down")
+            }
+            .accessibilityIdentifier("roam.live.nearby.visibility")
+            .accessibilityValue(Text(verbatim: expanded ? copy.expanded : copy.collapsed))
+            if !expanded {
+                Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
+struct RoamLiveRouteOverviewCopy {
+    let pausedHint, finishedHint, missing, onePoint, recordedPoints: String
+    init(locale: Locale) {
+        if locale.language.languageCode?.identifier == "zh" {
+            pausedHint = "暂停时可查看本次内存中已有的路线。继续仍需点击原来的继续按钮。"
+            finishedHint = "本次结算已保存。这里只展示本次内存中保留的路线点，可能不完整；离开或切到后台后不再保留。"
+            missing = "本次内存中没有路线点。恢复记录不能还原之前的路线。"
+            onePoint = "目前只有一个路线点，尚不足以画出路线。"
+            recordedPoints = "本机路线点"
+        } else {
+            pausedHint = "While paused, review the route already held for this walk. Use the existing Resume button to continue."
+            finishedHint = "This settlement is saved. Only route points held for this walk are shown and they may be incomplete. They are discarded when you leave or enter the background."
+            missing = "No route points are held for this walk. A recovery record cannot restore the earlier route."
+            onePoint = "Only one route point is available, so no route line can be drawn yet."
+            recordedPoints = "Local route points"
+        }
+    }
+}
+struct RoamLiveRouteOverviewSection: View {
+    let track: [RoamHistoryPoint]
+    let paused: Bool
+    var finished = false
+    @Environment(\.locale) private var locale
+    var hasDrawableRoute: Bool { track.count > 1 }
+    var body: some View {
+        let copy = RoamLiveRouteOverviewCopy(locale: locale)
+        Section("roam.experience.routeSketch") {
+            if finished {
+                Text(verbatim: copy.finishedHint).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("roam.live.finishedRoute.hint")
+            }
+            if paused {
+                Text(verbatim: copy.pausedHint).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if hasDrawableRoute {
+                let sketch = RoamRouteSketch(track: track, places: [])
+                Canvas { context, size in
+                    var path = Path()
+                    for (index, point) in sketch.track.enumerated() {
+                        let value = CGPoint(x: point.x * size.width, y: point.y * size.height)
+                        if index == 0 { path.move(to: value) } else { path.addLine(to: value) }
+                    }
+                    context.stroke(path, with: .color(.accentColor), style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                }.frame(height: 180).accessibilityHidden(true)
+                LabeledContent(copy.recordedPoints, value: String(track.count))
+                    .accessibilityIdentifier("roam.live.routeOverview.points")
+                Text("roam.live.tracePrivacy").font(.caption).foregroundStyle(.secondary)
+            } else {
+                Text(verbatim: track.isEmpty ? copy.missing : copy.onePoint)
+                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("roam.live.routeOverview.unavailable")
+            }
+        }.accessibilityIdentifier("roam.live.routeOverview")
+    }
+}
+
+
+enum RoamPausedBrowseKind: CaseIterable, Hashable {
+    case history, settings, album
+    var symbol: String { switch self { case .history: return "clock.arrow.circlepath"; case .settings: return "location.slash"; case .album: return "rectangle.stack" } }
+    var accessibilityID: String { switch self { case .history: return "roam.live.pausedHistory.open"; case .settings: return "roam.live.pausedSettings.open"; case .album: return "roam.live.pausedAlbum.open" } }
+}
+struct RoamPausedBrowseContext: Equatable {
+    let kind: RoamPausedBrowseKind
+    let controllerID: ObjectIdentifier
+    let identity: RoamExperienceIdentity
+    let clientSessionKey: String
+    let readerID: ObjectIdentifier?
+    @MainActor static func capture(kind: RoamPausedBrowseKind, owner: RoamLiveSessionController,
+                                  reader: (any RoamExperienceReading)?) -> Self? {
+        guard let identity = owner.localBrowseIdentity, let key = owner.record?.clientSessionKey else { return nil }
+        if kind != .settings {
+            guard let reader, reader.identity == identity else { return nil }
+            return .init(kind: kind, controllerID: ObjectIdentifier(owner), identity: identity, clientSessionKey: key, readerID: ObjectIdentifier(reader))
+        }
+        return .init(kind: kind, controllerID: ObjectIdentifier(owner), identity: identity, clientSessionKey: key, readerID: nil)
+    }
+}
+@MainActor struct RoamPausedBrowseTarget: Identifiable {
+    let id: UUID
+    let context: RoamPausedBrowseContext
+    let historyReader: RoamPausedLocalHistoryReader?
+    let albumScope: RoamStampAlbumReadOnlyScope?
+}
+@MainActor final class RoamPausedBrowsePresentation: ObservableObject {
+    @Published private(set) var target: RoamPausedBrowseTarget?
+    @Published private(set) var entryID = UUID()
+    private var visible = false
+    private var attached = false
+    func appear() { if !visible { entryID = UUID() }; visible = true; attached = true }
+    func parentHidden() { visible = false; if target == nil { retire() } }
+    func parentDisappeared(departing: Bool, coveredByPresentation: Bool) {
+        if !departing && coveredByPresentation && target != nil { parentHidden() }
+        else { disappear() }
+    }
+    func disappear() { visible = false; attached = false; retire() }
+    func retire() { target = nil; entryID = UUID() }
+    func open(_ rendered: RoamPausedBrowseContext, entryID: UUID, owner: RoamLiveSessionController,
+              reader: (any RoamExperienceReading)?) {
+        guard attached, visible, self.entryID == entryID, target == nil,
+              rendered == RoamPausedBrowseContext.capture(kind: rendered.kind, owner: owner, reader: reader) else { return }
+        owner.pause()
+        guard owner.phase == .paused,
+              rendered == RoamPausedBrowseContext.capture(kind: rendered.kind, owner: owner, reader: reader) else { return }
+        let id = UUID()
+        let history: RoamPausedLocalHistoryReader?
+        if rendered.kind == .history, let reader {
+            history = .init(base: reader, expected: rendered.identity, isCurrent: { [weak self, weak owner] in
+                guard let self, let owner, let current = self.target, current.id == id else { return false }
+                return self.matches(current, owner: owner, reader: reader)
+            })
+        } else { history = nil }
+        let album: RoamStampAlbumReadOnlyScope?
+        if rendered.kind == .album, let reader {
+            album = .init(reader: reader, identity: rendered.identity, isCurrent: { [weak self, weak owner] in
+                guard let self, let owner, let current = self.target, current.id == id else { return false }
+                return self.matches(current, owner: owner, reader: reader)
+            })
+        } else { album = nil }
+        target = .init(id: id, context: rendered, historyReader: history, albumScope: album)
+    }
+    func matches(_ offered: RoamPausedBrowseTarget, owner: RoamLiveSessionController,
+                 reader: (any RoamExperienceReading)?) -> Bool {
+        attached && target?.id == offered.id && owner.phase == .paused &&
+        offered.context == RoamPausedBrowseContext.capture(kind: offered.context.kind, owner: owner, reader: reader)
+    }
+    func retireIfStale(owner: RoamLiveSessionController, reader: (any RoamExperienceReading)?) {
+        if let target, !matches(target, owner: owner, reader: reader) { retire() }
+    }
+    func close(id: UUID) { if target?.id == id { retire() } }
+    func binding(for offered: RoamPausedBrowseTarget?, owner: RoamLiveSessionController, reader: (any RoamExperienceReading)?) -> Binding<RoamPausedBrowseTarget?> {
+        return Binding(get: {
+            guard let offered, self.matches(offered, owner: owner, reader: reader) else { return nil }
+            return offered
+        }, set: { value in
+            if value == nil, let offered { self.close(id: offered.id) }
+        })
+    }
+}
+/// Only the two existing local reads are delegated. This presentation grants no remote capability.
+@MainActor final class RoamPausedLocalHistoryReader: RoamExperienceReading {
+    private let base: any RoamExperienceReading
+    private let expected: RoamExperienceIdentity
+    private let isCurrent: () -> Bool
+    init(base: any RoamExperienceReading, expected: RoamExperienceIdentity, isCurrent: @escaping () -> Bool) {
+        self.base = base; self.expected = expected; self.isCurrent = isCurrent
+    }
+    var identity: RoamExperienceIdentity? { isCurrent() && base.identity == expected ? expected : nil }
+    var isConfigured: Bool { false }
+    var isOfflineExample: Bool { base.isOfflineExample }
+    func history() throws -> [RoamHistoryRecord] {
+        guard identity != nil else { throw CancellationError() }
+        let result = try base.history()
+        guard identity != nil else { throw CancellationError() }
+        return result
+    }
+    func localWalkStatus() throws -> RoamLocalWalkStatus {
+        guard identity != nil else { throw CancellationError() }
+        let result = try base.localWalkStatus()
+        guard identity != nil else { throw CancellationError() }
+        return result
+    }
+    func sessionFact(_ query: RoamRecoveryQuery) async throws -> RoamSessionFact { throw APIError.notConfigured }
+    func album(page: Int, pageSize: Int) async throws -> RoamAlbumPage { throw APIError.notConfigured }
+    func tilePage(afterID: Int, limit: Int) async throws -> RoamTileMemoryPage { throw APIError.notConfigured }
+    func shopBadge() async throws -> RoamShopBadge? { throw APIError.notConfigured }
+}
+struct RoamPausedBrowseCopy {
+    let title, hint, history, settings, album: String
+    init(locale: Locale) {
+        if locale.language.languageCode?.identifier == "zh" {
+            title = "暂停后查看"
+            hint = "打开前会先暂停本次漫游。返回后不会自动继续，仍需使用原来的继续按钮。"
+            history = "查看本机漫游历史"; settings = "查看定位设置"; album = "只读查看集邮册"
+        } else {
+            title = "Pause and review"
+            hint = "This walk pauses before opening. Returning does not resume it; use the existing Resume button when ready."
+            history = "View local walk history"; settings = "View location settings"; album = "View stamp album (read-only)"
+        }
+    }
+    func label(_ kind: RoamPausedBrowseKind) -> String {
+        switch kind { case .history: return history; case .settings: return settings; case .album: return album }
+    }
+}
+
+
+@MainActor private struct RoamPausedBrowseSheetOwner: View {
+    let presentation: RoamPausedBrowsePresentation
+    let target: RoamPausedBrowseTarget
+    let owner: RoamLiveSessionController
+    let reader: (any RoamExperienceReading)?
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(item: presentation.binding(for: target, owner: owner, reader: reader),
+                   onDismiss: { presentation.close(id: target.id) }) { offered in
+                NavigationStack {
+                    if presentation.matches(offered, owner: owner, reader: reader) {
+                        Group {
+                            switch offered.context.kind {
+                            case .history:
+                                if let local = offered.historyReader { RoamHistoryView(reader: local) }
+                            case .settings: RoamLocationSettingsDestination()
+                            case .album:
+                                if let reader, let scope = offered.albumScope, scope.matches(reader) {
+                                    RoamStampAlbumView(reader: reader, readOnlyScope: scope)
+                                }
+                            }
+                        }
+                        .toolbar { ToolbarItem(placement: .confirmationAction) {
+                            Button("action.done") { presentation.close(id: offered.id) }
+                        } }
+                    }
+                }
+            }
+    }
+}
+/// Native attachment distinguishes a covering sheet from the source leaving its hierarchy.
+@MainActor struct RoamPausedBrowseLifetimeAnchor: UIViewControllerRepresentable {
+    let presentation: RoamPausedBrowsePresentation
+    func makeUIViewController(context: Context) -> RoamPausedBrowseLifetimeController {
+        RoamPausedBrowseLifetimeController(presentation: presentation)
+    }
+    func updateUIViewController(_ controller: RoamPausedBrowseLifetimeController, context: Context) {}
+    static func dismantleUIViewController(_ controller: RoamPausedBrowseLifetimeController, coordinator: ()) {
+        controller.presentation?.disappear()
+    }
+}
+@MainActor final class RoamPausedBrowseLifetimeController: UIViewController {
+    weak var presentation: RoamPausedBrowsePresentation?
+    private var departing = false
+    init(presentation: RoamPausedBrowsePresentation) {
+        self.presentation = presentation; super.init(nibName: nil, bundle: nil)
+    }
+    required init?(coder: NSCoder) { return nil }
+    private var ancestry: [UIViewController] {
+        var result: [UIViewController] = [], next: UIViewController? = self
+        while let value = next { result.append(value); next = value.parent }
+        return result
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated); departing = false; presentation?.appear()
+    }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        departing = ancestry.contains { $0.isMovingFromParent || $0.isBeingDismissed }
+    }
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        let source = ancestry
+        presentation?.parentDisappeared(
+            departing: departing || source.contains { $0.isMovingFromParent || $0.isBeingDismissed },
+            coveredByPresentation: source.contains { $0.presentedViewController != nil })
     }
 }

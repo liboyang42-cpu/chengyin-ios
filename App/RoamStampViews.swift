@@ -3,16 +3,28 @@ import SwiftUI
 @MainActor struct RoamStampAlbumView: View {
     let reader: any RoamExperienceReading
     var stampDestination: (() -> AnyView)? = nil
+    let readOnlyScope: RoamStampAlbumReadOnlyScope?
     @State private var pager: RoamAlbumPager
     @State private var revision = 0
     @State private var loading = false
-    init(reader: any RoamExperienceReading, stampDestination: (() -> AnyView)? = nil) {
-        self.stampDestination = stampDestination
-        self.reader = reader; _pager = State(initialValue: RoamAlbumPager(reader: reader))
+    init(reader: any RoamExperienceReading, stampDestination: (() -> AnyView)? = nil, readOnlyScope: RoamStampAlbumReadOnlyScope? = nil) {
+        self.stampDestination = stampDestination; self.readOnlyScope = readOnlyScope
+        self.reader = reader
+        let albumReader: any RoamExperienceReading
+        if let readOnlyScope { albumReader = readOnlyScope } else { albumReader = reader }
+        _pager = State(initialValue: RoamAlbumPager(reader: albumReader))
+    }
+    var canShowAlbum: Bool { readOnlyScope?.matches(reader) ?? true }
+    var allowsCapture: Bool { readOnlyScope == nil }
+    @ViewBuilder var captureDestination: some View {
+        if allowsCapture {
+            if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) }
+        }
     }
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 20) {
+                if canShowAlbum {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
                 if let error = pager.error { RoamExperienceIssue(error: error) { Task { await load() } } }
                 if pager.loaded && pager.stamps.isEmpty {
@@ -20,7 +32,7 @@ import SwiftUI
                         .accessibilityIdentifier("roam.experience.album.empty")
                 }
                 ForEach(pager.stamps) { stamp in
-                    NavigationLink { RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample) } label: {
+                    NavigationLink { RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope) } label: {
                         RoamStampCard(stamp: stamp, offline: reader.isOfflineExample)
                     }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("roam.experience.album.stamp")
                 }
@@ -29,22 +41,31 @@ import SwiftUI
                     Button("roam.experience.loadMore") { Task { await load() } }
                         .buttonStyle(.bordered).accessibilityIdentifier("roam.experience.album.more")
                 }
+                } else { RoamStampReadOnlyUnavailable() }
             }.padding()
         }.navigationTitle("roam.experience.album")
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("media.stamp.title", systemImage: "camera") } } }
+            .toolbar {
+                if allowsCapture {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink { captureDestination } label: { Label("media.stamp.title", systemImage: "camera") }
+                    }
+                }
+            }
             .task(id: reader.identity) { await refresh() }
             .refreshable { await refresh() }
             .onDisappear { pager.cancelPending(); revision += 1; loading = false }
             .accessibilityIdentifier("roam.experience.album")
     }
     private func refresh() async {
+        guard canShowAlbum else { pager.reset(); revision += 1; loading = false; return }
         revision += 1; loading = false; pager.reset(); await load()
     }
     private func load() async {
-        guard !loading else { return }
+        guard canShowAlbum, !loading else { return }
         revision += 1; let ticket = revision
         loading = true
         await pager.loadNext()
+        guard canShowAlbum else { pager.reset(); revision += 1; loading = false; return }
         if revision == ticket { loading = false; revision += 1 }
     }
 }
@@ -85,15 +106,19 @@ private struct RoamStampImage: View {
         } else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
     }
 }
-struct RoamStampDetailView: View {
+@MainActor struct RoamStampDetailView: View {
     let stamp: RoamAlbumStamp
     let offline: Bool
+    var readOnlyScope: RoamStampAlbumReadOnlyScope? = nil
+    var canShowStamp: Bool { readOnlyScope?.isCurrent ?? true }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                RoamExperienceNotice(offline: offline)
-                RoamStampCard(stamp: stamp, offline: offline)
-                Text("roam.experience.albumPrivacy").font(.caption).foregroundStyle(.secondary)
+                if canShowStamp {
+                    RoamExperienceNotice(offline: offline)
+                    RoamStampCard(stamp: stamp, offline: offline)
+                    Text("roam.experience.albumPrivacy").font(.caption).foregroundStyle(.secondary)
+                } else { RoamStampReadOnlyUnavailable() }
             }.padding()
         }.navigationTitle("roam.experience.cityStamp")
     }
@@ -134,5 +159,45 @@ struct RoamCityStampDraftView: View {
         }.navigationTitle("roam.experience.cityStamp")
             .onChange(of: draft.caption) { _, _ in review = false }
             .accessibilityIdentifier("roam.experience.stamp.draft")
+    }
+}
+
+
+/// A frozen view-only album scope. It delegates the existing album read and no other capability.
+@MainActor final class RoamStampAlbumReadOnlyScope: RoamExperienceReading {
+    private let base: any RoamExperienceReading
+    private let readerID: ObjectIdentifier
+    private let expected: RoamExperienceIdentity
+    private let presentationIsCurrent: () -> Bool
+    init(reader: any RoamExperienceReading, identity: RoamExperienceIdentity,
+         isCurrent: @escaping () -> Bool) {
+        base = reader; readerID = ObjectIdentifier(reader); expected = identity; presentationIsCurrent = isCurrent
+    }
+    var isCurrent: Bool { presentationIsCurrent() && base.identity == expected }
+    func matches(_ reader: any RoamExperienceReading) -> Bool { ObjectIdentifier(reader) == readerID && isCurrent }
+    var identity: RoamExperienceIdentity? { isCurrent ? expected : nil }
+    var isConfigured: Bool { isCurrent && base.isConfigured }
+    var isOfflineExample: Bool { base.isOfflineExample }
+    func album(page: Int, pageSize: Int) async throws -> RoamAlbumPage {
+        guard isCurrent, !Task.isCancelled else { throw CancellationError() }
+        guard base.isConfigured else { throw APIError.notConfigured }
+        let result = try await base.album(page: page, pageSize: pageSize)
+        guard isCurrent, !Task.isCancelled else { throw CancellationError() }
+        return result
+    }
+    func history() throws -> [RoamHistoryRecord] { throw APIError.notConfigured }
+    func localWalkStatus() throws -> RoamLocalWalkStatus { throw APIError.notConfigured }
+    func sessionFact(_ query: RoamRecoveryQuery) async throws -> RoamSessionFact { throw APIError.notConfigured }
+    func tilePage(afterID: Int, limit: Int) async throws -> RoamTileMemoryPage { throw APIError.notConfigured }
+    func shopBadge() async throws -> RoamShopBadge? { throw APIError.notConfigured }
+}
+private struct RoamStampReadOnlyUnavailable: View {
+    @Environment(\.locale) private var locale
+    var body: some View {
+        Text(verbatim: locale.language.languageCode?.identifier == "zh"
+             ? "此集邮册已不属于当前查看会话。请返回后重新打开。"
+             : "This album is no longer part of the current viewing session. Go back and open it again.")
+            .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("roam.experience.album.scopeExpired")
     }
 }

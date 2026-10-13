@@ -38,6 +38,26 @@ import Foundation
         let clientSessionKey: String
         var clock: RoamForegroundElapsedClock
     }
+    private var capturedFinishedRoute: FinishedRoute?
+    private struct FinishedRoute {
+        let identity: RoamExperienceIdentity
+        let clientSessionKey: String
+        let reference: RoamFinishedHistoryReference
+        let points: [RoamHistoryPoint]
+    }
+    /// Only points retained in this controller after a fully archived settlement.
+    /// An empty result means no route is available, never a reconstructed or zero-distance walk.
+    public var finishedRouteTrack: [RoamHistoryPoint]? {
+        guard phase == .finished, foreground, !busy, isAvailable, record == nil,
+              let identity = service?.identity, identity == boundIdentity,
+              let reference = completedHistory, let fact = settlement,
+              fact.hasCompleteSettlement, fact.sessionID == reference.serverSessionID else {
+            capturedFinishedRoute = nil; return nil
+        }
+        guard let captured = capturedFinishedRoute, captured.identity == identity,
+              captured.reference == reference, fact.clientSessionKey == captured.clientSessionKey else { return [] }
+        return captured.points
+    }
     private var capturedPlaceMemory: CapturedPlaceMemory?
     private struct CapturedPlaceMemory {
         let identity: RoamExperienceIdentity
@@ -82,6 +102,22 @@ import Foundation
                 monotonicNow: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
                 key: @escaping () -> String = { UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased() }) {
         self.service = service; self.location = location; self.journal = journal; self.history = history; self.now = now; self.monotonicNow = monotonicNow; self.key = key
+    }
+    /// Current owner for an explicit, local-only pause-and-browse presentation.
+    public var localBrowseIdentity: RoamExperienceIdentity? {
+        guard foreground, [.active, .paused].contains(phase), !busy, isAvailable,
+              let current = service?.identity, current == boundIdentity,
+              let record, record.scope.storageKey == current.scope.storageKey,
+              !record.finishRequested, record.pendingWrite == nil else { return nil }
+        return current
+    }
+    /// In-memory route samples for display only; an empty array does not reconstruct a recovered route.
+    public var currentRouteTrack: [RoamHistoryPoint]? {
+        guard foreground, [.active, .paused].contains(phase), !busy, isAvailable,
+              let current = service?.identity, current == boundIdentity,
+              let record, record.scope.storageKey == current.scope.storageKey,
+              record.sessionID != nil, !record.finishRequested, record.pendingWrite == nil else { return nil }
+        return track
     }
     /// Display-only time for this controller's newly started walk. Never restored from dates or journal metadata.
     public var localForegroundElapsedSeconds: Int? {
@@ -166,6 +202,7 @@ import Foundation
         } catch { fail(error, token: token, locationFailure: true) }
     }
     public func pause() {
+        capturedFinishedRoute = nil
         capturedPlaceMemory = nil
         pauseLocalElapsed()
         unstartedContinuation = nil
@@ -300,6 +337,17 @@ import Foundation
             return
         }
     }
+    /// Existing nearby metadata only; never a discovery or arrival receipt.
+    public func merchantDescription(for place: RoamPlace) -> String? {
+        guard phase == .active, foreground, !busy, isAvailable, placesReadError == nil,
+              let current = service?.identity, current == boundIdentity,
+              let record, record.scope.storageKey == current.scope.storageKey,
+              record.sessionID != nil, !record.finishRequested, record.pendingWrite == nil,
+              place.isSupported, place.type == 2,
+              let row = places.first(where: { $0.id == place.id && $0 == place }),
+              let text = row.merchantDescriptionText, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return text
+    }
     /// No automatic proximity rewards. The user chooses each verified source POI.
     public func discover(_ place: RoamPlace) async { await visit(place, shop: false) }
     public func visitShop(_ place: RoamPlace) async { await visit(place, shop: true) }
@@ -433,6 +481,8 @@ import Foundation
     }
     private func archive(_ fact: RoamSessionFact) throws {
         guard let record, fact.hasCompleteSettlement, record.pendingTiles.isEmpty, let id = fact.sessionID else { throw RoamExperienceFailure.incompleteSettlement }
+        let routeIdentity = boundIdentity, routeGeneration = generation, routeOperation = operation
+        let routePoints = track
         settlement = fact
         guard let history, history.scope == record.scope else { throw RoamLiveFailure.journalUnavailable }
         var fields: [String: Any] = ["ts": Int64(record.startedAt.timeIntervalSince1970 * 1000), "serverSessionID": id,
@@ -444,6 +494,14 @@ import Foundation
         try journal.clear(scope: record.scope)
         completedHistory = .init(timestamp: archived.ts, serverSessionID: id)
         self.record = nil; phase = .finished; error = nil; lastFix = nil; previousFix = nil; track = []; places = []; registeredShops = []; grid = []; presenceEnabled = false
+        // Publishing this optional memory never changes settlement or persistence success.
+        if let identity = routeIdentity, routeOperation != nil, operation == routeOperation,
+           generation == routeGeneration, boundIdentity == identity, service?.identity == identity,
+           isAvailable, foreground, fact.clientSessionKey == record.clientSessionKey,
+           let reference = completedHistory {
+            capturedFinishedRoute = .init(identity: identity, clientSessionKey: record.clientSessionKey,
+                reference: reference, points: routePoints)
+        }
     }
     private func persist(_ draft: RoamLiveRecord) throws { try journal.write(draft); record = draft }
     private func checkForeground() throws { guard foreground else { throw RoamLiveFailure.foregroundRequired } }
@@ -468,6 +526,7 @@ import Foundation
         if phase == .paused, record?.finishRequested == true { phase = .recoveryRequired }
     }
     public func invalidate() {
+        capturedFinishedRoute = nil
         capturedPlaceMemory = nil
         localElapsed = nil
         unstartedContinuation = nil

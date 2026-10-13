@@ -965,3 +965,408 @@ private final class LiveTransport: HTTPTransport {
         XCTAssertTrue(owner.actionConfirmed(service.base.rows[0], shop: false))
     }
 }
+
+@MainActor final class RoamLiveMerchantDescriptionTests: XCTestCase {
+    private let date = Date(timeIntervalSince1970: 1_790_932_200)
+    private func place(_ text: Any? = "Provided merchant information", type: Int = 2, id: Int = 6) throws -> RoamPlace {
+        var object: [String: Any] = ["id": id, "type": type, "lat": 31.2, "lng": 121.4, "name": "Returned merchant"]
+        if let text { object["description"] = text }
+        return try JSONDecoder().decode(RoamPlace.self, from: JSONSerialization.data(withJSONObject: object))
+    }
+    private func fixture(_ row: RoamPlace? = nil) throws -> (RoamLiveSessionController, LiveService, LiveLocation, LiveStorage) {
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://merchant-description.example/native/")), accountID: 7)
+        let service = LiveService(.init(scope: scope, epoch: 1)), location = LiveLocation(date), storage = LiveStorage()
+        service.rows = [try row ?? place()]
+        let owner = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage),
+            now: { self.date }, key: { String(repeating: "a", count: 32) })
+        owner.prepare(); return (owner, service, location, storage)
+    }
+    func testCurrentMerchantTextIsReadOnlyAndPreservesReturnedString() async throws {
+        let text = "  Provided e\u{301} description\n", row = try place(text)
+        let (owner, service, location, storage) = try fixture(row)
+        XCTAssertNil(owner.merchantDescription(for: row))
+        service.onPlacesRead = { XCTAssertNil(owner.merchantDescription(for: row)) }
+        await owner.start(purposeAccepted: true)
+        let bytes = storage.bytes, fixes = location.calls, reads = service.placesReads
+        let shown = try XCTUnwrap(owner.merchantDescription(for: row))
+        XCTAssertEqual(Array(shown.utf8), Array(text.utf8))
+        XCTAssertEqual(row.description, "Provided e\u{301} description")
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, fixes); XCTAssertEqual(service.placesReads, reads)
+        XCTAssertEqual(service.discoveries, 0); XCTAssertEqual(service.visits, 0); XCTAssertEqual(service.finishes, 0)
+    }
+    func testOnlyExactCurrentSupportedTypeTwoRowCanProvideMerchantText() async throws {
+        let (owner, service, _, storage) = try fixture(); await owner.start(purposeAccepted: true)
+        let bytes = storage.bytes
+        XCTAssertNotNil(owner.merchantDescription(for: service.rows[0]))
+        for row in [try place(type: 1), try place(type: 3), try place(id: 0), try place(id: 99), try place("Stale text")] {
+            XCTAssertNil(owner.merchantDescription(for: row))
+        }
+        let (cityOwner, _, _, _) = try fixture(place("Unreviewed city description", type: 1))
+        await cityOwner.start(purposeAccepted: true)
+        XCTAssertNil(cityOwner.merchantDescription(for: try place("Unreviewed city description", type: 1)))
+        XCTAssertNil(cityOwner.placeMemory)
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(service.discoveries, 0); XCTAssertEqual(service.visits, 0)
+    }
+    func testMissingBlankAndNumericSourceDoNotInventAnIntroduction() async throws {
+        for text in [nil, NSNull(), "", " \n", 123] as [Any?] {
+            let row = try place(text), (owner, service, _, storage) = try fixture(row)
+            await owner.start(purposeAccepted: true)
+            let bytes = storage.bytes
+            XCTAssertNil(owner.merchantDescription(for: row)); XCTAssertEqual(storage.bytes, bytes)
+            if text is Int { XCTAssertEqual(row.description, "123"); XCTAssertNil(row.merchantDescriptionText) }
+            XCTAssertEqual(service.discoveries, 0); XCTAssertEqual(service.visits, 0)
+        }
+        // Existing malformed-row contract stays intact; no new success/fallback is introduced.
+        for value in [true, ["text": "No coercion"], ["No coercion"]] as [Any] {
+            XCTAssertThrowsError(try place(value))
+        }
+    }
+    func testPauseBackgroundOwnerEpochRevocationAndInvalidationHideMetadata() async throws {
+        let (owner, service, location, storage) = try fixture(); await owner.start(purposeAccepted: true)
+        let row = service.rows[0], identity = try XCTUnwrap(service.identity)
+        let reads = service.placesReads, fixes = location.calls, bytes = storage.bytes
+        service.identity = .init(scope: identity.scope, epoch: identity.epoch + 1)
+        XCTAssertTrue(service.isAvailable); XCTAssertNil(owner.merchantDescription(for: row))
+        let other = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: identity.scope.deployment)), accountID: 8)
+        service.identity = .init(scope: other, epoch: identity.epoch)
+        XCTAssertNil(owner.merchantDescription(for: row))
+        service.identity = identity; service.isAvailable = false
+        XCTAssertNil(owner.merchantDescription(for: row)); service.isAvailable = true
+        owner.setForeground(false); XCTAssertNil(owner.merchantDescription(for: row))
+        owner.setForeground(true); XCTAssertEqual(owner.phase, .paused); XCTAssertNil(owner.merchantDescription(for: row))
+        owner.invalidate(); XCTAssertNil(owner.merchantDescription(for: row))
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(service.placesReads, reads); XCTAssertEqual(location.calls, fixes)
+        XCTAssertEqual(service.discoveries, 0); XCTAssertEqual(service.visits, 0)
+    }
+    func testFailedNearbyReadCannotExposeRetainedText() async throws {
+        let (owner, service, _, storage) = try fixture(); service.failPlacesRead = true
+        await owner.start(purposeAccepted: true)
+        XCTAssertTrue(owner.placesReadFailed); XCTAssertNil(owner.merchantDescription(for: service.rows[0]))
+        service.failPlacesRead = false; await owner.retryNearbyRead()
+        XCTAssertNotNil(owner.merchantDescription(for: service.rows[0]))
+        let bytes = storage.bytes
+        owner.pause(); XCTAssertNil(owner.merchantDescription(for: service.rows[0]))
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(service.discoveries, 0); XCTAssertEqual(service.visits, 0)
+    }
+}
+
+@MainActor final class RoamPauseRouteOverviewTests: XCTestCase {
+    private let date = Date(timeIntervalSince1970: 1_790_932_200)
+    private let key = String(repeating: "a", count: 32)
+    private func fixture() throws -> (RoamLiveSessionController, LiveService, LiveLocation, LiveStorage, RoamHistoryScope) {
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://route-overview.example/native/")), accountID: 7)
+        let service = LiveService(.init(scope: scope, epoch: 1)), location = LiveLocation(date), storage = LiveStorage()
+        let owner = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage),
+            now: { self.date }, key: { self.key })
+        owner.prepare(); return (owner, service, location, storage, scope)
+    }
+    private func secondPoint(_ owner: RoamLiveSessionController, _ location: LiveLocation) async throws {
+        location.value = try RoamDeviceFix(coordinate: XCTUnwrap(RoamCoordinate(latitude: 31.2001, longitude: 121.4001)),
+            accuracyMeters: 10, measuredAt: date.addingTimeInterval(1), datum: .gcj02)
+        await owner.pulse()
+    }
+    func testPauseKeepsExactCurrentSamplesAndViewingDoesNoWork() async throws {
+        let (owner, service, location, storage, _) = try fixture()
+        XCTAssertNil(owner.currentRouteTrack)
+        await owner.start(purposeAccepted: true); XCTAssertEqual(owner.currentRouteTrack?.count, 1)
+        await secondPoint(owner, location)
+        let track = try XCTUnwrap(owner.currentRouteTrack); XCTAssertEqual(track.count, 2)
+        owner.pause(); XCTAssertEqual(owner.phase, .paused); XCTAssertNil(owner.lastFix)
+        let bytes = storage.bytes, fixes = location.calls, reads = service.reads, reveals = service.reveals
+        let places = service.placesReads, shops = service.registeredReads, stops = location.stops
+        for _ in 0..<3 { XCTAssertEqual(owner.currentRouteTrack, track) }
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, fixes); XCTAssertEqual(location.stops, stops)
+        XCTAssertEqual(service.reads, reads); XCTAssertEqual(service.reveals, reveals)
+        XCTAssertEqual(service.placesReads, places); XCTAssertEqual(service.registeredReads, shops)
+        XCTAssertEqual(service.finishes, 0); XCTAssertEqual(service.visits, 0); XCTAssertEqual(service.discoveries, 0)
+    }
+    func testForegroundReturnOnlyReviewsPausedTrackAndExplicitResumeKeepsExistingContract() async throws {
+        let (owner, service, location, storage, _) = try fixture()
+        await owner.start(purposeAccepted: true); await secondPoint(owner, location)
+        let track = try XCTUnwrap(owner.currentRouteTrack)
+        owner.setForeground(false); XCTAssertNil(owner.currentRouteTrack)
+        let bytes = storage.bytes, fixes = location.calls, reveals = service.reveals
+        owner.setForeground(true)
+        XCTAssertEqual(owner.phase, .paused); XCTAssertEqual(owner.currentRouteTrack, track)
+        XCTAssertEqual(location.calls, fixes); XCTAssertEqual(service.reveals, reveals); XCTAssertEqual(storage.bytes, bytes)
+        await owner.resume(purposeAccepted: false)
+        XCTAssertEqual(owner.phase, .paused); XCTAssertEqual(location.calls, fixes)
+        XCTAssertEqual(owner.currentRouteTrack, track); XCTAssertNotNil(owner.error)
+        location.value = try RoamDeviceFix(coordinate: XCTUnwrap(RoamCoordinate(latitude: 31.2002, longitude: 121.4002)),
+            accuracyMeters: 10, measuredAt: date.addingTimeInterval(2), datum: .gcj02)
+        let previousDistance = owner.record?.distanceMeters
+        await owner.resume(purposeAccepted: true)
+        XCTAssertEqual(owner.phase, .active); XCTAssertEqual(location.calls, fixes + 1)
+        XCTAssertEqual(owner.record?.distanceMeters, previousDistance)
+        XCTAssertEqual(Array(try XCTUnwrap(owner.currentRouteTrack).prefix(track.count)), track)
+    }
+    func testRestoredRecordDoesNotInventEarlierRouteFromDistanceOrTiles() async throws {
+        let (owner, service, location, storage, _) = try fixture()
+        await owner.start(purposeAccepted: true); await secondPoint(owner, location); owner.pause()
+        XCTAssertGreaterThan(try XCTUnwrap(owner.record).distanceMeters, 0)
+        let restored = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage), now: { self.date })
+        restored.prepare(); XCTAssertNil(restored.currentRouteTrack)
+        await restored.recover(); XCTAssertEqual(restored.phase, .paused)
+        XCTAssertEqual(restored.currentRouteTrack, []); XCTAssertTrue(restored.track.isEmpty)
+        XCTAssertNil(restored.localForegroundElapsedSeconds)
+        let bytes = storage.bytes, fixes = location.calls, reads = service.reads
+        for _ in 0..<3 { XCTAssertEqual(restored.currentRouteTrack, []) }
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, fixes); XCTAssertEqual(service.reads, reads)
+    }
+    func testAccountEpochMissingIdentityRevocationAndInvalidateHideOldTrack() async throws {
+        let (owner, service, location, storage, scope) = try fixture()
+        await owner.start(purposeAccepted: true); await secondPoint(owner, location); owner.pause()
+        let current = try XCTUnwrap(service.identity), bytes = storage.bytes, fixes = location.calls
+        service.identity = .init(scope: scope, epoch: 2)
+        XCTAssertTrue(service.isAvailable); XCTAssertNil(owner.currentRouteTrack)
+        let other = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: scope.deployment)), accountID: 8)
+        service.identity = .init(scope: other, epoch: 1); XCTAssertNil(owner.currentRouteTrack)
+        service.identity = nil; XCTAssertNil(owner.currentRouteTrack)
+        service.identity = current; service.isAvailable = false; XCTAssertNil(owner.currentRouteTrack)
+        service.isAvailable = true; owner.invalidate(); XCTAssertNil(owner.currentRouteTrack); XCTAssertTrue(owner.track.isEmpty)
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, fixes)
+    }
+    func testFailedPauseKeepsRiskAndViewingNeverRetriesLocation() async throws {
+        let (owner, service, location, storage, _) = try fixture()
+        await owner.start(purposeAccepted: true); await secondPoint(owner, location)
+        let track = try XCTUnwrap(owner.currentRouteTrack)
+        location.value = try RoamDeviceFix(coordinate: location.value.coordinate, accuracyMeters: 81,
+            measuredAt: date.addingTimeInterval(2), datum: .gcj02)
+        await owner.pulse(); XCTAssertEqual(owner.phase, .paused); XCTAssertNotNil(owner.error)
+        let bytes = storage.bytes, fixes = location.calls, reveals = service.reveals
+        XCTAssertEqual(owner.currentRouteTrack, track); XCTAssertNotNil(owner.error)
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, fixes); XCTAssertEqual(service.reveals, reveals)
+    }
+    func testBusyPendingBootstrapAndFinishIntentDoNotExposeAnOverview() async throws {
+        let (owner, service, _, _, _) = try fixture()
+        service.onPlacesRead = { XCTAssertTrue(owner.busy); XCTAssertNil(owner.currentRouteTrack) }
+        await owner.start(purposeAccepted: true); XCTAssertNotNil(owner.currentRouteTrack)
+        service.failFinish = true; await owner.finish()
+        XCTAssertEqual(owner.record?.finishRequested, true); XCTAssertNil(owner.currentRouteTrack)
+        let (pending, other, _, storage, _) = try fixture()
+        other.failReveal = true; await pending.start(purposeAccepted: true)
+        XCTAssertEqual(pending.record?.pendingWrite, .reveal); XCTAssertNil(pending.currentRouteTrack)
+        let bytes = storage.bytes; pending.pause(); XCTAssertNil(pending.currentRouteTrack); XCTAssertEqual(storage.bytes, bytes)
+    }
+}
+
+@MainActor extension RoamPauseRouteOverviewTests {
+    func testOwnerRetiredInsideExistingReadCannotPublishOldRoute() async throws {
+        let (owner, service, location, storage, scope) = try fixture()
+        service.onPlacesRead = {
+            service.identity = .init(scope: scope, epoch: 2)
+            XCTAssertNil(owner.currentRouteTrack)
+        }
+        await owner.start(purposeAccepted: true)
+        XCTAssertEqual(owner.phase, .unavailable); XCTAssertNil(owner.currentRouteTrack); XCTAssertTrue(owner.track.isEmpty)
+        let bytes = storage.bytes, calls = location.calls, reads = service.reads, reveals = service.reveals
+        XCTAssertNil(owner.currentRouteTrack)
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, calls)
+        XCTAssertEqual(service.reads, reads); XCTAssertEqual(service.reveals, reveals)
+    }
+}
+
+@MainActor final class RoamLocalBrowseIdentityTests: XCTestCase {
+    private let date = Date(timeIntervalSince1970: 1_790_932_200)
+    private func fixture() throws -> (RoamLiveSessionController, LiveService, LiveLocation, LiveStorage) {
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://local-browse.example/native")), accountID: 7)
+        let service = LiveService(.init(scope: scope, epoch: 1)), location = LiveLocation(date), storage = LiveStorage()
+        let owner = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage), now: { self.date }, key: { String(repeating: "a", count: 32) })
+        owner.prepare(); return (owner, service, location, storage)
+    }
+    func testCurrentActiveAndPausedProjectionNeverStartsReadsOrWrites() async throws {
+        let (owner, service, location, storage) = try fixture()
+        XCTAssertNil(owner.localBrowseIdentity); await owner.start(purposeAccepted: true)
+        XCTAssertEqual(owner.localBrowseIdentity, service.identity); owner.pause()
+        let bytes = storage.bytes, fixes = location.calls, stops = location.stops, reveals = service.reveals
+        let reads = service.reads, places = service.placesReads, shops = service.registeredReads
+        for _ in 0..<3 { XCTAssertEqual(owner.localBrowseIdentity, service.identity) }
+        XCTAssertEqual(owner.phase, .paused); XCTAssertEqual(storage.bytes, bytes)
+        XCTAssertEqual(location.calls, fixes); XCTAssertEqual(location.stops, stops)
+        XCTAssertEqual(service.reveals, reveals); XCTAssertEqual(service.reads, reads)
+        XCTAssertEqual(service.placesReads, places); XCTAssertEqual(service.registeredReads, shops)
+        XCTAssertEqual(service.finishes, 0); XCTAssertEqual(service.discoveries, 0); XCTAssertEqual(service.visits, 0)
+    }
+    func testBackgroundEpochAccountAndRetirementDoNotRetainBrowseOwner() async throws {
+        let (owner, service, location, storage) = try fixture(); await owner.start(purposeAccepted: true)
+        let identity = try XCTUnwrap(service.identity), bytes = storage.bytes, fixes = location.calls
+        owner.setForeground(false); XCTAssertNil(owner.localBrowseIdentity)
+        owner.setForeground(true); XCTAssertEqual(owner.phase, .paused); XCTAssertEqual(owner.localBrowseIdentity, identity)
+        service.identity = .init(scope: identity.scope, epoch: 2); XCTAssertNil(owner.localBrowseIdentity)
+        let other = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: identity.scope.deployment)), accountID: 8)
+        service.identity = .init(scope: other, epoch: 1); XCTAssertNil(owner.localBrowseIdentity)
+        service.identity = identity; service.isAvailable = false; XCTAssertNil(owner.localBrowseIdentity)
+        service.isAvailable = true; owner.invalidate(); XCTAssertNil(owner.localBrowseIdentity)
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, fixes)
+    }
+    func testBusyUnknownPendingAndFinishIntentStayBlockedAndByteExact() async throws {
+        let (owner, service, _, _) = try fixture()
+        service.onPlacesRead = { XCTAssertTrue(owner.busy); XCTAssertNil(owner.localBrowseIdentity) }
+        await owner.start(purposeAccepted: true); XCTAssertNotNil(owner.localBrowseIdentity)
+        service.failFinish = true; await owner.finish()
+        XCTAssertEqual(owner.record?.finishRequested, true); XCTAssertNil(owner.localBrowseIdentity)
+        let (pending, failed, location, storage) = try fixture(); failed.failReveal = true
+        await pending.start(purposeAccepted: true)
+        let bytes = storage.bytes, fixes = location.calls
+        XCTAssertEqual(pending.record?.pendingWrite, .reveal); XCTAssertNil(pending.localBrowseIdentity)
+        pending.pause(); XCTAssertEqual(pending.phase, .recoveryRequired)
+        XCTAssertNil(pending.localBrowseIdentity); XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, fixes)
+    }
+}
+
+@MainActor private final class FinishedRouteStorage: RoamHistoryDataStoring {
+    enum Failure { case history, clear }
+    var bytes: [String: Data] = [:]
+    var failure: Failure?
+    var onArchiveWrite: (() -> Void)?
+    func read(key: String) throws -> Data? { bytes[key] }
+    func write(_ data: Data, key: String) throws {
+        let history = key.hasPrefix("roam-history-v1-")
+        let fields = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let clear = key.hasPrefix("roam-live-v1-") && (fields?["record"] == nil || fields?["record"] is NSNull)
+        if (failure == .history && history) || (failure == .clear && clear) { throw APIError.notConfigured }
+        bytes[key] = data
+        if history || clear { onArchiveWrite?() }
+    }
+}
+@MainActor private final class FinishedRouteService: RoamLiveServing {
+    let base: LiveService
+    var identity: RoamExperienceIdentity? { get { base.identity } set { base.identity = newValue } }
+    var isAvailable: Bool { base.isAvailable }
+    var presenceAvailable: Bool { false }
+    var onFact: (() -> Void)?
+    var response: RoamSessionFact?
+    init(_ identity: RoamExperienceIdentity) { base = LiveService(identity) }
+    func fact(key: String) async throws -> RoamSessionFact {
+        let value = try await base.fact(key: key); onFact?(); return response ?? value
+    }
+    func reveal(sessionID: Int?, clientSessionKey: String, tiles: [String]) async throws -> RoamLiveRevealReceipt {
+        try await base.reveal(sessionID: sessionID, clientSessionKey: clientSessionKey, tiles: tiles)
+    }
+    func places(fix: RoamDeviceFix) async throws -> [RoamPlace] { try await base.places(fix: fix) }
+    func registeredShops(fix: RoamDeviceFix) async throws -> [RoamRouteNode] { try await base.registeredShops(fix: fix) }
+    func discover(sessionID: Int, poiID: Int, fix: RoamDeviceFix) async throws -> RoamLiveDiscoveryReceipt { throw APIError.notConfigured }
+    func shopVisit(sessionID: Int, sourceType: Int, sourceID: Int, fix: RoamDeviceFix) async throws -> RoamLiveShopReceipt { throw APIError.notConfigured }
+    func presence(sessionID: Int, fix: RoamDeviceFix, explorationPercent: Int) async throws { throw APIError.notConfigured }
+    func finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int) async throws { try await base.finish(sessionID: sessionID, poiIDs: poiIDs, distanceMeters: distanceMeters) }
+}
+@MainActor final class RoamFinishedRouteTests: XCTestCase {
+    private let date = Date(timeIntervalSince1970: 1_790_932_200)
+    private func fixture() throws -> (RoamLiveSessionController, FinishedRouteService, LiveLocation, FinishedRouteStorage, RoamHistoryScope) {
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://finished-route.example/native/")), accountID: 7)
+        let service = FinishedRouteService(.init(scope: scope, epoch: 1)), location = LiveLocation(date), storage = FinishedRouteStorage()
+        let history = RoamHistoryStore(storage: storage, currentScope: { service.identity?.scope })
+        let owner = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage),
+            history: history, now: { self.date }, key: { String(repeating: "a", count: 32) })
+        owner.prepare(); return (owner, service, location, storage, scope)
+    }
+    private func walk(_ owner: RoamLiveSessionController, _ location: LiveLocation) async throws -> [RoamHistoryPoint] {
+        await owner.start(purposeAccepted: true)
+        location.value = try RoamDeviceFix(coordinate: XCTUnwrap(RoamCoordinate(latitude: 31.2001, longitude: 121.4001)),
+            accuracyMeters: 10, measuredAt: date.addingTimeInterval(1), datum: .gcj02)
+        await owner.pulse()
+        let points = try XCTUnwrap(owner.currentRouteTrack); XCTAssertEqual(points.count, 2); return points
+    }
+    func testOnlyFullyArchivedFinishPublishesExactMemoryWithoutPersistingTrackOrExtraWork() async throws {
+        let (owner, service, location, storage, scope) = try fixture()
+        XCTAssertNil(owner.finishedRouteTrack)
+        let points = try await walk(owner, location); XCTAssertNil(owner.finishedRouteTrack)
+        await owner.finish()
+        XCTAssertEqual(owner.phase, .finished); XCTAssertNil(owner.record); XCTAssertTrue(owner.track.isEmpty)
+        XCTAssertEqual(owner.finishedRouteTrack, points)
+        XCTAssertNil(try RoamLiveJournal(storage: storage).read(scope: scope))
+        XCTAssertEqual(try owner.makeFinishedHistoryReader().history().first?.track, [])
+        let bytes = storage.bytes, fixes = location.calls, reads = service.base.reads, reveals = service.base.reveals
+        for _ in 0..<3 { XCTAssertEqual(owner.finishedRouteTrack, points) }
+        XCTAssertEqual(bytes, storage.bytes); XCTAssertEqual(fixes, location.calls)
+        XCTAssertEqual(reads, service.base.reads); XCTAssertEqual(reveals, service.base.reveals); XCTAssertEqual(service.base.finishes, 1)
+        for data in bytes.values {
+            let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+            XCTAssertNil(fields["finishedRoute"]); XCTAssertNil((fields["record"] as? [String: Any])?["track"])
+        }
+    }
+    func testBothArchiveFailuresKeepRouteUnavailableAndRecoveryDoesNotRedispatchFinish() async throws {
+        for failure in [FinishedRouteStorage.Failure.history, .clear] {
+            let (owner, service, location, storage, _) = try fixture(); _ = try await walk(owner, location)
+            storage.failure = failure; await owner.finish()
+            XCTAssertNotEqual(owner.phase, .finished); XCTAssertNil(owner.finishedRouteTrack); XCTAssertNil(owner.completedHistory)
+            XCTAssertNotNil(owner.record); XCTAssertNotNil(owner.error)
+            storage.failure = nil; await owner.recover()
+            XCTAssertEqual(owner.phase, .finished); XCTAssertNotNil(owner.finishedRouteTrack)
+            XCTAssertEqual(service.base.finishes, 1)
+        }
+    }
+    func testWrongSessionWrongKeyAndIncompleteFactsCannotExposeFinishedRoute() async throws {
+        for (id, key, complete) in [(99, String(repeating: "a", count: 32), true), (12, String(repeating: "b", count: 32), true), (12, String(repeating: "a", count: 32), false)] {
+            let (owner, service, location, _, _) = try fixture(); _ = try await walk(owner, location)
+            service.response = try service.base.decode(RoamSessionFact.self,
+                "{\"state\":\"FINISHED\",\"sessionId\":\(id),\"clientSessionKey\":\"\(key)\",\"resultComplete\":\(complete),\"result\":{\"tileXp\":1,\"poiXp\":0,\"totalXp\":1,\"newTiles\":1,\"newPois\":0,\"tilesEver\":1,\"sessionShops\":0}}")
+            await owner.finish(); XCTAssertNotEqual(owner.phase, .finished); XCTAssertNil(owner.finishedRouteTrack)
+        }
+    }
+    func testRestoredFinishedRecordHasExplicitlyMissingRouteAndDoesNotAcquireFix() async throws {
+        let (owner, service, location, storage, _) = try fixture(); _ = try await walk(owner, location)
+        service.base.failFinish = true; await owner.finish()
+        let restored = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage),
+            history: RoamHistoryStore(storage: storage, currentScope: { service.identity?.scope }), now: { self.date })
+        restored.prepare(); service.base.factState = "FINISHED"
+        let fixes = location.calls, writes = service.base.finishes
+        await restored.recover()
+        XCTAssertEqual(restored.phase, .finished); XCTAssertEqual(restored.finishedRouteTrack, [])
+        XCTAssertEqual(location.calls, fixes); XCTAssertEqual(service.base.finishes, writes)
+    }
+    func testOwnerEpochAccountAndApprovalChangesRetireRatherThanReviveOldRoute() async throws {
+        for mutation in 0..<4 {
+            let (owner, service, location, _, scope) = try fixture(); _ = try await walk(owner, location); await owner.finish()
+            let identity = try XCTUnwrap(service.identity)
+            if mutation == 0 { service.identity = .init(scope: scope, epoch: 2) }
+            if mutation == 1 { service.identity = .init(scope: try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: scope.deployment)), accountID: 8), epoch: 1) }
+            if mutation == 2 { service.identity = nil }
+            if mutation == 3 { service.base.isAvailable = false }
+            XCTAssertNil(owner.finishedRouteTrack)
+            service.identity = identity; service.base.isAvailable = true
+            XCTAssertEqual(owner.finishedRouteTrack, [])
+        }
+    }
+    func testPauseBackgroundAndInvalidateRetireFinishedRouteWithoutRestartOrStorageChange() async throws {
+        for mutation in 0..<3 {
+            let (owner, service, location, storage, _) = try fixture(); _ = try await walk(owner, location); await owner.finish()
+            let bytes = storage.bytes, fixes = location.calls, reads = service.base.reads
+            if mutation == 0 { owner.pause(); XCTAssertEqual(owner.finishedRouteTrack, []) }
+            if mutation == 1 {
+                owner.setForeground(false); XCTAssertNil(owner.finishedRouteTrack)
+                owner.setForeground(true); XCTAssertEqual(owner.phase, .finished); XCTAssertEqual(owner.finishedRouteTrack, [])
+            }
+            if mutation == 2 { owner.invalidate(); XCTAssertNil(owner.finishedRouteTrack) }
+            XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, fixes); XCTAssertEqual(service.base.reads, reads)
+        }
+    }
+    func testDepartureOrOwnerChangeDuringFactCannotPublishOldReply() async throws {
+        for switchOwner in [false, true] {
+            let (owner, service, location, _, scope) = try fixture(); _ = try await walk(owner, location)
+            service.onFact = {
+                if switchOwner { service.identity = .init(scope: scope, epoch: 2) } else { owner.pause() }
+            }
+            await owner.finish()
+            XCTAssertNil(owner.finishedRouteTrack); XCTAssertNil(owner.completedHistory)
+        }
+    }
+    func testReentrantStorageDepartureCannotRecaptureRetiredPointsAfterClear() async throws {
+        let (owner, _, location, storage, _) = try fixture(); _ = try await walk(owner, location)
+        storage.onArchiveWrite = { owner.pause(); XCTAssertNil(owner.finishedRouteTrack) }
+        await owner.finish()
+        // Existing persistence outcome is untouched; optional route publication fails closed.
+        XCTAssertEqual(owner.finishedRouteTrack, []); XCTAssertTrue(owner.track.isEmpty)
+    }
+}
+
+@MainActor extension RoamFinishedRouteTests {
+    func testCanceledFactReadCannotPublishRouteOrMutateArchivedHistory() async throws {
+        let (owner, service, location, storage, _) = try fixture(); _ = try await walk(owner, location)
+        service.onFact = { withUnsafeCurrentTask { $0?.cancel() } }
+        let task = Task { await owner.finish() }; await task.value
+        XCTAssertNil(owner.completedHistory); XCTAssertNil(owner.finishedRouteTrack)
+        XCTAssertFalse(storage.bytes.keys.contains { $0.hasPrefix("roam-history-v1-") })
+        XCTAssertNotNil(owner.record); XCTAssertEqual(service.base.finishes, 1)
+    }
+}
