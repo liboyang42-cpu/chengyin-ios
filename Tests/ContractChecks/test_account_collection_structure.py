@@ -99,9 +99,27 @@ class AccountCollectionStructureTests(unittest.TestCase):
         self.assertIn('onOpenPost?(.init(id: post.id, generation: post.generation))', view)
         self.assertEqual(view.count('AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending)'), 2)
         root = self.text('App/AccountView.swift')
-        self.assertIn('saved.scope == session.accountCollectionReader.scope', root)
-        self.assertIn('SquareDetailView(id: saved.route.id, contentGeneration: saved.route.generation', root)
-        self.assertIn('.onChange(of: session.accountCollectionReader.scope) { _, _ in savedPost = nil }', root)
+        entry = root.split('AccountCollectionAccountLinks(reader:', 1)[1].split('Section {', 1)[0]
+        self.assertIn('session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope)', entry)
+        self.assertIn('savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)', entry)
+        self.assertIn('favoritesReader: session.profileFavoritesReader', entry)
+        destination = root.split('ProfileFavoriteNavigationLayer(owner: savedPostOwner)', 1)[1].split('.sheet(isPresented:$showsSettings)', 1)[0]
+        self.assertIn('ProfileFavoriteDetailDestination(selection: selected,', destination)
+        self.assertIn('makeReader: { session.makeProfileFavoriteDetailReader(selected) }', destination)
+        self.assertIn('.id(selected.id)', destination)
+        self.assertIn('.onChange(of: session.profileFavoritesReader.scope)', destination)
+        self.assertIn('savedPostOwner.updateScope(scope); savedTopic = nil', destination)
+        owner = self.text('App/ProfileFavoriteDetailDestination.swift')
+        self.assertIn('if let reader, selection.isCurrent', owner)
+        self.assertIn('SquareDetailView(id: selection.route.id, contentGeneration: selection.route.generation,', owner)
+        self.assertIn('reader: reader, accountReader: accountReader, actions: actions).id(reader.scope)', owner)
+        self.assertIn('self.selection?.id == id, selected.isCurrent', owner)
+        self.assertIn('if value == nil { _ = self.close(id: id) }', owner)
+        self.assertIn('selected.id == id', owner)
+        self.assertIn('.navigationDestination(item: owner.binding(for: selected), destination: destination)', owner)
+        self.assertIn('.onDisappear { savedPostOwner.disappear() }', root)
+        detail = owner.split('struct ProfileFavoriteDetailDestination: View', 1)[1]
+        self.assertNotIn('.onDisappear', detail)
 
     def test_saved_post_pagination_and_races_have_behavioral_test_cases(self):
         source = self.text('Core/AccountCollectionReading.swift')

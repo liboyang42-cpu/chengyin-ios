@@ -1,18 +1,14 @@
 import SwiftUI
 
-struct AccountView: View {
+@MainActor struct AccountView: View {
     let account: Account
     var privateHomeCoordinator: PrivateHomeCoordinator? = nil
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
     @EnvironmentObject private var session: AppSession
-    private struct SavedTopicRoute: Identifiable, Hashable { let id: Int }
-    private struct SavedPostRoute: Identifiable, Hashable {
-        let route: SquareContentRoute
-        let scope: UUID
-        var id: SquareContentRoute { route }
-    }
+    private struct SavedTopicRoute: Identifiable, Hashable { let id: Int; let scope: UUID }
     @State private var savedTopic: SavedTopicRoute?
-    @State private var savedPost: SavedPostRoute?
+    @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showsSettings=false
     @State private var showsTickets=false
     @State private var showsCooperation=false
@@ -93,9 +89,12 @@ struct AccountView: View {
                         Label("wallet.title", systemImage: "wallet.pass")
                     }.accessibilityIdentifier("account.wallet")
                 }
-                AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{ savedTopic=SavedTopicRoute(id:$0) },rewards:session.nonCashRewardReader,onOpenPost:{
-                    savedPost = SavedPostRoute(route: $0, scope: session.accountCollectionReader.scope)
-                }, couponReader: session.profileOwnedCouponReader).id(session.accountCollectionReader.scope)
+                AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{
+                    savedTopic = SavedTopicRoute(id: $0, scope: session.profileFavoritesReader.scope)
+                },rewards:session.nonCashRewardReader,onOpenPost:{
+                    guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
+                    _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
+                }, couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader).id(session.accountCollectionReader.scope)
                 Section {
                     NavigationLink { SessionObjectCardsView() } label: {
                         Label("objects.title", systemImage: "rectangle.stack")
@@ -136,16 +135,21 @@ struct AccountView: View {
                 MerchantOnboardingView(session:session,coordinator:session.merchantOnboardingCoordinator)
             }
             .navigationDestination(item:$savedTopic) { route in
-                SessionTopicDetailView(id: route.id, session: session).id(session.topicReader.scope)
-            }
-            .navigationDestination(item:$savedPost) { saved in
-                if saved.scope == session.accountCollectionReader.scope, session.accountCollectionReader.isAuthenticated {
-                    SquareDetailView(id: saved.route.id, contentGeneration: saved.route.generation, reader: session.squareReader,
-                                     accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
-                        .id(session.squareReader.scope)
+                if route.scope == session.profileFavoritesReader.scope, session.profileFavoritesReader.isConfigured {
+                    SessionTopicDetailView(id: route.id, session: session).id(session.topicReader.scope)
                 } else { AccountCollectionIssueView(issue: .login) }
             }
-            .onChange(of: session.accountCollectionReader.scope) { _, _ in savedPost = nil }
+            .background {
+                ProfileFavoriteNavigationLayer(owner: savedPostOwner) { selected in
+                    ProfileFavoriteDetailDestination(selection: selected,
+                        makeReader: { session.makeProfileFavoriteDetailReader(selected) },
+                        accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
+                        .id(selected.id)
+                }
+            }
+            .onChange(of: session.profileFavoritesReader.scope) { _, scope in
+                savedPostOwner.updateScope(scope); savedTopic = nil
+            }
             .sheet(isPresented:$showsSettings) { SettingsView() }
             .sheet(isPresented:$showsCooperation) { CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader).id(session.cooperationReader.scope) }
             .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope) }
@@ -154,6 +158,9 @@ struct AccountView: View {
                 Button("action.cancel",role:.cancel) {}
             }
         }
+        .onAppear { savedPostOwner.appear(scope: session.profileFavoritesReader.scope, foreground: scenePhase == .active) }
+        .onDisappear { savedPostOwner.disappear() }
+        .onChange(of: scenePhase) { _, phase in savedPostOwner.setForeground(phase == .active) }
     }
 
     @MainActor private var ticketPendingOrderProvider: TicketWalletPendingOrderProvider {

@@ -116,14 +116,23 @@ private struct AccountCollectionFavoriteCard: View {
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
     var couponReader: (any AccountCollectionReading)? = nil
     private var ownedCouponReader: any AccountCollectionReading { couponReader ?? reader }
+    var favoritesReader: (any AccountCollectionReading)? = nil
+    private var savedReader: any AccountCollectionReading { favoritesReader ?? reader }
     var body: some View {
+        let saved = savedReader, renderedScope = saved.scope
         Section {
             NavigationLink {
                 NonCashRewardsView(reader: reader, rewards: rewards).id(reader.scope)
             } label: { Label("rewards.title", systemImage: "gift") }
             .accessibilityIdentifier("rewards.open")
             NavigationLink {
-                AccountCollectionFavoritesView(reader: reader, onOpenTopic: onOpenTopic, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval).id(reader.scope)
+                AccountCollectionFavoritesView(reader: saved, onOpenTopic: { id in
+                    guard saved.isAuthenticated, saved.isConfigured, saved.scope == renderedScope else { return }
+                    onOpenTopic(id)
+                }, onOpenPost: onOpenPost.map { open in { route in
+                    guard saved.isAuthenticated, saved.isConfigured, saved.scope == renderedScope else { return }
+                    open(route)
+                } }, favoriteRemoval: favoriteRemoval).id(renderedScope)
             } label: { Label("accountCollection.favorites.title", systemImage: "heart") }
             .accessibilityIdentifier("accountCollection.openFavorites")
             NavigationLink {

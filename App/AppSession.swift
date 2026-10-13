@@ -1903,6 +1903,36 @@ final class AppSession: ObservableObject {
                   ContentDraftContextFence.matches(captured, current) else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
+    lazy var profileFavoritesReader = ProfileFavoritesReader(service: accountCollectionService,
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let fresh = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, fresh) else { return nil }
+            return self.composition.profileFavoritesReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let fresh = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, fresh) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
+    func makeProfileFavoriteDetailReader(_ selection: ProfileFavoritePostSelection) -> ProfileFavoriteDetailReader {
+        let api = regionalConfiguration?.apiConfiguration
+        let service = api.map {
+            SquareService(configuration: $0, transport: compositionTransport.scopedForProfileFavorite(selection))
+        }
+        return ProfileFavoriteDetailReader(selection: selection, service: service,
+            current: { [weak self] in self?.currentRuntimeDependencyContext },
+            viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+            access: { [weak self] context in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(context, fresh) else { return nil }
+                return self.composition.profileFavoriteDetailAccess(context)
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, fresh) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
     private let cooperationService:CooperationService?
     private var currentCooperationSession:CooperationReadSession? {
         guard let account,let token else { return nil }
