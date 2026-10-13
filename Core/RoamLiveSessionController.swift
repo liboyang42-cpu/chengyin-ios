@@ -31,6 +31,13 @@ import Foundation
     private let journal: RoamLiveJournal
     private let history: RoamHistoryStore?
     private let now: () -> Date
+    private let monotonicNow: () -> TimeInterval
+    private var localElapsed: LocalElapsed?
+    private struct LocalElapsed {
+        let identity: RoamExperienceIdentity
+        let clientSessionKey: String
+        var clock: RoamForegroundElapsedClock
+    }
     private let key: () -> String
     private var boundIdentity: RoamExperienceIdentity?
     private var generation = 0
@@ -50,8 +57,39 @@ import Foundation
     public init(service: (any RoamLiveServing)? = nil, location: (any RoamDeviceLocationProviding)? = nil,
                 journal: RoamLiveJournal, history: RoamHistoryStore? = nil,
                 now: @escaping () -> Date = Date.init,
+                monotonicNow: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
                 key: @escaping () -> String = { UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased() }) {
-        self.service = service; self.location = location; self.journal = journal; self.history = history; self.now = now; self.key = key
+        self.service = service; self.location = location; self.journal = journal; self.history = history; self.now = now; self.monotonicNow = monotonicNow; self.key = key
+    }
+    /// Display-only time for this controller's newly started walk. Never restored from dates or journal metadata.
+    public var localForegroundElapsedSeconds: Int? {
+        guard localElapsedIsCurrent else { localElapsed = nil; return nil }
+        guard foreground, [.active, .paused].contains(phase),
+              record?.pendingWrite == nil, record?.finishRequested == false,
+              var elapsed = localElapsed else { return nil }
+        let seconds = elapsed.clock.seconds(at: monotonicNow())
+        localElapsed = elapsed
+        return seconds
+    }
+    private var localElapsedIsCurrent: Bool {
+        guard let elapsed = localElapsed, let record, isAvailable,
+              service?.identity == elapsed.identity, boundIdentity == elapsed.identity,
+              record.scope.storageKey == elapsed.identity.scope.storageKey,
+              record.clientSessionKey == elapsed.clientSessionKey else { return false }
+        return true
+    }
+    private func startLocalElapsed(_ record: RoamLiveRecord) {
+        guard let identity = boundIdentity, service?.identity == identity, isAvailable, foreground,
+              let clock = RoamForegroundElapsedClock(now: monotonicNow()) else { localElapsed = nil; return }
+        localElapsed = .init(identity: identity, clientSessionKey: record.clientSessionKey, clock: clock)
+    }
+    private func pauseLocalElapsed() {
+        guard localElapsedIsCurrent, var elapsed = localElapsed else { localElapsed = nil; return }
+        elapsed.clock.pause(at: monotonicNow()); localElapsed = elapsed
+    }
+    private func resumeLocalElapsed() {
+        guard foreground, localElapsedIsCurrent, var elapsed = localElapsed else { localElapsed = nil; return }
+        elapsed.clock.resume(at: monotonicNow()); localElapsed = elapsed
     }
     /// Uses the already supplied local store; no new transport, grant or factory setup.
     public func makeFinishedHistoryReader(offlineExample: Bool = false) -> RoamFinishedHistoryReader {
@@ -84,6 +122,7 @@ import Foundation
             try journal.write(draft); record = draft
             presenceEnabled = presenceAccepted && presenceAvailable
             phase = .active; _ = try accumulate(fix)
+            startLocalElapsed(draft)
             try await flushReveal(token)
             try await refreshPlaces(fix, token: token)
         } catch { fail(error, token: token, locationFailure: record == nil) }
@@ -105,6 +144,7 @@ import Foundation
         } catch { fail(error, token: token, locationFailure: true) }
     }
     public func pause() {
+        pauseLocalElapsed()
         unstartedContinuation = nil
         generation += 1; operation = nil; busy = false; location?.stop()
         previousFix = nil; lastFix = nil; presenceEnabled = false
@@ -118,10 +158,12 @@ import Foundation
         guard purposeAccepted else { error = RoamLiveFailure.consentRequired; changed(); return }
         guard record?.pendingWrite == nil else { phase = .recoveryRequired; changed(); return }
         presenceEnabled = presenceAccepted && presenceAvailable; previousFix = nil; phase = .active
+        resumeLocalElapsed()
         await pulse()
     }
     public func recover() async {
         guard record != nil, phase != .active, let token = begin() else { return }
+        localElapsed = nil // Recovery has no trustworthy accumulated-duration field.
         defer { end(token) }
         do {
             guard let record else { throw RoamLiveFailure.recoveryRequired }
@@ -195,6 +237,7 @@ import Foundation
     public func finish() async {
         guard [.active, .paused].contains(phase), let token = begin() else { return }
         defer { end(token) }
+        pauseLocalElapsed()
         location?.stop(); previousFix = nil; lastFix = nil; presenceEnabled = false
         do {
             guard var draft = record, draft.pendingWrite == nil else { throw RoamLiveFailure.recoveryRequired }
@@ -379,11 +422,13 @@ import Foundation
     private func fail(_ error: Error, token: UUID, locationFailure: Bool = false) {
         guard operation == token else { return }
         guard service?.identity == boundIdentity, isAvailable else { invalidate(); return }
+        pauseLocalElapsed()
         location?.stop(); previousFix = nil; lastFix = nil; presenceEnabled = false; self.error = error
         phase = record?.pendingWrite != nil ? .recoveryRequired : (record == nil ? (locationFailure ? .locationDenied : .unavailable) : .paused)
         if phase == .paused, record?.finishRequested == true { phase = .recoveryRequired }
     }
     public func invalidate() {
+        localElapsed = nil
         unstartedContinuation = nil
         placesReadError = nil; registeredShopsReadError = nil
         completedHistory = nil
@@ -391,4 +436,34 @@ import Foundation
         lastFix = nil; previousFix = nil; origin = nil; grid = []; boundIdentity = nil; presenceEnabled = false; error = nil; phase = .unavailable; changed()
     }
     private func changed() { onChange?() }
+}
+
+/// In-memory only. A bad clock sample permanently makes this measurement unknown.
+struct RoamForegroundElapsedClock {
+    private var accumulated: TimeInterval = 0
+    private var anchor: TimeInterval?
+    private var latest: TimeInterval
+    private var valid = true
+    init?(now: TimeInterval) {
+        guard now.isFinite, now >= 0 else { return nil }
+        anchor = now; latest = now
+    }
+    private mutating func value(at now: TimeInterval) -> TimeInterval? {
+        guard valid, now.isFinite, now >= 0, now >= latest else { valid = false; return nil }
+        latest = now
+        let value = accumulated + (anchor.map { now - $0 } ?? 0)
+        guard value.isFinite, value >= 0, value < Double(Int.max) else { valid = false; return nil }
+        return value
+    }
+    mutating func seconds(at now: TimeInterval) -> Int? {
+        value(at: now).map { Int($0.rounded(.down)) }
+    }
+    mutating func pause(at now: TimeInterval) {
+        guard let value = value(at: now) else { return }
+        accumulated = value; anchor = nil
+    }
+    mutating func resume(at now: TimeInterval) {
+        guard value(at: now) != nil, anchor == nil else { return }
+        anchor = now
+    }
 }

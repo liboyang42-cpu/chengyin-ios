@@ -216,6 +216,7 @@ import SwiftUI
     @FocusState private var aftercareSearchFocused: Bool
     @State private var segment = "all"
     @State private var teamAccessDetailsExpanded = false
+    @StateObject private var customerFilterDisclosure = MerchantCustomerFilterDisclosure()
     @State private var customerContactFlow: MerchantCustomerContactFlow?
     @State private var sourceType = 0
     @State private var sourceStart = ""
@@ -425,19 +426,27 @@ import SwiftUI
                     } }
             }
         }
-        .onAppear { if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
+        .onAppear { customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
         .onChange(of: model.revision) { _, _ in
             if let retired = noteDrafts.synchronize(), editor?.id == retired { editor = nil }
             if let retired = draftReturn.synchronize(), editor?.id == retired { editor = nil }
         }
         .onChange(of: scenePhase) { _, phase in
+            customerFilterDisclosure.sceneChanged(isActive: phase == .active)
             if phase != .active, let retired = noteDrafts.retire(), editor?.id == retired { editor = nil }
             if phase == .active { draftReturn.activate(); noteDrafts.activate() }
             else if let retired = draftReturn.retire(), editor?.id == retired { editor = nil }
         }
-        .onChange(of: reader.scope) { _, _ in teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onChange(of: reader.authorizationGeneration) { _, _ in teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onDisappear { teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }
+        .onChange(of: reader.scope) { _, _ in customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onChange(of: reader.authorizationGeneration) { _, _ in customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onDisappear { customerFilterDisclosure.viewDisappeared(); teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }
+    }
+    private var customerFilterExpansion: Binding<Bool> {
+        let scope = reader.scope, authorization = reader.authorizationGeneration
+        return customerFilterDisclosure.binding {
+            guard case .customers = query else { return false }
+            return reader.scope == scope && reader.authorizationGeneration == authorization
+        }
     }
     @ViewBuilder private var filters: some View {
         if case .customers = query {
@@ -447,23 +456,29 @@ import SwiftUI
                 Picker("merchant.business.segment", selection: $segment) {
                     ForEach(["all", "repeat", "new", "noted"], id: \.self) { Text(LocalizedStringKey("merchant.business.segment." + String($0))).tag($0) }
                 }.accessibilityIdentifier("merchant.business.segment")
-                Picker("merchant.business.sourceType", selection: $sourceType) {
-                    Text("merchant.business.segment.all").tag(0)
-                    Text("merchant.business.state.TOPIC").tag(1)
-                    Text("merchant.business.state.ACTIVITY").tag(2)
-                }
-                Picker("merchant.business.tag", selection: $tagID) {
-                    Text("merchant.business.segment.all").tag(0)
-                    ForEach(availableTags, id: \.self) { id in Text(tagName(id)).tag(id) }
-                }
-                TextField("merchant.business.sourceStart", text: $sourceStart).textInputAutocapitalization(.never)
-                TextField("merchant.business.sourceEnd", text: $sourceEnd).textInputAutocapitalization(.never)
-                MerchantCRMDateRangePicker(context: state.isCurrent && !state.isBusy
-                    ? .init(scope: reader.scope, authorization: reader.authorizationGeneration, merchantID: state.snapshot?.access.merchantID) : nil,
-                    start: sourceStart, end: sourceEnd) { value in
-                    sourceStart = value.start; sourceEnd = value.end
-                }
-                Button("merchant.business.applyFilter", action: applyCustomerFilter)
+                let expansion = customerFilterExpansion
+                DisclosureGroup(isExpanded: expansion) {
+                    Picker("merchant.business.sourceType", selection: $sourceType) {
+                        Text("merchant.business.segment.all").tag(0)
+                        Text("merchant.business.state.TOPIC").tag(1)
+                        Text("merchant.business.state.ACTIVITY").tag(2)
+                    }
+                    Picker("merchant.business.tag", selection: $tagID) {
+                        Text("merchant.business.segment.all").tag(0)
+                        ForEach(availableTags, id: \.self) { id in Text(tagName(id)).tag(id) }
+                    }
+                    TextField("merchant.business.sourceStart", text: $sourceStart).textInputAutocapitalization(.never)
+                    TextField("merchant.business.sourceEnd", text: $sourceEnd).textInputAutocapitalization(.never)
+                    MerchantCRMDateRangePicker(context: state.isCurrent && !state.isBusy
+                        ? .init(scope: reader.scope, authorization: reader.authorizationGeneration, merchantID: state.snapshot?.access.merchantID) : nil,
+                        start: sourceStart, end: sourceEnd) { value in
+                        sourceStart = value.start; sourceEnd = value.end
+                    }
+                    Button("merchant.business.applyFilter", action: applyCustomerFilter)
+                    Button("action.close") { expansion.wrappedValue = false }
+                        .accessibilityIdentifier("merchant.business.customers.closeFilters")
+                } label: { Text("merchant.business.filters") }
+                    .accessibilityIdentifier("merchant.business.customers.filterDisclosure")
                 if let expected = state.snapshot, expected.document.query == query, state.isCurrent,
                    case .customers(let applied) = query,
                    customerFilterDraft.hasWorkspaceFilters || applied.hasWorkspaceFilters {
@@ -674,4 +689,31 @@ import SwiftUI
     }
     private func movePage(_ page: Int) { query = query.paged(page); selection = []; Task { await reload() } }
     private func reload() async { selection = []; await model.load(query) }
+}
+
+@MainActor final class MerchantCustomerFilterDisclosure: ObservableObject {
+    @Published private(set) var isExpanded = true
+    private var generation = UUID()
+    @Published private var visible = false
+    @Published private var sceneActive = false
+    func viewAppeared(sceneIsActive: Bool) {
+        if !visible { generation = UUID() }
+        visible = true; sceneActive = sceneIsActive
+    }
+    func viewDisappeared() { visible = false; generation = UUID() }
+    func sceneChanged(isActive: Bool) {
+        if sceneActive != isActive { generation = UUID() }
+        sceneActive = isActive
+    }
+    func ownerChanged() { generation = UUID(); isExpanded = true }
+    func binding(isCurrent: @escaping () -> Bool) -> Binding<Bool> {
+        let captured = generation
+        return .init(get: { [weak self] in
+            guard let self, self.generation == captured, self.visible, self.sceneActive, isCurrent() else { return false }
+            return self.isExpanded
+        }, set: { [weak self] value in
+            guard let self, self.generation == captured, self.visible, self.sceneActive, isCurrent() else { return }
+            self.isExpanded = value
+        })
+    }
 }

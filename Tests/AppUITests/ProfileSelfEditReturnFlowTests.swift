@@ -1,6 +1,6 @@
 import XCTest
 
-/// Authored only: requires the central DEBUG fixture registration and an Apple runner.
+/// Normal navigation coverage. Native execution requires an Apple runner.
 final class ProfileSelfEditReturnFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure=false;app=XCUIApplication() }
@@ -36,8 +36,10 @@ final class ProfileSelfEditReturnFlowTests: XCTestCase {
     func testSavedEditorReturnsFreshPublicIntroduction() {
         launch();open();stage();app.swipeUp();app.buttons["profile.edit.review"].tap()
         let confirm=app.buttons.matching(identifier:"profile.edit.confirm").firstMatch;XCTAssertTrue(confirm.waitForExistence(timeout:5));confirm.tap()
-        XCTAssertTrue(app.staticTexts["profile.edit.status"].waitForExistence(timeout:5));app.buttons["profile.exitDiscard.back"].tap()
+        XCTAssertTrue(app.buttons["profile.selfEdit.open"].waitForExistence(timeout:5))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","introduction updated")).firstMatch.waitForExistence(timeout:5))
+        XCTAssertTrue(app.staticTexts["profile.selfEditFixture.counts"].label.contains("Writes: 1"))
+        XCTAssertFalse(app.buttons["profile.exitDiscard.back"].exists)
     }
     func testReturnReadFailureExposesReadRetry() {
         launch();app.buttons["profile.selfEditFixture.failRead"].tap();open();app.buttons["profile.exitDiscard.back"].tap()
@@ -46,4 +48,58 @@ final class ProfileSelfEditReturnFlowTests: XCTestCase {
     }
     func testOtherMemberHasNoSelfEditor() { launch("other");XCTAssertFalse(app.buttons["profile.selfEdit.open"].exists) }
     func testGuestHasNoSelfEditor() { launch("guest");XCTAssertFalse(app.buttons["profile.selfEdit.open"].exists) }
+    private func launchReturn(_ scenario: String) {
+        app.launchArguments = ["--uitesting-profile-edit-fixture", scenario,
+            "--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        let open = app.buttons["profile.savedReturnFixture.open"]
+        XCTAssertTrue(open.waitForExistence(timeout: 10)); open.tap()
+        XCTAssertTrue(app.buttons["profile.fieldEdit.open.introduction"].waitForExistence(timeout: 5))
+        stage()
+        let review = app.buttons["profile.edit.review"]
+        for _ in 0..<4 where !review.isHittable { app.swipeUp() }
+        XCTAssertTrue(review.waitForExistence(timeout: 5)); XCTAssertTrue(review.isHittable); review.tap()
+        let candidates = app.buttons.matching(identifier: "profile.edit.confirm")
+        let exists = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in candidates.count > 0 }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [exists], timeout: 5), .completed)
+        let leaves = candidates.allElementsBoundByIndex.filter { $0.descendants(matching: .button).count == 0 }
+        XCTAssertEqual(leaves.count, 1)
+        guard leaves.count == 1, let confirm = leaves.first else { return }
+        XCTAssertTrue(confirm.isEnabled); XCTAssertTrue(confirm.isHittable); confirm.tap()
+    }
+    private func assertStillInEditor(file: StaticString = #filePath, line: UInt = #line) {
+        let counts = app.staticTexts["profile.savedReturnFixture.counts"]
+        let wrote = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "Writes: 1"), object: counts)
+        XCTAssertEqual(XCTWaiter.wait(for: [wrote], timeout: 5), .completed, file: file, line: line)
+        XCTAssertTrue(counts.label.contains("Visits: 1"), file: file, line: line)
+        XCTAssertTrue(app.buttons["profile.exitDiscard.back"].exists, file: file, line: line)
+        XCTAssertFalse(app.buttons["profile.savedReturnFixture.open"].exists, file: file, line: line)
+    }
+    func testNormalNavigationReturnsOnceAfterConfirmedMatchingReadback() {
+        launchReturn("savedReturnSuccess")
+        XCTAssertTrue(app.buttons["profile.savedReturnFixture.open"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["profile.savedReturnFixture.introduction"].label, "Original return introduction updated")
+        XCTAssertEqual(app.staticTexts["profile.savedReturnFixture.counts"].label, "Visits: 2 Writes: 1")
+        XCTAssertFalse(app.buttons["profile.exitDiscard.back"].exists)
+    }
+    func testNormalNavigationUnknownMatchingReadbackStaysLockedInEditor() {
+        launchReturn("savedReturnUnknown"); assertStillInEditor()
+        XCTAssertTrue(app.staticTexts["profile.edit.status"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["profile.edit.review"].isEnabled)
+    }
+    func testNormalNavigationRejectedWriteDoesNotReturn() {
+        launchReturn("savedReturnRejected"); assertStillInEditor()
+        XCTAssertTrue(app.staticTexts["profile.edit.status"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["profile.edit.review"].isEnabled)
+    }
+    func testNormalNavigationFailedAuthoritativeReadbackDoesNotReturn() {
+        launchReturn("savedReturnReadFailure"); assertStillInEditor()
+        XCTAssertTrue(app.staticTexts["profile.edit.status"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["profile.edit.review"].isEnabled)
+    }
+    func testNormalNavigationOwnerChangeBeforeReplyDoesNotReturn() {
+        launchReturn("savedReturnSwitch"); assertStillInEditor()
+        XCTAssertFalse(app.buttons["profile.fieldEdit.open.introduction"].exists)
+    }
+
 }

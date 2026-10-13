@@ -27,7 +27,7 @@ struct ProfileEditExitConfirmation: Identifiable {
 @MainActor
 final class ProfileEditModel: ObservableObject {
     let coordinator: ProfileEditCoordinator
-    @Published var draft = ProfileEditDraft() { didSet { retireTextEdit(); avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }
+    @Published var draft = ProfileEditDraft() { didSet { retireSavedReturn(); retireTextEdit(); avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }
     @Published var confirmation: ProfileEditConfirmation?
     @Published private(set) var reloadConfirmation: ProfileEditReloadConfirmation?
     @Published private(set) var exitConfirmation: ProfileEditExitConfirmation?
@@ -42,6 +42,24 @@ final class ProfileEditModel: ObservableObject {
         let viewerRevision: UInt64?
     }
     private var reviewedDraft: ReviewedDraft?
+    private var savedReturnRevision: UInt64 = 0
+    private struct SavedReturnOwner {
+        let receipt: ProfileSavedReturn
+        let generation: Int
+        let revision: UInt64
+        let draft: ProfileEditDraft
+    }
+    private var savedReturnOwner: SavedReturnOwner?
+    func retireSavedReturn() { savedReturnRevision &+= 1; savedReturnOwner = nil }
+    /// The view invokes its navigation callback only after this synchronous fence.
+    func consumeSavedReturn(_ value: ProfileSavedReturn) -> Bool {
+        guard let owner = savedReturnOwner, owner.receipt == value else { return false }
+        savedReturnOwner = nil
+        guard !Task.isCancelled, !exitCommitted, !busy, !coordinator.isBusy,
+              owner.generation == generation, owner.revision == savedReturnRevision,
+              Self.sameDraft(draft, owner.draft), coordinator.consumeSavedReturn(value) else { return false }
+        return true
+    }
     private var exitCommitted = false
     @Published private(set) var busy = false
     @Published private(set) var revision = 0
@@ -174,7 +192,7 @@ final class ProfileEditModel: ObservableObject {
         draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures)
     }
     func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }
-    func retireAvatar() { cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
+    func retireAvatar() { retireSavedReturn(); cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
     func activateAvatar() { avatarActive = true }
     private func avatarSaveValidity(for captured: ProfileEditDraft) -> ProfileAvatarSaveValidity? {
         guard let replacement = captured.avatarReplacement else { return nil }
@@ -232,6 +250,7 @@ final class ProfileEditModel: ObservableObject {
     func cancelReload() { reloadConfirmation = nil }
     func retireReload() { reloadContextRevision &+= 1; cancelReload(); cancelExit() }
     func requestReload() async {
+        retireSavedReturn()
         guard !exitCommitted else { return }
         guard textEdit == nil else { return }
         synchronizeContext()
@@ -284,6 +303,7 @@ final class ProfileEditModel: ObservableObject {
         await load()
     }
     func load() async {
+        retireSavedReturn()
         guard !exitCommitted else { return }
         guard textEdit == nil else { return }
         retireReload()
@@ -307,6 +327,7 @@ final class ProfileEditModel: ObservableObject {
         return true
     }
     func prepare() async {
+        retireSavedReturn()
         guard !exitCommitted else { return }
         guard textEdit == nil else { return }
         retireReload()
@@ -343,19 +364,29 @@ final class ProfileEditModel: ObservableObject {
         draft = snapshot.draft; revision += 1
         return true
     }
-    func save(_ value: ProfileEditConfirmation) async {
-        guard !exitCommitted else { return }
-        guard textEdit == nil else { return }
+    @discardableResult func save(_ value: ProfileEditConfirmation) async -> ProfileSavedReturn? {
+        let returnsReviewedDraft = canRestoreReviewedDraft(value)
+        retireSavedReturn()
+        guard !exitCommitted else { return nil }
+        guard textEdit == nil else { return nil }
         retireReload()
         synchronizeContext()
         let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision
-        let request = generation; reviewedDraft = nil; confirmation = nil; busy = true
-        await coordinator.save(value)
-        guard request == generation else { return }
-        guard retainContext(identity: identity, viewerRevision: viewerRevision) else { return }
+        let request = generation, returnRevision = savedReturnRevision
+        let capturedDraft = draft, capturedDraftRevision = avatarDraftRevision
+        reviewedDraft = nil; confirmation = nil; busy = true
+        let receipt = await coordinator.save(value)
+        guard request == generation else { return nil }
+        guard retainContext(identity: identity, viewerRevision: viewerRevision) else { return nil }
+        let mayReturn = returnsReviewedDraft && !Task.isCancelled && !exitCommitted && returnRevision == savedReturnRevision
+            && capturedDraftRevision == avatarDraftRevision && Self.sameDraft(draft, capturedDraft)
         if coordinator.messageKey == "profile.edit.saved" || coordinator.messageKey == "profile.edit.changed",
            let snapshot = coordinator.snapshot { draft = snapshot.draft }
         busy = false; revision += 1
+        guard mayReturn, let receipt else { return nil }
+        savedReturnOwner = .init(receipt: receipt, generation: generation,
+            revision: savedReturnRevision, draft: draft)
+        return receipt
     }
 }
 
@@ -368,14 +399,16 @@ struct ProfileEditView: View {
     let categoryReader: (any DiscoveryReading)?
     let avatarDependencies: ProfileAvatarDependencies?
     let caseImageReader: (any RetainedPublicImageReading)?
+    private let onSaved: (() -> Void)?
     @State private var showPreferences = false
     @State private var showReloadConfirmation = false
     @State private var showExitConfirmation = false
     private var selectedPreferences: [Int] {
         model.draft.routePreferenceIDs ?? (model.coordinator.snapshot?.tagIds ?? "").split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
     }
-    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil) {
+    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil, onSaved: (() -> Void)? = nil) {
         _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))
+        self.onSaved = onSaved
         self.sessionRevision = sessionRevision; self.categoryReader = categoryReader; self.avatarDependencies = avatarDependencies; self.caseImageReader = caseImageReader
     }
     private var editorForm: some View {
@@ -472,7 +505,7 @@ struct ProfileEditView: View {
         .onChange(of: model.reloadConfirmation?.id) { _, id in showReloadConfirmation = id != nil }
         .onChange(of: showReloadConfirmation) { _, showing in if !showing { model.cancelReload() } }
         .onChange(of: model.confirmation?.id) { _, _ in model.retireReload() }
-        .onChange(of: sessionRevision) { _, _ in model.retireReload() }
+        .onChange(of: sessionRevision) { _, _ in model.retireSavedReturn(); model.retireReload() }
         .onChange(of: sessionRevision) { _, _ in
             if let value = model.textEdit { model.cancelTextEdit(value) }
         }
@@ -534,7 +567,12 @@ struct ProfileEditView: View {
                         if value.payload.avatarReplacement != nil { Text("profile.avatar.confirmChange") }
                         Text("profile.edit.confirmHint")
                     }
-                    Button { Task { await model.save(value) } } label: { Text("profile.edit.confirm") }
+                    Button {
+                        Task {
+                            guard let receipt = await model.save(value), model.consumeSavedReturn(receipt) else { return }
+                            if let onSaved { onSaved() } else { dismiss() }
+                        }
+                    } label: { Text("profile.edit.confirm") }
                         .accessibilityIdentifier("profile.edit.confirm")
                     Button(role: .cancel) {
                         model.coordinator.cancel(value); model.confirmation = nil

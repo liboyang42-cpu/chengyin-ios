@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct MerchantBusinessField: View {
     let key: String
@@ -73,6 +74,12 @@ struct MerchantBusinessField: View {
                 Text("merchant.business.amountPending").foregroundStyle(.secondary)
             }
         }
+        if row.kind == .refund, !compact, let reader = settlementReader,
+           let currentSnapshot = settlementSnapshot, let snapshot = currentSnapshot(),
+           MerchantRefundNumberCopyModel.number(in: row, snapshot: snapshot) != nil {
+            MerchantRefundNumberCopyView(row: row, snapshot: snapshot, reader: reader, currentSnapshot: currentSnapshot)
+                .id(MerchantRefundNumberCopyModel.displayIdentity(row))
+        }
         if row.kind == .customer, compact {
             MerchantCustomerContactSummary(record: row, access: access)
         }
@@ -137,5 +144,112 @@ struct MerchantBusinessField: View {
             if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
         }.appNavigationTitle("merchant.business.scan")
         .onDisappear { raw = ""; preview = nil }
+    }
+}
+
+
+/// A local action bound to the exact displayed refund and its original read context.
+@MainActor final class MerchantRefundNumberCopyModel: ObservableObject {
+    @Published private(set) var intentID = UUID()
+    @Published private(set) var copied = false
+    private let row: MerchantBusinessRecord
+    private let snapshot: MerchantBusinessSnapshot
+    private let reader: any MerchantBusinessReading
+    private let scope: MerchantBusinessScope?
+    private let authorization: UUID?
+    private let currentSnapshot: () -> MerchantBusinessSnapshot?
+    private var visible = false
+    private var active = false
+    private var retired = false
+
+    init(row: MerchantBusinessRecord, snapshot: MerchantBusinessSnapshot, reader: any MerchantBusinessReading,
+         currentSnapshot: @escaping () -> MerchantBusinessSnapshot?) {
+        self.row = row; self.snapshot = snapshot; self.reader = reader
+        scope = reader.scope; authorization = reader.authorizationGeneration
+        self.currentSnapshot = currentSnapshot
+    }
+    static func displayIdentity(_ row: MerchantBusinessRecord) -> [Data] {
+        [Data(row.id.utf8), Data((row.fields["refundNo"]?.string ?? "").utf8)]
+    }
+    static func number(in row: MerchantBusinessRecord, snapshot: MerchantBusinessSnapshot) -> String? {
+        guard row.kind == .refund, snapshot.access.allows("merchant:aftercare:read"),
+              case .refund(let id) = snapshot.document.query, row.id == String(id.rawValue),
+              snapshot.document.rows.filter({ $0.kind == .refund }).count == 1,
+              snapshot.document.rows.contains(row), let number = row.fields["refundNo"]?.string,
+              !number.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return number
+    }
+    private var matches: Bool {
+        !retired && scope != nil && reader.isConfigured && reader.scope == scope &&
+            reader.authorizationGeneration == authorization && currentNumberMatches
+    }
+    private var currentNumberMatches: Bool {
+        guard let current = currentSnapshot(), current == snapshot,
+              let currentRow = current.document.rows.first(where: { $0.kind == .refund && $0.id == row.id }),
+              let original = Self.number(in: row, snapshot: snapshot),
+              let latest = Self.number(in: currentRow, snapshot: current) else { return false }
+        return original.utf8.elementsEqual(latest.utf8)
+    }
+    var canCopy: Bool { visible && active && matches }
+    func appear(active: Bool) {
+        visible = true; self.active = active; intentID = UUID(); copied = false
+        if !matches { retire() }
+    }
+    func disappear() { visible = false; active = false; intentID = UUID(); copied = false }
+    func sceneChanged(active: Bool) {
+        self.active = visible && active; intentID = UUID(); copied = false
+        if !matches { retire() }
+    }
+    func retire() { retired = true; active = false; intentID = UUID(); copied = false }
+    @discardableResult func copy(intent: UUID, write: (String) -> Void) -> Bool {
+        guard intent == intentID, visible, active else { return false }
+        guard matches, let number = Self.number(in: row, snapshot: snapshot) else { retire(); return false }
+        // Consume before the injected effect: a repeated or reentrant old callback cannot write twice.
+        let completion = UUID(); intentID = completion
+        write(number)
+        if intentID == completion && matches && visible && active { copied = true }
+        return true
+    }
+}
+
+@MainActor private struct MerchantRefundNumberCopyView: View {
+    let row: MerchantBusinessRecord
+    let snapshot: MerchantBusinessSnapshot
+    let reader: any MerchantBusinessReading
+    @StateObject private var model: MerchantRefundNumberCopyModel
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
+    init(row: MerchantBusinessRecord, snapshot: MerchantBusinessSnapshot, reader: any MerchantBusinessReading,
+         currentSnapshot: @escaping () -> MerchantBusinessSnapshot?) {
+        self.row = row; self.snapshot = snapshot; self.reader = reader
+        _model = StateObject(wrappedValue: MerchantRefundNumberCopyModel(row: row, snapshot: snapshot,
+            reader: reader, currentSnapshot: currentSnapshot))
+    }
+    var body: some View {
+        let intent = model.intentID
+        let chinese = locale.languageCode == "zh"
+        VStack(alignment: .leading, spacing: 4) {
+            Button {
+                model.copy(intent: intent) { text in
+                    UIPasteboard.general.setItems([["public.utf8-plain-text": text]],
+                        options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
+                }
+            } label: {
+                Label { Text(verbatim: chinese ? "复制退款单号" : "Copy refund number") }
+                    icon: { Image(systemName: "doc.on.doc") }
+            }
+            .disabled(!model.canCopy).accessibilityIdentifier("merchant.aftercare.copyRefundNumber")
+            if model.copied {
+                Text(verbatim: chinese ? "已复制" : "Copied").font(.footnote)
+                    .accessibilityIdentifier("merchant.aftercare.copyRefundNumber.result")
+            }
+        }
+        .onAppear { model.appear(active: scenePhase == .active) }
+        .onDisappear { model.disappear() }
+        .onChange(of: scenePhase) { _, value in model.sceneChanged(active: value == .active) }
+        .onChange(of: reader.scope) { _, _ in model.retire() }
+        .onChange(of: reader.authorizationGeneration) { _, _ in model.retire() }
+        .onChange(of: snapshot) { _, _ in model.retire() }
+        .onChange(of: row) { _, _ in model.retire() }
     }
 }

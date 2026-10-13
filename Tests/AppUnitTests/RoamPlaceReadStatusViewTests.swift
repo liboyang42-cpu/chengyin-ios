@@ -180,3 +180,44 @@ import UIKit
         XCTAssertEqual(service.calls, calls); XCTAssertEqual(location.calls, fixes); XCTAssertEqual(storage.writes, writes)
     }
 }
+
+@MainActor final class RoamForegroundElapsedViewTests: XCTestCase {
+    func testKnownZeroAndMinuteBoundariesAreFormattedWithoutDates() {
+        let copy = RoamLiveElapsedCopy(locale: Locale(identifier: "en"))
+        for (seconds, value) in [(0, "00:00"), (9, "00:09"), (59, "00:59"), (60, "01:00"), (3661, "61:01")] {
+            XCTAssertEqual(copy.value(seconds: seconds), value)
+        }
+        XCTAssertEqual(copy.value(seconds: nil), "Unavailable")
+        XCTAssertEqual(copy.value(seconds: -1), "Unavailable")
+    }
+    func testEnglishChineseUnknownAndKnownRowsMountWithLargeText() {
+        for (language, title, unknown) in [("en", "Foreground time", "Unavailable"), ("zh-Hans", "本次前台用时", "暂无可靠数据")] {
+            let locale = Locale(identifier: language), copy = RoamLiveElapsedCopy(locale: locale)
+            XCTAssertEqual(copy.title, title); XCTAssertEqual(copy.value(seconds: nil), unknown)
+            XCTAssertTrue(copy.hint.contains(language == "en" ? "Recovery cannot restore" : "恢复记录无法还原"))
+            for seconds in [nil, 0, 65] as [Int?] {
+                let host = UIHostingController(rootView: RoamLiveElapsedRow(seconds: seconds)
+                    .environment(\.locale, locale).environment(\.dynamicTypeSize, .accessibility3))
+                host.loadViewIfNeeded(); host.view.layoutIfNeeded(); XCTAssertNotNil(host.view)
+            }
+        }
+    }
+    func testNormalLiveStatusRetainsCoverageAndHasReadOnlyElapsedValue() async throws {
+        let date = Date(timeIntervalSince1970: 1_790_932_200)
+        let scope = try RoamHistoryScope(market: "cn", deployment: URL(string: "https://elapsed-ui.example/native")!, accountID: 7)
+        let service = RoamCoverageUIService(identity: .init(scope: scope, epoch: 1))
+        let location = try RoamCoverageUILocation(date: date), storage = RoamCoverageUIStorage()
+        var uptime: TimeInterval = 100
+        let owner = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage),
+            now: { date }, monotonicNow: { uptime })
+        owner.prepare(); await owner.start(purposeAccepted: true); uptime = 165
+        XCTAssertEqual(owner.localForegroundElapsedSeconds, 65)
+        XCTAssertEqual(RoamLiveCoveragePresentation(controller: owner).percentage, owner.explorationPercent)
+        let calls = service.calls, fixes = location.calls, bytes = storage.bytes, writes = storage.writes
+        let host = UIHostingController(rootView: NavigationStack { RoamLiveSessionView(controller: owner) })
+        host.loadViewIfNeeded(); host.view.layoutIfNeeded(); XCTAssertNotNil(host.view)
+        _ = RoamLiveElapsedCopy(locale: Locale(identifier: "en")).value(seconds: owner.localForegroundElapsedSeconds)
+        XCTAssertEqual(service.calls, calls); XCTAssertEqual(location.calls, fixes)
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
+    }
+}

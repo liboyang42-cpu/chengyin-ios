@@ -614,3 +614,166 @@ private final class LiveTransport: HTTPTransport {
         }
     }
 }
+
+@MainActor private final class ForegroundElapsedInput {
+    var uptime: TimeInterval = 100
+    var date = Date(timeIntervalSince1970: 1_790_932_200)
+}
+@MainActor final class RoamForegroundElapsedTests: XCTestCase {
+    private let key = String(repeating: "a", count: 32)
+    private func fixture(_ input: ForegroundElapsedInput) throws -> (RoamLiveSessionController, LiveService, LiveLocation, LiveStorage, RoamHistoryScope) {
+        let scope = try RoamHistoryScope(market: "cn", deployment: URL(string: "https://elapsed.example/native")!, accountID: 7)
+        let service = LiveService(.init(scope: scope, epoch: 1)), location = LiveLocation(input.date), storage = LiveStorage()
+        let owner = RoamLiveSessionController(service: service, location: location, journal: RoamLiveJournal(storage: storage),
+            now: { input.date }, monotonicNow: { input.uptime }, key: { self.key })
+        owner.prepare(); return (owner, service, location, storage, scope)
+    }
+    func testNewAcceptedWalkCountsOnlyMonotonicTimeWithoutExtraWork() async throws {
+        let input = ForegroundElapsedInput(), (owner, service, location, storage, _) = try fixture(input)
+        XCTAssertNil(owner.localForegroundElapsedSeconds)
+        await owner.start(purposeAccepted: false); XCTAssertNil(owner.localForegroundElapsedSeconds)
+        await owner.start(purposeAccepted: true); XCTAssertEqual(owner.localForegroundElapsedSeconds, 0)
+        let bytes = storage.bytes, fixes = location.calls, reads = service.placesReads + service.registeredReads, reveals = service.reveals
+        input.uptime = 165.9
+        XCTAssertEqual(owner.localForegroundElapsedSeconds, 65)
+        input.date = input.date.addingTimeInterval(-86_400)
+        XCTAssertEqual(owner.localForegroundElapsedSeconds, 65)
+        input.date = input.date.addingTimeInterval(86_400 * 3)
+        XCTAssertEqual(owner.localForegroundElapsedSeconds, 65)
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, fixes)
+        XCTAssertEqual(service.placesReads + service.registeredReads, reads); XCTAssertEqual(service.reveals, reveals)
+        XCTAssertFalse(String(data: try XCTUnwrap(storage.bytes.values.first), encoding: .utf8)!.contains("elapsed"))
+    }
+    func testRepeatedPauseAndResumeKeepFractionAndExcludePausedGap() async throws {
+        let input = ForegroundElapsedInput(), (owner, _, _, storage, _) = try fixture(input)
+        await owner.start(purposeAccepted: true)
+        input.uptime = 110.75; let bytes = storage.bytes; owner.pause(); owner.pause()
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(owner.localForegroundElapsedSeconds, 10)
+        input.uptime = 200; owner.pause(); XCTAssertEqual(owner.localForegroundElapsedSeconds, 10)
+        await owner.resume(purposeAccepted: false); XCTAssertEqual(owner.phase, .paused)
+        XCTAssertEqual(owner.localForegroundElapsedSeconds, 10)
+        await owner.resume(purposeAccepted: true)
+        input.uptime = 205.5; await owner.resume(purposeAccepted: true)
+        XCTAssertEqual(owner.localForegroundElapsedSeconds, 16)
+        owner.pause(); input.uptime = 900; XCTAssertEqual(owner.localForegroundElapsedSeconds, 16)
+    }
+    func testBackgroundStopsAndReturnRequiresExplicitResume() async throws {
+        let input = ForegroundElapsedInput(), (owner, _, location, storage, _) = try fixture(input)
+        await owner.start(purposeAccepted: true)
+        input.uptime = 109; let bytes = storage.bytes, fixes = location.calls
+        owner.setForeground(false); XCTAssertEqual(owner.phase, .paused)
+        XCTAssertNil(owner.localForegroundElapsedSeconds); XCTAssertEqual(storage.bytes, bytes)
+        input.uptime = 400; owner.setForeground(true)
+        XCTAssertEqual(owner.localForegroundElapsedSeconds, 9); XCTAssertEqual(location.calls, fixes)
+        await owner.resume(purposeAccepted: true); input.uptime = 404
+        XCTAssertEqual(owner.localForegroundElapsedSeconds, 13)
+    }
+    func testOwnerEpochAccountAndAvailabilityChangesPermanentlyRetireDisplay() async throws {
+        for change in ["epoch", "account", "unavailable", "invalidate"] {
+            let input = ForegroundElapsedInput(), (owner, service, _, storage, scope) = try fixture(input)
+            await owner.start(purposeAccepted: true); input.uptime = 110
+            let original = service.identity, bytes = storage.bytes
+            switch change {
+            case "epoch": service.identity = .init(scope: scope, epoch: 2)
+            case "account": service.identity = .init(scope: try RoamHistoryScope(market: "cn", deployment: URL(string: "https://elapsed.example/native")!, accountID: 8), epoch: 2)
+            case "unavailable": service.isAvailable = false
+            default: owner.invalidate()
+            }
+            XCTAssertNil(owner.localForegroundElapsedSeconds, change)
+            service.identity = original; service.isAvailable = true; input.uptime = 400
+            XCTAssertNil(owner.localForegroundElapsedSeconds, change)
+            XCTAssertEqual(storage.bytes, bytes)
+        }
+    }
+    func testReconstructedRecordAndExplicitRecoveryNeverInferElapsedFromStartDate() async throws {
+        let input = ForegroundElapsedInput(), (owner, service, location, storage, scope) = try fixture(input)
+        await owner.start(purposeAccepted: true); input.uptime = 110; owner.pause()
+        XCTAssertEqual(owner.localForegroundElapsedSeconds, 10)
+        let restored = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage),
+            now: { input.date.addingTimeInterval(86_400) }, monotonicNow: { input.uptime })
+        restored.prepare(); XCTAssertEqual(restored.record?.startedAt, input.date)
+        XCTAssertNil(restored.localForegroundElapsedSeconds)
+        await restored.recover(); XCTAssertEqual(restored.phase, .paused); XCTAssertNil(restored.localForegroundElapsedSeconds)
+        input.uptime = 999; XCTAssertNil(restored.localForegroundElapsedSeconds)
+        // Recovering even within the original controller discards local provenance.
+        await owner.recover(); XCTAssertNil(owner.localForegroundElapsedSeconds)
+        XCTAssertEqual(try RoamLiveJournal(storage: storage).read(scope: scope)?.startedAt, input.date)
+    }
+    func testLegacyRecordRemainsUnknownAfterApprovedResume() async throws {
+        let input = ForegroundElapsedInput(), (owner, service, location, storage, scope) = try fixture(input)
+        var legacy = RoamLiveRecord(scope: scope, clientSessionKey: key, startedAt: input.date.addingTimeInterval(-86_400))
+        legacy.sessionID = 12; try RoamLiveJournal(storage: storage).write(legacy)
+        owner.prepare(); XCTAssertNil(owner.localForegroundElapsedSeconds)
+        await owner.recover(); await owner.resume(purposeAccepted: true)
+        XCTAssertEqual(owner.phase, .active); XCTAssertEqual(location.calls, 1); XCTAssertGreaterThan(service.reads, 0)
+        input.uptime = 180; XCTAssertNil(owner.localForegroundElapsedSeconds)
+    }
+    func testCancellationDuringRevealKeepsUnknownWriteAndJournalBytes() async throws {
+        let input = ForegroundElapsedInput(), (owner, service, _, storage, scope) = try fixture(input)
+        var pendingBytes: [String: Data] = [:]
+        service.onReveal = { input.uptime = 108; pendingBytes = storage.bytes; owner.pause() }
+        await owner.start(purposeAccepted: true)
+        XCTAssertEqual(owner.phase, .recoveryRequired); XCTAssertNil(owner.localForegroundElapsedSeconds)
+        XCTAssertEqual(storage.bytes, pendingBytes)
+        XCTAssertEqual(try RoamLiveJournal(storage: storage).read(scope: scope)?.pendingWrite, .reveal)
+        input.uptime = 200; XCTAssertNil(owner.localForegroundElapsedSeconds)
+    }
+    func testCancelledStartTaskStopsClockWithoutClearingUncertainReveal() async throws {
+        let input = ForegroundElapsedInput(), (owner, service, _, storage, scope) = try fixture(input)
+        service.onReveal = {
+            input.uptime = 108
+            withUnsafeCurrentTask { $0?.cancel() }
+        }
+        let task = Task { await owner.start(purposeAccepted: true) }
+        await task.value
+        XCTAssertEqual(owner.phase, .recoveryRequired)
+        XCTAssertNil(owner.localForegroundElapsedSeconds)
+        let bytes = storage.bytes; input.uptime = 900
+        XCTAssertNil(owner.localForegroundElapsedSeconds); XCTAssertEqual(storage.bytes, bytes)
+        XCTAssertEqual(try RoamLiveJournal(storage: storage).read(scope: scope)?.pendingWrite, .reveal)
+        XCTAssertEqual(service.reveals, 1)
+    }
+    func testBothUnknownPendingMarkersAndFinishIntentsRemainByteExact() throws {
+        for pending in [RoamLivePending.reveal, .finish] {
+            for finish in [false, true] {
+                let input = ForegroundElapsedInput(), (owner, _, _, storage, scope) = try fixture(input)
+                var draft = RoamLiveRecord(scope: scope, clientSessionKey: key, startedAt: input.date)
+                draft.pendingWrite = pending; draft.finishRequested = finish
+                try RoamLiveJournal(storage: storage).write(draft); owner.prepare()
+                let bytes = storage.bytes
+                XCTAssertNil(owner.localForegroundElapsedSeconds); owner.pause(); input.uptime = 800
+                XCTAssertNil(owner.localForegroundElapsedSeconds)
+                XCTAssertEqual(storage.bytes, bytes)
+                XCTAssertEqual(try RoamLiveJournal(storage: storage).read(scope: scope), draft)
+                XCTAssertFalse(owner.canContinueUnstartedRoam)
+            }
+        }
+    }
+    func testNegativeNonfiniteAndRegressingSamplesCannotBecomeDurationAgain() async throws {
+        for sample in [-1.0, .nan, .infinity, -.infinity, 99.0, Double.greatestFiniteMagnitude] {
+            let input = ForegroundElapsedInput(), (owner, _, _, storage, _) = try fixture(input)
+            await owner.start(purposeAccepted: true); let bytes = storage.bytes
+            input.uptime = sample; XCTAssertNil(owner.localForegroundElapsedSeconds)
+            input.uptime = 500; XCTAssertNil(owner.localForegroundElapsedSeconds)
+            XCTAssertEqual(storage.bytes, bytes)
+        }
+        for initial in [-1.0, .nan, .infinity, -.infinity] {
+            let input = ForegroundElapsedInput(); input.uptime = initial
+            let (owner, service, _, _, _) = try fixture(input)
+            await owner.start(purposeAccepted: true)
+            XCTAssertEqual(service.reveals, 1); XCTAssertEqual(owner.phase, .active)
+            XCTAssertNil(owner.localForegroundElapsedSeconds)
+            input.uptime = 200; XCTAssertNil(owner.localForegroundElapsedSeconds)
+        }
+    }
+    func testClockDuplicateTransitionsAndBackwardWhilePausedFailClosed() throws {
+        var clock = try XCTUnwrap(RoamForegroundElapsedClock(now: 20))
+        clock.resume(at: 21); XCTAssertEqual(clock.seconds(at: 23.75), 3)
+        clock.pause(at: 23.75); clock.pause(at: 24)
+        XCTAssertEqual(clock.seconds(at: 30), 3)
+        clock.resume(at: 30); clock.resume(at: 31)
+        XCTAssertEqual(clock.seconds(at: 32.25), 6)
+        clock.pause(at: 33); XCTAssertNil(clock.seconds(at: 32))
+        clock.resume(at: 200); XCTAssertNil(clock.seconds(at: 201))
+    }
+}

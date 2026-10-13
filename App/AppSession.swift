@@ -1105,6 +1105,21 @@ final class AppSession: ObservableObject {
         guard let self,self.currentOfficialContext == captured else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
+    private let profileWeeklyPointsService: ProfileWeeklyPointsService?
+    private var currentProfileWeeklyPointsSession: ProfileWeeklyPointsSession? {
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        let selected = composition.profileWeeklyPointsReadApproval(context)
+        let approvalRevision = selected?.matches(context) == true ? selected?.revision : nil
+        return try? ProfileWeeklyPointsSession(accountID: context.session.accountID,
+            epoch: gate.currentStamp, viewerRevision: compositionViewerRevision, role: context.role,
+            token: context.session.token, approvalRevision: approvalRevision)
+    }
+    lazy var profileWeeklyPointsReader = ProfileWeeklyPointsSessionReader(service: profileWeeklyPointsService,
+        currentSession: { [weak self] in self?.currentProfileWeeklyPointsSession },
+        onUnauthorized: { [weak self] captured in
+            guard let self, self.currentProfileWeeklyPointsSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
+        })
     private let growthCenterService:GrowthCenterService?
     private var currentGrowthCenterSession:GrowthCenterReadSession? {
         guard let account,let token else { return nil }
@@ -2822,6 +2837,7 @@ final class AppSession: ObservableObject {
             squareService=SquareService(configuration:configuration,transport:transport)
             socialAccountService=SocialAccountService(configuration:configuration,transport:transport)
             officialEventService=OfficialEventService(configuration:configuration,transport:transport)
+            profileWeeklyPointsService = ProfileWeeklyPointsService(configuration: configuration, transport: transport)
             growthCenterService=GrowthCenterService(configuration:configuration,transport:transport)
             creatorContentService=CreatorContentService(configuration:configuration,transport:transport)
             accountCollectionService=AccountCollectionService(configuration:configuration,transport:transport)
@@ -2846,7 +2862,7 @@ final class AppSession: ObservableObject {
             roamExperienceService=RoamExperienceService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
         compositionTransport.projectEditConfigurationRevision = { [weak self] in
             guard let self, !self.projectConfigurationChanging else { return nil }; return self.projectConfigurationRevision
         }

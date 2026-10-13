@@ -456,3 +456,72 @@ import XCTest
         XCTAssertEqual(try journal.intents(), [intent])
     }
 }
+
+extension MerchantBusinessListModelTests {
+    func testCustomerFilterDisclosurePreservesInputsSnapshotAndReadCount() async throws {
+        let reader = Reader()
+        let model = MerchantBusinessViewModel(reader: reader, journal: MerchantBusinessMemoryIntentStore())
+        await model.load(.customers(.init()))
+        let before = try XCTUnwrap(model.coordinator.snapshot), calls = reader.calls
+        let revision = model.revision, authorization = reader.authorizationGeneration
+        var unapplied = MerchantCustomerQuery()
+        unapplied.keyword = "Unapplied search"; unapplied.sourceType = 2
+        unapplied.sourceStart = "2026-10-01"; unapplied.sourceEnd = "2026-10-12"
+        let originalInput = unapplied
+        let presentation = MerchantCustomerFilterDisclosure()
+        presentation.viewAppeared(sceneIsActive: true)
+        let binding = presentation.binding { true }
+        XCTAssertTrue(binding.wrappedValue)
+        binding.wrappedValue = false; XCTAssertFalse(presentation.isExpanded)
+        binding.wrappedValue = true; XCTAssertTrue(presentation.isExpanded)
+        XCTAssertEqual(unapplied, originalInput)
+        XCTAssertEqual(model.coordinator.snapshot, before); XCTAssertEqual(reader.calls, calls)
+        XCTAssertEqual(model.revision, revision); XCTAssertEqual(reader.authorizationGeneration, authorization)
+        XCTAssertNil(model.coordinator.confirmation)
+    }
+    func testOldCustomerFilterBindingCannotCloseReappearedPanel() {
+        let presentation = MerchantCustomerFilterDisclosure()
+        presentation.viewAppeared(sceneIsActive: true)
+        let old = presentation.binding { true }
+        presentation.viewDisappeared()
+        presentation.sceneChanged(isActive: false); presentation.sceneChanged(isActive: true)
+        XCTAssertFalse(old.wrappedValue)
+        old.wrappedValue = false; XCTAssertTrue(presentation.isExpanded)
+        presentation.viewAppeared(sceneIsActive: true)
+        old.wrappedValue = false; XCTAssertTrue(presentation.isExpanded)
+        let current = presentation.binding { true }
+        current.wrappedValue = false; XCTAssertFalse(presentation.isExpanded)
+        presentation.viewAppeared(sceneIsActive: true)
+        XCTAssertFalse(current.wrappedValue)
+        current.wrappedValue = true; XCTAssertTrue(presentation.isExpanded)
+    }
+    func testCustomerFilterAuthorizationBeforeOwnerCallbackRejectsOldBinding() {
+        let presentation = MerchantCustomerFilterDisclosure()
+        presentation.viewAppeared(sceneIsActive: true)
+        var currentOwner = UUID(); let capturedOwner = currentOwner
+        let old = presentation.binding { currentOwner == capturedOwner }
+        currentOwner = UUID()
+        old.wrappedValue = false; XCTAssertTrue(presentation.isExpanded)
+        XCTAssertFalse(old.wrappedValue)
+        presentation.ownerChanged()
+        let current = presentation.binding { true }
+        current.wrappedValue = false; XCTAssertFalse(presentation.isExpanded)
+        old.wrappedValue = true; XCTAssertFalse(presentation.isExpanded)
+    }
+    func testCustomerFilterInactiveAndHiddenCallbacksStayLocalAndRetired() {
+        let presentation = MerchantCustomerFilterDisclosure()
+        presentation.viewAppeared(sceneIsActive: false)
+        let inactive = presentation.binding { true }
+        inactive.wrappedValue = false; XCTAssertTrue(presentation.isExpanded)
+        presentation.sceneChanged(isActive: true)
+        let active = presentation.binding { true }
+        active.wrappedValue = false; XCTAssertFalse(presentation.isExpanded)
+        presentation.sceneChanged(isActive: false); presentation.sceneChanged(isActive: true)
+        active.wrappedValue = true; XCTAssertFalse(presentation.isExpanded)
+        let refreshed = presentation.binding { true }
+        refreshed.wrappedValue = true; XCTAssertTrue(presentation.isExpanded)
+        presentation.viewDisappeared(); presentation.ownerChanged()
+        let hidden = presentation.binding { true }
+        hidden.wrappedValue = false; XCTAssertTrue(presentation.isExpanded)
+    }
+}

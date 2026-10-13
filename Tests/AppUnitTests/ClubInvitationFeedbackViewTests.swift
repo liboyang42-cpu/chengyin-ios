@@ -265,3 +265,258 @@ extension ClubInvitationFeedbackViewTests {
         XCTAssertEqual(f.access.sends, 0)
     }
 }
+
+extension ClubInvitationFeedbackViewTests {
+    func testDetailParentReadTriggerIsConsumedOnceAndRejectsAnOlderRevision() throws {
+        let f = FeedbackFixture(), owner = ClubInvitationFeedbackPresentation()
+        owner.appear(f.context, active: true)
+        let first = ClubInvitationFeedbackPresentation.ReadTrigger(context: f.context, revision: owner.readRevision)
+        XCTAssertTrue(owner.consumeRead(first)); XCTAssertFalse(owner.consumeRead(first))
+        owner.requestRead(f.context)
+        XCTAssertFalse(owner.consumeRead(first))
+        XCTAssertTrue(owner.consumeRead(.init(context: f.context, revision: owner.readRevision)))
+    }
+    func testDetailCoverageDoesNotRetireTheRouteOrReadTheHiddenParent() throws {
+        let f = FeedbackFixture(), owner = ClubInvitationFeedbackPresentation()
+        owner.appear(f.context, active: true)
+        XCTAssertTrue(owner.consumeRead(.init(context: f.context, revision: owner.readRevision)))
+        let snapshot = try f.snapshot(received: [f.row(1)])
+        owner.open(key: snapshot.rows[0].id, in: f.context)
+        let route = try XCTUnwrap(owner.route)
+        owner.disappear(f.context)
+        XCTAssertTrue(owner.owns(route, in: f.context)); XCTAssertTrue(owner.binding(for: route).wrappedValue)
+        owner.requestRead(f.context)
+        XCTAssertFalse(owner.consumeRead(.init(context: f.context, revision: owner.readRevision)))
+        owner.finish(route, in: f.context)
+        XCTAssertFalse(owner.consumeRead(.init(context: f.context, revision: owner.readRevision)))
+        owner.appear(f.context, active: true)
+        XCTAssertTrue(owner.consumeRead(.init(context: f.context, revision: owner.readRevision)))
+        XCTAssertFalse(owner.consumeRead(.init(context: f.context, revision: owner.readRevision)))
+    }
+    func testDetailOldBindingAndDismissCannotCloseReopenedSameInvitation() throws {
+        let f = FeedbackFixture(), owner = ClubInvitationFeedbackPresentation()
+        owner.appear(f.context, active: true)
+        let snapshot = try f.snapshot(received: [f.row(1)]), key = snapshot.rows[0].id
+        owner.open(key: key, in: f.context)
+        let first = try XCTUnwrap(owner.route), oldBinding = owner.binding(for: first)
+        oldBinding.wrappedValue = false
+        XCTAssertFalse(owner.isPresented); owner.finish(first, in: f.context)
+        owner.open(key: key, in: f.context)
+        let second = try XCTUnwrap(owner.route)
+        XCTAssertNotEqual(first.id, second.id)
+        oldBinding.wrappedValue = false; owner.finish(first, in: f.context)
+        XCTAssertEqual(owner.route?.id, second.id); XCTAssertTrue(owner.isPresented)
+        XCTAssertFalse(oldBinding.wrappedValue); XCTAssertTrue(owner.binding(for: second).wrappedValue)
+    }
+    func testDetailContextReplacementAndInactiveSceneRejectOldOwnerCallbacks() throws {
+        let f = FeedbackFixture(), owner = ClubInvitationFeedbackPresentation(), firstContext = f.context
+        owner.appear(firstContext, active: true)
+        let snapshot = try f.snapshot(received: [f.row(1)])
+        owner.open(key: snapshot.rows[0].id, in: firstContext)
+        let first = try XCTUnwrap(owner.route)
+        f.access.authorizationGeneration = UUID(); let nextContext = f.context
+        owner.bind(nextContext)
+        XCTAssertNil(owner.route); XCTAssertFalse(owner.owns(first, in: nextContext))
+        owner.finish(first, in: firstContext)
+        owner.open(key: snapshot.rows[0].id, in: nextContext)
+        let second = try XCTUnwrap(owner.route)
+        owner.setActive(false, in: nextContext)
+        XCTAssertNil(owner.route); XCTAssertFalse(owner.owns(second, in: nextContext))
+        XCTAssertFalse(owner.consumeRead(.init(context: nextContext, revision: owner.readRevision)))
+        owner.setActive(true, in: nextContext)
+        XCTAssertTrue(owner.consumeRead(.init(context: nextContext, revision: owner.readRevision)))
+    }
+    func testDetailActualDepartureRequiresVisibleReentryBeforeAnotherRead() {
+        let f = FeedbackFixture(), owner = ClubInvitationFeedbackPresentation()
+        owner.appear(f.context, active: true)
+        let old = ClubInvitationFeedbackPresentation.ReadTrigger(context: f.context, revision: owner.readRevision)
+        XCTAssertTrue(owner.consumeRead(old)); owner.disappear(f.context)
+        owner.requestRead(f.context)
+        XCTAssertFalse(owner.consumeRead(.init(context: f.context, revision: owner.readRevision)))
+        owner.appear(f.context, active: true)
+        XCTAssertFalse(owner.consumeRead(old))
+        XCTAssertTrue(owner.consumeRead(.init(context: f.context, revision: owner.readRevision)))
+    }
+    func testFreshDetailUsesSeparateReadModelAndCurrentServerRow() async throws {
+        let f = FeedbackFixture(), parent = ClubInvitationFeedbackReadModel(), detail = ClubInvitationFeedbackReadModel()
+        f.flow.value = f.value(received: [f.replacing(f.row(1), ["handleReason": .string("List reply")])])
+        let parentPermit = try activate(parent, f.context); await load(parent, f, parentPermit)
+        let parentSnapshot = try XCTUnwrap(accepted(parent, f)), parentID = parent.snapshotID, key = parentSnapshot.rows[0].id
+        XCTAssertNil(detail.snapshot)
+        f.flow.value = f.value(received: [f.replacing(f.row(1, status: .id(2)), ["handleReason": .string("Fresh reply"), "shareMode": .id(2), "fixedFee": .number(6.25)])])
+        let detailPermit = try activate(detail, f.context); await load(detail, f, detailPermit)
+        let fresh = try XCTUnwrap(accepted(detail, f))
+        let target = try XCTUnwrap(fresh.target(key: key, context: f.context, snapshotID: detail.snapshotID))
+        XCTAssertEqual(target.row.status, 2)
+        XCTAssertEqual(detail.terms(for: target, in: f.context, clubReader: f.club, reader: f.flow, access: f.access)?.handleReason, "Fresh reply")
+        XCTAssertEqual(detail.terms(for: target, in: f.context, clubReader: f.club, reader: f.flow, access: f.access)?.fixedFee, 6.25)
+        XCTAssertEqual(parent.snapshotID, parentID); XCTAssertEqual(accepted(parent, f), parentSnapshot)
+        XCTAssertEqual(f.club.reads, 2); XCTAssertEqual(f.access.resources, [.topics, .topics])
+        XCTAssertEqual(f.flow.resources, [.invitations, .invitations]); XCTAssertEqual(f.access.sends, 0)
+    }
+    func testFreshDetailValidEmptyReadDoesNotReuseTheListTarget() async throws {
+        let f = FeedbackFixture(), detail = ClubInvitationFeedbackReadModel()
+        let list = try f.snapshot(received: [f.row(1)]), key = list.rows[0].id
+        let permit = try activate(detail, f.context); await load(detail, f, permit)
+        let fresh = try XCTUnwrap(accepted(detail, f))
+        XCTAssertEqual(detail.phase, .ready)
+        XCTAssertNil(fresh.target(key: key, context: f.context, snapshotID: detail.snapshotID))
+        XCTAssertTrue(fresh.rows.isEmpty); XCTAssertEqual(f.access.sends, 0)
+    }
+    func testFreshDetailLosingOwnershipDoesNotLoadOrRevealInvitationTerms() async throws {
+        let f = FeedbackFixture(), detail = ClubInvitationFeedbackReadModel(), permit = try activate(detail, f.context)
+        f.club.returned = FeedbackClubReader.record(owner: false)
+        await load(detail, f, permit)
+        XCTAssertEqual(detail.phase, .denied); XCTAssertNil(detail.snapshot)
+        XCTAssertTrue(f.access.resources.isEmpty); XCTAssertTrue(f.flow.resources.isEmpty); XCTAssertEqual(f.access.sends, 0)
+    }
+    func testFreshDetailLeaveFencesLateReplyAndReentryGetsANewPermit() async throws {
+        let f = FeedbackFixture(), detail = ClubInvitationFeedbackReadModel(), scope = f.context
+        let oldPermit = try activate(detail, scope)
+        f.flow.held = true; let entered = expectation(description: "detail held")
+        f.flow.entered = { entered.fulfill() }
+        let old = Task { await self.load(detail, f, oldPermit) }
+        await fulfillment(of: [entered], timeout: 1)
+        XCTAssertEqual(detail.phase, .loading); XCTAssertNil(detail.snapshot)
+        detail.leave(scope)
+        let newPermit = try activate(detail, scope)
+        XCTAssertNotEqual(oldPermit.visibility, newPermit.visibility)
+        f.flow.pending[0].resume(returning: f.value(received: [f.replacing(f.row(1), ["handleReason": .string("Old reply")])]))
+        await old.value
+        XCTAssertNil(detail.snapshot)
+        f.flow.held = false; f.flow.value = f.value(received: [f.replacing(f.row(1), ["handleReason": .string("New reply")])])
+        await load(detail, f, newPermit)
+        let fresh = try XCTUnwrap(accepted(detail, f))
+        let target = try XCTUnwrap(fresh.target(key: fresh.rows[0].id, context: scope, snapshotID: detail.snapshotID))
+        XCTAssertEqual(detail.terms(for: target, in: scope, clubReader: f.club, reader: f.flow, access: f.access)?.handleReason, "New reply")
+        XCTAssertEqual(f.access.sends, 0)
+    }
+}
+
+extension ClubInvitationFeedbackViewTests {
+    func testDetailCancelledTaskCannotConsumeThePendingVisibleRead() async {
+        let f = FeedbackFixture(), owner = ClubInvitationFeedbackPresentation()
+        owner.appear(f.context, active: true)
+        let trigger = ClubInvitationFeedbackPresentation.ReadTrigger(context: f.context, revision: owner.readRevision)
+        let cancelled = Task { owner.consumeRead(trigger) }
+        cancelled.cancel()
+        let consumed = await cancelled.value
+        XCTAssertFalse(consumed)
+        XCTAssertTrue(owner.consumeRead(trigger))
+    }
+}
+
+@MainActor private final class DetailFirstReadGate: ClubReading {
+    var isClubConfigured = true
+    var clubIdentity = ClubReadIdentity(accountID: 701, epoch: 1)
+    var reads = 0
+    var entered: (() -> Void)?
+    var pending: CheckedContinuation<ClubRecord, Error>?
+    func clubDetail(id: Int) async throws -> ClubRecord {
+        reads += 1
+        return try await withCheckedThrowingContinuation { pending = $0; entered?() }
+    }
+    func clubMembers(id: Int) async throws -> ClubMemberDirectory { throw CoopFlowFailure.unavailable }
+    func clubHome() async throws -> ClubHome { throw CoopFlowFailure.unavailable }
+    func clubOwned() async throws -> [ClubRecord] { throw CoopFlowFailure.unavailable }
+    func clubDirectory(name: String?) async throws -> [ClubRecord] { throw CoopFlowFailure.unavailable }
+}
+
+@MainActor private final class DetailTopicsReadGate: ClubGovernanceAccess {
+    var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 1)
+    var isConfigured = true
+    var storageNamespace = "synthetic-detail-topics"
+    let allowsOfflineWrites = false
+    var authorizationGeneration: UUID? = UUID()
+    var resources: [ClubGovernanceRead] = []
+    var entered: (() -> Void)?
+    var pending: CheckedContinuation<ClubGovernanceSnapshot, Error>?
+    func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue]) async throws -> ClubGovernanceSnapshot {
+        resources.append(operation)
+        return try await withCheckedThrowingContinuation { pending = $0; entered?() }
+    }
+    func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue { throw ClubGovernanceFailure.notConfigured }
+}
+
+extension ClubInvitationFeedbackViewTests {
+    func testDetailCloseDuringFirstReadStopsLaterReadsWithoutLeaveOrTaskCancellation() async throws {
+        try await assertDetailFirstReadRetirement(background: false)
+    }
+    func testDetailBackgroundDuringFirstReadStopsLaterReadsWithoutLeaveOrTaskCancellation() async throws {
+        try await assertDetailFirstReadRetirement(background: true)
+    }
+    private func assertDetailFirstReadRetirement(background: Bool) async throws {
+        let f = FeedbackFixture(), club = DetailFirstReadGate(), model = ClubInvitationFeedbackReadModel()
+        let owner = ClubInvitationFeedbackPresentation()
+        let scope = ClubInvitationFeedbackContext(club: FeedbackClubReader.record(), clubReader: club, reader: f.flow, access: f.access)
+        let list = try ClubInvitationFeedbackSnapshot(context: scope, topics: f.access.topics(), invitations: f.value(received: [f.row(1)]))
+        owner.appear(scope, active: true); owner.open(key: list.rows[0].id, in: scope)
+        let item = try XCTUnwrap(owner.route), permit = try activate(model, scope)
+        let entered = expectation(description: "held first detail read")
+        club.entered = { entered.fulfill() }
+        let task = Task {
+            await model.load(permit, clubReader: club, reader: f.flow, access: f.access,
+                             isCurrent: { owner.owns(item, in: scope) && owner.isPresented })
+            XCTAssertFalse(Task.isCancelled)
+        }
+        await fulfillment(of: [entered], timeout: 1)
+        XCTAssertEqual(club.reads, 1)
+        if background { owner.setActive(false, in: scope) }
+        else { owner.binding(for: item).wrappedValue = false }
+        // No model.leave(), dismissal callback or task cancellation occurs here.
+        club.pending?.resume(returning: FeedbackClubReader.record()); club.pending = nil
+        await task.value
+        XCTAssertTrue(f.access.resources.isEmpty); XCTAssertTrue(f.flow.resources.isEmpty)
+        XCTAssertNil(model.snapshot); XCTAssertEqual(f.access.sends, 0)
+    }
+    func testDetailCloseDuringTopicsReadStopsInvitationReadWithoutLeave() async throws {
+        let f = FeedbackFixture(), access = DetailTopicsReadGate(), owner = ClubInvitationFeedbackPresentation()
+        let model = ClubInvitationFeedbackReadModel()
+        let scope = ClubInvitationFeedbackContext(club: f.club.returned, clubReader: f.club, reader: f.flow, access: access)
+        let list = try ClubInvitationFeedbackSnapshot(context: scope, topics: f.access.topics(), invitations: f.value(received: [f.row(1)]))
+        owner.appear(scope, active: true); owner.open(key: list.rows[0].id, in: scope)
+        let item = try XCTUnwrap(owner.route), permit = try activate(model, scope)
+        let entered = expectation(description: "held detail topics")
+        access.entered = { entered.fulfill() }
+        let task = Task {
+            await model.load(permit, clubReader: f.club, reader: f.flow, access: access,
+                             isCurrent: { owner.owns(item, in: scope) && owner.isPresented })
+        }
+        await fulfillment(of: [entered], timeout: 1)
+        owner.binding(for: item).wrappedValue = false
+        access.pending?.resume(returning: f.access.topics()); access.pending = nil
+        await task.value
+        XCTAssertEqual(f.club.reads, 1); XCTAssertEqual(access.resources, [.topics])
+        XCTAssertTrue(f.flow.resources.isEmpty); XCTAssertNil(model.snapshot)
+    }
+    func testDetailOldQueuedRetryCannotStartFirstReadAfterOwnerClose() async throws {
+        let f = FeedbackFixture(), owner = ClubInvitationFeedbackPresentation(), model = ClubInvitationFeedbackReadModel()
+        let scope = f.context, list = try f.snapshot(received: [f.row(1)])
+        owner.appear(scope, active: true); owner.open(key: list.rows[0].id, in: scope)
+        let item = try XCTUnwrap(owner.route), permit = try activate(model, scope)
+        owner.binding(for: item).wrappedValue = false
+        await model.load(permit, clubReader: f.club, reader: f.flow, access: f.access,
+                         isCurrent: { owner.owns(item, in: scope) && owner.isPresented })
+        XCTAssertEqual(f.club.reads, 0); XCTAssertTrue(f.access.resources.isEmpty)
+        XCTAssertTrue(f.flow.resources.isEmpty); XCTAssertNil(model.snapshot)
+    }
+    func testDetailCloseDuringInvitationReadCannotPublishReplyWithoutLeave() async throws {
+        let f = FeedbackFixture(), owner = ClubInvitationFeedbackPresentation(), model = ClubInvitationFeedbackReadModel()
+        let scope = f.context, list = try f.snapshot(received: [f.row(1)])
+        owner.appear(scope, active: true); owner.open(key: list.rows[0].id, in: scope)
+        let item = try XCTUnwrap(owner.route), permit = try activate(model, scope)
+        f.flow.held = true; let entered = expectation(description: "held detail invitation")
+        f.flow.entered = { entered.fulfill() }
+        let task = Task {
+            await model.load(permit, clubReader: f.club, reader: f.flow, access: f.access,
+                             isCurrent: { owner.owns(item, in: scope) && owner.isPresented })
+        }
+        await fulfillment(of: [entered], timeout: 1)
+        owner.binding(for: item).wrappedValue = false
+        f.flow.pending[0].resume(returning: f.value(received: [f.replacing(f.row(1), ["handleReason": .string("Late reply")])]))
+        await task.value
+        XCTAssertEqual(f.flow.resources, [.invitations]); XCTAssertNil(model.snapshot)
+        XCTAssertNil(model.accepted(scope, clubReader: f.club, reader: f.flow, access: f.access))
+        XCTAssertEqual(f.access.sends, 0)
+    }
+}

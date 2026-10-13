@@ -26,6 +26,7 @@ public final class ProfileEditCoordinator {
     private let onSaved: () -> Void
     private var session: ProfileEditSession?
     private var generation = 0
+    private var savedReturn: ProfileSavedReturn?
     private struct PendingWrite {
         let payload: ProfileEditPayload
         // A matching read does not establish that a timed-out POST has finished.
@@ -60,10 +61,23 @@ public final class ProfileEditCoordinator {
     }
     public func synchronizeSession() {
         guard currentSession() != session else { return }
+        savedReturn = nil
         generation += 1; session = currentSession(); snapshot = nil; confirmation = nil
         isBusy = false; messageKey = nil; remoteMessage = nil
     }
-    public func leaveScreen() { confirmation = nil }
+    public func leaveScreen() { confirmation = nil; savedReturn = nil }
+    /// Consume synchronously in the same editor action; another read, review or
+    /// session retires the receipt without turning it into permission to write.
+    public func consumeSavedReturn(_ value: ProfileSavedReturn) -> Bool {
+        guard savedReturn == value else { return false }
+        savedReturn = nil
+        guard !Task.isCancelled, !isBusy, !isLocked, generation == value.generation,
+              session == value.session, let current = currentSession(), current == value.session,
+              current.token.utf8.elementsEqual(value.session.token.utf8),
+              let snapshot, snapshot == value.snapshot,
+              ProfileAvatarExact.snapshot(snapshot) == ProfileAvatarExact.snapshot(value.snapshot) else { return false }
+        return true
+    }
     private func active(_ expected: ProfileEditSession, _ request: Int) -> Bool {
         generation == request && currentSession() == expected && !Task.isCancelled
     }
@@ -84,6 +98,7 @@ public final class ProfileEditCoordinator {
     /// True only when this invocation publishes a fresh, same-session snapshot.
     /// A retained snapshot after an error must never be mistaken for a successful reload.
     @discardableResult public func load() async -> Bool {
+        savedReturn = nil
         synchronizeSession()
         guard !isBusy, let expected = session else { return false }
         generation += 1; let request = generation
@@ -104,6 +119,7 @@ public final class ProfileEditCoordinator {
         }
     }
     public func prepare(_ draft: ProfileEditDraft, avatarValidity: ProfileAvatarSaveValidity? = nil) async {
+        savedReturn = nil
         synchronizeSession()
         guard !isBusy, !isLocked, let expected = session, let original = snapshot else { return }
         if let avatar = draft.avatarReplacement {
@@ -148,31 +164,32 @@ public final class ProfileEditCoordinator {
         messageKey = "profile.reviewRestore.restored"; remoteMessage = nil
         return value.snapshot
     }
-    public func save(_ value: ProfileEditConfirmation) async {
+    @discardableResult public func save(_ value: ProfileEditConfirmation) async -> ProfileSavedReturn? {
+        savedReturn = nil
         synchronizeSession()
-        guard !isBusy, !isLocked, confirmation == value, session == value.session, let service else { return }
+        guard !isBusy, !isLocked, confirmation == value, session == value.session, let service else { return nil }
         let expected = value.session
         generation += 1; let request = generation; isBusy = true; confirmation = nil; messageKey = nil; remoteMessage = nil
         defer { if generation == request { isBusy = false } }
         // Re-read after the user confirms. A conflicting change requires a new review.
         do {
             let latest = try await read(expected)
-            guard active(expected, request) else { return }
+            guard active(expected, request) else { return nil }
             guard latest == value.snapshot,
                   ProfileCasePortfolio.sameText(latest.caseIntroduction, value.snapshot.caseIntroduction),
                   !value.payload.removesContactQR || latest.wechat.utf8.elementsEqual(value.snapshot.wechat.utf8),
-                  !value.payload.removesCasePictures || latest.casePics.utf8.elementsEqual(value.snapshot.casePics.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return }
+                  !value.payload.removesCasePictures || latest.casePics.utf8.elementsEqual(value.snapshot.casePics.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return nil }
             if value.payload.avatarReplacement != nil {
                 // Image-bearing full replacement preserves exact server bytes, not
                 // only Swift's canonically equivalent String values.
                 guard ProfileAvatarExact.snapshot(latest) == ProfileAvatarExact.snapshot(value.snapshot) else {
-                    snapshot = latest; messageKey = "profile.edit.changed"; return
+                    snapshot = latest; messageKey = "profile.edit.changed"; return nil
                 }
             }
         } catch {
-            guard active(expected, request) else { return }
+            guard active(expected, request) else { return nil }
             remoteMessage = Self.readFailureMessage(error)
-            messageKey = "profile.edit.loadFailed"; return
+            messageKey = "profile.edit.loadFailed"; return nil
         }
         pending[expected.identity.accountID] = PendingWrite(payload: value.payload)
         do {
@@ -200,22 +217,29 @@ public final class ProfileEditCoordinator {
                 }
             case .outcomeUnknown: break
             }
-            guard active(expected, request) else { return }
+            guard active(expected, request) else { return nil }
             if pending[expected.identity.accountID] == nil {
-                if messageKey == nil { messageKey = "profile.edit.notSent" }; return
+                if messageKey == nil { messageKey = "profile.edit.notSent" }; return nil
             }
         } catch { /* Unknown transport implementations must also fail closed. */ }
-        guard active(expected, request) else { return }
+        guard active(expected, request) else { return nil }
         do {
             let latest = try await read(expected)
-            guard active(expected, request) else { return }
+            guard active(expected, request) else { return nil }
             snapshot = latest
-            reconcile(latest)
+            if reconcile(latest), active(expected, request),
+               currentSession()?.token.utf8.elementsEqual(expected.token.utf8) == true {
+                let receipt = ProfileSavedReturn(reviewID: value.id, session: expected,
+                    snapshot: latest, generation: request)
+                savedReturn = receipt
+                return receipt
+            }
         } catch {
-            guard active(expected, request) else { return }
+            guard active(expected, request) else { return nil }
             remoteMessage = Self.readFailureMessage(error)
             messageKey = "profile.edit.unknown"
         }
+        return nil
     }
     /// Only the explicit server-facing explanation is presentable. Transport/debug
     /// descriptions can contain URLs or credentials and must never become UI text.
@@ -225,16 +249,18 @@ public final class ProfileEditCoordinator {
               !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
         return message
     }
-    private func reconcile(_ value: ProfileEditSnapshot) {
-        guard let unresolved = pending[value.id] else { return }
+    @discardableResult private func reconcile(_ value: ProfileEditSnapshot) -> Bool {
+        guard let unresolved = pending[value.id] else { return false }
         let matches = unresolved.payload.matches(value)
         if unresolved.acknowledged && matches {
             pending[value.id] = nil; messageKey = "profile.edit.saved"; onSaved()
+            return true
         } else if matches {
             // The current fields may match while an unacknowledged request is still
             // running. Keep the lock across subsequent reads, navigation and reauth.
             messageKey = "profile.edit.readbackUnconfirmed"
         } else { messageKey = "profile.edit.unknown" }
+        return false
     }
 
 }

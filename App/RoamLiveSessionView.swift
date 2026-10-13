@@ -129,6 +129,9 @@ import SwiftUI
             if let record = owner.record {
                 LabeledContent("roam.live.measuredDistance", value: Measurement(value: record.distanceMeters, unit: UnitLength.meters).formatted(.measurement(width: .abbreviated, usage: .asProvided)))
                 RoamLiveCoverageRow(presentation: .init(controller: owner))
+                TimelineView(.animation(minimumInterval: 1, paused: owner.phase != .active || !owner.foreground)) { _ in
+                    RoamLiveElapsedRow(seconds: owner.localForegroundElapsedSeconds)
+                }
                 LabeledContent("roam.live.tiles", value: String(record.allTiles.count - record.pendingTiles.count))
                 if !record.pendingTiles.isEmpty { LabeledContent("roam.live.pendingTiles", value: String(record.pendingTiles.count)) }
                 if owner.pendingActionCount > 0 { Text("roam.live.unknownVisit").foregroundStyle(.secondary) }
@@ -290,5 +293,35 @@ struct RoamLiveCoverageCopy {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("roam.live.localCoverage")
+    }
+}
+
+struct RoamLiveElapsedCopy {
+    let locale: Locale
+    private var chinese: Bool { locale.languageCode == "zh" }
+    var title: String { chinese ? "本次前台用时" : "Foreground time" }
+    var unknown: String { chinese ? "暂无可靠数据" : "Unavailable" }
+    var hint: String {
+        chinese ? "仅累计本次打开期间的前台漫游时间，暂停或进入后台即停止。恢复记录无法还原用时，也不代表服务器确认的成绩。"
+            : "Counts this walk's foreground time while open. Pausing or backgrounding stops the clock. Recovery cannot restore this value; it is not a server-confirmed result."
+    }
+    func value(seconds: Int?) -> String {
+        guard let seconds, seconds >= 0 else { return unknown }
+        let minutes = seconds / 60, remainder = seconds % 60
+        return "\(minutes < 10 ? "0" : "")\(minutes):\(remainder < 10 ? "0" : "")\(remainder)"
+    }
+}
+struct RoamLiveElapsedRow: View {
+    let seconds: Int?
+    @Environment(\.locale) private var locale
+    var body: some View {
+        let copy = RoamLiveElapsedCopy(locale: locale)
+        VStack(alignment: .leading, spacing: 4) {
+            LabeledContent { Text(verbatim: copy.value(seconds: seconds)).monospacedDigit() }
+                label: { Text(verbatim: copy.title) }
+            Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("roam.live.foregroundElapsed")
     }
 }

@@ -1,6 +1,70 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "profile.weekly.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My weekly points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的每周积分"
+          }
+        }
+      }
+    },
+    "profile.weekly.points": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Points this week"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周积分"
+          }
+        }
+      }
+    },
+    "profile.weekly.rank": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ranking"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排名"
+          }
+        }
+      }
+    },
+    "profile.weekly.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly statistics are not available in this configuration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前配置尚未开放每周统计读取。"
+          }
+        }
+      }
+    },
     "merchant.insightCooperationCenter.open": {
       "localizations": {
         "en": {

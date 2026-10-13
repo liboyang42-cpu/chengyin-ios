@@ -8,6 +8,7 @@ import SwiftUI
     var selfOrdersAccess: ProfileSelfOrdersAccess? = nil
     var selfProjectsAccess: ProfileSelfProjectsAccess? = nil
     var selfGrowthAccess: ProfileSelfGrowthAccess? = nil
+    var weeklyPointsAccess: ProfileWeeklyPointsAccess? = nil
     var selfMedalsReader: (any ProfileReading)? = nil
     var selfEditAccess: ProfileSelfEditAccess? = nil
     var localCoverOwner: ProfileLocalCoverOwner? = nil
@@ -28,6 +29,11 @@ import SwiftUI
         List {
             if localCoverOwner?.accountID == memberID {
                 ProfileLocalCoverSection(owner: localCoverOwner, reader: reader, isCurrent: isCurrent)
+            }
+            // The owner-only read is independent of the public profile response.
+            if let weeklyPointsAccess {
+                ProfileWeeklyPointsEntry(memberID: memberID, accountReader: reader,
+                    access: weeklyPointsAccess, isCurrent: isCurrent)
             }
             if memberID <= 0 { Text("social.incompleteLink") }
             else {
