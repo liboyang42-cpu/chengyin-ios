@@ -170657,6 +170657,23 @@
           }
         }
       }
+    },
+    "club.memberCount.singular %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld member"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 名成员"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

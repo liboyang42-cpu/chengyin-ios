@@ -25,6 +25,55 @@ def parse_project(text):
             take(')'); return result
         return json.loads(token)
     result=value(); assert index==len(tokens); return result
+def validate_bilingual_catalog(catalog, table, allowed_source_languages=('en',)):
+    """Keep the same complete, translated English/Simplified-Chinese contract."""
+    assert catalog['sourceLanguage'] in allowed_source_languages, table
+    for key,entry in catalog['strings'].items():
+        assert set(entry['localizations'])=={'en','zh-Hans'}, (table,key)
+        for lang in ['en','zh-Hans']:
+            unit=entry['localizations'][lang]['stringUnit']
+            assert unit['state']=='translated' and unit['value'].strip(), (table,key,lang)
+    return set(catalog['strings'])
+
+def validate_literal_text_tables(source, root, objects, project_obj):
+    """Validate this narrow literal Text overload, never union tables globally.
+
+    Dynamic keys/tables, interpolation and explicit bundles are not exemptions:
+    they remain in the original default-table scan. A table must be a unique
+    catalog in the app's actual resource build phase, not just a file reference.
+    """
+    pattern=re.compile(r'(?<![\w.])Text\s*\(\s*"([A-Za-z0-9]+(?:\.[A-Za-z0-9]+)+)"\s*,\s*tableName\s*:\s*"([A-Za-z0-9_]+)"\s*\)')
+    matches=list(pattern.finditer(source))
+    if not matches: return source
+    applications=[objects[t] for t in project_obj['targets']
+                  if objects[t].get('productType')=='com.apple.product-type.application']
+    assert len(applications)==1, 'Explicit Text table requires one known application target'
+    registered={}
+    for phase_id in applications[0]['buildPhases']:
+        phase=objects[phase_id]
+        if phase['isa']!='PBXResourcesBuildPhase': continue
+        for build_id in phase['files']:
+            ref=objects[objects[build_id]['fileRef']]
+            path=pathlib.PurePosixPath(ref.get('path',''))
+            if path.suffix!='.xcstrings': continue
+            assert ref.get('sourceTree')=='<group>' and not path.is_absolute() and '..' not in path.parts, ('Invalid catalog resource path',str(path))
+            registered.setdefault(path.stem,[]).append(path)
+    tables={}
+    def checked(match):
+        key,table=match.groups()
+        if table not in tables:
+            paths=registered.get(table,[])
+            assert len(paths)==1, ('Explicit Text table is absent or ambiguous in app resources',table)
+            path=root/paths[0]
+            assert path.is_file() and path.resolve().is_relative_to(root.resolve()), ('Catalog is outside source root',table)
+            tables[table]=validate_bilingual_catalog(json.loads(path.read_text()),table,('en','zh-Hans'))
+        assert key in tables[table], ('Missing key in explicit Text table',table,key)
+        # Mask only this validated key occurrence; an identical default Text
+        # elsewhere still has to pass the original Localizable-key assertion.
+        start,end=match.span(1)
+        return match.group(0)[:start-match.start()]+match.group(0)[end-match.start():]
+    return pattern.sub(checked,source)
+
 project_path=ROOT/'Questify.xcodeproj/project.pbxproj'
 project=parse_project(project_path.read_text())
 objects=project['objects']; project_obj=objects[project['rootObject']]
@@ -62,12 +111,7 @@ for target_id in project_obj['targets']:
     duplicates=[paths for paths in by_stem.values() if len(paths)>1]
     assert not duplicates, ('Duplicate Swift basenames in target',target['name'],duplicates)
 catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())
-assert catalog['sourceLanguage']=='en'
-for key,entry in catalog['strings'].items():
-    assert set(entry['localizations'])=={'en','zh-Hans'},key
-    for lang in ['en','zh-Hans']:
-        unit=entry['localizations'][lang]['stringUnit']
-        assert unit['state']=='translated' and unit['value'].strip(),(key,lang)
+validate_bilingual_catalog(catalog,'Localizable')
 ui='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
 # Every dot-separated UI string is a localized key except explicit accessibility/storage IDs.
 localizable_ui=re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', ui)
@@ -82,6 +126,7 @@ localizable_ui=localizable_ui.replace('.accessibilityIdentifier(snapshot.service
 localizable_ui=localizable_ui.replace('.accessibilityIdentifier(result == .copied ? "profile.orderNumberCopy.copied" : "profile.orderNumberCopy.failed")', '')
 localizable_ui=localizable_ui.replace('OfficialReadScreen(reader: reader, isPrivate: true, requestID: "merchant.officialRecruitment",', 'OfficialReadScreen(reader: reader, isPrivate: true,')
 localizable_ui=localizable_ui.replace('MerchantTemplateStoryTimelineContent(timeline: timeline, prefix: "merchant.storyTimeline.review")', 'MerchantTemplateStoryTimelineContent(timeline: timeline)')
+localizable_ui=validate_literal_text_tables(localizable_ui,ROOT,objects,project_obj)
 keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account|activity|scanner|discovery|profile|merchant|club|roam|messaging|participant|play|message|topic|region|homeFeed|usApple|ticketWallet|square|cooperation|accountCollection|creatorContent|growth|official|officialAction|projectEdit|nearby|team|orderLifecycle|templateAuthor|publishModes|wallet|couponManagement|im)\.[A-Za-z0-9.]+)"',localizable_ui))
 keys={key for key in keys if not key.endswith('.')}  # Prefixes concatenate a separately validated dynamic key.
 assert not keys-set(catalog['strings']),keys-set(catalog['strings'])

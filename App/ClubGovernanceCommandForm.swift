@@ -6,7 +6,11 @@ import SwiftUI
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     let validateTarget: (() async throws -> Void)?
+    let caseSubmissionReturn: ClubCaseSubmissionReturn.Callbacks?
+    let attendanceReturn: ClubAttendanceCorrectionReturn.Callbacks?
+    let roleManagementReturn: ClubRoleManagementReturn.Callbacks?
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var hostMaterials = ClubHostApplicationMaterials()
     @StateObject private var rolePicker = ClubRoleAssignmentReadModel()
     @StateObject private var seriesLeadPicker = ClubSeriesLeadReadModel()
     @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
@@ -23,13 +27,17 @@ import SwiftUI
     @State private var locked = false
     @State private var showDiscard = false
     @State private var generation: UInt64 = 0
-    init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator, validateTarget: (() async throws -> Void)? = nil) {
+    init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator, validateTarget: (() async throws -> Void)? = nil, caseSubmissionReturn: ClubCaseSubmissionReturn.Callbacks? = nil, attendanceReturn: ClubAttendanceCorrectionReturn.Callbacks? = nil, roleManagementReturn: ClubRoleManagementReturn.Callbacks? = nil) {
         self.route = route; self.identity = identity; self.access = access; self.coordinator = coordinator; self.validateTarget = validateTarget
+        self.caseSubmissionReturn = caseSubmissionReturn
+        self.attendanceReturn = attendanceReturn
+        self.roleManagementReturn = roleManagementReturn
         var initial = ClubGovernanceFormDraft(operation: route.operation, scope: route.scope, seed: route.seed)
         if route.operation == .assignRole { initial.text["roleCode"] = "" }
         _draft = State(initialValue: initial)
     }
     var body: some View {
+        let hostMaterialAttachment = hostMaterials.attachment
         let _ = bindRolePicker()
         let _ = bindSeriesLeadPicker()
         let _ = bindNotificationAudience()
@@ -37,6 +45,10 @@ import SwiftUI
             Section { Text("club.gov.localDraft"); Text(LocalizedStringKey(gateKey)) }
             Section("club.gov.target") { ClubGovernanceFactRows(value: .object(route.scope.ids), fields: ["clubId", "topicId", "activityId", "seriesId", "memberId", "registrationId", "campaignId", "chapterId"]); ClubGovernanceFactRows(value: .object(draft.anchors), fields: Array(draft.anchors.keys).sorted()) }
             Section {
+                if route.operation == .hostApply {
+                    ClubHostApplicationMaterialsRows(model: hostMaterials, context: hostMaterialsContext,
+                        allowed: { hostMaterialAttachment != nil && hostMaterials.attachment == hostMaterialAttachment && hostMaterialsAllowed }, changed: { dirty = true })
+                }
                 if route.operation == .sendNotification {
                     ClubNotificationAudienceView(context: audienceContext, access: access, model: notificationAudience,
                         selection: textBinding("audienceType"), canEdit: { audienceIsCurrent && !busy && !locked && review == nil },
@@ -61,6 +73,7 @@ import SwiftUI
                     } else { Text("club.schedule.choose") }
                 }
                 ForEach(Array(draft.text.keys).sorted().filter { key in
+                    (route.operation != .hostApply || key != "certImages") &&
                     (route.operation != .assignRole || !["targetMemberId", "roleCode"].contains(key)) &&
                     (!isSeries || !ClubSeriesScheduleDraft.fieldKeys.contains(key)) &&
                     (route.operation != .createSeries || key != "defaultLeadMemberId") &&
@@ -91,7 +104,7 @@ import SwiftUI
                     Button("club.gov.cancelReview") { self.review = nil; coordinator.cancelReview() }.disabled(busy)
                 }
             } else if receipt == nil {
-                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !notificationAudienceReady).accessibilityIdentifier("club.gov.prepare")
+                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady).accessibilityIdentifier("club.gov.prepare")
             }
             if let groupCode {
                 TimelineView(.periodic(from: groupCode.receivedAt, by: 1)) { context in
@@ -109,6 +122,25 @@ import SwiftUI
                     ForEach(Array((receipt["failedSessions"].array ?? []).enumerated()), id: \.offset) { _, value in Text(verbatim: value.string ?? "") }
                 }
             }
+        }
+        .background {
+            if route.operation == .hostApply {
+                let context = hostMaterialsContext
+                if let attachment = hostMaterials.attachment {
+                    ClubHostApplicationMaterialsLifetime { hostMaterials.depart(context, attachment: attachment) }
+                        .frame(width: 0, height: 0).id(attachment)
+                }
+                if let value = hostMaterials.presentation {
+                    ClubHostApplicationMaterialsOwner(model: hostMaterials, value: value,
+                        allowed: { hostMaterialsAllowed }, changed: { dirty = true }).id(value.id)
+                }
+            }
+        }
+        .onAppear { activateHostMaterials(appearing: true) }
+        .onDisappear { hostMaterials.hide() }
+        .onChange(of: hostMaterialsContext) { _, _ in activateHostMaterials() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { activateHostMaterials() } else { hostMaterials.retire() }
         }
         .navigationTitle(LocalizedStringKey("club.gov.action." + route.operation.rawValue))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { if dirty || busy || locked { showDiscard = true } else { dismiss() } } } }
@@ -147,6 +179,21 @@ import SwiftUI
             await notificationAudience.load(permit, access: access, isCurrent: { audienceIsCurrent && audienceContext == expected })
         }
         .onDisappear { audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; generation &+= 1; coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
+    }
+    private var hostMaterialsContext: ClubHostApplicationMaterials.Context {
+        ClubHostApplicationMaterials.context(formID: route.id, scope: route.scope, identity: identity, access: access)
+    }
+    private var hostMaterialsAllowed: Bool {
+        route.operation == .hostApply && scenePhase == .active && identity?.isSignedIn == true &&
+            identity == access.identity && hostMaterials.context == hostMaterialsContext && !busy && !locked && review == nil
+    }
+    private var hostMaterialsReady: Bool {
+        route.operation != .hostApply || (hostMaterials.isCurrent(hostMaterialsContext, allowed: { hostMaterialsAllowed }) && !hostMaterials.blocksSubmission)
+    }
+    private func activateHostMaterials(appearing: Bool = false) {
+        guard route.operation == .hostApply else { return }
+        guard scenePhase == .active, identity?.isSignedIn == true, identity == access.identity else { hostMaterials.retire(); return }
+        if appearing { hostMaterials.appear(hostMaterialsContext) } else { hostMaterials.activate(hostMaterialsContext) }
     }
     private struct AudienceTrigger: Hashable {
         let context: ClubNotificationAudienceReadModel.Context
@@ -196,7 +243,7 @@ import SwiftUI
     private func textBinding(_ key: String) -> Binding<String> { Binding(get: { draft.text[key] ?? "" }, set: { draft.text[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func flagBinding(_ key: String) -> Binding<Bool> { Binding(get: { draft.flags[key] ?? false }, set: { draft.flags[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func prepare() async {
-        guard roleAssignmentReady && seriesScheduleReady && seriesLeadReady else { return }
+        guard roleAssignmentReady && seriesScheduleReady && seriesLeadReady && hostMaterialsReady else { return }
         let revision = generation, expected = identity; busy = true; failure = nil
         do {
             if let validateTarget {
@@ -216,9 +263,15 @@ import SwiftUI
                 try await validateTarget()
                 guard revision == generation, expected == identity, expected == access.identity, !Task.isCancelled else { return }
             }
+            if let caseSubmissionReturn, !caseSubmissionReturn.begin(review) { throw ClubGovernanceFailure.staleReview }
+            let returnsToRoster = route.operation == .correctAttendance && attendanceReturn?.begin(review) == true
+            let returnsToRoles = [ClubGovernanceMutation.assignRole, .revokeRole].contains(route.operation) && roleManagementReturn?.begin(review) == true
             let value = try await coordinator.confirm(review)
             guard revision == generation, expected == identity, expected == access.identity else { return }
             receipt = value; self.review = nil; locked = true
+            if returnsToRoster { attendanceReturn?.acknowledged(review, value) }
+            caseSubmissionReturn?.acknowledged(review)
+            if returnsToRoles { roleManagementReturn?.acknowledged(review, value) }
             if route.operation == .issueGroupCode { groupCode = try ClubGovernanceGroupCode(receipt: value, receivedAt: Date()) }
         } catch {
             if revision == generation && expected == identity {
