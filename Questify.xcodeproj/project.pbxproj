@@ -18641,6 +18641,10 @@
 				"AE0B9FD4BA9608539EB03163",
 				"1C2548CBE515B7162B250308",
 				"4A6F37E3747459486D8FDF59",
+				"3DC4B3D59C180C4CE82245B8",
+				"9615B73A11CAD77D793E01A4",
+				"65F331E6ADA50C4817553CE1",
+				"3E6E3A3301704699199B8333",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20281,6 +20285,9 @@
 				"5CDD013E8AE8886E7989909A",
 				"7CD8A5367328BC9C0E09FB6D",
 				"40DE55D53987DD060A048CDF",
+				"B2741479054C36A15544ED8E",
+				"588C2A759047F5CE5C7B3730",
+				"129C594AD20C2067E2501E09",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26435,6 +26442,7 @@
 				"962F4D82308CDA75338E8F5A",
 				"94C079B8EA6F1ACB11526A02",
 				"B3FC76D8B4FB6200D761A0A2",
+				"DD1E6A28AAD04ECCFD80C81F",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -28106,6 +28114,46 @@
 		"40DE55D53987DD060A048CDF" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "1C2548CBE515B7162B250308";
+		};
+		"3E6E3A3301704699199B8333" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ProfilePublicInfoReadTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"DD1E6A28AAD04ECCFD80C81F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3E6E3A3301704699199B8333";
+		};
+		"9615B73A11CAD77D793E01A4" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ProfilePublicInfoReader.swift";
+			"sourceTree" = "<group>";
+		};
+		"65F331E6ADA50C4817553CE1" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ProfilePublicInfoRead.swift";
+			"sourceTree" = "<group>";
+		};
+		"588C2A759047F5CE5C7B3730" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9615B73A11CAD77D793E01A4";
+		};
+		"129C594AD20C2067E2501E09" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "65F331E6ADA50C4817553CE1";
+		};
+		"3DC4B3D59C180C4CE82245B8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ProfilePublicInfoHost.swift";
+			"sourceTree" = "<group>";
+		};
+		"B2741479054C36A15544ED8E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3DC4B3D59C180C4CE82245B8";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";

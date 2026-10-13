@@ -1903,6 +1903,25 @@ final class AppSession: ObservableObject {
                   ContentDraftContextFence.matches(captured, current) else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
+    func makeProfilePublicInfoReader(memberID: Int) -> ProfilePublicInfoReader? {
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        let viewer = compositionViewerRevision
+        guard let target = try? ProfilePublicInfoTarget(memberID: memberID, context: context, viewerRevision: viewer,
+            current: { [weak self] in
+                guard let self, let current = self.currentRuntimeDependencyContext else { return false }
+                return self.compositionViewerRevision == viewer && ContentDraftContextFence.matches(context, current)
+            }) else { return nil }
+        return ProfilePublicInfoReader(target: target, configuration: regionalConfiguration?.apiConfiguration,
+            transport: compositionTransport.scopedForProfilePublicInfo(target), access: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, current) else { return nil }
+                return self.composition.profilePublicInfoReadAccess(captured)
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, current) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
     lazy var profileFavoritesReader = ProfileFavoritesReader(service: accountCollectionService,
         current: { [weak self] in self?.currentRuntimeDependencyContext },
         viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
