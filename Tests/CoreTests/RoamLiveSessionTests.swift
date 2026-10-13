@@ -642,7 +642,14 @@ private final class LiveTransport: HTTPTransport {
         XCTAssertEqual(owner.localForegroundElapsedSeconds, 65)
         XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(location.calls, fixes)
         XCTAssertEqual(service.placesReads + service.registeredReads, reads); XCTAssertEqual(service.reveals, reveals)
-        XCTAssertFalse(String(data: try XCTUnwrap(storage.bytes.values.first), encoding: .utf8)!.contains("elapsed"))
+        let envelope = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(storage.bytes.values.first)) as? [String: Any])
+        XCTAssertEqual(Set(envelope.keys), Set(["version", "scope", "record"]))
+        let savedRecord = try XCTUnwrap(envelope["record"] as? [String: Any])
+        // Check serialized fields, not values such as this fixture's elapsed.example deployment.
+        XCTAssertEqual(Set(savedRecord.keys), Set([
+            "scope", "clientSessionKey", "startedAt", "sessionID", "allTiles", "pendingTiles",
+            "distanceMeters", "confirmedPOIIDs", "confirmedShops", "unresolvedActions", "finishRequested"
+        ]))
     }
     func testRepeatedPauseAndResumeKeepFractionAndExcludePausedGap() async throws {
         let input = ForegroundElapsedInput(), (owner, _, _, storage, _) = try fixture(input)

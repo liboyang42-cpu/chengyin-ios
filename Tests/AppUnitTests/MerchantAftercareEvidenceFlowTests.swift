@@ -323,7 +323,7 @@ import UIKit
         var fields = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.refund).object)
         fields["refundNo"] = number
         var access = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object)
-        if !allowed { access["permissions"] = .array([]) }
+        if !allowed { access["permissions"] = .array([]); access["canManageOperators"] = .bool(false) }
         return try .init(access: .init(access), document: .init(query: .refund(.init(62001)), payload: .object(fields)))
     }
     private func model(_ value: MerchantBusinessSnapshot, _ reader: Reader, _ current: Current) throws -> MerchantRefundNumberCopyModel {
@@ -342,6 +342,12 @@ import UIKit
     }
     func testMissingBlankAndNonStringNumberNeverCopiesFallbackIDOrTitle() throws {
         for number in [nil, .null, .string(""), .string(" \n\t"), .int(62001), .bool(true)] as [MerchantBusinessValue?] {
+            if let number, number != .null, number.string == nil {
+                XCTAssertThrowsError(try snapshot(number: number)) { error in
+                    XCTAssertEqual(error as? MerchantBusinessFailure, .malformed)
+                }
+                continue
+            }
             let value = try snapshot(number: number), reader = Reader(), current = Current(value)
             let row = try XCTUnwrap(value.document.rows.first(where: { $0.kind == .refund }))
             XCTAssertNil(MerchantRefundNumberCopyModel.number(in: row, snapshot: value))

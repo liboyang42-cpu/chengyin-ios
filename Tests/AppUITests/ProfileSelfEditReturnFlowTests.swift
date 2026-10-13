@@ -20,7 +20,27 @@ final class ProfileSelfEditReturnFlowTests: XCTestCase {
     }
     private func stage() {
         app.buttons["profile.fieldEdit.open.introduction"].tap()
-        let field=app.textViews["profile.edit.introduction"];XCTAssertTrue(field.waitForExistence(timeout:5));field.tap();field.typeText(" updated")
+        // The shared multiline editor can expose either native editable type.
+        // Require one exact-ID leaf, rather than accepting an arbitrary first match.
+        let inputID = "profile.edit.introduction"
+        func editableLeaves() -> [XCUIElement] {
+            let candidates = app.textFields.matching(identifier: inputID).allElementsBoundByIndex
+                + app.textViews.matching(identifier: inputID).allElementsBoundByIndex
+            return candidates.filter {
+                $0.descendants(matching: .textField).count == 0
+                    && $0.descendants(matching: .textView).count == 0
+            }
+        }
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let leaves = editableLeaves()
+            return leaves.count == 1 && leaves[0].exists && leaves[0].isEnabled && leaves[0].isHittable
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed, app.debugDescription)
+        let leaves = editableLeaves()
+        XCTAssertEqual(leaves.count, 1, app.debugDescription)
+        guard leaves.count == 1, let field = leaves.first else { return }
+        XCTAssertTrue(field.exists && field.isEnabled && field.isHittable, app.debugDescription)
+        field.tap();field.typeText(" updated")
         app.buttons["profile.fieldEdit.apply"].tap()
     }
     func testOwnPublicAboutCanOpenAndCancelExistingEditor() {

@@ -138,7 +138,7 @@ public final class ProfileEditCoordinator {
                   draft.routePreferenceIDs == nil || latest.tagIds == original.tagIds,
                   draft.caseIntroduction == nil || ProfileCasePortfolio.sameText(latest.caseIntroduction, original.caseIntroduction),
                   !draft.removesContactQR || latest.wechat.utf8.elementsEqual(original.wechat.utf8),
-                  !draft.removesCasePictures || latest.casePics.utf8.elementsEqual(original.casePics.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return }
+                  !(draft.removesCasePictures || draft.casePictureSubset?.hasChanges == true) || latest.casePics.utf8.elementsEqual(original.casePics.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return }
             if let avatar = draft.avatarReplacement {
                 guard avatarValidity?.isCurrent == true, avatar.permits(session: expected, snapshot: latest) else {
                     messageKey = "profile.avatar.changed"; return
@@ -178,7 +178,7 @@ public final class ProfileEditCoordinator {
             guard latest == value.snapshot,
                   ProfileCasePortfolio.sameText(latest.caseIntroduction, value.snapshot.caseIntroduction),
                   !value.payload.removesContactQR || latest.wechat.utf8.elementsEqual(value.snapshot.wechat.utf8),
-                  !value.payload.removesCasePictures || latest.casePics.utf8.elementsEqual(value.snapshot.casePics.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return nil }
+                  !value.payload.changesCasePictures || latest.casePics.utf8.elementsEqual(value.snapshot.casePics.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return nil }
             if value.payload.avatarReplacement != nil {
                 // Image-bearing full replacement preserves exact server bytes, not
                 // only Swift's canonically equivalent String values.

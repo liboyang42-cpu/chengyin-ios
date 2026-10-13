@@ -210,6 +210,7 @@ import SwiftUI
     @State private var query: MerchantBusinessQuery
     @StateObject private var model: MerchantBusinessViewModel
     @StateObject private var draftReturn: MerchantReviewDraftReturn
+    @StateObject private var aftercareReturn: MerchantAftercareDraftReturn
     @StateObject private var noteDrafts: MerchantCustomerNoteDraft
     @State private var discardNoteDraftGeneration: UUID?
     @State private var keyword = ""
@@ -225,6 +226,7 @@ import SwiftUI
     @State private var editor: MerchantBusinessEditorContext?
     @State private var selection: Set<Int> = []
     @State private var pendingMutation: MerchantBusinessMutation?
+    @State private var pendingMutationEditorID: UUID?
     @State private var reviewSourceDestination: MerchantReviewSourcePage?
     private let reviewSource: MerchantReviewSourcePage?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery, reviewSource: MerchantReviewSourcePage? = nil) {
@@ -232,6 +234,7 @@ import SwiftUI
         let owner = MerchantBusinessViewModel(reader: reader, journal: journal)
         _query = State(initialValue: query); _model = StateObject(wrappedValue: owner)
         _draftReturn = StateObject(wrappedValue: .init(owner: owner))
+        _aftercareReturn = StateObject(wrappedValue: .init(owner: owner))
         _noteDrafts = StateObject(wrappedValue: .init(owner: owner))
         if case .customers(let filter) = query {
             _keyword = State(initialValue: filter.keyword); _segment = State(initialValue: filter.segment)
@@ -242,6 +245,7 @@ import SwiftUI
     private var state: MerchantBusinessCoordinator { model.coordinator }
     var body: some View {
         let presentedReview = state.confirmation
+        let presentedEditorID = editor?.id
         let renderedTeamScope = reader.scope
         let renderedTeamAuthorization = reader.authorizationGeneration
         List {
@@ -372,11 +376,24 @@ import SwiftUI
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
-        .sheet(item: $editor, onDismiss: { draftReturn.discard(); if let mutation = pendingMutation { pendingMutation = nil; if sourcePageCanPrepare(mutation) { model.prepare(mutation) } } }) { context in
+        .background {
+            Color.clear.frame(width: 0, height: 0)
+        .sheet(item: MerchantAftercareDraftReturn.editorBinding($editor, presentedID: presentedEditorID), onDismiss: {
+            guard editor == nil, let presentedEditorID else { return }
+            if MerchantAftercareDraftReturn.ownsDismissal(presentedID: presentedEditorID,
+                currentEditorID: editor?.id, pendingEditorID: pendingMutationEditorID), let mutation = pendingMutation {
+                pendingMutation = nil; pendingMutationEditorID = nil; draftReturn.discard()
+                if sourcePageCanPrepare(mutation) { model.prepare(mutation) }
+            } else {
+                if draftReturn.resumedEditorID == presentedEditorID { draftReturn.discard() }
+                if aftercareReturn.resumedEditorID == presentedEditorID { aftercareReturn.discard() }
+            }
+        }) { context in
             let roleReturnScope = reader.scope
             let roleReturnAuthorization = reader.authorizationGeneration
             let roleReturnSnapshot = state.snapshot
-            MerchantBusinessEditor(context: context, snapshot: state.snapshot, noteDrafts: noteDrafts, reviewInitialContent: draftReturn.initialContent(for: context.id), aftercareEvidenceOwner: {
+            MerchantBusinessEditor(context: context, snapshot: state.snapshot, noteDrafts: noteDrafts, reviewInitialContent: draftReturn.initialContent(for: context.id),
+                aftercareInitialDraft: aftercareReturn.initialDraft(for: context.id), aftercareEvidenceOwner: {
                 MerchantAftercareEvidenceOwner(editorID: context.id, document: model,
                     editorIsCurrent: { editor?.id == context.id && pendingMutation == nil })
             }, onUnchangedRole: { ticket in
@@ -389,27 +406,43 @@ import SwiftUI
                 editor = nil
                 return true
             }, onReview: { mutation in
+                guard scenePhase == .active, editor?.id == context.id else { return }
                 if case .note = context.kind {
                     guard noteDrafts.retireForReview(editorID: context.id) else { editor = nil; return }
                 }
-                draftReturn.discard()
+                draftReturn.discard(); aftercareReturn.discard()
                 guard sourcePageCanPrepare(mutation) else { pendingMutation = nil; editor = nil; return }
-                pendingMutation = mutation; editor = nil
+                pendingMutation = mutation; pendingMutationEditorID = context.id; editor = nil
             })
         }
-        .sheet(item: Binding(get: { state.confirmation }, set: { value in
-            if value == nil, let presentedReview { draftReturn.cancelReview(id: presentedReview.id) }
+        .id(presentedEditorID)
+        }
+        .sheet(item: Binding(get: { state.confirmation?.id == presentedReview?.id ? state.confirmation : nil }, set: { value in
+            if value == nil, let presentedReview { cancelBusinessReview(presentedReview) }
         })) { review in
             let capture = draftReturn.capture(review)
+            let aftercareCapture = aftercareReturn.capture(review)
+            let editAftercare: (() -> Void)? = aftercareCapture.map { captured in
+                { _ = aftercareReturn.requestReturn(captured) }
+            }
             MerchantBusinessReviewSheet(review: review, canExecute: reader.canExecute(review.mutation, merchantID: review.baseline.access.merchantID), isSynthetic: reader.isOfflineExample, busy: state.isBusy,
-                issue: state.failureKey, cancel: { draftReturn.cancelReview(id: review.id) },
+                issue: state.failureKey, cancel: { cancelBusinessReview(review) },
                 confirm: {
                     if case .review(_, _, let action, _) = review.mutation, action != .delete {
                         if draftReturn.beginConfirmation(id: review.id) { Task { await model.confirm(review) } }
+                    } else if case .aftercare = review.mutation {
+                        if aftercareReturn.beginConfirmation(id: review.id) { Task { await model.confirm(review) } }
                     } else { Task { await model.confirm(review) } }
                 },
-                editDraft: capture.map { captured in { _ = draftReturn.requestReturn(captured) } })
+                editDraft: editAftercare ?? capture.map { captured in { _ = draftReturn.requestReturn(captured) } })
                 .onDisappear {
+                    if let ticket = aftercareReturn.didDismiss(reviewID: review.id) {
+                        Task { @MainActor in
+                            guard let restored = aftercareReturn.resume(ticket,
+                                editorIsVacant: scenePhase == .active && editor == nil && pendingMutation == nil) else { return }
+                            editor = restored
+                        }
+                    }
                     if let ticket = draftReturn.didDismiss(reviewID: review.id) {
                         Task {
                             guard let restored = draftReturn.resume(ticket, editorIsVacant: scenePhase == .active && editor == nil && pendingMutation == nil) else { return }
@@ -426,20 +459,22 @@ import SwiftUI
                     } }
             }
         }
-        .onAppear { customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
+        .onAppear { aftercareReturn.appear(active: scenePhase == .active); customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
         .onChange(of: model.revision) { _, _ in
+            if let retired = aftercareReturn.synchronize(), editor?.id == retired { editor = nil }
             if let retired = noteDrafts.synchronize(), editor?.id == retired { editor = nil }
             if let retired = draftReturn.synchronize(), editor?.id == retired { editor = nil }
         }
         .onChange(of: scenePhase) { _, phase in
+            if let retired = aftercareReturn.sceneChanged(active: phase == .active), editor?.id == retired { editor = nil }
             customerFilterDisclosure.sceneChanged(isActive: phase == .active)
             if phase != .active, let retired = noteDrafts.retire(), editor?.id == retired { editor = nil }
             if phase == .active { draftReturn.activate(); noteDrafts.activate() }
             else if let retired = draftReturn.retire(), editor?.id == retired { editor = nil }
         }
-        .onChange(of: reader.scope) { _, _ in customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onChange(of: reader.authorizationGeneration) { _, _ in customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onDisappear { customerFilterDisclosure.viewDisappeared(); teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }
+        .onChange(of: reader.scope) { _, _ in aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onChange(of: reader.authorizationGeneration) { _, _ in aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onDisappear { aftercareReturn.disappear(); customerFilterDisclosure.viewDisappeared(); teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }
     }
     private var customerFilterExpansion: Binding<Bool> {
         let scope = reader.scope, authorization = reader.authorizationGeneration
@@ -563,6 +598,11 @@ import SwiftUI
                 }
             }
         }
+    }
+    private func cancelBusinessReview(_ review: MerchantBusinessConfirmation) {
+        guard state.confirmation?.id == review.id else { return }
+        if case .aftercare = review.mutation { aftercareReturn.cancelReview(id: review.id) }
+        else { draftReturn.cancelReview(id: review.id) }
     }
     @ViewBuilder private func rowView(_ row: MerchantBusinessRecord, access: MerchantBusinessAccess) -> some View {
         let isDirectory: Bool = { switch query { case .customers, .aftercare, .batches, .redemptions: return true; default: return false } }()

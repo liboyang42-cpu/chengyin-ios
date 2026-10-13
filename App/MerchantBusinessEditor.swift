@@ -16,6 +16,7 @@ struct MerchantBusinessEditorContext: Identifiable {
     let snapshot: MerchantBusinessSnapshot?
     var noteDrafts: MerchantCustomerNoteDraft? = nil
     var reviewInitialContent: String? = nil
+    var aftercareInitialDraft: MerchantAftercareEvidenceDraft? = nil
     var aftercareEvidenceOwner: (() -> MerchantAftercareEvidenceOwner?)? = nil
     var onUnchangedRole: ((MerchantOperatorRoleNoChange) -> Bool)? = nil
     let onReview: (MerchantBusinessMutation) -> Void
@@ -23,6 +24,7 @@ struct MerchantBusinessEditorContext: Identifiable {
     @State private var confirmClearNote = false
     @State private var content = ""
     @State private var reviewContentContextID: UUID?
+    @State private var aftercareDraftContextID: UUID?
     @State private var name = ""
     @State private var color = "#2E6D5A"
     @State private var role = ""
@@ -196,10 +198,15 @@ struct MerchantBusinessEditorContext: Identifiable {
         noteDrafts?.update(editorID: context.id, content: content, correctionCancelled: noteCorrectionCancelled)
     }
     private func initializeEditorStateOnAppear() {
-        if case .aftercare(let row) = context.kind {
+        if case .aftercare(let row) = context.kind, aftercareDraftContextID != context.id {
+            aftercareDraftContextID = context.id
+            if let initial = aftercareInitialDraft {
+                decision = initial.decision; content = initial.content; evidence = initial.evidence
+            } else {
             let allowedDecisions: [String]? = try? row.fields.mbStrings("allowedDecisions")
             if let first = allowedDecisions?.first,
                let value = MerchantAftercareDecision(rawValue: first) { decision = value }
+            }
         }
         if case .role(let row) = context.kind { role = row.fields.mbText("roleCode") ?? "" }
         initializeReviewContent()

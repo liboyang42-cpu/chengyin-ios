@@ -221,3 +221,185 @@ import UIKit
         XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
     }
 }
+
+@MainActor private final class RoamFinishedMedalsStorage: RoamHistoryDataStoring {
+    enum Failure { case history, clear }
+    var bytes: [String: Data] = [:]
+    var writes = 0
+    var failure: Failure?
+    func read(key: String) throws -> Data? { bytes[key] }
+    func write(_ data: Data, key: String) throws {
+        writes += 1
+        if failure == .history, key.hasPrefix("roam-history-v1-") { throw APIError.notConfigured }
+        if failure == .clear, key.hasPrefix("roam-live-v1-"),
+           let object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+           object["record"] == nil || object["record"] is NSNull { throw APIError.notConfigured }
+        bytes[key] = data
+    }
+}
+@MainActor private final class RoamFinishedMedalsLocation: RoamDeviceLocationProviding {
+    var fixes = 0
+    func currentFix() async throws -> RoamDeviceFix { fixes += 1; throw APIError.notConfigured }
+    func stop() {}
+}
+@MainActor private final class RoamFinishedMedalsService: RoamLiveServing {
+    let captured: RoamExperienceIdentity
+    var identity: RoamExperienceIdentity?
+    var enabled = true
+    var isAvailable: Bool { enabled && identity == captured }
+    var presenceAvailable: Bool { false }
+    var factCalls = 0
+    var mutations = 0
+    var onFact: (() -> Void)?
+    var response: RoamSessionFact
+    init(identity: RoamExperienceIdentity, response: RoamSessionFact) {
+        captured = identity; self.identity = identity; self.response = response
+    }
+    func fact(key: String) async throws -> RoamSessionFact { factCalls += 1; onFact?(); return response }
+    func places(fix: RoamDeviceFix) async throws -> [RoamPlace] { throw APIError.notConfigured }
+    func registeredShops(fix: RoamDeviceFix) async throws -> [RoamRouteNode] { throw APIError.notConfigured }
+    func reveal(sessionID: Int?, clientSessionKey: String, tiles: [String]) async throws -> RoamLiveRevealReceipt {
+        mutations += 1; throw APIError.notConfigured
+    }
+    func discover(sessionID: Int, poiID: Int, fix: RoamDeviceFix) async throws -> RoamLiveDiscoveryReceipt {
+        mutations += 1; throw APIError.notConfigured
+    }
+    func shopVisit(sessionID: Int, sourceType: Int, sourceID: Int, fix: RoamDeviceFix) async throws -> RoamLiveShopReceipt {
+        mutations += 1; throw APIError.notConfigured
+    }
+    func presence(sessionID: Int, fix: RoamDeviceFix, explorationPercent: Int) async throws {
+        mutations += 1; throw APIError.notConfigured
+    }
+    func finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int) async throws {
+        mutations += 1; throw APIError.notConfigured
+    }
+}
+
+@MainActor final class RoamFinishedMedalsViewTests: XCTestCase {
+    private let key = String(repeating: "b", count: 32)
+    private func fact(journey: String? = "Returned journey", shop: String? = "Returned shop",
+                      complete: Bool = true, sessionID: Int = 12) throws -> RoamSessionFact {
+        var result: [String: Any] = ["tileXp": 1, "poiXp": 2, "totalXp": 3,
+            "newTiles": 1, "newPois": 1, "tilesEver": 1, "sessionShops": 1]
+        if let journey { result["medal"] = journey }
+        if let shop { result["shopMedal"] = ["code": "returned-code", "name": shop] }
+        let object: [String: Any] = ["state": "FINISHED", "sessionId": sessionID,
+            "clientSessionKey": key, "resultComplete": complete, "result": result]
+        return try JSONDecoder().decode(RoamSessionFact.self, from: JSONSerialization.data(withJSONObject: object))
+    }
+    private func fixture(_ response: RoamSessionFact? = nil) throws
+        -> (RoamLiveSessionController, RoamFinishedMedalsService, RoamFinishedMedalsStorage, RoamFinishedMedalsLocation) {
+        let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://medals.example/native/")), accountID: 7)
+        let service = try RoamFinishedMedalsService(identity: .init(scope: scope, epoch: 1), response: response ?? fact())
+        let storage = RoamFinishedMedalsStorage(), location = RoamFinishedMedalsLocation()
+        let journal = RoamLiveJournal(storage: storage)
+        var record = RoamLiveRecord(scope: scope, clientSessionKey: key, startedAt: Date(timeIntervalSince1970: 1_790_932_200))
+        record.sessionID = 12; record.finishRequested = true
+        try journal.write(record)
+        let history = RoamHistoryStore(storage: storage, currentScope: { service.identity?.scope })
+        let owner = RoamLiveSessionController(service: service, location: location, journal: journal, history: history)
+        owner.prepare()
+        return (owner, service, storage, location)
+    }
+    func testOnlySavedCompleteCurrentSettlementExposesProvidedMedalsWithoutWork() async throws {
+        let (owner, service, storage, location) = try fixture()
+        XCTAssertNil(RoamFinishedMedalsPresentation(controller: owner))
+        await owner.recover()
+        XCTAssertEqual(owner.phase, .finished); XCTAssertNil(owner.record)
+        XCTAssertEqual(owner.completedHistory?.serverSessionID, 12)
+        let value = try XCTUnwrap(RoamFinishedMedalsPresentation(controller: owner))
+        XCTAssertEqual(value.journey, "Returned journey"); XCTAssertEqual(value.shop, "Returned shop")
+        let calls = service.factCalls, writes = storage.writes, bytes = storage.bytes
+        for _ in 0..<3 { XCTAssertEqual(RoamFinishedMedalsPresentation(controller: owner), value) }
+        XCTAssertEqual(service.factCalls, calls); XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+        XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
+    }
+    func testMissingAndBlankFieldsRemainUnavailableWithoutZeroOrNameFallback() async throws {
+        for strings in [(nil, nil), (" \n", nil)] as [(String?, String?)] {
+            let (owner, service, _, location) = try fixture(fact(journey: strings.0, shop: strings.1))
+            await owner.recover()
+            let value = try XCTUnwrap(RoamFinishedMedalsPresentation(controller: owner))
+            XCTAssertNil(value.journey); XCTAssertNil(value.shop)
+            XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+        }
+    }
+    func testJourneyAndShopFieldsAreIndependentAndNeverSubstituteEachOther() async throws {
+        for strings in [("Journey only", nil), (nil, "Shop only")] as [(String?, String?)] {
+            let (owner, _, _, _) = try fixture(fact(journey: strings.0, shop: strings.1))
+            await owner.recover()
+            let value = try XCTUnwrap(RoamFinishedMedalsPresentation(controller: owner))
+            XCTAssertEqual(value.journey, strings.0); XCTAssertEqual(value.shop, strings.1)
+        }
+    }
+    func testHistoryAndJournalClearFailuresCannotPublishMedalSummary() async throws {
+        for failure in [RoamFinishedMedalsStorage.Failure.history, .clear] {
+            let (owner, service, storage, location) = try fixture(); storage.failure = failure
+            await owner.recover()
+            XCTAssertTrue(owner.settlement?.hasCompleteSettlement == true)
+            XCTAssertNotEqual(owner.phase, .finished); XCTAssertNil(owner.completedHistory)
+            let writes = storage.writes, bytes = storage.bytes
+            XCTAssertNil(RoamFinishedMedalsPresentation(controller: owner))
+            XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
+            XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+        }
+    }
+    func testIncompleteAndWrongSessionRepliesCannotPublishMedalSummary() async throws {
+        for response in [try fact(complete: false), try fact(sessionID: 99)] {
+            let (owner, service, storage, location) = try fixture(response)
+            await owner.recover()
+            XCTAssertNil(owner.completedHistory); XCTAssertNil(RoamFinishedMedalsPresentation(controller: owner))
+            let writes = storage.writes, bytes = storage.bytes
+            _ = RoamFinishedMedalsPresentation(controller: owner)
+            XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
+            XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+        }
+    }
+    func testBackgroundEpochAccountRevocationAndRetirementHideExistingResult() async throws {
+        let (owner, service, storage, location) = try fixture(); await owner.recover()
+        XCTAssertNotNil(RoamFinishedMedalsPresentation(controller: owner))
+        let writes = storage.writes, bytes = storage.bytes, calls = service.factCalls
+        owner.setForeground(false); XCTAssertNil(RoamFinishedMedalsPresentation(controller: owner))
+        owner.setForeground(true); XCTAssertNotNil(RoamFinishedMedalsPresentation(controller: owner))
+        service.identity = .init(scope: service.captured.scope, epoch: 2)
+        XCTAssertNil(RoamFinishedMedalsPresentation(controller: owner))
+        let other = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://medals.example/native/")), accountID: 8)
+        service.identity = .init(scope: other, epoch: 1)
+        XCTAssertNil(RoamFinishedMedalsPresentation(controller: owner))
+        service.identity = service.captured; service.enabled = false
+        XCTAssertNil(RoamFinishedMedalsPresentation(controller: owner))
+        service.enabled = true; owner.invalidate()
+        XCTAssertNil(RoamFinishedMedalsPresentation(controller: owner))
+        XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
+        XCTAssertEqual(service.factCalls, calls); XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+    }
+    func testLatePreviousOwnerFactCannotRestoreFinishedMedals() async throws {
+        let (owner, service, storage, location) = try fixture()
+        let bytes = storage.bytes, writes = storage.writes
+        service.onFact = { service.identity = .init(scope: service.captured.scope, epoch: 2) }
+        await owner.recover()
+        XCTAssertNil(owner.completedHistory); XCTAssertNil(RoamFinishedMedalsPresentation(controller: owner))
+        XCTAssertEqual(storage.bytes, bytes); XCTAssertEqual(storage.writes, writes)
+        XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+    }
+    func testNormalFinishedHostAndBothLocalesKeepIndependentUnknownLabels() async throws {
+        let (owner, service, storage, location) = try fixture(fact(journey: "Source journey", shop: nil))
+        await owner.recover(); let value = try XCTUnwrap(RoamFinishedMedalsPresentation(controller: owner))
+        let calls = service.factCalls, writes = storage.writes, bytes = storage.bytes
+        for (language, journey, shop, unknown) in [
+            ("en", "Journey medal", "Shop medal", "Not provided in this settlement"),
+            ("zh-Hans", "漫游勋章", "探店勋章", "本次结算未提供")
+        ] {
+            let locale = Locale(identifier: language), copy = RoamFinishedMedalsCopy(locale: locale)
+            XCTAssertEqual(copy.journey, journey); XCTAssertEqual(copy.shop, shop); XCTAssertEqual(copy.unavailable, unknown)
+            XCTAssertTrue(copy.hint.contains(language == "en" ? "missing field does not mean" : "缺失字段不代表"))
+            let section = UIHostingController(rootView: List { RoamFinishedMedalsSection(presentation: value) }
+                .environment(\.locale, locale).environment(\.dynamicTypeSize, .accessibility3))
+            section.loadViewIfNeeded(); section.view.layoutIfNeeded(); XCTAssertNotNil(section.view)
+            let normal = UIHostingController(rootView: NavigationStack { RoamLiveSessionView(controller: owner) }
+                .environment(\.locale, locale).environment(\.dynamicTypeSize, .accessibility3))
+            normal.loadViewIfNeeded(); normal.view.layoutIfNeeded(); XCTAssertNotNil(normal.view)
+        }
+        XCTAssertEqual(service.factCalls, calls); XCTAssertEqual(service.mutations, 0); XCTAssertEqual(location.fixes, 0)
+        XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
+    }
+}

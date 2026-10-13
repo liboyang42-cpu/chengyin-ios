@@ -24,6 +24,8 @@ struct ClubOperationsWorkspaceView: View {
     let coordinator: ClubOperationsCoordinator
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @StateObject private var profileChoice = ClubProfileChoiceController()
+    @Environment(\.scenePhase) private var scenePhase
     @State private var snapshot: ClubOperationsSnapshot?
     @State private var draft = ClubOperationsDraft()
     @State private var baseline = ClubOperationsDraft()
@@ -72,6 +74,15 @@ struct ClubOperationsWorkspaceView: View {
                 }
             }.interactiveDismissDisabled(state == .preflighting || state == .submitting)
         }
+        .background {
+            if let session = profileChoice.session {
+                ClubProfileChoicePresentationOwner(controller: profileChoice, session: session, draft: $draft,
+                    context: profileChoiceContext, isCurrent: profileChoiceIsCurrent)
+                    .id(session.id)
+            }
+        }
+        .onChange(of: profileChoiceContext) { _, _ in profileChoice.close() }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { profileChoice.close() } }
         .task(id: identity) {
             generation &+= 1; cancelReview(); snapshot = nil; draft = .init(); baseline = .init()
             screenIdentity = identity; errorKey = nil; serverMessage = nil; readbackUnavailable = false
@@ -80,9 +91,17 @@ struct ClubOperationsWorkspaceView: View {
             await load()
         }
         .onDisappear {
+            profileChoice.close()
             generation &+= 1
             if let screenIdentity { coordinator.leaveScreen(target: target, expectedIdentity: screenIdentity, ownerID: ownerID) }
         }
+    }
+    private var profileChoiceContext: ClubProfileChoiceContext? {
+        ClubProfileChoiceContext(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)
+    }
+    private func profileChoiceIsCurrent(_ expected: ClubProfileChoiceContext) -> Bool {
+        scenePhase == .active && screenIdentity == identity && !loading && !state.locksForm && review == nil &&
+            expected.matches(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)
     }
     @ViewBuilder private func content(_ value: ClubOperationsSnapshot) -> some View {
         if let profile = value.profile {
@@ -100,11 +119,7 @@ struct ClubOperationsWorkspaceView: View {
             }
         } else {
             ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true,
-                choiceContext: ClubProfileChoiceContext(target: target, identity: identity, access: access, profile: value.profile, sourceRevision: artworkRevision),
-                choiceIsCurrent: { expected in
-                    screenIdentity == identity && !loading && !state.locksForm && review == nil &&
-                        expected.matches(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)
-                })
+                choiceContext: profileChoiceContext, choiceIsCurrent: profileChoiceIsCurrent, choiceController: profileChoice)
                 .disabled(loading || state.locksForm)
             Section {
                 Button("club.ops.reviewProfile") {
@@ -253,6 +268,7 @@ private struct ClubOperationsProfileForm: View {
     let joinPolicySupported: Bool
     var choiceContext: ClubProfileChoiceContext? = nil
     var choiceIsCurrent: (ClubProfileChoiceContext) -> Bool = { _ in false }
+    let choiceController: ClubProfileChoiceController
     var body: some View {
         Section("club.ops.profile") {
             field("name", text: $draft.name)
@@ -264,7 +280,7 @@ private struct ClubOperationsProfileForm: View {
                 if !draft.clubType.isEmpty, !ClubOperationsCatalog.types.contains(draft.clubType) { Text(verbatim: draft.clubType).tag(draft.clubType) }
             }.accessibilityIdentifier("club.ops.clubType")
             } else {
-                ClubProfileChoiceControl(kind: .type, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent)
+                ClubProfileChoiceControl(kind: .type, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
             }
             field("description", text: $draft.description, axis: .vertical)
             field("keywords", text: $draft.keywords)
@@ -284,7 +300,7 @@ private struct ClubOperationsProfileForm: View {
             }
             Text("club.ops.directionsHint").font(.footnote).foregroundStyle(.secondary)
             } else {
-                ClubProfileChoiceControl(kind: .directions, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent)
+                ClubProfileChoiceControl(kind: .directions, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
             }
         }
         if !isCreate && isOwner {

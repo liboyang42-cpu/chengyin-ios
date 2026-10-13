@@ -9,6 +9,9 @@ import SwiftUI
     @Environment(\.dismiss) private var dismiss
     @StateObject private var rolePicker = ClubRoleAssignmentReadModel()
     @StateObject private var seriesLeadPicker = ClubSeriesLeadReadModel()
+    @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var audienceVisible = false
     @State private var scheduleSession: ClubSeriesScheduleSession?
     @State private var draft: ClubGovernanceFormDraft
     @State private var review: ClubGovernanceReview?
@@ -29,10 +32,16 @@ import SwiftUI
     var body: some View {
         let _ = bindRolePicker()
         let _ = bindSeriesLeadPicker()
+        let _ = bindNotificationAudience()
         Form {
             Section { Text("club.gov.localDraft"); Text(LocalizedStringKey(gateKey)) }
             Section("club.gov.target") { ClubGovernanceFactRows(value: .object(route.scope.ids), fields: ["clubId", "topicId", "activityId", "seriesId", "memberId", "registrationId", "campaignId", "chapterId"]); ClubGovernanceFactRows(value: .object(draft.anchors), fields: Array(draft.anchors.keys).sorted()) }
             Section {
+                if route.operation == .sendNotification {
+                    ClubNotificationAudienceView(context: audienceContext, access: access, model: notificationAudience,
+                        selection: textBinding("audienceType"), canEdit: { audienceIsCurrent && !busy && !locked && review == nil },
+                        isCurrent: { audienceIsCurrent })
+                }
                 if route.operation == .assignRole {
                     ClubRoleAssignmentPicker(scope: route.scope, identity: identity, access: access, model: rolePicker,
                         memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),
@@ -54,7 +63,8 @@ import SwiftUI
                 ForEach(Array(draft.text.keys).sorted().filter { key in
                     (route.operation != .assignRole || !["targetMemberId", "roleCode"].contains(key)) &&
                     (!isSeries || !ClubSeriesScheduleDraft.fieldKeys.contains(key)) &&
-                    (route.operation != .createSeries || key != "defaultLeadMemberId")
+                    (route.operation != .createSeries || key != "defaultLeadMemberId") &&
+                    (route.operation != .sendNotification || key != "audienceType")
                 }, id: \.self) { key in
                     if let choices = draft.choices(key) {
                         Picker(LocalizedStringKey("club.gov.field." + key), selection: textBinding(key)) {
@@ -81,7 +91,7 @@ import SwiftUI
                     Button("club.gov.cancelReview") { self.review = nil; coordinator.cancelReview() }.disabled(busy)
                 }
             } else if receipt == nil {
-                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady).accessibilityIdentifier("club.gov.prepare")
+                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !notificationAudienceReady).accessibilityIdentifier("club.gov.prepare")
             }
             if let groupCode {
                 TimelineView(.periodic(from: groupCode.receivedAt, by: 1)) { context in
@@ -126,7 +136,32 @@ import SwiftUI
             guard route.operation == .createSeries, let permit = seriesLeadPicker.activate(seriesLeadContext) else { return }
             await seriesLeadPicker.load(permit, access: access)
         }
-        .onDisappear { seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; generation &+= 1; coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
+        .onAppear { audienceVisible = true }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { notificationAudience.leave(audienceContext) }
+        }
+        .task(id: AudienceTrigger(context: audienceContext, visible: audienceVisible, active: scenePhase == .active)) {
+            guard route.operation == .sendNotification, audienceIsCurrent,
+                  let permit = notificationAudience.activate(audienceContext) else { return }
+            let expected = audienceContext
+            await notificationAudience.load(permit, access: access, isCurrent: { audienceIsCurrent && audienceContext == expected })
+        }
+        .onDisappear { audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; generation &+= 1; coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
+    }
+    private struct AudienceTrigger: Hashable {
+        let context: ClubNotificationAudienceReadModel.Context
+        let visible: Bool
+        let active: Bool
+    }
+    private var audienceContext: ClubNotificationAudienceReadModel.Context {
+        ClubNotificationAudienceReadModel.context(scope: route.scope, identity: identity, access: access)
+    }
+    private var audienceIsCurrent: Bool { audienceVisible && scenePhase == .active && identity == access.identity }
+    private func bindNotificationAudience() {
+        if route.operation == .sendNotification { notificationAudience.bind(audienceContext) }
+    }
+    private var notificationAudienceReady: Bool {
+        route.operation != .sendNotification || (audienceIsCurrent && notificationAudience.canPrepare(draft.text["audienceType"] ?? "", context: audienceContext, access: access))
     }
     private var rolePickerContext: ClubGovernanceReadContext {
         ClubRoleAssignmentReadModel.context(scope: route.scope, identity: identity, access: access)

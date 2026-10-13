@@ -1,6 +1,86 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "club.audience.chooseEvent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open notifications from an event to choose this audience."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从具体场次进入通知后，才可选择这类受众。"
+          }
+        }
+      }
+    },
+    "profile.caseSubset.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose images to keep"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择保留的图片"
+          }
+        }
+      }
+    },
+    "profile.caseSubset.remaining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images remaining"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留图片数量"
+          }
+        }
+      }
+    },
+    "profile.caseSubset.originalImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始图片位置"
+          }
+        }
+      }
+    },
+    "profile.caseSubset.positionHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep the original order. Turn off an image to remove only that position."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片保持原始顺序。关闭开关仅移除对应位置的图片。"
+          }
+        }
+      }
+    },
     "profile.weekly.title": {
       "localizations": {
         "en": {

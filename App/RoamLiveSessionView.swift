@@ -35,6 +35,9 @@ import SwiftUI
                 }
             } else {
                 status
+                if let medals = RoamFinishedMedalsPresentation(controller: owner) {
+                    RoamFinishedMedalsSection(presentation: medals)
+                }
                 if owner.canContinueUnstartedRoam {
                     Section {
                         Button("roam.unstarted.continue", systemImage: "arrow.uturn.backward") { owner.continueUnstartedRoam() }
@@ -323,5 +326,68 @@ struct RoamLiveElapsedRow: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("roam.live.foregroundElapsed")
+    }
+}
+
+/// Only displays fields of the complete, current settlement after the existing archive succeeds.
+/// A missing field is not evidence that no medal was awarded.
+struct RoamFinishedMedalsPresentation: Equatable {
+    let journey: String?
+    let shop: String?
+    @MainActor init?(controller: RoamLiveSessionController) {
+        guard controller.phase == .finished, controller.isAvailable, controller.foreground,
+              !controller.busy, controller.record == nil,
+              controller.makeFinishedHistoryReader().identity != nil,
+              let reference = controller.completedHistory,
+              let fact = controller.settlement, fact.hasCompleteSettlement,
+              fact.sessionID == reference.serverSessionID, let result = fact.result else { return nil }
+        journey = Self.provided(result.medal)
+        shop = Self.provided(result.shopMedal?.name)
+    }
+    private static func provided(_ value: String?) -> String? {
+        guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return value
+    }
+}
+
+struct RoamFinishedMedalsCopy {
+    let title: String
+    let journey: String
+    let shop: String
+    let unavailable: String
+    let hint: String
+    init(locale: Locale) {
+        if locale.language.languageCode?.identifier == "zh" {
+            title = "本次结算的勋章信息"
+            journey = "漫游勋章"
+            shop = "探店勋章"
+            unavailable = "本次结算未提供"
+            hint = "仅显示本次已保存结算返回的信息。缺失字段不代表没有获得勋章。"
+        } else {
+            title = "Medal details from this settlement"
+            journey = "Journey medal"
+            shop = "Shop medal"
+            unavailable = "Not provided in this settlement"
+            hint = "Only information returned with this saved settlement is shown. A missing field does not mean no medal was awarded."
+        }
+    }
+}
+
+struct RoamFinishedMedalsSection: View {
+    let presentation: RoamFinishedMedalsPresentation
+    @Environment(\.locale) private var locale
+    var body: some View {
+        let copy = RoamFinishedMedalsCopy(locale: locale)
+        Section {
+            LabeledContent {
+                Text(verbatim: presentation.journey ?? copy.unavailable)
+            } label: { Text(verbatim: copy.journey) }
+                .accessibilityIdentifier("roam.live.finishedMedals.journey")
+            LabeledContent {
+                Text(verbatim: presentation.shop ?? copy.unavailable)
+            } label: { Text(verbatim: copy.shop) }
+                .accessibilityIdentifier("roam.live.finishedMedals.shop")
+            Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
+        } header: { Text(verbatim: copy.title) }
     }
 }

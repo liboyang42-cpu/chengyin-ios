@@ -6,14 +6,17 @@ import XCTest
     private func app(_ arguments: [String] = [], language: String = "en") -> XCUIApplication {
         let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--ui-template-authoring", "--template-author-shelf", "--template-author-creator", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"] + arguments; app.launch(); return app
     }
-    private func reveal(_ item: XCUIElement, app: XCUIApplication, top: Bool = false) {
-        XCTAssertTrue(revealFixtureElement(item, in: app, towardTop: top, maximumSwipes: 14, requiresHittable: true), app.debugDescription)
+    private func reveal(_ item: XCUIElement, app: XCUIApplication, top: Bool = false, maximumSwipes: Int = 14) {
+        XCTAssertTrue(revealFixtureElement(item, in: app, towardTop: top, maximumSwipes: maximumSwipes, requiresHittable: true), app.debugDescription)
     }
     func testChineseLargeTextUnknownAuthorKeepsExactRequestAcrossBack() {
         let app = app(["--creator-pending-filled", "--creator-pending-unknown", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"], language: "zh-Hans")
         defer { attachFailureScreenshot(self, app: app); app.terminate() }
         let open = app.buttons["workshopCreator.open.901"]; reveal(open, app: app); open.tap()
-        let author = app.buttons["workshopPending.author"]; reveal(author, app: app); author.tap()
+        let author = app.buttons["workshopPending.author"]; reveal(author, app: app, maximumSwipes: 24)
+        XCTAssertEqual(app.buttons.matching(identifier: "workshopPending.author").count, 1)
+        XCTAssertTrue(author.isEnabled && author.isHittable)
+        XCTAssertTrue(app.windows.firstMatch.frame.contains(author.frame)); author.tap()
         let retry = app.buttons["workshopPending.retry"]; reveal(retry, app: app, top: true); XCTAssertTrue(retry.isEnabled)
         app.navigationBars.buttons.firstMatch.tap(); reveal(open, app: app); open.tap(); reveal(retry, app: app); XCTAssertTrue(retry.isEnabled)
         XCTAssertFalse(app.buttons["workshopPending.author"].exists); XCTAssertFalse(app.buttons["workshopCreator.declare"].exists)
