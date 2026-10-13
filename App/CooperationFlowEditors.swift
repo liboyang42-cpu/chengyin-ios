@@ -273,41 +273,161 @@ struct CoopFlowReviewEditor: View {
 }
 
 @MainActor struct CoopFlowPerkPicker: View {
-    @Environment(\.locale) private var locale
     let reader: any CoopFlowReading
     let inviteID: Int
-    @State private var rows: [CoopFlowJSON] = []
-    @State private var selected: Set<Int> = []
-    @State private var loaded: CoopFlowSession?
-    @State private var failed = false
+    private struct Host: Hashable { let reader: ObjectIdentifier; let inviteID: Int }
     var body: some View {
+        CoopFlowPerkPickerContent(reader: reader, inviteID: inviteID)
+            .id(Host(reader: ObjectIdentifier(reader), inviteID: inviteID))
+    }
+}
+@MainActor private struct CoopFlowPerkPickerContent: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
+    let reader: any CoopFlowReading
+    let inviteID: Int
+    @StateObject private var model: CoopPerkPickerReadModel
+    init(reader: any CoopFlowReading, inviteID: Int) {
+        self.reader = reader; self.inviteID = inviteID
+        _model = StateObject(wrappedValue: CoopPerkPickerReadModel(reader: reader, inviteID: inviteID))
+    }
+    var body: some View {
+        let permit = model.permit
         List {
-            if loaded == reader.session, loaded != nil {
-                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+            if model.isCurrent {
+                ForEach(Array(model.rows.enumerated()), id: \.offset) { _, row in
                     if let id = row["id"].integer {
-                        Toggle(isOn: Binding(get: { selected.contains(id) }, set: { if $0 { selected.insert(id) } else { selected.remove(id) } })) {
+                        Toggle(isOn: model.selectionBinding(id: id, permit: permit)) {
                             Text(row["name"].text ?? appLocalized("coopflow.unnamed", locale: locale))
-                        }
+                        }.disabled(!model.canSelect(id: id, permit: permit))
                     }
                 }
-                if rows.isEmpty { Text("coopflow.empty") }
-                if !selected.isEmpty {
-                    NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: .attachPerks(inviteID: inviteID, templateIDs: selected.sorted())) }
+                if model.rows.isEmpty { Text("coopflow.empty") }
+                if !model.selected.isEmpty {
+                    Button("coopflow.reviewAction") { model.openPreview(permit: permit) }
+                        .accessibilityIdentifier("coopflow.perks.preview")
                 }
-            } else if failed { Text("coopflow.read.failed") }
+            } else if model.failed {
+                Text("coopflow.read.failed")
+                Button("cooperation.retry") { Task { await model.load(permit: permit) } }
+                    .accessibilityIdentifier("coopflow.perks.retry")
+            } else if reader.session == nil { Text("cooperation.login") }
             else { ProgressView("cooperation.loading") }
             CoopFlowSafetyNotice()
         }.navigationTitle("coopflow.attach")
-            .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0)") {
-                rows = []; selected = []; loaded = nil; failed = false
-                let session = reader.session
-                do {
-                    let result = try await reader.read(.templates)
-                    guard !Task.isCancelled, reader.session == session else { return }
-                    rows = (result.rows ?? []).filter { (CoopFlowMoney($0["retailValue"]).amount ?? 0) > 0 && ($0["quota"].integer ?? 0) > 0 }
-                    loaded = session
-                } catch { guard !Task.isCancelled, reader.session == session else { return }; failed = true }
+            .navigationDestination(item: model.previewBinding()) { preview in
+                if model.current(preview) {
+                    CoopFlowRequestPreview(operation: .attachPerks(inviteID: preview.inviteID, templateIDs: preview.templateIDs))
+                } else { Text("coopflow.invalid") }
             }
+            .onAppear {
+                model.appear(active: scenePhase == .active)
+                let captured = model.permit
+                Task { await model.loadForAppearance(permit: captured) }
+            }
+            .onDisappear { model.disappear() }
+            .onChange(of: reader.session) { _, _ in
+                model.identityChanged()
+                let captured = model.permit
+                Task { await model.loadForAppearance(permit: captured) }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                model.sceneChanged(active: phase == .active)
+                let captured = model.permit
+                if phase == .active { Task { await model.loadForAppearance(permit: captured) } }
+            }
+    }
+}
+
+@MainActor final class CoopPerkPickerReadModel: ObservableObject {
+    struct Preview: Identifiable, Hashable {
+        let id = UUID()
+        let inviteID: Int
+        let templateIDs: [Int]
+        fileprivate let readID: UUID
+        fileprivate let session: CoopFlowSession
+        nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+        nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    }
+    let reader: any CoopFlowReading
+    let inviteID: Int
+    @Published private(set) var rows: [CoopFlowJSON] = []
+    @Published private(set) var selected: Set<Int> = []
+    @Published private(set) var failed = false
+    @Published private(set) var loading = false
+    @Published private(set) var preview: Preview?
+    @Published private(set) var showingPreview = false
+    private(set) var permit = UUID()
+    private var visible = false, active = false
+    private var loadedSession: CoopFlowSession?
+    private var readID = UUID()
+    init(reader: any CoopFlowReading, inviteID: Int) { self.reader = reader; self.inviteID = inviteID }
+    var isCurrent: Bool { loadedSession != nil && loadedSession == reader.session && !loading && !failed }
+    func appear(active: Bool) { visible = true; self.active = active; if !active { retire() } }
+    func disappear() {
+        visible = false
+        if preview == nil { retire() }
+    }
+    func sceneChanged(active: Bool) { self.active = visible && active; if !self.active { retire() } }
+    func identityChanged() { retire() }
+    private func retire() {
+        permit = UUID(); readID = UUID(); loadedSession = nil
+        rows = []; selected = []; preview = nil; showingPreview = false; failed = false; loading = false
+    }
+    func loadForAppearance(permit expected: UUID) async {
+        guard visible, active, expected == permit, !Task.isCancelled else { return }
+        if let preview, current(preview) {
+            self.preview = nil; showingPreview = false
+            permit = UUID()
+            return
+        }
+        if !isCurrent { await load(permit: expected) }
+    }
+    func load(permit expected: UUID) async {
+        guard visible, active, expected == permit, inviteID > 0, !loading, !Task.isCancelled else { return }
+        retire()
+        guard let session = reader.session else { return }
+        let request = readID; loading = true
+        defer { if request == readID { loading = false } }
+        do {
+            let result = try await reader.read(.templates)
+            guard !Task.isCancelled, request == readID, visible, active, reader.session == session else { return }
+            guard let values = result.rows else { throw APIError.invalidRequest }
+            rows = values.filter { (CoopFlowMoney($0["retailValue"]).amount ?? 0) > 0 && ($0["quota"].integer ?? 0) > 0 }
+            loadedSession = session
+        } catch {
+            guard !Task.isCancelled, request == readID, visible, active, reader.session == session else { return }
+            rows = []; selected = []; loadedSession = nil; failed = true
+        }
+    }
+    func canSelect(id: Int, permit expected: UUID) -> Bool {
+        visible && active && isCurrent && preview == nil && expected == permit && id > 0 && rows.filter { $0["id"].integer == id }.count == 1
+    }
+    func selectionBinding(id: Int, permit expected: UUID) -> Binding<Bool> {
+        Binding(get: { self.canSelect(id: id, permit: expected) && self.selected.contains(id) }, set: { value in
+            guard self.canSelect(id: id, permit: expected) else { return }
+            if value { self.selected.insert(id) } else { self.selected.remove(id) }
+        })
+    }
+    func openPreview(permit expected: UUID) {
+        guard visible, active, isCurrent, preview == nil, expected == permit, !selected.isEmpty,
+              selected.allSatisfy({ canSelect(id: $0, permit: expected) }), let loadedSession else { return }
+        preview = Preview(inviteID: inviteID, templateIDs: selected.sorted(), readID: readID, session: loadedSession)
+        showingPreview = true
+    }
+    func current(_ expected: Preview) -> Bool {
+        preview?.id == expected.id && readID == expected.readID && isCurrent && active &&
+            loadedSession == expected.session && inviteID == expected.inviteID && selected.sorted() == expected.templateIDs
+    }
+    func previewBinding() -> Binding<Preview?> {
+        let original = preview
+        return Binding(get: {
+            guard let original, self.showingPreview, self.current(original) else { return nil }
+            return original
+        }, set: { value in
+            guard value == nil, let original, self.current(original) else { return }
+            self.showingPreview = false
+        })
     }
 }
 struct CoopFlowSupplyManagementView: View {

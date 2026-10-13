@@ -18599,6 +18599,7 @@
 				"969B396CB38FFE27617D544D",
 				"D38A602B772436BFFBF69BA8",
 				"A63C9192E0C33E7ECBCA60D7",
+				"304B4981FD3292696B89E6FB",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -26351,6 +26352,7 @@
 				"D64142CEE245B63679053352",
 				"D454CECE46D100A63267C795",
 				"E46001348F9F49AECFE72B7F",
+				"49C7CF34F29285A269C4D7D9",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -27602,6 +27604,16 @@
 		"A81E4ECA97FD596E23FB7904" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "A63C9192E0C33E7ECBCA60D7";
+		};
+		"304B4981FD3292696B89E6FB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/CoopPerkPickerReadReturnTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"49C7CF34F29285A269C4D7D9" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "304B4981FD3292696B89E6FB";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";
