@@ -24,14 +24,25 @@ struct ProfileEditExitConfirmation: Identifiable {
     fileprivate let writeWasLocked: Bool
 }
 
+/// One local category-picker session. This carries no permission to read or save.
+struct ProfilePreferencePickerEdit: Identifiable {
+    let context: ProfileTextFieldEdit
+    let reader: (any DiscoveryReading)?
+    let readerIdentity: String?
+    let readerConfigured: Bool
+    let selected: [Int]
+    var id: UUID { context.id }
+}
+
 @MainActor
 final class ProfileEditModel: ObservableObject {
     let coordinator: ProfileEditCoordinator
-    @Published var draft = ProfileEditDraft() { didSet { retireSavedReturn(); retireTextEdit(); avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }
+    @Published var draft = ProfileEditDraft() { didSet { retirePreferencePicker(); retireSavedReturn(); retireTextEdit(); avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }
     @Published var confirmation: ProfileEditConfirmation?
     @Published private(set) var reloadConfirmation: ProfileEditReloadConfirmation?
     @Published private(set) var exitConfirmation: ProfileEditExitConfirmation?
     @Published private(set) var textEdit: ProfileTextFieldEdit?
+    @Published private(set) var preferencePicker: ProfilePreferencePickerEdit?
     private struct ReviewedDraft {
         let reviewID: UUID
         let generation: Int
@@ -108,7 +119,60 @@ final class ProfileEditModel: ObservableObject {
             && coordinator.isConfigured && coordinator.snapshot != nil
             && confirmation == nil && coordinator.confirmation == nil
             && reloadConfirmation == nil && exitConfirmation == nil
-            && textEdit == nil && !avatarPresentationActive
+            && textEdit == nil && preferencePicker == nil && !avatarPresentationActive
+    }
+    func beginPreferencePicker(reader: (any DiscoveryReading)?) {
+        guard avatarActive, !exitCommitted else { return }
+        synchronizeContext()
+        guard canBeginTextEdit, let identity = coordinator.identity,
+              let snapshot = coordinator.snapshot, snapshot.id == identity.accountID else { return }
+        let context = ProfileTextFieldEdit(field: .preferences, identity: identity,
+            viewerRevision: coordinator.viewerRevision, generation: generation, modelRevision: revision,
+            draftRevision: avatarDraftRevision, snapshot: snapshot, draft: draft)
+        guard let selected = ProfilePreferenceRemoval.selection(draft: draft, snapshot: snapshot) else { return }
+        preferencePicker = .init(context: context, reader: reader,
+            readerIdentity: reader?.discoveryPresentationIdentity, readerConfigured: reader?.isConfigured == true,
+            selected: selected)
+    }
+    func retirePreferencePicker() { preferencePicker = nil }
+    func cancelPreferencePicker(_ value: ProfilePreferencePickerEdit) {
+        guard preferencePicker?.id == value.id else { return }
+        retirePreferencePicker()
+    }
+    private func ownsPreferencePicker(_ value: ProfilePreferencePickerEdit) -> Bool {
+        let context = value.context
+        guard preferencePicker?.id == value.id, avatarActive, !exitCommitted, !busy,
+              !coordinator.isBusy, !coordinator.isLocked, coordinator.isConfigured,
+              textEdit == nil, confirmation == nil, coordinator.confirmation == nil,
+              reloadConfirmation == nil, exitConfirmation == nil, !avatarPresentationActive,
+              coordinator.identity == context.identity, coordinator.viewerRevision == context.viewerRevision,
+              generation == context.generation, revision == context.modelRevision,
+              avatarDraftRevision == context.draftRevision, Self.sameDraft(draft, context.draft),
+              let snapshot = coordinator.snapshot, Self.sameSnapshot(snapshot, context.snapshot),
+              (value.reader?.isConfigured == true) == value.readerConfigured,
+              ProfileCasePortfolio.sameText(value.reader?.discoveryPresentationIdentity, value.readerIdentity) else { return false }
+        return true
+    }
+    /// Shared picker reads and Done both consult this live, captured owner gate.
+    func preferencePickerIdentity(_ value: ProfilePreferencePickerEdit) -> ProfileReadIdentity? {
+        guard ownsPreferencePicker(value) else { cancelPreferencePicker(value); return nil }
+        return value.context.identity
+    }
+    func preferencePickerPresentation(for value: ProfilePreferencePickerEdit?) -> Binding<ProfilePreferencePickerEdit?> {
+        Binding(get: {
+            guard let value, self.ownsPreferencePicker(value) else { return nil }
+            return self.preferencePicker
+        }, set: { next in
+            if next == nil, let value { self.cancelPreferencePicker(value) }
+        })
+    }
+    @discardableResult func confirmPreferencePicker(_ value: ProfilePreferencePickerEdit, selectedIDs: [Int]) -> Bool {
+        guard ownsPreferencePicker(value), value.readerConfigured,
+              ProfilePreferenceRemoval.validIDs(selectedIDs) else { cancelPreferencePicker(value); return false }
+        // Consume synchronously before handing the existing picker result to the local draft.
+        retirePreferencePicker()
+        draft.routePreferenceIDs = selectedIDs
+        return true
     }
     func beginTextEdit(_ field: ProfileTextField) {
         guard !exitCommitted else { return }
@@ -231,7 +295,7 @@ final class ProfileEditModel: ObservableObject {
         // The existing confirmTextEdit avatarActive guard denies late Apply while suspended.
         retireAvatarResources()
     }
-    private func retireAvatarResources() { retireSavedReturn(); cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
+    private func retireAvatarResources() { retirePreferencePicker(); retireSavedReturn(); cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
     func activateAvatar() { avatarActive = true }
     private func avatarSaveValidity(for captured: ProfileEditDraft) -> ProfileAvatarSaveValidity? {
         guard let replacement = captured.avatarReplacement else { return nil }
@@ -439,7 +503,6 @@ struct ProfileEditView: View {
     let avatarDependencies: ProfileAvatarDependencies?
     let caseImageReader: (any RetainedPublicImageReading)?
     private let onSaved: (() -> Void)?
-    @State private var showPreferences = false
     @State private var showReloadConfirmation = false
     @State private var showExitConfirmation = false
     private var selectedPreferences: [Int] {
@@ -495,8 +558,8 @@ struct ProfileEditView: View {
                         Button("profile.preferenceRemoval.open") { model.beginTextEdit(.preferences) }
                             .disabled(!model.canBeginTextEdit)
                             .accessibilityIdentifier("profile.preferenceRemoval.open")
-                        Button("context.preferences.edit") { showPreferences = true }
-                            .disabled(model.busy || model.coordinator.isLocked || model.textEdit != nil).accessibilityIdentifier("profile.edit.preferences")
+                        Button("context.preferences.edit") { model.beginPreferencePicker(reader: categoryReader) }
+                            .disabled(!model.canBeginTextEdit).accessibilityIdentifier("profile.edit.preferences")
                     }
                     Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }
                         .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
@@ -538,7 +601,7 @@ struct ProfileEditView: View {
         }
         .onChange(of: model.exitConfirmation?.id) { _, id in showExitConfirmation = id != nil }
         .onChange(of: showExitConfirmation) { _, showing in if !showing { model.cancelExit() } }
-        .onChange(of: showPreferences) { _, _ in model.cancelExit() }
+        .onChange(of: model.preferencePicker?.id) { _, _ in model.cancelExit() }
         .confirmationDialog("profile.reloadDiscard.title", isPresented: $showReloadConfirmation,
                             titleVisibility: .visible, presenting: model.reloadConfirmation) { value in
             Button("profile.reloadDiscard.confirm", role: .destructive) { _ = model.confirmReload(value) }
@@ -558,17 +621,22 @@ struct ProfileEditView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model.retireReload(); model.suspendForBackground() } else { model.activateAvatar() }
         }
-        .task(id: sessionRevision) { showPreferences = false; await model.resetAndLoad() }
+        .task(id: sessionRevision) { model.retirePreferencePicker(); await model.resetAndLoad() }
         .background {
             if let edit = model.textEdit {
                 ProfileTextEditPresentationOwner(model: model, edit: edit, caseImageReader: caseImageReader)
                     .id(edit.id)
             }
         }
-        .sheet(isPresented: $showPreferences) {
-            NavigationStack { ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,
-                currentIdentity: { model.coordinator.identity }) { model.draft.routePreferenceIDs = $0 } }
+        .background {
+            if let edit = model.preferencePicker {
+                ProfilePreferencePickerPresentationOwner(model: model, edit: edit)
+                    .id(edit.id)
+            }
         }
+        .onChange(of: categoryReader.map { ObjectIdentifier($0) }) { _, _ in model.retirePreferencePicker() }
+        .onChange(of: categoryReader?.discoveryPresentationIdentity) { _, _ in model.retirePreferencePicker() }
+        .onChange(of: categoryReader?.isConfigured) { _, _ in model.retirePreferencePicker() }
         .onDisappear(perform: handleEditorDisappear)
         .sheet(item: $model.confirmation) { value in
             NavigationStack {
@@ -626,7 +694,7 @@ struct ProfileEditView: View {
     }
 
     private func handleEditorDisappear() {
-        if !showPreferences, model.textEdit == nil, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }
+        if model.preferencePicker == nil, model.textEdit == nil, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }
         model.retireReload()
         if let value = model.confirmation { model.coordinator.cancel(value) }
     }
@@ -667,5 +735,25 @@ struct ProfileEditView: View {
                 }
             }.interactiveDismissDisabled(false)
         }
+    }
+}
+
+/// The stable form mounts this presenter only after a concrete picker UUID exists.
+@MainActor private struct ProfilePreferencePickerPresentationOwner: View {
+    @ObservedObject var model: ProfileEditModel
+    let edit: ProfilePreferencePickerEdit
+    private var categoryReader: (any DiscoveryReading)? { edit.reader }
+    private var selectedPreferences: [Int] { edit.selected }
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(item: model.preferencePickerPresentation(for: edit),
+                   onDismiss: { model.cancelPreferencePicker(edit) }) { offered in
+                NavigationStack {
+                    ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,
+                        currentIdentity: { model.preferencePickerIdentity(offered) }) {
+                            _ = model.confirmPreferencePicker(offered, selectedIDs: $0)
+                        }
+                }
+            }
     }
 }

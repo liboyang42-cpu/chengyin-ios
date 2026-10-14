@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import Questify
 
 @MainActor private final class ProfilePreferenceSessionBox {
@@ -139,5 +140,140 @@ import XCTest
         source.rejected = true; await model.save(try XCTUnwrap(model.confirmation)); XCTAssertEqual(model.draft.routePreferenceIDs, [4])
         source.failRead = true; await model.requestReload(); let task = try XCTUnwrap(model.confirmReload(try XCTUnwrap(model.reloadConfirmation)))
         await task.value; XCTAssertEqual(model.draft.routePreferenceIDs, [4]); XCTAssertEqual(source.saves, 1)
+    }
+}
+
+@MainActor private final class ProfilePreferencePickerTestReader: DiscoveryReading {
+    var isConfigured = true
+    var discoveryPresentationIdentity = "synthetic-preference-catalogue-1"
+    var reads = 0
+    func discoveryCategories(type: Int?) async throws -> [DiscoveryCategory] { reads += 1; return [] }
+    func discoveryBanners() async throws -> [DiscoveryBanner] { throw APIError.notConfigured }
+    func discoveryTemplateHome() async throws -> DiscoveryTemplateHome { throw APIError.notConfigured }
+    func discoveryPlayTemplates(keyword: String, packType: DiscoveryPackType?) async throws -> [DiscoveryPlayTemplate] { throw APIError.notConfigured }
+    func discoveryTopicTemplates() async throws -> [DiscoveryTopicTemplate] { throw APIError.notConfigured }
+    func discoveryTopicTemplateDetail(id: Int) async throws -> PublicTopicTemplateDetail { throw APIError.notConfigured }
+    func discoveryPlayTemplate(id: Int) async throws -> DiscoveryPlayTemplate { throw APIError.notConfigured }
+}
+
+extension ProfilePreferenceRemovalModelTests {
+    private func openPicker(_ model: ProfileEditModel, reader: (any DiscoveryReading)?) throws -> ProfilePreferencePickerEdit {
+        model.beginPreferencePicker(reader: reader)
+        return try XCTUnwrap(model.preferencePicker)
+    }
+    func testCurrentCatalogueDoneStagesOnceAndPreservesOtherDraftFields() async throws {
+        let (model, source, _) = try await harness(), reader = ProfilePreferencePickerTestReader()
+        model.draft.name = "Local name"; model.draft.introduction = "Local introduction"
+        model.draft.caseIntroduction = "Local case"; model.draft.removesContactQR = true
+        let before = model.draft, edit = try openPicker(model, reader: reader)
+        XCTAssertEqual(edit.selected, [4, 7007]); XCTAssertEqual(model.preferencePickerIdentity(edit), model.coordinator.identity)
+        XCTAssertTrue(model.confirmPreferencePicker(edit, selectedIDs: [9, 4]))
+        var expected = before; expected.routePreferenceIDs = [9, 4]
+        XCTAssertEqual(model.draft, expected); XCTAssertNil(model.preferencePicker)
+        XCTAssertFalse(model.confirmPreferencePicker(edit, selectedIDs: [])); XCTAssertEqual(model.draft, expected)
+        XCTAssertEqual(source.reads, 1); XCTAssertEqual(source.saves, 0); XCTAssertEqual(reader.reads, 0)
+    }
+    func testCancelledCatalogueBindingsDoneAndDismissCannotAffectReopenedPicker() async throws {
+        let (model, source, _) = try await harness(), reader = ProfilePreferencePickerTestReader()
+        let before = model.draft, initial = model.preferencePickerPresentation(for: nil)
+        let old = try openPicker(model, reader: reader), binding = model.preferencePickerPresentation(for: model.preferencePicker)
+        let pendingReadIdentity = { model.preferencePickerIdentity(old) }
+        XCTAssertEqual(binding.wrappedValue?.id, old.id); XCTAssertNil(initial.wrappedValue)
+        binding.wrappedValue = nil; XCTAssertNil(model.preferencePicker); XCTAssertEqual(model.draft, before)
+        let fresh = try openPicker(model, reader: reader), current = model.preferencePickerPresentation(for: model.preferencePicker)
+        XCTAssertNotEqual(fresh.id, old.id); XCTAssertNil(binding.wrappedValue); XCTAssertNil(initial.wrappedValue)
+        XCTAssertNil(pendingReadIdentity())
+        initial.wrappedValue = fresh; binding.wrappedValue = fresh
+        initial.wrappedValue = nil; binding.wrappedValue = nil; model.cancelPreferencePicker(old)
+        XCTAssertFalse(model.confirmPreferencePicker(old, selectedIDs: []))
+        XCTAssertEqual(current.wrappedValue?.id, fresh.id); XCTAssertEqual(model.draft, before)
+        XCTAssertTrue(model.confirmPreferencePicker(fresh, selectedIDs: [4])); XCTAssertEqual(model.draft.routePreferenceIDs, [4])
+        XCTAssertNil(current.wrappedValue); XCTAssertEqual(source.saves, 0); XCTAssertEqual(reader.reads, 0)
+    }
+    func testCatalogueOwnerEpochAndViewerChangesRejectOldDoneBeforeParentReload() async throws {
+        for next in [(902, UInt64(1), UInt64(1)), (901, UInt64(2), UInt64(1)), (901, UInt64(1), UInt64(2))] {
+            let (model, source, session) = try await harness(), reader = ProfilePreferencePickerTestReader()
+            let edit = try openPicker(model, reader: reader), before = model.draft
+            session.value = try .init(accountID: next.0, epoch: next.1, token: "synthetic-profile-preferences", viewerRevision: next.2)
+            XCTAssertNil(model.preferencePickerIdentity(edit)); XCTAssertNil(model.preferencePicker)
+            XCTAssertFalse(model.confirmPreferencePicker(edit, selectedIDs: [])); XCTAssertEqual(model.draft, before)
+            XCTAssertEqual(source.reads, 1); XCTAssertEqual(source.saves, 0); XCTAssertEqual(reader.reads, 0)
+        }
+    }
+    func testCatalogueDraftABAAndReloadCannotReviveOldSelection() async throws {
+        let (model, source, _) = try await harness(), reader = ProfilePreferencePickerTestReader()
+        let edit = try openPicker(model, reader: reader), before = model.draft
+        model.draft.name = "Temporary"; model.draft = before
+        XCTAssertNil(model.preferencePickerIdentity(edit)); XCTAssertFalse(model.confirmPreferencePicker(edit, selectedIDs: []))
+        for failure in [false, true] {
+            let captured = try openPicker(model, reader: reader)
+            source.failRead = failure; await model.load()
+            XCTAssertNil(model.preferencePickerIdentity(captured))
+            XCTAssertFalse(model.confirmPreferencePicker(captured, selectedIDs: []))
+            XCTAssertNil(model.draft.routePreferenceIDs); XCTAssertEqual(source.saves, 0)
+        }
+    }
+    func testCatalogueReadInvalidationRetiresOldIdentityAndCannotRevive() async throws {
+        let (model, source, _) = try await harness(), reader = ProfilePreferencePickerTestReader()
+        let edit = try openPicker(model, reader: reader), before = model.draft
+        reader.isConfigured = false
+        XCTAssertNil(model.preferencePickerIdentity(edit)); XCTAssertNil(model.preferencePicker)
+        reader.isConfigured = true
+        XCTAssertFalse(model.confirmPreferencePicker(edit, selectedIDs: [])); XCTAssertEqual(model.draft, before)
+        reader.discoveryPresentationIdentity = "\u{00E9}"
+        let fresh = try openPicker(model, reader: reader)
+        reader.discoveryPresentationIdentity = "e\u{0301}"
+        XCTAssertNil(model.preferencePickerIdentity(fresh))
+        XCTAssertFalse(model.confirmPreferencePicker(fresh, selectedIDs: [])); XCTAssertEqual(model.draft, before)
+        XCTAssertEqual(source.saves, 0); XCTAssertEqual(reader.reads, 0)
+    }
+    func testCatalogueBackgroundAndActualAnchorDismantleRejectLateDone() async throws {
+        for mode in 0...2 {
+            let (model, source, _) = try await harness(), reader = ProfilePreferencePickerTestReader()
+            let edit = try openPicker(model, reader: reader), before = model.draft
+            if mode == 2 {
+                let anchor = ProfileAvatarOwnerAnchor(model: model)
+                ProfileAvatarOwnerAnchor.dismantleUIViewController(UIViewController(), coordinator: anchor.makeCoordinator())
+            } else if mode == 1 { model.suspendForBackground() }
+            else { model.retireAvatar() }
+            XCTAssertNil(model.preferencePicker); XCTAssertNil(model.preferencePickerIdentity(edit))
+            XCTAssertFalse(model.confirmPreferencePicker(edit, selectedIDs: []))
+            model.beginPreferencePicker(reader: reader); XCTAssertNil(model.preferencePicker)
+            XCTAssertEqual(model.draft, before); XCTAssertEqual(source.saves, 0)
+            model.activateAvatar(); let fresh = try openPicker(model, reader: reader)
+            model.cancelPreferencePicker(edit); XCTAssertEqual(model.preferencePicker?.id, fresh.id)
+        }
+    }
+    func testUnconfiguredCatalogueCannotStageEvenWithDirectDoneCallback() async throws {
+        let (model, source, _) = try await harness(), reader = ProfilePreferencePickerTestReader()
+        for available in [false, true] {
+            reader.isConfigured = false
+            let edit = try openPicker(model, reader: available ? reader : nil), before = model.draft
+            XCTAssertNotNil(model.preferencePickerIdentity(edit))
+            XCTAssertFalse(model.confirmPreferencePicker(edit, selectedIDs: [9]))
+            XCTAssertEqual(model.draft, before); XCTAssertNil(model.preferencePicker)
+        }
+        XCTAssertEqual(source.reads, 1); XCTAssertEqual(source.saves, 0); XCTAssertEqual(reader.reads, 0)
+    }
+    func testCatalogueAndFieldEditorsRemainMutuallyExclusive() async throws {
+        let (model, source, _) = try await harness(), reader = ProfilePreferencePickerTestReader()
+        let picker = try openPicker(model, reader: reader)
+        model.beginTextEdit(.name); XCTAssertNil(model.textEdit); XCTAssertEqual(model.preferencePicker?.id, picker.id)
+        model.cancelPreferencePicker(picker); model.beginTextEdit(.name)
+        let field = try XCTUnwrap(model.textEdit)
+        model.beginPreferencePicker(reader: reader); XCTAssertNil(model.preferencePicker); XCTAssertEqual(model.textEdit?.id, field.id)
+        XCTAssertEqual(source.saves, 0); XCTAssertEqual(reader.reads, 0)
+    }
+}
+
+
+extension ProfilePreferenceRemovalModelTests {
+    func testMalformedStoredPreferencesCannotBeSilentlyCompactedByCatalogueEntry() async throws {
+        let (model, source, _) = try await harness(), reader = ProfilePreferencePickerTestReader()
+        source.fields["tagIds"] = "4,invalid,7007"; await model.load()
+        let before = model.draft
+        model.beginPreferencePicker(reader: reader)
+        XCTAssertNil(model.preferencePicker); XCTAssertEqual(model.draft, before)
+        XCTAssertEqual(source.saves, 0); XCTAssertEqual(reader.reads, 0)
     }
 }
