@@ -10,6 +10,10 @@ import SwiftUI
             }
             TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) },
                 includesHints: false, includesChoiceOptions: false)
+            if [.text, .choice].contains(model.draft.validationMethod) {
+                TemplateBasicFieldClearButton(model: model, field: .questionImage)
+                TemplateBasicFieldClearButton(model: model, field: .questionAudio)
+            }
             TemplateLegacyHintFields(model: model)
             if TemplateLegacyQuestionRehearsal(model.draft).isAvailable {
                 NavigationLink("templateLegacyQuiz.title") { TemplateLegacyQuestionRehearsalView(model: model) }

@@ -361,3 +361,185 @@ import XCTest
         XCTAssertEqual(TemplateBasicClearField.cover.label(Locale(identifier: "zh-Hans")), "清空封面引用")
     }
 }
+
+@MainActor final class TemplateLocalMediaClearGroupTests: XCTestCase {
+    private final class Owner {
+        var session: TemplateAuthoringSession?
+        init(_ session: TemplateAuthoringSession) { self.session = session }
+    }
+    private struct Fixture {
+        let model: TemplateAuthoringModel
+        let owner: Owner
+        let storage: TemplateAuthoringMemoryStorage
+        let clear: TemplateBasicFieldClearController
+    }
+    private let mediaJSON = #"{"A":{"img":"image-a","audio":"audio-a"},"B":{"img":"image-b","audio":"audio-b"},"C":{"img":"image-c","audio":"audio-c"},"D":{"img":"image-d","audio":"audio-d"}}"#
+    private func fixture(_ field: TemplateBasicClearField, method: TemplateAuthoringMethod = .choice) throws -> Fixture {
+        let owner = Owner(try .init(accountID: 999, namespace: "local-media-clear", epoch: 1, authorizationRevision: "member"))
+        let storage = TemplateAuthoringMemoryStorage()
+        let model = TemplateAuthoringModel(coordinator: .init(store: .init(storage: storage), currentSession: { owner.session }))
+        model.load(); model.draft.title = "Media draft"; model.draft.description = "Keep description"
+        model.draft.finishEnabled = true; model.draft.validationMethod = method
+        model.draft.questionName = "Question"; model.draft.questionAnswer = "Answer"
+        model.draft.questionA = "One"; model.draft.questionB = "Two"; model.draft.questionC = "Three"; model.draft.questionD = "Four"; model.draft.correctAnswer = "B"
+        model.draft.imgUrl = "fixture:cover"; model.draft.questionImg = "https://image.example/e%CC%81.png"
+        model.draft.questionAudio = "https://audio.example/question.m4a"; model.draft.audioUrl = "fixture:narration"
+        model.draft.questionOptionMediaJson = mediaJSON; model.draft.storyText = "Keep story"
+        model.draft.advanced.value["future"] = .object(["keep": .string(" e\u{0301} ")]); model.changed()
+        let clear = TemplateBasicFieldClearController(model: model, field: field); clear.appear(sceneIsActive: true)
+        return .init(model: model, owner: owner, storage: storage, clear: clear)
+    }
+    func testQuestionImageClearOnlyRemovesImageForBothNormalQAMethods() throws {
+        for method in [TemplateAuthoringMethod.text, .choice] {
+            let f = try fixture(.questionImage, method: method); var expected = f.model.draft; expected.questionImg = nil
+            f.clear.clearAction()()
+            XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), TemplateSamplePreview.snapshot(expected))
+            XCTAssertEqual(f.model.coordinator.draft, expected); XCTAssertFalse(f.clear.canClear)
+        }
+    }
+    func testQuestionAudioClearOnlyRemovesItsInertReference() throws {
+        let f = try fixture(.questionAudio); var expected = f.model.draft; expected.questionAudio = nil
+        f.clear.clearAction()()
+        XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), TemplateSamplePreview.snapshot(expected))
+        XCTAssertEqual(f.model.draft.audioUrl, "fixture:narration"); XCTAssertTrue(f.storage.values.isEmpty)
+    }
+    func testOptionPairClearsAtomicallyWithoutDeletingRowTextAnswerOrOtherMedia() throws {
+        let f = try fixture(.optionMedia(.b)); var expected = f.model.draft
+        try expected.setChoiceOptionMedia(.b, .image, to: ""); try expected.setChoiceOptionMedia(.b, .audio, to: "")
+        let revision = f.model.revision; f.clear.clearAction()()
+        XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), TemplateSamplePreview.snapshot(expected))
+        XCTAssertNil(f.model.draft.choiceOptionMedia.text(.b, .image)); XCTAssertNil(f.model.draft.choiceOptionMedia.text(.b, .audio))
+        XCTAssertEqual(f.model.draft.questionB, "Two"); XCTAssertEqual(f.model.draft.correctAnswer, "B")
+        XCTAssertEqual(f.model.revision, revision + 1); XCTAssertEqual(f.model.coordinator.draft, expected)
+    }
+    func testEachOptionIdentityAddressesOnlyItsOwnPair() throws {
+        for letter in TemplateChoiceOptionMedia.Letter.allCases {
+            let f = try fixture(.optionMedia(letter)); f.clear.clearAction()()
+            for other in TemplateChoiceOptionMedia.Letter.allCases {
+                let original = TemplateChoiceOptionMedia(raw: mediaJSON)
+                for kind in TemplateChoiceOptionMedia.Kind.allCases {
+                    XCTAssertEqual(f.model.draft.choiceOptionMedia.text(other, kind), other == letter ? nil : original.text(other, kind))
+                }
+            }
+            XCTAssertEqual(f.model.draft.correctAnswer, "B"); XCTAssertEqual(TemplateChoiceOptionRows(draft: f.model.draft).letters.count, 4)
+        }
+    }
+    func testUnknownMalformedAndOutOfContractOptionJSONRemainsByteExact() throws {
+        for raw in [#"{ "A": {"img":"keep", "future":"unknown"} }"#, #"{"future":{"img":"keep"}}"#, #"{"A":{"img":7}}"#, "[{}]", "{broken", #"{"A":{"img":""}}"#] {
+            let f = try fixture(.optionMedia(.a)); f.model.draft.questionOptionMediaJson = raw
+            let original = TemplateSamplePreview.snapshot(f.model.draft), revision = f.model.revision
+            XCTAssertFalse(f.clear.canClear); f.clear.clearAction()()
+            XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), original); XCTAssertEqual(f.model.revision, revision)
+            XCTAssertEqual(Array(try XCTUnwrap(f.model.draft.questionOptionMediaJson).utf8), Array(raw.utf8))
+        }
+    }
+    func testDuplicateAndEscapedAliasKeysAreRejectedBeforeProjectionCanCollapseThem() throws {
+        for raw in [#"{"A":{"img":"first"},"A":{"audio":"second"}}"#, #"{"A":{"img":"first","img":"second"}}"#, #"{"A":{"img":"first"},"\u0041":{"audio":"second"}}"#, #"{"A":{"img":"first","\u0069mg":"second"}}"#] {
+            let f = try fixture(.optionMedia(.a)); f.model.draft.questionOptionMediaJson = raw
+            XCTAssertFalse(f.clear.canClear); f.clear.clearAction()()
+            XCTAssertEqual(Array(try XCTUnwrap(f.model.draft.questionOptionMediaJson).utf8), Array(raw.utf8))
+        }
+    }
+    func testUniqueKeysAllowWhitespaceEscapesAndOtherOptionReferencesWithoutReinterpretation() throws {
+        let f = try fixture(.optionMedia(.a))
+        f.model.draft.questionOptionMediaJson = #" { "A" : {"img":"remove","audio":"remove"}, "B":{"img":"keep \\ path \"img\": { untouched }","audio":"e\u0301"} } "#
+        let image = f.model.draft.choiceOptionMedia.text(.b, .image), audio = f.model.draft.choiceOptionMedia.text(.b, .audio)
+        XCTAssertTrue(f.clear.canClear); f.clear.clearAction()()
+        XCTAssertEqual(f.model.draft.choiceOptionMedia.text(.b, .image).map { Array($0.utf8) }, image.map { Array($0.utf8) })
+        XCTAssertEqual(f.model.draft.choiceOptionMedia.text(.b, .audio).map { Array($0.utf8) }, audio.map { Array($0.utf8) })
+    }
+    func testEmptyMissingAndAbsentRowDoNotRewriteOrPublish() throws {
+        let fields: [TemplateBasicClearField] = [.questionImage, .questionAudio, .optionMedia(.d)]
+        for field in fields {
+            let f = try fixture(field); f.model.draft.questionImg = nil; f.model.draft.questionAudio = ""
+            f.model.draft.questionC = nil; f.model.draft.questionD = nil; f.model.draft.questionOptionMediaJson = #"{ "A": {} }"#
+            let original = TemplateSamplePreview.snapshot(f.model.draft), revision = f.model.revision
+            XCTAssertFalse(f.clear.canClear); f.clear.clearAction()()
+            XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), original); XCTAssertEqual(f.model.revision, revision)
+        }
+    }
+    func testMethodAndModuleVisibilityGateEveryMediaClear() throws {
+        for field in [TemplateBasicClearField.questionImage, .questionAudio, .optionMedia(.a)] {
+            let f = try fixture(field), clear = f.clear.clearAction(), original = f.model.draft
+            f.model.draft.validationMethod = .manual; XCTAssertFalse(f.clear.canClear); f.clear.clearAction()()
+            f.model.draft = original; clear(); XCTAssertEqual(f.model.draft, original)
+            f.model.draft.finishEnabled = false; XCTAssertFalse(f.clear.canClear); f.clear.clearAction()()
+            XCTAssertEqual(f.model.draft.questionImg, original.questionImg); XCTAssertEqual(f.model.draft.questionOptionMediaJson, original.questionOptionMediaJson)
+        }
+    }
+    func testByteDifferentReferenceReplacementRejectsCapturedQuestionClear() throws {
+        let f = try fixture(.questionImage), clear = f.clear.clearAction()
+        f.model.draft.questionImg = "https://image.example/é.png"
+        let replacement = try XCTUnwrap(f.model.draft.questionImg); clear()
+        XCTAssertEqual(Array(try XCTUnwrap(f.model.draft.questionImg).utf8), Array(replacement.utf8))
+        f.clear.clearAction()(); XCTAssertNil(f.model.draft.questionImg)
+    }
+    func testOptionABAAndRowShiftCannotReuseOldClearAction() throws {
+        let f = try fixture(.optionMedia(.b)), original = f.model.draft, clear = f.clear.clearAction()
+        f.model.draft.questionB = "intermediate"; f.model.draft = original; clear()
+        XCTAssertEqual(f.model.draft, original)
+        let shiftedClear = f.clear.clearAction(), rows = TemplateChoiceOptionRowsEditor(model: f.model)
+        rows.action(.remove(.a))(); let shifted = TemplateSamplePreview.snapshot(f.model.draft); shiftedClear()
+        XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), shifted)
+    }
+    func testHiddenForegroundAndReopenNeverReviveOldActions() throws {
+        for field in [TemplateBasicClearField.questionImage, .questionAudio, .optionMedia(.a)] {
+            let f = try fixture(field), original = f.model.draft, clear = f.clear.clearAction()
+            f.clear.disappear(); f.clear.sceneChanged(isActive: true); clear(); f.clear.clearAction()()
+            XCTAssertFalse(f.clear.canClear); XCTAssertEqual(f.model.draft, original)
+            f.clear.appear(sceneIsActive: true); clear(); XCTAssertEqual(f.model.draft, original)
+            f.clear.clearAction()(); XCTAssertNotEqual(TemplateSamplePreview.snapshot(f.model.draft), TemplateSamplePreview.snapshot(original))
+        }
+    }
+    func testRepeatedVisibleAppearDoesNotInvalidateCurrentAction() throws {
+        let f = try fixture(.optionMedia(.c)), clear = f.clear.clearAction()
+        f.clear.appear(sceneIsActive: true); f.clear.appear(sceneIsActive: true); clear()
+        XCTAssertNil(f.model.draft.choiceOptionMedia.text(.c, .image)); XCTAssertNil(f.model.draft.choiceOptionMedia.text(.c, .audio))
+    }
+    func testSwitchedOwnerAndSignOutRejectBothOldAndFreshCallbacks() throws {
+        for field in [TemplateBasicClearField.questionImage, .questionAudio, .optionMedia(.a)] {
+            let f = try fixture(field), original = f.model.draft, clear = f.clear.clearAction()
+            f.owner.session = try .init(accountID: 1000, namespace: "local-media-clear", epoch: 2, authorizationRevision: "member")
+            clear(); f.clear.clearAction()(); XCTAssertEqual(f.model.draft, original)
+            f.owner.session = nil; clear(); f.clear.clearAction()(); XCTAssertEqual(f.model.draft, original)
+        }
+    }
+    func testClearingEachKindRetiresHeldMediaInspectionBeforeLateCompletion() throws {
+        let cases: [(TemplateBasicClearField, TemplateAuthoringMediaField)] = [(.questionImage, .questionImage), (.questionAudio, .questionAudio), (.optionMedia(.a), .optionImage(.a))]
+        for (field, target) in cases {
+            let f = try fixture(field), media = TemplateMediaReviewController(model: f.model, fixtureMode: "generated"); media.reload()
+            media.open(try XCTUnwrap(media.rows.first { $0.field == target })); media.beginSynthetic(try XCTUnwrap(media.review), held: true)
+            let pending = try XCTUnwrap(media.review); f.clear.clearAction()(); let expected = TemplateSamplePreview.snapshot(f.model.draft)
+            XCTAssertNil(media.review); XCTAssertNil(media.presentation(for: pending.id))
+            media.completeSynthetic(pending); media.finish(pending)
+            XCTAssertNil(media.review); XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), expected)
+        }
+    }
+    func testOnlyExplicitParentSavePersistsClearsAndUncommittedReopenRestoresOldReferences() throws {
+        let f = try fixture(.optionMedia(.a)); f.model.save(); let originalBytes = f.storage.values
+        f.clear.clearAction()(); XCTAssertEqual(f.storage.values, originalBytes)
+        let reopened = TemplateAuthoringModel(coordinator: .init(store: .init(storage: f.storage), currentSession: { f.owner.session }))
+        reopened.load(); reopened.restore(); XCTAssertEqual(reopened.draft.questionOptionMediaJson, mediaJSON)
+        f.model.save(); XCTAssertNotEqual(f.storage.values, originalBytes)
+        let saved = TemplateAuthoringModel(coordinator: .init(store: .init(storage: f.storage), currentSession: { f.owner.session }))
+        saved.load(); saved.restore(); XCTAssertNil(saved.draft.choiceOptionMedia.text(.a, .image)); XCTAssertNil(saved.draft.choiceOptionMedia.text(.a, .audio))
+        XCTAssertEqual(saved.draft.questionA, "One"); XCTAssertEqual(saved.draft.correctAnswer, "B")
+        XCTAssertNil(f.model.coordinator.pending); XCTAssertFalse(f.model.coordinator.canSubmit)
+    }
+    func testBusyAndCancelledReviewDoNotEnablePreviouslyCapturedClear() throws {
+        let f = try fixture(.questionAudio, method: .text); f.model.draft.advanced.value.removeValue(forKey: "future"); f.model.changed()
+        let clear = f.clear.clearAction(), original = f.model.draft
+        f.model.busy = true; clear(); f.clear.clearAction()(); XCTAssertEqual(f.model.draft, original)
+        f.model.busy = false; clear(); XCTAssertEqual(f.model.draft, original)
+        f.model.prepare(.saveDraft); XCTAssertNotNil(f.model.review); f.clear.clearAction()(); XCTAssertEqual(f.model.draft, original)
+        f.model.cancel(); clear(); XCTAssertEqual(f.model.draft, original); XCTAssertTrue(f.storage.values.isEmpty)
+    }
+    func testLocalMediaClearLabelsAndIdentifiersAreSpecificInBothLanguages() {
+        XCTAssertEqual(TemplateBasicClearField.questionImage.rawValue, "questionImage")
+        XCTAssertEqual(TemplateBasicClearField.questionAudio.rawValue, "questionAudio")
+        XCTAssertEqual(TemplateBasicClearField.optionMedia(.d).rawValue, "optionMedia.D")
+        XCTAssertEqual(TemplateBasicClearField.questionImage.label(Locale(identifier: "en")), "Clear question image reference")
+        XCTAssertEqual(TemplateBasicClearField.questionAudio.label(Locale(identifier: "zh-Hans")), "清空题干音频引用")
+        XCTAssertEqual(TemplateBasicClearField.optionMedia(.b).label(Locale(identifier: "en")), "Clear option B media references")
+    }
+}
