@@ -218,3 +218,56 @@ import XCTest
     }
 
 }
+
+extension MerchantMarketingTests {
+    func testOldReviewCancelDoesNotDiscardReopenedServiceReview() async throws {
+        let transport = MerchantMarketingFixtureTransport(), model = MerchantMarketingCoordinator(service: try service(transport))
+        await model.load(.predictions); let round = try XCTUnwrap(model.rounds?.first)
+        await model.prepare(round, option: "A"); let first = try XCTUnwrap(model.review)
+        model.cancelReview(id: first.id)
+        await model.prepare(round, option: "B"); let second = try XCTUnwrap(model.review)
+        let reads = transport.requests.count
+        model.cancelReview(id: first.id)
+        XCTAssertEqual(model.review, second); XCTAssertEqual(transport.requests.count, reads)
+        await model.confirm(reviewID: second.id, couponEffectsAcknowledged: true)
+        XCTAssertEqual(model.acknowledgement?.winners, 3)
+        let request = try XCTUnwrap(transport.requests.last)
+        let body = try JSONDecoder().decode([String: String].self, from: XCTUnwrap(request.httpBody))
+        XCTAssertEqual(body, ["nodeId": "81", "playDay": "2026-10-01", "settledOption": "B"])
+    }
+    func testOldAcknowledgementCannotConfirmNewReviewOrCreateIntent() async throws {
+        let transport = MerchantMarketingFixtureTransport(), locks = MerchantPredictionMemoryLocks()
+        let model = MerchantMarketingCoordinator(service: try service(transport, locks: locks))
+        await model.load(.predictions); let round = try XCTUnwrap(model.rounds?.first)
+        await model.prepare(round, option: "A"); let first = try XCTUnwrap(model.review)
+        model.cancelReview(id: first.id); await model.prepare(round, option: "B")
+        let second = try XCTUnwrap(model.review), reads = transport.requests.count
+        await model.confirm(reviewID: first.id, couponEffectsAcknowledged: true)
+        XCTAssertEqual(model.review, second); XCTAssertEqual(transport.requests.count, reads)
+        XCTAssertTrue(locks.records.isEmpty); XCTAssertNil(model.acknowledgement); XCTAssertNil(model.failure)
+    }
+    func testCapturedQueuedReviewCannotAdoptReplacementAtExecutionTime() async throws {
+        let transport = MerchantMarketingFixtureTransport(), model = MerchantMarketingCoordinator(service: try service(transport))
+        await model.load(.predictions); let round = try XCTUnwrap(model.rounds?.first)
+        await model.prepare(round, option: "A"); let first = try XCTUnwrap(model.review)
+        let queued = { await model.confirm(reviewID: first.id, couponEffectsAcknowledged: true) }
+        model.cancelReview(id: first.id); await model.prepare(round, option: "B")
+        let second = try XCTUnwrap(model.review), reads = transport.requests.count
+        await queued()
+        XCTAssertEqual(model.review, second); XCTAssertEqual(transport.requests.count, reads)
+    }
+    func testExactReviewStillUsesUnknownOutcomeLockWithoutResending() async throws {
+        let transport = MerchantMarketingFixtureTransport(scenario: "unknown"), locks = MerchantPredictionMemoryLocks()
+        let model = MerchantMarketingCoordinator(service: try service(transport, locks: locks))
+        await model.load(.predictions); let round = try XCTUnwrap(model.rounds?.first)
+        await model.prepare(round, option: "A"); let accepted = try XCTUnwrap(model.review)
+        await model.confirm(reviewID: accepted.id, couponEffectsAcknowledged: true)
+        XCTAssertEqual(model.failure, .unknown); XCTAssertNil(model.review); XCTAssertEqual(locks.records.count, 1)
+        let dispatched = transport.requests.filter { $0.url?.path.hasSuffix("settle") == true }.count
+        model.cancelReview(id: accepted.id)
+        await model.confirm(reviewID: accepted.id, couponEffectsAcknowledged: true)
+        XCTAssertEqual(locks.records.count, 1)
+        XCTAssertEqual(transport.requests.filter { $0.url?.path.hasSuffix("settle") == true }.count, dispatched)
+        XCTAssertEqual(dispatched, 1); XCTAssertNil(model.acknowledgement)
+    }
+}

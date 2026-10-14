@@ -67,8 +67,11 @@ import SwiftUI
         .task(id: loadKey) { await loadSurface() }
         .onChange(of: loadKey) { _, _ in refreshTask?.cancel(); refreshTask = nil; loadedRecommendationOrigin = nil }
         .onDisappear { refreshTask?.cancel(); refreshTask = nil }
-        .sheet(isPresented: Binding(get: { model.review != nil }, set: { if !$0 { model.cancelReview() } })) {
-            if let accepted = model.review { MerchantPredictionReviewView(model: model, accepted: accepted) }
+        .background {
+            if let accepted = model.review {
+                MerchantPredictionReviewPresentationOwner(model: model, accepted: accepted)
+                    .id(accepted.id)
+            }
         }
     }
     private func loadSurface() async {
@@ -291,12 +294,38 @@ private struct MerchantPredictionReviewView: View {
                     Text("merchantMarketing.couponWarning").font(.headline)
                     Toggle("merchantMarketing.acknowledgeEffects", isOn: $acknowledged).accessibilityIdentifier("merchantMarketing.acknowledgeEffects")
                 }
-                Button("merchantMarketing.confirmSettlement", role: .destructive) { Task { await model.confirm(couponEffectsAcknowledged: acknowledged) } }
-                    .disabled(!acknowledged || model.busy).accessibilityIdentifier("merchantMarketing.confirmSettlement")
+                Button("merchantMarketing.confirmSettlement", role: .destructive) {
+                    let effectsAcknowledged = acknowledged
+                    Task { await model.confirm(reviewID: accepted.id, couponEffectsAcknowledged: effectsAcknowledged) }
+                }
+                    .disabled(!acknowledged || model.busy || model.review?.id != accepted.id).accessibilityIdentifier("merchantMarketing.confirmSettlement")
             }
             .navigationTitle("merchantMarketing.review")
-            .toolbar { Button("merchantMarketing.cancel") { model.cancelReview() }.disabled(model.busy) }
+            .toolbar { Button("merchantMarketing.cancel") { model.cancelReview(id: accepted.id) }.disabled(model.busy) }
             .interactiveDismissDisabled(model.busy)
         }
+    }
+}
+
+@MainActor extension MerchantMarketingCoordinator {
+    func predictionReviewPresentation(for accepted: MerchantPredictionReview?) -> Binding<MerchantPredictionReview?> {
+        Binding(get: {
+            guard let accepted, self.review?.id == accepted.id, self.service.scope == accepted.scope else { return nil }
+            return accepted
+        }, set: { value in
+            if value == nil, let accepted { self.cancelReview(id: accepted.id) }
+        })
+    }
+}
+
+@MainActor private struct MerchantPredictionReviewPresentationOwner: View {
+    @Bindable var model: MerchantMarketingCoordinator
+    let accepted: MerchantPredictionReview
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(item: model.predictionReviewPresentation(for: accepted),
+                   onDismiss: { model.cancelReview(id: accepted.id) }) { review in
+                MerchantPredictionReviewView(model: model, accepted: review)
+            }
     }
 }
