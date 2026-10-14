@@ -416,11 +416,11 @@ struct TemplateAuthoringReviewView: View {
                 }
                 ForEach(draft.advanced.enabledGames) { game in
                     Text(LocalizedStringKey(game.labelKey))
-                    if game.isMiniProgramAddition { NavigationLink("playkitAuthor.preview") { TemplateMiniGamePreviewView(draft: draft.advanced, game: game) } }
-                    else if game == .dice && draft.advanced.diceMode == "d20" { NavigationLink("creatorRoot.d20Preview") { TemplateD20RehearsalView(draft: draft.advanced) } }
-                    else if let configuredRehearsals, configuredRehearsals.route(for: game) != nil {
+                    if let configuredRehearsals, configuredRehearsals.route(for: game) != nil {
                         TemplateConfiguredRehearsalPreviewButton(controller: configuredRehearsals, game: game)
                     }
+                    else if game.isMiniProgramAddition { NavigationLink("playkitAuthor.preview") { TemplateMiniGamePreviewView(draft: draft.advanced, game: game) } }
+                    else if game == .dice && draft.advanced.diceMode == "d20" { NavigationLink("creatorRoot.d20Preview") { TemplateD20RehearsalView(draft: draft.advanced) } }
                     else { Text("templateAuthor.noGameplay").foregroundStyle(.secondary) }
                 }
             }

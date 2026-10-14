@@ -1,0 +1,166 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateReasoning.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try the current question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试答当前题目"
+          }
+        }
+      }
+    },
+    "templateReasoning.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author-only practice. Feedback compares your answer with this draft on this device. It does not complete a player task, award points or publish anything."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供作者本地试答。反馈只与本机当前草稿答案比对，不代表玩家通关，不发积分，也不发布内容。"
+          }
+        }
+      }
+    },
+    "templateReasoning.lifecycle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editing the draft, changing accounts or leaving this screen clears the practice. Retry clears your choices."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改草稿、切换账号或离开此页面会清除本次试答。重新试答会清空选择。"
+          }
+        }
+      }
+    },
+    "templateReasoning.result": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local practice feedback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地试答反馈"
+          }
+        }
+      }
+    },
+    "templateReasoning.matched": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your answer matches this author draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的答案与当前作者草稿一致。"
+          }
+        }
+      }
+    },
+    "templateReasoning.missed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your answer differs from this author draft. Retry to try another answer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的答案与当前作者草稿不一致，可以重新试答。"
+          }
+        }
+      }
+    },
+    "templateReasoning.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This answer is incomplete or no longer valid. Retry with the current question."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "答案不完整或已失效，请重新试答当前题目。"
+          }
+        }
+      }
+    },
+    "templateReasoning.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear and try again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空并重新试答"
+          }
+        }
+      }
+    },
+    "templateReasoning.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This practice is no longer current, or the question needs editing. Reload the current draft, or return to the editor."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次试答已失效，或题目尚未配置完整。请重新读取当前草稿，或返回编辑。"
+          }
+        }
+      }
+    },
+    "templateReasoning.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前题目"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

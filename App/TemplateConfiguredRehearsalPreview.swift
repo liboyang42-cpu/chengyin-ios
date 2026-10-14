@@ -2,9 +2,9 @@ import SwiftUI
 import Combine
 
 /// One normal preview sheet owns the immutable source and its local navigation.
-/// The five destinations retain their existing author-only behavior and lifecycle.
+/// The destinations retain their existing author-only behavior and lifecycle.
 @MainActor final class TemplateConfiguredRehearsalPreviewController: ObservableObject {
-    enum Route: String, Hashable { case coin, d6, reaction, countdown, stopwatch, legacyQuestion }
+    enum Route: String, Hashable { case coin, d6, reaction, countdown, stopwatch, legacyQuestion, sort, match, classify, compass, shout }
     struct Destination: Hashable { let id = UUID(); let route: Route }
     let draft: TemplateAuthoringDraft
     private let model: TemplateAuthoringModel
@@ -49,6 +49,11 @@ import Combine
     }
     func route(for game: TemplateAdvancedGame) -> Route? {
         switch game {
+        case .sort: return .sort
+        case .match: return .match
+        case .classify: return .classify
+        case .compass: return .compass
+        case .shout: return .shout
         case .coin: return .coin
         case .dice: return draft.advanced.diceMode == "d6" ? .d6 : nil
         case .react: return .reaction
@@ -68,6 +73,16 @@ import Combine
         case .legacyQuestion:
             let rehearsal = TemplateLegacyQuestionRehearsal(draft)
             return rehearsal.isAvailable && rehearsal.isConfigured ? model : nil
+        case .sort:
+            game = .sort; supported = TemplateReasoningRehearsal(draft.advanced, game: .sort) != nil
+        case .match:
+            game = .match; supported = TemplateReasoningRehearsal(draft.advanced, game: .match) != nil
+        case .classify:
+            game = .classify; supported = TemplateReasoningRehearsal(draft.advanced, game: .classify) != nil
+        case .compass:
+            game = .compass; supported = TemplateSensorRehearsal(draft.advanced, game: .compass) != nil
+        case .shout:
+            game = .shout; supported = TemplateSensorRehearsal(draft.advanced, game: .shout) != nil
         case .coin:
             game = .coin; supported = TemplateCoinFlipRehearsal(draft.advanced, mode: .currentConfiguration) != nil
         case .d6:
@@ -174,6 +189,11 @@ extension EnvironmentValues {
         if let model = controller.currentModel(for: destination) {
             switch destination.route {
             case .legacyQuestion: TemplateLegacyQuestionRehearsalView(model: model)
+            case .sort: TemplateReasoningRehearsalView(model: model, game: .sort)
+            case .match: TemplateReasoningRehearsalView(model: model, game: .match)
+            case .classify: TemplateReasoningRehearsalView(model: model, game: .classify)
+            case .compass: TemplateSensorRehearsalView(model: model, game: .compass)
+            case .shout: TemplateSensorRehearsalView(model: model, game: .shout)
             case .coin: TemplateCoinFlipRehearsalView(model: model, mode: .currentConfiguration)
             case .d6: TemplateD6RehearsalView(model: model)
             case .reaction: TemplateReactionRehearsalView(model: model, mode: .currentConfiguration)

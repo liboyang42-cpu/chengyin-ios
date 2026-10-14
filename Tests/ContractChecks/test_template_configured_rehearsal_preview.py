@@ -57,7 +57,7 @@ class TemplateConfiguredRehearsalPreviewContracts(unittest.TestCase):
         for key in ['app_sources', 'app_unit_tests', 'resources']:
             for path in reg[key]: self.assertTrue((ROOT/path).is_file())
         tests = (ROOT/'Tests/AppUnitTests/TemplateConfiguredRehearsalPreviewTests.swift').read_text()
-        self.assertEqual(len(re.findall(r'func test', tests)), 22)
+        self.assertGreaterEqual(len(re.findall(r'func test', tests)), 22)  # Existing named controls below remain mandatory; additions are allowed.
         for name in ['testOldPopAndDestinationCannotAffectReopenedSameRoute', 'testHiddenForegroundAndOldCallbacksCannotReviveSnapshot', 'testDraftABAAndBusyABARequireANewSheetOwner', 'testHostedNormalSummaryPushBackKeepsOuterOwnerLive', 'testHostedDetachRetiresAndOldPopCannotCloseNewHostRoute']:
             self.assertIn(name, tests)
         self.assertIn('testOldPathGetterCannotObserveReopenedRouteOrFreshOwner', tests)

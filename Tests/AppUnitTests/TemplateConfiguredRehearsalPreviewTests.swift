@@ -22,6 +22,64 @@ import Combine
         if visible { controller.viewAppeared(sceneIsActive: true) }
         return (model, controller, owner)
     }
+    func testExtendedRoutesRequireValidatedConfigurationAndRetireOnBackground() throws {
+        for game in [TemplateAdvancedGame.sort, .match, .classify, .compass, .shout] {
+            let (model, _, _) = try setup()
+            model.draft.advanced.setGameEnabled(game, true)
+            if game.isReasoning {
+                model.draft.advanced.set(game.section, "prompt", .string("Current question"))
+                let fields = game == .sort ? ["items"] : game == .match ? ["left", "right"] : ["items", "bins"]
+                for field in fields {
+                    for index in model.draft.advanced.rows(game.section, field).indices {
+                        model.draft.advanced.setRow(game.section, field, index: index, key: "label", text: "\(field) \(index)")
+                    }
+                }
+            }
+            if game == .compass { model.draft.advanced.set("compass", "bearing", .number(90)) }
+            model.changed()
+            let controller = TemplateConfiguredRehearsalPreviewController(model: model)
+            controller.viewAppeared(sceneIsActive: true)
+            XCTAssertNotNil(controller.route(for: game))
+            let valid = game.isReasoning
+                ? TemplateReasoningRehearsal(model.draft.advanced, game: game) != nil
+                : TemplateSensorRehearsal(model.draft.advanced, game: game) != nil
+            XCTAssertTrue(valid, "Fixture must exercise a real valid route: \(game)")
+            XCTAssertTrue(controller.canOpen(game))
+            let open = controller.openAction(game)
+            open()
+            XCTAssertEqual(controller.path.count, 1)
+            let destination = try XCTUnwrap(controller.path.first)
+            XCTAssertTrue(controller.currentModel(for: destination) === model)
+            controller.sceneChanged(isActive: false)
+            controller.sceneChanged(isActive: true)
+            open()
+            XCTAssertTrue(controller.path.isEmpty)
+            XCTAssertFalse(controller.canOpen(game))
+        }
+    }
+    func testExtendedRoutesRejectDisabledAndMalformedDrafts() throws {
+        for game in [TemplateAdvancedGame.sort, .match, .classify, .compass, .shout] {
+            for malformed in [false, true] {
+                let (model, _, _) = try setup()
+                model.draft.advanced.setGameEnabled(game, malformed)
+                if malformed {
+                    if game.isReasoning {
+                        model.draft.advanced.set(game.section, "prompt", .string(""))
+                    } else if game == .compass {
+                        model.draft.advanced.set("compass", "bearing", .number(360))
+                    } else {
+                        model.draft.advanced.set("shout", "seconds", .number(-1))
+                    }
+                    XCTAssertTrue(model.draft.advanced.enabled(game.section))
+                }
+                let controller = TemplateConfiguredRehearsalPreviewController(model: model)
+                controller.viewAppeared(sceneIsActive: true)
+                controller.openAction(game)()
+                XCTAssertFalse(controller.canOpen(game))
+                XCTAssertTrue(controller.path.isEmpty)
+            }
+        }
+    }
     func testNewAndInactiveOwnerCannotOpenOrClose() throws {
         let (_, controller, _) = try setup(visible: false); var closes = 0
         let oldOpen = controller.openAction(.coin), oldClose = controller.closeAction { closes += 1 }
@@ -44,7 +102,7 @@ import Combine
     }
     func testD20MiniAndDeviceGamesKeepTheirExistingBranches() throws {
         let (model, controller, _) = try setup()
-        for game in [TemplateAdvancedGame.shake, .quiet, .sort, .match, .classify, .compass, .shout] {
+        for game in [TemplateAdvancedGame.shake, .quiet] {
             XCTAssertNil(controller.route(for: game)); controller.openAction(game)(); XCTAssertTrue(controller.path.isEmpty)
         }
         model.draft.advanced.setDiceMode("d20")
@@ -493,6 +551,16 @@ import Combine
         binding.wrappedValue = "timer.durationSeconds:+30"; apply()
         XCTAssertEqual(binding.wrappedValue, ""); XCTAssertEqual(f.model.draft, original)
         XCTAssertFalse(f.controller.canApply); XCTAssertTrue(f.storage.values.isEmpty)
+    }
+    func testLowHPPresetLocalizationKeysAreUniqueAndResolveInBothAppLanguages() {
+        let keys = TemplateLowHPPresetText.allCases.map(\.localizationKey)
+        XCTAssertEqual(keys.count, 14); XCTAssertEqual(Set(keys).count, 14)
+        for text in TemplateLowHPPresetText.allCases {
+            XCTAssertTrue(text.localizationKey.hasPrefix("templateLowHPText."))
+            for language in ["en_US", "zh_CN"] {
+                XCTAssertNotEqual(text.value(Locale(identifier: language)), text.localizationKey)
+            }
+        }
     }
     func testBothLocalesDistinguishApplyFromSaveAndPublishing() {
         for text in TemplateLowHPPresetText.allCases {
