@@ -171221,6 +171221,134 @@
           }
         }
       }
+    },
+    "merchant.refundPreview.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This first page could not be loaded. Other previews may still be available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此状态的第一页未能读取；其他状态的预览可能仍可查看。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.moreAvailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More records are available in the aftercare list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "售后列表中还有更多记录。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.notIncluded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aftercare is not included under the current access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前访问条件下未纳入售后数据。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aftercare preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "售后预览"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.openBucket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open this aftercare list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开此状态的售后列表"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate first-page previews for the selected filter. These are not the complete ledger and are not added to its totals."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按当前筛选分别读取各售后状态的第一页，不代表完整账本，也不计入账本汇总。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.noRedemptions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No redemption records on this page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前页没有核销记录。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No records in this first-page response."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此状态本次第一页返回无记录。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -222,3 +222,142 @@ import XCTest
         XCTAssertFalse(clear.canClear); clear.clearAction()(); XCTAssertEqual(model.draft, seed)
     }
 }
+
+@MainActor final class TemplateCoverReferenceClearTests: XCTestCase {
+    private final class Owner {
+        var session: TemplateAuthoringSession?
+        init(_ session: TemplateAuthoringSession) { self.session = session }
+    }
+    private struct Fixture {
+        let model: TemplateAuthoringModel
+        let owner: Owner
+        let storage: TemplateAuthoringMemoryStorage
+        let clear: TemplateBasicFieldClearController
+    }
+    private func fixture(reference: String? = "https://cover.example/Original%20Cover.png?version=7", visible: Bool = true) throws -> Fixture {
+        let owner = Owner(try .init(accountID: 997, namespace: "cover-clear", epoch: 1, authorizationRevision: "member"))
+        let storage = TemplateAuthoringMemoryStorage()
+        let model = TemplateAuthoringModel(coordinator: .init(store: .init(storage: storage), currentSession: { owner.session }))
+        model.load(); model.draft.title = "Original title"; model.draft.description = "Original description"
+        model.draft.imgUrl = reference; model.draft.questionImg = "fixture:question"
+        model.draft.questionAudio = "fixture:question-audio"; model.draft.audioUrl = "fixture:narration"
+        model.draft.medalImg = "fixture:medal"; model.draft.storyText = "Keep the story"
+        model.draft.advanced.value["future"] = .object(["keep": .string(" e\u{0301} ")]); model.changed()
+        let clear = TemplateBasicFieldClearController(model: model, field: .cover)
+        if visible { clear.appear(sceneIsActive: true) }
+        return .init(model: model, owner: owner, storage: storage, clear: clear)
+    }
+    func testExplicitCoverClearChangesOnlyOptionalCoverReference() throws {
+        let f = try fixture(); var expected = f.model.draft; expected.imgUrl = nil
+        XCTAssertTrue(f.clear.canClear); f.clear.clearAction()()
+        XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), TemplateSamplePreview.snapshot(expected))
+        XCTAssertEqual(f.model.coordinator.draft, expected); XCTAssertNil(f.model.draft.imgUrl)
+        XCTAssertTrue(f.model.draft.canSave); XCTAssertFalse(f.clear.canClear)
+    }
+    func testNilAndEmptyReferencesAreNoOpsWithoutNormalizingDraft() throws {
+        let references: [String?] = [nil, ""]
+        for reference in references {
+            let f = try fixture(reference: reference), original = TemplateSamplePreview.snapshot(f.model.draft), revision = f.model.revision
+            XCTAssertFalse(f.clear.canClear); f.clear.clearAction()()
+            XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), original); XCTAssertEqual(f.model.revision, revision)
+        }
+    }
+    func testWhitespaceAndUnrecognizedReferencesRequireExplicitActionAndOnlyClearCover() throws {
+        for reference in ["  ", "future:opaque:reference", "https://cover.example/%65%CC%81?raw=%2f"] {
+            let f = try fixture(reference: reference); var expected = f.model.draft; expected.imgUrl = nil
+            XCTAssertEqual(Array(try XCTUnwrap(f.model.draft.imgUrl).utf8), Array(reference.utf8))
+            f.clear.clearAction()(); XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), TemplateSamplePreview.snapshot(expected))
+        }
+    }
+    func testQueuedClearRejectsByteDifferentReplacementURL() throws {
+        let f = try fixture(reference: "https://cover.example/e\u{0301}.png"), clear = f.clear.clearAction()
+        let replacement = "https://cover.example/é.png"; f.model.draft.imgUrl = replacement
+        clear(); XCTAssertEqual(Array(try XCTUnwrap(f.model.draft.imgUrl).utf8), Array(replacement.utf8))
+        f.clear.clearAction()(); XCTAssertNil(f.model.draft.imgUrl)
+    }
+    func testURLABAPublicationCannotReuseOldClearAction() throws {
+        let f = try fixture(), original = f.model.draft, clear = f.clear.clearAction()
+        f.model.draft.imgUrl = "fixture:replacement"; f.model.draft = original
+        clear(); XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), TemplateSamplePreview.snapshot(original))
+    }
+    func testOldClearCannotAffectHiddenReopenedOwner() throws {
+        let f = try fixture(), original = f.model.draft, clear = f.clear.clearAction()
+        f.clear.disappear(); f.clear.appear(sceneIsActive: true)
+        clear(); XCTAssertEqual(f.model.draft, original)
+        f.clear.clearAction()(); XCTAssertNil(f.model.draft.imgUrl)
+    }
+    func testHiddenForegroundCannotReactivateCoverAction() throws {
+        let f = try fixture(), original = f.model.draft
+        f.clear.disappear(); f.clear.sceneChanged(isActive: false); f.clear.sceneChanged(isActive: true)
+        XCTAssertFalse(f.clear.canClear); f.clear.clearAction()(); XCTAssertEqual(f.model.draft, original)
+    }
+    func testInactiveAppearAndBackgroundInvalidateCapturedCoverAction() throws {
+        let f = try fixture(), original = f.model.draft, clear = f.clear.clearAction()
+        f.clear.sceneChanged(isActive: false); clear(); f.clear.sceneChanged(isActive: true); clear()
+        XCTAssertEqual(f.model.draft, original)
+        f.clear.disappear(); f.clear.appear(sceneIsActive: false); f.clear.clearAction()()
+        XCTAssertFalse(f.clear.canClear); XCTAssertEqual(f.model.draft, original)
+    }
+    func testRepeatedVisibleAppearPreservesCurrentCoverAction() throws {
+        let f = try fixture(), clear = f.clear.clearAction()
+        f.clear.appear(sceneIsActive: true); f.clear.appear(sceneIsActive: true); clear()
+        XCTAssertNil(f.model.draft.imgUrl)
+    }
+    func testAccountSwitchRejectsOldAndFreshActionsBeforeViewUpdate() throws {
+        let f = try fixture(), original = f.model.draft, clear = f.clear.clearAction()
+        f.owner.session = try .init(accountID: 998, namespace: "cover-clear", epoch: 2, authorizationRevision: "member")
+        clear(); f.clear.clearAction()(); XCTAssertEqual(f.model.draft, original); XCTAssertFalse(f.clear.canClear)
+    }
+    func testSignOutRejectsPendingClearWithoutChangingURL() throws {
+        let f = try fixture(), original = f.model.draft, clear = f.clear.clearAction()
+        f.owner.session = nil; clear(); f.clear.clearAction()()
+        XCTAssertEqual(f.model.draft, original)
+    }
+    func testClearDoesNotWriteSaveSubmitOrReserve() throws {
+        let f = try fixture(); f.clear.clearAction()()
+        XCTAssertTrue(f.storage.values.isEmpty); XCTAssertNil(f.model.review); XCTAssertNil(f.model.coordinator.review)
+        XCTAssertNil(f.model.coordinator.pending); XCTAssertFalse(f.model.coordinator.canSubmit)
+    }
+    func testCancelReviewAndUncommittedReopenPreserveSavedOriginalURL() throws {
+        let f = try fixture(); f.model.draft.advanced.value.removeValue(forKey: "future"); f.model.changed(); f.model.save()
+        let original = try XCTUnwrap(f.model.draft.imgUrl), saved = f.storage.values
+        f.model.prepare(.saveDraft); XCTAssertNotNil(f.model.review)
+        f.clear.clearAction()(); XCTAssertEqual(f.model.draft.imgUrl, original)
+        f.model.cancel(); XCTAssertEqual(f.model.draft.imgUrl, original)
+        f.clear.clearAction()(); XCTAssertNil(f.model.draft.imgUrl); XCTAssertEqual(f.storage.values, saved)
+        let reopened = TemplateAuthoringModel(coordinator: .init(store: .init(storage: f.storage), currentSession: { f.owner.session }))
+        reopened.load(); reopened.restore(); XCTAssertEqual(Array(try XCTUnwrap(reopened.draft.imgUrl).utf8), Array(original.utf8))
+    }
+    func testOnlyExplicitParentSavePersistsClearedCover() throws {
+        let f = try fixture(); f.model.save(); let originalBytes = f.storage.values
+        f.clear.clearAction()(); XCTAssertEqual(f.storage.values, originalBytes)
+        f.model.save(); XCTAssertNotEqual(f.storage.values, originalBytes)
+        let reopened = TemplateAuthoringModel(coordinator: .init(store: .init(storage: f.storage), currentSession: { f.owner.session }))
+        reopened.load(); reopened.restore(); XCTAssertNil(reopened.draft.imgUrl)
+        XCTAssertEqual(reopened.draft.questionImg, "fixture:question"); XCTAssertEqual(reopened.draft.audioUrl, "fixture:narration")
+    }
+    func testOldLoadRestoreDiscardAndLeaveCallbacksCannotClearNewDraft() throws {
+        for operation in ["load", "restore", "discard", "leave"] {
+            let f = try fixture(), clear = f.clear.clearAction()
+            switch operation {
+            case "load": f.model.load()
+            case "restore": f.model.restore()
+            case "discard": f.model.discard()
+            default: f.model.leave()
+            }
+            let current = TemplateSamplePreview.snapshot(f.model.draft); clear()
+            XCTAssertEqual(TemplateSamplePreview.snapshot(f.model.draft), current, operation)
+        }
+    }
+    func testOriginalBasicClearActionsAndLabelsKeepTheirOwnTargets() throws {
+        let f = try fixture(), originalURL = f.model.draft.imgUrl
+        let title = TemplateBasicFieldClearController(model: f.model, field: .title)
+        title.appear(sceneIsActive: true); title.clearAction()()
+        XCTAssertEqual(f.model.draft.imgUrl, originalURL); XCTAssertEqual(f.model.draft.description, "Original description")
+        let description = TemplateBasicFieldClearController(model: f.model, field: .description)
+        description.appear(sceneIsActive: true); description.clearAction()()
+        XCTAssertEqual(f.model.draft.imgUrl, originalURL)
+        XCTAssertEqual(TemplateBasicClearField.cover.label(Locale(identifier: "en")), "Clear cover reference")
+        XCTAssertEqual(TemplateBasicClearField.cover.label(Locale(identifier: "zh-Hans")), "清空封面引用")
+    }
+}

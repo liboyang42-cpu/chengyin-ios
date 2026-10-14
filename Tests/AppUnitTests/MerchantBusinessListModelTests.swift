@@ -843,3 +843,149 @@ extension MerchantTeamResultRefreshTests {
         XCTAssertNil(MerchantBusinessViewModel.resultRefreshQuery(.aftercare(.pending, page: 1)))
     }
 }
+
+@MainActor final class MerchantLedgerRefundPreviewModelTests: XCTestCase {
+    @MainActor private final class Reader: MerchantBusinessReading {
+        var scope: MerchantBusinessScope? = .init(realm: "synthetic://ledger-preview", accountID: 7, epoch: 1)
+        var authorizationGeneration: UUID? = UUID()
+        var isConfigured = true
+        let isOfflineExample = true
+        let canExecuteSyntheticMutation = false
+        var allowed = true
+        var merchantID = 610
+        var calls: [MerchantBusinessQuery] = []
+        var beforeRead: ((MerchantBusinessQuery) -> Void)?
+        var bucketError: Error = MerchantBusinessFailure.malformed
+        var failureBucket: MerchantAftercareBucket?
+        var suspendBucket: MerchantAftercareBucket?
+        var suspended: CheckedContinuation<Void, Never>?
+        func access() async throws -> MerchantBusinessAccess {
+            var fields = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object)
+            fields["merchant"] = .object(["id": .int(merchantID)])
+            if !allowed { fields["permissions"] = .array((fields["permissions"]?.array ?? []).filter { $0.string != "merchant:aftercare:read" }) }
+            return try .init(fields)
+        }
+        func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
+            calls.append(query); beforeRead?(query)
+            let access = try await access()
+            try access.require(query.permissions)
+            if case .aftercare(let bucket, _) = query {
+                if bucket == suspendBucket { await withCheckedContinuation { suspended = $0 } }
+                if bucket == failureBucket { throw bucketError }
+            }
+            return try .init(access: access, document: .init(query: query, payload: MerchantBusinessSyntheticFixtures.listToolsPayload(query)))
+        }
+        func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt {
+            XCTFail("Read-only preview must never write"); throw MerchantBusinessFailure.disabled
+        }
+    }
+    private func model(_ reader: Reader) -> MerchantBusinessViewModel {
+        let value = MerchantBusinessViewModel(reader: reader, journal: MerchantBusinessMemoryIntentStore())
+        value.ledgerPreviewAppeared(active: true); return value
+    }
+    func testAllReadsEachFirstPageAndLeavesFinanceSnapshotUntouched() async throws {
+        let reader = Reader(), owner = model(reader), query = MerchantBusinessQuery.redemptions(filter: "all", page: 2)
+        await owner.load(query)
+        XCTAssertEqual(reader.calls, [query, .aftercare(.pending, page: 1), .aftercare(.processing, page: 1), .aftercare(.completed, page: 1)])
+        let source = try XCTUnwrap(owner.coordinator.snapshot)
+        XCTAssertEqual(source.document.query, query)
+        XCTAssertEqual(source.document, try MerchantBusinessDocument(query: query, payload: MerchantBusinessSyntheticFixtures.listToolsPayload(query)))
+        let preview = try XCTUnwrap(owner.ledgerRefundPreview)
+        XCTAssertEqual(preview.pages.count, 3); XCTAssertEqual(preview.pages.flatMap(\.rows).count, 60)
+        XCTAssertTrue(preview.pages.allSatisfy(\.hasMore)); XCTAssertFalse(preview.loading)
+    }
+    func testMissingPermissionAndNoCashNeverReadRefundEndpoints() async throws {
+        let reader = Reader(), owner = model(reader)
+        reader.allowed = false; await owner.load(.redemptions(filter: "all", page: 1))
+        XCTAssertEqual(reader.calls.count, 1); XCTAssertEqual(owner.ledgerRefundPreview?.included, false)
+        reader.allowed = true; reader.calls = []; await owner.load(.redemptions(filter: "no_cash", page: 1))
+        XCTAssertEqual(reader.calls, [.redemptions(filter: "no_cash", page: 1)]); XCTAssertNil(owner.ledgerRefundPreview)
+    }
+    func testPendingHandledAndBucketFailureRemainTruthful() async throws {
+        let reader = Reader(), owner = model(reader); reader.failureBucket = .processing
+        await owner.load(.redemptions(filter: "pending", page: 1))
+        let pages = try XCTUnwrap(owner.ledgerRefundPreview).pages
+        XCTAssertEqual(pages.map(\.bucket), [.pending, .processing]); XCTAssertFalse(pages[0].failed); XCTAssertTrue(pages[1].failed)
+        XCTAssertEqual(pages[0].rows.count, 20); XCTAssertTrue(pages[1].rows.isEmpty)
+        reader.calls = []; await owner.load(.redemptions(filter: "handled", page: 1))
+        XCTAssertEqual(reader.calls, [.redemptions(filter: "handled", page: 1), .aftercare(.completed, page: 1)])
+        XCTAssertEqual(owner.ledgerRefundPreview?.pages.map(\.bucket), [.completed])
+    }
+    func testHiddenSceneAndQueuedLoadNeverReopenSupplementalReads() async throws {
+        let reader = Reader(), owner = model(reader)
+        owner.ledgerPreviewDisappeared(); owner.ledgerPreviewSceneChanged(active: false); owner.ledgerPreviewSceneChanged(active: true)
+        await owner.load(.redemptions(filter: "all", page: 1))
+        XCTAssertEqual(reader.calls.count, 1); XCTAssertNil(owner.ledgerRefundPreview)
+        owner.ledgerPreviewAppeared(active: true); await owner.load(.redemptions(filter: "handled", page: 1))
+        XCTAssertNotNil(owner.ledgerRefundPreview)
+        owner.ledgerPreviewSceneChanged(active: false); XCTAssertNil(owner.ledgerRefundPreview)
+    }
+    func testOldResponsesCannotPublishAfterOwnerAuthorizationOrVisibilityChanges() async throws {
+        for mode in 0..<4 {
+            let reader = Reader(), owner = model(reader); reader.suspendBucket = .pending
+            let task = Task { await owner.load(.redemptions(filter: "all", page: 1)) }
+            for _ in 0..<100 where reader.suspended == nil { await Task.yield() }
+            let continuation = try XCTUnwrap(reader.suspended)
+            switch mode {
+            case 0: reader.scope = .init(realm: "synthetic://ledger-preview", accountID: 8, epoch: 1)
+            case 1: reader.authorizationGeneration = UUID()
+            case 2: owner.ledgerPreviewDisappeared()
+            default: reader.isConfigured = false
+            }
+            continuation.resume(); await task.value
+            XCTAssertNil(owner.ledgerRefundPreview); XCTAssertEqual(reader.calls.count, 2)
+        }
+    }
+    func testChangedAccessStopsRemainingReadsAndRemovesEarlierPreviewRows() async throws {
+        let reader = Reader(), owner = model(reader)
+        reader.beforeRead = { query in
+            if query == .aftercare(.processing, page: 1) { reader.merchantID = 611 }
+        }
+        await owner.load(.redemptions(filter: "all", page: 1))
+        XCTAssertEqual(reader.calls.count, 3)
+        XCTAssertEqual(owner.ledgerRefundPreview?.included, false)
+        XCTAssertTrue(owner.ledgerRefundPreview?.pages.isEmpty == true)
+    }
+    func testUnconfiguredReaderNeverStartsSupplementalRead() async throws {
+        let reader = Reader(), owner = model(reader); reader.isConfigured = false
+        await owner.load(.redemptions(filter: "all", page: 1))
+        XCTAssertEqual(reader.calls.count, 1); XCTAssertNil(owner.ledgerRefundPreview)
+    }
+    func testOldLoadCannotReplaceNewFilterPreview() async throws {
+        let reader = Reader(), owner = model(reader); reader.suspendBucket = .pending
+        let old = Task { await owner.load(.redemptions(filter: "all", page: 1)) }
+        for _ in 0..<100 where reader.suspended == nil { await Task.yield() }
+        let continuation = try XCTUnwrap(reader.suspended)
+        await owner.load(.redemptions(filter: "handled", page: 1))
+        let current = owner.ledgerRefundPreview
+        continuation.resume(); await old.value
+        XCTAssertEqual(owner.ledgerRefundPreview, current)
+        XCTAssertEqual(current?.pages.map(\.bucket), [.completed])
+    }
+    func testFreshAccessRevocationClearsEarlierBucketWithoutEpochChangeAndStopsRemainingReads() async throws {
+        let reader = Reader(), owner = model(reader)
+        let scope = reader.scope, authorization = reader.authorizationGeneration
+        reader.beforeRead = { query in
+            if query == .aftercare(.processing, page: 1) { reader.allowed = false }
+        }
+        await owner.load(.redemptions(filter: "all", page: 1))
+        XCTAssertEqual(reader.scope, scope); XCTAssertEqual(reader.authorizationGeneration, authorization)
+        XCTAssertEqual(reader.calls, [.redemptions(filter: "all", page: 1), .aftercare(.pending, page: 1), .aftercare(.processing, page: 1)])
+        XCTAssertEqual(owner.ledgerRefundPreview?.included, false)
+        XCTAssertTrue(owner.ledgerRefundPreview?.pages.isEmpty == true)
+    }
+    func testExplicitIdentityAndConfigurationErrorsClearEarlierBucketAndStop() async throws {
+        for error in [APIError.unauthorized, APIError.notConfigured, MerchantBusinessFailure.denied,
+                      MerchantBusinessFailure.disabled, MerchantBusinessFailure.stale,
+                      MerchantBusinessFailure.rejected(401, nil), MerchantBusinessFailure.rejected(403, nil)] as [Error] {
+            let reader = Reader(), owner = model(reader)
+            reader.failureBucket = .processing; reader.bucketError = error
+            let scope = reader.scope, authorization = reader.authorizationGeneration
+            await owner.load(.redemptions(filter: "all", page: 1))
+            XCTAssertEqual(reader.scope, scope); XCTAssertEqual(reader.authorizationGeneration, authorization)
+            XCTAssertEqual(reader.calls.count, 3)
+            XCTAssertEqual(owner.ledgerRefundPreview?.included, false)
+            XCTAssertTrue(owner.ledgerRefundPreview?.pages.isEmpty == true)
+        }
+    }
+}

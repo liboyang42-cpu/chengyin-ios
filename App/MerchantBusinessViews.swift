@@ -7,6 +7,30 @@ import SwiftUI
     private(set) var aftercareLoadedPages: MerchantAftercareLoadedPages?
     private(set) var aftercareLoadFailureKey: String?
     private(set) var reviewLoadedPages: MerchantReviewLoadedPages?
+    private var refundPreviewValue: MerchantLedgerRefundPreview?
+    private var refundPreviewBaseline: MerchantBusinessSnapshot?
+    private var refundPreviewScope: MerchantBusinessScope?
+    private var refundPreviewAuthorization: UUID?
+    private var refundPreviewVisible = false
+    private var refundPreviewActive = false
+    private var refundPreviewPermit = UUID()
+    func ledgerPreviewAppeared(active: Bool) {
+        refundPreviewVisible = true; refundPreviewActive = active; refundPreviewPermit = UUID()
+    }
+    func ledgerPreviewDisappeared() {
+        refundPreviewVisible = false; ledgerPreviewSceneChanged(active: false)
+    }
+    func ledgerPreviewSceneChanged(active: Bool) {
+        refundPreviewActive = refundPreviewVisible && active; refundPreviewPermit = UUID()
+        refundPreviewValue = nil; refundPreviewBaseline = nil; revision += 1
+    }
+    var ledgerRefundPreview: MerchantLedgerRefundPreview? {
+        guard refundPreviewVisible, refundPreviewActive, coordinator.reader.isConfigured, coordinator.isCurrent,
+              coordinator.reader.scope == refundPreviewScope,
+              coordinator.reader.authorizationGeneration == refundPreviewAuthorization,
+              coordinator.snapshot == refundPreviewBaseline else { return nil }
+        return refundPreviewValue
+    }
     private var loadGeneration = 0
     private struct TeamResult {
         let query: MerchantBusinessQuery
@@ -104,6 +128,8 @@ import SwiftUI
         if !appendAftercare { aftercareLoadedPages = nil }
         if !appendReviews { reviewLoadedPages = nil }
         aftercareLoadFailureKey = nil
+        refundPreviewValue = nil; refundPreviewBaseline = nil
+        let previewPermit = refundPreviewVisible && refundPreviewActive ? refundPreviewPermit : nil
         loadGeneration += 1
         let generation = loadGeneration, scope = coordinator.reader.scope, authorization = coordinator.reader.authorizationGeneration
         revision += 1; await coordinator.load(query)
@@ -144,6 +170,11 @@ import SwiftUI
                 reviewLoadedPages = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"
             }
         }
+        if case .redemptions(let filter, _) = query, let scope, let previewPermit,
+           !MerchantLedgerRefundPreview.buckets(filter: filter).isEmpty {
+            await loadRefundPreview(snapshot, filter: filter, generation: generation, permit: previewPermit,
+                                    scope: scope, authorization: authorization)
+        }
         if case .aftercare = query, let scope {
             do {
                 if appendAftercare {
@@ -156,6 +187,52 @@ import SwiftUI
             } catch {
                 aftercareLoadedPages = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"
             }
+        }
+    }
+    private func loadRefundPreview(_ baseline: MerchantBusinessSnapshot, filter: String, generation: Int,
+                                   permit: UUID, scope: MerchantBusinessScope, authorization: UUID?) async {
+        func current() -> Bool {
+            !Task.isCancelled && refundPreviewVisible && refundPreviewActive && refundPreviewPermit == permit &&
+            generation == loadGeneration && coordinator.reader.isConfigured && coordinator.isCurrent &&
+            coordinator.reader.scope == scope && coordinator.reader.authorizationGeneration == authorization &&
+            coordinator.snapshot == baseline && coordinator.failureKey == nil
+        }
+        guard current() else { return }
+        refundPreviewBaseline = baseline; refundPreviewScope = scope; refundPreviewAuthorization = authorization
+        guard baseline.access.allows("merchant:aftercare:read") else {
+            refundPreviewValue = .init(included: false); return
+        }
+        refundPreviewValue = .init(included: true, loading: true); revision += 1
+        var pages: [MerchantLedgerRefundPreview.Page] = []
+        for bucket in MerchantLedgerRefundPreview.buckets(filter: filter) {
+            guard current() else { return }
+            do {
+                let response = try await coordinator.reader.snapshot(.aftercare(bucket, page: 1))
+                guard current() else { return }
+                guard response.access == baseline.access else {
+                    refundPreviewValue = .init(included: false); return
+                }
+                pages.append(try .init(bucket: bucket, snapshot: response, access: baseline.access))
+            } catch {
+                guard current() else { return }
+                if Self.refundPreviewAccessInvalidated(error) {
+                    refundPreviewValue = .init(included: false); return
+                }
+                if let failed = try? MerchantLedgerRefundPreview.Page(bucket: bucket, snapshot: nil, access: baseline.access) {
+                    pages.append(failed)
+                }
+            }
+        }
+        guard current() else { return }
+        refundPreviewValue = .init(included: true, pages: pages)
+    }
+    private static func refundPreviewAccessInvalidated(_ error: Error) -> Bool {
+        if let error = error as? APIError { return error == .unauthorized || error == .notConfigured }
+        guard let failure = error as? MerchantBusinessFailure else { return false }
+        switch failure {
+        case .denied, .disabled, .stale: return true
+        case .rejected(let status, _) where status == 401 || status == 403: return true
+        default: return false
         }
     }
     func unfilteredRows(in section: MerchantBusinessSection, query: MerchantBusinessQuery) -> [MerchantBusinessRecord] {
@@ -203,6 +280,7 @@ import SwiftUI
     }
     func invalidate() {
         teamReadRecovery = nil; teamResult = nil
+        refundPreviewPermit = UUID(); refundPreviewValue = nil; refundPreviewBaseline = nil
         loadGeneration += 1; aftercareLoadedPages = nil; reviewLoadedPages = nil; aftercareLoadFailureKey = nil
         coordinator.invalidate(); listFilters = .init(); filterScope = nil; filterMerchantID = nil; revision += 1
     }
@@ -339,6 +417,7 @@ import SwiftUI
         }
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
+    private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
     var body: some View {
         let presentedReview = state.confirmation
         let presentedEditorID = editor?.id
@@ -402,7 +481,7 @@ import SwiftUI
                         Task { await reload() }
                     }
                 } else if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
-                    Text("merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
+                    Text(isRedemptionLedger ? "merchant.refundPreview.noRedemptions" : "merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
                     Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
                 }
@@ -438,6 +517,16 @@ import SwiftUI
                             }
                         }
                     }
+                }
+                if let preview = model.ledgerRefundPreview {
+                    MerchantLedgerRefundPreviewSections(preview: preview, row: { row in
+                        rowView(row, access: snapshot.access)
+                    }, more: { bucket in
+                        NavigationLink {
+                            MerchantBusinessPage(reader: reader, journal: journal, query: .aftercare(bucket, page: 1))
+                        } label: { Text("merchant.refundPreview.openBucket") }
+                        .accessibilityIdentifier("merchant.refundPreview.open." + bucket.rawValue)
+                    })
                 }
                 pageActions(snapshot)
                 if reviewSource == nil, case .reviews = query, let pages = model.reviewLoadedPages, pages.hasMore {
@@ -562,7 +651,7 @@ import SwiftUI
                     } }
             }
         }
-        .onAppear { model.teamPageAppeared(active: scenePhase == .active); aftercareReturn.appear(active: scenePhase == .active); customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
+        .onAppear { model.teamPageAppeared(active: scenePhase == .active); model.ledgerPreviewAppeared(active: scenePhase == .active); aftercareReturn.appear(active: scenePhase == .active); customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
         .onChange(of: model.revision) { _, _ in
             if let retired = aftercareReturn.synchronize(), editor?.id == retired { editor = nil }
             if let retired = noteDrafts.synchronize(), editor?.id == retired { editor = nil }
@@ -570,6 +659,7 @@ import SwiftUI
         }
         .onChange(of: scenePhase) { _, phase in
             model.teamPageSceneChanged(active: phase == .active)
+            model.ledgerPreviewSceneChanged(active: phase == .active)
             if let retired = aftercareReturn.sceneChanged(active: phase == .active), editor?.id == retired { editor = nil }
             customerFilterDisclosure.sceneChanged(isActive: phase == .active)
             if phase != .active, let retired = noteDrafts.retire(), editor?.id == retired { editor = nil }
@@ -578,7 +668,7 @@ import SwiftUI
         }
         .onChange(of: reader.scope) { _, _ in aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
         .onChange(of: reader.authorizationGeneration) { _, _ in aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onDisappear { model.teamPageDisappeared(); aftercareReturn.disappear(); customerFilterDisclosure.viewDisappeared(); teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }
+        .onDisappear { model.teamPageDisappeared(); model.ledgerPreviewDisappeared(); aftercareReturn.disappear(); customerFilterDisclosure.viewDisappeared(); teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }
     }
     private var customerFilterExpansion: Binding<Bool> {
         let scope = reader.scope, authorization = reader.authorizationGeneration

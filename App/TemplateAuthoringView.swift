@@ -304,6 +304,7 @@ import Combine
                 TemplateAuthoringField("categoryId", text: model.number(\.categoryId))
                 TemplateAuthoringRuleFields(model: model)
                 TemplateAuthoringField("imgUrl", text: model.optional(\.imgUrl))
+                TemplateBasicFieldClearButton(model: model, field: .cover)
                 Text("templateAuthor.mediaHint").font(.caption).foregroundStyle(.secondary)
                 Toggle("templateAuthor.sync", isOn: .init(get: { model.draft.isSync == 1 }, set: { model.draft.isSync = $0 ? 1 : 0 }))
             }
@@ -457,15 +458,16 @@ struct TemplateAuthoringReviewView: View {
 
 // These actions affect only the current unsaved basic fields.
 enum TemplateBasicClearField: String, CaseIterable {
-    case title, description
+    case title, description, cover
     func value(in draft: TemplateAuthoringDraft) -> String {
-        switch self { case .title: return draft.title; case .description: return draft.description }
+        switch self { case .title: return draft.title; case .description: return draft.description; case .cover: return draft.imgUrl ?? "" }
     }
     func label(_ locale: Locale) -> String {
         let chinese = locale.language.languageCode?.identifier == "zh"
         switch self {
         case .title: return chinese ? "清空标题" : "Clear title"
         case .description: return chinese ? "清空描述" : "Clear description"
+        case .cover: return chinese ? "清空封面引用" : "Clear cover reference"
         }
     }
 }
@@ -506,6 +508,7 @@ enum TemplateBasicClearField: String, CaseIterable {
             switch self.field {
             case .title: self.model.draft.title = ""
             case .description: self.model.draft.description = ""
+            case .cover: self.model.draft.imgUrl = nil
             }
             self.model.changed()
         }
