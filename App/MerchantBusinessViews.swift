@@ -31,6 +31,7 @@ import SwiftUI
               coordinator.snapshot == refundPreviewBaseline else { return nil }
         return refundPreviewValue
     }
+    private(set) var customerQueryAuthorization: (scope: MerchantBusinessScope, authorization: UUID?)?
     private var loadGeneration = 0
     private struct TeamResult {
         let query: MerchantBusinessQuery
@@ -130,6 +131,7 @@ import SwiftUI
         aftercareLoadFailureKey = nil
         refundPreviewValue = nil; refundPreviewBaseline = nil
         let previewPermit = refundPreviewVisible && refundPreviewActive ? refundPreviewPermit : nil
+        customerQueryAuthorization = nil
         loadGeneration += 1
         let generation = loadGeneration, scope = coordinator.reader.scope, authorization = coordinator.reader.authorizationGeneration
         revision += 1; await coordinator.load(query)
@@ -154,6 +156,7 @@ import SwiftUI
         if let result = teamResult, snapshot.access.merchantID != result.merchantID {
             teamResult = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"; revision += 1; return
         }
+        if case .customers = query, let scope { customerQueryAuthorization = (scope, authorization) }
         let currentMerchant = snapshot.access.merchantID
         if let filterMerchantID, filterMerchantID != currentMerchant { listFilters = .init() }
         filterMerchantID = currentMerchant
@@ -281,6 +284,7 @@ import SwiftUI
     func invalidate() {
         teamReadRecovery = nil; teamResult = nil
         refundPreviewPermit = UUID(); refundPreviewValue = nil; refundPreviewBaseline = nil
+        customerQueryAuthorization = nil
         loadGeneration += 1; aftercareLoadedPages = nil; reviewLoadedPages = nil; aftercareLoadFailureKey = nil
         coordinator.invalidate(); listFilters = .init(); filterScope = nil; filterMerchantID = nil; revision += 1
     }
@@ -378,6 +382,9 @@ import SwiftUI
 }
 
 @MainActor struct MerchantBusinessPage: View {
+    @Environment(\.merchantCustomerQueryDestination) private var customerQueryDestination
+    @Environment(\.locale) private var locale
+    @State private var customerQueryRoute: MerchantCustomerAppliedQuery?
     @Environment(\.scenePhase) private var scenePhase
     let reader: any MerchantBusinessReading
     let journal: any MerchantBusinessIntentStore
@@ -419,6 +426,7 @@ import SwiftUI
     private var state: MerchantBusinessCoordinator { model.coordinator }
     private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
     var body: some View {
+        let capturedCustomerRoute = customerQueryRoute
         let presentedReview = state.confirmation
         let presentedEditorID = editor?.id
         let renderedTeamScope = reader.scope
@@ -651,6 +659,12 @@ import SwiftUI
                     } }
             }
         }
+        .background {
+            if let capturedCustomerRoute, let customerQueryDestination {
+                MerchantCustomerQueryNavigationOwner(route: $customerQueryRoute,
+                    captured: capturedCustomerRoute, destination: customerQueryDestination).id(capturedCustomerRoute.id)
+            }
+        }
         .onAppear { model.teamPageAppeared(active: scenePhase == .active); model.ledgerPreviewAppeared(active: scenePhase == .active); aftercareReturn.appear(active: scenePhase == .active); customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
         .onChange(of: model.revision) { _, _ in
             if let retired = aftercareReturn.synchronize(), editor?.id == retired { editor = nil }
@@ -682,6 +696,21 @@ import SwiftUI
             Section("merchant.business.filters") {
                 TextField("merchant.business.search", text: $keyword).submitLabel(.search).onSubmit(applyCustomerFilter)
                     .accessibilityIdentifier("merchant.business.keyword")
+                if customerQueryDestination != nil, let expected = state.snapshot,
+                   expected.document.query == query, case .customers(let applied) = query {
+                    let expectedRevision = model.revision
+                    let appliedExactly = MerchantCustomerAppliedQuery.sameFilter(applied, customerFilterDraft)
+                    Button(locale.language.languageCode?.identifier == "zh" ? "使用当前筛选管理分群与导出" : "Manage segments and exports for this filter") {
+                        guard scenePhase == .active else { return }
+                        customerQueryRoute = model.customerEngagementSelection(query: query, draft: customerFilterDraft,
+                            expected: expected, revision: expectedRevision)
+                    }.disabled(!appliedExactly || !state.isCurrent || state.isBusy || state.isLocked || state.failureKey != nil)
+                        .accessibilityIdentifier("merchant.business.customers.manageAppliedFilter")
+                    if !appliedExactly {
+                        Text(locale.language.languageCode?.identifier == "zh" ? "请先应用当前输入的筛选。" : "Apply your edited filter first.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
                 Picker("merchant.business.segment", selection: $segment) {
                     ForEach(["all", "repeat", "new", "noted"], id: \.self) { Text(LocalizedStringKey("merchant.business.segment." + String($0))).tag($0) }
                 }.accessibilityIdentifier("merchant.business.segment")
@@ -949,5 +978,140 @@ import SwiftUI
             guard let self, self.generation == captured, self.visible, self.sceneActive, isCurrent() else { return }
             self.isExpanded = value
         })
+    }
+}
+
+struct MerchantCustomerAppliedQuery: Identifiable, Hashable {
+    let id = UUID()
+    let sourceReader: ObjectIdentifier
+    let scope: MerchantBusinessScope
+    let authorization: UUID?
+    let merchantID: Int
+    let filter: MerchantCRMFilter
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    static func sameFilter(_ lhs: MerchantCustomerQuery, _ rhs: MerchantCustomerQuery) -> Bool {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        guard let left = try? encoder.encode(MerchantCRMFilter(customerQuery: lhs).exportFields),
+              let right = try? encoder.encode(MerchantCRMFilter(customerQuery: rhs).exportFields) else { return false }
+        return left == right
+    }
+}
+
+@MainActor extension MerchantBusinessViewModel {
+    func customerEngagementSelection(query: MerchantBusinessQuery, draft: MerchantCustomerQuery,
+                                     expected: MerchantBusinessSnapshot, revision: Int) -> MerchantCustomerAppliedQuery? {
+        guard let loaded = customerQueryAuthorization, loaded.scope == coordinator.reader.scope,
+              loaded.authorization == coordinator.reader.authorizationGeneration,
+              self.revision == revision, coordinator.isCurrent, !coordinator.isBusy, !coordinator.isLocked,
+              coordinator.failureKey == nil, coordinator.snapshot == expected,
+              expected.document.query == query, case .customers(let applied) = query,
+              expected.access.allows("merchant:crm:read"), coordinator.reader.isConfigured,
+              let scope = coordinator.reader.scope, MerchantCustomerAppliedQuery.sameFilter(applied, draft) else { return nil }
+        let filter = MerchantCRMFilter(customerQuery: applied)
+        guard (try? filter.validate()) != nil else { return nil }
+        return .init(sourceReader: ObjectIdentifier(coordinator.reader), scope: scope,
+                     authorization: coordinator.reader.authorizationGeneration,
+                     merchantID: expected.access.merchantID, filter: filter)
+    }
+}
+
+private struct MerchantCustomerQueryDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (MerchantCustomerAppliedQuery) -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    var merchantCustomerQueryDestination: (@MainActor (MerchantCustomerAppliedQuery) -> AnyView)? {
+        get { self[MerchantCustomerQueryDestinationKey.self] }
+        set { self[MerchantCustomerQueryDestinationKey.self] = newValue }
+    }
+}
+
+@MainActor final class MerchantCustomerQueryReader: ObservableObject, MerchantEngagementReading {
+    let selection: MerchantCustomerAppliedQuery
+    private let base: any MerchantEngagementReading
+    private let source: any MerchantBusinessReading
+    private let authorization: UUID?
+    private let originCurrent: () -> Bool
+    @Published private var retired = false
+    init(selection: MerchantCustomerAppliedQuery, base: any MerchantEngagementReading,
+         source: any MerchantBusinessReading, originCurrent: @escaping () -> Bool) {
+        self.selection = selection; self.base = base; self.source = source
+        authorization = base.authorizationGeneration; self.originCurrent = originCurrent
+    }
+    var isCurrent: Bool {
+        !retired && originCurrent() && ObjectIdentifier(source) == selection.sourceReader &&
+        source.isConfigured && base.isConfigured && source.scope == selection.scope && base.scope == selection.scope &&
+        source.authorizationGeneration == selection.authorization && base.authorizationGeneration == authorization
+    }
+    func retire() { retired = true }
+    var scope: MerchantBusinessScope? { isCurrent ? selection.scope : nil }
+    var authorizationGeneration: UUID? { isCurrent ? authorization : nil }
+    var isConfigured: Bool { isCurrent }
+    var isSyntheticEnabled: Bool { isCurrent && base.isSyntheticEnabled }
+    var journalRealm: String? { isCurrent ? base.journalRealm : nil }
+    private func check() throws { guard isCurrent, !Task.isCancelled else { throw MerchantBusinessFailure.stale } }
+    private func checkAccess(_ value: MerchantEngagementAccess) throws {
+        try check(); try value.require(["merchant:crm:read"])
+        guard value.merchantID == selection.merchantID else { throw MerchantBusinessFailure.stale }
+    }
+    func canExecute(_ command: MerchantEngagementCommand, merchantID: Int) -> Bool {
+        isCurrent && merchantID == selection.merchantID && base.canExecute(command, merchantID: merchantID)
+    }
+    func permitsDevice(_ action: MerchantEngagementDeviceGrant.Action, merchantID: Int) -> Bool {
+        isCurrent && merchantID == selection.merchantID && base.permitsDevice(action, merchantID: merchantID)
+    }
+    func access() async throws -> MerchantEngagementAccess {
+        try check(); let result = try await base.access(); try checkAccess(result); return result
+    }
+    func read(_ query: MerchantEngagementQuery) async throws -> MerchantEngagementPayload {
+        try check()
+        do {
+            let result = try await base.read(query, expectedMerchantID: selection.merchantID)
+            try check(); return result
+        } catch {
+            if let failure = error as? MerchantBusinessFailure,
+               [.stale, .denied, .disabled].contains(failure) { retire() }
+            if error as? APIError == .unauthorized || error as? APIError == .notConfigured { retire() }
+            throw error
+        }
+    }
+    func proof(_ command: MerchantEngagementCommand) async throws -> MerchantEngagementProof {
+        try check(); let result = try await base.proof(command, expectedMerchantID: selection.merchantID); try checkAccess(result.access); return result
+    }
+    func execute(_ command: MerchantEngagementCommand, requestID: String, proof: MerchantEngagementProof,
+                 scope: MerchantBusinessScope) async throws -> MerchantEngagementReceipt { throw MerchantBusinessFailure.disabled }
+    func execute(_ review: MerchantEngagementReview, authorization: MerchantEngagementDispatchAuthorization,
+                 check externalCheck: () throws -> Void) async throws -> MerchantEngagementReceipt {
+        try checkAccess(review.proof.access)
+        guard review.scope == selection.scope else { throw MerchantBusinessFailure.stale }
+        let result = try await base.execute(review, authorization: authorization, check: {
+            try self.check(); try externalCheck()
+        })
+        try check(); return result
+    }
+}
+
+extension Binding where Value == MerchantCustomerAppliedQuery? {
+    @MainActor func forMerchantCustomerQuery(_ captured: MerchantCustomerAppliedQuery?) -> Binding<Value> {
+        let source = self
+        return .init(get: {
+            guard let captured, source.wrappedValue?.id == captured.id else { return nil }
+            return captured
+        }, set: { next in
+            guard let captured, source.wrappedValue?.id == captured.id else { return }
+            if next == nil { source.wrappedValue = nil }
+        })
+    }
+}
+
+@MainActor private struct MerchantCustomerQueryNavigationOwner: View {
+    @Binding var route: MerchantCustomerAppliedQuery?
+    let captured: MerchantCustomerAppliedQuery
+    let destination: @MainActor (MerchantCustomerAppliedQuery) -> AnyView
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .navigationDestination(item: $route.forMerchantCustomerQuery(captured)) { selection in
+                destination(selection).id(selection.id)
+            }
     }
 }

@@ -27,10 +27,18 @@ public struct MerchantEngagementProof: Equatable {
     func execute(_ review: MerchantEngagementReview, authorization: MerchantEngagementDispatchAuthorization, check: () throws -> Void) async throws -> MerchantEngagementReceipt
     func access() async throws -> MerchantEngagementAccess
     func read(_ query: MerchantEngagementQuery) async throws -> MerchantEngagementPayload
+    func read(_ query: MerchantEngagementQuery, expectedMerchantID: Int) async throws -> MerchantEngagementPayload
     func proof(_ command: MerchantEngagementCommand) async throws -> MerchantEngagementProof
+    func proof(_ command: MerchantEngagementCommand, expectedMerchantID: Int) async throws -> MerchantEngagementProof
     func execute(_ command: MerchantEngagementCommand, requestID: String, proof: MerchantEngagementProof, scope: MerchantBusinessScope) async throws -> MerchantEngagementReceipt
 }
 public extension MerchantEngagementReading {
+    func proof(_ command: MerchantEngagementCommand, expectedMerchantID: Int) async throws -> MerchantEngagementProof {
+        throw MerchantBusinessFailure.disabled
+    }
+    func read(_ query: MerchantEngagementQuery, expectedMerchantID: Int) async throws -> MerchantEngagementPayload {
+        throw MerchantBusinessFailure.disabled
+    }
     var authorizationGeneration: UUID? { nil }
     var journalRealm: String? { scope?.realm }
     func canExecute(_ command: MerchantEngagementCommand, merchantID: Int) -> Bool { isSyntheticEnabled }
@@ -80,10 +88,26 @@ public extension MerchantEngagementReading {
             return try await service.read(query, access: grant, token: captured.token)
         }
     }
+    public func read(_ query: MerchantEngagementQuery, expectedMerchantID: Int) async throws -> MerchantEngagementPayload {
+        guard expectedMerchantID > 0 else { throw MerchantBusinessFailure.invalid }
+        return try await perform { service, captured in
+            let grant = try await service.access(token: captured.token); try check(captured)
+            guard grant.merchantID == expectedMerchantID else { throw MerchantBusinessFailure.stale }
+            return try await service.read(query, access: grant, token: captured.token)
+        }
+    }
     public func proof(_ command: MerchantEngagementCommand) async throws -> MerchantEngagementProof {
+        try await proof(command, matchingMerchantID: nil)
+    }
+    public func proof(_ command: MerchantEngagementCommand, expectedMerchantID: Int) async throws -> MerchantEngagementProof {
+        guard expectedMerchantID > 0 else { throw MerchantBusinessFailure.invalid }
+        return try await proof(command, matchingMerchantID: expectedMerchantID)
+    }
+    private func proof(_ command: MerchantEngagementCommand, matchingMerchantID: Int?) async throws -> MerchantEngagementProof {
         try await perform { service, captured in
             _ = try command.request(requestID: "local-validation")
             let grant = try await service.access(token: captured.token); try check(captured)
+            if let matchingMerchantID, grant.merchantID != matchingMerchantID { throw MerchantBusinessFailure.stale }
             if case .acceptInvitation = command { return .init(access: grant) }
             try grant.require(command.permissions)
             @MainActor func fetch(_ query: MerchantEngagementQuery) async throws -> MerchantEngagementPayload {
@@ -131,7 +155,7 @@ public extension MerchantEngagementReading {
         try authorization.consume(review); try check()
         guard let captured = session(), scope == review.scope, authorizationGeneration == review.authorizationGeneration else { throw MerchantBusinessFailure.stale }
         // Re-read every source permission and target after the durable reservation.
-        let fresh = try await proof(review.command)
+        let fresh = try await proof(review.command, matchingMerchantID: review.proof.access.merchantID)
         try check(); try self.check(captured)
         guard fresh == review.proof, authorizationGeneration == review.authorizationGeneration else { throw MerchantBusinessFailure.conflict }
         if !isSyntheticEnabled { try review.command.validateProductionProof(fresh) }

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Inject an observable session adapter; this view deliberately does not own root navigation.
 @MainActor
@@ -78,6 +79,15 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
     @StateObject private var events = MerchantLoadModel<[MerchantEvent]>()
 
+    private func customerQueryDestination(source: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore)
+        -> (@MainActor (MerchantCustomerAppliedQuery) -> AnyView)? {
+        guard let engagementReader, let exportRecovery else { return nil }
+        let revision = reader.sessionRevision, merchant = access.merchantID
+        return { selection in
+            AnyView(MerchantCustomerQueryDestinationView(root: reader, source: source, engagement: engagementReader,
+                journal: journal, exports: exportRecovery, selection: selection, revision: revision, merchantID: merchant))
+        }
+    }
     var body: some View {
         List {
             Section {
@@ -104,6 +114,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     NavigationLink {
                         MerchantBusinessHomeView(reader: businessReader, journal: businessJournal)
                             .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: businessJournal))
+                            .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: businessReader, journal: businessJournal))
                             .id(businessReader.scope)
                     } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
                         .accessibilityIdentifier("merchant.business.open")
@@ -199,6 +210,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                route.isCurrent(reader: businessReader, journal: businessJournal) {
                 MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
                     .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
+                    .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
                     .id(route)
             } else {
                 Text("merchant.business.stale")
@@ -324,4 +336,47 @@ struct MerchantWorkbenchBusinessRoute: Hashable {
     @MainActor func isCurrent(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore) -> Bool {
         value.isCurrent(reader: reader, journal: journal)
     }
+}
+
+@MainActor private struct MerchantCustomerQueryDestinationView<Reader: MerchantReading>: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @ObservedObject var root: Reader
+    let selection: MerchantCustomerAppliedQuery
+    let journal: any MerchantBusinessIntentStore
+    let exports: any MerchantExportRecoveryStoring
+    @StateObject private var reader: MerchantCustomerQueryReader
+    init(root: Reader, source: any MerchantBusinessReading, engagement: any MerchantEngagementReading,
+         journal: any MerchantBusinessIntentStore, exports: any MerchantExportRecoveryStoring,
+         selection: MerchantCustomerAppliedQuery, revision: UInt64, merchantID: Int?) {
+        self.root = root; self.selection = selection; self.journal = journal; self.exports = exports
+        _reader = StateObject(wrappedValue: .init(selection: selection, base: engagement, source: source, originCurrent: {
+            root.isConfigured && root.isSignedIn && root.sessionRevision == revision && merchantID == selection.merchantID
+        }))
+    }
+    var body: some View {
+        Group {
+            if reader.isCurrent {
+                MerchantEngagementHomeView(reader: reader, journal: journal, exportRecovery: exports,
+                    filter: selection.filter).id(selection.id)
+            } else { Text("merchant.business.stale") }
+        }
+        .background(MerchantCustomerQueryOwnerAnchor(reader: reader).frame(width: 0, height: 0))
+        .onAppear { if scenePhase != .active { reader.retire() } }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { reader.retire() } }
+    }
+}
+
+
+/// Navigation into an existing child does not end this captured query owner.
+/// Actual owner removal does, including when a modal covers the parent.
+@MainActor struct MerchantCustomerQueryOwnerAnchor: UIViewControllerRepresentable {
+    let reader: MerchantCustomerQueryReader
+    final class Coordinator {
+        weak var reader: MerchantCustomerQueryReader?
+        init(_ reader: MerchantCustomerQueryReader) { self.reader = reader }
+    }
+    func makeCoordinator() -> Coordinator { Coordinator(reader) }
+    func makeUIViewController(context: Context) -> UIViewController { UIViewController() }
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+    static func dismantleUIViewController(_ controller: UIViewController, coordinator: Coordinator) { coordinator.reader?.retire() }
 }
