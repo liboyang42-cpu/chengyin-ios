@@ -174,6 +174,8 @@ struct ClubGovernanceReadView: View {
     @StateObject private var banRemovalReturn = ClubBanRemovalReturn()
     @StateObject private var banReads = ClubBanListRead()
     @StateObject private var terminalPresentation = ClubTerminalSessionPresentation()
+    @StateObject private var seriesUpdateReturn = ClubSeriesUpdateReturn()
+    @State private var seriesHostVisible = false
     @StateObject private var seriesOccurrences = ClubSeriesOccurrenceHost()
     @StateObject private var settlementReturn = ClubSettlementReturnOwner()
     @StateObject private var ownerFundsParent = ClubOwnerFundsParent()
@@ -248,6 +250,22 @@ struct ClubGovernanceReadView: View {
         }
         .navigationTitle(title)
         .sheet(item: $editor) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }
+        .background {
+            if let item = seriesUpdateReturn.item {
+                ClubSeriesUpdatePresentationOwner(item: item, owner: seriesUpdateReturn,
+                    source: { seriesUpdateSource }, active: { scenePhase == .active },
+                    access: access, coordinator: coordinator, didDismiss: finishSeriesUpdateReturn)
+                    .id(item.id)
+            }
+        }
+        .onAppear { seriesHostVisible = true; finishSeriesUpdateReturn() }
+        .onDisappear { seriesHostVisible = false }
+        .onChange(of: seriesUpdateSource) { _, source in
+            seriesUpdateReturn.invalidateUnlessCurrent(source: source, active: scenePhase == .active)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { seriesUpdateReturn.retire() }
+        }
         .navigationDestination(item: $leaderboardMember) { target in
             Group {
                 if let profile = leaderboardProfile, current(target) {
@@ -485,6 +503,7 @@ struct ClubGovernanceReadView: View {
         // and erase its error. Context checks still hide old PII synchronously.
         .task(id: readContext) {
             guard operation != .cases, operation != .settlement else { return }
+            if operation == .seriesDetail, snapshotContext == readContext, snapshot != nil, generation == snapshotGeneration { return }
             if operation == .series {
                 if snapshotContext != readContext || snapshotGeneration != generation {
                     seriesOccurrences.retire(); invalidateRead(); loading = false; await load()
@@ -576,7 +595,7 @@ struct ClubGovernanceReadView: View {
                 if !banRemovalReturn.retainsReturn { banReads.retire(); generation &+= 1; loading = false }
             } else if operation != .cases || caseSubmissionReturn.item == nil {
                 if operation == .cases { caseSubmissionReturn.retire() }
-                generation &+= 1
+                if operation != .seriesDetail || seriesUpdateReturn.item == nil { generation &+= 1 }
             }
         }
         .refreshable { await load() }
@@ -759,6 +778,21 @@ struct ClubGovernanceReadView: View {
         operation != .bans || (attachment != nil && banRemovalReturn.attachment == attachment &&
             banRemovalReturn.visible && scenePhase == .active)
     }
+    private var seriesUpdateSource: ClubSeriesUpdateReturn.Source? {
+        guard operation == .seriesDetail, !loading, failure == nil,
+              let snapshot, snapshotContext == readContext, generation == snapshotGeneration else { return nil }
+        return .init(context: readContext, snapshot: snapshot, generation: snapshotGeneration, access: access)
+    }
+    private func finishSeriesUpdateReturn() {
+        // Both onAppear-before-onDismiss and onDismiss-before-onAppear arrive
+        // here. The concrete owner retains its ticket until it is visible.
+        Task { @MainActor in
+            guard !Task.isCancelled, seriesHostVisible, scenePhase == .active,
+                  seriesUpdateReturn.consume(source: seriesUpdateSource, visible: seriesHostVisible,
+                                             active: scenePhase == .active) != nil else { return }
+            await load()
+        }
+    }
     private var terminalSource: ClubTerminalSessionPresentation.Source? {
         guard operation == .topicOverview, !loading, scenePhase == .active,
               let snapshot, snapshotContext == readContext, identity == access.identity else { return nil }
@@ -879,6 +913,7 @@ struct ClubGovernanceReadView: View {
         if revision == generation { loading = false }
     }
     @MainActor private func invalidateRead() {
+        seriesUpdateReturn.retire()
         caseSubmissionReturn.retire()
         if operation == .roster { attendanceReads.retire() }
         if operation == .roles { roleReads.retire() }
@@ -950,7 +985,9 @@ struct ClubGovernanceReadView: View {
         let settingsSource = topicSettingsSource
         let bansSource = banRemovalSource
         return Button(LocalizedStringKey("club.gov.action." + operation.rawValue)) {
-            if self.operation == .bans, operation == .unban {
+            if operation == .updateSeries, self.operation == .seriesDetail {
+                seriesUpdateReturn.open(seriesUpdateSource, visible: seriesHostVisible, active: scenePhase == .active)
+            } else if self.operation == .bans, operation == .unban {
                 guard editor == nil, bansSource == banRemovalSource, scope == nil || scope == self.scope else { return }
                 banRemovalReturn.open(seed: seed, source: bansSource, active: scenePhase == .active)
             } else if self.operation == .topicSettings, operation == .saveTopicSettings {
