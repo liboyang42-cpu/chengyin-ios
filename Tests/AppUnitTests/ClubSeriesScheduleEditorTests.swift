@@ -613,7 +613,8 @@ import XCTest
         var sends = 0
         var reads = 0
         var cancelled = false
-        var failure: ClubGovernanceFailure?
+        var readFailure: ClubGovernanceFailure?
+        var sendFailure: ClubGovernanceFailure?
         var held = false
         var entered: (() -> Void)?
         var pending: CheckedContinuation<ClubGovernanceSnapshot, Error>?
@@ -626,12 +627,12 @@ import XCTest
         }
         func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue]) async throws -> ClubGovernanceSnapshot {
             XCTAssertEqual(operation, .occurrenceStatus); XCTAssertTrue(options.isEmpty); reads += 1
-            if let failure { throw failure }
+            if let readFailure { throw readFailure }
             if held { return try await withCheckedThrowingContinuation { pending = $0; entered?() } }
             return try snapshot(scope: scope)
         }
         func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue {
-            sends += 1; if let failure { throw failure }
+            sends += 1; if let sendFailure { throw sendFailure }
             return .object(["activityId": .integer(401), "refundStatus": .string("PENDING")])
         }
     }
@@ -696,7 +697,7 @@ import XCTest
         XCTAssertEqual(coordinator.state, .acknowledged); XCTAssertEqual(access.sends, 1)
     }
     func testUnknownAckCannotReturnReadbackOrUnlock() async throws {
-        let (access, owner, source, item, coordinator, review) = try await fixture(); access.failure = .unknown(message: nil)
+        let (access, owner, source, item, coordinator, review) = try await fixture(); access.sendFailure = .unknown(message: nil)
         do { _ = try await coordinator.confirm(review); XCTFail("Expected unknown") } catch {}
         owner.acknowledge(review, value: .object(["activityId": .integer(401), "refundStatus": .string("PENDING")]),
                           state: coordinator.state, item: item, source: source, active: true)
@@ -811,7 +812,7 @@ import XCTest
         let (access, owner, source, item, coordinator, review) = try await fixture()
         try await acknowledge(owner, source: source, item: item, coordinator: coordinator, review: review)
         owner.dismissed(item, source: source, active: true)
-        let ticket = try XCTUnwrap(owner.consume(source: source, visible: true, active: true)); access.failure = .malformed
+        let ticket = try XCTUnwrap(owner.consume(source: source, visible: true, active: true)); access.readFailure = .malformed
         do { _ = try await access.read(.occurrenceStatus, scope: source.context.scope, options: [:]); XCTFail("Expected read failure") } catch {}
         XCTAssertEqual(owner.readback?.id, ticket.id); XCTAssertFalse(owner.confirmed); XCTAssertEqual(access.sends, 1)
         XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity))
