@@ -171349,6 +171349,134 @@
           }
         }
       }
+    },
+    "profile.orderMap.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View meeting point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看集合点"
+          }
+        }
+      }
+    },
+    "profile.orderMap.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current order has no available meeting-point coordinates. Refresh the order if your account or access changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前订单暂无可用集合点坐标；账号或访问条件变化后请刷新订单。"
+          }
+        }
+      }
+    },
+    "profile.orderMap.opening": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening Maps…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在打开地图…"
+          }
+        }
+      }
+    },
+    "profile.orderMap.opened": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected destination was handed to Apple Maps."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已将所选目的地交给 Apple 地图。"
+          }
+        }
+      }
+    },
+    "profile.orderMap.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maps could not open. Tap View meeting point to review and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图未能打开。请点“查看集合点”重新确认后再试。"
+          }
+        }
+      }
+    },
+    "profile.orderMap.disclosure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm to send only this order’s selected destination and coordinates to Apple Maps. Your current location is not read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后，仅将此订单所选目的地及坐标交给 Apple 地图，不读取你当前的位置。"
+          }
+        }
+      }
+    },
+    "profile.orderMap.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Apple Maps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 Apple 地图"
+          }
+        }
+      }
+    },
+    "profile.orderMap.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review destination"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认目的地"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

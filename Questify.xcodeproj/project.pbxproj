@@ -18663,6 +18663,9 @@
 				"6C9CD83FC5F618928A1E37FD",
 				"5E575F59223F6CD82EEE19D3",
 				"3A9E7A33AC2ED250CF7A3F1C",
+				"F1672993486AE0F50F04B1D3",
+				"A049B165299EBB76592434EE",
+				"97672D78A8220C78E876F526",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20315,6 +20318,8 @@
 				"5FA074899A359B2E963725F0",
 				"28162BA7E0AF306452E36C65",
 				"629C52FF6966D34AE7331ABC",
+				"5510E8F97812381DFC0DB345",
+				"29E56CF5B82C7A252D4AC028",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26479,6 +26484,7 @@
 				"8847EE2BD59EB968209FB0F8",
 				"476968904E435EF36E18C8AD",
 				"020D4BE686A74BDA3ACFB3E5",
+				"5C02A451191A0DAC00195834",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -28370,6 +28376,36 @@
 		"629C52FF6966D34AE7331ABC" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "5E575F59223F6CD82EEE19D3";
+		};
+		"F1672993486AE0F50F04B1D3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ProfileOrderMeetingPointViewTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"5C02A451191A0DAC00195834" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F1672993486AE0F50F04B1D3";
+		};
+		"97672D78A8220C78E876F526" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ProfileOrderMeetingPointView.swift";
+			"sourceTree" = "<group>";
+		};
+		"29E56CF5B82C7A252D4AC028" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "97672D78A8220C78E876F526";
+		};
+		"A049B165299EBB76592434EE" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ProfileOrderMeetingPoint.swift";
+			"sourceTree" = "<group>";
+		};
+		"5510E8F97812381DFC0DB345" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A049B165299EBB76592434EE";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";
