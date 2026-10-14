@@ -117,6 +117,160 @@ import SwiftUI
     }
 }
 
+/// An acknowledged cancellation permits a readback, never a repeated command.
+@MainActor final class ClubOccurrenceCancellationReturn: ObservableObject {
+    struct Source: Equatable {
+        let context: ClubGovernanceReadContext
+        let snapshot: ClubGovernanceSnapshot
+        let generation: UInt64
+        let namespace: String
+        let realm: String
+        @MainActor init?(context: ClubGovernanceReadContext, snapshot: ClubGovernanceSnapshot,
+                         generation: UInt64, access: any ClubGovernanceAccess) {
+            guard context.operation == .occurrenceStatus, context.accepts(snapshot),
+                  context.identity?.isSignedIn == true, context.identity == access.identity,
+                  context.authorizationGeneration == access.authorizationGeneration,
+                  context.accessIdentity == ObjectIdentifier(access), access.isConfigured,
+                  (context.scope.clubID ?? 0) > 0, (context.scope.activityID ?? 0) > 0,
+                  snapshot.value["activityId"].int == context.scope.activityID,
+                  snapshot.value["occurrenceStatus"] == .string("ACTIVE"),
+                  snapshot.value["activityCancelled"] == .bool(false), snapshot.value["publishStatus"] == .integer(1),
+                  snapshot.permissions?.allows(ClubGovernanceRead.occurrenceStatus.permission, scope: context.scope) == true else { return nil }
+            self.context = context; self.snapshot = snapshot; self.generation = generation
+            namespace = access.storageNamespace; realm = access.journalRealm
+        }
+        @MainActor func live(context: ClubGovernanceReadContext, access: any ClubGovernanceAccess) -> Bool {
+            self.context == context && access.isConfigured && context.identity == access.identity &&
+            context.authorizationGeneration == access.authorizationGeneration && context.accessIdentity == ObjectIdentifier(access) &&
+            namespace == access.storageNamespace && realm == access.journalRealm
+        }
+    }
+    struct Item: Identifiable {
+        let route: ClubGovernanceFormRoute
+        let source: Source
+        var id: UUID { route.id }
+    }
+    struct Readback: Identifiable {
+        let id = UUID()
+        let source: Source
+        let reviewID: UUID
+        let receipt: ClubGovernanceValue
+    }
+    struct Callbacks {
+        let begin: (ClubGovernanceReview) -> Bool
+        let acknowledged: (ClubGovernanceReview, ClubGovernanceValue) -> Void
+    }
+    struct ReadTrigger: Equatable {
+        let context: ClubGovernanceReadContext
+        let visible: Bool
+        let active: Bool
+    }
+    @Published private(set) var item: Item?
+    @Published private(set) var isPresented = false
+    @Published private(set) var readback: Readback?
+    @Published private(set) var confirmed = false
+    private var submissionID: UUID?
+    private var acknowledged: Readback?
+    private var didDismiss = false
+    func open(_ source: Source?, visible: Bool, active: Bool) {
+        guard item == nil, readback == nil, visible, active, let source else { return }
+        item = .init(route: .init(operation: .cancelOccurrence, scope: source.context.scope), source: source)
+        isPresented = true; submissionID = nil; acknowledged = nil; didDismiss = false
+    }
+    func current(_ expected: Item, source: Source?, active: Bool) -> Bool {
+        active && item?.id == expected.id && expected.source == source
+    }
+    func binding(_ expected: Item, source: @escaping () -> Source?, active: @escaping () -> Bool) -> Binding<Bool> {
+        Binding(get: { self.isPresented && self.current(expected, source: source(), active: active()) }, set: { shown in
+            guard !shown, self.current(expected, source: source(), active: active()) else { return }
+            self.isPresented = false
+        })
+    }
+    func begin(_ review: ClubGovernanceReview, state: ClubGovernanceWriteState,
+               item expected: Item, source: Source?, active: Bool) -> Bool {
+        guard isPresented, current(expected, source: source, active: active), state == .reviewing,
+              acknowledged == nil, review.command.operation == .cancelOccurrence,
+              review.command.scope == expected.source.context.scope,
+              review.identity == expected.source.context.identity,
+              review.authorizationGeneration == expected.source.context.authorizationGeneration,
+              review.storageNamespace == expected.source.namespace, review.journalRealm == expected.source.realm,
+              review.snapshot == expected.source.snapshot else { return false }
+        submissionID = review.id; return true
+    }
+    func acknowledge(_ review: ClubGovernanceReview, value: ClubGovernanceValue, state: ClubGovernanceWriteState,
+                     item expected: Item, source: Source?, active: Bool) {
+        guard isPresented, current(expected, source: source, active: active), state == .acknowledged,
+              submissionID == review.id, acknowledged == nil,
+              value["activityId"].int == expected.source.context.scope.activityID,
+              value["refundStatus"].string != nil else { return }
+        acknowledged = .init(source: expected.source, reviewID: review.id, receipt: value)
+        isPresented = false
+    }
+    @discardableResult func dismissed(_ expected: Item, source: Source?, active: Bool) -> Bool {
+        guard current(expected, source: source, active: active), !isPresented else { return false }
+        if acknowledged != nil { didDismiss = true } else { retireForm() }
+        return true
+    }
+    func consume(source: Source?, visible: Bool, active: Bool) -> Readback? {
+        guard visible, active, !isPresented, didDismiss, readback == nil, let acknowledged, let item,
+              current(item, source: source, active: active) else { return nil }
+        readback = acknowledged; confirmed = false; retireForm(); return acknowledged
+    }
+    func readIsCurrent(_ expected: Readback, context: ClubGovernanceReadContext, access: any ClubGovernanceAccess,
+                       visible: Bool, active: Bool) -> Bool {
+        visible && active && readback?.id == expected.id && readback?.reviewID == expected.reviewID &&
+        expected.source.live(context: context, access: access)
+    }
+    @discardableResult func observe(_ result: ClubGovernanceSnapshot, for expected: Readback,
+                                   context: ClubGovernanceReadContext, access: any ClubGovernanceAccess,
+                                   visible: Bool, active: Bool) -> Bool {
+        guard readIsCurrent(expected, context: context, access: access, visible: visible, active: active) else { return false }
+        confirmed = false
+        guard result.operation == .occurrenceStatus, result.scope == expected.source.context.scope,
+              result.value["activityId"].int == expected.source.context.scope.activityID else { return false }
+        confirmed = result.value["occurrenceStatus"] == .string("CANCELLED") &&
+            result.value["activityCancelled"] == .bool(true) && result.value["publishStatus"] == .integer(0)
+        return confirmed
+    }
+    func invalidateForm(source: Source?, active: Bool) {
+        if let item, !current(item, source: source, active: active) { retireForm() }
+    }
+    func retire() { retireForm(); readback = nil; confirmed = false }
+    private func retireForm() {
+        isPresented = false; item = nil; submissionID = nil; acknowledged = nil; didDismiss = false
+    }
+}
+
+@MainActor struct ClubOccurrenceCancellationPresentationOwner: View {
+    let item: ClubOccurrenceCancellationReturn.Item
+    @ObservedObject var owner: ClubOccurrenceCancellationReturn
+    let source: () -> ClubOccurrenceCancellationReturn.Source?
+    let active: () -> Bool
+    let access: any ClubGovernanceAccess
+    let coordinator: ClubGovernanceCoordinator
+    let didDismiss: () -> Void
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(isPresented: owner.binding(item, source: source, active: active), onDismiss: {
+                if owner.dismissed(item, source: source(), active: active()) { didDismiss() }
+            }) {
+                NavigationStack {
+                    ClubGovernanceCommandForm(route: item.route, identity: item.source.context.identity,
+                        access: access, coordinator: coordinator, validateTarget: {
+                            guard owner.isPresented, owner.current(item, source: source(), active: active()) else {
+                                throw ClubGovernanceFailure.staleReview
+                            }
+                        }, occurrenceCancellationReturn: .init(begin: { review in
+                            owner.begin(review, state: coordinator.state, item: item, source: source(), active: active())
+                        }, acknowledged: { review, value in
+                            owner.acknowledge(review, value: value, state: coordinator.state,
+                                item: item, source: source(), active: active())
+                        }))
+                }
+            }
+    }
+}
+
 /// A navigation proof, separate from the acknowledged write and its retained lock.
 struct ClubCreatedSeriesReceipt: Equatable {
     let seriesID: Int

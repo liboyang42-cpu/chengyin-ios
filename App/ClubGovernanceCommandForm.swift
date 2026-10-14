@@ -8,6 +8,7 @@ import SwiftUI
     let validateTarget: (() async throws -> Void)?
     let seriesUpdateReturn: ClubSeriesUpdateReturn.Callbacks?
     let seriesCreationReturn: ClubSeriesCreationReturn.Callbacks?
+    let occurrenceCancellationReturn: ClubOccurrenceCancellationReturn.Callbacks?
     let caseSubmissionReturn: ClubCaseSubmissionReturn.Callbacks?
     let attendanceReturn: ClubAttendanceCorrectionReturn.Callbacks?
     let roleManagementReturn: ClubRoleManagementReturn.Callbacks?
@@ -31,7 +32,7 @@ import SwiftUI
     @State private var locked = false
     @State private var showDiscard = false
     @State private var generation: UInt64 = 0
-    init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator, validateTarget: (() async throws -> Void)? = nil, caseSubmissionReturn: ClubCaseSubmissionReturn.Callbacks? = nil, attendanceReturn: ClubAttendanceCorrectionReturn.Callbacks? = nil, roleManagementReturn: ClubRoleManagementReturn.Callbacks? = nil, topicSettingsReturn: ClubTopicSettingsReturn.Callbacks? = nil, banRemovalReturn: ClubBanRemovalReturn.Callbacks? = nil, seriesUpdateReturn: ClubSeriesUpdateReturn.Callbacks? = nil, seriesCreationReturn: ClubSeriesCreationReturn.Callbacks? = nil) {
+    init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator, validateTarget: (() async throws -> Void)? = nil, caseSubmissionReturn: ClubCaseSubmissionReturn.Callbacks? = nil, attendanceReturn: ClubAttendanceCorrectionReturn.Callbacks? = nil, roleManagementReturn: ClubRoleManagementReturn.Callbacks? = nil, topicSettingsReturn: ClubTopicSettingsReturn.Callbacks? = nil, banRemovalReturn: ClubBanRemovalReturn.Callbacks? = nil, seriesUpdateReturn: ClubSeriesUpdateReturn.Callbacks? = nil, seriesCreationReturn: ClubSeriesCreationReturn.Callbacks? = nil, occurrenceCancellationReturn: ClubOccurrenceCancellationReturn.Callbacks? = nil) {
         self.route = route; self.identity = identity; self.access = access; self.coordinator = coordinator; self.validateTarget = validateTarget
         self.caseSubmissionReturn = caseSubmissionReturn
         self.attendanceReturn = attendanceReturn
@@ -40,6 +41,7 @@ import SwiftUI
         self.banRemovalReturn = banRemovalReturn
         self.seriesUpdateReturn = seriesUpdateReturn
         self.seriesCreationReturn = seriesCreationReturn
+        self.occurrenceCancellationReturn = occurrenceCancellationReturn
         var initial = ClubGovernanceFormDraft(operation: route.operation, scope: route.scope, seed: route.seed)
         if route.operation == .assignRole { initial.text["roleCode"] = "" }
         _draft = State(initialValue: initial)
@@ -286,6 +288,9 @@ import SwiftUI
             if route.operation == .createSeries, let seriesCreationReturn {
                 guard self.review?.id == review.id, seriesCreationReturn.begin(review) else { throw ClubGovernanceFailure.staleReview }
             }
+            if route.operation == .cancelOccurrence, let occurrenceCancellationReturn {
+                guard self.review?.id == review.id, occurrenceCancellationReturn.begin(review) else { throw ClubGovernanceFailure.staleReview }
+            }
             let value = try await coordinator.confirm(review)
             guard revision == generation, expected == identity, expected == access.identity else { return }
             receipt = value; self.review = nil; locked = true
@@ -299,6 +304,9 @@ import SwiftUI
             }
             if route.operation == .createSeries, submittedRequestID == draft.requestID, !Task.isCancelled {
                 seriesCreationReturn?.acknowledged(review, value)
+            }
+            if route.operation == .cancelOccurrence, submittedRequestID == draft.requestID, !Task.isCancelled {
+                occurrenceCancellationReturn?.acknowledged(review, value)
             }
             if route.operation == .issueGroupCode { groupCode = try ClubGovernanceGroupCode(receipt: value, receivedAt: Date()) }
         } catch {

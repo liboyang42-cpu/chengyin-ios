@@ -601,3 +601,219 @@ import XCTest
         }
     }
 }
+
+@MainActor final class ClubOccurrenceCancellationReturnTests: XCTestCase {
+    @MainActor private final class Access: ClubGovernanceAccess {
+        var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 1)
+        var isConfigured = true
+        var storageNamespace = "cancel-readback-fixture"
+        var journalRealm = "cancel-readback-realm"
+        var authorizationGeneration: UUID? = UUID()
+        let allowsOfflineWrites = true
+        var sends = 0
+        var reads = 0
+        var cancelled = false
+        var failure: ClubGovernanceFailure?
+        var held = false
+        var entered: (() -> Void)?
+        var pending: CheckedContinuation<ClubGovernanceSnapshot, Error>?
+        func snapshot(scope: ClubGovernanceScope) throws -> ClubGovernanceSnapshot {
+            let permissions = try ClubGovernancePermissions(value: .object(["active": .bool(true), "club": .object(["id": .integer(81)]),
+                "roleCodes": .array([]), "permissions": .array([.string("club:activity:manage")])]), scope: scope)
+            return .init(operation: .occurrenceStatus, scope: scope, permissions: permissions,
+                value: .object(["activityId": .integer(401), "occurrenceStatus": .string(cancelled ? "CANCELLED" : "ACTIVE"),
+                                "activityCancelled": .bool(cancelled), "publishStatus": .integer(cancelled ? 0 : 1)]))
+        }
+        func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue]) async throws -> ClubGovernanceSnapshot {
+            XCTAssertEqual(operation, .occurrenceStatus); XCTAssertTrue(options.isEmpty); reads += 1
+            if let failure { throw failure }
+            if held { return try await withCheckedThrowingContinuation { pending = $0; entered?() } }
+            return try snapshot(scope: scope)
+        }
+        func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue {
+            sends += 1; if let failure { throw failure }
+            return .object(["activityId": .integer(401), "refundStatus": .string("PENDING")])
+        }
+    }
+    private func source(_ access: Access, generation: UInt64 = 1) throws -> ClubOccurrenceCancellationReturn.Source {
+        let scope = ClubGovernanceScope(clubID: 81, activityID: 401)
+        let context = ClubGovernanceReadContext(operation: .occurrenceStatus, scope: scope, identity: access.identity,
+            viewerRevision: 2, authorizationGeneration: access.authorizationGeneration, accessIdentity: ObjectIdentifier(access))
+        return try XCTUnwrap(.init(context: context, snapshot: access.snapshot(scope: scope), generation: generation, access: access))
+    }
+    private func command(_ scope: ClubGovernanceScope) throws -> ClubGovernanceCommand {
+        var draft = ClubGovernanceFormDraft(operation: .cancelOccurrence, scope: scope)
+        draft.text["reason"] = "Schedule changed"
+        return try draft.command()
+    }
+    private func fixture() async throws -> (Access, ClubOccurrenceCancellationReturn, ClubOccurrenceCancellationReturn.Source, ClubOccurrenceCancellationReturn.Item, ClubGovernanceCoordinator, ClubGovernanceReview) {
+        let access = Access(), owner = ClubOccurrenceCancellationReturn(), source = try source(access)
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item), coordinator = ClubGovernanceCoordinator(access: access)
+        let review = try await coordinator.prepare(command(source.context.scope))
+        XCTAssertTrue(owner.begin(review, state: coordinator.state, item: item, source: source, active: true))
+        return (access, owner, source, item, coordinator, review)
+    }
+    private func acknowledge(_ owner: ClubOccurrenceCancellationReturn, source: ClubOccurrenceCancellationReturn.Source,
+                             item: ClubOccurrenceCancellationReturn.Item, coordinator: ClubGovernanceCoordinator,
+                             review: ClubGovernanceReview) async throws {
+        let receipt = try await coordinator.confirm(review)
+        owner.acknowledge(review, value: receipt, state: coordinator.state, item: item, source: source, active: true)
+    }
+    func testOnlyIndependentCancelledStateConfirmsAcknowledgedCancellationAndKeepsLock() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        try await acknowledge(owner, source: source, item: item, coordinator: coordinator, review: review)
+        XCTAssertFalse(owner.confirmed); owner.dismissed(item, source: source, active: true)
+        let ticket = try XCTUnwrap(owner.consume(source: source, visible: true, active: true)); access.cancelled = true
+        let fresh = try await access.read(.occurrenceStatus, scope: source.context.scope, options: [:])
+        XCTAssertTrue(owner.observe(fresh, for: ticket, context: source.context, access: access, visible: true, active: true))
+        XCTAssertEqual(ticket.reviewID, review.id); XCTAssertEqual(ticket.receipt["refundStatus"], .string("PENDING"))
+        XCTAssertTrue(owner.confirmed); XCTAssertEqual(access.sends, 1)
+        XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity))
+        XCTAssertNil(owner.consume(source: source, visible: true, active: true))
+    }
+    func testActiveReadbackStaysUnconfirmedAndRepeatedReadsNeverSendAgain() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        try await acknowledge(owner, source: source, item: item, coordinator: coordinator, review: review)
+        owner.dismissed(item, source: source, active: true)
+        let ticket = try XCTUnwrap(owner.consume(source: source, visible: true, active: true))
+        for _ in 0..<2 {
+            let fresh = try await access.read(.occurrenceStatus, scope: source.context.scope, options: [:])
+            XCTAssertFalse(owner.observe(fresh, for: ticket, context: source.context, access: access, visible: true, active: true))
+        }
+        XCTAssertEqual(owner.readback?.id, ticket.id); XCTAssertFalse(owner.confirmed); XCTAssertEqual(access.sends, 1)
+        XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity))
+    }
+    func testMissingOrWrongActivityReceiptPreservesOriginalAckPage() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        _ = try await coordinator.confirm(review)
+        let values: [ClubGovernanceValue] = [.object(["activityId": .integer(999), "refundStatus": .string("PENDING")]),
+                                           .object(["refundStatus": .string("PENDING")]), .object(["activityId": .integer(401)])]
+        for value in values {
+            owner.acknowledge(review, value: value, state: coordinator.state, item: item, source: source, active: true)
+            XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.readback)
+        }
+        XCTAssertEqual(coordinator.state, .acknowledged); XCTAssertEqual(access.sends, 1)
+    }
+    func testUnknownAckCannotReturnReadbackOrUnlock() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture(); access.failure = .unknown(message: nil)
+        do { _ = try await coordinator.confirm(review); XCTFail("Expected unknown") } catch {}
+        owner.acknowledge(review, value: .object(["activityId": .integer(401), "refundStatus": .string("PENDING")]),
+                          state: coordinator.state, item: item, source: source, active: true)
+        XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.readback); XCTAssertFalse(owner.confirmed)
+        XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity)); XCTAssertEqual(access.sends, 1)
+    }
+    func testEveryNonAckStateDeclinesReturn() async throws {
+        let (_, owner, source, item, _, review) = try await fixture()
+        for state in [ClubGovernanceWriteState.idle, .reviewing, .preflighting, .submitting, .rejected, .conflict, .unknown] {
+            owner.acknowledge(review, value: .object(["activityId": .integer(401), "refundStatus": .string("PENDING")]),
+                              state: state, item: item, source: source, active: true)
+            XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.readback)
+        }
+    }
+    func testBothDismissAndAppearOrdersConsumeOnlyOnceWhenVisible() async throws {
+        for dismissFirst in [true, false] {
+            let (_, owner, source, item, coordinator, review) = try await fixture()
+            try await acknowledge(owner, source: source, item: item, coordinator: coordinator, review: review)
+            if dismissFirst {
+                owner.dismissed(item, source: source, active: true)
+                XCTAssertNil(owner.consume(source: source, visible: false, active: true))
+            } else {
+                XCTAssertNil(owner.consume(source: source, visible: true, active: true))
+                owner.dismissed(item, source: source, active: true)
+            }
+            XCTAssertNotNil(owner.consume(source: source, visible: true, active: true))
+            XCTAssertNil(owner.consume(source: source, visible: true, active: true))
+        }
+    }
+    func testCancelledSheetAndOldBindingCannotCloseReopenedOwnerOrRead() async throws {
+        let (access, owner, source, old, _, _) = try await fixture()
+        let binding = owner.binding(old, source: { source }, active: { true })
+        binding.wrappedValue = false; owner.dismissed(old, source: source, active: true)
+        XCTAssertNil(owner.consume(source: source, visible: true, active: true)); owner.open(source, visible: true, active: true)
+        let current = try XCTUnwrap(owner.item)
+        binding.wrappedValue = false; XCTAssertFalse(binding.wrappedValue)
+        XCTAssertFalse(owner.dismissed(old, source: source, active: true))
+        XCTAssertEqual(owner.item?.id, current.id); XCTAssertTrue(owner.isPresented); XCTAssertEqual(access.sends, 0)
+    }
+    func testDifferentReviewAndParentRevisionCannotAcknowledge() async throws {
+        let (_, owner, source, item, coordinator, old) = try await fixture()
+        let current = try await coordinator.prepare(command(source.context.scope))
+        XCTAssertTrue(owner.begin(current, state: coordinator.state, item: item, source: source, active: true))
+        owner.acknowledge(old, value: .object(["activityId": .integer(401), "refundStatus": .string("PENDING")]),
+                          state: .acknowledged, item: item, source: source, active: true)
+        XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.readback)
+        owner.invalidateForm(source: nil, active: true); XCTAssertNil(owner.item)
+    }
+    func testWrongOrInconsistentStatusNeverConfirms() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        try await acknowledge(owner, source: source, item: item, coordinator: coordinator, review: review)
+        owner.dismissed(item, source: source, active: true)
+        let ticket = try XCTUnwrap(owner.consume(source: source, visible: true, active: true)); access.cancelled = true
+        let fresh = try access.snapshot(scope: source.context.scope)
+        for (key, bad) in [("activityId", ClubGovernanceValue.integer(999)), ("occurrenceStatus", .string("ACTIVE")),
+                           ("activityCancelled", .bool(false)), ("publishStatus", .integer(1))] {
+            var value = try XCTUnwrap(fresh.value.object); value[key] = bad
+            XCTAssertFalse(owner.observe(.init(operation: .occurrenceStatus, scope: source.context.scope, permissions: fresh.permissions,
+                value: .object(value)), for: ticket, context: source.context, access: access, visible: true, active: true))
+            XCTAssertFalse(owner.confirmed)
+        }
+    }
+    func testHiddenOrInactiveReadPredicateBlocksBeforeDispatch() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        try await acknowledge(owner, source: source, item: item, coordinator: coordinator, review: review)
+        owner.dismissed(item, source: source, active: true)
+        let ticket = try XCTUnwrap(owner.consume(source: source, visible: true, active: true)), prior = access.reads
+        for (visible, active) in [(false, true), (true, false)] {
+            do {
+                _ = try await access.read(.occurrenceStatus, scope: source.context.scope, options: [:]) {
+                    guard owner.readIsCurrent(ticket, context: source.context, access: access, visible: visible, active: active) else { throw CancellationError() }
+                }
+                XCTFail("Retired visibility must stop the read")
+            } catch {}
+        }
+        XCTAssertEqual(access.reads, prior); XCTAssertEqual(access.sends, 1)
+    }
+    func testHiddenDuringHeldStatusReadCannotConsumeLateResponseWithoutRetire() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        try await acknowledge(owner, source: source, item: item, coordinator: coordinator, review: review)
+        owner.dismissed(item, source: source, active: true)
+        let ticket = try XCTUnwrap(owner.consume(source: source, visible: true, active: true))
+        access.held = true; access.cancelled = true; var visible = true
+        let entered = expectation(description: "held status"); access.entered = { entered.fulfill() }
+        let task = Task { () -> ClubGovernanceSnapshot? in
+            try? await access.read(.occurrenceStatus, scope: source.context.scope, options: [:]) {
+                guard owner.readIsCurrent(ticket, context: source.context, access: access, visible: visible, active: true) else { throw CancellationError() }
+            }
+        }
+        await fulfillment(of: [entered], timeout: 1); visible = false
+        access.pending?.resume(returning: try access.snapshot(scope: source.context.scope))
+        let result = await task.value
+        XCTAssertNil(result); XCTAssertFalse(owner.confirmed); XCTAssertEqual(owner.readback?.id, ticket.id)
+        XCTAssertEqual(access.sends, 1)
+    }
+    func testIdentityAuthorizationAndOldReadbackCannotAffectNewOwner() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        try await acknowledge(owner, source: source, item: item, coordinator: coordinator, review: review)
+        owner.dismissed(item, source: source, active: true)
+        let ticket = try XCTUnwrap(owner.consume(source: source, visible: true, active: true))
+        access.identity = .init(accountID: 702, epoch: 1)
+        XCTAssertFalse(owner.readIsCurrent(ticket, context: source.context, access: access, visible: true, active: true))
+        access.identity = source.context.identity; access.authorizationGeneration = UUID()
+        XCTAssertFalse(owner.readIsCurrent(ticket, context: source.context, access: access, visible: true, active: true))
+        access.authorizationGeneration = source.context.authorizationGeneration; owner.retire(); owner.open(source, visible: true, active: true)
+        let current = try XCTUnwrap(owner.item); access.cancelled = true
+        XCTAssertFalse(owner.observe(try access.snapshot(scope: source.context.scope), for: ticket,
+            context: source.context, access: access, visible: true, active: true))
+        XCTAssertEqual(owner.item?.id, current.id); XCTAssertNil(owner.readback); XCTAssertFalse(owner.confirmed)
+    }
+    func testReadFailureRetainsPendingReceiptAndOriginalPermanentLock() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        try await acknowledge(owner, source: source, item: item, coordinator: coordinator, review: review)
+        owner.dismissed(item, source: source, active: true)
+        let ticket = try XCTUnwrap(owner.consume(source: source, visible: true, active: true)); access.failure = .malformed
+        do { _ = try await access.read(.occurrenceStatus, scope: source.context.scope, options: [:]); XCTFail("Expected read failure") } catch {}
+        XCTAssertEqual(owner.readback?.id, ticket.id); XCTAssertFalse(owner.confirmed); XCTAssertEqual(access.sends, 1)
+        XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity))
+    }
+}
