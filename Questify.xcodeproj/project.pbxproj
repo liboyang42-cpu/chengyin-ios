@@ -18661,6 +18661,8 @@
 				"F54B10660C9336602B1C255C",
 				"8D2839DE80876C75313CA9D0",
 				"6C9CD83FC5F618928A1E37FD",
+				"5E575F59223F6CD82EEE19D3",
+				"3A9E7A33AC2ED250CF7A3F1C",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20312,6 +20314,7 @@
 				"447AEF7005E3B196E07745B2",
 				"5FA074899A359B2E963725F0",
 				"28162BA7E0AF306452E36C65",
+				"629C52FF6966D34AE7331ABC",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26475,6 +26478,7 @@
 				"1C624E02216D828E2A3481EF",
 				"8847EE2BD59EB968209FB0F8",
 				"476968904E435EF36E18C8AD",
+				"020D4BE686A74BDA3ACFB3E5",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -28346,6 +28350,26 @@
 		"447AEF7005E3B196E07745B2" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "D23041EB57E45F943E61A364";
+		};
+		"3A9E7A33AC2ED250CF7A3F1C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/RoamAlbumMetadataReadTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"020D4BE686A74BDA3ACFB3E5" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3A9E7A33AC2ED250CF7A3F1C";
+		};
+		"5E575F59223F6CD82EEE19D3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamAlbumMetadataReadAccess.swift";
+			"sourceTree" = "<group>";
+		};
+		"629C52FF6966D34AE7331ABC" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "5E575F59223F6CD82EEE19D3";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";

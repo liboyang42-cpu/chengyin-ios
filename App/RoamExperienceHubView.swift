@@ -3,16 +3,18 @@ import SwiftUI
 /// Mount inside a NavigationStack. Identity resets clear drafts, private results, navigation and tasks.
 @MainActor struct RoamExperienceHubView: View {
     let reader: any RoamExperienceReading
+    var albumMetadataReader: RoamAlbumMetadataReader? = nil
     var tileMemoryReader: RoamTileMemoryReader? = nil
     var sessionFactReader: RoamSessionFactReader? = nil
     var stampDestination: (() -> AnyView)? = nil
     var liveDestination: (() -> AnyView)? = nil
     var body: some View {
-        RoamExperienceMenu(reader: reader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination).id(reader.identity)
+        RoamExperienceMenu(reader: reader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination).id(reader.identity)
     }
 }
 @MainActor private struct RoamExperienceMenu: View {
     let reader: any RoamExperienceReading
+    let albumMetadataReader: RoamAlbumMetadataReader?
     let tileMemoryReader: RoamTileMemoryReader?
     let sessionFactReader: RoamSessionFactReader?
     private var effectiveSessionReader: any RoamExperienceReading {
@@ -54,7 +56,10 @@ import SwiftUI
             Section("roam.experience.collect") {
                 NavigationLink { RoamTileMemoryView(reader: effectiveTileReader).id(tileMemoryReader?.scope) } label: { Label("roam.experience.tileMemory", systemImage: "map") }
                     .accessibilityIdentifier("roam.experience.tiles.open")
-                NavigationLink { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) } label: { Label("roam.experience.album", systemImage: "rectangle.stack") }
+                NavigationLink {
+                    if let albumMetadataReader { RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope) }
+                    else { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) }
+                } label: { Label("roam.experience.album", systemImage: "rectangle.stack") }
                     .accessibilityIdentifier("roam.experience.album.open")
                 NavigationLink { RoamBadgeWallDestination(roamReader: reader) } label: { Label("profile.badges.title", systemImage: "medal") }
                     .disabled(reader.identity == nil)

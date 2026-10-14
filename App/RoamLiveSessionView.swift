@@ -14,6 +14,7 @@ import UIKit
 @MainActor struct RoamLiveSessionView: View {
     let offlineExample: Bool
     let localHistoryReader: (any RoamExperienceReading)?
+    let albumMetadataReader: RoamAlbumMetadataReader?
     @StateObject private var browse: RoamPausedBrowsePresentation
     @StateObject private var model: RoamLiveViewModel
     @Environment(\.scenePhase) private var scenePhase
@@ -23,12 +24,19 @@ import UIKit
     @State private var confirmFinish = false
     @State private var showRules = false
     @State private var nearbyExpanded = true
-    init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
-        self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader
+    init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
+        self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
         _model = StateObject(wrappedValue: RoamLiveViewModel(controller, offlineExample: offlineExample))
     }
     private var owner: RoamLiveSessionController { model.controller }
+    private func browseReader(for kind: RoamPausedBrowseKind) -> (any RoamExperienceReading)? {
+        if kind == .album, let albumMetadataReader { return albumMetadataReader }
+        return localHistoryReader
+    }
+    private var currentBrowseReader: (any RoamExperienceReading)? {
+        browseReader(for: browse.target?.context.kind ?? .history)
+    }
     var body: some View {
         List {
             if offlineExample { RoamExperienceNotice(offline: true) }
@@ -134,16 +142,18 @@ import UIKit
         .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
         .onChange(of: owner.phase) { _, phase in
             if phase != .active { nearbyExpanded = true }
-            browse.retireIfStale(owner: owner, reader: localHistoryReader)
+            browse.retireIfStale(owner: owner, reader: currentBrowseReader)
         }
         .onChange(of: scenePhase) { _, value in
             if value != .active { browse.retire() }
             owner.setForeground(value == .active)
         }
-        .onChange(of: owner.localBrowseIdentity) { _, _ in browse.retireIfStale(owner: owner, reader: localHistoryReader) }
-        .onChange(of: owner.record?.clientSessionKey) { _, _ in browse.retireIfStale(owner: owner, reader: localHistoryReader) }
-        .onChange(of: localHistoryReader?.identity) { _, _ in browse.retireIfStale(owner: owner, reader: localHistoryReader) }
-        .onChange(of: localHistoryReader.map { ObjectIdentifier($0) }) { _, _ in browse.retireIfStale(owner: owner, reader: localHistoryReader) }
+        .onChange(of: owner.localBrowseIdentity) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
+        .onChange(of: owner.record?.clientSessionKey) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
+        .onChange(of: localHistoryReader?.identity) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
+        .onChange(of: localHistoryReader.map { ObjectIdentifier($0) }) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
+        .onChange(of: albumMetadataReader?.scope) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
+        .onChange(of: albumMetadataReader.map { ObjectIdentifier($0) }) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
         .task(id: owner.phase) {
             guard owner.phase == .active else { return }
             while !Task.isCancelled && owner.phase == .active {
@@ -163,7 +173,7 @@ import UIKit
         .background {
             if let target = browse.target {
                 RoamPausedBrowseSheetOwner(presentation: browse, target: target,
-                    owner: owner, reader: localHistoryReader).id(target.id)
+                    owner: owner, reader: browseReader(for: target.context.kind)).id(target.id)
             }
         }
     }
@@ -174,9 +184,10 @@ import UIKit
                 Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
                 ForEach(RoamPausedBrowseKind.allCases, id: \.self) { kind in
                     let entryID = browse.entryID
-                    let context = RoamPausedBrowseContext.capture(kind: kind, owner: owner, reader: localHistoryReader)
+                    let reader = browseReader(for: kind)
+                    let context = RoamPausedBrowseContext.capture(kind: kind, owner: owner, reader: reader)
                     Button {
-                        if let context { browse.open(context, entryID: entryID, owner: owner, reader: localHistoryReader) }
+                        if let context { browse.open(context, entryID: entryID, owner: owner, reader: reader) }
                     } label: {
                         Label(copy.label(kind), systemImage: kind.symbol)
                     }.disabled(context == nil)
@@ -643,12 +654,13 @@ struct RoamPausedBrowseContext: Equatable {
     let identity: RoamExperienceIdentity
     let clientSessionKey: String
     let readerID: ObjectIdentifier?
+    var albumReadScope: UUID? = nil
     @MainActor static func capture(kind: RoamPausedBrowseKind, owner: RoamLiveSessionController,
                                   reader: (any RoamExperienceReading)?) -> Self? {
         guard let identity = owner.localBrowseIdentity, let key = owner.record?.clientSessionKey else { return nil }
         if kind != .settings {
             guard let reader, reader.identity == identity else { return nil }
-            return .init(kind: kind, controllerID: ObjectIdentifier(owner), identity: identity, clientSessionKey: key, readerID: ObjectIdentifier(reader))
+            return .init(kind: kind, controllerID: ObjectIdentifier(owner), identity: identity, clientSessionKey: key, readerID: ObjectIdentifier(reader), albumReadScope: (reader as? RoamAlbumMetadataReader)?.scope)
         }
         return .init(kind: kind, controllerID: ObjectIdentifier(owner), identity: identity, clientSessionKey: key, readerID: nil)
     }
@@ -671,7 +683,7 @@ struct RoamPausedBrowseContext: Equatable {
         else { disappear() }
     }
     func disappear() { visible = false; attached = false; retire() }
-    func retire() { target = nil; entryID = UUID() }
+    func retire() { target?.albumScope?.retire(); target = nil; entryID = UUID() }
     func open(_ rendered: RoamPausedBrowseContext, entryID: UUID, owner: RoamLiveSessionController,
               reader: (any RoamExperienceReading)?) {
         guard attached, visible, self.entryID == entryID, target == nil,

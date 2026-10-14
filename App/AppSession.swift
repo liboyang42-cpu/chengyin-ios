@@ -2633,6 +2633,18 @@ final class AppSession: ObservableObject {
             guard let self, self.currentRoamExperienceSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
         })
+    lazy var roamAlbumMetadataReader = RoamAlbumMetadataReader(service: roamExperienceService,
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.roamAlbumMetadataReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
     lazy var roamTileMemoryReader = RoamTileMemoryReader(service: roamExperienceService,
         current: { [weak self] in self?.currentRuntimeDependencyContext },
         viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },

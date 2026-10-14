@@ -1,4 +1,6 @@
 import SwiftUI
+import Observation
+import UIKit
 
 @MainActor struct RoamStampAlbumView: View {
     let reader: any RoamExperienceReading
@@ -15,7 +17,8 @@ import SwiftUI
         _pager = State(initialValue: RoamAlbumPager(reader: albumReader))
     }
     var canShowAlbum: Bool { readOnlyScope?.matches(reader) ?? true }
-    var allowsCapture: Bool { readOnlyScope == nil }
+    var allowsCapture: Bool { readOnlyScope == nil && !(reader is RoamAlbumMetadataReader) }
+    var allowsRemoteImages: Bool { readOnlyScope?.allowsRemoteImages ?? !(reader is RoamAlbumMetadataReader) }
     @ViewBuilder var captureDestination: some View {
         if allowsCapture {
             if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) }
@@ -32,8 +35,8 @@ import SwiftUI
                         .accessibilityIdentifier("roam.experience.album.empty")
                 }
                 ForEach(pager.stamps) { stamp in
-                    NavigationLink { RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope) } label: {
-                        RoamStampCard(stamp: stamp, offline: reader.isOfflineExample)
+                    NavigationLink { RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope, allowsRemoteImages: allowsRemoteImages) } label: {
+                        RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages)
                     }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("roam.experience.album.stamp")
                 }
                 if loading { ProgressView("roam.loading") }
@@ -72,6 +75,7 @@ import SwiftUI
 struct RoamStampCard: View {
     let stamp: RoamAlbumStamp
     let offline: Bool
+    var allowsRemoteImages = true
     var body: some View {
         RoamExperienceCard {
             VStack(alignment: .leading, spacing: 14) {
@@ -86,7 +90,8 @@ struct RoamStampCard: View {
                         RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.13))
                         Image(systemName: "building.2.crop.circle").font(.system(size: 52)).foregroundStyle(.tint)
                     }.frame(height: 140).accessibilityLabel(Text("roam.experience.sampleArt"))
-                } else { RoamStampImage(source: stamp.picUrl) }
+                } else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl) }
+                else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
                 if let caption = stamp.caption, !caption.isEmpty { Text(verbatim: caption).font(.title3).multilineTextAlignment(.leading) }
                 if let date = stamp.createTime { Text(verbatim: date.replacingOccurrences(of: "T", with: " ")).font(.caption).foregroundStyle(.secondary) }
                 if stamp.checkState == 0 { Text("roam.experience.reviewNotSubmitted").font(.caption).foregroundStyle(.secondary) }
@@ -110,13 +115,14 @@ private struct RoamStampImage: View {
     let stamp: RoamAlbumStamp
     let offline: Bool
     var readOnlyScope: RoamStampAlbumReadOnlyScope? = nil
+    var allowsRemoteImages = true
     var canShowStamp: Bool { readOnlyScope?.isCurrent ?? true }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 if canShowStamp {
                     RoamExperienceNotice(offline: offline)
-                    RoamStampCard(stamp: stamp, offline: offline)
+                    RoamStampCard(stamp: stamp, offline: offline, allowsRemoteImages: allowsRemoteImages && (readOnlyScope?.allowsRemoteImages ?? true))
                     Text("roam.experience.albumPrivacy").font(.caption).foregroundStyle(.secondary)
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
@@ -164,16 +170,25 @@ struct RoamCityStampDraftView: View {
 
 
 /// A frozen view-only album scope. It delegates the existing album read and no other capability.
-@MainActor final class RoamStampAlbumReadOnlyScope: RoamExperienceReading {
+@MainActor @Observable final class RoamStampAlbumReadOnlyScope: RoamExperienceReading {
     private let base: any RoamExperienceReading
     private let readerID: ObjectIdentifier
     private let expected: RoamExperienceIdentity
     private let presentationIsCurrent: () -> Bool
+    private let metadataScope: UUID?
+    private var retired = false
+    let id = UUID()
     init(reader: any RoamExperienceReading, identity: RoamExperienceIdentity,
          isCurrent: @escaping () -> Bool) {
         base = reader; readerID = ObjectIdentifier(reader); expected = identity; presentationIsCurrent = isCurrent
+        metadataScope = (reader as? RoamAlbumMetadataReader)?.scope
     }
-    var isCurrent: Bool { presentationIsCurrent() && base.identity == expected }
+    var isCurrent: Bool {
+        !retired && presentationIsCurrent() && base.identity == expected &&
+        (base as? RoamAlbumMetadataReader)?.scope == metadataScope
+    }
+    var allowsRemoteImages: Bool { !(base is RoamAlbumMetadataReader) }
+    func retire() { retired = true }
     func matches(_ reader: any RoamExperienceReading) -> Bool { ObjectIdentifier(reader) == readerID && isCurrent }
     var identity: RoamExperienceIdentity? { isCurrent ? expected : nil }
     var isConfigured: Bool { isCurrent && base.isConfigured }
@@ -199,5 +214,57 @@ private struct RoamStampReadOnlyUnavailable: View {
              : "This album is no longer part of the current viewing session. Go back and open it again.")
             .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("roam.experience.album.scopeExpired")
+    }
+}
+
+
+/// Stable whole-page read scope. Only metadata is loaded; remote pictures and capture stay absent.
+@MainActor struct RoamAlbumMetadataDestination: View {
+    let reader: RoamAlbumMetadataReader
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var scope: RoamStampAlbumReadOnlyScope?
+    @State private var mounted = false
+    init(reader: RoamAlbumMetadataReader, scope: RoamStampAlbumReadOnlyScope? = nil) {
+        self.reader = reader; _scope = State(initialValue: scope)
+    }
+    var body: some View {
+        Group {
+            if let scope {
+                RoamStampAlbumView(reader: reader, readOnlyScope: scope)
+                    .background { RoamAlbumMetadataLifetime(scope: scope).id(scope.id) }
+            } else if reader.identity == nil {
+                RoamExperienceIssue(error: APIError.unauthorized)
+            } else { ProgressView("roam.loading") }
+        }
+        .onAppear { mounted = true; attachIfVisible() }
+        .onDisappear { mounted = false }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { scope?.retire() } else { attachIfVisible() }
+        }
+    }
+    private func attachIfVisible() {
+        guard mounted, scope == nil, scenePhase == .active, let identity = reader.identity else { return }
+        scope = RoamStampAlbumReadOnlyScope(reader: reader, identity: identity, isCurrent: { true })
+    }
+}
+
+/// A child detail can cover this page. Removing the page's attachment retires only its own scope.
+@MainActor struct RoamAlbumMetadataLifetime: UIViewControllerRepresentable {
+    let scope: RoamStampAlbumReadOnlyScope
+    func makeUIViewController(context: Context) -> Controller { Controller(scope: scope) }
+    func updateUIViewController(_ controller: Controller, context: Context) {}
+    static func dismantleUIViewController(_ controller: Controller, coordinator: ()) { controller.scope.retire() }
+    @MainActor final class Controller: UIViewController {
+        let scope: RoamStampAlbumReadOnlyScope
+        init(scope: RoamStampAlbumReadOnlyScope) { self.scope = scope; super.init(nibName: nil, bundle: nil) }
+        required init?(coder: NSCoder) { return nil }
+        override func viewWillDisappear(_ animated: Bool) {
+            super.viewWillDisappear(animated)
+            var current: UIViewController? = self
+            while let value = current {
+                if value.isBeingDismissed || value.isMovingFromParent { scope.retire(); return }
+                current = value.parent
+            }
+        }
     }
 }
