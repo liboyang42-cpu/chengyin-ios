@@ -301,3 +301,303 @@ import XCTest
         owner.invalidateUnlessCurrent(source: nil, active: true); XCTAssertNil(owner.item)
     }
 }
+
+@MainActor final class ClubSeriesOfferWindowTests: XCTestCase {
+    private func draft(_ operation: ClubGovernanceMutation = .createSeries) -> ClubGovernanceFormDraft {
+        var value = ClubGovernanceFormDraft(operation: operation,
+            scope: .init(clubID: 81, topicID: 91, seriesID: operation == .updateSeries ? 101 : nil),
+            seed: ["version": .integer(7), "defaultLeadMemberId": .integer(41)])
+        value.text["startDate"] = "2099-01-01"
+        return value
+    }
+    func testMinuteBoundsAndHourRemaindersPreserveExactValue() {
+        for value in [5, 59, 60, 90, 1439, 1440] {
+            XCTAssertEqual(ClubSeriesOfferWindowPresentation(raw: String(value)).minutes, value)
+        }
+    }
+    func testEmptyPartialFractionalOverflowAndOutOfRangeHaveNoDuration() {
+        for raw in ["", " ", "+", "-", ".", "5.", "5.0", "1.5", "1e2", "NaN", "4", "0", "-5", "1441", "9999999999999999999999999999"] {
+            let presentation = ClubSeriesOfferWindowPresentation(raw: raw)
+            XCTAssertNil(presentation.minutes)
+            XCTAssertNil(presentation.duration(locale: Locale(identifier: "en")))
+            XCTAssertNil(presentation.duration(locale: Locale(identifier: "zh-Hans")))
+        }
+    }
+    func testEnglishDurationUsesDayHoursAndMinutesWithoutRounding() throws {
+        let locale = Locale(identifier: "en_US")
+        for (raw, expected) in [("5", ["5", "minute"]), ("60", ["1", "hour"]), ("90", ["1", "hour", "30", "minute"]), ("1440", ["1", "day"])] {
+            let text = try XCTUnwrap(ClubSeriesOfferWindowPresentation(raw: raw).duration(locale: locale))
+            for token in expected { XCTAssertTrue(text.contains(token), text) }
+        }
+    }
+    func testChineseDurationUsesDayHoursAndMinutesWithoutRounding() throws {
+        let locale = Locale(identifier: "zh_Hans_CN")
+        for (raw, expected) in [("5", ["5", "分钟"]), ("60", ["1", "小时"]), ("90", ["1", "小时", "30", "分钟"]), ("1440", ["1", "天"])] {
+            let text = try XCTUnwrap(ClubSeriesOfferWindowPresentation(raw: raw).duration(locale: locale))
+            for token in expected { XCTAssertTrue(text.contains(token), text) }
+        }
+    }
+    func testFieldBindingRetainsPartialTextAndChangesOnlyOfferDraftIdentity() {
+        var value = draft(.updateSeries)
+        let original = value, id = value.requestID
+        let field = ClubSeriesOfferWindowField(minutes: .init(get: { value.text["offerMinutes"] ?? "" }, set: { value.text["offerMinutes"] = $0 }))
+        field.minutes = "5."
+        XCTAssertEqual(value.text["offerMinutes"], "5."); XCTAssertNotEqual(value.requestID, id)
+        XCTAssertEqual(value.text.filter { $0.key != "offerMinutes" }, original.text.filter { $0.key != "offerMinutes" })
+        XCTAssertEqual(value.flags, original.flags); XCTAssertEqual(value.anchors, original.anchors)
+        XCTAssertEqual(value.scope, original.scope); XCTAssertEqual(value.operation, original.operation)
+        XCTAssertNil(ClubSeriesOfferWindowPresentation(raw: field.minutes).minutes)
+        XCTAssertThrowsError(try value.command())
+    }
+    func testFixingRawInputKeepsWireMinutesAndNeverWritesBackFormatting() throws {
+        var value = draft(.updateSeries)
+        let field = ClubSeriesOfferWindowField(minutes: .init(get: { value.text["offerMinutes"] ?? "" }, set: { value.text["offerMinutes"] = $0 }))
+        field.minutes = " 90 "
+        let id = value.requestID, before = value.text
+        XCTAssertEqual(ClubSeriesOfferWindowPresentation(raw: field.minutes).minutes, 90)
+        _ = ClubSeriesOfferWindowPresentation(raw: field.minutes).duration(locale: Locale(identifier: "zh-Hans"))
+        XCTAssertEqual(value.text, before); XCTAssertEqual(value.requestID, id)
+        XCTAssertEqual(try value.command().fields["offerMinutes"], .integer(90))
+        XCTAssertEqual(try value.command().fields["expectedVersion"], .integer(7))
+    }
+    func testCreateAndUpdateSubmissionKeepTheAuthoritativeRangeValidation() {
+        for operation in [ClubGovernanceMutation.createSeries, .updateSeries] {
+            for raw in ["", "4", "5.0", "1441"] {
+                var value = draft(operation); value.text["offerMinutes"] = raw
+                XCTAssertThrowsError(try value.command()) { error in
+                    XCTAssertEqual(error as? ClubGovernanceFailure, .invalidRequest)
+                }
+            }
+            for raw in ["5", "60", "90", "1440"] {
+                var value = draft(operation); value.text["offerMinutes"] = raw
+                XCTAssertEqual(try value.command().fields["offerMinutes"], .integer(Int(raw)!))
+            }
+        }
+    }
+    func testWaitlistOffDoesNotBypassMinuteValidationAndOtherFieldsStayExact() throws {
+        var value = draft(.updateSeries)
+        value.flags["waitlistEnabled"] = false; value.text["offerMinutes"] = "4"
+        XCTAssertThrowsError(try value.command())
+        value.text["offerMinutes"] = "1440"
+        let command = try value.command()
+        XCTAssertEqual(command.fields["waitlistEnabled"], .bool(false))
+        XCTAssertEqual(command.fields["offerMinutes"], .integer(1440))
+        XCTAssertEqual(command.fields["startTime"], .string("09:00"))
+        XCTAssertEqual(command.fields["defaultLeadMemberId"], .integer(41))
+    }
+}
+
+@MainActor final class ClubSeriesCreationReturnTests: XCTestCase {
+    @MainActor private final class Access: ClubGovernanceAccess {
+        var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 1)
+        var isConfigured = true
+        var storageNamespace = "created-series-fixture"
+        var journalRealm = "created-series-realm"
+        var authorizationGeneration: UUID? = UUID()
+        let allowsOfflineWrites = true
+        var reads: [ClubGovernanceRead] = []
+        var sends = 0
+        var failure: ClubGovernanceFailure?
+        func snapshot(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope) throws -> ClubGovernanceSnapshot {
+            let permissions = try ClubGovernancePermissions(value: .object(["active": .bool(true), "club": .object(["id": .integer(81)]),
+                "roleCodes": .array([]), "permissions": .array([.string("club:activity:manage")])]), scope: scope)
+            let value: ClubGovernanceValue
+            switch operation {
+            case .eventTopics: value = .array([.object(["id": .integer(91), "name": .string("Topic")])])
+            case .members: value = .array([.object(["memberId": .integer(41)])])
+            case .seriesDetail: value = .object(["id": .integer(303), "clubId": .integer(81), "topicId": .integer(91)])
+            default: throw ClubGovernanceFailure.invalidRequest
+            }
+            return .init(operation: operation, scope: scope, permissions: permissions, value: value)
+        }
+        func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue]) async throws -> ClubGovernanceSnapshot {
+            reads.append(operation); return try snapshot(operation, scope: scope)
+        }
+        func receipt(_ review: ClubGovernanceReview) -> ClubGovernanceValue {
+            .object(["id": .integer(303), "clubId": .integer(81), "topicId": .integer(91),
+                     "createdByMemberId": .integer(701), "requestId": review.command.fields["requestId"] ?? .null])
+        }
+        func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue {
+            sends += 1; if let failure { throw failure }; return receipt(review)
+        }
+    }
+    private func source(_ access: Access, generation: UInt64 = 1) throws -> ClubSeriesCreationReturn.Source {
+        let scope = ClubGovernanceScope(clubID: 81)
+        let context = ClubGovernanceReadContext(operation: .eventTopics, scope: scope, identity: access.identity,
+            viewerRevision: 3, authorizationGeneration: access.authorizationGeneration, accessIdentity: ObjectIdentifier(access))
+        return try XCTUnwrap(.topics(context: context, snapshot: access.snapshot(.eventTopics, scope: scope),
+            generation: generation, topicID: 91, access: access))
+    }
+    private func command() throws -> ClubGovernanceCommand {
+        var draft = ClubGovernanceFormDraft(operation: .createSeries, scope: .init(clubID: 81, topicID: 91),
+                                            seed: ["defaultLeadMemberId": .integer(41)])
+        draft.text["startDate"] = "2099-01-01"
+        return try draft.command()
+    }
+    private func fixture() async throws -> (Access, ClubSeriesCreationReturn, ClubSeriesCreationReturn.Source, ClubSeriesCreationReturn.Item, ClubGovernanceCoordinator, ClubGovernanceReview) {
+        let access = Access(), owner = ClubSeriesCreationReturn(), source = try source(access)
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item), coordinator = ClubGovernanceCoordinator(access: access)
+        let review = try await coordinator.prepare(command())
+        XCTAssertTrue(owner.begin(review, state: coordinator.state, item: item, source: source, active: true))
+        return (access, owner, source, item, coordinator, review)
+    }
+    func testExactNewReceiptNavigatesToFreshSameClubTopicSeriesReadAndKeepsLock() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        let value = try await coordinator.confirm(review)
+        owner.acknowledge(review, value: value, state: coordinator.state, item: item, source: source, active: true)
+        owner.dismissed(item, source: source, active: true)
+        let target = try XCTUnwrap(owner.consume(source: source, visible: true, active: true))
+        XCTAssertEqual(target.receipt.seriesID, 303); XCTAssertEqual(target.receipt.scope, .init(clubID: 81, topicID: 91, seriesID: 303))
+        let fresh = try await access.read(.seriesDetail, scope: target.receipt.scope, options: [:])
+        XCTAssertTrue(target.receipt.accepts(fresh)); XCTAssertEqual(access.reads.last, .seriesDetail)
+        XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity)); XCTAssertEqual(access.sends, 1)
+        XCTAssertNil(owner.consume(source: source, visible: true, active: true))
+    }
+    func testMissingEachRequiredReceiptFieldKeepsAcknowledgedFormWithoutReplay() async throws {
+        for key in ["id", "clubId", "topicId", "createdByMemberId", "requestId"] {
+            let (access, owner, source, item, coordinator, review) = try await fixture()
+            let receipt = try await coordinator.confirm(review)
+            var value = try XCTUnwrap(receipt.object)
+            value.removeValue(forKey: key)
+            owner.acknowledge(review, value: .object(value), state: coordinator.state, item: item, source: source, active: true)
+            XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.destination)
+            XCTAssertEqual(coordinator.state, .acknowledged); XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity))
+            XCTAssertEqual(access.sends, 1)
+        }
+    }
+    func testWrongReceiptScopePrincipalRequestAndNonpositiveIDCannotNavigate() async throws {
+        let (access, _, _, _, _, review) = try await fixture()
+        for (key, bad) in [("id", ClubGovernanceValue.integer(0)), ("id", .integer(-1)), ("id", .integer(9_007_199_254_740_992)),
+                           ("clubId", .integer(82)), ("topicId", .integer(92)), ("createdByMemberId", .integer(702)),
+                           ("requestId", .string("different")), ("requestId", .integer(1))] {
+            var value = try XCTUnwrap(access.receipt(review).object); value[key] = bad
+            XCTAssertNil(ClubCreatedSeriesReceipt(review: review, value: .object(value)))
+        }
+    }
+    func testRequestIDMustMatchOriginalBytesWithoutTrimmingOrCaseFolding() async throws {
+        let (access, _, _, _, _, review) = try await fixture(), request = try XCTUnwrap(review.command.fields["requestId"]?.string)
+        for altered in [" " + request, request + " ", request.uppercased()] {
+            var value = try XCTUnwrap(access.receipt(review).object); value["requestId"] = .string(altered)
+            XCTAssertNil(ClubCreatedSeriesReceipt(review: review, value: .object(value)))
+        }
+        let proof = try XCTUnwrap(ClubCreatedSeriesReceipt(review: review, value: access.receipt(review)))
+        XCTAssertEqual(Array(proof.requestID.utf8), Array(request.utf8))
+    }
+    func testIdOnlyReceiptIsStillOriginalSuccessButHasNoReturnProof() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        _ = try await coordinator.confirm(review)
+        owner.acknowledge(review, value: .object(["id": .integer(303)]), state: coordinator.state, item: item, source: source, active: true)
+        XCTAssertEqual(coordinator.state, .acknowledged); XCTAssertTrue(owner.isPresented)
+        XCTAssertNil(owner.consume(source: source, visible: true, active: true)); XCTAssertEqual(access.sends, 1)
+    }
+    func testUnknownCannotCreateReturnAndOriginalLockRemains() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture(); access.failure = .unknown(message: nil)
+        do { _ = try await coordinator.confirm(review); XCTFail("Expected unknown") } catch {}
+        owner.acknowledge(review, value: access.receipt(review), state: coordinator.state, item: item, source: source, active: true)
+        XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.destination)
+        XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity)); XCTAssertEqual(access.sends, 1)
+    }
+    func testNonAcknowledgedStatesCannotUseEvenACompleteReceipt() async throws {
+        let (access, owner, source, item, _, review) = try await fixture()
+        for state in [ClubGovernanceWriteState.idle, .reviewing, .preflighting, .submitting, .rejected, .conflict, .unknown] {
+            owner.acknowledge(review, value: access.receipt(review), state: state, item: item, source: source, active: true)
+            XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.destination)
+        }
+    }
+    func testDismissBeforeAppearDefersNavigationUntilVisibleOnce() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        let value = try await coordinator.confirm(review)
+        owner.acknowledge(review, value: value, state: coordinator.state, item: item, source: source, active: true)
+        owner.dismissed(item, source: source, active: true)
+        let reads = access.reads
+        XCTAssertNil(owner.consume(source: source, visible: false, active: true)); XCTAssertEqual(access.reads, reads)
+        XCTAssertNotNil(owner.consume(source: source, visible: true, active: true))
+        XCTAssertNil(owner.consume(source: source, visible: true, active: true))
+    }
+    func testAppearBeforeDismissCannotNavigateUntilCurrentDismissal() async throws {
+        let (_, owner, source, item, coordinator, review) = try await fixture()
+        let value = try await coordinator.confirm(review)
+        owner.acknowledge(review, value: value, state: coordinator.state, item: item, source: source, active: true)
+        XCTAssertNil(owner.consume(source: source, visible: true, active: true))
+        owner.dismissed(item, source: source, active: true)
+        XCTAssertNotNil(owner.consume(source: source, visible: true, active: true))
+    }
+    func testCancelAndLateOldDismissalCannotNavigateOrCloseNewOwner() async throws {
+        let (access, owner, source, old, _, _) = try await fixture()
+        let binding = owner.binding(old, source: { source }, active: { true })
+        binding.wrappedValue = false; owner.dismissed(old, source: source, active: true)
+        XCTAssertNil(owner.consume(source: source, visible: true, active: true)); owner.open(source, visible: true, active: true)
+        let next = try XCTUnwrap(owner.item)
+        binding.wrappedValue = false; XCTAssertFalse(binding.wrappedValue)
+        XCTAssertFalse(owner.dismissed(old, source: source, active: true))
+        XCTAssertEqual(owner.item?.id, next.id); XCTAssertTrue(owner.isPresented); XCTAssertEqual(access.sends, 0)
+    }
+    func testDifferentReviewCannotAcknowledgeTheCurrentSubmission() async throws {
+        let (access, owner, source, item, coordinator, first) = try await fixture()
+        let second = try await coordinator.prepare(command())
+        XCTAssertTrue(owner.begin(second, state: coordinator.state, item: item, source: source, active: true))
+        owner.acknowledge(first, value: access.receipt(first), state: .acknowledged, item: item, source: source, active: true)
+        XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.destination)
+    }
+    func testHiddenInactiveAndRetiredSourcesCannotOpenOrConsume() async throws {
+        let access = Access(), source = try source(access), owner = ClubSeriesCreationReturn()
+        owner.open(source, visible: false, active: true); XCTAssertNil(owner.item)
+        owner.open(source, visible: true, active: false); XCTAssertNil(owner.item)
+        let (_, active, loaded, item, coordinator, review) = try await fixture()
+        let value = try await coordinator.confirm(review)
+        active.acknowledge(review, value: value, state: coordinator.state, item: item, source: loaded, active: true)
+        active.dismissed(item, source: loaded, active: true)
+        XCTAssertNil(active.consume(source: loaded, visible: true, active: false))
+        active.retire(); XCTAssertNil(active.consume(source: loaded, visible: true, active: true))
+    }
+    func testRefreshIdentityAuthorizationNamespaceAndReaderChangesRejectOldSource() async throws {
+        let (access, owner, old, item, _, _) = try await fixture()
+        XCTAssertFalse(owner.current(item, source: try source(access, generation: 2), active: true))
+        access.identity = .init(accountID: 702, epoch: 1)
+        XCTAssertFalse(owner.current(item, source: try source(access), active: true))
+        access.identity = old.context.identity; access.authorizationGeneration = UUID()
+        XCTAssertFalse(owner.current(item, source: try source(access), active: true))
+        access.authorizationGeneration = old.context.authorizationGeneration; access.storageNamespace = "new"
+        XCTAssertFalse(owner.current(item, source: try source(access), active: true))
+        let other = Access(); other.authorizationGeneration = old.context.authorizationGeneration
+        XCTAssertFalse(owner.current(item, source: try source(other), active: true))
+    }
+    func testPushedDestinationRetainsItsIdentityWithoutSourceSnapshot() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        let value = try await coordinator.confirm(review)
+        owner.acknowledge(review, value: value, state: coordinator.state, item: item, source: source, active: true)
+        owner.dismissed(item, source: source, active: true)
+        let target = try XCTUnwrap(owner.consume(source: source, visible: true, active: true))
+        XCTAssertNil(owner.item); XCTAssertTrue(owner.holdsSource)
+        XCTAssertTrue(owner.destinationIsCurrent(target, context: source.context, access: access))
+        access.authorizationGeneration = UUID()
+        XCTAssertFalse(owner.destinationIsCurrent(target, context: source.context, access: access))
+    }
+    func testOldDestinationNilSetterCannotPopNewDestination() async throws {
+        let (access, owner, source, item, coordinator, review) = try await fixture()
+        let value = try await coordinator.confirm(review)
+        owner.acknowledge(review, value: value, state: coordinator.state, item: item, source: source, active: true)
+        owner.dismissed(item, source: source, active: true)
+        let old = try XCTUnwrap(owner.consume(source: source, visible: true, active: true))
+        let binding = owner.destinationBinding(old, current: { owner.destinationIsCurrent(old, context: source.context, access: access) })
+        owner.retireDestination(old); owner.open(source, visible: true, active: true)
+        let next = try XCTUnwrap(owner.item)
+        XCTAssertTrue(owner.begin(review, state: .reviewing, item: next, source: source, active: true))
+        owner.acknowledge(review, value: value, state: .acknowledged, item: next, source: source, active: true)
+        owner.dismissed(next, source: source, active: true)
+        let current = try XCTUnwrap(owner.consume(source: source, visible: true, active: true))
+        binding.wrappedValue = false; XCTAssertFalse(binding.wrappedValue)
+        XCTAssertEqual(owner.destination?.id, current.id)
+    }
+    func testFreshDetailMustMatchCreatedSeriesClubAndTopic() async throws {
+        let (access, _, _, _, _, review) = try await fixture()
+        let proof = try XCTUnwrap(ClubCreatedSeriesReceipt(review: review, value: access.receipt(review)))
+        let fresh = try access.snapshot(.seriesDetail, scope: proof.scope)
+        XCTAssertTrue(proof.accepts(fresh))
+        for key in ["id", "clubId", "topicId"] {
+            var value = try XCTUnwrap(fresh.value.object); value[key] = .integer(999)
+            XCTAssertFalse(proof.accepts(.init(operation: .seriesDetail, scope: proof.scope, permissions: fresh.permissions, value: .object(value))))
+        }
+    }
+}

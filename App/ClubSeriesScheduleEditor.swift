@@ -117,6 +117,218 @@ import SwiftUI
     }
 }
 
+/// A navigation proof, separate from the acknowledged write and its retained lock.
+struct ClubCreatedSeriesReceipt: Equatable {
+    let seriesID: Int
+    let scope: ClubGovernanceScope
+    let identity: ClubReadIdentity
+    let requestID: String
+    init?(review: ClubGovernanceReview, value: ClubGovernanceValue) {
+        guard review.command.operation == .createSeries,
+              let principal = review.identity.accountID, principal > 0,
+              let clubID = review.command.scope.clubID, clubID > 0,
+              let topicID = review.command.scope.topicID, topicID > 0,
+              let seriesID = value["id"].int, (1...9_007_199_254_740_991).contains(seriesID),
+              value["clubId"].int == clubID, value["topicId"].int == topicID,
+              value["createdByMemberId"].int == principal,
+              let submitted = review.command.fields["requestId"]?.string, !submitted.isEmpty,
+              let returned = value["requestId"].string, submitted.utf8.elementsEqual(returned.utf8) else { return nil }
+        self.seriesID = seriesID; scope = .init(clubID: clubID, topicID: topicID, seriesID: seriesID)
+        identity = review.identity; requestID = submitted
+    }
+    func accepts(_ snapshot: ClubGovernanceSnapshot) -> Bool {
+        snapshot.operation == .seriesDetail && snapshot.scope == scope &&
+        snapshot.value["id"].int == seriesID && snapshot.value["clubId"].int == scope.clubID &&
+        snapshot.value["topicId"].int == scope.topicID
+    }
+}
+
+@MainActor final class ClubSeriesCreationReturn: ObservableObject {
+    struct Source: Equatable {
+        enum Proof: Equatable {
+            case topics(ClubGovernanceSnapshot, UInt64)
+            case quickStart(ClubSessionQuickStartTarget)
+        }
+        let context: ClubGovernanceReadContext
+        let scope: ClubGovernanceScope
+        let seed: [String: ClubGovernanceValue]
+        let proof: Proof
+        let namespace: String
+        let realm: String
+        @MainActor private init?(context: ClubGovernanceReadContext, scope: ClubGovernanceScope,
+                                 seed: [String: ClubGovernanceValue], proof: Proof, access: any ClubGovernanceAccess) {
+            guard context.operation == .eventTopics, context.identity?.isSignedIn == true,
+                  (scope.clubID ?? 0) > 0, (scope.topicID ?? 0) > 0,
+                  scope.clubID == context.scope.clubID, scope.seriesID == nil,
+                  access.isConfigured, context.identity == access.identity,
+                  context.authorizationGeneration == access.authorizationGeneration,
+                  context.accessIdentity == ObjectIdentifier(access) else { return nil }
+            self.context = context; self.scope = scope; self.seed = seed; self.proof = proof
+            namespace = access.storageNamespace; realm = access.journalRealm
+        }
+        @MainActor static func topics(context: ClubGovernanceReadContext, snapshot: ClubGovernanceSnapshot,
+                                     generation: UInt64, topicID: Int, access: any ClubGovernanceAccess) -> Self? {
+            guard context.accepts(snapshot),
+                  snapshot.permissions?.allows(ClubGovernanceRead.eventTopics.permission, scope: context.scope) == true,
+                  let rows = snapshot.value.array, rows.filter({ $0["id"].int == topicID }).count == 1 else { return nil }
+            return .init(context: context, scope: .init(clubID: context.scope.clubID, topicID: topicID),
+                         seed: [:], proof: .topics(snapshot, generation), access: access)
+        }
+        @MainActor static func quickStart(_ target: ClubSessionQuickStartTarget, access: any ClubGovernanceAccess) -> Self? {
+            guard target.context.canRead else { return nil }
+            return .init(context: target.context.topicsContext, scope: target.scope, seed: target.seed,
+                         proof: .quickStart(target), access: access)
+        }
+        @MainActor func live(context: ClubGovernanceReadContext, access: any ClubGovernanceAccess) -> Bool {
+            self.context == context && access.isConfigured && context.identity == access.identity &&
+            context.authorizationGeneration == access.authorizationGeneration && context.accessIdentity == ObjectIdentifier(access) &&
+            namespace == access.storageNamespace && realm == access.journalRealm
+        }
+    }
+    struct Item: Identifiable {
+        let route: ClubGovernanceFormRoute
+        let source: Source
+        var id: UUID { route.id }
+    }
+    struct Destination: Identifiable {
+        let id = UUID()
+        let source: Source
+        let receipt: ClubCreatedSeriesReceipt
+    }
+    struct Callbacks {
+        let begin: (ClubGovernanceReview) -> Bool
+        let acknowledged: (ClubGovernanceReview, ClubGovernanceValue) -> Void
+    }
+    @Published private(set) var item: Item?
+    @Published private(set) var isPresented = false
+    @Published private(set) var destination: Destination?
+    private var submissionID: UUID?
+    private var receipt: ClubCreatedSeriesReceipt?
+    private var didDismiss = false
+    var holdsSource: Bool { item != nil || destination != nil }
+
+    func open(_ source: Source?, visible: Bool, active: Bool) {
+        guard !holdsSource, visible, active, let source else { return }
+        item = .init(route: .init(operation: .createSeries, scope: source.scope, seed: source.seed), source: source)
+        isPresented = true; submissionID = nil; receipt = nil; didDismiss = false
+    }
+    func current(_ expected: Item, source: Source?, active: Bool) -> Bool {
+        active && item?.id == expected.id && expected.source == source
+    }
+    func binding(_ expected: Item, source: @escaping () -> Source?, active: @escaping () -> Bool) -> Binding<Bool> {
+        Binding(get: { self.isPresented && self.current(expected, source: source(), active: active()) }, set: { shown in
+            guard !shown, self.current(expected, source: source(), active: active()) else { return }
+            self.isPresented = false
+        })
+    }
+    func begin(_ review: ClubGovernanceReview, state: ClubGovernanceWriteState,
+               item expected: Item, source: Source?, active: Bool) -> Bool {
+        guard isPresented, current(expected, source: source, active: active), state == .reviewing,
+              receipt == nil, review.command.operation == .createSeries, review.command.scope == expected.source.scope,
+              review.identity == expected.source.context.identity,
+              review.authorizationGeneration == expected.source.context.authorizationGeneration,
+              review.storageNamespace == expected.source.namespace, review.journalRealm == expected.source.realm,
+              review.snapshot.operation == .eventTopics, review.snapshot.scope == expected.source.scope,
+              review.snapshot.permissions?.allows(ClubGovernanceRead.eventTopics.permission, scope: expected.source.scope) == true,
+              review.snapshot.value.array?.filter({ $0["id"].int == expected.source.scope.topicID }).count == 1 else { return false }
+        submissionID = review.id; return true
+    }
+    func acknowledge(_ review: ClubGovernanceReview, value: ClubGovernanceValue, state: ClubGovernanceWriteState,
+                     item expected: Item, source: Source?, active: Bool) {
+        guard isPresented, current(expected, source: source, active: active), state == .acknowledged,
+              submissionID == review.id, receipt == nil,
+              let matched = ClubCreatedSeriesReceipt(review: review, value: value) else { return }
+        receipt = matched; isPresented = false
+    }
+    @discardableResult func dismissed(_ expected: Item, source: Source?, active: Bool) -> Bool {
+        guard current(expected, source: source, active: active), !isPresented else { return false }
+        if receipt != nil { didDismiss = true } else { retireForm() }
+        return true
+    }
+    @discardableResult func consume(source: Source?, visible: Bool, active: Bool) -> Destination? {
+        guard visible, active, !isPresented, didDismiss, let receipt, let item,
+              destination == nil, current(item, source: source, active: active) else { return nil }
+        let target = Destination(source: item.source, receipt: receipt)
+        destination = target; retireForm(); return target
+    }
+    func invalidateForm(_ expected: Item, source: Source?, active: Bool) {
+        if item?.id == expected.id, !current(expected, source: source, active: active) { retireForm() }
+    }
+    func isBound(context: ClubGovernanceReadContext, access: any ClubGovernanceAccess) -> Bool {
+        (item?.source ?? destination?.source)?.live(context: context, access: access) == true
+    }
+    func destinationIsCurrent(_ target: Destination, context: ClubGovernanceReadContext, access: any ClubGovernanceAccess) -> Bool {
+        destination?.id == target.id && target.source.live(context: context, access: access)
+    }
+    func destinationBinding(_ target: Destination, current: @escaping () -> Bool) -> Binding<Bool> {
+        Binding(get: { self.destination?.id == target.id && current() }, set: { shown in
+            guard !shown, self.destination?.id == target.id else { return }
+            self.destination = nil
+        })
+    }
+    func retireDestination(_ target: Destination) {
+        guard destination?.id == target.id else { return }; destination = nil
+    }
+    func retire() { retireForm(); destination = nil }
+    private func retireForm() {
+        isPresented = false; item = nil; submissionID = nil; receipt = nil; didDismiss = false
+    }
+}
+
+@MainActor struct ClubSeriesCreationPresentationOwner: View {
+    let item: ClubSeriesCreationReturn.Item
+    @ObservedObject var owner: ClubSeriesCreationReturn
+    let source: () -> ClubSeriesCreationReturn.Source?
+    let active: () -> Bool
+    let access: any ClubGovernanceAccess
+    let coordinator: ClubGovernanceCoordinator
+    let didDismiss: () -> Void
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(isPresented: owner.binding(item, source: source, active: active), onDismiss: {
+                if owner.dismissed(item, source: source(), active: active()) { didDismiss() }
+            }) {
+                NavigationStack {
+                    ClubGovernanceCommandForm(route: item.route, identity: item.source.context.identity,
+                        access: access, coordinator: coordinator, validateTarget: {
+                            guard owner.isPresented, owner.current(item, source: source(), active: active()) else {
+                                throw ClubGovernanceFailure.staleReview
+                            }
+                        }, seriesCreationReturn: .init(begin: { review in
+                            owner.begin(review, state: coordinator.state, item: item, source: source(), active: active())
+                        }, acknowledged: { review, value in
+                            owner.acknowledge(review, value: value, state: coordinator.state,
+                                item: item, source: source(), active: active())
+                        }))
+                }
+            }
+            .onChange(of: source()) { _, source in owner.invalidateForm(item, source: source, active: active()) }
+    }
+}
+
+@MainActor struct ClubCreatedSeriesDestinationOwner: View {
+    let target: ClubSeriesCreationReturn.Destination
+    @ObservedObject var owner: ClubSeriesCreationReturn
+    let current: () -> Bool
+    let access: any ClubGovernanceAccess
+    let coordinator: ClubGovernanceCoordinator
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .navigationDestination(isPresented: owner.destinationBinding(target, current: current)) {
+                Group {
+                    if current() {
+                        ClubGovernanceReadView(operation: .seriesDetail, scope: target.receipt.scope,
+                            identity: target.receipt.identity, access: access, coordinator: coordinator,
+                            expectedCreatedSeries: target.receipt)
+                    } else { Color.clear }
+                }
+                .onChange(of: current(), initial: true) { _, valid in
+                    if !valid { owner.retireDestination(target) }
+                }
+            }
+    }
+}
+
 /// Owns only the return from an acknowledged edit of an existing series.
 /// The coordinator retains every write lock; a return ticket authorizes one read.
 @MainActor final class ClubSeriesUpdateReturn: ObservableObject {
@@ -240,5 +452,52 @@ import SwiftUI
                         }))
                 }
             }
+    }
+}
+
+/// Display-only interpretation of the form's existing minute value.
+struct ClubSeriesOfferWindowPresentation {
+    let minutes: Int?
+    init(raw: String) {
+        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let value = Int(text), (5...1440).contains(value) { minutes = value }
+        else { minutes = nil }
+    }
+    func duration(locale: Locale) -> String? {
+        guard let minutes else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = locale; calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let formatter = DateComponentsFormatter()
+        formatter.calendar = calendar
+        formatter.allowedUnits = [.day, .hour, .minute]
+        formatter.unitsStyle = .full
+        formatter.maximumUnitCount = 2
+        formatter.collapsesLargestUnit = false
+        formatter.allowsFractionalUnits = false
+        formatter.zeroFormattingBehavior = .dropAll
+        return formatter.string(from: TimeInterval(minutes * 60))
+    }
+}
+
+/// Uses the original draft binding; partial input is never normalized or replaced.
+struct ClubSeriesOfferWindowField: View {
+    @Binding var minutes: String
+    @Environment(\.locale) private var locale
+    var body: some View {
+        let presentation = ClubSeriesOfferWindowPresentation(raw: minutes)
+        VStack(alignment: .leading, spacing: 4) {
+            TextField("club.gov.field.offerMinutes", text: $minutes)
+                .keyboardType(.numberPad)
+                .accessibilityIdentifier("club.gov.input.offerMinutes")
+            Text(verbatim: "5–1440").font(.caption).foregroundStyle(.secondary)
+                .accessibilityIdentifier("club.schedule.offer.range")
+            if let duration = presentation.duration(locale: locale) {
+                Text(verbatim: duration).font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("club.schedule.offer.duration")
+            } else {
+                Text("club.gov.invalid").font(.caption).foregroundStyle(.red)
+                    .accessibilityIdentifier("club.schedule.offer.invalid")
+            }
+        }
     }
 }
