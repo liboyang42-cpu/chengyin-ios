@@ -17,6 +17,7 @@ import SwiftUI
     private enum Tab: String, CaseIterable { case posts, achievements, about, projects, orders }
     @State private var tab = Tab.posts
     @State private var selfEditNavigation = ProfileSelfEditNavigation()
+    @StateObject private var identityShareOwner = ProfileIdentitySharePageOwner()
     private var selfEditContext: ProfileSelfEditContext? {
         selfEditAccess?.context(memberID: memberID, reader: reader, isCurrent: isCurrent())
     }
@@ -31,6 +32,8 @@ import SwiftUI
         return { selfEditDiagnostics(selfEditNavigation.ticket, ticket, selfEditContext) }
     }
     var body: some View {
+        ProfileIdentitySharePageHost(owner: identityShareOwner,
+            context: .init(memberID: memberID, reader: reader, isCurrent: isCurrent())) {
         List {
             if localCoverOwner?.accountID == memberID {
                 ProfileLocalCoverSection(owner: localCoverOwner, reader: reader, isCurrent: isCurrent)
@@ -46,8 +49,13 @@ import SwiftUI
                     // A scoped parent may retire before SwiftUI unmounts this screen.
                     // Do not start a replacement-account read for that old route.
                     guard isCurrent() else { throw CancellationError() }
+                    let shareContext = ProfileIdentitySharePageContext(memberID: memberID, reader: reader, isCurrent: isCurrent())
+                    let shareRead = identityShareOwner.beginSourceRead(shareContext)
                     let loaded = try await reader.publicProfile(memberID: memberID)
                     guard isCurrent() else { throw CancellationError() }
+                    guard !Task.isCancelled else { throw CancellationError() }
+                    identityShareOwner.acceptSource(loaded, reader: reader, expected: shareContext,
+                                                    readID: shareRead, isCurrent: isCurrent())
                     return loaded
                 }) { profile in
                     Section {
@@ -55,7 +63,7 @@ import SwiftUI
                         else { Text("square.unknownAuthor").font(.title2.bold()) }
                         if let avatar = profile.avatar { SquareImage(source: avatar).frame(maxHeight: 120) }
                         if profile.id == memberID, reader.identity.accountID == memberID {
-                            ProfileIdentityShareSection(profile: profile, reader: reader, isCurrent: isCurrent)
+                            ProfileIdentityShareSection(profile: profile, reader: reader, isCurrent: isCurrent, owner: identityShareOwner)
                                 .id(ProfileIdentityShareViewIdentity(profile: profile, reader: reader))
                         }
                         SocialOptionalCount(title: "social.level", count: profile.level)
@@ -130,6 +138,7 @@ import SwiftUI
                     }
                 }
             }
+        }
         }.appNavigationTitle("social.profile").navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: selfEditBinding) { ticket in
                 ProfileSelfEditDestination(ticket: ticket, access: selfEditAccess,
