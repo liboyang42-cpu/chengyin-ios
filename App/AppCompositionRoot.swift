@@ -248,8 +248,9 @@ extension KeychainTokenStore: AppTokenStorage {}
 /// require a one-use confirmed dispatch ticket. Private home keeps its separate owner grant.
 /// All other paths stay closed.
 /// No device/provider work or authorization is inferred from a feature grant.
-@MainActor final class CompositionHTTPTransport: PublisherIdentityRegistrationHTTPTransport, ActivityEditingHTTPTransport, CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
+@MainActor final class CompositionHTTPTransport: ActivityCoverHTTPTransport, PublisherIdentityRegistrationHTTPTransport, ActivityEditingHTTPTransport, CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
     var publisherIdentityRegistrationApproval: @MainActor (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() }
+    var activityCoverApproval: @MainActor (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil }
     var activityEditingApproval: @MainActor (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() }
     var workshopPaidInstallBeforeForward: (() async -> Void)?
     struct SessionIdentity: Equatable {
@@ -433,6 +434,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.profileFavoriteTopicSelection = profileFavoriteTopicSelection
         transport.profilePublicInfoTarget = profilePublicInfoTarget
         transport.profileFavoriteSelection = profileFavoriteSelection
+        transport.activityCoverApproval = { self.activityCoverApproval($0) }
         transport.activityEditingApproval = { self.activityEditingApproval($0) }
         transport.publisherIdentityRegistrationApproval = { self.publisherIdentityRegistrationApproval($0) }
         transport.workshopPaidInstallBeforeForward = { if let barrier = self.workshopPaidInstallBeforeForward { await barrier() } }
@@ -588,6 +590,28 @@ extension KeychainTokenStore: AppTokenStorage {}
         let response = try await underlying.send(request)
         try Task.checkCancellation(); guard current() == captured, permitted() else { throw CancellationError() }
         return response
+    }
+
+    func sendActivityCover(_ request: URLRequest, session: PublishingSession, approval: ActivityCoverApproval,
+                           current ownerCurrent: @escaping () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.market == .china, let api = deployment.regional.apiConfiguration,
+              let captured = current(), captured.isSignedInContentViewer, let account = captured.accountID,
+              let role = captured.role, let token = captured.token, ["club", "merchant"].contains(role),
+              session.region == .china, session.accountID == account, session.role == role,
+              session.namespace == deployment.storageScope.service,
+              request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) == Data(token.utf8),
+              let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                  namespace: deployment.storageScope.service, token: token),
+              ActivityCoverWire.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: role, session: runtime)
+        func permitted() -> Bool {
+            ownerCurrent() && current() == captured && activityCoverApproval(context) == approval &&
+                approval.endpoint.allows(configuration: api, namespace: session.namespace, accountID: account, path: ActivityCoverService.path)
+        }
+        try Task.checkCancellation(); guard permitted() else { throw APIError.notConfigured }
+        let result = try await underlying.send(request)
+        try Task.checkCancellation(); guard permitted() else { throw CancellationError() }
+        return result
     }
 
     func sendActivityEditing(_ request: URLRequest, activityID: Int, session: PublishingSession,

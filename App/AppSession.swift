@@ -1428,6 +1428,21 @@ final class AppSession: ObservableObject {
                 return try? PublishingCredentials(session: captured, token: token)
             })
     }
+    private let activityCoverApproval: (RuntimeDependencyContext) -> ActivityCoverApproval?
+    func makeActivityCoverService() -> ActivityCoverService? {
+        guard let captured = publishingSession, let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let issued = activityCoverApproval(context), viewerRevision = compositionViewerRevision
+        return ActivityCoverService(configuration: configuration, transport: runtimeHTTPTransport, approval: issued,
+            currentApproval: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == context, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.activityCoverApproval(context)
+            }, credentials: { [weak self] in
+                guard let self, self.publishingSession == captured, self.currentRuntimeDependencyContext == context,
+                      self.compositionViewerRevision == viewerRevision, let token = self.token else { return nil }
+                return try? PublishingCredentials(session: captured, token: token)
+            }, journal: composition.storage.operationJournal())
+    }
     private let activityEditingApproval: (RuntimeDependencyContext) -> ActivityEditingGrants
     func activityEditingController(id: Int) -> ActivityEditingController? {
         guard let captured = publishingSession, let context = currentRuntimeDependencyContext,
@@ -2977,10 +2992,12 @@ final class AppSession: ObservableObject {
 
     init(composition: AppCompositionRoot? = nil, runtimeDependencies: NativeRuntimeDependencies? = nil, roamLiveDependencies: NativeRoamLiveDependencies? = nil,
          registrationApproval: RegistrationProductionApproval? = nil,
+         activityCoverApproval: @escaping (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil },
          activityEditingApproval: @escaping (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() },
          publisherIdentityRegistrationApproval: @escaping (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() },
          registrationStorefront: @escaping () -> String? = { nil }) {
         let composition = composition ?? RegionalLaunchConfiguration.composition
+        self.activityCoverApproval = activityCoverApproval
         self.activityEditingApproval = activityEditingApproval
         self.publisherIdentityRegistrationApproval = publisherIdentityRegistrationApproval
         self.registrationApproval = registrationApproval; self.registrationStorefront = registrationStorefront
@@ -3077,6 +3094,10 @@ final class AppSession: ObservableObject {
         compositionTransport.publisherIdentityRegistrationApproval = { [weak self] context in
             guard let self, self.currentRuntimeDependencyContext == context else { return .init() }
             return self.publisherIdentityRegistrationApproval(context)
+        }
+        compositionTransport.activityCoverApproval = { [weak self] context in
+            guard let self, self.currentRuntimeDependencyContext == context else { return nil }
+            return self.activityCoverApproval(context)
         }
         compositionTransport.activityEditingApproval = { [weak self] context in
             guard let self, self.currentRuntimeDependencyContext == context else { return .init() }

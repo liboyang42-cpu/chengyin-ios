@@ -22,7 +22,7 @@ import SwiftUI
     var body: some View {
         PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.publishingAIDraftFactory,
                             makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
-                            makeActivityTemplate: { activityTemplateCreator() },
+                            makeActivityTemplate: { activityTemplateCreator() }, makeActivityCover: { session.makeActivityCoverService() },
                             placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
                             openResource: { resource = $0 })
             .navigationDestination(isPresented: $showEditor) {
@@ -38,7 +38,7 @@ import SwiftUI
                     .toolbar {
                         PublisherLifecycleNavigationLink(session: session, resource: destination)
                         if let editor = session.activityEditingController(id: destination.value) {
-                            NavigationLink { ActivityEditingView(owner: editor).id(session.publishingSession?.epoch) } label: {
+                            NavigationLink { ActivityEditingView(owner: editor, makeActivityCover: { session.makeActivityCoverService() }).id(session.publishingSession?.epoch) } label: {
                                 Text("entry", tableName: "ActivityEditing")
                             }.accessibilityIdentifier("activityEdit.entry")
                         }

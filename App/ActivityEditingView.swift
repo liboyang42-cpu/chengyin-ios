@@ -80,6 +80,11 @@ import SwiftUI
         guard valid(owner), !busy, pending == nil, !lockUnverified, status != "unknown", let readback else { return }
         retireReview(); draft = ActivityEditingDraft(source: readback); status = "editing"
     }
+    @discardableResult func applyCover(_ reference: String, expected: ActivityEditingDraft) -> Bool {
+        guard editable, draft == expected else { return false }
+        var value = expected; value.set(.imgUrl, reference); value.set(.imgArr, reference)
+        draft = value; status = "editing"; return true
+    }
     func saveLocal() {
         guard editable, let draft else { return }
         lockUnverified = true
@@ -130,16 +135,24 @@ import SwiftUI
 /// One whole-page owner. Review stays on this page; hiding it always invalidates old callbacks.
 @MainActor struct ActivityEditingView: View {
     @StateObject private var owner: ActivityEditingController
+    @StateObject private var cover = ActivityCoverAuthoringOwner()
+    var makeActivityCover: (() -> ActivityCoverService?)?
     @Environment(\.scenePhase) private var scenePhase
-    init(owner: ActivityEditingController) { _owner = StateObject(wrappedValue: owner) }
+    init(owner: ActivityEditingController, makeActivityCover: (() -> ActivityCoverService?)? = nil) { _owner = StateObject(wrappedValue: owner); self.makeActivityCover = makeActivityCover }
     var body: some View {
+        let _ = cover.bind(read: {
+            guard owner.current, let draft = owner.draft else { return nil }
+            return .init(session: owner.session, target: .existing(owner.activityID), draft: ProjectEditPendingMaterials.exactData(draft), reference: draft.text(.imgUrl), editable: owner.editable)
+        }, apply: { reference in
+            guard let draft = owner.draft else { return false }; return owner.applyCover(reference, expected: draft)
+        }, service: { makeActivityCover?() })
         Form {
             Section {
                 Text(LocalizedStringKey(owner.status), tableName: "ActivityEditing")
                     .accessibilityIdentifier("activityEdit.status")
                 if !owner.rejection.isEmpty { Text(verbatim: owner.rejection) }
                 Button { Task { await owner.load() } } label: { label("load") }
-                    .disabled(!owner.readable).accessibilityIdentifier("activityEdit.load")
+                    .disabled(!owner.readable || cover.isOpen).accessibilityIdentifier("activityEdit.load")
                 if let request = owner.pending {
                     Text(verbatim: request.operationID.uuidString).textSelection(.enabled)
                         .accessibilityIdentifier("activityEdit.requestID")
@@ -153,15 +166,16 @@ import SwiftUI
                         TextField(text: owner.binding(field), axis: field == .description ? .vertical : .horizontal) {
                             label(field.rawValue)
                         }
-                        .disabled(!owner.editable || (draft.source.timeLocationLocked && field.timeOrPlace))
+                        .disabled(cover.isOpen || !owner.editable || (draft.source.timeLocationLocked && field.timeOrPlace))
                         .accessibilityIdentifier("activityEdit." + field.rawValue)
                     }
                     label("ticketBoundary")
                 }
+                Section { ActivityCoverAuthoringSection(owner: cover) }
                 Section {
-                    Button { owner.saveLocal() } label: { label("saveLocal") }.disabled(!owner.editable)
+                    Button { owner.saveLocal() } label: { label("saveLocal") }.disabled(!owner.editable || cover.isOpen)
                         .accessibilityIdentifier("activityEdit.saveLocal")
-                    Button { Task { await owner.prepare() } } label: { label("reviewAction") }.disabled(!owner.reviewable)
+                    Button { Task { await owner.prepare() } } label: { label("reviewAction") }.disabled(!owner.reviewable || cover.isOpen)
                         .accessibilityIdentifier("activityEdit.review")
                 }
             }
@@ -188,15 +202,17 @@ import SwiftUI
                     }
                     if owner.pending == nil {
                         Button { owner.useReadback(owner: originalOwner) } label: { label("useReadback") }
-                            .disabled(!owner.current).accessibilityIdentifier("activityEdit.useReadback")
+                            .disabled(!owner.current || cover.isOpen).accessibilityIdentifier("activityEdit.useReadback")
                     }
                 }
             }
         }
         .navigationTitle(Text("title", tableName: "ActivityEditing"))
-        .onAppear { owner.appear(active: scenePhase == .active) }
-        .onDisappear { owner.disappear() }
-        .onChange(of: scenePhase) { _, phase in owner.setActive(phase == .active) }
+        .onAppear { owner.appear(active: scenePhase == .active); cover.appear(active: scenePhase == .active) }
+        .onDisappear { if !cover.hasNativeSelection { owner.disappear() } }
+        .onChange(of: scenePhase) { _, phase in cover.setActive(phase == .active); owner.setActive(phase == .active) }
+        .background { ActivityCoverLifetime(owner: cover, departure: { owner.disappear() }).frame(width: 0, height: 0) }
+        .background { RetainedImagePresenterHost(host: cover.pickerHost).frame(width: 0, height: 0) }
     }
     private func label(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: "ActivityEditing") }
 }

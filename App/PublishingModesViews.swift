@@ -10,6 +10,7 @@ import MapKit
     var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
     var makeIdentityRegistration: (() -> PublisherIdentityRegistrationService?)? = nil
     var makeActivityTemplate: (() -> AnyView)? = nil
+    var makeActivityCover: (() -> ActivityCoverService?)? = nil
     var placeSearch: (any PublishingPlaceSearching)? = nil
     var draftStore: PublishingDraftStore? = nil
     var openProfessional: (ProjectEditDraft) -> Void
@@ -18,7 +19,7 @@ import MapKit
         List {
             Section { Text("publishModes.offlineNotice").foregroundStyle(.secondary) }
             NavigationLink("publishModes.quick") { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) }
-            NavigationLink("publishModes.activity") { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate) }
+            NavigationLink("publishModes.activity") { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover) }
             NavigationLink("publishModes.projects") { PublishingProjectsView(service: service, account: account, openResource: openResource) }
             NavigationLink("publishModes.identity") { PublishingIdentityStatusView(service: service, account: account) }
         }.navigationTitle(Text("publishModes.title")).accessibilityIdentifier("publishModes.home")
@@ -85,6 +86,7 @@ import MapKit
     @StateObject private var timeRange = ActivityPublishingTimeRangeOwner()
     @StateObject private var identityRegistration = PublisherIdentityRegistrationOwner()
     @StateObject private var templateSelection = ActivityTemplateSelectionOwner()
+    @StateObject private var cover = ActivityCoverAuthoringOwner()
     let service: PublishingService?
     let account: PublishingSession?
     var placeSearch: (any PublishingPlaceSearching)?
@@ -92,6 +94,7 @@ import MapKit
     @State private var draftID = UUID()
     var makeIdentityRegistration: (() -> PublisherIdentityRegistrationService?)? = nil
     var makeActivityTemplate: (() -> AnyView)? = nil
+    var makeActivityCover: (() -> ActivityCoverService?)? = nil
     @State private var draft = ActivityPublishDraft()
     @State private var picker: String?
     @State private var review: PublishingReview?
@@ -100,13 +103,17 @@ import MapKit
     @State private var message = ""
     @State private var acknowledged = false
     @State private var uncertain = false
-    private var editable: Bool { !busy && !acknowledged && !uncertain && !identityRegistration.open && !templateSelection.open }
+    private var coverEditable: Bool { !busy && !acknowledged && !uncertain && !identityRegistration.open && !templateSelection.open && review == nil && !localReview && picker == nil && timeRange.presentation == nil && (service == nil || service?.currentSession == account) }
+    private var editable: Bool { !busy && !acknowledged && !uncertain && !identityRegistration.open && !templateSelection.open && !cover.isOpen }
     private var requiresIdentity: Bool {
         account?.region == .china && account?.role == "club" && draft.tickets.contains {
             Decimal(string: $0.price, locale: Locale(identifier: "en_US_POSIX")).map { $0 > 0 } == true
         }
     }
     var body: some View {
+        let _ = cover.bind(read: { .init(session: account, target: .newDraft(draftID), draft: ProjectEditPendingMaterials.exactData(draft), reference: draft.coverURL, editable: coverEditable) }, apply: { value in
+            guard coverEditable else { return false }; draft.coverURL = value; return true
+        }, service: { makeActivityCover?() })
         let _ = templateSelection.bind(session: account, draftID: draftID, draft: draft)
         let templateSelectionAction = templateSelection.actionID
         let templateReadID = templateSelection.readID
@@ -121,7 +128,6 @@ import MapKit
                 TextField("publishModes.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
                 clearButton(.description)
                 TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                Text("publishModes.uploadDisabled").font(.caption).foregroundStyle(.secondary)
                 TextField("publishModes.addressName", text: $draft.addressName)
                 Button("publishModes.choosePlace") { picker = "place" }
                 if let place = draft.place { Text(place.name); Text(place.address).font(.caption) }
@@ -142,6 +148,7 @@ import MapKit
                 Text(draft.playTemplateID.map { String($0.rawValue) } ?? "—")
                 Button("publishModes.collaborators") { picker = "collaborator" }; Text(draft.collaboratorMemberIDs.map(String.init).joined(separator: ", "))
             }.disabled(!editable)
+            Section { ActivityCoverAuthoringSection(owner: cover) }
             ForEach($draft.tickets) { $ticket in
                 Section("publishModes.ticket") {
                     TextField("publishModes.name", text: $ticket.name)
@@ -183,10 +190,12 @@ import MapKit
             Button("publishModes.review") { Task { await prepare() } }.disabled(!editable).accessibilityIdentifier("publishModes.activity.review")
         }.navigationTitle(Text("publishModes.activity"))
         .onChange(of: draft) { _, _ in timeRange.retire(); if let review { service?.cancel(review) }; review = nil; localReview = false }
-        .onChange(of: account) { _, _ in localClear.invalidate(); timeRange.retire(); service?.invalidateReviews(); draft = .init(); draftID = UUID(); review = nil; localReview = false; acknowledged = false; uncertain = false; message = "" }
-        .onAppear { localClear.appear(active: scenePhase == .active); timeRange.setActive(scenePhase == .active); identityRegistration.appear(active: scenePhase == .active); templateSelection.setActive(scenePhase == .active) }
-        .onChange(of: scenePhase) { _, phase in localClear.setActive(phase == .active); timeRange.setActive(phase == .active); identityRegistration.setActive(phase == .active); templateSelection.setActive(phase == .active) }
+        .onChange(of: account) { _, _ in cover.accountChanged(); localClear.invalidate(); timeRange.retire(); service?.invalidateReviews(); draft = .init(); draftID = UUID(); review = nil; localReview = false; acknowledged = false; uncertain = false; message = "" }
+        .onAppear { cover.appear(active: scenePhase == .active); localClear.appear(active: scenePhase == .active); timeRange.setActive(scenePhase == .active); identityRegistration.appear(active: scenePhase == .active); templateSelection.setActive(scenePhase == .active) }
+        .onChange(of: scenePhase) { _, phase in cover.setActive(phase == .active); localClear.setActive(phase == .active); timeRange.setActive(phase == .active); identityRegistration.setActive(phase == .active); templateSelection.setActive(phase == .active) }
         .onDisappear { identityRegistration.disappear(); localClear.retire(); if let review { service?.cancel(review) }; review = nil }
+        .background { ActivityCoverLifetime(owner: cover).frame(width: 0, height: 0) }
+        .background { RetainedImagePresenterHost(host: cover.pickerHost).frame(width: 0, height: 0) }
         .background { ActivityPublishingTimeRangeLifetimeAnchor(owner: timeRange).frame(width: 0, height: 0) }
         .background { ActivityTemplateSelectionLifetimeAnchor(owner: templateSelection).frame(width: 0, height: 0) }
         .background {
