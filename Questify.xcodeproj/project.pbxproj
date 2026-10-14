@@ -18653,6 +18653,10 @@
 				"E96FB9FA14CAC88E92FE59FC",
 				"464A04B392690EE8931E50F4",
 				"41D4FDD1AB539D2B2BF0BF6D",
+				"33CEFD34F9EF6CB4D4ABBAB4",
+				"4871F5BBB8A2E4BAB741ABFA",
+				"E2F10BE0057B27766549E07A",
+				"4BBFE8937A4879690B4AFC05",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -20299,6 +20303,8 @@
 				"B0BAE0EAA77F2287BC231598",
 				"90D9358C5F832E6DFD10CC73",
 				"2DFF2B2D797669D424D6204A",
+				"05675396E621E2F62FBA12DB",
+				"551C45CA223DD0BFC3405E5B",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -20371,6 +20377,7 @@
 				"C15482E274E542A1830C3793",
 				"C5F91A53FC572F0D294C7BC2",
 				"9231D9788C618F58DB642822",
+				"6DDF92B002C54AFD30870884",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -26459,6 +26466,7 @@
 				"86C81D670A208C08D8BCCECC",
 				"F19AD6AB6061A056876C6721",
 				"1C624E02216D828E2A3481EF",
+				"8847EE2BD59EB968209FB0F8",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -28250,6 +28258,46 @@
 		"2DFF2B2D797669D424D6204A" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "CCDFC7C241A90866EC7506A2";
+		};
+		"33CEFD34F9EF6CB4D4ABBAB4" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.json.xcstrings";
+			"path" = "Resources/PlayPlayerActionReview.xcstrings";
+			"sourceTree" = "<group>";
+		};
+		"6DDF92B002C54AFD30870884" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "33CEFD34F9EF6CB4D4ABBAB4";
+		};
+		"4871F5BBB8A2E4BAB741ABFA" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/PlayPlayerActionReviewControllerTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"8847EE2BD59EB968209FB0F8" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4871F5BBB8A2E4BAB741ABFA";
+		};
+		"E2F10BE0057B27766549E07A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayPlayerActionReviewHost.swift";
+			"sourceTree" = "<group>";
+		};
+		"05675396E621E2F62FBA12DB" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E2F10BE0057B27766549E07A";
+		};
+		"4BBFE8937A4879690B4AFC05" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PlayPlayerActionReview.swift";
+			"sourceTree" = "<group>";
+		};
+		"551C45CA223DD0BFC3405E5B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4BBFE8937A4879690B4AFC05";
 		};
 	};
 	"rootObject" = "244210E48437B6556980A702";
