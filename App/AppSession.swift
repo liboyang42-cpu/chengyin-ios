@@ -1937,6 +1937,38 @@ final class AppSession: ObservableObject {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
             })
     }
+    func makeProfileGuideReader() -> ProfileGuideListReader? {
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        let viewer = compositionViewerRevision
+        return ProfileGuideListReader(context: context, viewerRevision: viewer,
+            service: regionalConfiguration?.apiConfiguration.map { SocialAccountService(configuration: $0, transport: compositionTransport) },
+            current: { [weak self] in
+                guard let self, let current = self.currentRuntimeDependencyContext else { return false }
+                return self.compositionViewerRevision == viewer && ContentDraftContextFence.matches(context, current)
+            }, access: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, current) else { return nil }
+                return self.composition.profileGuideReadAccess(captured)
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, current) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
+    func makeProfileGuideArticleReader(_ selection: ProfileGuideArticleSelection) -> ProfileGuideArticleReader {
+        ProfileGuideArticleReader(selection: selection,
+            service: regionalConfiguration?.apiConfiguration.map { SocialAccountService(configuration: $0, transport: compositionTransport.scopedForProfileGuide(selection)) },
+            access: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      self.compositionViewerRevision == selection.viewerRevision,
+                      ContentDraftContextFence.matches(captured, current) else { return nil }
+                return self.composition.profileGuideReadAccess(captured)
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, current) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
     lazy var profileFavoritesReader = ProfileFavoritesReader(service: accountCollectionService,
         current: { [weak self] in self?.currentRuntimeDependencyContext },
         viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },

@@ -104,6 +104,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let profileOwnedCouponReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?
     let roamTileMemoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess?
     let profilePublicInfoReadAccess: @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess?
+    let profileGuideReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess?
     let profileFavoritesReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess?
     let profileFavoriteTopicReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess?
     let profileFavoriteDetailAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?
@@ -154,6 +155,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          profileOwnedCouponReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? = { _ in nil },
          roamTileMemoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess? = { _ in nil },
          profilePublicInfoReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess? = { _ in nil },
+         profileGuideReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess? = { _ in nil },
          profileFavoritesReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess? = { _ in nil },
          profileFavoriteTopicReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess? = { _ in nil },
          profileFavoriteDetailAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess? = { _ in nil },
@@ -194,6 +196,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess
         self.roamTileMemoryReadAccess = roamTileMemoryReadAccess
         self.profilePublicInfoReadAccess = profilePublicInfoReadAccess
+        self.profileGuideReadAccess = profileGuideReadAccess
         self.profileFavoritesReadAccess = profileFavoritesReadAccess
         self.profileFavoriteTopicReadAccess = profileFavoriteTopicReadAccess
         self.profileFavoriteDetailAccess = profileFavoriteDetailAccess
@@ -239,7 +242,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         return .available
     }
     func transport() -> CompositionHTTPTransport {
-        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
+        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
     }
     func makeSession() -> AppSession { AppSession(composition: self) }
 }
@@ -305,6 +308,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     private let couponWriteApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementWriteApproval?
     private var profileFavoriteTopicSelection: ProfileFavoriteTopicSelection?
     private var profilePublicInfoTarget: ProfilePublicInfoTarget?
+    private var profileGuideSelection: ProfileGuideArticleSelection?
     private var profileFavoriteSelection: ProfileFavoritePostSelection?
     private let manualMapSelection: ManualMapAreaSelection?
     private let messagingHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval?
@@ -314,6 +318,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     private let profileOwnedCouponReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?
     private let roamTileMemoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess?
     private let profilePublicInfoReadAccess: @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess?
+    private let profileGuideReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess?
     private let profileFavoritesReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess?
     private let profileFavoriteTopicReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess?
     private let profileFavoriteDetailAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?
@@ -347,6 +352,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          profileOwnedCouponReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? = { _ in nil },
          roamTileMemoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess? = { _ in nil },
          profilePublicInfoReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess? = { _ in nil },
+         profileGuideReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess? = { _ in nil },
          profileFavoritesReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess? = { _ in nil },
          profileFavoriteTopicReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess? = { _ in nil },
          profileFavoriteDetailAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess? = { _ in nil },
@@ -379,6 +385,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess
         self.roamTileMemoryReadAccess = roamTileMemoryReadAccess
         self.profilePublicInfoReadAccess = profilePublicInfoReadAccess
+        self.profileGuideReadAccess = profileGuideReadAccess
         self.profileFavoritesReadAccess = profileFavoritesReadAccess
         self.profileFavoriteTopicReadAccess = profileFavoriteTopicReadAccess
         self.profileFavoriteDetailAccess = profileFavoriteDetailAccess
@@ -411,8 +418,14 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.profilePublicInfoTarget = target
         return transport
     }
+    func scopedForProfileGuide(_ selection: ProfileGuideArticleSelection) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.profileGuideSelection = selection
+        return transport
+    }
     func scopedForProfileFavorite(_ selection: ProfileFavoritePostSelection) -> CompositionHTTPTransport {
         let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.profileGuideSelection = profileGuideSelection
         transport.profileFavoriteSelection = selection
         return transport
     }
@@ -426,13 +439,14 @@ extension KeychainTokenStore: AppTokenStorage {}
     private func copy(underlying: any HTTPTransport, manualMapSelection: ManualMapAreaSelection?) -> CompositionHTTPTransport {
         let transport = CompositionHTTPTransport(deployment: deployment, underlying: underlying,
             couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval,
-            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
+            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
             manualMapSelection: manualMapSelection, ownedOrderReadApproval: ownedOrderReadApproval)
         // Retain the identity source across temporary clone chains. Its AppSession
         // callback is weak, so this does not retain or extend the signed-in session.
         transport.current = { self.current() }
         transport.profileFavoriteTopicSelection = profileFavoriteTopicSelection
         transport.profilePublicInfoTarget = profilePublicInfoTarget
+        transport.profileGuideSelection = profileGuideSelection
         transport.profileFavoriteSelection = profileFavoriteSelection
         transport.activityCoverApproval = { self.activityCoverApproval($0) }
         transport.activityEditingApproval = { self.activityEditingApproval($0) }
@@ -663,6 +677,10 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard profileFavoriteTopicSelection == nil || favoriteTopic != nil else { throw APIError.notConfigured }
         let publicInfo = profilePublicInfoTarget == nil ? nil : ProfilePublicInfoReadRoute(request: request, baseURL: api.baseURL)
         guard profilePublicInfoTarget == nil || publicInfo != nil else { throw APIError.notConfigured }
+        let guideRead = ProfileGuideReadRoute(request: request, baseURL: api.baseURL)
+        if profileGuideSelection != nil {
+            guard let guideRead, case .detail = guideRead else { throw APIError.notConfigured }
+        }
         let favoriteList = ProfileFavoritesReadRoute(request: request, baseURL: api.baseURL)
         let favoriteDetail = ProfileFavoriteDetailRoute(request: request, baseURL: api.baseURL)
         let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
@@ -836,6 +854,25 @@ extension KeychainTokenStore: AppTokenStorage {}
                     accountID: account, path: ProfilePublicInfoReadRoute.path) else { throw APIError.notConfigured }
             readApprovalStillValid = { [profilePublicInfoReadAccess] in
                 guard target.isCurrent, let fresh = profilePublicInfoReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if let guideRead {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = profileGuideReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: guideRead.path) else { throw APIError.notConfigured }
+            let selection = profileGuideSelection
+            if case .detail(let id) = guideRead {
+                guard let selection, selection.isCurrent, selection.row.id == id,
+                      selection.viewerRevision == captured.viewerRevision,
+                      ContentDraftContextFence.matches(selection.context, context) else { throw APIError.notConfigured }
+            }
+            readApprovalStillValid = { [profileGuideReadAccess] in
+                guard selection?.isCurrent != false, let fresh = profileGuideReadAccess(context) else { return false }
                 return fresh === selected && fresh.matches(context)
             }
         } else if let favoriteList {
@@ -1153,6 +1190,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             try tileMemory?.validateResponse(result)
             try favoriteList?.validateResponse(result)
             try favoriteDetail?.validateResponse(result)
+            try guideRead?.validateResponse(result)
             try sessionFactRoute?.validateResponse(result)
             try favoriteTopic?.validateResponse(result)
             try nearbyEvents?.validateResponse(result)

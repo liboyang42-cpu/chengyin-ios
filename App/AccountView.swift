@@ -50,7 +50,7 @@ import SwiftUI
                     NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity) } label: {
                         Label("social.invites.title", systemImage: "person.2.badge.plus")
                     }.accessibilityIdentifier("account.inviteHistory")
-                    NavigationLink { SocialPlayGuideView(reader: session.socialAccountReader, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity) } label: {
+                    NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity) } label: {
                         Label("social.guide.title", systemImage: "book")
                     }.accessibilityIdentifier("account.playGuide")
                 }
