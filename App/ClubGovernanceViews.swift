@@ -176,6 +176,7 @@ struct ClubGovernanceReadView: View {
     @StateObject private var terminalPresentation = ClubTerminalSessionPresentation()
     @StateObject private var seriesOccurrences = ClubSeriesOccurrenceHost()
     @StateObject private var settlementReturn = ClubSettlementReturnOwner()
+    @StateObject private var ownerFundsParent = ClubOwnerFundsParent()
     @StateObject private var caseSubmissionReturn = ClubCaseSubmissionReturn()
     @State private var caseHostVisible = false
     @State private var snapshot: ClubGovernanceSnapshot?
@@ -452,6 +453,29 @@ struct ClubGovernanceReadView: View {
             if settlementReturn.synchronize(readContext, namespace: access.storageNamespace) { invalidateRead(); loading = false }
             await loadSettlementIfNeeded()
         }
+        .background {
+            if operation == .settlement, let attachment = ownerFundsParent.attachment {
+                ClubSettlementParentLifetime { ownerFundsParent.depart(attachment) }.id(attachment)
+            }
+            if let item = ownerFundsParent.contact {
+                ClubOwnerFundsContactOwner(item: item, owner: ownerFundsParent, context: ownerFunds,
+                    current: { ownerFundsSource }, active: { scenePhase == .active },
+                    returned: { Task { await loadOwnerFundsIfNeeded() } }).id(item.id)
+            }
+        }
+        .onAppear {
+            if operation == .settlement { ownerFundsParent.appear(); Task { await loadOwnerFundsIfNeeded() } }
+        }
+        .task(id: ownerFundsSource) {
+            ownerFundsParent.synchronize(ownerFundsSource)
+            await loadOwnerFundsIfNeeded()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if operation == .settlement {
+                if phase != .active { ownerFundsParent.background() }
+                else { Task { await loadOwnerFundsIfNeeded() } }
+            }
+        }
         .onAppear { terminalPresentation.bind(terminalSource) }
         .onChange(of: terminalSource, initial: true) { _, source in terminalPresentation.bind(source) }
         // A covering child owns dismissal; recycling content rows cannot retire it.
@@ -529,8 +553,11 @@ struct ClubGovernanceReadView: View {
             caseHostVisible = false
             if operation == .settlement {
                 settlementReturn.hide()
+                ownerFundsParent.hide()
                 if !settlementReturn.retainsChild, let attachment = settlementReturn.attachment {
-                    if settlementReturn.depart(attachment) { generation &+= 1; loading = false }
+                    if !ownerFundsParent.retainsContact {
+                        if settlementReturn.depart(attachment) { generation &+= 1; loading = false }
+                    }
                 }
             } else if operation == .series {
                 seriesOccurrences.hide()
@@ -661,13 +688,28 @@ struct ClubGovernanceReadView: View {
               let presentation = try? ClubSettlementDetailPresentation(snapshot: snapshot, context: readContext) else { return nil }
         return .init(presentation: presentation, context: readContext, generation: snapshotGeneration, namespace: access.storageNamespace)
     }
+    @MainActor private var ownerFundsSource: ClubOwnerFundsParent.Source? {
+        guard scenePhase == .active, settlementSource != nil, let snapshot,
+              identity == access.identity, ownerFunds.isCurrent(),
+              let target = ClubOwnerFundsTarget(snapshot: snapshot, context: readContext) else { return nil }
+        return .init(target: target, readerID: ownerFunds.reader.map { ObjectIdentifier($0) },
+            walletScope: ownerFunds.reader?.scope, generation: snapshotGeneration, namespace: access.storageNamespace)
+    }
+    @MainActor private func loadOwnerFundsIfNeeded() async {
+        guard operation == .settlement else { return }
+        ownerFundsParent.synchronize(ownerFundsSource)
+        guard let ticket = ownerFundsParent.ticket(current: ownerFundsSource, active: scenePhase == .active,
+            otherPresented: settlementReturn.retainsChild) else { return }
+        await ownerFundsParent.load(ticket, access: access, context: ownerFunds, current: { ownerFundsSource },
+            active: { scenePhase == .active }, otherPresented: { settlementReturn.retainsChild })
+    }
     @MainActor private func activateSettlementParent() {
         if settlementReturn.synchronize(readContext, namespace: access.storageNamespace) { invalidateRead(); loading = false }
         settlementReturn.appear(readContext, namespace: access.storageNamespace)
     }
     @MainActor private func settlementReadIsCurrent(_ attachment: UUID?) -> Bool {
         operation != .settlement || settlementReturn.acceptsRead(attachment, context: readContext,
-            namespace: access.storageNamespace, active: scenePhase == .active)
+            namespace: access.storageNamespace, active: scenePhase == .active && !ownerFundsParent.retainsContact)
     }
     @MainActor private func loadSettlementIfNeeded() async {
         guard operation == .settlement, let attachment = settlementReturn.attachment,
@@ -1014,7 +1056,8 @@ struct ClubGovernanceReadView: View {
                     sourceIsCurrent: {
                         snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
                         generation == sourceGeneration && identity == access.identity && sourceNamespace == access.storageNamespace
-                    }).id(sourceContext)
+                    }, workflow: ownerFundsParent.workflow, parent: ownerFundsParent,
+                    currentSource: { ownerFundsSource }, otherPresented: { settlementReturn.retainsChild }).id(sourceContext)
             }
             ClubGovernanceFactRows(value: value, fields: ["settledAmountText", "settledAmountStatus", "unverifiedSettledCount"], showUnknown: true)
             Text("club.gov.financialGate")
@@ -1028,6 +1071,7 @@ struct ClubGovernanceReadView: View {
                         snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
                         generation == sourceGeneration && identity == access.identity && sourceNamespace == access.storageNamespace
                     }, source: source, owner: settlementReturn, currentSource: { settlementSource }, active: { scenePhase == .active })
+                    .disabled(ownerFundsParent.retainsContact || ownerFundsParent.workflow.loading)
             } else { Text("club.gov.malformed").accessibilityIdentifier("club.settlementDetail.malformed") }
         } else if operation == .feed {
             if let feed = try? ClubFeedPresentation(snapshot: snapshot) {

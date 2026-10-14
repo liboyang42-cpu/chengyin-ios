@@ -92,32 +92,134 @@ extension EnvironmentValues {
     }
 }
 
-struct ClubOwnerFundsReadKey: Hashable {
-    let context: ClubGovernanceReadContext
-    let reader: ObjectIdentifier?
-    let scope: WalletCommerceScope?
-    let sourceGeneration: UInt64
-    let current: Bool
+/// Stable owner for the current page's read-only funds and contact presentation.
+@MainActor final class ClubOwnerFundsParent: ObservableObject {
+    struct Source: Equatable {
+        let target: ClubOwnerFundsTarget
+        let readerID: ObjectIdentifier?
+        let walletScope: WalletCommerceScope?
+        let generation: UInt64
+        let namespace: String
+    }
+    struct Ticket: Equatable { let attachment: UUID; let source: Source; let revision: UUID }
+    struct Contact: Identifiable, Equatable {
+        let id = UUID()
+        let ticket: Ticket
+    }
+    @Published private(set) var workflow = ClubOwnerFundsWorkflow()
+    @Published private(set) var attachment: UUID?
+    @Published private(set) var source: Source?
+    @Published private(set) var contact: Contact?
+    @Published private(set) var isPresented = false
+    private(set) var visible = false
+    private(set) var needsRead = true
+    private var revision = UUID()
+    var retainsContact: Bool { contact != nil }
+    func appear() { if attachment == nil { attachment = UUID() }; visible = true }
+    func synchronize(_ value: Source?) {
+        guard source != value else { return }
+        invalidate(); source = value
+    }
+    func hide() {
+        visible = false
+        if contact == nil { invalidate() }
+    }
+    @discardableResult func depart(_ expected: UUID) -> Bool {
+        guard attachment == expected else { return false }
+        invalidate(); attachment = nil; source = nil; visible = false; return true
+    }
+    func background() { invalidate() }
+    private func invalidate() {
+        revision = UUID(); contact = nil; isPresented = false; needsRead = true
+        workflow.invalidate(); workflow = ClubOwnerFundsWorkflow()
+    }
+    func ticket(current: Source?, active: Bool, otherPresented: Bool) -> Ticket? {
+        guard visible, active, !otherPresented, contact == nil, let attachment, let source, source == current else { return nil }
+        return .init(attachment: attachment, source: source, revision: revision)
+    }
+    private func matches(_ ticket: Ticket, current: Source?, active: Bool) -> Bool {
+        active && attachment == ticket.attachment && revision == ticket.revision && source == ticket.source && current == ticket.source
+    }
+    func accepts(_ ticket: Ticket, current: Source?, active: Bool, otherPresented: Bool) -> Bool {
+        visible && !otherPresented && contact == nil && matches(ticket, current: current, active: active)
+    }
+    func load(_ offered: Ticket, access: any ClubGovernanceAccess, context: ClubOwnerFundsContext,
+              current: @escaping () -> Source?, active: @escaping () -> Bool,
+              otherPresented: @escaping () -> Bool, force: Bool = false) async {
+        guard !Task.isCancelled, accepts(offered, current: current(), active: active(), otherPresented: otherPresented()),
+              !workflow.loading, needsRead || force else { return }
+        needsRead = false
+        await workflow.load(target: offered.source.target, access: access, context: context,
+            sourceIsCurrent: { self.accepts(offered, current: current(), active: active(), otherPresented: otherPresented()) })
+    }
+    func openContact(_ offered: Ticket, access: any ClubGovernanceAccess, context: ClubOwnerFundsContext,
+                     current: @escaping () -> Source?, active: @escaping () -> Bool,
+                     otherPresented: @escaping () -> Bool) async {
+        guard !Task.isCancelled, accepts(offered, current: current(), active: active(), otherPresented: otherPresented()), !workflow.loading else { return }
+        await workflow.openContact(target: offered.source.target, access: access, context: context,
+            sourceIsCurrent: { self.matches(offered, current: current(), active: active()) &&
+                (self.visible || self.contact?.ticket == offered) && !otherPresented() })
+        guard accepts(offered, current: current(), active: active(), otherPresented: otherPresented()), workflow.contactIsCurrent else { return }
+        contact = Contact(ticket: offered); isPresented = true
+    }
+    func current(_ item: Contact, source: Source?, active: Bool) -> Bool {
+        isPresented && contact == item && matches(item.ticket, current: source, active: active) && workflow.contactIsCurrent
+    }
+    func close(_ item: Contact) {
+        guard contact == item else { return }; isPresented = false; workflow.closeContact()
+    }
+    func binding(_ item: Contact, current: @escaping () -> Source?, active: @escaping () -> Bool) -> Binding<Bool> {
+        Binding(get: { self.current(item, source: current(), active: active()) }, set: { shown in
+            guard !shown, self.contact == item, self.matches(item.ticket, current: current(), active: active()) else { return }
+            self.close(item)
+        })
+    }
+    @discardableResult func dismissed(_ item: Contact, current: Source?, active: Bool) -> Bool {
+        guard contact == item, !isPresented, matches(item.ticket, current: current, active: active) else { return false }
+        contact = nil; revision = UUID(); needsRead = true; workflow.invalidate(); return true
+    }
 }
+
+@MainActor struct ClubOwnerFundsContactOwner: View {
+    let item: ClubOwnerFundsParent.Contact
+    @ObservedObject var owner: ClubOwnerFundsParent
+    let context: ClubOwnerFundsContext
+    let current: () -> ClubOwnerFundsParent.Source?
+    let active: () -> Bool
+    let returned: () -> Void
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(isPresented: owner.binding(item, current: current, active: active), onDismiss: {
+                if owner.dismissed(item, current: current(), active: active()) { returned() }
+            }) {
+                Group {
+                    if owner.current(item, source: current(), active: active()), let support = context.support { support() }
+                    else { Text("club.gov.changed") }
+                }
+            }
+    }
+}
+
 struct ClubOwnerFundsSection: View {
     let target: ClubOwnerFundsTarget
     let access: any ClubGovernanceAccess
     let context: ClubOwnerFundsContext
     let sourceGeneration: UInt64
     let sourceIsCurrent: () -> Bool
-    @StateObject private var workflow = ClubOwnerFundsWorkflow()
+    @ObservedObject var workflow: ClubOwnerFundsWorkflow
+    @ObservedObject var parent: ClubOwnerFundsParent
+    let currentSource: () -> ClubOwnerFundsParent.Source?
+    let otherPresented: () -> Bool
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     private var current: Bool {
-        scenePhase == .active && sourceIsCurrent() && context.isCurrent() && access.identity == target.context.identity &&
+        scenePhase == .active && parent.attachment != nil && parent.source == currentSource() &&
+        sourceIsCurrent() && context.isCurrent() && access.identity == target.context.identity &&
         access.authorizationGeneration == target.context.authorizationGeneration &&
         target.context.accessIdentity == ObjectIdentifier(access)
     }
-    private var key: ClubOwnerFundsReadKey {
-        .init(context: target.context, reader: context.reader.map { ObjectIdentifier($0) },
-              scope: context.reader?.scope, sourceGeneration: sourceGeneration, current: current)
-    }
     var body: some View {
+        let offered = parent.ticket(current: currentSource(), active: current, otherPresented: otherPresented())
         Section("club.ownerFunds.title") {
             Text("club.ownerFunds.accountScope").font(.footnote).foregroundStyle(.secondary)
             if workflow.loading { ProgressView("wallet.loading") }
@@ -138,38 +240,19 @@ struct ClubOwnerFundsSection: View {
             Text(LocalizedStringKey(workflow.availability == .zero ? "club.ownerFunds.zero" : workflow.availability == .unknown ? "club.ownerFunds.unknown" : "club.ownerFunds.manual"))
                 .font(.footnote)
             Button("club.ownerFunds.contact") {
-                let revision = workflow.revision
-                Task { await workflow.openContact(target: target, access: access, context: context, sourceIsCurrent: sourceIsCurrent, expectedGeneration: revision) }
-            }.disabled(!current || workflow.loading || workflow.availability != .positive || context.support == nil)
+                guard let offered else { return }
+                Task { await parent.openContact(offered, access: access, context: context, current: currentSource,
+                    active: { current }, otherPresented: otherPresented) }
+            }.disabled(offered == nil || workflow.loading || workflow.availability != .positive || context.support == nil)
                 .accessibilityIdentifier("club.ownerFunds.contact")
             }
             Button("wallet.retry") {
-                let revision = workflow.revision
-                Task { await load(expectedGeneration: revision) }
-            }.disabled(workflow.loading || !current)
+                guard let offered else { return }
+                Task { await parent.load(offered, access: access, context: context, current: currentSource,
+                    active: { current }, otherPresented: otherPresented, force: true) }
+            }.disabled(workflow.loading || offered == nil)
                 .accessibilityIdentifier("club.ownerFunds.retry")
         }
-        .task(id: key) { workflow.invalidate(); if current { await load() } }
-        .sheet(isPresented: Binding(get: { workflow.contactPresented }, set: { if !$0 { workflow.closeContact() } }), onDismiss: {
-            workflow.invalidate()
-            if current { let revision = workflow.revision; Task { await load(expectedGeneration: revision) } }
-        }) {
-            Group {
-                if current, workflow.contactIsCurrent, let support = context.support { support() }
-                else { Text("club.gov.changed") }
-            }
-            .onChange(of: key, initial: true) { _, _ in if !current || !workflow.contactIsCurrent { workflow.invalidate() } }
-        }
-        .onChange(of: current) { _, valid in if !valid { workflow.invalidate() } }
-        .onChange(of: scenePhase) { _, phase in
-            workflow.invalidate()
-            if phase == .active, current { let revision = workflow.revision; Task { await load(expectedGeneration: revision) } }
-        }
-        .onDisappear { workflow.invalidate() }
-    }
-    private func load(expectedGeneration: UInt64? = nil) async {
-        guard current else { return }
-        await workflow.load(target: target, access: access, context: context, sourceIsCurrent: sourceIsCurrent, expectedGeneration: expectedGeneration)
     }
     private func amount(_ value: WalletAmount, currency: String?) -> String {
         value.text + " " + (currency ?? appLocalized("wallet.currencyUnknown", locale: locale))
