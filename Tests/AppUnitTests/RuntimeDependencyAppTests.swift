@@ -23,8 +23,9 @@ import CoreLocation
         let provider = RuntimePlayDeviceProvider(native: native, location: location, grants: [.location], isCurrent: { current })
         let session = try PlayExperienceSession(accountID: 7, epoch: 1, namespace: "fixture", token: "synthetic")
         let context = try PlayDeviceContext(session: session, scope: .topic(4), nodeID: 8)
-        guard case .location(let lng, let lat, let datum) = try await provider.capture(.location, context: context) else { return XCTFail() }
+        guard case .location(let lng, let lat, let datum, let accuracy, let measuredAt) = try await provider.capture(.location, context: context) else { return XCTFail() }
         XCTAssertEqual(datum, "GCJ02"); XCTAssertNotEqual(lng, 116.397128); XCTAssertNotEqual(lat, 39.916527)
+        XCTAssertEqual(accuracy, 5); XCTAssertEqual(measuredAt, location.measuredAt)
         XCTAssertEqual(location.calls, 1); XCTAssertFalse(native.showingCamera)
         current = false; XCTAssertTrue(provider.supported.isEmpty)
         do { _ = try await provider.capture(.location, context: context); XCTFail() } catch {}
@@ -45,9 +46,10 @@ import CoreLocation
 }
 @MainActor private final class RuntimeAppTestLocation: RoamDeviceLocationProviding {
     var calls = 0
+    let measuredAt = Date()
     func currentFix() async throws -> RoamDeviceFix {
         calls += 1
-        return try RoamDeviceFix(coordinate: XCTUnwrap(RoamCoordinate(latitude: 39.916527, longitude: 116.397128)), accuracyMeters: 5, measuredAt: Date(), datum: .wgs84)
+        return try RoamDeviceFix(coordinate: XCTUnwrap(RoamCoordinate(latitude: 39.916527, longitude: 116.397128)), accuracyMeters: 5, measuredAt: measuredAt, datum: .wgs84)
     }
     func stop() {}
 }
@@ -90,9 +92,9 @@ import CoreLocation
         XCTAssertEqual(old.requests, 1); XCTAssertEqual(next.requests, 1); XCTAssertNotNil(next.delegate)
         let measurement = fix()
         provider.locationManager(next, didUpdateLocations: [measurement])
-        guard case .location(let lng, let lat, let datum) = try await second.value else { return XCTFail() }
+        guard case .location(let lng, let lat, let datum, let accuracy, let time) = try await second.value else { return XCTFail() }
         XCTAssertEqual(lng, measurement.coordinate.longitude); XCTAssertEqual(lat, measurement.coordinate.latitude)
-        XCTAssertEqual(datum, "WGS84")
+        XCTAssertEqual(datum, "WGS84"); XCTAssertEqual(accuracy, 81); XCTAssertEqual(time, measurement.timestamp)
         XCTAssertNil(next.delegate); XCTAssertEqual(next.stops, 1)
         // Duplicate callbacks after success are harmless and cannot double resume.
         provider.locationManager(next, didUpdateLocations: [measurement])
@@ -115,8 +117,23 @@ import CoreLocation
         await fulfillment(of: [nextRequested], timeout: 1)
         provider.locationManager(old, didFailWithError: PlayExperienceError.disabled)
         provider.locationManager(next, didUpdateLocations: [fix(accuracy: 80)])
-        guard case .location(_, _, let datum) = try await second.value else { return XCTFail() }
-        XCTAssertEqual(datum, "WGS84")
+        guard case .location(_, _, let datum, let accuracy, _) = try await second.value else { return XCTFail() }
+        XCTAssertEqual(datum, "WGS84"); XCTAssertEqual(accuracy, 80)
+    }
+    func testNativeRejectsInvalidAccuracyStaleAndFutureSamples() async throws {
+        let samples = [fix(accuracy: -1), fix(accuracy: .infinity), fix(accuracy: .nan),
+                       fix(time: Date().addingTimeInterval(-31)), fix(time: Date().addingTimeInterval(60))]
+        for sample in samples {
+            let manager = PlayLocationManagerSpy(), requested = expectation(description: "requested")
+            manager.onRequest = { requested.fulfill() }
+            let provider = PlayNativeDeviceProvider(grants: [.location], makeLocationManager: { manager })
+            let context = try context()
+            let task = Task { try await provider.capture(.location, context: context) }
+            await fulfillment(of: [requested], timeout: 1)
+            provider.locationManager(manager, didUpdateLocations: [sample])
+            do { _ = try await task.value; XCTFail("Invalid native measurement accepted") } catch {}
+            XCTAssertNil(manager.delegate); XCTAssertEqual(manager.stops, 1)
+        }
     }
     func testMissingGrantNeverConstructsManager() async throws {
         let provider = PlayNativeDeviceProvider(makeLocationManager: { XCTFail("No grant"); return PlayLocationManagerSpy() })

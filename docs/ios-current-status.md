@@ -39,7 +39,7 @@
 | 卡 | 现有入口与当前证据 | 后端依赖 / 下一步与未闭合项 |
 |---|---|---|
 | I00 接续与准入 | 本页固定当前分支/SHA；[CN 会话合同](cn-native-session-contract.md)、[作用域源码](../Core/RegionalSessionStorageScope.swift) | C00；仅基线记录已建立。实际运行包、批准端点、账号/realm/role 读回未验；无证据保持 OFF |
-| I01 GPS与坐标 | [回调隔离修复](ios-i01-native-location-callback.md)已远端提交于 `8c24b744ebad3c6a71350f4992035ff5704fb52a`；是独立生命周期缺陷修复，NO_API_CHANGE | BK-GPS 当前冻结，原合同冻结阻塞已解除；accuracy/样本时间的完整 provider→projection→evidence→请求链适配排在本文档整合之后，尚未远端提交，需基于当前 7c21 源码重新核对/复核。坐标转换、精度边界、扫码兼容及设备执行仍待验 |
+| I01 GPS与坐标 | [回调隔离修复](ios-i01-native-location-callback.md)已远端提交于 `8c24b744ebad3c6a71350f4992035ff5704fb52a`；[测量精度/时间适配](ios-i01-location-fidelity.md)基于 `b6720951` 为当前本地源码候选，NOT_PUSHED，待独立复核 | BK-GPS 冻结阻塞已解除；重新核对控制 `ab377921` 和候选 `1e403b13`，accuracy 原值贯通 provider→projection→evidence→请求，时间只在本地，旧 UNKNOWN 身份/请求体不变。后端 SOURCE_READY 仅限其 CI 范围，TEST_DEPLOYED NO；本地 Swift/AppUnit/设备均 NOT_RUN，生产仍 OFF |
 | I02 未知写入与账号 | [会话运行时](../Core/PlayGameSessionRuntime.swift)、[订单协调器](../Core/OrderLifecycleCoordinator.swift)已有 receipt/retryExact/作用域实现；整卡待复核 | A01 / BK-SESSION；按原接口分别核 requestId、CAS、重启/双设备/迟到回包，不创造统一恢复 API，不把读取失败当清锁 |
 | I03 作者保存与媒体 | [作者模块](template-authoring-migration.md)、[发布回执](../Core/TemplateAuthoringPublishReceipt.swift)；整卡待复核 | B02/A03 / BK-AUTHOR、BK-NARRATIVE；保存重开、重排/媒体未知、旧局兼容与真实 ID 读回。首次 create 丢响应仍未知 |
 | I04 订单与资产 | [订单模块](order-lifecycle-module.md)、[钱包集成](wallet-commerce-integration.md)；既有原生能力保留，整卡待复核 | B03 / BK-ASSET；报价/退款/账本独立读回、SDK回跳及并发待验。无新收费、支付或出金授权 |

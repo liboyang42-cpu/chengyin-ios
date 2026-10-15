@@ -128,11 +128,14 @@ import PhotosUI
     }
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let reply = takeLocationReply(manager) else { return }
-        guard let location = locations.last, location.horizontalAccuracy >= 0, abs(location.timestamp.timeIntervalSinceNow) < 30 else {
-            reply.resume(throwing: PlayExperienceError.invalidAction); return
-        }
-        // CoreLocation is WGS84. Never relabel it GCJ02 or award local arrival.
-        reply.resume(returning: .location(location.coordinate.longitude, location.coordinate.latitude, coordinateSystem: "WGS84"))
+        do {
+            guard let location = locations.last,
+                  location.coordinate.longitude.isFinite, location.coordinate.latitude.isFinite,
+                  abs(location.coordinate.longitude) <= 180, abs(location.coordinate.latitude) <= 90 else { throw PlayExperienceError.invalidAction }
+            try PlayLocationMeasurement.validate(accuracyMeters: location.horizontalAccuracy, measuredAt: location.timestamp)
+            // CoreLocation is WGS84. Never relabel it GCJ02 or award local arrival.
+            reply.resume(returning: .location(location.coordinate.longitude, location.coordinate.latitude, coordinateSystem: "WGS84", accuracyMeters: location.horizontalAccuracy, measuredAt: location.timestamp))
+        } catch { reply.resume(throwing: error) }
     }
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         takeLocationReply(manager)?.resume(throwing: error)

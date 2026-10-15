@@ -29,10 +29,10 @@ import SwiftUI
                     case .scan(let code):
                         Text("playx.device.scanCaptured")
                         Button("playx.review") { onEvidence(.scan(code), outputContext) }.disabled(!model.canReviewOutput).accessibilityIdentifier("playx.device.review")
-                    case .location(let longitude, let latitude, let coordinateSystem):
+                    case .location(let longitude, let latitude, let coordinateSystem, let accuracyMeters, let measuredAt):
                         Text("playx.device.locationCaptured")
                         Text(verbatim: coordinateSystem).font(.caption)
-                        Button("playx.review") { onEvidence(.location(longitude: longitude, latitude: latitude, coordinateSystem: coordinateSystem), outputContext) }
+                        Button("playx.review") { onEvidence(.location(longitude: longitude, latitude: latitude, coordinateSystem: coordinateSystem, accuracyMeters: accuracyMeters, measuredAt: measuredAt), outputContext) }
                             .disabled(!model.canReviewOutput || coordinateSystem != "GCJ02").accessibilityIdentifier("playx.device.review")
                     case .photo(let bytes, let mime):
                         Text("playx.device.photoCaptured")
