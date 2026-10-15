@@ -1,5 +1,7 @@
 # Native iOS migration progress
 
+> **当前统一入口 / Current entry (2026-10-15): [iOS 范围、状态与证据](docs/ios-current-status.md).** 下文保留原时间点的计划或证据，不自动代表当前状态；历史数量、合同状态与运行结果不得移用于新提交。当前口径以上述入口为准。
+
 Status: migration in progress, not release-ready. This is a chronological log; the latest batch evidence is at the end. Older counts below are retained history, not current coverage.
 
 ## Working convention
