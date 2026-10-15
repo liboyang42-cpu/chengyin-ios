@@ -110,6 +110,178 @@ import XCTest
     }
 }
 
+@MainActor final class ClubSeriesExactScheduleFlowTests: XCTestCase {
+    private let now = ISO8601DateFormatter().date(from: "2026-10-11T01:00:00Z")!
+    private let dates = ["2026-10-12", "2026-10-26", "2026-11-02"]
+    private let scope = ClubGovernanceScope(clubID: 81, topicID: 91, seriesID: 101)
+    @MainActor private final class Access: ClubGovernanceAccess {
+        var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 1)
+        var isConfigured = true
+        let storageNamespace = "exact-series-fixture"
+        let journalRealm = "exact-series-realm"
+        let allowsOfflineWrites = true
+        var authorizationGeneration: UUID? = UUID()
+        var submitted: [ClubGovernanceCommand] = []
+        var sendFailure: ClubGovernanceFailure?
+        var readFailure: ClubGovernanceFailure?
+        var value: ClubGovernanceValue = .object([
+            "id": .integer(101), "clubId": .integer(81), "topicId": .integer(91), "version": .integer(7),
+            "recurrenceType": .string("WEEKLY"), "startTime": .string("00:30"),
+            "futureDates": .array([.string("2026-10-12"), .string("2026-10-26"), .string("2026-11-02")]),
+            "defaultLeadMemberId": .integer(41), "defaultCapacity": .integer(12),
+            "waitlistEnabled": .bool(true), "offerMinutes": .integer(60)])
+        func snapshot(_ operation: ClubGovernanceRead = .seriesDetail, scope: ClubGovernanceScope) throws -> ClubGovernanceSnapshot {
+            let permission = try ClubGovernancePermissions(value: .object([
+                "active": .bool(true), "club": .object(["id": .integer(81)]), "roleCodes": .array([]),
+                "permissions": .array([.string("club:activity:manage")])]), scope: scope)
+            return .init(operation: operation, scope: scope, permissions: permission,
+                value: operation == .members ? .array([.object(["memberId": .integer(41)])]) : value)
+        }
+        func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue]) async throws -> ClubGovernanceSnapshot {
+            if let readFailure { throw readFailure }
+            return try snapshot(operation, scope: scope)
+        }
+        func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue {
+            submitted.append(review.command)
+            if let sendFailure { throw sendFailure }
+            return .object(["id": .integer(101)])
+        }
+        func replaceReadback(dates: [String], version: Int, recurrence: String = "CUSTOM_DATES") {
+            var fields = value.object ?? [:]
+            fields["futureDates"] = .array(dates.map(ClubGovernanceValue.string))
+            fields["version"] = .integer(version); fields["recurrenceType"] = .string(recurrence)
+            value = .object(fields)
+        }
+    }
+    private func source(_ access: Access, generation: UInt64 = 1) throws -> ClubSeriesUpdateReturn.Source {
+        let context = ClubGovernanceReadContext(operation: .seriesDetail, scope: scope, identity: access.identity,
+            viewerRevision: 0, authorizationGeneration: access.authorizationGeneration, accessIdentity: ObjectIdentifier(access))
+        return try XCTUnwrap(.init(context: context, snapshot: access.snapshot(scope: scope), generation: generation, access: access))
+    }
+    private func form(_ item: ClubSeriesUpdateReturn.Item) -> ClubGovernanceFormDraft {
+        .init(operation: item.route.operation, scope: item.route.scope, seed: item.route.seed)
+    }
+    private func applied(_ item: ClubSeriesUpdateReturn.Item, _ access: Access) throws -> ClubGovernanceFormDraft {
+        let draft = form(item)
+        let session = try XCTUnwrap(ClubSeriesScheduleSession(form: draft, identity: access.identity, access: access, now: now))
+        XCTAssertTrue(session.initial.preservesReadbackAsCustomDates)
+        XCTAssertEqual(session.initial.requestedDates, dates)
+        return try session.initial.applying(to: draft, now: now)
+    }
+    func testDetailEditorPreviewSaveAcknowledgementAndIndependentReadKeepExactDates() async throws {
+        let access = Access(), owner = ClubSeriesUpdateReturn(), source = try source(access)
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item), draft = try applied(item, access)
+        let coordinator = ClubGovernanceCoordinator(access: access), review = try await coordinator.prepare(draft.command())
+        XCTAssertEqual(review.command.fields["customDates"], .array(dates.map(ClubGovernanceValue.string)))
+        XCTAssertEqual(review.command.fields["recurrenceType"], .string("CUSTOM_DATES"))
+        XCTAssertEqual(review.command.fields["startTime"], .string("00:30"))
+        XCTAssertNil(review.command.fields["requestId"])
+        XCTAssertTrue(owner.begin(review, state: coordinator.state, item: item, source: source, active: true))
+        let receipt = try await coordinator.confirm(review)
+        owner.acknowledge(review, receipt: receipt, state: coordinator.state, item: item, source: source, active: true)
+        owner.dismissed(item, source: source, active: true)
+        XCTAssertNotNil(owner.consume(source: source, visible: true, active: true))
+        access.replaceReadback(dates: dates, version: 8)
+        let fresh = try await access.read(.seriesDetail, scope: scope, options: [:])
+        let reopened = ClubGovernanceFormDraft(operation: .updateSeries, scope: scope, seed: fresh.value.object ?? [:])
+        XCTAssertEqual(ClubSeriesScheduleDraft(form: reopened, now: now).requestedDates, dates)
+        XCTAssertEqual(reopened.anchors["expectedVersion"], .integer(8))
+        XCTAssertEqual(access.submitted, [review.command])
+        XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity))
+    }
+    func testCancelAndResetOfConvertedEditorNeverMutateOriginalOrSend() throws {
+        let access = Access(), owner = ClubSeriesUpdateReturn(), source = try source(access)
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item), draft = form(item)
+        let session = try XCTUnwrap(ClubSeriesScheduleSession(form: draft, identity: access.identity, access: access, now: now))
+        var edited = session.initial; edited.customDates[0].day = "2026-10-13"; edited.startTime = "16:45"
+        edited = session.initial
+        XCTAssertEqual(edited.requestedDates, dates); XCTAssertEqual(edited.startTime, "00:30")
+        XCTAssertFalse(session.isCurrent(activeID: nil, form: draft, identity: access.identity, access: access))
+        XCTAssertEqual(draft.text["recurrenceType"], "WEEKLY"); XCTAssertEqual(draft.text["startDate"], "")
+        XCTAssertEqual(draft.text["customDates"], dates.joined(separator: ",")); XCTAssertTrue(access.submitted.isEmpty)
+    }
+    func testAppliedScheduleReopensWithExactDatesAndInvalidatesOldSheet() throws {
+        let access = Access(), owner = ClubSeriesUpdateReturn(), source = try source(access)
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item), draft = form(item)
+        let first = try XCTUnwrap(ClubSeriesScheduleSession(form: draft, identity: access.identity, access: access, now: now))
+        let next = try first.initial.applying(to: draft, now: now)
+        XCTAssertFalse(first.isCurrent(activeID: first.id, form: next, identity: access.identity, access: access))
+        let reopened = try XCTUnwrap(ClubSeriesScheduleSession(form: next, identity: access.identity, access: access, now: now))
+        XCTAssertEqual(reopened.initial.requestedDates, dates); XCTAssertEqual(reopened.initial.recurrence, "CUSTOM_DATES")
+        XCTAssertTrue(access.submitted.isEmpty)
+    }
+    func testOldVersionErrorKeepsDraftAndFreshDetailRequiresNewReview() async throws {
+        let access = Access(), owner = ClubSeriesUpdateReturn(), source = try source(access)
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item), draft = try applied(item, access)
+        let coordinator = ClubGovernanceCoordinator(access: access), review = try await coordinator.prepare(draft.command())
+        let changedDates = ["2026-10-12", "2026-11-02"]
+        access.replaceReadback(dates: changedDates, version: 8)
+        do { _ = try await coordinator.confirm(review); XCTFail("Expected stale review") }
+        catch { XCTAssertEqual(error as? ClubGovernanceFailure, .staleReview) }
+        XCTAssertTrue(access.submitted.isEmpty); XCTAssertEqual(ClubSeriesScheduleDraft(form: draft, now: now).requestedDates, dates)
+        XCTAssertNil(owner.consume(source: source, visible: true, active: true))
+        let fresh = try self.source(access, generation: 2)
+        owner.invalidateUnlessCurrent(source: fresh, active: true); owner.open(fresh, visible: true, active: true)
+        let next = try XCTUnwrap(owner.item), nextForm = form(next)
+        let selection = ClubSeriesScheduleDraft(form: nextForm, now: now)
+        XCTAssertEqual(selection.requestedDates, changedDates)
+        let nextReview = try await coordinator.prepare(selection.applying(to: nextForm, now: now).command())
+        XCTAssertNotEqual(nextReview.id, review.id); XCTAssertEqual(nextReview.command.fields["expectedVersion"], .integer(8))
+    }
+    func testProtectedDateConflictDoesNotAcknowledgeOrChangeExactDraft() async throws {
+        let access = Access(), owner = ClubSeriesUpdateReturn(), source = try source(access)
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item), draft = try applied(item, access)
+        let coordinator = ClubGovernanceCoordinator(access: access), review = try await coordinator.prepare(draft.command())
+        XCTAssertTrue(owner.begin(review, state: coordinator.state, item: item, source: source, active: true))
+        access.sendFailure = .conflict(message: "Synthetic protected occurrence")
+        do { _ = try await coordinator.confirm(review); XCTFail("Expected conflict") } catch {}
+        owner.acknowledge(review, receipt: .object(["id": .integer(101)]), state: coordinator.state, item: item, source: source, active: true)
+        XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.consume(source: source, visible: true, active: true))
+        XCTAssertEqual(coordinator.state, .conflict); XCTAssertEqual(access.submitted, [review.command])
+        XCTAssertEqual(ClubSeriesScheduleDraft(form: draft, now: now).requestedDates, dates)
+    }
+    func testUnknownSaveRetainsOriginalExactCommandAndReadbackCannotReplayIt() async throws {
+        let access = Access(), owner = ClubSeriesUpdateReturn(), source = try source(access)
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item), draft = try applied(item, access)
+        let coordinator = ClubGovernanceCoordinator(access: access), review = try await coordinator.prepare(draft.command())
+        XCTAssertTrue(owner.begin(review, state: coordinator.state, item: item, source: source, active: true))
+        access.sendFailure = .unknown(message: nil)
+        do { _ = try await coordinator.confirm(review); XCTFail("Expected unknown") } catch {}
+        owner.acknowledge(review, receipt: .object(["id": .integer(101)]), state: coordinator.state, item: item, source: source, active: true)
+        access.replaceReadback(dates: dates, version: 8)
+        _ = try await access.read(.seriesDetail, scope: scope, options: [:])
+        XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.consume(source: source, visible: true, active: true))
+        XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity))
+        do { _ = try await coordinator.prepare(draft.command()); XCTFail("A matching readback is not a receipt") }
+        catch { XCTAssertEqual(error as? ClubGovernanceFailure, .outcomeLocked) }
+        XCTAssertEqual(access.submitted, [review.command]); XCTAssertEqual(review.command.fields["customDates"], .array(dates.map(ClubGovernanceValue.string)))
+    }
+    func testReadbackFailureAfterAcknowledgementDoesNotResend() async throws {
+        let access = Access(), owner = ClubSeriesUpdateReturn(), source = try source(access)
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item), draft = try applied(item, access)
+        let coordinator = ClubGovernanceCoordinator(access: access), review = try await coordinator.prepare(draft.command())
+        XCTAssertTrue(owner.begin(review, state: coordinator.state, item: item, source: source, active: true))
+        let receipt = try await coordinator.confirm(review)
+        owner.acknowledge(review, receipt: receipt, state: coordinator.state, item: item, source: source, active: true)
+        owner.dismissed(item, source: source, active: true)
+        XCTAssertNotNil(owner.consume(source: source, visible: true, active: true))
+        access.readFailure = .malformed
+        do { _ = try await access.read(.seriesDetail, scope: scope, options: [:]); XCTFail("Expected failed read") } catch {}
+        XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity)); XCTAssertEqual(access.submitted, [review.command])
+        access.readFailure = nil; access.replaceReadback(dates: dates, version: 8)
+        let fresh = try await access.read(.seriesDetail, scope: scope, options: [:])
+        XCTAssertEqual(fresh.value["futureDates"], .array(dates.map(ClubGovernanceValue.string)))
+        XCTAssertEqual(access.submitted, [review.command])
+    }
+}
+
 @MainActor final class ClubSeriesUpdateReturnTests: XCTestCase {
     @MainActor private final class Access: ClubGovernanceAccess {
         var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 1)

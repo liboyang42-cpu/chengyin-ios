@@ -80,6 +80,13 @@ import SwiftUI
                     if !(draft.text["startDate"] ?? "").isEmpty {
                         ClubGovernanceFactRows(value: .object(draft.text.filter { ClubSeriesScheduleDraft.fieldKeys.contains($0.key) }.mapValues(ClubGovernanceValue.string)),
                             fields: ["recurrenceType", "startDate", "startTime", "occurrenceCount", "customDates"])
+                        if showsCustomDateConversion {
+                            Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
+                                .accessibilityIdentifier("club.schedule.formConversion")
+                        }
+                        if let issue = ClubSeriesScheduleDraft(form: draft, now: Date()).issue(now: Date()) {
+                            ClubSeriesScheduleIssueLabel(issue: issue)
+                        }
                     } else { Text("club.schedule.choose") }
                 }
                 if isSeries {
@@ -111,6 +118,10 @@ import SwiftUI
             if let review {
                 Section("club.gov.review") {
                     ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted(), showUnknown: true)
+                    if showsCustomDateConversion {
+                        Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
+                            .accessibilityIdentifier("club.schedule.reviewConversion")
+                    }
                     if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["recipientCount", "inApp", "wechatSubscription"]) }
                     Button(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction") { Task { await confirm(review) } }
                         .disabled(!access.canDispatch(review.command) || busy || locked).accessibilityIdentifier("club.gov.confirm")
@@ -244,6 +255,10 @@ import SwiftUI
             memberID: draft.text["defaultLeadMemberId"] ?? "")
     }
     private var isSeries: Bool { [.createSeries, .updateSeries].contains(route.operation) }
+    private var showsCustomDateConversion: Bool {
+        route.operation == .updateSeries && draft.text["recurrenceType"] == "CUSTOM_DATES" &&
+        route.seed["recurrenceType"]?.string != "CUSTOM_DATES"
+    }
     private var seriesScheduleReady: Bool {
         !isSeries || (!(draft.text["startDate"] ?? "").isEmpty && ClubSeriesScheduleDraft(form: draft, now: Date()).issue(now: Date()) == nil)
     }
@@ -265,6 +280,7 @@ import SwiftUI
             }
             let pending = try await coordinator.prepare(draft.command())
             guard revision == generation, expected == identity, expected == access.identity else { return }
+            guard seriesScheduleReady else { coordinator.cancelReview(); throw ClubGovernanceFailure.invalidRequest }
             review = pending
         } catch { if revision == generation && expected == identity { failure = error as? ClubGovernanceFailure ?? .malformed } }
         if revision == generation { busy = false }
@@ -273,10 +289,13 @@ import SwiftUI
         let revision = generation, expected = identity; busy = true; failure = nil
         let submittedRequestID = draft.requestID
         do {
+            // A reviewed schedule may have crossed Shanghai midnight while left open.
+            guard seriesScheduleReady else { coordinator.cancelReview(); throw ClubGovernanceFailure.invalidRequest }
             if let validateTarget {
                 try await validateTarget()
                 guard revision == generation, expected == identity, expected == access.identity, !Task.isCancelled else { return }
             }
+            guard seriesScheduleReady else { coordinator.cancelReview(); throw ClubGovernanceFailure.invalidRequest }
             if let caseSubmissionReturn, !caseSubmissionReturn.begin(review) { throw ClubGovernanceFailure.staleReview }
             let returnsToRoster = route.operation == .correctAttendance && attendanceReturn?.begin(review) == true
             let returnsToRoles = [ClubGovernanceMutation.assignRole, .revokeRole].contains(route.operation) && roleManagementReturn?.begin(review) == true

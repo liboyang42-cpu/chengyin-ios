@@ -41,7 +41,10 @@ import SwiftUI
             Form {
                 Section {
                     Text("club.schedule.shanghai")
-                    if session.operation == .updateSeries { Text("club.schedule.newDatesOnly") }
+                    if session.operation == .updateSeries {
+                        Text("club.schedule.editTime", tableName: "ClubSeriesSchedule")
+                        Text("club.schedule.futureOnly", tableName: "ClubSeriesSchedule")
+                    }
                 }
                 Section("club.gov.field.recurrenceType") {
                     Picker("club.gov.field.recurrenceType", selection: $schedule.recurrence) {
@@ -67,7 +70,7 @@ import SwiftUI
                                     .disabled(schedule.customDates.count <= 1).buttonStyle(.borderless)
                             }
                         }
-                        Button("club.schedule.add") { schedule.addDate() }
+                        Button("club.schedule.add") { schedule.addDate(now: clock.date) }
                             .disabled(schedule.customDates.count >= 64).accessibilityIdentifier("club.schedule.add")
                     }
                     if ClubSeriesScheduleDraft.parseTime(schedule.startTime) == nil {
@@ -86,12 +89,20 @@ import SwiftUI
                 }
                 Section("club.schedule.preview") {
                     Text("club.schedule.previewNote")
+                    if session.initial.preservesReadbackAsCustomDates && schedule.recurrence == ClubSeriesScheduleDraft.Recurrence.custom.rawValue {
+                        Text("club.schedule.preserveRemaining", tableName: "ClubSeriesSchedule")
+                            .accessibilityIdentifier("club.schedule.preserveRemaining")
+                    }
+                    if session.operation == .updateSeries && schedule.recurrence == ClubSeriesScheduleDraft.Recurrence.custom.rawValue {
+                        Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
+                            .accessibilityIdentifier("club.schedule.customConversion")
+                    }
                     ForEach(Array(schedule.requestedDates.enumerated()), id: \.offset) { _, day in
                         Text(verbatim: day + " " + schedule.startTime).accessibilityIdentifier("club.schedule.requestedDate")
                     }
                 }
                 if let issue = schedule.issue(now: clock.date) {
-                    Section { Text(LocalizedStringKey(issue.localizationKey)).accessibilityIdentifier("club.schedule.error") }
+                    Section { ClubSeriesScheduleIssueLabel(issue: issue).accessibilityIdentifier("club.schedule.error") }
                 }
                 if stale || !canApply() { Section { Text("club.schedule.expired").accessibilityIdentifier("club.schedule.expired") } }
                 Section {
@@ -113,18 +124,26 @@ import SwiftUI
             }
         }
     }
-    private func minimumDay(_ now: Date) -> Date { ClubSeriesScheduleDraft.calendar.startOfDay(for: now) }
+    private func minimumDay(_ now: Date) -> Date { schedule.minimumDate(now: now) }
     private func dayBinding(now: Date) -> Binding<Date> {
-        .init(get: { ClubSeriesScheduleDraft.parseDay(schedule.startDate) ?? now }, set: { schedule.startDate = ClubSeriesScheduleDraft.day($0) })
+        .init(get: { ClubSeriesScheduleDraft.parseDay(schedule.startDate) ?? minimumDay(now) }, set: { schedule.startDate = ClubSeriesScheduleDraft.day($0) })
     }
     private func customBinding(_ id: UUID, now: Date) -> Binding<Date> {
-        .init(get: { ClubSeriesScheduleDraft.parseDay(schedule.customDates.first(where: { $0.id == id })?.day ?? "") ?? now }, set: { value in
+        .init(get: { ClubSeriesScheduleDraft.parseDay(schedule.customDates.first(where: { $0.id == id })?.day ?? "") ?? minimumDay(now) }, set: { value in
             guard let index = schedule.customDates.firstIndex(where: { $0.id == id }) else { return }
             schedule.customDates[index].day = ClubSeriesScheduleDraft.day(value)
         })
     }
     private var timeBinding: Binding<Date> {
         .init(get: { ClubSeriesScheduleDraft.parseTime(schedule.startTime) ?? ClubSeriesScheduleDraft.parseTime("09:00")! }, set: { schedule.startTime = ClubSeriesScheduleDraft.time($0) })
+    }
+}
+
+struct ClubSeriesScheduleIssueLabel: View {
+    let issue: ClubSeriesScheduleDraft.Issue
+    var body: some View {
+        if issue == .futureOnly { Text("club.schedule.futureOnly", tableName: "ClubSeriesSchedule") }
+        else { Text(LocalizedStringKey(issue.localizationKey)) }
     }
 }
 

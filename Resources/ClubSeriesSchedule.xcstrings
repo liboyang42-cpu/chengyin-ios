@@ -1,0 +1,70 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "club.schedule.editTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing dates keep their saved times. The chosen time is used only for newly added dates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留的日期沿用已保存的时刻；所选时刻只用于新增日期。"
+          }
+        }
+      }
+    },
+    "club.schedule.futureOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose tomorrow or later in Shanghai time. Today’s dates stay in this draft until you explicitly change or remove them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请按上海时间选择明天及之后的日期。今天的日期会保留在草稿中，直到你明确修改或移除。"
+          }
+        }
+      }
+    },
+    "club.schedule.preserveRemaining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The remaining dates do not match the saved repeat pattern. Custom dates keeps the saved date list instead of regenerating it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余日期与已保存的重复方式不一致，使用自定义日期可保留原日期列表，不会重新生成连续场次。"
+          }
+        }
+      }
+    },
+    "club.schedule.customConversion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This schedule uses Custom dates. Saving stores Custom dates as the series repeat pattern; only the listed dates are requested."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此排期使用自定义日期。保存后，系列的重复方式将设为自定义日期，只请求列表中的日期。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
