@@ -181,6 +181,62 @@ import XCTest
         p.requestAbandon(h.flow.retryRecovery()!, coordinator: h.flow, revision: h.revision, sceneActive: false); XCTAssertNil(p.confirmation)
         XCTAssertEqual(h.wire.requests.count, 1)
     }
+    func testServerUnknownUsesExistingRecoveryWithoutRetryOrComposerSuccess() async throws {
+        let h = Harness(); h.wire.unknown = false; h.wire.serverOutcomeUnknown = true
+        let submitted = "Original question"; let completion = await h.flow.send(submitted)
+        let value = try XCTUnwrap(h.flow.retryRecovery())
+        XCTAssertEqual(value.state, .unavailable); XCTAssertTrue(value.outcomeUnknown)
+        XCTAssertFalse(h.flow.canRetry); XCTAssertFalse(h.flow.canSend); XCTAssertTrue(value.canAbandon)
+        XCTAssertEqual(h.flow.reply?.safeText, "The original request outcome is unknown.")
+        XCTAssertFalse(MerchantNPCComposerRetention.shouldClear(submitted: submitted, currentDraft: submitted,
+            capturedGeneration: 0, currentGeneration: 0, completion: completion, coordinator: h.flow))
+        XCTAssertTrue(h.flow.conversationHistory.turns.isEmpty); XCTAssertEqual(h.wire.requests.count, 1)
+        await h.flow.retry(requestID: value.requestID); XCTAssertEqual(h.wire.requests.count, 1)
+    }
+    func testServerUnknownAbandonCancelPreservesLockAndConfirmOnlyReleasesLocalRequest() async throws {
+        let h = Harness(); h.wire.unknown = false; h.wire.serverOutcomeUnknown = true
+        await h.flow.send("Original"); let id = try XCTUnwrap(h.flow.requestID)
+        var p = pending(h); XCTAssertNotNil(p.confirmation)
+        p.cancel(); XCTAssertEqual(h.flow.requestID, id); XCTAssertFalse(h.flow.canSend); XCTAssertFalse(h.flow.canRetry)
+        p = pending(h); let token = try XCTUnwrap(p.confirmation)
+        XCTAssertTrue(p.confirm(token, coordinator: h.flow, revision: h.revision, sceneActive: true))
+        XCTAssertNil(h.flow.requestID); XCTAssertNil(h.flow.reply); XCTAssertTrue(h.flow.canSend)
+        XCTAssertEqual(h.wire.requests.count, 1)
+        XCTAssertFalse(p.confirm(token, coordinator: h.flow, revision: h.revision, sceneActive: true))
+    }
+    func testTransportUnknownConfirmationCannotBeReusedAfterServerDeclaresNoRetry() async throws {
+        let h = Harness(); await h.flow.send("Original")
+        var p = pending(h); let token = try XCTUnwrap(p.confirmation); let oldRevision = h.revision
+        h.wire.unknown = false; h.wire.serverOutcomeUnknown = true; await h.flow.retry()
+        XCTAssertFalse(h.flow.canRetry); XCTAssertEqual(h.flow.retryRecovery()?.state, .unavailable)
+        XCTAssertFalse(p.confirm(token, coordinator: h.flow, revision: oldRevision, sceneActive: true))
+        XCTAssertNotNil(h.flow.requestID); XCTAssertEqual(h.wire.requests.count, 2)
+    }
+    func testServerUnknownScopeOrGrantRevocationRetiresRecoveryConfirmation() async throws {
+        let h = Harness(); h.wire.unknown = false; h.wire.serverOutcomeUnknown = true
+        await h.flow.send("Original"); var p = pending(h); let token = try XCTUnwrap(p.confirmation)
+        h.grants.legal = false
+        XCTAssertNil(h.flow.retryRecovery()); XCTAssertFalse(h.flow.canSend); XCTAssertFalse(h.flow.canRetry)
+        XCTAssertFalse(p.confirm(token, coordinator: h.flow, revision: h.revision, sceneActive: true))
+        h.grants.legal = true; h.current = nil
+        XCTAssertNil(h.flow.retryRecovery())
+        XCTAssertFalse(p.confirm(token, coordinator: h.flow, revision: h.revision, sceneActive: true))
+        XCTAssertEqual(h.wire.requests.count, 1)
+    }
+    func testLateServerUnknownCannotRestoreAnInterruptedOrReplacedConversation() async throws {
+        let h = Harness(); h.wire.unknown = false; h.wire.serverOutcomeUnknown = true; h.wire.hold = true
+        let task = Task { await h.flow.send("Old private question") }
+        for _ in 0..<100 where h.wire.continuation == nil { await Task.yield() }
+        guard h.wire.continuation != nil else { task.cancel(); XCTFail("Transport did not start"); return }
+        h.flow.interrupt(); h.flow.resumeAfterInterruption()
+        h.wire.hold = false; h.wire.serverOutcomeUnknown = false; h.wire.success = true
+        let completion = await h.flow.send("Current question")
+        let history = h.flow.conversationHistory; XCTAssertNotNil(completion)
+        h.wire.serverOutcomeUnknown = true; h.wire.success = false; h.wire.release(); _ = await task.value
+        XCTAssertEqual(h.flow.conversationHistory, history); XCTAssertEqual(h.flow.message, "Current question")
+        XCTAssertEqual(h.flow.reply?.succeeded, true); XCTAssertNil(h.flow.requestID)
+        XCTAssertNil(h.flow.retryRecovery()); XCTAssertEqual(h.wire.requests.count, 2)
+    }
     private func pending(_ h: Harness) -> MerchantNPCRecoveryPresentation {
         var p = MerchantNPCRecoveryPresentation(); p.appear(active: true)
         p.requestAbandon(h.flow.retryRecovery()!, coordinator: h.flow, revision: h.revision, sceneActive: true)
@@ -201,7 +257,7 @@ import XCTest
     }
     @MainActor private final class Wire: MerchantNPCHTTPTransport {
         var requests: [MerchantNPCHTTPRequest] = []
-        var unknown = true, success = false, hold = false
+        var unknown = true, success = false, hold = false, serverOutcomeUnknown = false
         var delay = 0
         var continuation: CheckedContinuation<Void, Never>?
         func release() { let value = continuation; continuation = nil; value?.resume() }
@@ -211,10 +267,14 @@ import XCTest
             if unknown { throw MerchantNPCFailure.unknownOutcome }
             let sent = try XCTUnwrap(JSONSerialization.jsonObject(with: request.body) as? [String: Any])
             let id = try XCTUnwrap(sent["requestId"] as? String)
-            return .init(status: 200, body: try JSONSerialization.data(withJSONObject: ["code": 200, "data": [
-                "requestId": id, "outcomeStatus": success ? "SUCCEEDED" : "PROCESSING", "safetyDecision": success ? "PASS" : "NOT_RUN",
-                "retryable": !success, "retryAfterSeconds": delay, "safeText": success ? "Safe reply" : "Still processing"
-            ]]))
+            var payload: [String: Any] = [
+                "requestId": id, "outcomeStatus": success ? "SUCCEEDED" : "PROCESSING",
+                "safetyDecision": success ? "PASS" : serverOutcomeUnknown ? "UNKNOWN" : "NOT_RUN",
+                "retryable": !success && !serverOutcomeUnknown, "retryAfterSeconds": delay,
+                "safeText": success ? "Safe reply" : serverOutcomeUnknown ? "The original request outcome is unknown." : "Still processing"
+            ]
+            if serverOutcomeUnknown { payload["errorCode"] = "REQUEST_OUTCOME_UNKNOWN" }
+            return .init(status: 200, body: try JSONSerialization.data(withJSONObject: ["code": 200, "data": payload]))
         }
     }
 }

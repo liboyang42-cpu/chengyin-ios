@@ -38,7 +38,13 @@ public struct MerchantNPCReply: Decodable, Equatable {
         requestID != nil && outcomeStatus == "SUCCEEDED" && retryable == false && safetyDecision == "PASS" &&
         safeText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
     }
-    public var canRetry: Bool { retryable == true || outcomeStatus == "PROCESSING" }
+    /// PROCESSING alone is not permission to retry. The frozen service also uses
+    /// it for an unresolved outcome with retry explicitly disabled.
+    public var canRetry: Bool { retryable == true }
+    public var hasUnknownOutcome: Bool {
+        outcomeStatus == "PROCESSING" && safetyDecision == "UNKNOWN" &&
+        errorCode == "REQUEST_OUTCOME_UNKNOWN" && retryable == false
+    }
     public var successAudioURL: String? { succeeded ? audioUrl : nil }
     private enum CodingKeys: String, CodingKey {
         case requestID = "requestId"
@@ -48,7 +54,8 @@ public struct MerchantNPCReply: Decodable, Equatable {
     /// treat the reply as belonging to the submitted request. No authority is minted.
     func validate(requestID expected: UUID) throws {
         guard requestID == expected, ["SUCCEEDED", "REJECTED", "FAILED", "PROCESSING"].contains(outcomeStatus),
-              let retryable, let safetyDecision, ["PASS", "BLOCKED", "NOT_RUN"].contains(safetyDecision),
+              let retryable, let safetyDecision,
+              ["PASS", "BLOCKED", "NOT_RUN"].contains(safetyDecision) || hasUnknownOutcome,
               (safeText?.utf8.count ?? 0) <= 32_768 else { throw MerchantNPCFailure.malformed }
         // Current 9b emits one second for processing, or secondsUntilTomorrow (<= 86400).
         if let seconds = retryAfterSeconds, !(0...86_400).contains(seconds) { throw MerchantNPCFailure.malformed }

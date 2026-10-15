@@ -124,8 +124,14 @@ public struct MerchantNPCMessageDraft: Equatable {
     }
     public var isStoppingLocalWait: Bool { isCurrent && !sending && transmission != nil }
     public var canAbandon: Bool { isCurrent && !sending && transmission == nil }
+    /// A decoded server denial wins over the local transport-unknown fallback.
+    /// Only an absent response uses the existing exact-request retry contract.
+    private var outcomeAllowsRetry: Bool {
+        if let reply { return reply.canRetry }
+        return failure == .unknownOutcome
+    }
     public var canRetry: Bool {
-        isCurrent && grants().chatAllowed && !sending && transmission == nil && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && (reply?.canRetry == true || failure == .unknownOutcome)
+        isCurrent && grants().chatAllowed && !sending && transmission == nil && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && outcomeAllowsRetry
     }
     /// Read-only explanation of the existing retry gates. It never grants a send,
     /// changes the deadline or replaces the original request/body.
@@ -146,14 +152,14 @@ public struct MerchantNPCMessageDraft: Equatable {
         let state: RetryRecovery.State
         if sending { state = .waitingForReply }
         else if transmission != nil { state = .stoppingLocalWait }
+        else if !outcomeAllowsRetry { state = .unavailable }
         else if attempts >= 3 { state = .attemptLimitReached }
-        else if !(reply?.canRetry == true || failure == .unknownOutcome) { state = .unavailable }
         else if let retryAt, retryAt > now {
             let seconds = retryAt.timeIntervalSince(now)
             state = .cooldown(seconds: seconds.isFinite ? Int(min(86_400, max(1, ceil(seconds)))) : 86_400)
         } else { state = .retryAvailable }
         return RetryRecovery(requestID: requestID, attemptCount: attempts, retryAt: retryAt,
-            state: state, outcomeUnknown: failure == .unknownOutcome, canAbandon: canAbandon)
+            state: state, outcomeUnknown: reply?.hasUnknownOutcome == true || failure == .unknownOutcome, canAbandon: canAbandon)
     }
     @discardableResult public func retry() async -> CompletedRequest? {
         guard let capturedRequestID = requestID else { return nil }
@@ -209,7 +215,10 @@ public struct MerchantNPCMessageDraft: Equatable {
             reply = result
             storedHistory.record(requestID: requestID, question: message, reply: result)
             retryAt = Date().addingTimeInterval(TimeInterval(max(0, result.retryAfterSeconds ?? 0)))
-            if !result.canRetry { self.requestID = nil }
+            // A non-retryable PROCESSING reply is still unresolved. Keep the
+            // original request/input until the existing explicit local abandon
+            // or lifecycle retirement; never unlock a new send from this reply.
+            if !result.canRetry, result.outcomeStatus != "PROCESSING" { self.requestID = nil }
             if result.succeeded, !result.canRetry, result.safeText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
                 completedOperation = operation
             }
