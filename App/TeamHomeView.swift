@@ -28,7 +28,10 @@ import SwiftUI
                         .buttonStyle(.plain).accessibilityIdentifier("team.row.\(team.id)")
                 }
                 if model.coordinator.authenticated && model.coordinator.configured {
-                    Button("team.refresh") { Task { await reload() } }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
+                    Button("team.refresh") {
+                        let permit = model.captureRun()
+                        Task { await reload(permit: permit) }
+                    }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding()
         }.appNavigationTitle("team.title")
@@ -36,7 +39,9 @@ import SwiftUI
             .task { await reload() }.refreshable { await reload() }
             .onDisappear { model.leave() }
     }
-    private func reload() async { await model.run { await model.coordinator.loadTeams() } }
+    private func reload(permit: TeamScreenModel.RunPermit? = nil) async {
+        await model.run(permit: permit) { await model.coordinator.loadTeams() }
+    }
 }
 @MainActor struct TeamDetailView: View {
     let lookup: TeamLookup
@@ -105,11 +110,17 @@ import SwiftUI
                     }
                 }
                 if !readOnly, model.coordinator.pending != nil {
-                    Button("team.checkOutcome") { Task { await model.run { await model.coordinator.checkOutcome() } } }
+                    Button("team.checkOutcome") {
+                        let permit = model.captureRun()
+                        Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
+                    }
                         .frame(minHeight: 44).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
                 }
                 if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil {
-                    Button("team.refresh") { Task { await reload() } }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
+                    Button("team.refresh") {
+                        let permit = model.captureRun()
+                        Task { await reload(permit: permit) }
+                    }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding()
         }.appNavigationTitle(invitationCode == nil ? "team.detail" : "team.invitation")
@@ -125,8 +136,8 @@ import SwiftUI
                 .accessibilityIdentifier(action.key)
         }
     }
-    private func reload() async {
-        await model.run {
+    private func reload(permit: TeamScreenModel.RunPermit? = nil) async {
+        await model.run(permit: permit) {
             if readOnly, case .id(let teamID) = lookup { await model.coordinator.loadPostJoinDetail(teamID: teamID) }
             else { await model.coordinator.loadDetail(lookup, requireMembership: requiresMembership) }
         }

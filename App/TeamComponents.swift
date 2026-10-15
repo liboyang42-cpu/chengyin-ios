@@ -1,16 +1,35 @@
 import SwiftUI
 
 @MainActor final class TeamScreenModel: ObservableObject {
+    struct RunPermit: Equatable { fileprivate let presentationID: UUID }
     let coordinator: TeamCoordinator
     @Published private(set) var running = false
+    private var presentationID = UUID()
+    private var runID: UUID?
     init(_ coordinator: TeamCoordinator) { self.coordinator = coordinator }
-    func run(_ operation: () async -> Void) async {
-        guard !running else { return }; running = true
-        await operation(); running = false
+    /// Capture synchronously in a button action, before creating its unstructured Task.
+    func captureRun() -> RunPermit { .init(presentationID: presentationID) }
+    /// Structured view tasks may omit a permit: their cancellation is checked at entry.
+    @discardableResult func run(permit: RunPermit? = nil, _ operation: () async -> Void) async -> Bool {
+        guard !running, !Task.isCancelled,
+              permit == nil || permit?.presentationID == presentationID else { return false }
+        let id = UUID(); runID = id; running = true
+        defer {
+            // A departed operation may finish after the returning screen starts a
+            // fresh read. It must not release that read's loading/action guard.
+            if runID == id { runID = nil; running = false }
+        }
+        await operation()
+        return runID == id && !Task.isCancelled
     }
     func prepare(_ action: TeamAction) { coordinator.prepare(action); objectWillChange.send() }
     func cancel() { coordinator.cancelReview(); objectWillChange.send() }
-    func leave() { coordinator.leaveScreen(); objectWillChange.send() }
+    func leave() {
+        // The coordinator retires old results and keeps unresolved write locks.
+        // Release only this screen run so re-entry need not await the old transport.
+        presentationID = UUID(); runID = nil
+        coordinator.leaveScreen(); running = false; objectWillChange.send()
+    }
     var reviewBinding: Binding<TeamReview?> { Binding(get: { self.coordinator.review }, set: { if $0 == nil { self.cancel() } }) }
     var actionLocked: Bool { running || coordinator.busy || coordinator.pending != nil || coordinator.writeState == .simulated || coordinator.writeState == .acknowledged || coordinator.writeState == .blocked }
 }
@@ -89,7 +108,11 @@ struct TeamMemberRow: View {
                     Text(LocalizedStringKey(review.action.consequenceKey)).fixedSize(horizontal: false, vertical: true)
                     TeamNotice(coordinator: model.coordinator)
                     Button(LocalizedStringKey(model.coordinator.canSimulate ? "team.simulate" : "team.confirmLive")) {
-                        Task { await model.run { await model.coordinator.confirm(review) }; dismiss() }
+                        let permit = model.captureRun()
+                        Task {
+                            guard model.coordinator.review == review else { return }
+                            if await model.run(permit: permit, { await model.coordinator.confirm(review) }) { dismiss() }
+                        }
                     }.buttonStyle(.borderedProminent).frame(minHeight: 44)
                         .disabled(!model.coordinator.canSubmit || model.running)
                         .accessibilityIdentifier("team.review.confirm")
