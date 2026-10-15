@@ -21,8 +21,13 @@ import PhotosUI
     private var locationReply: CheckedContinuation<PlayDeviceOutput, Error>?
     private var motionReply: CheckedContinuation<PlayDeviceOutput, Error>?
     private var locationManager: CLLocationManager?
+    private var locationGeneration: UInt64 = 0
     private var motionManager: CMMotionManager?
-    init(grants: Set<PlayDeviceKind> = []) { supported = grants.intersection([.photo, .scan, .location, .motion]); super.init() }
+    private let makeLocationManager: () -> CLLocationManager
+    init(grants: Set<PlayDeviceKind> = [], makeLocationManager: @escaping () -> CLLocationManager = { CLLocationManager() }) {
+        self.makeLocationManager = makeLocationManager
+        supported = grants.intersection([.photo, .scan, .location, .motion]); super.init()
+    }
     func captureLibraryPhoto(context: PlayDeviceContext) async throws -> PlayDeviceOutput {
         guard supported.contains(.photo) else { throw PlayExperienceError.disabled }
         guard cameraReply == nil, !authorizationInFlight, UIApplication.shared.applicationState == .active else { throw PlayExperienceError.busy }
@@ -64,11 +69,20 @@ import PhotosUI
             return .scan(code)
         case .location:
             guard locationReply == nil else { throw PlayExperienceError.invalidAction }
-            return try await withCheckedThrowingContinuation { reply in
-                locationReply = reply; let manager = CLLocationManager(); locationManager = manager; manager.delegate = self
-                if manager.authorizationStatus == .notDetermined { manager.requestWhenInUseAuthorization() }
-                else { requestLocationIfAuthorized(manager) }
-            }
+            try Task.checkCancellation()
+            locationGeneration &+= 1; let generation = locationGeneration
+            return try await withTaskCancellationHandler(operation: {
+                try await withCheckedThrowingContinuation { reply in
+                    locationReply = reply; let manager = makeLocationManager(); locationManager = manager; manager.delegate = self
+                    if manager.authorizationStatus == .notDetermined { manager.requestWhenInUseAuthorization() }
+                    else { requestLocationIfAuthorized(manager) }
+                }
+            }, onCancel: { [weak self] in
+                Task { @MainActor in
+                    guard let self, self.locationGeneration == generation, let manager = self.locationManager else { return }
+                    self.takeLocationReply(manager)?.resume(throwing: CancellationError())
+                }
+            })
         case .motion:
             guard motionReply == nil else { throw PlayExperienceError.invalidAction }
             let manager = CMMotionManager()
@@ -97,28 +111,36 @@ import PhotosUI
     }
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) { requestLocationIfAuthorized(manager) }
     private func requestLocationIfAuthorized(_ manager: CLLocationManager) {
-        guard locationReply != nil else { return }
+        guard manager === locationManager, locationReply != nil else { return }
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways: manager.requestLocation()
         case .denied, .restricted: locationManager(manager, didFailWithError: PlayExperienceError.disabled)
         default: break
         }
     }
+    /// Take only the current manager's continuation. Queued callbacks from a
+    /// cancelled/finished manager must never consume a successor's request.
+    private func takeLocationReply(_ manager: CLLocationManager) -> CheckedContinuation<PlayDeviceOutput, Error>? {
+        guard manager === locationManager, let reply = locationReply else { return nil }
+        locationReply = nil; locationManager = nil
+        manager.delegate = nil; manager.stopUpdatingLocation()
+        return reply
+    }
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        let reply = locationReply; locationReply = nil; locationManager = nil
+        guard let reply = takeLocationReply(manager) else { return }
         guard let location = locations.last, location.horizontalAccuracy >= 0, abs(location.timestamp.timeIntervalSinceNow) < 30 else {
-            reply?.resume(throwing: PlayExperienceError.invalidAction); return
+            reply.resume(throwing: PlayExperienceError.invalidAction); return
         }
         // CoreLocation is WGS84. Never relabel it GCJ02 or award local arrival.
-        reply?.resume(returning: .location(location.coordinate.longitude, location.coordinate.latitude, coordinateSystem: "WGS84"))
+        reply.resume(returning: .location(location.coordinate.longitude, location.coordinate.latitude, coordinateSystem: "WGS84"))
     }
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        let reply = locationReply; locationReply = nil; locationManager = nil; reply?.resume(throwing: error)
+        takeLocationReply(manager)?.resume(throwing: error)
     }
     func cancel() {
         cameraGeneration &+= 1; authorizationInFlight = false
-        finishCamera(nil); locationManager?.stopUpdatingLocation(); locationManager = nil
-        let location = locationReply; locationReply = nil; location?.resume(throwing: CancellationError())
+        finishCamera(nil)
+        if let manager = locationManager { takeLocationReply(manager)?.resume(throwing: CancellationError()) }
         motionManager?.stopAccelerometerUpdates(); motionManager = nil
         let motion = motionReply; motionReply = nil; motion?.resume(throwing: CancellationError())
     }

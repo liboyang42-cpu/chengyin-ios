@@ -1,4 +1,5 @@
 import XCTest
+import CoreLocation
 @testable import Questify
 
 @MainActor final class RuntimeDependencyAppTests: XCTestCase {
@@ -59,4 +60,78 @@ import XCTest
         return AsyncThrowingStream { $0.finish() }
     }
     func cancel() {}
+}
+
+@MainActor final class PlayNativeLocationLifetimeTests: XCTestCase {
+    private func context() throws -> PlayDeviceContext {
+        try .init(session: .init(accountID: 7, epoch: 1, namespace: "fixture", token: "synthetic"), scope: .topic(4), nodeID: 8)
+    }
+    private func fix(accuracy: Double = 81, time: Date = Date()) -> CLLocation {
+        .init(coordinate: .init(latitude: 39.916527, longitude: 116.397128), altitude: 0,
+              horizontalAccuracy: accuracy, verticalAccuracy: 1, timestamp: time)
+    }
+    func testCancelledManagerCallbacksCannotConsumeSuccessorOrRequestAuthorization() async throws {
+        let old = PlayLocationManagerSpy(), next = PlayLocationManagerSpy()
+        let oldRequested = expectation(description: "old requested"), nextRequested = expectation(description: "next requested")
+        old.onRequest = { oldRequested.fulfill() }; next.onRequest = { nextRequested.fulfill() }
+        var managers = [old, next]
+        let provider = PlayNativeDeviceProvider(grants: [.location], makeLocationManager: { managers.removeFirst() })
+        let context = try context()
+        let first = Task { try await provider.capture(.location, context: context) }
+        await fulfillment(of: [oldRequested], timeout: 1)
+        provider.cancel(); provider.cancel()
+        do { _ = try await first.value; XCTFail("Cancelled request succeeded") } catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertNil(old.delegate); XCTAssertEqual(old.stops, 1)
+        let second = Task { try await provider.capture(.location, context: context) }
+        await fulfillment(of: [nextRequested], timeout: 1)
+        provider.locationManagerDidChangeAuthorization(old)
+        provider.locationManager(old, didFailWithError: PlayExperienceError.disabled)
+        provider.locationManager(old, didUpdateLocations: [fix(accuracy: 2)])
+        XCTAssertEqual(old.requests, 1); XCTAssertEqual(next.requests, 1); XCTAssertNotNil(next.delegate)
+        let measurement = fix()
+        provider.locationManager(next, didUpdateLocations: [measurement])
+        guard case .location(let lng, let lat, let datum) = try await second.value else { return XCTFail() }
+        XCTAssertEqual(lng, measurement.coordinate.longitude); XCTAssertEqual(lat, measurement.coordinate.latitude)
+        XCTAssertEqual(datum, "WGS84")
+        XCTAssertNil(next.delegate); XCTAssertEqual(next.stops, 1)
+        // Duplicate callbacks after success are harmless and cannot double resume.
+        provider.locationManager(next, didUpdateLocations: [measurement])
+        provider.locationManager(next, didFailWithError: PlayExperienceError.disabled)
+        provider.cancel(); XCTAssertEqual(next.stops, 1)
+    }
+    func testTaskCancellationDetachesItsManagerAndDoesNotCancelSuccessor() async throws {
+        let old = PlayLocationManagerSpy(), next = PlayLocationManagerSpy()
+        let oldRequested = expectation(description: "old requested"), nextRequested = expectation(description: "next requested")
+        old.onRequest = { oldRequested.fulfill() }; next.onRequest = { nextRequested.fulfill() }
+        var managers = [old, next]
+        let provider = PlayNativeDeviceProvider(grants: [.location], makeLocationManager: { managers.removeFirst() })
+        let context = try context()
+        let first = Task { try await provider.capture(.location, context: context) }
+        await fulfillment(of: [oldRequested], timeout: 1)
+        first.cancel()
+        do { _ = try await first.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertNil(old.delegate)
+        let second = Task { try await provider.capture(.location, context: context) }
+        await fulfillment(of: [nextRequested], timeout: 1)
+        provider.locationManager(old, didFailWithError: PlayExperienceError.disabled)
+        provider.locationManager(next, didUpdateLocations: [fix(accuracy: 80)])
+        guard case .location(_, _, let datum) = try await second.value else { return XCTFail() }
+        XCTAssertEqual(datum, "WGS84")
+    }
+    func testMissingGrantNeverConstructsManager() async throws {
+        let provider = PlayNativeDeviceProvider(makeLocationManager: { XCTFail("No grant"); return PlayLocationManagerSpy() })
+        do { _ = try await provider.capture(.location, context: context()); XCTFail() }
+        catch { XCTAssertEqual(error as? PlayExperienceError, .disabled) }
+    }
+}
+
+/// The injected manager never requests OS permissions or starts real hardware.
+@MainActor private final class PlayLocationManagerSpy: CLLocationManager {
+    var requests = 0
+    var stops = 0
+    var onRequest: (() -> Void)?
+    override var authorizationStatus: CLAuthorizationStatus { .authorizedWhenInUse }
+    override func requestLocation() { requests += 1; onRequest?() }
+    override func requestWhenInUseAuthorization() { XCTFail("Unexpected permission request") }
+    override func stopUpdatingLocation() { stops += 1 }
 }
