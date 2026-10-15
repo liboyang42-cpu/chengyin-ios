@@ -32,7 +32,7 @@ public struct ShopNPCGrants: Equatable {
 }
 public enum ShopNPCFailure: Error, Equatable {
     case disabled, stale, busy, invalid, rateLimited, unknownOutcome, malformed
-    case replyProcessing, replyRetryable, replyRejected, replyFailed
+    case replyProcessing, replyRetryable, replyRejected, replyFailed, replyUnresolved
     case server(code: Int, message: String?)
     public var key: String {
         switch self {
@@ -47,6 +47,9 @@ public enum ShopNPCFailure: Error, Equatable {
         case .replyRetryable: return "shopNPCOutcome.retryable"
         case .replyRejected: return "shopNPCOutcome.rejected"
         case .replyFailed: return "shopNPCOutcome.failed"
+        // Reuse the existing neutral notice; the transport-unknown copy invites
+        // retry and must not describe a server response that forbids it.
+        case .replyUnresolved: return "merchantNPC.unavailable"
         case .server: return "shopNPC.server"
         }
     }
@@ -59,7 +62,14 @@ public struct ShopNPCReply: Equatable {
     public let retryAfterSeconds: Int?
     public let text: String
     public let asr: String?
-    public var needsRetry: Bool { outcome == .processing || retryable }
+    public let safetyDecision: String
+    public let errorCode: String?
+    /// PROCESSING is not permission to retry an unresolved provider outcome.
+    public var needsRetry: Bool { retryable }
+    public var hasUnknownOutcome: Bool {
+        outcome == .processing && safetyDecision == "UNKNOWN" &&
+        errorCode == "REQUEST_OUTCOME_UNKNOWN" && !retryable
+    }
     /// This path does not consume audio. An optional server audioUrl does not
     /// establish an approved native playback capability; the legacy case name is retained.
     public let audio: ShopNPCAudioSource = .unavailableInSource
@@ -68,7 +78,7 @@ public struct ShopNPCReply: Equatable {
             var code: Int?; var msg: String?; var asr: String?; var data: Payload?
             struct Payload: Decodable {
                 var requestId: String?; var outcomeStatus: String?; var safetyDecision: String?
-                var retryable: Bool?; var retryAfterSeconds: Int?; var safeText: String?
+                var retryable: Bool?; var retryAfterSeconds: Int?; var safeText: String?; var errorCode: String?
             }
         }
         let body: Envelope
@@ -78,8 +88,10 @@ public struct ShopNPCReply: Equatable {
         guard code == 200 else { throw ShopNPCFailure.server(code: code, message: body.msg) }
         guard let data = body.data, let request = data.requestId, let id = UUID(uuidString: request),
               let status = data.outcomeStatus, let outcome = Outcome(rawValue: status),
-              let retryable = data.retryable, let safety = data.safetyDecision,
-              ["PASS", "BLOCKED", "NOT_RUN"].contains(safety) else { throw ShopNPCFailure.malformed }
+              let retryable = data.retryable, let safety = data.safetyDecision else { throw ShopNPCFailure.malformed }
+        let unknownOutcome = outcome == .processing && safety == "UNKNOWN" &&
+            data.errorCode == "REQUEST_OUTCOME_UNKNOWN" && !retryable
+        guard ["PASS", "BLOCKED", "NOT_RUN"].contains(safety) || unknownOutcome else { throw ShopNPCFailure.malformed }
         // 9b emits either the one-second in-progress delay or secondsUntilTomorrow,
         // which is bounded to one day. This is not an inferred reset timestamp.
         if let seconds = data.retryAfterSeconds, !(0...86_400).contains(seconds) { throw ShopNPCFailure.malformed }
@@ -90,7 +102,7 @@ public struct ShopNPCReply: Equatable {
         }
         // No legacy data.text fallback: missing terminal evidence is not success.
         return Self(requestID: id, outcome: outcome, retryable: retryable, retryAfterSeconds: data.retryAfterSeconds,
-                    text: safe, asr: voice ? body.asr : nil)
+                    text: safe, asr: voice ? body.asr : nil, safetyDecision: safety, errorCode: data.errorCode)
     }
 }
 public enum ShopNPCAudioSource: Equatable { case unavailableInSource }

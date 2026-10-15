@@ -177,6 +177,11 @@ import SwiftUI
                 }
                 if coordinator.pendingIsTerminalServiceResponse {
                     Text("shopNPCOutcome.newQuestion").font(.footnote)
+                } else if coordinator.pendingIsNonRetryableProcessing {
+                    // An unresolved server response is not terminal and does not
+                    // authorize retry. Cancel still abandons only this local review.
+                    Text("merchantNPCRecovery.abandonConsequences").font(.footnote)
+                        .accessibilityIdentifier("shopNPCOutcome.unresolved")
                 } else {
                     Button {
                         typing = false; localFailure = nil
