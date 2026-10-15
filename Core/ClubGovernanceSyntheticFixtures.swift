@@ -53,7 +53,7 @@ public enum ClubGovernanceFixtures {
         case .hostApply: draft.text["leaderName"] = "Fixture host"; draft.text["phone"] = "SYNTHETIC"
         case .saveCustomer: draft.text["remark"] = "Fixture note"
         case .createSeries, .updateSeries:
-            draft = .init(operation: mutation, scope: scope, seed: value(.seriesDetail).object ?? [:]); draft.text["startDate"] = "2026-10-08"; draft.text["defaultLeadMemberId"] = "704"
+            draft = .init(operation: mutation, scope: scope, seed: value(.seriesDetail).object ?? [:]); draft.text["startDate"] = "2026-10-08"; draft.text["startTime"] = "09:00"; draft.text["defaultLeadMemberId"] = "704"
         case .ban: draft = .init(operation: mutation, scope: scope, seed: ["targetMemberId": .integer(704)]); draft.text["reason"] = "Fixture reason"; draft.text["expiresAt"] = "2026-10-08 09:00:00"
         case .transferOwner: draft = .init(operation: mutation, scope: scope, seed: ["targetMemberId": .integer(704)]); draft.text["reason"] = "Fixture reason"
         case .unban: draft = .init(operation: mutation, scope: scope, seed: ["banId": .integer(161), "version": .integer(2)]); draft.text["reason"] = "Fixture reason"

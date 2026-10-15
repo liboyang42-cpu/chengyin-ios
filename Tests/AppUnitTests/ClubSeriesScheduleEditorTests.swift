@@ -29,7 +29,7 @@ import XCTest
     private let now = ISO8601DateFormatter().date(from: "2026-10-11T01:00:00Z")!
     private func form(_ operation: ClubGovernanceMutation = .createSeries, club: Int = 81) -> ClubGovernanceFormDraft {
         .init(operation: operation, scope: .init(clubID: club, topicID: 91, seriesID: operation == .updateSeries ? 101 : nil),
-              seed: ["defaultLeadMemberId": .integer(41), "version": .integer(7), "futureDates": .array([.string("2026-10-12")])])
+              seed: ["startTime": .string("09:00"), "defaultLeadMemberId": .integer(41), "version": .integer(7), "futureDates": .array([.string("2026-10-12")])])
     }
     private func session(_ form: ClubGovernanceFormDraft, _ access: Access) throws -> ClubSeriesScheduleSession {
         try XCTUnwrap(.init(form: form, identity: access.identity, access: access, now: now))
@@ -38,6 +38,22 @@ import XCTest
         let access = Access(), draft = form(), value = try session(form(), access)
         XCTAssertEqual(value.operation, .createSeries); XCTAssertEqual(value.context.scope, draft.scope)
         XCTAssertEqual(value.context.accessIdentity, ObjectIdentifier(access)); XCTAssertEqual(access.resources, []); XCTAssertEqual(access.sends, 0)
+    }
+    func testUnknownUpdateSessionCannotApplyUntilExplicitTimeAndCancelPreservesDraft() throws {
+        let access = Access()
+        let draft = ClubGovernanceFormDraft(operation: .updateSeries,
+            scope: .init(clubID: 81, topicID: 91, seriesID: 101),
+            seed: ["defaultLeadMemberId": .integer(41), "version": .integer(7),
+                   "futureDates": .array([.string("2026-10-12")]), "startTime": .null])
+        let value = try session(draft, access)
+        XCTAssertEqual(value.initial.startTime, "")
+        XCTAssertEqual(value.initial.issue(now: now), .time)
+        XCTAssertThrowsError(try value.initial.applying(to: draft, now: now))
+        var edited = value.initial; edited.startTime = "09:00"
+        XCTAssertNoThrow(try edited.applying(to: draft, now: now).command())
+        XCTAssertEqual(draft.text["startTime"], "")
+        XCTAssertFalse(value.isCurrent(activeID: nil, form: draft, identity: access.identity, access: access))
+        XCTAssertEqual(access.sends, 0)
     }
     func testSignedOutUnconfiguredAndWrongIdentityCannotOpen() {
         let access = Access(), draft = form()
@@ -130,7 +146,7 @@ import XCTest
     }
     private func command() throws -> ClubGovernanceCommand {
         var draft = ClubGovernanceFormDraft(operation: .updateSeries, scope: scope,
-            seed: ["version": .integer(7), "defaultLeadMemberId": .integer(41)])
+            seed: ["startTime": .string("09:00"), "version": .integer(7), "defaultLeadMemberId": .integer(41)])
         draft.text["startDate"] = "2099-01-01"; draft.text["capacity"] = "20"
         return try draft.command()
     }
@@ -306,7 +322,7 @@ import XCTest
     private func draft(_ operation: ClubGovernanceMutation = .createSeries) -> ClubGovernanceFormDraft {
         var value = ClubGovernanceFormDraft(operation: operation,
             scope: .init(clubID: 81, topicID: 91, seriesID: operation == .updateSeries ? 101 : nil),
-            seed: ["version": .integer(7), "defaultLeadMemberId": .integer(41)])
+            seed: ["startTime": .string("09:00"), "version": .integer(7), "defaultLeadMemberId": .integer(41)])
         value.text["startDate"] = "2099-01-01"
         return value
     }

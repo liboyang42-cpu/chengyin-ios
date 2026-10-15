@@ -28,9 +28,15 @@ public struct ClubGovernanceFormDraft {
             text["remark"] = seed["remark"]?.string ?? ""
             text["tags"] = (seed["tags"]?.array ?? []).compactMap { $0.string ?? $0["name"].string }.joined(separator: ",")
         case .createSeries, .updateSeries:
-            text = ["recurrenceType": seed["recurrenceType"]?.string ?? "ONCE", "startDate": "", "startTime": "09:00", "occurrenceCount": "1", "customDates": (seed["futureDates"]?.array ?? []).compactMap(\.string).joined(separator: ","), "capacity": seed["defaultCapacity"]?.text ?? "", "defaultLeadMemberId": seed["defaultLeadMemberId"]?.text ?? "", "offerMinutes": seed["offerMinutes"]?.text ?? "1440"]
+            text = ["recurrenceType": seed["recurrenceType"]?.string ?? "ONCE", "startDate": "", "startTime": operation == .createSeries ? "09:00" : "", "occurrenceCount": "1", "customDates": (seed["futureDates"]?.array ?? []).compactMap(\.string).joined(separator: ","), "capacity": seed["defaultCapacity"]?.text ?? "", "defaultLeadMemberId": seed["defaultLeadMemberId"]?.text ?? "", "offerMinutes": seed["offerMinutes"]?.text ?? "1440"]
             flags["waitlistEnabled"] = seed["waitlistEnabled"]?.bool ?? false
-            if operation == .updateSeries { anchors["expectedVersion"] = seed["version"] }
+            if operation == .updateSeries {
+                anchors["expectedVersion"] = seed["version"]
+                // BK-SCHEDULE: absent, mixed or invalid readback is unknown, never a create default.
+                if let time = seed["startTime"]?.string, ClubSeriesScheduleDraft.parseTime(time) != nil {
+                    text["startTime"] = time
+                }
+            }
         case .ban: text = ["reason": "", "expiresAt": ""]
         case .unban, .transferOwner, .cancelOccurrence, .revokeRole, .appeal: text["reason"] = ""
         case .correctAttendance: text["reason"] = ""; flags["arrived"] = false

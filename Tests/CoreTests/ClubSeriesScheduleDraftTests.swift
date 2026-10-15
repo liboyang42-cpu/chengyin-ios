@@ -3,10 +3,10 @@ import XCTest
 
 final class ClubSeriesScheduleDraftTests: XCTestCase {
     private let now = ISO8601DateFormatter().date(from: "2026-10-11T01:00:00Z")!
-    private func form(_ operation: ClubGovernanceMutation = .createSeries, dates: [String] = []) -> ClubGovernanceFormDraft {
+    private func form(_ operation: ClubGovernanceMutation = .createSeries, dates: [String] = [], time: ClubGovernanceValue = .string("00:30")) -> ClubGovernanceFormDraft {
         .init(operation: operation, scope: .init(clubID: 81, topicID: 91, seriesID: operation == .updateSeries ? 101 : nil),
               seed: ["recurrenceType": .string("WEEKLY"), "futureDates": .array(dates.map(ClubGovernanceValue.string)),
-                     "version": .integer(7), "defaultLeadMemberId": .integer(41), "defaultCapacity": .integer(12),
+                     "startTime": time, "version": .integer(7), "defaultLeadMemberId": .integer(41), "defaultCapacity": .integer(12),
                      "offerMinutes": .integer(60), "waitlistEnabled": .bool(true)])
     }
     private func schedule() -> ClubSeriesScheduleDraft {
@@ -18,10 +18,58 @@ final class ClubSeriesScheduleDraftTests: XCTestCase {
         XCTAssertEqual(value.startDate, "2026-10-11"); XCTAssertEqual(value.startTime, "09:00")
         XCTAssertEqual(value.customDates.map(\.day), ["2026-10-11"])
     }
-    func testUpdateSeedsActualFutureDatesAndCountWithoutClaimingExistingTime() {
+    func testUpdateSeedsActualFutureDatesCountAndSavedCommonTime() {
         let value = ClubSeriesScheduleDraft(form: form(.updateSeries, dates: ["2026-10-19", "2026-10-12"]), now: now)
         XCTAssertEqual(value.startDate, "2026-10-12"); XCTAssertEqual(value.occurrenceCount, 2)
-        XCTAssertEqual(value.startTime, "09:00"); XCTAssertEqual(value.uniqueCustomDates, ["2026-10-12", "2026-10-19"])
+        XCTAssertEqual(value.startTime, "00:30"); XCTAssertEqual(value.uniqueCustomDates, ["2026-10-12", "2026-10-19"])
+    }
+    func testUnknownUpdateTimeRequiresExplicitChoiceIncludingNineAM() throws {
+        let times: [ClubGovernanceValue] = [.null, .string(""), .string("9:00"), .string("24:00"), .string("00:30:00"), .integer(900)]
+        for time in times {
+            let original = form(.updateSeries, dates: ["2026-10-12"], time: time)
+            var value = ClubSeriesScheduleDraft(form: original, now: now)
+            XCTAssertEqual(value.startTime, "")
+            XCTAssertEqual(value.issue(now: now), .time)
+            XCTAssertThrowsError(try value.applying(to: original, now: now))
+            XCTAssertThrowsError(try original.command())
+            value.startTime = "09:00" // Explicit choice is permitted, never substituted automatically.
+            let result = try value.applying(to: original, now: now)
+            XCTAssertEqual(try result.command().fields["startTime"], .string("09:00"))
+            XCTAssertEqual(result.anchors, original.anchors)
+            XCTAssertEqual(result.flags, original.flags)
+        }
+    }
+    func testMissingReadbackAndMissingDraftTimeNeverUseCreateDefault() {
+        var original = ClubGovernanceFormDraft(operation: .updateSeries,
+            scope: .init(clubID: 81, topicID: 91, seriesID: 101), seed: [:])
+        XCTAssertEqual(original.text["startTime"], "")
+        original.text.removeValue(forKey: "startTime")
+        XCTAssertEqual(ClubSeriesScheduleDraft(form: original, now: now).startTime, "")
+    }
+    func testAppendDatePreservesMidnightBoundaryTimeAndUpdateContract() throws {
+        let original = form(.updateSeries, dates: ["2026-10-12", "2026-10-19"])
+        var value = ClubSeriesScheduleDraft(form: original, now: now)
+        value.occurrenceCount = 3
+        XCTAssertEqual(value.requestedDates, ["2026-10-12", "2026-10-19", "2026-10-26"])
+        let result = try value.applying(to: original, now: now)
+        let command = try result.command()
+        XCTAssertEqual(command.fields["startTime"], .string("00:30"))
+        XCTAssertEqual(command.fields["expectedVersion"], .integer(7))
+        XCTAssertNil(command.fields["requestId"])
+        XCTAssertEqual(result.scope, original.scope)
+        XCTAssertEqual(result.flags, original.flags)
+        for (key, text) in original.text where !ClubSeriesScheduleDraft.fieldKeys.contains(key) {
+            XCTAssertEqual(result.text[key], text)
+        }
+    }
+    func testSwitchingToUnknownSeriesDoesNotReusePreviousTimeAndResetRestoresUnknown() {
+        let known = ClubSeriesScheduleDraft(form: form(.updateSeries), now: now)
+        let unknown = ClubSeriesScheduleDraft(form: form(.updateSeries, time: .null), now: now)
+        XCTAssertEqual(known.startTime, "00:30")
+        XCTAssertEqual(unknown.startTime, "")
+        var edited = unknown; edited.startTime = "16:45"
+        edited = unknown
+        XCTAssertEqual(edited.startTime, "")
     }
     func testShanghaiDayAndClockIgnoreDeviceDateBoundary() {
         let instant = ISO8601DateFormatter().date(from: "2026-10-10T16:05:00Z")!

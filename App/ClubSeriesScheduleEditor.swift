@@ -70,8 +70,19 @@ import SwiftUI
                         Button("club.schedule.add") { schedule.addDate() }
                             .disabled(schedule.customDates.count >= 64).accessibilityIdentifier("club.schedule.add")
                     }
-                    DatePicker("club.gov.field.startTime", selection: timeBinding, displayedComponents: .hourAndMinute)
-                        .accessibilityIdentifier("club.schedule.startTime")
+                    if ClubSeriesScheduleDraft.parseTime(schedule.startTime) == nil {
+                        // No saved common time: require explicit input, including an intentional 09:00.
+                        VStack(alignment: .leading) {
+                            Text("club.gov.field.startTime")
+                            TextField("HH:mm", text: $schedule.startTime)
+                                .keyboardType(.numbersAndPunctuation)
+                                .accessibilityLabel(Text("club.gov.field.startTime"))
+                                .accessibilityIdentifier("club.schedule.startTime.unknown")
+                        }
+                    } else {
+                        DatePicker("club.gov.field.startTime", selection: timeBinding, displayedComponents: .hourAndMinute)
+                            .accessibilityIdentifier("club.schedule.startTime")
+                    }
                 }
                 Section("club.schedule.preview") {
                     Text("club.schedule.previewNote")

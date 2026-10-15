@@ -23,9 +23,9 @@ public struct ClubSeriesScheduleDraft: Equatable {
         let raw = form.text["customDates"] ?? ""
         let dates = raw.isEmpty ? [] : raw.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         let unedited = (form.text["startDate"] ?? "").isEmpty
-        // Existing seriesDetail provides dates only; 09:00 is the Mini's explicit new-date default.
+        // Detail dates seed the local plan; an unknown update time must stay unknown.
         startDate = unedited ? (dates.sorted().first ?? Self.day(now)) : (form.text["startDate"] ?? "")
-        startTime = form.text["startTime"] ?? "09:00"
+        startTime = form.text["startTime"] ?? (form.operation == .createSeries ? "09:00" : "")
         occurrenceCount = unedited && !dates.isEmpty ? dates.count : (Int(form.text["occurrenceCount"] ?? "") ?? 0)
         customDates = (dates.isEmpty ? [startDate] : dates).map { CustomDate(day: $0) }
     }
