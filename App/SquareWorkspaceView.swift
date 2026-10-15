@@ -16,10 +16,19 @@ import UniformTypeIdentifiers
     @Environment(\.scenePhase) private var scenePhase
     @State private var referenceType = "ACTIVITY"
     @State private var options: [SquareWorkspaceOption] = []
-    @State private var revisionsText = ""
     @State private var locationReview: SquareWorkspacePost?
     private func run(_ action: @escaping @MainActor () async throws -> Void) {
         Task { do { try await action() } catch { issue = true } }
+    }
+    private func readHistory(postID: Int) {
+        do {
+            let intent = try coordinator.prepareRevisions(postID: postID)
+            Task {
+                do { _ = try await coordinator.revisions(intent) }
+                catch is CancellationError { }
+                catch { issue = true }
+            }
+        } catch { issue = true }
     }
     var body: some View {
         // Disable editor actions, not the scroll container: busy content must remain readable.
@@ -135,12 +144,18 @@ import UniformTypeIdentifiers
                         VStack(alignment: .leading) {
                             if let version = post.version, let lifecycle = post.lifecycle { Text("#\(post.id) · v\(version) · \(lifecycle)") }
                             Button("squareWorkspace.resume") { run { draft = try post.editableDraft(); lane = .communityV1 } }
-                            Button("squareWorkspace.revisions") { run { let data = try await coordinator.revisions(postID: post.id); revisionsText = String(data: data, encoding: .utf8) ?? "" } }
+                            Button("squareWorkspace.revisions") { readHistory(postID: post.id) }
+                                .accessibilityIdentifier("squareWorkspace.revisions.\(post.id)")
                             Button("squareWorkspace.withdrawLocation", role: .destructive) { locationReview = post }
                         }
                     }
                     if coordinator.hasMore { Button("squareWorkspace.more") { run { try await coordinator.loadServer(more: true) } } }
-                    if !revisionsText.isEmpty { Text(revisionsText).textSelection(.enabled).accessibilityIdentifier("squareWorkspace.revisions") }
+                    if coordinator.revisionsLoading { ProgressView("square.loading") }
+                    if let postID = coordinator.revisionPostID, let data = coordinator.revisionData,
+                       let text = String(data: data, encoding: .utf8) {
+                        Text("#\(postID)").font(.caption)
+                        Text(verbatim: text).textSelection(.enabled).accessibilityIdentifier("squareWorkspace.revisions")
+                    }
                 }
             }.disabled(coordinator.busy || (initialPostID != nil && !editReady))
         }
@@ -158,15 +173,15 @@ import UniformTypeIdentifiers
                     scopeIsCurrent: { localMediaScopeIsCurrent(captured.scope) })
             }
         }
-        .onDisappear { localMedia.invalidate() }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { localMedia.invalidate() } }
-        .onChange(of: draft.workflowID) { _, _ in localMedia.invalidate() }
-        .onChange(of: coordinator.session) { _, _ in localMedia.invalidate() }
+        .onDisappear { localMedia.invalidate(); coordinator.clearRevisions() }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { localMedia.invalidate(); coordinator.clearRevisions() } }
+        .onChange(of: draft.workflowID) { _, _ in localMedia.invalidate(); coordinator.clearRevisions() }
+        .onChange(of: coordinator.session) { _, _ in localMedia.invalidate(); coordinator.clearRevisions() }
         .onChange(of: coordinator.status) { _, status in
             if status == "squareWorkspace.sessionChanged" { localMedia.invalidate() }
         }
         .onChange(of: draft) { _, _ in coordinator.cancelReview() }
-        .onChange(of: lane) { _, _ in coordinator.cancelReview(); options = []; localMedia.invalidate() }
+        .onChange(of: lane) { _, _ in coordinator.cancelReview(); options = []; localMedia.invalidate(); coordinator.clearRevisions() }
         .alert("squareWorkspace.issue", isPresented: $issue) { Button("squareWorkspace.close", role: .cancel) {} } message: { Text("squareWorkspace.issueDetail") }
         .confirmationDialog("squareWorkspace.withdrawConfirm", isPresented: Binding(get: { locationReview != nil }, set: { if !$0 { locationReview = nil } })) {
             Button("squareWorkspace.withdrawLocation", role: .destructive) {
