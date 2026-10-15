@@ -72,12 +72,12 @@ import SwiftUI
             guard self.fullEdit else { return }; self.draft = value.updatingDraft(self.draft)
         })
     }
-    var canEdit: Bool { ownsVisit && !coordinator.hasUnconfirmedChapterRemoval && loadedSnapshot && loadedSession == coordinator.session && coordinator.snapshot != nil && !busy && !coordinator.isLocked && coordinator.state != .simulated && coordinator.state != .acknowledged && coordinator.state != .blocked && !hasRestore }
+    var canEdit: Bool { ownsVisit && !coordinator.isReadOnly && !coordinator.hasUnconfirmedChapterRemoval && loadedSnapshot && loadedSession == coordinator.session && coordinator.snapshot != nil && !busy && !coordinator.isLocked && coordinator.state != .simulated && coordinator.state != .acknowledged && coordinator.state != .blocked && !hasRestore }
     var canReview: Bool { currentReviewLease() != nil }
     var canSaveLocal: Bool { canEdit && coordinator.session != nil }
     var fullEdit: Bool { canEdit && coordinator.snapshot?.scope == .full }
     var hasRestore: Bool { switch coordinator.restore { case .missing: return false; default: return true } }
-    var canRestore: Bool { if case .ready = coordinator.restore { return true }; return false }
+    var canRestore: Bool { guard !coordinator.isReadOnly else { return false }; if case .ready = coordinator.restore { return true }; return false }
     var restoreKey: String {
         switch coordinator.restore {
         case .ready: return "projectEdit.restoreAvailable"
@@ -111,7 +111,7 @@ import SwiftUI
               coordinator.session?.accountID == value.receipt.asset.ownerMemberID else { return nil }; return value.receipt
     }
     func recordCoverSelection(_ receipt: OwnedTopicCoverSelectionReceipt, operationID: UUID) {
-        guard submissionEvidence?.operationID == operationID, coordinator.session?.accountID == receipt.asset.ownerMemberID else { return }
+        guard !coordinator.isReadOnly, submissionEvidence?.operationID == operationID, coordinator.session?.accountID == receipt.asset.ownerMemberID else { return }
         lastCoverSelection = (operationID,receipt)
     }
     var coverSelectionIsResolved: Bool {
@@ -290,9 +290,15 @@ import SwiftUI
         let copiedTarget = copiedCoordinator
         Form {
             Section {
-                QuestifyStatusBadge(title: LocalizedStringKey(model.coordinator.canSimulate ? "projectEdit.fixtureBadge" : "projectEdit.localBadge"), systemImage: "square.and.pencil")
-                Text(LocalizedStringKey(model.coordinator.canSimulate ? "projectEdit.fixtureNotice" : "projectEdit.unconfigured"))
-                    .foregroundStyle(.secondary)
+                if model.coordinator.isReadOnly {
+                    Label("roam.experience.readOnly", systemImage: "lock.fill")
+                        .accessibilityIdentifier("projectRemote.readOnly")
+                    Text(verbatim: ProjectEditScope.sellingFrozen.rawValue).font(.caption)
+                } else {
+                    QuestifyStatusBadge(title: LocalizedStringKey(model.coordinator.canSimulate ? "projectEdit.fixtureBadge" : "projectEdit.localBadge"), systemImage: "square.and.pencil")
+                    Text(LocalizedStringKey(model.coordinator.canSimulate ? "projectEdit.fixtureNotice" : "projectEdit.unconfigured"))
+                        .foregroundStyle(.secondary)
+                }
             }
             if model.coordinator.session == nil {
                 Section { Text("projectEdit.signIn").accessibilityIdentifier("projectEdit.signIn") }
@@ -316,8 +322,8 @@ import SwiftUI
                 ApprovedTopicReviewEntrySection(model: model, controller: reviewRequest)
                 if let completed = model.coordinator.acknowledgedContinuation {
                     Section {
-                        Text("projectRemote.completedExplanation")
-                        Button("projectRemote.continue") { Task { await model.continueAcknowledged(completed) } }
+                        if !model.coordinator.isReadOnly { Text("projectRemote.completedExplanation") }
+                        Button(LocalizedStringKey(model.coordinator.isReadOnly ? "projectEdit.reload" : "projectRemote.continue")) { Task { await model.continueAcknowledged(completed) } }
                             .accessibilityIdentifier("projectRemote.continue")
                     }
                 }
@@ -332,7 +338,7 @@ import SwiftUI
                         Text(LocalizedStringKey(model.restoreKey)).accessibilityIdentifier("projectEdit.restoreStatus")
                         if model.canRestore { Button("projectEdit.restore") { model.restore() }.accessibilityIdentifier("projectEdit.restore") }
                         Button("projectEdit.discardLocal", role: .destructive) { discardConfirmation = true }
-                            .disabled(model.coordinator.isLocked).accessibilityIdentifier("projectEdit.discardLocal")
+                            .disabled(model.coordinator.isLocked || model.coordinator.isReadOnly).accessibilityIdentifier("projectEdit.discardLocal")
                     }
                 }
                 if model.coordinator.snapshot?.scope == .whitelist {
@@ -396,7 +402,7 @@ import SwiftUI
             if let key = model.coordinator.messageKey {
                 Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectEdit.status") }
             }
-            if model.coordinator.state == .blocked { Button("projectEdit.reload") { Task { await model.load(force: true) } }.accessibilityIdentifier("projectEdit.reload") }
+            if model.coordinator.state == .blocked || (model.coordinator.isReadOnly && model.coordinator.acknowledgedContinuation == nil) { Button("projectEdit.reload") { Task { await model.load(force: true) } }.accessibilityIdentifier("projectEdit.reload") }
             if model.busy { ProgressView("projectEdit.loading").accessibilityIdentifier("projectEdit.loading") }
         }
         .disabled(model.busy)

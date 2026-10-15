@@ -28,6 +28,8 @@
 - 所有 TEST_DEPLOYED 为 NO；部署 NOT_VERIFIED。冻结只允许针对确切合同进行源码/fixture 适配，不代表原生执行、真实账号/provider、业务独立读回或发布已通过。未重新读取的 CI 状态不在本页签收。
 - 开始新适配前复核对应 BK 的确切字段、单位、错误、权限、版本/请求身份、兼容向量和所有权。遇到更新或冲突，记录新 SHA 后处理，不猜测字段、不放开生产开关。
 
+I03 本次单独刷新到控制 `05346fedae227c12cff9d9ca533c3e92e62ae743`：冻结候选仍为 `1e403b13`；后续新候选 `4a943501262cb533158428d9748d8ac49aaa8950` 已发布 edit-detail 只读 RR 聚合读取，NO_API_CHANGE。已直接比对其控制器与售卖冻结 resolver；`SELLING_FROZEN` 既有语义不变。该控制快照中的新 Java/真库证据仍待取得，TEST_DEPLOYED=NO；本次不查询或启动 CI。确切来源及原生切片见 [I03 冻结读回](ios-i03-author-frozen-readback.md)，不改写上方历史核对事实。
+
 ### 历史状态为何不同
 
 [I01 原交付](ios-i01-native-location-callback.md)在控制 `7cda068` 时记录 BK-GPS DRAFT；[I09 原交付](ios-i09-series-time-handoff.md)在控制 `a8865e69c50ed680bcb1d5157705f99c1ca2fa18` 时明确记录 OWNERSHIP 已冻结、旧逐 BK 日志尚未同步的差异。这些是当时证据，保留不改写。现在 `f9823c6` 的执行区已明确逐 BK 冻结，前述文档漂移已在当前控制记录中澄清；这并不补成部署或原生测试证据。
@@ -41,7 +43,7 @@
 | I00 接续与准入 | 本页固定当前分支/SHA；[CN 会话合同](cn-native-session-contract.md)、[作用域源码](../Core/RegionalSessionStorageScope.swift) | C00；仅基线记录已建立。实际运行包、批准端点、账号/realm/role 读回未验；无证据保持 OFF |
 | I01 GPS与坐标 | [回调隔离修复](ios-i01-native-location-callback.md)已远端提交于 `8c24b744ebad3c6a71350f4992035ff5704fb52a`；[测量精度/时间适配](ios-i01-location-fidelity.md)基于 `b6720951` 为当前本地源码候选，NOT_PUSHED，待独立复核 | BK-GPS 冻结阻塞已解除；重新核对控制 `ab377921` 和候选 `1e403b13`，accuracy 原值贯通 provider→projection→evidence→请求，时间只在本地，旧 UNKNOWN 身份/请求体不变。后端 SOURCE_READY 仅限其 CI 范围，TEST_DEPLOYED NO；本地 Swift/AppUnit/设备均 NOT_RUN，生产仍 OFF |
 | I02 未知写入与账号 | [原命令回执恢复修复](ios-i02-session-receipt-recovery.md)基于已发布 `0f2f0eb5`，本次源码候选待独立复核/推送；复用原 receipt/retryExact | A01 / BK-SESSION；控制 `3783d0fd`、候选 `1e403b13`。回执/view 失败不清原 pending，刷新先核原回执，APPLIED 后只补同局投影；13 个回归方法已编写，所有测试/构建 NOT_RUN，TEST_DEPLOYED NO。跨进程/双设备及整卡仍待验，能力保持 OFF |
-| I03 作者保存与媒体 | [作者模块](template-authoring-migration.md)、[发布回执](../Core/TemplateAuthoringPublishReceipt.swift)；整卡待复核 | B02/A03 / BK-AUTHOR、BK-NARRATIVE；保存重开、重排/媒体未知、旧局兼容与真实 ID 读回。首次 create 丢响应仍未知 |
+| I03 作者保存与媒体 | [作者冻结读回兼容](ios-i03-author-frozen-readback.md)基于已发布 `09323a41`，当前源码候选待独立复核/推送；保留[作者模块](template-authoring-migration.md)与[发布回执](../Core/TemplateAuthoringPublishReceipt.swift) | B02 / BK-AUTHOR；正确接收既有 SELLING_FROZEN 并保持只读。已确认读回保留本地草稿/journal，UNKNOWN 不因读取解锁；保留 V2 回执时独立 cover/review/release 写入口同受门禁。9 个 Core + 8 个 AppUnit 回归方法已编写，全部测试/构建 NOT_RUN。控制 `05346fed`、后续候选 `4a943501`，TEST_DEPLOYED NO。重排/媒体/旧局及整卡待验，首次 create 丢响应仍未知，能力 OFF |
 | I04 订单与资产 | [订单模块](order-lifecycle-module.md)、[钱包集成](wallet-commerce-integration.md)；既有原生能力保留，整卡待复核 | B03 / BK-ASSET；报价/退款/账本独立读回、SDK回跳及并发待验。无新收费、支付或出金授权 |
 | I05 私密引用与撤回 | [Square 模块](square-module.md)、[Square 协调器](../Core/SquareWorkspaceCoordinator.swift)；整卡待复核 | B05 / BK-PRIVACY；两身份、撤回后旧链接与媒体缓存访问待验；本机隐藏不代替服务端鉴权 |
 | I06 音频与生命周期 | [原生平台适配器](../App/NativePlatformAdapters.swift)、[NPC 设备适配器](../App/MerchantNPCVoiceDevice.swift)；已有中断实现，整卡待复核 | 可独立进行原生回归；离页/中断/恢复/资源释放需设备证据，不照抄 wx 生命周期 |

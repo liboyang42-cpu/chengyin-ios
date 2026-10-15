@@ -20,6 +20,7 @@ public enum ProjectEditStoryContract {
     /// The stripped WHITELIST body cannot select a version by itself. Use only its bound,
     /// freshly checked snapshot: legacy updates reject already-materialized chapter flows.
     public static func path(payload: [String: ProjectEditJSON], baseline: ProjectEditSnapshot?) throws -> String {
+        guard baseline?.scope.allowsEditing != false else { throw ProjectEditError.invalidContract }
         let editing = payload["id"] != nil
         if editing { guard (payload["id"]?.integer ?? 0) > 0 else { throw ProjectEditError.invalidContract } }
         if let baseline, baseline.scope == .whitelist {

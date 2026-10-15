@@ -3,7 +3,12 @@ import Foundation
 /// Source: publish_draft.dart and publish_draft_logic.dart. Native editor state is
 /// deliberately separate from wire payloads and from the Flutter secure-store format.
 public enum ProjectEditProduct: Int, Codable, CaseIterable { case city = 1, freeExplore = 2 }
-public enum ProjectEditScope: String, Codable { case full = "FULL", whitelist = "WHITELIST" }
+public enum ProjectEditScope: String, Codable {
+    case full = "FULL", whitelist = "WHITELIST", sellingFrozen = "SELLING_FROZEN"
+    /// A valid owner readback can be frozen by the existing server sale lifecycle.
+    /// It is readable, but grants neither full nor whitelist editing authority.
+    public var allowsEditing: Bool { self == .full || self == .whitelist }
+}
 public enum ProjectEditOwner: String, Codable { case personal = "", merchant = "MERCHANT" }
 public enum ProjectEditJSON: Codable, Equatable {
     case null, bool(Bool), number(Decimal), string(String), array([ProjectEditJSON]), object([String: ProjectEditJSON])
@@ -237,6 +242,9 @@ public enum ProjectEditValidation {
         return shape
     }
     public static func issues(_ draft: ProjectEditDraft, scope: ProjectEditScope = .full, baseline: ProjectEditSnapshot? = nil) -> [ProjectEditIssue] {
+        guard scope.allowsEditing, baseline?.scope.allowsEditing != false else {
+            return [.init("editScope", "projectEdit.lockedFields")]
+        }
         var issues: [ProjectEditIssue] = []
         func need(_ condition: Bool, _ id: String, _ key: String) { if !condition { issues.append(.init(id, "projectEdit.validation." + key)) } }
         need(!draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "name", "name")

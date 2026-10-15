@@ -11,6 +11,7 @@ public enum ProjectEditContract {
     public static let whitelist = ["name", "subtitle", "description", "imgUrl", "imgArr", "categoryIds", "scope"]
 
     public static func payload(_ draft: ProjectEditDraft, topicID: Int?, scope: ProjectEditScope, baseline: ProjectEditSnapshot? = nil) throws -> [String: ProjectEditJSON] {
+        guard scope.allowsEditing, baseline?.scope.allowsEditing != false else { throw ProjectEditError.invalidDraft }
         guard ProjectEditValidation.issues(draft, scope: scope, baseline: baseline).isEmpty else { throw ProjectEditError.invalidDraft }
         var payload: [String: ProjectEditJSON] = [
             "name": .string(draft.name), "subtitle": .string(draft.subtitle), "description": .string(draft.description),

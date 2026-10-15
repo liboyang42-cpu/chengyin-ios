@@ -33,7 +33,7 @@ import SwiftUI
         return ProjectEditLocalStore.exactPending(pending,opening.pending)
     }
     func mayChange(_ opening: Opening) -> Bool {
-        guard isCurrent(opening) else { return false }
+        guard !model.coordinator.isReadOnly, isCurrent(opening) else { return false }
         do {
             if let journal = model.coordinator.releaseReviewJournal {
                 let snapshot = try journal.read(session:opening.session,topicID:opening.target.topicID)
@@ -56,7 +56,7 @@ import SwiftUI
         presentation = .init(opening:opening,flow:flow)
     }
     func acceptedSelection(_ original: Presentation) {
-        guard presentation?.id == original.id, isCurrent(original.opening), case .selected(let receipt) = original.flow.state else { return }
+        guard presentation?.id == original.id, mayChange(original.opening), case .selected(let receipt) = original.flow.state else { return }
         model.recordCoverSelection(receipt, operationID: original.opening.pending.operationID)
         model.invalidateStarterLease(); close(original)
     }
@@ -85,7 +85,9 @@ import SwiftUI
                     Text(verbatim:receipt.asset.assetID).textSelection(.enabled).accessibilityIdentifier("ownedCover.selectedNotice.asset")
                     Text(String(receipt.configVersion)).accessibilityIdentifier("ownedCover.selectedNotice.config")
                 }
-                Button(String(localized:LocalizedStringResource("ownedCover.open",defaultValue:"Choose a cover for review",locale:locale))) {
+                Button(model.coordinator.isReadOnly
+                    ? String(localized:LocalizedStringResource("ownedCover.reload",defaultValue:"Read current cover details",locale:locale))
+                    : String(localized:LocalizedStringResource("ownedCover.open",defaultValue:"Choose a cover for review",locale:locale))) {
                     guard let opening else { return };controller.open(opening)
                 }.buttonStyle(.borderless).disabled(opening == nil).accessibilityIdentifier("ownedCover.open")
                 if opening == nil {

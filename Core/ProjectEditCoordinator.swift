@@ -60,7 +60,8 @@ public struct ProjectEditContinuation {
     public var session: ProjectEditSession? { currentSession() }
     public var isBusy: Bool { [.loading, .reviewing, .submitting].contains(state) }
     public var isLocked: Bool { (pending != nil && pending?.completedTopicID == nil) || state == .unknown }
-    public var canSubmit: Bool { canSimulate || service.authority == .approved }
+    public var isReadOnly: Bool { snapshot?.scope == .sellingFrozen }
+    public var canSubmit: Bool { !isReadOnly && (canSimulate || service.authority == .approved) }
     public var canSimulate: Bool {
         #if DEBUG
         return service.authority == .synthetic
@@ -127,13 +128,14 @@ public struct ProjectEditContinuation {
             restore = store.load(session: session, identity: target, baseline: baseline.draft)
             state = pending == nil ? .idle : (pending?.completedTopicID == nil ? .unknown : (pending?.serverAcknowledged == true ? .acknowledged : .simulated))
             messageKey = pending == nil ? (canSimulate ? "projectEdit.fixtureNotice" : "projectEdit.unconfigured") : (pending?.completedTopicID == nil ? "projectEdit.unknown" : (pending?.serverAcknowledged == true ? "projectEdit.acknowledged" : "projectEdit.simulated"))
+            if pending == nil, isReadOnly { messageKey = nil }
         } catch {
             guard active(session, stamp) else { return }
             state = .blocked; messageKey = error as? ProjectEditError == .notConfigured ? "projectEdit.unconfigured" : "projectEdit.loadFailed"
         }
     }
     public func restoredDraft() -> ProjectEditDraft? {
-        guard !isBusy, !isLocked, capturedSession == currentSession(), let baseline = snapshot,
+        guard !isReadOnly, !isBusy, !isLocked, capturedSession == currentSession(), let baseline = snapshot,
               case .ready(let envelope) = restore else { return nil }
         guard baseline.scope != .whitelist || envelope.draft.whitelistLockedFieldsEqual(to: baseline.draft) else {
             messageKey = "projectEdit.lockedFields"; return nil
@@ -143,12 +145,12 @@ public struct ProjectEditContinuation {
         return draft
     }
     public func discardLocalDraft() {
-        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, let session = capturedSession, session == currentSession(), let identity else { return }
+        guard !isReadOnly, !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, let session = capturedSession, session == currentSession(), let identity else { return }
         do { try store.remove(session: session, identity: identity); restore = .missing; messageKey = "projectEdit.localRemoved" }
         catch { messageKey = "projectEdit.localFailed" }
     }
     @discardableResult public func saveLocal(_ draft: ProjectEditDraft) -> Bool {
-        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, let session = capturedSession, session == currentSession(), let identity,
+        guard !isReadOnly, !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, let session = capturedSession, session == currentSession(), let identity,
               let baseline = snapshot, baseline.draft.product == draft.product, baseline.draft.owner == draft.owner,
               baseline.scope != .whitelist || draft.whitelistLockedFieldsEqual(to: baseline.draft) else { return false }
         // Never overwrite an unreviewed saved draft/conflict with the blank baseline.
@@ -232,7 +234,7 @@ public struct ProjectEditContinuation {
     }
     public func prepare(_ draft: ProjectEditDraft) {
         synchronizeSession(); confirmation = nil
-        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, capturedSession == currentSession(), let baseline = snapshot else { return }
+        guard !isReadOnly, !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, capturedSession == currentSession(), let baseline = snapshot else { return }
         let session = capturedSession
         issues = ProjectEditValidation.issues(draft, scope: baseline.scope, baseline: baseline)
         guard issues.isEmpty else { messageKey = "projectEdit.invalid"; return }
@@ -251,7 +253,7 @@ public struct ProjectEditContinuation {
     public func leaveScreen() { generation += 1; confirmation = nil; if state != .simulated && state != .acknowledged { state = isLocked ? .unknown : .idle } }
     public func confirm(_ value: ProjectEditConfirmation) async {
         synchronizeSession()
-        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, confirmation == value, currentSession() == value.session else { return }
+        guard !isReadOnly, value.baseline.scope.allowsEditing, !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, confirmation == value, currentSession() == value.session else { return }
         guard let session = value.session, let identity else { messageKey = "projectEdit.signIn"; confirmation = nil; return }
         guard canSubmit else { messageKey = "projectEdit.unconfigured"; confirmation = nil; return }
         generation += 1; let stamp = generation
@@ -342,6 +344,15 @@ public struct ProjectEditContinuation {
             guard active(session, stamp) else { return false }
             guard let fresh = value.snapshot, fresh.topicID == id, fresh.draft.owner == initial.draft.owner,
                   !fresh.draft.baseRevision.isEmpty else { throw ProjectEditError.invalidContract }
+            if !fresh.scope.allowsEditing {
+                guard let current = try store.pending(session: session, identity: expected.identity),
+                      ProjectEditLocalStore.exactPending(current, expected) else { throw ProjectEditContinuationFailure.changedPending }
+                // This read is a server fact, not permission to start another edit.
+                // Retain the submitted draft and acknowledged journal for a later
+                // explicit reread; never overwrite them with a frozen projection.
+                snapshot = fresh; state = .acknowledged; messageKey = nil
+                return true
+            }
             try store.advanceAcknowledged(expected, baseline: fresh, session: session, isCurrent: { self.active(session, stamp) })
             guard active(session, stamp) else { return false }
             snapshot = fresh; self.pending = nil; restore = .missing; state = .idle
