@@ -116,7 +116,13 @@ extension PlayExperienceService {
         try PlayGameReceipt(await request("api/game/session/command", json: command.json, capability: .playerCommands, token: token), command: command)
     }
     public func playerReceipt(_ command: PlayPlayerCommand, token: String) async throws -> PlayGameReceipt {
-        try PlayGameReceipt(await request("api/game/session/receipt", query: ["activityId": String(command.activityID), "requestId": command.requestID], capability: .reads, token: token), command: command)
+        let raw = try await request("api/game/session/receipt", query: ["activityId": String(command.activityID), "requestId": command.requestID], capability: .reads, token: token)
+        // The existing server returns only the request identity and PENDING when
+        // no row exists. Do not invent an action/revision or treat absence as failure.
+        if raw["activityId"].integer == command.activityID, raw["requestId"].text == command.requestID,
+           raw["outcome"].text == "PENDING", raw["receiptId"] == .null,
+           raw["action"] == .null, raw["revision"] == .null { throw PlayExperienceError.unknownResult }
+        return try PlayGameReceipt(raw, command: command)
     }
 }
 @available(macOS 14.0, *)
@@ -140,17 +146,33 @@ extension PlayExperienceService {
         if owner != nil && owner != session { projection = nil; receipt = nil; phase = "stale"; return }
         owner = session; generation &+= 1; let generation = generation; phase = "loading"; issue = nil
         do {
+            // Reopening/refreshing an unknown attempt must consult its original
+            // receipt. A current view alone cannot prove which command applied,
+            // and must not replace the session identity used by accept below.
+            if let pending {
+                if let receipt, receipt.outcome == "APPLIED" {
+                    // Keep an already authoritative result while retrying only
+                    // its failed projection read; never downgrade it to unknown.
+                    try await accept(receipt, session, generation)
+                } else {
+                    try await accept(service.playerReceipt(pending, token: session.token), session, generation)
+                }
+                return
+            }
             let value = try await service.playerProjection(activityID: activityID, token: session.token)
-            try check(session, generation); projection = value; phase = pending == nil ? "ready" : "unknown"
+            try check(session, generation); projection = value; phase = "ready"
         } catch { fail(error, session, generation) }
     }
     public func submit(_ command: PlayPlayerCommand) async {
-        guard pending == nil, phase == "ready", projection?.allows(command) == true, owner == currentSession() else { return }
-        pending = command; await sendExact()
+        guard !Task.isCancelled, pending == nil, phase == "ready", projection?.allows(command) == true, owner == currentSession() else { return }
+        // A disabled first dispatch has no unknown result. Once an attempt exists,
+        // however, a later read/dispatch denial is never evidence it did not apply.
+        guard service.enabled.contains(.playerCommands) else { issue = .disabled; phase = "disabled"; return }
+        receipt = nil; issue = nil; pending = command; await sendExact()
     }
     private func sendExact() async {
         guard let pending, let session = owner, session == currentSession() else { return }
-        let generation = generation; phase = "submitting"
+        let generation = generation; phase = "submitting"; issue = nil
         do { try await accept(service.playerCommand(pending, token: session.token), session, generation) }
         catch { fail(error, session, generation) }
     }
@@ -165,13 +187,16 @@ extension PlayExperienceService {
         projection = value; pending = nil; phase = "ready"
     }
     public func recover() async {
-        guard let pending, let session = owner, session == currentSession(), phase == "unknown" else { return }
-        let generation = generation; phase = "loading"; issue = nil
-        do { try await accept(service.playerReceipt(pending, token: session.token), session, generation) }
-        catch { fail(error, session, generation) }
+        guard pending != nil, let session = owner, session == currentSession(), phase == "unknown" else { return }
+        await load()
     }
     /// Explicit user retry, with frozen command/requestId. No new payload or ID.
-    public func retryExact() async { guard phase == "unknown", pending != nil else { return }; await sendExact() }
+    public func retryExact() async {
+        guard phase == "unknown", pending != nil else { return }
+        // Once applied, only finish the readback; there is no command left to send.
+        if receipt?.outcome == "APPLIED" { await recover() }
+        else { await sendExact() }
+    }
     private func check(_ session: PlayExperienceSession, _ generation: UInt64) throws {
         guard self.generation == generation, currentSession() == session, !Task.isCancelled else { throw PlayExperienceError.staleSession }
     }
@@ -179,8 +204,11 @@ extension PlayExperienceService {
         guard self.generation == generation else { return }
         guard currentSession() == session else { projection = nil; receipt = nil; phase = "stale"; return }
         issue = error as? PlayExperienceError ?? .unknownResult
-        if case PlayExperienceError.rejected = error { pending = nil; phase = "rejected" }
-        else if case PlayExperienceError.disabled = error { pending = nil; phase = "disabled" }
-        else { phase = pending == nil ? "failed" : "unknown" }
+        // AjaxResult errors describe this request, not the outcome of the original
+        // command. Receipt/view reads and same-key conflicts must retain its lock.
+        if pending != nil { phase = "unknown" }
+        else if case PlayExperienceError.rejected = error { phase = "rejected" }
+        else if case PlayExperienceError.disabled = error { phase = "disabled" }
+        else { phase = "failed" }
     }
 }
