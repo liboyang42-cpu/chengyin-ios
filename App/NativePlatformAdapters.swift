@@ -2,9 +2,52 @@ import AVFoundation
 import MapKit
 import UIKit
 
+/// Internal seams keep lifecycle regressions independent of networking and the device audio session.
+protocol NativePlatformAudioDownloading: AnyObject {
+    func start(_ url: URL, completion: @escaping @Sendable (Data?) -> Void)
+    func cancel()
+}
+@MainActor protocol NativePlatformAudioPlaying: AnyObject {
+    var delegate: (any AVAudioPlayerDelegate)? { get set }
+    func prepareToPlay() -> Bool
+    func play() -> Bool
+    func pause()
+    func stop()
+}
+extension AVAudioPlayer: NativePlatformAudioPlaying {}
+
+@MainActor struct NativePlatformAudioDependencies {
+    let notifications: NotificationCenter
+    let makeDownload: (PlatformMediaPolicy) -> any NativePlatformAudioDownloading
+    let makePlayer: (Data) throws -> any NativePlatformAudioPlaying
+    let activateSession: () throws -> Void
+    let deactivateSession: () -> Void
+    let hasPlaybackConfiguration: () -> Bool
+    let enqueue: @Sendable (@escaping @MainActor @Sendable () -> Void) -> Void
+
+    static var live: Self {
+        .init(notifications: .default,
+              makeDownload: { ApprovedAudioDownload(policy: $0) },
+              makePlayer: { try AVAudioPlayer(data: $0) },
+              activateSession: {
+                  let session = AVAudioSession.sharedInstance()
+                  try session.setCategory(.playback, mode: .spokenAudio)
+                  try session.setActive(true)
+              },
+              deactivateSession: {
+                  try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+              },
+              hasPlaybackConfiguration: {
+                  let session = AVAudioSession.sharedInstance()
+                  return session.category == .playback && session.mode == .spokenAudio
+              },
+              enqueue: { operation in Task { @MainActor in operation() } })
+    }
+}
+
 /// Bounded, ephemeral HTTPS download. Redirects remain inside the reviewed origin allowlist;
 /// no cookies, credentials, cache, or automatic retries. HLS is intentionally unsupported.
-private final class ApprovedAudioDownload: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownloading, URLSessionDataDelegate, @unchecked Sendable {
     private let policy: PlatformMediaPolicy
     private let limit = 20 * 1024 * 1024
     private var bytes = Data()
@@ -45,58 +88,91 @@ private final class ApprovedAudioDownload: NSObject, URLSessionDataDelegate, @un
 /// Authored only: callers must explicitly inject this after runtime and consent approval.
 /// Playback-only category, never requests microphone access or background-audio entitlement.
 @MainActor final class NativePlatformAudioDriver: NSObject, PlatformAudioDriving, AVAudioPlayerDelegate {
-    private var player: AVAudioPlayer?
-    private var download: ApprovedAudioDownload?
+    private let dependencies: NativePlatformAudioDependencies
+    private let notifications: NotificationCenter
+    private var player: (any NativePlatformAudioPlaying)?
+    private var download: (any NativePlatformAudioDownloading)?
     private var generation = 0
+    private var sessionActive = false
     private var event: (@MainActor (PlatformAudioEvent) -> Void)?
     private var observers: [NSObjectProtocol] = []
-    override init() {
+    override convenience init() { self.init(dependencies: .live) }
+    init(dependencies: NativePlatformAudioDependencies) {
+        self.dependencies = dependencies
+        notifications = dependencies.notifications
         super.init()
+    }
+    private func observeLifecycle(token: Int) {
+        let enqueue = dependencies.enqueue
         for name in [AVAudioSession.interruptionNotification, AVAudioSession.routeChangeNotification,
                      AVAudioSession.mediaServicesWereResetNotification, UIApplication.didEnterBackgroundNotification] {
-            observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                Task { @MainActor [weak self] in
-                    guard let self else { return }; let event = self.event; self.stop(); event?(.interrupted)
+            observers.append(notifications.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
+                let interruption = (notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? NSNumber)?.uintValue
+                let route = (notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? NSNumber)?.uintValue
+                enqueue { [weak self] in
+                    // An already enqueued notification still belongs to the run that registered it.
+                    guard let self, self.generation == token, self.event != nil else { return }
+                    if name == AVAudioSession.interruptionNotification,
+                       interruption == AVAudioSession.InterruptionType.ended.rawValue { return }
+                    // setCategory during this driver's own start also emits a route change.
+                    // An incompatible category takeover remains a stop-worthy event.
+                    if name == AVAudioSession.routeChangeNotification,
+                       route == AVAudioSession.RouteChangeReason.categoryChange.rawValue,
+                       self.dependencies.hasPlaybackConfiguration() { return }
+                    self.finish(.interrupted)
                 }
             })
         }
     }
-    deinit { observers.forEach(NotificationCenter.default.removeObserver) }
+    deinit { observers.forEach(notifications.removeObserver) }
     func start(source: PlatformMediaSource, policy: PlatformMediaPolicy, event: @escaping @MainActor (PlatformAudioEvent) -> Void) {
         stop(); self.event = event
-        guard policy.allows(source.url) else { event(.failed); return }
-        let token = generation, download = ApprovedAudioDownload(policy: policy); self.download = download
+        guard policy.allows(source.url) else { finish(.failed); return }
+        let token = generation
+        observeLifecycle(token: token)
+        let download = dependencies.makeDownload(policy); self.download = download
+        let enqueue = dependencies.enqueue
         download.start(source.url) { [weak self] data in
-            Task { @MainActor [weak self] in
+            enqueue { [weak self] in
                 guard let self, token == self.generation else { return }
-                guard let data else { self.event?(.failed); return }
+                guard let data else { self.finish(.failed); return }
                 do {
-                    let audioSession = AVAudioSession.sharedInstance()
-                    try audioSession.setCategory(.playback, mode: .spokenAudio)
-                    try audioSession.setActive(true)
-                    let player = try AVAudioPlayer(data: data)
+                    try self.dependencies.activateSession(); self.sessionActive = true
+                    let player = try self.dependencies.makePlayer(data)
                     self.player = player; player.delegate = self
-                    guard player.prepareToPlay(), player.play() else { self.event?(.failed); return }
+                    guard player.prepareToPlay(), player.play() else { self.finish(.failed); return }
                     self.event?(.playing)
-                } catch { self.event?(.failed) }
+                } catch { self.finish(.failed) }
             }
         }
     }
     func pause() { player?.pause() }
-    func resume() { event?(player?.play() == true ? .playing : .failed) }
+    func resume() {
+        guard event != nil else { return }
+        guard player?.play() == true else { finish(.failed); return }
+        event?(.playing)
+    }
     func stop() {
-        generation += 1; download?.cancel(); download = nil
+        generation += 1
+        observers.forEach(notifications.removeObserver); observers.removeAll()
+        download?.cancel(); download = nil
         player?.stop(); player?.delegate = nil; player = nil; event = nil
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        let usedSession = sessionActive; sessionActive = false
+        if usedSession { dependencies.deactivateSession() }
+    }
+    private func finish(_ result: PlatformAudioEvent) {
+        let callback = event
+        stop() // Release before delivering a terminal result, including a reentrant explicit retry.
+        callback?(result)
     }
     nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
         Task { @MainActor [weak self, weak player] in
-            guard let self, let player, self.player === player else { return }; self.event?(flag ? .ended : .failed)
+            guard let self, let player, self.player === player else { return }; self.finish(flag ? .ended : .failed)
         }
     }
     nonisolated func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
         Task { @MainActor [weak self, weak player] in
-            guard let self, let player, self.player === player else { return }; self.event?(.failed)
+            guard let self, let player, self.player === player else { return }; self.finish(.failed)
         }
     }
 }
