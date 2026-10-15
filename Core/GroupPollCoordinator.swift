@@ -67,8 +67,9 @@ public enum GroupPollPhase: Equatable {
             try value.validate(reference: reference, conversationID: scope.conversationID, results: true)
             poll = value
             try resolveProvenLocks(value)
-            activeMembership = (try? await membership()) == true
+            let member = (try? await membership()) == true
             guard current(request) else { return }
+            activeMembership = member
             phase = unresolved(value) ? .unknown : .idle
         } catch {
             guard current(request) else { return }
@@ -151,7 +152,7 @@ public enum GroupPollPhase: Equatable {
             // version/choice remains immutable; a changed poll returns to explicit review.
             if let reference {
                 let latest = try await client.result(reference, expectedIdentity: scope.identity)
-                guard current(request) else { return }
+                guard current(request) else { finishInterruptedDispatch(request, record: record); return }
                 try latest.validate(reference: reference, conversationID: scope.conversationID, results: true)
                 poll = latest
                 switch mutation {
@@ -163,7 +164,7 @@ public enum GroupPollPhase: Equatable {
                 }
             }
             let member = try await membership()
-            guard current(request) else { return }
+            guard current(request) else { finishInterruptedDispatch(request, record: record); return }
             activeMembership = member
             guard member else { throw MessagingReadFailure(code: 403) }
             let target = target(mutation)
@@ -185,7 +186,7 @@ public enum GroupPollPhase: Equatable {
             // Keep the written lock but never dispatch after that ownership boundary.
             guard current(request), phase == .submitting else { phase = .unknown; changed(); return }
             let receipt = try await client.perform(mutation, scope: scope, reference: reference)
-            guard current(request) else { phase = .unknown; changed(); return }
+            guard current(request) else { finishInterruptedDispatch(request, record: record); return }
             try receipt.validate(reference: reference, conversationID: scope.conversationID, results: mutation.path != "api/im/poll/create")
             try receipt.validateReceipt(mutation, scope: scope)
             if let record { try journal.clear(record) }
@@ -193,13 +194,26 @@ public enum GroupPollPhase: Equatable {
             // Create response's option zeros are NOT result counts. The view explicitly
             // refreshes via /result before offering a vote or rendering a total.
         } catch {
-            guard current(request) else { phase = record == nil ? .idle : .unknown; changed(); return }
+            guard current(request) else { finishInterruptedDispatch(request, record: record); return }
             if record == nil { phase = .rejected }
             else if let failure = error as? MessagingReadFailure, failure.httpStatus == nil, let code = failure.code, [400, 401, 403, 404].contains(code) {
                 do { if let record { try journal.clear(record) }; pendingMutation = nil; phase = .rejected } catch { phase = .unknown }
             } else { phase = .unknown }
             if (error as? MessagingReadFailure)?.code == 403 { activeMembership = false }
         }
+        changed()
+    }
+    /// Suspension already chose the retired request's recovery state. A newer
+    /// read may have resolved its lock or entered another review while it awaited
+    /// the server, so a late completion must not replace that newer presentation.
+    /// Same-lifetime cancellation still ends loading/submission without clearing
+    /// a durable intent or treating an unobserved write as a confirmed failure.
+    private func finishInterruptedDispatch(_ request: UInt64, record: OperationPendingRecord?) {
+        guard generation == request else { return }
+        // An exact-create retry can be interrupted before it has reloaded its
+        // existing record. Its original pending intent must still stay unknown.
+        let hasPendingIntent = pendingMutation.map { isLocked(target($0)) } == true
+        phase = record != nil || hasPendingIntent ? .unknown : .idle
         changed()
     }
     private func unresolved(_ poll: GroupPoll) -> Bool { isLocked(voteTarget(poll.id)) || isLocked(closeTarget(poll.id)) }

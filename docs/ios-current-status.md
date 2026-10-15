@@ -50,8 +50,8 @@ I03 本次单独刷新到控制 `05346fedae227c12cff9d9ca533c3e92e62ae743`：冻
 | I07 徽章积分榜单 | [本次限定源码复核](ios-i08-npc-unknown-outcome.md#i07-bounded-no-change-review)：基于已发布 `8e3c74a1`，NO_CHANGE_SOURCE_REVIEW；既有全量/分页区分、身份卡降级、榜外本人可空分数及scope隔离保留 | BK-BADGE、BK-ASSET、BK-EXISTING；本次未确认需改代码，不等于整卡通过。平台/俱乐部源数据、真实缓存失效与部署/设备仍待验；控制 `53d50db2`，TEST_DEPLOYED NO |
 | I08 AI与NPC数据 | [商家NPC未知结果适配](ios-i08-npc-unknown-outcome.md)已发布于 `1ddbb792`；[玩家Shop NPC同类完整流程](ios-i08-shop-npc-unknown-outcome.md)以该SHA为父基线，当前源码候选待独立复核/推送 | A02 / BK-AI，NO_API_CHANGE；控制 `53d50db2`、冻结 `1e403b13` 与滚动 `adc7c68e` 已重读。Shop端精确接收UNKNOWN元组、保留文字/语音/重生成review与原ID、遵守禁止重试且不误报终态，复用既有本地取消；12 Core + 5 AppUnit方法已编写，全部NOT_RUN。删除/usage及整卡待验，AI-VOICE/CLAIM-MATERIAL仍DRAFT，TEST_DEPLOYED NO，能力OFF |
 | I09 排期与团队 | [时刻读回修复](ios-i09-series-time-handoff.md)已提交 `7c21af45`；[团队返回读回](ios-i09-team-return-readback.md)已提交 `fefc96a6`；[精确剩余排期与日期校验](ios-i09-exact-schedule-dates.md)以该SHA为父基线，当前源码候选待独立复核/推送 | B04 / BK-SCHEDULE；带取消缺口的WEEKLY读回保留原日期，以明示的CUSTOM_DATES转换供Apply/最终复核；连续周排期不变，今天的日期不静默删除，更新只允许上海明天起。10 Core + 7 AppUnit方法已编写，全部测试/构建/App/CI NOT_RUN；控制 `11f7a956`、CORE `05d307ec`、另核PR36 `25ede658`，TEST_DEPLOYED NO。已有HH:mm、CAS、UNKNOWN锁和读回复用，能力OFF；设备/真实保护场次及整卡仍待验 |
-| I10 交互与性能 | [原生验证对照](native-verification-parity.md)、[无障碍测试源码](../Tests/AppUITests/AccessibilityPresentationFlowTests.swift)；整卡待复核 | 可独立核；普通入口、VoiceOver/大字/Reduce Motion、地图/列表性能需同场景设备证据，源码数量不代表表现 |
-| I11 候选新入口 | [群投票](group-polls.md)、[漫游体验](roam-experience-module.md)、[创作内容](creator-content-integration.md)已有切片 | BK-EXISTING；逐项判已有/部分/未纳入/依赖，先确认原授权范围，不把小程序未露出变成 iOS 删除依据或新增需求 |
+| I10 交互与性能 | [本次限定源码复核](ios-i11-poll-return-readback.md#i10-bounded-no-change-review)：基于已发布 `fed79fed`，已核指定地图/导航生命周期、列表替代及既有Reduce Motion处理，NO_CHANGE_SOURCE_REVIEW | 仅所读路径未确认需改；不等于整卡或无障碍/性能通过。普通入口、VoiceOver/大字、地图/列表/图片音频表现仍须同场景设备证据；本轮不运行 |
+| I11 候选新入口 | [群投票返回读回](ios-i11-poll-return-readback.md)以已发布 `fed79fed` 为父基线，源码候选待独立复核/推送；修已有创建/投票/关闭在退场返回后旧响应覆盖新读回/复核、旧成员读取反盖新状态 | BK-EXISTING，NO_API_CHANGE；控制 `8533507d`、CORE `2b1984b5` 与实际投票源码已重读。13 Core方法已编写，全部测试/构建/App/CI NOT_RUN；原未决锁、精确创建重试与版本/权限不变，TEST_DEPLOYED NO、能力OFF。其余候选入口不据此称已复核或批准 |
 
 ### 两个已远端提交源码切片的精确限制
 
