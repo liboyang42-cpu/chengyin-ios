@@ -82,6 +82,18 @@ extension KeychainTokenStore: AppTokenStorage {}
     let deployment: DeploymentState
     let storage: AppScopedStorageFactory
     private let makeTransport: () -> any HTTPTransport
+    func favoriteRemovalTransport(accesses: [ProfileFavoriteRemovalAccess], context: RuntimeDependencyContext,
+                                  collectionScope: UUID, current: @escaping () -> RuntimeDependencyContext?,
+                                  currentScope: @escaping () -> UUID?,
+                                  select: @escaping (RuntimeDependencyContext, UUID) -> [ProfileFavoriteRemovalAccess]) -> (any HTTPTransport)? {
+        guard case .reviewed(let reviewed) = deployment,
+              let api = reviewed.regional.apiConfiguration, reviewed.regional.market == context.market,
+              api.baseURL == context.baseURL, reviewed.storageScope.service == context.session.namespace,
+              !accesses.isEmpty else { return nil }
+        return ProfileFavoriteRemovalTransport(accesses: accesses, collectionScope: collectionScope,
+            underlying: makeTransport(), current: current, currentScope: currentScope, select: select)
+    }
+
     /// Select independently reviewed approvals for the exact context. This builder must not
     /// turn authentication, roles, or remote booleans into OperationEndpointApproval values.
     let projectStoryAudioUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryAudioUploadApproval?
@@ -107,6 +119,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let profilePublicInfoReadAccess: @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess?
     let profileGuideReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess?
     let profileFavoritesReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess?
+    var profileFavoriteRemovalAccesses: @MainActor (RuntimeDependencyContext, UUID) -> [ProfileFavoriteRemovalAccess] = { _, _ in [] }
     let profileFavoriteTopicReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess?
     let profileFavoriteDetailAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?
     let profileInviteHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess?

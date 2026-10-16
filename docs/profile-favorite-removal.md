@@ -1,12 +1,10 @@
 # P109 saved-post removal: contract and injectable chain
 
-## Status
+## Current source-only continuation
 
-The complete scoped implementation is delivered: select a legacy saved post → reread its current bookmark state → review/cancel → explicitly confirm removal → send one exact command → reread exact target state → refresh the saved collection after Done. Unknown outcomes remain durably locked and expose only a read-only status check. A failed preparation can retry its read without submitting a command.
+Status: **SOURCE-ONLY / NOT ENABLED**. [Profile and Settings favorites flow](ios-profile-settings-favorites-flow.md) is the current continuation: the normal Account/Settings routes now propagate an optional exact revocable controller, and the complete supported saved-post flow includes review/cancel, verified result, missing-row read-only UNKNOWN recovery, scoped session expiry, and one refresh on Done/Close/swipe.
 
-Production cancellation of favorites is **not enabled**. The current app has no independently reviewed saved-post removal approval or composition injection. Optional `favoriteRemoval` defaults to nil throughout the collection entry/list; no fake or disabled action is shown. The fragment identifies the exact future dependency. No AppSession/AccountView grant, endpoint allowlist, credential, existing follow/chat approval or community-v1 mutation path was changed.
-
-This is a completed source-contract adapter and injectable interaction chain, not evidence that a real account can already perform the production write. The synthetic fixture passes a bounded test approval to the same controller, with a local fake transport and isolated journal. It is DEBUG-only.
+The selector remains default-empty with no production grant. Saved TOPIC removal is NOT IMPLEMENTED. All tests/builds/App/device/CI for that continuation are NOT_RUN. Its dedicated Settings favorites source, tests and resource are registered; the historical evidence below describes the earlier injectable adapter only and does not become current runtime evidence.
 
 ## Verified source
 

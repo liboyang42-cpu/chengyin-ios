@@ -151,7 +151,13 @@ private struct AccountCollectionFavoriteCard: View {
     @StateObject private var model = AccountCollectionPostsScreenModel()
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
     var body: some View {
+        let renderedScope = key.scope
         List {
+            if let favoriteRemoval, reader.isAuthenticated, reader.isConfigured {
+                ProfileFavoriteRecoverySection(scope: renderedScope, controller: favoriteRemoval,
+                    isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope },
+                    onRemoved: { await refresh() })
+            }
             if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
@@ -178,7 +184,7 @@ private struct AccountCollectionFavoriteCard: View {
                     .questifyCardListRow()
                     if let favoriteRemoval {
                         ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,
-                            isCurrent: { reader.isAuthenticated && reader.isConfigured && model.state.loadedScope == reader.scope },
+                            isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope && model.state.loadedScope == renderedScope },
                             onRemoved: { await refresh() })
                     }
                     NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")

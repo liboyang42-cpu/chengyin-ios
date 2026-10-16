@@ -1981,6 +1981,60 @@ final class AppSession: ObservableObject {
                   ContentDraftContextFence.matches(captured, fresh) else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
+    private let favoriteRemovalPendingState = ProfileFavoriteRemovalPendingState()
+    private var favoriteRemovalControllerCache: (context: RuntimeDependencyContext, scope: UUID,
+        revisions: [UUID], controller: ProfileFavoriteRemovalController)?
+    func makeProfileFavoriteRemovalController(scope: UUID) -> ProfileFavoriteRemovalController? {
+        var retained = false
+        defer {
+            if !retained {
+                if let old = favoriteRemovalControllerCache?.controller, let id = old.presentationID { old.retire(id) }
+                favoriteRemovalControllerCache = nil
+            }
+        }
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              profileFavoritesReader.isConfigured, profileFavoritesReader.scope == scope else { return nil }
+        let accesses = composition.profileFavoriteRemovalAccesses(context, scope).filter {
+            $0.matches(context, collectionScope: scope, postID: $0.approval.postID)
+        }
+        guard !accesses.isEmpty, Set(accesses.map { $0.approval.postID }).count == accesses.count else { return nil }
+        let revisions = accesses.map(\.revision)
+        if let cached = favoriteRemovalControllerCache, cached.context == context, cached.scope == scope,
+           cached.revisions == revisions { retained = true; return cached.controller }
+        if let old = favoriteRemovalControllerCache?.controller, let id = old.presentationID { old.retire(id) }
+        favoriteRemovalControllerCache = nil
+        let currentScope: () -> UUID? = { [weak self] in
+            guard let self, self.profileFavoritesReader.isConfigured else { return nil }
+            return self.profileFavoritesReader.scope
+        }
+        let select: (RuntimeDependencyContext, UUID) -> [ProfileFavoriteRemovalAccess] = { [weak self] context, scope in
+            self?.composition.profileFavoriteRemovalAccesses(context, scope) ?? []
+        }
+        guard let transport = composition.favoriteRemovalTransport(accesses: accesses, context: context,
+            collectionScope: scope, current: { [weak self] in self?.currentRuntimeDependencyContext },
+            currentScope: currentScope, select: select) else { return nil }
+        let controller = ProfileFavoriteRemovalController(configuration: api, approvals: accesses.map(\.approval),
+            transport: transport, journal: composition.storage.operationJournal(), current: { [weak self] in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(context, fresh), currentScope() == scope else { return nil }
+                let latest = select(fresh, scope)
+                guard accesses.allSatisfy({ captured in
+                    captured.matches(fresh, collectionScope: scope, postID: captured.approval.postID) &&
+                    latest.filter { $0.approval.postID == captured.approval.postID }.count == 1 &&
+                    latest.contains(where: { $0 === captured })
+                }) else { return nil }
+                return try? ProfileFavoriteRemovalSession(identity: .init(accountID: fresh.session.accountID,
+                    epoch: fresh.session.epoch, role: fresh.role), namespace: fresh.session.namespace,
+                    collectionScope: scope, market: fresh.market, token: fresh.session.token)
+            }, onUnauthorized: { [weak self] in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(context, fresh) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }, pendingState: favoriteRemovalPendingState)
+        favoriteRemovalControllerCache = (context, scope, revisions, controller)
+        retained = true
+        return controller
+    }
     func makeProfileFavoriteDetailReader(_ selection: ProfileFavoritePostSelection) -> ProfileFavoriteDetailReader {
         let api = regionalConfiguration?.apiConfiguration
         let service = api.map {

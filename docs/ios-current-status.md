@@ -53,6 +53,12 @@ I03 本次单独刷新到控制 `05346fedae227c12cff9d9ca533c3e92e62ae743`：冻
 | I10 交互与性能 | [本次限定源码复核](ios-i11-poll-return-readback.md#i10-bounded-no-change-review)：基于已发布 `fed79fed`，已核指定地图/导航生命周期、列表替代及既有Reduce Motion处理，NO_CHANGE_SOURCE_REVIEW | 仅所读路径未确认需改；不等于整卡或无障碍/性能通过。普通入口、VoiceOver/大字、地图/列表/图片音频表现仍须同场景设备证据；本轮不运行 |
 | I11 候选新入口 | [群投票返回读回](ios-i11-poll-return-readback.md)以已发布 `fed79fed` 为父基线，源码候选待独立复核/推送；修已有创建/投票/关闭在退场返回后旧响应覆盖新读回/复核、旧成员读取反盖新状态 | BK-EXISTING，NO_API_CHANGE；控制 `8533507d`、CORE `2b1984b5` 与实际投票源码已重读。13 Core方法已编写，全部测试/构建/App/CI NOT_RUN；原未决锁、精确创建重试与版本/权限不变，TEST_DEPLOYED NO、能力OFF。其余候选入口不据此称已复核或批准 |
 
+## 原生个人收藏完整流程续作
+
+[Account / Settings 收藏与取消收藏流程](ios-profile-settings-favorites-flow.md)以已发布 `30adba500ab3d1746105e1de061bd9dab83a57d9` 为基线，当前源码候选待独立复核/推送。复用已有列表、详情和明确的帖子取消收藏合同，补齐实际 Settings 入口、默认空权限的可撤销组合注入、成功关闭/手势返回刷新、列表已无该帖时的只读 UNKNOWN 核对、旧响应不能重建已解除锁，以及匹配会话的401恢复。主题取消收藏仍未实现，未新增任何生产或集成fixture准入；能力 OFF。
+
+这是一组既有原生功能链的源码续作，不增加或重算原计划需求，也不把整项个人资料/设置或整卡标为验收完成。控制 `e2163ab8` 的公开 START/HANDOFF/BACKEND_CHANGES 已刷新；NO_API_CHANGE，TEST_DEPLOYED NO。新增/复用回归均仅编写，所有测试、构建、App、设备、CI均 NOT_RUN；具体路径、完整入口到结果/恢复、证据边界见链接。
+
 ### 两个已远端提交源码切片的精确限制
 
 - **I01 / 8c24b744**：旧 CLLocationManager 回调不能消费后继捕获；取消受捕获代际隔离。三参数输出、WGS84 标签、原坐标/投影策略及请求字段未变。三个 AppUnit 用例已编写，未执行。其完成不等于 GPS 整卡验收。
