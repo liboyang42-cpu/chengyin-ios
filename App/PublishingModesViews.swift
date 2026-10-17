@@ -19,7 +19,7 @@ import MapKit
         List {
             Section { Text("publishModes.offlineNotice").foregroundStyle(.secondary) }
             NavigationLink("publishModes.quick") { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) }
-            NavigationLink("publishModes.activity") { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover) }
+            NavigationLink("publishModes.activity") { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) }
             NavigationLink("publishModes.projects") { PublishingProjectsView(service: service, account: account, openResource: openResource) }
             NavigationLink("publishModes.identity") { PublishingIdentityStatusView(service: service, account: account) }
         }.navigationTitle(Text("publishModes.title")).accessibilityIdentifier("publishModes.home")
@@ -87,6 +87,7 @@ import MapKit
     @StateObject private var identityRegistration = PublisherIdentityRegistrationOwner()
     @StateObject private var templateSelection = ActivityTemplateSelectionOwner()
     @StateObject private var cover = ActivityCoverAuthoringOwner()
+    @StateObject private var submission = ActivityPublishingSubmissionOwner()
     let service: PublishingService?
     let account: PublishingSession?
     var placeSearch: (any PublishingPlaceSearching)?
@@ -95,14 +96,15 @@ import MapKit
     var makeIdentityRegistration: (() -> PublisherIdentityRegistrationService?)? = nil
     var makeActivityTemplate: (() -> AnyView)? = nil
     var makeActivityCover: (() -> ActivityCoverService?)? = nil
+    var openResource: ((PublishedResource) -> Void)? = nil
     @State private var draft = ActivityPublishDraft()
     @State private var picker: String?
     @State private var review: PublishingReview?
     @State private var localReview = false
-    @State private var busy = false
+    private var busy: Bool { submission.busy }
     @State private var message = ""
-    @State private var acknowledged = false
-    @State private var uncertain = false
+    private var acknowledged: Bool { submission.outcome == .acknowledged }
+    private var uncertain: Bool { submission.outcome == .unknown || submission.lockUnavailable }
     private var coverEditable: Bool { !busy && !acknowledged && !uncertain && !identityRegistration.open && !templateSelection.open && review == nil && !localReview && picker == nil && timeRange.presentation == nil && (service == nil || service?.currentSession == account) }
     private var editable: Bool { !busy && !acknowledged && !uncertain && !identityRegistration.open && !templateSelection.open && !cover.isOpen }
     private var requiresIdentity: Bool {
@@ -111,6 +113,7 @@ import MapKit
         }
     }
     var body: some View {
+        let _ = submission.bind(account: account, draftID: draftID, draft: draft, service: service)
         let _ = cover.bind(read: { .init(session: account, target: .newDraft(draftID), draft: ProjectEditPendingMaterials.exactData(draft), reference: draft.coverURL, editable: coverEditable) }, apply: { value in
             guard coverEditable else { return false }; draft.coverURL = value; return true
         }, service: { makeActivityCover?() })
@@ -187,14 +190,19 @@ import MapKit
             }
             Button("publishModes.addTicket") { draft.tickets.append(.init()) }.disabled(!editable)
             if !message.isEmpty { Text(LocalizedStringKey(message)).accessibilityIdentifier("publishModes.message") }
+            submissionResult
             Button("publishModes.review") { Task { await prepare() } }.disabled(!editable).accessibilityIdentifier("publishModes.activity.review")
         }.navigationTitle(Text("publishModes.activity"))
         .onChange(of: draft) { _, _ in timeRange.retire(); if let review { service?.cancel(review) }; review = nil; localReview = false }
-        .onChange(of: account) { _, _ in cover.accountChanged(); localClear.invalidate(); timeRange.retire(); service?.invalidateReviews(); draft = .init(); draftID = UUID(); review = nil; localReview = false; acknowledged = false; uncertain = false; message = "" }
-        .onAppear { cover.appear(active: scenePhase == .active); localClear.appear(active: scenePhase == .active); timeRange.setActive(scenePhase == .active); identityRegistration.appear(active: scenePhase == .active); templateSelection.setActive(scenePhase == .active) }
-        .onChange(of: scenePhase) { _, phase in cover.setActive(phase == .active); localClear.setActive(phase == .active); timeRange.setActive(phase == .active); identityRegistration.setActive(phase == .active); templateSelection.setActive(phase == .active) }
+        .onChange(of: account) { _, _ in cover.accountChanged(); localClear.invalidate(); timeRange.retire(); service?.invalidateReviews(); draft = .init(); draftID = UUID(); review = nil; localReview = false; message = "" }
+        .onAppear { submission.setActive(scenePhase == .active); cover.appear(active: scenePhase == .active); localClear.appear(active: scenePhase == .active); timeRange.setActive(scenePhase == .active); identityRegistration.appear(active: scenePhase == .active); templateSelection.setActive(scenePhase == .active) }
+        .onChange(of: scenePhase) { _, phase in
+            submission.setActive(phase == .active)
+            if phase != .active { if let review { service?.cancel(review) }; review = nil; localReview = false }
+            cover.setActive(phase == .active); localClear.setActive(phase == .active); timeRange.setActive(phase == .active); identityRegistration.setActive(phase == .active); templateSelection.setActive(phase == .active) }
         .onDisappear { identityRegistration.disappear(); localClear.retire(); if let review { service?.cancel(review) }; review = nil }
         .background { ActivityCoverLifetime(owner: cover).frame(width: 0, height: 0) }
+        .background { ActivityPublishingSubmissionLifetime(owner: submission).frame(width: 0, height: 0) }
         .background { RetainedImagePresenterHost(host: cover.pickerHost).frame(width: 0, height: 0) }
         .background { ActivityPublishingTimeRangeLifetimeAnchor(owner: timeRange).frame(width: 0, height: 0) }
         .background { ActivityTemplateSelectionLifetimeAnchor(owner: templateSelection).frame(width: 0, height: 0) }
@@ -219,8 +227,13 @@ import MapKit
                     Text(draft.name); Text(draft.description); Text(draft.start + " → " + draft.end)
                     Text("\(draft.tickets.count) " + appLocalized("publishModes.ticket", locale: locale))
                     Text("publishModes.reviewNotice").foregroundStyle(.secondary)
-                    Button("publishModes.confirm") { Task { await submit() } }.disabled(review == nil || service?.mutationsConfigured != true)
-                    Button("publishModes.cancel", role: .cancel) { if let review { service?.cancel(review) }; review = nil; localReview = false }
+                    let snapshot = review
+                    Button("publishModes.confirm") { if let snapshot { Task { await submit(snapshot) } } }
+                        .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
+                    Button("publishModes.cancel", role: .cancel) {
+                        guard review == snapshot else { return }
+                        if let snapshot { service?.cancel(snapshot) }; review = nil; localReview = false
+                    }
                 }.navigationTitle(Text("publishModes.review"))
             }
         }
@@ -249,24 +262,61 @@ import MapKit
             }
         }
     }
+    @ViewBuilder private var submissionResult: some View {
+        if let outcome = submission.outcome {
+            Section {
+                switch outcome {
+                case .acknowledged:
+                    Text("publishModes.acknowledged")
+                    Text(verbatim: locale.language.languageCode?.identifier == "zh"
+                        ? "请求已受理，发布状态仍需核实。请在我的项目查看服务端记录。"
+                        : "Request acknowledged. Publication still needs verification in My projects.")
+                case .unknown:
+                    Text("publishModes.unknown")
+                    Text(verbatim: locale.language.languageCode?.identifier == "zh"
+                        ? "结果未知，原请求保持锁定。查看项目不会确认本次请求，也不会重新发送。"
+                        : "The outcome is unknown and the original request stays locked. Viewing projects does not resolve or resend it.")
+                case .notSent: Text("publishModes.notSent")
+                case .rejected(let reason):
+                    Text("publishModes.rejected")
+                    if !reason.isEmpty { Text(verbatim: reason) }
+                }
+                if let account, let service, let openResource,
+                   submission.canReadProjects, service.currentSession == account {
+                    NavigationLink {
+                        PublishingProjectsView(service: service, account: account, openResource: { resource in
+                            guard service.currentSession == account else { return }; openResource(resource)
+                        }, readOnly: true).id(account.epoch)
+                    } label: { Text("publishModes.projects") }
+                    .accessibilityIdentifier("publishModes.activity.result.projects")
+                }
+            }.accessibilityIdentifier("publishModes.activity.result")
+        } else if submission.lockUnavailable {
+            Text("publishModes.readFailed").accessibilityIdentifier("publishModes.activity.result.lockUnavailable")
+        }
+    }
     private func prepare() async {
+        guard let operation = submission.begin(allowCovered: false) else { return }
         localClear.invalidate(); timeRange.retire()
-        busy = true; defer { busy = false }
+        defer { submission.finish(operation) }
         do {
             _ = try draft.wire()
-            if let service, let account { review = try await service.prepareActivity(draft, session: account) }
-            localReview = true; message = ""
-        } catch { message = "publishModes.invalid" }
+            let value: PublishingReview?
+            if let service, let account { value = try await service.prepareActivity(draft, session: account) }
+            else { value = nil }
+            guard submission.isCurrent(operation) else { if let value { service?.cancel(value) }; return }
+            review = value; localReview = true; message = ""
+        } catch {
+            guard submission.isCurrent(operation), let key = ActivityPublishingSubmissionOwner.preparationMessage(error) else { return }; message = key
+        }
     }
-    private func submit() async {
-        guard let review, let service else { return }; localReview = false; busy = true
-        let result = await service.submit(review); busy = false
-        guard service.currentSession == account else { self.review = nil; return }
-        self.review = nil
-        switch result { case .acknowledged: acknowledged = true; message = "publishModes.acknowledged"
-        case .unknown: uncertain = true; message = "publishModes.unknown"
-        case .notSent: message = "publishModes.notSent"
-        case .rejected(let reason): message = reason.isEmpty ? "publishModes.rejected" : reason }
+    private func submit(_ snapshot: PublishingReview) async {
+        guard let review, review == snapshot, let service, review.session == account,
+              let operation = submission.begin(allowCovered: true, submitting: true) else { return }
+        localReview = false
+        let result = await service.submit(review)
+        guard submission.receive(result, operation: operation) else { return }
+        self.review = nil; message = ""
     }
 }
 /// A local action lease for the full activity form, never a persistence or dispatch capability.
@@ -629,5 +679,122 @@ struct ActivityPublishingTimeRangeDraft {
         guard let provider, !keyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { busy = false; return }; busy = true
         do { let result = try await provider.search(keyword); guard stamp == generation else { return }; rows = result; busy = false }
         catch { guard stamp == generation else { return }; busy = false; failed = true }
+    }
+}
+
+/// A view occurrence owns presentation only. The existing service and persistent journal
+/// retain write approval, dispatch and uncertain-outcome authority.
+@MainActor final class ActivityPublishingSubmissionOwner: ObservableObject {
+    struct Context: Equatable {
+        let account: PublishingSession?
+        let draftID: UUID
+        let draft: Data
+        let serviceID: ObjectIdentifier?
+    }
+    struct Operation: Equatable { let visit: UUID; let id: UUID; let context: Context; let submitting: Bool }
+    @Published private(set) var busy = false
+    @Published private(set) var outcome: PublishingWriteOutcome?
+    @Published private(set) var lockUnavailable = false
+    private var context: Context?
+    private var service: PublishingService?
+    private var visit = UUID()
+    private var operation: Operation?
+    private var visible = false
+    private var covered = false
+    private var active = true
+    private var current: Bool {
+        active && (visible || covered) && context != nil &&
+            (service == nil || service?.currentSession == context?.account)
+    }
+    var canReadProjects: Bool { current && visible && !busy && context?.account != nil && outcome != nil }
+    func bind(account: PublishingSession?, draftID: UUID, draft: ActivityPublishDraft, service: PublishingService?) {
+        guard let bytes = ProjectEditPendingMaterials.exactData(draft) else { retire(); context = nil; return }
+        let next = Context(account: account, draftID: draftID, draft: bytes, serviceID: service.map(ObjectIdentifier.init))
+        if context != next {
+            let preserveUnknown = context?.account == account && (outcome == .unknown || operation?.submitting == true)
+            retire(); context = next; self.service = service
+            if preserveUnknown { outcome = .unknown }
+            refreshLock()
+        }
+    }
+    func appeared() { visible = true; covered = false; refreshLock() }
+    func disappeared(departing: Bool, coveredByPresentation: Bool) {
+        visible = false
+        if !departing && coveredByPresentation && active { covered = true; return }
+        covered = false; invalidateOperation()
+    }
+    func setActive(_ value: Bool) { active = value; if !value { invalidateOperation() } else { refreshLock() } }
+    func retire() { invalidateOperation(); outcome = nil; lockUnavailable = false }
+    private func invalidateOperation() {
+        // An interrupted submission cannot become a fresh editable form just because
+        // its presentation callback was retired. Never clear the service journal here.
+        if operation?.submitting == true { outcome = .unknown }
+        visit = UUID(); operation = nil; busy = false
+    }
+    private func refreshLock() {
+        guard let account = context?.account, let service, service.currentSession == account else { return }
+        do {
+            let pending = try service.hasUncertainOutcome(targetKey: "publishModes:activity:create", session: account)
+            lockUnavailable = false
+            if pending { outcome = .unknown }
+        } catch { lockUnavailable = true }
+    }
+    static func preparationMessage(_ error: Error) -> String? {
+        if error is CancellationError { return nil }
+        guard let failure = error as? PublishModesError else { return "publishModes.readFailed" }
+        switch failure {
+        case .invalidDraft: return "publishModes.invalid"
+        case .changedSession: return nil
+        case .forbidden: return "publishModes.clubOnly"
+        case .staleReview, .conflict: return "publishModes.conflict"
+        case .storage: return "publishModes.storageFailed"
+        case .rejected: return "publishModes.rejected"
+        case .invalidContract, .unavailable, .uncertain: return "publishModes.readFailed"
+        }
+    }
+    func begin(allowCovered: Bool, submitting: Bool = false) -> Operation? {
+        refreshLock()
+        guard current, (visible || allowCovered), !busy, !lockUnavailable,
+              outcome != .acknowledged, outcome != .unknown, let context else { return nil }
+        let value = Operation(visit: visit, id: UUID(), context: context, submitting: submitting)
+        operation = value; busy = true; outcome = nil; return value
+    }
+    func isCurrent(_ value: Operation) -> Bool {
+        current && busy && operation == value && value.visit == visit && value.context == context
+    }
+    func finish(_ value: Operation) {
+        guard isCurrent(value) else { return }; operation = nil; busy = false
+    }
+    @discardableResult func receive(_ result: PublishingWriteOutcome, operation value: Operation) -> Bool {
+        guard isCurrent(value) else { return false }
+        operation = nil; busy = false; outcome = result; return true
+    }
+}
+
+/// Modal review coverage is distinct from leaving the creator navigation hierarchy.
+@MainActor struct ActivityPublishingSubmissionLifetime: UIViewControllerRepresentable {
+    let owner: ActivityPublishingSubmissionOwner
+    func makeUIViewController(context: Context) -> ActivityPublishingSubmissionLifetimeController { .init(owner: owner) }
+    func updateUIViewController(_ controller: ActivityPublishingSubmissionLifetimeController, context: Context) {}
+    static func dismantleUIViewController(_ controller: ActivityPublishingSubmissionLifetimeController, coordinator: ()) {
+        controller.owner?.disappeared(departing: true, coveredByPresentation: false)
+    }
+}
+@MainActor final class ActivityPublishingSubmissionLifetimeController: UIViewController {
+    weak var owner: ActivityPublishingSubmissionOwner?
+    private var departing = false
+    init(owner: ActivityPublishingSubmissionOwner) { self.owner = owner; super.init(nibName: nil, bundle: nil) }
+    required init?(coder: NSCoder) { return nil }
+    private var ancestry: [UIViewController] {
+        var result: [UIViewController] = [], next: UIViewController? = self
+        while let value = next { result.append(value); next = value.parent }; return result
+    }
+    override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated); departing = false; owner?.appeared() }
+    override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); departing = ancestry.contains { $0.isMovingFromParent || $0.isBeingDismissed } }
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        let source = ancestry
+        owner?.disappeared(departing: departing || parent == nil || source.contains { $0.isMovingFromParent || $0.isBeingDismissed },
+                           coveredByPresentation: source.contains { $0.presentedViewController != nil })
     }
 }

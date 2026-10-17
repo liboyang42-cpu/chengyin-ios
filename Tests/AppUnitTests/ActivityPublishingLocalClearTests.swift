@@ -191,3 +191,157 @@ import UIKit
         }
     }
 }
+
+/// Result routing regressions share the existing app-unit source and registration.
+@MainActor final class ActivityPublishingSubmissionOwnerTests: XCTestCase {
+    private func account(_ role: String = "club", epoch: UUID = UUID()) -> PublishingSession {
+        .init(namespace: "activity-result-fixture", accountID: 71, epoch: epoch, role: role, region: .china)
+    }
+    private func owner(account: PublishingSession? = nil, draftID: UUID = UUID(), draft: ActivityPublishDraft = .init(), service: PublishingService? = nil) -> ActivityPublishingSubmissionOwner {
+        let value = ActivityPublishingSubmissionOwner()
+        value.bind(account: account, draftID: draftID, draft: draft, service: service)
+        value.appeared(); return value
+    }
+    func testAcknowledgmentLocksCreationAndOffersOnlyAccountReadback() throws {
+        let value = owner(account: account()), operation = try XCTUnwrap(value.begin(allowCovered: false, submitting: true))
+        XCTAssertTrue(value.receive(.acknowledged, operation: operation)); XCTAssertEqual(value.outcome, .acknowledged)
+        XCTAssertTrue(value.canReadProjects); XCTAssertNil(value.begin(allowCovered: false))
+        XCTAssertFalse(value.receive(.notSent, operation: operation))
+    }
+    func testUnknownLocksCreationAndRemainsUnknownAfterReadbackReturn() throws {
+        let value = owner(account: account()), operation = try XCTUnwrap(value.begin(allowCovered: false, submitting: true))
+        XCTAssertTrue(value.receive(.unknown, operation: operation))
+        value.disappeared(departing: true, coveredByPresentation: false)
+        XCTAssertFalse(value.canReadProjects); value.appeared()
+        XCTAssertEqual(value.outcome, .unknown); XCTAssertTrue(value.canReadProjects)
+        XCTAssertNil(value.begin(allowCovered: false))
+    }
+    func testRejectedAndNotSentRemainDistinctAndAllowExplicitNewReview() throws {
+        for outcome in [PublishingWriteOutcome.rejected("Exact server reason"), .notSent] {
+            let value = owner(account: account()), operation = try XCTUnwrap(value.begin(allowCovered: false, submitting: true))
+            XCTAssertTrue(value.receive(outcome, operation: operation)); XCTAssertEqual(value.outcome, outcome)
+            XCTAssertNotNil(value.begin(allowCovered: false))
+        }
+    }
+    func testBusyRejectsRepeatedTapAndOldCompletionCannotFinishNewOperation() throws {
+        let value = owner(), old = try XCTUnwrap(value.begin(allowCovered: false))
+        XCTAssertNil(value.begin(allowCovered: false)); value.finish(old)
+        let current = try XCTUnwrap(value.begin(allowCovered: false))
+        value.finish(old); XCTAssertTrue(value.busy); XCTAssertFalse(value.receive(.acknowledged, operation: old))
+        XCTAssertTrue(value.isCurrent(current))
+    }
+    func testAccountRoleAndEpochChangesRejectOldCompletion() throws {
+        let original = account(), id = UUID()
+        for replacement in [account("merchant", epoch: original.epoch), account(), nil] as [PublishingSession?] {
+            let value = owner(account: original, draftID: id), old = try XCTUnwrap(value.begin(allowCovered: false))
+            value.bind(account: replacement, draftID: id, draft: .init(), service: nil)
+            XCTAssertFalse(value.receive(.acknowledged, operation: old)); XCTAssertNil(value.outcome)
+        }
+    }
+    func testDraftChangeAndSameBytesNewDraftIdentityRetirePreparation() throws {
+        let session = account(), id = UUID(), value = owner(account: session, draftID: id)
+        let old = try XCTUnwrap(value.begin(allowCovered: false))
+        var edited = ActivityPublishDraft(); edited.name = "Changed"
+        value.bind(account: session, draftID: id, draft: edited, service: nil)
+        XCTAssertFalse(value.isCurrent(old))
+        let newer = try XCTUnwrap(value.begin(allowCovered: false))
+        value.bind(account: session, draftID: UUID(), draft: edited, service: nil)
+        XCTAssertFalse(value.isCurrent(newer))
+    }
+    func testLeaveReopenAndInactiveRejectSuspendedPreparation() throws {
+        let value = owner(), old = try XCTUnwrap(value.begin(allowCovered: false))
+        value.disappeared(departing: true, coveredByPresentation: false); value.appeared()
+        XCTAssertFalse(value.receive(.acknowledged, operation: old))
+        let current = try XCTUnwrap(value.begin(allowCovered: false))
+        value.setActive(false); value.setActive(true)
+        XCTAssertFalse(value.receive(.acknowledged, operation: current)); XCTAssertFalse(value.busy)
+    }
+    func testReviewCoveragePreservesOccurrenceButCannotStartAnotherPreparation() throws {
+        let value = owner(), preparation = try XCTUnwrap(value.begin(allowCovered: false))
+        value.finish(preparation); value.disappeared(departing: false, coveredByPresentation: true)
+        XCTAssertNil(value.begin(allowCovered: false))
+        let submission = try XCTUnwrap(value.begin(allowCovered: true, submitting: true))
+        value.appeared(); XCTAssertTrue(value.receive(.acknowledged, operation: submission))
+    }
+    func testInterruptedSubmissionStaysUnknownAndRejectsLateAcknowledgment() throws {
+        let session = account(), id = UUID(), value = owner(account: session, draftID: id)
+        let sent = try XCTUnwrap(value.begin(allowCovered: true, submitting: true))
+        value.setActive(false); value.setActive(true)
+        XCTAssertEqual(value.outcome, .unknown); XCTAssertFalse(value.receive(.acknowledged, operation: sent))
+        XCTAssertNil(value.begin(allowCovered: false))
+        var changed = ActivityPublishDraft(); changed.name = "Changed"
+        value.bind(account: session, draftID: id, draft: changed, service: nil)
+        XCTAssertEqual(value.outcome, .unknown); XCTAssertNil(value.begin(allowCovered: false))
+    }
+    private final class Wire: HTTPTransport {
+        var sends = 0
+        func send(_ request: URLRequest) async throws -> (Data, Int) { sends += 1; throw URLError(.unsupportedURL) }
+    }
+    private final class Journal: OperationPendingJournal {
+        var record: OperationPendingRecord?
+        var failRead = false
+        var writes = 0
+        var clears = 0
+        func pending(ownerKey: String, targetKey: String) throws -> OperationPendingRecord? {
+            if failRead { throw PublishModesError.storage }
+            guard record?.ownerKey == ownerKey, record?.targetKey == targetKey else { return nil }; return record
+        }
+        func write(_ value: OperationPendingRecord) throws { writes += 1; record = value }
+        func clear(_ value: OperationPendingRecord) throws { clears += 1; record = nil }
+    }
+    private func service(_ session: PublishingSession, wire: Wire, journal: Journal) throws -> PublishingService {
+        let credential = try PublishingCredentials(session: session, token: "synthetic-result-token")
+        return try PublishingService(configuration: APIConfiguration(baseURL: URL(string: "https://example.test")!),
+                                     transport: wire, journal: journal, credentials: { credential })
+    }
+    func testRecreatedOwnerReadsExistingUnknownLockWithoutAnySendClearOrWrite() throws {
+        let session = account(), wire = Wire(), journal = Journal()
+        let record = OperationPendingRecord(operationID: UUID(), ownerKey: session.storageKey, targetKey: "publishModes:activity:create")
+        journal.record = record
+        let api = try service(session, wire: wire, journal: journal)
+        for _ in 0..<2 {
+            let value = owner(account: session, service: api)
+            XCTAssertEqual(value.outcome, .unknown); XCTAssertTrue(value.canReadProjects)
+            XCTAssertNil(value.begin(allowCovered: true, submitting: true))
+        }
+        XCTAssertEqual(journal.record, record); XCTAssertEqual(journal.writes, 0); XCTAssertEqual(journal.clears, 0)
+        XCTAssertEqual(wire.sends, 0); XCTAssertFalse(api.mutationsConfigured)
+    }
+    func testUnreadablePersistentLockFailsClosedWithoutSending() throws {
+        let session = account(), wire = Wire(), journal = Journal(); journal.failRead = true
+        let value = owner(account: session, service: try service(session, wire: wire, journal: journal))
+        XCTAssertTrue(value.lockUnavailable); XCTAssertNil(value.begin(allowCovered: false)); XCTAssertEqual(wire.sends, 0)
+    }
+    func testServiceReplacementRejectsOldPreparationEvenWithSameAccountAndDraft() throws {
+        let session = account(), id = UUID(), wire = Wire(), journal = Journal()
+        let first = try service(session, wire: wire, journal: journal), second = try service(session, wire: wire, journal: journal)
+        let value = owner(account: session, draftID: id, service: first), old = try XCTUnwrap(value.begin(allowCovered: false))
+        value.bind(account: session, draftID: id, draft: .init(), service: second)
+        XCTAssertFalse(value.receive(.acknowledged, operation: old)); XCTAssertEqual(wire.sends, 0)
+    }
+    func testNoAccountCannotOpenOwnedReadback() throws {
+        let value = owner(), operation = try XCTUnwrap(value.begin(allowCovered: false))
+        XCTAssertTrue(value.receive(.notSent, operation: operation)); XCTAssertFalse(value.canReadProjects)
+    }
+    func testReadOnlyDestinationAndExistingManagementDefaultRemainSeparate() throws {
+        var opened: [PublishedResource] = []
+        let management = PublishingProjectsView(service: nil, account: nil, openResource: { opened.append($0) })
+        let readback = PublishingProjectsView(service: nil, account: nil, openResource: { opened.append($0) }, readOnly: true)
+        let resource = try PublishedResource(kind: .activity, value: 41)
+        readback.openProject(resource); XCTAssertTrue(opened.isEmpty)
+        management.openProject(resource); XCTAssertEqual(opened, [resource])
+        XCTAssertFalse(management.readOnly); XCTAssertTrue(readback.readOnly)
+        let host = UIHostingController(rootView: readback); host.loadViewIfNeeded()
+    }
+    func testPreparationFailuresDoNotMislabelNetworkOrPermissionAsDraftValidation() {
+        XCTAssertEqual(ActivityPublishingSubmissionOwner.preparationMessage(PublishModesError.invalidDraft), "publishModes.invalid")
+        XCTAssertEqual(ActivityPublishingSubmissionOwner.preparationMessage(URLError(.networkConnectionLost)), "publishModes.readFailed")
+        XCTAssertEqual(ActivityPublishingSubmissionOwner.preparationMessage(PublishModesError.invalidContract), "publishModes.readFailed")
+        XCTAssertEqual(ActivityPublishingSubmissionOwner.preparationMessage(PublishModesError.forbidden), "publishModes.clubOnly")
+        XCTAssertEqual(ActivityPublishingSubmissionOwner.preparationMessage(PublishModesError.storage), "publishModes.storageFailed")
+        XCTAssertEqual(ActivityPublishingSubmissionOwner.preparationMessage(PublishModesError.rejected("denied")), "publishModes.rejected")
+        XCTAssertNil(ActivityPublishingSubmissionOwner.preparationMessage(PublishModesError.changedSession))
+        XCTAssertNil(ActivityPublishingSubmissionOwner.preparationMessage(CancellationError()))
+    }
+
+}
