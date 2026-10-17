@@ -100,6 +100,7 @@ enum WalletReadFailurePresentation {
                 NavigationLink("wallet.balanceLedger") { WalletLedgerView(reader: reader, kind: .balance) }
                     .accessibilityIdentifier("wallet.assets.balanceLedger")
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }
+                    .accessibilityIdentifier("wallet.assets.pointsLedger")
             }
         }.appNavigationTitle("wallet.assets").task(id: reader.scope) { funds.clear(); await load() }
             .onDisappear { funds.cancel() }.refreshable { await load() }
@@ -135,9 +136,11 @@ enum WalletReadFailurePresentation {
                 Text("wallet.all").tag("all"); Text("wallet.inflow").tag("income"); Text("wallet.outflow").tag("expense")
             }.pickerStyle(.menu)
             if points { Text("wallet.loadedFilter"); NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
-            if model.pager.loadedScope == reader.scope {
+            if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
-                if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed { Text("wallet.empty") }
+                if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
+                    Text("wallet.empty").accessibilityIdentifier("wallet.ledger.empty")
+                }
                 ForEach(filtered) { row in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
@@ -154,11 +157,12 @@ enum WalletReadFailurePresentation {
                 }
             }
             if model.pager.failed || !reader.isConfigured || reader.scope == nil {
-                WalletIssueView(reader: reader) { Task { await model.load(reader, kind: kind) } }
+                WalletIssueView(reader: reader, requiresLogin: model.pager.requiresLogin, unavailable: model.pager.unavailable) { Task { await model.load(reader, kind: kind) } }
             }
             if model.pager.isLoading { ProgressView("wallet.loading") }
-            else if model.pager.hasMore && reader.isConfigured && reader.scope != nil {
+            else if model.pager.hasLoadedPage && model.pager.hasMore && !model.pager.failed && reader.isConfigured && reader.scope != nil {
                 Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
+                    .accessibilityIdentifier("wallet.ledger.loadMore")
             }
         }.appNavigationTitle(key: points ? "wallet.pointsLedger" : "wallet.balanceLedger")
             .task(id: reader.scope) { model.reset(); await model.load(reader, kind: kind) }

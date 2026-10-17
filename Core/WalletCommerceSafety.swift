@@ -192,32 +192,54 @@ public struct WalletCommerceReview: Equatable {
     public private(set) var hasMore = true
     public private(set) var isLoading = false
     public private(set) var failed = false
+    public private(set) var requiresLogin = false
+    public private(set) var unavailable = false
+    public private(set) var hasLoadedPage = false
     public private(set) var loadedScope: WalletCommerceScope?
+    private var requestedScope: WalletCommerceScope?
+    private var requestedKind: WalletLedgerKind?
     private var nextPage = 1
     private var generation = UUID()
     public init() {}
     public func cancel() { generation = UUID(); isLoading = false }
     public func reset() {
         generation = UUID(); rows = []; nextPage = 1; hasMore = true
-        isLoading = false; failed = false; loadedScope = nil
+        isLoading = false; failed = false; requiresLogin = false; unavailable = false
+        hasLoadedPage = false; loadedScope = nil; requestedScope = nil; requestedKind = nil
     }
     public func load(reader: WalletCommerceReader, kind: WalletLedgerKind) async {
-        if loadedScope != reader.scope { reset() }
+        let scope = reader.scope
+        // Bind before dispatch, not only after success: repeated first-page taps
+        // must share the in-flight gate, while another owner/kind starts fresh.
+        if requestedScope != scope || requestedKind != kind { reset() }
+        requestedScope = scope; requestedKind = kind
         guard !isLoading, hasMore else { return }
-        let captured = generation; let scope = reader.scope; let pageNumber = nextPage
-        isLoading = true; failed = false
+        let captured = generation; let pageNumber = nextPage
+        isLoading = true; failed = false; requiresLogin = false; unavailable = false
+        defer { if generation == captured { isLoading = false } }
         do {
             let page = try await reader.read { try await $0.ledger(kind, page: pageNumber, token: $1) }
-            guard generation == captured, reader.scope == scope else { return }
+            guard generation == captured else { return }
+            guard reader.scope == scope else { reset(); return }
             var seen = Set(rows.map(\.id)); let additional = page.rows.filter { seen.insert($0.id).inserted }
             if pageNumber > 1 && !page.rows.isEmpty && additional.isEmpty { throw APIError.malformedResponse }
             rows += additional
-            nextPage += 1; hasMore = page.hasMore(loadedCount: rows.count); loadedScope = scope
+            nextPage += 1; hasMore = page.hasMore(loadedCount: rows.count)
+            loadedScope = scope; hasLoadedPage = true
         } catch {
-            guard generation == captured, reader.scope == scope else { return }
+            guard generation == captured else { return }
+            guard reader.scope == scope else { reset(); return }
+            if error is CancellationError { return }
+            if (error as? WalletCommerceSafetyError) == .staleSession { reset(); return }
+            requiresLogin = (error as? APIError) == .unauthorized
+            unavailable = (error as? APIError) == .notConfigured || (error as? WalletCommerceSafetyError) == .unavailable
             failed = true
+            // Authorization failure invalidates the displayed snapshot. A retryable
+            // network/business failure keeps earlier pages and the failed page number.
+            if requiresLogin || unavailable {
+                rows = []; loadedScope = nil; hasLoadedPage = false; nextPage = 1
+            }
         }
-        if generation == captured { isLoading = false }
     }
 }
 

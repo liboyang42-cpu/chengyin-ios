@@ -155,6 +155,166 @@ private final class WalletRecordingTransport: HTTPTransport {
         let tasks = try await service.pointsTasks(token: "fake")
         XCTAssertEqual(tasks.map(\.id), [50])
     }
+    func testLedgerDeniedAndUnauthorizedAreNotRetryableEmptySuccess() async throws {
+        let active = scope()
+        let errors: [Error] = [APIError.notConfigured, APIError.unauthorized, WalletCommerceSafetyError.unavailable]
+        for error in errors {
+            let fake = WalletRecordingTransport { _ in throw error }
+            let reader = WalletCommerceReader(service: try service(fake)) { (active, "fake") }
+            let pager = WalletLedgerPager()
+            await pager.load(reader: reader, kind: .balance)
+            XCTAssertTrue(pager.failed); XCTAssertFalse(pager.isLoading)
+            XCTAssertFalse(pager.hasLoadedPage); XCTAssertNil(pager.loadedScope)
+            XCTAssertTrue(pager.rows.isEmpty)
+            XCTAssertEqual(pager.requiresLogin, (error as? APIError) == .unauthorized)
+            XCTAssertEqual(pager.unavailable, (error as? APIError) == .notConfigured || (error as? WalletCommerceSafetyError) == .unavailable)
+        }
+    }
+    func testLedgerAuthorizationFailureClearsPreviouslyLoadedRows() async throws {
+        let active = scope()
+        let fake = WalletRecordingTransport(#"{"code":200,"data":{"rows":[{"id":1}],"total":2}}"#)
+        let reader = WalletCommerceReader(service: try service(fake)) { (active, "fake") }
+        let pager = WalletLedgerPager()
+        await pager.load(reader: reader, kind: .points)
+        XCTAssertTrue(pager.hasLoadedPage)
+        fake.handler = { _ in throw APIError.notConfigured }
+        await pager.load(reader: reader, kind: .points)
+        XCTAssertTrue(pager.unavailable); XCTAssertTrue(pager.rows.isEmpty)
+        XCTAssertFalse(pager.hasLoadedPage); XCTAssertNil(pager.loadedScope)
+    }
+    func testLedgerSuccessfulEmptyAndFailureRemainDifferent() async throws {
+        let active = scope(), pager = WalletLedgerPager()
+        let fake = WalletRecordingTransport(#"{"code":500,"data":[]}"#)
+        let reader = WalletCommerceReader(service: try service(fake)) { (active, "fake") }
+        await pager.load(reader: reader, kind: .assetPoints)
+        XCTAssertTrue(pager.failed); XCTAssertFalse(pager.hasLoadedPage)
+        XCTAssertFalse(pager.unavailable); XCTAssertFalse(pager.requiresLogin)
+        fake.handler = { _ in (Data(#"{"code":200,"data":[]}"#.utf8), 200) }
+        await pager.load(reader: reader, kind: .assetPoints)
+        XCTAssertFalse(pager.failed); XCTAssertTrue(pager.hasLoadedPage)
+        XCTAssertEqual(pager.loadedScope, active); XCTAssertFalse(pager.hasMore)
+        XCTAssertTrue(pager.rows.isEmpty)
+        XCTAssertEqual(fake.requests.count, 2)
+        XCTAssertFalse(fields(fake.requests[1]).contains("pageNum"))
+    }
+    func testLedgerKindChangeDoesNotReuseCompletedBalancePage() async throws {
+        let active = scope(), pager = WalletLedgerPager()
+        let fake = WalletRecordingTransport { request in
+            let id = request.url?.path == "/api/balance/list" ? 1 : 2
+            return (Data("{\"code\":200,\"data\":[{\"id\":\(id)}]}".utf8), 200)
+        }
+        let reader = WalletCommerceReader(service: try service(fake)) { (active, "fake") }
+        await pager.load(reader: reader, kind: .balance)
+        await pager.load(reader: reader, kind: .assetPoints)
+        XCTAssertEqual(pager.rows.map(\.id), [2]); XCTAssertFalse(pager.hasMore)
+        XCTAssertEqual(fake.requests.map { $0.url!.path }, ["/api/balance/list", "/api/points/list"])
+    }
+    func testRepeatedFirstPageLoadSharesInflightGate() async throws {
+        let active = scope(), pager = WalletLedgerPager()
+        var continuation: CheckedContinuation<(Data, Int), Error>?
+        let started = expectation(description: "first page dispatched")
+        let fake = WalletRecordingTransport { _ in
+            try await withCheckedThrowingContinuation { continuation = $0; started.fulfill() }
+        }
+        let reader = WalletCommerceReader(service: try service(fake)) { (active, "fake") }
+        let first = Task { await pager.load(reader: reader, kind: .balance) }
+        await fulfillment(of: [started], timeout: 2)
+        await pager.load(reader: reader, kind: .balance)
+        XCTAssertEqual(fake.requests.count, 1); XCTAssertTrue(pager.isLoading)
+        continuation?.resume(returning: (Data(#"{"code":200,"data":[{"id":1}]}"#.utf8), 200))
+        await first.value
+        XCTAssertEqual(pager.rows.map(\.id), [1]); XCTAssertFalse(pager.isLoading)
+    }
+    func testLedgerCancelRejectsLateResponseAndCanReload() async throws {
+        let active = scope(), pager = WalletLedgerPager()
+        var continuation: CheckedContinuation<(Data, Int), Error>?
+        let started = expectation(description: "old page dispatched")
+        let fake = WalletRecordingTransport { _ in
+            try await withCheckedThrowingContinuation { continuation = $0; started.fulfill() }
+        }
+        let reader = WalletCommerceReader(service: try service(fake)) { (active, "fake") }
+        let old = Task { await pager.load(reader: reader, kind: .balance) }
+        await fulfillment(of: [started], timeout: 2)
+        pager.cancel()
+        fake.handler = { _ in (Data(#"{"code":200,"data":[{"id":2}]}"#.utf8), 200) }
+        await pager.load(reader: reader, kind: .balance)
+        continuation?.resume(returning: (Data(#"{"code":200,"data":[{"id":1}]}"#.utf8), 200))
+        await old.value
+        XCTAssertEqual(pager.rows.map(\.id), [2]); XCTAssertFalse(pager.failed)
+        XCTAssertFalse(pager.isLoading)
+    }
+    func testLedgerScopeChangeOnLateResponseClearsLoadingAndAllowsNewOwner() async throws {
+        var active: WalletCommerceScope? = scope()
+        let pager = WalletLedgerPager()
+        let fake = WalletRecordingTransport { _ in
+            active = nil
+            return (Data(#"{"code":200,"data":[{"id":1}]}"#.utf8), 200)
+        }
+        let reader = WalletCommerceReader(service: try service(fake)) { active.map { ($0, "fake") } }
+        await pager.load(reader: reader, kind: .balance)
+        XCTAssertFalse(pager.isLoading); XCTAssertFalse(pager.failed)
+        XCTAssertFalse(pager.hasLoadedPage); XCTAssertTrue(pager.rows.isEmpty)
+        active = scope()
+        fake.handler = { _ in (Data(#"{"code":200,"data":[{"id":2}]}"#.utf8), 200) }
+        await pager.load(reader: reader, kind: .balance)
+        XCTAssertEqual(pager.loadedScope, active); XCTAssertEqual(pager.rows.map(\.id), [2])
+    }
+    func testLedgerCancelledTaskRejectsNonCooperatingTransportLateSuccess() async throws {
+        let active = scope(), pager = WalletLedgerPager()
+        var continuation: CheckedContinuation<(Data, Int), Error>?
+        let started = expectation(description: "request suspended in transport")
+        let fake = WalletRecordingTransport { _ in
+            try await withCheckedThrowingContinuation { continuation = $0; started.fulfill() }
+        }
+        let reader = WalletCommerceReader(service: try service(fake)) { (active, "fake") }
+        let task = Task { await pager.load(reader: reader, kind: .balance) }
+        await fulfillment(of: [started], timeout: 2)
+        task.cancel() // Do not call pager.cancel(): exercise structured cancellation itself.
+        continuation?.resume(returning: (Data(#"{"code":200,"data":[{"id":1}]}"#.utf8), 200))
+        await task.value
+        XCTAssertFalse(pager.isLoading); XCTAssertFalse(pager.failed)
+        XCTAssertFalse(pager.hasLoadedPage); XCTAssertTrue(pager.rows.isEmpty)
+        XCTAssertNil(pager.loadedScope)
+        fake.handler = { _ in (Data(#"{"code":200,"data":[{"id":2}]}"#.utf8), 200) }
+        await pager.load(reader: reader, kind: .balance)
+        XCTAssertEqual(pager.rows.map(\.id), [2]); XCTAssertTrue(pager.hasLoadedPage)
+    }
+    func testOldGenerationCannotClearNewInflightLoadingOrPublishRows() async throws {
+        let active = scope(), pager = WalletLedgerPager()
+        var oldContinuation: CheckedContinuation<(Data, Int), Error>?
+        var newContinuation: CheckedContinuation<(Data, Int), Error>?
+        let oldStarted = expectation(description: "old generation dispatched")
+        let newStarted = expectation(description: "new generation dispatched")
+        let fake = WalletRecordingTransport { _ in
+            try await withCheckedThrowingContinuation { oldContinuation = $0; oldStarted.fulfill() }
+        }
+        let reader = WalletCommerceReader(service: try service(fake)) { (active, "fake") }
+        let old = Task { await pager.load(reader: reader, kind: .balance) }
+        await fulfillment(of: [oldStarted], timeout: 2)
+        pager.reset()
+        fake.handler = { _ in
+            try await withCheckedThrowingContinuation { newContinuation = $0; newStarted.fulfill() }
+        }
+        let newer = Task { await pager.load(reader: reader, kind: .balance) }
+        await fulfillment(of: [newStarted], timeout: 2)
+        oldContinuation?.resume(returning: (Data(#"{"code":200,"data":[{"id":1}]}"#.utf8), 200))
+        await old.value
+        XCTAssertTrue(pager.isLoading); XCTAssertFalse(pager.failed)
+        XCTAssertTrue(pager.rows.isEmpty); XCTAssertFalse(pager.hasLoadedPage)
+        XCTAssertNil(pager.loadedScope)
+        newContinuation?.resume(returning: (Data(#"{"code":200,"data":[{"id":2}]}"#.utf8), 200))
+        await newer.value
+        XCTAssertFalse(pager.isLoading); XCTAssertFalse(pager.failed)
+        XCTAssertEqual(pager.rows.map(\.id), [2]); XCTAssertEqual(pager.loadedScope, active)
+    }
+    func testLedgerTaskCancellationIsNotPresentedAsBusinessFailure() async throws {
+        let active = scope(), pager = WalletLedgerPager()
+        let fake = WalletRecordingTransport { _ in throw CancellationError() }
+        let reader = WalletCommerceReader(service: try service(fake)) { (active, "fake") }
+        await pager.load(reader: reader, kind: .balance)
+        XCTAssertFalse(pager.failed); XCTAssertFalse(pager.isLoading)
+        XCTAssertFalse(pager.hasLoadedPage); XCTAssertTrue(pager.rows.isEmpty)
+    }
     func testPagerFailureRetriesSamePageAndDoesNotReplaceEarlierRows() async throws {
         let active = scope(); var calls = 0
         let fake = WalletRecordingTransport { request in

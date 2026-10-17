@@ -20,10 +20,20 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
     let fallback: WalletCommerceSyntheticTransport
     let arguments: [String]
     private var reads = 0
+    private var ledgerReads = 0
     init(failed: Bool, arguments: [String]) {
         fallback = WalletCommerceSyntheticTransport(fail: failed); self.arguments = arguments
     }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
+        if ["/api/balance/list", "/api/points/list"].contains(request.url?.path ?? "") {
+            ledgerReads += 1
+            if arguments.contains("--wallet-ledger-denied") { throw APIError.notConfigured }
+            if arguments.contains("--wallet-ledger-unauthorized") { throw APIError.unauthorized }
+            if arguments.contains("--wallet-ledger-recover"), ledgerReads == 1 { throw APIError.httpStatus(503) }
+            if arguments.contains("--wallet-ledger-empty") {
+                return (Data(#"{"code":200,"data":[]}"#.utf8), 200)
+            }
+        }
         guard request.url?.path == "/api/wallet/stages" else { return try await fallback.send(request) }
         reads += 1
         if arguments.contains("--wallet-assets-denied") { throw APIError.notConfigured }

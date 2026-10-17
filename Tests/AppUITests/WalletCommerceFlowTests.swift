@@ -74,6 +74,50 @@ final class WalletCommerceFlowTests: XCTestCase {
         XCTAssertTrue(refreshed.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertFalse(zero.exists)
     }
+    func testDeniedLedgerHasNoRetryLoadMoreOrEmptySuccess() {
+        let app = launch(["--wallet-ledger-denied"])
+        app.buttons["wallet.fixture.assets"].tap(); app.buttons["wallet.assets.balanceLedger"].tap()
+        XCTAssertTrue(app.staticTexts["wallet.issue"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Try again"].exists)
+        XCTAssertFalse(app.buttons["wallet.ledger.loadMore"].exists)
+        XCTAssertFalse(app.staticTexts["wallet.ledger.empty"].exists)
+        XCTAssertFalse(app.staticTexts["wallet.ledger.1"].exists)
+    }
+    func testUnauthorizedAssetPointsShowsSignInWithoutRetry() {
+        let app = launch(["--wallet-ledger-unauthorized"])
+        app.buttons["wallet.fixture.assets"].tap(); app.buttons["wallet.assets.pointsLedger"].tap()
+        XCTAssertTrue(app.staticTexts["Sign in to view this information"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Try again"].exists)
+        XCTAssertFalse(app.buttons["wallet.ledger.loadMore"].exists)
+        XCTAssertFalse(app.staticTexts["wallet.ledger.empty"].exists)
+    }
+    func testBalanceLedgerRetryReadsServerRowsAndHasNoInventedPagination() {
+        let app = launch(["--wallet-ledger-recover"])
+        app.buttons["wallet.fixture.assets"].tap(); app.buttons["wallet.assets.balanceLedger"].tap()
+        let retry = app.buttons["Try again"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["wallet.ledger.empty"].exists)
+        XCTAssertFalse(app.buttons["wallet.ledger.loadMore"].exists)
+        retry.tap()
+        XCTAssertTrue(app.staticTexts["wallet.ledger.1"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["wallet.issue"].exists)
+        XCTAssertFalse(app.buttons["wallet.ledger.loadMore"].exists)
+    }
+    func testAssetPointsSuccessfulEmptyHasNoErrorOrLoadMore() {
+        let app = launch(["--wallet-ledger-empty"])
+        app.buttons["wallet.fixture.assets"].tap(); app.buttons["wallet.assets.pointsLedger"].tap()
+        XCTAssertTrue(app.staticTexts["wallet.ledger.empty"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["wallet.issue"].exists)
+        XCTAssertFalse(app.buttons["wallet.ledger.loadMore"].exists)
+    }
+    func testSignedOutLedgerNeverShowsEmptySuccess() {
+        let app = launch(); app.buttons["wallet.fixture.signOut"].tap()
+        app.buttons["wallet.fixture.assets"].tap(); app.buttons["wallet.assets.balanceLedger"].tap()
+        XCTAssertTrue(app.staticTexts["Sign in to view this information"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["wallet.ledger.empty"].exists)
+        XCTAssertFalse(app.buttons["Try again"].exists)
+        XCTAssertFalse(app.buttons["wallet.ledger.loadMore"].exists)
+    }
     func testApprovalIsNotFinalPayoutAndBankAccountIsMasked() {
         let app = launch(); app.buttons["wallet.fixture.withdrawals"].tap()
         XCTAssertTrue(app.staticTexts["wallet.withdrawal.40"].waitForExistence(timeout: 5))
