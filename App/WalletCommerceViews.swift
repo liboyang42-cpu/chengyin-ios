@@ -7,7 +7,7 @@ enum WalletReadFailurePresentation {
     }
 }
 
-@MainActor private final class WalletScreen<Value>: ObservableObject {
+@MainActor final class WalletScreen<Value>: ObservableObject {
     @Published var value: Value?
     @Published var failed = false
     @Published var loading = false
@@ -77,23 +77,28 @@ enum WalletReadFailurePresentation {
     var body: some View {
         List {
             Section("wallet.fundStages") {
-                if funds.loading { ProgressView("wallet.loading") }
+                if funds.loading { ProgressView("wallet.loading").accessibilityIdentifier("wallet.assets.loading") }
                 else if let value = funds.value, funds.loadedScope == reader.scope {
-                    if !value.amountsKnown { Text("wallet.amountsUnknown") }
-                    if value.pendingSettlement.value > 0 { LabeledContent("wallet.pendingSettlement", value: format.amount(value.pendingSettlement, currency: value.currency)) }
-                    ForEach(Array(value.complaintPeriod.enumerated()), id: \.offset) { _, item in
-                        LabeledContent { Text(format.amount(item.amount, currency: value.currency)) } label: {
-                            Text("wallet.complaintPeriod"); Text(verbatim: WalletCivilDateLocalization.text(item.availableDate, locale: locale))
+                    if !value.amountsKnown {
+                        Text("wallet.amountsUnknown").accessibilityIdentifier("wallet.assets.unknown")
+                    } else {
+                        if value.pendingSettlement.value > 0 { LabeledContent("wallet.pendingSettlement", value: format.amount(value.pendingSettlement, currency: value.currency)) }
+                        ForEach(Array(value.complaintPeriod.enumerated()), id: \.offset) { _, item in
+                            LabeledContent { Text(format.amount(item.amount, currency: value.currency)) } label: {
+                                Text("wallet.complaintPeriod"); Text(verbatim: WalletCivilDateLocalization.text(item.availableDate, locale: locale))
+                            }
                         }
+                        if value.disputed.value > 0 { LabeledContent("wallet.disputed", value: format.amount(value.disputed, currency: value.currency)) }
+                        LabeledContent("wallet.available", value: format.amount(value.withdrawable, currency: value.currency))
+                            .accessibilityIdentifier("wallet.assets.available")
                     }
-                    if value.disputed.value > 0 { LabeledContent("wallet.disputed", value: format.amount(value.disputed, currency: value.currency)) }
-                    LabeledContent("wallet.available", value: format.amount(value.withdrawable, currency: value.currency))
                     Text("wallet.notPayout")
-                } else { WalletIssueView(reader: reader, requiresLogin: funds.requiresLogin) { Task { await load() } } }
+                } else { WalletIssueView(reader: reader, requiresLogin: funds.requiresLogin, unavailable: funds.unavailable) { Task { await load() } } }
             }
             Section {
                 NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
                 NavigationLink("wallet.balanceLedger") { WalletLedgerView(reader: reader, kind: .balance) }
+                    .accessibilityIdentifier("wallet.assets.balanceLedger")
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }
             }
         }.appNavigationTitle("wallet.assets").task(id: reader.scope) { funds.clear(); await load() }

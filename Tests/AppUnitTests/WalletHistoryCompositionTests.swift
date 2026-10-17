@@ -149,6 +149,62 @@ import XCTest
         XCTAssertFalse(WalletReadFailurePresentation.isUnavailable(APIError.unauthorized))
         XCTAssertFalse(WalletReadFailurePresentation.isUnavailable(CancellationError()))
     }
+    func testAssetScreenLoadingThenResultUsesCurrentScope() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletFundsStages>()
+        wire.pause = true; let paused = expectation(description: "asset read suspended"); wire.onPaused = { paused.fulfill() }
+        let task = Task { await screen.load(reader) { try await $0.stages(token: $1) } }
+        await fulfillment(of: [paused], timeout: 2)
+        XCTAssertTrue(screen.loading); XCTAssertNil(screen.value); XCTAssertFalse(screen.failed)
+        wire.finish(code: 200); await task.value
+        XCTAssertFalse(screen.loading); XCTAssertFalse(screen.failed)
+        XCTAssertEqual(screen.value?.withdrawable.value, 3); XCTAssertEqual(screen.loadedScope, reader.scope)
+    }
+    func testAssetScreenDistinguishesDeniedAndTransientThenRecovers() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletFundsStages>()
+        await screen.load(reader) { _, _ in throw APIError.notConfigured }
+        XCTAssertTrue(reader.isConfigured); XCTAssertTrue(screen.failed); XCTAssertTrue(screen.unavailable)
+        XCTAssertFalse(screen.requiresLogin); XCTAssertNil(screen.value)
+        await screen.load(reader) { _, _ in throw APIError.httpStatus(503) }
+        XCTAssertTrue(screen.failed); XCTAssertFalse(screen.unavailable); XCTAssertFalse(screen.requiresLogin)
+        await screen.load(reader) { try await $0.stages(token: $1) }
+        XCTAssertFalse(screen.failed); XCTAssertFalse(screen.unavailable); XCTAssertNotNil(screen.value)
+    }
+    func testAssetScreenCancelledLateResultCannotOverwriteReopenedRead() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletFundsStages>()
+        wire.pause = true; let paused = expectation(description: "old asset read"); wire.onPaused = { paused.fulfill() }
+        let old = Task { await screen.load(reader) { try await $0.stages(token: $1) } }
+        await fulfillment(of: [paused], timeout: 2)
+        screen.cancel(); screen.clear(); wire.pause = false
+        await screen.load(reader) { _, _ in throw APIError.httpStatus(503) }
+        wire.finish(code: 200); await old.value
+        XCTAssertNil(screen.value); XCTAssertTrue(screen.failed); XCTAssertFalse(screen.loading)
+        await screen.load(reader) { try await $0.stages(token: $1) }
+        XCTAssertNotNil(screen.value); XCTAssertFalse(screen.failed)
+    }
+    func testAssetScreenNewestRefreshWinsOverNonCooperativeOlderRead() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletFundsStages>()
+        wire.pause = true; let paused = expectation(description: "older refresh"); wire.onPaused = { paused.fulfill() }
+        let old = Task { await screen.load(reader) { try await $0.stages(token: $1) } }
+        await fulfillment(of: [paused], timeout: 2)
+        wire.pause = false; await screen.load(reader) { _, _ in throw APIError.notConfigured }
+        wire.finish(code: 200); await old.value
+        XCTAssertNil(screen.value); XCTAssertTrue(screen.unavailable); XCTAssertFalse(screen.loading)
+    }
+    func testAssetScreenScopeSwitchCannotRefillOldResult() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletFundsStages>()
+        wire.pause = true; let paused = expectation(description: "old scope read"); wire.onPaused = { paused.fulfill() }
+        let old = Task { await screen.load(reader) { try await $0.stages(token: $1) } }
+        await fulfillment(of: [paused], timeout: 2)
+        grants.retained?.revoke(); grants.enabled = false; screen.clear()
+        XCTAssertNil(reader.scope)
+        wire.finish(code: 200); await old.value
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope); XCTAssertFalse(screen.loading)
+    }
     private func form(_ path: String, _ fields: [String: String]) throws -> URLRequest {
         try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: fields, token: "synthetic-7", boundary: "wallet-test")
     }

@@ -9,11 +9,14 @@ final class WalletCommerceFlowTests: XCTestCase {
     }
     func testFundsStagesUnknownCurrencyAndZeroRemainDistinct() {
         let app = launch(); app.buttons["wallet.fixture.assets"].tap()
-        XCTAssertTrue(app.staticTexts["Available to withdraw"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["wallet.assets.unknown"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Available to withdraw"].exists)
+        XCTAssertFalse(app.otherElements["wallet.assets.available"].exists)
         // LabeledContent may expose the amount together with its row label.
         let zeroAmount = app.staticTexts.matching(NSPredicate(format: "label == %@ OR label ENDSWITH %@", "0 currency unspecified", ", 0 currency unspecified")).firstMatch
-        XCTAssertTrue(zeroAmount.exists, app.debugDescription)
-        XCTAssertTrue(app.staticTexts["Some amounts cannot be calculated yet. Final settlement applies"].exists)
+        XCTAssertFalse(zeroAmount.exists, app.debugDescription)
+        XCTAssertFalse(app.staticTexts["Pending settlement"].exists)
+        XCTAssertFalse(app.staticTexts["In dispute"].exists)
     }
     func testCheckoutIsPreviewAndCannotRedeem() {
         let app = launch(); app.buttons["wallet.fixture.cart"].tap()
@@ -29,6 +32,47 @@ final class WalletCommerceFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["wallet.previewOnly"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["Place order"].exists)
         XCTAssertFalse(app.buttons["Pay"].exists)
+    }
+    func testUnknownNonzeroPlaceholdersNeverAppearAsMoney() {
+        let app = launch(["--wallet-assets-unknown-nonzero"]); app.buttons["wallet.fixture.assets"].tap()
+        XCTAssertTrue(app.staticTexts["wallet.assets.unknown"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Available to withdraw"].exists)
+        let amount = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "7 currency unspecified")).firstMatch
+        XCTAssertFalse(amount.exists, app.debugDescription)
+    }
+    func testKnownZeroRemainsAnExplicitZero() {
+        let app = launch(["--wallet-assets-known-zero"]); app.buttons["wallet.fixture.assets"].tap()
+        XCTAssertTrue(app.staticTexts["Available to withdraw"].waitForExistence(timeout: 5))
+        let amount = app.staticTexts.matching(NSPredicate(format: "label == %@ OR label ENDSWITH %@", "0 currency unspecified", ", 0 currency unspecified")).firstMatch
+        XCTAssertTrue(amount.exists, app.debugDescription)
+        XCTAssertFalse(app.staticTexts["wallet.assets.unknown"].exists)
+    }
+    func testDeniedAssetReadHasNoRetry() {
+        let app = launch(["--wallet-assets-denied"]); app.buttons["wallet.fixture.assets"].tap()
+        XCTAssertTrue(app.staticTexts["wallet.issue"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Try again"].exists)
+        XCTAssertFalse(app.staticTexts["Available to withdraw"].exists)
+    }
+    func testTransientAssetReadRetriesAndShowsServerResult() {
+        let app = launch(["--wallet-assets-recover"]); app.buttons["wallet.fixture.assets"].tap()
+        let retry = app.buttons["Try again"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 5)); retry.tap()
+        XCTAssertTrue(app.staticTexts["Available to withdraw"].waitForExistence(timeout: 5))
+        let amount = app.staticTexts.matching(NSPredicate(format: "label == %@ OR label ENDSWITH %@", "7 currency unspecified", ", 7 currency unspecified")).firstMatch
+        XCTAssertTrue(amount.exists, app.debugDescription)
+        XCTAssertFalse(app.staticTexts["wallet.issue"].exists)
+    }
+    func testReturningFromLedgerReloadsAssetsInSameScope() {
+        let app = launch(["--wallet-assets-return-refresh"]); app.buttons["wallet.fixture.assets"].tap()
+        XCTAssertTrue(app.staticTexts["Available to withdraw"].waitForExistence(timeout: 5))
+        let zero = app.staticTexts.matching(NSPredicate(format: "label == %@ OR label ENDSWITH %@", "0 currency unspecified", ", 0 currency unspecified")).firstMatch
+        XCTAssertTrue(zero.exists, app.debugDescription)
+        app.buttons["wallet.assets.balanceLedger"].tap()
+        XCTAssertTrue(app.staticTexts["wallet.ledger.1"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let refreshed = app.staticTexts.matching(NSPredicate(format: "label == %@ OR label ENDSWITH %@", "7 currency unspecified", ", 7 currency unspecified")).firstMatch
+        XCTAssertTrue(refreshed.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(zero.exists)
     }
     func testApprovalIsNotFinalPayoutAndBankAccountIsMasked() {
         let app = launch(); app.buttons["wallet.fixture.withdrawals"].tap()
