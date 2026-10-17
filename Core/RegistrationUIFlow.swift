@@ -67,6 +67,9 @@ public final class RegistrationUIFlow {
     private let onReadback: (RegistrationStatusSnapshot) -> Void
     private var openedIdentity: ProfileReadIdentity?
     private var generation: UInt64 = 0
+    // Navigation evidence belongs to this opening, never a later reconstructed form.
+    public private(set) var resultOrderVisitID = UUID()
+    public func retireResultOrderNavigation() { resultOrderVisitID = UUID(); changed() }
     private var quoteGeneration: UInt64 = 0
     private var participantGeneration: UInt64 = 0
     private var manuallyEdited = false
@@ -125,6 +128,7 @@ public final class RegistrationUIFlow {
 
     /// Called when the sheet opens or the host's session identity changes. No requests.
     public func open() {
+        resultOrderVisitID = UUID()
         generation &+= 1; quoteGeneration &+= 1; participantGeneration &+= 1
         clearForm()
         openedIdentity = currentIdentity()
@@ -256,6 +260,7 @@ public final class RegistrationUIFlow {
     /// Dismissal invalidates callbacks and scrubs form fields. It never resets/recreates
     /// the host's retained intent, sends cancellation, or claims a dispatched write failed.
     public func leave() {
+        resultOrderVisitID = UUID()
         if hasCurrentSession { coordinator.cancelPendingOperations() }
         generation &+= 1; quoteGeneration &+= 1; participantGeneration &+= 1
         clearForm(); openedIdentity = nil; changed()

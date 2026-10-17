@@ -80,3 +80,79 @@ public struct RegistrationWaitlistOrderPresentation: Hashable, Identifiable {
     public func profileParticipant(id: Int) async throws -> ProfileParticipant { throw APIError.invalidRequest }
     public func profileBadges() async throws -> ProfileBadgeWall { throw APIError.invalidRequest }
 }
+
+/// Known create receipt only. This is distinct from a waitlist claim and grants no
+/// writes or payment authority. Request identity is local correlation, not a new wire field.
+public struct RegistrationResultOrderDestination: Hashable, Identifiable {
+    public let identity: ProfileReadIdentity
+    public let visitID: UUID
+    public let requestID: String
+    public let activityID: Int
+    public let ticketID: Int
+    public let registrationID: Int
+    public var id: Self { self }
+    @MainActor fileprivate init?(flow: RegistrationUIFlow) {
+        guard flow.hasCurrentSession, !flow.isSubmitting, let identity = flow.identity,
+              let intent = flow.coordinator.retainedIntent,
+              intent.selection.ownerID == flow.activity.summary.id,
+              let ticketID = intent.selection.ticketID, ticketID > 0,
+              case .responseReceived(let requestID, let result) = flow.creationState,
+              requestID == intent.requestID, !requestID.isEmpty, result.registrationID > 0 else { return nil }
+        self.identity = identity; visitID = flow.resultOrderVisitID; self.requestID = requestID
+        activityID = intent.selection.ownerID; self.ticketID = ticketID; registrationID = result.registrationID
+    }
+}
+
+@MainActor public extension RegistrationUIFlow {
+    var resultOrderDestination: RegistrationResultOrderDestination? { .init(flow: self) }
+}
+
+public struct RegistrationResultOrderPresentation: Hashable, Identifiable {
+    public let id = UUID()
+    public let destination: RegistrationResultOrderDestination
+    public let readIdentity: ProfileReadIdentity
+    public init?(destination: RegistrationResultOrderDestination, readIdentity: ProfileReadIdentity?) {
+        guard let readIdentity, readIdentity.accountID == destination.identity.accountID,
+              readIdentity.epoch == destination.identity.epoch else { return nil }
+        self.destination = destination; self.readIdentity = readIdentity
+    }
+}
+
+/// Only the independent owned-order reader may supply this exact receipt's detail.
+/// No cast to AppSession, mutation service or adjacent read capability is exposed.
+@MainActor public final class RegistrationResultOrderReader: ProfileReading {
+    public let presentation: RegistrationResultOrderPresentation
+    private let base: any ProfileReading
+    private let isCurrent: () -> Bool
+    public init(presentation: RegistrationResultOrderPresentation, base: any ProfileReading, isCurrent: @escaping () -> Bool) {
+        self.presentation = presentation; self.base = base; self.isCurrent = isCurrent
+    }
+    public var identity: ProfileReadIdentity? {
+        guard isCurrent(), base.identity == presentation.readIdentity else { return nil }
+        return presentation.readIdentity
+    }
+    public var isConfigured: Bool { identity != nil && base.isConfigured }
+    public func profileOrder(id: Int) async throws -> ProfileOrder {
+        try Task.checkCancellation()
+        guard identity != nil else { throw APIError.unauthorized }
+        guard isConfigured else { throw APIError.notConfigured }
+        let destination = presentation.destination
+        guard id == destination.registrationID else { throw APIError.invalidRequest }
+        do {
+            let order = try await base.profileOrder(id: id)
+            try Task.checkCancellation()
+            guard identity != nil, base.isConfigured else { throw CancellationError() }
+            guard order.id == destination.registrationID, order.memberID == destination.identity.accountID,
+                  order.ownerType == 2, order.ownerID == destination.activityID,
+                  order.ticketID == destination.ticketID else { throw APIError.malformedResponse }
+            return order
+        } catch {
+            guard !Task.isCancelled, identity != nil, base.isConfigured else { throw CancellationError() }
+            throw error
+        }
+    }
+    public func profileOrders() async throws -> [ProfileOrder] { throw APIError.invalidRequest }
+    public func profileParticipants() async throws -> [ProfileParticipant] { throw APIError.invalidRequest }
+    public func profileParticipant(id: Int) async throws -> ProfileParticipant { throw APIError.invalidRequest }
+    public func profileBadges() async throws -> ProfileBadgeWall { throw APIError.invalidRequest }
+}
