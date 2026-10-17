@@ -139,6 +139,25 @@ import SwiftUI
     func submissionIsCurrent(_ receipt: PublishingSubmissionHandoff, incarnation: UUID) -> Bool {
         editorIncarnation == incarnation && submissionEvidence == receipt && submittedHandoff?.id == receipt.id
     }
+    struct SubmissionDestination: Identifiable, Hashable {
+        let id = UUID()
+        let receipt: PublishingSubmissionHandoff
+        let session: ProjectEditSession
+        let visit: UUID
+        static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+        func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    }
+    func submissionDestination(_ receipt: PublishingSubmissionHandoff, incarnation: UUID) -> SubmissionDestination? {
+        guard submissionIsCurrent(receipt, incarnation: incarnation), let session = coordinator.session,
+              let visit else { return nil }
+        return .init(receipt: receipt, session: session, visit: visit)
+    }
+    func submissionDestinationIsCurrent(_ destination: SubmissionDestination) -> Bool {
+        // Pushing the host calls leave(), which retires editor controls but not this visit.
+        // A different editor visit, session or acknowledgment must still retire the host.
+        visit == destination.visit && coordinator.ownsEditorVisit(destination.visit) &&
+            coordinator.session == destination.session && submissionEvidence == destination.receipt
+    }
     func invalidateStarterLease() { editorIncarnation = UUID() }
     private func acknowledgeDraftObservation() {
         observedDraftRevision = draftMutationRevision
@@ -267,7 +286,7 @@ import SwiftUI
     @State private var showingCopy = false
     @State private var modeCopyFailed = false
     @State private var submission: PublishingSubmissionHandoff?
-    @State private var submittedResource: PublishedResource?
+    @State private var submittedResource: ProjectEditModel.SubmissionDestination?
     @State private var handledSubmission: UUID?
     @FocusState private var focusedField: String?
     let sessionRevision: UInt64
@@ -438,8 +457,10 @@ import SwiftUI
         })) {
             if let copiedTarget { AnyView(ProjectEditView(coordinator: copiedTarget, sessionRevision: sessionRevision, publisherClient: publisherClient, publisherHost: publisherHost)) }
         }
-        .navigationDestination(item: $submittedResource) { resource in
-            if let publisherHost { publisherHost(resource) }
+        .navigationDestination(item: $submittedResource) { destination in
+            if model.submissionDestinationIsCurrent(destination), let publisherHost {
+                publisherHost(destination.receipt.resource)
+            } else { Text("discovery.templateSessionChanged") }
         }
         .sheet(item: modeReview.binding(modePresentation)) { original in
             ProjectEditModeReviewSheet(controller: modeReview, original: original, finished: { created in
@@ -483,9 +504,11 @@ import SwiftUI
         if model.submissionIsCurrent(receipt, incarnation: submissionIncarnation) {
             PublishingSubmissionResultSheet(receipt: receipt, canNavigate: publisherHost != nil, canVerifyRelease: model.approvedReleaseReadIsConfigured) {
                 guard model.submissionIsCurrent(receipt, incarnation: submissionIncarnation), submission?.id == receipt.id else { return }
+                let destination = publisherHost == nil ? nil : model.submissionDestination(receipt, incarnation: submissionIncarnation)
                 submission = nil
-                if publisherHost != nil { submittedResource = receipt.resource }
+                submittedResource = destination
             }
+            .id(receipt.id)
         }
     }
     private func chapterStructure(opening: ProjectEditStarterController.Lease?) -> some View {
