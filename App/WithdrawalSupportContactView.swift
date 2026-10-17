@@ -33,11 +33,12 @@ extension EnvironmentValues {
                     Text("withdrawal.support.manualContact")
                 } else if !busy {
                     Label("withdrawal.support.unconfigured", systemImage: "exclamationmark.bubble")
+                        .accessibilityIdentifier("withdrawal.support.unconfigured")
                 }
                 if let issue { Text(LocalizedStringKey(issue)).accessibilityIdentifier("withdrawal.support.status") }
                 Button("wallet.retry") { Task { await load() } }.disabled(busy)
             }.navigationTitle("withdrawal.support.contact")
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { clear(); dismiss() } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { clear(); dismiss() }.accessibilityIdentifier("withdrawal.support.close") } }
         }
         .task(id: reader?.scope) { clear(); await load() }
         .onChange(of: scenePhase) { _, phase in

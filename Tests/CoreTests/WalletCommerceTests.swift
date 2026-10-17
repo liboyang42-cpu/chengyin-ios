@@ -82,6 +82,24 @@ private final class WalletRecordingTransport: HTTPTransport {
         XCTAssertThrowsError(try decode(WalletWithdrawalRecord.self, #"{"id":1,"amount":1,"status":4}"#))
         XCTAssertEqual(WalletAddressReference.mask("12"), "••••")
     }
+    func testWithdrawalStatesRequireExplicitValidServerEvidence() throws {
+        let keys = ["wallet.pendingReview", "wallet.approved", "wallet.rejected", "wallet.paid"]
+        for status in 0...3 {
+            let row = try decode(WalletWithdrawalRecord.self, "{\"id\":1,\"amount\":5,\"status\":\(status)}")
+            XCTAssertEqual(row.statusKey, keys[status])
+        }
+        for source in [#"{"id":1,"amount":5}"#, #"{"id":1,"amount":5,"status":null}"#,
+                       #"{"id":1,"amount":5,"status":-1}"#, #"{"id":1,"amount":5,"status":4}"#,
+                       #"{"id":1,"amount":5,"status":"paid"}"#, #"{"id":1,"status":3}"#] {
+            XCTAssertThrowsError(try decode(WalletWithdrawalRecord.self, source))
+        }
+    }
+    func testMalformedWithdrawalResponseCannotBecomeEmptyHistory() async throws {
+        for payload in [#"{"code":200}"#, #"{"code":200,"data":null}"#,
+                        #"{"code":200,"data":{}}"#, #"{"code":200,"data":[{"id":1,"amount":5}]}"#] {
+            do { _ = try await service(WalletRecordingTransport(payload)).withdrawals(token: "fake"); XCTFail(payload) } catch {}
+        }
+    }
     func testPointsCeilAndUnknownSubtotal() throws {
         let preview = try decode(WalletCheckoutPreview.self, #"{"totalAmount":"8.01","pointBalance":8}"#)
         XCTAssertEqual(preview.requiredPoints, 9); XCTAssertEqual(preview.hasEnoughPoints, false)

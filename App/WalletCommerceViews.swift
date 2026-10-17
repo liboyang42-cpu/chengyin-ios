@@ -20,16 +20,21 @@ enum WalletReadFailurePresentation {
     func load(_ reader: WalletCommerceReader, operation: (WalletCommerceService, String) async throws -> Value) async {
         let stamp = UUID(); generation = stamp; value = nil; failed = false; requiresLogin = false; unavailable = false; loading = true
         let scope = reader.scope
+        loadedScope = nil
+        defer { if stamp == generation { loading = false } }
         do {
             let result = try await reader.read(operation)
-            guard stamp == generation, scope == reader.scope else { return }
+            guard stamp == generation else { return }
+            guard scope == reader.scope else { clear(); return }
             value = result; loadedScope = scope
         } catch {
-            guard stamp == generation, scope == reader.scope else { return }
+            guard stamp == generation else { return }
+            guard scope == reader.scope else { clear(); return }
+            if error is CancellationError { return }
+            if (error as? WalletCommerceSafetyError) == .staleSession { clear(); return }
             failed = true; requiresLogin = (error as? APIError) == .unauthorized
             unavailable = WalletReadFailurePresentation.isUnavailable(error)
         }
-        loading = false
     }
 }
 @MainActor private struct WalletIssueView: View {
@@ -322,12 +327,13 @@ enum WalletReadFailurePresentation {
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
     @StateObject private var model = WalletScreen<WalletPage<WalletWithdrawalRecord>>()
+    @State private var showContact = false
     var body: some View {
         List {
             Text("bank.withdrawal.historyNotice")
             if model.loading { ProgressView("wallet.loading") }
             else if let page = model.value, model.loadedScope == reader.scope {
-                if page.rows.isEmpty { Text("wallet.empty") }
+                if page.rows.isEmpty { Text("wallet.empty").accessibilityIdentifier("wallet.withdrawals.empty") }
                 ForEach(page.rows) { item in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(format.amount(item.amount, currency: item.currency))
@@ -337,9 +343,16 @@ enum WalletReadFailurePresentation {
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.withdrawal.\(item.id)")
                 }
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
-            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.withdrawals").task(id: reader.scope) { model.clear(); await load() }
+            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
+            Section {
+                Button("withdrawal.support.contact") { showContact = true }
+                    .accessibilityIdentifier("wallet.withdrawals.support")
+            }
+        }.appNavigationTitle("wallet.withdrawals").task(id: reader.scope) { showContact = false; model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { await load() }
+            // Uses the inherited, independently reviewed support reader. History access
+            // does not supply a contact or authorize support configuration/copying.
+            .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
     }
     private func load() async { await model.load(reader) { try await $0.withdrawals(token: $1) } }
 }

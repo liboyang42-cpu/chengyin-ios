@@ -205,6 +205,73 @@ import XCTest
         wire.finish(code: 200); await old.value
         XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope); XCTAssertFalse(screen.loading)
     }
+    func testWithdrawalScreenDenialAnd401AreNotEmptySuccess() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletPage<WalletWithdrawalRecord>>()
+        await screen.load(reader) { _, _ in throw APIError.notConfigured }
+        XCTAssertTrue(screen.unavailable); XCTAssertFalse(screen.requiresLogin)
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope); XCTAssertFalse(screen.loading)
+        // Use a reader without session teardown to prove the presentation flag itself.
+        let active = try XCTUnwrap(reader.scope)
+        let isolated = WalletCommerceReader(service: WalletCommerceService(configuration: try APIConfiguration(baseURL: base), transport: wire)) { (active, "synthetic") }
+        await screen.load(isolated) { _, _ in throw APIError.unauthorized }
+        XCTAssertTrue(screen.requiresLogin); XCTAssertFalse(screen.unavailable)
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope); XCTAssertFalse(screen.loading)
+        await screen.load(isolated) { try await $0.withdrawals(token: $1) }
+        XCTAssertFalse(screen.failed); XCTAssertEqual(screen.value?.rows.count, 0)
+        XCTAssertEqual(screen.loadedScope, active)
+    }
+    func testScreenTaskCancellationRejectsNonCooperatingLateSuccess() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<Int>()
+        let started = expectation(description: "screen operation suspended")
+        var pending: CheckedContinuation<Int, Never>?
+        let task = Task { await screen.load(reader) { _, _ in
+            await withCheckedContinuation { pending = $0; started.fulfill() }
+        } }
+        await fulfillment(of: [started], timeout: 2)
+        task.cancel() // No screen.cancel(): exercise structured task cancellation.
+        pending?.resume(returning: 1); await task.value
+        XCTAssertFalse(screen.loading); XCTAssertFalse(screen.failed)
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        await screen.load(reader) { _, _ in 2 }
+        XCTAssertEqual(screen.value, 2); XCTAssertFalse(screen.loading)
+    }
+    func testOldScreenCompletionCannotClearNewInflightLoading() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<Int>()
+        let firstStarted = expectation(description: "old screen read"), nextStarted = expectation(description: "new screen read")
+        var first: CheckedContinuation<Int, Never>?, next: CheckedContinuation<Int, Never>?
+        let old = Task { await screen.load(reader) { _, _ in
+            await withCheckedContinuation { first = $0; firstStarted.fulfill() }
+        } }
+        await fulfillment(of: [firstStarted], timeout: 2)
+        screen.cancel()
+        let newer = Task { await screen.load(reader) { _, _ in
+            await withCheckedContinuation { next = $0; nextStarted.fulfill() }
+        } }
+        await fulfillment(of: [nextStarted], timeout: 2)
+        first?.resume(returning: 1); await old.value
+        XCTAssertTrue(screen.loading); XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        XCTAssertFalse(screen.failed)
+        next?.resume(returning: 2); await newer.value
+        XCTAssertFalse(screen.loading); XCTAssertEqual(screen.value, 2)
+        XCTAssertEqual(screen.loadedScope, reader.scope)
+    }
+    func testScreenScopeChangeWithoutExplicitClearCannotStickLoading() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<Int>()
+        await screen.load(reader) { _, _ in
+            grants.retained?.revoke(); grants.enabled = false
+            return 1
+        }
+        XCTAssertFalse(screen.loading); XCTAssertFalse(screen.failed)
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        grants.retained = nil; grants.enabled = true
+        let fresh = session.walletHistoryReader
+        await screen.load(fresh) { _, _ in 2 }
+        XCTAssertEqual(screen.value, 2); XCTAssertEqual(screen.loadedScope, fresh.scope)
+    }
     private func form(_ path: String, _ fields: [String: String]) throws -> URLRequest {
         try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: fields, token: "synthetic-7", boundary: "wallet-test")
     }

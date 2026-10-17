@@ -118,6 +118,49 @@ final class WalletCommerceFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["Try again"].exists)
         XCTAssertFalse(app.buttons["wallet.ledger.loadMore"].exists)
     }
+    func testWithdrawalDenialHasNoRetryOrEmptySuccess() {
+        let app = launch(["--wallet-withdrawals-denied"]); app.buttons["wallet.fixture.withdrawals"].tap()
+        XCTAssertTrue(app.staticTexts["wallet.issue"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Try again"].exists)
+        XCTAssertFalse(app.staticTexts["wallet.withdrawals.empty"].exists)
+        XCTAssertFalse(app.staticTexts["wallet.withdrawal.40"].exists)
+        XCTAssertTrue(app.buttons["wallet.withdrawals.support"].exists)
+    }
+    func testWithdrawal401ShowsSignInWithoutRetry() {
+        let app = launch(["--wallet-withdrawals-unauthorized"]); app.buttons["wallet.fixture.withdrawals"].tap()
+        XCTAssertTrue(app.staticTexts["Sign in to view this information"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Try again"].exists)
+        XCTAssertFalse(app.staticTexts["wallet.withdrawals.empty"].exists)
+    }
+    func testWithdrawalTransientFailureRetriesIntoServerStatus() {
+        let app = launch(["--wallet-withdrawals-recover"]); app.buttons["wallet.fixture.withdrawals"].tap()
+        let retry = app.buttons["Try again"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 5)); retry.tap()
+        let row = app.staticTexts["wallet.withdrawal.41"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5)); XCTAssertTrue(row.label.contains("Rejected"))
+        XCTAssertFalse(app.staticTexts["wallet.issue"].exists)
+    }
+    func testWithdrawalMissingStatusIsFailureRatherThanPaidOrEmpty() {
+        let app = launch(["--wallet-withdrawals-invalid-status"]); app.buttons["wallet.fixture.withdrawals"].tap()
+        XCTAssertTrue(app.staticTexts["wallet.issue"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["wallet.withdrawal.40"].exists)
+        XCTAssertFalse(app.staticTexts["wallet.withdrawals.empty"].exists)
+    }
+    func testEmptyWithdrawalHistoryStillOffersSafeSupportAndReturn() {
+        let app = launch(["--wallet-withdrawals-empty"]); app.buttons["wallet.fixture.withdrawals"].tap()
+        XCTAssertTrue(app.staticTexts["wallet.withdrawals.empty"].waitForExistence(timeout: 5))
+        app.buttons["wallet.withdrawals.support"].tap()
+        XCTAssertTrue(app.otherElements["withdrawal.support.unconfigured"].waitForExistence(timeout: 5)
+                      || app.staticTexts["withdrawal.support.unconfigured"].exists)
+        XCTAssertFalse(app.buttons["withdrawal.support.copyWeChat"].exists)
+        app.buttons["withdrawal.support.close"].tap()
+        XCTAssertTrue(app.staticTexts["wallet.withdrawals.empty"].waitForExistence(timeout: 5))
+        app.buttons["wallet.withdrawals.support"].tap()
+        XCTAssertTrue(app.buttons["withdrawal.support.close"].waitForExistence(timeout: 5))
+        app.buttons["withdrawal.support.close"].tap()
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.buttons["wallet.fixture.withdrawals"].waitForExistence(timeout: 5))
+    }
     func testApprovalIsNotFinalPayoutAndBankAccountIsMasked() {
         let app = launch(); app.buttons["wallet.fixture.withdrawals"].tap()
         XCTAssertTrue(app.staticTexts["wallet.withdrawal.40"].waitForExistence(timeout: 5))
