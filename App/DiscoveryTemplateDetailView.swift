@@ -6,12 +6,21 @@ struct DiscoveryTemplateDetailView: View {
     let reader: any DiscoveryReading
     let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
     let authoringRevision: UInt64
+    let authoringCompletion: TemplateAuthoringCompletionContext?
     let imageReader: any RetainedPublicImageReading
     @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplate>()
     @State private var galleryScope = UUID()
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
-    private struct RequestKey: Equatable {
+    @State private var adoption: Adoption?
+    private struct Adoption: Identifiable, Hashable {
+        let id = UUID()
+        let source: DiscoveryPlayTemplate
+        let key: RequestKey
+        static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+        func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    }
+    private struct RequestKey: Hashable {
         let id: Int
         let reader: ObjectIdentifier
         let scope: String
@@ -23,9 +32,10 @@ struct DiscoveryTemplateDetailView: View {
                      authoringRevision: authoringRevision)
     }
 
-    init(id: Int, reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil) {
+    init(id: Int, reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil) {
         self.id = id; self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
         self.imageReader = imageReader ?? RetainedPublicImageReader()
+        self.authoringCompletion = authoringCompletion
     }
 
     var body: some View {
@@ -50,10 +60,12 @@ struct DiscoveryTemplateDetailView: View {
                     if let verification = item.verification {
                         Section("discovery.verification") { Text(verification.label) }
                     }
-                    if let authoringFactory {
+                    if authoringFactory != nil {
                         Section {
-                            NavigationLink {
-                                TemplateAuthoringView(coordinator: authoringFactory(item), sessionRevision: authoringRevision, metadataReader: reader)
+                            Button {
+                                guard loadedKey == requestKey, reader.isConfigured,
+                                      authoringCompletion?.isCurrent() != false else { return }
+                                adoption = Adoption(source: item, key: requestKey)
                             } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc") }
                                 .accessibilityIdentifier("templateAuthor.adopt")
                         }
@@ -68,6 +80,16 @@ struct DiscoveryTemplateDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: requestKey) { if reader.isConfigured { await reload() } }
         .onReceive(reader.discoveryPresentationChanges) { readerChange &+= 1 }
+        .onChange(of: requestKey) { _, _ in adoption = nil }
+        .navigationDestination(item: $adoption) { selected in
+            if let authoringFactory {
+                DiscoveryTemplateAdoptionDestination(factory: { authoringFactory(selected.source) },
+                    sessionRevision: selected.key.authoringRevision, metadataReader: reader, completion: authoringCompletion,
+                    isCurrent: { adoption?.id == selected.id && loadedKey == selected.key &&
+                        requestKey == selected.key && reader.isConfigured })
+                    .id(selected.id)
+            }
+        }
     }
     @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -85,6 +107,42 @@ struct DiscoveryTemplateDetailView: View {
         }
         guard !Task.isCancelled, requested == requestKey else { return }
         loadedKey = requested
+    }
+}
+
+/// StateObject's deferred factory creates exactly one coordinator for this pushed visit.
+/// Re-rendering a detail must not reopen the adopted draft or replace a pending request.
+@MainActor final class DiscoveryTemplateAdoptionOwner: ObservableObject {
+    let coordinator: TemplateAuthoringCoordinator
+    init(factory: () -> TemplateAuthoringCoordinator) { coordinator = factory() }
+}
+
+@MainActor struct DiscoveryTemplateAdoptionDestination: View {
+    let sessionRevision: UInt64
+    let metadataReader: any DiscoveryReading
+    let completion: TemplateAuthoringCompletionContext?
+    let isCurrent: () -> Bool
+    @StateObject private var owner: DiscoveryTemplateAdoptionOwner
+    init(factory: @escaping () -> TemplateAuthoringCoordinator, sessionRevision: UInt64,
+         metadataReader: any DiscoveryReading, completion: TemplateAuthoringCompletionContext?,
+         isCurrent: @escaping () -> Bool) {
+        self.sessionRevision = sessionRevision; self.metadataReader = metadataReader
+        self.completion = completion; self.isCurrent = isCurrent
+        _owner = StateObject(wrappedValue: DiscoveryTemplateAdoptionOwner(factory: factory))
+    }
+    var body: some View {
+        Group {
+            if isCurrent(), completion?.isCurrent() != false {
+                if let completion {
+                    TemplateAuthoringSaveFlow(coordinator: owner.coordinator, sessionRevision: sessionRevision,
+                        metadataReader: metadataReader, imageSelectionApproved: { false }, library: completion.library)
+                        .modifier(TemplateAuthoringPublishCompletion(coordinator: owner.coordinator, library: completion.library))
+                } else {
+                    // A standalone read/fixture caller has no authority to construct an owned shelf.
+                    TemplateAuthoringView(coordinator: owner.coordinator, sessionRevision: sessionRevision, metadataReader: metadataReader)
+                }
+            } else { Text("discovery.templateSessionChanged") }
+        }.accessibilityIdentifier("templateAuthor.adoptionFlow")
     }
 }
 

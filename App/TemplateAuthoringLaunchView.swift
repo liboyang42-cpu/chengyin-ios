@@ -1,5 +1,28 @@
 import SwiftUI
 
+/// A completion route is presentation only. It grants neither shelf reads nor writes.
+@MainActor struct TemplateAuthoringCompletionContext {
+    let isCurrent: () -> Bool
+    let library: () -> AnyView
+}
+
+extension AppSession {
+    @MainActor var templateAuthoringCompletionContext: TemplateAuthoringCompletionContext {
+        let identity = templateAuthoringViewIdentity
+        return .init(isCurrent: { self.templateAuthoringViewIdentity == identity }, library: {
+            AnyView(Group {
+                if self.templateAuthoringViewIdentity == identity {
+                    TemplateAuthoringMineView(coordinator: self.templateShelfCoordinator(), sessionRevision: self.sessionRevision,
+                        memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0)) },
+                        ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0)) },
+                        creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0)) })
+                        .id(self.templateShelfViewIdentity)
+                } else { Text("discovery.templateSessionChanged") }
+            })
+        })
+    }
+}
+
 @MainActor struct TemplateAuthoringLaunchView: View {
     @EnvironmentObject private var session: AppSession
     var body: some View {

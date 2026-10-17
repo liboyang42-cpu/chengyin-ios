@@ -6,6 +6,7 @@ struct DiscoveryTemplateBrowserView: View {
     let reader: any DiscoveryReading
     let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
     let authoringRevision: UInt64
+    let authoringCompletion: TemplateAuthoringCompletionContext?
     let imageReader: (any RetainedPublicImageReading)?
     @State private var tab = Shelf.topics
     @State private var categoryID: Int?
@@ -28,9 +29,9 @@ struct DiscoveryTemplateBrowserView: View {
     private var query: Query { Query(tab: tab, pack: pack, keyword: appliedKeyword) }
     private var hasGameFilter: Bool { pack != nil || !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil) {
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil) {
         self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
-        self.imageReader = imageReader
+        self.imageReader = imageReader; self.authoringCompletion = authoringCompletion
     }
 
     var body: some View {
@@ -196,7 +197,7 @@ struct DiscoveryTemplateBrowserView: View {
             Section(title) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
                     NavigationLink {
-                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: authoringFactory, authoringRevision: authoringRevision, imageReader: imageReader)
+                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: authoringFactory, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
                     } label: { DiscoveryPlayRow(item: item) }
                     .accessibilityIdentifier("discovery.play.\(item.id)")
                 }
