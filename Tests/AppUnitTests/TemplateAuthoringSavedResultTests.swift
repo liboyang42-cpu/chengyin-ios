@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import Questify
 
 /// Memory-only transport and controllable clock. No socket, credential, upload or real content write.
@@ -199,4 +200,91 @@ import XCTest
         XCTAssertEqual(c.model.coordinator.pending,pending); XCTAssertEqual(c.wire.calls,1)
         XCTAssertEqual(c.model.draft.originalTemplateID?.rawValue,742)
     }
+    func testOrdinaryEntryRetainsOneFactoryResultForEditorAndCompletion() {
+        let c = setup(), coordinator = c.model.coordinator
+        var opens = 0
+        let visit = TemplateAuthoringEntryOwner(factory: {
+            opens += 1; return coordinator
+        }, completion: .init(isCurrent: { true }, library: { AnyView(EmptyView()) }))
+        for _ in 0..<5 {
+            XCTAssertTrue(visit.coordinator === coordinator)
+            XCTAssertTrue(visit.isCurrent)
+        }
+        XCTAssertEqual(opens, 1)
+        XCTAssertEqual(c.wire.calls, 0)
+    }
+    func testOrdinaryEntryReopenCreatesNewVisitWithoutReplayingOldFactory() {
+        let c = setup()
+        var opens = 0
+        let factory = { opens += 1; return c.model.coordinator }
+        let completion = TemplateAuthoringCompletionContext(isCurrent: { true }, library: { AnyView(EmptyView()) })
+        let first = TemplateAuthoringEntryOwner(factory: factory, completion: completion)
+        let second = TemplateAuthoringEntryOwner(factory: factory, completion: completion)
+        XCTAssertFalse(first === second)
+        XCTAssertEqual(opens, 2)
+        XCTAssertTrue(first.coordinator === second.coordinator) // AppSession may retain its coordinator.
+        XCTAssertEqual(c.wire.calls, 0)
+    }
+    func testOrdinaryEntryCapturedCompletionRevokesOnPermissionOrEpochChange() throws {
+        let c = setup(), captured = try XCTUnwrap(c.owner.session)
+        let visit = TemplateAuthoringEntryOwner(factory: { c.model.coordinator },
+            completion: .init(isCurrent: {
+                guard let current = c.owner.session else { return false }
+                return TemplateAuthoringSavedResult.exactSession(captured, current)
+            }, library: { AnyView(EmptyView()) }))
+        XCTAssertTrue(visit.isCurrent)
+        c.owner.session = try .init(accountID:36,namespace:"result-app",epoch:2,authorizationRevision:"creator")
+        XCTAssertFalse(visit.isCurrent)
+        c.owner.session = try .init(accountID:36,namespace:"result-app",epoch:1,authorizationRevision:"revoked")
+        XCTAssertFalse(visit.isCurrent)
+        c.owner.session = nil
+        XCTAssertFalse(visit.isCurrent)
+        XCTAssertEqual(c.wire.calls, 0)
+    }
+    func testOrdinaryEntryUsesExistingSaveReceiptAndOwnedLibraryRoute() async throws {
+        let c = setup()
+        let visit = TemplateAuthoringEntryOwner(factory: { c.model.coordinator },
+            completion: .init(isCurrent: { true }, library: { AnyView(EmptyView()) }))
+        try await save(c)
+        let panel = try XCTUnwrap(c.flow.presentation)
+        XCTAssertTrue(panel.signal.result.isCurrent(in: visit.coordinator))
+        c.flow.closeAction(panel)()
+        XCTAssertTrue(c.flow.showingLibrary)
+        XCTAssertEqual(c.wire.calls, 1)
+    }
+
+    func testReconstructingDestinationValuesDoesNotEagerlyReopenEditor() {
+        let c = setup()
+        var opens = 0
+        let reader = DiscoveryFixtureReader()
+        for _ in 0..<5 {
+            _ = TemplateAuthoringEntryDestination(factory: {
+                opens += 1; return c.model.coordinator
+            }, completion: .init(isCurrent: { true }, library: { AnyView(EmptyView()) }),
+                sessionRevision: 1, metadataReader: reader, imageSelectionApproved: { false })
+        }
+        XCTAssertEqual(opens, 0)
+        XCTAssertEqual(c.wire.calls, 0)
+    }
+
+    func testSameEpochRoleRefreshRevokesAlreadyCompletedEntryContext() async throws {
+        let c = setup(), captured = try XCTUnwrap(c.owner.session)
+        let visit = TemplateAuthoringEntryOwner(factory: { c.model.coordinator },
+            completion: .init(isCurrent: {
+                guard let current = c.owner.session else { return false }
+                return TemplateAuthoringSavedResult.exactSession(captured, current)
+            }, library: { AnyView(EmptyView()) }))
+        try await save(c)
+        c.flow.closeAction(try XCTUnwrap(c.flow.presentation))()
+        XCTAssertTrue(c.flow.showingLibrary)
+        XCTAssertTrue(visit.isCurrent)
+        c.owner.session = try .init(accountID:36,namespace:"result-app",epoch:1,authorizationRevision:"merchant")
+        XCTAssertEqual(c.owner.session?.epoch, captured.epoch)
+        XCTAssertFalse(visit.isCurrent)
+        // The receipt controller retains its completion state; the entry's identity boundary
+        // must stop exposing that completed destination for the new role.
+        XCTAssertTrue(c.flow.showingLibrary)
+        XCTAssertEqual(c.wire.calls, 1)
+    }
+
 }
