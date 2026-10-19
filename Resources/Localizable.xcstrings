@@ -14806,13 +14806,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revoke assignment"
+            "value": "Revoke"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "撤销委派"
+            "value": "撤销"
           }
         }
       }
@@ -14925,13 +14925,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Update future occurrences"
+            "value": "Edit future occurrences"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "修改未来场次"
+            "value": "编辑未来场次"
           }
         }
       }
@@ -14959,13 +14959,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Active assignments"
+            "value": "Current assignments"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生效委派"
+            "value": "当前委派"
           }
         }
       }
@@ -16489,13 +16489,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capacity, blank if unlimited"
+            "value": "Capacity (optional)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "人数上限，不限可留空"
+            "value": "容量（可选）"
           }
         }
       }
@@ -16676,13 +16676,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Custom dates, comma separated"
+            "value": "Date list"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "自定义日期，以逗号分隔"
+            "value": "日期清单"
           }
         }
       }
@@ -16727,13 +16727,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lead member ID"
+            "value": "Default lead"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "默认领队成员编号"
+            "value": "默认负责人"
           }
         }
       }
@@ -17526,13 +17526,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Number of occurrences"
+            "value": "Occurrences"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "场次数量"
+            "value": "场次数"
           }
         }
       }
@@ -17543,13 +17543,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waitlist offer minutes"
+            "value": "Waitlist claim window (minutes)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "候补名额有效分钟"
+            "value": "候补认领时长（分钟）"
           }
         }
       }
@@ -17900,13 +17900,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recurrence"
+            "value": "Repeat"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重复规则"
+            "value": "重复方式"
           }
         }
       }
@@ -18308,13 +18308,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meeting time, HH:mm"
+            "value": "Meeting time"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "集合时间，HH:mm"
+            "value": "集合时刻"
           }
         }
       }
@@ -18784,13 +18784,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waitlist enabled"
+            "value": "Open waitlist when full"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开启候补"
+            "value": "满员后开启候补"
           }
         }
       }
