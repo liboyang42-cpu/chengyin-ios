@@ -131,7 +131,8 @@ private struct MessagingConversationListView: View {
                 if case .hide = action { owner?.invalidate(reader: reader, identity: presentation.owner.scope.identity) }
             }
         }
-        .onChange(of: reader.identity) { _, _ in rowAction = nil; showsSquare = false; safety = nil; selectedTab = nil }
+        .onChange(of: reader.identity) { _, _ in rowAction = nil }
+        .onChange(of: reader.identity) { _, _ in showsSquare = false; safety = nil; selectedTab = nil }
         .onChange(of: MessagingReadScreenInput(reader: reader, refreshRevision: 0)) { _, _ in retireReviews() }
         .onDisappear { readAll?.batch.stop() }
         .searchable(text: $query, prompt: "messaging.search")
