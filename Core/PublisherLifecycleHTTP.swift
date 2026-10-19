@@ -121,5 +121,26 @@ public struct PublisherLifecycleGrants {
         guard let name = profile.object?["name"]?.text, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw PublisherLifecycleError.incomplete }
         return PublisherPartnerInspection(terms: row, profile: profile)
     }
+    /// Source pricing lineup row name (one read per row, no terms re-check): club `api/club/detail`,
+    /// merchant through the approved public merchant home read keyed by owner member id.
+    public func partnerName(type: String, id: Int) async throws -> String {
+        guard ["club", "merchant"].contains(type), id > 0, let captured = credentials() else { throw PublisherLifecycleError.incomplete }
+        let name: String?
+        if type == "club" {
+            let profile = try await read("api/club/detail", fields: ["id": .number(Decimal(id))], json: true)
+            try check(captured)
+            guard profile.object?["id"]?.integer == id else { throw PublisherLifecycleError.incomplete }
+            name = profile.object?["name"]?.text
+        } else {
+            guard let reader = merchantPartnerReader, reader.isConfigured, let owner = PublicMerchantOwnerID(id) else { throw PublisherLifecycleError.unavailable }
+            let scope = reader.scope
+            let home = try await reader.home(.ownerMemberID(owner))
+            try check(captured)
+            guard reader.scope == scope, home.memberId == id else { throw PublisherLifecycleError.stale }
+            name = home.name
+        }
+        guard let name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw PublisherLifecycleError.incomplete }
+        return name
+    }
 }
 
