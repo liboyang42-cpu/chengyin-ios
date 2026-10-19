@@ -24,7 +24,7 @@ import XCTest
         XCTAssertTrue(app.staticTexts["Code sent. Check your messages."].waitForExistence(timeout: 5))
         app.textFields["auth.channels.code"].tap(); app.textFields["auth.channels.code"].typeText("123456")
         tap("auth.channels.phoneSignIn")
-        let account = app.tabBars.buttons["Account"]
+        let account = app.tabBars.buttons["Me"]
         XCTAssertTrue(account.waitForExistence(timeout: 10)); account.tap()
         tap("rewards.open")
     }
