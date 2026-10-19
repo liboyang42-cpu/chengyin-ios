@@ -58,6 +58,8 @@ final class AppSession: ObservableObject {
         return factory.chatClient(currentScope: { [weak self] row in self?.merchantNPCScope(row: row) })
     }
     func merchantOperationsDestination(_ destination: MerchantOperationsDestination, access: MerchantOperationsAccess) -> AnyView {
+        // w2-19: source pages/merchant/decor/ai-npc has its own page; saves stay dormant.
+        if destination == .character { return merchantStoreCharacterDestination() }
         guard destination == .assets else { return AnyView(MerchantOperationsDocumentView(reader: merchantOperationsReader, destination: destination, imageHost: retainedMerchantImages, templateAssistFactory: { [weak self] coordinator in
             self?.merchantTemplateAssistFlow(coordinator: coordinator) ?? MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
         })) }
@@ -394,6 +396,26 @@ final class AppSession: ObservableObject {
             })
         playExperienceCoordinators[key] = coordinator
         return coordinator
+    }
+    // w2-19 source pages/play/merchant: store-day reads share the play read approval; every write gate stays off.
+    func playStoreDay(scope: PlaySessionScope, nodeID: Int, registrationID: Int = 0, justScanned: Bool = false) -> PlayStoreDayCoordinator? {
+        let key = PlayReaderKey(accountID: account?.id, epoch: gate.currentStamp, role: account?.effectiveRole, viewerRevision: compositionViewerRevision, approval: currentPlayReadApprovalKey, scope: scope)
+        guard scope.isValid, nodeID > 0, key.approval != nil, let regional = regionalConfiguration, let api = regional.apiConfiguration,
+              let factory = playReadDependencyFactory, factory.accepted?.play.contains(.reads) == true else { return nil }
+        let service = PlayStoreDayService(configuration: api, transport: factory.transport, market: regional.market, gates: .disabled, readsEnabled: true,
+            currentSession: { [weak self] in
+                guard let self, self.playStoreDayFence(key), let account = self.account, let token = self.token else { return nil }
+                return try? PlayStoreDaySession(accountID: account.id, epoch: self.gate.currentStamp, token: token)
+            },
+            onUnauthorized: { [weak self] snapshot in
+                guard let self, self.playStoreDayFence(key) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.epoch, credential: self.token)
+            })
+        return PlayStoreDayCoordinator(nodeID: nodeID, scope: scope, registrationID: registrationID, justScanned: justScanned, service: service)
+    }
+    /// Same viewer-revision and play-read-issuance ABA fence as the play readers above.
+    private func playStoreDayFence(_ key: PlayReaderKey) -> Bool {
+        key.approval != nil && compositionViewerRevision == key.viewerRevision && currentPlayReadApprovalKey == key.approval
     }
     // Journey extras are independent of task completion, advanced games and local dice.
     private var retainedJourneyNarratives: [String: JourneyNarrativeCoordinator] = [:]

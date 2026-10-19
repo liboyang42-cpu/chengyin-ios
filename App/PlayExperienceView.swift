@@ -24,6 +24,7 @@ import SwiftUI
     var narrativeImageReader: (any RetainedPublicImageReading)? = nil
     var shopNPCModel: ((Int) -> ShopNPCNodeHost?)? = nil
     var invalidateShopNPC: (() -> Void)? = nil
+    var storeDayModel: ((Int) -> PlayStoreDayCoordinator?)? = nil
     var mediaScope: UUID = UUID()
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
@@ -246,7 +247,7 @@ import SwiftUI
                     return AnyView(ChapterStoryView(chapterID: chapterID, nodeID: node.id, model: model,
                         mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts,
                         nodeDestination: { AnyView(freeStoreDestination($0)) }))
-                })
+                }, storeDayModel: storeDayModel)
         } else { Text("playMode.unavailable") }
     }
     @ViewBuilder private func narrativeLink(_ query: JourneyNarrativeQuery, subtitle: String? = nil) -> some View {
