@@ -12,15 +12,6 @@ final class SearchMapParityPresentationTests: XCTestCase {
         XCTAssertEqual(Set((1...4).map { SearchMapNodeLevelStyle.resolve($0).symbol }).count, 4)
     }
 
-    func testCityNodeDecodesOptionalNodeLevelWithoutFailingOnBadType() throws {
-        let nodes = try JSONDecoder().decode([SearchMapCityNode].self, from: Data(SearchMapSyntheticFixtures.cityNodes.utf8))
-        XCTAssertEqual(nodes.first?.nodeLevel, 3)
-        let odd = try JSONDecoder().decode(SearchMapCityNode.self, from: Data(#"{"poiId":5,"name":"x","nodeLevel":"high"}"#.utf8))
-        XCTAssertNil(odd.nodeLevel)
-        let absent = try JSONDecoder().decode(SearchMapCityNode.self, from: Data(#"{"poiId":6}"#.utf8))
-        XCTAssertNil(absent.nodeLevel)
-    }
-
     func testPinPresentationTopicIconAndMerchantFallback() {
         XCTAssertEqual(SearchMapPinPresentation.activitySymbol(linkedTopicID: 72), "flag.fill")
         XCTAssertEqual(SearchMapPinPresentation.activitySymbol(linkedTopicID: nil), "calendar")

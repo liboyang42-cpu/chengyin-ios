@@ -37,11 +37,6 @@ import SwiftUI
     @State private var gate = SearchMapQueryGate()
     @State private var categoryGate = SearchMapQueryGate()
     @State private var preparedScope: UUID?
-    @Environment(\.searchMapConnectivity) private var injectedConnectivity
-    @State private var ownedConnectivity: SearchMapConnectivity?
-    @State private var lastSettledLoad: Date?
-    @State private var stillOffline = false
-    @State private var showsAllResults = false
     init(reader: any SearchMapReading, mode: Mode, initialFilter: GlobalSearchQuery = .init(),
          initialArea: RoamSearchArea? = nil, onSignIn: (() -> Void)? = nil,
          destination: @escaping (SearchMapDestination) -> Destination) {
@@ -75,10 +70,9 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 16) {
                 Text("searchMap.manualDisclosure").font(.footnote).foregroundStyle(.secondary)
                 if reader.isOfflineExample { Text("searchMap.offline").font(.caption) }
-                SearchMapOfflineBannerView(state: offlineBanner, stillOffline: stillOffline) { retryConnection() }
                 if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline) }
                 if mode == .city {
-                    TextField("searchMap.w208.placeholder", text: $filter.keyword)
+                    TextField("searchMap.cityPlaceholder", text: $filter.keyword)
                         .textFieldStyle(.roundedBorder).accessibilityIdentifier("searchMap.cityKeyword")
                 }
                 ViewThatFits(in: .horizontal) {
@@ -110,9 +104,6 @@ import SwiftUI
                         }
                     }
                     if let selectedPin, pins.filter({ $0.id == selectedPin }).count == 1 { selectedPlaceSummary(selectedPin, area: area) }
-                    if mode == .city, reader.isConfigured, loading || visibleCityResults != nil || issue != nil {
-                        SearchMapResultsCapsuleView(state: resultCapsule, retry: { startLoad() }) { showsAllResults = true }
-                    }
                 }
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
                 else if area == nil { ContentUnavailableView("searchMap.areaRequired", systemImage: "mappin.and.ellipse") }
@@ -148,15 +139,6 @@ import SwiftUI
                 reader.selectManualArea(selected); area = selected; mapEnabled = false; mapCameraIdentityArea = nil; invalidate()
             }
         }
-        .sheet(isPresented: $showsAllResults) {
-            let renderedContext = pinSelectionContext
-            SearchMapAllResultsSheet(rows: visibleCityResults == nil ? [] : pagination.rows, loading: loading,
-                failed: issue != nil || visibleCityResults?.activityFailure != nil, refreshing: refresh.isLoading,
-                refreshFailed: refresh.retainedActivities || refresh.retainedNodes, offline: reader.isOfflineExample,
-                retry: { showsAllResults = false; if visibleCityResults == nil { startLoad() } else { startRefresh() } }) { row in
-                showsAllResults = false; openLayerActivity(row, rendered: renderedContext)
-            }
-        }
         .sheet(isPresented: $showsFilters) {
             SearchMapFilterSheet(filter: filter, categories: categories, categoryFailed: categoryFailed,
                                  tag: tag, cityRole: cityRole, sortType: sortType,
@@ -187,15 +169,7 @@ import SwiftUI
         .onChange(of: mapLayers.revision) { _, _ in selectedPin = nil; selectionFocused = false; layerNavigation = nil }
         .onChange(of: scenePhase) { _, _ in invalidateViewport() }
         .onChange(of: reader.manualAreaRevision) { _, _ in invalidateViewport() }
-        .onAppear {
-            refreshOwnerActive = true; readOwner.activate()
-            if injectedConnectivity == nil && ownedConnectivity == nil { ownedConnectivity = SearchMapConnectivity() }
-        }
-        .onChange(of: connectivity?.isOnline ?? true) { wasOnline, isOnline in
-            if isOnline { stillOffline = false }
-            // Like the mini-program, reconnecting refreshes the retained results once.
-            if SearchMapOfflineBanner.shouldRefreshOnReconnect(wasOnline: wasOnline, isOnline: isOnline, hasResults: visibleCityResults != nil) { startRefresh() }
-        }
+        .onAppear { refreshOwnerActive = true; readOwner.activate() }
             .onDisappear { invalidateViewport(); readOwner.deactivate(); refresh.cancelPending(); pagination.cancelPending(); gate.invalidate(); categoryGate.invalidate(); loading = false; refreshOwnerActive = false }
     }
     @ViewBuilder private var viewportControls: some View {
@@ -231,20 +205,6 @@ import SwiftUI
                     .accessibilityIdentifier("mapViewport.clear")
             }
         }.frame(maxWidth: .infinity, alignment: .leading)
-    }
-    private var connectivity: SearchMapConnectivity? { injectedConnectivity ?? ownedConnectivity }
-    private var offlineBanner: SearchMapOfflineBanner {
-        SearchMapOfflineBanner.resolve(online: connectivity?.isOnline ?? true, lastLoaded: lastSettledLoad, hasResults: visibleCityResults != nil)
-    }
-    private var resultCapsule: SearchMapResultCapsule {
-        let rows = visibleCityResults == nil ? [] : pagination.rows
-        return SearchMapResultCapsule.resolve(loading: loading, failed: issue != nil || visibleCityResults?.activityFailure != nil,
-            rows: rows.count, listOnly: rows.filter { !$0.hasValidCoordinates }.count)
-    }
-    private func retryConnection() {
-        guard let connectivity else { return }
-        stillOffline = !connectivity.recheck()
-        if !stillOffline, visibleCityResults != nil { startRefresh() }
     }
     private func invalidateViewport() {
         viewportPresentationID = UUID(); viewportSelection.invalidate(); viewportFailed = false
@@ -312,12 +272,12 @@ import SwiftUI
         for activity in visibleCityResults == nil ? [] : pagination.rows {
             guard mapLayers.shows(.activities) else { continue }
             if let lat = activity.latitude, let lng = activity.longitude, let coordinate = RoamCoordinate(latitude: lat, longitude: lng) {
-                result.append(SearchMapPin(id: "activity-\(activity.id)", title: activity.name, coordinate: coordinate, symbol: SearchMapPinPresentation.activitySymbol(linkedTopicID: activity.linkedTopicID)))
+                result.append(SearchMapPin(id: "activity-\(activity.id)", title: activity.name, coordinate: coordinate, symbol: "calendar"))
             }
         }
         for node in visibleCityResults?.nodes ?? [] {
             guard mapLayers.shows(.cityPlaces) else { continue }
-            if let coordinate = node.coordinate { result.append(SearchMapPin(id: "city-\(node.id)", title: node.name, coordinate: coordinate, symbol: SearchMapNodeLevelStyle.resolve(node.nodeLevel).symbol)) }
+            if let coordinate = node.coordinate { result.append(SearchMapPin(id: "city-\(node.id)", title: node.name, coordinate: coordinate, symbol: "storefront")) }
         }
         for node in nearbyResults?.nodes ?? [] {
             if let coordinate = node.coordinate { result.append(SearchMapPin(id: "nearby-\(node.id)", title: node.addressName, coordinate: coordinate, symbol: "mappin")) }
@@ -330,20 +290,11 @@ import SwiftUI
             Button { openLayerActivity(row, rendered: renderedContext) } label: {
                 SearchMapActivityCard(item: row, offline: reader.isOfflineExample)
             }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.selected.activity.\(row.id)")
-            if SearchMapPinPresentation.isTopicPoint(linkedTopicID: row.linkedTopicID) {
-                Label("searchMap.w208.topicPoint", systemImage: "flag").font(.caption)
-            }
-            Button { openLayerActivity(row, rendered: renderedContext) } label: { Text("searchMap.w208.viewActivity") }.frame(minHeight: 44)
-                .accessibilityIdentifier("searchMap.w208.selected.viewActivity.\(row.id)")
             if let topic = row.linkedTopicID {
                 Button { openLayerActivity(row, rendered: renderedContext, relatedTopic: true) } label: { Text("searchMap.relatedTopic") }.frame(minHeight: 44)
                     .accessibilityIdentifier("searchMap.selected.topic.\(topic)")
             }
         } else if let node = visibleCityResults?.nodes.first(where: { "city-\($0.id)" == id }) {
-            let level = SearchMapNodeLevelStyle.resolve(node.nodeLevel)
-            (Text(verbatim: level.glyph + " ") + Text(LocalizedStringKey(level.labelKey)) + Text(verbatim: " · ")
-                + (SearchMapPinPresentation.merchantTitle(name: node.name, merchantName: node.merchantName).map { Text(verbatim: $0) } ?? Text("searchMap.w208.merchantNodeFallback")))
-                .font(.caption).accessibilityIdentifier("searchMap.w208.selected.level")
             if let subtitle = node.templateTitle ?? node.merchantName { Text(verbatim: subtitle).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
             Button { openLayerCity(node, rendered: renderedContext) } label: { Label(node.name, systemImage: "storefront") }.frame(minHeight: 44)
         } else if let node = nearbyResults?.nodes.first(where: { "nearby-\($0.id)" == id }) {
@@ -529,7 +480,6 @@ import SwiftUI
         guard let update = refresh.finish(ticket, result: result, query: cityQuery,
             scope: reader.scope, manualAreaRevision: reader.manualAreaRevision) else { return }
         cityResults = update.result; pagination = update.pagination
-        if result.activityFailure == nil { lastSettledLoad = Date() }
         // A removed object must not leave a stale selected card. Kept IDs render
         // the current shared list projection, preserving activity/topic separation.
         if let selectedPin, !pins.contains(where: { $0.id == selectedPin }) { self.selectedPin = nil }
@@ -575,7 +525,7 @@ import SwiftUI
                 guard gate.accepts(ticket, scope: reader.scope), reader.manualAreaRevision == areaRevision,
                       self.area == area, filter == query.filter, tag == query.tag, cityRole == query.cityRole, sortType == query.sortType else { return }
                 pagination.reset(query: query, scope: capturedScope, manualAreaRevision: areaRevision, result: value)
-                cityResults = value; lastSettledLoad = Date()
+                cityResults = value
             } else {
                 let value = try await reader.nearby(area: area)
                 guard gate.accepts(ticket, scope: reader.scope), self.area == area else { return }; nearbyResults = value
