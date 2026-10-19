@@ -72,6 +72,8 @@ struct QuestifyApp: App {
                     TemplateAuthoringFixtureHostView()
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-order-lifecycle-fixture") {
                     OrderLifecycleFixtureHostView()
+                } else if RoamSubpageFixtureHost.selected {
+                    RoamSubpageFixtureHost()
                 } else if RoamExperienceFixtureHostView.selected {
                     RoamExperienceFixtureHostView()
                 } else if let scenario=ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
@@ -181,7 +183,7 @@ final class AppSessionContainer: ObservableObject {
            ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-business-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-content-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--cooperation-flow-fixture") ||
-           RoamExperienceFixtureHostView.selected || ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           RoamExperienceFixtureHostView.selected || RoamSubpageFixtureHost.selected || ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil || ModuleFixture.selected != nil ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-operations-fixture") ||
            MerchantOnboardingFixtureRoot.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
