@@ -302,6 +302,36 @@ extension KeychainTokenStore: AppTokenStorage {}
             return true
         }
     }
+    private struct PublicMerchantHomeCompositionScope {
+        let approval: MerchantPublicProductionApproval
+        let context: MerchantPublicHostContext
+        let viewer: SessionIdentity
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard current == viewer, current.isPublicTemplateViewer, approval.publicHomeRead,
+                  let api = deployment.regional.apiConfiguration,
+                  let actual = try? MerchantPublicHostContext(market: deployment.regional.market,
+                    baseURL: api.baseURL, namespace: deployment.storageScope.service,
+                    accountID: current.accountID, epoch: current.epoch, role: current.role, token: current.token)
+            else { return false }
+            return actual == context && approval.matches(actual)
+        }
+        static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            let endpoint = baseURL.appendingPathComponent("api/merchant/public-home")
+            guard request.httpMethod == "POST", request.url?.absoluteString == endpoint.absoluteString,
+                  request.url?.query == nil, request.url?.fragment == nil,
+                  request.httpBodyStream == nil, !request.httpShouldHandleCookies,
+                  request.value(forHTTPHeaderField: "Authorization") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+                  let body = request.httpBody, body.count <= 128,
+                  let fields = try? JSONDecoder().decode([String: Int].self, from: body),
+                  fields.count == 1, let entry = fields.first,
+                  ["id", "memberId"].contains(entry.key), entry.value > 0,
+                  let canonical = try? JSONSerialization.data(withJSONObject: fields), canonical == body else { return false }
+            return true
+        }
+    }
     var current: () -> SessionIdentity? = { nil }
     /// Internal scheduling seam, never a grant; the one-use final fence runs after it.
     var couponBeforeForward: (@MainActor () async -> Void)?
@@ -324,6 +354,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     private let couponWriteApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementWriteApproval?
     private var profileFavoriteTopicSelection: ProfileFavoriteTopicSelection?
     private var profilePublicInfoTarget: ProfilePublicInfoTarget?
+    private var publicMerchantHomeScope: PublicMerchantHomeCompositionScope?
     private var profileGuideSelection: ProfileGuideArticleSelection?
     private var profileFavoriteSelection: ProfileFavoritePostSelection?
     private let manualMapSelection: ManualMapAreaSelection?
@@ -432,6 +463,15 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.profileFavoriteTopicSelection = selection
         return transport
     }
+    /// Forward only an already-issued public-home approval. This does not create one.
+    func scopedForPublicMerchantHome(approval: MerchantPublicProductionApproval,
+                                     context: MerchantPublicHostContext) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        if let viewer = current() {
+            transport.publicMerchantHomeScope = .init(approval: approval, context: context, viewer: viewer)
+        }
+        return transport
+    }
     func scopedForProfilePublicInfo(_ target: ProfilePublicInfoTarget) -> CompositionHTTPTransport {
         let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
         transport.profilePublicInfoTarget = target
@@ -465,6 +505,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.current = { self.current() }
         transport.profileFavoriteTopicSelection = profileFavoriteTopicSelection
         transport.profilePublicInfoTarget = profilePublicInfoTarget
+        transport.publicMerchantHomeScope = publicMerchantHomeScope
         transport.profileGuideSelection = profileGuideSelection
         transport.profileFavoriteSelection = profileFavoriteSelection
         transport.activityCoverApproval = { self.activityCoverApproval($0) }
@@ -708,12 +749,21 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
+        let publicHome = PublicMerchantHomeCompositionScope.accepts(request, baseURL: api.baseURL)
         var readApprovalStillValid: (() -> Bool)?
         let reads = ["api/common/banner", "api/category/list", "api/topic/list", "api/activity/list", "api/club/list", "api/merchant/list"]
         if auth {
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        } else if publicHome {
+            guard let scope = publicMerchantHomeScope, scope.matches(deployment: deployment, viewer: captured) else {
+                throw APIError.notConfigured
+            }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
         } else if ProjectStoryAudioCompositionRoute.accepts(request, baseURL: api.baseURL) {
             guard deployment.regional.market == .china, captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
@@ -1209,7 +1259,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   captured.isPublicTemplateViewer,
                   reads.contains(where: { api.baseURL.appendingPathComponent($0) == url }) else { throw APIError.notConfigured }
         }
-        if !auth, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
+        if !auth && !publicHome, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
         try Task.checkCancellation()
         guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
         do {
