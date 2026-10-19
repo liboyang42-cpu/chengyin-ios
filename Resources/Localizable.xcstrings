@@ -192930,6 +192930,40 @@
           }
         }
       }
+    },
+    "club.tab.top.feed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帖文"
+          }
+        }
+      }
+    },
+    "club.tab.top.club": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clubs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
