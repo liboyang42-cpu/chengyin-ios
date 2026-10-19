@@ -2605,6 +2605,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "7234263AE8C46A4D212D0419";
 		};
+		"749073A3363639D62BBF4855" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MerchantPredictionWorkbenchAlert.swift";
+			"sourceTree" = "<group>";
+		};
+		"9785D2FB6C5FAF772F3AB9F2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "749073A3363639D62BBF4855";
+		};
 		"0CA1BD9B7C84C114A726AA0A" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -10904,6 +10914,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "CA4C5999A2C02A3CF8AB9D33";
 		};
+		"4F5B6B5ACA1750F5CB3875AC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/MerchantPredictionInboxPresentation.swift";
+			"sourceTree" = "<group>";
+		};
+		"F0CAE289B9EF9606496E3520" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4F5B6B5ACA1750F5CB3875AC";
+		};
 		"7B38D48673B6281EF3913558" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -17718,6 +17738,7 @@
 				"D2B4C988C82A423FA9CCF17D",
 				"197E0530DE3A061CD8840818",
 				"7234263AE8C46A4D212D0419",
+				"749073A3363639D62BBF4855",
 				"0CA1BD9B7C84C114A726AA0A",
 				"B3AF8CBB4262825BFDE46797",
 				"DBE29D3BDC846C0DFBA58445",
@@ -18547,6 +18568,7 @@
 				"29A73434BF9088A30E54918A",
 				"98AC11B24F867E6B1661A971",
 				"CA4C5999A2C02A3CF8AB9D33",
+				"4F5B6B5ACA1750F5CB3875AC",
 				"7B38D48673B6281EF3913558",
 				"589230475821C6A2DDD8AF27",
 				"3F5D8C71BB581C7BA6F87148",
@@ -19268,6 +19290,8 @@
 				"2197B3617A6A3000643FD02F",
 				"9FBB730B9D79D94BC84D4B00",
 				"09AC41B67A8E15EA36915E1A",
+				"60150683BE16149B1B8EE495",
+				"2717DFC8B80988FFFCDDD556",
 				"9CCCD53E1D7EDC403349569B",
 				"ACB15337105CE2A7E248609D",
 				"603C153C4290A98BA4D07A35",
@@ -20096,6 +20120,7 @@
 				"72F7548D35A423E2FA89FA9B",
 				"4A85040AF011CDFC364CB721",
 				"1DE9F18B374A1DB297618249",
+				"9785D2FB6C5FAF772F3AB9F2",
 				"41D59DD0D21BEA673B042175",
 				"BFA5A521792B146E48FC3180",
 				"E71288EBC5D73C2E530733C6",
@@ -20925,6 +20950,7 @@
 				"A0F202BB4EDABD026A80BBCC",
 				"19A483B5443F3743306EBA74",
 				"2C791C0E1A92C5E875D2DE9F",
+				"F0CAE289B9EF9606496E3520",
 				"39371475CD634633D30E9F6F",
 				"F7D63D46FC3725F807FEF656",
 				"7822CC7C34794F7B4B9BC461",
@@ -22358,6 +22384,26 @@
 		"59955A1B74579999448D4CBC" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "09AC41B67A8E15EA36915E1A";
+		};
+		"60150683BE16149B1B8EE495" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/MerchantOpsMarketingHomeUITests.swift";
+			"sourceTree" = "<group>";
+		};
+		"8B8922511C4DA00A158636E6" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "60150683BE16149B1B8EE495";
+		};
+		"2717DFC8B80988FFFCDDD556" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/MerchantOpsPredictionAlertUITests.swift";
+			"sourceTree" = "<group>";
+		};
+		"BE92CDE2373D3F0F434BA39E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "2717DFC8B80988FFFCDDD556";
 		};
 		"9CCCD53E1D7EDC403349569B" = {
 			"isa" = "PBXFileReference";
@@ -23967,6 +24013,8 @@
 				"058526ECEC10B0DD600BC4E6",
 				"534283E862C3C413436380B6",
 				"59955A1B74579999448D4CBC",
+				"8B8922511C4DA00A158636E6",
+				"BE92CDE2373D3F0F434BA39E",
 				"1DDF0DA35B109E3562E006B9",
 				"4936F25CE693A769B8DF7D41",
 				"B7E4E7A9368AB2506DF7302F",

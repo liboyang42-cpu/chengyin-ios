@@ -176,6 +176,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         if value.pendingScanConfirm > 0 { MerchantCountRow("merchant.todo.scan", value: value.pendingScanConfirm) }
                         if value.pendingOrders > 0 { MerchantCountRow("merchant.todo.orders", value: value.pendingOrders) }
                         if value.refundCount > 0 { MerchantCountRow("merchant.todo.refunds", value: value.refundCount) }
+                        if access.allows(.projects), value.pendingPredict > 0 { MerchantPredictionWorkbenchAlert(pending: value.pendingPredict) }
                         if value.verifiedCount > 0 { MerchantCountRow("merchant.todo.verified", value: value.verifiedCount) }
                     }
                 }
