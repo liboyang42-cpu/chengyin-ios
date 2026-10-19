@@ -67,6 +67,9 @@ import SwiftUI
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.favorites.loadMore")
+                } else if !model.state.visibleRows(scope: key.scope).isEmpty {
+                    Text("member.favorites.topicsEnd", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.favorites.end")
                 }
             }
         }
@@ -204,6 +207,9 @@ private struct AccountCollectionFavoriteCard: View {
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.posts.loadMore")
+                } else if !model.state.visibleRows(scope: key.scope).isEmpty {
+                    Text("member.favorites.postsEnd", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.posts.end")
                 }
             }
         }
