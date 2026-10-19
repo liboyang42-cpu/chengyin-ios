@@ -133,24 +133,50 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 16) {
             if model.running { ProgressView("nearby.loading") }
             let rows = NearbyTeamBridge.myRows(joined: joinedTeams, applications: coordinator.myApplications)
+            let groups = NearbyTeamBridge.myGroups(rows, viewerAccountID: coordinator.session?.accountID)
             LabeledContent("nearby.activeCount") { Text(verbatim: String(NearbyTeamBridge.activeCount(rows))) }
-            if rows.isEmpty && !model.running { Text("nearby.mine.empty") }
-            ForEach(rows) { row in
-                switch row {
-                case .joined(let team):
-                    Text(verbatim: team.title).font(.headline)
-                    routeButton("nearby.enter", destination: .team(.init(team.id)))
-                case .application(let application):
-                    VStack(alignment: .leading, spacing: 10) {
-                        if application.title.isEmpty { Text("nearby.untitled") } else { Text(verbatim: application.title).font(.headline) }
-                        Text(LocalizedStringKey(application.status.key))
-                        if !application.leaderName.isEmpty { LabeledContent("nearby.leader") { Text(verbatim: application.leaderName) } }
-                        if application.status == .pending { expiry(application.applyExpireTime); actionButton(.withdraw(application.id)) }
-                        else { Text("nearby.rejected.foot"); Button("nearby.lookNearby") { tab = 0 }.frame(minHeight: 44) }
-                    }.accessibilityElement(children: .contain)
-                        .accessibilityIdentifier("nearby.application.\(application.id.rawValue)")
-                }
+            if !rows.isEmpty {
+                HStack(spacing: 8) {
+                    ForEach(NearbyMyTeamGroup.Kind.statsOrder, id: \.self) { kind in
+                        VStack(spacing: 2) {
+                            Text(verbatim: String(NearbyMyTeamGroup.count(kind, in: groups))).font(.title3.bold()).monospacedDigit()
+                            Text(LocalizedStringKey(kind.statKey)).font(.caption).foregroundStyle(.secondary)
+                        }.frame(maxWidth: .infinity)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("nearby.mine.stat.\(kind.rawValue)")
+                    }
+                }.padding(.vertical, 8)
             }
+            if rows.isEmpty && !model.running {
+                Text("nearby.mine.empty")
+                Button("nearby.mine.findOnMap") { tab = 0 }.frame(minHeight: 44).accessibilityIdentifier("nearby.mine.findOnMap")
+            }
+            ForEach(groups) { group in
+                Text(LocalizedStringKey(group.kind.titleKey)).font(.title3.bold())
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier("nearby.mine.group.\(group.kind.rawValue)")
+                ForEach(group.rows) { row in mineRow(row, leading: group.kind == .leading) }
+            }
+        }
+    }
+    @ViewBuilder private func mineRow(_ row: NearbyTeamOwnedRow, leading: Bool) -> some View {
+        switch row {
+        case .joined(let team):
+            VStack(alignment: .leading, spacing: 10) {
+                if team.title.isEmpty { Text("nearby.untitled").font(.headline) } else { Text(verbatim: team.title).font(.headline) }
+                Text(leading ? "nearby.mine.badge.leading" : "nearby.mine.badge.approved").font(.subheadline).foregroundStyle(.secondary)
+                routeButton("nearby.enter", destination: .team(.init(team.id)))
+            }.accessibilityElement(children: .contain)
+                .accessibilityIdentifier("nearby.joined.\(team.id)")
+        case .application(let application):
+            VStack(alignment: .leading, spacing: 10) {
+                if application.title.isEmpty { Text("nearby.untitled") } else { Text(verbatim: application.title).font(.headline) }
+                Text(LocalizedStringKey(application.status.key))
+                if !application.leaderName.isEmpty { LabeledContent("nearby.leader") { Text(verbatim: application.leaderName) } }
+                if application.status == .pending { expiry(application.applyExpireTime); actionButton(.withdraw(application.id)) }
+                else { Text("nearby.rejected.foot"); Button("nearby.lookNearby") { tab = 0 }.frame(minHeight: 44) }
+            }.accessibilityElement(children: .contain)
+                .accessibilityIdentifier("nearby.application.\(application.id.rawValue)")
         }
     }
     private func actionButton(_ action: NearbyTeamAction) -> some View {
