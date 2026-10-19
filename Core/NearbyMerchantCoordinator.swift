@@ -18,6 +18,13 @@ public struct NearbyMerchantRow: Identifiable, Equatable {
 
 @available(macOS 14.0, *)
 @MainActor @Observable public final class NearbyMerchantCoordinator {
+    /// Navigation owns an explicit result selection, independent of the rendered row.
+    public struct PublicHomeSelection: Hashable, Identifiable {
+        public let id: UUID
+        public let target: PublicMerchantHomeTarget
+        fileprivate let rowID: Int
+        fileprivate let generation: UInt64
+    }
     public enum Phase: Equatable { case idle, unavailable, consentRequired, locating, loading, ready, locationFailed, failed }
     public private(set) var phase: Phase = .idle
     private var storedRows: [NearbyMerchantRow] = []
@@ -30,6 +37,18 @@ public struct NearbyMerchantRow: Identifiable, Equatable {
     public var available: Bool { reader.session != nil && approved() }
     public var rows: [NearbyMerchantRow] { owner != nil && reader.session == owner && approved() ? storedRows : [] }
     public var isBusy: Bool { phase == .locating || phase == .loading }
+    public func publicHomeSelection(rowID: Int) -> PublicHomeSelection? {
+        guard phase == .ready, available,
+              let row = rows.first(where: { $0.id == rowID }),
+              let memberID = row.memberID, let ownerID = PublicMerchantOwnerID(memberID) else { return nil }
+        return .init(id: UUID(), target: .ownerMemberID(ownerID), rowID: rowID, generation: generation)
+    }
+    public func isCurrent(_ selection: PublicHomeSelection) -> Bool {
+        guard phase == .ready, available, selection.generation == generation,
+              let row = rows.first(where: { $0.id == selection.rowID }),
+              let memberID = row.memberID, let ownerID = PublicMerchantOwnerID(memberID) else { return false }
+        return selection.target == .ownerMemberID(ownerID)
+    }
     public init(reader: any CoopFlowReading, location: any RoamDeviceLocationProviding,
                 approved: @escaping () -> Bool, now: @escaping () -> Date = Date.init) {
         self.reader = reader; self.location = location; self.approved = approved; self.now = now
