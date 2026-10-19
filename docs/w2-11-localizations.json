@@ -142,5 +142,53 @@
   "discovery.templateTab.refusal.staffCannotPublish": [
     "Your role can’t publish projects",
     "当前岗位没有项目发布权限"
+  ],
+  "playx.opening.title": [
+    "Opening chapter",
+    "开局章节"
+  ],
+  "playx.opening.depart": [
+    "Set off",
+    "出发"
+  ],
+  "playx.opening.finishFirst": [
+    "Finish the opening play first",
+    "请先完成开局玩法"
+  ],
+  "playx.opening.review": [
+    "Setting off records the opening as finished on the server. Continue?",
+    "出发后服务端会记录开局已完成，确定出发吗？"
+  ],
+  "playx.opening.confirm": [
+    "Confirm and set off",
+    "确认出发"
+  ],
+  "playx.opening.cancel": [
+    "Not yet",
+    "先不出发"
+  ],
+  "playx.opening.departed": [
+    "Opening finished. The route continues.",
+    "开局已完成，继续路线。"
+  ],
+  "playx.opening.saveFailed": [
+    "Couldn’t save. Please try again.",
+    "保存失败，请重试"
+  ],
+  "playx.opening.unknown": [
+    "The result isn’t confirmed yet. Check again instead of resubmitting.",
+    "结果待确认，请重新核对，不要重复提交。"
+  ],
+  "playx.opening.readBack": [
+    "Check again",
+    "再核对一次"
+  ],
+  "playx.opening.loadFailed": [
+    "Route status couldn’t be loaded.",
+    "路线状态没有加载出来。"
+  ],
+  "playx.opening.disabled": [
+    "Setting off from the opening chapter isn’t available in this version.",
+    "当前版本暂未开放开局出发。"
   ]
 }

@@ -11,6 +11,7 @@ import SwiftUI
     var summaryModel: ((Int) -> PlayOperatingSummaryCoordinator?)? = nil
     var playerModel: PlayPlayerGameCoordinator? = nil
     var circleModel: PlayCircleCoordinator? = nil
+    var openingModel: PlayOpeningCompletionCoordinator? = nil
     var prefabModel: PlayPrefabRuntimeCoordinator? = nil
     var journeyModel: ((Int) -> JourneyCheckCoordinator?)? = nil
     var ambientModel: JourneyAmbientCoordinator? = nil
@@ -98,6 +99,7 @@ import SwiftUI
                 Button("playx.refresh", systemImage: "arrow.clockwise") { Task { await model.load() } }
                     .disabled(model.phase == .submitting || !model.available).accessibilityIdentifier("playx.refresh")
             }
+            if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
             if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
                let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
                let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
