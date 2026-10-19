@@ -24,9 +24,11 @@ public struct PublisherLifecycleGrants {
     let transport: any HTTPTransport
     let credentials: () -> PublishingCredentials?
     let grants: PublisherLifecycleGrants
+    private let merchantPartnerReader: (any PublicMerchantHomeReading)?
     public init(configuration: APIConfiguration, transport: any HTTPTransport, grants: PublisherLifecycleGrants = .dormant,
-                credentials: @escaping () -> PublishingCredentials?) {
+                merchantPartnerReader: (any PublicMerchantHomeReading)? = nil, credentials: @escaping () -> PublishingCredentials?) {
         self.configuration = configuration; self.transport = transport; self.grants = grants; self.credentials = credentials
+        self.merchantPartnerReader = merchantPartnerReader
     }
     public var session: PublishingSession? { credentials()?.session }
     func check(_ captured: PublishingCredentials) throws {
@@ -87,10 +89,37 @@ public struct PublisherLifecycleGrants {
         guard ["club", "merchant"].contains(type), id > 0, let captured = credentials() else { throw PublisherLifecycleError.incomplete }
         let preview = try await pricing(PublisherPricingInput(topicID: topicID, subtype: .selfPlay))
         try check(captured)
-        guard let row = preview.lineup.first(where: { $0.type == type && $0.partnerID == id }), row.validTerms else { throw PublisherLifecycleError.incomplete }
-        let profile = try await read(type == "club" ? "api/club/detail" : "api/merchant/public-detail", fields: ["id": type == "club" ? .string(String(id)) : .number(Decimal(id))], json: type == "merchant")
+        let matches = preview.lineup.filter { $0.type == type && $0.partnerID == id }
+        guard matches.count == 1, let row = matches.first, row.validTerms else { throw PublisherLifecycleError.incomplete }
+        let profile: ProjectEditJSON
+        if type == "club" {
+            // Pinned controller requires @RequestBody Club, not legacy multipart.
+            profile = try await read("api/club/detail", fields: ["id": .number(Decimal(id))], json: true)
+            try check(captured)
+            guard profile.object?["id"]?.integer == id else { throw PublisherLifecycleError.incomplete }
+        } else {
+            // Cooperation order toId is the merchant OWNER MEMBER, never merchant row id.
+            // The legacy public-detail grant cannot authorize public-home or resolve this identity.
+            guard let reader = merchantPartnerReader, reader.isConfigured,
+                  let owner = PublicMerchantOwnerID(id) else { throw PublisherLifecycleError.unavailable }
+            let scope = reader.scope
+            let home: PublicMerchantHome
+            do { home = try await reader.home(.ownerMemberID(owner)) }
+            catch {
+                try check(captured)
+                guard reader.isConfigured, reader.scope == scope else { throw PublisherLifecycleError.stale }
+                throw error
+            }
+            try check(captured)
+            guard reader.isConfigured, reader.scope == scope, home.memberId == id,
+                  let merchantID = home.id, merchantID > 0 else { throw PublisherLifecycleError.incomplete }
+            profile = .object(["id": .number(Decimal(merchantID)), "memberId": .number(Decimal(id)),
+                "name": home.name.map(ProjectEditJSON.string) ?? .null,
+                "description": home.description.map(ProjectEditJSON.string) ?? .null])
+        }
         try check(captured)
         guard let name = profile.object?["name"]?.text, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw PublisherLifecycleError.incomplete }
         return PublisherPartnerInspection(terms: row, profile: profile)
     }
 }
+

@@ -1416,10 +1416,12 @@ final class AppSession: ObservableObject {
         if let retainedPublisherLifecycle, retainedPublisherLifecycle.session == publishingSession { return retainedPublisherLifecycle.context }
         retainedPublisherLifecycle?.context.invalidate()
         guard let factory = runtimeDependencyFactory else { return nil }
+        let viewerRevision = compositionViewerRevision
         let context = PublisherLifecycleHostContext(configuration: configuration, transport: factory.transport, creatorReader: creatorContentReader,
-            grants: factory.publisherGrants,
+            grants: factory.publisherGrants, merchantPartnerReader: readOnlyPublicMerchantHomeContext.reader,
             credentials: { [weak self] in
-                guard let self, let session = self.publishingSession, let token = self.token else { return nil }
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      let session = self.publishingSession, session == publishingSession, let token = self.token else { return nil }
                 return try? PublishingCredentials(session: session, token: token)
             }, freshAuthority: { [weak self] resource, captured in
                 guard let self else { throw PublisherLifecycleError.unavailable }
