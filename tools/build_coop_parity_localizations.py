@@ -224,6 +224,13 @@ STRINGS = {
     'cooperation.invite.members %lld': ('%lld members', '%lld 位成员'),
     'cooperation.invite.membersUnknown': ('Member count awaiting confirmation', '成员数待确认'),
     'cooperation.invite.openToHost': ('Open to hosting', '开放承接'),
+    # pages/coop/nearby
+    'cooperation.nearby.title': ('Nearby merchants', '附近商家'),
+    'cooperation.nearby.empty': ('No contactable merchants nearby', '附近暂无可联系商家'),
+    'cooperation.nearby.empty.detail': ('No merchants were found for your current location; refreshing locates you again and searches once more', '按当前定位没找到商家，刷新会重新定位再找一遍'),
+    'cooperation.nearby.failed': ('Nearby merchants did not load', '附近商家没加载出来'),
+    'cooperation.nearby.failed.detail': ('Service temporarily unavailable. Try again later.', '服务暂时不可用，请稍后重试'),
+    'cooperation.nearby.call': ('Call', '电话联系'),
 }
 
 

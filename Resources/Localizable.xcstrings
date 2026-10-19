@@ -175135,6 +175135,102 @@
           }
         }
       }
+    },
+    "cooperation.nearby.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearby merchants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近商家"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No contactable merchants nearby"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近暂无可联系商家"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.empty.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No merchants were found for your current location; refreshing locates you again and searches once more"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按当前定位没找到商家，刷新会重新定位再找一遍"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearby merchants did not load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近商家没加载出来"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.failed.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service temporarily unavailable. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务暂时不可用，请稍后重试"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.call": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Call"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电话联系"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
