@@ -71,7 +71,7 @@ import FoundationNetworking
         let wire = LeadHoldTransport(); let (value, context) = try await ready(wire)
         await value.loadLead(context: context)
         let before = value.lead
-        let idle = Task { await value.pollLead(context: context, sleep: { try await Task.sleep(nanoseconds: 3_600_000_000_000) }) }
+        let idle = Task { await value.pollLead(context: context, sleep: { _ in try await Task.sleep(nanoseconds: 3_600_000_000_000) }) }
         idle.cancel(); await idle.value
         XCTAssertEqual(wire.leadReads, 1)
         wire.hold = true
