@@ -126,22 +126,33 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
         guard let data = rewardJSON?.data(using: .utf8), let value = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
         return value
     }
+    /// Source reward contract (official-detail positiveInt): settleBadge must be exactly true;
+    /// settleXp is a positive Java int and coupon IDs positive Java longs, as numbers or digit strings.
     public var rewards: [OfficialReward] {
         let map = rewardMap
-        func present(_ key: String) -> Bool { map[key] != nil && !(map[key] is NSNull) }
         var result: [OfficialReward] = []
-        if present("settleBadge") { result.append(.badge) }
-        if present("settleCouponId") { result.append(.coupon) }
-        if let value = map["settleXp"], !(value is NSNull) { result.append(.experience(String(describing: value))) }
-        if present("collectiveCouponId") { result.append(.collectiveCoupon) }
+        if let badge = map["settleBadge"] as? NSNumber, CFGetTypeID(badge) == CFBooleanGetTypeID(), badge.boolValue { result.append(.badge) }
+        if Self.positiveInteger(map["settleCouponId"], max: Self.longMax) != nil { result.append(.coupon) }
+        if let xp = Self.positiveInteger(map["settleXp"], max: Self.intMax) { result.append(.experience(xp)) }
+        if hasCollectiveReward { result.append(.collectiveCoupon) }
         return result
     }
-    public var hasCollectiveReward: Bool {
-        if let value = rewardMap["collectiveCouponId"] as? String { return (Int(value) ?? 0) > 0 }
-        if let value = rewardMap["collectiveCouponId"] as? NSNumber {
-            return CFGetTypeID(value) != CFBooleanGetTypeID() && value.doubleValue > 0
-        }
-        return false
+    public var hasCollectiveReward: Bool { Self.positiveInteger(rewardMap["collectiveCouponId"], max: Self.longMax) != nil }
+    static let intMax = "2147483647", longMax = "9223372036854775807"
+    /// Normalized positive decimal text within the backend type's range, or nil.
+    static func positiveInteger(_ value: Any?, max: String) -> String? {
+        var text: String
+        if let number = value as? NSNumber {
+            guard CFGetTypeID(number) != CFBooleanGetTypeID(), number.doubleValue.isFinite,
+                  number.doubleValue == number.doubleValue.rounded(.towardZero) else { return nil }
+            text = number.stringValue
+        } else if let string = value as? String {
+            text = string.trimmingCharacters(in: .whitespaces)
+        } else { return nil }
+        guard !text.isEmpty, text.allSatisfy({ $0.isASCII && $0.isNumber }) else { return nil }
+        while text.count > 1 && text.hasPrefix("0") { text.removeFirst() }
+        guard text != "0", text.count < max.count || (text.count == max.count && text <= max) else { return nil }
+        return text
     }
     public var statusKey: String {
         guard let status else { return "official.status.unknown" }
@@ -308,7 +319,9 @@ public struct OfficialBroadcast: Decodable, Equatable, Identifiable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
         id = c.integer("id") ?? 0; title = c.text("title") ?? ""
-        content = c.text("content"); reach = c.integer("reach").flatMap { $0 >= 0 ? $0 : nil }
+        content = c.text("content")
+        // Source official-mine reads the domain field `reachedCount`; `reach` stays a fallback.
+        reach = (c.integer("reachedCount") ?? c.integer("reach")).flatMap { $0 >= 0 ? $0 : nil }
     }
 }
 public struct OfficialPublished: Decodable, Equatable {

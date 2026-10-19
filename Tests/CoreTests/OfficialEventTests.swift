@@ -358,6 +358,23 @@ final class OfficialEventTests: XCTestCase {
         XCTAssertTrue(try event(#","collective":{"enabled":true}"#).collectivePercentShown)
         XCTAssertFalse(try event(#","collective":{"enabled":false,"pct":40}"#).collectivePercentShown)
     }
+    func testRewardsFollowSourceStrictTypesAndRanges() throws {
+        func rewards(_ raw: String) throws -> OfficialEvent {
+            let json = try JSONSerialization.data(withJSONObject: ["id":71,"title":"Synthetic","rewardJson":raw])
+            return try JSONDecoder().decode(OfficialEvent.self, from: json)
+        }
+        XCTAssertTrue(try rewards(#"{"settleBadge":false,"settleXp":0,"settleCouponId":"0","collectiveCouponId":-3}"#).rewards.isEmpty)
+        XCTAssertTrue(try rewards(#"{"settleBadge":"yes","settleXp":2147483648,"settleCouponId":"12a","collectiveCouponId":1.5}"#).rewards.isEmpty)
+        let valid = try rewards(#"{"settleBadge":true,"settleXp":"0025","settleCouponId":"9223372036854775807","collectiveCouponId":7}"#)
+        XCTAssertEqual(valid.rewards, [.badge, .coupon, .experience("25"), .collectiveCoupon]); XCTAssertTrue(valid.hasCollectiveReward)
+        XCTAssertFalse(try rewards(#"{"collectiveCouponId":"9223372036854775808"}"#).hasCollectiveReward)
+        XCTAssertFalse(try rewards(#"{"collectiveCouponId":true}"#).hasCollectiveReward)
+    }
+    func testBroadcastReachPrefersSourceReachedCount() throws {
+        XCTAssertEqual(try decode(OfficialBroadcast.self, #"{"id":9,"title":"N","reachedCount":12,"reach":3}"#).reach, 12)
+        XCTAssertEqual(try decode(OfficialBroadcast.self, #"{"id":9,"title":"N","reach":3}"#).reach, 3)
+        XCTAssertNil(try decode(OfficialBroadcast.self, #"{"id":9,"title":"N","reachedCount":-1}"#).reach)
+    }
     func testUnknownVisibilityStillRejectsIncompleteAndDuplicateRows() throws {
         let rows = try decode([OfficialEvent].self, #"[{"id":1,"title":"Unknown","status":99},{"id":1,"title":"Duplicate"},{"id":0,"title":"Invalid"},{"id":2,"title":""}]"#)
         XCTAssertEqual(OfficialEventBrowseQuery(bucket: .live, keyword: "unknown").visible(rows).map(\.id), [1])
