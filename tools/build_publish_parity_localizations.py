@@ -30,10 +30,40 @@ entries = {
 'myProject.template.scope': ('Node plays come from your template shelf, not from project records', '节点玩法来自你的模板列表，不与主题 / 活动混排'),
 'myProject.template.open': ('Open my node plays', '查看我的节点玩法'),
 'myProject.template.unavailable': ('Node plays are not available from this entry', '此入口暂不提供节点玩法列表'),
+'publishParity.crop.useOriginal': ('Use original', '使用原图'),
+'publishParity.intro.lead': ('Turn a stretch you have played', '把你玩过的一段路'),
+'publishParity.intro.tail': ('into a play others can follow', '做成别人也能走的玩法'),
 }
+# zh-Hans values of existing keys aligned to pages/publish/template-intro and templateadd.
+# English values are untouched so existing English UI assertions keep their meaning.
+overrides = {
+'Resources/Localizable.xcstrings': {
+    'templateAuthor.begin': '开始创建',
+    'templateAuthor.nameStep': '给节点玩法起一个名字',
+    'templateAuthor.validation.title': '请输入模板名称',
+},
+'Resources/CreatorIntroExamples.xcstrings': {
+    'creatorIntro.skip': '跳过',
+    'creatorIntro.failed': '精选示例暂未加载',
+    'creatorIntro.empty': '暂时没有精选示例，你仍可直接创建自己的节点玩法。',
+},
+}
+mirrors = {'docs/template-authoring-localizations.json': 'Resources/Localizable.xcstrings'}
 fragment = {'sourceLanguage': 'en', 'strings': {key: {'localizations': {language: {'stringUnit': {'state': 'translated', 'value': value}} for language, value in zip(['en', 'zh-Hans'], values)}} for key, values in entries.items()}, 'version': '1.0'}
 (root / 'Resources/PublishParityLocalizations.fragment.json').write_text(json.dumps(fragment, ensure_ascii=False, indent=2) + '\n')
 path = root / 'Resources/Localizable.xcstrings'
 data = json.loads(path.read_text()); data['strings'].update(fragment['strings'])
+for key, value in overrides['Resources/Localizable.xcstrings'].items():
+    data['strings'][key]['localizations']['zh-Hans']['stringUnit']['value'] = value
 path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+intro = root / 'Resources/CreatorIntroExamples.xcstrings'
+table = json.loads(intro.read_text())
+for key, value in overrides['Resources/CreatorIntroExamples.xcstrings'].items():
+    table['strings'][key]['localizations']['zh-Hans']['stringUnit']['value'] = value
+intro.write_text(json.dumps(table, ensure_ascii=False, indent=2) + '\n')
+for mirror, source in mirrors.items():
+    doc = json.loads((root / mirror).read_text())
+    for key, value in overrides[source].items():
+        if key in doc: doc[key]['zh-Hans'] = value
+    (root / mirror).write_text(json.dumps(doc, ensure_ascii=False, indent=2) + '\n')
 print(f'PASS merged {len(entries)} publish parity strings')

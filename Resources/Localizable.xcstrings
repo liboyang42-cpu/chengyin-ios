@@ -141538,7 +141538,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始创作"
+            "value": "开始创建"
           }
         }
       }
@@ -143581,7 +143581,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "给玩法起个名字"
+            "value": "给节点玩法起一个名字"
           }
         }
       }
@@ -146195,7 +146195,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请先给玩法起个名字。"
+            "value": "请输入模板名称"
           }
         }
       }
@@ -172236,6 +172236,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "此入口暂不提供节点玩法列表"
+          }
+        }
+      }
+    },
+    "publishParity.intro.lead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn a stretch you have played"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把你玩过的一段路"
+          }
+        }
+      }
+    },
+    "publishParity.intro.tail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "into a play others can follow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "做成别人也能走的玩法"
+          }
+        }
+      }
+    },
+    "publishParity.crop.useOriginal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use original"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用原图"
           }
         }
       }

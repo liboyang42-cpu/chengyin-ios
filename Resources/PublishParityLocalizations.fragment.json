@@ -368,6 +368,54 @@
           }
         }
       }
+    },
+    "publishParity.crop.useOriginal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use original"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用原图"
+          }
+        }
+      }
+    },
+    "publishParity.intro.lead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn a stretch you have played"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把你玩过的一段路"
+          }
+        }
+      }
+    },
+    "publishParity.intro.tail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "into a play others can follow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "做成别人也能走的玩法"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
