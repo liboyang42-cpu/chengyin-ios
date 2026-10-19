@@ -126,10 +126,10 @@ struct RoamPrivateEnvelope {
         return .init(code: code, message: object["msg"] as? String, raw: data, hasData: present)
     }
     func payload<T: Decodable>(_ type: T.Type) throws -> T {
-        struct Wrapper: Decodable { let data: T }
-        do { return try JSONDecoder().decode(Wrapper.self, from: raw).data } catch { throw APIError.malformedResponse }
+        do { return try JSONDecoder().decode(RoamPrivateDataWrapper<T>.self, from: raw).data } catch { throw APIError.malformedResponse }
     }
 }
+private struct RoamPrivateDataWrapper<T: Decodable>: Decodable { let data: T }
 
 // MARK: 时光胶囊 — api/capsules/*
 
