@@ -29,7 +29,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                             }), identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
                     }
                     if !discoveryScope.isMerchantViewer, let operations = management?.operations {
-                        ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator)
+                        ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
                     }
                     NavigationLink {
                         ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)

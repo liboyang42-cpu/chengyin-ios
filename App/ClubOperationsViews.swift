@@ -7,12 +7,15 @@ struct ClubOperationsEntryButton: View {
     let identity: ClubReadIdentity?
     let access: any ClubOperationsAccess
     let coordinator: ClubOperationsCoordinator
+    /// Mini-program club/create redirects non-hosts to club/apply; the host supplies the
+    /// existing host-status/become-leader governance read when it has one.
+    var hostApplication: ClubGovernanceContext? = nil
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: { Label(target == .create ? "club.ops.create" : "club.ops.manage", systemImage: target == .create ? "plus.circle" : "slider.horizontal.3") }
             .accessibilityIdentifier("club.ops." + (target == .create ? "openCreate" : "openManage"))
             .sheet(isPresented: $presented) {
-                NavigationStack { ClubOperationsWorkspaceView(target: target, identity: identity, access: access, coordinator: coordinator) }
+                NavigationStack { ClubOperationsWorkspaceView(target: target, identity: identity, access: access, coordinator: coordinator, hostApplication: hostApplication) }
             }
     }
 }
@@ -22,6 +25,7 @@ struct ClubOperationsWorkspaceView: View {
     let identity: ClubReadIdentity?
     let access: any ClubOperationsAccess
     let coordinator: ClubOperationsCoordinator
+    var hostApplication: ClubGovernanceContext? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var profileChoice = ClubProfileChoiceController()
@@ -115,7 +119,12 @@ struct ClubOperationsWorkspaceView: View {
         }
         if target == .create && !value.canCreate {
             Section {
-                Text(value.accountRole != "club" ? "club.ops.leaderRequired" : "club.ops.clubLimit")
+                if value.accountRole != "club", let hostApplication {
+                    Text("club.ops.leaderRequired.apply")
+                    ClubCreateHostApplicationLink(identity: identity, governance: hostApplication)
+                } else {
+                    Text(value.accountRole != "club" ? "club.ops.leaderRequired" : "club.ops.clubLimit")
+                }
             }
         } else {
             ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true,

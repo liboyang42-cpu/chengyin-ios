@@ -426,5 +426,13 @@
   "club.ops.confirmLiveHint": {
     "en": "Apply the reviewed club changes to the server.",
     "zh-Hans": "将已核对的俱乐部更改提交至服务器。"
+  },
+  "club.ops.leaderRequired.apply": {
+    "en": "Become a club leader first. Once approved you can create and manage clubs.",
+    "zh-Hans": "请先成为俱乐部主理人，申请通过后即可创建与管理俱乐部"
+  },
+  "club.ops.applyHost": {
+    "en": "Go to application",
+    "zh-Hans": "前往申请"
   }
 }

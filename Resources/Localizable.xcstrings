@@ -171967,6 +171967,38 @@
           }
         }
       }
+    },
+    "club.ops.leaderRequired.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Become a club leader first. Once approved you can create and manage clubs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先成为俱乐部主理人，申请通过后即可创建与管理俱乐部"
+          }
+        }
+      }
+    },
+    "club.ops.applyHost": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前往申请"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
