@@ -262,6 +262,8 @@ struct SessionRootView: View {
         }
         .environmentObject(session)
         .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })
+        .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
+        .environment(\.merchantGameNodeDestination, { $1.view(service: $0) })
         .environment(\.merchantCityTemplateHandoffFactory, {
             .init(reader: session.merchantOperationsReader, imageHost: session.retainedMerchantImages,
                   templateAssistFactory: { session.merchantTemplateAssistFlow(coordinator: $0) })
@@ -283,6 +285,7 @@ struct SessionRootView: View {
         .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
         .environment(\.merchantAcceptedProjectDestination, { AnyView(SessionMerchantAcceptedProjectView(session: session, source: $0)) })
         .environment(\.merchantOfficialRecruitmentDestination, { AnyView(SessionMerchantOfficialRecruitmentView(session: session, source: $0)) })
+        .environment(\.merchantCoopCenterDestination, { session.merchantCoopCenterDestination(initialTab: $0, focusTopicID: $1) })
         .environment(\.cooperationNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session)) })
         .environment(\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
