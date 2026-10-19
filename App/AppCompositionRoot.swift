@@ -120,6 +120,10 @@ extension KeychainTokenStore: AppTokenStorage {}
     let profileGuideReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess?
     let profileFavoritesReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess?
     var profileFavoriteRemovalAccesses: @MainActor (RuntimeDependencyContext, UUID) -> [ProfileFavoriteRemovalAccess] = { _, _ in [] }
+    /// 我的 当前权益 (`api/role/info`). No reviewed lease exists yet, so the read stays dormant.
+    var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
+    /// 设置 → 隐私与定位 → 我的待审媒体 (GET list only). Dormant until a reviewed lease exists.
+    var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
     let profileFavoriteTopicReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess?
     let profileFavoriteDetailAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?
     let profileInviteHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess?
@@ -258,7 +262,10 @@ extension KeychainTokenStore: AppTokenStorage {}
         return .available
     }
     func transport() -> CompositionHTTPTransport {
-        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamAlbumMetadataReadAccess: roamAlbumMetadataReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
+        let transport = CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamAlbumMetadataReadAccess: roamAlbumMetadataReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
+        transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
+        transport.ownMediaReadApproval = ownMediaReadApproval
+        return transport
     }
     func makeSession() -> AppSession { AppSession(composition: self) }
 }
@@ -497,6 +504,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
     }
     var current: () -> SessionIdentity? = { nil }
+    var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
+    var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
     /// Internal scheduling seam, never a grant; the one-use final fence runs after it.
     var couponBeforeForward: (@MainActor () async -> Void)?
     /// Installed by AppSession; no runtime capability can be inferred from a root grant.
@@ -720,6 +729,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         // Retain the identity source across temporary clone chains. Its AppSession
         // callback is weak, so this does not retain or extend the signed-in session.
         transport.current = { self.current() }
+        transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
+        transport.ownMediaReadApproval = ownMediaReadApproval
         transport.profileFavoriteTopicSelection = profileFavoriteTopicSelection
         transport.profilePublicInfoTarget = profilePublicInfoTarget
         transport.publicMerchantHomeScope = publicMerchantHomeScope
@@ -982,7 +993,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         let favoriteList = ProfileFavoritesReadRoute(request: request, baseURL: api.baseURL)
         let favoriteDetail = ProfileFavoriteDetailRoute(request: request, baseURL: api.baseURL)
         let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
-        guard nearbyEvents != nil || url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        let ownMedia = OwnMediaReadRoute.accepts(request, baseURL: api.baseURL)
+        guard ownMedia || nearbyEvents != nil || url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -1315,6 +1327,30 @@ extension KeychainTokenStore: AppTokenStorage {}
             readApprovalStillValid = { [profileInviteHistoryReadAccess] in
                 guard let fresh = profileInviteHistoryReadAccess(context) else { return false }
                 return fresh === selected && fresh.matches(context)
+            }
+        } else if ownMedia {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = ownMediaReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [ownMediaReadApproval] in
+                guard let selected = ownMediaReadApproval(context) else { return false }
+                return selected === approval && selected.matches(context)
+            }
+        } else if MemberRoleInfoReadRoute.accepts(request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = memberRoleInfoReadApproval(context), approval.matches(context),
+                  approval.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: MemberRoleInfoReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [memberRoleInfoReadApproval] in
+                guard let selected = memberRoleInfoReadApproval(context) else { return false }
+                return selected === approval && selected.matches(context)
             }
         } else if ProfileWeeklyPointsReadRoute.accepts(request, baseURL: api.baseURL) {
             guard captured.isSignedInContentViewer,

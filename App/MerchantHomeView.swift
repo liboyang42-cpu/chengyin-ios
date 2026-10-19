@@ -63,6 +63,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
 @MainActor
 private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.locale) private var locale
+    @Environment(\.merchantCoopCenterDestination) private var coopCenterDestination
     @ObservedObject var reader: Reader
     let access: MerchantAccess
     let marketingModel: MerchantMarketingCoordinator?
@@ -121,7 +122,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
                         .accessibilityIdentifier("merchant.business.open")
                     ForEach(MerchantWorkbenchBusinessShortcut.allCases) { shortcut in
-                        if let route = MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: businessReader, journal: businessJournal) {
+                        if shortcut.isVisible(for: access), let route = MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: businessReader, journal: businessJournal) {
                             NavigationLink(value: route) {
                                 Label(LocalizedStringKey(shortcut.query.titleKey), systemImage: shortcut.symbol)
                             }.accessibilityIdentifier("merchant.workbench.direct." + shortcut.rawValue)
@@ -146,6 +147,12 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             { source in AnyView(MerchantCooperationSupplyView(source: source, reader: flowReader)) }
                         }).id(contentService.scope) } label: { Label("merchant.content.title", systemImage: "map") }
                         .accessibilityIdentifier("merchant.content.open")
+                }
+            }
+            if let coopCenterDestination {
+                Section {
+                    NavigationLink { coopCenterDestination(.plaza, nil) } label: { Label(mcc("merchantCoopCenter.title", locale), systemImage: "person.2.wave.2") }
+                        .accessibilityIdentifier("merchant.coopCenter.open")
                 }
             }
             if let cooperationFlowReader {
@@ -176,6 +183,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         if value.pendingScanConfirm > 0 { MerchantCountRow("merchant.todo.scan", value: value.pendingScanConfirm) }
                         if value.pendingOrders > 0 { MerchantCountRow("merchant.todo.orders", value: value.pendingOrders) }
                         if value.refundCount > 0 { MerchantCountRow("merchant.todo.refunds", value: value.refundCount) }
+                        if access.allows(.projects), value.pendingPredict > 0 { MerchantPredictionWorkbenchAlert(pending: value.pendingPredict) }
                         if value.verifiedCount > 0 { MerchantCountRow("merchant.todo.verified", value: value.verifiedCount) }
                     }
                 }

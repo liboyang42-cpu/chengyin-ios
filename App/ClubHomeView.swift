@@ -29,7 +29,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                             }), identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
                     }
                     if !discoveryScope.isMerchantViewer, let operations = management?.operations {
-                        ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator)
+                        Text("club.tab.createPrompt").font(.footnote).foregroundStyle(.secondary)
+                        ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
                     }
                     NavigationLink {
                         ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)
@@ -42,9 +43,12 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                             .accessibilityIdentifier("club.openOwned")
                     }
                 }
+                if ClubTabPresentation.isEmpty(home, nearby: locality.nearby(home.nearby, in: discoveryScope), merchant: discoveryScope.isMerchantViewer) {
+                    Section { ClubTabEmptyState(merchant: discoveryScope.isMerchantViewer) }
+                }
                 if !discoveryScope.isMerchantViewer {
-                    clubSection("club.owned", rows: home.owned, empty: "club.emptyOwned", identifier: "club.home.owned")
-                    clubSection("club.joined", rows: home.joined, empty: "club.emptyJoined", identifier: "club.home.joined")
+                    clubSection("club.owned", rows: home.owned, empty: "club.emptyOwned", identifier: "club.home.owned", section: .owned)
+                    clubSection("club.joined", rows: home.joined, empty: "club.emptyJoined", identifier: "club.home.joined", section: .joined)
                 } else { localityStatus }
                 clubSection("club.nearby", rows: locality.nearby(home.nearby, in: discoveryScope),
                             empty: discoveryScope.isMerchantViewer && locality.phase(in: discoveryScope) == .ready
@@ -108,13 +112,18 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         }
     }
     private func clubSection(_ title: LocalizedStringKey, rows: [ClubRecord], empty: LocalizedStringKey,
-                             identifier: String) -> some View {
+                             identifier: String, section: ClubTabPresentation.Section = .nearby) -> some View {
         Section(title) {
             if rows.isEmpty { Text(empty).foregroundStyle(.secondary).accessibilityIdentifier(identifier + ".empty") }
             ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
                 NavigationLink {
                     ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)
-                } label: { ClubRow(club: club) }
+                } label: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ClubRow(club: club)
+                        ClubTabTagLine(club: club, section: section)
+                    }
+                }
                     .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
                     .accessibilityIdentifier(identifier + ".\(club.id)")
             }

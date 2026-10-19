@@ -11,6 +11,12 @@ import SwiftUI
     var summaryModel: ((Int) -> PlayOperatingSummaryCoordinator?)? = nil
     var playerModel: PlayPlayerGameCoordinator? = nil
     var circleModel: PlayCircleCoordinator? = nil
+    var openingModel: PlayOpeningCompletionCoordinator? = nil
+    var finishRouteModel: PlayFinishRouteRecommendationCoordinator? = nil
+    var finishRouteDestination: ((Int) -> AnyView)? = nil
+    var themeRecordsModel: PlayThemeRecordsCoordinator? = nil
+    var backpackModel: PlayThemeBackpackCoordinator? = nil
+    var entryCode: PlayEntryCodeContext? = nil
     var prefabModel: PlayPrefabRuntimeCoordinator? = nil
     var journeyModel: ((Int) -> JourneyCheckCoordinator?)? = nil
     var ambientModel: JourneyAmbientCoordinator? = nil
@@ -18,6 +24,7 @@ import SwiftUI
     var narrativeImageReader: (any RetainedPublicImageReading)? = nil
     var shopNPCModel: ((Int) -> ShopNPCNodeHost?)? = nil
     var invalidateShopNPC: (() -> Void)? = nil
+    var storeDayModel: ((Int) -> PlayStoreDayCoordinator?)? = nil
     var mediaScope: UUID = UUID()
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
@@ -98,6 +105,8 @@ import SwiftUI
                 Button("playx.refresh", systemImage: "arrow.clockwise") { Task { await model.load() } }
                     .disabled(model.phase == .submitting || !model.available).accessibilityIdentifier("playx.refresh")
             }
+            if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
+            if let entryCode { PlayEntryCodeSection(context: entryCode) }
             if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
                let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
                let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
@@ -194,6 +203,15 @@ import SwiftUI
                     }
                     if let playerModel { NavigationLink("playx.player.title") { PlayPlayerSessionView(model: playerModel, deviceModel: deviceModel) } }
                     if let circleModel { NavigationLink("playx.circle.title") { PlayCircleView(model: circleModel) } }
+                    if let card = finishRouteModel?.card { PlayFinishRouteCardView(card: card, destination: finishRouteDestination) }
+                    if let themeRecordsModel, themeRecordsModel.isAvailable {
+                        NavigationLink("playx.themeRecords.title") { PlayThemeRecordsView(model: themeRecordsModel, title: model.snapshot?.result.topicName) }
+                            .accessibilityIdentifier("playx.themeRecords.open")
+                    }
+                    if let backpackModel {
+                        NavigationLink("playx.backpack.title") { PlayThemeBackpackView(model: backpackModel) }
+                            .accessibilityIdentifier("playx.backpack.open")
+                    }
                 }
                 if let reward = model.reward { PlayRewardSection(reward: reward, collectionDestination: rewardCollectionDestination) }
                 if let ending = model.ending {
@@ -229,7 +247,7 @@ import SwiftUI
                     return AnyView(ChapterStoryView(chapterID: chapterID, nodeID: node.id, model: model,
                         mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts,
                         nodeDestination: { AnyView(freeStoreDestination($0)) }))
-                })
+                }, storeDayModel: storeDayModel)
         } else { Text("playMode.unavailable") }
     }
     @ViewBuilder private func narrativeLink(_ query: JourneyNarrativeQuery, subtitle: String? = nil) -> some View {
@@ -465,8 +483,10 @@ struct PlayExperienceIssueView: View {
                     else { actionButton(context: context, .broadcast); actionButton(context: context, .unlockChapter); actionButton(context: context, .settle) }
                 }
                 if model.leaderOutcomeUnknown { Text("playx.lead.unknown") }
+                if model.leadReadFailed { PlayRuntimePhaseText(phase: "failed") }
             }
         }
+        .modifier(PlayLeadProgressPollingModifier(model: model, context: context))
         .confirmationDialog("playx.review", isPresented: $review, titleVisibility: .visible) {
             Button("playx.submit") {
                 if let action {

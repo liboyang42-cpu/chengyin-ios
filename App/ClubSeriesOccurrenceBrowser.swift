@@ -245,6 +245,7 @@ import UIKit
     let currentSource: () -> ClubSeriesOccurrenceHost.Source?
     let active: () -> Bool
     let reload: () -> Void
+    @Environment(\.locale) private var locale
     private var scope: ClubGovernanceScope { source.scope }
     private var context: ClubSeriesOccurrenceReadModel.Context { source.occurrences }
     private var expanded: Bool { host.source == source }
@@ -255,31 +256,25 @@ import UIKit
             Button {
                 host.toggle(source, current: currentSource(), active: active())
             } label: {
-                Label(LocalizedStringKey(expanded ? "club.occurrences.collapse" : "club.occurrences.expand"), systemImage: expanded ? "chevron.up" : "chevron.down")
+                Label { Text("clubOpsEvent.occurrences.toggle", tableName: "ClubOpsEvent") } icon: { Image(systemName: expanded ? "chevron.up" : "chevron.down") }
+                    .accessibilityHint(Text(LocalizedStringKey(expanded ? "club.occurrences.collapse" : "club.occurrences.expand")))
             }.accessibilityIdentifier("club.occurrences.toggle.\(scope.seriesID ?? 0)")
             if expanded {
                 Text("club.occurrences.scopeNote").font(.footnote).foregroundStyle(.secondary)
                 if model.loading { ProgressView("club.loading").accessibilityIdentifier("club.occurrences.loading") }
                 if let failure = model.failure { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.occurrences.error") }
                 if let value = model.accepted(expected, access: access), sourceIsCurrent() {
-                    if value.rows.isEmpty { Text("club.occurrences.empty").accessibilityIdentifier("club.occurrences.empty") }
+                    if value.rows.isEmpty { Text("clubOpsEvent.occurrences.empty", tableName: "ClubOpsEvent").accessibilityIdentifier("club.occurrences.empty") }
                     ForEach(value.rows) { row in
                         VStack(alignment: .leading, spacing: 6) {
-                            if let date = row.dateText { Text(verbatim: date).font(.headline) }
-                            else { Text("club.occurrences.dateUnknown").font(.headline) }
+                            // Mini occurrenceRow: Shanghai "M月d日 周X HH:mm", one badge and one meta line.
+                            if let date = row.dateText {
+                                Text(verbatim: row.dateIsParsed ? (ClubOpsEventClock.occurrenceText(.string(date), locale: locale) ?? date) : date).font(.headline)
+                            } else { Text("clubOpsEvent.occurrences.datePending", tableName: "ClubOpsEvent").font(.headline) }
                             if !row.dateIsParsed, row.dateText != nil { Text("club.occurrences.dateUnparsed").font(.caption) }
-                            if row.cancelled { Text("club.occurrences.cancelled") }
-                            else if row.editable == true { Text("club.occurrences.editable") }
-                            else if row.editable == false { Text("club.occurrences.locked") }
-                            else { Text("club.occurrences.editabilityUnknown") }
-                            if let reason = row.lockReason { Text(verbatim: reason).font(.footnote) }
-                            if row.cancelled {
-                                if let count = row.refundedCount { LabeledContent("club.occurrences.refunded", value: String(count)) }
-                                else { Text("club.occurrences.refundsUnknown") }
-                            } else {
-                                if let count = row.signupCount { LabeledContent("club.occurrences.signups", value: String(count)) }
-                                else { Text("club.occurrences.signupsUnknown") }
-                            }
+                            let copy = ClubOpsEventOccurrenceCopy(row: row)
+                            ClubOpsEventOccurrenceBadgeText(badge: copy.badge)
+                            ClubOpsEventOccurrenceMetaText(meta: copy.meta).font(.footnote).foregroundStyle(.secondary)
                             if let route = value.route(rowID: row.id, context: expected.read, snapshotID: model.snapshotID) {
                                 Button("club.occurrences.openEvent") { host.open(route, source: source, current: currentSource(), access: access, active: active()) }
                                     .accessibilityIdentifier("club.occurrences.event.\(row.activityID ?? 0)")

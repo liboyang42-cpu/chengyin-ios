@@ -127,7 +127,8 @@ public enum ProjectEditStoryContract {
                 guard let ending = endingValue.object, !opening, nodes.isEmpty, chapter["recruitEnabled"]?.integer != 1,
                       Set(ending.keys).isSubset(of: ["fallback", "when"]) else { throw ProjectEditError.invalidDraft }
                 endingCount += 1
-                if let fallback = ending["fallback"], fallback != .bool(true), fallback != .bool(false), fallback != .null { throw ProjectEditError.invalidDraft }
+                // BK-NARRATIVE: a present fallback is only a JSON boolean; string, number and null are rejected by v2 compile.
+                if let fallback = ending["fallback"], fallback != .bool(true), fallback != .bool(false) { throw ProjectEditError.invalidDraft }
                 if ending["fallback"] == .bool(true) { fallbackCount += 1 }
                 else {
                     guard let when = ending["when"]?.array, !when.isEmpty, when.count <= 16 else { throw ProjectEditError.invalidDraft }

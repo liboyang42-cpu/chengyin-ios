@@ -119,12 +119,18 @@ public struct MessagingPage: Decodable, Equatable {
     public let messages: [MessagingMessage]
     public let nextCursor: Int?
     public let hasMore: Bool
-    private enum CodingKeys: String, CodingKey { case list, nextCursor, hasMore }
+    /// Source listMessages: either side blocked / this account blocked the peer.
+    /// Only literal JSON booleans count; absent or other values stay unknown (nil).
+    public let blocked: Bool?
+    public let blockedByMe: Bool?
+    private enum CodingKeys: String, CodingKey { case list, nextCursor, hasMore, blocked, blockedByMe }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         messages = try c.decode([MessagingMessage].self, forKey: .list)
         nextCursor = try c.decodeIfPresent(Int.self, forKey: .nextCursor)
         hasMore = try c.decode(Bool.self, forKey: .hasMore)
+        blocked = try? c.decode(Bool.self, forKey: .blocked)
+        blockedByMe = try? c.decode(Bool.self, forKey: .blockedByMe)
         guard nextCursor.map({ $0 >= 0 }) ?? true, !hasMore || (nextCursor ?? 0) > 0 else {
             throw APIError.malformedResponse
         }

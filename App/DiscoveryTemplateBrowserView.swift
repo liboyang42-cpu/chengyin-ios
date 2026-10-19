@@ -8,6 +8,8 @@ struct DiscoveryTemplateBrowserView: View {
     let authoringRevision: UInt64
     let authoringCompletion: TemplateAuthoringCompletionContext?
     let imageReader: (any RetainedPublicImageReading)?
+    /// Mini-program merchant scope; staff without project management only browse.
+    let templateTabScope: TemplateTabScope
     @State private var tab = Shelf.topics
     @State private var categoryID: Int?
     @State private var pack: DiscoveryPackType?
@@ -30,9 +32,9 @@ struct DiscoveryTemplateBrowserView: View {
     private var query: Query { Query(tab: tab, pack: pack, keyword: appliedKeyword) }
     private var hasGameFilter: Bool { pack != nil || !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil) {
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer) {
         self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
-        self.imageReader = imageReader; self.authoringCompletion = authoringCompletion
+        self.imageReader = imageReader; self.authoringCompletion = authoringCompletion; self.templateTabScope = templateTabScope
     }
 
     var body: some View {
@@ -41,6 +43,12 @@ struct DiscoveryTemplateBrowserView: View {
                 ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
             } else {
                 List {
+                    if templateTabScope == .merchant(canManageProjects: false) {
+                        Section {
+                            Text("discovery.templateTab.staffReadOnly").font(.footnote)
+                                .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
+                        }
+                    }
                     Section {
                         Picker("discovery.shelf", selection: $tab) {
                             Text("discovery.topics").tag(Shelf.topics)
@@ -239,7 +247,7 @@ struct DiscoveryTemplateBrowserView: View {
             Section(title) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
                     NavigationLink {
-                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: authoringFactory, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
+                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
                     } label: { DiscoveryPlayRow(item: item) }
                     .accessibilityIdentifier("discovery.play.\(item.id)")
                 }

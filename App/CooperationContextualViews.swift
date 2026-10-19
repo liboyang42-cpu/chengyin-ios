@@ -171,13 +171,24 @@ import SwiftUI
                 if model.hasMore, !model.topics.isEmpty { Button("context.picker.more") { Task { await model.more(permit) } }.disabled(model.topicsBusy || model.topicsFailed) }
             }
             Section("context.coop.targets") {
+                if model.kind == .merchant {
+                    // Source: "附近商家 · 含未入驻商家可电话联系" opens pages/coop/nearby for the chosen topic.
+                    NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("cooperation.invite.nearby") }
+                        .accessibilityIdentifier("cooperation.invite.nearby")
+                }
                 TextField("context.coop.search", text: $search).accessibilityIdentifier("context.coop.search")
                 if model.busy { ProgressView("cooperation.loading") }
                 if model.targetsFailed { Button("action.retry") { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
                 if !model.busy, !model.targetsFailed, filtered.isEmpty { Text("context.picker.empty") }
                 ForEach(filtered) { candidate in
                     Button { model.toggle(candidate.id, permit: permit) } label: {
-                        HStack { Text(verbatim: candidate.name); Spacer(); if model.selected.contains(candidate.id) { Image(systemName: "checkmark") } }
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: candidate.name)
+                                CoopInviteTargetMeta(candidate: candidate).font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer(); if model.selected.contains(candidate.id) { Image(systemName: "checkmark") }
+                        }
                     }.disabled(model.targetsBusy || !model.isCurrent)
                         .accessibilityAddTraits(model.selected.contains(candidate.id) ? .isSelected : [])
                         .accessibilityIdentifier("context.coop.target.\(candidate.id)")
@@ -283,15 +294,36 @@ import SwiftUI
             guard let value = Decimal(string: fee, locale: Locale(identifier: "en_US_POSIX")), value > 0 else { return nil }
             compensation = .fixed(value)
         } else { compensation = .traffic }
-        return try? contexts.map { try $0.invitation(message: message, compensation: compensation, currentSession: reader.session) }
+        return try? contexts.map { try $0.invitation(message: outgoingMessage, compensation: compensation, currentSession: reader.session) }
     }
     private var dirty: Bool { !message.isEmpty || fixed || !fee.isEmpty }
+    private var isClub: Bool { contexts.first?.kind == .club }
+    @Environment(\.locale) private var locale
+    /// Source sends a default note when the inviter writes none.
+    private var outgoingMessage: String {
+        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? appLocalized(isClub ? "cooperation.invite.defaultMessage.club" : "cooperation.invite.defaultMessage.merchant", locale: locale) : message
+    }
     var body: some View {
         Form {
             Section("context.coop.targets") { ForEach(contexts) { Text(verbatim: $0.recipientName) } }
-            TextField("coopflow.field.message", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
-            Toggle("coopflow.fixed", isOn: $fixed)
-            if fixed { TextField("coopflow.field.fixedFee", text: $fee).keyboardType(.decimalPad).focused($typing); Text("coopflow.currency") }
+            TextField("cooperation.invite.messagePlaceholder", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
+                .onChange(of: message) { _, value in if value.count > 100 { message = String(value.prefix(100)) } }
+            Text(verbatim: "\(message.count) / 100").font(.caption).foregroundStyle(.secondary)
+            Picker("cooperation.invite.terms", selection: $fixed) {
+                Text("cooperation.invite.terms.traffic").tag(false)
+                Text(LocalizedStringKey(isClub ? "cooperation.invite.fee.club" : "cooperation.invite.fee.merchant")).tag(true)
+            }.pickerStyle(.inline).accessibilityIdentifier("cooperation.invite.terms")
+            if fixed {
+                LabeledContent {
+                    HStack(spacing: 4) {
+                        Text(verbatim: "¥")
+                        TextField(text: $fee, prompt: Text(verbatim: "0.00")) { Text("coopflow.field.fixedFee") }.keyboardType(.decimalPad).focused($typing)
+                        Text(LocalizedStringKey(isClub ? "cooperation.invite.feeUnit.club" : "cooperation.invite.feeUnit.merchant")).font(.footnote).foregroundStyle(.secondary)
+                    }
+                } label: { Text("coopflow.field.fixedFee") }
+                Text("coopflow.currency")
+            }
             if let drafts {
                 NavigationLink("coopflow.reviewAction") {
                     List {
@@ -315,5 +347,17 @@ import SwiftUI
                 Button("action.cancel", role: .cancel) { }
             }
             .onChange(of: reader.session) { _, _ in message = ""; fee = ""; fixed = false; dismiss() }
+    }
+}
+
+/// Source invite target meta: "{n} 位成员 · {city}" / "成员数待确认", or merchant "{types|address|开放承接}".
+struct CoopInviteTargetMeta: View {
+    let candidate: CoopFlowTargetCandidate
+    var body: some View {
+        if candidate.kind == .club {
+            let members = candidate.memberCount.map { Text("cooperation.invite.members \($0)") } ?? Text("cooperation.invite.membersUnknown")
+            if let city = candidate.city { members + Text(verbatim: " · " + city) } else { members }
+        } else if let meta = candidate.merchantMeta { Text(verbatim: meta) }
+        else { Text("cooperation.invite.openToHost") }
     }
 }
