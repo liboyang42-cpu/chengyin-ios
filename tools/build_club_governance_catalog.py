@@ -13,7 +13,7 @@ stats|Performance dashboard|数据看板
 customerCount|Customer count|客户人数
 customers|Customers|客户
 customer|Customer detail|客户详情
-checkin|Check-in record|核销记录
+checkin|Check-in detail|核销详情
 settlement|Club settlement|俱乐部结算
 eventTopics|Plan a series|创建系列场次
 series|Event series|系列场次
@@ -30,10 +30,10 @@ notificationStatus|Delivery status|通知送达状态
 topics|Club topics|俱乐部主题
 topicOverview|Club topic workspace|俱乐部主题工作台
 topicSettings|Topic settings|主题设置
-topicCustomers|Topic customers|主题客户
+topicCustomers|Participants|报名参与者
 topicStats|Topic operations metrics|主题运营数据
-recruit|Recruitment overview|招商概览
-nodeAnswer|Show protected answer|查看受保护答案
+recruit|Merchants|商家
+nodeAnswer|Show answer|查看答案
 editions|Edition reports|期次自报
 dissolutionBlockers|Dissolution blockers|解散阻塞事项
 leaderboard|Contribution leaderboard|贡献排行
@@ -228,23 +228,23 @@ failedCount|Failed|失败数
 recipientCount|Preview recipients|预览受众人数
 inApp|In-app channel|站内渠道
 wechatSubscription|WeChat subscription channel|微信订阅渠道
-question|Question|题目
-answerReveal|Protected answer|受保护答案
-feedbackText|Feedback|反馈
-leaderName|Host name|主理人姓名
-phone|Contact phone|联系电话
-identity|Occupation or identity|职业或身份
-coFounders|Co-founders|共同发起人
+question|Prompt|题面
+answerReveal|Answer|答案
+feedbackText|Feedback for wrong answers|玩家答错时的反馈
+leaderName|Real name or nickname|实名/昵称
+phone|Contact|联系方式
+identity|Identity|身份说明
+coFounders|Co-founders|联合创始人
 experience|Organizing experience|组织经验
 hasExperience|Has experience|已有经验
-maxEventSize|Largest event size|最大活动人数
-avgEventSize|Average event size|平均活动人数
+maxEventSize|Largest group led|最大带队人数
+avgEventSize|Average participants|平均参与人数
 certImages|Existing certificate image references|已有资质图片引用
 canDesignRoute|Can design routes|可设计路线
 canDesignTask|Can design tasks|可设计任务
 canNpc|Can perform as NPC|可扮演NPC
 canMerchantCoop|Can coordinate merchants|可对接商家
-hasGuideCert|Has guide qualification|有导游资质
+hasGuideCert|Holds a guide or travel qualification|持导游/旅游资质
 registered|Identity registered|已登记实名
 accountRole|Account role|账号身份
 targetMemberId|Target member ID|目标成员编号
@@ -286,7 +286,7 @@ refundStatus|Refund progress|退款进度
 refundedOrders|Refunded orders|已退款订单
 manualOrders|Orders needing manual handling|需人工处理订单
 merchantName|Merchant|商家
-soldCount|Sold tickets|已售票数'''
+soldCount|Sold|已售'''
 for row in fields.splitlines():
     key,en,zh=row.split('|');add('field.'+key,en,zh)
 choices='''ALL_MEMBERS|All members|全部成员

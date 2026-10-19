@@ -143,13 +143,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in record"
+            "value": "Check-in detail"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核销记录"
+            "value": "核销详情"
           }
         }
       }
@@ -432,13 +432,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Topic customers"
+            "value": "Participants"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "主题客户"
+            "value": "报名参与者"
           }
         }
       }
@@ -466,13 +466,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recruitment overview"
+            "value": "Merchants"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "招商概览"
+            "value": "商家"
           }
         }
       }
@@ -483,13 +483,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show protected answer"
+            "value": "Show answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看受保护答案"
+            "value": "查看答案"
           }
         }
       }
@@ -3747,13 +3747,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Question"
+            "value": "Prompt"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "题目"
+            "value": "题面"
           }
         }
       }
@@ -3764,13 +3764,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Protected answer"
+            "value": "Answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "受保护答案"
+            "value": "答案"
           }
         }
       }
@@ -3781,13 +3781,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Feedback"
+            "value": "Feedback for wrong answers"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "反馈"
+            "value": "玩家答错时的反馈"
           }
         }
       }
@@ -3798,13 +3798,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Host name"
+            "value": "Real name or nickname"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "主理人姓名"
+            "value": "实名/昵称"
           }
         }
       }
@@ -3815,13 +3815,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact phone"
+            "value": "Contact"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "联系电话"
+            "value": "联系方式"
           }
         }
       }
@@ -3832,13 +3832,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Occupation or identity"
+            "value": "Identity"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "职业或身份"
+            "value": "身份说明"
           }
         }
       }
@@ -3855,7 +3855,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "共同发起人"
+            "value": "联合创始人"
           }
         }
       }
@@ -3900,13 +3900,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Largest event size"
+            "value": "Largest group led"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最大活动人数"
+            "value": "最大带队人数"
           }
         }
       }
@@ -3917,13 +3917,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Average event size"
+            "value": "Average participants"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "平均活动人数"
+            "value": "平均参与人数"
           }
         }
       }
@@ -4019,13 +4019,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Has guide qualification"
+            "value": "Holds a guide or travel qualification"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有导游资质"
+            "value": "持导游/旅游资质"
           }
         }
       }
@@ -4733,13 +4733,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sold tickets"
+            "value": "Sold"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已售票数"
+            "value": "已售"
           }
         }
       }
