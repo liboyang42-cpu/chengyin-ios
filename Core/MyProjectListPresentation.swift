@@ -76,6 +76,13 @@ public enum MyProjectListPresentation {
         }
     }
 
+    /// Mini `_showAccept`: only topic cards with an acceptance state other than `selfRun` show its text.
+    public static func acceptanceText(_ p: CreatorContentProject) -> String? {
+        guard p.bizType == "topic", let status = p.acceptStatus, !status.isEmpty, status != "selfRun",
+              let text = p.acceptStatusText, !text.isEmpty else { return nil }
+        return text
+    }
+
     /// Mini empty CTA: topic → 去发布; activity → 发布单场活动 only for those who may publish; template has none.
     public static func emptyCTAKey(for tab: MyProjectTab, canPublishActivity: Bool) -> String? {
         switch tab {

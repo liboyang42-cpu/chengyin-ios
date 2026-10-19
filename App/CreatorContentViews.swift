@@ -108,7 +108,8 @@ private struct CreatorContentIssueView: View {
                                subtitle: project.projectTypeText, fallbackTitle: "creatorContent.untitled", minimumHeight: 240) {
             if let state = project.stateText { Text(verbatim: state) }
             // Mini-program myproject footer: co-host acceptance text, otherwise always "N 报名 · N 浏览", then the owner identity.
-            if let acceptance = project.acceptStatusText { Text(verbatim: acceptance) }
+            if let pending = project.pendingVerifyCount { Text("myProject.pendingVerify \(pending)") }
+            else if let acceptance = MyProjectListPresentation.acceptanceText(project) { Text(verbatim: acceptance) }
             else {
                 LabeledContent("creatorContent.signups", value: String(project.signupCount))
                 LabeledContent("creatorContent.views", value: String(project.viewCount))
