@@ -39,6 +39,9 @@ final class CoopRelationDiscoveryFlowTests: XCTestCase {
         let club = app.buttons["cooprelation.open.clubs.0"]
         XCTAssertTrue(club.waitForExistence(timeout: 5)); club.tap()
         XCTAssertTrue(app.staticTexts["Public club 9"].waitForExistence(timeout: 5))
+        // A public viewer has no manage tab, so management cannot be reached from any tab.
+        XCTAssertTrue(app.buttons["club.detail.tab.overview"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.buttons["club.detail.tab.manage"].exists)
         XCTAssertFalse(app.buttons["club.openManagement"].exists)
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(app.buttons["cooprelation.open.clubs.0"].waitForExistence(timeout: 5))

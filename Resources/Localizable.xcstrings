@@ -13951,13 +13951,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checked in · View details"
+            "value": "Checked in"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已核销 · 查看详情"
+            "value": "已核销"
           }
         }
       }
@@ -13967,13 +13967,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending check-in · View details"
+            "value": "Awaiting check-in"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "待核销 · 查看详情"
+            "value": "待核销"
           }
         }
       }
@@ -14079,13 +14079,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No groups yet"
+            "value": "No city orienteering teams yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有团"
+            "value": "还没有城市定向团"
           }
         }
       }
@@ -14175,13 +14175,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open a player’s check-in record to inspect their registration. Refund counts do not grant refund permission."
+            "value": "Open a person to see their check-in detail; removal and refund sit at the bottom of that page and only the host can use them."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "点开玩家的核销记录查看报名详情。可退款人数不代表退款权限。"
+            "value": "点开某个人看核销详情;清退退款在那一页底部,仅主理人可操作。"
           }
         }
       }
@@ -15095,13 +15095,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in record"
+            "value": "Check-in detail"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核销记录"
+            "value": "核销详情"
           }
         }
       }
@@ -16217,13 +16217,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Protected answer"
+            "value": "Answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "受保护答案"
+            "value": "答案"
           }
         }
       }
@@ -16336,13 +16336,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Average event size"
+            "value": "Average participants"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "平均活动人数"
+            "value": "平均参与人数"
           }
         }
       }
@@ -16614,7 +16614,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "共同发起人"
+            "value": "联合创始人"
           }
         }
       }
@@ -17033,13 +17033,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Feedback"
+            "value": "Feedback for wrong answers"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "反馈"
+            "value": "玩家答错时的反馈"
           }
         }
       }
@@ -17101,13 +17101,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Has guide qualification"
+            "value": "Holds a guide or travel qualification"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有导游资质"
+            "value": "持导游/旅游资质"
           }
         }
       }
@@ -17169,13 +17169,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Occupation or identity"
+            "value": "Identity"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "职业或身份"
+            "value": "身份说明"
           }
         }
       }
@@ -17203,13 +17203,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Host name"
+            "value": "Real name or nickname"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "主理人姓名"
+            "value": "实名/昵称"
           }
         }
       }
@@ -17254,13 +17254,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Largest event size"
+            "value": "Largest group led"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最大活动人数"
+            "value": "最大带队人数"
           }
         }
       }
@@ -17730,13 +17730,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact phone"
+            "value": "Contact"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "联系电话"
+            "value": "联系方式"
           }
         }
       }
@@ -17815,13 +17815,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Question"
+            "value": "Prompt"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "题目"
+            "value": "题面"
           }
         }
       }
@@ -18257,13 +18257,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sold tickets"
+            "value": "Sold"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已售票数"
+            "value": "已售"
           }
         }
       }
@@ -19175,13 +19175,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show protected answer"
+            "value": "Show answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看受保护答案"
+            "value": "查看答案"
           }
         }
       }
@@ -19311,13 +19311,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recruitment overview"
+            "value": "Merchants"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "招商概览"
+            "value": "商家"
           }
         }
       }
@@ -19872,13 +19872,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Topic customers"
+            "value": "Participants"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "主题客户"
+            "value": "报名参与者"
           }
         }
       }
@@ -19906,13 +19906,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All participants"
+            "value": "All"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "全部参与者"
+            "value": "全部"
           }
         }
       }
@@ -19929,7 +19929,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已联系"
+            "value": "已接洽"
           }
         }
       }
@@ -19940,13 +19940,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Awaiting check-in"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "待处理"
+            "value": "待核销"
           }
         }
       }
@@ -19957,7 +19957,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verified"
+            "value": "Checked in"
           }
         },
         "zh-Hans": {
@@ -167783,13 +167783,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Topic merchants"
+            "value": "Merchants"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "专题商家"
+            "value": "商家"
           }
         }
       }
@@ -191538,6 +191538,614 @@
           "stringUnit": {
             "state": "translated",
             "value": "发送第一条消息，和对方确认路线、集合点或合作细节"
+          }
+        }
+      }
+    },
+    "club.detail.tab.posts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帖子"
+          }
+        }
+      }
+    },
+    "club.detail.tab.events": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Events"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动"
+          }
+        }
+      }
+    },
+    "club.detail.tab.overview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概览"
+          }
+        }
+      }
+    },
+    "club.detail.tab.manage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理"
+          }
+        }
+      }
+    },
+    "club.detail.posts.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club posts are unavailable in this build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本暂不可查看俱乐部帖子"
+          }
+        }
+      }
+    },
+    "club.detail.events.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club events are unavailable in this build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本暂不可查看俱乐部活动"
+          }
+        }
+      }
+    },
+    "club.ops.leaderRequired.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Become a club leader first. Once approved you can create and manage clubs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先成为俱乐部主理人，申请通过后即可创建与管理俱乐部"
+          }
+        }
+      }
+    },
+    "club.ops.applyHost": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前往申请"
+          }
+        }
+      }
+    },
+    "club.detail.leaderboard.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club contribution board · This week"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本团贡献榜 · 本周"
+          }
+        }
+      }
+    },
+    "club.detail.leaderboard.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View contribution board"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看贡献榜"
+          }
+        }
+      }
+    },
+    "club.detail.leaderboard.reset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The board resets every Monday at 00:00."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "榜单每周一 0 点重置。"
+          }
+        }
+      }
+    },
+    "club.detail.leaderboard.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The contribution board is unavailable in this build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本暂不可查看贡献榜"
+          }
+        }
+      }
+    },
+    "club.detail.leaderboard.locked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join to see the contribution board"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入后可看贡献榜"
+          }
+        }
+      }
+    },
+    "club.detail.leaderboard.lockedHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See where you rank in this club."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看自己在这一团里排第几。"
+          }
+        }
+      }
+    },
+    "club.detail.governanceHelp.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Governance and safety"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "治理与安全"
+          }
+        }
+      }
+    },
+    "club.detail.governanceHelp.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If this club has banned you for a period, you can submit facts and an appeal to the platform; club managers cannot decide appeals."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果你被本俱乐部限期封禁，可向平台提交事实与申诉理由；俱乐部管理者不能裁决。"
+          }
+        }
+      }
+    },
+    "club.enroll.escrow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registration fees are held in escrow by the platform."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名费由平台担保托管"
+          }
+        }
+      }
+    },
+    "club.enroll.emptyTeamsHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the “City orienteering” ticket type in the publisher and assign it to this club to see its roster here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在发布器选择「城市定向」票种并归属本俱乐部,即可在此查看报名名册。"
+          }
+        }
+      }
+    },
+    "club.story.answer.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This question has no answer configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这道题没有配答案"
+          }
+        }
+      }
+    },
+    "club.story.answer.hints": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hints"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示"
+          }
+        }
+      }
+    },
+    "club.story.answer.notice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answers are visible only to the club for judging on site whether players pass. Players never see this section."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "答案只对俱乐部开放，用于现场判定玩家能否通过。玩家端看不到这一段。"
+          }
+        }
+      }
+    },
+    "club.checkin.rail.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fulfilment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履约轨迹"
+          }
+        }
+      }
+    },
+    "club.checkin.rail.signed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registered"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已报名"
+          }
+        }
+      }
+    },
+    "club.checkin.rail.contacted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contacted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已接洽"
+          }
+        }
+      }
+    },
+    "club.checkin.rail.verified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checked in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核销"
+          }
+        }
+      }
+    },
+    "club.checkin.rail.reviewed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已评价"
+          }
+        }
+      }
+    },
+    "club.checkin.rail.reached": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到达"
+          }
+        }
+      }
+    },
+    "club.checkin.rail.notReached": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not reached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未到达"
+          }
+        }
+      }
+    },
+    "club.checkin.rail.refunded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This order was refunded; its fulfilment will not progress."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这单已退款，履约轨迹不再推进。"
+          }
+        }
+      }
+    },
+    "club.ops.adminNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are an administrator · you can only edit display information"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你是管理员 · 只能改展示信息"
+          }
+        }
+      }
+    },
+    "club.ops.locked.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the host can change membership settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有主理人能改经营配置"
+          }
+        }
+      }
+    },
+    "club.ops.locked.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member priority signup · join approval · member reserved places — these decide how tickets are split and paid once sales open, so they stay with the host."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员优先报名 · 入会需要审批 · 成员保留名额 —— 这三项直接决定开卖时票怎么分、钱怎么收,所以留给主理人。"
+          }
+        }
+      }
+    },
+    "club.ops.locked.current": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current:"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前:"
+          }
+        }
+      }
+    },
+    "club.ops.locked.priority.on": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Priority signup on"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "优先报名 已开"
+          }
+        }
+      }
+    },
+    "club.ops.locked.priority.off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Priority signup off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "优先报名 已关"
+          }
+        }
+      }
+    },
+    "club.ops.locked.join.on": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join approval on"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入会审批 已开"
+          }
+        }
+      }
+    },
+    "club.ops.locked.join.off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join approval off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入会审批 已关"
+          }
+        }
+      }
+    },
+    "club.ops.locked.quota %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld reserved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留 %lld 个"
           }
         }
       }
