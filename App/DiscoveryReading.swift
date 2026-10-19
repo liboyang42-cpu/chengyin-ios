@@ -29,9 +29,14 @@ protocol DiscoveryReading: AnyObject {
     func discoveryTopicTemplateDetail(id: Int) async throws -> PublicTopicTemplateDetail
     func publicTopicTemplateCoordinator(id: Int) -> PublicTopicTemplateCoordinator
     func discoveryPlayTemplate(id: Int) async throws -> DiscoveryPlayTemplate
+    func discoveryPlayTemplateRead(id: Int) async throws -> DiscoveryPlayTemplateRead
 }
 
 extension DiscoveryReading {
+    /// Readers without the mini-program detail fields keep the base projection only.
+    func discoveryPlayTemplateRead(id: Int) async throws -> DiscoveryPlayTemplateRead {
+        DiscoveryPlayTemplateRead(template: try await discoveryPlayTemplate(id: id), extras: nil)
+    }
     func templateMetadataDictionary(kind: TemplateMetadataKind) async throws -> [TemplateMetadataOption] {
         throw APIError.notConfigured
     }

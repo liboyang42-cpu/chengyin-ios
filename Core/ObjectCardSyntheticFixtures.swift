@@ -12,10 +12,13 @@ public enum ObjectCardSyntheticFixtures {
     public var isConfigured = true
     public var isAuthenticated = true
     public var failNext = false
+    /// Offline 403 (当前账号无法查看) for the read-access parity state.
+    public var denyNext = false
     public init() {}
     public func rotateScope() { scope = UUID() }
     public func list(category: ObjectCardCategory) async throws -> ObjectCardCollection {
         if failNext { failNext = false; throw APIError.httpStatus(503) }
+        if denyNext { denyNext = false; throw APIError.httpStatus(403) }
         let value = try ObjectCardSyntheticFixtures.collection()
         if category == .all { return value }
         // Decode the same wire shape; do not invent public model constructors for fixture data.

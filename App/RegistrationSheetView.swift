@@ -65,11 +65,14 @@ struct RegistrationSheetView: View {
                 if !flow.hasCurrentSession {
                     Section { Label("registration.form.sessionChanged", systemImage: "person.crop.circle.badge.exclamationmark") }
                 } else {
-                    activitySection
+                    // Source checkout banner: shown, never blocking (the viewer may register someone else).
+                    alreadyRegisteredSection
                     if flow.hasRetainedIntent {
+                        activitySection
                         RegistrationOperationSections(flow: flow,revision:model.revision)
                         resultOrderSection
                     } else if case .pending(let registrationID) = flow.durableCreation {
+                        activitySection
                         Section("registration.form.outcomeUnknown") {
                             Text("registration.waitlist.retainedOrder")
                             if registrationID != nil {
@@ -88,10 +91,13 @@ struct RegistrationSheetView: View {
                         }
                         recoveredOrderSection
                     } else {
+                        // Source order (RegistrationCheckoutSection): 参与人信息 → 活动信息 →
+                        // 费用明细 (票种 → 订单金额 → 权益 → 积分 → 总计) → 候补 → 提交.
                         participantSection
+                        activitySection
                         ticketSection
-                        waitlistSection
                         quoteSection
+                        waitlistSection
                         confirmationSection
                     }
                 }
@@ -106,7 +112,7 @@ struct RegistrationSheetView: View {
                 }
             }
             .alert(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"), isPresented: $showingConfirmation) {
-                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) { Task { await flow.confirm() } }
+                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) { Task { await flow.confirmAndReadBack() } }
                 Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
             } message: {
                 if let review = flow.confirmation {
@@ -220,18 +226,39 @@ struct RegistrationSheetView: View {
             }
         }
     }
+    @ViewBuilder private var alreadyRegisteredSection: some View {
+        if RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket).viewerAlreadyRegistered {
+            Section {
+                Label("registrationParity.alreadyRegistered", systemImage: "checkmark.seal")
+                    .font(.headline)
+                    .accessibilityIdentifier("registration.alreadyRegistered")
+            }
+        }
+    }
     private var activitySection: some View {
-        Section("registration.form.activity") {
-            Text(verbatim: flow.activity.summary.name).font(.headline)
+        let checkout = RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket)
+        return Section("registrationParity.section.activity") {
+            if flow.activity.summary.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text("registrationParity.activityNamePending").font(.headline)
+            } else {
+                Text(verbatim: flow.activity.summary.name).font(.headline)
+            }
             if let date = flow.activity.summary.startDate, !date.isEmpty {
                 LabeledContent("registration.form.startDate", value: date)
             }
             if let date = flow.activity.summary.endDate, !date.isEmpty {
                 LabeledContent("registration.form.endDate", value: date)
             }
-            if let address = flow.activity.summary.addressName ?? flow.activity.summary.address, !address.isEmpty {
-                Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") }
+            // Source: the session's 集合点 row appears only when the selected ticket supplies it.
+            if let meetingPoint = checkout.meetingPoint {
+                Label { Text("registrationParity.meetingPointValue \(meetingPoint)") } icon: { Image(systemName: "flag") }
+                    .accessibilityIdentifier("registration.activity.meetingPoint")
             }
+            Label {
+                if let venue = checkout.venue { Text(verbatim: venue) }
+                else { Text("registrationParity.venueUnconfirmed") }
+            } icon: { Image(systemName: "mappin.and.ellipse") }
+                .accessibilityIdentifier("registration.activity.venue")
         }
     }
     private var participantSection: some View {
@@ -269,7 +296,7 @@ struct RegistrationSheetView: View {
             if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
                 Text("registration.form.phoneHint").font(.caption).foregroundStyle(.secondary)
             }
-        } header: { Text("registration.form.contact") } footer: { Text("registration.form.contactHint") }
+        } header: { Text("registrationParity.section.participants") } footer: { Text("registration.form.contactHint") }
         .disabled(!flow.canEdit)
     }
     private var ticketSection: some View {
@@ -367,6 +394,11 @@ struct RegistrationSheetView: View {
     }
     private var quoteSection: some View {
         Section {
+            // Source 订单金额 is the selected ticket's listed price; unknown stays unknown.
+            if flow.selectedTicket != nil {
+                RegistrationAmountRow(key: "registrationParity.orderAmount",
+                    amount: RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket).orderAmount)
+            }
             if !flow.quoteEnabled {
                 Text("registration.form.quoteDisabled").foregroundStyle(.secondary)
             } else if flow.isQuoting {
@@ -375,6 +407,10 @@ struct RegistrationSheetView: View {
                 switch flow.quoteState {
                 case .received(let quote):
                     RegistrationAmountRow(key: "registration.form.memberDiscount", amount: quote.memberDiscountYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
+                    if let note = RegistrationCheckoutClubBenefit.from(quote)?.noteKey {
+                        LabeledContent("registrationParity.clubBenefit") { Text(LocalizedStringKey(note)) }
+                            .accessibilityIdentifier("registration.fees.clubBenefit")
+                    }
                     RegistrationAmountRow(key: "registration.form.couponDiscount", amount: quote.couponDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     RegistrationAmountRow(key: "registration.form.pointsDiscount", amount: quote.pointsDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     LabeledContent("registration.form.pointsUsed") {

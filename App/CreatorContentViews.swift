@@ -45,6 +45,8 @@ private struct CreatorContentIssueView: View {
     @StateObject private var model = CreatorContentScreenModel<CreatorContentProjectPage>()
     @State private var query = CreatorContentQuery()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
+    @Environment(\.myProjectTemplateShelf) private var templateShelf
     private var key: CreatorContentLoadKey { .init(reader, query: query) }
     var body: some View {
         List {
@@ -57,13 +59,19 @@ private struct CreatorContentIssueView: View {
                     picker("creatorContent.owner", selection: $query.ownerType, values: ["all", "member", "club", "merchant"])
                     picker("creatorContent.state", selection: $query.state, values: ["all", "draft", "pending", "notStarted", "running", "completed", "offline", "rejected"])
                 }
-                if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("creatorContent.loading") }
+                // Mini myproject template tab reads the separate api/template/my-list own-shelf, never project/my rows.
+                if query.type == "template" { MyProjectTemplateTabSection(shelf: templateShelf) }
+                else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("creatorContent.loading") }
                 else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
                 else if let page = model.state.visibleValue(scope: key.scope) {
-                    if page.rows.isEmpty { ContentUnavailableView("creatorContent.empty", systemImage: "square.stack") }
+                    if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
                     if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
                     let rowScope = key.scope
-                    ForEach(page.rows) { project in
+                    MyProjectCreateActivityRow(type: query.type, rowCount: page.rows.count)
+                    if MyProjectRowOperationsMenu.hasOperations(page.rows) {
+                        Text("myProject.longPressHint").font(.caption).foregroundStyle(.secondary)
+                    }
+                    ForEach(MyProjectListPresentation.sorted(page.rows)) { project in
                         if let destination = project.destination {
                             Button {
                                 guard model.state.loadedScope == rowScope, reader.scope == rowScope, reader.isAuthenticated,
@@ -72,6 +80,7 @@ private struct CreatorContentIssueView: View {
                             } label: { card(project) }
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .accessibilityIdentifier("creatorContent.project.\(project.id)")
+                                .contextMenu { MyProjectRowOperationsMenu(project: project) }
                                 .questifyCardListRow()
                         } else {
                             card(project).questifyCardListRow()
@@ -98,15 +107,22 @@ private struct CreatorContentIssueView: View {
         QuestifyImageEntityCard(imageSource: project.cover, title: project.title,
                                subtitle: project.projectTypeText, fallbackTitle: "creatorContent.untitled", minimumHeight: 240) {
             if let state = project.stateText { Text(verbatim: state) }
+            // Mini-program myproject footer: co-host acceptance text, otherwise always "N 报名 · N 浏览", then the owner identity.
             if let acceptance = project.acceptStatusText { Text(verbatim: acceptance) }
-            if project.signupCount > 0 { LabeledContent("creatorContent.signups", value: String(project.signupCount)) }
-            if project.viewCount > 0 { LabeledContent("creatorContent.views", value: String(project.viewCount)) }
-            if let start = project.startTime, let end = project.endTime { Text(verbatim: "\(start) – \(end)") }
+            else {
+                LabeledContent("creatorContent.signups", value: String(project.signupCount))
+                LabeledContent("creatorContent.views", value: String(project.viewCount))
+            }
+            Text(LocalizedStringKey(project.ownerType == "club" ? "creatorContent.filter.club"
+                : project.ownerType == "merchant" ? "creatorContent.filter.merchant" : "creatorContent.filter.member"))
+                .font(.caption).foregroundStyle(.secondary)
+            MyProjectCardMeta(project: project, chinese: locale.language.languageCode?.identifier == "zh")
         }.accessibilityElement(children: .combine)
     }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.clear(); return }
         let captured = query
+        guard captured.type != "template" else { model.clear(); return }
         await model.load(reader: reader) { try await reader.projects(query: captured) }
     }
 }

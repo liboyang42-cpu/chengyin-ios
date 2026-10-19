@@ -9,6 +9,9 @@ import SwiftUI
     var governance: SquareGovernanceCoordinator? = nil
     var governanceAccess: ((Int?) -> SquareGovernanceSessionAccess)? = nil
     var onSignIn: (() -> Void)? = nil
+    /// Optional source "即将开始" strip (official events within 24h); nil hides it.
+    var upcomingReader: (any OfficialEventReading)? = nil
+    var upcomingDestination: ((Int) -> AnyView)? = nil
     @State private var showsWorkspace = false
     @State private var showsComposer = false
     var onClose: (() -> Void)? = nil
@@ -40,14 +43,24 @@ import SwiftUI
                     }.accessibilityIdentifier("square.feed")
                     filters
                 }
+                if let upcomingReader, reader.isConfigured { SquareXcxUpcomingStrip(reader: upcomingReader, destination: upcomingDestination) }
                 if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
                 else if query.mode.requiresAccount && !reader.isSignedIn { SquareIssueView(error: SquareReadFailure.signInRequired) }
                 else if loadedKey != key { ProgressView("square.loading") }
                 else {
                     if let issue { SquareIssueView(error: issue) { Task { await load(reset: !pagination.hasLoadedPage) } } }
-                    if pagination.items.isEmpty && !loading && issue == nil { Text("square.empty").accessibilityIdentifier("square.empty") }
+                    if pagination.items.isEmpty && !loading && issue == nil {
+                        if query.keyword != nil { Text("square.empty").accessibilityIdentifier("square.empty") }
+                        else {
+                            // Source empty feed: 广场还很安静 / 成为第一个发布创意路线的人吧.
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("square.xcx.emptyTitle").font(.headline).accessibilityIdentifier("square.empty")
+                                Text("square.xcx.emptyDetail").font(.footnote).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                     ForEach(pagination.items) { post in
-                        NavigationLink(value: post.id) { SquarePostContent(post: post, compact: true, showImages: false) }
+                        NavigationLink(value: post.id) { SquareXcxPostCard(post: post, mediaScope: reader.scope, showsMedia: false) }
                             .accessibilityIdentifier("square.row.\(post.id)")
                         NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages", compact: true)
                     }
@@ -59,7 +72,7 @@ import SwiftUI
                 }
                 Section { Text("square.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
-            .appNavigationTitle("square.title")
+            .appNavigationTitle("square.xcx.navTitle")
             .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
             .toolbar { if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } } }
             .toolbar {

@@ -83,7 +83,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             Section("compliance.serverStatus") {
                 Text(status.status).accessibilityIdentifier("compliance.serverStatus")
                 ForEach(Array(status.blockers.enumerated()), id: \.offset) { _, blocker in Text(blocker) }
-                if let time = status.executeAfter { LabeledContent("compliance.executeAfter", value: time) }
+                if status.executeAfter != nil || status.pending { DeregistrationExecuteAfterRow(raw: status.executeAfter) }
             }
         }
         switch model.state.step {
@@ -110,6 +110,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 TextField("compliance.code", text: $code).textContentType(.oneTimeCode).keyboardType(.numberPad).accessibilityIdentifier("compliance.code")
                 Button("compliance.review") { model.coordinator.prepareReview(code: code); code = "" }.disabled(!model.state.smsSent).accessibilityIdentifier("compliance.review")
             }
+        case .verificationUnavailable:
+            DeregistrationVerificationUnavailableSection(method: model.state.status?.verificationMethod) { Task { await model.coordinator.load() } }
         case .review:
             Section {
                 Text("compliance.reviewWarning")

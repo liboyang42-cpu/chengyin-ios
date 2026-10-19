@@ -91,7 +91,8 @@ import SwiftUI
         try await read(resource, isCurrent: { true })
     }
     func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON {
-        guard resource == .complaintTopics else { throw APIError.notConfigured }
+        // The selector and the owner's own progress are the only personal complaint reads.
+        guard resource == .complaintTopics || resource == .complaintProgress else { throw APIError.notConfigured }
         let current = { [association] in association.complaintIsCurrent && isCurrent() }
         guard current() else { throw CoopFlowFailure.stale }
         let value = try await association.access.complaint.read(resource, isCurrent: current)
