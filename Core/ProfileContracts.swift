@@ -97,6 +97,9 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let gatherLongitude: Double?
     public let participateDate: String?
     public let payableAmount: Decimal?
+    /// Source order-history mode tag: activity orders are 城市定向; topic orders follow
+    /// productType (1 城市定向, 2 自由探索); an unbackfilled topic mode stays nil.
+    public let sourceMode: ProfileOrderSourceMode?
     public let pointUsed: Int?
     public let pointDeductAmount: Decimal?
     public let pointPaymentAmount: Decimal?
@@ -123,6 +126,8 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let refundable: Bool?
     public let refundPayoutStatus: Int?
     public var registrationState: ProfileRegistrationState { .init(code: registrationStatus) }
+    /// Source resolveActualPaidAmount: cash (WeChat) paid first, then the payable amount.
+    public var actualPaidAmount: Decimal? { wechatPaymentAmount ?? payableAmount }
 
     private enum CodingKeys: String, CodingKey {
         case id, memberId, ticketId, ownerType, ownerId, registrationNo, registrationStatus, verificationStatus, paymentStatus, purchaseKind
@@ -182,8 +187,10 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         paymentStatus = try c.decodeIfPresent(Int.self, forKey: .paymentStatus)
         purchaseKind = (try? c.decodeIfPresent(ProfileOrderStatusInteger.self, forKey: .purchaseKind))?.value
         // Source precedence is the associated activity object, then the topic object.
-        let owner = try c.decodeIfPresent(Owner.self, forKey: .cmsActivity)
-            ?? c.decodeIfPresent(Owner.self, forKey: .cmsTopic)
+        let activityOwner = try c.decodeIfPresent(Owner.self, forKey: .cmsActivity)
+        let owner = try activityOwner ?? c.decodeIfPresent(Owner.self, forKey: .cmsTopic)
+        if activityOwner != nil { sourceMode = .cityOrienteering }
+        else { sourceMode = owner?.productType?.value.flatMap(ProfileOrderSourceMode.init(topicProductType:)) }
         title = owner?.name
         productType = owner?.productType?.value
         startDate = owner?.startDate
@@ -356,5 +363,16 @@ private struct ProfileOrderStatusInteger: Decodable {
         if let code = try? c.decode(Int.self) { value = code }
         else if let text = try? c.decode(String.self), let code = Int(text), String(code) == text { value = code }
         else { throw APIError.malformedResponse }
+    }
+}
+
+public enum ProfileOrderSourceMode: Equatable {
+    case cityOrienteering, freeExplore
+    public init?(topicProductType: Int) {
+        switch topicProductType {
+        case 1: self = .cityOrienteering
+        case 2: self = .freeExplore
+        default: return nil
+        }
     }
 }

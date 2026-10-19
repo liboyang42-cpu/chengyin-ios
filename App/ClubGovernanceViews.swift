@@ -212,48 +212,7 @@ struct ClubGovernanceReadView: View {
     // the modifiers apply in exactly the same order as one chain.
     var body: some View {
         bodyReturnOwners
-        .task(id: readContext) {
-            if operation == .occurrenceStatus { return }
-            guard operation != .cases, operation != .settlement else { return }
-            if operation == .seriesDetail, snapshotContext == readContext, snapshot != nil, generation == snapshotGeneration { return }
-            if operation == .eventTopics, seriesCreationReturn.holdsSource,
-               seriesCreationReturn.isBound(context: readContext, access: access) { return }
-            if operation == .series {
-                if snapshotContext != readContext || snapshotGeneration != generation {
-                    seriesOccurrences.retire(); invalidateRead(); loading = false; await load()
-                }
-                await loadSeriesOccurrencesIfNeeded()
-            } else if operation == .roster {
-                if attendanceReads.synchronize(readContext) {
-                    attendanceReturn.retire(); invalidateRead(); loading = false
-                }
-                attendanceReturn.invalidateUnlessCurrent(source: attendanceSource, active: scenePhase == .active)
-                if let ticket = attendanceReturn.readTicket, ticket.source.context != readContext { attendanceReturn.retire() }
-                await loadRosterIfNeeded()
-            } else if operation == .roles {
-                if roleReads.synchronize(readContext) {
-                    roleManagementReturn.retire(); invalidateRead(); loading = false
-                }
-                roleManagementReturn.invalidateUnlessCurrent(source: roleManagementSource, active: scenePhase == .active)
-                if let ticket = roleManagementReturn.readTicket, ticket.source.context != readContext { roleManagementReturn.retire() }
-                await loadRolesIfNeeded()
-            } else if operation == .topicSettings {
-                if topicSettingsReads.synchronize(readContext) {
-                    topicSettingsReturn.retire(); invalidateRead(); loading = false
-                }
-                topicSettingsReturn.invalidateUnlessCurrent(source: topicSettingsSource, active: scenePhase == .active)
-                if let ticket = topicSettingsReturn.readTicket, ticket.source.context != readContext { topicSettingsReturn.retire() }
-                await loadTopicSettingsIfNeeded()
-            } else if operation == .bans {
-                if banReads.synchronize(readContext) {
-                    banRemovalReturn.retire(); invalidateRead(); loading = false
-                }
-                banRemovalReturn.invalidateUnlessCurrent(source: banRemovalSource, active: scenePhase == .active)
-                if let ticket = banRemovalReturn.readTicket, ticket.source.context != readContext { banRemovalReturn.retire() }
-                await loadBansIfNeeded()
-            } else { invalidateRead(); await load() }
-
-        }
+        .task(id: readContext) { await synchronizeReadContext() }
         .background {
             if let item = caseSubmissionReturn.item {
                 ClubCaseSubmissionPresentationOwner(item: item, owner: caseSubmissionReturn,
@@ -270,52 +229,14 @@ struct ClubGovernanceReadView: View {
             if phase != .active { caseSubmissionReturn.retire(); generation &+= 1 }
             else { finishCaseSubmissionReturn() }
         }
-        .task(id: CaseReadTrigger(context: readContext, visible: caseHostVisible, active: scenePhase == .active)) {
-            guard operation == .cases, caseHostVisible, scenePhase == .active else { return }
-            if caseSubmissionReturn.item != nil || caseSubmissionReturn.readID != nil { return }
-            if snapshotContext == readContext && generation == snapshotGeneration { return }
-            invalidateRead(); await load()
-        }
+        .task(id: CaseReadTrigger(context: readContext, visible: caseHostVisible, active: scenePhase == .active)) { await refreshVisibleCases() }
         .onDisappear {
             if operation == .customers {
                 customerKeywordDebounce.cancel()
                 generation &+= 1
             }
         }
-        .onDisappear {
-            caseHostVisible = false
-            if operation == .settlement {
-                settlementReturn.hide()
-                ownerFundsParent.hide()
-                if !settlementReturn.retainsChild, let attachment = settlementReturn.attachment {
-                    if !ownerFundsParent.retainsContact {
-                        if settlementReturn.depart(attachment) { generation &+= 1; loading = false }
-                    }
-                }
-            } else if operation == .series {
-                seriesOccurrences.hide()
-                if !seriesOccurrences.retainsDestination { seriesOccurrences.retire(); generation &+= 1; loading = false }
-            } else if operation == .roster {
-                attendanceReturn.hide()
-                if !attendanceReturn.retainsReturn { attendanceReads.retire(); generation &+= 1; loading = false }
-            } else if operation == .roles {
-                roleManagementReturn.hide()
-                if !roleManagementReturn.retainsReturn { roleReads.retire(); generation &+= 1; loading = false }
-            } else if operation == .topicSettings {
-                topicSettingsReturn.hide()
-                if !topicSettingsReturn.retainsReturn { topicSettingsReads.retire(); generation &+= 1; loading = false }
-            } else if operation == .bans {
-                banRemovalReturn.hide()
-                if !banRemovalReturn.retainsReturn { banReads.retire(); generation &+= 1; loading = false }
-            } else if operation != .cases || caseSubmissionReturn.item == nil {
-                if operation == .cases { caseSubmissionReturn.retire() }
-                if operation != .occurrenceStatus || occurrenceCancellationReturn.item == nil {
-                if operation != .eventTopics || !seriesCreationReturn.holdsSource {
-                    if operation != .seriesDetail || seriesUpdateReturn.item == nil { generation &+= 1 }
-                }
-                }
-            }
-        }
+        .onDisappear { leaveReadHost() }
         .refreshable { await load() }
     }
     private var bodyReturnOwnersStage1: some View {
@@ -530,16 +451,102 @@ struct ClubGovernanceReadView: View {
         // Separate onChange invalidations can run after a fast forbidden response
         // and erase its error. Context checks still hide old PII synchronously.
         .task(id: ClubOccurrenceCancellationReturn.ReadTrigger(context: readContext,
-                    visible: seriesHostVisible, active: scenePhase == .active)) {
-            guard operation == .occurrenceStatus, seriesHostVisible, scenePhase == .active else { return }
-            if let item = occurrenceCancellationReturn.item,
-               item.source.live(context: readContext, access: access) { return }
-            if snapshotContext == readContext, snapshot != nil, generation == snapshotGeneration { return }
-            if let readback = occurrenceCancellationReturn.readback,
-               readback.source.live(context: readContext, access: access) {
-                await load()
-            } else { invalidateRead(); await load() }
+                    visible: seriesHostVisible, active: scenePhase == .active)) { await refreshOccurrenceStatus() }
+    }
+    // Kept outside the body's modifier chain so the view type-checks in bounded time.
+    @MainActor private func synchronizeReadContext() async {
+        if operation == .occurrenceStatus { return }
+        guard operation != .cases, operation != .settlement else { return }
+        if operation == .seriesDetail, snapshotContext == readContext, snapshot != nil, generation == snapshotGeneration { return }
+        if operation == .eventTopics, seriesCreationReturn.holdsSource,
+           seriesCreationReturn.isBound(context: readContext, access: access) { return }
+        if operation == .series {
+            if snapshotContext != readContext || snapshotGeneration != generation {
+                seriesOccurrences.retire(); invalidateRead(); loading = false; await load()
+            }
+            await loadSeriesOccurrencesIfNeeded()
+        } else if operation == .roster {
+            if attendanceReads.synchronize(readContext) {
+                attendanceReturn.retire(); invalidateRead(); loading = false
+            }
+            attendanceReturn.invalidateUnlessCurrent(source: attendanceSource, active: scenePhase == .active)
+            if let ticket = attendanceReturn.readTicket, ticket.source.context != readContext { attendanceReturn.retire() }
+            await loadRosterIfNeeded()
+        } else if operation == .roles {
+            if roleReads.synchronize(readContext) {
+                roleManagementReturn.retire(); invalidateRead(); loading = false
+            }
+            roleManagementReturn.invalidateUnlessCurrent(source: roleManagementSource, active: scenePhase == .active)
+            if let ticket = roleManagementReturn.readTicket, ticket.source.context != readContext { roleManagementReturn.retire() }
+            await loadRolesIfNeeded()
+        } else if operation == .topicSettings {
+            if topicSettingsReads.synchronize(readContext) {
+                topicSettingsReturn.retire(); invalidateRead(); loading = false
+            }
+            topicSettingsReturn.invalidateUnlessCurrent(source: topicSettingsSource, active: scenePhase == .active)
+            if let ticket = topicSettingsReturn.readTicket, ticket.source.context != readContext { topicSettingsReturn.retire() }
+            await loadTopicSettingsIfNeeded()
+        } else if operation == .bans {
+            if banReads.synchronize(readContext) {
+                banRemovalReturn.retire(); invalidateRead(); loading = false
+            }
+            banRemovalReturn.invalidateUnlessCurrent(source: banRemovalSource, active: scenePhase == .active)
+            if let ticket = banRemovalReturn.readTicket, ticket.source.context != readContext { banRemovalReturn.retire() }
+            await loadBansIfNeeded()
+        } else { invalidateRead(); await load() }
+    }
+    // Kept outside the body's modifier chain so the view type-checks in bounded time.
+    @MainActor private func refreshVisibleCases() async {
+        guard operation == .cases, caseHostVisible, scenePhase == .active else { return }
+        if caseSubmissionReturn.item != nil || caseSubmissionReturn.readID != nil { return }
+        if snapshotContext == readContext, generation == snapshotGeneration { return }
+        invalidateRead(); await load()
+    }
+    // Kept outside the body's modifier chain so the view type-checks in bounded time.
+    @MainActor private func leaveReadHost() {
+        caseHostVisible = false
+        if operation == .settlement {
+            settlementReturn.hide()
+            ownerFundsParent.hide()
+            if !settlementReturn.retainsChild, let attachment = settlementReturn.attachment {
+                if !ownerFundsParent.retainsContact {
+                    if settlementReturn.depart(attachment) { generation &+= 1; loading = false }
+                }
+            }
+        } else if operation == .series {
+            seriesOccurrences.hide()
+            if !seriesOccurrences.retainsDestination { seriesOccurrences.retire(); generation &+= 1; loading = false }
+        } else if operation == .roster {
+            attendanceReturn.hide()
+            if !attendanceReturn.retainsReturn { attendanceReads.retire(); generation &+= 1; loading = false }
+        } else if operation == .roles {
+            roleManagementReturn.hide()
+            if !roleManagementReturn.retainsReturn { roleReads.retire(); generation &+= 1; loading = false }
+        } else if operation == .topicSettings {
+            topicSettingsReturn.hide()
+            if !topicSettingsReturn.retainsReturn { topicSettingsReads.retire(); generation &+= 1; loading = false }
+        } else if operation == .bans {
+            banRemovalReturn.hide()
+            if !banRemovalReturn.retainsReturn { banReads.retire(); generation &+= 1; loading = false }
+        } else if operation != .cases || caseSubmissionReturn.item == nil {
+            if operation == .cases { caseSubmissionReturn.retire() }
+            if operation != .occurrenceStatus || occurrenceCancellationReturn.item == nil {
+            if operation != .eventTopics || !seriesCreationReturn.holdsSource {
+                if operation != .seriesDetail || seriesUpdateReturn.item == nil { generation &+= 1 }
+            }
+            }
         }
+    }
+    // Kept outside the body's modifier chain so the view type-checks in bounded time.
+    @MainActor private func refreshOccurrenceStatus() async {
+        guard operation == .occurrenceStatus, seriesHostVisible, scenePhase == .active else { return }
+        if let item = occurrenceCancellationReturn.item,
+           item.source.live(context: readContext, access: access) { return }
+        if snapshotContext == readContext, snapshot != nil, generation == snapshotGeneration { return }
+        if let readback = occurrenceCancellationReturn.readback,
+           readback.source.live(context: readContext, access: access) {
+            await load()
+        } else { invalidateRead(); await load() }
     }
     private var bodyNavigation: some View {
         List {
