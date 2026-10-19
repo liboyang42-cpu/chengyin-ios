@@ -293,6 +293,8 @@ struct SessionRootView: View {
             NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = .home })
         }
         .sheet(isPresented:$showsAreaPicker) { RoamAreaPicker(onSelect:{ session.roamArea=$0 }) }
+        .usageConsentLaunchGate(signedIn: session.account != nil, market: session.operationalMarket, onDecline: { browsingAsGuest = true })
+        .sessionExpiryNotice(session: session, onContinueAsGuest: { browsingAsGuest = true })
         #if DEBUG
         .sheet(isPresented: $showsScannerFixture) { NativeQRScanner { _ in } }
         .onAppear {
