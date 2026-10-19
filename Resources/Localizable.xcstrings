@@ -134904,7 +134904,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法指南"
+            "value": "城瘾玩法"
           }
         }
       }
@@ -173211,6 +173211,246 @@
           "stringUnit": {
             "state": "translated",
             "value": "主办方还没有发布可报名票种。"
+          }
+        }
+      }
+    },
+    "social.guideXcx.heroLead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Three ways to play, "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "三种玩法，"
+          }
+        }
+      }
+    },
+    "social.guideXcx.heroEmphasis": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ready when you are"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即开即玩"
+          }
+        }
+      }
+    },
+    "social.guideXcx.heroDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No rules to learn first. Pick a way to set out and the city will tell the rest."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不用先学规则。挑一种出发方式，城市自己会讲下去。"
+          }
+        }
+      }
+    },
+    "social.guideXcx.classicTag": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Group · In order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组队 · 按顺序"
+          }
+        }
+      }
+    },
+    "social.guideXcx.freeTag": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anytime · On your own"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "随时 · 自己走"
+          }
+        }
+      }
+    },
+    "social.guideXcx.roamTag": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No finish · Stroll"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无终点 · 散步"
+          }
+        }
+      }
+    },
+    "social.guideXcx.classicDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check in stop by stop and set out together at the start time. Good for meetups and story routes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按顺序打卡通关，到点了大家一起出发。适合约人、适合有剧情的路线。"
+          }
+        }
+      }
+    },
+    "social.guideXcx.freeDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every stop is open; start wherever you like. Get a pass and play any time without waiting for a full group."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点位全开，想从哪个开始都行。买张通行证随时开玩，不用等人凑齐。"
+          }
+        }
+      }
+    },
+    "social.guideXcx.roamDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light up the city's fog as you walk, with no tasks and no finish line. A stroll on the way counts too."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "边走边点亮城市迷雾，没有任务也没有终点。顺路散个步也算数。"
+          }
+        }
+      }
+    },
+    "social.guideXcx.go": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take a look"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去看看"
+          }
+        }
+      }
+    },
+    "social.guideXcx.docs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play docs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法文档"
+          }
+        }
+      }
+    },
+    "social.guideXcx.docsHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rules and play details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则与玩法细节"
+          }
+        }
+      }
+    },
+    "social.guideXcx.docsEmpty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No play guides yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无玩法说明"
+          }
+        }
+      }
+    },
+    "social.guideXcx.docsEmptyDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They will appear here once published"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容上线后会出现在这里"
+          }
+        }
+      }
+    },
+    "social.guideXcx.detailTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法详情"
           }
         }
       }

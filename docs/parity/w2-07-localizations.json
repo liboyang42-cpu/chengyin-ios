@@ -1,0 +1,82 @@
+[
+ {
+  "key": "social.guide.title",
+  "en": "Play guide",
+  "zh-Hans": "城瘾玩法"
+ },
+ {
+  "key": "social.guideXcx.heroLead",
+  "en": "Three ways to play, ",
+  "zh-Hans": "三种玩法，"
+ },
+ {
+  "key": "social.guideXcx.heroEmphasis",
+  "en": "ready when you are",
+  "zh-Hans": "即开即玩"
+ },
+ {
+  "key": "social.guideXcx.heroDetail",
+  "en": "No rules to learn first. Pick a way to set out and the city will tell the rest.",
+  "zh-Hans": "不用先学规则。挑一种出发方式，城市自己会讲下去。"
+ },
+ {
+  "key": "social.guideXcx.classicTag",
+  "en": "Group · In order",
+  "zh-Hans": "组队 · 按顺序"
+ },
+ {
+  "key": "social.guideXcx.freeTag",
+  "en": "Anytime · On your own",
+  "zh-Hans": "随时 · 自己走"
+ },
+ {
+  "key": "social.guideXcx.roamTag",
+  "en": "No finish · Stroll",
+  "zh-Hans": "无终点 · 散步"
+ },
+ {
+  "key": "social.guideXcx.classicDetail",
+  "en": "Check in stop by stop and set out together at the start time. Good for meetups and story routes.",
+  "zh-Hans": "按顺序打卡通关，到点了大家一起出发。适合约人、适合有剧情的路线。"
+ },
+ {
+  "key": "social.guideXcx.freeDetail",
+  "en": "Every stop is open; start wherever you like. Get a pass and play any time without waiting for a full group.",
+  "zh-Hans": "点位全开，想从哪个开始都行。买张通行证随时开玩，不用等人凑齐。"
+ },
+ {
+  "key": "social.guideXcx.roamDetail",
+  "en": "Light up the city's fog as you walk, with no tasks and no finish line. A stroll on the way counts too.",
+  "zh-Hans": "边走边点亮城市迷雾，没有任务也没有终点。顺路散个步也算数。"
+ },
+ {
+  "key": "social.guideXcx.go",
+  "en": "Take a look",
+  "zh-Hans": "去看看"
+ },
+ {
+  "key": "social.guideXcx.docs",
+  "en": "Play docs",
+  "zh-Hans": "玩法文档"
+ },
+ {
+  "key": "social.guideXcx.docsHint",
+  "en": "Rules and play details",
+  "zh-Hans": "规则与玩法细节"
+ },
+ {
+  "key": "social.guideXcx.docsEmpty",
+  "en": "No play guides yet",
+  "zh-Hans": "暂无玩法说明"
+ },
+ {
+  "key": "social.guideXcx.docsEmptyDetail",
+  "en": "They will appear here once published",
+  "zh-Hans": "内容上线后会出现在这里"
+ },
+ {
+  "key": "social.guideXcx.detailTitle",
+  "en": "Play details",
+  "zh-Hans": "玩法详情"
+ }
+]

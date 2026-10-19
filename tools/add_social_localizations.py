@@ -36,7 +36,7 @@ PAIRS = {
 'social.portfolio': ('Exploration portfolio', '探索作品'),
 'social.postsSignIn': ('Sign in to load this member’s posts.', '登录后查看该用户的动态。'),
 'social.noPosts': ('No posts yet.', '暂无动态。'),
-'social.guide.title': ('Play guide', '玩法指南'),
+'social.guide.title': ('Play guide', '城瘾玩法'),
 'social.guide.modes': ('Ways to explore', '探索方式'),
 'social.guide.classic': ('City orienteering', '城市定向'),
 'social.guide.free': ('Free exploration', '自由探索'),
