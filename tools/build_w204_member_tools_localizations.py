@@ -23,6 +23,16 @@ STRINGS = {
     'profile.complaintProgress.denied': ('This account cannot view case progress.', '当前账号无法查看处理进展'),
     'profile.complaintProgress.statusUnknown': ('Status to be confirmed', '状态待确认'),
     'profile.complaintProgress.handleNote %@': ('Handling note: %@', '处理说明：%@'),
+    # Invitation history (subpackageMember/myinvite → scene-member-invite-history)
+    'profile.inviteHistory.signIn': ('Sign in to see invitation history', '登录后查看邀请记录'),
+    'profile.inviteHistory.signInHint': ('After signing in you can see your actual invitations.', '登录后可查看你的真实邀请关系'),
+    'profile.inviteHistory.denied': ('This account cannot view invitation history', '当前账号无法查看邀请记录'),
+    'profile.inviteHistory.deniedHint': ("Check this account's viewing permission.", '请确认当前账号的查看权限'),
+    'profile.inviteHistory.failed': ('Invitation history did not load', '邀请记录没加载出来'),
+    'profile.inviteHistory.failedHint': ('The network may be unstable. Your invitations are still there.', '网络可能不稳定，你的邀请关系还在'),
+    'profile.inviteHistory.empty': ('No one has accepted your invitation yet', '还没有人接受你的邀请'),
+    'profile.inviteHistory.emptyHint': ('Friends appear here by time after they join.', '好友加入后，会按时间出现在这里'),
+    'profile.inviteHistory.nicknameUnknown': ('Nickname to be confirmed', '昵称待确认'),
 }
 
 

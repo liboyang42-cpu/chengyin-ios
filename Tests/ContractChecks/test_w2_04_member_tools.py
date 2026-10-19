@@ -46,6 +46,23 @@ class ComplaintProgressChecks(unittest.TestCase):
         self.assertIn('progressCalls += 1', s)
 
 
+class InviteHistoryCopyChecks(unittest.TestCase):
+    def setUp(self):
+        self.view = read('App/SocialInviteHistoryView.swift')
+        self.core = read('Core/ProfileInviteHistoryIssue.swift')
+    def test_page_specific_failure_and_empty_states(self):
+        self.assertIn('ProfileInviteHistoryIssueView(error: APIError.unauthorized)', self.view)
+        self.assertIn('ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) }', self.view)
+        self.assertIn('model.error == nil { ProfileInviteHistoryEmptyView() }', self.view)
+        self.assertIn('Text("profile.inviteHistory.nicknameUnknown")', self.view)
+    def test_403_is_its_own_state_and_only_failures_retry(self):
+        self.assertIn('case SocialAccountFailure.rejected(code: 403, message: _): self = .denied', self.core)
+        self.assertIn('public var canRetry: Bool { self == .failed }', self.core)
+    def test_new_keys_do_not_change_social_catalog_count(self):
+        fragment = json.loads(read('Resources/W204MemberToolsLocalizations.fragment.json'))['strings']
+        self.assertFalse([k for k in fragment if k.startswith('social.')])
+
+
 class LocalizationChecks(unittest.TestCase):
     def test_fragment_is_bilingual_and_merged(self):
         fragment = json.loads(read('Resources/W204MemberToolsLocalizations.fragment.json'))['strings']

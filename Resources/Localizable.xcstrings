@@ -173518,6 +173518,150 @@
           }
         }
       }
+    },
+    "profile.inviteHistory.signIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see invitation history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看邀请记录"
+          }
+        }
+      }
+    },
+    "profile.inviteHistory.signInHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After signing in you can see your actual invitations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后可查看你的真实邀请关系"
+          }
+        }
+      }
+    },
+    "profile.inviteHistory.denied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account cannot view invitation history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号无法查看邀请记录"
+          }
+        }
+      }
+    },
+    "profile.inviteHistory.deniedHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check this account's viewing permission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请确认当前账号的查看权限"
+          }
+        }
+      }
+    },
+    "profile.inviteHistory.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation history did not load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请记录没加载出来"
+          }
+        }
+      }
+    },
+    "profile.inviteHistory.failedHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The network may be unstable. Your invitations are still there."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络可能不稳定，你的邀请关系还在"
+          }
+        }
+      }
+    },
+    "profile.inviteHistory.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No one has accepted your invitation yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有人接受你的邀请"
+          }
+        }
+      }
+    },
+    "profile.inviteHistory.emptyHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Friends appear here by time after they join."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好友加入后，会按时间出现在这里"
+          }
+        }
+      }
+    },
+    "profile.inviteHistory.nicknameUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nickname to be confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昵称待确认"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
