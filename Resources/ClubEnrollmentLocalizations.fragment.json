@@ -480,6 +480,38 @@
           }
         }
       }
+    },
+    "club.enroll.escrow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registration fees are held in escrow by the platform."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名费由平台担保托管"
+          }
+        }
+      }
+    },
+    "club.enroll.emptyTeamsHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the “City orienteering” ticket type in the publisher and assign it to this club to see its roster here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在发布器选择「城市定向」票种并归属本俱乐部,即可在此查看报名名册。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
