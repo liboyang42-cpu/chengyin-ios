@@ -129,6 +129,24 @@ import FoundationNetworking
         c.resumeAfterInterruption(); XCTAssertFalse(c.isSuspended); XCTAssertEqual(c.pending, review)
         XCTAssertEqual(h.http.requests.count, 1)
     }
+    /// Drives the coordinator the way an audio owner would: a `.stop` policy action suspends,
+    /// and no OS signal (including an interruption end with shouldResume) is a resume intent.
+    func testAudioLifecycleSignalsSuspendButNeverResumeOrDispatch() async throws {
+        let h = try Harness(); h.http.hold = true; let c = try h.coordinator()
+        try c.reviewText("spoken question"); let review = try XCTUnwrap(c.pending)
+        let old = Task { await c.transmit(reviewID: review.id) }; try await h.http.waitFor(0)
+        let apply: (PlatformAudioLifecycleSignal) -> Void = { signal in
+            if PlatformAudioLifecyclePolicy.action(for: signal, ownsConfiguration: true) == .stop { c.suspend() }
+        }
+        apply(.interruptionBegan); apply(.routeOldDeviceUnavailable)
+        XCTAssertTrue(c.isSuspended); XCTAssertFalse(c.busy); XCTAssertEqual(c.pending, review)
+        apply(.interruptionEnded(shouldResume: true)); apply(.routeNewDeviceAvailable)
+        XCTAssertTrue(c.isSuspended)
+        h.http.finish(0); await old.value
+        XCTAssertTrue(c.messages.isEmpty); XCTAssertEqual(h.http.requests.count, 1)
+        c.invalidate(); apply(.interruptionEnded(shouldResume: true)); c.resumeAfterInterruption()
+        XCTAssertFalse(c.active); XCTAssertNil(c.pending); XCTAssertEqual(h.http.requests.count, 1)
+    }
     func testRevokedGrantPermanentlyClearsSuspendedConversation() async throws {
         let h = try Harness(); let c = try h.coordinator()
         try c.reviewText("private"); await c.transmit(reviewID: try XCTUnwrap(c.pending).id)

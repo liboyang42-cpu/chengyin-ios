@@ -6,6 +6,7 @@ import SwiftUI
     var historyNamespace: String? = nil
     var publicMerchant = PublicMerchantHomeContext()
     var onSignIn: (() -> Void)? = nil
+    var recommendedKeywords: [String] = []
     let destination: (SearchMapDestination) -> Destination
     @State private var filter = GlobalSearchQuery()
     @State private var categoryRecovery = SearchMapCategoryRecovery()
@@ -138,6 +139,17 @@ import SwiftUI
             ForEach(history, id: \.self) { keyword in
                 Button { setKeyword(keyword); Task { await search() } } label: { Label(keyword, systemImage: "clock") }
                     .frame(minHeight: 44)
+            }
+        }
+        if !recommendedKeywords.isEmpty {
+            Text("searchMap.recommended").font(.headline)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: 8) {
+                ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
+                    Button { setKeyword(keyword); Task { await search() } } label: {
+                        Text(verbatim: keyword).frame(maxWidth: .infinity, minHeight: 44)
+                    }.buttonStyle(.bordered).disabled(!reader.isConfigured)
+                        .accessibilityIdentifier("searchMap.recommended.\(index)")
+                }
             }
         }
         Text("searchMap.categories").font(.headline)

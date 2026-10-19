@@ -46,6 +46,10 @@ import SwiftUI
                         if draft == 0 { Text("memberTemplate.draft") }
                         else if draft == 1 { Text("memberTemplate.published") }
                     }
+                    if let feedback = detail.reviewFeedback {
+                        Text("discovery.templateDetail.reviewFeedback \(feedback)").foregroundStyle(.orange)
+                            .accessibilityIdentifier("memberTemplate.reviewFeedback")
+                    }
                     if !detail.gallery.isEmpty {
                         NativeMediaGalleryEntry(sources: detail.gallery, scope: reader.scope,
                             titleKey: "memberTemplate.title", reader: imageReader)

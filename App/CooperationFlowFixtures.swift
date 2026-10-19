@@ -20,6 +20,7 @@ import SwiftUI
         case .merchants: return .array([.object(["id": .id(999), "memberId": .id(102), "name": .string("Synthetic merchant")])])
         case .ownedTopics: return .object(["rows": .array([.object(["id": .id(8), "name": .string("Synthetic owned topic"), "inviteWindowOpen": .bool(true)])])])
         case .nearby, .perks: return .array([])
+        case .complaintProgress: return .array([])
         case .reviewSummary, .credit: return .object([:])
         case .depositStatus: return .object(["paymentStatus": .string("unknown")])
         }

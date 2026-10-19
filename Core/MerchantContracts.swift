@@ -24,7 +24,9 @@ public struct MerchantTodo: Decodable, Equatable {
     public let pendingScanConfirm: Int
     public let pendingOrders: Int
     public let refundCount: Int
-    enum CodingKeys: String, CodingKey { case pendingVerify, verifiedCount, pendingScanConfirm, pendingOrders, refundCount }
+    /// Source merchant/index todo.pendingPredict: rounds waiting for the merchant's answer (count only).
+    public let pendingPredict: Int
+    enum CodingKeys: String, CodingKey { case pendingVerify, verifiedCount, pendingScanConfirm, pendingOrders, refundCount, pendingPredict }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         pendingVerify = try c.decodeIfPresent(Int.self, forKey: .pendingVerify) ?? 0
@@ -32,6 +34,7 @@ public struct MerchantTodo: Decodable, Equatable {
         pendingScanConfirm = try c.decodeIfPresent(Int.self, forKey: .pendingScanConfirm) ?? 0
         pendingOrders = try c.decodeIfPresent(Int.self, forKey: .pendingOrders) ?? 0
         refundCount = try c.decodeIfPresent(Int.self, forKey: .refundCount) ?? 0
+        pendingPredict = try max(0, c.decodeIfPresent(Int.self, forKey: .pendingPredict) ?? 0)
     }
     /// Completed verifications are not pending work.
     public var hasPendingWork: Bool { pendingVerify > 0 || pendingScanConfirm > 0 || pendingOrders > 0 || refundCount > 0 }
