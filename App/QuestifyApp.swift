@@ -271,6 +271,7 @@ struct SessionRootView: View {
         .environment(\.bankWithdrawalDestination, { AnyView(SessionBankWithdrawalView()) })
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
         .environment(\.merchantPersonalIncomeDestination, { AnyView(SessionMerchantPersonalIncomeView(session: session, source: $0)) })
+        .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
         .environment(\.merchantAcceptedProjectDestination, { AnyView(SessionMerchantAcceptedProjectView(session: session, source: $0)) })
         .environment(\.merchantOfficialRecruitmentDestination, { AnyView(SessionMerchantOfficialRecruitmentView(session: session, source: $0)) })
         .environment(\.cooperationNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session)) })

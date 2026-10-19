@@ -13,4 +13,19 @@ final class MerchantPersonalIncomeEligibilityTests:XCTestCase {
     func testFinanceRequired()throws{let s=try snapshot(finance:false);XCTAssertFalse(MerchantPersonalIncomeEligibility.matches(row:s.document.rows[0],snapshot:s))}
     func testOtherRouteDenied()throws{for route in ["PUBLIC_TRANSFER","","coop_order"]{let s=try snapshot(route:route);XCTAssertFalse(MerchantPersonalIncomeEligibility.matches(row:s.document.rows[0],snapshot:s))}}
     func testListDoesNotExposeDetailHandoff()throws{let s=try snapshot(list:true);XCTAssertFalse(MerchantPersonalIncomeEligibility.matches(row:s.document.rows[0],snapshot:s))}
+    func testOverviewFinancePermissionAllowsOnlyLedgerOrigin() throws {
+        let access = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object)
+        let overview = try MerchantBusinessSnapshot(access: .init(access), document: .init(query: .overview, payload: MerchantBusinessSyntheticFixtures.payload(.overview)))
+        XCTAssertTrue(MerchantPersonalIncomeEligibility.matchesLedgerOverview(overview))
+        let redemption = try snapshot()
+        XCTAssertFalse(MerchantPersonalIncomeEligibility.matchesLedgerOverview(redemption))
+        XCTAssertTrue(MerchantPersonalIncomeEligibility.matches(row: redemption.document.rows[0], snapshot: redemption))
+    }
+    func testOverviewWithoutFinancePermissionCannotSupplyPersonalAssetsEntry() throws {
+        var access = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object)
+        access["permissions"] = .array([]); access["canManageOperators"] = .bool(false)
+        let overview = try MerchantBusinessSnapshot(access: .init(access), document: .init(query: .overview, payload: MerchantBusinessSyntheticFixtures.payload(.overview)))
+        XCTAssertFalse(MerchantPersonalIncomeEligibility.matchesLedgerOverview(overview))
+    }
+
 }
