@@ -28,6 +28,8 @@ struct QuestifyApp: App {
                     NativeVerificationFixtureView(scenario: fixtureArgument("--native-verification-fixture") ?? "success")
                 } else if ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") {
                     NavigationStack { MerchantNPCFixtureView() }
+                } else if ProcessInfo.processInfo.arguments.contains("--merchant-ai-commerce-fixture") {
+                    MerchantAICommerceFixtureHost()
                 } else if ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") {
                     PublisherLifecycleFixtureRoot()
                 } else if ProcessInfo.processInfo.arguments.contains("--retained-images-fixture") {
