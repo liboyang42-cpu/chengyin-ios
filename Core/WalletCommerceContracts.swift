@@ -21,10 +21,14 @@ public struct WalletLedgerRow: Decodable, Equatable, Identifiable {
     public let id: Int
     public let changeBalance: WalletAmount?
     public let afterBalance: WalletAmount?
+    /// Existing points-detail balance before the change. NULL stays unknown, never zero.
+    public let currentPoints: WalletAmount?
     public let changePoints: WalletAmount?
     public let afterPoints: WalletAmount?
     public let changeType: Int?
     public let eventType: Int?
+    /// Existing source event identity (with eventType). Read-back key only; never re-issued.
+    public let eventId: Int?
     public let changeReason: String?
     public let createTime: String?
     public let currency: String?
