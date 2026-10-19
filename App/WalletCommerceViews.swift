@@ -111,7 +111,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                 if showsWithdrawalSupport {
                     NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
                 }
-                NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader, showsSupportContact: showsWithdrawalSupport) }
+                NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
             }
         }.appNavigationTitle("wallet.title")
             .task(id: reader.scope) {
