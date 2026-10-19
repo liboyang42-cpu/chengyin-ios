@@ -708,5 +708,15 @@
     "key": "square.video.fixture.loseFile",
     "en": "Synthetic: lose local file",
     "zh-Hans": "示例：模拟本机文件丢失"
+  },
+  {
+    "key": "square.xcx.closedTitle",
+    "en": "Community isn't open for this account",
+    "zh-Hans": "当前账号未开放社区"
+  },
+  {
+    "key": "square.xcx.closedDetail",
+    "en": "Other city exploration features are still available",
+    "zh-Hans": "其他城市探索功能仍可使用"
   }
 ]

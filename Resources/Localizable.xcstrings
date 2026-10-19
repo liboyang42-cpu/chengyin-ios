@@ -186752,6 +186752,38 @@
           }
         }
       }
+    },
+    "square.xcx.closedTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Community isn't open for this account"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号未开放社区"
+          }
+        }
+      }
+    },
+    "square.xcx.closedDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other city exploration features are still available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他城市探索功能仍可使用"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

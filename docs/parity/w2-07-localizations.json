@@ -958,5 +958,15 @@
   "key": "topicXcx.records.cardLoading",
   "en": "Loading this run's result",
   "zh-Hans": "正在加载本局结果"
+ },
+ {
+  "key": "square.xcx.closedTitle",
+  "en": "Community isn't open for this account",
+  "zh-Hans": "当前账号未开放社区"
+ },
+ {
+  "key": "square.xcx.closedDetail",
+  "en": "Other city exploration features are still available",
+  "zh-Hans": "其他城市探索功能仍可使用"
  }
 ]

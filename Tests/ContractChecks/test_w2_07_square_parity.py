@@ -63,6 +63,13 @@ class W207SquareParity(unittest.TestCase):
         self.assertIn('deletion?.isAllowed($0) != true', detail)
         self.assertIn('deletion.resolveUnknown(stillPresent: false)', detail)
 
+    def test_community_gate_blocks_feed_reads_when_closed(self):
+        browser = read('App/SquareBrowserView.swift')
+        self.assertIn('guard !gatePending, !communityClosed else', browser)
+        self.assertIn('.task(id: key) { await loadGate(); await load(reset: true) }', browser)
+        self.assertIn('"api/config/features"', read('Core/SquareService.swift'))
+        self.assertIn('SquareSessionReader: SquareReading, SquareCommunityFeatureReading', read('Core/SquareReading.swift'))
+
     def test_detail_states(self):
         detail = read('App/SquareDetailView.swift')
         for exact in ['comment.lifecycle == "DELETED"', '"square.xcx.commentDeleted"', 'accessibilityIdentifier("square.noComments")',
