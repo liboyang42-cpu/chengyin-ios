@@ -26,9 +26,10 @@ import Foundation
         return (try? JSONDecoder().decode(Envelope.self, from: Data(json.utf8)).data) ?? []
     }
     public static func response(_ json: String) -> NearbyTeamResponse { .init(data: Data(json.utf8)) }
-    public static func coordinator() -> NearbyTeamCoordinator {
+    /// `emptyMine` serves an empty my-applications read so the 我的 tab falls through to 附近在招募.
+    public static func coordinator(emptyMine: Bool = false) -> NearbyTeamCoordinator {
         let fake = NearbyTeamFakeTransport()
-        fake.fallbackResponses = ["/api/team/nearby": response(teams), "/api/team/my-applications": response(applications), "/api/team/applications": response(applicants), "/api/team/apply": response("{\"code\":200}"), "/api/team/withdraw": response("{\"code\":200}"), "/api/team/handle": response("{\"code\":200}")]
+        fake.fallbackResponses = ["/api/team/nearby": response(teams), "/api/team/my-applications": response(emptyMine ? #"{"code":200,"data":[]}"# : applications), "/api/team/applications": response(applicants), "/api/team/apply": response("{\"code\":200}"), "/api/team/withdraw": response("{\"code\":200}"), "/api/team/handle": response("{\"code\":200}")]
         return .init(service: .init(fake: fake), session: session, locks: .init())
     }
 }

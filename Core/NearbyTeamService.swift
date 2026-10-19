@@ -60,7 +60,10 @@ public enum NearbyWriteResult: Equatable { case simulated(expiry: NearbyServerTi
         let response: NearbyTeamResponse
         if let fake { response = try await fake.send(request, session: session) }
         else { guard liveReadGrant, let readTransport, !request.mutation else { throw NearbyTeamFailure.unconfigured }; response = try await readTransport.sendRead(request, session: session) }
-        try Task.checkCancellation(); try Self.validate(response)
+        try Task.checkCancellation()
+        // Reads only: an authenticated account without access is a distinct denied state (xcx nearbyReadAccess 'denied').
+        if response.status == 403 || (try? JSONDecoder().decode(NearbyHeader.self, from: response.data))?.code == 403 { throw NearbyTeamFailure.role }
+        try Self.validate(response)
         do { return try JSONDecoder().decode(NearbyEnvelope<[T]>.self, from: response.data).data } catch { throw NearbyTeamFailure.contract }
     }
     public func submit(_ action: NearbyTeamAction, session: NearbyTeamSession, review: NearbyTeamReview? = nil) async -> NearbyWriteResult {
