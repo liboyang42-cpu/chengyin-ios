@@ -2476,11 +2476,14 @@ final class AppSession: ObservableObject {
             return issued.revision == approval.revision && issued.matches(context)
         }
         let transport = compositionTransport.scopedForMerchantPrediction(approval: approval, context: context, approved: isCurrent)
+        // Ephemeral read-only review identity, never a persistent settlement-lock namespace.
+        // isCurrent binds the complete deployment, viewer and lease; no writer is constructed.
         let reader = MerchantPredictionReader(configuration: api, transport: transport, token: context.session.token,
             current: isCurrent, unauthorized: { [weak self] in
                 guard let self, isCurrent() else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
-            })
+            }, reviewScope: try? MerchantMarketingScope(namespace: "prediction-review-" + approval.revision.uuidString,
+                accountID: context.session.accountID, epoch: context.session.epoch, token: context.session.token))
         retainedMerchantPrediction = (context, revision, approval.revision, reader); return reader
     }
     private var retainedMerchantProjectBrowse: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantProjectBrowseReader)?
