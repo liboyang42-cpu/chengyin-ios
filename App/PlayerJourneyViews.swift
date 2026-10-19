@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(PlaySessionScope), memberTemplate(MemberPlayTemplateID), verification, support }
+enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(PlaySessionScope), memberTemplate(MemberPlayTemplateID), verification, support, ticketWallet }
 
 @MainActor struct PlayerJourneyAccountLinks: View {
     var body: some View {
@@ -44,6 +44,10 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                         }
                     }
             case .support: ParticipationSupportView()
+            // Source mycanyuinfo 开始玩 without topic/activity ids falls back to the ticket wallet (signup).
+            case .ticketWallet:
+                TicketWalletView(reader: session.ticketWalletReader, orderLifecycleCoordinator: session.orderLifecycleCoordinator)
+                    .id(session.ticketWalletReader.scope)
             case .verification: SessionNativeVerificationView()
             case .memberTemplate(let id): SessionMemberTemplateDetailView(id: id)
             case .history(let scope):
@@ -159,6 +163,12 @@ private struct ParticipationRow: View {
     var body: some View {
         // Source mycanyu row: state badge above the name, "MM.DD - MM.DD", then "type · address".
         VStack(alignment: .leading, spacing: 8) {
+            // Source cover: imgUrl || imgArr, else the default route cover; iOS shows a neutral placeholder.
+            if let url = QuestifyCardArtwork.safeURL(record.cover) {
+                QuestifyCardArtwork(url: url, height: 120).accessibilityIdentifier("playerJourney.row.cover")
+            } else {
+                ParticipationCoverPlaceholder()
+            }
             ParticipationStatusBadge(status: record.participationStatus(), detail: false)
             if let name = record.name { Text(verbatim: name).font(.headline) } else { Text("playerJourney.sourceUntitled").font(.headline) }
             Label {
@@ -172,6 +182,15 @@ private struct ParticipationRow: View {
             } icon: { Image(systemName: "mappin.and.ellipse") }
             .font(.subheadline).foregroundStyle(.secondary)
         }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
+    }
+}
+/// Never invented artwork: a fixed symbol when the source cover is absent or not https.
+private struct ParticipationCoverPlaceholder: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .tertiarySystemFill))
+            .frame(height: 120).frame(maxWidth: .infinity)
+            .overlay { Image(systemName: "map").font(.title2).foregroundStyle(.secondary) }
+            .accessibilityHidden(true).accessibilityIdentifier("playerJourney.row.coverPlaceholder")
     }
 }
 @MainActor private struct ParticipationDetailView: View {
@@ -226,6 +245,9 @@ private struct ParticipationRow: View {
                     if let target = detail.record.playEntry {
                         Button("playerJourney.start", systemImage: "play.fill") { open(.play(target)) }
                             .accessibilityIdentifier("playerJourney.start")
+                    } else {
+                        Button("playerJourney.start", systemImage: "ticket") { open(.ticketWallet) }
+                            .accessibilityIdentifier("playerJourney.start.ticketWallet")
                     }
                     NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycle).id(lifecycle.scope) } label: {
                         Label(detail.sourceCanCancel() ? "playerJourney.cancellation" : "playerJourney.orderProgress", systemImage: "list.bullet.rectangle")

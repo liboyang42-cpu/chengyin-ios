@@ -254,7 +254,7 @@ struct SessionRootView: View {
                         if let account=session.account { AccountView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home }).id(session.sessionRevision) }
                         else { WelcomeView() }
                     }.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
-                }.id(session.account?.id ?? 0)
+                }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
             } else { WelcomeView(onBrowse:{ browsingAsGuest=true }) }
         }
         .background {
