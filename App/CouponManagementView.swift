@@ -47,6 +47,10 @@ import SwiftUI
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale)).font(.headline)
                                 Text(LocalizedStringKey(row.typeKey)).font(.subheadline)
+                                // Mini-program coupon list row: description (fallback copy) and remaining stock.
+                                if let text = row.description, !text.isEmpty { Text(verbatim: text).font(.caption) }
+                                else { Text("couponManagement.noDescription").font(.caption).foregroundStyle(.secondary) }
+                                if let remaining = row.remaining { LabeledContent("couponManagement.remaining", value: "\(remaining)").font(.caption) }
                                 if row.state != .active { Text(LocalizedStringKey(row.state.key)).font(.caption) }
                                 Text("\(CouponValidityTime.display(row.startTime) ?? "—") – \(CouponValidityTime.display(row.endTime) ?? "—")").font(.caption).foregroundStyle(.secondary)
                             }.padding(.vertical, 4)

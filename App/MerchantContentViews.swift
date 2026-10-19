@@ -134,9 +134,10 @@ struct MerchantContentBoundary: View {
                 .disabled(!quota.canPlace || c.busy || c.locked)
                 .accessibilityIdentifier("merchant.cityQuota.placement")
             NavigationLink("merchant.content.claimable") { MerchantContentClaimSearch(service: service) }
-            MerchantContentRows(service: service, model: model, rows: s.value["nodes"].array ?? [], kind: .city)
+            // Mini-program citynode lists applications before nodes.
             Text("merchant.content.cityApplications").font(.headline)
             MerchantContentRows(service: service, model: model, rows: s.value["applications"].array ?? [], kind: .cityApplication)
+            MerchantContentRows(service: service, model: model, rows: s.value["nodes"].array ?? [], kind: .city)
         case .registration(let id):
             MerchantContentFields(value: s.value, names: ["topicName", "nodeName", "chapterName", "status", "auditStatus", "reason", "addressName", "address", "activityDesc", "limitNum", "startDate", "endDate", "cooperateDate"])
             if MerchantRegistrationEditEligibility.allows(status: s.value["status"].integer, auditStatus: s.value["auditStatus"].integer) {

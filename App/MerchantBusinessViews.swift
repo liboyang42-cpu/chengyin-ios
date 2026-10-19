@@ -810,7 +810,7 @@ import SwiftUI
                 if case .reviews = document.query {
                     Text("merchant.business.reviews.summaryScope").font(.footnote).foregroundStyle(.secondary)
                 }
-                ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount", "averageRating", "pendingReplyCount", "monthNewCount", "replyRatePct", "all", "repeat", "new", "noted", "monthlyNew"], id: \.self) { key in
+                ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount", "pendingReplyCount", "monthNewCount", "replyRatePct", "averageRating", "all", "repeat", "new", "noted", "monthlyNew"], id: \.self) { key in
                     if document.query == .overview, key == "personalArrivedThisMonthNet" {
                         MerchantLedgerNetSummary(presentation: .init(value: document.summary[key]))
                             .accessibilityIdentifier("merchant.business.summary." + key)
