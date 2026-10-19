@@ -8,6 +8,8 @@ struct ProfileReadScreen<Value, Content: View>: View {
     let accessibilityPrefix: String
     let load: () async throws -> Value
     let content: (Value) -> Content
+    /// Nil keeps the shared Profile copy; a screen may supply its source-specific copy.
+    let issueCopy: ProfileReadIssueCopy?
     @State private var value: Value?
     @State private var isLoading = true
     @State private var issue: ProfileLoadIssue?
@@ -15,10 +17,12 @@ struct ProfileReadScreen<Value, Content: View>: View {
     @State private var loadOwner = ManualMapReadTaskOwner()
 
     init(reader: any ProfileReading, accessibilityPrefix: String,
+         issueCopy: ProfileReadIssueCopy? = nil,
          load: @escaping () async throws -> Value,
          @ViewBuilder content: @escaping (Value) -> Content) {
         self.reader = reader
         self.accessibilityPrefix = accessibilityPrefix
+        self.issueCopy = issueCopy
         self.load = load
         self.content = content
     }
@@ -26,7 +30,7 @@ struct ProfileReadScreen<Value, Content: View>: View {
     var body: some View {
         ZStack {
             if reader.identity == nil {
-                ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("auth.expired"))
+                ContentUnavailableView(LocalizedStringKey(issueCopy?.signInTitleKey ?? "profile.signInRequired"), systemImage: "person.crop.circle.badge.exclamationmark", description: Text(LocalizedStringKey(issueCopy?.signInDetailKey ?? "auth.expired")))
                     .accessibilityIdentifier(accessibilityPrefix + ".signIn")
             } else if !reader.isConfigured {
                 ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
@@ -40,7 +44,7 @@ struct ProfileReadScreen<Value, Content: View>: View {
                     } icon: { Image(systemName: "exclamationmark.circle") }
                 } description: {
                     if let message = issue.message { Text(verbatim: message) }
-                    else { Text(LocalizedStringKey(issue.detailKey)) }
+                    else if !issue.detailKey.isEmpty { Text(LocalizedStringKey(issue.detailKey)) }
                 } actions: {
                     if issue.canRetry {
                         Button("action.retry") { loadOwner.start { await reload() } }
@@ -81,7 +85,7 @@ struct ProfileReadScreen<Value, Content: View>: View {
             // Navigation/session changes discard the result; they are not networking errors.
         } catch {
             guard generation == request, !Task.isCancelled else { return }
-            issue = ProfileLoadIssue(error)
+            issue = issueCopy.map { ProfileLoadIssue(error, copy: $0) } ?? ProfileLoadIssue(error)
         }
     }
 }
@@ -102,6 +106,27 @@ private struct ProfileLoadIssue {
             detailKey = error as? APIError == .malformedResponse ? "auth.invalidResponse" : "profile.retryHint"
             message = failure?.message.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
             canRetry = true
+        }
+    }
+    /// Screen-specific source copy. Sign-in and not-configured remain non-retryable;
+    /// a 403 keeps any server message, generic failures use the fixed source wording.
+    init(_ error: Error, copy: ProfileReadIssueCopy) {
+        switch ProfileReadIssueCopy.kind(of: error) {
+        case .signIn:
+            titleKey = copy.signInTitleKey; detailKey = copy.signInDetailKey; message = nil; canRetry = false
+        case .forbidden:
+            let failure = error as? ProfileReadFailure
+            titleKey = copy.forbiddenTitleKey; detailKey = ""
+            message = failure?.message.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+            canRetry = true
+        case .malformed:
+            titleKey = copy.failureTitleKey; detailKey = copy.malformedDetailKey; message = nil; canRetry = true
+        case .failure:
+            if error as? APIError == .notConfigured {
+                titleKey = "profile.unavailable"; detailKey = "auth.notConfigured"; message = nil; canRetry = false
+            } else {
+                titleKey = copy.failureTitleKey; detailKey = copy.failureDetailKey; message = nil; canRetry = true
+            }
         }
     }
 }
