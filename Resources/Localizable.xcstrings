@@ -173342,6 +173342,326 @@
           }
         }
       }
+    },
+    "playerJourney.parity.state.activityCancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动已取消"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.emptyDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registered routes and activities appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名后，路线和活动会出现在这里"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.filteredEmpty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No participation matches this filter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前筛选暂无参与记录"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.filteredEmptyDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to another status to see participation records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换其他状态查看参与记录"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.refreshing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating participation records…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更新参与记录…"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.listFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open participation records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与记录没能打开"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.list.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participation records failed to load. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与记录加载失败，请重试"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.list.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service is temporarily unavailable. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务暂时不可用，请稍后再试"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.network": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network error. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络异常，请重试"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.detailFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open participation details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与详情没能打开"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.detail.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t get participation details. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获取参与详情失败，请重试"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.detail.malformed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participation details are temporarily unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与详情数据暂不可用"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.detailLoading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading participation details…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与详情加载中"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.unknownTopic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知主题"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.countdown %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route starts in %lld days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距离路线开始还剩%lld天"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.finalNode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assigned stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最终分配节点"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.people %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ people"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 人"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.peopleRatio %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@/%2$@ people"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@/%2$@ 人"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.verifiedOfTotal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checked in / total orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核销/总订单"
+          }
+        }
+      }
+    },
+    "playerJourney.parity.fixedRules": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit and pause rules: Merchants may only apply to exit at least 3 days before a route session starts. Once a session has started, because it is centrally scheduled and involves several parties, merchants cannot exit midway or pause on their own. For emergencies such as force majeure, please contact customer service."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出与暂停规则说明： 商家仅可在路线场次开始前3天申请退出。一旦场次启动，鉴于官方统一调度及多方协作的特性，商家不可中途退出或自行暂停。如遇不可抗力等紧急情况，请务必联系客服介入处理。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

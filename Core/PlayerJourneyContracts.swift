@@ -25,6 +25,7 @@ public struct ParticipationRecord: Decodable, Equatable, Identifiable {
     public let isTopic: Bool
     public let isFreeExplore: Bool
     public let sourceID: Int?
+    public let parity: ParticipationParityFacts
     public var destination: PlaySessionScope? {
         guard let id = sourceID, id > 0 else { return nil }
         return isTopic ? .topic(id) : .activity(id)
@@ -43,6 +44,7 @@ public struct ParticipationRecord: Decodable, Equatable, Identifiable {
         cover = Self.text(source["imgUrl"]) ?? Self.text(source["imgArr"])
         sourceID = [raw["ownerId"].tolerantInteger, source["id"].tolerantInteger].compactMap { $0 }.first { $0 > 0 }
         isFreeExplore = isTopic && (raw["purchaseKind"].tolerantInteger == 3 || source["productType"].tolerantInteger == 2)
+        parity = ParticipationParityFacts(raw: raw)
     }
     static func text(_ value: PlayWireValue) -> String? {
         guard let value = value.text?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
