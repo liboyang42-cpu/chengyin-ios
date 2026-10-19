@@ -3105,6 +3105,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "CC995ACAD2915B96B718DA98";
 		};
+		"B24C05815EA1BBAA2AE96AC8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MiniCropFixtureHost.swift";
+			"sourceTree" = "<group>";
+		};
+		"B526B3CC8F6B30BE214699DD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B24C05815EA1BBAA2AE96AC8";
+		};
+		"58931CF89212F15F6546BFDF" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MiniCropView.swift";
+			"sourceTree" = "<group>";
+		};
+		"F922F7F2F2370540E22003AD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "58931CF89212F15F6546BFDF";
+		};
 		"776E5E0569A65A32168F48F8" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -19308,6 +19328,8 @@
 				"9B094AF03554FF4A9A86C5FB",
 				"F5CC5BCBF4AF6D44E94D0E4A",
 				"CC995ACAD2915B96B718DA98",
+				"B24C05815EA1BBAA2AE96AC8",
+				"58931CF89212F15F6546BFDF",
 				"776E5E0569A65A32168F48F8",
 				"7FED06634FEE99D3157AFADF",
 				"FECDB3A4509632ED02FC8355",
@@ -20987,6 +21009,7 @@
 				"0DDCB86C2298577F9FD3D1A8",
 				"45157BB2DCBFC3B8AD142225",
 				"78853BBA5BA5A9FEF6AD6BEF",
+				"617179492C9017EE7AFA5F93",
 				"BA851E1F4F3FE032492FB7DC",
 				"B31BF8FBA048E59F542AB683",
 				"78F3A609ACBED66263978AE1",
@@ -21875,6 +21898,8 @@
 				"2EE93CEE4C6FC5C2005B2086",
 				"599673623FCFBE4A3439BC29",
 				"AF773851A7178843B7602CE6",
+				"B526B3CC8F6B30BE214699DD",
+				"F922F7F2F2370540E22003AD",
 				"D9146E8573CBB05BDEE40086",
 				"5D7FA8B346951B5327BD4E6E",
 				"AF9646B81BD25A7014A2FD7B",
@@ -24492,6 +24517,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "78853BBA5BA5A9FEF6AD6BEF";
 		};
+		"617179492C9017EE7AFA5F93" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/MiniCropFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"3A0DCC4F41E4FA7B2E367C88" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "617179492C9017EE7AFA5F93";
+		};
 		"BA851E1F4F3FE032492FB7DC" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -26215,6 +26250,7 @@
 				"8F870F4AF31832A054CF5503",
 				"F2E3A5FE65C40255230687C6",
 				"F2207904C12B5D1652E3615E",
+				"3A0DCC4F41E4FA7B2E367C88",
 				"A0EF509173BCA11DCB538A15",
 				"9413318E89D8D197D468917B",
 				"8DB86D505EBE869D85016224",

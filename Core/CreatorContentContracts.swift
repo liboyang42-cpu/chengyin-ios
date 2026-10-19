@@ -19,6 +19,10 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
     public let acceptStatusText: String?
     public let startTime: String?
     public let endTime: String?
+    /// Mini myproject address line (`cms_topic/cms_activity.address_name`); blank means hide the line.
+    public let addressName: String?
+    /// Co-host activity "待核销 N". Absent is not zero: the mini hides the line when it is not sent.
+    public let pendingVerifyCount: Int?
     public var destination: CreatorContentDestination? {
         guard sourceID > 0 else { return nil }
         switch bizType {
@@ -32,7 +36,7 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
         }
     }
     private enum CodingKeys: String, CodingKey {
-        case id, bizType, title, cover, projectTypeText, state, stateText, publishStatus, signupCount, viewCount, ownerType, clubId, acceptStatus, acceptStatusText, startTime, endTime
+        case id, bizType, title, cover, projectTypeText, state, stateText, publishStatus, signupCount, viewCount, ownerType, clubId, acceptStatus, acceptStatusText, startTime, endTime, addressName, pendingVerifyCount
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -53,6 +57,10 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
         acceptStatusText = try c.decodeIfPresent(String.self, forKey: .acceptStatusText)
         startTime = try c.decodeIfPresent(String.self, forKey: .startTime)
         endTime = try c.decodeIfPresent(String.self, forKey: .endTime)
+        let rawAddress = (try? c.decodeIfPresent(String.self, forKey: .addressName)) ?? nil
+        let address = rawAddress?.trimmingCharacters(in: .whitespacesAndNewlines)
+        addressName = address?.isEmpty == false ? address : nil
+        pendingVerifyCount = (try? c.decodeIfPresent(Int.self, forKey: .pendingVerifyCount)) ?? nil
     }
 }
 public enum CreatorContentDestination: Equatable { case topic(Int), activity(Int), playTemplate(Int) }
