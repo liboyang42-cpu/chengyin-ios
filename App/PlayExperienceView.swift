@@ -15,6 +15,7 @@ import SwiftUI
     var finishRouteModel: PlayFinishRouteRecommendationCoordinator? = nil
     var finishRouteDestination: ((Int) -> AnyView)? = nil
     var themeRecordsModel: PlayThemeRecordsCoordinator? = nil
+    var backpackModel: PlayThemeBackpackCoordinator? = nil
     var entryCode: PlayEntryCodeContext? = nil
     var prefabModel: PlayPrefabRuntimeCoordinator? = nil
     var journeyModel: ((Int) -> JourneyCheckCoordinator?)? = nil
@@ -205,6 +206,10 @@ import SwiftUI
                     if let themeRecordsModel, themeRecordsModel.isAvailable {
                         NavigationLink("playx.themeRecords.title") { PlayThemeRecordsView(model: themeRecordsModel, title: model.snapshot?.result.topicName) }
                             .accessibilityIdentifier("playx.themeRecords.open")
+                    }
+                    if let backpackModel {
+                        NavigationLink("playx.backpack.title") { PlayThemeBackpackView(model: backpackModel) }
+                            .accessibilityIdentifier("playx.backpack.open")
                     }
                 }
                 if let reward = model.reward { PlayRewardSection(reward: reward, collectionDestination: rewardCollectionDestination) }

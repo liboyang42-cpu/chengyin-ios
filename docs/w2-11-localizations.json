@@ -362,5 +362,141 @@
   "playx.entryCode.fixtureWallet": [
     "Ticket wallet (synthetic)",
     "票夹（合成数据）"
+  ],
+  "playx.backpack.title": [
+    "Backpack",
+    "背包"
+  ],
+  "playx.backpack.load": [
+    "Backpack load",
+    "背包装载"
+  ],
+  "playx.backpack.slots %lld %lld": [
+    "%1$lld / %2$lld slots",
+    "%1$lld / %2$lld 格"
+  ],
+  "playx.backpack.zero": [
+    "Depleted",
+    "已归零"
+  ],
+  "playx.backpack.tabs": [
+    "Backpack sections",
+    "背包分类"
+  ],
+  "playx.backpack.tab.items": [
+    "Items",
+    "物品"
+  ],
+  "playx.backpack.tab.clues": [
+    "Clues",
+    "线索"
+  ],
+  "playx.backpack.tab.game": [
+    "Tasks",
+    "任务"
+  ],
+  "playx.backpack.claimOnly": [
+    "This run has ended; only pending rewards can be claimed",
+    "本局已结束，仅可领取待领奖励"
+  ],
+  "playx.backpack.pending": [
+    "To claim",
+    "待领取"
+  ],
+  "playx.backpack.pendingReward": [
+    "Pending reward",
+    "待领奖励"
+  ],
+  "playx.backpack.takesSlots %lld": [
+    "Takes %lld slots",
+    "占 %lld 格"
+  ],
+  "playx.backpack.carried": [
+    "Carried items",
+    "随身物品"
+  ],
+  "playx.backpack.perItemSlots %lld": [
+    "%lld slots each",
+    "每件 %lld 格"
+  ],
+  "playx.backpack.noItems": [
+    "No items yet",
+    "还没有物品"
+  ],
+  "playx.backpack.noClues": [
+    "No clues yet",
+    "还没有线索"
+  ],
+  "playx.backpack.clue": [
+    "Clue",
+    "线索"
+  ],
+  "playx.backpack.scope.public": [
+    "Public to everyone",
+    "全场公开"
+  ],
+  "playx.backpack.scope.team": [
+    "Your team’s clue",
+    "本队线索"
+  ],
+  "playx.backpack.clueImages %lld": [
+    "%lld images (not loaded in this version)",
+    "%lld 张图片（当前版本不加载）"
+  ],
+  "playx.backpack.gameUnavailable": [
+    "Tasks, trades and recovery actions aren’t available in this version.",
+    "当前版本暂未开放任务、交换与恢复操作。"
+  ],
+  "playx.backpack.carriedSupply": [
+    "Carried supply",
+    "随身物资"
+  ],
+  "playx.backpack.genericNumber": [
+    "Value",
+    "数值"
+  ],
+  "playx.backpack.genericSupply": [
+    "Supply",
+    "物资"
+  ],
+  "playx.backpack.unavailable": [
+    "The backpack isn’t available in this version.",
+    "当前版本暂未开放背包。"
+  ],
+  "playx.backpack.failed": [
+    "The backpack didn’t load. Tap to retry.",
+    "背包暂未加载，点击重试"
+  ],
+  "playx.backpack.retry": [
+    "Retry",
+    "重试"
+  ],
+  "playx.backpack.zeroPolicy.WAIT": [
+    "Rest to recover",
+    "休息恢复"
+  ],
+  "playx.backpack.zeroPolicy.CHALLENGE": [
+    "Depletion challenge",
+    "归零挑战"
+  ],
+  "playx.backpack.zeroPolicy.STEPS": [
+    "Walk to recover",
+    "步行恢复"
+  ],
+  "playx.backpack.zeroPolicy.BLOCK_HP_COST": [
+    "Costly tasks paused",
+    "暂停消耗任务"
+  ],
+  "playx.backpack.zeroPolicy.BLOCK_PAID": [
+    "Paid tasks paused",
+    "暂停付费任务"
+  ],
+  "playx.backpack.zeroPolicy.THEME_FAIL": [
+    "Run ended",
+    "本局结束"
+  ],
+  "playx.backpack.zeroPolicy.OTHER": [
+    "Depleted state",
+    "归零状态"
   ]
 }

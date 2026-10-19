@@ -4038,6 +4038,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "69B3B5663DD38B31ED17AFFA";
 		};
+		"1E4B0C4522F479FD54E229B9" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayThemeBackpackFixtureSupport.swift";
+			"sourceTree" = "<group>";
+		};
+		"7CA1A749CB854DEB71EB3DF5" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "1E4B0C4522F479FD54E229B9";
+		};
+		"CE829A1D1A20E9E31BD094EB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayThemeBackpackView.swift";
+			"sourceTree" = "<group>";
+		};
+		"01C7D9A4D839AD3A483FD3F2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CE829A1D1A20E9E31BD094EB";
+		};
 		"F4C02D94E6A17EF29D38248C" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -12604,6 +12624,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "55BA1D0ED922B22644133ED2";
 		};
+		"767C239A39A3778B3B7CFF8C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PlayThemeBackpack.swift";
+			"sourceTree" = "<group>";
+		};
+		"B225064FCCBEE548ABAD01FC" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "767C239A39A3778B3B7CFF8C";
+		};
 		"94C42DD1EDC4B85B4FBF283F" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -18041,6 +18071,8 @@
 				"9DED8EAB4F6ECDEDC6582DF7",
 				"9333534CC2AF71DCD175D11B",
 				"69B3B5663DD38B31ED17AFFA",
+				"1E4B0C4522F479FD54E229B9",
+				"CE829A1D1A20E9E31BD094EB",
 				"F4C02D94E6A17EF29D38248C",
 				"703620D8F944C90441D60C1C",
 				"A63C9192E0C33E7ECBCA60D7",
@@ -18897,6 +18929,7 @@
 				"C1519726D7A396D830009E36",
 				"094DF76DB08D58FD0FB08EBA",
 				"55BA1D0ED922B22644133ED2",
+				"767C239A39A3778B3B7CFF8C",
 				"94C42DD1EDC4B85B4FBF283F",
 				"0378F5880D64BEA8DA27751A",
 				"328A7A1BC2FF2304F47B689C",
@@ -19515,6 +19548,7 @@
 				"FEE6C845C541F84D96D5E3C7",
 				"04495D071560345664943530",
 				"C57D96A26560302774E64173",
+				"AB466868AE8A9739F5C7CEA9",
 				"21A3290E78CC48B7AD570FFF",
 				"A72A5BA9D182CF13EE66005E",
 				"45537B344BC24E8B10D20AA9",
@@ -20446,6 +20480,8 @@
 				"DE22C6AF8BB9C33C00FEF593",
 				"18480D8532944D83D9BD3EFC",
 				"ED731AD39986E32DA5C4CCDB",
+				"7CA1A749CB854DEB71EB3DF5",
+				"01C7D9A4D839AD3A483FD3F2",
 				"150D050818C198144E012D6F",
 				"1BAAE58BBAC173B65FD7594E",
 				"A81E4ECA97FD596E23FB7904",
@@ -21302,6 +21338,7 @@
 				"51A035CB59807E91025ABE1A",
 				"DFE0A8289FA66271B3BD7AAE",
 				"629968630EC5EFD39348C4B9",
+				"B225064FCCBEE548ABAD01FC",
 				"3E9B1D3E1FD91891C2A72CD3",
 				"4C5E9D710C64372C9FB1CEE8",
 				"DC16672F5AAECEF6E3CD7D5B",
@@ -23074,6 +23111,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "C57D96A26560302774E64173";
 		};
+		"AB466868AE8A9739F5C7CEA9" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/PlayThemeBackpackFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"221789F9FA5547FE69BCC07F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "AB466868AE8A9739F5C7CEA9";
+		};
 		"21A3290E78CC48B7AD570FFF" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -24331,6 +24378,7 @@
 				"02C267D44C3F91EB48A3C189",
 				"480AEF5361FE30E2E640C452",
 				"A33B9FE2C8BB0D1F4F084C39",
+				"221789F9FA5547FE69BCC07F",
 				"B1E73D16255A643246A0F4CD",
 				"7FADB1BE45413451B65CEE33",
 				"C8BCB0C02B80B7111A83E18C",
