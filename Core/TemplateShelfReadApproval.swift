@@ -183,6 +183,15 @@ public enum TemplateShelfReadRoute: Equatable {
     public init(transport: TemplateShelfReadTransport?, authenticated: @escaping () -> Bool) {
         self.transport = transport; self.authenticated = authenticated
     }
+    /// Same independently approved transport, additionally bound to one receipt ID/visit.
+    /// Constructing the host performs no read and grants no new capability.
+    public func configurationHost(id: MemberPlayTemplateID, acceptsResult: @escaping () -> Bool) -> OwnedTemplateConfigurationHost {
+        let capturedScope = scope
+        return OwnedTemplateConfigurationHost(transport: transport, expectedID: id, acceptsResult: { [weak self] in
+            guard let self, self.isAuthenticated, self.scope == capturedScope else { return false }
+            return acceptsResult()
+        })
+    }
     public func memberTemplate(id: MemberPlayTemplateID) async throws -> MemberTemplateDetail {
         try await memberTemplate(id: id, acceptsResult: { true })
     }
