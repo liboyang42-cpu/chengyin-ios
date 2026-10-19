@@ -5,8 +5,15 @@ import SwiftUI
     var actions: OfficialActionCoordinator? = nil
     var publisher = false
     var onLogin: (() -> Void)? = nil
+    /// Source official-inbox load failure: "邀约没有加载出来" above the retryable issue.
+    nonisolated static func issueCopy(_ error: Error) -> OfficialIssueCopy? {
+        guard case .failed = OfficialScreenIssue(error) else { return nil }
+        return OfficialIssueCopy(title: "official.w206.inbox.failed.title", detail: "official.w206.inbox.failed.detail",
+                                 identifier: "official.inbox" + ".failed")
+    }
     var body: some View {
-        OfficialReadScreen(reader: reader, isPrivate: true, requestID: "inbox", onLogin: onLogin, load: { try await reader.partyInbox() }) { rows in
+        OfficialReadScreen(reader: reader, isPrivate: true, requestID: "inbox", onLogin: onLogin,
+                           issueCopy: OfficialInboxView.issueCopy, load: { try await reader.partyInbox() }) { rows in
             List {
                 Section {
                     VStack(alignment: .leading, spacing: 4) {

@@ -6,6 +6,7 @@ import SwiftUI
     var actions: OfficialActionCoordinator? = nil
     var onClose: (() -> Void)? = nil
     var onLogin: (() -> Void)? = nil
+    var topicLinks: OfficialTopicLinks? = nil
     @State private var bucket: OfficialEventBucket = .live
     @State private var keyword = ""
     @State private var publisherScope: UUID?
@@ -82,7 +83,7 @@ import SwiftUI
                 }
             }
             ForEach(visible) { event in
-                NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin) } label: { OfficialEventCard(event: event) }
+                NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin, topicLinks: topicLinks) } label: { OfficialEventCard(event: event) }
                     .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
                     .accessibilityIdentifier("official.event.\(event.id)")
             }

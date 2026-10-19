@@ -291,6 +291,7 @@ struct SessionRootView: View {
         .environment(\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
+        .environment(\.registrationMySignupsDestination, { AnyView(SessionPlayerJourneyView(destination: .participations)) })
         .task { await session.bootstrap() }
         .onAppear { session.setPrivateHomePresentationActive(true) }
         .onAppear { session.setOwnerDraftPresentationActive(true) }
