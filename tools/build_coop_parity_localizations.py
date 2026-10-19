@@ -180,6 +180,9 @@ STRINGS = {
     'cooperation.party.generic': ('Cooperation', '合作'),
     # pages/coop/list + utils/merchant-official-channel.js
     'cooperation.list.newInvite': ('Send an invitation', '去发起邀请'),
+    'cooperation.list.apply.replied': ('Invitation sent back', '已回邀约'),
+    'cooperation.list.apply.partnerAccepted': ('Partner accepted', '对方已接受'),
+    'cooperation.list.apply.viewCooperation': ('View cooperation details', '查看合作详情'),
     'cooperation.list.incomplete': ('Invitation incomplete: the inviter, topic or terms are missing, so it cannot be handled yet', '邀请信息不完整：缺少邀请方、主题或合作条款，暂不能处理'),
     'cooperation.list.sent.declinedHint': ('Declined by the other party; you can invite another merchant.', '对方已拒绝，可再邀其他商家。'),
     'cooperation.list.chapter.title': ('Chapter applications', '章节承接'),

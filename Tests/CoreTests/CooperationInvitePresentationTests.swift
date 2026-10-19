@@ -53,3 +53,18 @@ final class CooperationInvitePresentationTests: XCTestCase {
         XCTAssertNil(row.topicName); XCTAssertEqual(row.viewerPartyName, "North club"); XCTAssertNil(row.topicStartDate)
     }
 }
+
+final class CooperationRepliedApplicationTests: XCTestCase {
+    func testRepliedApplicationLinksToAcceptedSentInvite() throws {
+        let decoder = JSONDecoder()
+        let application = try decoder.decode(CooperationApplication.self, from: Data(#"{"applyId":7,"topicId":3,"status":3}"#.utf8))
+        let accepted = try decoder.decode(CooperationInvite.self, from: Data(#"{"id":11,"status":1,"originApplyId":7}"#.utf8))
+        let other = try decoder.decode(CooperationInvite.self, from: Data(#"{"id":12,"status":0,"originApplyId":8}"#.utf8))
+        let linked = CooperationRepliedApplication(application: application, sent: [other, accepted])
+        XCTAssertEqual(linked?.linkedInviteID, 11); XCTAssertEqual(linked?.statusKey, "cooperation.list.apply.partnerAccepted")
+        XCTAssertEqual(CooperationRepliedApplication(application: application, sent: [other])?.statusKey, "cooperation.list.apply.replied")
+        XCTAssertNil(CooperationRepliedApplication(application: application, sent: [other])?.linkedInviteID)
+        let pending = try decoder.decode(CooperationApplication.self, from: Data(#"{"applyId":7,"topicId":3,"status":0}"#.utf8))
+        XCTAssertNil(CooperationRepliedApplication(application: pending, sent: [accepted]))
+    }
+}

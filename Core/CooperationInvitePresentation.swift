@@ -93,3 +93,16 @@ public struct CooperationInvitePresentation: Equatable {
         return rating
     }
 }
+
+/// Source `linkRepliedApplies` (CU-M-38): a received club application answered with an invite (status 3) links to
+/// the sent invite carrying its `originApplyId`, and reads "对方已接受" once that invite is accepted.
+public struct CooperationRepliedApplication: Equatable {
+    public let statusKey: String
+    public let linkedInviteID: Int?
+    public init?(application: CooperationApplication, sent: [CooperationInvite]) {
+        guard application.status == 3 else { return nil }
+        let linked = sent.first { $0.originApplyId == application.applyId }
+        linkedInviteID = linked?.id
+        statusKey = linked?.status == 1 ? "cooperation.list.apply.partnerAccepted" : "cooperation.list.apply.replied"
+    }
+}

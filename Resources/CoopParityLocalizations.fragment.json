@@ -2578,6 +2578,54 @@
         }
       }
     },
+    "cooperation.list.apply.replied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation sent back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已回邀约"
+          }
+        }
+      }
+    },
+    "cooperation.list.apply.partnerAccepted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partner accepted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方已接受"
+          }
+        }
+      }
+    },
+    "cooperation.list.apply.viewCooperation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View cooperation details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看合作详情"
+          }
+        }
+      }
+    },
     "cooperation.list.incomplete": {
       "localizations": {
         "en": {
