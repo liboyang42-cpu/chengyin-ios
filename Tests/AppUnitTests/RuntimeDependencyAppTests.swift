@@ -215,6 +215,7 @@ import CoreLocation
     private func request(_ d: ReviewedAppDeployment) throws -> URLRequest {
         let boundary = "CoopNative-00000000-0000-0000-0000-000000000001"
         var r = try AuthRequestBuilder.makeFormRequest(url: XCTUnwrap(d.regional.apiConfiguration).baseURL.appendingPathComponent("api/merchant/nearby"), fields: [:], token: "synthetic-7")
+        r.httpShouldHandleCookies = false
         let fields = [("latitude", "39.0"), ("limit", "30"), ("longitude", "116.0"), ("radius", "5000")]
         r.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         r.httpBody = Data((fields.map { "--\(boundary)\r\nContent-Disposition: form-data; name=\"\($0.0)\"\r\n\r\n\($0.1)\r\n" }.joined() + "--\(boundary)--\r\n").utf8)
