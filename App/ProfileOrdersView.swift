@@ -14,7 +14,7 @@ struct ProfileOrdersView: View {
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", load: { try await reader.profileOrders() }) { orders in
             if orders.isEmpty {
-                ProfileEmptyState(title: "profile.orders.empty", hint: "profile.orders.emptyHint", symbol: "ticket", identifier: "profile.orders.empty")
+                ProfileEmptyState(title: "profile.orders.sourceEmpty", hint: "profile.orders.sourceEmptyHint", symbol: "ticket", identifier: "profile.orders.empty")
             } else {
                 // Local time may move an already-loaded order between categories.
                 // No timer-triggered read or financial action is performed here.
@@ -47,17 +47,36 @@ private struct ProfileOrderRow: View {
     let order: ProfileOrder
     let historyState: OrderLifecycleState
     var body: some View {
+        // Source row order: 订单号 + state → mode tag → name → time → place → 实付款.
         VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                if let number = order.registrationNo, !number.isEmpty {
+                    Text("profile.orders.number \(number)").font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
+                Text(LocalizedStringKey("orderLifecycle.state." + historyState.rawValue)).font(.subheadline)
+            }
+            switch order.sourceMode {
+            case .cityOrienteering?:
+                (Text("profile.orders.mode.city").bold() + Text(verbatim: " · ") + Text("profile.orders.mode.cityHint")).font(.caption)
+            case .freeExplore?:
+                (Text("profile.orders.mode.free").bold() + Text(verbatim: " · ") + Text("profile.orders.mode.freeHint")).font(.caption)
+            case nil: EmptyView()
+            }
             if let title = order.title, !title.isEmpty { Text(verbatim: title).font(.headline) }
             else { Text("profile.orders.untitled").font(.headline) }
-            Text(LocalizedStringKey("orderLifecycle.state." + historyState.rawValue)).font(.subheadline)
             if let date = order.participateDate ?? order.startDate, !date.isEmpty {
                 Label { Text(verbatim: date) } icon: { Image(systemName: "calendar") }.font(.subheadline)
             }
-            if let location = order.addressName, !location.isEmpty {
+            if let location = order.addressName?.trimmingCharacters(in: .whitespaces), !location.isEmpty, location.lowercased() != "null" {
                 Label { Text(verbatim: location) } icon: { Image(systemName: "mappin.and.ellipse") }.font(.subheadline)
+            } else {
+                Label { Text("profile.orders.placeUnconfirmed") } icon: { Image(systemName: "mappin.and.ellipse") }.font(.subheadline)
             }
-            ProfileOrderAmountLabel(amount: order.payableAmount)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("profile.orders.paid").font(.subheadline)
+                ProfileOrderAmountLabel(amount: order.actualPaidAmount)
+            }
         }.padding(.vertical, 6)
     }
 }

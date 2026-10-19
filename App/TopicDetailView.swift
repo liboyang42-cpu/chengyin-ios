@@ -49,7 +49,13 @@ struct TopicDetailView: View {
                 if reader.isOfflineExample { Text("topic.offlineExample").font(.caption) }
                 Text(verbatim: value.name).font(.title2.bold())
                 TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
-                if value.betaFlag == 1 { Text("topic.beta") }
+                if value.betaFlag == 1 {
+                    // Source topic-beta block: badge plus feedback note.
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("topic.source.betaBadge").font(.subheadline.bold())
+                        Text("topic.source.betaNote").font(.caption).foregroundStyle(.secondary)
+                    }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
+                }
                 if let subtitle = value.subtitle { Text(verbatim: subtitle) }
                 if let introduction = value.introduction { Text(verbatim: introduction).textSelection(.enabled) }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
@@ -111,7 +117,7 @@ struct TopicDetailView: View {
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
                 }
             }
-            Section("topic.tickets") {
+            Section("topic.source.sessions") {
                 if value.tickets.isEmpty { Text("topic.noTickets") }
                 ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
                     VStack(alignment: .leading, spacing: 8) {
@@ -119,11 +125,13 @@ struct TopicDetailView: View {
                         TopicPrice(value: ticket.price, label: "topic.price")
                         if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
                         if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
-                        if let meeting = ticket.meetingPoint { Text(verbatim: meeting) }
-                        if let remaining = ticket.remaining { LabeledContent("topic.remaining", value: String(remaining)) }
-                        if let refund = ticket.refundRule { Text(verbatim: refund).font(.footnote) }
+                        if let meeting = ticket.meetingPoint { Text("topic.source.meetingPoint \(meeting)") }
+                        if let refund = ticket.refundRule { Text("topic.source.refundRule \(refund)").font(.footnote) }
+                        if let remaining = ticket.remaining { Text("topic.source.seatsLeft \(remaining)") }
+                        else { Text("topic.source.seatsUnknown").foregroundStyle(.secondary) }
                     }
                 }
+                if !value.tickets.isEmpty { Text("topic.source.sessionNote").font(.caption).foregroundStyle(.secondary) }
             }
             Section("topic.comments") {
                 Button("context.review.title") { showsReview = true }.accessibilityIdentifier("topic.openReview")

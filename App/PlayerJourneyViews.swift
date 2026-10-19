@@ -148,13 +148,20 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
 private struct ParticipationRow: View {
     let record: ParticipationRecord
     var body: some View {
+        // Source mycanyu row: state badge above the name, "MM.DD - MM.DD", then "type · address".
         VStack(alignment: .leading, spacing: 8) {
-            if let name = record.name { Text(verbatim: name).font(.headline) } else { Text("playerJourney.untitled").font(.headline) }
-            Text(LocalizedStringKey("orderLifecycle.state." + record.order.summary().state.rawValue))
-            Text(LocalizedStringKey(record.isFreeExplore ? "playerJourney.freeExplore" : record.isTopic ? "playerJourney.route" : "playerJourney.activity"))
-                .font(.subheadline).foregroundStyle(.secondary)
-            if let date = record.order.ownerStartDate { Label { Text(verbatim: date) } icon: { Image(systemName: "calendar") } }
-            if let address = record.address { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") } }
+            Text(LocalizedStringKey("orderLifecycle.state." + record.order.summary().state.rawValue)).font(.caption.bold())
+            if let name = record.name { Text(verbatim: name).font(.headline) } else { Text("playerJourney.sourceUntitled").font(.headline) }
+            Label {
+                if let range = ParticipationDateText.range(start: record.order.ownerStartDate, end: record.order.ownerEndDate) { Text(verbatim: range) }
+                else { Text("playerJourney.timeTBD") }
+            } icon: { Image(systemName: "calendar") }
+            Label {
+                Text(LocalizedStringKey(record.isFreeExplore ? "playerJourney.freeExplore" : record.isTopic ? "playerJourney.route" : "playerJourney.activity"))
+                    + Text(verbatim: " · ")
+                    + (record.address.map { Text(verbatim: $0) } ?? Text("playerJourney.placeTBD"))
+            } icon: { Image(systemName: "mappin.and.ellipse") }
+            .font(.subheadline).foregroundStyle(.secondary)
         }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
     }
 }

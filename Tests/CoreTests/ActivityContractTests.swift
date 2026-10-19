@@ -57,4 +57,24 @@ final class ActivityContractTests: XCTestCase {
             XCTAssertThrowsError(try JSONDecoder().decode(ActivityListResponse.self,from:Data(json.utf8)))
         }
     }
+    func testDetailPrimaryActionMirrorsSourceSignUpAndCancellationStates() throws {
+        func detail(_ fields: String) throws -> ActivityDetail {
+            try JSONDecoder().decode(ActivityDetail.self, from: Data((#"{"id":1,"name":"A""# + fields + "}").utf8))
+        }
+        let now = try XCTUnwrap(ActivityPrimaryAction.chinaDate("2026-10-19 12:00:00"))
+        XCTAssertEqual(try detail("").primaryAction(now: now), .signUp)
+        XCTAssertEqual(try detail(#","isSignUp":0"#).primaryAction(now: now), .signUp)
+        XCTAssertNil(try detail(#","isSignUp":2"#).signUpFlag)
+        XCTAssertNil(try detail(#","isSignUp":"1""#).signUpFlag)
+        XCTAssertEqual(try detail(#","isSignUp":1,"startDate":"2026-10-20 09:00:00","endDate":"2026-10-21""#).primaryAction(now: now), .viewRegistration)
+        XCTAssertEqual(try detail(#","isSignUp":1,"startDate":"2026-10-18 09:00:00","endDate":"2026-10-19""#).primaryAction(now: now), .continueExploring)
+        XCTAssertEqual(try detail(#","isSignUp":1,"startDate":"2026-10-10 09:00:00","endDate":"2026-10-18 20:00:00""#).primaryAction(now: now), .viewTrace)
+        XCTAssertEqual(try detail(#","isSignUp":1"#).primaryAction(now: now), .continueExploring)
+        let cancelled = try detail(#","isSignUp":1,"cancelTime":"2026-10-18 10:00:00","cancelReason":"  Weather  ""#)
+        XCTAssertEqual(cancelled.primaryAction(now: now), .cancelled); XCTAssertEqual(cancelled.cancelReason, "Weather")
+        XCTAssertTrue(try detail(#","cancelTime":1760000000000"#).isCancelled)
+        XCTAssertFalse(try detail(#","cancelTime":"  ","cancelReason":"x""#).isCancelled)
+        XCTAssertEqual(ActivityPrimaryAction.signUp.titleKey, "activity.cta.signUp")
+        XCTAssertEqual(ActivityPrimaryAction.cancelled.titleKey, "activity.cta.cancelled")
+    }
 }
