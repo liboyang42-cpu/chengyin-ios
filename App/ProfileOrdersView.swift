@@ -9,6 +9,8 @@ struct ProfileOrdersView: View {
     var ticketReader: (any TicketWalletReading)? = nil
     /// Source 去发现城市路线 CTA. Nil (the default) renders no CTA and never navigates.
     var discoverRoutes: (@MainActor () -> Void)? = nil
+    /// Inert unless the root TabView installed it; mirrors the source switchTab to the home page.
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @State private var filterSelection = ProfileOrderFilterSelection()
     private var filterOwner: ProfileOrderFilterOwner {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
@@ -20,6 +22,10 @@ struct ProfileOrdersView: View {
                     ProfileEmptyState(title: "profile.orders.sourceEmpty", hint: "profile.orders.sourceEmptyHint", symbol: "ticket", identifier: "profile.orders.empty")
                     if let discoverRoutes {
                         Button("profile.orderParity.discover") { discoverRoutes() }
+                            .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                            .accessibilityIdentifier("profile.orders.discover")
+                    } else if rootTabSwitch.isAvailable {
+                        Button("profile.orderParity.discover") { rootTabSwitch(.home) }
                             .buttonStyle(.borderedProminent).frame(minHeight: 44)
                             .accessibilityIdentifier("profile.orders.discover")
                     }
@@ -182,6 +188,12 @@ struct ProfileOrderDetailView: View {
                     Section { ticketEntry(order: order, tickets: ticketReader) }
                 }
                 ExploreCompletionEntry(order: order, requestedID: id, origin: reader)
+                // Source 退款与客服 (报名与客服 when free): 联系客服 opens the read-only support page.
+                Section(LocalizedStringKey(order.isSourceFreeOrder ? "profile.orderP2.supportSection.free" : "profile.orderP2.supportSection")) {
+                    NavigationLink { ParticipationSupportView() } label: {
+                        Label("profile.orderP2.contactSupport", systemImage: "message")
+                    }.accessibilityIdentifier("profile.order.detail.support")
+                }
                 Section { Text("profile.readOnly").foregroundStyle(.secondary) }
             }
             }
