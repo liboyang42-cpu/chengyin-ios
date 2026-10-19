@@ -27,10 +27,10 @@ public struct PlayPendingGameCommand: Codable, Equatable {
     /// Rebuilds the identical command; any tampered or unreadable field fails closed.
     func command() throws -> PlayPlayerCommand {
         do {
-            guard let action = PlayPlayerCommand.Action(rawValue: action), sessionID > 0 else { throw PlayExperienceError.persistenceUnavailable }
-            let payload = try JSONDecoder().decode([String: PlayWireValue].self, from: payload)
-            return try .init(activityID: activityID, nodeID: nodeID, requestID: requestID,
-                             expectedRevision: expectedRevision, action: action, payload: payload)
+            guard let kind = PlayPlayerCommand.Action(rawValue: self.action), sessionID > 0 else { throw PlayExperienceError.persistenceUnavailable }
+            let decoded = try JSONDecoder().decode([String: PlayWireValue].self, from: self.payload)
+            return try PlayPlayerCommand(activityID: activityID, nodeID: nodeID, requestID: requestID,
+                                         expectedRevision: expectedRevision, action: kind, payload: decoded)
         } catch { throw PlayExperienceError.persistenceUnavailable }
     }
 }

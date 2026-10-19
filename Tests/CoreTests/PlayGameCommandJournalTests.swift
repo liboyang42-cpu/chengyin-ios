@@ -248,13 +248,14 @@ import FoundationNetworking
         let submit = try PlayPlayerCommand(activityID: 41, nodeID: 701, requestID: "a01-ready-71", expectedRevision: 4, action: .submit,
             payload: ["taskCode": .string("OBSERVE"), "evidenceUrls": .array([.string(try PlayPlayerCommand.textEvidence("synthetic note"))])])
         let hint = try PlayPlayerCommand(activityID: 41, nodeID: 701, requestID: "a01-hint-71", expectedRevision: 4, action: .hint, payload: ["level": .int(1)])
-        for command in [submit, hint, try command()] {
-            let record = try PlayPendingGameCommand(command: command, session: owner, sessionID: 501)
+        let choice = try command()
+        for original in [submit, hint, choice] {
+            let record = try PlayPendingGameCommand(command: original, session: owner, sessionID: 501)
             let encoder = PropertyListEncoder(); encoder.outputFormat = .binary
             let decoded = try PropertyListDecoder().decode(PlayPendingGameCommand.self, from: encoder.encode(record))
-            XCTAssertEqual(try decoded.command(), command)
+            XCTAssertEqual(try decoded.command(), original)
         }
-        XCTAssertThrowsError(try PlayPendingGameCommand(command: try command(), session: owner, sessionID: 0))
+        XCTAssertThrowsError(try PlayPendingGameCommand(command: choice, session: owner, sessionID: 0))
     }
 }
 
