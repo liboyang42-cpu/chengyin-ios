@@ -197,7 +197,7 @@ import SwiftUI
                 } else if entry == "route" {
                     SearchRoutePreviewView(origin: syntheticArea.coordinate, destination: RoamCoordinate(latitude: 1.004, longitude: 1.006)!, name: "Synthetic stop", scope: reader.scope, offline: true)
                 } else {
-                    GlobalSearchView(reader: reader, destination: detail)
+                    GlobalSearchView(reader: reader, recommendedKeywords: GlobalSearchRecommendedKeywords.china, destination: detail)
                 }
             }
             .environment(\.walkingNavigationFactory, walking.factory)
