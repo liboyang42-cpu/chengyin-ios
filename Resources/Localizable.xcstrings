@@ -173758,6 +173758,108 @@
           }
         }
       }
+    },
+    "playx.entryCode.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入场码"
+          }
+        }
+      }
+    },
+    "playx.entryCode.missing.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open from your ticket wallet to show the entry code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从票夹进入才能出示入场码"
+          }
+        }
+      }
+    },
+    "playx.entryCode.missing.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The entry code is tied to your ticket, so it’s only available when you open play from the ticket wallet. Go to the ticket wallet now?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入场码要绑定你那张票，所以只有从票夹点进来才带得到。现在去票夹？"
+          }
+        }
+      }
+    },
+    "playx.entryCode.missing.wallet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to ticket wallet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去票夹"
+          }
+        }
+      }
+    },
+    "playx.entryCode.missing.later": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先不去"
+          }
+        }
+      }
+    },
+    "playx.entryCode.fixtureWallet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket wallet (synthetic)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票夹（合成数据）"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

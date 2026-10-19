@@ -338,5 +338,29 @@
   "playx.themeRecords.nextScene %@": [
     "Next scene: %@",
     "下次场景：%@"
+  ],
+  "playx.entryCode.open": [
+    "Entry code",
+    "入场码"
+  ],
+  "playx.entryCode.missing.title": [
+    "Open from your ticket wallet to show the entry code",
+    "从票夹进入才能出示入场码"
+  ],
+  "playx.entryCode.missing.body": [
+    "The entry code is tied to your ticket, so it’s only available when you open play from the ticket wallet. Go to the ticket wallet now?",
+    "入场码要绑定你那张票，所以只有从票夹点进来才带得到。现在去票夹？"
+  ],
+  "playx.entryCode.missing.wallet": [
+    "Go to ticket wallet",
+    "去票夹"
+  ],
+  "playx.entryCode.missing.later": [
+    "Not now",
+    "先不去"
+  ],
+  "playx.entryCode.fixtureWallet": [
+    "Ticket wallet (synthetic)",
+    "票夹（合成数据）"
   ]
 }

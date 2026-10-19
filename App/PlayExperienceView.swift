@@ -15,6 +15,7 @@ import SwiftUI
     var finishRouteModel: PlayFinishRouteRecommendationCoordinator? = nil
     var finishRouteDestination: ((Int) -> AnyView)? = nil
     var themeRecordsModel: PlayThemeRecordsCoordinator? = nil
+    var entryCode: PlayEntryCodeContext? = nil
     var prefabModel: PlayPrefabRuntimeCoordinator? = nil
     var journeyModel: ((Int) -> JourneyCheckCoordinator?)? = nil
     var ambientModel: JourneyAmbientCoordinator? = nil
@@ -103,6 +104,7 @@ import SwiftUI
                     .disabled(model.phase == .submitting || !model.available).accessibilityIdentifier("playx.refresh")
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
+            if let entryCode { PlayEntryCodeSection(context: entryCode) }
             if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
                let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
                let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
