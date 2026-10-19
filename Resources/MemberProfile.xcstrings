@@ -913,6 +913,38 @@
         }
       }
     },
+    "member.settings.signedOut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to view account details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看账号信息"
+          }
+        }
+      }
+    },
+    "member.settings.signedOutHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in from the welcome screen. The agreement and privacy notes below stay available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在欢迎页登录，下方协议与隐私说明仍可查看"
+          }
+        }
+      }
+    },
     "member.unlike.action": {
       "localizations": {
         "en": {
