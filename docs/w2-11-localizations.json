@@ -250,5 +250,93 @@
   "playx.circleLink.fixtureHome": [
     "Home (synthetic)",
     "首页（合成数据）"
+  ],
+  "playx.themeRecords.title": [
+    "My play records",
+    "我的游玩记录"
+  ],
+  "playx.themeRecords.empty": [
+    "No play records yet",
+    "还没有游玩记录"
+  ],
+  "playx.themeRecords.loading": [
+    "Loading play records",
+    "正在加载游玩记录"
+  ],
+  "playx.themeRecords.more": [
+    "Show more",
+    "查看更多"
+  ],
+  "playx.themeRecords.reload": [
+    "Reload",
+    "重新加载"
+  ],
+  "playx.themeRecords.completed": [
+    "Run completed",
+    "本局完成"
+  ],
+  "playx.themeRecords.ended": [
+    "Run ended",
+    "本局结束"
+  ],
+  "playx.themeRecords.inProgress": [
+    "In progress",
+    "游玩中"
+  ],
+  "playx.themeRecords.historyFailed": [
+    "Play records didn’t load. Please try again later.",
+    "游玩记录暂未加载，请稍后重试"
+  ],
+  "playx.themeRecords.cardFailed": [
+    "This run’s result didn’t load. Please try again later.",
+    "本局结果暂未加载，请稍后重试"
+  ],
+  "playx.themeRecords.teamCardMissing": [
+    "Your team’s result didn’t load. Refresh and try again.",
+    "本队结果暂未加载，请刷新后重试"
+  ],
+  "playx.themeRecords.cardTitle": [
+    "Run result",
+    "本局结果"
+  ],
+  "playx.themeRecords.cardLoading": [
+    "Loading this run’s result",
+    "正在加载本局结果"
+  ],
+  "playx.themeRecords.retryCard": [
+    "Reload this run’s result",
+    "重新加载本局结果"
+  ],
+  "playx.themeRecords.backToList": [
+    "Back to play records",
+    "返回游玩记录"
+  ],
+  "playx.themeRecords.scene": [
+    "Scene",
+    "场景"
+  ],
+  "playx.themeRecords.hp": [
+    "Health",
+    "生命值"
+  ],
+  "playx.themeRecords.luck": [
+    "Luck",
+    "幸运值"
+  ],
+  "playx.themeRecords.actions": [
+    "Actions",
+    "行动次数"
+  ],
+  "playx.themeRecords.rescues": [
+    "Rescues",
+    "获救次数"
+  ],
+  "playx.themeRecords.knownEndings": [
+    "Endings discovered",
+    "已发现的结局"
+  ],
+  "playx.themeRecords.nextScene %@": [
+    "Next scene: %@",
+    "下次场景：%@"
   ]
 }

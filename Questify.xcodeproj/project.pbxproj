@@ -4028,6 +4028,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "69B3B5663DD38B31ED17AFFA";
 		};
+		"F4C02D94E6A17EF29D38248C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayThemeRecordsFixtureSupport.swift";
+			"sourceTree" = "<group>";
+		};
+		"150D050818C198144E012D6F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F4C02D94E6A17EF29D38248C";
+		};
+		"703620D8F944C90441D60C1C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayThemeRecordsView.swift";
+			"sourceTree" = "<group>";
+		};
+		"1BAAE58BBAC173B65FD7594E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "703620D8F944C90441D60C1C";
+		};
 		"A63C9192E0C33E7ECBCA60D7" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -12574,6 +12594,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "55BA1D0ED922B22644133ED2";
 		};
+		"94C42DD1EDC4B85B4FBF283F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PlayThemeRecords.swift";
+			"sourceTree" = "<group>";
+		};
+		"3E9B1D3E1FD91891C2A72CD3" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "94C42DD1EDC4B85B4FBF283F";
+		};
 		"0378F5880D64BEA8DA27751A" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -18000,6 +18030,8 @@
 				"9DED8EAB4F6ECDEDC6582DF7",
 				"9333534CC2AF71DCD175D11B",
 				"69B3B5663DD38B31ED17AFFA",
+				"F4C02D94E6A17EF29D38248C",
+				"703620D8F944C90441D60C1C",
 				"A63C9192E0C33E7ECBCA60D7",
 				"954390EE5271CEDBCD7E2EA7",
 				"B5058DF65D3D74DF7D0DCA4F",
@@ -18854,6 +18886,7 @@
 				"C1519726D7A396D830009E36",
 				"094DF76DB08D58FD0FB08EBA",
 				"55BA1D0ED922B22644133ED2",
+				"94C42DD1EDC4B85B4FBF283F",
 				"0378F5880D64BEA8DA27751A",
 				"328A7A1BC2FF2304F47B689C",
 				"57BED794C0E308A812B96206",
@@ -19470,6 +19503,7 @@
 				"FEE6C845C541F84D96D5E3C7",
 				"04495D071560345664943530",
 				"C57D96A26560302774E64173",
+				"21A3290E78CC48B7AD570FFF",
 				"A72A5BA9D182CF13EE66005E",
 				"45537B344BC24E8B10D20AA9",
 				"1D98ADBE9E6125FB27E4EEF5",
@@ -20399,6 +20433,8 @@
 				"DE22C6AF8BB9C33C00FEF593",
 				"18480D8532944D83D9BD3EFC",
 				"ED731AD39986E32DA5C4CCDB",
+				"150D050818C198144E012D6F",
+				"1BAAE58BBAC173B65FD7594E",
 				"A81E4ECA97FD596E23FB7904",
 				"473DE4D11FF63F3666CE052C",
 				"B0BAE0EAA77F2287BC231598",
@@ -21253,6 +21289,7 @@
 				"51A035CB59807E91025ABE1A",
 				"DFE0A8289FA66271B3BD7AAE",
 				"629968630EC5EFD39348C4B9",
+				"3E9B1D3E1FD91891C2A72CD3",
 				"4C5E9D710C64372C9FB1CEE8",
 				"DC16672F5AAECEF6E3CD7D5B",
 				"4496CBF6C86AD4D033C88D91",
@@ -23014,6 +23051,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "C57D96A26560302774E64173";
 		};
+		"21A3290E78CC48B7AD570FFF" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/PlayThemeRecordsFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"B1E73D16255A643246A0F4CD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "21A3290E78CC48B7AD570FFF";
+		};
 		"A72A5BA9D182CF13EE66005E" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -24260,6 +24307,7 @@
 				"02C267D44C3F91EB48A3C189",
 				"480AEF5361FE30E2E640C452",
 				"A33B9FE2C8BB0D1F4F084C39",
+				"B1E73D16255A643246A0F4CD",
 				"7FADB1BE45413451B65CEE33",
 				"C8BCB0C02B80B7111A83E18C",
 				"7D86503E87F31F03A9985284",
