@@ -76,7 +76,12 @@ public struct ActivityDetail: Decodable, Equatable {
     public let reviews: ActivityReviews
     public let associatedPlays: [ActivityAssociatedPlay]
     public let hostMemberID: Int?
-    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList }
+    /// Source `isSignUp`: only exact 0/1 numbers are meaningful; anything else stays unknown.
+    public let signUpFlag: Int?
+    /// Source `cancelTime`/`cancelReason`: a non-empty cancel time means the host cancelled.
+    public let cancelTime: String?
+    public let cancelReason: String?
+    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList, isSignUp, cancelTime, cancelReason }
     public init(from decoder:Decoder) throws {
         publisherAuthoritySource = try? PublisherActivityAuthoritySource(from: decoder)
         summary=try ActivitySummary(from:decoder)
@@ -86,8 +91,64 @@ public struct ActivityDetail: Decodable, Equatable {
         tickets=try c.decodeIfPresent([ActivityTicket].self,forKey:.omsTicketList) ?? []
         associatedPlays=try c.decodeIfPresent([ActivityAssociatedPlay].self,forKey:.memberTemplateList) ?? []
         hostMemberID=try c.decodeIfPresent(Int.self,forKey:.memberId)
+        let flag = (try? c.decodeIfPresent(Int.self,forKey:.isSignUp)) ?? nil
+        signUpFlag = flag == 0 || flag == 1 ? flag : nil
+        cancelTime=Self.text(c,.cancelTime); cancelReason=Self.text(c,.cancelReason)
+    }
+    private static func text(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
+        // Dates may arrive as text or epoch milliseconds; either one is a present cancellation.
+        if let number = (try? c.decodeIfPresent(Double.self,forKey:key)) ?? nil, number.isFinite, number > 0 { return String(Int64(number)) }
+        guard let value = (try? c.decodeIfPresent(String.self,forKey:key)) ?? nil else { return nil }
+        let trimmed = value.trimmingCharacters(in:.whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+    public var isCancelled: Bool { cancelTime != nil }
+    /// Mirrors the source detail CTA (scene-play-activity-detail actionFor). A missing flag keeps
+    /// the existing registration entry, whose sheet and server still own eligibility checks.
+    public func primaryAction(now: Date) -> ActivityPrimaryAction {
+        if isCancelled { return .cancelled }
+        guard signUpFlag == 1 else { return .signUp }
+        if let start = ActivityPrimaryAction.chinaDate(summary.startDate), now < start { return .viewRegistration }
+        if let end = ActivityPrimaryAction.chinaDate(summary.endDate, dayOnly: true),
+           let last = Calendar.chinaActivity.date(byAdding: DateComponents(day: 1, second: -1), to: end), now > last { return .viewTrace }
+        return .continueExploring
     }
 }
+
+public enum ActivityPrimaryAction: Equatable {
+    case signUp, viewRegistration, continueExploring, viewTrace, cancelled
+    public var titleKey: String {
+        switch self {
+        case .signUp: return "activity.cta.signUp"
+        case .viewRegistration: return "activity.cta.viewRegistration"
+        case .continueExploring: return "activity.cta.continue"
+        case .viewTrace: return "activity.cta.trace"
+        case .cancelled: return "activity.cta.cancelled"
+        }
+    }
+    /// Source activity dates are Beijing wall-clock text ("yyyy-MM-dd[ HH:mm[:ss]]").
+    static func chinaDate(_ raw: String?, dayOnly: Bool = false) -> Date? {
+        guard var value = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
+        value = value.replacingOccurrences(of: "T", with: " ").replacingOccurrences(of: "/", with: "-")
+        if dayOnly { value = String(value.prefix(10)) }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.calendar = .chinaActivity
+        formatter.timeZone = Calendar.chinaActivity.timeZone
+        for format in ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm", "yyyy-MM-dd"] {
+            formatter.dateFormat = format
+            if let date = formatter.date(from: value) { return date }
+        }
+        return nil
+    }
+}
+extension Calendar {
+    static let chinaActivity: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? TimeZone(secondsFromGMT: 8 * 3600)!
+        return calendar
+    }()
+}
+
 
 public enum ActivityDetailAccess: Decodable, Equatable {
     case allowed(ActivityDetail)
