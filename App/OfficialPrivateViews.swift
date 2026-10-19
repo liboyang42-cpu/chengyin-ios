@@ -29,6 +29,7 @@ import SwiftUI
                         // Source meta line: "(city ‖ 全国) · role".
                         (cityText(row) + Text(verbatim: " · ") + roleText(row)).font(.subheadline)
                         Text(LocalizedStringKey(row.scopeKey)).font(.caption)
+                        if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).font(.caption) }
                         if let summary = row.responsibilitySummary, !summary.isEmpty, summary != row.title {
                             Text(verbatim: summary).font(.footnote)
                         }
@@ -73,8 +74,9 @@ import SwiftUI
                 Section {
                     if events.isEmpty { emptyRow("official.published.eventsEmpty", "official.published.eventsEmptyDetail") }
                     ForEach(events) { event in
-                        NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin) } label: { OfficialEventCard(event: event) }
-                            .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
+                        // Source official-mine row: title + publisher-view status badge, then city.
+                        NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin) } label: { publishedEventRow(event) }
+                            .accessibilityIdentifier("official.published.event.\(event.id)")
                     }
                 } header: { Text("official.published.eventsHeader \(events.count)") }
                 Section {
@@ -85,6 +87,10 @@ import SwiftUI
                                     VStack(alignment: .leading, spacing: 8) {
                                         if broadcast.title.isEmpty { Text("official.untitled") }
                                         else { Text(verbatim: broadcast.title).font(.headline) }
+                                        if let facts = broadcast.facts {
+                                            OfficialPrivateFactsText.broadcastLine(facts).font(.subheadline)
+                                            Text(OfficialPrivateFactsText.broadcastStatusKey(facts.status)).font(.caption)
+                                        }
                                         if let content = broadcast.content { Text(verbatim: content).lineLimit(3) }
                                         if let reach = broadcast.reach { Text("official.published.reach \(reach)").font(.caption) }
                                         else { Text("official.published.reachUnknown").font(.caption) }
@@ -97,6 +103,25 @@ import SwiftUI
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
             }.accessibilityIdentifier("official.published.content")
         }.appNavigationTitle("official.published.title").navigationBarTitleDisplayMode(.inline)
+    }
+    private func publishedEventRow(_ event: OfficialEvent) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                if let title = OfficialPublishedPresentation.nonBlank(event.title) { Text(verbatim: title).font(.headline) }
+                else { Text("official.privateParity.published.untitledEvent").font(.headline) }
+                Spacer(minLength: 8)
+                Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(event.status)))
+                    .font(.caption).padding(.horizontal, 8).padding(.vertical, 2)
+                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                    .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
+            }
+            // Source sub line: city, then " · category" only when the server sent one.
+            let city = OfficialPublishedPresentation.nonBlank(event.city).map { Text(verbatim: $0) } ?? Text("official.privateParity.published.cityUnknown")
+            Group {
+                if OfficialPublishedPresentation.nonBlank(event.category) != nil { city + Text(verbatim: " · ") + Text(LocalizedStringKey(event.categoryKey)) }
+                else { city }
+            }.font(.subheadline).foregroundStyle(.secondary)
+        }.fixedSize(horizontal: false, vertical: true)
     }
     private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 4) {

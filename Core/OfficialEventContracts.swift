@@ -37,11 +37,27 @@ public struct OfficialMission: Decodable, Equatable {
     public let type: String?
     public let complete: Bool?
     public let canVerifyArrival: Bool?
+    public let binding: OfficialMissionBinding?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
         code = c.text("missionCode") ?? ""; title = c.text("title") ?? ""
         description = c.text("description"); type = c.text("missionType")
         complete = c.flag("complete"); canVerifyArrival = c.flag("canVerifyArrival")
+        binding = try? c.decode(OfficialMissionBinding.self, forKey: OfficialKey("binding"))
+    }
+}
+/// Source mission `binding`. A THEME sourceRefId is a cms_topic id: a positive long,
+/// supplied as a number or a digit string. Anything else stays nil, never zero.
+public struct OfficialMissionBinding: Decodable, Equatable {
+    public let bindingType: String?
+    public let sourceRefID: Int64?
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: OfficialKey.self)
+        bindingType = c.text("bindingType")
+        let digits = c.text("sourceRefId")?.trimmingCharacters(in: .whitespaces)
+        let parsed = (try? c.decode(Int64.self, forKey: OfficialKey("sourceRefId")))
+            ?? digits.flatMap { !$0.isEmpty && $0.allSatisfy({ $0.isASCII && $0.isNumber }) ? Int64($0) : nil }
+        sourceRefID = parsed.flatMap { $0 > 0 ? $0 : nil }
     }
 }
 public struct OfficialCollectiveProgress: Decodable, Equatable {
@@ -88,6 +104,9 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     public let participantAvatars: [String]
     public let missions: [OfficialMission]
     public let collective: OfficialCollectiveProgress?
+    /// Source display-only fields: CATEGORY_TEXT key and the v1 `contentJson` task cards.
+    public let category: String?
+    public let contentJSON: String?
     public var isCompleteRecord: Bool { id > 0 && !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     public var isV2: Bool { (contractVersion ?? 1) >= 2 }
     /// Exact official_event codes from the existing task-list source. This is a
@@ -121,6 +140,7 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
         participantAvatars = avatars.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         missions = try c.list("missions")
         collective = try c.decodeIfPresent(OfficialCollectiveProgress.self, forKey: OfficialKey("collective"))
+        category = c.text("category"); contentJSON = c.text("contentJson")
     }
     private var rewardMap: [String: Any] {
         guard let data = rewardJSON?.data(using: .utf8), let value = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
@@ -299,9 +319,12 @@ public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {
     public let role: String?
     public let targetType: String?
     public let responsibilitySummary: String?
+    /// Source service window (windowStart/windowEnd); absent fields read as unbounded.
+    public let windowFacts: OfficialInboxWindowFacts?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
         role = c.text("role"); targetType = c.text("targetType"); responsibilitySummary = c.text("responsibilitySummary")
+        windowFacts = try? OfficialInboxWindowFacts(from: decoder)
         id = c.integer("partyId") ?? c.integer("id") ?? 0
         title = c.text("title") ?? c.text("partyName") ?? c.text("responsibilitySummary") ?? ""
         partyType = c.text("partyType"); eventTitle = c.text("eventTitle")
@@ -352,8 +375,11 @@ public struct OfficialBroadcast: Decodable, Equatable, Identifiable {
     public let title: String
     public let content: String?
     public let reach: Int?
+    /// Source official-mine row facts (copyMode, audience, status, city).
+    public let facts: OfficialPublishedBroadcastFacts?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
+        facts = try? OfficialPublishedBroadcastFacts(from: decoder)
         id = c.integer("id") ?? 0; title = c.text("title") ?? ""
         content = c.text("content")
         // Source official-mine reads the domain field `reachedCount`; `reach` stays a fallback.
