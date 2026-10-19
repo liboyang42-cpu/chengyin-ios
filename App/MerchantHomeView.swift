@@ -17,6 +17,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     var engagementReader: (any MerchantEngagementReading)? = nil
     var exportRecovery: (any MerchantExportRecoveryStoring)? = nil
     var showsRecordLinks = true
+    var predictionReader: MerchantPredictionReader? = nil
     @StateObject private var access = MerchantLoadModel<MerchantAccess>()
 
     var body: some View {
@@ -27,7 +28,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 ContentUnavailableView("merchant.title", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("merchant.signIn"))
             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
                 if identity.active {
-                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, refreshAccess: reload)
+                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, refreshAccess: reload)
                         .id("\(reader.sessionRevision):\(identity.merchantID ?? 0):\(identity.role?.rawValue ?? "")")
                 } else {
                     List {
@@ -76,6 +77,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     let engagementReader: (any MerchantEngagementReading)?
     let exportRecovery: (any MerchantExportRecoveryStoring)?
     let showsRecordLinks: Bool
+    let predictionReader: MerchantPredictionReader?
     let refreshAccess: () async -> Void
     @StateObject private var dashboard = MerchantLoadModel<MerchantDashboard>()
     @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
@@ -98,6 +100,10 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 if let role = access.role { Text(LocalizedStringKey(role.titleKey)).foregroundStyle(.secondary) }
                 Text("merchant.readOnly").font(.footnote).foregroundStyle(.secondary)
             }
+            MerchantWorkbenchReminders(todo: todo, access: access,
+                aftercareRoute: businessReader.flatMap { reader in businessJournal.flatMap {
+                    MerchantWorkbenchBusinessRoute(shortcut: .aftercare, reader: reader, journal: $0) } },
+                predictionReader: predictionReader)
             if let marketingModel {
                 // Source merchant tools expose this entry. Visibility is separate from service/AI/settlement grants.
                 Section { MerchantMarketingEntry(model: marketingModel, isSourceVisible: true, suggestionDestination: marketingDestination,

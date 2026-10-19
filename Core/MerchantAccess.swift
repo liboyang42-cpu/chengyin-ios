@@ -21,6 +21,15 @@ public struct MerchantAccess: Decodable, Equatable {
         case projects = "merchant:project:manage"
         case orders = "merchant:order:read"
         case finance = "merchant:finance:read"
+        // Mini-program workbench gates (pages/merchant/index): decoded only to
+        // gate presentation; every server read still re-checks the operator role.
+        case aftercareRead = "merchant:aftercare:read"
+        case verify = "merchant:verify"
+        case crmRead = "merchant:crm:read"
+        case profileWrite = "merchant:profile:write"
+        case couponManage = "merchant:coupon:manage"
+        case coopManage = "merchant:coop:manage"
+        case operatorManage = "merchant:operator:manage"
     }
     public let active: Bool
     public let merchantID: Int?
