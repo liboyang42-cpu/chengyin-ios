@@ -880,6 +880,10 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 10) {
                 if row.kind == .entry, case .entries = query {
                     MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchantOps.ledger.entry.\(row.id)")
+                } else if row.kind == .redemption, case .redemption = query {
+                    MerchantLedgerRedemptionHero(hero: MerchantLedgerParity.redemptionHero(row.fields))
+                } else if row.kind == .batch, case .batch = query {
+                    MerchantLedgerBatchHero(hero: MerchantLedgerParity.batchHero(row.fields))
                 } else {
                 Text(row.title).font(.headline)
                 }

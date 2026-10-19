@@ -1089,6 +1089,23 @@
         }
       }
     },
+    "merchantOps.ledger.batch.net %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ batch net"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 批次净额"
+          }
+        }
+      }
+    },
     "merchantOps.ledger.batch.owes": {
       "extractionState": "manual",
       "localizations": {
@@ -1208,6 +1225,108 @@
         }
       }
     },
+    "merchantOps.ledger.detail.accrual": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accrual rule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计提规则"
+          }
+        }
+      }
+    },
+    "merchantOps.ledger.detail.income %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · My income"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · 我的收入"
+          }
+        }
+      }
+    },
+    "merchantOps.ledger.detail.pendingPersonal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paid to your personal account with the theme settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "随主题结算发放至个人账户"
+          }
+        }
+      }
+    },
+    "merchantOps.ledger.detail.refund": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款状态"
+          }
+        }
+      }
+    },
+    "merchantOps.ledger.detail.store": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeeming store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销门店"
+          }
+        }
+      }
+    },
+    "merchantOps.ledger.detail.storeMissing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store details to be added"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店信息待补充"
+          }
+        }
+      }
+    },
     "merchantOps.ledger.fulfilment.active": {
       "extractionState": "manual",
       "localizations": {
@@ -1310,6 +1429,23 @@
         }
       }
     },
+    "merchantOps.ledger.invoice.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice status to be confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发票状态待确认"
+          }
+        }
+      }
+    },
     "merchantOps.ledger.redemptionTitle": {
       "extractionState": "manual",
       "localizations": {
@@ -1323,6 +1459,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "核销记录"
+          }
+        }
+      }
+    },
+    "merchantOps.ledger.refund.refunded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已退款"
+          }
+        }
+      }
+    },
+    "merchantOps.ledger.refund.refunding": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款中"
+          }
+        }
+      }
+    },
+    "merchantOps.ledger.refund.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已驳回"
+          }
+        }
+      }
+    },
+    "merchantOps.ledger.refund.reviewing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Under review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核中"
           }
         }
       }

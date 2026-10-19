@@ -50,3 +50,40 @@ struct MerchantLedgerSummaryStrip: View {
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
+
+/// Source ledger/order-detail hero card.
+struct MerchantLedgerRedemptionHero: View {
+    let hero: MerchantLedgerParity.RedemptionHero
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            let title = hero.title ?? hero.titleKey.map { MerchantOpsCopy.text($0) } ?? ""
+            Text(verbatim: hero.showsIncome ? MerchantOpsCopy.text("merchantOps.ledger.detail.income %@", title) : title).font(.subheadline)
+            if hero.showsIncome, let amount = hero.amount ?? hero.amountKey.map({ MerchantOpsCopy.text($0) }) {
+                Text(verbatim: amount).font(.largeTitle.bold()).monospacedDigit().foregroundStyle(hero.amount == nil ? .secondary : .primary)
+            }
+            switch hero.state {
+            case .key(let key): Text(verbatim: MerchantOpsCopy.text(key)).font(.footnote.bold())
+            case .server(let text): Text(verbatim: text).font(.footnote.bold())
+            }
+            LabeledContent(MerchantOpsCopy.text("merchantOps.ledger.detail.store"), value: hero.store ?? MerchantOpsCopy.text("merchantOps.ledger.detail.storeMissing"))
+            if let accrual = hero.accrual { LabeledContent(MerchantOpsCopy.text("merchantOps.ledger.detail.accrual"), value: accrual) }
+            if let refund = hero.refundKey { LabeledContent(MerchantOpsCopy.text("merchantOps.ledger.detail.refund"), value: MerchantOpsCopy.text(refund)) }
+        }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.ledger.redemptionHero")
+    }
+}
+
+/// Source ledger/batch-detail hero card.
+struct MerchantLedgerBatchHero: View {
+    let hero: MerchantLedgerParity.BatchHero
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(verbatim: MerchantOpsCopy.text("merchantOps.ledger.batch.net %@", hero.period ?? "")).font(.subheadline)
+            Text(verbatim: hero.amount ?? MerchantOpsCopy.text("merchantOps.ledger.amount.pending")).font(.largeTitle.bold()).monospacedDigit()
+                .foregroundStyle(hero.amount == nil ? .secondary : .primary)
+            HStack {
+                Text(verbatim: MerchantOpsCopy.text(hero.stateKey)).font(.footnote.bold())
+                Text(verbatim: MerchantOpsCopy.text(hero.invoiceKey)).font(.footnote).foregroundStyle(.secondary)
+            }
+        }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.ledger.batchHero")
+    }
+}

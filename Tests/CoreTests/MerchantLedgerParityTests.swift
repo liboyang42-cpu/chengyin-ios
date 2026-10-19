@@ -52,4 +52,24 @@ final class MerchantLedgerParityTests: XCTestCase {
         XCTAssertEqual(MerchantLedgerParity.summary(["count": .number(3)], canReadFinance: false), .init(count: 3, pending: nil, arrived: nil))
         XCTAssertNil(MerchantLedgerParity.summary([:], canReadFinance: false))
     }
+
+    func testRedemptionDetailHeroUsesDetailCopyAndAccrual() throws {
+        let hero = MerchantLedgerParity.redemptionHero(try redemption { $0["unitFee"] = .string("3"); $0["headCount"] = .number(2); $0["storeName"] = .null; $0["refundState"] = .string("REFUNDED") })
+        XCTAssertTrue(hero.showsIncome); XCTAssertEqual(hero.title, "Example route · Example chapter")
+        XCTAssertEqual(hero.state, .key("merchantOps.ledger.detail.pendingPersonal")); XCTAssertEqual(hero.amountKey, "merchantOps.ledger.amount.pending")
+        XCTAssertEqual(hero.accrual, "¥3.00/人 × 2"); XCTAssertNil(hero.store); XCTAssertEqual(hero.refundKey, "merchantOps.ledger.refund.refunded")
+        let chapter = MerchantLedgerParity.redemptionHero(try redemption { $0["displayState"] = .string("SETTLED"); $0["settlementRoute"] = .string("CHAPTER_OFFER"); $0["settlementAmount"] = .string("8") })
+        XCTAssertEqual(chapter.state, .key("merchantOps.ledger.state.settledPaid")); XCTAssertEqual(chapter.amount, "¥8.00")
+        let redacted = MerchantLedgerParity.redemptionHero(try redemption { $0["settlementState"] = .null; $0["settlementRoute"] = .null; $0["displayState"] = .null })
+        XCTAssertFalse(redacted.showsIncome); XCTAssertNil(redacted.amountKey); XCTAssertNil(redacted.accrual)
+        XCTAssertEqual(redacted.state, .key("merchantOps.ledger.fulfilment.active"))
+    }
+    func testBatchHeroPaymentTextAndInvoiceFallback() throws {
+        let hero = MerchantLedgerParity.batchHero(try object(MerchantBusinessSyntheticFixtures.batch))
+        XCTAssertEqual(hero.period, "2026-09"); XCTAssertEqual(hero.amount, "¥0.00")
+        XCTAssertEqual(hero.stateKey, "merchantOps.ledger.batch.reconciling"); XCTAssertEqual(hero.invoiceKey, "merchantOps.ledger.invoice.unknown")
+        let paid = MerchantLedgerParity.batchHero(["paymentState": .string("PAID"), "netDirection": .string("PLATFORM_PAYS_MERCHANT")])
+        XCTAssertEqual(paid.stateKey, "merchantOps.ledger.state.settledPaid"); XCTAssertEqual(paid.variant, .success)
+        XCTAssertEqual(MerchantLedgerParity.batchHero(["netDirection": .string("MERCHANT_OWES_PLATFORM")]).variant, .danger)
+    }
 }

@@ -28,4 +28,18 @@ final class MerchantOpsLedgerUITests: XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(row.label.contains("Awaiting reconciliation"), row.label)
     }
+    func testBatchDetailShowsNetHero() {
+        let app = launch(); open("merchant.business.open.batches", app)
+        open("merchant.business.row.batch.66001", app)
+        let hero = app.descendants(matching: .any)["merchantOps.ledger.batchHero"]
+        XCTAssertTrue(hero.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(hero.label.contains("2026-09 batch net"), hero.label)
+    }
+    func testRedemptionDetailShowsIncomeHero() {
+        let app = launch(); open("merchant.business.open.redemptions", app)
+        open("merchant.business.row.redemption.redemption:64001", app)
+        let hero = app.descendants(matching: .any)["merchantOps.ledger.redemptionHero"]
+        XCTAssertTrue(hero.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(hero.label.contains("My income"), hero.label)
+    }
 }

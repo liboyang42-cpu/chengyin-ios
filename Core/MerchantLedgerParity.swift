@@ -150,4 +150,86 @@ public enum MerchantLedgerParity {
         guard parts.count == 3 else { return nil }
         return (String(parts[1]), String(parts[2]))
     }
+
+    /// Source ledger/order-detail: hero "{title} · 我的收入" (finance only), detail state copy, store,
+    /// accrual rule, refund state. Finance visibility follows the projection the server returned.
+    public struct RedemptionHero: Equatable {
+        public let title: String?
+        public let titleKey: String?
+        public let showsIncome: Bool
+        public let amount: String?
+        public let amountKey: String?
+        public let state: State
+        public let variant: Variant
+        public let store: String?
+        public let accrual: String?
+        public let refundKey: String?
+    }
+    public static func redemptionHero(_ fields: MerchantBusinessObject) -> RedemptionHero {
+        let parts = [fields.mbText("topicName"), fields.mbText("chapterName")].compactMap { $0 }
+        let finance = ["settlementState", "settlementRoute", "displayState"].allSatisfy { fields.mbText($0) != nil }
+        let display = fields.mbText("displayState")
+        let state: State, variant: Variant
+        if finance {
+            if display == "NO_CASH_SETTLEMENT" { state = financeState(fields) }
+            else {
+                switch display {
+                case "PENDING_SETTLEMENT": state = .key("merchantOps.ledger.detail.pendingPersonal")
+                case "SETTLED": state = .key(fields.mbText("settlementRoute") == "CHAPTER_OFFER" ? "merchantOps.ledger.state.settledPaid" : "merchantOps.ledger.state.settledPersonal")
+                default: state = financeState(fields)
+                }
+            }
+            variant = Self.variant(display)
+        } else {
+            let fulfilment = fields.mbText("fulfillmentState")
+            state = .key(fulfilment == "REVERSED" ? "merchantOps.ledger.fulfilment.reversed" : (fulfilment == "ACTIVE" ? "merchantOps.ledger.fulfilment.active" : "merchantOps.ledger.fulfilment.unknown"))
+            variant = fulfilment == "ACTIVE" ? .success : .neutral
+        }
+        let value = finance && display != "NO_CASH_SETTLEMENT" ? money(fields["settlementAmount"]) : nil
+        let accrual: String?
+        if finance, let fee = money(fields["unitFee"]), let heads = fields["headCount"]?.numberText, !heads.isEmpty { accrual = yuan(fee) + "/人 × " + heads }
+        else { accrual = nil }
+        let refund: String?
+        switch fields.mbText("refundState") {
+        case "REVIEWING": refund = "merchantOps.ledger.refund.reviewing"
+        case "REJECTED": refund = "merchantOps.ledger.refund.rejected"
+        case "REFUNDING": refund = "merchantOps.ledger.refund.refunding"
+        case "REFUNDED": refund = "merchantOps.ledger.refund.refunded"
+        default: refund = nil
+        }
+        return RedemptionHero(title: parts.isEmpty ? nil : parts.joined(separator: " · "), titleKey: parts.isEmpty ? "merchantOps.ledger.redemptionTitle" : nil,
+                              showsIncome: finance, amount: value.map { yuan($0) },
+                              amountKey: finance && value == nil ? (display == "NO_CASH_SETTLEMENT" ? "merchantOps.ledger.amount.none" : "merchantOps.ledger.amount.pending") : nil,
+                              state: state, variant: variant, store: fields.mbText("storeName"), accrual: accrual, refundKey: refund)
+    }
+
+    /// Source ledger/batch-detail: "{periodYm} 批次净额", paymentText and invoice chip.
+    public struct BatchHero: Equatable {
+        public let period: String?
+        public let amount: String?
+        public let stateKey: String
+        public let variant: Variant
+        public let invoiceKey: String
+    }
+    public static func batchHero(_ fields: MerchantBusinessObject) -> BatchHero {
+        let display = fields.mbText("displayState"), direction = fields.mbText("netDirection"), payment = fields.mbText("paymentState")
+        let stateKey: String
+        if display == "LEDGER_ERROR" { stateKey = "merchantOps.ledger.state.ledgerError" }
+        else if direction == "ZERO" { stateKey = "merchantOps.ledger.batch.zero" }
+        else if direction == "MERCHANT_OWES_PLATFORM" { stateKey = "merchantOps.ledger.batch.owes" }
+        else if fields.mbText("holdState") == "FROZEN" { stateKey = "merchantOps.ledger.batch.frozen" }
+        else if payment == "PAID" { stateKey = "merchantOps.ledger.state.settledPaid" }
+        else if payment == "CONFIRMED" { stateKey = "merchantOps.ledger.batch.confirmed" }
+        else { stateKey = "merchantOps.ledger.batch.reconciling" }
+        let variant: Variant = display == "LEDGER_ERROR" || direction == "MERCHANT_OWES_PLATFORM" ? .danger
+            : (payment == "PAID" ? .success : (direction == "ZERO" ? .neutral : .warning))
+        let invoice: String
+        switch fields.mbText("invoiceState") {
+        case "NONE": invoice = "merchantOps.ledger.invoice.none"
+        case "ISSUED": invoice = "merchantOps.ledger.invoice.issued"
+        case "RED": invoice = "merchantOps.ledger.invoice.red"
+        default: invoice = "merchantOps.ledger.invoice.unknown"
+        }
+        return BatchHero(period: fields.mbText("periodYm"), amount: money(fields["amountTotal"]).map { yuan($0) }, stateKey: stateKey, variant: variant, invoiceKey: invoice)
+    }
 }
