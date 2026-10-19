@@ -77,6 +77,8 @@ public struct ProfileOrderTicketSchedule: Decodable, Equatable {
 public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let id: Int
     public let historyFacts: ProfileOrderHistoryFacts
+    /// Lenient supplemental detail facts (transaction id, refund time/reason); display only.
+    public let detailFacts: ProfileOrderDetailFacts
     public let memberID: Int?
     public let ticketID: Int?
     public let ownerType: Int?
@@ -176,6 +178,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)
         historyFacts = try ProfileOrderHistoryFacts(from: decoder)
+        detailFacts = try ProfileOrderDetailFacts(from: decoder)
         guard id > 0 else { throw APIError.malformedResponse }
         memberID = try c.decodeIfPresent(Int.self, forKey: .memberId)
         ticketID = try c.decodeIfPresent(Int.self, forKey: .ticketId)

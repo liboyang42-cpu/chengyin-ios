@@ -95,6 +95,49 @@ class W204OrderParityChecks(unittest.TestCase):
         catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']
         self.assertEqual(catalog['profile.orderParity.detail.unavailable']['localizations']['zh-Hans']['stringUnit']['value'], '订单暂不可查看')
         self.assertEqual(catalog['profile.orderParity.detail.loading']['localizations']['zh-Hans']['stringUnit']['value'], '订单详情加载中')
+    def test_detail_source_sections_are_read_only_and_ordered(self):
+        sections = read('App/ProfileOrderSourceDetailSections.swift')
+        timeline = read('Core/ProfileOrderTimeline.swift')
+        self.assertIn('ProfileOrderSourceDetailSections(order: order)', self.app)
+        self.assertLess(self.app.index('Section(LocalizedStringKey(order.paymentSectionTitleKey))'), self.app.index('ProfileOrderSourceDetailSections(order: order)'))
+        for marker in ['orderLifecycle.timeline.title', 'profile.orderParity.section.paymentInfo', 'profile.orderParity.section.registrant', 'profile.orderParity.section.voucher']:
+            self.assertIn(marker, sections)
+        self.assertLess(sections.index('orderLifecycle.timeline.title'), sections.index('profile.orderParity.section.paymentInfo'))
+        self.assertLess(sections.index('profile.orderParity.section.paymentInfo'), sections.index('profile.orderParity.section.registrant'))
+        self.assertLess(sections.index('profile.orderParity.section.registrant'), sections.index('profile.orderParity.section.voucher'))
+        self.assertIn('if order.showsSourcePaymentInfo {', sections)
+        self.assertIn('var showsSourcePaymentInfo: Bool { paymentStatus == 2 }', timeline)
+        for forbidden in ['Task {', 'await ', 'transport', 'URLSession', 'Button(']:
+            self.assertNotIn(forbidden, sections)
+            self.assertNotIn(forbidden, timeline)
+
+    def test_detail_facts_are_lenient_and_single_mount(self):
+        profile = read('Core/ProfileContracts.swift')
+        timeline = read('Core/ProfileOrderTimeline.swift')
+        self.assertEqual(profile.count('detailFacts = try ProfileOrderDetailFacts(from: decoder)'), 1)
+        self.assertEqual(profile.count('historyFacts = try ProfileOrderHistoryFacts(from: decoder)'), 1)
+        facts = timeline.split('public struct ProfileOrderDetailFacts', 1)[1].split('public struct ProfileOrderTimelineStep', 1)[0]
+        self.assertNotIn('try c.decode(', facts)
+        self.assertNotIn('decodeIfPresent', facts)
+        self.assertIn('?? Self.present(try? refund.decode(String.self, forKey: .updateTime))', facts)
+
+    def test_timeline_follows_source_branches(self):
+        timeline = read('Core/ProfileOrderTimeline.swift')
+        for text in ['if paymentStatus == 2 {', '} else if state == .cancelled {', 'if state == .refunding || state == .refunded {',
+                     'manualRefundCaseStatus == "NO_REFUND" || manualRefundCaseStatus == "MANUAL_REFUND_EVIDENCE_VERIFIED"',
+                     'verificationStatus == 1 ? OrderLifecycleTime.display(verificationTime) : nil']:
+            self.assertIn(text, timeline)
+        catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']
+        zh = lambda key: catalog[key]['localizations']['zh-Hans']['stringUnit']['value']
+        expected = {'orderLifecycle.timeline.created': '订单已创建', 'orderLifecycle.timeline.paid': '支付已完成',
+                    'orderLifecycle.timeline.cancelled': '订单已取消', 'orderLifecycle.timeline.awaitingPayment': '等待支付',
+                    'orderLifecycle.timeline.verified': '权益已核销', 'orderLifecycle.timeline.refunding': '退款处理中',
+                    'profile.orderParity.timeline.free': '免费报名成功', 'profile.orderParity.timeline.firstScan': '首次扫码成功',
+                    'profile.orderParity.timeline.refunded': '已退款', 'profile.orderParity.timeline.awaitingStore': '等待到店核销',
+                    'profile.orderParity.timeline.notVerified': '尚未核销', 'profile.orderParity.timeline.updatesLater': '完成后更新',
+                    'profile.orderParity.transactionID': '微信交易单号', 'profile.orderParity.mobile': '手机'}
+        for key, value in expected.items():
+            self.assertEqual(zh(key), value, key)
 
 if __name__ == '__main__':
     unittest.main()
