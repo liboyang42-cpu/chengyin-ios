@@ -27,11 +27,15 @@ extension EnvironmentValues {
                 if model.ownerIsCurrent {
                     if let name = model.couponName { Text(verbatim: name).font(.title2) }
                     if let description = model.couponDescription { Text(verbatim: description) }
-                    if let end = AccountCollectionCoupon.calendarDay(model.endTime) {
+                    // Source parity: validity is shown on the expired result only.
+                    if model.phase == .expired, let end = AccountCollectionCoupon.calendarDay(model.endTime) {
                         LabeledContent("accountCollection.coupon.validUntil") { Text(verbatim: end) }
                     }
                 }
-                content(presentation: presentation, appearance: appearance)
+                if model.historyID <= 0 {
+                    ContentUnavailableView("couponCode.missing", systemImage: "ticket", description: Text("couponCode.missing.detail"))
+                        .accessibilityIdentifier("couponCode.missing")
+                } else { content(presentation: presentation, appearance: appearance) }
                 if model.pollDelayed { Text("couponCode.pollDelayed").font(.footnote) }
                 Text("couponCode.authority").font(.footnote).foregroundStyle(.secondary)
             }.padding().frame(maxWidth: .infinity)
@@ -86,10 +90,18 @@ extension EnvironmentValues {
                     Image(uiImage: image).resizable().interpolation(.none).scaledToFit().frame(width: 240, height: 240)
                         .padding(24).background(.white).accessibilityLabel("couponCode.image")
                 } else { Text("couponCode.renderFailed") }
+                Text("couponCode.presentToMerchant").font(.subheadline).foregroundStyle(.secondary)
                 LabeledContent("couponCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
+                retryButton("couponCode.refresh", identifier: "couponCode.refresh", presentation: presentation, appearance: appearance)
             }
         case .loading: ProgressView("couponCode.loading")
-        case .waiting: Label("couponCode.waiting", systemImage: "clock")
+        case .waiting:
+            Label("couponCode.waiting", systemImage: "clock")
+            if let start = AccountCollectionCoupon.calendarDay(model.receipt?.startTime) {
+                LabeledContent("accountCollection.coupon.validFrom") { Text(verbatim: start) }
+                    .accessibilityIdentifier("couponCode.waiting.start")
+            }
+            retryButton("couponCode.fetchAgain", identifier: "couponCode.fetchAgain", presentation: presentation, appearance: appearance)
         case .paused: Label("couponCode.paused", systemImage: "pause.circle")
         case .failed:
             ContentUnavailableView("couponCode.failed", systemImage: "exclamationmark.triangle", description: Text("couponCode.failed.detail"))
@@ -105,9 +117,24 @@ extension EnvironmentValues {
         case .invalid: Label("couponCode.invalid", systemImage: "xmark.seal")
         case .unavailable: Label("couponCode.unavailable", systemImage: "nosign")
         case .disabled: Text("couponCode.disabled")
+        case .serviceDisabled:
+            ContentUnavailableView("couponCode.serviceDisabled", systemImage: "qrcode", description: Text("couponCode.serviceDisabled.detail"))
+                .accessibilityIdentifier("couponCode.serviceDisabled")
+            retryButton("action.retry", identifier: "couponCode.serviceDisabled.retry", presentation: presentation, appearance: appearance)
         case .login: Text("couponCode.login")
         case .stale: Text("couponCode.stale")
         }
+    }
+}
+extension CouponCodeView {
+    /// Manual re-issue (source retryNow). Captures the offer before creating its task.
+    @ViewBuilder func retryButton(_ title: LocalizedStringKey, identifier: String, presentation: CouponCodePresentationPermit?,
+                                  appearance: CouponCodeViewPresentation) -> some View {
+        Button(title) {
+            guard let offer = model.offerRetry(presentation: presentation) else { return }
+            appearance.actionTask?.cancel()
+            appearance.actionTask = Task { await model.retry(permit: offer) }
+        }.accessibilityIdentifier(identifier)
     }
 }
 /// Tasks belong to this single appearance. Old disappearance callbacks can cancel only

@@ -10,12 +10,14 @@ import SwiftUI
         let realm: String
         @MainActor init?(context: ClubGovernanceReadContext, snapshot: ClubGovernanceSnapshot,
               generation: UInt64, access: any ClubGovernanceAccess) {
-            guard context.operation == .cases, context.accepts(snapshot), snapshot.value.array != nil,
+            guard context.operation == .cases, context.accepts(snapshot), (snapshot.value.array ?? snapshot.value["data"].array) != nil,
                   context.identity?.isSignedIn == true, context.identity == access.identity,
                   context.authorizationGeneration == access.authorizationGeneration,
                   context.accessIdentity == ObjectIdentifier(access), access.isConfigured,
                   (context.scope.clubID ?? 0) > 0,
-                  snapshot.permissions?.allows(ClubGovernanceRead.cases.permission, scope: context.scope) == true else { return nil }
+                  // A banned former member has no access grant; only a known active ban lets their own-case page open an appeal.
+                  snapshot.permissions?.allows(ClubGovernanceRead.cases.permission, scope: context.scope) == true ||
+                    (snapshot.permissions == nil && snapshot.value["activeBan"].object != nil) else { return nil }
             self.context = context; self.snapshot = snapshot; self.generation = generation
             namespace = access.storageNamespace; realm = access.journalRealm
         }
@@ -38,6 +40,7 @@ import SwiftUI
 
     func open(_ operation: ClubGovernanceMutation, source: Source?, visible: Bool, active: Bool) {
         guard [.report, .appeal].contains(operation), item == nil, readID == nil, visible, active, let source else { return }
+        guard operation == .appeal || source.snapshot.permissions != nil else { return }
         item = .init(route: .init(operation: operation, scope: source.context.scope), source: source)
         isPresented = true; submitted = nil; acknowledged = false; didDismiss = false
     }
