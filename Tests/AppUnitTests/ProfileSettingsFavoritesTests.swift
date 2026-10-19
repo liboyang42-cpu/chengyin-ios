@@ -159,7 +159,7 @@ import UIKit
         let selection = try XCTUnwrap(owner.posts.selection), reader = h.session.makeProfileFavoriteDetailReader(selection)
         h.wire.holdPath = "info"
         let held = expectation(description: "Old Settings post detail"); h.wire.onHeld = { held.fulfill() }
-        let task = Task { try await reader.postDetail(id: 101) }
+        let task = Task { try await reader.squareDetail(id: 101) }
         await fulfillment(of: [held], timeout: 2)
         XCTAssertTrue(owner.close(route.id)); XCTAssertTrue(owner.open(.current(h.session)))
         let next = try XCTUnwrap(owner.route)
