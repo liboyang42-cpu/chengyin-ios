@@ -13,6 +13,7 @@ import SwiftUI
     @State private var selectedMember: MemberPlayTemplateID?
     @State private var selectedConfiguration: MemberPlayTemplateID?
     @State private var keyword = ""
+    @State private var appliedKeyword: String?
     @State private var hasMore = false
     @State private var readMessageKey: String?
     @State private var viewRequest = UUID()
@@ -30,11 +31,24 @@ import SwiftUI
                 Text("templateAuthor.shelf.pageScope").font(.caption)
                 if !coordinator.canRead { Text("templateAuthor.unavailable") }
                 TextField("templateAuthor.shelf.keyword", text: $keyword)
+                    .submitLabel(.search)
+                    .onSubmit { Task { await refresh() } }
                     .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.keyword")
+                if !keyword.isEmpty {
+                    Button {
+                        guard !busy else { return }
+                        keyword = ""
+                        Task { await refresh() }
+                    } label: {
+                        Label {
+                            Text(verbatim: creatorLocale.language.languageCode?.identifier == "zh" ? "清除搜索" : "Clear search")
+                        } icon: { Image(systemName: "xmark.circle") }
+                    }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.clearSearch")
+                }
                 Button("templateAuthor.shelf.refresh") { Task { await refresh() } }
                     .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.refresh")
             }
-            ForEach(rows) { row in
+            ForEach(appliedKeyword == keyword ? rows : []) { row in
                 Section {
                     Text(verbatim: row.title).font(.headline)
                     if let id = MemberPlayTemplateID(rawValue: row.id), memberDetail != nil {
@@ -70,12 +84,12 @@ import SwiftUI
                         .disabled(readSnapshot)
                 }
             }
-            if hasMore {
+            if hasMore, appliedKeyword == keyword {
                 Button("templateAuthor.shelf.loadMore") { Task { await loadMore() } }
                     .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.loadMore")
             }
-            if let readMessageKey { Text(LocalizedStringKey(readMessageKey)).accessibilityIdentifier("templateAuthor.shelf.readStatus") }
-            if let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
+            if appliedKeyword == keyword, let readMessageKey { Text(LocalizedStringKey(readMessageKey)).accessibilityIdentifier("templateAuthor.shelf.readStatus") }
+            if appliedKeyword == keyword, let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
         }.navigationTitle("templateAuthor.mine")
             // Stable typed destination survives invalidation of its source list on push.
             .navigationDestination(item: $selectedMember) { id in
@@ -87,10 +101,14 @@ import SwiftUI
             .navigationDestination(item: $selectedCreatorConsent) { selection in
                 if let creatorConsent { creatorConsent(selection) }
             }
+            .onChange(of: keyword) { _, _ in
+                review = nil
+                coordinator.cancelShelfReview()
+            }
             .onChange(of: sessionRevision) { _, _ in selectedCreatorConsent = nil }
             .onChange(of: sessionRevision) { _, _ in selectedConfiguration = nil }
             .onChange(of: sessionRevision) { _, _ in selectedMember = nil }
-            .task(id: sessionRevision) { rows = []; review = nil; rowStates = [:]; await refresh() }
+            .task(id: sessionRevision) { viewRequest = UUID(); busy = false; rows = []; review = nil; rowStates = [:]; await refresh() }
             .onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave(); coordinator.leaveShelfScreen(); rows = []; review = nil; busy = false; rowStates = [:] }
             .sheet(item: $review, onDismiss: { coordinator.cancelShelfReview() }) { value in
                 NavigationStack {
@@ -146,16 +164,19 @@ import SwiftUI
         readMessageKey = coordinator.shelfReader.messageKey; messageKey = coordinator.shelfMessageKey; locked = coordinator.shelfLocked
     }
     private func prepare(_ id: Int, _ action: TemplateOwnShelfAction) {
-        guard !coordinator.shelfReader.isShowingRefreshSnapshot else { return }
+        guard !busy, appliedKeyword == keyword, !coordinator.shelfReader.isShowingRefreshSnapshot else { return }
         coordinator.prepareShelf(templateID: id, action: action); review = coordinator.shelfReview; sync()
     }
     private func loadMore() async {
+        guard !busy, appliedKeyword == keyword else { return }
         let stamp = viewRequest; busy = true; review = nil; coordinator.cancelShelfReview()
         await coordinator.shelfReader.loadMore()
         guard stamp == viewRequest, !Task.isCancelled else { return }
         sync(); busy = false
     }
     private func refresh() async {
+        guard !busy else { return }
+        appliedKeyword = keyword
         let stamp = UUID(); viewRequest = stamp
         defer {
             if stamp == viewRequest, Task.isCancelled {

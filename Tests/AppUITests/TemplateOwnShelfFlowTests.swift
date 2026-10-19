@@ -40,6 +40,39 @@ import XCTest
             app.buttons["templateAuthor.fixture.reopen"].tap()
         }
     }
+    func testSearchSubmissionDetailReturnAndClearUseOrdinaryShelfControls() {
+        let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let field = app.textFields["templateAuthor.shelf.keyword"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        let detail = app.buttons["memberTemplate.mine.901"]
+        reveal(detail, in: app)
+        reveal(field, in: app, towardTop: true)
+        field.tap(); field.typeText("Synthetic")
+        // Pending input must not label the previous query's rows as fresh results.
+        XCTAssertFalse(detail.exists)
+        field.typeText("\n")
+        reveal(detail, in: app); detail.tap()
+        XCTAssertTrue(app.staticTexts["Synthetic owned detail"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertEqual(field.value as? String, "Synthetic")
+        let clear = app.buttons["templateAuthor.shelf.clearSearch"]
+        reveal(clear, in: app, towardTop: true); clear.tap()
+        reveal(detail, in: app)
+        XCTAssertFalse(clear.exists)
+    }
+    func testChineseClearSearchLabelAndUnsubmittedQueryHidePriorActions() {
+        let app = app(language: "zh-Hans")
+        defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let field = app.textFields["templateAuthor.shelf.keyword"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        reveal(app.buttons["memberTemplate.mine.901"], in: app)
+        reveal(field, in: app, towardTop: true); field.tap(); field.typeText("abc")
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.library.901"].exists)
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.delete.901"].exists)
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.loadMore"].exists)
+        XCTAssertEqual(app.buttons["templateAuthor.shelf.clearSearch"].label, "清除搜索")
+    }
     func testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit() {
         let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.library.901"]
         XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
