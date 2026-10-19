@@ -166,10 +166,12 @@ enum MerchantGameNodeCopy {
                 .accessibilityIdentifier("gameNode.writesDisabled")
         }
         runbook(station)
-        if station.canAccept || station.canDecline { invitation(station) }
-        if station.canReady { readyCard(station) }
-        if station.status == "PAUSED" { pauseInfo(station) }
-        if station.canPause || station.canVerify || station.playable { runCard(station) }
+        Group {
+            if station.canAccept || station.canDecline { invitation(station) }
+            if station.canReady { readyCard(station) }
+            if station.status == "PAUSED" { pauseInfo(station) }
+            if station.canPause || station.canVerify || station.playable { runCard(station) }
+        }
         receiptsCard
         recapCard(station)
     }

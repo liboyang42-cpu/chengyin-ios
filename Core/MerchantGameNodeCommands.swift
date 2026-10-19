@@ -150,7 +150,7 @@ public struct MerchantGameNodeCommand: Codable, Equatable {
         let capacity = MerchantGameNodeWire.positiveID(.string(draft.capacity))
         let start = MerchantGameNodeWire.text(.string(draft.serviceStartAt), 32), end = MerchantGameNodeWire.text(.string(draft.serviceEndAt), 32)
         let note = MerchantGameNodeWire.text(.string(draft.note), 200)
-        guard p.playMode == .route || !checklist.isEmpty, checklist.allSatisfy(\.checked), capacity > 0,
+        guard p.playMode == .route || !checklist.isEmpty, checklist.allSatisfy({ $0.checked }), capacity > 0,
               MerchantGameNodeWire.validDateTime(start), MerchantGameNodeWire.validDateTime(end),
               MerchantGameNodeWire.timeKey(start) < MerchantGameNodeWire.timeKey(end) else { throw MerchantGameNodeCommandError.inputInvalid }
         return command.with(["checklist": .array(checklist.map { .object(["code": .string($0.code), "checked": .bool($0.checked)]) }),

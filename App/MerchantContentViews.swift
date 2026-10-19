@@ -238,6 +238,7 @@ struct MerchantContentFields: View {
     let rows: [MerchantContentValue]
     let kind: Kind
     var focusedTopicID: Int? = nil
+    @Environment(\.merchantGameNodeDestination) private var gameNodeDestination
     private var rowNamespace: String {
         switch kind { case .city: return "city"; case .cityApplication: return "cityApplication"; case .player: return "player"; case .query(let query): return query.key }
     }
@@ -325,7 +326,12 @@ struct MerchantContentFields: View {
             }
         case .claimable:
             if let poi = row["poiId"].integer ?? row["id"].integer, poi > 0 { Button("merchant.content.claim") { model.prepare(.claim(poiID: poi)) } }
-        case .gameEntries: if let id = row["activityId"].integer, id > 0 { link(.game(activityID: id), key: "game") }
+        case .gameEntries: if let id = row["activityId"].integer, id > 0 {
+            // Source game-node page when the host registers it; the generic station document otherwise.
+            if let gameNodeDestination {
+                NavigationLink { gameNodeDestination(service, .station(activityID: id)) } label: { Text(LocalizedStringKey("merchant.content.game")) }.accessibilityIdentifier("merchant.content.open.game")
+            } else { link(.game(activityID: id), key: "game") }
+        }
         default: EmptyView()
         }
     }
@@ -379,6 +385,7 @@ struct MerchantContentFields: View {
     let value: MerchantContentValue
     let topicID: Int?
     var readOnly = false
+    @Environment(\.merchantGameNodeDestination) private var gameNodeDestination
     var body: some View {
         MerchantContentFields(value: value["topic"], names: ["name", "title", "city"])
         // Host and participant are independent source projections; both can be present.
@@ -406,6 +413,13 @@ struct MerchantContentFields: View {
             Text("merchant.content.joining").font(.headline)
             MerchantContentFields(value: value["join"]["registration"], names: ["addressName", "status", "auditStatus"])
             if !readOnly { NavigationLink("merchant.content.registrations") { MerchantContentDocumentView(service: service, query: .registrations(filter: 0)) } }
+            // Source merchantinfo 更多 rows (这一站怎么接待 / 暂停接待) open game-node through the topic's sessions.
+            if !readOnly, let topicID, let gameNodeDestination {
+                NavigationLink { gameNodeDestination(service, .entries(topicID: topicID, focusPause: false)) } label: { MerchantGameNodeCopy.text("merchantGameNode.title") }
+                    .accessibilityIdentifier("merchant.content.gameNode.entries")
+                NavigationLink { gameNodeDestination(service, .entries(topicID: topicID, focusPause: true)) } label: { MerchantGameNodeCopy.text("merchantGameNode.run.pause") }
+                    .accessibilityIdentifier("merchant.content.gameNode.pause")
+            }
         }
         if value["host"].object == nil && value["join"].object == nil { Text("merchant.content.noWorkspace") }
     }

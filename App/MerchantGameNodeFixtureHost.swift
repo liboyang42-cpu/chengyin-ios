@@ -5,7 +5,7 @@ import FoundationNetworking
 #endif
 
 /// Offline synthetic station server for pages/merchant/game-node. Requests terminate here; no socket,
-/// URLSession, camera or provider exists. All names are obviously synthetic.
+/// network session, camera or provider exists. All names are obviously synthetic.
 final class MerchantGameNodeFixtureTransport: MerchantContentOfflineTransport {
     let scenario: String
     private(set) var requests: [URLRequest] = []

@@ -5,9 +5,12 @@ import SwiftUI
 @MainActor struct MerchantGameNodeEntryView: View {
     let service: any MerchantGameNodeServing
     let topicID: Int?
-    var focusPause = false
+    let focusPause: Bool
     @State private var result: MerchantGameNodeEntriesResult?
     @State private var loadedScope: UUID?
+    init(service: any MerchantGameNodeServing, topicID: Int?, focusPause: Bool = false) {
+        self.service = service; self.topicID = topicID; self.focusPause = focusPause
+    }
     private var rows: [MerchantGameNodeEntry] {
         guard case .ready(let entries)? = result else { return [] }
         guard let topicID else { return entries }

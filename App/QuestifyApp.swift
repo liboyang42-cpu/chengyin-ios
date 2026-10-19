@@ -254,6 +254,7 @@ struct SessionRootView: View {
         .environmentObject(session)
         .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })
         .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
+        .environment(\.merchantGameNodeDestination, { $1.view(service: $0) })
         .environment(\.merchantCityTemplateHandoffFactory, {
             .init(reader: session.merchantOperationsReader, imageHost: session.retainedMerchantImages,
                   templateAssistFactory: { session.merchantTemplateAssistFlow(coordinator: $0) })
