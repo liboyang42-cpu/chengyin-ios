@@ -89,6 +89,7 @@ final class AppSession: ObservableObject {
     }
     private let disabledPublicMerchantHomeReader = DisabledPublicMerchantHomeReader()
     private var retainedMerchantPublicFactory: MerchantPublicProductionFactory?
+    private var retainedMerchantPublicViewerRevision: UInt64?
     private var currentMerchantPublicContext: MerchantPublicHostContext? {
         guard let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,
               let namespace = storageScope?.service else { return nil }
@@ -97,10 +98,21 @@ final class AppSession: ObservableObject {
     }
     private var merchantPublicFactory: MerchantPublicProductionFactory? {
         guard let api = regionalConfiguration?.apiConfiguration, let context = currentMerchantPublicContext else { return nil }
-        if let retainedMerchantPublicFactory, retainedMerchantPublicFactory.captured == context { return retainedMerchantPublicFactory }
-        let factory = runtimeDependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal, transportOverride: runtimeHTTPTransport,
-            current: { [weak self] in self?.currentMerchantPublicContext })
+        if let retainedMerchantPublicFactory, retainedMerchantPublicFactory.captured == context,
+           retainedMerchantPublicViewerRevision == compositionViewerRevision { return retainedMerchantPublicFactory }
+        let dependencies = runtimeDependencies
+        let transport: any HTTPTransport
+        if let approval = dependencies.merchantPublicApproval {
+            transport = compositionTransport.scopedForPublicMerchantHome(approval: approval, context: context)
+        } else { transport = runtimeHTTPTransport }
+        let viewerRevision = compositionViewerRevision
+        let factory = dependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal, transportOverride: transport,
+            current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentMerchantPublicContext
+            })
         retainedMerchantPublicFactory = factory
+        retainedMerchantPublicViewerRevision = viewerRevision
         return factory
     }
     private var publicMerchantHomeReader: any PublicMerchantHomeReading {
