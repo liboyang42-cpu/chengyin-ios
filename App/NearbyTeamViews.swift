@@ -266,7 +266,7 @@ import SwiftUI
                 if application.status == .pending { expiry(application.applyExpireTime); actionButton(.withdraw(application.id)) }
                 else { Text("nearby.rejected.foot"); Button("nearby.lookNearby") { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 }.frame(minHeight: 44) }
             }.accessibilityElement(children: .contain)
-                .accessibilityIdentifier("nearby.application.\(application.id.rawValue)")
+                        .accessibilityIdentifier("nearby.application.\(application.id.rawValue)")
         }
     }
     private func actionButton(_ action: NearbyTeamAction) -> some View {
