@@ -63,11 +63,11 @@ final class MerchantCoopCenterPlazaTests: XCTestCase {
 
     func testChinaCalendarIndependentOfDeviceZone() {
         // 2026-10-11T16:30Z is already 10-12 in China.
-        XCTAssertEqual(MerchantCoopCenterTime.instant(.string("2026-10-11T16:30:00Z")).map(MerchantCoopCenterTime.monthDay), .init(month: 10, day: 12))
+        XCTAssertEqual(MerchantCoopCenterTime.instant(.string("2026-10-11T16:30:00Z")).map(MerchantCoopCenterTime.monthDay), MerchantCoopCenterMonthDay(month: 10, day: 12))
         XCTAssertEqual(MerchantCoopCenterTime.instant(.string("2026-10-12")), Date(timeIntervalSince1970: 1_791_734_400))
         XCTAssertEqual(MerchantCoopCenterTime.instant(.integer(1_791_734_400)), Date(timeIntervalSince1970: 1_791_734_400))
         XCTAssertEqual(MerchantCoopCenterTime.instant(.string("1791734400000")), Date(timeIntervalSince1970: 1_791_734_400))
-        XCTAssertEqual(MerchantCoopCenterTime.instant(.string("2026/2/3 4:05")).map(MerchantCoopCenterTime.monthDay), .init(month: 2, day: 3))
+        XCTAssertEqual(MerchantCoopCenterTime.instant(.string("2026/2/3 4:05")).map(MerchantCoopCenterTime.monthDay), MerchantCoopCenterMonthDay(month: 2, day: 3))
         XCTAssertNil(MerchantCoopCenterTime.instant(.string("2026-02-30")))
         XCTAssertNil(MerchantCoopCenterTime.instant(.string("2026-10-12 24:00:00")))
         XCTAssertNil(MerchantCoopCenterTime.instant(.integer(0)))
