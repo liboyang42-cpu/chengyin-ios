@@ -45,3 +45,25 @@ import SwiftUI
         .accessibilityIdentifier("registration.result.order.sheet")
     }
 }
+
+
+/// A recovered journal entry stays locked while its owned order is read separately.
+@MainActor struct RegistrationRecoveredOrderSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    private let reader: RegistrationRecoveredOrderReader
+    init(presentation: RegistrationRecoveredOrderPresentation, reader: any ProfileReading, isCurrent: @escaping () -> Bool) {
+        self.reader = .init(presentation: presentation, base: reader, isCurrent: isCurrent)
+    }
+    var body: some View {
+        NavigationStack {
+            ProfileOrderDetailView(id: reader.presentation.destination.registrationID, reader: reader)
+                .id(reader.identity)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("action.close") { dismiss() }
+                            .accessibilityIdentifier("registration.recovered.order.close")
+                    }
+                }
+        }.accessibilityIdentifier("registration.recovered.order.sheet")
+    }
+}

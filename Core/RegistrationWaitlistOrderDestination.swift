@@ -1,5 +1,71 @@
 import Foundation
 
+/// Recovery reads a known durable registration before offering navigation. The pending
+/// journal is not a create receipt and supplies no request ID or payment conclusion.
+public struct RegistrationRecoveredOrderDestination: Hashable {
+    public let identity: ProfileReadIdentity
+    public let visitID: UUID
+    public let activityID: Int
+    public let ticketID: Int
+    public let registrationID: Int
+    @MainActor fileprivate init?(flow: RegistrationUIFlow) {
+        guard flow.hasCurrentSession, !flow.hasRetainedIntent, !flow.isReadingStatus,
+              let identity = flow.identity, let ticketID = flow.selectedTicketID, ticketID > 0,
+              case .pending(let knownID) = flow.durableCreation, let knownID, knownID > 0,
+              let snapshot = flow.durableStatus, snapshot.registrationID == knownID else { return nil }
+        self.identity = identity; visitID = flow.resultOrderVisitID
+        activityID = flow.activity.summary.id; self.ticketID = ticketID; registrationID = knownID
+    }
+}
+@MainActor public extension RegistrationUIFlow {
+    var recoveredOrderDestination: RegistrationRecoveredOrderDestination? { .init(flow: self) }
+}
+public struct RegistrationRecoveredOrderPresentation: Hashable, Identifiable {
+    public let id = UUID()
+    public let destination: RegistrationRecoveredOrderDestination
+    public let readIdentity: ProfileReadIdentity
+    public init?(destination: RegistrationRecoveredOrderDestination, readIdentity: ProfileReadIdentity?) {
+        guard let readIdentity, readIdentity.accountID == destination.identity.accountID,
+              readIdentity.epoch == destination.identity.epoch else { return nil }
+        self.destination = destination; self.readIdentity = readIdentity
+    }
+}
+@MainActor public final class RegistrationRecoveredOrderReader: ProfileReading {
+    public let presentation: RegistrationRecoveredOrderPresentation
+    private let base: any ProfileReading
+    private let isCurrent: () -> Bool
+    public init(presentation: RegistrationRecoveredOrderPresentation, base: any ProfileReading, isCurrent: @escaping () -> Bool) {
+        self.presentation = presentation; self.base = base; self.isCurrent = isCurrent
+    }
+    public var identity: ProfileReadIdentity? {
+        isCurrent() && base.identity == presentation.readIdentity ? presentation.readIdentity : nil
+    }
+    public var isConfigured: Bool { identity != nil && base.isConfigured }
+    public func profileOrder(id: Int) async throws -> ProfileOrder {
+        try Task.checkCancellation()
+        guard identity != nil else { throw APIError.unauthorized }
+        guard isConfigured else { throw APIError.notConfigured }
+        let target = presentation.destination
+        guard id == target.registrationID else { throw APIError.invalidRequest }
+        do {
+            let row = try await base.profileOrder(id: id)
+            try Task.checkCancellation()
+            guard identity != nil, base.isConfigured else { throw CancellationError() }
+            guard row.id == target.registrationID, row.memberID == target.identity.accountID,
+                  row.ownerType == 2, row.ownerID == target.activityID,
+                  row.ticketID == target.ticketID else { throw APIError.malformedResponse }
+            return row
+        } catch {
+            guard !Task.isCancelled, identity != nil, base.isConfigured else { throw CancellationError() }
+            throw error
+        }
+    }
+    public func profileOrders() async throws -> [ProfileOrder] { throw APIError.invalidRequest }
+    public func profileParticipants() async throws -> [ProfileParticipant] { throw APIError.invalidRequest }
+    public func profileParticipant(id: Int) async throws -> ProfileParticipant { throw APIError.invalidRequest }
+    public func profileBadges() async throws -> ProfileBadgeWall { throw APIError.invalidRequest }
+}
+
 /// A server-bound destination, never an order-creation or payment authorization.
 public struct RegistrationWaitlistOrderDestination: Hashable, Identifiable {
     public let identity: ProfileReadIdentity
@@ -156,3 +222,4 @@ public struct RegistrationResultOrderPresentation: Hashable, Identifiable {
     public func profileParticipant(id: Int) async throws -> ProfileParticipant { throw APIError.invalidRequest }
     public func profileBadges() async throws -> ProfileBadgeWall { throw APIError.invalidRequest }
 }
+

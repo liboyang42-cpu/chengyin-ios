@@ -25,6 +25,7 @@ struct RegistrationSheetView: View {
     @State private var showingAddParticipant = false
     @State private var orderDestination: RegistrationWaitlistOrderPresentation?
     @State private var resultOrderDestination: RegistrationResultOrderPresentation?
+    @State private var recoveredOrderDestination: RegistrationRecoveredOrderPresentation?
     private let participantReader: (any ProfileReading)?
     private let orderReader: (any ProfileReading)?
     private let participantCoordinator: ParticipantMutationCoordinator?
@@ -75,11 +76,17 @@ struct RegistrationSheetView: View {
                                 Button("registration.waitlist.readRetainedOrder") { Task { await flow.readDurableStatus() } }
                                     .disabled(flow.isReadingStatus)
                             }
+                            if flow.isReadingStatus { ProgressView("registration.form.readingStatus") }
+                            if flow.durableStatusFailed {
+                                Text("registration.form.statusUnavailable")
+                                    .accessibilityIdentifier("registration.recovered.statusUnavailable")
+                            }
                             if let snapshot = flow.durableStatus {
                                 Text(LocalizedStringKey(RegistrationUIStatus.registrationKey(snapshot.registrationStatus)))
                                 Text("registration.waitlist.orderReadback").font(.caption).foregroundStyle(.secondary)
                             }
                         }
+                        recoveredOrderSection
                     } else {
                         participantSection
                         ticketSection
@@ -148,9 +155,17 @@ struct RegistrationSheetView: View {
                             flow.resultOrderDestination == presentation.destination && scenePhase == .active })
                 }
             }
+            .sheet(item: $recoveredOrderDestination) { presentation in
+                if let orderReader {
+                    RegistrationRecoveredOrderSheet(presentation: presentation, reader: orderReader,
+                        isCurrent: { recoveredOrderDestination == presentation &&
+                            flow.recoveredOrderDestination == presentation.destination && scenePhase == .active })
+                }
+            }
+            .onChange(of: flow.recoveredOrderDestination) { _, _ in recoveredOrderDestination = nil }
             .onChange(of: flow.resultOrderDestination) { _, _ in resultOrderDestination = nil }
             .onChange(of: scenePhase) { _, phase in
-                if phase == .background { resultOrderDestination = nil; flow.retireResultOrderNavigation() }
+                if phase == .background { resultOrderDestination = nil; recoveredOrderDestination = nil; flow.retireResultOrderNavigation() }
             }
             .sheet(isPresented: $showingAddParticipant) {
                 if let participantReader, let participantCoordinator {
@@ -168,6 +183,24 @@ struct RegistrationSheetView: View {
             .onDisappear { flow.leave() }
         }
         .accessibilityIdentifier("registration.form.sheet")
+    }
+    @ViewBuilder private var recoveredOrderSection: some View {
+        if let destination = flow.recoveredOrderDestination, let orderReader {
+            let readIdentity = orderReader.identity
+            Section {
+                Button("profile.orders.detail") {
+                    guard recoveredOrderDestination == nil, resultOrderDestination == nil, orderDestination == nil,
+                          scenePhase == .active, flow.recoveredOrderDestination == destination,
+                          orderReader.identity == readIdentity, orderReader.isConfigured else { return }
+                    recoveredOrderDestination = .init(destination: destination, readIdentity: readIdentity)
+                }
+                .disabled(scenePhase != .active || !orderReader.isConfigured ||
+                    orderReader.identity?.accountID != destination.identity.accountID ||
+                    orderReader.identity?.epoch != destination.identity.epoch)
+                .accessibilityIdentifier("registration.recovered.openOrder")
+                Text("registration.form.separateStatusHint").font(.caption).foregroundStyle(.secondary)
+            }
+        }
     }
     @ViewBuilder private var resultOrderSection: some View {
         if let destination = flow.resultOrderDestination, let orderReader {
@@ -507,3 +540,4 @@ private struct RegistrationOperationSections: View {
         } label: { Text(LocalizedStringKey(key)) }
     }
 }
+

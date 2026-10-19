@@ -2,12 +2,33 @@ import Foundation
 import XCTest
 @testable import QuestifyCore
 
-@MainActor private final class WaitlistOrderReadFixture: ProfileReading, RegistrationCoordinatingService, RegistrationWaitlistServing {
+@MainActor private final class WaitlistOrderReadFixture: ProfileReading, RegistrationCoordinatingService, RegistrationWaitlistServing, RegistrationPendingServing {
     var identity: ProfileReadIdentity? = .init(accountID: 1, epoch: 4, viewerRevision: 3, approvalRevision: UUID())
     var isConfigured = true
     var requests: [Int] = []
     var row: ProfileOrder!
     var statusValue: RegistrationWaitlistStatus!
+    var lock: RegistrationDurableCreation = .pending(registrationID: 41)
+    var retainedID = 41
+    var retainedError: Error?
+    var retainedReads = 0
+    var suspendRetained = false
+    var retainedContinuation: CheckedContinuation<RegistrationStatusSnapshot, Error>?
+    var retainedWaiter: CheckedContinuation<Void, Never>?
+    func waitForRetainedRead() async {
+        if retainedContinuation == nil { await withCheckedContinuation { retainedWaiter = $0 } }
+    }
+    func creationLock(_ scope: RegistrationWaitlistScope) throws -> RegistrationDurableCreation { lock }
+    func readRetainedStatus(_ scope: RegistrationWaitlistScope) async throws -> RegistrationStatusSnapshot {
+        retainedReads += 1
+        if suspendRetained {
+            return try await withCheckedThrowingContinuation {
+                retainedContinuation = $0; retainedWaiter?.resume(); retainedWaiter = nil
+            }
+        }
+        if let retainedError { throw retainedError }
+        return try JSONDecoder().decode(RegistrationStatusSnapshot.self, from: Data("{\"id\":\(retainedID),\"registrationStatus\":0,\"paymentStatus\":null}".utf8))
+    }
     var creates = 0
     var writes = 0
     func status(_ scope: RegistrationWaitlistScope) async throws -> RegistrationWaitlistStatus { statusValue }
@@ -343,5 +364,127 @@ import XCTest
             isCurrent: { current == reopened && flow.resultOrderDestination == reopened.destination })
         let row = try await fresh.profileOrder(id: 41)
         XCTAssertEqual(row.id, 41); XCTAssertEqual(base.requests, [41, 41])
+    }
+}
+
+
+@MainActor final class RegistrationRecoveredOrderDestinationTests: XCTestCase {
+    private func opened(_ base: WaitlistOrderReadFixture) throws -> RegistrationUIFlow {
+        let identity = try XCTUnwrap(base.identity)
+        let grant = try RegistrationProductionApproval(
+            endpoint: .init(baseURL: URL(string: "https://api.example.com/prod-api")!, namespace: "synthetic", accountID: 1,
+                            paths: RegistrationProductionApproval.registrationPaths),
+            identity: identity, market: .china, storefront: "CHN", product: .physicalActivity,
+            activityID: 7, ticketIDs: [11], consentVersion: "synthetic-v1",
+            noticeURL: URL(string: "https://legal.example.com/synthetic")!, expiresAt: Date().addingTimeInterval(3600))
+        let coordinator = RegistrationCoordinator(service: base)
+        try coordinator.setAccount(id: 1, token: "synthetic-token")
+        let activity = try JSONDecoder().decode(ActivityDetail.self, from: Data(#"{"id":7,"name":"Synthetic","omsTicketList":[{"id":11,"name":"Synthetic"}]}"#.utf8))
+        let flow = RegistrationUIFlow(activity: activity, coordinator: coordinator, currentIdentity: { base.identity },
+                                      creationPolicy: .approved(grant), waitlistService: base)
+        flow.open(); return flow
+    }
+    private func row(id: Int = 41, member: Int = 1, type: Int = 2, activity: Int = 7, ticket: String = "11") throws -> ProfileOrder {
+        try JSONDecoder().decode(ProfileOrder.self, from: Data("""
+        {"id":\(id),"memberId":\(member),"ownerType":\(type),"ownerId":\(activity),"ticketId":\(ticket),"registrationStatus":0,"paymentStatus":null}
+        """.utf8))
+    }
+    private func presentation(_ flow: RegistrationUIFlow, _ base: WaitlistOrderReadFixture) throws -> RegistrationRecoveredOrderPresentation {
+        try XCTUnwrap(.init(destination: XCTUnwrap(flow.recoveredOrderDestination), readIdentity: base.identity))
+    }
+    func testKnownJournalRequiresReadThenExactOwnedDetailWithoutCreate() async throws {
+        let base = WaitlistOrderReadFixture(); base.row = try row()
+        let flow = try opened(base)
+        XCTAssertNil(flow.recoveredOrderDestination); XCTAssertFalse(flow.canEdit)
+        await flow.readDurableStatus()
+        let route = try presentation(flow, base)
+        let reader = RegistrationRecoveredOrderReader(presentation: route, base: base, isCurrent: { flow.recoveredOrderDestination == route.destination })
+        let result = try await reader.profileOrder(id: 41)
+        XCTAssertNil(result.paymentStatus); XCTAssertEqual(base.requests, [41])
+        XCTAssertEqual(base.retainedReads, 1); XCTAssertEqual(base.creates, 0); XCTAssertEqual(base.writes, 0)
+        XCTAssertNil(flow.coordinator.retainedIntent); XCTAssertFalse(flow.canEdit)
+        guard case .pending(let id) = flow.durableCreation else { return XCTFail("Journal lock cleared") }
+        XCTAssertEqual(id, 41)
+    }
+    func testUnknownJournalCannotReadOrInventDestination() async throws {
+        let base = WaitlistOrderReadFixture(); base.lock = .pending(registrationID: nil)
+        let flow = try opened(base); await flow.readDurableStatus()
+        XCTAssertNil(flow.recoveredOrderDestination); XCTAssertEqual(base.retainedReads, 0); XCTAssertFalse(flow.canEdit)
+    }
+    func testWrongStatusAndFailureClearRouteAndAllowReadOnlyRetry() async throws {
+        let base = WaitlistOrderReadFixture(); let flow = try opened(base)
+        await flow.readDurableStatus(); XCTAssertNotNil(flow.recoveredOrderDestination)
+        base.retainedID = 42; await flow.readDurableStatus()
+        XCTAssertNil(flow.recoveredOrderDestination); XCTAssertTrue(flow.durableStatusFailed); XCTAssertFalse(flow.isReadingStatus)
+        base.retainedID = 41; base.retainedError = APIError.notConfigured; await flow.readDurableStatus()
+        XCTAssertNil(flow.recoveredOrderDestination); XCTAssertTrue(flow.durableStatusFailed)
+        base.retainedError = nil; await flow.readDurableStatus()
+        XCTAssertNotNil(flow.recoveredOrderDestination); XCTAssertFalse(flow.durableStatusFailed)
+        XCTAssertEqual(base.creates, 0); XCTAssertEqual(base.writes, 0)
+    }
+    func testWrongOwnerTupleAndRequestedIDFailClosed() async throws {
+        for value in [try row(id: 42), try row(member: 2), try row(type: 1), try row(activity: 8), try row(ticket: "12"), try row(ticket: "null")] {
+            let base = WaitlistOrderReadFixture(); base.row = value
+            let flow = try opened(base); await flow.readDurableStatus()
+            let reader = try RegistrationRecoveredOrderReader(presentation: presentation(flow, base), base: base, isCurrent: { true })
+            do { _ = try await reader.profileOrder(id: 42); XCTFail() } catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+            XCTAssertTrue(base.requests.isEmpty)
+            do { _ = try await reader.profileOrder(id: 41); XCTFail() } catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+        }
+    }
+    func testVisitRetirementAndReopenInvalidateOldRoute() async throws {
+        let base = WaitlistOrderReadFixture(); let flow = try opened(base); await flow.readDurableStatus()
+        let original = try XCTUnwrap(flow.recoveredOrderDestination)
+        flow.retireResultOrderNavigation(); XCTAssertNotEqual(flow.recoveredOrderDestination, original)
+        flow.open(); XCTAssertNil(flow.recoveredOrderDestination); XCTAssertFalse(flow.canEdit)
+        await flow.readDurableStatus(); XCTAssertNotEqual(flow.recoveredOrderDestination, original)
+        base.identity = .init(accountID: 1, epoch: 5)
+        XCTAssertNil(flow.recoveredOrderDestination)
+    }
+    func testMissingAndWrongIndependentReadGrantCannotPresent() async throws {
+        let base = WaitlistOrderReadFixture(); let flow = try opened(base); await flow.readDurableStatus()
+        let destination = try XCTUnwrap(flow.recoveredOrderDestination)
+        for identity in [nil, ProfileReadIdentity(accountID: 2, epoch: 4), .init(accountID: 1, epoch: 5)] {
+            XCTAssertNil(RegistrationRecoveredOrderPresentation(destination: destination, readIdentity: identity))
+        }
+        let reader = try RegistrationRecoveredOrderReader(presentation: presentation(flow, base), base: base, isCurrent: { true })
+        base.identity = .init(accountID: 1, epoch: 4, viewerRevision: 3, approvalRevision: UUID())
+        XCTAssertNil(reader.identity)
+        do { _ = try await reader.profileOrder(id: 41); XCTFail() } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
+        XCTAssertTrue(base.requests.isEmpty)
+    }
+    func testPendingReadCoalescesAndLateResultsCannotEnterReopenedForm() async throws {
+        for fail in [false, true] {
+            let base = WaitlistOrderReadFixture(); base.suspendRetained = true
+            let flow = try opened(base)
+            let task = Task { await flow.readDurableStatus() }
+            await base.waitForRetainedRead()
+            await flow.readDurableStatus()
+            XCTAssertEqual(base.retainedReads, 1); XCTAssertNil(flow.recoveredOrderDestination)
+            flow.leave(); flow.open()
+            if fail { base.retainedContinuation?.resume(throwing: APIError.notConfigured) }
+            else {
+                let snapshot = try JSONDecoder().decode(RegistrationStatusSnapshot.self, from: Data(#"{"id":41,"registrationStatus":0,"paymentStatus":null}"#.utf8))
+                base.retainedContinuation?.resume(returning: snapshot)
+            }
+            await task.value
+            XCTAssertNil(flow.recoveredOrderDestination); XCTAssertFalse(flow.durableStatusFailed)
+            XCTAssertFalse(flow.isReadingStatus); XCTAssertFalse(flow.canEdit)
+        }
+    }
+    func testClosingAndReopeningDetailUsesNewPresentationIdentity() async throws {
+        let base = WaitlistOrderReadFixture(); let flow = try opened(base); await flow.readDurableStatus()
+        let first = try presentation(flow, base), second = try presentation(flow, base)
+        XCTAssertNotEqual(first.id, second.id); XCTAssertEqual(first.destination, second.destination)
+        XCTAssertFalse(flow.canEdit); XCTAssertEqual(base.creates, 0)
+    }
+    func testLateOwnedReadDiscardedWhenPresentationCloses() async throws {
+        let base = WaitlistOrderReadFixture(); base.row = try row(); base.suspended = true
+        let flow = try opened(base); await flow.readDurableStatus()
+        var current = true
+        let reader = try RegistrationRecoveredOrderReader(presentation: presentation(flow, base), base: base, isCurrent: { current })
+        let task = Task { try await reader.profileOrder(id: 41) }
+        await base.waitForRead(); current = false; base.continuation?.resume(returning: base.row)
+        do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
     }
 }
