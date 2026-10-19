@@ -10,12 +10,20 @@ class BackendSyncSourceTests(unittest.TestCase):
   # E06-17 share snapshot: a future consumer must adopt the handoff first.
   for p, value in self.swift().items(): self.assertNotIn('roam/share/snapshot', value, p)
  def test_topic_like_write_is_only_the_explicit_type0_unlike(self):
-  # E01-19 consumer: the explicit cancel only; the legacy blank-type toggle keeps failing on DELETE0.
+  # E01-19 consumers: explicit type only; the legacy blank-type toggle keeps failing on DELETE0.
   users = sorted(str(p.relative_to(ROOT)) for p, v in self.swift().items() if re.search(r'"api/topic/like"', v))
-  self.assertEqual(users, ['Core/TopicUnlike.swift'])
+  self.assertEqual(users, ['Core/TopicLikeDirection.swift', 'Core/TopicUnlike.swift'])
   value = (ROOT/'Core/TopicUnlike.swift').read_text()
   self.assertIn('fields: ["id": String(topicID), "type": "0"]', value)
   self.assertIn('if envelope.code == 200 {\n            unresolved.remove(topicID); phase = .removed(topicID: topicID)', value)
+  direction = (ROOT/'Core/TopicLikeDirection.swift').read_text()
+  self.assertIn('fields: ["id": String(topicID), "type": direction.typeField]', direction)
+  self.assertIn("return envelope.code == 200 ? .acknowledged : .rejected(envelope.msg)", direction)
+ def test_topic_like_direction_factory_stays_unwired(self):
+  # BK-LIKE/I05 factory is audited request construction only: no transport or approval in App/Core.
+  for p, value in self.swift().items():
+   if p.name == 'TopicLikeDirection.swift': continue
+   self.assertNotIn('TopicLikeOperationFactory', value, p)
  def test_legacy_square_bookmark_never_routes_through_community_id(self):
   contracts = (ROOT/'Core/SocialActionContracts.swift').read_text()
   self.assertIn('case .communityComment, .communityCommentLike, .postAction: return .communityV1', contracts)

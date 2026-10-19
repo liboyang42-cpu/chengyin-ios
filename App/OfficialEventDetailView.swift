@@ -18,6 +18,7 @@ enum OfficialDetailID {
     static let story = leaf("story"), cards = leaf("cards"), tasks = leaf("tasks"), rewards = leaf("rewards")
     static let collective = leaf("collective"), rewardFootnote = leaf("rewardFootnote"), cta = leaf("cta")
     static let unavailable = leaf("unavailable"), backToList = leaf("backToList"), network = leaf("network")
+    static let service = leaf("service"), topicNameError = leaf("topicNameError"), ctaTopic = leaf("ctaTopic")
     private static func leaf(_ name: String) -> String { "official.detail" + "." + name }
 }
 
@@ -26,6 +27,10 @@ enum OfficialDetailID {
     let reader: any OfficialEventReading
     var actions: OfficialActionCoordinator? = nil
     var onLogin: (() -> Void)? = nil
+    /// Optional bound-topic names and route; without it THEME missions stay plain rows.
+    var topicLinks: OfficialTopicLinks? = nil
+    @State private var topicNames: [Int: String] = [:]
+    @State private var topicNameFailed = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @State private var visit = UUID()
@@ -41,7 +46,10 @@ enum OfficialDetailID {
         case .network:
             return OfficialIssueCopy(title: "official.detailParity.network.title", detail: "official.detailParity.network.detail",
                                      identifier: OfficialDetailID.network)
-        case .other: return nil
+        case .other:
+            guard OfficialDetailServiceFailure.matches(error) else { return nil }
+            return OfficialIssueCopy(title: "official.w206.detail.service.title", detail: "official.w206.detail.service.detail",
+                                     identifier: OfficialDetailID.service)
         }
     }
     var body: some View {
@@ -94,9 +102,24 @@ enum OfficialDetailID {
                             else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(.red) }
                         }
                         if presentation.missions.isEmpty { Text("official.detailParity.tasks.empty") }
+                        if topicNameFailed {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("official.w206.detail.topicName.failed").font(.subheadline)
+                                Text("official.w206.detail.topicName.stillOpen").font(.footnote).foregroundStyle(.secondary)
+                            }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.topicNameError)
+                        }
                         ForEach(presentation.missions, id: \.index) { mission in
-                            OfficialDetailMissionRow(mission: mission)
-                                .accessibilityIdentifier("official.mission.\(mission.index)")
+                            let topicID = mission.binding?.themeTopicID
+                            let linked = event.missions.indices.contains(mission.index)
+                                ? OfficialDetailTopicLinks.linkedTopic(event.missions[mission.index], signed: event.signed == true) : nil
+                            if let topicLinks, let linked {
+                                NavigationLink { topicLinks.destination(linked) } label: {
+                                    OfficialDetailMissionRow(mission: mission, topicName: topicID.flatMap { topicNames[$0] })
+                                }.accessibilityIdentifier("official.mission.\(mission.index)")
+                            } else {
+                                OfficialDetailMissionRow(mission: mission, topicName: topicID.flatMap { topicNames[$0] })
+                                    .accessibilityIdentifier("official.mission.\(mission.index)")
+                            }
                         }
                     } header: {
                         HStack {
@@ -168,15 +191,25 @@ enum OfficialDetailID {
                     })
                 }
                 Section {
-                    // Source CTA wording only. Roam/topic routes are not wired here, so the
-                    // label never navigates; signup stays with OfficialParticipationActions.
-                    Text(LocalizedStringKey(presentation.cta.key)).font(.headline)
-                        .foregroundStyle(presentation.cta.isSourceAction ? Color.accentColor : Color.secondary)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                        .accessibilityIdentifier(OfficialDetailID.cta)
+                    // Source CTA wording. Only the theme CTA navigates (to its bound topic);
+                    // roam routes are not wired here and signup stays with OfficialParticipationActions.
+                    if let topicLinks, let topic = OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) {
+                        NavigationLink { topicLinks.destination(topic) } label: {
+                            Text(LocalizedStringKey(presentation.cta.key)).font(.headline).frame(maxWidth: .infinity, minHeight: 44)
+                        }.accessibilityIdentifier(OfficialDetailID.ctaTopic)
+                    } else {
+                        Text(LocalizedStringKey(presentation.cta.key)).font(.headline)
+                            .foregroundStyle(presentation.cta.isSourceAction ? Color.accentColor : Color.secondary)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .accessibilityIdentifier(OfficialDetailID.cta)
+                    }
                 }
                 if reader.isOfflineExample { Section { OfficialReadOnlyNotice(offline: true) } }
             }.accessibilityIdentifier("official.detail.content")
+            .task(id: OfficialTopicNamesKey(eventID: event.id, ids: OfficialDetailTopicLinks.topicIDs(event),
+                                             scope: reader.scope, topicScope: topicLinks?.reader.scope)) {
+                await loadTopicNames(OfficialDetailTopicLinks.topicIDs(event))
+            }
         }
         .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline)
         .onAppear { visible = true }
@@ -185,6 +218,34 @@ enum OfficialDetailID {
         .onChange(of: reader.scope) { _, _ in visit = UUID() }
         .onChange(of: scenePhase) { _, _ in visit = UUID() }
     }
+}
+extension OfficialEventDetailView {
+    /// Source _loadBoundTopicNames: signed-in viewers only; a stale or failed read never blocks the row.
+    func loadTopicNames(_ ids: [Int]) async {
+        topicNames = [:]; topicNameFailed = false
+        guard let topicLinks, reader.isAuthenticated, !ids.isEmpty else { return }
+        let scope = topicLinks.reader.scope
+        var names: [Int: String] = [:], failed = false
+        for id in ids {
+            do {
+                let name = try await topicLinks.reader.topicDetail(id: id).name.trimmingCharacters(in: .whitespacesAndNewlines)
+                if name.isEmpty { failed = true } else { names[id] = name }
+            } catch { if error is CancellationError { return }; failed = true }
+            guard !Task.isCancelled, topicLinks.reader.scope == scope else { return }
+        }
+        topicNames = names; topicNameFailed = failed
+    }
+}
+struct OfficialTopicNamesKey: Hashable {
+    let eventID: Int
+    let ids: [Int]
+    let scope: UUID
+    let topicScope: UUID?
+}
+/// Session-provided topic read and destination for missions bound to a topic.
+struct OfficialTopicLinks {
+    let reader: any TopicReading
+    let destination: (Int) -> AnyView
 }
 /// Source facts strip: label, value and sub line per fact, scrolled horizontally.
 struct OfficialDetailFactsStrip: View {
@@ -229,9 +290,11 @@ struct OfficialDetailTextView: View {
 }
 struct OfficialDetailMissionRow: View {
     let mission: OfficialDetailMission
+    var topicName: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             OfficialDetailTextView(value: mission.title).font(.headline)
+            if let topicName { Text("official.w206.detail.boundTopic \(topicName)").font(.subheadline) }
             OfficialDetailTextView(value: mission.description)
             Label(LocalizedStringKey(mission.action.key), systemImage: symbol)
         }.accessibilityElement(children: .combine)

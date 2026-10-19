@@ -35,8 +35,8 @@ import FoundationNetworking
             if let failure { throw failure }
         }
     }
-    private func owner(_ writer: Writer = Writer(), _ reader: Reader = Reader()) throws -> IMSafetyCoordinator {
-        IMSafetyCoordinator(scope: try IMScope(identity: .init(accountID: 7, epoch: 1), conversationID: 9), writer: writer, reader: reader)
+    private func owner(_ writer: Writer? = nil, _ reader: Reader? = nil) throws -> IMSafetyCoordinator {
+        IMSafetyCoordinator(scope: try IMScope(identity: .init(accountID: 7, epoch: 1), conversationID: 9), writer: writer ?? Writer(), reader: reader ?? Reader())
     }
     private func messages(_ json: String) throws -> [MessagingMessage] {
         try JSONDecoder().decode(MessagingPage.self, from: Data(#"{"list":\#(json),"hasMore":false}"#.utf8)).messages

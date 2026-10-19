@@ -137,6 +137,8 @@ final class ClubActionFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["club.action.leave"].exists)
         XCTAssertFalse(app.buttons["club.action.apply"].exists)
         assertMembership("Join request pending")
+        // A pending applicant is not joined, so the overview tab (members section) is the default.
+        XCTAssertTrue(app.buttons["club.detail.tab.overview"].isSelected, app.debugDescription)
         let membersGate = element("club.members.gated")
         reveal(membersGate)
         XCTAssertTrue(membersGate.exists, app.debugDescription)

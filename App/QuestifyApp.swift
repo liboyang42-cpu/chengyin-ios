@@ -254,7 +254,7 @@ struct SessionRootView: View {
                         if let account=session.account { AccountView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home }).id(session.sessionRevision) }
                         else { WelcomeView() }
                     }.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
-                }.id(session.account?.id ?? 0)
+                }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
             } else { WelcomeView(onBrowse:{ browsingAsGuest=true }) }
         }
         .background {
@@ -262,6 +262,8 @@ struct SessionRootView: View {
         }
         .environmentObject(session)
         .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })
+        .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
+        .environment(\.merchantGameNodeDestination, { $1.view(service: $0) })
         .environment(\.merchantCityTemplateHandoffFactory, {
             .init(reader: session.merchantOperationsReader, imageHost: session.retainedMerchantImages,
                   templateAssistFactory: { session.merchantTemplateAssistFlow(coordinator: $0) })
@@ -276,6 +278,7 @@ struct SessionRootView: View {
         })
         .environment(\.verificationCodeFactory, { session.makeVerificationCodeCoordinator(target: $0) })
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
+        .environment(\.coopWalletReader, session.walletCommerceReader)
         .environment(\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))
         .environment(\.bankWithdrawalDestination, { AnyView(SessionBankWithdrawalView()) })
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
@@ -283,10 +286,12 @@ struct SessionRootView: View {
         .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
         .environment(\.merchantAcceptedProjectDestination, { AnyView(SessionMerchantAcceptedProjectView(session: session, source: $0)) })
         .environment(\.merchantOfficialRecruitmentDestination, { AnyView(SessionMerchantOfficialRecruitmentView(session: session, source: $0)) })
+        .environment(\.merchantCoopCenterDestination, { session.merchantCoopCenterDestination(initialTab: $0, focusTopicID: $1) })
         .environment(\.cooperationNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session)) })
         .environment(\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
+        .environment(\.registrationMySignupsDestination, { AnyView(SessionPlayerJourneyView(destination: .participations)) })
         .task { await session.bootstrap() }
         .onAppear { session.setPrivateHomePresentationActive(true) }
         .onAppear { session.setOwnerDraftPresentationActive(true) }

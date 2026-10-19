@@ -116,6 +116,17 @@ import SwiftUI
     }
     @ViewBuilder private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
         if actions.identity.accountID != nil {
+            // Source action row: like / comment (focuses the composer) / favorite, each through the existing reviewed editor.
+            HStack(spacing: 24) {
+                Button { editor = .init(purpose: .like, target: .post(post.id), text: "") } label: {
+                    Label { Text(verbatim: String(max(0, post.likeCount))) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
+                }.accessibilityLabel(Text("square.xcx.likesA11y \(max(0, post.likeCount))")).accessibilityIdentifier("square.detail.like")
+                Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
+                    Label { Text(verbatim: String(max(0, post.commentCount))) } icon: { Image(systemName: "bubble.right") }
+                }.disabled(!post.viewerCanComment).accessibilityLabel(Text("square.xcx.commentsA11y \(max(0, post.commentCount))")).accessibilityIdentifier("square.detail.comment")
+                Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: "") } label: { Image(systemName: "star") }
+                    .disabled(post.generation != .communityV1).accessibilityLabel(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
+            }.buttonStyle(.borderless).font(.subheadline)
             Button("social.editor.comment") { editor = .init(purpose: .comment, target: .post(post.id), text: "") }.disabled(!post.viewerCanComment)
             Menu {
                 Button("social.editor.like") { editor = .init(purpose: .like, target: .post(post.id), text: "") }

@@ -70,6 +70,13 @@ class W207SquareParity(unittest.TestCase):
         self.assertIn('"api/config/features"', read('Core/SquareService.swift'))
         self.assertIn('SquareSessionReader: SquareReading, SquareCommunityFeatureReading', read('Core/SquareReading.swift'))
 
+    def test_detail_action_row_reuses_reviewed_editors(self):
+        detail = read('App/SquareDetailView.swift')
+        for exact in ['accessibilityIdentifier("square.detail.like")', 'accessibilityIdentifier("square.detail.comment")',
+                      'accessibilityIdentifier("square.detail.bookmark")', 'editor = .init(purpose: .like, target: .post(post.id), text: "")',
+                      'editor = .init(purpose: .bookmark, target: .post(post.id), text: "")']:
+            self.assertIn(exact, detail)
+
     def test_detail_states(self):
         detail = read('App/SquareDetailView.swift')
         for exact in ['comment.lifecycle == "DELETED"', '"square.xcx.commentDeleted"', 'accessibilityIdentifier("square.noComments")',

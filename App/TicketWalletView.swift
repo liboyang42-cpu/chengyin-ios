@@ -188,6 +188,13 @@ private struct TicketWalletRow: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            if ticket.needsScheduleSync {
+                Label {
+                    Text("ticketWallet.p2.notice.scheduleSync").fixedSize(horizontal: false, vertical: true)
+                } icon: { Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true) }
+                .font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
+            }
             if showsPendingOrderAction {
                 Label {
                     Text("ticketPendingOrder.open", tableName: "TicketPendingOrder")
@@ -197,7 +204,7 @@ private struct TicketWalletRow: View {
             }
             if showsActionNotice {
                 Label {
-                    Text(LocalizedStringKey("ticketWallet.action." + ticket.action.rawValue))
+                    Text(LocalizedStringKey(ticket.sourceNoticeKey))
                         .fixedSize(horizontal: false, vertical: true)
                 } icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
                 .font(.footnote).foregroundStyle(.secondary)

@@ -96,6 +96,8 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
     private var event: (@MainActor (PlatformAudioEvent) -> Void)?
     private let lifecycle: NativeAudioLifecycleObservation
     var lifecycleRegistrations: Int { lifecycle.registrations }
+    // Device measurement only: request-to-playing latency, never the source URL.
+    private var startInterval: NativePerformanceInterval?
     override convenience init() { self.init(dependencies: .live) }
     init(dependencies: NativePlatformAudioDependencies) {
         self.dependencies = dependencies
@@ -114,6 +116,7 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
     }
     func start(source: PlatformMediaSource, policy: PlatformMediaPolicy, event: @escaping @MainActor (PlatformAudioEvent) -> Void) {
         stop(); self.event = event
+        startInterval = NativePerformanceSignposts.shared.begin(.audioStartToPlaying)
         guard policy.allows(source.url) else { finish(.failed); return }
         let token = generation
         observeLifecycle()
@@ -128,6 +131,7 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
                     let player = try self.dependencies.makePlayer(data)
                     self.player = player; player.delegate = self
                     guard player.prepareToPlay(), player.play() else { self.finish(.failed); return }
+                    self.startInterval?.end(); self.startInterval = nil
                     self.event?(.playing)
                 } catch { self.finish(.failed) }
             }
@@ -141,6 +145,7 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
     }
     func stop() {
         generation += 1
+        startInterval?.end(); startInterval = nil
         lifecycle.invalidate()
         download?.cancel(); download = nil
         player?.stop(); player?.delegate = nil; player = nil; event = nil

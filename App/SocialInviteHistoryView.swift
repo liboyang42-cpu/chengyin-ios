@@ -19,6 +19,7 @@ import SwiftUI
             else {
                 if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
                 Section {
+                    ProfileInviteHistorySummaryLine(total: model.pagination.total)
                     SocialOptionalCount(title: "social.invites.total", count: model.pagination.total)
                     LabeledContent("social.invites.loaded", value: String(model.pagination.members.count))
                     if model.scan?.isComplete != true { Text("social.invites.partial").font(.footnote).accessibilityIdentifier("social.invites.partial") }

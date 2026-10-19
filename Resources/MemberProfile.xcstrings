@@ -481,6 +481,70 @@
         }
       }
     },
+    "member.finance.credited": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credited revenue share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已入账分润"
+          }
+        }
+      }
+    },
+    "member.finance.executedAdjustment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjustments applied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已执行调整"
+          }
+        }
+      }
+    },
+    "member.finance.explainer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settled is not the same as credited: settled means the amount has been calculated; credited means the money has reached your personal account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已结算不等于已入账：已结算表示金额完成核算，已入账表示款项已进入个人账户。"
+          }
+        }
+      }
+    },
+    "member.finance.pendingAdjustment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjustments pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调整待处理"
+          }
+        }
+      }
+    },
     "member.media.denied": {
       "localizations": {
         "en": {

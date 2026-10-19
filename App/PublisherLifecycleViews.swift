@@ -11,6 +11,8 @@ import SwiftUI
     @State private var team = ""
     @State private var price = ""
     @State private var preview: PublisherPricingPreview?
+    /// Source lineup names, loaded per row after the preview; missing names keep the type label.
+    @State private var partnerNames: [String: String] = [:]
     @State private var review: PublisherLifecycleReview?
     @State private var message = ""
     @State private var busy = false
@@ -74,7 +76,8 @@ import SwiftUI
                                 PublisherPartnerView(topicID: topicID, row: row, client: client)
                             } label: {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(row.type == "club" ? text("Partner club", "合作俱乐部") : text("Hosting merchant", "承接商家"))
+                                    if let name = partnerNames[row.id] { Text(verbatim: name) }
+                                    else { Text(row.type == "club" ? text("Partner club", "合作俱乐部") : text("Hosting merchant", "承接商家")) }
                                     Text(verbatim: termsText(row)).font(.caption).foregroundStyle(.secondary)
                                 }
                             }
@@ -103,12 +106,21 @@ import SwiftUI
             if !message.isEmpty { Text(message).accessibilityIdentifier("publisher.message") }
         }
         .navigationTitle(text("Confirm final price", "确认终价"))
+        .task(id: preview?.lineup.map(\.id) ?? []) { await loadPartnerNames() }
         .onChange(of: subtype) { _, _ in invalidate() }
         .onChange(of: cost) { _, _ in invalidate() }
         .onChange(of: team) { _, _ in invalidate() }
         .onChange(of: price) { _, _ in review = nil; coordinator.invalidate() }
         .onChange(of: phase) { _, value in if value != .active { invalidate() } }
         .onDisappear { invalidate() }
+    }
+    private func loadPartnerNames() async {
+        guard let lineup = preview?.lineup else { return }
+        let stamp = generation
+        for row in lineup where partnerNames[row.id] == nil {
+            guard let name = try? await client.partnerName(type: row.type, id: row.partnerID), generation == stamp, !Task.isCancelled else { continue }
+            partnerNames[row.id] = name
+        }
     }
     private func termsText(_ row: PublisherLineup) -> String {
         switch TopicPricingXcx.terms(row) {
@@ -122,7 +134,7 @@ import SwiftUI
     }
     private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     private func input() throws -> PublisherPricingInput { try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team)) }
-    private func invalidate() { generation = UUID(); preview = nil; review = nil; coordinator.invalidate() }
+    private func invalidate() { generation = UUID(); preview = nil; partnerNames = [:]; review = nil; coordinator.invalidate() }
     private func load() async {
         let stamp = generation; busy = true; defer { busy = false }
         do { let result = try await client.pricing(input()); guard generation == stamp else { return }; preview = result; price = String(TopicPricingXcx.initialPrice(floor: result.minimum)); message = "" }

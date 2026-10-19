@@ -215,7 +215,8 @@ struct MessagingHistoryView: View {
                 }
                 if history.messages.isEmpty {
                     MessagingEmptyView(title: "messaging.history.empty",
-                                       hint: replyPolicy.isSystemNotice ? "im.chat.emptySystemHint" : "messaging.history.emptyHint",
+                                       hint: replyPolicy.isSystemNotice ? "im.chat.emptySystemHint"
+                                           : (sender != nil && replyBlock == nil ? "im.chat.emptyReplyHint" : "messaging.history.emptyHint"),
                                        identifier: "messaging.history.empty")
                 }
                 let dividers = IMInboxTime.dividers(for: history.messages, now: Date())

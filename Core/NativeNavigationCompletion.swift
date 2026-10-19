@@ -1,6 +1,8 @@
 import Foundation
 
-public enum NativeRouteFailure: String, Equatable { case unsupported, malformed, cannotOpen }
+public enum NativeRouteFailure: String, Equatable { case unsupported, malformed, cannotOpen
+    /// Mini-program join links that still carry only the retired `?teamId=` (邀请链接已升级).
+    case legacyTeamLink }
 public struct TeamInvitationRoute: Equatable {
     public let code: String
     public let fromTeamID: Int?
@@ -29,6 +31,15 @@ public enum NativeNavigationContract {
                 guard let id = Int(raw), id > 0, String(id) == raw else { return nil }; fromID = id
             }
             return (try? TeamInvitationRoute(code: code, fromTeamID: fromID)).map(NativeEntryIntent.teamInvitation)
+        }
+        if path == "/pages/team/join/index" {
+            // The mini-program share path. A code is an invitation; a lone positive teamId is the retired form.
+            if let code = query["code"] {
+                guard Set(query.keys).isSubset(of: ["code"]) else { return nil }
+                return (try? TeamInvitationRoute(code: code)).map(NativeEntryIntent.teamInvitation)
+            }
+            guard query.keys.sorted() == ["teamId"], let raw = query["teamId"], let id = Int(raw), id > 0, String(id) == raw else { return nil }
+            return .routeError(.legacyTeamLink)
         }
         if path == "/badge" {
             guard Set(query.keys).isSubset(of: ["name", "sub", "img", "style", "rarity"]),

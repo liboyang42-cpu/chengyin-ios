@@ -101,6 +101,7 @@ extension EnvironmentValues {
         if let when = MyProjectListPresentation.whenText(start: project.startTime, end: project.endTime, chinese: chinese) {
             Text(verbatim: when).font(.caption)
         }
+        if let address = project.addressName { Text(verbatim: address).font(.caption).foregroundStyle(.secondary) }
     }
 }
 

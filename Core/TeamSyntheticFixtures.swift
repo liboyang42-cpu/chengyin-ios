@@ -28,7 +28,7 @@ public enum TeamSyntheticFixtures {
     }
 }
 @MainActor public final class TeamSyntheticService: TeamServing {
-    public enum Scenario: String { case content, empty, failure, retry, guest, unconfigured, invitation, full, inProgress, ended, disbanded, unknownStatus, missingRole, unknownOutcome, rejected, notSent, invitationFull, invitationEnded }
+    public enum Scenario: String { case content, empty, failure, retry, guest, unconfigured, invitation, full, inProgress, ended, disbanded, unknownStatus, missingRole, unknownOutcome, rejected, notSent, invitationFull, invitationEnded, networkFailure, forbidden, invitationRejected }
     public var authority: TeamServiceAuthority { scenario == .unconfigured ? .unconfigured : .synthetic }
     public let scenario: Scenario
     public var currentDetail: TeamDetail
@@ -43,6 +43,7 @@ public enum TeamSyntheticFixtures {
         var json = TeamSyntheticFixtures.detailJSON
         switch scenario {
         case .invitation: json = json.replacingOccurrences(of: "\"joined\":true,\"leader\":true", with: "\"joined\":false,\"leader\":false")
+        case .invitationRejected: json = json.replacingOccurrences(of: "\"joined\":true,\"leader\":true", with: "\"joined\":false,\"leader\":false")
         case .invitationFull, .invitationEnded:
             json = json.replacingOccurrences(of: "\"joined\":true,\"leader\":true", with: "\"joined\":false,\"leader\":false")
                 .replacingOccurrences(of: "\"status\":0", with: scenario == .invitationFull ? "\"status\":1" : "\"status\":3")
@@ -60,6 +61,8 @@ public enum TeamSyntheticFixtures {
         if let beforeRead { await beforeRead() }
         if scenario == .unconfigured { throw TeamFailure.notConfigured }
         if scenario == .failure { throw TeamFailure.unavailable }
+        if scenario == .networkFailure { throw URLError(.notConnectedToInternet) }
+        if scenario == .forbidden { throw TeamFailure.rejected(403) }
         if scenario == .retry { attempts += 1; if attempts == 1 { throw TeamFailure.unavailable } }
     }
     public func myTeams(session: TeamSession) async throws -> [OwnedTeam] {
@@ -83,7 +86,7 @@ public enum TeamSyntheticFixtures {
         let result: TeamWriteOutcome
         switch scenario {
         case .unknownOutcome: return .unknown
-        case .rejected: result = .rejected
+        case .rejected, .invitationRejected: result = .rejected
         case .notSent: result = .notSent
         default:
             do {

@@ -108,4 +108,36 @@ import XCTest
         XCTAssertNil(gate.consume(request, current: .init(snapshot: model.snapshot, context: model.interactionContext)))
         gate.disappear(); XCTAssertNil(gate.request(.overview, read: read))
     }
+    /// I10: the map host now builds one Read per render and shares it across annotations.
+    /// It must authorize and preview exactly like a Read rebuilt from the same model state.
+    func testOneSharedReadPerRenderMatchesFreshReadsForEveryPin() async throws {
+        let (_, wire, model) = try harness(); await model.load()
+        let shared = try read(model)
+        XCTAssertEqual(shared, try read(model))
+        var gate = PlayRouteMapCamera.Gate(); gate.appear()
+        XCTAssertEqual(shared.presentation.mappedStops.map(\.id), [1, 2])
+        for stop in shared.presentation.mappedStops {
+            let request = try XCTUnwrap(gate.request(.preview(stop.id), read: shared))
+            let result = try XCTUnwrap(gate.consume(request, current: try read(model)))
+            XCTAssertEqual(result.preview?.resolve(current: shared)?.id, stop.id)
+            XCTAssertEqual(result.preview?.resolve(current: try read(model))?.id, stop.id)
+        }
+        XCTAssertNil(gate.request(.preview(3), read: shared))
+        XCTAssertEqual(wire.requests.count, 1)
+    }
+    /// I10: list and pin identity is the business node ID, never the row position,
+    /// so a reordered read cannot reuse another stop's row, selection or VoiceOver focus.
+    func testStopIdentityIsBusinessNodeIDAcrossReorderedRead() async throws {
+        let reordered = #"{"mode":1,"registered":true,"playable":true,"nodes":[{"nodeId":2,"name":"Current","done":false,"latitude":31.2,"longitude":121.2},{"nodeId":1,"name":"Completed","done":true,"latitude":31.1,"longitude":121.1}]}"#
+        let (_, _, first) = try harness(); await first.load()
+        let (_, _, second) = try harness(reordered); await second.load()
+        let a = try read(first).presentation, b = try read(second).presentation
+        XCTAssertEqual(b.stops.map(\.id), [2, 1]); XCTAssertEqual(b.stops.map(\.order), [1, 2])
+        for stop in b.stops {
+            let match = try XCTUnwrap(a.stops.first(where: { $0.id == stop.id }))
+            XCTAssertEqual(match.name, stop.name); XCTAssertEqual(match.state, stop.state)
+            XCTAssertEqual(match.coordinate, stop.coordinate)
+        }
+        XCTAssertEqual(a.currentNodeID, 2); XCTAssertEqual(b.currentNodeID, 2)
+    }
 }

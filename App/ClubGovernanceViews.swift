@@ -1292,6 +1292,8 @@ struct ClubGovernanceReadView: View {
                         openClub: target.map { route in { selectFeedClub(route) } })
                 }
             } else { Text("club.gov.malformed").accessibilityIdentifier("club.feed.malformed") }
+        } else if operation == .nodeAnswer {
+            ClubNodeAnswerContent(value: value)
         } else if operation == .customer {
             if let detail = try? ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID) {
                 ClubOpsCustomerDetailContent(detail: detail, topicAction: { record in
@@ -1341,6 +1343,7 @@ struct ClubGovernanceReadView: View {
             } }
             if operation == .checkin, let clubID = scope.clubID, let registrationID = scope.registrationID,
                let target = try? ClubOwnerRefundTarget(clubID: clubID, registrationID: registrationID) {
+                ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]))
                 Section {
                     ClubOwnerRefundPanel(target: target, identity: identity, sourceCanRefund: value["canRefund"] == .bool(true), onReadback: { Task { await load() } })
                 }
