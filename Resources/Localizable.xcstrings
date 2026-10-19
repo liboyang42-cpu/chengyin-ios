@@ -171872,6 +171872,3414 @@
         }
       }
     },
+    "cooperation.finance.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profit share details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分润明细"
+          }
+        }
+      }
+    },
+    "cooperation.finance.stat.income": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credited profit share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已入账分润"
+          }
+        }
+      }
+    },
+    "cooperation.finance.stat.adjustPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjustments pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调整待处理"
+          }
+        }
+      }
+    },
+    "cooperation.finance.stat.adjustExecuted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjustments applied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已执行调整"
+          }
+        }
+      }
+    },
+    "cooperation.finance.withdraw": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact platform support to withdraw"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系平台客服提现"
+          }
+        }
+      }
+    },
+    "cooperation.finance.withdraw.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credited amount awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已入账金额待确认"
+          }
+        }
+      }
+    },
+    "cooperation.finance.withdraw.zero": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No credited profit share yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有已入账分润"
+          }
+        }
+      }
+    },
+    "cooperation.finance.withdraw.a11y.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact platform support to withdraw; credited amount awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系平台客服提现，已入账金额待确认"
+          }
+        }
+      }
+    },
+    "cooperation.finance.withdraw.a11y.zero": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact platform support to withdraw; no credited profit share yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系平台客服提现，还没有已入账分润"
+          }
+        }
+      }
+    },
+    "cooperation.finance.topics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement by topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "各主题结算"
+          }
+        }
+      }
+    },
+    "cooperation.finance.explainer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settled is not the same as credited: settled means the amount has been calculated; credited means the money has reached your personal account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已结算不等于已入账：已结算表示金额完成核算，已入账表示款项已进入个人账户。"
+          }
+        }
+      }
+    },
+    "cooperation.finance.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No cooperation settlements yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有合作结算"
+          }
+        }
+      }
+    },
+    "cooperation.finance.settled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已结算"
+          }
+        }
+      }
+    },
+    "cooperation.finance.topicFallback %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic #%lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题 #%lld"
+          }
+        }
+      }
+    },
+    "cooperation.finance.status.settlementUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement status awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算状态待确认"
+          }
+        }
+      }
+    },
+    "cooperation.finance.status.unsettled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待结算"
+          }
+        }
+      }
+    },
+    "cooperation.finance.status.amountUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额待确认"
+          }
+        }
+      }
+    },
+    "cooperation.finance.status.noIncomeDue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to credit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无需入账"
+          }
+        }
+      }
+    },
+    "cooperation.finance.status.arrivalUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrival status awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到账状态待确认"
+          }
+        }
+      }
+    },
+    "cooperation.finance.status.credited": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已入账"
+          }
+        }
+      }
+    },
+    "cooperation.finance.status.awaitingCredit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting credit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待入账"
+          }
+        }
+      }
+    },
+    "cooperation.finance.merchant.amountUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额待确认"
+          }
+        }
+      }
+    },
+    "cooperation.finance.merchant.noMerchantShare": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No merchant share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无商家分润"
+          }
+        }
+      }
+    },
+    "cooperation.finance.merchant.payoutUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payout status awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打款状态待确认"
+          }
+        }
+      }
+    },
+    "cooperation.finance.merchant.paid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已打款"
+          }
+        }
+      }
+    },
+    "cooperation.finance.merchant.partiallyPaid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partially paid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分打款"
+          }
+        }
+      }
+    },
+    "cooperation.finance.merchant.unpaid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting payout"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待打款"
+          }
+        }
+      }
+    },
+    "cooperation.finance.issue.auth.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to view organizer profit share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看主办分润"
+          }
+        }
+      }
+    },
+    "cooperation.finance.issue.auth.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After signing in you can see your actual organizer profit share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后可查看你的真实主办分润"
+          }
+        }
+      }
+    },
+    "cooperation.finance.issue.denied.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account cannot view profit share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号无法查看分润"
+          }
+        }
+      }
+    },
+    "cooperation.finance.issue.denied.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check this account’s viewing permission"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请确认当前账号的查看权限"
+          }
+        }
+      }
+    },
+    "cooperation.finance.issue.failed.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profit share data did not load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分润数据没加载出来"
+          }
+        }
+      }
+    },
+    "cooperation.finance.issue.failed.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload the profit share data"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新加载分润数据"
+          }
+        }
+      }
+    },
+    "cooperation.finance.stages.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending settlement (activity not ended)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待结算（活动未结束）"
+          }
+        }
+      }
+    },
+    "cooperation.finance.stages.disputed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complaint in progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客诉处理中"
+          }
+        }
+      }
+    },
+    "cooperation.finance.stages.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some unreceived amounts cannot be calculated yet; the settled credit is authoritative"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分未到账金额暂时算不出，以结算到账为准"
+          }
+        }
+      }
+    },
+    "cooperation.finance.stages.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unreceived amounts are temporarily unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未到账金额暂时取不到"
+          }
+        }
+      }
+    },
+    "cooperation.withdraw.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal method changed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现方式已调整"
+          }
+        }
+      }
+    },
+    "cooperation.withdraw.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Now handled offline by platform support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改为联系平台客服线下处理"
+          }
+        }
+      }
+    },
+    "cooperation.withdraw.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add the support WeChat account; the amount is checked and handled offline."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加客服微信，核对金额后线下处理。"
+          }
+        }
+      }
+    },
+    "cooperation.withdrawRecords.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现记录"
+          }
+        }
+      }
+    },
+    "cooperation.withdrawRecords.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bank-card withdrawals and arrival progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "银行卡提现与到账进度"
+          }
+        }
+      }
+    },
+    "cooperation.withdrawRecords.failed.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page failed to open"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "页面打开失败"
+          }
+        }
+      }
+    },
+    "cooperation.withdrawRecords.failed.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal records failed to open. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现记录页面打开失败，请重试"
+          }
+        }
+      }
+    },
+    "cooperation.withdraw.entry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算详情"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.refreshing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating settlement details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更新结算详情"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.refreshing.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current details remain viewable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现有详情仍可查看"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.staleError": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement details were not updated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算详情没有更新"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.missingParam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement record identifier missing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺少结算记录标识"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.missingParam.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go back to the settlement list and open it again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请返回结算列表重新进入"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回上一页"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.missingRecord": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement record not visible"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算记录不可见"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.missingRecord.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This record may have been withdrawn or may not belong to the current account"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条记录可能已撤回或不属于当前账号"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.backToList": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to settlement list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回结算列表"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement details did not load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算详情没加载出来"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.failed.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service temporarily unavailable. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务暂时不可用，请稍后重试"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement details need to be reloaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算详情需要重新加载"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.breakdown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount breakdown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额分解"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.progress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算进度"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.perspective.host": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizer profit share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主办分润"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.perspective.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host-side profit share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承接分润"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.status.awaitingCredit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting credit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待入账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.status.creditedBalance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to balance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已入余额"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.status.void": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voided"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已作废"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.status.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态待确认"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.status.unsettled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待结算"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.status.amountUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额待确认"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.status.noIncomeDue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to credit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无需入账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.status.credited": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已入账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.line.payee": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payee"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收款方"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.line.verifiedSales": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeemed sales"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销销售额"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.line.verifiedHeads": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeemed participants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销人数"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.line.shareRule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profit share method"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分润方式"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.line.income": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My profit share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的分润"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.line.totalSales": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total sales"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "总销售额"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.line.platform": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform service fee"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台服务费"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.line.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant receivable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家应收"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.created": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement record created"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算记录已创建"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.settled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation settled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作已结算"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.payable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expected credit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预计入账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.payableWaiting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting credit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待入账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.paid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to balance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已入余额"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.void": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement voided"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算已作废"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement status awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算状态待确认"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.hostSettlementUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement status awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算状态待确认"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.hostSettled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic settled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题已结算"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.hostUnsettled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic awaiting settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题待结算"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.hostCredited": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My profit share credited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的分润已入账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.hostAwaiting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My profit share awaiting credit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的分润待入账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.hostNoIncome": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to credit this period"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本期无需入账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.merchantPayable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant receivable creditable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家应收可入账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.step.merchantPaid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant receivable paid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家应收已打款"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.payee.club": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club profit share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部分润"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.payee.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant profit share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家分润"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.share.traffic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traffic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引流"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.share.rate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revenue share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分成"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.share.fixed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "固定"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.shareRate %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revenue share · %@%%"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分成 · %@%%"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.fixedFee %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixed · ¥%@/person"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "固定 · ¥%@/人"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.heads %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld people"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 人"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.timeUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间待确认"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.arrivalUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrival time awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到账时间待确认"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.refreshLater": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请稍后刷新"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.currentState": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前状态"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.arrived": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrived"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.awaitingArrival": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting arrival"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待到账"
+          }
+        }
+      }
+    },
+    "cooperation.settlement.value.zeroShare": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profit share is 0"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分润为 0"
+          }
+        }
+      }
+    },
+    "cooperation.detail.section.contact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系方式"
+          }
+        }
+      }
+    },
+    "cooperation.detail.section.terms": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation terms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作条款"
+          }
+        }
+      }
+    },
+    "cooperation.detail.section.deposit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deposit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保证金"
+          }
+        }
+      }
+    },
+    "cooperation.detail.from": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自"
+          }
+        }
+      }
+    },
+    "cooperation.detail.to": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发给"
+          }
+        }
+      }
+    },
+    "cooperation.detail.counterparty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The other party"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方"
+          }
+        }
+      }
+    },
+    "cooperation.detail.receivingClub": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receiving club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收俱乐部"
+          }
+        }
+      }
+    },
+    "cooperation.detail.sendingClub": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发起俱乐部"
+          }
+        }
+      }
+    },
+    "cooperation.detail.contact.afterAcceptReceived": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact details are visible after you accept"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受合作后可查看联系方式"
+          }
+        }
+      }
+    },
+    "cooperation.detail.contact.afterAcceptSent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact details are visible after the other party accepts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方接受后可查看联系方式"
+          }
+        }
+      }
+    },
+    "cooperation.detail.contact.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The other party left no contact details; use “Contact partner” below to chat in the app"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方没有留联系方式，可用下方「联系合作方」站内沟通"
+          }
+        }
+      }
+    },
+    "cooperation.detail.contact.ended": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The invitation has ended; the other party cannot be contacted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀约已结束，无法联系对方"
+          }
+        }
+      }
+    },
+    "cooperation.detail.share": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profit share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分润"
+          }
+        }
+      }
+    },
+    "cooperation.detail.terms.share %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revenue share · ticket sales %@%%"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分成型 · 票款 %@%%"
+          }
+        }
+      }
+    },
+    "cooperation.detail.terms.fixed %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixed · ¥%@ / redeemed participant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "固定型 · ¥%@ / 核销人头"
+          }
+        }
+      }
+    },
+    "cooperation.detail.deposit.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无"
+          }
+        }
+      }
+    },
+    "cooperation.detail.deposit.owed %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deposit of ¥%@ due after price lock"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁价后待缴 ¥%@ 保证金"
+          }
+        }
+      }
+    },
+    "cooperation.detail.deposit.owedUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deposit due after price lock; amount awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁价后待缴保证金，金额待确认"
+          }
+        }
+      }
+    },
+    "cooperation.detail.messages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留言"
+          }
+        }
+      }
+    },
+    "cooperation.detail.us": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Us"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我方"
+          }
+        }
+      }
+    },
+    "cooperation.detail.them": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Them"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方"
+          }
+        }
+      }
+    },
+    "cooperation.detail.reason.us": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Us · Handling reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我方 · 处理理由"
+          }
+        }
+      }
+    },
+    "cooperation.detail.reason.them": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Them · Handling reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方 · 处理理由"
+          }
+        }
+      }
+    },
+    "cooperation.detail.noMessages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No messages yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有留言。"
+          }
+        }
+      }
+    },
+    "cooperation.detail.contactHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To align on details, tap “Contact partner” above to open a direct chat."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要对齐事项时，请点击上方“联系合作方”进入单聊。"
+          }
+        }
+      }
+    },
+    "cooperation.detail.actions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation actions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作操作"
+          }
+        }
+      }
+    },
+    "cooperation.detail.project": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open project"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入项目"
+          }
+        }
+      }
+    },
+    "cooperation.detail.contactPartner": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact partner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系合作方"
+          }
+        }
+      }
+    },
+    "cooperation.detail.declarePerks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declare supply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申报供给"
+          }
+        }
+      }
+    },
+    "cooperation.detail.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评价"
+          }
+        }
+      }
+    },
+    "cooperation.detail.reviewed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已评价"
+          }
+        }
+      }
+    },
+    "cooperation.detail.cancelAccepted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel cooperation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消合作"
+          }
+        }
+      }
+    },
+    "cooperation.detail.cancelLocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Price is locked; contact support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已锁价，需联系客服"
+          }
+        }
+      }
+    },
+    "cooperation.detail.accept": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept cooperation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受合作"
+          }
+        }
+      }
+    },
+    "cooperation.detail.reject": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒绝"
+          }
+        }
+      }
+    },
+    "cooperation.detail.withdraw": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw invitation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回邀约"
+          }
+        }
+      }
+    },
+    "cooperation.detail.reply.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reply to the other party (optional when accepting, required when declining)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回复对方(接受选填，拒绝必填)"
+          }
+        }
+      }
+    },
+    "cooperation.detail.withdraw.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal reason (required, sent to the other party)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回理由(必填，会发给对方)"
+          }
+        }
+      }
+    },
+    "cooperation.detail.reject.reasonRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explain why you decline so the other party knows how to adjust."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请说明拒绝理由，让对方知道如何调整。"
+          }
+        }
+      }
+    },
+    "cooperation.detail.withdraw.reasonRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The other party needs this reason to know what to change next."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方拿着这句话才知道下一步该怎么改。"
+          }
+        }
+      }
+    },
+    "cooperation.detail.deposit.pay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay deposit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去缴纳保证金"
+          }
+        }
+      }
+    },
+    "cooperation.detail.footer.legacy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy merchant-node invitations are view-only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史商家节点邀约仅供查看"
+          }
+        }
+      }
+    },
+    "cooperation.detail.footer.ongoing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation in progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作进行中"
+          }
+        }
+      }
+    },
+    "cooperation.detail.footer.ongoingFrozen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation in progress, terms frozen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作进行中，条款已冻结"
+          }
+        }
+      }
+    },
+    "cooperation.detail.footer.inactive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This invitation is no longer active; no actions are available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条邀约已失效，没有可执行的操作"
+          }
+        }
+      }
+    },
+    "cooperation.party.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家"
+          }
+        }
+      }
+    },
+    "cooperation.party.club": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部"
+          }
+        }
+      }
+    },
+    "cooperation.party.talent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic publisher"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题发布者"
+          }
+        }
+      }
+    },
+    "cooperation.party.official": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台"
+          }
+        }
+      }
+    },
+    "cooperation.party.from": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sender"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发起方"
+          }
+        }
+      }
+    },
+    "cooperation.party.to": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recipient"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收方"
+          }
+        }
+      }
+    },
+    "cooperation.party.generic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作"
+          }
+        }
+      }
+    },
+    "cooperation.list.newInvite": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send an invitation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去发起邀请"
+          }
+        }
+      }
+    },
+    "cooperation.list.incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation incomplete: the inviter, topic or terms are missing, so it cannot be handled yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请信息不完整：缺少邀请方、主题或合作条款，暂不能处理"
+          }
+        }
+      }
+    },
+    "cooperation.list.sent.declinedHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declined by the other party; you can invite another merchant."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方已拒绝，可再邀其他商家。"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter applications"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节承接"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading chapter application records…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载章节承接记录…"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter application records were not fully updated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节承接记录未完整更新"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.status.offerWithdrawn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply withdrawn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已退出供给"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.status.pendingReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待审核"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.status.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已拒绝"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.status.offerActive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply active"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给已生效"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.status.offerPendingReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply pending review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给待审核"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.status.approvedAwaitingSupply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved · supply needed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已获准 · 待补供给"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.action.viewWithdrawal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View withdrawal record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看退出记录"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.action.viewOwned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View hosting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看承接"
+          }
+        }
+      }
+    },
+    "cooperation.list.chapter.action.viewAndSupply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View and add supply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看与补供给"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Official invitations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "官方邀约"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Official invitations did not load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "官方邀约没加载出来"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.from": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From the platform"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自 平台"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.stage.declined": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已拒绝"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.stage.expired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expired"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已过期"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.stage.awaitingYou": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting your confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待你确认"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.stage.won": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected to host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已中标承接"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.stage.notWon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not selected this round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本轮未中标"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.stage.awaitingReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting back-office confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待后台确认"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.stage.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态待确认"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.deadline.unconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deadline awaiting official confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截止时间待官方确认"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.deadline %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deadline %1$lld/%2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截止 %1$lld月%2$lld日"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.reward.share %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revenue share %@%%"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分成 %@%%"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.reward.fixed %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixed ¥%@/person"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "固定 ¥%@/人"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.reward.resources": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resource support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资源支持"
+          }
+        }
+      }
+    },
+    "cooperation.list.official.reward.unconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reward awaiting official confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报酬待官方确认"
+          }
+        }
+      }
+    },
+    "cooperation.invite.nearby": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearby merchants · includes unlisted merchants you can call"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近商家 · 含未入驻商家可电话联系"
+          }
+        }
+      }
+    },
+    "cooperation.invite.messagePlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write a note to the other party"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写下想对对方说的话"
+          }
+        }
+      }
+    },
+    "cooperation.invite.terms": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation terms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作条款"
+          }
+        }
+      }
+    },
+    "cooperation.invite.terms.traffic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traffic cooperation (no cash settlement)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引流合作（不产生现金结算）"
+          }
+        }
+      }
+    },
+    "cooperation.invite.fee.club": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guide fee per redeemed participant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按核销人头付带队费"
+          }
+        }
+      }
+    },
+    "cooperation.invite.fee.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay per redemption"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按核销付费"
+          }
+        }
+      }
+    },
+    "cooperation.invite.feeUnit.club": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ per redeemed participant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 每核销 1 人"
+          }
+        }
+      }
+    },
+    "cooperation.invite.feeUnit.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ person"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 人"
+          }
+        }
+      }
+    },
+    "cooperation.invite.defaultMessage.club": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We invite your club to join this activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请贵俱乐部来参加活动"
+          }
+        }
+      }
+    },
+    "cooperation.invite.defaultMessage.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We invite your shop to host this topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请贵店承接本主题合作"
+          }
+        }
+      }
+    },
+    "cooperation.invite.members %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 位成员"
+          }
+        }
+      }
+    },
+    "cooperation.invite.membersUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member count awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员数待确认"
+          }
+        }
+      }
+    },
+    "cooperation.invite.openToHost": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open to hosting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开放承接"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearby merchants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近商家"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No contactable merchants nearby"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近暂无可联系商家"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.empty.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No merchants were found for your current location; refreshing locates you again and searches once more"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按当前定位没找到商家，刷新会重新定位再找一遍"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearby merchants did not load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近商家没加载出来"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.failed.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service temporarily unavailable. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务暂时不可用，请稍后重试"
+          }
+        }
+      }
+    },
+    "cooperation.nearby.call": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Call"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电话联系"
+          }
+        }
+      }
+    },
+    "cooperation.list.apply.replied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation sent back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已回邀约"
+          }
+        }
+      }
+    },
+    "cooperation.list.apply.partnerAccepted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partner accepted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方已接受"
+          }
+        }
+      }
+    },
+    "cooperation.list.apply.viewCooperation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View cooperation details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看合作详情"
+          }
+        }
+      }
+    },
     "im.inbox.tab.direct": {
       "localizations": {
         "en": {

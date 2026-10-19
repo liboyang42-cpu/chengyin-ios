@@ -38,6 +38,8 @@ public enum CoopFlowJSON: Codable, Equatable {
 public enum CoopFlowFailure: Error, Equatable {
     case disabled, invalid(String), stale, permission, conflict, ambiguous, storage, malformed, unavailable
     case server(Int, String?)
+    /// Failed envelope with `errorCode: NOT_ACTIVE_MERCHANT`: the account has no active merchant identity.
+    case inactiveMerchant(Int, String?)
 }
 public struct CoopFlowIdentity: Codable, Equatable, Hashable {
     public enum Domain: String, Codable { case member, merchant, club, topic, invite, application, registration, offer, template, settlement }

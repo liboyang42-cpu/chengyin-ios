@@ -4,7 +4,14 @@ import SwiftUI
     let reader: any CooperationReading
     var onClose:(()->Void)? = nil
     var peerReader: (any CoopFlowReading)? = nil
-    @State private var direction: CooperationDirection = .received
+    /// Source `?scope=MERCHANT`; forwarded to the chapter owner leg and the new-invitation route.
+    var operationScope: String? = nil
+    @State private var direction: CooperationDirection
+    init(reader: any CooperationReading, onClose: (() -> Void)? = nil, peerReader: (any CoopFlowReading)? = nil,
+         operationScope: String? = nil, initialDirection: CooperationDirection = .received) {
+        self.reader = reader; self.onClose = onClose; self.peerReader = peerReader; self.operationScope = operationScope
+        _direction = State(initialValue: initialDirection)
+    }
     @State private var topicFilter: CooperationInboxTopicFilter?
     private var selectedTopicID: Int? {
         guard reader.isConfigured, reader.isAuthenticated else { return nil }
@@ -22,15 +29,22 @@ import SwiftUI
                         CooperationPoolView(reader: reader)
                     } label: { Label("cooperation.pool.title", systemImage: "rectangle.stack") }
                         .accessibilityIdentifier("cooperation.pool.open")
+                    if let peerReader {
+                        NavigationLink { CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope) } label: {
+                            Label("cooperation.list.newInvite", systemImage: "plus.circle")
+                        }.accessibilityIdentifier("cooperation.list.newInvite")
+                    }
                 }
                 topicFilterSection(snapshot)
+                if let peerReader { CoopChapterApplicationSection(reader: peerReader, direction: direction, operationScope: operationScope) }
                 if snapshot.isPartial {
                     Label("cooperation.partial", systemImage: "exclamationmark.triangle").font(.footnote)
                         .accessibilityIdentifier("cooperation.partial")
                 }
                 invitationSection(snapshot.invitations, direction: snapshot.direction)
-                applicationSection(snapshot.applications, direction: snapshot.direction)
+                applicationSection(snapshot.applications, direction: snapshot.direction, sentInvites: { () -> [CooperationInvite] in if case .content(let list) = snapshot.invitations { return list.sent }; return [] }())
                 if let registrations = snapshot.registrations { registrationSection(registrations) }
+                if direction == .received, let peerReader { CoopOfficialInviteSection(reader: peerReader) }
                 Section { CooperationReadOnlyNotice() }
             }
             .appNavigationTitle("cooperation.title")
@@ -89,6 +103,7 @@ import SwiftUI
                         VStack(alignment: .leading, spacing: 8) {
                             CooperationName(name: row.partner?.name).font(.headline)
                             CooperationStatus(key: row.statusKey, symbol: row.status == 0 ? "clock" : row.status == 1 ? "checkmark.circle" : "circle")
+                            CooperationInviteCardDetails(view: CooperationInvitePresentation(invite: row, direction: direction))
                             if let id = row.topicId { CooperationTopicReference(id: id) }
                             CooperationTimeField(key: "cooperation.created", value: row.createTime)
                         }.padding(.vertical, 4)
@@ -97,7 +112,7 @@ import SwiftUI
             }
         }
     }
-    @ViewBuilder private func applicationSection(_ state: CooperationSection<[CooperationApplication]>, direction: CooperationDirection) -> some View {
+    @ViewBuilder private func applicationSection(_ state: CooperationSection<[CooperationApplication]>, direction: CooperationDirection, sentInvites: [CooperationInvite] = []) -> some View {
         Section("cooperation.applications") {
             switch state {
             case .failure(let issue): CooperationIssueView(issue: issue)
@@ -107,7 +122,8 @@ import SwiftUI
                 ForEach(visible, id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: 8) {
                         CooperationName(name: row.topicName, fallback: "cooperation.unnamedTopic").font(.headline)
-                        CooperationStatus(key: row.statusKey)
+                        let replied = direction == .received ? CooperationRepliedApplication(application: row, sent: sentInvites) : nil
+                        CooperationStatus(key: replied?.statusKey ?? row.statusKey)
                         CooperationField(key: direction == .received ? "cooperation.fromClub" : "cooperation.toMerchant", value: direction == .received ? row.clubName : row.merchantNick)
                         CooperationTopicReference(id: row.topicId)
                         CooperationTimeField(key: "cooperation.start", value: row.startDate)
@@ -115,6 +131,11 @@ import SwiftUI
                             CooperationField(key: "cooperation.message", value: message)
                         } else { Text("cooperation.application.intent").font(.footnote).foregroundStyle(.secondary) }
                         if direction == .received { CooperationCandidateLink(topicID: row.topicId, reader: reader) }
+                        if let linked = replied?.linkedInviteID {
+                            NavigationLink { CooperationInviteDetailView(key: CooperationInviteKey(id: linked, direction: .sent), reader: reader, peerReader: peerReader) } label: {
+                                Text("cooperation.list.apply.viewCooperation")
+                            }.accessibilityIdentifier("cooperation.list.apply.linked.\(linked)")
+                        }
                     }.padding(.vertical, 4)
                 }
             }

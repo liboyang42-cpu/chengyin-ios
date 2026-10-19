@@ -278,6 +278,7 @@ struct SessionRootView: View {
         })
         .environment(\.verificationCodeFactory, { session.makeVerificationCodeCoordinator(target: $0) })
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
+        .environment(\.coopWalletReader, session.walletCommerceReader)
         .environment(\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))
         .environment(\.bankWithdrawalDestination, { AnyView(SessionBankWithdrawalView()) })
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
