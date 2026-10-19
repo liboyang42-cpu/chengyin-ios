@@ -18,6 +18,118 @@ import XCTest
         c.prepare(.join(teamID: 4101, inviteCode: "SYNTHETIC-TEAM"))
         return try XCTUnwrap(c.review)
     }
+    private func reviewMode(_ c: TeamCoordinator, _ mode: TeamJoinMode = .invitation) async throws -> TeamReview {
+        await c.loadDetail(.id(4101)); c.prepare(.changeJoinMode(teamID: 4101, mode: mode))
+        return try XCTUnwrap(c.review)
+    }
+    func testJoinModeSimulationConfirmsOnlyModeThenRequiresFreshReadBeforeChangingBack() async throws {
+        let (c, service, journal, _) = try setup()
+        let first = try await reviewMode(c), roster = c.detail?.members
+        await c.confirm(first)
+        XCTAssertEqual(c.writeState, .simulated); XCTAssertEqual(c.confirmedJoinMode, .invitation)
+        XCTAssertEqual(c.detail?.team.joinMode, .publicApplication) // Full detail is not fabricated from the acknowledgment.
+        XCTAssertEqual(service.currentDetail.team.joinMode, .invitation); XCTAssertEqual(service.currentDetail.members, roster)
+        XCTAssertTrue(journal.records.isEmpty)
+        c.prepare(.changeJoinMode(teamID: 4101, mode: .publicApplication)); XCTAssertNil(c.review)
+        await c.confirm(first); XCTAssertEqual(service.submissions.count, 1)
+        await c.loadDetail(.id(4101))
+        XCTAssertNil(c.confirmedJoinMode); XCTAssertEqual(c.writeState, .idle); XCTAssertEqual(c.detail?.team.joinMode, .invitation)
+        c.prepare(.changeJoinMode(teamID: 4101, mode: .publicApplication))
+        let second = try XCTUnwrap(c.review); await c.confirm(second)
+        XCTAssertEqual(c.confirmedJoinMode, .publicApplication); XCTAssertEqual(service.submissions.count, 2)
+        XCTAssertEqual(service.currentDetail.members, roster)
+    }
+    func testFreshDetailRemovesOldModeConfirmationEvenIfJournalReadFails() async throws {
+        let (c, _, journal, _) = try setup()
+        let review = try await reviewMode(c); await c.confirm(review)
+        XCTAssertEqual(c.confirmedJoinMode, .invitation)
+        journal.failReads = true
+        await c.loadDetail(.id(4101))
+        XCTAssertNil(c.confirmedJoinMode); XCTAssertEqual(c.detail?.team.joinMode, .invitation)
+        XCTAssertEqual(c.writeState, .blocked)
+        c.prepare(.changeJoinMode(teamID: 4101, mode: .publicApplication)); XCTAssertNil(c.review)
+    }
+    func testJoinModeUnknownSurvivesRefreshReconstructionAndMatchingCurrentMode() async throws {
+        let (c, service, journal, box) = try setup(.unknownOutcome)
+        let review = try await reviewMode(c); await c.confirm(review)
+        XCTAssertEqual(c.writeState, .unknown); XCTAssertNotNil(c.pending); XCTAssertNil(c.confirmedJoinMode)
+        service.currentDetail = try JSONDecoder().decode(TeamDetail.self, from: Data(TeamSyntheticFixtures.detailJSON.replacingOccurrences(of: "\"joinMode\":2", with: "\"joinMode\":1").utf8))
+        await c.loadDetail(.id(4101))
+        XCTAssertNotNil(c.pending); XCTAssertNil(c.confirmedJoinMode)
+        c.prepare(.disband(teamID: 4101)); XCTAssertNil(c.review)
+        let restored = TeamCoordinator(service: service, journal: journal, currentSession: { box.value })
+        await restored.loadDetail(.id(4101)); XCTAssertNotNil(restored.pending)
+        await restored.checkOutcome(); XCTAssertEqual(restored.writeState, .unknown)
+        XCTAssertEqual(service.submissions.count, 1)
+    }
+    func testJoinModeRejectsGenericOrMismatchedAcknowledgmentsWithoutUnlocking() async throws {
+        for kind in ["generic", "wrongMode", "wrongTeam", "wrongOperation", "unknownMode"] {
+            let (c, service, journal, _) = try setup()
+            let review = try await reviewMode(c)
+            service.outcomes[review.id] = kind == "generic" ? .acknowledged(operationID: review.id, teamID: 4101)
+                : .joinModeAcknowledged(operationID: kind == "wrongOperation" ? UUID() : review.id,
+                    teamID: kind == "wrongTeam" ? 999 : 4101,
+                    mode: kind == "unknownMode" ? .unknown : kind == "wrongMode" ? .publicApplication : .invitation)
+            await c.confirm(review)
+            XCTAssertEqual(c.writeState, .unknown); XCTAssertNotNil(c.pending)
+            XCTAssertNil(c.confirmedJoinMode); XCTAssertFalse(journal.records.isEmpty)
+        }
+    }
+    func testReconstructedModeIntentRejectsGenericReceiptButAcceptsMatchingTypedSyntheticReceipt() async throws {
+        for genericSimulated in [false, true] {
+            let (c, service, journal, box) = try setup(.unknownOutcome)
+            let review = try await reviewMode(c); await c.confirm(review)
+            XCTAssertEqual(c.pending?.joinMode, .invitation)
+            service.outcomes[review.id] = genericSimulated
+                ? .simulated(operationID: review.id, teamID: 4101)
+                : .acknowledged(operationID: review.id, teamID: 4101)
+            let restored = TeamCoordinator(service: service, journal: journal, currentSession: { box.value })
+            await restored.loadDetail(.id(4101)); await restored.checkOutcome()
+            XCTAssertEqual(restored.writeState, .unknown); XCTAssertNotNil(restored.pending)
+            XCTAssertNil(restored.confirmedJoinMode)
+            service.outcomes[review.id] = .joinModeSimulated(operationID: review.id, teamID: 4101, mode: .invitation)
+            await restored.checkOutcome()
+            XCTAssertEqual(restored.confirmedJoinMode, .invitation); XCTAssertNil(restored.pending)
+        }
+    }
+    func testJoinModeRequiresSuccessfulJournalClearBeforeShowingConfirmation() async throws {
+        let (c, service, journal, _) = try setup()
+        let review = try await reviewMode(c)
+        service.beforeSubmit = { journal.failWrites = true }
+        await c.confirm(review)
+        XCTAssertEqual(c.writeState, .unknown); XCTAssertNil(c.confirmedJoinMode); XCTAssertNotNil(c.pending)
+        journal.failWrites = false
+        await c.checkOutcome() // Existing synthetic-only correlated receipt; no live reconciliation.
+        XCTAssertEqual(c.confirmedJoinMode, .invitation); XCTAssertNil(c.pending)
+    }
+    func testJoinModeStalePreflightAndLateSubmissionCannotPublishMode() async throws {
+        for duringSubmit in [false, true] {
+            let (c, service, journal, box) = try setup()
+            let review = try await reviewMode(c)
+            let replace: () async -> Void = { box.value = try? TeamSyntheticFixtures.session(epoch: 2) }
+            if duringSubmit { service.beforeSubmit = replace } else { service.beforeRead = replace }
+            await c.confirm(review)
+            XCTAssertNil(c.confirmedJoinMode)
+            XCTAssertEqual(service.submissions.count, duringSubmit ? 1 : 0)
+            XCTAssertEqual(journal.records.isEmpty, !duringSubmit)
+        }
+    }
+    func testJoinModeReadOnlyContinuationAndDismissedReviewCannotSubmit() async throws {
+        let (c, service, _, _) = try setup()
+        await c.loadPostJoinDetail(teamID: 4101)
+        c.prepare(.changeJoinMode(teamID: 4101, mode: .invitation)); XCTAssertNil(c.review)
+        let (other, otherService, _, _) = try setup()
+        let review = try await reviewMode(other); other.leaveScreen(); await other.confirm(review)
+        XCTAssertTrue(service.submissions.isEmpty); XCTAssertTrue(otherService.submissions.isEmpty)
+    }
+    func testJoinModePersistenceFailureAndRejectedResultDoNotConfirm() async throws {
+        let (c, service, journal, _) = try setup()
+        let review = try await reviewMode(c); journal.failWrites = true; await c.confirm(review)
+        XCTAssertTrue(service.submissions.isEmpty); XCTAssertNil(c.confirmedJoinMode)
+        let (rejected, _, otherJournal, _) = try setup(.rejected)
+        let rejectedReview = try await reviewMode(rejected); await rejected.confirm(rejectedReview)
+        XCTAssertEqual(rejected.writeState, .rejected); XCTAssertNil(rejected.confirmedJoinMode); XCTAssertTrue(otherJournal.records.isEmpty)
+    }
     func testDirectJoinCompletionAllowsOnlyReadOnlyFreshDetail() async throws {
         let (c, service, journal, box) = try setup(.invitation)
         let review = try await reviewJoin(c); await c.confirm(review)
