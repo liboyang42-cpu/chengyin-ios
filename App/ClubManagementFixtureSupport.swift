@@ -32,6 +32,7 @@ struct ClubManagementFixtureRootView: View {
                 Text(store.finishedDelayedReads, format: .number).accessibilityIdentifier("club.management.finishedReads")
                 Text(store.readCount, format: .number).accessibilityIdentifier("club.management.reads")
                 Text(store.writeCount, format: .number).accessibilityIdentifier("club.management.writes")
+                Text(verbatim: store.lastReviewReason ?? "").accessibilityIdentifier("club.management.reviewReason")
                 Text(store.membershipChanges, format: .number).accessibilityIdentifier("club.management.changes")
             }
             NavigationStack {
@@ -48,6 +49,7 @@ struct ClubManagementFixtureRootView: View {
 private final class ClubManagementFixtureStore: ObservableObject, ClubManagementAccess, ClubReading {
     @Published var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 0)
     @Published var writeCount = 0
+    @Published var lastReviewReason: String?
     @Published var readCount = 0
     @Published var viewerRevision: UInt64 = 0
     @Published var hasPendingRead = false
@@ -110,6 +112,11 @@ private final class ClubManagementFixtureStore: ObservableObject, ClubManagement
     func clubMembers(id: Int) async throws -> ClubMemberDirectory {
         let snapshot = try await snapshot(clubID: id)
         return .init(club: snapshot.club, members: snapshot.members)
+    }
+    /// Offline only: records the reviewed reason; the synthetic outcome is unchanged.
+    func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int, reviewReason: String?, expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt {
+        lastReviewReason = reviewReason
+        return try await perform(action, clubID: clubID, memberID: memberID, expectedIdentity: expectedIdentity)
     }
     func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int, expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt {
         guard identity == expectedIdentity, let account = identity?.accountID else { throw ClubActionWriteError.notSent(.unauthorized) }

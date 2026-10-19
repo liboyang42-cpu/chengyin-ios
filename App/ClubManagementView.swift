@@ -43,6 +43,7 @@ struct ClubManagementView: View {
     @State private var generation: UInt64 = 0
     @State private var ownerID = UUID()
     @State private var screenIdentity: ClubReadIdentity?
+    @State private var reviewReasonDraft = ""
 
     var body: some View {
         List {
@@ -63,6 +64,7 @@ struct ClubManagementView: View {
                 if contextMatches, let snapshot {
                     Section { Text(verbatim: snapshot.club.name) }
                     Section("club.management.requests") {
+                        ClubOpsJoinRequestsIntro(count: snapshot.requests.count)
                         if snapshot.requests.isEmpty {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("club.management.empty")
@@ -72,7 +74,7 @@ struct ClubManagementView: View {
                         ForEach(snapshot.requests) { request in
                             Button { selection = .request(request.id) } label: {
                                 VStack(alignment: .leading) {
-                                    Text(verbatim: request.nickname ?? "#\(request.id)")
+                                    ClubOpsJoinRequestRowText(request: request)
                                     Group {
                                         if let time = request.requestTimeText { Text("club.management.requestedAt \(time)") }
                                         else { Text("club.management.timeUnknown") }
@@ -237,18 +239,22 @@ struct ClubManagementView: View {
         if item.context == reviewContext { state = coordinator.state(clubID: clubID) }
     }
     @ViewBuilder private func confirmationContent(_ item: ClubManagementReviewOwner.Item) -> some View {
-        let pending = item.confirmation
+        // Reject freezes the reviewer's optional reason into this same review (same id and target).
+        let pending = item.confirmation.reviewing(reason: reviewReasonDraft)
         if contextMatches, reviewOwner.current(item, context: reviewContext, active: scenePhase == .active) {
             NavigationStack {
                 Form {
-                    Text(LocalizedStringKey("club.management." + String(pending.action.rawValue) + ".body"))
+                    if pending.action == .remove { Text(LocalizedStringKey("club.management." + String(pending.action.rawValue) + ".body")) }
+                    else { ClubOpsJoinReviewNotes(action: pending.action) }
                     LabeledContent("club.management.club") { Text(verbatim: "\(pending.clubName) (#\(pending.clubID))") }
                     LabeledContent("club.management.target") { Text(verbatim: "\(pending.memberName) (#\(pending.memberID))") }
+                    if pending.action == .reject { ClubOpsJoinRejectReasonField(text: $reviewReasonDraft) }
                     Button(role: pending.action == .approve ? nil : .destructive) {
                         guard reviewOwner.claim(item, context: reviewContext, active: scenePhase == .active) else { return }
                         state = .submitting
                         Task { await confirm(pending, item: item) }
                     } label: { ClubOpsJoinRequestActionLabel(action: pending.action, progressKey: progressKey(pending.action, memberID: pending.memberID)) }
+                    .disabled(pending.action == .reject && !ClubOpsJoinReviewReason.isValid(reviewReasonDraft))
                     .accessibilityIdentifier("club.management.confirm")
                 }
                 .appNavigationTitle(key: "club.management." + pending.action.rawValue)
@@ -290,7 +296,7 @@ struct ClubManagementView: View {
               let attachment, source == reviewContext,
               reviewOwner.isAttached(attachment, context: source, active: scenePhase == .active) else { return }
         generation &+= 1; let run = generation; let revision = viewerRevision
-        state = .checking
+        state = .checking; reviewReasonDraft = ""
         do {
             let pending = try await coordinator.prepare(clubID: clubID, action: action, memberID: memberID, expectedIdentity: identity, ownerID: ownerID)
             guard run == generation, access.identity == identity, viewerRevision == revision, screenRevision == revision, !Task.isCancelled else { coordinator.cancel(pending); return }
