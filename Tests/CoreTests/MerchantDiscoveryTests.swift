@@ -85,3 +85,82 @@ final class MerchantDiscoveryTests: XCTestCase {
         gate.invalidate(); XCTAssertFalse(gate.accepts(second, scope: scope))
     }
 }
+
+extension MerchantDiscoveryTests {
+    func testListedOwnerPresentationClosesWithoutChangingSourceRows() throws {
+        let rows = [try row(#"{"id":71,"memberId":92}"#)]
+        var state = MerchantDiscoveryPresentation(); let scope = UUID()
+        XCTAssertTrue(state.open(rows[0], among: rows, scope: scope, expectedRevision: state.revision))
+        let selection = try XCTUnwrap(state.selection)
+        XCTAssertEqual(selection.target, .ownerMemberID(PublicMerchantOwnerID(92)!))
+        XCTAssertEqual(selection.scope, scope)
+        state.close(expectedID: selection.id)
+        XCTAssertNil(state.selection); XCTAssertEqual(rows.count, 1)
+    }
+    func testInvalidAndUnlistedMerchantNeverOpenPublicHome() throws {
+        let valid = try row(#"{"id":71,"memberId":92}"#)
+        let missing = try row(#"{"id":71}"#)
+        var state = MerchantDiscoveryPresentation()
+        XCTAssertFalse(state.open(missing, among: [missing], scope: UUID(), expectedRevision: state.revision))
+        XCTAssertFalse(state.open(valid, among: [], scope: UUID(), expectedRevision: state.revision))
+        XCTAssertNil(state.selection)
+    }
+    func testOldQueryCallbackCannotOpenIdenticalRowAfterInvalidation() throws {
+        let value = try row(#"{"id":71,"memberId":92}"#)
+        var state = MerchantDiscoveryPresentation(); let old = state.revision
+        state.invalidate()
+        XCTAssertFalse(state.open(value, among: [value], scope: UUID(), expectedRevision: old))
+        XCTAssertNil(state.selection)
+    }
+    func testLateCloseCannotDismissReopenedSameOwner() throws {
+        let value = try row(#"{"id":71,"memberId":92}"#)
+        var state = MerchantDiscoveryPresentation(); let scope = UUID()
+        XCTAssertTrue(state.open(value, among: [value], scope: scope, expectedRevision: state.revision))
+        let old = try XCTUnwrap(state.selection).id; state.close(expectedID: old)
+        XCTAssertFalse(state.open(value, among: [value], scope: scope, expectedRevision: state.revision))
+        state.finishDismiss(expectedID: old)
+        XCTAssertTrue(state.open(value, among: [value], scope: scope, expectedRevision: state.revision))
+        let current = try XCTUnwrap(state.selection).id; XCTAssertNotEqual(old, current)
+        state.close(expectedID: old); state.finishDismiss(expectedID: old); XCTAssertEqual(state.selection?.id, current)
+        state.invalidate(); XCTAssertNil(state.selection)
+    }
+    func testSecondTapDoesNotReplacePresentedOwner() throws {
+        let first = try row(#"{"id":71,"memberId":92}"#), second = try row(#"{"id":71,"memberId":93}"#)
+        var state = MerchantDiscoveryPresentation()
+        XCTAssertTrue(state.open(first, among: [first, second], scope: UUID(), expectedRevision: state.revision))
+        XCTAssertFalse(state.open(second, among: [first, second], scope: UUID(), expectedRevision: state.revision))
+        XCTAssertEqual(state.selection?.target, .ownerMemberID(PublicMerchantOwnerID(92)!))
+    }
+}
+
+extension MerchantDiscoveryTests {
+    func testInvalidationKeepsDismissalSlotUntilMatchingCompletion() throws {
+        let value = try row(#"{"id":71,"memberId":92}"#)
+        var state = MerchantDiscoveryPresentation(); let scope = UUID()
+        XCTAssertTrue(state.open(value, among: [value], scope: scope, expectedRevision: state.revision))
+        let id = try XCTUnwrap(state.selection).id
+        state.didAppear(expectedID: id)
+        state.invalidate(); XCTAssertNil(state.selection); XCTAssertEqual(state.occupiedID, id)
+        XCTAssertFalse(state.open(value, among: [value], scope: scope, expectedRevision: state.revision))
+        state.finishDismiss(expectedID: UUID()); XCTAssertEqual(state.occupiedID, id)
+        state.finishDismiss(expectedID: id); XCTAssertNil(state.occupiedID)
+        XCTAssertTrue(state.open(value, among: [value], scope: scope, expectedRevision: state.revision))
+    }
+}
+
+extension MerchantDiscoveryTests {
+    func testUnpresentedInvalidationAndHostExitCannotLeaveOccupiedSlot() throws {
+        let value = try row(#"{"id":71,"memberId":92}"#)
+        var state = MerchantDiscoveryPresentation(); let scope = UUID()
+        XCTAssertTrue(state.open(value, among: [value], scope: scope, expectedRevision: state.revision))
+        let old = try XCTUnwrap(state.selection).id
+        state.invalidate(); XCTAssertNil(state.occupiedID)
+        XCTAssertTrue(state.open(value, among: [value], scope: scope, expectedRevision: state.revision))
+        let current = try XCTUnwrap(state.selection).id
+        state.didAppear(expectedID: old); state.finishDismiss(expectedID: old)
+        XCTAssertEqual(state.selection?.id, current)
+        state.didAppear(expectedID: current); state.endHost()
+        XCTAssertNil(state.occupiedID); XCTAssertNil(state.selection)
+        XCTAssertTrue(state.open(value, among: [value], scope: scope, expectedRevision: state.revision))
+    }
+}
