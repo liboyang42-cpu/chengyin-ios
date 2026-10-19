@@ -247,7 +247,7 @@ struct SessionRootView: View {
                     }
                         .id(session.templateAuthoringViewIdentity)
                         .tabItem { rootTabLabel(.publish) }.tag(RootTab.publish)
-                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }) }
+                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
                         .tabItem { rootTabLabel(.club) }.tag(RootTab.club)
                     Group {

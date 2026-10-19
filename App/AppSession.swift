@@ -2970,6 +2970,51 @@ final class AppSession: ObservableObject {
         let owner = IMConversationStarter(identity: identity, writer: imExpandedWriter)
         imStarters[identity] = owner; return owner
     }
+    // w2-20: IM safety (delete/report/block/unblock) and unread-total stay dormant
+    // unless the reviewed business runtime grants each exact path.
+    private var imSafetyOwners: [IMScope: IMSafetyCoordinator] = [:]
+    private var currentIMSafetySession: IMSafetySession? {
+        guard let account, let token else { return nil }
+        return try? IMSafetySession(accountID: account.id, epoch: gate.currentStamp, token: token)
+    }
+    private func imRuntimePaths(_ features: Set<BusinessRuntimeFeature>) -> (BusinessRuntimeFactory, APIConfiguration, Set<String>)? {
+        guard let factory = businessRuntimeFactory, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let paths = Set(factory.routes(features).map(\.path))
+        return paths.isEmpty ? nil : (factory, configuration, paths)
+    }
+    var imSafetyWriter: IMSafetyWriter {
+        let features: Set<BusinessRuntimeFeature> = [.imDelete, .imReport, .imBlock, .imUnblock]
+        guard let runtime = imRuntimePaths(features) else {
+            return IMSafetyWriter(service: nil, session: { [weak self] in self?.currentIMSafetySession })
+        }
+        let (factory, configuration, paths) = runtime
+        let captured = factory.captured
+        return IMSafetyWriter(service: IMSafetyService(configuration: configuration, transport: factory.client(features), enabledPaths: paths),
+            session: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return nil }; return self.currentIMSafetySession
+            }, onUnauthorized: { [weak self] snapshot in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: self.token)
+            })
+    }
+    func imSafetyCoordinator(for conversationID: Int) -> IMSafetyCoordinator? {
+        let reader = messagingReader
+        guard let identity = reader.identity, let scope = try? IMScope(identity: identity, conversationID: conversationID) else { return nil }
+        if let existing = imSafetyOwners[scope], existing.isCurrent { return existing }
+        let owner = IMSafetyCoordinator(scope: scope, writer: imSafetyWriter, reader: reader)
+        imSafetyOwners[scope] = owner; return owner
+    }
+    var imUnreadTotalReader: IMUnreadTotalReader {
+        guard let runtime = imRuntimePaths([.imUnreadTotal]) else {
+            return IMUnreadTotalReader(service: nil, session: { nil })
+        }
+        let (factory, configuration, paths) = runtime
+        let captured = factory.captured
+        return IMUnreadTotalReader(service: IMUnreadTotalService(configuration: configuration, transport: factory.client([.imUnreadTotal]), enabledPaths: paths),
+            session: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return nil }; return self.currentIMSafetySession
+            })
+    }
     private var clubChatOwners: [Int: ClubChatCoordinator] = [:]
     func clubChatCoordinator(clubID: Int) -> ClubChatCoordinator? {
         if let owner = clubChatOwners[clubID], owner.isCurrent { return owner }
