@@ -34,23 +34,28 @@ private struct MessagingConversationListView: View {
     @StateObject private var listModel = MessagingReadScreenModel<[MessagingConversation]>()
     @Environment(\.locale) private var locale
     @State private var query = ""
-    @State private var scope = MessagingConversationScope.all
+    /// nil until the first snapshot chooses the source default (IMInboxSummary.initialTab).
+    @State private var selectedTab: IMInboxTab?
+    @State private var safety: IMSafetyPresentation?
     @State private var displayLimit = 30
     var body: some View {
         MessagingReadScreen(reader: reader, accessibilityPrefix: "messaging.list", model: listModel, load: {
             try await reader.messagingConversations()
         }) { conversations in
+            let summary = IMInboxSummary(conversations: conversations)
+            let tab = currentTab(summary)
             VStack(spacing: 0) {
-                Picker("messaging.scope", selection: $scope) {
-                    Text("messaging.scope.all").tag(MessagingConversationScope.all)
-                    Text("messaging.scope.channels").tag(MessagingConversationScope.channels)
-                    Text("messaging.scope.direct").tag(MessagingConversationScope.direct)
+                // Source cy-tabs 私信/系统 with unread badges (muted rows excluded).
+                Picker("messaging.scope", selection: Binding(get: { currentTab(summary) }, set: { selectedTab = $0 })) {
+                    ForEach(summary.visibleTabs, id: \.self) { item in
+                        IMInboxTabLabel(tab: item, badge: summary.badge(for: item)).tag(item)
+                    }
                 }
                 .pickerStyle(.segmented).padding(.horizontal).padding(.bottom, 8)
                 .accessibilityIdentifier("messaging.list.scope")
-                let rows = filtered(conversations)
-                if conversations.isEmpty {
-                    emptyState(title: "messaging.empty", hint: "messaging.emptyHint", identifier: "messaging.list.empty")
+                let rows = filtered(conversations, tab: tab)
+                if summary.rows(for: tab).isEmpty {
+                    emptyState(tab: tab, conversations: conversations)
                 } else if rows.isEmpty {
                     emptyState(title: "messaging.noMatches", hint: "messaging.searchHint", identifier: "messaging.list.noMatches")
                 } else {
@@ -59,7 +64,7 @@ private struct MessagingConversationListView: View {
                             ForEach(Array(rows.prefix(displayLimit))) { conversation in
                                 NavigationLink {
                                     MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded)
-                                } label: { MessagingConversationRow(conversation: conversation) }
+                                } label: { IMInboxRow(conversation: conversation) }
                                 .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     rowActions(for: conversation)
@@ -83,7 +88,7 @@ private struct MessagingConversationListView: View {
                         Button("im.readAll.title", systemImage: "envelope.open") {
                             presentReadAll(conversations)
                         }
-                        .disabled(rowAction != nil || readAll != nil || !canPresentReadAll(conversations))
+                        .disabled(rowAction != nil || readAll != nil || !summary.hasUnread || !canPresentReadAll(conversations))
                         .accessibilityIdentifier("im.readAll.entryButton")
                     }
                 }
@@ -119,27 +124,53 @@ private struct MessagingConversationListView: View {
                 owner?.invalidate(reader: reader, identity: presentation.batch.identity)
             }
         }
-        .onChange(of: reader.identity) { _, _ in rowAction = nil; showsSquare = false }
+        .sheet(item: $safety) { presentation in
+            let owner = listModel
+            IMSafetyReviewView(owner: presentation.owner) { [weak owner] action in
+                // Hidden rows leave only through a fresh /conversations reread.
+                if case .hide = action { owner?.invalidate(reader: reader, identity: presentation.owner.scope.identity) }
+            }
+        }
+        .onChange(of: reader.identity) { _, _ in rowAction = nil; showsSquare = false; safety = nil; selectedTab = nil }
         .onChange(of: MessagingReadScreenInput(reader: reader, refreshRevision: 0)) { _, _ in retireReviews() }
         .onDisappear { readAll?.batch.stop() }
         .searchable(text: $query, prompt: "messaging.search")
         .onChange(of: query) { _, _ in displayLimit = 30 }
-        .onChange(of: scope) { _, _ in displayLimit = 30 }
+        .onChange(of: selectedTab) { _, _ in displayLimit = 30 }
     }
-    @ViewBuilder private func emptyState(title: LocalizedStringKey, hint: LocalizedStringKey, identifier: String) -> some View {
+    private func currentTab(_ summary: IMInboxSummary) -> IMInboxTab {
+        if let selectedTab, summary.visibleTabs.contains(selectedTab) { return selectedTab }
+        return summary.initialTab
+    }
+    /// Source empty copy per tab; the direct tab offers Square only when the
+    /// host grants it (source `communityPostRead`).
+    @ViewBuilder private func emptyState(tab: IMInboxTab, conversations: [MessagingConversation]) -> some View {
+        switch tab {
+        case .direct:
+            emptyState(title: "im.inbox.emptyDirect",
+                       hint: squareDestination == nil ? "im.inbox.emptyDirectHint" : "im.inbox.emptyDirectSquareHint",
+                       identifier: "messaging.list.empty", tab: tab)
+        case .system:
+            emptyState(title: "im.inbox.emptySystem", hint: "im.inbox.emptySystemHint", identifier: "messaging.list.empty", tab: tab)
+        case .group:
+            emptyState(title: "im.inbox.emptyGroup", hint: "messaging.emptyHint", identifier: "messaging.list.empty", tab: tab)
+        }
+    }
+    @ViewBuilder private func emptyState(title: LocalizedStringKey, hint: LocalizedStringKey, identifier: String, tab: IMInboxTab? = nil) -> some View {
         VStack {
             MessagingEmptyView(title: title, hint: hint, identifier: identifier)
             // P032: only a successfully loaded, genuinely empty direct-message tab
             // offers Square. Search misses, errors and missing grants do not.
-            if scope == .direct, query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            if tab == .direct, query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                squareDestination != nil {
-                Button("square.title", systemImage: "person.2") {
-                    guard scope == .direct,
-                          query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                Button("im.inbox.emptySquare", systemImage: "person.2") {
+                    guard query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                           listModel.appearance != nil, !showsSquare,
                           reader.isConfigured, reader.identity != nil,
                           listModel.loadedInput == MessagingReadScreenInput(reader: reader, refreshRevision: 0),
-                          let conversations = listModel.value, filtered(conversations).isEmpty else { return }
+                          let conversations = listModel.value,
+                          currentTab(IMInboxSummary(conversations: conversations)) == .direct,
+                          IMInboxSummary(conversations: conversations).rows(for: .direct).isEmpty else { return }
                     showsSquare = true
                 }
                     .accessibilityIdentifier("messaging.list.emptySquare")
@@ -163,6 +194,15 @@ private struct MessagingConversationListView: View {
                 .accessibilityIdentifier("im.row.\(conversation.id).\(action == .markRead ? "read" : "mute")")
             }
         }
+        if let owner = expanded?.safetyCoordinator?(conversation.id),
+           owner.permits(.hide(conversationID: conversation.id)) {
+            Button(role: .destructive) {
+                guard rowAction == nil, readAll == nil, safety == nil, owner.isCurrent else { return }
+                if case .outcomeUnknown = owner.visibleState { safety = .init(owner: owner); return }
+                if owner.review(.hide(conversationID: conversation.id)) { safety = .init(owner: owner) }
+            } label: { Label("im.safety.hide.rowAction", systemImage: "trash") }
+            .accessibilityIdentifier("im.row.\(conversation.id).delete")
+        }
     }
     private func canPresentReadAll(_ conversations: [MessagingConversation]) -> Bool {
         guard reader.isConfigured, let identity = reader.identity, let expanded else { return false }
@@ -185,12 +225,12 @@ private struct MessagingConversationListView: View {
         readAll = .init(batch: batch)
     }
     private func retireReviews() {
-        readAll?.batch.stop(); readAll = nil; rowAction = nil
+        readAll?.batch.stop(); readAll = nil; rowAction = nil; safety = nil
     }
-    private func filtered(_ conversations: [MessagingConversation]) -> [MessagingConversation] {
+    private func filtered(_ conversations: [MessagingConversation], tab: IMInboxTab) -> [MessagingConversation] {
         let keyword = query.trimmingCharacters(in: .whitespacesAndNewlines)
         return conversations.filter { conversation in
-            guard scope.includes(conversation) else { return false }
+            guard IMInboxTab.tab(for: conversation) == tab else { return false }
             if keyword.isEmpty { return true }
             // Source search is only already-fetched conversation names/previews, not history.
             return searchName(conversation).localizedCaseInsensitiveContains(keyword)
@@ -212,31 +252,5 @@ private struct MessagingConversationListView: View {
         if conversation.lastMessageType == 4 { return appLocalized("poll.title",locale:locale) }
         if conversation.lastMessageType == 3 { return appLocalized("messaging.card",locale:locale) }
         return ""
-    }
-}
-
-private struct MessagingConversationRow: View {
-    let conversation: MessagingConversation
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: conversation.kind == .group ? "person.3.fill" : "bubble.left.fill")
-                .font(.title2).foregroundStyle(.secondary).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 5) {
-                MessagingConversationName(conversation: conversation).font(.headline)
-                MessagingConversationKindLabel(kind: conversation.kind).font(.caption).foregroundStyle(.secondary)
-                MessagingPreview(conversation: conversation).font(.subheadline).lineLimit(2)
-                if let date = conversation.lastMessageAt, !date.isEmpty {
-                    Text(verbatim: date).font(.caption).foregroundStyle(.secondary)
-                }
-                HStack {
-                    if let count = conversation.unread, count > 0 {
-                        Label { Text(verbatim: String(count)) } icon: { Image(systemName: "envelope.badge") }
-                            .accessibilityLabel(Text("messaging.unread"))
-                            .accessibilityValue(Text(verbatim: String(count)))
-                    }
-                    if conversation.muted == true { Label("messaging.muted", systemImage: "bell.slash") }
-                }.font(.caption)
-            }
-        }.padding(.vertical, 6)
     }
 }
