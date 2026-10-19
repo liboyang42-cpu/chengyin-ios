@@ -11,6 +11,10 @@ import SwiftUI
     var summaryModel: ((Int) -> PlayOperatingSummaryCoordinator?)? = nil
     var playerModel: PlayPlayerGameCoordinator? = nil
     var circleModel: PlayCircleCoordinator? = nil
+    var openingModel: PlayOpeningCompletionCoordinator? = nil
+    var finishRouteModel: PlayFinishRouteRecommendationCoordinator? = nil
+    var finishRouteDestination: ((Int) -> AnyView)? = nil
+    var themeRecordsModel: PlayThemeRecordsCoordinator? = nil
     var prefabModel: PlayPrefabRuntimeCoordinator? = nil
     var journeyModel: ((Int) -> JourneyCheckCoordinator?)? = nil
     var ambientModel: JourneyAmbientCoordinator? = nil
@@ -98,6 +102,7 @@ import SwiftUI
                 Button("playx.refresh", systemImage: "arrow.clockwise") { Task { await model.load() } }
                     .disabled(model.phase == .submitting || !model.available).accessibilityIdentifier("playx.refresh")
             }
+            if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
             if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
                let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
                let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
@@ -194,6 +199,11 @@ import SwiftUI
                     }
                     if let playerModel { NavigationLink("playx.player.title") { PlayPlayerSessionView(model: playerModel, deviceModel: deviceModel) } }
                     if let circleModel { NavigationLink("playx.circle.title") { PlayCircleView(model: circleModel) } }
+                    if let card = finishRouteModel?.card { PlayFinishRouteCardView(card: card, destination: finishRouteDestination) }
+                    if let themeRecordsModel, themeRecordsModel.isAvailable {
+                        NavigationLink("playx.themeRecords.title") { PlayThemeRecordsView(model: themeRecordsModel, title: model.snapshot?.result.topicName) }
+                            .accessibilityIdentifier("playx.themeRecords.open")
+                    }
                 }
                 if let reward = model.reward { PlayRewardSection(reward: reward, collectionDestination: rewardCollectionDestination) }
                 if let ending = model.ending {
