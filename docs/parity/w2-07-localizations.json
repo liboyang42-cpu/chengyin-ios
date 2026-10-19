@@ -508,5 +508,270 @@
   "key": "square.video.fixture.loseFile",
   "en": "Synthetic: lose local file",
   "zh-Hans": "示例：模拟本机文件丢失"
+ },
+ {
+  "key": "topic.unauthorized",
+  "en": "Sign in to view this topic, its sessions and sign-up.",
+  "zh-Hans": "登录后查看主题：可查看主题详情、场次和报名"
+ },
+ {
+  "key": "topicXcx.tabs",
+  "en": "Sections",
+  "zh-Hans": "分区"
+ },
+ {
+  "key": "topicXcx.tab.details",
+  "en": "Details",
+  "zh-Hans": "详情"
+ },
+ {
+  "key": "topicXcx.tab.nodes",
+  "en": "Route stops",
+  "zh-Hans": "路线节点"
+ },
+ {
+  "key": "topicXcx.tab.route",
+  "en": "Route",
+  "zh-Hans": "路线"
+ },
+ {
+  "key": "topicXcx.type.explore",
+  "en": "Free exploration",
+  "zh-Hans": "自由探索"
+ },
+ {
+  "key": "topicXcx.type.orienteering",
+  "en": "City orienteering",
+  "zh-Hans": "城市定向"
+ },
+ {
+  "key": "topicXcx.clubHost %@",
+  "en": "%@ | Host club",
+  "zh-Hans": "%@ | 承接俱乐部"
+ },
+ {
+  "key": "topicXcx.stat.rating",
+  "en": "Rating",
+  "zh-Hans": "评价"
+ },
+ {
+  "key": "topicXcx.stat.hours",
+  "en": "Estimated play",
+  "zh-Hans": "预计游玩"
+ },
+ {
+  "key": "topicXcx.stat.hoursUnit",
+  "en": "hours",
+  "zh-Hans": "小时"
+ },
+ {
+  "key": "topicXcx.stat.open",
+  "en": "Open",
+  "zh-Hans": "开放时间"
+ },
+ {
+  "key": "topicXcx.stat.mileage",
+  "en": "Total distance",
+  "zh-Hans": "总里程"
+ },
+ {
+  "key": "topicXcx.stat.mileageUnit",
+  "en": "km",
+  "zh-Hans": "公里"
+ },
+ {
+  "key": "topicXcx.stat.merchants",
+  "en": "Merchants",
+  "zh-Hans": "参与商家"
+ },
+ {
+  "key": "topicXcx.stat.merchantsUnit",
+  "en": "shops",
+  "zh-Hans": "家"
+ },
+ {
+  "key": "topicXcx.duration.zero",
+  "en": "0 h",
+  "zh-Hans": "0时"
+ },
+ {
+  "key": "topicXcx.duration.underMinute",
+  "en": "Under 1 min",
+  "zh-Hans": "小于1分钟"
+ },
+ {
+  "key": "topicXcx.duration.minutes %lld",
+  "en": "%lld min",
+  "zh-Hans": "%lld分钟"
+ },
+ {
+  "key": "topicXcx.duration.hours %lld",
+  "en": "%lld h",
+  "zh-Hans": "%lld时"
+ },
+ {
+  "key": "topicXcx.duration.hoursMinutes %lld %lld",
+  "en": "%1$lld h %2$lld min",
+  "zh-Hans": "%1$lld时%2$lld分"
+ },
+ {
+  "key": "topicXcx.section.venue",
+  "en": "Meeting place",
+  "zh-Hans": "集合地点"
+ },
+ {
+  "key": "topicXcx.section.contents",
+  "en": "What's included",
+  "zh-Hans": "活动内容"
+ },
+ {
+  "key": "topicXcx.section.lineup",
+  "en": "Lineup",
+  "zh-Hans": "阵容"
+ },
+ {
+  "key": "topicXcx.include.chapters %lld",
+  "en": "%lld chapters",
+  "zh-Hans": "%lld 个章节"
+ },
+ {
+  "key": "topicXcx.include.stops %lld",
+  "en": "%lld stops",
+  "zh-Hans": "%lld 个站点"
+ },
+ {
+  "key": "topicXcx.include.plays %lld",
+  "en": "%lld games",
+  "zh-Hans": "%lld 个玩法"
+ },
+ {
+  "key": "topicXcx.include.audioMinutes %lld",
+  "en": "Audio guide, %lld min",
+  "zh-Hans": "语音导览 %lld 分钟"
+ },
+ {
+  "key": "topicXcx.include.audio",
+  "en": "Audio guide",
+  "zh-Hans": "语音导览"
+ },
+ {
+  "key": "topicXcx.include.medal %@",
+  "en": "Finish medal: %@",
+  "zh-Hans": "通关勋章：%@"
+ },
+ {
+  "key": "topicXcx.include.medalFallback",
+  "en": "Finish medal: finisher keepsake",
+  "zh-Hans": "通关勋章：通关纪念"
+ },
+ {
+  "key": "topicXcx.include.coupon",
+  "en": "A coupon after you finish",
+  "zh-Hans": "通关后可领一张优惠券"
+ },
+ {
+  "key": "topicXcx.lineup.club",
+  "en": "Club",
+  "zh-Hans": "俱乐部"
+ },
+ {
+  "key": "topicXcx.lineup.merchant",
+  "en": "Merchant",
+  "zh-Hans": "商家"
+ },
+ {
+  "key": "topicXcx.merchantClosed",
+  "en": "The merchant is closed; sign-up is paused",
+  "zh-Hans": "商家暂停营业，暂不可报名"
+ },
+ {
+  "key": "topicXcx.cta.ticketWallet",
+  "en": "Purchased · see your ticket in the ticket wallet",
+  "zh-Hans": "去票夹 · 查看我的票"
+ },
+ {
+  "key": "topicXcx.cta.confirmPrice",
+  "en": "Confirm final price",
+  "zh-Hans": "确认终价"
+ },
+ {
+  "key": "topicXcx.cta.locked.1",
+  "en": "Recruiting · not on sale",
+  "zh-Hans": "招募中 · 未开售"
+ },
+ {
+  "key": "topicXcx.cta.locked.2",
+  "en": "Pricing · not on sale",
+  "zh-Hans": "定价中 · 未开售"
+ },
+ {
+  "key": "topicXcx.cta.locked.7",
+  "en": "Awaiting approval · not on sale",
+  "zh-Hans": "立项待审 · 未开售"
+ },
+ {
+  "key": "topicXcx.cta.sessions",
+  "en": "View sessions",
+  "zh-Hans": "查看场次"
+ },
+ {
+  "key": "topicXcx.cta.selfPlay %@",
+  "en": "%@ · Play any time",
+  "zh-Hans": "%@ 随时开玩"
+ },
+ {
+  "key": "topicXcx.cta.selfPlayNoPrice",
+  "en": "Play any time",
+  "zh-Hans": "随时开玩"
+ },
+ {
+  "key": "topicXcx.cta.signUp",
+  "en": "Sign up now",
+  "zh-Hans": "立即报名"
+ },
+ {
+  "key": "topicXcx.route.emptyTitle",
+  "en": "This route has no stops yet",
+  "zh-Hans": "这条路线还没有站点"
+ },
+ {
+  "key": "topicXcx.route.emptyDetail",
+  "en": "Each stop appears here once the publisher finishes the route",
+  "zh-Hans": "发布者完成路线配置后，这里会显示每一站"
+ },
+ {
+  "key": "topicXcx.route.walk %lld",
+  "en": "%lld min walk",
+  "zh-Hans": "%lldmin 步行"
+ },
+ {
+  "key": "topicXcx.nodes.emptyDetail",
+  "en": "The route and stops appear here once the publisher finishes the route",
+  "zh-Hans": "发布者完成路线配置后，这里会显示路线与节点"
+ },
+ {
+  "key": "topicXcx.reviews.emptyTitle",
+  "en": "No one has reviewed this route yet",
+  "zh-Hans": "还没有人评价过这条路线"
+ },
+ {
+  "key": "topicXcx.reviews.emptyDetail",
+  "en": "Come back after you play and write one to earn platform points.",
+  "zh-Hans": "玩过之后回来写一条，可以获得平台积分。"
+ },
+ {
+  "key": "topicXcx.paywall.detail",
+  "en": "Unlock to see the full story, quiz reveals and in-store perks",
+  "zh-Hans": "解锁后可看全部故事线、答题揭秘与到店权益"
+ },
+ {
+  "key": "topicXcx.paywall.unlock",
+  "en": "Unlock now",
+  "zh-Hans": "立即解锁"
+ },
+ {
+  "key": "topicXcx.paywall.recover",
+  "en": "Already bought a ticket? Find it in My orders.",
+  "zh-Hans": "已购票？去「我的订单」找回"
  }
 ]
