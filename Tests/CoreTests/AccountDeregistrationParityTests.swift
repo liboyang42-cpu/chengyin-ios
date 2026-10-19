@@ -31,12 +31,12 @@ private final class DeregisterHTTPFake: HTTPTransport {
 @MainActor final class AccountDeregistrationParityTests: XCTestCase {
     private var session: ComplianceSession? = .init(accountID: 7, epoch: 1, market: "CN", namespace: "deregister-parity")
 
-    private func coordinator(_ fake: DeregisterHTTPFake, auth: DeregisterAuthFake = DeregisterAuthFake()) throws -> AccountComplianceCoordinator {
+    private func coordinator(_ fake: DeregisterHTTPFake, auth: DeregisterAuthFake? = nil) throws -> AccountComplianceCoordinator {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("journal.json")
         let service = AccountComplianceService(configuration: try APIConfiguration(baseURL: URL(string: "https://fixture.example")!), transport: fake,
                                                journal: ComplianceFileJournal(url: url), current: { [unowned self] in self.session }, token: { "synthetic-test-token" },
                                                readsEnabled: true, writesEnabled: true, legalApproved: { _, _ in true }, authoritativeMerchantID: { nil })
-        return AccountComplianceCoordinator(service: service, auth: auth, effects: DeregisterEffectsFake(), current: { [unowned self] in self.session }, invalidateSession: { _ in })
+        return AccountComplianceCoordinator(service: service, auth: auth ?? DeregisterAuthFake(), effects: DeregisterEffectsFake(), current: { [unowned self] in self.session }, invalidateSession: { _ in })
     }
 
     private func decode(_ json: String) throws -> ComplianceDeregistration {

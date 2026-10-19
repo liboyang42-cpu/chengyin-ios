@@ -67,7 +67,8 @@ private actor MemberHomeWire: HTTPTransport {
         let wire = MemberHomeWire(#"{"code":200,"data":{"nickname":"Synthetic"}}"#)
         let configuration = try APIConfiguration(baseURL: base)
         _ = try await service(wire).identity(token: "synthetic-member")
-        let request = try XCTUnwrap(await wire.requests.first)
+        let requests = await wire.requests
+        let request = try XCTUnwrap(requests.first)
         XCTAssertEqual(request.url, configuration.url(for: .userInfo)); XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertNil(request.httpBody); XCTAssertNil(request.value(forHTTPHeaderField: "Content-Type"))
         XCTAssertTrue(CNAccountSessionService.accepts(request, configuration: configuration))
@@ -76,7 +77,8 @@ private actor MemberHomeWire: HTTPTransport {
         let wire = MemberHomeWire(#"{"code":200,"data":{"role":"player","permission":{}}}"#)
         let info = try await service(wire).roleInfo(token: "synthetic-member")
         XCTAssertEqual(info.role, "player")
-        let request = try XCTUnwrap(await wire.requests.first)
+        let requests = await wire.requests
+        let request = try XCTUnwrap(requests.first)
         XCTAssertEqual(request.url, base.appendingPathComponent(MemberRoleInfoReadRoute.path))
         XCTAssertTrue(MemberRoleInfoReadRoute.accepts(request, baseURL: base))
         var query = request; query.url = URL(string: request.url!.absoluteString + "?role=club")
