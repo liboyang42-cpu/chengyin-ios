@@ -115,6 +115,9 @@ final class AppSession: ObservableObject {
         var context = PublicMerchantHomeContext(reader: publicMerchantHomeReader,
             publicReviews: { AnyView(PublicMerchantReviewsView(target: $0, reader: reviews, imageReader: images, writes: writes)) })
         context.featured = makePublicMerchantFeaturedContext(homeReader: context.reader)
+        context.ownerProfile = .init(makeReader: { [weak self] memberID in
+            self?.makeProfilePublicInfoReader(memberID: memberID)
+        }, squareReader: squareReader)
         context.installMerchantNPC(grants: { [weak self] in self?.merchantNPCGrants ?? .init() },
             scopeForRow: { [weak self] in self?.merchantNPCScope(row: $0) },
             currentScope: { [weak self] in self?.merchantNPCScope(row: $0) }, client: merchantNPCClient(resource: false),

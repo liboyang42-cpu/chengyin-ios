@@ -5,6 +5,7 @@ import SwiftUI
     var reader: any PublicMerchantHomeReading = DisabledPublicMerchantHomeReader()
     var publicReviews: ((PublicMerchantReviewTarget) -> AnyView)?
     var featured: PublicMerchantFeaturedContext?
+    var ownerProfile: PublicMerchantOwnerProfileContext?
     var shopNpcChat = false
     // Correct future consumer: MerchantNpcApi /api/ai/npc/merchant-chat with merchant row ID.
     // Never route this public merchant card into play-node ShopNpc /shop-chat.
@@ -24,6 +25,14 @@ import SwiftUI
     @State private var loadedKey: Key?
     @State private var snapshotID = UUID()
     @State private var featuredSelection: PublicMerchantFeaturedSelection?
+    @State private var ownerSelection: PublicMerchantOwnerProfileSelection?
+    private var ownerBinding: Binding<PublicMerchantOwnerProfileSelection?> {
+        let captured = ownerSelection?.id
+        return Binding(get: { ownerSelection }, set: { next in
+            guard next == nil, let captured, ownerSelection?.id == captured else { return }
+            ownerSelection = nil
+        })
+    }
     private struct Key: Hashable { let target: PublicMerchantHomeTarget?; let scope: UUID; let configured: Bool }
     private var key: Key { .init(target: target, scope: context.reader.scope, configured: context.reader.isConfigured) }
     var body: some View {
@@ -42,7 +51,14 @@ import SwiftUI
                 destination.destination(selection.route)
             } else { Text("merchant.publicHome.unavailable") }
         }
-        .onChange(of: key) { _, _ in featuredSelection = nil }
+        .navigationDestination(item: ownerBinding) { selection in
+            if let destination = context.ownerProfile, isCurrentOwner(selection) {
+                PublicMerchantOwnerProfileDestination(selection: selection, context: destination,
+                    isCurrent: { isCurrentOwner(selection) })
+                    .id(selection.id)
+            } else { Text("merchant.publicHome.unavailable") }
+        }
+        .onChange(of: key) { _, _ in featuredSelection = nil; ownerSelection = nil }
         .onChange(of: context.featured?.scope) { _, _ in featuredSelection = nil }
         // Preserve the link backing a pushed reviews screen; key fencing still hides stale data.
         .onDisappear { generation += 1; loading = false }
@@ -65,6 +81,17 @@ import SwiftUI
                 ForEach(Array(categories.enumerated()), id: \.offset) { _, category in field(category.categoryName) }
             }
             field(value.address); field(value.businessTime)
+        }
+        if context.ownerProfile != nil, let target,
+           let selection = PublicMerchantOwnerProfileSelection(home: value, target: target,
+               scope: context.reader.scope, snapshot: snapshotID), canOpenOwner(selection) {
+            Section {
+                Button {
+                    guard ownerSelection == nil, canOpenOwner(selection) else { return }
+                    ownerSelection = selection
+                } label: { Label("social.profile", systemImage: "person.crop.rectangle") }
+                    .accessibilityIdentifier("merchant.publicHome.ownerProfile")
+            }
         }
         featuredCard(value)
         if let review = value.reviewTarget, let destination = context.publicReviews {
@@ -121,6 +148,14 @@ import SwiftUI
         return selection.isCurrent(home: home, target: target, homeScope: context.reader.scope,
                                    destinationScope: destination.scope, snapshotID: snapshotID)
     }
+    private func isCurrentOwner(_ selection: PublicMerchantOwnerProfileSelection) -> Bool {
+        ownerSelection?.id == selection.id && canOpenOwner(selection)
+    }
+    private func canOpenOwner(_ selection: PublicMerchantOwnerProfileSelection) -> Bool {
+        guard !loading, failure == nil, loadedKey == key, context.reader.isConfigured,
+              context.ownerProfile != nil, let home, let target else { return false }
+        return selection.matches(home: home, target: target, scope: context.reader.scope, snapshot: snapshotID)
+    }
     @ViewBuilder private func field(_ value: String?) -> some View { if let value, !value.isEmpty { Text(verbatim: value).textSelection(.enabled) } }
     @ViewBuilder private func labeled(_ value: String?, label: LocalizedStringKey) -> some View {
         if let value, !value.isEmpty { LabeledContent(label, value: value) }
@@ -135,7 +170,7 @@ import SwiftUI
         generation += 1
         let ticket = generation; let snapshot = key
         home = nil; failure = nil; loadedKey = nil; loading = true
-        snapshotID = UUID(); featuredSelection = nil
+        snapshotID = UUID(); featuredSelection = nil; ownerSelection = nil
         guard let target else { loading = false; failure = .invalid; loadedKey = snapshot; return }
         guard context.reader.isConfigured else { loading = false; failure = .notConfigured; loadedKey = snapshot; return }
         do {
@@ -171,5 +206,58 @@ struct PublicMerchantHomeBusinessStatusLabel: View {
         Label(LocalizedStringKey(localizationKey), systemImage: symbol)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("merchant.publicHome.businessStatus")
+    }
+}
+
+/// The merchant response supplies the owner identity. A merchant row is never a user ID.
+struct PublicMerchantOwnerProfileSelection: Hashable, Identifiable {
+    let id = UUID()
+    let owner: PublicMerchantOwnerID
+    let target: PublicMerchantHomeTarget
+    let scope: UUID
+    let snapshot: UUID
+    init?(home: PublicMerchantHome, target: PublicMerchantHomeTarget, scope: UUID, snapshot: UUID) {
+        guard let raw = home.memberId, let owner = PublicMerchantOwnerID(raw) else { return nil }
+        switch target {
+        case .ownerMemberID(let requested): guard requested == owner else { return nil }
+        case .legacyMerchantRowID(let row): guard home.id == row.rawValue else { return nil }
+        }
+        self.owner = owner; self.target = target; self.scope = scope; self.snapshot = snapshot
+    }
+    func matches(home: PublicMerchantHome, target: PublicMerchantHomeTarget, scope: UUID, snapshot: UUID) -> Bool {
+        guard self.target == target, self.scope == scope, self.snapshot == snapshot,
+              let current = Self(home: home, target: target, scope: scope, snapshot: snapshot) else { return false }
+        return current.owner == owner
+    }
+}
+
+@MainActor struct PublicMerchantOwnerProfileContext {
+    let makeReader: (Int) -> ProfilePublicInfoReader?
+    let squareReader: any SquareReading
+}
+
+/// Reader creation happens only in the opened destination. No social action or
+/// owner-private capability is inherited from the merchant surface.
+@MainActor private struct PublicMerchantOwnerProfileDestination: View {
+    let selection: PublicMerchantOwnerProfileSelection
+    let context: PublicMerchantOwnerProfileContext
+    let isCurrent: () -> Bool
+    @State private var reader: ProfilePublicInfoReader?
+    @State private var prepared = false
+    var body: some View {
+        Group {
+            if !isCurrent() { Text("merchant.publicHome.unavailable") }
+            else if prepared {
+                ProfilePublicInfoHost(reader: reader) { scoped in
+                    SocialPublicProfileView(memberID: selection.owner.rawValue, reader: scoped,
+                        squareReader: context.squareReader, actions: nil,
+                        isCurrent: { isCurrent() && scoped.isCurrent })
+                }
+            } else { ProgressView("social.loading") }
+        }
+        .onAppear {
+            guard !prepared, isCurrent() else { return }
+            reader = context.makeReader(selection.owner.rawValue); prepared = true
+        }
     }
 }
