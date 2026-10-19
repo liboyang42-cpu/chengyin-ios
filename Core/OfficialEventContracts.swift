@@ -189,6 +189,59 @@ public enum OfficialEventBucket: String, CaseIterable, Identifiable {
         }
     }
 }
+/// Source list copy (pages/activity/list): tab-specific summary and empty states.
+public extension OfficialEventBucket {
+    /// The source chip reads "我的"; the shared bucket title stays for other hosts.
+    var tabTitleKey: String { self == .mine ? "official.tab.mine" : titleKey }
+    var emptyTitleKey: String {
+        switch self {
+        case .live: return "official.empty.live"
+        case .upcoming: return "official.empty.upcoming"
+        case .ended: return "official.empty.ended"
+        case .mine: return "official.empty.mine"
+        }
+    }
+    var emptyDetailKey: String {
+        switch self {
+        case .live, .upcoming: return "official.emptyDetail.curated"
+        case .ended: return "official.emptyDetail.ended"
+        case .mine: return "official.emptyDetail.mine"
+        }
+    }
+    /// The source hides search on its "mine" tab; a hidden keyword never filters it here.
+    var isSearchable: Bool { self != .mine }
+}
+
+/// Rounded source countdown units: days from 24 h, hours from 1 h, otherwise at least one minute.
+public enum OfficialCountdownSpan: Equatable {
+    case days(Int), hours(Int), minutes(Int)
+    public init(milliseconds: Double) {
+        let hours = Int(milliseconds / 3_600_000)
+        if hours >= 24 { self = .days(hours / 24) }
+        else if hours >= 1 { self = .hours(hours) }
+        else { self = .minutes(max(1, Int(milliseconds / 60_000))) }
+    }
+}
+public enum OfficialEventCountdown: Equatable {
+    case startsIn(OfficialCountdownSpan), startingSoon, endsIn(OfficialCountdownSpan), endingSoon
+}
+public extension OfficialEvent {
+    /// Mirrors the source card timer for numeric timestamps only. Timezone-less text
+    /// dates are not reinterpreted, so they fall back to the status label alone.
+    func countdown(now: Date) -> OfficialEventCountdown? {
+        let current = now.timeIntervalSince1970 * 1000
+        if status == 1, case .milliseconds(let start)? = activityStart, start > 0 {
+            return start - current > 0 ? .startsIn(.init(milliseconds: start - current)) : .startingSoon
+        }
+        if status == 2 || status == 3, case .milliseconds(let end)? = activityEnd, end > 0 {
+            return end - current > 0 ? .endsIn(.init(milliseconds: end - current)) : .endingSoon
+        }
+        return nil
+    }
+    /// Collective progress is shown only when the server enables it; nil percent stays unknown.
+    var collectivePercentShown: Bool { collective?.enabled == true }
+}
+
 public enum OfficialEventFilter {
     public static func visible(_ rows: [OfficialEvent], bucket: OfficialEventBucket, keyword: String = "") -> [OfficialEvent] {
         let keyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -210,6 +263,15 @@ public struct OfficialEventBrowseQuery: Equatable {
     public var emptyKey: String {
         if !keyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return "official.searchEmpty" }
         return isPrivate ? "official.emptyMine" : "official.empty"
+    }
+    /// Source (pages/activity/list) tab-specific empty title.
+    public var emptyTitleKey: String { isSearching ? "official.empty.search" : bucket.emptyTitleKey }
+    public var emptyDetailKey: String { isSearching ? "official.searchEmptyDetail" : bucket.emptyDetailKey }
+    public var trimmedKeyword: String { keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
+    public var isSearching: Bool { !trimmedKeyword.isEmpty }
+    /// The source list page hides search on "mine", so its hidden keyword never applies there.
+    public static func sourceList(bucket: OfficialEventBucket, keyword: String) -> Self {
+        .init(bucket: bucket, keyword: bucket.isSearchable ? keyword : "")
     }
     public func visible(_ rows: [OfficialEvent]) -> [OfficialEvent] {
         OfficialEventFilter.visible(rows, bucket: bucket, keyword: keyword)
