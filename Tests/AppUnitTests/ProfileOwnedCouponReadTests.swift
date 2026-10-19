@@ -211,6 +211,94 @@ import SwiftUI
         for _ in 0..<100 where wire.requests.isEmpty { try await Task.sleep(for: .milliseconds(20)) }
         XCTAssertEqual(wire.paths, ["myrecvlist"])
     }
+    func testSelfProfileCouponEntryRequiresOwnerPlayerOrClubAndIndependentApproval() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants).makeSession()
+        await login(session); wire.requests = []
+        let social = SelfCouponSocial()
+        let access = ProfileSelfCouponAccess(reader: session.profileOwnedCouponReader, owner: social.identity)
+        XCTAssertNotNil(ProfileSelfCouponContext.capture(memberID: 81, accountReader: social, access: access, isCurrent: true))
+        XCTAssertNil(ProfileSelfCouponContext.capture(memberID: 82, accountReader: social, access: access, isCurrent: true))
+        XCTAssertNil(ProfileSelfCouponContext.capture(memberID: 81, accountReader: social, access: access, isCurrent: false))
+        social.identity = .init(accountID: 81, epoch: 1, role: "merchant")
+        let merchant = ProfileSelfCouponAccess(reader: session.profileOwnedCouponReader, owner: social.identity)
+        XCTAssertNil(ProfileSelfCouponContext.capture(memberID: 81, accountReader: social, access: merchant, isCurrent: true))
+        social.identity = .init(accountID: 81, epoch: 1, role: "club")
+        let club = ProfileSelfCouponAccess(reader: session.profileOwnedCouponReader, owner: social.identity)
+        XCTAssertNotNil(ProfileSelfCouponContext.capture(memberID: 81, accountReader: social, access: club, isCurrent: true))
+        grants.enabled = false
+        XCTAssertNil(ProfileSelfCouponContext.capture(memberID: 81, accountReader: social, access: club, isCurrent: true))
+        XCTAssertTrue(wire.requests.isEmpty) // Rendering the entry never fetches a count/list.
+    }
+    func testSelfProfileCouponMetadataListAndDetailReuseExactReader() async throws {
+        let wire = Wire(), session = try root(wire, Grants()).makeSession()
+        await login(session); wire.requests = []
+        let social = SelfCouponSocial(), access = ProfileSelfCouponAccess(reader: session.profileOwnedCouponReader, owner: .init(accountID: 81, epoch: 1, role: "player"))
+        let context = try XCTUnwrap(ProfileSelfCouponContext.capture(memberID: 81, accountReader: social, access: access, isCurrent: true))
+        let scoped = ProfileSelfCouponScopedReader(context: context, accountReader: social, access: access, isCurrent: { true })
+        let model = OwnedCouponReadScreenModel(), request = OwnedCouponReadRequest.list(ownerScope: scoped.scope, keyword: "Tea")
+        let permit = model.beginPresentation(for: request, foreground: true)
+        await model.refresh(request: request, reader: scoped, presentation: permit)
+        let selection = try XCTUnwrap(model.selections(for: request, filter: .unused).first)
+        let detail = try await scoped.ownedCoupon(id: selection.historyID, lifetime: .init(ownerScope: scoped.scope))
+        XCTAssertEqual(detail.id, 101)
+        XCTAssertEqual(model.rows(for: request)?.map(\.id), [101])
+        XCTAssertEqual(Set(wire.paths), ["myrecvlist"])
+        do { _ = try await scoped.favoriteTopics(pageNumber: 1, pageSize: 10); XCTFail() }
+        catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+    }
+    func testRetainedSelfProfileCouponEntryCannotFollowReissuedApprovalOrViewer() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants).makeSession()
+        await login(session); wire.requests = []
+        let social = SelfCouponSocial(), access = ProfileSelfCouponAccess(reader: session.profileOwnedCouponReader, owner: .init(accountID: 81, epoch: 1, role: "player"))
+        let context = try XCTUnwrap(ProfileSelfCouponContext.capture(memberID: 81, accountReader: social, access: access, isCurrent: true))
+        let scoped = ProfileSelfCouponScopedReader(context: context, accountReader: social, access: access, isCurrent: { true })
+        social.presentationRevision += 1
+        XCTAssertFalse(scoped.associationIsCurrent)
+        do { _ = try await scoped.ownedCoupons(keyword: nil); XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
+        social.presentationRevision = 0
+        grants.retained = nil
+        XCTAssertFalse(scoped.associationIsCurrent)
+        do { _ = try await scoped.ownedCoupons(keyword: nil); XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+    func testSelfProfileCouponRetiredRouteRejectsLateResult() async throws {
+        let wire = Wire(), session = try root(wire, Grants()).makeSession()
+        await login(session)
+        let social = SelfCouponSocial(), access = ProfileSelfCouponAccess(reader: session.profileOwnedCouponReader, owner: .init(accountID: 81, epoch: 1, role: "player"))
+        let context = try XCTUnwrap(ProfileSelfCouponContext.capture(memberID: 81, accountReader: social, access: access, isCurrent: true))
+        var current = true
+        let scoped = ProfileSelfCouponScopedReader(context: context, accountReader: social, access: access, isCurrent: { current })
+        wire.hold = true; let started = expectation(description: "self coupon pending"); wire.onHeld = { started.fulfill() }
+        let task = Task { try await scoped.ownedCoupons(keyword: nil) }
+        await fulfillment(of: [started], timeout: 2)
+        current = false; wire.finish(status: 200)
+        do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertFalse(scoped.isConfigured)
+    }
+    func testSelfProfileCouponRetiredRouteLate401DoesNotExpireSameAccount() async throws {
+        let wire = Wire(), session = try root(wire, Grants()).makeSession()
+        await login(session)
+        let social = SelfCouponSocial(), access = ProfileSelfCouponAccess(reader: session.profileOwnedCouponReader, owner: .init(accountID: 81, epoch: 1, role: "player"))
+        let context = try XCTUnwrap(ProfileSelfCouponContext.capture(memberID: 81, accountReader: social, access: access, isCurrent: true))
+        var current = true
+        let scoped = ProfileSelfCouponScopedReader(context: context, accountReader: social, access: access, isCurrent: { current })
+        wire.hold = true; let started = expectation(description: "self coupon pending 401"); wire.onHeld = { started.fulfill() }
+        let task = Task { try await scoped.ownedCoupons(keyword: nil, lifetime: .init(ownerScope: scoped.scope)) }
+        await fulfillment(of: [started], timeout: 2)
+        current = false; wire.finish(status: 401)
+        do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertEqual(session.account?.id, 81)
+    }
+    @MainActor private final class SelfCouponSocial: SocialAccountReading {
+        var identity = SocialAccountIdentity(accountID: 81, epoch: 1, role: "player")
+        var presentationRevision: UInt64 = 0
+        var isConfigured = true
+        var isOfflineExample = false
+        func publicProfile(memberID: Int) async throws -> SocialPublicProfile { throw APIError.notConfigured }
+        func informationList() async throws -> [SocialInformation] { throw APIError.notConfigured }
+        func information(id: Int) async throws -> SocialInformation { throw APIError.notConfigured }
+        func invitationHistory(page: Int) async throws -> SocialInviteHistory { throw APIError.notConfigured }
+    }
     @MainActor private final class Grants {
         var enabled = true; var retained: ProfileOwnedCouponReadAccess?
         func select(_ context: RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? {

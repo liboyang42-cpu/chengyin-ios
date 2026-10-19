@@ -2438,6 +2438,51 @@ final class AppSession: ObservableObject {
     lazy var participantCoordinator=ParticipantMutationCoordinator(writer:participantWriter,reader:profileReader,onParticipantsChanged:{ [weak self] in
         self?.participantRevision &+= 1
     })
+    private var retainedMerchantOverview: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantOverviewReader)?
+    var merchantOverviewReader: MerchantOverviewReader? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantOverviewReadApproval, approval.matches(context) else {
+            retainedMerchantOverview = nil; return nil
+        }
+        let revision = compositionViewerRevision
+        if let old = retainedMerchantOverview, old.context == context, old.revision == revision,
+           old.approval == approval.revision { return old.reader }
+        let isCurrent: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let issued = self.runtimeDependencies.merchantOverviewReadApproval else { return false }
+            return issued.revision == approval.revision && issued.matches(context)
+        }
+        let transport = compositionTransport.scopedForMerchantOverview(approval: approval, context: context, approved: isCurrent)
+        let reader = MerchantOverviewReader(configuration: api, transport: transport, token: context.session.token,
+            revision: revision, current: isCurrent, unauthorized: { [weak self] in
+                guard let self, isCurrent() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        retainedMerchantOverview = (context, revision, approval.revision, reader); return reader
+    }
+    private var retainedMerchantPrediction: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantPredictionReader)?
+    var merchantPredictionReader: MerchantPredictionReader? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantPredictionReadApproval, approval.matches(context) else {
+            retainedMerchantPrediction = nil; return nil
+        }
+        let revision = compositionViewerRevision
+        if let old = retainedMerchantPrediction, old.context == context, old.revision == revision,
+           old.approval == approval.revision { return old.reader }
+        // Same context-immutable dependency policy as other runtime dependencies; no hot revocation provider.
+        let isCurrent: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let issued = self.runtimeDependencies.merchantPredictionReadApproval else { return false }
+            return issued.revision == approval.revision && issued.matches(context)
+        }
+        let transport = compositionTransport.scopedForMerchantPrediction(approval: approval, context: context, approved: isCurrent)
+        let reader = MerchantPredictionReader(configuration: api, transport: transport, token: context.session.token,
+            current: isCurrent, unauthorized: { [weak self] in
+                guard let self, isCurrent() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        retainedMerchantPrediction = (context, revision, approval.revision, reader); return reader
+    }
     private var retainedMerchantProjectBrowse: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantProjectBrowseReader)?
     // Uses the existing context-immutable dependency policy, not a hot-reloaded grant provider.
     var merchantProjectBrowseReader: MerchantProjectBrowseReader? {
