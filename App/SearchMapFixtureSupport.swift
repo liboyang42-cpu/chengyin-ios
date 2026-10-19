@@ -145,6 +145,9 @@ import SwiftUI
     @State private var scope: UUID
     private let entry: String
     @State private var walking: WalkingNavigationFixtureSupport
+    /// Synthetic connectivity only: `--uitesting-search-map-offline` starts offline; never NWPathMonitor.
+    @State private var connectivity: SearchMapConnectivity
+    private let forcesOffline: Bool
     init() {
         let args = ProcessInfo.processInfo.arguments
         func argument(_ name: String) -> String? {
@@ -153,6 +156,8 @@ import SwiftUI
         let value = SearchMapFixtureReader(scenario: argument("--uitesting-search-map-scenario").flatMap(SearchMapFixtureReader.Scenario.init(rawValue:)) ?? .content)
         _reader = State(initialValue: value); _scope = State(initialValue: value.scope)
         entry = argument("--uitesting-search-map-entry") ?? "global"
+        forcesOffline = args.contains("--uitesting-search-map-offline")
+        _connectivity = State(initialValue: SearchMapConnectivity(forcedOnline: !args.contains("--uitesting-search-map-offline")))
         _walking = State(initialValue: WalkingNavigationFixtureSupport(scenario: argument("--uitesting-walking-scenario") ?? "content"))
     }
     var body: some View {
@@ -173,6 +178,10 @@ import SwiftUI
                 if entry == "city", reader.scenario == .pageDelayed {
                     Button("Release synthetic activity page") { reader.releaseActivityPage() }
                         .accessibilityIdentifier("mapPagination.fixture.release")
+                }
+                if forcesOffline {
+                    Button("Toggle synthetic network") { connectivity.setFixtureOnline(!connectivity.isOnline) }
+                        .accessibilityIdentifier("searchMap.fixture.network")
                 }
                 if entry == "city", reader.scenario == .delayed {
                     Button("Release synthetic search") { reader.releaseCitySearch() }
@@ -202,6 +211,7 @@ import SwiftUI
             }
             .environment(\.walkingNavigationFactory, walking.factory)
             .environment(\.walkingFixtureScopeExpiry, walking.scopeExpiryAction)
+            .environment(\.searchMapConnectivity, connectivity)
             .id(scope)
         }
     }

@@ -430,5 +430,85 @@
   "searchMap.cityOptions": {
     "en": "City search options",
     "zh-Hans": "城市搜索选项"
+  },
+  "searchMap.w208.allCategories": {
+    "en": "All categories",
+    "zh-Hans": "全部品类"
+  },
+  "searchMap.w208.capsule.empty": {
+    "en": "No activities around here yet",
+    "zh-Hans": "这一带还没有活动"
+  },
+  "searchMap.w208.date.custom": {
+    "en": "Choose dates",
+    "zh-Hans": "选择日期"
+  },
+  "searchMap.w208.exploreTag": {
+    "en": "Exploration tag",
+    "zh-Hans": "探索标签"
+  },
+  "searchMap.w208.merchantDiscovery": {
+    "en": "Merchant discovery",
+    "zh-Hans": "商家发现"
+  },
+  "searchMap.w208.merchantNodeFallback": {
+    "en": "Merchant spot",
+    "zh-Hans": "商家节点"
+  },
+  "searchMap.w208.offline.cachedAt": {
+    "en": "Cache updated at",
+    "zh-Hans": "缓存更新于"
+  },
+  "searchMap.w208.offline.retry": {
+    "en": "Retry connection",
+    "zh-Hans": "重试连接"
+  },
+  "searchMap.w208.offline.stillOffline": {
+    "en": "Still not connected to the network",
+    "zh-Hans": "仍未连接网络"
+  },
+  "searchMap.w208.placeholder": {
+    "en": "Search routes, places and more",
+    "zh-Hans": "搜索路线、地点等"
+  },
+  "searchMap.w208.price.range": {
+    "en": "Price range: ¥0 - ¥1000",
+    "zh-Hans": "价格区间：¥0 - ¥1000"
+  },
+  "searchMap.w208.sheet.emptyHint": {
+    "en": "Try another keyword, or move the map to look elsewhere",
+    "zh-Hans": "换个关键词，或拖动地图看看别处"
+  },
+  "searchMap.w208.sheet.failed": {
+    "en": "Activities couldn't be loaded",
+    "zh-Hans": "活动没能加载出来"
+  },
+  "searchMap.w208.sheet.refreshFailed": {
+    "en": "This refresh didn't succeed",
+    "zh-Hans": "这次刷新没有成功"
+  },
+  "searchMap.w208.sheet.refreshFailed.detail": {
+    "en": "The screen still shows the previous results. Tap Retry to load again",
+    "zh-Hans": "屏幕上还是上一次的结果，点重试再拉一次"
+  },
+  "searchMap.w208.sheet.refreshingActivities": {
+    "en": "Updating map results…",
+    "zh-Hans": "正在更新地图结果…"
+  },
+  "searchMap.w208.sheet.refreshingNodes": {
+    "en": "Updating merchant spots…",
+    "zh-Hans": "正在更新商家点位…"
+  },
+  "searchMap.w208.sheet.title": {
+    "en": "Search results",
+    "zh-Hans": "搜索结果"
+  },
+  "searchMap.w208.topicPoint": {
+    "en": "Theme point",
+    "zh-Hans": "主题点位"
+  },
+  "searchMap.w208.viewActivity": {
+    "en": "View activity details",
+    "zh-Hans": "查看活动详情"
   }
 }
