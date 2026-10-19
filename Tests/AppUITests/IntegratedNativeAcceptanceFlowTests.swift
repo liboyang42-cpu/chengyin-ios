@@ -296,6 +296,28 @@ import XCTest
         }, "No favorites list, detail or removal request is authorized by this fixture")
     }
 
+    /// Mini-program pages/shezhi: 个人资料, 成为俱乐部主理人, 成为商家, 城瘾玩法, 我的收藏 … 退出账号.
+    func testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut() throws {
+        let app = launch(); signIn(app)
+        tab("Me", app); tap("Settings", app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        let host = app.buttons["settings.becomeClubHost"], merchant = app.buttons["settings.becomeMerchant"]
+        let guide = app.buttons["settings.playGuide"], favorites = app.buttons["settingsNative.openFavorites"]
+        for element in [host, merchant, guide, favorites] { XCTAssertTrue(element.waitForExistence(timeout: 5), app.debugDescription) }
+        XCTAssertEqual(host.label, "Become a club host"); XCTAssertEqual(merchant.label, "Become a merchant")
+        XCTAssertLessThan(host.frame.minY, merchant.frame.minY)
+        XCTAssertLessThan(merchant.frame.minY, guide.frame.minY)
+        XCTAssertLessThan(guide.frame.minY, favorites.frame.minY)
+        tap("settings.signOut", app)
+        let confirmation = app.sheets["Sign out of this account?"]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
+        tapFixtureSheetAction("Sign out", in: confirmation, app: app)
+        XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(app.tabBars.firstMatch.exists)
+        wait(app) { $0.ledger.last?.route == "logout" }
+        XCTAssertNil(try evidence(app).accountID)
+    }
+
     func testNormalRootOwnedConfigurationReadOnlyAndStoryReturn() throws {
         let app = launch(); signIn(app, owner: 7)
         tab("Me", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)

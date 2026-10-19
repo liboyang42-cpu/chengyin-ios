@@ -132483,6 +132483,38 @@
         }
       }
     },
+    "settings.becomeClubHost": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Become a club host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成为俱乐部主理人"
+          }
+        }
+      }
+    },
+    "settings.becomeMerchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Become a merchant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成为商家"
+          }
+        }
+      }
+    },
     "settingsNative.about.build": {
       "extractionState": "manual",
       "localizations": {
