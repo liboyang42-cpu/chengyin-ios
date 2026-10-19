@@ -119,6 +119,8 @@ public struct ProfileReadIssueCopy: Equatable {
     public let failureTitleKey: String
     public let failureDetailKey: String
     public let malformedDetailKey: String
+    /// Nil keeps the shared Profile loading copy.
+    public var loadingKey: String? = nil
 
     /// Source scene-member-order-history: 登录后查看订单 / 当前账号无法查看订单 / 订单暂时没有加载出来.
     public static let orders = ProfileReadIssueCopy(
@@ -126,6 +128,13 @@ public struct ProfileReadIssueCopy: Equatable {
         forbiddenTitleKey: "profile.orderParity.forbidden.title",
         failureTitleKey: "profile.orderParity.error.title", failureDetailKey: "profile.orderParity.error.detail",
         malformedDetailKey: "profile.orderParity.error.malformed")
+
+    /// Source scene-member-order-detail: 订单详情加载中 / 订单暂不可查看 with the server reason.
+    public static let orderDetail = ProfileReadIssueCopy(
+        signInTitleKey: "profile.orderParity.signIn.title", signInDetailKey: "profile.orderParity.signIn.detail",
+        forbiddenTitleKey: "profile.orderParity.detail.unavailable",
+        failureTitleKey: "profile.orderParity.detail.unavailable", failureDetailKey: "profile.retryHint",
+        malformedDetailKey: "profile.orderParity.error.malformed", loadingKey: "profile.orderParity.detail.loading")
 
     public static func kind(of error: Error) -> Kind {
         let failure = error as? ProfileReadFailure

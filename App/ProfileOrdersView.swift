@@ -106,7 +106,7 @@ struct ProfileOrderDetailView: View {
     @State private var ticketEntryVisible = false
     @State private var ticketPresentationID = UUID()
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", load: { try await reader.profileOrder(id: id) }) { order in
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, load: { try await reader.profileOrder(id: id) }) { order in
             ProfileOrderMeetingPointHost(order: order, requestedID: id, reader: reader) { meetingPointEntry in
             List {
                 ProfileOrderStateNoticeSection(order: order)

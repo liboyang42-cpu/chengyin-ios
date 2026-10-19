@@ -36,7 +36,7 @@ struct ProfileReadScreen<Value, Content: View>: View {
                 ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
                     .accessibilityIdentifier(accessibilityPrefix + ".unavailable")
             } else if isLoading {
-                ProgressView("profile.loading").accessibilityIdentifier(accessibilityPrefix + ".loading")
+                ProgressView(LocalizedStringKey(issueCopy?.loadingKey ?? "profile.loading")).accessibilityIdentifier(accessibilityPrefix + ".loading")
             } else if let issue {
                 ContentUnavailableView {
                     Label {

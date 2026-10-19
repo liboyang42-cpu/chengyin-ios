@@ -497,6 +497,38 @@
           }
         }
       }
+    },
+    "profile.orderParity.detail.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Order can’t be viewed right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单暂不可查看"
+          }
+        }
+      }
+    },
+    "profile.orderParity.detail.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading order details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单详情加载中"
+          }
+        }
+      }
     }
   }
 }

@@ -38,7 +38,8 @@ class W204OrderParityChecks(unittest.TestCase):
         self.assertIn('issueCopy?.signInTitleKey ?? "profile.signInRequired"', self.screen)
         self.assertIn('issueCopy?.signInDetailKey ?? "auth.expired"', self.screen)
         self.assertEqual(self.app.count('issueCopy: .orders'), 1)
-        self.assertIn('ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", load:', self.app)
+        self.assertEqual(self.app.count('issueCopy: .orderDetail'), 1)
+        self.assertEqual(self.app.count('issueCopy:'), 2)
 
     def test_time_range_has_no_time_zone_conversion(self):
         block = self.core.split('public enum ProfileOrderTimeRangeText')[1].split('private extension Character')[0]
@@ -86,6 +87,14 @@ class W204OrderParityChecks(unittest.TestCase):
         self.assertIn('profile.orderFilter.chip.', ui)
         self.assertIn('profile.orderFilter.emptyHint', ui)
 
+    def test_detail_uses_source_detail_copy_and_default_loading_elsewhere(self):
+        self.assertIn('accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, load:', self.app)
+        self.assertIn('ProgressView(LocalizedStringKey(issueCopy?.loadingKey ?? "profile.loading"))', self.screen)
+        self.assertIn('loadingKey: "profile.orderParity.detail.loading"', self.core)
+        self.assertIn('forbiddenTitleKey: "profile.orderParity.detail.unavailable"', self.core)
+        catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']
+        self.assertEqual(catalog['profile.orderParity.detail.unavailable']['localizations']['zh-Hans']['stringUnit']['value'], '订单暂不可查看')
+        self.assertEqual(catalog['profile.orderParity.detail.loading']['localizations']['zh-Hans']['stringUnit']['value'], '订单详情加载中')
 
 if __name__ == '__main__':
     unittest.main()
