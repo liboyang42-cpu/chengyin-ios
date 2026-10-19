@@ -29,6 +29,7 @@ import SwiftUI
                         // Source meta line: "(city ‖ 全国) · role".
                         (cityText(row) + Text(verbatim: " · ") + roleText(row)).font(.subheadline)
                         Text(LocalizedStringKey(row.scopeKey)).font(.caption)
+                        if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).font(.caption) }
                         if let summary = row.responsibilitySummary, !summary.isEmpty, summary != row.title {
                             Text(verbatim: summary).font(.footnote)
                         }
@@ -86,6 +87,10 @@ import SwiftUI
                                     VStack(alignment: .leading, spacing: 8) {
                                         if broadcast.title.isEmpty { Text("official.untitled") }
                                         else { Text(verbatim: broadcast.title).font(.headline) }
+                                        if let facts = broadcast.facts {
+                                            OfficialPrivateFactsText.broadcastLine(facts).font(.subheadline)
+                                            Text(OfficialPrivateFactsText.broadcastStatusKey(facts.status)).font(.caption)
+                                        }
                                         if let content = broadcast.content { Text(verbatim: content).lineLimit(3) }
                                         if let reach = broadcast.reach { Text("official.published.reach \(reach)").font(.caption) }
                                         else { Text("official.published.reachUnknown").font(.caption) }

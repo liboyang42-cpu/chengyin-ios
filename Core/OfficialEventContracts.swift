@@ -319,9 +319,12 @@ public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {
     public let role: String?
     public let targetType: String?
     public let responsibilitySummary: String?
+    /// Source service window (windowStart/windowEnd); absent fields read as unbounded.
+    public let windowFacts: OfficialInboxWindowFacts?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
         role = c.text("role"); targetType = c.text("targetType"); responsibilitySummary = c.text("responsibilitySummary")
+        windowFacts = try? OfficialInboxWindowFacts(from: decoder)
         id = c.integer("partyId") ?? c.integer("id") ?? 0
         title = c.text("title") ?? c.text("partyName") ?? c.text("responsibilitySummary") ?? ""
         partyType = c.text("partyType"); eventTitle = c.text("eventTitle")
@@ -372,8 +375,11 @@ public struct OfficialBroadcast: Decodable, Equatable, Identifiable {
     public let title: String
     public let content: String?
     public let reach: Int?
+    /// Source official-mine row facts (copyMode, audience, status, city).
+    public let facts: OfficialPublishedBroadcastFacts?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
+        facts = try? OfficialPublishedBroadcastFacts(from: decoder)
         id = c.integer("id") ?? 0; title = c.text("title") ?? ""
         content = c.text("content")
         // Source official-mine reads the domain field `reachedCount`; `reach` stays a fallback.
