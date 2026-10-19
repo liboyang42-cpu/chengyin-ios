@@ -9,6 +9,7 @@ import SwiftUI
     var selfProjectsAccess: ProfileSelfProjectsAccess? = nil
     var selfGrowthAccess: ProfileSelfGrowthAccess? = nil
     var weeklyPointsAccess: ProfileWeeklyPointsAccess? = nil
+    var selfObjectCardsAccess: ProfileObjectCardsAccess? = nil
     var selfMedalsReader: (any ProfileReading)? = nil
     var selfEditAccess: ProfileSelfEditAccess? = nil
     var selfEditDiagnostics: (@MainActor (ProfileSelfEditTicket?, ProfileSelfEditTicket, ProfileSelfEditContext?) -> String)? = nil
@@ -103,6 +104,10 @@ import SwiftUI
                     case .posts:
                         ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader, actions: actions, isCurrent: isCurrent)
                     case .achievements:
+                        if let selfObjectCardsAccess {
+                            ProfileObjectCardsEntry(memberID: memberID, accountReader: reader,
+                                access: selfObjectCardsAccess, isCurrent: isCurrent)
+                        }
                         if let selfMedalsReader {
                             ProfileSelfMedalsSection(memberID: memberID, accountReader: reader,
                                 profileReader: selfMedalsReader, isCurrent: isCurrent)
