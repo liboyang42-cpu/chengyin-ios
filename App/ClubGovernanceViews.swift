@@ -485,7 +485,7 @@ struct ClubGovernanceReadView: View {
             }
         }
     }
-    private var bodyReturnOwners: some View {
+    private var bodyReturnOwnersStage3: some View {
         bodyReturnOwnersStage2
         .onChange(of: settlementSource) { _, source in settlementReturn.invalidate(source: source, active: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
@@ -499,6 +499,10 @@ struct ClubGovernanceReadView: View {
             if settlementReturn.synchronize(readContext, namespace: access.storageNamespace) { invalidateRead(); loading = false }
             await loadSettlementIfNeeded()
         }
+    }
+    // Further split for the type checker; modifier order is unchanged.
+    private var bodyReturnOwnersStage4: some View {
+        bodyReturnOwnersStage3
         .background {
             if operation == .settlement, let attachment = ownerFundsParent.attachment {
                 ClubSettlementParentLifetime { ownerFundsParent.depart(attachment) }.id(attachment)
@@ -522,6 +526,9 @@ struct ClubGovernanceReadView: View {
                 else { Task { await loadOwnerFundsIfNeeded() } }
             }
         }
+    }
+    private var bodyReturnOwners: some View {
+        bodyReturnOwnersStage4
         .onAppear { terminalPresentation.bind(terminalSource) }
         .onChange(of: terminalSource, initial: true) { _, source in terminalPresentation.bind(source) }
         // A covering child owns dismissal; recycling content rows cannot retire it.
