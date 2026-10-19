@@ -151,8 +151,8 @@
   },
   {
     "key": "roam.experience.historyEmpty",
-    "en": "No local roaming records",
-    "zh-Hans": "暂无本地漫游记录"
+    "en": "No roaming records yet",
+    "zh-Hans": "还没有漫游记录"
   },
   {
     "key": "roam.experience.historyEmptyHint",
@@ -211,8 +211,8 @@
   },
   {
     "key": "roam.experience.session",
-    "en": "Journey record",
-    "zh-Hans": "行程记录"
+    "en": "This roam",
+    "zh-Hans": "本次漫游"
   },
   {
     "key": "roam.experience.recoveryHint",
