@@ -38,7 +38,8 @@ final class RoamPassportToolsFlowTests: XCTestCase {
         let app = app()
         open("roam.tools.recap.open", app)
         XCTAssertTrue(element("roam.tools.recap.routes", app).waitForExistence(timeout: 5))
-        XCTAssertTrue(element("roam.tools.recap.routes", app).label.contains("route completions"))
+        let routesHero = element("roam.tools.recap.routes", app).label
+        XCTAssertTrue(routesHero.hasPrefix("3") && routesHero.contains("route completions"), routesHero)
         XCTAssertTrue(element("roam.tools.recap.weeks", app).exists)
         XCTAssertFalse(app.buttons["roam.tools.recap.next"].isEnabled, "Current month cannot move into the future")
         for title in ["老城墙夜行", "滨江骑行路线", "梧桐街区漫步"] {
