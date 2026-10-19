@@ -1298,6 +1298,7 @@ struct ClubGovernanceReadView: View {
             } }
             if operation == .checkin, let clubID = scope.clubID, let registrationID = scope.registrationID,
                let target = try? ClubOwnerRefundTarget(clubID: clubID, registrationID: registrationID) {
+                ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]))
                 Section {
                     ClubOwnerRefundPanel(target: target, identity: identity, sourceCanRefund: value["canRefund"] == .bool(true), onReadback: { Task { await load() } })
                 }

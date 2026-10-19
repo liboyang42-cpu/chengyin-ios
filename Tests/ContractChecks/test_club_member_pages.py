@@ -48,6 +48,15 @@ class ClubMemberPageContracts(unittest.TestCase):
         self.assertIn('if receipt["ttlMs"] == .null { ttl = Self.defaultTTLMilliseconds }', core)
         self.assertIn('testAbsentGroupCodeTTLUsesMiniProgramFiveMinuteDefault', read('Tests/CoreTests/ClubGovernanceContractTests.swift'))
 
+    def test_checkin_rail_uses_server_step_only(self):
+        core = read('Core/ClubCheckinRail.swift')
+        self.assertIn('case signed, contacted, verified, reviewed', core)
+        self.assertIn('refunded = statusCode == .string("REFUNDED")', core)
+        self.assertIn('ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]))', read('App/ClubGovernanceViews.swift'))
+        for key, value in {'club.checkin.rail.signed': '已报名', 'club.checkin.rail.contacted': '已接洽', 'club.checkin.rail.verified': '已核销',
+                           'club.checkin.rail.reviewed': '已评价', 'club.checkin.rail.refunded': '这单已退款，履约轨迹不再推进。'}.items():
+            self.assertEqual(zh(self.catalog, key), value)
+        self.assertIn('testRefundedOrUnknownStepLightsNothing', read('Tests/CoreTests/ClubCheckinRailTests.swift'))
 
 if __name__ == '__main__':
     unittest.main()
