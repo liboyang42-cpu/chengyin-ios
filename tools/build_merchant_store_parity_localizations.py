@@ -11,6 +11,18 @@ PAIRS = {
 'merchant.workbench.aftercareReminder %lld': ('%lld after-sales requests await your response', '有 %lld 笔售后待回应'),
 'merchant.workbench.predictReminder %lld': ('%lld prediction rounds await your answer', '有 %lld 轮竞猜待给答案'),
 'merchant.workbench.reminderUnavailable': ('Open this from the business workspace.', '请从经营工作区进入处理。'),
+# pages/merchant/reviews summary (index.wxml:31-77)
+'merchant.reviewSummary.title': ('Reviews', '口碑'),
+'merchant.reviewSummary.stars %lld': ('%lld of 5 stars', '%lld 星（满分 5 星）'),
+'merchant.reviewSummary.total %lld': ('%lld verified-redemption reviews · merchants cannot edit original reviews', '%lld 条已核销评价 · 商家不能改用户原评'),
+'merchant.reviewSummary.pending': ('Awaiting reply', '待回复'),
+'merchant.reviewSummary.pendingHint': ('Replies can be edited later', '回复后可修改'),
+'merchant.reviewSummary.month': ('New this month', '本月新增'),
+'merchant.reviewSummary.monthHint': ('From this month’s redemption reviews', '来自本月核销评价'),
+'merchant.reviewSummary.rate': ('Reply rate', '已回复率'),
+'merchant.reviewSummary.rateHint': ('Across all public reviews', '按全量公开评价计算'),
+'merchant.reviewSummary.average30': ('30-day average', '近 30 天均分'),
+'merchant.reviewSummary.average30Hint': ('Average of public reviews', '公开评价平均分'),
 }
 
 

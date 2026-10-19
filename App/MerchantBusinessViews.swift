@@ -805,7 +805,7 @@ import SwiftUI
         }
     }
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
-        if !document.summary.isEmpty || document.query == .overview {
+        if !document.summary.isEmpty || document.query == .overview || MerchantReviewSummaryPresentation(document: document) != nil {
             Section("merchant.business.summary") {
                 if document.query == .overview {
                     MerchantLedgerAssetsEntry(reader: reader, currentSnapshot: {
@@ -815,6 +815,9 @@ import SwiftUI
                     })
                 }
                 if case .reviews = document.query {
+                    if let presentation = MerchantReviewSummaryPresentation(document: document) {
+                        MerchantReviewSummaryHeader(presentation: presentation)
+                    }
                     Text("merchant.business.reviews.summaryScope").font(.footnote).foregroundStyle(.secondary)
                 }
                 ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount", "pendingReplyCount", "monthNewCount", "replyRatePct", "averageRating", "all", "repeat", "new", "noted", "monthlyNew"], id: \.self) { key in
