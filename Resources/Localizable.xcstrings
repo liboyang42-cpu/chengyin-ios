@@ -172823,6 +172823,108 @@
           }
         }
       }
+    },
+    "discovery.templateTab.staffReadOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your role can browse templates. Publishing, copying and configuring are done by the owner or manager."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前岗位可浏览模板；发布、复制和配置由店主或店长操作"
+          }
+        }
+      }
+    },
+    "discovery.templateTab.refusal.previewNotViewable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a preview template. Save it before viewing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是预览模板，保存后才能查看"
+          }
+        }
+      }
+    },
+    "discovery.templateTab.refusal.previewNotConfigurable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a preview template. Save it before configuring."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是预览模板，保存后才能配置"
+          }
+        }
+      }
+    },
+    "discovery.templateTab.refusal.previewNotUsable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a preview template. Verify it with a trial run before using it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是预览模板，试走验证后才能用"
+          }
+        }
+      }
+    },
+    "discovery.templateTab.refusal.staffBrowseOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your role can only browse templates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前岗位仅可浏览模板"
+          }
+        }
+      }
+    },
+    "discovery.templateTab.refusal.staffCannotPublish": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your role can’t publish projects"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前岗位没有项目发布权限"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
