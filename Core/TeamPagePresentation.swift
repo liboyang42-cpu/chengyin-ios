@@ -7,7 +7,7 @@ public enum TeamPageKind: Equatable, Sendable { case detail, invitation }
 
 /// Source `cy-state-shell` facts for a page with no snapshot, or a banner when one is retained.
 public struct TeamPageState: Equatable, Sendable {
-    public enum Kind: Equatable, Sendable { case missingParameter, legacyLink, signIn, unavailable, unconfigured, changed }
+    public enum Kind: Equatable, Sendable { case missingParameter, legacyLink, signIn, noPermission, network, unavailable, unconfigured, changed }
     public enum Action: Equatable, Sendable { case goBack, signIn, reload, none }
     public let kind: Kind
     public let titleKey: String
@@ -99,7 +99,7 @@ public enum TeamPagePresentation {
     }
 
     /// Full-page state when there is no snapshot. `legacyTeamID` is the old `?teamId=` join link.
-    public static func blockingState(kind page: TeamPageKind, messageKey: String?, hasDetail: Bool, legacyTeamID: Bool = false) -> TeamPageState? {
+    public static func blockingState(kind page: TeamPageKind, messageKey: String?, hasDetail: Bool, legacyTeamID: Bool = false, failure: TeamReadFailureKind? = nil) -> TeamPageState? {
         guard !hasDetail, let messageKey else { return nil }
         let join = page == .invitation
         switch messageKey {
@@ -115,6 +115,14 @@ public enum TeamPagePresentation {
         case "team.changed":
             return .init(kind: .changed, titleKey: "team.changed", detailKey: "team.page.changed.detail", action: .goBack)
         default:
+            // Source: a 403 keeps the 登录后查看… explanation with 重新加载; a transport failure is 网络没连上.
+            if failure == .forbidden {
+                return .init(kind: .noPermission, titleKey: join ? "team.page.signInInvite" : "team.page.signInTeam",
+                             detailKey: join ? "team.page.signInInvite.detail" : "team.page.signInTeam.detail", action: .reload)
+            }
+            if failure == .network {
+                return .init(kind: .network, titleKey: "team.page.offline", detailKey: "team.page.offline.detail", action: .reload)
+            }
             return .init(kind: .unavailable, titleKey: join ? "team.page.inviteUnavailable" : "team.page.teamUnavailable",
                          detailKey: join ? "team.page.inviteUnavailable.detail" : "team.page.teamUnavailable.detail", action: .reload)
         }
@@ -124,6 +132,12 @@ public enum TeamPagePresentation {
     public static func staleBanner(kind page: TeamPageKind, messageKey: String?, hasDetail: Bool) -> (title: String, detail: String)? {
         guard hasDetail, messageKey == "team.refreshFailed" else { return nil }
         return page == .invitation ? ("team.page.inviteStale", "team.page.inviteStale.detail") : ("team.page.teamStale", "team.page.teamStale.detail")
+    }
+
+    /// Source join page `cy-inline-error` 暂时无法加入 after a refused or unsent join. Its 重试加入 opens a
+    /// fresh explicit review; nothing is resubmitted automatically. An unknown outcome never qualifies.
+    public static func showsJoinRetry(_ writeState: TeamCoordinator.WriteState, page: TeamPageKind) -> Bool {
+        page == .invitation && (writeState == .rejected || writeState == .notSent)
     }
 
     public static func loadingKey(_ page: TeamPageKind, hasDetail: Bool) -> String {
