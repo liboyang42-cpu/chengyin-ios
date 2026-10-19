@@ -4,6 +4,7 @@ import SwiftUI
     let account: Account
     var privateHomeCoordinator: PrivateHomeCoordinator? = nil
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
+    @Environment(\.locale) private var locale
     @EnvironmentObject private var session: AppSession
     @State private var savedTopicOwner = ProfileFavoriteTopicNavigationOwner()
     @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
@@ -44,7 +45,7 @@ import SwiftUI
                 }
                 Section {
                     NavigationLink { ProfilePublicInfoHost(reader: session.makeProfilePublicInfoReader(memberID: account.id)) { profileReader in
-                        SocialPublicProfileView(memberID: account.id, reader: profileReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), weeklyPointsAccess: .init(reader: session.profileWeeklyPointsReader, owner: session.socialAccountReader.identity), selfObjectCardsAccess: .init(reader: session.objectCardReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })
+                        SocialPublicProfileView(memberID: account.id, reader: profileReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), weeklyPointsAccess: .init(reader: session.profileWeeklyPointsReader, owner: session.socialAccountReader.identity), selfCouponAccess: .init(reader: session.profileOwnedCouponReader, owner: session.socialAccountReader.identity), selfObjectCardsAccess: .init(reader: session.objectCardReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })
                     }.id(session.socialAccountReader.identity) } label: {
                         Label("social.profile", systemImage: "person.crop.rectangle")
                     }.accessibilityIdentifier("account.publicProfile")
@@ -117,6 +118,9 @@ import SwiftUI
                 Section {
                     Button { showsCooperation=true } label: { Label("cooperation.title",systemImage:"person.2") }
                         .accessibilityIdentifier("account.cooperation")
+                    NavigationLink { SessionMerchantOverviewView(session: session) } label: {
+                        Label(locale.language.languageCode?.identifier == "zh" ? "商家只读概览" : "Merchant overview (read-only)", systemImage: "chart.bar.doc.horizontal")
+                    }.accessibilityIdentifier("account.merchantOverview")
                     NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
                         Label("merchant.projects", systemImage: "calendar")
                     }.accessibilityIdentifier("account.merchantProjectBrowse")

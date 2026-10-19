@@ -13,7 +13,7 @@ private actor PredictionReadWire: HTTPTransport {
 }
 final class MerchantPredictionReadTests: XCTestCase {
     private let row = #"{"nodeId":17,"topicId":4,"nodeName":"Shop","playDay":"2024-02-29","question":"Which choice?","options":[{"key":"a","label":"A"},{"key":"b","label":"B"}],"betCount":3,"daysLeft":0}"#
-    private func decode(_ text: String) throws -> MerchantPredictionRound { try JSONDecoder().decode(MerchantPredictionRound.self, from: Data(text.utf8)) }
+    private func decode(_ text: String) throws -> MerchantPredictionInboxRound { try JSONDecoder().decode(MerchantPredictionInboxRound.self, from: Data(text.utf8)) }
     private func access(allowed: Bool = true) throws -> MerchantAccess {
         try JSONDecoder().decode(MerchantAccess.self, from: Data("{\"active\":true,\"merchant\":{\"id\":31},\"roleCode\":\"MERCHANT_MANAGER\",\"permissions\":\(allowed ? "[\"merchant:project:manage\"]" : "[]")}".utf8))
     }
