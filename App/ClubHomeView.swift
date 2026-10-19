@@ -30,7 +30,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     }
                     if !discoveryScope.isMerchantViewer, let operations = management?.operations {
                         Text("club.tab.createPrompt").font(.footnote).foregroundStyle(.secondary)
-                        ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator)
+                        ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
                     }
                     NavigationLink {
                         ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)

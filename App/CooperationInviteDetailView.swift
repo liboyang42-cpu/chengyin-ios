@@ -28,41 +28,31 @@ import UIKit
             return try await phoneCopy.load(reader: reader, key: key)
         }) { detail in
             let row = detail.row
+            let view = CooperationInvitePresentation(invite: row, direction: key.direction)
             Section {
-                CooperationName(name: row.partner?.name).font(.title2.weight(.semibold))
-                    .accessibilityIdentifier("cooperation.detail.partner")
                 CooperationStatus(key: row.statusKey, symbol: row.status == 0 ? "clock" : row.status == 1 ? "checkmark.circle" : "circle")
-                Text(LocalizedStringKey(key.direction == .received ? "cooperation.received" : "cooperation.sent")).font(.subheadline).foregroundStyle(.secondary)
-                CooperationField(key: "cooperation.inviteID", value: "#\(row.id)")
+                HStack(spacing: 4) {
+                    Text(LocalizedStringKey(key.direction == .received ? "cooperation.detail.from" : "cooperation.detail.to")).foregroundStyle(.secondary)
+                    if let name = row.partner?.name, !name.isEmpty { Text(verbatim: name) } else { Text("cooperation.detail.counterparty") }
+                }.font(.title3.weight(.semibold)).accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("cooperation.detail.partner")
+                if let name = row.topicName { Text(verbatim: name).font(.headline) }
                 if let topic = row.topicId { CooperationTopicReference(id: topic) }
+                if let party = row.viewerPartyName {
+                    LabeledContent { Text(verbatim: party) } label: { Text(LocalizedStringKey(key.direction == .received ? "cooperation.detail.receivingClub" : "cooperation.detail.sendingClub")) }
+                        .accessibilityIdentifier("cooperation.detail.viewerParty")
+                }
+                CooperationField(key: "cooperation.inviteID", value: "#\(row.id)")
                 CooperationTimeField(key: "cooperation.created", value: row.createTime)
                 CooperationTimeField(key: "cooperation.expires", value: row.expireTime)
             }
             if let peerReader, let peer = CoopPeerMember(direction: key.direction, fromType: row.fromType, fromID: row.fromId, toType: row.toType, toID: row.toId) {
                 Section { NavigationLink("context.coop.peerCredit") { CoopPeerCreditView(reader: peerReader, peer: peer) } }
             }
-            Section("cooperation.terms") {
-                // Mini-program invite detail lists the two parties first (utils/coop-invite-view.js TYPE_LABEL).
-                if let type = row.inviteType, (0...2).contains(type) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("cooperation.parties").font(.caption).foregroundStyle(.secondary)
-                        Text(LocalizedStringKey("cooperation.inviteType." + String(type)))
-                    }.padding(.vertical, 2).accessibilityElement(children: .combine)
-                        .accessibilityIdentifier("cooperation.detail.parties")
-                }
-                terms(row)
-                if row.termsFrozen { Label("cooperation.termsFrozen", systemImage: "lock") }
-                if let occupancy = detail.occupancy {
-                    CooperationField(key: occupancy.kind == .gamePending ? "cooperation.slot.game" : "cooperation.slot.topic", value: "\(occupancy.count) / \(occupancy.capacity)")
-                }
-                CooperationField(key: "cooperation.message", value: row.message)
-                CooperationField(key: "cooperation.handleReason", value: row.handleReason)
-            }
-            if row.partner?.leaderName?.isEmpty == false || row.partner?.phone?.isEmpty == false {
-                Section("cooperation.contact") {
-                    // Display only fields actually returned; never create a conversation or infer contact data.
-                    CooperationField(key: "cooperation.leader", value: row.partner?.leaderName)
-                    CooperationField(key: "cooperation.phone", value: row.partner?.phone)
+            Section("cooperation.detail.section.contact") {
+                switch view.contact {
+                case .visible(let text):
+                    Text(verbatim: text).textSelection(.enabled).accessibilityIdentifier("cooperation.detail.contact")
                     if let intent = phoneCopy.intent(detail: detail, reader: reader, key: key) {
                         Button("cooperation.phone.copy") {
                             phoneCopy.copy(intent) { phone in
@@ -74,23 +64,54 @@ import UIKit
                     if let result = phoneCopy.resultKey {
                         Text(LocalizedStringKey(result)).accessibilityIdentifier("cooperation.phone.copy.result")
                     }
+                case .afterAcceptReceived: Text("cooperation.detail.contact.afterAcceptReceived").foregroundStyle(.secondary)
+                case .afterAcceptSent: Text("cooperation.detail.contact.afterAcceptSent").foregroundStyle(.secondary)
+                case .acceptedWithoutContact: Text("cooperation.detail.contact.none").foregroundStyle(.secondary)
+                case .ended: Text("cooperation.detail.contact.ended").foregroundStyle(.secondary)
                 }
             }
-            if !row.legacyReadonly && (row.depositOwed || row.depositRefundPending) {
+            Section("cooperation.detail.section.terms") {
+                // Mini-program invite detail lists the two parties first (utils/coop-invite-view.js typeText).
+                LabeledContent { CooperationInvitePartyText(view: view) } label: { Text("cooperation.parties") }
+                    .accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.detail.parties")
+                LabeledContent { CooperationInviteTermsText(terms: view.terms) } label: { Text("cooperation.detail.share") }
+                    .accessibilityIdentifier("cooperation.detail.terms")
+                if let occupancy = detail.occupancy {
+                    CooperationField(key: occupancy.kind == .gamePending ? "cooperation.slot.game" : "cooperation.slot.topic", value: "\(occupancy.count) / \(occupancy.capacity)")
+                }
+                LabeledContent { CooperationInviteDepositText(deposit: view.deposit) } label: { Text("cooperation.detail.section.deposit") }
+                    .accessibilityIdentifier("cooperation.detail.deposit")
+                if row.termsFrozen { Label("cooperation.termsFrozen", systemImage: "lock") }
+            }
+            Section("cooperation.detail.messages") {
+                if let message = row.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(verbatim: message)
+                        HStack(spacing: 4) {
+                            Text(LocalizedStringKey(view.messageIsOurs ? "cooperation.detail.us" : "cooperation.detail.them"))
+                            CooperationTimeField(key: "cooperation.created", value: row.createTime)
+                        }.font(.caption).foregroundStyle(.secondary)
+                    }.accessibilityIdentifier("cooperation.detail.message")
+                }
+                if let reason = row.handleReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(verbatim: reason)
+                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them")).font(.caption).foregroundStyle(.secondary)
+                    }.accessibilityIdentifier("cooperation.detail.handleReason")
+                }
+                if (row.message ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && (row.handleReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("cooperation.detail.noMessages").foregroundStyle(.secondary)
+                }
+                if view.input == .hidden && row.status == 1 && !row.legacyReadonly { Text("cooperation.detail.contactHint").font(.footnote).foregroundStyle(.secondary) }
+            }
+            CooperationInviteActionSections(view: view, peerReader: peerReader)
+            if !row.legacyReadonly && row.depositRefundPending {
                 Section("cooperation.deposit") {
-                    if row.depositOwed {
-                        Label("cooperation.depositOwed", systemImage: "info.circle")
-                        if let amount = row.depositAmount { CooperationField(key: "cooperation.depositAmount", value: number(amount)); Text("cooperation.currencyUnknown").font(.footnote).foregroundStyle(.secondary) }
-                        else { Text("cooperation.amountUnknown").foregroundStyle(.secondary) }
-                    }
-                    if row.depositRefundPending { Label("cooperation.refundPending", systemImage: "clock") }
+                    Label("cooperation.refundPending", systemImage: "clock")
                     Text("cooperation.financeUnavailable").font(.footnote).foregroundStyle(.secondary)
                 }
             }
-            Section {
-                if row.legacyReadonly { Label("cooperation.legacy", systemImage: "archivebox") }
-                CooperationReadOnlyNotice()
-            }
+            Section { CooperationReadOnlyNotice() }
         }
         .appNavigationTitle("cooperation.detail.title")
         .navigationBarTitleDisplayMode(.inline)
@@ -100,24 +121,6 @@ import UIKit
         .onChange(of: reader.scope) { _, _ in phoneCopy.retire() }
         .onChange(of: ObjectIdentifier(reader)) { _, _ in phoneCopy.retire() }
         .onChange(of: key) { _, _ in phoneCopy.retire() }
-    }
-    @ViewBuilder private func terms(_ row: CooperationInvite) -> some View {
-        switch row.shareMode {
-        case 0: Text("cooperation.terms.traffic")
-        case 1:
-            Text("cooperation.terms.share")
-            if let rate = row.shareRate { CooperationField(key: "cooperation.shareRate", value: "\(number(rate))%") }
-            else { Text("cooperation.amountUnknown").foregroundStyle(.secondary) }
-        case 2:
-            Text("cooperation.terms.fixed")
-            if let fee = row.fixedFee { CooperationField(key: "cooperation.fixedFee", value: number(fee)); Text("cooperation.currencyUnknown").font(.footnote).foregroundStyle(.secondary) }
-            else { Text("cooperation.amountUnknown").foregroundStyle(.secondary) }
-        default: Text("cooperation.termsUnknown").foregroundStyle(.secondary)
-        }
-    }
-    private func number(_ value: Double) -> String {
-        // No default amount, exchange rate, estimated deposit or contract total.
-        value.formatted(.number.precision(.fractionLength(0...8)))
     }
 }
 

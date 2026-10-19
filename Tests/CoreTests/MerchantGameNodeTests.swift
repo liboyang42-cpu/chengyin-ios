@@ -198,7 +198,11 @@ private final class GameNodeScriptTransport: MerchantContentOfflineTransport {
 
 @MainActor final class MerchantGameNodeCoordinatorTests: XCTestCase {
     private var session: MerchantGameNodeSession?
-    private func service(_ transport: GameNodeScriptTransport, journal: MerchantGameNodeMemoryJournal? = MerchantGameNodeMemoryJournal(),
+    private func service(_ transport: GameNodeScriptTransport,
+                         execution: MerchantContentService.Execution = .injectedOfflineHarness) throws -> MerchantGameNodeHTTPService {
+        try service(transport, journal: MerchantGameNodeMemoryJournal(), execution: execution)
+    }
+    private func service(_ transport: GameNodeScriptTransport, journal: MerchantGameNodeMemoryJournal?,
                          execution: MerchantContentService.Execution = .injectedOfflineHarness) throws -> MerchantGameNodeHTTPService {
         session = try MerchantGameNodeSession(accountID: 1, epoch: 1, storageScope: "tests", token: "token")
         return MerchantGameNodeHTTPService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://game-node.example"))),

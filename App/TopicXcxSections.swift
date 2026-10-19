@@ -185,3 +185,55 @@ struct TopicXcxRouteSection: View {
         }
     }
 }
+
+/// Source session chip: `周X M.D HH:mm` (time omitted at 00:00).
+struct TopicXcxSessionChip: View {
+    let startDate: String?
+    var body: some View {
+        if let chip = TopicXcxFacts.sessionChip(startDate) {
+            HStack(spacing: 4) {
+                Text(LocalizedStringKey("topicXcx.weekday." + String(chip.weekday)))
+                Text(verbatim: chip.monthDay)
+                if let time = chip.time { Text(verbatim: time) }
+            }.font(.caption.bold()).accessibilityElement(children: .combine).accessibilityIdentifier("topic.sessionChip")
+        }
+    }
+}
+
+/// Source 节点介绍: horizontal template cards (title, players, minutes). Images stay behind the gated gallery.
+struct TopicXcxTemplatesSection: View {
+    let templates: [TopicTemplate]
+    var body: some View {
+        if !templates.isEmpty {
+            Section("topicXcx.section.nodeIntro") {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 12) {
+                        ForEach(templates, id: \.id) { template in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(verbatim: template.title).font(.subheadline.bold()).lineLimit(1)
+                                if let players = template.players { Text(verbatim: players).font(.caption) }
+                                Text("topicXcx.templateMinutes \(TopicXcxFacts.templateMinutes(template))").font(.caption).foregroundStyle(.secondary)
+                            }.frame(width: 140, alignment: .leading).padding(10)
+                                .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+                                .accessibilityElement(children: .combine).accessibilityIdentifier("topic.nodeIntro.\(template.id)")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Source node card foot: `{商家}（{节点}）` plus `等 N 家`.
+struct TopicXcxNodeFootView: View {
+    let node: TopicNode
+    var body: some View {
+        let foot = TopicXcxFacts.nodeFoot(node)
+        if let merchant = foot.merchant {
+            HStack(spacing: 4) {
+                Text(verbatim: merchant + "（" + foot.node + "）").font(.subheadline)
+                if foot.merchantCount > 1 { Text("topicXcx.moreMerchants \(foot.merchantCount)").font(.caption).foregroundStyle(.secondary) }
+            }.accessibilityIdentifier("topic.nodeFoot")
+        }
+    }
+}

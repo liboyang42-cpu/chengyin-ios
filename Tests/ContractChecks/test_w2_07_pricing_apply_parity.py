@@ -19,6 +19,8 @@ class W207PricingApplyParity(unittest.TestCase):
                       'preview.canConfirm == false', '"合作链接已失效"', '"开售即冻结"']:
             self.assertIn(exact, view)
         self.assertIn('"api/topic/pricing/preview"', read('Core/PublisherLifecycleHTTP.swift'))
+        self.assertIn('public func partnerName(type: String, id: Int) async throws -> String', read('Core/PublisherLifecycleHTTP.swift'))
+        self.assertIn('try? await client.partnerName(type: row.type, id: row.partnerID), generation == stamp', view)
 
     def test_topic_owner_pricing_entry_is_injected(self):
         self.assertIn(r'.environment(\.topicPricingDestination, session.publisherLifecycleContext', read('App/SessionTopicBrowserView.swift'))

@@ -968,5 +968,60 @@
   "key": "square.xcx.closedDetail",
   "en": "Other city exploration features are still available",
   "zh-Hans": "其他城市探索功能仍可使用"
+ },
+ {
+  "key": "topicXcx.weekday.0",
+  "en": "Sun",
+  "zh-Hans": "周日"
+ },
+ {
+  "key": "topicXcx.weekday.1",
+  "en": "Mon",
+  "zh-Hans": "周一"
+ },
+ {
+  "key": "topicXcx.weekday.2",
+  "en": "Tue",
+  "zh-Hans": "周二"
+ },
+ {
+  "key": "topicXcx.weekday.3",
+  "en": "Wed",
+  "zh-Hans": "周三"
+ },
+ {
+  "key": "topicXcx.weekday.4",
+  "en": "Thu",
+  "zh-Hans": "周四"
+ },
+ {
+  "key": "topicXcx.weekday.5",
+  "en": "Fri",
+  "zh-Hans": "周五"
+ },
+ {
+  "key": "topicXcx.weekday.6",
+  "en": "Sat",
+  "zh-Hans": "周六"
+ },
+ {
+  "key": "topicXcx.section.nodeIntro",
+  "en": "Stop introductions",
+  "zh-Hans": "节点介绍"
+ },
+ {
+  "key": "topicXcx.templateMinutes %@",
+  "en": "%@ min",
+  "zh-Hans": "%@分钟"
+ },
+ {
+  "key": "topicXcx.moreMerchants %lld",
+  "en": "%lld shops in total",
+  "zh-Hans": "等 %lld 家"
+ },
+ {
+  "key": "topicXcx.coverHint",
+  "en": "Scroll down for games, sessions and sign-up",
+  "zh-Hans": "往下滑动看玩法、场次和报名"
  }
 ]

@@ -51,6 +51,9 @@ struct TopicDetailView: View {
             Section {
                 if reader.isOfflineExample { Text("topic.offlineExample").font(.caption) }
                 TopicXcxHero(topic: value)
+                let covers = value.images.isEmpty ? (value.imageURL.map { [$0] } ?? []) : Array(value.images.prefix(9))
+                if covers.isEmpty { Text("topicXcx.coverHint").font(.caption).foregroundStyle(.secondary) }
+                else { NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true) }
                 Text(verbatim: value.name).font(.title2.bold())
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
                 TopicXcxTabs(proxy: proxy)
@@ -87,6 +90,7 @@ struct TopicDetailView: View {
             }
             let includes = TopicXcxFacts.includes(value)
             if !includes.isEmpty { Section("topicXcx.section.contents") { TopicXcxIncludes(rows: includes) } }
+            if value.templateCount != 0 { TopicXcxTemplatesSection(templates: TopicXcxFacts.nodeTemplates(value)) }
             let lineup = TopicXcxFacts.lineup(value)
             if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup) } }
             if let activities = value.activities {
@@ -96,6 +100,7 @@ struct TopicDetailView: View {
                         if let activityDestination {
                             NavigationLink { activityDestination(activity.id) } label: {
                                 VStack(alignment: .leading, spacing: 6) {
+                                    TopicXcxSessionChip(startDate: activity.startDate)
                                     Text(verbatim: activity.name).font(.headline)
                                     if let address = activity.addressName { Text(verbatim: address) }
                                     if let start = activity.startDate { LabeledContent("topic.start", value: start) }
@@ -251,6 +256,7 @@ struct TopicChapterView: View {
                                 if let players = template.players { Text(verbatim: players) }
                                 if let duration = template.duration { LabeledContent("topic.durationMinutes", value: String(duration)) }
                             }
+                            TopicXcxNodeFootView(node: node)
                             ForEach(Array(node.merchants.enumerated()), id: \.offset) { _, merchant in
                                 if let owner = PublicMerchantOwnerID(merchant.memberID), let publicMerchant {
                                     NavigationLink { PublicMerchantHomeView(target: .ownerMemberID(owner), context: publicMerchant) } label: {

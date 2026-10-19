@@ -426,5 +426,49 @@
   "club.ops.confirmLiveHint": {
     "en": "Apply the reviewed club changes to the server.",
     "zh-Hans": "将已核对的俱乐部更改提交至服务器。"
+  },
+  "club.ops.leaderRequired.apply": {
+    "en": "Become a club leader first. Once approved you can create and manage clubs.",
+    "zh-Hans": "请先成为俱乐部主理人，申请通过后即可创建与管理俱乐部"
+  },
+  "club.ops.applyHost": {
+    "en": "Go to application",
+    "zh-Hans": "前往申请"
+  },
+  "club.ops.adminNote": {
+    "en": "You are an administrator · you can only edit display information",
+    "zh-Hans": "你是管理员 · 只能改展示信息"
+  },
+  "club.ops.locked.title": {
+    "en": "Only the host can change membership settings",
+    "zh-Hans": "只有主理人能改经营配置"
+  },
+  "club.ops.locked.body": {
+    "en": "Member priority signup · join approval · member reserved places — these decide how tickets are split and paid once sales open, so they stay with the host.",
+    "zh-Hans": "成员优先报名 · 入会需要审批 · 成员保留名额 —— 这三项直接决定开卖时票怎么分、钱怎么收,所以留给主理人。"
+  },
+  "club.ops.locked.current": {
+    "en": "Current:",
+    "zh-Hans": "当前:"
+  },
+  "club.ops.locked.priority.on": {
+    "en": "Priority signup on",
+    "zh-Hans": "优先报名 已开"
+  },
+  "club.ops.locked.priority.off": {
+    "en": "Priority signup off",
+    "zh-Hans": "优先报名 已关"
+  },
+  "club.ops.locked.join.on": {
+    "en": "Join approval on",
+    "zh-Hans": "入会审批 已开"
+  },
+  "club.ops.locked.join.off": {
+    "en": "Join approval off",
+    "zh-Hans": "入会审批 已关"
+  },
+  "club.ops.locked.quota %lld": {
+    "en": "%lld reserved",
+    "zh-Hans": "保留 %lld 个"
   }
 }

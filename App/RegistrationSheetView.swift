@@ -15,6 +15,7 @@ private final class RegistrationSheetModel: ObservableObject {
 @MainActor
 struct RegistrationSheetView: View {
     @Environment(\.complianceSignupDestination) private var complianceSignupDestination
+    @Environment(\.registrationMySignupsDestination) private var mySignupsDestination
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
@@ -69,7 +70,7 @@ struct RegistrationSheetView: View {
                     alreadyRegisteredSection
                     if flow.hasRetainedIntent {
                         activitySection
-                        RegistrationOperationSections(flow: flow,revision:model.revision)
+                        RegistrationOperationSections(flow: flow,revision:model.revision,orderReader:orderReader)
                         resultOrderSection
                     } else if case .pending(let registrationID) = flow.durableCreation {
                         activitySection
@@ -232,6 +233,11 @@ struct RegistrationSheetView: View {
                 Label("registrationParity.alreadyRegistered", systemImage: "checkmark.seal")
                     .font(.headline)
                     .accessibilityIdentifier("registration.alreadyRegistered")
+                // Source goMySignups: an entry only, never an automatic redirect.
+                if let mySignupsDestination {
+                    NavigationLink { mySignupsDestination() } label: { Text("registration.w206.viewMySignups") }
+                        .accessibilityIdentifier("registration.viewMySignups")
+                }
             }
         }
     }
@@ -521,6 +527,7 @@ private struct RegistrationIssueText: View {
 private struct RegistrationOperationSections: View {
     let flow: RegistrationUIFlow
     let revision:UInt64
+    var orderReader: (any ProfileReading)? = nil
     var body: some View {
         if flow.retainedForAnotherActivity {
             Section { Text("registration.form.otherActivityIntent").foregroundStyle(.secondary) }
@@ -534,6 +541,7 @@ private struct RegistrationOperationSections: View {
                 Text("registration.form.outcomeUnknownHint")
                     .accessibilityIdentifier("registration.form.outcomeUnknown")
                 Text("registration.form.retainedIntentHint").font(.caption).foregroundStyle(.secondary)
+                if let orderReader { RegistrationUncertainOrdersCheck(flow: flow, reader: orderReader) }
             }
         case .responseReceived(_, let result):
             Section("registration.form.createdResponse") {
@@ -577,3 +585,37 @@ private struct RegistrationOperationSections: View {
     }
 }
 
+
+/// One read-only look at the viewer's own orders after an unknown create outcome. A match is
+/// not proof of this submission, so the retained request stays locked and nothing is retried.
+@MainActor
+private struct RegistrationUncertainOrdersCheck: View {
+    let flow: RegistrationUIFlow
+    let reader: any ProfileReading
+    @State private var evidence: RegistrationUncertainOutcomeEvidence?
+    @State private var reading = false
+    @State private var failed = false
+    var body: some View {
+        Button("registration.w206.checkOrders") {
+            Task {
+                reading = true; failed = false; evidence = nil
+                defer { reading = false }
+                do { evidence = try await flow.uncertainOutcomeEvidence(orders: reader) }
+                catch { if !(error is CancellationError) { failed = true } }
+            }
+        }.disabled(reading || evidence != nil).accessibilityIdentifier("registration.checkOrders")
+        if reading { ProgressView("registration.form.readingStatus") }
+        if failed { Text("registration.w206.checkOrdersFailed").accessibilityIdentifier("registration.checkOrders.failed") }
+        switch evidence {
+        case .noMatchingOrder?:
+            Text("registration.w206.noMatchingOrder").accessibilityIdentifier("registration.checkOrders.none")
+        case .matchingOrders(let ids)?:
+            Text("registration.w206.matchingOrders \(ids.count)").accessibilityIdentifier("registration.checkOrders.matches")
+            ForEach(ids, id: \.self) { id in
+                LabeledContent("registration.form.registrationID", value: String(id))
+            }
+            Text("registration.w206.matchNotProof").font(.caption).foregroundStyle(.secondary)
+        case .notApplicable?, nil: EmptyView()
+        }
+    }
+}

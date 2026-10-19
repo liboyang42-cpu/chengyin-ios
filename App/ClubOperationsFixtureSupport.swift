@@ -13,6 +13,9 @@ import SwiftUI
         "scenario=\(store.access.scenario.rawValue);createTaps=\(createTapCount);manageTaps=\(manageTapCount);destinationSet=\(destination != nil);sheetVisible=\(sheetVisible);appeared=\(sheetAppearCount);disappeared=\(sheetDisappearCount);reads=\(store.access.readCount);writes=\(store.writeCount)"
     }
     private struct Destination: Identifiable { let id = UUID(); let target: ClubOperationsTarget }
+    /// Opt-in synthetic governance so the non-leader create state can link to club/apply.
+    @State private var hostApplication: ClubGovernanceContext? = ProcessInfo.processInfo.arguments.contains("--uitesting-club-operations-host-apply")
+        ? { let access = ClubGovernanceFixtureAccess(); return ClubGovernanceContext(access: access, coordinator: ClubGovernanceCoordinator(access: access)) }() : nil
     init(scenario: ClubOperationsFixtureScenario = .owner) { _store = StateObject(wrappedValue: ClubOperationsFixtureStore(scenario: scenario)) }
     static func selected(arguments: [String]) -> ClubOperationsFixtureScenario? {
         guard let i = arguments.firstIndex(of: "--uitesting-club-operations"), arguments.indices.contains(i + 1) else { return nil }
@@ -30,7 +33,7 @@ import SwiftUI
         }
         .sheet(item: $destination) { value in
             NavigationStack {
-                ClubOperationsWorkspaceView(target: value.target, identity: store.identity, access: store.access, coordinator: store.coordinator)
+                ClubOperationsWorkspaceView(target: value.target, identity: store.identity, access: store.access, coordinator: store.coordinator, hostApplication: hostApplication)
                     .accessibilityIdentifier("club.ops.fixture.workspace")
                     .toolbar { ToolbarItemGroup(placement: .bottomBar) { controls } }
             }
