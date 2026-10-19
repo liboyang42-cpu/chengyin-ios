@@ -6,7 +6,7 @@ The script fails when App sources use a key that is not defined here, or a defin
 """
 import json, pathlib, re
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DYNAMIC_PREFIXES = ['merchantOps.aftercare.processing.', 'merchantOps.aftercare.processingHint.', 'merchantOps.aftercare.stepState.']
+DYNAMIC_PREFIXES = ['merchantOps.customer.tier.', 'merchantOps.aftercare.processing.', 'merchantOps.aftercare.processingHint.', 'merchantOps.aftercare.stepState.']
 ROWS = {
  # pages/merchant/marketing/index.{js,wxml}
  'merchantOps.marketing.hero.label %lld': ('Sign-ups in the last %lld days', '近 %lld 天报名'),
@@ -129,6 +129,23 @@ ROWS = {
  'merchantOps.ledger.summary.countValue %lld': ('%lld', '%lld 笔'),
  'merchantOps.ledger.summary.pending': ('Pending settlement', '待结算'),
  'merchantOps.ledger.summary.arrived': ('Credited', '已入账'),
+ # pages/merchant/customer/index.{js,wxml}
+ 'merchantOps.customer.unnamed': ('No name left', '未留姓名'),
+ 'merchantOps.customer.tier.pending': ('To redeem', '待核销'),
+ 'merchantOps.customer.tier.abnormal': ('Exception', '异常'),
+ 'merchantOps.customer.tier.dormant': ('Dormant', '沉睡'),
+ 'merchantOps.customer.tier.repeat': ('Repeat', '复购'),
+ 'merchantOps.customer.tier.new': ('New', '新客'),
+ 'merchantOps.customer.noteBadge': ('Note', '备注'),
+ 'merchantOps.customer.relative.today': ('Today', '今天'),
+ 'merchantOps.customer.relative.yesterday': ('Yesterday', '昨天'),
+ 'merchantOps.customer.relative.days %lld': ('%lld days ago', '%lld 天前'),
+ 'merchantOps.customer.relative.months %lld': ('%lld months ago', '%lld 个月前'),
+ 'merchantOps.customer.relative.years %lld': ('%lld years ago', '%lld 年前'),
+ 'merchantOps.customer.summary.monthly %lld %lld': ('%1$lld · %2$lld new this month', '%1$lld 位 · 本月新增 %2$lld'),
+ 'merchantOps.customer.summary.total %lld': ('%lld customers', '%lld 位'),
+ 'merchantOps.customer.summary.unavailable': ('Customer count unavailable', '客户数量暂不可用'),
+ 'merchantOps.customer.footer %lld': ('%lld customers · all shown', '共 %lld 位客户 · 已全部显示'),
  'merchantOps.aftercare.readOnly.closed': ('Platform review has ended; no further merchant opinion can be added.', '平台审核已结束，不能再追加商家意见。'),
 }
 

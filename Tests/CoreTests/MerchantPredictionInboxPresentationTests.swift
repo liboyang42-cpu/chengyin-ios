@@ -27,3 +27,12 @@ final class MerchantTodoPendingPredictTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(MerchantTodo.self, from: Data(#"{"pendingPredict":-1}"#.utf8)).pendingPredict, 0)
     }
 }
+
+/// Source merchant-access-policy.js: CRM and aftercare permissions decode for workbench gating.
+final class MerchantAccessWorkbenchPermissionTests: XCTestCase {
+    func testCRMAndAftercarePermissionsDecode() throws {
+        let json = #"{"active":true,"merchant":{"id":31,"name":"Fixture Store"},"roleCode":"MERCHANT_MARKETING","permissions":["merchant:crm:read","merchant:aftercare:read","merchant:unknown"]}"#
+        let access = try JSONDecoder().decode(MerchantAccess.self, from: Data(json.utf8))
+        XCTAssertTrue(access.allows(.crmRead)); XCTAssertTrue(access.allows(.aftercareRead)); XCTAssertFalse(access.allows(.finance))
+    }
+}

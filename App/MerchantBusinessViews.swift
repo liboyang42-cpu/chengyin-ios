@@ -811,6 +811,7 @@ import SwiftUI
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
         if !document.summary.isEmpty || document.query == .overview {
             Section("merchant.business.summary") {
+                if case .customers = document.query { MerchantCustomerListHero(summary: MerchantCustomerListParity.summary(document.summary)) }
                 if case .redemptions = document.query,
                    let strip = MerchantLedgerParity.summary(document.summary, canReadFinance: state.snapshot?.access.allows("merchant:finance:read") == true) {
                     MerchantLedgerSummaryStrip(summary: strip)
@@ -859,6 +860,8 @@ import SwiftUI
                             if let group = aftercareDayGroup(opening: row) { MerchantAftercareDayHeader(group: group) }
                             MerchantAftercareRowLabel(row: line)
                         }
+                    } else if row.kind == .customer, case .customers = query {
+                        MerchantCustomerRowLabel(row: MerchantCustomerListParity.row(row.fields, now: Date()), identifier: "merchantOps.customer.row.\(row.id)")
                     } else if row.kind == .redemption || row.kind == .batch {
                         MerchantLedgerRowLabel(line: row.kind == .batch ? MerchantLedgerParity.batch(row.fields)
                                                    : MerchantLedgerParity.redemption(row.fields, canReadFinance: access.allows("merchant:finance:read")),
@@ -945,6 +948,9 @@ import SwiftUI
                         .accessibilityIdentifier("merchant.noteDraft.discard")
                 }
             }
+        }
+        if case .customers = query, !snapshot.document.hasMore, let total = snapshot.document.summary["all"]?.integer, total > 0 {
+            MerchantCustomerListFooter(total: total)
         }
         if case .customers = query, !selection.isEmpty, snapshot.access.allows("merchant:crm:segment") {
             Button("merchant.business.batchTag") { editor = .init(kind: .tag(selection.sorted().compactMap { try? .init($0) })) }
