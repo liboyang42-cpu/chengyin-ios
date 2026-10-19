@@ -83,15 +83,16 @@ public struct MerchantContentReceipt: Equatable {
     private let onUnauthorized: (MerchantContentSession) -> Void
     private let journal: (any MerchantContentPendingStorage)?
     private let execution: Execution
+    private let requiredMerchantID: Int?
     private var previous: MerchantContentSession?
     private var stamp = UUID()
     public var scope: UUID { let s = currentSession(); if s != previous { previous = s; stamp = UUID() }; return stamp }
     public var isConfigured: Bool { configuration != nil }
     public var isAuthenticated: Bool { currentSession() != nil }
     public var permitsWrites: Bool { execution == .injectedOfflineHarness && transport is any MerchantContentOfflineTransport && journal != nil }
-    public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }) {
+    public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, requiredMerchantID: Int? = nil, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }) {
         self.configuration = configuration; self.transport = transport; self.currentSession = currentSession
-        self.journal = journal; self.execution = execution; self.onUnauthorized = onUnauthorized; previous = currentSession()
+        self.journal = journal; self.execution = execution; self.requiredMerchantID = requiredMerchantID; self.onUnauthorized = onUnauthorized; previous = currentSession()
     }
     private enum Body { case none, json([String: MerchantContentValue]), form([String: String]) }
     private struct Envelope: Decodable { let code: Int; let msg: String?; let data: MerchantContentValue? }
@@ -131,6 +132,9 @@ public struct MerchantContentReceipt: Equatable {
             guard permissions.contains("merchant:marketing:read") else { throw MerchantContentFailure.denied }
         }
         guard access.active, access.merchantID != nil, !query.requiresProjects || access.allows(.projects) else { throw MerchantContentFailure.denied }
+        if let requiredMerchantID {
+            guard requiredMerchantID > 0, access.merchantID == requiredMerchantID else { throw MerchantContentFailure.denied }
+        }
         return access
     }
     public func load(_ query: MerchantContentQuery) async throws -> MerchantContentSnapshot {
