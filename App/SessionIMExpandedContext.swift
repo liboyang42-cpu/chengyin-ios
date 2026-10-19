@@ -7,12 +7,14 @@ import SwiftUI
     let starter: () -> IMConversationStarter?
     let topicReader: any TopicReading
     var pollCoordinator: ((Int, GroupPollReference?) -> GroupPollCoordinator?)? = nil
+    var safetyCoordinator: ((Int) -> IMSafetyCoordinator?)? = nil
 }
 extension AppSession {
     var imExpandedNavigation: IMExpandedNavigationContext {
         .init(coordinator: { [weak self] in self?.imExpandedCoordinator(for: $0) },
               uploadCoordinator: { [weak self] in self?.imImageUploadCoordinator(for: $0) },
               starter: { [weak self] in self?.imConversationStarter() }, topicReader: topicReader,
-              pollCoordinator: { [weak self] in self?.groupPollCoordinator(conversationID: $0, reference: $1) })
+              pollCoordinator: { [weak self] in self?.groupPollCoordinator(conversationID: $0, reference: $1) },
+              safetyCoordinator: { [weak self] in self?.imSafetyCoordinator(for: $0) })
     }
 }

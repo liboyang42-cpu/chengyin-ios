@@ -1,0 +1,1190 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "clubOpsEvent.cancel.confirmAction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel this occurrence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消本场"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.cancel.confirmBody": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This unpublishes the occurrence, processes refunds and ends the waitlist. Parts already checked in are not refunded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会下架本场、处理退款并终止候补。已核销的部分不退。"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.cancel.confirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel this occurrence?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认取消本场？"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.cancel.incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancellation not completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场取消未完成"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.cancel.keep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再想想"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.cancel.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a cancellation reason (at least 2 characters)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入取消原因（至少 2 个字）"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.cancel.reason %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reason: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原因：%@"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.cancel.reasonInvalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The cancellation reason must be 2–255 characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消原因需为 2–255 个字"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.cancel.reread": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read back again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新回读"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.cancel.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpublishes this occurrence, processes refunds and ends the waitlist"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会下架本场、处理退款并终止候补"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.capacity.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom capacity only applies to partner topics with exactly one ticket type; with several ticket types, each keeps its own capacity."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义容量只适用于恰有一个票种的合作主题；多票种继续沿用原票种容量。"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.capacity.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacity must be 1–10000"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "容量需为 1–10000"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.capacity.note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacity is optional; when full, the waitlist is first-in, first-out per event and ticket type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "容量可选；满员后按活动 + 票种先进先出"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.capacity.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the ticket type’s capacity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿用票种"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.correct.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a correction reason (at least 2 characters)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入更正原因（至少 2 个字）"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.correct.reasonInvalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The correction reason needs at least 2 characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更正原因至少 2 个字"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.correct.success": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check-in corrected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签到已更正"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.correct.toAbsent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct to absent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更正为未到场"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.correct.toArrived": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct to arrived"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更正为已到场"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.denied.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scheduling, check-in and attendance corrections need the “Event operations” or “This event’s check-in” permission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次编排、签到与出勤更正需要「活动运营」或「本场核销」权限。"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.denied.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don’t have event operations permission"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你没有活动运营的权限"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.edit.locked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic and lead policy are locked; leave editing to switch series"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已锁定主题与负责人策略；退出编辑可换系列"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.entry.event": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On-site roster and check-in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场名册与核销"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.field.date": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.field.firstDate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首次日期"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.lead.ownerDefault": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owner (default)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主理人（默认）"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.lead.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The lead list is temporarily unavailable; the owner default will be used"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "负责人名单暂时不可用，将沿用主理人默认值"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.notify.notRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No notifications needed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无需通知"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.notify.queued": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications queued"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知已进入队列"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This occurrence is cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场已取消"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.datePending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date to be confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期待确认"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.editable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可编辑"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This series has no materialized occurrences yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个系列还没有物化出场次。"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.locked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已锁定"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.noSignups": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0 registered"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0 人已报名"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.refunded %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld orders refunded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已退款 %lld 单"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.signups %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld registered"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 人已报名"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.signupsLocked %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld registered · not editable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 人已报名 · 不可编辑"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.signupsPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registration count to be confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名数待确认"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.occurrences.toggle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date list (including past and cancelled occurrences)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期清单（含已过去与已取消的场次）"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.offer.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When a spot opens up, it is held this long for the first person in line, then passes to the next. However long the window, it never goes past this ticket’s registration deadline."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名额空出来后为队首保留这么久，逾期顺延给下一位。窗口再长也不会超过这张票的报名截止时间。"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.offer.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The waitlist window must be 5–1440 minutes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候补窗口需为 5–1440 分钟"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.offer.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 minutes – 1 day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 分钟 – 1 天"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.recurrence.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add dates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加日期"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.recurrence.addHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate in bulk by repeat pattern"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按重复方式批量生成"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.recurrence.note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time zone is fixed to Shanghai; at most 90 days / 64 future occurrences are materialized"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时区固定为上海，最多物化未来 90 天 / 64 期"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.refund.accepted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund task accepted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款任务已受理"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.refund.acceptedWithManualReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund task accepted; some need manual follow-up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款任务已受理，部分需人工跟进"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.refund.manualReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunds need manual follow-up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款需人工跟进"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.refund.notRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No refund needed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无需退款"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.refund.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund status awaiting readback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款状态待回读"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.refundAnchor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The refund window is counted as “24 hours before the meeting time”."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款窗口按「集合时刻前 24 小时」计算。"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.roster.closed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corrections aren’t available right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现在不能更正"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.roster.emptyBucket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No members in this group yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一段暂时没有成员"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.roster.hidden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This occurrence’s roster · visible only with check-in permission"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场名册 · 仅核销权限可见"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.roster.markAbsent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct to absent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更正未到"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.roster.markArrived": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark arrived"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记到场"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.roster.title %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This occurrence’s roster · %lld people"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场名册 · %lld 人"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.roster.window %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check-in corrections are only allowed from the start of the event until 48 hours after it ends. Correction window for this occurrence: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签到更正仅限活动开始至结束后 48 小时，本场可更正时段：%@"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.roster.windowGeneric": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check-in corrections are only allowed from the start of the event until 48 hours after it ends."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签到更正仅限活动开始至结束后 48 小时。"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.section.capacity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacity and waitlist"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "容量与候补"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.section.occurrence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This occurrence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场管理"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.section.recurrence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重复方式"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.section.roster": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This occurrence’s roster"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场名册"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.section.series": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期清单"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.series.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No series yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有系列场次"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.series.emptyHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create the first set of occurrences below"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从下方创建第一组场次"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.series.firstDate %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From %1$lld/%2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld月%2$lld日起"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.series.note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edits only affect future occurrences with no registrations or settlement records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑只影响未来且无报名、无结算事实的场次"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.series.seriesID %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Series #%lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系列 #%lld"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.series.topicID %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic #%lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题 #%lld"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.series.waitlistOff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waitlist off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候补关闭"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.series.waitlistOn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waitlist on"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候补开启"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event operations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动运营"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

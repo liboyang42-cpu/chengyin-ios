@@ -8,7 +8,7 @@ struct DiscoveryTemplateDetailView: View {
     let authoringRevision: UInt64
     let authoringCompletion: TemplateAuthoringCompletionContext?
     let imageReader: any RetainedPublicImageReading
-    @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplate>()
+    @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplateRead>()
     @State private var galleryScope = UUID()
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
@@ -46,7 +46,8 @@ struct DiscoveryTemplateDetailView: View {
                 ProgressView("discovery.loading")
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error) { Task { await reload() } }
-            } else if let item = detail.value {
+            } else if let read = detail.value {
+                let item = read.template
                 List {
                     Section {
                         DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(.title2.bold())
@@ -59,6 +60,9 @@ struct DiscoveryTemplateDetailView: View {
                     textSection("discovery.location", text: item.usageLocation)
                     if let verification = item.verification {
                         Section("discovery.verification") { Text(verification.label) }
+                    }
+                    if read.extras != nil {
+                        DiscoveryTemplateDetailParitySections(presentation: .init(read, ownScope: false))
                     }
                     if authoringFactory != nil {
                         Section {
@@ -100,10 +104,11 @@ struct DiscoveryTemplateDetailView: View {
         let requested = requestKey
         galleryScope = UUID(); loadedKey = nil
         await detail.load {
-            let value = try await reader.discoveryPlayTemplate(id: requested.id)
+            let read = try await reader.discoveryPlayTemplateRead(id: requested.id)
             guard !Task.isCancelled, requested.scope == reader.discoveryPresentationIdentity else { throw CancellationError() }
+            let value = read.template
             guard value.id == requested.id else { throw APIError.malformedResponse }
-            return value
+            return read
         }
         guard !Task.isCancelled, requested == requestKey else { return }
         loadedKey = requested

@@ -21,6 +21,9 @@ public struct MerchantAccess: Decodable, Equatable {
         case projects = "merchant:project:manage"
         case orders = "merchant:order:read"
         case finance = "merchant:finance:read"
+        /// Source utils/merchant-access-policy.js canReadCrm / canReadAftercare (workbench entry gating only).
+        case crmRead = "merchant:crm:read"
+        case aftercareRead = "merchant:aftercare:read"
     }
     public let active: Bool
     public let merchantID: Int?

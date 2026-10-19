@@ -72,7 +72,7 @@ waitlist|Waitlist|候补
 arrived|Arrived|已到场
 noShow|Not arrived|未到场
 roleDefinitions|Available roles|可委派角色
-assignments|Active assignments|生效委派
+assignments|Current assignments|当前委派
 story|Story and gameplay|剧情与玩法
 chapters|Chapters|章节
 events|Event operations|场次运营
@@ -106,7 +106,7 @@ codeAvailable|Group code issued|团码已签发'''.splitlines():
 actions='''hostApply|Apply as host|申请成为主理人
 saveCustomer|Edit tags and remark|编辑标签与备注
 createSeries|Create event series|创建系列场次
-updateSeries|Update future occurrences|修改未来场次
+updateSeries|Edit future occurrences|编辑未来场次
 cancelOccurrence|Cancel this occurrence|取消本场
 correctAttendance|Correct attendance|更正考勤
 ban|Ban member|封禁成员
@@ -115,7 +115,7 @@ transferOwner|Transfer ownership|移交主理人
 report|Submit a platform report|提交平台举报
 appeal|Appeal a platform case|提交封禁申诉
 assignRole|Assign scoped role|委派范围角色
-revokeRole|Revoke assignment|撤销委派
+revokeRole|Revoke|撤销
 sendNotification|Compose member notification|编写成员通知
 retryNotification|Retry failed recipients|重试失败收件人
 saveTopicSettings|Edit topic settings|修改主题设置
@@ -155,18 +155,18 @@ state|State|状态
 occurrenceAt|Occurrence time|场次时间
 startDate|Start date, YYYY-MM-DD|开始日期，YYYY-MM-DD
 endDate|End date|结束日期
-startTime|Meeting time, HH:mm|集合时间，HH:mm
+startTime|Meeting time|集合时刻
 signupCount|Registrations|报名人数
 refundedCount|Refunded records|已退款记录
 lockReason|Lock reason|锁定原因
-recurrenceType|Recurrence|重复规则
-defaultLeadMemberId|Lead member ID|默认领队成员编号
+recurrenceType|Repeat|重复方式
+defaultLeadMemberId|Default lead|默认负责人
 defaultCapacity|Capacity|人数上限
-capacity|Capacity, blank if unlimited|人数上限，不限可留空
-offerMinutes|Waitlist offer minutes|候补名额有效分钟
-waitlistEnabled|Waitlist enabled|开启候补
-occurrenceCount|Number of occurrences|场次数量
-customDates|Custom dates, comma separated|自定义日期，以逗号分隔
+capacity|Capacity (optional)|容量（可选）
+offerMinutes|Waitlist claim window (minutes)|候补认领时长（分钟）
+waitlistEnabled|Open waitlist when full|满员后开启候补
+occurrenceCount|Occurrences|场次数
+customDates|Date list|日期清单
 version|Current version|当前版本
 expectedVersion|Reviewed version|审核版本
 banReason|Ban reason|封禁理由

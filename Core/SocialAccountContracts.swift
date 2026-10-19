@@ -9,6 +9,8 @@ public struct SocialPublicProfile: Decodable, Equatable, Identifiable {
     public let level: Int?
     public let following: Int?
     public let followers: Int?
+    /// Mutual follows (`friendNum`, PublicMemberVO); shown as 好友 like the mini-program header.
+    public let friends: Int?
     public let likes: Int?
     public let topics: Int?
     public let activities: Int?
@@ -25,7 +27,7 @@ public struct SocialPublicProfile: Decodable, Equatable, Identifiable {
         guard let id = v["id"].integer, id > 0 else { throw APIError.malformedResponse }
         self.id = id; nickname = v["nickname"].text; avatar = v["avatar"].text
         introduction = v["introduction"].text; level = v["levelId"].integer
-        following = v["followNum"].integer; followers = v["fansNum"].integer
+        following = v["followNum"].integer; followers = v["fansNum"].integer; friends = v["friendNum"].integer
         likes = v["likeNum"].integer; topics = v["topicNum"].integer; activities = v["activityNum"].integer
         isFollowed = v["isFollow"].flag
         interests = (v["sysCategoryList"].array ?? []).compactMap {
@@ -41,6 +43,8 @@ public struct SocialInformation: Decodable, Equatable, Identifiable {
     public let title: String
     public let subtitle: String?
     public let contents: String?
+    /// Source `createTime` ("yyyy-MM-dd HH:mm:ss"), shown verbatim like the mini-program detail meta line.
+    public let createTime: String?
     public var summary: String? { SocialText.nonempty(subtitle).flatMap { $0 == title.trimmingCharacters(in: .whitespacesAndNewlines) ? nil : $0 } }
     public var isUsable: Bool {
         let title = title.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -50,12 +54,12 @@ public struct SocialInformation: Decodable, Equatable, Identifiable {
     public var isRemoved: Bool { id <= 0 }
     /// A successful explicit missing-article reply, never a network/error fallback.
     static let removed = SocialInformation(removed: ())
-    private init(removed: Void) { id = 0; title = ""; subtitle = nil; contents = nil }
+    private init(removed: Void) { id = 0; title = ""; subtitle = nil; contents = nil; createTime = nil }
     public init(from decoder: Decoder) throws {
         let v = try SocialValue(from: decoder)
         guard v.object != nil else { throw APIError.malformedResponse }
         id = v["id"].integer ?? 0; title = v["title"].text ?? ""
-        subtitle = v["subtitle"].text; contents = v["contents"].text
+        subtitle = v["subtitle"].text; contents = v["contents"].text; createTime = v["createTime"].text
     }
 }
 public enum SocialGuideDestination: String, CaseIterable { case home, roam }

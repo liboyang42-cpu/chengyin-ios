@@ -60,7 +60,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "精选示例暂未加载。"
+            "value": "精选示例暂未加载"
           }
         }
       }
@@ -92,7 +92,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时没有精选示例，你仍可直接创建自己的玩法。"
+            "value": "暂时没有精选示例，你仍可直接创建自己的节点玩法。"
           }
         }
       }
@@ -140,7 +140,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "跳过示例"
+            "value": "跳过"
           }
         }
       }

@@ -7,19 +7,19 @@ import SwiftUI
     var informationDestination: ((SocialInformation) -> AnyView)? = nil
     var body: some View {
         List {
+            Section { SocialGuideXcxHero() }
             Section("social.guide.modes") {
-                ForEach(SocialGuideMode.allCases) { mode in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label(mode.titleKey, systemImage: mode.icon).font(.headline)
-                        Text(mode.detailKey).foregroundStyle(.secondary)
-                        if let onOpenDestination { Button("social.guide.explore") { onOpenDestination(mode.destination) }.accessibilityIdentifier("social.guide.\(mode.rawValue)") }
-                    }.padding(.vertical, 5)
-                }
+                ForEach(SocialGuideMode.allCases) { mode in SocialGuideXcxModeRow(mode: mode, onOpen: onOpenDestination) }
             }
             SocialGuideTemplateSection(reader: templateReader)
-            Section("social.guide.information") {
+            Section {
                 SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { rows in
-                    if rows.isEmpty { Text("social.guide.empty") }
+                    if rows.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("guideXcx.docsEmpty").font(.headline)
+                            Text("guideXcx.docsEmptyDetail").font(.footnote).foregroundStyle(.secondary)
+                        }.accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.docsEmpty")
+                    }
                     ForEach(rows) { row in
                         NavigationLink {
                             if let informationDestination { informationDestination(row) }
@@ -31,6 +31,11 @@ import SwiftUI
                             }
                         }.accessibilityIdentifier("social.information.\(row.id)")
                     }
+                }
+            } header: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("guideXcx.docs")
+                    Text("guideXcx.docsHint").font(.caption).textCase(nil)
                 }
             }
         }.appNavigationTitle("social.guide.title").accessibilityIdentifier("social.guide")
@@ -47,12 +52,13 @@ import SwiftUI
                     if row.isRemoved { Text("social.guide.removed") }
                     else {
                         Text(verbatim: row.title).font(.title2.bold())
+                        if let created = SocialText.nonempty(row.createTime) { Text(verbatim: created).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("social.information.createTime") }
                         if let summary = row.summary { Text(verbatim: summary).foregroundStyle(.secondary) }
                         if let contents = row.contents { SocialArticleContentView(contents: contents) }
                         else { Text("social.guide.noContent") }
                     }
                 }
             }
-        }.appNavigationTitle("discovery.playDetails").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("social.information.detail")
+        }.appNavigationTitle("guideXcx.detailTitle").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("social.information.detail")
     }
 }

@@ -56,6 +56,15 @@ public struct DiscoveryService {
         guard detail.id == id else { throw APIError.malformedResponse }
         return detail
     }
+    /// Same `api/template/info` read, also decoding the mini-program detail fields.
+    public func playTemplateRead(id: Int, token: String? = nil) async throws -> DiscoveryPlayTemplateRead {
+        guard id > 0 else { throw APIError.invalidRequest }
+        let data = try await post("api/template/info", fields: ["id": String(id)], token: token, templateDetail: true)
+        let detail = try decode(DiscoveryValueEnvelope<DiscoveryPlayTemplate>.self, data).data
+        guard detail.id == id else { throw APIError.malformedResponse }
+        let extras = try decode(DiscoveryValueEnvelope<DiscoveryPlayTemplateExtras>.self, data).data
+        return DiscoveryPlayTemplateRead(template: detail, extras: extras)
+    }
     private func post(_ path: String, fields: [String: String]?, token: String?,
                       templateDetail: Bool = false, templateMetadata: Bool = false) async throws -> Data {
         var request = try AuthRequestBuilder.makeFormRequest(

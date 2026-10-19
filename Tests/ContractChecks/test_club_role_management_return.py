@@ -56,7 +56,7 @@ class ClubRoleManagementReturnContracts(unittest.TestCase):
         self.assertIn('roleManagementReturn.visible && scenePhase == .active',self.host)
         self.assertIn('defer { roleManagementReturn.finishRead(ticket) }',self.host)
     def testScopeChangeRetiresActualOldLoadingBeforeNewTask(self):
-        self.assertIn('if roleReads.synchronize(readContext) {\n                    roleManagementReturn.retire(); invalidateRead(); loading = false',self.host)
+        self.assertIn('if roleReads.synchronize(readContext) {\n                roleManagementReturn.retire(); invalidateRead(); loading = false',self.host)
         self.assertIn('result = try await roleReads.load(context: context, access: access, check: check)',self.host)
         self.assertIn('defer { if runID == run { runID = nil; loading = false } }',self.owner)
         self.assertIn('guard runID == run, context == expected, !Task.isCancelled',self.owner)

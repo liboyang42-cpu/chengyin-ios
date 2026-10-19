@@ -2,10 +2,11 @@
 import SwiftUI
 
 @MainActor final class GrowthCenterFixtureReader: GrowthCenterReading {
-    enum Scenario: String { case content, empty, partialCenter, partialMileage, partialCompleted, partialRank, failure, unauthorized, guest, unconfigured, unranked, sessionChange, slowFilters }
+    enum Scenario: String { case content, empty, partialCenter, partialMileage, partialCompleted, partialRank, failure, unauthorized, guest, unconfigured, unranked, sessionChange, slowFilters, denied, newBadge }
     let scenario: Scenario
     private(set) var scope = UUID()
     private(set) var isAuthenticated: Bool
+    private var overviewReads = 0
     var isConfigured: Bool { scenario != .unconfigured }
     var isOfflineExample: Bool { true }
     init(scenario: Scenario = .content) { self.scenario = scenario; isAuthenticated = scenario != .guest }
@@ -15,6 +16,7 @@ import SwiftUI
         if scenario == .unauthorized { throw APIError.unauthorized }
         if scenario == .unconfigured { throw APIError.notConfigured }
         if scenario == .failure { throw APIError.httpStatus(503) }
+        if scenario == .denied { throw APIError.httpStatus(403) }
     }
     private struct Envelope<T: Decodable>: Decodable { let data: T }
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {
@@ -22,7 +24,13 @@ import SwiftUI
     }
     func overview() async throws -> GrowthCenterOverview {
         try check()
-        let center = try decode(GrowthCenterRecord.self, scenario == .empty ? GrowthCenterSyntheticFixtures.emptyCenterJSON : GrowthCenterSyntheticFixtures.centerJSON)
+        overviewReads += 1
+        var centerJSON = scenario == .empty ? GrowthCenterSyntheticFixtures.emptyCenterJSON : GrowthCenterSyntheticFixtures.centerJSON
+        // Second and later reads light one more synthetic badge, exercising the 新徽章已点亮 status.
+        if scenario == .newBadge && overviewReads > 1 {
+            centerJSON = centerJSON.replacingOccurrences(of: #""badges":["#, with: #""badges":[{"badgeName":"Sample new badge","badgeCode":"SAMPLE_NEW"},"#)
+        }
+        let center = try decode(GrowthCenterRecord.self, centerJSON)
         let progress = try decode(GrowthPlayProgress.self, scenario == .empty ? #"{"data":{"level":1,"totalCheckins":0,"totalMileage":0,"streakDays":0}}"# : GrowthCenterSyntheticFixtures.progressJSON)
         let completed = try decode([GrowthCompletedActivity].self, scenario == .empty ? #"{"data":[]}"# : GrowthCenterSyntheticFixtures.completedJSON)
         let rank = try await leaderboard(query: GrowthBoardQuery())
