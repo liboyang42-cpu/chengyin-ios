@@ -11,12 +11,14 @@ final class UserDefaultsUsageConsentStorage: UsageConsentStorage {
 enum UsageConsentEnvironment {
     /// DEBUG launches that carry any argument (every UI test does) start with consent treated as
     /// given in memory, so existing entry flows stay unchanged; `--uitesting-usage-consent-pending`
-    /// exercises the real gate with isolated storage. Plain launches and Release use UserDefaults.
+    /// exercises the real gate with isolated storage. The XCTest-hosted app (AppUnit target) also
+    /// starts granted, so a launch sheet never covers test-owned windows. Plain launches and Release use UserDefaults.
     static var policy: UsageConsentPolicy {
 #if DEBUG
         let args = ProcessInfo.processInfo.arguments
         if args.contains("--uitesting-usage-consent-pending") { return UsageConsentPolicy(storage: UsageConsentFixtureStorage.pending) }
-        if args.count > 1 { return UsageConsentPolicy(storage: UsageConsentFixtureStorage.granted) }
+        let xctestHost = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        if args.count > 1 || xctestHost { return UsageConsentPolicy(storage: UsageConsentFixtureStorage.granted) }
 #endif
         return UsageConsentPolicy(storage: UserDefaultsUsageConsentStorage())
     }
