@@ -48,7 +48,12 @@ import SwiftUI
         accepts(permit) && self.snapshotID == snapshotID && accepted(permit.context, access: access) == options
     }
     func canPrepare(scope: ClubGovernanceScope, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, memberID: String) -> Bool {
-        accepted(Self.context(scope: scope, identity: identity, access: access), access: access)?.contains(memberID: Int(memberID)) == true
+        let context = Self.context(scope: scope, identity: identity, access: access)
+        if memberID == ClubGovernanceFormDraft.ownerDefaultLead {
+            // Explicit owner default stays available when the list is unavailable; prepare still re-reads members.
+            return permit(in: context) != nil && !loading && failure != .forbidden && (accepted(context, access: access) != nil || failure != nil)
+        }
+        return accepted(context, access: access)?.contains(memberID: Int(memberID)) == true
     }
     func leave(_ context: Context) {
         guard bound == context else { return }
@@ -94,12 +99,29 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 12) {
             Text("club.seriesLead.explanation").font(.footnote)
             if model.loading || permit == nil { ProgressView("club.loading").accessibilityIdentifier("club.seriesLead.loading") }
-            if permit != nil, let failure = model.failure { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.seriesLead.error") }
+            if permit != nil, let failure = model.failure {
+                Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.seriesLead.error")
+                if failure != .forbidden {
+                    Text("clubOpsEvent.lead.unavailable", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.orange)
+                        .accessibilityIdentifier("clubOpsEvent.lead.unavailable")
+                    ownerDefaultButton(permit: permit)
+                }
+            }
             if let options = model.accepted(expected, access: access), let permit {
                 let readID = model.snapshotID
                 if options.members.isEmpty { Text("club.seriesLead.empty").accessibilityIdentifier("club.seriesLead.empty") }
                 else {
                     DisclosureGroup(isExpanded: $expanded) {
+                        Button {
+                            guard canEdit(), model.canSelect(options, snapshotID: readID, permit: permit, access: access) else { return }
+                            memberID = ClubGovernanceFormDraft.ownerDefaultLead; expanded = false
+                        } label: {
+                            HStack {
+                                Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent")
+                                Spacer()
+                                if memberID == ClubGovernanceFormDraft.ownerDefaultLead { Image(systemName: "checkmark").accessibilityLabel("club.seriesLead.selected") }
+                            }.contentShape(Rectangle())
+                        }.accessibilityIdentifier("clubOpsEvent.lead.ownerDefault")
                         ForEach(options.members) { member in
                             Button {
                                 guard canEdit(), model.canSelect(options, snapshotID: readID, permit: permit, access: access) else { return }
@@ -115,12 +137,13 @@ import SwiftUI
                         Button("action.cancel") { expanded = false }.accessibilityIdentifier("club.seriesLead.cancel")
                     } label: {
                         LabeledContent("club.seriesLead.choose") {
-                            if let selected = options.members.first(where: { String($0.id) == memberID }) { memberName(selected) }
+                            if memberID == ClubGovernanceFormDraft.ownerDefaultLead { Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent") }
+                            else if let selected = options.members.first(where: { String($0.id) == memberID }) { memberName(selected) }
                             else { Text("club.seriesLead.unselected") }
                         }
                     }.accessibilityIdentifier("club.seriesLead.open")
                 }
-                if !memberID.isEmpty && !options.contains(memberID: Int(memberID)) { Text("club.seriesLead.changed").accessibilityIdentifier("club.seriesLead.changed") }
+                if !memberID.isEmpty && memberID != ClubGovernanceFormDraft.ownerDefaultLead && !options.contains(memberID: Int(memberID)) { Text("club.seriesLead.changed").accessibilityIdentifier("club.seriesLead.changed") }
             }
             if model.failure != .forbidden {
                 Button(LocalizedStringKey(model.failure == nil ? "club.gov.refresh" : "action.retry")) {
@@ -132,6 +155,19 @@ import SwiftUI
         }
         .buttonStyle(.borderless)
         .onChange(of: expected) { _, _ in expanded = false }
+    }
+    /// Mini leadLoadWarning path: the owner default is an explicit tap, never a silent pick.
+    @ViewBuilder private func ownerDefaultButton(permit: ClubSeriesLeadReadModel.Permit?) -> some View {
+        Button {
+            guard canEdit(), permit != nil, model.permit(in: context) == permit else { return }
+            memberID = ClubGovernanceFormDraft.ownerDefaultLead
+        } label: {
+            HStack {
+                Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent")
+                Spacer()
+                if memberID == ClubGovernanceFormDraft.ownerDefaultLead { Image(systemName: "checkmark").accessibilityLabel("club.seriesLead.selected") }
+            }.contentShape(Rectangle())
+        }.accessibilityIdentifier("clubOpsEvent.lead.ownerDefault.fallback")
     }
     private func memberName(_ member: ClubSeriesLeadMember) -> some View {
         VStack(alignment: .leading, spacing: 2) {

@@ -37,22 +37,41 @@ extension EnvironmentValues {
                 if !model.available { Text("coopflow.nearby.unavailable") }
                 if model.isBusy { ProgressView("cooperation.loading") }
                 if model.phase == .locationFailed { Text("nearbyMerchant.locationFailed") }
-                if model.phase == .failed { Text("coopflow.read.failed") }
+                if model.phase == .failed {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("cooperation.nearby.failed").font(.headline)
+                        Text("cooperation.nearby.failed.detail").font(.footnote).foregroundStyle(.secondary)
+                    }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.nearby.failed")
+                }
             }
             if model.phase == .ready {
                 Section {
-                    if model.rows.isEmpty { Text("coopflow.empty") }
+                    if model.rows.isEmpty {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("cooperation.nearby.empty").font(.headline)
+                            Text("cooperation.nearby.empty.detail").font(.footnote).foregroundStyle(.secondary)
+                        }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.nearby.empty")
+                    }
                     ForEach(model.rows) { row in
                         if model.publicHomeSelection(rowID: row.id) != nil {
                             Button {
                                 publicHomeSelection = model.publicHomeSelection(rowID: row.id)
                             } label: { card(row) }
                                 .accessibilityIdentifier("nearbyMerchant.open.\(row.id)")
-                        } else { VStack(alignment: .leading) { card(row); Text("nearbyMerchant.unlisted").font(.footnote) } }
+                        } else {
+                            VStack(alignment: .leading) {
+                                card(row); Text("nearbyMerchant.unlisted").font(.footnote)
+                                // Source: unregistered leads with a server-released phone offer "电话联系" (system dialer only).
+                                if let phone = row.callablePhone, let url = URL(string: "tel:" + phone.filter { $0.isNumber || $0 == "+" }) {
+                                    Link(destination: url) { Label("cooperation.nearby.call", systemImage: "phone") }
+                                        .buttonStyle(.bordered).accessibilityIdentifier("cooperation.nearby.call.\(row.id)")
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }.navigationTitle("coopflow.nearby").accessibilityIdentifier("nearbyMerchant.list")
+        }.appNavigationTitle("cooperation.nearby.title").accessibilityIdentifier("nearbyMerchant.list")
             .sheet(item: $publicHomeSelection) { selection in
                 NavigationStack {
                     Group {

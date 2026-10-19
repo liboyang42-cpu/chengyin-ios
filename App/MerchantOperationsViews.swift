@@ -279,9 +279,11 @@ struct MerchantOperationsIssueView: View {
 
 private struct MerchantOperationsCityView: View {
     let catalog: MerchantCityCatalog
+    @Environment(\.merchantCityNodeHubDestination) private var cityNodeHub
     var body: some View {
         List {
             Section {
+                if let cityNodeHub { NavigationLink { cityNodeHub() } label: { Text("merchantCityNode.title", tableName: "MerchantCityNode") }.accessibilityIdentifier("merchant.operations.cityNodeHub") }
                 Text("merchant.operations.cityReadOnly").font(.footnote)
                 if let used = catalog.used, let max = catalog.max, used >= 0, max > 0 {
                     LabeledContent("merchant.operations.quota", value: "\(used) / \(max)")

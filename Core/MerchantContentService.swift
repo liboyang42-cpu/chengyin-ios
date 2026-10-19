@@ -145,6 +145,16 @@ public struct MerchantContentReceipt: Equatable {
         try ensure(session)
         return .init(query: query, scope: capturedScope, access: access, value: value, observedAt: Date())
     }
+    /// Cooperation-center plaza: same fresh `.recruiting` access gate, but keeps the whole
+    /// marketing-home document so counts and truncation can be disclosed. Read-only.
+    public func loadRecruitingHome() async throws -> MerchantContentSnapshot {
+        guard let session = currentSession() else { throw APIError.unauthorized }
+        let capturedScope = scope
+        let access = try await access(session, query: .recruiting)
+        let home = try await read("api/merchant/marketing-home", session: session)
+        try ensure(session)
+        return .init(query: .recruiting, scope: capturedScope, access: access, value: home, observedAt: Date())
+    }
     private func document(_ q: MerchantContentQuery, session s: MerchantContentSession) async throws -> MerchantContentValue {
         func optionalTopic(_ id: Int?) -> [String: MerchantContentValue] { id.map { ["topicId": .integer($0)] } ?? [:] }
         let value: MerchantContentValue
@@ -247,6 +257,13 @@ public struct MerchantContentReceipt: Equatable {
         }
         return value
     }
+    /// Read-only poster QR for an owned city node (`api/merchant/city-node/poster-code`). VERIFY is enforced server side.
+    public func cityPosterCode(poiID: Int) async throws -> MerchantContentValue {
+        guard poiID > 0 else { throw MerchantContentFailure.invalid }
+        guard let session = currentSession() else { throw APIError.unauthorized }
+        let value = try await read("api/merchant/city-node/poster-code", .form(["poiId": String(poiID)]), session: session)
+        try ensure(session); return value
+    }
     public func pending() throws -> [MerchantContentPendingRecord] {
         guard let session = currentSession() else { return [] }
         return try journal?.records().filter { $0.storageScope == session.storageScope && $0.accountID == session.accountID } ?? []
@@ -273,7 +290,7 @@ public struct MerchantContentReceipt: Equatable {
             }
             var receipt = MerchantContentReceipt(message: e.msg, data: e.data ?? .null, station: nil)
             if let station { receipt = try await stationReceipt(station, session: session) }
-            if case .place = command { guard (receipt.data["id"].integer ?? 0) > 0 else { throw MerchantContentFailure.unknown } }
+            if case .place = command { guard MerchantCityPlacementReceipt.applicationID(receipt.data) != nil else { throw MerchantContentFailure.unknown } }
             try ensure(session); try journal.remove(key: record.key)
             return receipt
         } catch {

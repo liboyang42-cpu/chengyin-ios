@@ -120,6 +120,7 @@ struct FreeExplorationStoreName: View {
     let mediaScope: UUID
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     let storyDestination: (PlayNode) -> AnyView?
+    var storeDayModel: ((Int) -> PlayStoreDayCoordinator?)? = nil
     @State private var review: PlayCompletionReview?
     @State private var showingReview = false
     @State private var issue: PlayExperienceError?
@@ -148,6 +149,7 @@ struct FreeExplorationStoreName: View {
                     PlatformExternalMapHost(destination: .init(name: node.name ?? "", address: node.address,
                         latitude: node.latitude, longitude: node.longitude), scope: mediaScope, makeModel: makeExternalMaps)
                     FreeExplorationVisitSteps(node: node)
+                    if let storeDayModel { PlayStoreDayMerchantEntry(nodeID: nodeID, make: storeDayModel, makeExternalMaps: makeExternalMaps, mediaScope: mediaScope) }
                     if node.done != true {
                         if node.arrived == true, node.hasGame != false, node.gameDone != true { Text("playFree.game.unavailable") }
                         if node.selfReported == true { Text("playFree.redemption.unavailable") }

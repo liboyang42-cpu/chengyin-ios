@@ -46,6 +46,17 @@ public struct TeamReview: Identifiable, Equatable {
     public let detail: TeamDetail?
     fileprivate let session: TeamSession
 }
+/// Source error kinds: a transport error is 网络没连上, a 403 rejection is 无权限, the rest is data.
+public enum TeamReadFailureKind: Equatable, Sendable {
+    case network, forbidden, data
+    init(_ error: Error) {
+        switch error as? TeamFailure {
+        case .some(.rejected(403)): self = .forbidden
+        case .some: self = .data
+        case .none: self = error is CancellationError ? .data : .network
+        }
+    }
+}
 /// Host retains this per workflow and redraws the entire private subtree on session change.
 /// A persisted unresolved intent blocks replay across navigation, reauthentication and restart.
 @MainActor public final class TeamCoordinator {
@@ -75,6 +86,8 @@ public struct TeamReview: Identifiable, Equatable {
     public private(set) var review: TeamReview?
     public private(set) var pending: TeamPendingRecord?
     public private(set) var messageKey: String?
+    /// Why the last read failed, for source copy only (网络没连上 vs 403 vs data). Never an authorization.
+    public private(set) var readFailure: TeamReadFailureKind?
     public private(set) var loading = false
     public private(set) var writeState: WriteState = .idle
     public private(set) var completedTeamID: Int?
@@ -104,13 +117,14 @@ public struct TeamReview: Identifiable, Equatable {
     public func synchronizeSession() {
         guard currentSession() != capturedSession else { return }
         generation &+= 1; scope = UUID(); capturedSession = currentSession()
-        teams = []; detail = nil; creation = nil; review = nil; pending = nil; activeLookup = nil; messageKey = nil; completedTeamID = nil; completedJoinID = nil
+        teams = []; detail = nil; creation = nil; review = nil; pending = nil; activeLookup = nil; messageKey = nil; completedTeamID = nil; completedJoinID = nil; readFailure = nil
         loading = false; writeState = .idle; retiredMembershipTeamID = nil; confirmedJoinMode = nil
     }
     private func active(_ session: TeamSession, _ stamp: UInt64) -> Bool {
         currentSession() == session && capturedSession == session && generation == stamp && !Task.isCancelled
     }
     private func readError(_ error: Error, session: TeamSession) {
+        readFailure = TeamReadFailureKind(error)
         if error as? TeamFailure == .unauthorized {
             teams = []; detail = nil; creation = nil; review = nil; messageKey = "team.signIn"; onUnauthorized(session)
         } else if error as? TeamFailure == .notConfigured { messageKey = "team.unconfigured" }
@@ -120,7 +134,7 @@ public struct TeamReview: Identifiable, Equatable {
         synchronizeSession(); guard !busy else { return }
         guard let session = capturedSession else { messageKey = "team.signIn"; return }
         guard configured else { messageKey = "team.unconfigured"; return }
-        generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil
+        generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil; readFailure = nil
         defer { if generation == stamp { loading = false } }
         do {
             let rows = try await service.myTeams(session: session)
@@ -133,7 +147,7 @@ public struct TeamReview: Identifiable, Equatable {
         synchronizeSession(); guard !busy else { return }
         guard let lookup = lookup.normalized else { detail = nil; messageKey = "team.invalidLink"; return }
         guard let session = capturedSession else { messageKey = "team.signIn"; return }
-        generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil
+        generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil; readFailure = nil
         // The host uses a separate coordinator for each detail route. Never retain another target.
         if activeLookup != lookup { detail = nil; pending = nil; writeState = .idle; completedJoinID = nil; retiredMembershipTeamID = nil; confirmedJoinMode = nil }; activeLookup = lookup
         defer { if generation == stamp { loading = false } }

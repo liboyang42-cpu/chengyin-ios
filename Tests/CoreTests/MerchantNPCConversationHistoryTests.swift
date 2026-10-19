@@ -110,6 +110,25 @@ import XCTest
         let other = MerchantNPCChatCoordinator(scope: flow.scope, client: .init(transport: wire), currentScope: { state.scope }, grants: { state.grants })
         XCTAssertTrue(other.conversationHistory.turns.isEmpty); XCTAssertEqual(wire.requests.count, 1)
     }
+    /// BK-AI frozen A02 fixture: once the provider may have run, the original request
+    /// receipt is PROCESSING/UNKNOWN/REQUEST_OUTCOME_UNKNOWN with retryable=false.
+    /// Even with safeText present it is not an answer, a history turn or a resend permit.
+    func testFrozenProviderOutcomeUnknownReceiptKeepsIdentityWithoutHistoryOrResend() async throws {
+        var history = MerchantNPCConversationHistory()
+        let body: [String: Any] = ["requestId": UUID().uuidString, "outcomeStatus": "PROCESSING", "safetyDecision": "UNKNOWN",
+                                   "errorCode": "REQUEST_OUTCOME_UNKNOWN", "retryable": false, "safeText": "Not a recovered answer"]
+        let receipt = try JSONDecoder().decode(MerchantNPCReply.self, from: JSONSerialization.data(withJSONObject: body))
+        XCTAssertTrue(receipt.hasUnknownOutcome); XCTAssertFalse(receipt.succeeded); XCTAssertFalse(receipt.canRetry)
+        XCTAssertFalse(history.record(requestID: UUID(), question: "Question", reply: receipt)); XCTAssertTrue(history.turns.isEmpty)
+
+        let (flow, wire, _) = setup(); wire.frozenUnknown = true; await flow.send("Question")
+        let id = try XCTUnwrap(flow.requestID)
+        XCTAssertTrue(flow.conversationHistory.turns.isEmpty); XCTAssertFalse(flow.currentTurnIsRecorded)
+        XCTAssertFalse(flow.canSend); XCTAssertFalse(flow.canRetry)
+        XCTAssertEqual(flow.retryRecovery()?.state, .unavailable); XCTAssertEqual(flow.retryRecovery()?.outcomeUnknown, true)
+        await flow.retry(requestID: id); await flow.retry()
+        XCTAssertEqual(wire.requests.count, 1); XCTAssertEqual(flow.requestID, id); XCTAssertTrue(flow.conversationHistory.turns.isEmpty)
+    }
     private func setup() -> (MerchantNPCChatCoordinator, Wire, ScopeState) {
         let state = ScopeState(); let wire = Wire()
         let flow = MerchantNPCChatCoordinator(scope: state.scope!, client: .init(transport: wire), currentScope: { state.scope }, grants: { state.grants })
@@ -121,6 +140,7 @@ import XCTest
     }
     @MainActor private final class Wire: MerchantNPCHTTPTransport {
         var requests: [MerchantNPCHTTPRequest] = []; var unknown = false; var hold = false; var status = "SUCCEEDED"
+        var frozenUnknown = false
         var pending: CheckedContinuation<Void, Never>?; var onRequest: (() -> Void)?
         func perform(_ request: MerchantNPCHTTPRequest) async throws -> MerchantNPCHTTPResponse {
             requests.append(request)
@@ -128,6 +148,11 @@ import XCTest
             if unknown { throw MerchantNPCFailure.unknownOutcome }
             let sent = try XCTUnwrap(JSONSerialization.jsonObject(with: request.body) as? [String: Any])
             let id = try XCTUnwrap(sent["requestId"] as? String)
+            if frozenUnknown {
+                let body: [String: Any] = ["code": 200, "data": ["requestId": id, "outcomeStatus": "PROCESSING", "safetyDecision": "UNKNOWN",
+                    "errorCode": "REQUEST_OUTCOME_UNKNOWN", "retryable": false, "safeText": "Not a recovered answer"]]
+                return .init(status: 200, body: try JSONSerialization.data(withJSONObject: body))
+            }
             let body: [String: Any] = ["code": 200, "data": ["requestId": id, "outcomeStatus": status,
                 "safetyDecision": status == "SUCCEEDED" ? "PASS" : "NOT_RUN", "retryable": status == "PROCESSING", "safeText": "Safe reply"]]
             return .init(status: 200, body: try JSONSerialization.data(withJSONObject: body))

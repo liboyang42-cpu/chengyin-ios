@@ -6,7 +6,9 @@ enum ModuleFixture: String {
     case ownedOrderHistory
     case signedInContentDetail
     case publicTemplateDetail, publicPlayTemplate
+    case templateDetailParity, templateTabStaff, playOpening, playFinishRoute, playCircleLink, playThemeRecords, playEntryCode, playBackpack
     case privateHome
+    case cityGame, homeReturn
     case nativeEnrollment
     case nativePlatform
     case playBranchHistory
@@ -20,6 +22,8 @@ enum ModuleFixture: String {
     case settingsNative
     case presentationPatterns
     case homeFeed = "home-feed"
+    case merchantCityNPC = "merchant-city-npc"
+    case miniCrop = "mini-crop"
     case ticketWallet, square, cooperation, accountCollections, creatorContent, growthCenter, officialEvents, projectEdit
     case discovery, profile, messaging, roam, participants, play, composer, topic, localization
     static var selected: Self? {
@@ -53,7 +57,17 @@ struct ModuleFixtureRootView: View {
             case .signedInContentDetail: SignedInContentDetailFixtureHost()
             case .publicTemplateDetail: PublicTemplateDetailFixtureHost()
             case .publicPlayTemplate: PublicPlayTemplateFixtureHost()
+            case .templateDetailParity: TemplateDetailParityFixtureHost()
+            case .templateTabStaff: TemplateTabStaffFixtureHost()
+            case .playOpening: PlayOpeningFixtureHost()
+            case .playFinishRoute: PlayFinishRouteFixtureHost()
+            case .playCircleLink: PlayCircleLegacyLinkFixtureHost()
+            case .playThemeRecords: PlayThemeRecordsFixtureHost()
+            case .playEntryCode: PlayEntryCodeFixtureHost()
+            case .playBackpack: PlayThemeBackpackFixtureHost()
             case .privateHome: PrivateHomeFixtureHost()
+            case .cityGame: CityGameFixtureHost()
+            case .homeReturn: HomeReturnFixtureHost()
             case .nativeEnrollment: NativeEnrollmentFixtureHost()
             case .nativePlatform: NativePlatformFixtureHost()
             case .playBranchHistory: PlayBranchHistoryFixtureHost()
@@ -68,6 +82,7 @@ struct ModuleFixtureRootView: View {
             case .settingsNative: SettingsFixtureHostView()
             case .presentationPatterns: NativePresentationFixtureHost()
             case .homeFeed: HomeFeedFixtureHostView()
+            case .merchantCityNPC: MerchantCityNPCParityFixtureHost()
             case .ticketWallet: TicketWalletFixtureHostView()
             case .square: SquareFixtureHostView()
             case .officialEvents: OfficialFixtureHostView()
@@ -76,6 +91,7 @@ struct ModuleFixtureRootView: View {
                 else { ProjectEditFixtureHostView() }
             case .growthCenter: GrowthCenterFixtureHostView()
             case .creatorContent: CreatorContentFixtureHostView()
+            case .miniCrop: MiniCropFixtureHostView()
             case .accountCollections: AccountCollectionFixtureHostView()
             case .cooperation: CooperationFixtureHostView()
             case .discovery: DiscoveryHomeView(reader:discovery)

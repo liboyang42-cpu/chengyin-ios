@@ -80,11 +80,18 @@ public struct MerchantPredictionLock: Codable, Equatable {
     private func ensure(_ session: MerchantMarketingScope) throws {
         guard !Task.isCancelled, currentSession() == session else { throw MerchantMarketingFailure.stale }
     }
-    private func request(_ path: String, body: [String: MerchantMarketingValue]? = nil, session: MerchantMarketingScope, isCurrent: () -> Bool = { true }) async throws -> MerchantMarketingValue {
+    private func request(_ path: String, query: [URLQueryItem] = [], body: [String: MerchantMarketingValue]? = nil, session: MerchantMarketingScope, isCurrent: () -> Bool = { true }) async throws -> MerchantMarketingValue {
         guard isCurrent() else { throw MerchantMarketingFailure.stale }
         try ensure(session)
         guard let configuration, permitsReads else { throw MerchantMarketingFailure.unavailable }
-        var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: [:], token: session.token, includesBody: false)
+        var url = configuration.baseURL.appendingPathComponent(path)
+        if !query.isEmpty {
+            guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw MerchantMarketingFailure.invalid }
+            components.queryItems = query
+            guard let built = components.url else { throw MerchantMarketingFailure.invalid }
+            url = built
+        }
+        var request = try AuthRequestBuilder.makeFormRequest(url: url, fields: [:], token: session.token, includesBody: false)
         request.httpMethod = "POST"
         if let body { request.setValue("application/json", forHTTPHeaderField: "Content-Type"); request.httpBody = try JSONEncoder().encode(body) }
         let result: (Data, Int)
@@ -117,6 +124,14 @@ public struct MerchantPredictionLock: Codable, Equatable {
         let session = try captured(), access = try await access(session)
         guard access.canReadMarketing else { throw MerchantMarketingFailure.denied }
         return try MerchantMarketingDashboard(await request("api/merchant/marketing-home", session: session))
+    }
+    /// Source marketing/index.js: the window is a query parameter (`@RequestParam windowDays`), fixed at 30 days.
+    public func home(isCurrent: () -> Bool = { true }) async throws -> (MerchantMarketingAccess, MerchantMarketingHome) {
+        let session = try captured(), access = try await access(session, isCurrent: isCurrent)
+        guard access.canReadMarketing else { throw MerchantMarketingFailure.denied }
+        let raw = try await request("api/merchant/marketing-home", query: [URLQueryItem(name: "windowDays", value: String(MerchantMarketingHome.windowDays))],
+                                    session: session, isCurrent: isCurrent)
+        return (access, try MerchantMarketingHome(raw))
     }
     public func insight() async throws -> MerchantMarketingInsight {
         guard permitsInsight else { throw MerchantMarketingFailure.unavailable }

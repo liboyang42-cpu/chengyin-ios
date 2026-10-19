@@ -1,8 +1,8 @@
 [
   {
     "key": "participant.form.add",
-    "en": "Add participant",
-    "zh-Hans": "新增参与人"
+    "en": "Add participant information",
+    "zh-Hans": "新增参与人信息"
   },
   {
     "key": "participant.form.edit",

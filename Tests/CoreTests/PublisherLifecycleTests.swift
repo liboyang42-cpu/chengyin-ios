@@ -115,6 +115,19 @@ private actor LifecycleFakeHTTP: HTTPTransport {
         let result = try await setup(transport).partner(topicID: 4, type: "club", id: 9)
         XCTAssertEqual(result.terms.shareRate, "25"); XCTAssertEqual(result.profile.object?["name"]?.text, "Fixture club")
     }
+    func testPartnerNameReadsClubDetailOnlyForMatchingID() async throws {
+        let transport = LifecycleFakeHTTP(["{\"code\":200,\"data\":{\"id\":9,\"name\":\"Fixture club\"}}", "{\"code\":200,\"data\":{\"id\":8,\"name\":\"Other club\"}}"])
+        let client = try setup(transport)
+        let name = try await client.partnerName(type: "club", id: 9)
+        XCTAssertEqual(name, "Fixture club")
+        do { _ = try await client.partnerName(type: "club", id: 9); XCTFail("Mismatched club id accepted") } catch {}
+    }
+    func testPartnerNameUsesOwnerBoundMerchantHome() async throws {
+        let reader = LifecycleMerchantOwnerReader()
+        let name = try await setup(LifecycleFakeHTTP([]), merchantReader: reader).partnerName(type: "merchant", id: 77)
+        XCTAssertEqual(name, "Owner-bound merchant")
+        do { _ = try await setup(LifecycleFakeHTTP([])).partnerName(type: "merchant", id: 77); XCTFail("No reader must stay unavailable") } catch {}
+    }
     func testInvalidPartnerTermsDoNotLoadProfile() async throws {
         let transport = LifecycleFakeHTTP(["{\"code\":200,\"data\":{\"priceMin\":5,\"lineup\":[{\"toType\":\"club\",\"toId\":9,\"shareMode\":1}]}}"])
         do { _ = try await setup(transport).partner(topicID: 4, type: "club", id: 9); XCTFail("Invalid terms accepted") } catch {}

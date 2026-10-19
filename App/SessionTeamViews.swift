@@ -14,7 +14,11 @@ import SwiftUI
 @MainActor struct SessionTeamDetailView: View {
     let lookup: TeamLookup
     @EnvironmentObject private var session: AppSession
-    var body: some View { TeamDetailView(lookup: lookup, coordinator: session.makeTeamCoordinator(), makeCoordinator: { session.makeTeamCoordinator() }).id(session.teamViewIdentity) }
+    @State private var login = false
+    var body: some View {
+        TeamDetailView(lookup: lookup, coordinator: session.makeTeamCoordinator(), makeCoordinator: { session.makeTeamCoordinator() }, onLogin: { login = true }).id(session.teamViewIdentity)
+            .sheet(isPresented: $login) { LoginView(intent: .player) }
+    }
 }
 /// Awaiting the source activity registration projection with teamMode/teamMaxMembers.
 /// This adapter has no live creation-context capability; it cannot manufacture eligibility.

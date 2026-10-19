@@ -91,6 +91,11 @@ public enum ClubGovernanceWriteState: Equatable { case idle, reviewing, prefligh
         guard [.createSeries, .updateSeries, .assignRole].contains(command.operation) else { return nil }
         let members = try await access.read(.members, scope: command.scope, options: [:])
         let target = command.fields[command.operation == .assignRole ? "targetMemberId" : "defaultLeadMemberId"]?.int
+        if command.operation == .createSeries, command.fields["defaultLeadMemberId"] == .null {
+            // Explicit owner default: the fresh member list must still show the owner the server will resolve.
+            guard (members.value.array ?? []).contains(where: { ($0["memberId"].int ?? 0) > 0 && $0["isOwner"] == .bool(true) }) else { throw ClubGovernanceFailure.targetChanged }
+            return members
+        }
         guard let target, (members.value.array ?? []).contains(where: { $0["memberId"].int == target && (command.operation != .assignRole || $0["isOwner"] == .bool(false)) }) else { throw ClubGovernanceFailure.targetChanged }
         return members
     }

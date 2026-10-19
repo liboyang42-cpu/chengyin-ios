@@ -53,7 +53,7 @@ import XCTest
     func testPendingNewStoryChapterCanChooseCancelAndApplyImageWithoutPlacingMaterial() throws {
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-edit-pending", "--project-pending-no-chapters", "--project-story-image", "--project-story-audio"]
-        app.launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
+        app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
         tap("projectEdit.saveLocal", app, fixed: true); let before = try snapshot(app), materialID = try material(before)
         tap("projectPending.newChapter." + materialID, app)
         XCTAssertTrue(app.buttons["projectPending.close"].waitForExistence(timeout: 5))
