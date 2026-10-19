@@ -9,6 +9,28 @@ import SwiftUI
     private func more(_ m: ProfileAuthorPostsRefreshController, _ r: ProfileAuthorPostsRefreshFixtureReader) async {
         await m.loadMore(memberID: 91, accountReader: r, squareReader: r)
     }
+    func testReconstructedSectionsSharePageOwnedFeedWithoutAnotherRead() async {
+        let r = ProfileAuthorPostsRefreshFixtureReader(), model = ProfileAuthorPostsRefreshController()
+        _ = ProfileAuthorPostsSection(memberID: 91, accountReader: r, squareReader: r, retainedModel: model)
+        await model.activate(memberID: 91, accountReader: r, squareReader: r)
+        await more(model, r); model.suspend()
+        _ = ProfileAuthorPostsSection(memberID: 91, accountReader: r, squareReader: r, retainedModel: model)
+        await model.activate(memberID: 91, accountReader: r, squareReader: r)
+        XCTAssertEqual(r.reads, 2); XCTAssertEqual(model.pagination.items.map(\.id), [101, 201])
+        let fresh = ProfileAuthorPostsRefreshController()
+        await fresh.activate(memberID: 91, accountReader: r, squareReader: r)
+        XCTAssertEqual(r.reads, 3); XCTAssertEqual(fresh.pagination.items.map(\.id), [301])
+    }
+    func testSelectedPostTicketRetainsGenerationButNotChangedReaderAuthority() async throws {
+        let r = ProfileAuthorPostsRefreshFixtureReader(), model = ProfileAuthorPostsRefreshController()
+        await refresh(model, r)
+        let post = try XCTUnwrap(model.pagination.items.first)
+        let context = ProfileAuthorPostsContext(memberID: 91, accountReader: r, squareReader: r)
+        let ticket = ProfileAuthorPostTicket(postID: post.id, contentGeneration: post.generation, context: context)
+        XCTAssertEqual(ticket.contentGeneration, post.generation)
+        r.switchAccount()
+        XCTAssertNotEqual(ticket.context, ProfileAuthorPostsContext(memberID: 91, accountReader: r, squareReader: r))
+    }
     func testDedicatedFixtureBuildsRealSectionWithoutSessionOrImageReader() {
         let r = ProfileAuthorPostsRefreshFixtureReader()
         _ = ProfileAuthorPostsSection(memberID: 91, accountReader: r, squareReader: r)
