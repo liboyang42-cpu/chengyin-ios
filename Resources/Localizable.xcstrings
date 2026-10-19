@@ -172159,6 +172159,54 @@
           }
         }
       }
+    },
+    "club.story.answer.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This question has no answer configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这道题没有配答案"
+          }
+        }
+      }
+    },
+    "club.story.answer.hints": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hints"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示"
+          }
+        }
+      }
+    },
+    "club.story.answer.notice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answers are visible only to the club for judging on site whether players pass. Players never see this section."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "答案只对俱乐部开放，用于现场判定玩家能否通过。玩家端看不到这一段。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

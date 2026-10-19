@@ -1251,6 +1251,8 @@ struct ClubGovernanceReadView: View {
                         openClub: target.map { route in { selectFeedClub(route) } })
                 }
             } else { Text("club.gov.malformed").accessibilityIdentifier("club.feed.malformed") }
+        } else if operation == .nodeAnswer {
+            ClubNodeAnswerContent(value: value)
         } else if operation == .customer {
             ClubGovernanceFactRows(value: value["summary"], fields: ["displayName", "phoneText", "arrivedCount", "pendingCount", "refundedCount", "paidAmount"], showUnknown: true)
             ClubGovernanceFactRows(value: value, fields: ["remark"])
