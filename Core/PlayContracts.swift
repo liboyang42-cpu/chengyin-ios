@@ -152,13 +152,16 @@ public struct PlayRouteState: Decodable, Equatable {
     public let thoughts: [PlayWireValue]
     /// Nil covers absent, null, malformed or oversized optional history.
     public let decisionLog: PlayBranchHistoryLog?
+    /// Journey opening chapter state; nil when absent or malformed (mini-program `isRecord` check).
+    public let opening: PlayJourneyOpening?
     public var isBranch: Bool { mode == "BRANCH_GRAPH" }
     private enum CodingKeys: String, CodingKey {
-        case routeMode, sessionId, status, version, currentNodeId, recommendedNodeId, nodeStates, lockReasons, thoughts, decisionLog
+        case routeMode, sessionId, status, version, currentNodeId, recommendedNodeId, nodeStates, lockReasons, thoughts, decisionLog, opening
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         decisionLog = try? c.decode(PlayBranchHistoryLog.self, forKey: .decisionLog)
+        opening = try? c.decode(PlayJourneyOpening.self, forKey: .opening)
         mode = try c.decodeIfPresent(String.self, forKey: .routeMode)
         sessionID = try c.playInt(.sessionId); status = try c.decodeIfPresent(String.self, forKey: .status)
         version = try c.playInt(.version); currentNodeID = try c.playInt(.currentNodeId)

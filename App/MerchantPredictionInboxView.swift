@@ -213,19 +213,31 @@ extension MerchantPredictionReading {
         List {
             if !reader.isConfigured { Text(zh ? "读取未启用或身份已变化" : "Read access is unavailable or changed") }
             else if model.phase == .loading || model.phase == .idle { ProgressView() }
-            else if model.phase == .denied { Text(zh ? "当前商家身份没有项目管理权限" : "This merchant identity cannot manage projects") }
+            else if model.phase == .denied {
+                // Source predict/index.wxml no-permission state.
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.denied.title"))
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.denied.body")).font(.footnote).foregroundStyle(.secondary)
+                }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.predict.denied")
+            }
             else if model.phase == .failed {
-                Text(zh ? "未能读取待答轮次，请重试" : "Could not read pending rounds. Retry.")
-                Button(zh ? "重试" : "Retry") { Task { await model.load() } }
+                Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.error")).accessibilityIdentifier("merchantOps.predict.error")
+                Button(MerchantOpsCopy.text("merchantOps.predict.retry")) { Task { await model.load() } }
             } else if model.phase == .ready {
-                if model.rows.isEmpty { Text(zh ? "暂无待答轮次" : "No pending rounds") }
+                if model.rows.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.empty.title"))
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.empty.body")).font(.footnote).foregroundStyle(.secondary)
+                    }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.predict.empty")
+                } else {
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.summary %lld", model.rows.count)).accessibilityIdentifier("merchantOps.predict.summary")
+                }
                 ForEach(model.rows) { round in
                     Button { model.open(round) } label: {
                         VStack(alignment: .leading, spacing: 5) {
                             Text(verbatim: round.nodeName.isEmpty ? (zh ? "未命名点位" : "Unnamed location") : round.nodeName).font(.headline)
                             Text(verbatim: round.question.isEmpty ? (zh ? "题面未提供" : "Question not supplied") : round.question)
-                            Text(verbatim: "\(round.playDay) · \(round.betCount) \(zh ? "条参与记录" : "entries")")
-                            Text(zh ? "服务器剩余自然日：\(round.daysLeft)" : "Server remaining calendar days: \(round.daysLeft)")
+                            MerchantPredictionRoundFacts(round: round)
                         }
                     }.accessibilityIdentifier("merchant.prediction.round.\(round.id)")
                 }
@@ -346,5 +358,25 @@ extension MerchantPredictionReading {
         guard visible, scenePhase == .active else { return }
         await model.prepare(round: round, optionKey: optionKey, reader: reader,
             isCurrent: { visible && scenePhase == .active && isCurrent() })
+    }
+}
+
+/// Source predict/index.wxml card: "{playDay} 那一轮", the deadline badge (red on the last day) and the bet line.
+@MainActor struct MerchantPredictionRoundFacts: View {
+    let round: MerchantPredictionInboxRound
+    var body: some View {
+        let facts = MerchantPredictionInboxPresentation(daysLeft: round.daysLeft, betCount: round.betCount, optionCount: round.options.count)
+        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.round %@", round.playDay)).font(.subheadline)
+        Group {
+            switch facts.deadline {
+            case .daysLeft(let days): Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.daysLeft %lld", days)).foregroundStyle(.orange)
+            case .lastDay: Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.lastDay")).foregroundStyle(.red)
+            }
+        }.font(.footnote.bold()).accessibilityIdentifier("merchantOps.predict.deadline.\(round.id)")
+        switch facts.bets {
+        case .count(let count): Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.bets %lld", count)).font(.footnote)
+        case .none: Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.noBets")).font(.footnote)
+        }
+        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.options %lld", facts.optionCount)).font(.footnote).foregroundStyle(.secondary)
     }
 }

@@ -83,15 +83,18 @@ import SwiftUI
 @MainActor struct SquareFixtureHostView: View {
     @State private var reader: SquareFixtureReader
     @State private var topicReader: SquareRelatedTopicFixtureReader
+    private let mediaChain: Bool
     init() {
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-square-scenario")
         let value = index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil }
+        mediaChain = value == "mediaChain"
         _topicReader = State(initialValue: SquareRelatedTopicFixtureReader(unavailable: value == "relatedUnavailable"))
         _reader = State(initialValue: SquareFixtureReader(scenario: value.flatMap(SquareFixtureReader.Scenario.init(rawValue:)) ?? .content))
     }
     var body: some View {
-        if [.relatedTopic, .relatedUnavailable, .relatedMissing].contains(reader.scenario) {
+        if mediaChain { SquarePostMediaFixtureHost() }
+        else if [.relatedTopic, .relatedUnavailable, .relatedMissing].contains(reader.scenario) {
             NavigationStack {
                 List {
                     NavigationLink("social.targetPost") { SquareDetailView(id: 701, reader: reader) }

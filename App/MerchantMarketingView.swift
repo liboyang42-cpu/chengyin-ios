@@ -57,7 +57,11 @@ import SwiftUI
                         .accessibilityIdentifier("merchantMarketing.winners")
                 }
             }
-            if let dashboard = model.dashboard { dashboardSections(dashboard) }
+            if let home = model.home, let access = model.homeAccess {
+                MerchantMarketingHomeSections(home: home, access: access,
+                    onRetry: { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } },
+                    onInsight: { selected = .insight }, onRoute: onSuggestion)
+            }
             if let insight = model.insight { insightSections(insight) }
             if let subscriptions = model.subscriptions { entitlementSections(subscriptions) }
             if let rounds = model.rounds { predictionSections(rounds) }
@@ -84,35 +88,21 @@ import SwiftUI
     }
     private func failure(_ error: MerchantMarketingFailure) -> some View {
         Section {
+            if error == .denied && selected == .dashboard {
+                // Source marketing/index.wxml denied inline error; the owner always has marketing read.
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.title"))
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.body")).font(.footnote).foregroundStyle(.secondary)
+                }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.denied")
+                Button(MerchantOpsCopy.text("merchantOps.marketing.denied.retry")) { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } }
+                    .accessibilityIdentifier("merchantOps.marketing.denied.retry")
+            }
             Text(LocalizedStringKey(error.key)).accessibilityIdentifier("merchantMarketing.error")
             if let message = error.serverMessage { Text(message).font(.footnote) }
         }
     }
     private func value(_ number: Int?) -> String { number.map(String.init) ?? "—" }
     private func percent(_ number: Double?) -> String { number.map { String(format: "%.1f%%", $0 * 100) } ?? "—" }
-    @ViewBuilder private func dashboardSections(_ dashboard: MerchantMarketingDashboard) -> some View {
-        Section("merchantMarketing.coupons") {
-            LabeledContent("merchantMarketing.active", value: value(dashboard.couponCount))
-            LabeledContent("merchantMarketing.claimed", value: value(dashboard.received))
-            LabeledContent("merchantMarketing.redeemed", value: value(dashboard.verified))
-            if let rate = dashboard.verificationRate { LabeledContent("merchantMarketing.redemptionRate", value: percent(rate)) }
-        }
-        Section("merchantMarketing.content") {
-            LabeledContent("merchantMarketing.topics", value: value(dashboard.topics))
-            LabeledContent("merchantMarketing.exploration", value: value(dashboard.exploration))
-            LabeledContent("merchantMarketing.activities", value: value(dashboard.activities))
-        }
-        if !dashboard.funnel.isEmpty {
-            Section("merchantMarketing.funnel") {
-                ForEach(Array(dashboard.funnel.enumerated()), id: \.offset) { _, step in
-                    VStack(alignment: .leading, spacing: 6) {
-                        LabeledContent(step.step, value: value(step.count))
-                        if let rate = step.rate { Text(percent(rate)); ProgressView(value: min(1, max(0, rate))).accessibilityLabel(step.step).accessibilityValue(percent(rate)) }
-                    }.accessibilityElement(children: .combine)
-                }
-            }
-        }
-    }
     @ViewBuilder private func insightSections(_ insight: MerchantMarketingInsight) -> some View {
         insightProfile(insight)
         MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
@@ -120,7 +110,7 @@ import SwiftUI
                 && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
         MerchantInsightAttributionSummary(summary: .init(insight.facts),
             isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
-                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
+                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight, facts: insight.facts)
         Section("merchantMarketing.facts") {
             LabeledContent("merchantMarketing.window", value: MerchantInsightAttribution(insight.facts).window ?? "—")
             LabeledContent("merchantMarketing.sample", value: value(insight.facts["sampleMembers"].integer))

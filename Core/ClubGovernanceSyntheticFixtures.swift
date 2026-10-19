@@ -54,11 +54,11 @@ public enum ClubGovernanceFixtures {
         case .saveCustomer: draft.text["remark"] = "Fixture note"
         case .createSeries, .updateSeries:
             draft = .init(operation: mutation, scope: scope, seed: value(.seriesDetail).object ?? [:]); draft.text["startDate"] = "2026-10-08"; draft.text["startTime"] = "09:00"; draft.text["defaultLeadMemberId"] = "704"
-        case .ban: draft = .init(operation: mutation, scope: scope, seed: ["targetMemberId": .integer(704)]); draft.text["reason"] = "Fixture reason"; draft.text["expiresAt"] = "2026-10-08 09:00:00"
+        case .ban: draft = .init(operation: mutation, scope: scope, seed: ["targetMemberId": .integer(704)]); draft.text["reason"] = "Fixture reason"; draft.text["banDays"] = "30"
         case .transferOwner: draft = .init(operation: mutation, scope: scope, seed: ["targetMemberId": .integer(704)]); draft.text["reason"] = "Fixture reason"
         case .unban: draft = .init(operation: mutation, scope: scope, seed: ["banId": .integer(161), "version": .integer(2)]); draft.text["reason"] = "Fixture reason"
         case .revokeRole: draft = .init(operation: mutation, scope: scope, seed: ["assignmentId": .integer(181), "version": .integer(2)]); draft.text["reason"] = "Fixture reason"
-        case .correctAttendance: draft = .init(operation: mutation, scope: scope, seed: ["expectedVersion": .integer(2)]); draft.text["reason"] = "Fixture reason"
+        case .correctAttendance: draft = .init(operation: mutation, scope: scope, seed: ["expectedVersion": .integer(2), "arrived": .bool(true)]); draft.text["reason"] = "Fixture reason"
         case .assignRole: draft.text["targetMemberId"] = "704"
         case .sendNotification: draft.text["title"] = "Fixture title"; draft.text["content"] = "Fixture content"
         case .report, .appeal, .cancelOccurrence: draft.text["reason"] = "Fixture reason"
@@ -100,6 +100,10 @@ public enum ClubGovernanceFixtures {
         guard isConfigured else { throw ClubGovernanceFailure.notConfigured }; guard identity != nil else { throw ClubGovernanceFailure.signedOut }
         _ = try operation.fields(scope: scope, options: options)
         onRead?(); if let readFailure { throw readFailure }
+        if operation == .cases, scope.clubID != nil, permissionValue["active"] == .bool(false), permissionValue["club"]["id"].int == scope.clubID {
+            let raw = overrideValue[operation] ?? ClubGovernanceFixtures.value(operation, scope: scope)
+            return .init(operation: operation, scope: scope, permissions: nil, value: try ClubGovernanceValidation.validate(raw, operation: operation, scope: scope))
+        }
         let permissions = scope.clubID == nil ? nil : try ClubGovernancePermissions(value: permissionValue, scope: scope)
         if let permissions { guard permissions.allows(operation.permission, scope: scope) || ([.audienceCounts, .notificationPreview, .notificationStatus].contains(operation) && permissions.allows("club:event:operate", scope: scope)) else { throw ClubGovernanceFailure.forbidden } }
         let raw = overrideValue[operation] ?? (operation == .access ? permissionValue : ClubGovernanceFixtures.value(operation, scope: scope))
