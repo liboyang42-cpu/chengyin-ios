@@ -14,6 +14,7 @@ CORE = {
     "ThemeSeasonRelease": "RunStaysPinnedWhenNewReleasePublishes",
     "PublishMediaChain": "VideoWalksEveryStageInOrderWithMatchingReadbacks",
     "RunAuthorityContract": "UnknownResultKeepsPendingAndSameRequestRetries",
+    "RunAuthorityRecovery": "JournalIsWrittenBeforeDispatchAndUnknownOutcomeSurvivesRelaunch",
     "QmodManifestContract": "H5StaysDesignOnlyAndAuthorityFieldsAreRejected",
     "WorkshopModUpgradeChoice": "UpgradeDraftNeedsExplicitConfirmationAndKnownCoverage",
     "RevokeWinsLedger": "RevokeBeatsLateAcceptAndRestoredCache",
