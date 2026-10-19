@@ -118,6 +118,8 @@ struct QuestifyApp: App {
                     ClubActionFixtureRootView(scenario:clubAction)
                 } else if let registration=RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     RegistrationFixtureHostView(scenario:registration)
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-map-core-entry") {
+                    MapCoreEntryFixtureHost()
                 } else if let module=ModuleFixture.selected {
                     ModuleFixtureRootView(module:module)
                 } else if let session=sessionContainer.session {
