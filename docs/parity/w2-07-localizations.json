@@ -773,5 +773,60 @@
   "key": "topicXcx.paywall.recover",
   "en": "Already bought a ticket? Find it in My orders.",
   "zh-Hans": "已购票？去「我的订单」找回"
+ },
+ {
+  "key": "merchantApplyXcx.timeGroup",
+  "en": "Available time",
+  "zh-Hans": "可配合的时间"
+ },
+ {
+  "key": "merchantApplyXcx.pickDates",
+  "en": "Choose a date range",
+  "zh-Hans": "点击选择日期区间"
+ },
+ {
+  "key": "merchantApplyXcx.startDay",
+  "en": "From",
+  "zh-Hans": "开始日期"
+ },
+ {
+  "key": "merchantApplyXcx.endDay",
+  "en": "To",
+  "zh-Hans": "结束日期"
+ },
+ {
+  "key": "merchantApplyXcx.locationPurpose",
+  "en": "Location is requested only when you choose a place, to match the hosting area and guide arrivals; you can still fill in the rest if you decline.",
+  "zh-Hans": "选择地点时才会请求定位，用于匹配承接范围与到场导航；拒绝后仍可继续填写其他资料。"
+ },
+ {
+  "key": "merchantApplyXcx.photosHint",
+  "en": "5:3 landscape photos recommended · at least 1, up to 9",
+  "zh-Hans": "建议 5:3 横图 · 至少 1 张，最多 9 张"
+ },
+ {
+  "key": "merchantApplyXcx.missing.address",
+  "en": "Choose a hosting location first",
+  "zh-Hans": "请先选择承接地点"
+ },
+ {
+  "key": "merchantApplyXcx.missing.dates",
+  "en": "Choose the available date range",
+  "zh-Hans": "请选择可配合日期区间"
+ },
+ {
+  "key": "merchantApplyXcx.missing.description",
+  "en": "Describe the available space and on-site conditions",
+  "zh-Hans": "请填写可用空间与现场条件"
+ },
+ {
+  "key": "merchantApplyXcx.missing.photos",
+  "en": "Add photos of the venue",
+  "zh-Hans": "请添加场地照片"
+ },
+ {
+  "key": "merchantApplyXcx.notAWin",
+  "en": "Signing up is not winning the stop; it counts once the organizer confirms you.",
+  "zh-Hans": "报名成功不等于中标，主理人确认后才算接上这一站"
  }
 ]

@@ -18,6 +18,10 @@ import SwiftUI
     @State private var availabilityReplacement: MerchantRegistrationAvailability?
     @State private var availabilityEditor: MerchantRegistrationAvailabilityPicker.Session?
     @State private var templateID = 0
+    /// Source merchantapply 可配合日期 range (create only); nil until the merchant chooses it.
+    @State private var applyDays: ClosedRange<Date>?
+    @State private var applyStart = Date()
+    @State private var applyEnd = Date()
     @State private var pauseFallback: MerchantStationPauseChoice?
     @State private var approve = true
     private struct AddressConfirmation: Equatable {
@@ -199,6 +203,7 @@ import SwiftUI
                 if case .registrationCreate = kind { field("cooperateDate") }
                 if case .registrationCreate = kind { Text("merchant.content.registrationPreservation").font(.footnote) }
             }
+            if case .registrationCreate = kind { applyDateSection }
             if case .registrationEdit(let id) = kind {
                 MerchantRegistrationAvailabilityPicker(context: .init(scope: s.scope, registrationID: id, observedAt: s.observedAt),
                     source: .init(s.value), replacement: availabilityReplacement,
@@ -341,7 +346,32 @@ import SwiftUI
     private func registrationDraft() -> MerchantRegistrationContentDraft {
         var draft = MerchantRegistrationContentDraft(detail: .object(text.mapValues { .string($0) }))
         if case .registrationEdit = kind { draft.availabilityReplacement = availabilityReplacement }
+        if case .registrationCreate = kind, let days = applyDays {
+            draft.createStartDay = MerchantApplyXcx.chinaToday(days.lowerBound); draft.createEndDay = MerchantApplyXcx.chinaToday(days.upperBound)
+        }
         return draft
+    }
+    /// Source 可配合的时间 group: date range from today, same-day allowed; plus the first missing item hint.
+    @ViewBuilder private var applyDateSection: some View {
+        Section {
+            if applyDays == nil {
+                Button("merchantApplyXcx.pickDates") { applyStart = Date(); applyEnd = Date(); applyDays = applyStart...applyEnd; dirty = true }
+                    .accessibilityIdentifier("merchantApply.pickDates")
+            } else {
+                DatePicker("merchantApplyXcx.startDay", selection: $applyStart, in: Calendar.current.startOfDay(for: Date())..., displayedComponents: .date)
+                DatePicker("merchantApplyXcx.endDay", selection: $applyEnd, in: applyStart..., displayedComponents: .date)
+            }
+            Text("merchantApplyXcx.locationPurpose").font(.caption).foregroundStyle(.secondary)
+            Text("merchantApplyXcx.photosHint").font(.caption).foregroundStyle(.secondary)
+            if let missing = MerchantApplyXcx.firstMissing(address: text["address"] ?? "", startDay: registrationDraft().createStartDay,
+                                                           endDay: registrationDraft().createEndDay, description: text["activityDesc"] ?? "",
+                                                           photoCount: (text["picUrl"] ?? "").split(separator: ",").count) {
+                Text(LocalizedStringKey("merchantApplyXcx.missing." + String(describing: missing))).font(.footnote).foregroundStyle(.orange)
+                    .accessibilityIdentifier("merchantApply.firstMissing")
+            }
+        } header: { Text("merchantApplyXcx.timeGroup") } footer: { Text("merchantApplyXcx.notAWin") }
+        .onChange(of: applyStart) { _, start in if applyEnd < start { applyEnd = start }; if applyDays != nil { applyDays = start...max(start, applyEnd); dirty = true } }
+        .onChange(of: applyEnd) { _, end in if applyDays != nil { applyDays = applyStart...max(applyStart, end); dirty = true } }
     }
     private func command(_ s: MerchantContentSnapshot) throws -> MerchantContentCommand {
         func value(_ key: String) -> String { text[key] ?? "" }
