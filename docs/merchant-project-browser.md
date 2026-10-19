@@ -27,3 +27,18 @@ The new default Themes tab means any external UI automation expecting the legacy
 17 Core XCTest methods and 3 UI XCTest methods are authored. They are NOT_RUN on dot because Swift/Xcode are absent; there is no simulator/device screenshot, native build/type-check, localization runtime or production/network acceptance claim. The focused Python source/fixture suite and selected existing guard checks are supplementary, as is tree-sitter parsing. Historical global/byte-inverse gates are not repaired or presented as native acceptance.
 
 The package includes START, exact source excerpts, before/after files, binary-safe patch, SHA256 file manifest, integration fragment, targeted check logs, previous twelve archive hashes, and explicit PASS/FAIL/NOT_RUN summary.
+
+
+## 2026-10-19 normal topic workspace read connection
+
+The normal merchant project browser can now use a separate optional `MerchantProjectWorkspaceReadApproval`. Browse approval alone still admits only access/me and project/my; it cannot fetch project/home. Both approvals remain nil by default and are retained for the exact deployment, account and viewer revision.
+
+The selected topic summary creates a new presentation-owned reader for that exact positive topic ID and captured merchant ID. It reuses `MerchantContentService` and the existing `MerchantContentDocumentView`; no alternate player-facing detail is substituted. Fresh active project-manage access must match the captured merchant before the home request. The scoped transport admits only bodyless POST access/me or POST project/home with the exact selected topicId and scope MERCHANT. Cookies, query/fragment, streams, extra/duplicate fields, other topics and broader routes are rejected.
+
+The home result requires the exact integer topic.id and a host or join role with its corresponding object. Host and join may coexist. There is no invented top-level merchantID; the selected store is checked against fresh access. Independent permission, session, presentation, background and close checks retire the reader before late response/401 side effects. Back retains the existing summary and list state; reopening creates a new lease rather than reviving the old reader.
+
+The normal document is read-only: existing projected fields and reload/error states remain; players, application/node review, invitation, registration, circle-review and recovery controls are not shown. No journal is created, and perform/reconcile/retry operations reject. Other existing content-service callers keep their prior defaults. Activity and draft/rejected editing routes are outside this topic-read group.
+
+Verified source baseline: backend and mini 57b22916e05e0c7eccccb75f68a46a4576ab5bf8. Mini myproject/index.js 242–267 routes topic cards to merchantinfo; merchantinfo.js 1529–1605 calls project/home. ApiProjectController.java 93–126 requires MERCHANT project-manage authority and resolves ownerMemberId. ProjectHomeReadServiceImpl.java 73–114 rejects unrelated viewers and supplies authoritative topic/host/join data.
+
+Validation for this change: independent static review and authored composition/lifetime tests. Swift compilation, Swift tests and actual App navigation are NOT_RUN; no CI, live project request, mutation, deployment or release was performed. Source connection is not evidence that a production approval has been enabled.
