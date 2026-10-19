@@ -23,13 +23,29 @@ enum OfficialScreenIssue {
         }
     }
 }
+/// Page-specific failure wording above the shared issue label; nil keeps the label alone.
+struct OfficialIssueCopy {
+    let title: LocalizedStringKey
+    let detail: LocalizedStringKey
+    var identifier = ""
+    var backTitle: LocalizedStringKey? = nil
+    var backIdentifier = ""
+}
 struct OfficialIssueView: View {
     let issue: OfficialScreenIssue
     var onLogin: (() -> Void)?
     var retry: (() -> Void)?
+    var copy: OfficialIssueCopy? = nil
+    var onBack: (() -> Void)? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Label(issue.key, systemImage: "info.circle")
+            if let copy {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(copy.title).font(.headline).accessibilityIdentifier(copy.identifier)
+                    Text(copy.detail).foregroundStyle(.secondary)
+                }.fixedSize(horizontal: false, vertical: true)
+            }
+            Label(issue.key, systemImage: "info.circle").font(copy == nil ? nil : Font.footnote)
                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("official.issue")
             if case .unauthorized = issue, let onLogin {
                 Button("official.signIn", action: onLogin).frame(minHeight: 44)
@@ -37,6 +53,10 @@ struct OfficialIssueView: View {
             } else if case .failed = issue, let retry {
                 Button("official.retry", action: retry).frame(minHeight: 44)
                     .accessibilityIdentifier("official.retry")
+            } else if case .unavailable = issue, let onBack, let copy, let backTitle = copy.backTitle {
+                // An unrecoverable read offers only the way back, never a retry.
+                Button(backTitle, action: onBack).frame(minHeight: 44)
+                    .accessibilityIdentifier(copy.backIdentifier)
             }
         }.padding()
     }
@@ -50,10 +70,13 @@ struct OfficialIssueView: View {
     var isPrivate = false
     var requestID = ""
     var onLogin: (() -> Void)? = nil
+    var issueCopy: ((Error) -> OfficialIssueCopy?)? = nil
+    var onBack: (() -> Void)? = nil
     let load: () async throws -> Value
     @ViewBuilder let content: (Value) -> Content
     @State private var value: Value?
     @State private var issue: OfficialScreenIssue?
+    @State private var copy: OfficialIssueCopy?
     @State private var loadedKey: Key?
     @State private var generation: UInt64 = 0
     @State private var loading = false
@@ -75,7 +98,7 @@ struct OfficialIssueView: View {
             if isPrivate && !reader.isAuthenticated { OfficialIssueView(issue: .unauthorized, onLogin: onLogin) }
             else if !reader.isConfigured { OfficialIssueView(issue: .unconfigured) }
             else if loadedKey != key || loading { ProgressView("official.loading").frame(maxWidth: .infinity, maxHeight: .infinity) }
-            else if let issue { OfficialIssueView(issue: issue, onLogin: onLogin, retry: { Task { await refresh() } }) }
+            else if let issue { OfficialIssueView(issue: issue, onLogin: onLogin, retry: { Task { await refresh() } }, copy: copy, onBack: onBack) }
             else if let value { content(value) }
         }
         .task(id: key) { await refresh() }
@@ -86,6 +109,7 @@ struct OfficialIssueView: View {
         generation &+= 1
         let operation = generation, captured = key
         value = nil; issue = nil; loadedKey = nil; loading = false
+        copy = nil
         guard reader.isConfigured, !isPrivate || reader.isAuthenticated else { return }
         loading = true
         defer { if generation == operation { loading = false } }
@@ -95,6 +119,7 @@ struct OfficialIssueView: View {
             value = result; loadedKey = captured
         } catch {
             guard !Task.isCancelled, !(error is CancellationError), generation == operation, key == captured else { return }
+            copy = issueCopy?(error)
             issue = OfficialScreenIssue(error); loadedKey = captured
         }
     }
