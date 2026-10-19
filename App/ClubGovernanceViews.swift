@@ -619,41 +619,43 @@ struct ClubGovernanceReadView: View {
                 generation &+= 1
             }
         }
-        .onDisappear {
-            caseHostVisible = false
-            if operation == .settlement {
-                settlementReturn.hide()
-                ownerFundsParent.hide()
-                if !settlementReturn.retainsChild, let attachment = settlementReturn.attachment {
-                    if !ownerFundsParent.retainsContact {
-                        if settlementReturn.depart(attachment) { generation &+= 1; loading = false }
-                    }
-                }
-            } else if operation == .series {
-                seriesOccurrences.hide()
-                if !seriesOccurrences.retainsDestination { seriesOccurrences.retire(); generation &+= 1; loading = false }
-            } else if operation == .roster {
-                attendanceReturn.hide()
-                if !attendanceReturn.retainsReturn { attendanceReads.retire(); generation &+= 1; loading = false }
-            } else if operation == .roles {
-                roleManagementReturn.hide()
-                if !roleManagementReturn.retainsReturn { roleReads.retire(); generation &+= 1; loading = false }
-            } else if operation == .topicSettings {
-                topicSettingsReturn.hide()
-                if !topicSettingsReturn.retainsReturn { topicSettingsReads.retire(); generation &+= 1; loading = false }
-            } else if operation == .bans {
-                banRemovalReturn.hide()
-                if !banRemovalReturn.retainsReturn { banReads.retire(); generation &+= 1; loading = false }
-            } else if operation != .cases || caseSubmissionReturn.item == nil {
-                if operation == .cases { caseSubmissionReturn.retire() }
-                if operation != .occurrenceStatus || occurrenceCancellationReturn.item == nil {
-                if operation != .eventTopics || !seriesCreationReturn.holdsSource {
-                    if operation != .seriesDetail || seriesUpdateReturn.item == nil { generation &+= 1 }
-                }
+        .onDisappear { leaveReadHost() }
+        .refreshable { await load() }
+    }
+    // Kept outside the body's modifier chain so the view type-checks in bounded time.
+    @MainActor private func leaveReadHost() {
+        caseHostVisible = false
+        if operation == .settlement {
+            settlementReturn.hide()
+            ownerFundsParent.hide()
+            if !settlementReturn.retainsChild, let attachment = settlementReturn.attachment {
+                if !ownerFundsParent.retainsContact {
+                    if settlementReturn.depart(attachment) { generation &+= 1; loading = false }
                 }
             }
+        } else if operation == .series {
+            seriesOccurrences.hide()
+            if !seriesOccurrences.retainsDestination { seriesOccurrences.retire(); generation &+= 1; loading = false }
+        } else if operation == .roster {
+            attendanceReturn.hide()
+            if !attendanceReturn.retainsReturn { attendanceReads.retire(); generation &+= 1; loading = false }
+        } else if operation == .roles {
+            roleManagementReturn.hide()
+            if !roleManagementReturn.retainsReturn { roleReads.retire(); generation &+= 1; loading = false }
+        } else if operation == .topicSettings {
+            topicSettingsReturn.hide()
+            if !topicSettingsReturn.retainsReturn { topicSettingsReads.retire(); generation &+= 1; loading = false }
+        } else if operation == .bans {
+            banRemovalReturn.hide()
+            if !banRemovalReturn.retainsReturn { banReads.retire(); generation &+= 1; loading = false }
+        } else if operation != .cases || caseSubmissionReturn.item == nil {
+            if operation == .cases { caseSubmissionReturn.retire() }
+            if operation != .occurrenceStatus || occurrenceCancellationReturn.item == nil {
+            if operation != .eventTopics || !seriesCreationReturn.holdsSource {
+                if operation != .seriesDetail || seriesUpdateReturn.item == nil { generation &+= 1 }
+            }
+            }
         }
-        .refreshable { await load() }
     }
     // Kept outside the body's modifier chain so the view type-checks in bounded time.
     @MainActor private func refreshVisibleCases() async {
