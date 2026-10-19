@@ -613,7 +613,7 @@ struct ClubGovernanceReadView: View {
         .task(id: CaseReadTrigger(context: readContext, visible: caseHostVisible, active: scenePhase == .active)) {
             guard operation == .cases, caseHostVisible, scenePhase == .active else { return }
             if caseSubmissionReturn.item != nil || caseSubmissionReturn.readID != nil { return }
-            if snapshotContext == readContext && generation == snapshotGeneration { return }
+            if snapshotContext == readContext, generation == snapshotGeneration { return }
             invalidateRead(); await load()
         }
         .onDisappear {
