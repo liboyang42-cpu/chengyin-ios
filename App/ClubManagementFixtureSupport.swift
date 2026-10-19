@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Offline synthetic fixture: no URL, credentials, transport or persistence.
 enum ClubManagementFixtureScenario: String {
-    case owner, admin, ordinary, empty, unknown, denied, delayed, readbackUnavailable, unknownDelayedRefresh, detailReturn, detailReturnUnavailable
+    case owner, admin, ordinary, empty, unknown, denied, delayed, readbackUnavailable, unknownDelayedRefresh, detailReturn, detailReturnUnavailable, loadFailure
     case refreshConnection, refreshForbidden, refreshMalformed, refreshRoleChange, unknownRoleChange, refreshDelayed, refreshRoleABA, prepareRoleABA
     static func selected(arguments: [String]) -> Self? {
         guard let index = arguments.firstIndex(of: "--uitesting-club-management-fixture"), arguments.indices.contains(index + 1) else { return nil }
@@ -73,6 +73,8 @@ private final class ClubManagementFixtureStore: ObservableObject, ClubManagement
         if viewerRevision % 2 == 1 { throw ClubReadFailure.forbidden(message: nil) }
         if readCount == 2, scenario == .refreshForbidden { throw ClubReadFailure.forbidden(message: "Fixture permission revoked") }
         if readCount == 2, scenario == .refreshMalformed { throw APIError.malformedResponse }
+        // First read fails, the reload offered by 入会申请加载失败 succeeds (a read retry, never a write).
+        if readCount == 1, scenario == .loadFailure { throw APIError.malformedResponse }
         guard scenario != .ordinary else { throw ClubReadFailure.forbidden(message: nil) }
         if scenario == .readbackUnavailable, completed.contains(account) { throw APIError.malformedResponse }
         if scenario == .unknownDelayedRefresh, completed.contains(account) { try await Task.sleep(nanoseconds: 5_000_000_000) }

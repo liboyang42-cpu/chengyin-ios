@@ -364,6 +364,9 @@ import SwiftUI
             if revision == generation && expected == identity {
                 failure = error as? ClubGovernanceFailure ?? .unknown(message: nil)
                 self.review = nil; locked = coordinator.isLocked(review.command, identity: review.identity)
+                if route.operation == .updateSeries, submittedRequestID == draft.requestID, !locked, let definite = failure {
+                    seriesUpdateReturn?.conflicted(review, definite)
+                }
             }
         }
         if revision == generation { busy = false }

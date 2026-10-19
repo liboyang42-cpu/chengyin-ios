@@ -150,9 +150,12 @@ import SwiftUI
 
 @MainActor struct ClubOpsEventSeriesHeader: View {
     let empty: Bool
+    var namesKey: ClubGovernanceReadContext? = nil
+    var loadNames: (@MainActor (ClubGovernanceReadContext) async -> Void)? = nil
     var body: some View {
         Section {
             Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+                .task(id: namesKey) { if let namesKey, let loadNames { await loadNames(namesKey) } }
             if empty {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("clubOpsEvent.series.empty", tableName: "ClubOpsEvent").font(.headline)
@@ -226,5 +229,40 @@ struct ClubOpsEventOccurrenceMetaText: View {
             .accessibilityIdentifier("clubOpsEvent.cancel.refund")
         Text(LocalizedStringKey("clubOpsEvent.notify." + ClubOpsEventCancellation.notifications(receipt).rawValue), tableName: "ClubOpsEvent")
             .accessibilityIdentifier("clubOpsEvent.cancel.notify")
+    }
+}
+
+/// Display-only topic names for the series list (mini loadTopics, same club, club:activity:manage).
+/// A failed, denied or stale read only keeps the `主题 #id` fallback; it never hides or delays a series row.
+@MainActor final class ClubOpsEventTopicNameReads: ObservableObject {
+    @Published private(set) var snapshot: ClubGovernanceSnapshot?
+    private var context: ClubGovernanceReadContext?
+    func names(_ expected: ClubGovernanceReadContext) -> [Int: String] {
+        context == expected ? ClubOpsEventTopicNames.names(snapshot, clubID: expected.scope.clubID) : [:]
+    }
+    func load(context expected: ClubGovernanceReadContext, access: any ClubGovernanceAccess) async {
+        guard expected.operation == .series, let clubID = expected.scope.clubID, clubID > 0,
+              context != expected || snapshot == nil else { return }
+        context = expected; snapshot = nil
+        guard expected.identity?.isSignedIn == true, expected.identity == access.identity, access.isConfigured,
+              expected.accessIdentity == ObjectIdentifier(access) else { return }
+        let scope = ClubGovernanceScope(clubID: clubID)
+        func check() throws {
+            guard context == expected, expected.identity == access.identity,
+                  expected.authorizationGeneration == access.authorizationGeneration, !Task.isCancelled else { throw CancellationError() }
+        }
+        guard let result = try? await access.read(.eventTopics, scope: scope, options: [:], check: check),
+              (try? check()) != nil, result.operation == .eventTopics, result.scope == scope else { return }
+        snapshot = result
+    }
+}
+
+/// Mini handleSeriesConflict copy, shown on the re-read series detail after a definite 409.
+struct ClubOpsEventSeriesConflictNotice: View {
+    var body: some View {
+        Section {
+            Text("clubOpsEvent.series.conflict", tableName: "ClubOpsEvent").font(.subheadline)
+                .accessibilityIdentifier("clubOpsEvent.series.conflict")
+        }
     }
 }

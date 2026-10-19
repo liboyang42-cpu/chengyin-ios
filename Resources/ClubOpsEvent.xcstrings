@@ -1041,6 +1041,22 @@
         }
       }
     },
+    "clubOpsEvent.series.conflict": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This series was updated elsewhere. Refreshing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系列已被更新，正在刷新"
+          }
+        }
+      }
+    },
     "clubOpsEvent.series.empty": {
       "localizations": {
         "en": {

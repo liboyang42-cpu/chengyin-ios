@@ -46,7 +46,7 @@ import Observation
                 ClubGovernanceHomeEntries(identity: store.identity, access: store.access, coordinator: store.coordinator)
                 ClubGovernanceEntryButton(clubID: 81, identity: store.identity, access: store.access, coordinator: store.coordinator,
                     customerTopics: .init(destination: { id in AnyView(Text(verbatim: "Synthetic history topic \(id)").accessibilityIdentifier("club.fixture.historyTopic.\(id)")) }))
-                ForEach([ClubGovernanceRead.customers, .series, .roles, .topicOverview, .editions, .dissolutionBlockers, .leaderboard, .settlement, .audienceCounts, .roster], id: \.rawValue) { operation in
+                ForEach([ClubGovernanceRead.customers, .series, .roles, .topicOverview, .editions, .dissolutionBlockers, .leaderboard, .settlement, .audienceCounts, .roster, .cases, .bans], id: \.rawValue) { operation in
                     NavigationLink {
                         ClubGovernanceReadView(operation: operation, scope: ClubGovernanceFixtures.scope, identity: store.identity, access: store.access, coordinator: store.coordinator)
                             .accessibilityIdentifier("club.gov.fixture.destination." + operation.rawValue)
@@ -61,6 +61,7 @@ import Observation
                 }
                 Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount")
                 Button("club.gov.simulateUnknown") { store.access.writeFailure = .unknown(message: nil) }.accessibilityIdentifier("club.gov.simulateUnknown")
+                ClubOpsFixtureControls(access: store.access)
             }.accessibilityIdentifier("club.gov.fixture.root").navigationTitle("club.gov.workspace")
         }.environment(\.clubEnrollmentProfile, store.leaderboardProfile)
     }

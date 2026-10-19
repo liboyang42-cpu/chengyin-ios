@@ -52,6 +52,9 @@ struct ClubManagementView: View {
                 Text("club.management.unconfigured")
             } else {
                 if loading { ProgressView().accessibilityLabel(Text("club.management.loading")) }
+                if let issue = ClubOpsJoinRequestCopy.loadIssue(failed: failed, denied: denied, stale: stale, hasSnapshot: contextMatches && snapshot != nil) {
+                    ClubOpsJoinRequestLoadIssue(issue: issue, disabled: loading || state == .checking || state == .awaitingConfirmation || state == .submitting) { Task { await refresh() } }
+                }
                 if failed {
                     Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable")).foregroundStyle(.secondary)
                     if let serverReadMessage { Text(verbatim: serverReadMessage) }
@@ -216,9 +219,14 @@ struct ClubManagementView: View {
         let attachment = reviewOwner.attachment, source = reviewContext
         return Button(role: action == .approve ? nil : .destructive) {
             Task { await prepare(action, memberID: memberID, attachment: attachment, source: source) }
-        } label: { Text(LocalizedStringKey("club.management." + String(action.rawValue))) }
+        } label: { ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID)) }
             .disabled(loading || stale || !contextMatches || state.preventsNewAction)
             .accessibilityIdentifier("club.management.\(action.rawValue).\(memberID)")
+    }
+    private func progressKey(_ action: ClubManagementAction, memberID: Int) -> String? {
+        let acting = reviewOwner.item?.confirmation
+        return ClubOpsJoinRequestCopy.progressKey(action, submitting: state == .submitting, actingAction: acting?.action,
+                                                  actingMemberID: acting?.memberID, memberID: memberID)
     }
     private func cancel() {
         if let item = reviewOwner.item, reviewOwner.cancel(item) { coordinator.cancel(item.confirmation) }
@@ -240,7 +248,7 @@ struct ClubManagementView: View {
                         guard reviewOwner.claim(item, context: reviewContext, active: scenePhase == .active) else { return }
                         state = .submitting
                         Task { await confirm(pending, item: item) }
-                    } label: { Text(LocalizedStringKey("club.management." + String(pending.action.rawValue))) }
+                    } label: { ClubOpsJoinRequestActionLabel(action: pending.action, progressKey: progressKey(pending.action, memberID: pending.memberID)) }
                     .accessibilityIdentifier("club.management.confirm")
                 }
                 .appNavigationTitle(key: "club.management." + pending.action.rawValue)

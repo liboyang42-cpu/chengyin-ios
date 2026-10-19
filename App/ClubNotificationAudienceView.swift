@@ -162,6 +162,7 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
             if isCurrent(), permit != nil, let failure = model.failure {
                 Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.audience.error")
             }
+            if isCurrent(), permit != nil, model.failure == .forbidden { ClubOpsNotifyDeniedText() }
             if model.countsUnavailable, isCurrent() { Text("club.gov.unknownValue").accessibilityIdentifier("club.audience.countsUnavailable") }
             if model.failure != .forbidden {
                 Button(LocalizedStringKey(model.failure == nil && !model.countsUnavailable ? "club.gov.refresh" : "action.retry")) {

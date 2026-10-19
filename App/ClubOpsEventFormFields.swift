@@ -86,6 +86,8 @@ enum ClubOpsEventFormCopy {
         if route.operation == .correctAttendance, let arrived = route.seed["arrived"]?.bool {
             return Text(arrived ? "clubOpsEvent.correct.toArrived" : "clubOpsEvent.correct.toAbsent", tableName: "ClubOpsEvent")
         }
+        // Mini roles page: the button reads 分配 under the 分配固定角色 section, so the sheet keeps the section name.
+        if route.operation == .assignRole { return Text("clubOpsGov.roles.assign.title", tableName: "ClubOpsGovernance") }
         return Text(LocalizedStringKey("club.gov.action." + route.operation.rawValue))
     }
 }

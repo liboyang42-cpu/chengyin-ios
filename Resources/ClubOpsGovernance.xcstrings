@@ -65,6 +65,22 @@
         }
       }
     },
+    "clubOpsGov.appeal.mode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban appeal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封禁申诉"
+          }
+        }
+      }
+    },
     "clubOpsGov.appeal.note": {
       "localizations": {
         "en": {
@@ -449,6 +465,22 @@
         }
       }
     },
+    "clubOpsGov.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Governance is temporarily unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "治理功能暂时不可用"
+          }
+        }
+      }
+    },
     "clubOpsGov.memberNumber %lld": {
       "localizations": {
         "en": {
@@ -577,6 +609,22 @@
         }
       }
     },
+    "clubOpsGov.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载"
+          }
+        }
+      }
+    },
     "clubOpsGov.roles.assign.caption": {
       "localizations": {
         "en": {
@@ -669,6 +717,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "先邀请成员加入俱乐部，再为他们分配运营角色。"
+          }
+        }
+      }
+    },
+    "clubOpsGov.roles.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Role management is temporarily unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色管理暂时不可用"
           }
         }
       }

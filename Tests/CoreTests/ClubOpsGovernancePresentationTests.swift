@@ -160,4 +160,21 @@ final class ClubOpsGovernancePresentationTests: XCTestCase {
         let denied = try ClubGovernanceSnapshot(operation: .roles, scope: scope, permissions: permissions([], roles: [], canManageRoles: false), value: roles)
         XCTAssertThrowsError(try ClubOpsRoleRoster(roles: denied, members: nil))
     }
+    func testAppealModeFollowsMiniGovernanceAppealPage() throws {
+        XCTAssertFalse(try cases(.array([report])).appealMode)
+        XCTAssertFalse(try cases(.object(["data": .array([report]), "activeBan": .null])).appealMode)
+        XCTAssertTrue(try cases(.object(["data": .array([]), "activeBan": activeBan()])).appealMode)
+        let inactive = try cases(.object(["data": .array([]), "activeBan": .null]), permitted: false)
+        XCTAssertTrue(inactive.appealMode); XCTAssertFalse(inactive.canAppeal); XCTAssertFalse(inactive.canReport)
+    }
+    func testPageFailureTitlesSkipDenialAndSignedOut() {
+        XCTAssertEqual(ClubOpsPageFailureCopy(operation: .bans, failure: .malformed)?.titleKey, "clubOpsGov.failed")
+        XCTAssertEqual(ClubOpsPageFailureCopy(operation: .cases, failure: .unknown(message: nil))?.titleKey, "clubOpsGov.failed")
+        XCTAssertEqual(ClubOpsPageFailureCopy(operation: .roles, failure: .malformed)?.titleKey, "clubOpsGov.roles.failed")
+        XCTAssertEqual(ClubOpsPageFailureCopy(operation: .roles, failure: .malformed)?.table, "ClubOpsGovernance")
+        XCTAssertNil(ClubOpsPageFailureCopy(operation: .roles, failure: .forbidden))
+        XCTAssertNil(ClubOpsPageFailureCopy(operation: .members, failure: .signedOut))
+        XCTAssertNil(ClubOpsPageFailureCopy(operation: .customers, failure: .malformed))
+    }
+
 }
