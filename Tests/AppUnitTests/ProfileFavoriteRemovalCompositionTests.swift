@@ -2,7 +2,7 @@ import XCTest
 @testable import Questify
 
 @MainActor final class ProfileFavoriteRemovalCompositionTests: XCTestCase {
-    private final class Wire: HTTPTransport {
+    @MainActor private final class Wire: HTTPTransport {
         let base = ProfileFavoritesWire()
         var marked = true, writes = 0
         var unreadableAfterWrite = false, unauthorizedRead = false
