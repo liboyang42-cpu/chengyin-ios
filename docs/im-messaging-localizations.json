@@ -77,5 +77,11 @@
   {"key": "messaging.missing", "en": "Cannot open this conversation", "zh-Hans": "这个会话打不开"},
   {"key": "messaging.missingHint", "en": "The conversation reference is missing or invalid. Go back to the list.", "zh-Hans": "链接可能已失效，回消息列表重新进入"},
   {"key": "messaging.signInHint", "en": "Your signed-in session is required to view private conversations.", "zh-Hans": "登录后可查看私信和系统通知"},
-  {"key": "im.reply.systemNotice", "en": "System notifications are one-way. You can read them and manage notifications here.", "zh-Hans": "系统通知不支持回复，有新动态会出现在这里"}
+  {"key": "im.reply.systemNotice", "en": "System notifications are one-way. You can read them and manage notifications here.", "zh-Hans": "系统通知不支持回复，有新动态会出现在这里"},
+  {"key": "im.card.signupFlag", "en": "Registered", "zh-Hans": "报名成功"},
+  {"key": "im.card.routeUnavailable", "en": "Route details can't be loaded right now.", "zh-Hans": "路线信息暂时无法加载"},
+  {"key": "im.card.routeLoading", "en": "Loading route…", "zh-Hans": "正在读取路线…"},
+  {"key": "im.card.pointCount %lld", "en": "%lld stops", "zh-Hans": "%lld 个点"},
+  {"key": "im.card.locationMap", "en": "Location map", "zh-Hans": "位置地图"},
+  {"key": "im.chat.emptyReplyHint", "en": "Send the first message to confirm the route, meeting point or collaboration details.", "zh-Hans": "发送第一条消息，和对方确认路线、集合点或合作细节"}
 ]

@@ -7,7 +7,10 @@ enum MessagingFixtureScenario: String {
     case success, empty, error, closed, unauthorized, unconfigured, pagingError, loading
     /// w2-20: page reports blockedByMe; safety writes run against this reader only.
     case blocked, safety, safetyUnknown
+    /// w2-20 p2: route/signup previews read an offline TopicFixtureReader.
+    case cards, cardsUnavailable
     var grantsSafety: Bool { self == .safety || self == .safetyUnknown }
+    var hasCardReader: Bool { self == .cards || self == .cardsUnavailable }
 }
 
 @MainActor
@@ -110,16 +113,19 @@ struct MessagingFixtureHostView: View {
     private let safetyWriter: MessagingFixtureSafetyWriter
     @State private var revision: UInt64 = 1
     private let owners = MessagingFixtureSafetyOwners()
+    private let cardTopics: TopicFixtureReader
     init(scenario: MessagingFixtureScenario = .success) {
         reader = MessagingFixtureReader(scenario); safetyWriter = MessagingFixtureSafetyWriter(reader: reader)
+        cardTopics = TopicFixtureReader(scenario: scenario == .cardsUnavailable ? .unavailable : .content)
     }
     private var expanded: IMExpandedNavigationContext? {
-        guard reader.scenario.grantsSafety else { return nil }
+        guard reader.scenario.grantsSafety || reader.scenario.hasCardReader else { return nil }
         let reader = reader, writer = safetyWriter, owners = owners
+        let topics: any TopicReading = reader.scenario.hasCardReader ? cardTopics : TopicSessionReader(service: nil, currentSession: { nil })
         return .init(coordinator: { _ in nil }, uploadCoordinator: { _ in nil }, starter: { nil },
-            topicReader: TopicSessionReader(service: nil, currentSession: { nil }),
+            topicReader: topics,
             safetyCoordinator: { id in
-                guard let identity = reader.identity, let scope = try? IMScope(identity: identity, conversationID: id) else { return nil }
+                guard reader.scenario.grantsSafety, let identity = reader.identity, let scope = try? IMScope(identity: identity, conversationID: id) else { return nil }
                 if let owner = owners.values[scope] { return owner }
                 let owner = IMSafetyCoordinator(scope: scope, writer: writer, reader: reader)
                 owners.values[scope] = owner
