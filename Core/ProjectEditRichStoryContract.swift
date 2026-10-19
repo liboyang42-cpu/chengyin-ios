@@ -197,7 +197,9 @@ public enum ProjectEditRichStoryContract {
         for (index, raw) in rows.enumerated() {
             guard let row = raw.object, Set(row.keys).isSubset(of: ["code", "title", "summary", "fallback", "when", "chapterId"]) else { throw ProjectEditError.invalidContract }
             var fields: [String: ProjectEditJSON] = [:]
-            for key in ["fallback", "when"] { if let value = row[key] { fields[key] = value } }
+            // Mini attachEndingsToChapters reads `fallback === true`; BK-NARRATIVE v2 writes accept only a JSON boolean.
+            if let value = row["fallback"], value == .bool(true) || value == .bool(false) { fields["fallback"] = value }
+            if let value = row["when"] { fields["when"] = value }
             if let id = row["chapterId"]?.integer, let ci = draft.chapters.firstIndex(where: { $0.preserved["id"]?.integer == id }) {
                 guard assigned.insert(ci).inserted else { throw ProjectEditError.invalidContract }; draft.chapters[ci].preserved["ending"] = .object(fields)
             } else {

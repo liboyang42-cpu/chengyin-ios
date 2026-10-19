@@ -19,6 +19,8 @@ struct TopicDetailView: View {
     @State private var loading = false
     @State private var generation = 0
     @State private var loads = SignedInContentDetailLoadOwner()
+    @Environment(\.topicPricingDestination) private var pricingDestination
+    @State private var showsPricing = false
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
@@ -44,12 +46,25 @@ struct TopicDetailView: View {
         }
     }
     private func content(_ value: TopicDetail) -> some View {
+        ScrollViewReader { proxy in
         List {
             Section {
                 if reader.isOfflineExample { Text("topic.offlineExample").font(.caption) }
+                TopicXcxHero(topic: value)
+                let covers = value.images.isEmpty ? (value.imageURL.map { [$0] } ?? []) : Array(value.images.prefix(9))
+                if covers.isEmpty { Text("topicXcx.coverHint").font(.caption).foregroundStyle(.secondary) }
+                else { NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true) }
                 Text(verbatim: value.name).font(.title2.bold())
+                TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
+                TopicXcxTabs(proxy: proxy)
                 TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
-                if value.betaFlag == 1 { Text("topic.beta") }
+                if value.betaFlag == 1 {
+                    // Source topic-beta block: badge plus feedback note.
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("topic.source.betaBadge").font(.subheadline.bold())
+                        Text("topic.source.betaNote").font(.caption).foregroundStyle(.secondary)
+                    }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
+                }
                 if let subtitle = value.subtitle { Text(verbatim: subtitle) }
                 if let introduction = value.introduction { Text(verbatim: introduction).textSelection(.enabled) }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
@@ -58,8 +73,26 @@ struct TopicDetailView: View {
                 if let start = value.startDate { LabeledContent("topic.start", value: start) }
                 if let end = value.endDate { LabeledContent("topic.end", value: end) }
                 if let count = value.merchantCount { LabeledContent("topic.merchants", value: String(count)) }
-                if let seconds = value.totalTimeSeconds { LabeledContent("topic.durationSeconds", value: String(seconds)) }
+                if let seconds = value.totalTimeSeconds { LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) } }
+            }.id(TopicXcxTab.details.anchor)
+            if let records = reader as? any TopicThemeRecordsReading {
+                // Source 我的游玩记录 row; always shown, the sheet handles empty/sign-in states.
+                Section {
+                    NavigationLink { TopicThemeRecordsView(topicID: value.id, topicName: value.name, reader: records) } label: {
+                        Label("topicXcx.records.title", systemImage: "clock")
+                    }.accessibilityIdentifier("topic.records.entry")
+                }
             }
+            if let venue = TopicXcxFacts.venue(value.addressName) {
+                Section("topicXcx.section.venue") {
+                    Label { VStack(alignment: .leading) { Text(verbatim: venue.name); if let address = venue.address { Text(verbatim: address).font(.caption) } } } icon: { Image(systemName: "mappin.circle") }
+                }
+            }
+            let includes = TopicXcxFacts.includes(value)
+            if !includes.isEmpty { Section("topicXcx.section.contents") { TopicXcxIncludes(rows: includes) } }
+            if value.templateCount != 0 { TopicXcxTemplatesSection(templates: TopicXcxFacts.nodeTemplates(value)) }
+            let lineup = TopicXcxFacts.lineup(value)
+            if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup) } }
             if let activities = value.activities {
                 Section("topic.activities") {
                     if activities.isEmpty { Text("topic.noActivities").accessibilityIdentifier("topic.activities.empty") }
@@ -67,6 +100,7 @@ struct TopicDetailView: View {
                         if let activityDestination {
                             NavigationLink { activityDestination(activity.id) } label: {
                                 VStack(alignment: .leading, spacing: 6) {
+                                    TopicXcxSessionChip(startDate: activity.startDate)
                                     Text(verbatim: activity.name).font(.headline)
                                     if let address = activity.addressName { Text(verbatim: address) }
                                     if let start = activity.startDate { LabeledContent("topic.start", value: start) }
@@ -92,10 +126,20 @@ struct TopicDetailView: View {
                 Section("topic.lockedStory") {
                     Label("topic.lockedNotice", systemImage: "lock")
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
+                    Text("topicXcx.paywall.detail").font(.footnote)
+                    if value.selfPlay == 1 {
+                        Button("topicXcx.paywall.unlock") { showingSelfPlay = true }.disabled(!value.canOfferPurchase).accessibilityIdentifier("topic.paywall.unlock")
+                    }
+                    Text("topicXcx.paywall.recover").font(.caption).foregroundStyle(.secondary)
                 }
             }
             Section("topic.chapters") {
-                if value.chapters.isEmpty { Text("topic.noChapters") }
+                if value.chapters.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("topic.noChapters")
+                        Text("topicXcx.nodes.emptyDetail").font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
                 // Index identity preserves source order even when backend IDs are absent/duplicated.
                 ForEach(Array(value.chapters.enumerated()), id: \.offset) { _, chapter in
                     NavigationLink {
@@ -110,28 +154,48 @@ struct TopicDetailView: View {
                         }
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
                 }
-            }
-            Section("topic.tickets") {
+            }.id(TopicXcxTab.nodes.anchor)
+            TopicXcxRouteSection(topic: value).id(TopicXcxTab.route.anchor)
+            Section("topic.source.sessions") {
                 if value.tickets.isEmpty { Text("topic.noTickets") }
                 ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
                     VStack(alignment: .leading, spacing: 8) {
                         Text(verbatim: ticket.name).font(.headline)
                         TopicPrice(value: ticket.price, label: "topic.price")
-                        if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
-                        if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
-                        if let meeting = ticket.meetingPoint { Text(verbatim: meeting) }
-                        if let remaining = ticket.remaining { LabeledContent("topic.remaining", value: String(remaining)) }
-                        if let refund = ticket.refundRule { Text(verbatim: refund).font(.footnote) }
+                        if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) { Text(verbatim: session) }
+                        else {
+                            if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
+                            if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
+                        }
+                        if let meeting = ticket.meetingPoint { Text("topic.source.meetingPoint \(meeting)") }
+                        if let refund = ticket.refundRule { Text("topic.source.refundRule \(refund)").font(.footnote) }
+                        if let remaining = ticket.remaining { Text("topic.source.seatsLeft \(remaining)") }
+                        else { Text("topic.source.seatsUnknown").foregroundStyle(.secondary) }
                     }
                 }
-            }
+                if !value.tickets.isEmpty { Text("topic.source.sessionNote").font(.caption).foregroundStyle(.secondary) }
+            }.id("topicXcx.anchor.sessions")
             Section("topic.comments") {
+                if (value.commentCount ?? value.comments.count) == 0 {
+                    // Source ratings empty state.
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("topicXcx.reviews.emptyTitle").font(.headline)
+                        Text("topicXcx.reviews.emptyDetail").font(.footnote).foregroundStyle(.secondary)
+                    }.accessibilityIdentifier("topic.reviews.emptyPrompt")
+                }
                 Button("context.review.title") { showsReview = true }.accessibilityIdentifier("topic.openReview")
                 TopicReviewsContent(reviews: value.reviews)
             }
         }
         .refreshable { await loads.run { await load() } }
+        .safeAreaInset(edge: .bottom) {
+            TopicXcxActionBar(topic: value, openSessions: { withAnimation { proxy.scrollTo("topicXcx.anchor.sessions", anchor: .top) } },
+                              openSelfPlay: { showingSelfPlay = true },
+                              openPricing: pricingDestination == nil ? nil : { showsPricing = true })
+        }
+        .sheet(isPresented: $showsPricing) { if let pricingDestination { NavigationStack { pricingDestination(value.id) } } }
         .accessibilityIdentifier("topic.detail.content")
+        }
     }
     private func load() async {
         generation += 1
@@ -192,6 +256,7 @@ struct TopicChapterView: View {
                                 if let players = template.players { Text(verbatim: players) }
                                 if let duration = template.duration { LabeledContent("topic.durationMinutes", value: String(duration)) }
                             }
+                            TopicXcxNodeFootView(node: node)
                             ForEach(Array(node.merchants.enumerated()), id: \.offset) { _, merchant in
                                 if let owner = PublicMerchantOwnerID(merchant.memberID), let publicMerchant {
                                     NavigationLink { PublicMerchantHomeView(target: .ownerMemberID(owner), context: publicMerchant) } label: {

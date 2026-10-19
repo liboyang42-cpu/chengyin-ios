@@ -8,16 +8,19 @@ final class IMExpandedUITests: XCTestCase {
         app.launchArguments = ["--im-expanded-fixture", "message-empty"]
         app.launch()
         XCTAssertTrue(app.descendants(matching: .any)["messaging.list.empty"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["messaging.list.emptySquare"].exists)
+        // Source tabs: 私信 (0) / 系统 (1). System never offers Square.
         let tabs = app.segmentedControls["messaging.list.scope"]
-        tabs.buttons.element(boundBy: 2).tap()
+        XCTAssertEqual(tabs.buttons.count, 2)
+        tabs.buttons.element(boundBy: 1).tap()
+        XCTAssertFalse(app.buttons["messaging.list.emptySquare"].exists)
+        tabs.buttons.element(boundBy: 0).tap()
         let entry = app.buttons["messaging.list.emptySquare"]
         XCTAssertTrue(entry.waitForExistence(timeout: 2))
         entry.tap()
         XCTAssertTrue(app.staticTexts["messaging.fixture.square"].waitForExistence(timeout: 2))
         app.buttons["messaging.fixture.square.close"].tap()
         XCTAssertTrue(entry.waitForExistence(timeout: 2))
-        XCTAssertTrue(tabs.buttons.element(boundBy: 2).isSelected)
+        XCTAssertTrue(tabs.buttons.element(boundBy: 0).isSelected)
         entry.tap()
         XCTAssertTrue(app.staticTexts["messaging.fixture.square"].waitForExistence(timeout: 2))
     }
@@ -29,7 +32,7 @@ final class IMExpandedUITests: XCTestCase {
         let tabs = app.segmentedControls["messaging.list.scope"]
         tabs.buttons.element(boundBy: 1).tap()
         XCTAssertFalse(app.buttons["messaging.list.emptySquare"].exists)
-        tabs.buttons.element(boundBy: 2).tap()
+        tabs.buttons.element(boundBy: 0).tap()
         let search = app.searchFields.firstMatch
         search.tap(); search.typeText("missing")
         XCTAssertFalse(app.buttons["messaging.list.emptySquare"].exists)

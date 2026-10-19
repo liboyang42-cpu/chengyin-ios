@@ -156,9 +156,9 @@ import MapKit
         Form {
             Section { Text("publishModes.clubOnly"); Text("publishModes.offlineNotice").foregroundStyle(.secondary) }
             Section("publishModes.details") {
-                TextField("publishModes.name", text: $draft.name)
+                TextField("publishParity.activity.title", text: $draft.name)
                 clearButton(.name)
-                TextField("publishModes.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
+                TextField("publishParity.activity.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
                 clearButton(.description)
                 TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
                 TextField("publishModes.addressName", text: $draft.addressName)
@@ -173,7 +173,7 @@ import MapKit
                 } label: { Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "选择活动起止时间" : "Choose activity start and end") }
                     .disabled(!mayEditTimeRange || !timeRange.canOpen(account: account, draftID: draftID, draft: draft, now: Date()))
                     .accessibilityIdentifier("publishModes.activity.timeRange.open")
-                Button("publishModes.categories") { picker = "category" }; Text(draft.categoryIDs.map(String.init).joined(separator: ", "))
+                Button("publishParity.activity.type") { picker = "category" }; Text(draft.categoryIDs.map(String.init).joined(separator: ", "))
                 Button("publishModes.template") {
                     localClear.invalidate(); timeRange.retire()
                     templateSelection.begin(service: service, expected: templateSelectionAction, allowed: mayEditTimeRange)
@@ -184,16 +184,18 @@ import MapKit
             Section { ActivityCoverAuthoringSection(owner: cover) }
             ForEach($draft.tickets) { $ticket in
                 Section("publishModes.ticket") {
-                    TextField("publishModes.name", text: $ticket.name)
+                    TextField("publishParity.ticket.name", text: $ticket.name)
                     clearButton(.ticketName(ticket.id))
-                    TextField("publishModes.price", text: $ticket.price).keyboardType(.decimalPad)
-                    TextField("publishModes.stock", text: $ticket.stock).keyboardType(.numberPad)
+                    TextField("publishParity.ticket.price", text: $ticket.price).keyboardType(.decimalPad)
+                    TextField("publishParity.ticket.stock", text: $ticket.stock).keyboardType(.numberPad)
                     clearButton(.ticketStock(ticket.id))
                     TextField("publishModes.start", text: $ticket.start)
                     TextField("publishModes.end", text: $ticket.end)
                     Button("publishModes.remove", role: .destructive) { draft.tickets.removeAll { $0.id == ticket.id } }
                 }.disabled(!editable)
             }
+            // Mini-program publish/activity: 添加票单 directly follows the ticket list, before publisher identity.
+            Button("publishModes.addTicket") { draft.tickets.append(.init()) }.disabled(!editable)
             Section {
                 Button("publishModes.saveLocal") {
                     guard let account, let draftStore else { return }
@@ -218,7 +220,6 @@ import MapKit
             if requiresIdentity {
                 PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
             }
-            Button("publishModes.addTicket") { draft.tickets.append(.init()) }.disabled(!editable)
             if !message.isEmpty { Text(LocalizedStringKey(message)).accessibilityIdentifier("publishModes.message") }
             submissionResult
             Button("publishModes.review") { Task { await prepare() } }.disabled(!editable).accessibilityIdentifier("publishModes.activity.review")

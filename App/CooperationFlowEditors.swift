@@ -140,8 +140,13 @@ struct CoopFlowHandleEditor: View {
             LabeledContent("coopflow.field.id", value: String(inviteID))
             Text(LocalizedStringKey("coopflow.handle." + String(action.rawValue)))
             TextField("coopflow.field.reason", text: $reason, axis: .vertical)
+                .onChange(of: reason) { _, value in if value.count > 100 { reason = String(value.prefix(100)) } }
+            Text(verbatim: "\(reason.count) / 100").font(.caption).foregroundStyle(.secondary)
+            // Source invite-detail: accepting takes an optional note; declining, withdrawing and cancelling need a reason.
             if action == .cancel && currentStatus == 1 { Text("coopflow.cancel.reason") }
-            if action != .cancel || currentStatus != 1 || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            else if action == .reject { Text("cooperation.detail.reject.reasonRequired") }
+            else if action == .cancel { Text("cooperation.detail.withdraw.reasonRequired") }
+            if action == .accept || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: .handle(inviteID: inviteID, action: action, reason: reason)) }
             }
             Text("coopflow.contract.notice")

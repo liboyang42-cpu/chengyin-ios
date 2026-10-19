@@ -86,6 +86,14 @@ struct ProfileSettingsProfileRoute: Hashable {
                     Label(LocalizedStringKey(route.access.titleKey), systemImage: route.access.target == .brand ? "storefront" : "person.crop.circle")
                 }.accessibilityIdentifier("settingsNative.openProfile")
             }
+        } else if session.account == nil {
+            // pages/shezhi 401 row: protocol and privacy rows below stay readable.
+            Section {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("member.settings.signedOut", tableName: "MemberProfile")
+                    Text("member.settings.signedOutHint", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                }.accessibilityElement(children: .combine).accessibilityIdentifier("settingsNative.profileSignedOut")
+            }
         }
     }
 }

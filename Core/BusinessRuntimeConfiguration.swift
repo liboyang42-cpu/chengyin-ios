@@ -6,6 +6,7 @@ import FoundationNetworking
 public enum BusinessRuntimeFeature: Hashable {
     case bankConsentRead, bankPrepare, bankCreate, stampUpload, stampCreate
     case imStart, imRead, imMute, imSend, imUpload
+    case imDelete, imReport, imBlock, imUnblock, imUnreadTotal
     case imPollResult, imPollCreate, imPollVote, imPollClose, clubChat
     case publishingRead, publishingWrite, projectRead, projectWrite, directVerification
     case publishingAIQuota, publishingAITheme, publishingAIClub, publishingAITemplate
@@ -139,6 +140,11 @@ public extension BusinessRuntimeFeature {
         case .imRead: paths = ["api/im/read"]
         case .imMute: paths = ["api/im/mute"]
         case .imSend: paths = ["api/im/send"]
+        case .imDelete: paths = ["api/im/delete"]
+        case .imReport: paths = ["api/im/report"]
+        case .imBlock: paths = ["api/im/block"]
+        case .imUnblock: paths = ["api/im/unblock"]
+        case .imUnreadTotal: paths = ["api/im/unread-total"]
         case .publishingRead: paths = ["api/publish/home", "api/publisher/identity/status", "api/category/list", "api/user/list", "api/template/my-list", "api/project/my", "api/ai/theme/draft/quota"]
         case .topicSelfPlayRead: paths = ["api/topic/info-to-user", "api/registration/info"]
         case .topicSelfPlayCreate: paths = ["api/registration/create"]

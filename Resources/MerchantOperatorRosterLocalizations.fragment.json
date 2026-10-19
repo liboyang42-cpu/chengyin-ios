@@ -22,13 +22,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Current employees"
+          "value": "Team members"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当前员工"
+          "value": "团队成员"
         }
       }
     }
@@ -56,13 +56,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No active employees in this list. Use Prepare operator invitation to choose a role."
+          "value": "No active employees in this list. Use Invite employee to choose a role."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此名单中暂无在职员工。可通过“准备团队邀请”选择岗位。"
+          "value": "此名单中暂无在职员工。可通过“邀请员工”选择岗位。"
         }
       }
     }

@@ -6,8 +6,8 @@ import SwiftUI
     func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON {
         if ProcessInfo.processInfo.arguments.contains("--cooperation-flow-denied") { throw CoopFlowFailure.permission }
         switch resource {
-        case .finance: return .object(["topics": .array([.object(["topicId": .id(8), "topicName": .string("Synthetic organizer route"), "myIncome": .null, "settled": .bool(false), "merchantTotal": .number(20)])])])
-        case .myBusiness: return .object(["credit": .object(["fulfillmentRate": .id(92), "violationCount": .id(1)]), "review": .object(["reviewCount": .id(0), "avgRating": .id(0)]), "settlements": .array([.object(["id": .id(4), "topicId": .id(8), "topicName": .string("Synthetic merchant route"), "payeeType": .string("merchant"), "amount": .number(12), "status": .id(0)])])])
+        case .finance: return .object(["topics": .array([.object(["topicId": .id(8), "topicName": .string("Synthetic organizer route"), "myIncome": .null, "settled": .bool(false), "myIncomeArrived": .bool(false), "totalSales": .number(0), "verifiedSales": .number(0), "platformAmount": .number(0), "merchantTotal": .number(20)])])])
+        case .myBusiness: return .object(["credit": .object(["fulfillmentRate": .id(92), "violationCount": .id(1)]), "review": .object(["reviewCount": .id(0), "avgRating": .id(0)]), "settlements": .array([.object(["id": .id(4), "topicId": .id(8), "topicName": .string("Synthetic merchant route"), "payeeType": .string("merchant"), "amount": .number(12), "status": .id(0), "verifiedSales": .number(0), "verifiedHeads": .id(0), "shareMode": .id(0)])])])
         case .templates: return .array([.object(["id": .id(3), "name": .string("Synthetic perk"), "perkType": .id(0), "retailValue": .number(10), "unitCost": .null, "quota": .id(5)])])
         case .pool: return .object(["hasClub": .bool(true), "rows": .array([.object(["topicId": .id(8), "name": .string("Synthetic pool route"), "state": .string("open")])])])
         case .applications: return .array([.object(["applyId": .id(7), "topicId": .id(8), "topicName": .string("Synthetic application"), "status": .id(0)])])
@@ -20,8 +20,12 @@ import SwiftUI
         case .merchants: return .array([.object(["id": .id(999), "memberId": .id(102), "name": .string("Synthetic merchant")])])
         case .ownedTopics: return .object(["rows": .array([.object(["id": .id(8), "name": .string("Synthetic owned topic"), "inviteWindowOpen": .bool(true)])])])
         case .nearby, .perks: return .array([])
+        case .complaintProgress: return .array([])
         case .reviewSummary, .credit: return .object([:])
         case .depositStatus: return .object(["paymentStatus": .string("unknown")])
+        case .officialMerchantInvites: return .array([.object(["inviteId": .id(41), "title": .string("Synthetic official event"), "status": .id(0), "shareMode": .id(0), "expireTime": .string("2026-11-02 18:00:00")])])
+        case .chapterApplicationsOwned: return .array([.object(["id": .id(51), "topicId": .id(8), "topicName": .string("Synthetic chapter topic"), "chapterName": .string("Market chapter"), "merchantName": .string("Synthetic merchant"), "status": .id(0), "source": .id(0)])])
+        case .chapterApplicationsMine: return .array([])
         }
     }
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement {

@@ -74,6 +74,7 @@ struct ActivityDetailView: View {
     @State private var gateIsVisible = false
     @State private var showsReview = false
     @State private var showsRegistration=false
+    @State private var showsTicketWallet=false
     @State private var access: ActivityDetailAccess?
     @State private var loading=false
     @State private var failed=false
@@ -162,6 +163,14 @@ struct ActivityDetailView: View {
         .sheet(isPresented:$showsRegistration) {
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
         }
+        .sheet(isPresented:$showsTicketWallet) {
+            // Source: a registered viewer's CTA opens the ticket wallet (subpackageMember/signup).
+            if let session = reader as? AppSession {
+                TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTicketWallet=false },
+                                 orderLifecycleCoordinator:session.orderLifecycleCoordinator)
+                    .id(session.ticketWalletReader.scope)
+            }
+        }
     }
     @ViewBuilder private func requiredClubAction(_ renderedAccess: ActivityDetailAccess) -> some View {
         let renderedScope = gateScope
@@ -192,6 +201,21 @@ struct ActivityDetailView: View {
                 ActivityDetailHeader(summary:detail.summary)
                     .questifyCardListRow()
             }
+            if detail.isCancelled {
+                Section {
+                    VStack(alignment:.leading,spacing:6) {
+                        Text("activity.cancelled.title").font(.headline)
+                        if let reason = detail.cancelReason { Text("activity.cancelled.reason \(reason)") }
+                        Text("activity.cancelled.hint").font(.footnote).foregroundStyle(.secondary)
+                    }
+                    .fixedSize(horizontal:false,vertical:true)
+                    .questifyCardSurface()
+                    .questifyCardListRow()
+                    .accessibilityIdentifier("activity.detail.cancelled")
+                }
+            }
+            // Source meta block (分类 / 集合点 / 已报名) sits after the cancellation notice.
+            ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail))
             if let topicID = detail.summary.linkedTopicID, let topicDestination {
                 Section {
                     NavigationLink { topicDestination(topicID) } label: {
@@ -230,7 +254,12 @@ struct ActivityDetailView: View {
             }
             Section("activity.tickets") {
                 if detail.tickets.isEmpty {
-                    Text("activity.noTickets")
+                    // Source empty ticket copy: title plus host explanation.
+                    VStack(alignment:.leading,spacing:4) {
+                        Text("activity.source.noTickets").font(.headline)
+                        Text("activity.source.noTicketsDetail").font(.subheadline)
+                    }
+                        .fixedSize(horizontal:false,vertical:true)
                         .foregroundStyle(.secondary)
                         .questifyCardSurface()
                         .questifyCardListRow()
@@ -290,23 +319,42 @@ struct ActivityDetailView: View {
                                                               people: detail.people, identity: identity, snapshotID: snapshotID)
         }
     }
+    private var primaryAction: ActivityPrimaryAction {
+        if let access, case .allowed(let detail) = access { return detail.primaryAction(now: Date()) }
+        return .signUp
+    }
     private var registrationAction: some View {
         VStack(spacing:0) {
             Divider()
-            Button { showsRegistration=true } label: {
-                Text("registration.form.title")
-                    .font(.headline)
-                    .fixedSize(horizontal:false,vertical:true)
-                    .frame(maxWidth:.infinity,minHeight:44)
+            if primaryAction == .signUp {
+                Button { showsRegistration=true } label: { primaryActionLabel(.signUp) }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .tint(QuestifyPalette.accent)
+                    .accessibilityIdentifier("activity.openRegistration")
+                    .padding(.horizontal,16)
+                    .padding(.vertical,12)
+            } else {
+                // A registered or cancelled activity never reopens the registration sheet.
+                let action = primaryAction
+                let walletAvailable = reader is AppSession
+                Button { if action != .cancelled, walletAvailable { showsTicketWallet=true } } label: { primaryActionLabel(action) }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .tint(QuestifyPalette.accent)
+                    .disabled(action == .cancelled || !walletAvailable)
+                    .accessibilityIdentifier("activity.primaryAction")
+                    .padding(.horizontal,16)
+                    .padding(.vertical,12)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .tint(QuestifyPalette.accent)
-            .accessibilityIdentifier("activity.openRegistration")
-            .padding(.horizontal,16)
-            .padding(.vertical,12)
         }
         .background(Color(uiColor:.secondarySystemGroupedBackground))
+    }
+    private func primaryActionLabel(_ action: ActivityPrimaryAction) -> some View {
+        Text(LocalizedStringKey(action.titleKey))
+            .font(.headline)
+            .fixedSize(horizontal:false,vertical:true)
+            .frame(maxWidth:.infinity,minHeight:44)
     }
     @MainActor private func load() async {
         generation += 1
@@ -332,5 +380,32 @@ struct ActivityDetailView: View {
         }
         catch is CancellationError { }
         catch { if generation == operation, !Task.isCancelled { failed=true } }
+    }
+}
+
+/// Source detail meta rows. Unknown values use explicit unconfirmed copy, never zero.
+@MainActor private struct ActivityDetailMetaSection: View {
+    let facts: ActivityDetailHeaderFacts
+    var body: some View {
+        Section {
+            LabeledContent("activityParity.header.category") {
+                if let category = facts.categoryText { Text(verbatim: category) }
+                else { Text("activityParity.header.categoryUnconfirmed") }
+            }
+            .accessibilityIdentifier("activity.detail.category")
+            LabeledContent("activityParity.header.meetingPoint") {
+                switch facts.meetingPoint {
+                case .named(let place): Text(verbatim: place)
+                case .mapOnly: Text("activityParity.header.meetingPointOnMap")
+                case .unconfirmed: Text("activityParity.header.meetingPointUnconfirmed")
+                }
+            }
+            .accessibilityIdentifier("activity.detail.meetingPoint")
+            LabeledContent("activityParity.header.registered") {
+                if let count = facts.registrationCount { Text("activityParity.header.registeredCount \(count)") }
+                else { Text("activity.people.countUnknown") }
+            }
+            .accessibilityIdentifier("activity.detail.registeredCount")
+        }
     }
 }

@@ -8,11 +8,30 @@ public struct NearbyMerchantRow: Identifiable, Equatable {
     public let name: String
     public let address: String?
     public let distance: Double?
+    /// Source `pages/coop/nearby`: only unregistered leads the server marks callable show a call action.
+    public let phone: String?
+    /// Rows the server marks `coopOpen == 0` are not offered (source filter).
+    public let cooperationClosed: Bool
+    public var callablePhone: String? { memberID == nil ? phone : nil }
     public init(_ value: CoopFlowJSON) throws {
         guard let id = value["id"].integer, id > 0, let name = value["name"].text, !name.isEmpty else { throw CoopFlowFailure.malformed }
         self.id = id; self.name = name; address = value["address"].text
         memberID = value["memberId"].integer.flatMap { $0 > 0 ? $0 : nil }
         distance = value["distance"].text.flatMap(Double.init).flatMap { $0.isFinite && $0 >= 0 ? $0 : nil }
+        let dial = value["phone"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        phone = value["canCall"].flag == true && !dial.isEmpty ? dial : nil
+        cooperationClosed = value["coopOpen"].integer == 0
+    }
+    /// Distance ascending with unknown distances last; server order breaks ties.
+    public static func ordered(_ rows: [NearbyMerchantRow]) -> [NearbyMerchantRow] {
+        rows.filter { !$0.cooperationClosed }.enumerated().sorted { lhs, rhs in
+            switch (lhs.element.distance, rhs.element.distance) {
+            case let (l?, r?): return l != r ? l < r : lhs.offset < rhs.offset
+            case (_?, nil): return true
+            case (nil, _?): return false
+            case (nil, nil): return lhs.offset < rhs.offset
+            }
+        }.map(\.element)
     }
 }
 
@@ -78,7 +97,7 @@ public struct NearbyMerchantRow: Identifiable, Equatable {
             guard let values = result.rows else { throw CoopFlowFailure.malformed }
             let rows = try values.map(NearbyMerchantRow.init)
             guard Set(rows.map(\.id)).count == rows.count else { throw CoopFlowFailure.malformed }
-            storedRows = rows; owner = session; phase = .ready
+            storedRows = NearbyMerchantRow.ordered(rows); owner = session; phase = .ready
         } catch {
             guard !Task.isCancelled, stamp == generation, approved(), reader.session == session else { return }
             phase = phase == .locating ? .locationFailed : .failed

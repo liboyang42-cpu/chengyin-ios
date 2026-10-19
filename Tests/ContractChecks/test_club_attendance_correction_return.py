@@ -78,7 +78,7 @@ class ClubAttendanceCorrectionReturnContracts(unittest.TestCase):
             self.assertNotIn(token,self.owner)
     def testChangedContextRetiresRealLoadingBeforeReplacementTask(self):
         self.assertIn('@StateObject private var attendanceReads = ClubAttendanceRosterRead()', self.host)
-        self.assertIn('if attendanceReads.synchronize(readContext) {\n                    attendanceReturn.retire(); invalidateRead(); loading = false', self.host)
+        self.assertIn('if attendanceReads.synchronize(readContext) {\n                attendanceReturn.retire(); invalidateRead(); loading = false', self.host)
         self.assertIn('result = try await attendanceReads.load(context: context, access: access, check: check)', self.host)
         self.assertIn('guard context != next else { return false }\n        retire(); context = next', self.owner)
         self.assertIn('defer { if runID == run { runID = nil; loading = false } }', self.owner)

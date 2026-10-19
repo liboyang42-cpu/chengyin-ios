@@ -1,0 +1,502 @@
+{
+  "discovery.templateDetail.reviewFeedback %@": [
+    "Review feedback: %@",
+    "审核反馈：%@"
+  ],
+  "discovery.templateDetail.stat.uses": [
+    "Times used",
+    "采用次数"
+  ],
+  "discovery.templateDetail.stat.rating": [
+    "Rating",
+    "评分"
+  ],
+  "discovery.templateDetail.stat.duration": [
+    "Estimated time",
+    "预计时长"
+  ],
+  "discovery.templateDetail.stat.chapters": [
+    "Chapters",
+    "章节"
+  ],
+  "discovery.templateDetail.stat.nodes": [
+    "Stops",
+    "节点"
+  ],
+  "discovery.templateDetail.stat.totalTime": [
+    "Total time",
+    "总时长"
+  ],
+  "discovery.templateDetail.minutes %@": [
+    "%@ min",
+    "%@ 分钟"
+  ],
+  "discovery.templateDetail.howVerified": [
+    "How it’s verified",
+    "怎么验证"
+  ],
+  "discovery.templateDetail.verificationMethod": [
+    "Verification method",
+    "核验方式"
+  ],
+  "discovery.templateDetail.nodeQuestion": [
+    "Stop prompt",
+    "节点题面"
+  ],
+  "discovery.templateDetail.previewNode": [
+    "Preview stop",
+    "预览节点"
+  ],
+  "discovery.templateDetail.scenes": [
+    "Categories and settings",
+    "分类与适用场景"
+  ],
+  "discovery.templateDetail.materials": [
+    "Materials needed",
+    "所需物料"
+  ],
+  "discovery.templateDetail.reviews": [
+    "Reviews",
+    "评价"
+  ],
+  "discovery.templateDetail.reviewCount %lld": [
+    "%lld from real players",
+    "%lld 条来自真实玩家"
+  ],
+  "discovery.templateDetail.reviewSource": [
+    "From players who visited in person",
+    "来自真实到店玩家"
+  ],
+  "discovery.templateDetail.notice.title": [
+    "This is a play template; it can’t start a group directly",
+    "这是玩法模板，不能直接开团"
+  ],
+  "discovery.templateDetail.notice.body": [
+    "“Start using” copies this play into your own template. Players can play it only after an activity is published.",
+    "「开始应用」会把这个玩法复制成你自己的玩法模板；玩家要在活动发布后才能玩到。"
+  ],
+  "discovery.templateDetail.publisher.mine": [
+    "My work",
+    "我的作品"
+  ],
+  "discovery.templateDetail.publisher.creator": [
+    "Creator",
+    "创作者"
+  ],
+  "discovery.templateDetail.publisher.platform": [
+    "Questify",
+    "城瘾"
+  ],
+  "discovery.templateDetail.publisher.official": [
+    "Official",
+    "官方"
+  ],
+  "discovery.templateDetail.preview.title": [
+    "Stop interaction preview",
+    "节点交互预览"
+  ],
+  "discovery.templateDetail.preview.answerPlaceholder": [
+    "Enter a preview answer",
+    "输入预览答案"
+  ],
+  "discovery.templateDetail.preview.complete": [
+    "Finish preview",
+    "完成预览"
+  ],
+  "discovery.templateDetail.preview.answerFirst": [
+    "Answer first, then finish the preview",
+    "请先作答再完成预览"
+  ],
+  "discovery.templateDetail.preview.unsupported %@": [
+    "This play is verified by “%@”. Sign up for an activity to try it.",
+    "该玩法验证方式为「%@」，请报名参与活动后体验。"
+  ],
+  "discovery.templateDetail.preview.unsupportedOther": [
+    "This play is verified by “Other”. Sign up for an activity to try it.",
+    "该玩法验证方式为「其他」，请报名参与活动后体验。"
+  ],
+  "discovery.templateDetail.preview.close": [
+    "Close preview",
+    "关闭预览"
+  ],
+  "discovery.templateTab.staffReadOnly": [
+    "Your role can browse templates. Publishing, copying and configuring are done by the owner or manager.",
+    "当前岗位可浏览模板；发布、复制和配置由店主或店长操作"
+  ],
+  "discovery.templateTab.refusal.previewNotViewable": [
+    "This is a preview template. Save it before viewing.",
+    "这是预览模板，保存后才能查看"
+  ],
+  "discovery.templateTab.refusal.previewNotConfigurable": [
+    "This is a preview template. Save it before configuring.",
+    "这是预览模板，保存后才能配置"
+  ],
+  "discovery.templateTab.refusal.previewNotUsable": [
+    "This is a preview template. Verify it with a trial run before using it.",
+    "这是预览模板，试走验证后才能用"
+  ],
+  "discovery.templateTab.refusal.staffBrowseOnly": [
+    "Your role can only browse templates",
+    "当前岗位仅可浏览模板"
+  ],
+  "discovery.templateTab.refusal.staffCannotPublish": [
+    "Your role can’t publish projects",
+    "当前岗位没有项目发布权限"
+  ],
+  "playx.opening.title": [
+    "Opening chapter",
+    "开局章节"
+  ],
+  "playx.opening.depart": [
+    "Set off",
+    "出发"
+  ],
+  "playx.opening.finishFirst": [
+    "Finish the opening play first",
+    "请先完成开局玩法"
+  ],
+  "playx.opening.review": [
+    "Setting off records the opening as finished on the server. Continue?",
+    "出发后服务端会记录开局已完成，确定出发吗？"
+  ],
+  "playx.opening.confirm": [
+    "Confirm and set off",
+    "确认出发"
+  ],
+  "playx.opening.cancel": [
+    "Not yet",
+    "先不出发"
+  ],
+  "playx.opening.departed": [
+    "Opening finished. The route continues.",
+    "开局已完成，继续路线。"
+  ],
+  "playx.opening.saveFailed": [
+    "Couldn’t save. Please try again.",
+    "保存失败，请重试"
+  ],
+  "playx.opening.unknown": [
+    "The result isn’t confirmed yet. Check again instead of resubmitting.",
+    "结果待确认，请重新核对，不要重复提交。"
+  ],
+  "playx.opening.readBack": [
+    "Check again",
+    "再核对一次"
+  ],
+  "playx.opening.loadFailed": [
+    "Route status couldn’t be loaded.",
+    "路线状态没有加载出来。"
+  ],
+  "playx.opening.disabled": [
+    "Setting off from the opening chapter isn’t available in this version.",
+    "当前版本暂未开放开局出发。"
+  ],
+  "playx.finishRoute.eyebrow": [
+    "Next route nearby",
+    "附近下一程"
+  ],
+  "playx.finishRoute.untitled": [
+    "Nearby route",
+    "附近路线"
+  ],
+  "playx.finishRoute.priceFrom %@": [
+    "From ¥%@",
+    "¥%@ 起"
+  ],
+  "playx.finishRoute.free": [
+    "Free",
+    "免费"
+  ],
+  "playx.finishRoute.action": [
+    "See prices and tickets →",
+    "查看票价并购票 →"
+  ],
+  "playx.finishRoute.metaKm %@ %@": [
+    "%1$@ km · %2$@",
+    "%1$@ 公里 · %2$@"
+  ],
+  "playx.finishRoute.metaM %@ %@": [
+    "%1$@ m · %2$@",
+    "%1$@ 米 · %2$@"
+  ],
+  "playx.finishRoute.km %@": [
+    "%@ km",
+    "%@ 公里"
+  ],
+  "playx.finishRoute.m %@": [
+    "%@ m",
+    "%@ 米"
+  ],
+  "playx.finishRoute.address %@": [
+    "%@",
+    "%@"
+  ],
+  "playx.finishRoute.fixtureLoaded": [
+    "Finish sheet (synthetic)",
+    "完成页（合成数据）"
+  ],
+  "playx.circleLink.title": [
+    "This exploration link is incomplete",
+    "探索链接不完整"
+  ],
+  "playx.circleLink.subtitle": [
+    "Open it again from the circle theme or the invite a companion shared",
+    "请从圈层主题或同行人分享的邀请重新进入"
+  ],
+  "playx.circleLink.home": [
+    "Back to home",
+    "返回首页"
+  ],
+  "playx.circleLink.fixtureHome": [
+    "Home (synthetic)",
+    "首页（合成数据）"
+  ],
+  "playx.themeRecords.title": [
+    "My play records",
+    "我的游玩记录"
+  ],
+  "playx.themeRecords.empty": [
+    "No play records yet",
+    "还没有游玩记录"
+  ],
+  "playx.themeRecords.loading": [
+    "Loading play records",
+    "正在加载游玩记录"
+  ],
+  "playx.themeRecords.more": [
+    "Show more",
+    "查看更多"
+  ],
+  "playx.themeRecords.reload": [
+    "Reload",
+    "重新加载"
+  ],
+  "playx.themeRecords.completed": [
+    "Run completed",
+    "本局完成"
+  ],
+  "playx.themeRecords.ended": [
+    "Run ended",
+    "本局结束"
+  ],
+  "playx.themeRecords.inProgress": [
+    "In progress",
+    "游玩中"
+  ],
+  "playx.themeRecords.historyFailed": [
+    "Play records didn’t load. Please try again later.",
+    "游玩记录暂未加载，请稍后重试"
+  ],
+  "playx.themeRecords.cardFailed": [
+    "This run’s result didn’t load. Please try again later.",
+    "本局结果暂未加载，请稍后重试"
+  ],
+  "playx.themeRecords.teamCardMissing": [
+    "Your team’s result didn’t load. Refresh and try again.",
+    "本队结果暂未加载，请刷新后重试"
+  ],
+  "playx.themeRecords.cardTitle": [
+    "Run result",
+    "本局结果"
+  ],
+  "playx.themeRecords.cardLoading": [
+    "Loading this run’s result",
+    "正在加载本局结果"
+  ],
+  "playx.themeRecords.retryCard": [
+    "Reload this run’s result",
+    "重新加载本局结果"
+  ],
+  "playx.themeRecords.backToList": [
+    "Back to play records",
+    "返回游玩记录"
+  ],
+  "playx.themeRecords.scene": [
+    "Scene",
+    "场景"
+  ],
+  "playx.themeRecords.hp": [
+    "Health",
+    "生命值"
+  ],
+  "playx.themeRecords.luck": [
+    "Luck",
+    "幸运值"
+  ],
+  "playx.themeRecords.actions": [
+    "Actions",
+    "行动次数"
+  ],
+  "playx.themeRecords.rescues": [
+    "Rescues",
+    "获救次数"
+  ],
+  "playx.themeRecords.knownEndings": [
+    "Endings discovered",
+    "已发现的结局"
+  ],
+  "playx.themeRecords.nextScene %@": [
+    "Next scene: %@",
+    "下次场景：%@"
+  ],
+  "playx.entryCode.open": [
+    "Entry code",
+    "入场码"
+  ],
+  "playx.entryCode.missing.title": [
+    "Open from your ticket wallet to show the entry code",
+    "从票夹进入才能出示入场码"
+  ],
+  "playx.entryCode.missing.body": [
+    "The entry code is tied to your ticket, so it’s only available when you open play from the ticket wallet. Go to the ticket wallet now?",
+    "入场码要绑定你那张票，所以只有从票夹点进来才带得到。现在去票夹？"
+  ],
+  "playx.entryCode.missing.wallet": [
+    "Go to ticket wallet",
+    "去票夹"
+  ],
+  "playx.entryCode.missing.later": [
+    "Not now",
+    "先不去"
+  ],
+  "playx.entryCode.fixtureWallet": [
+    "Ticket wallet (synthetic)",
+    "票夹（合成数据）"
+  ],
+  "playx.backpack.title": [
+    "Backpack",
+    "背包"
+  ],
+  "playx.backpack.load": [
+    "Backpack load",
+    "背包装载"
+  ],
+  "playx.backpack.slots %lld %lld": [
+    "%1$lld / %2$lld slots",
+    "%1$lld / %2$lld 格"
+  ],
+  "playx.backpack.zero": [
+    "Depleted",
+    "已归零"
+  ],
+  "playx.backpack.tabs": [
+    "Backpack sections",
+    "背包分类"
+  ],
+  "playx.backpack.tab.items": [
+    "Items",
+    "物品"
+  ],
+  "playx.backpack.tab.clues": [
+    "Clues",
+    "线索"
+  ],
+  "playx.backpack.tab.game": [
+    "Tasks",
+    "任务"
+  ],
+  "playx.backpack.claimOnly": [
+    "This run has ended; only pending rewards can be claimed",
+    "本局已结束，仅可领取待领奖励"
+  ],
+  "playx.backpack.pending": [
+    "To claim",
+    "待领取"
+  ],
+  "playx.backpack.pendingReward": [
+    "Pending reward",
+    "待领奖励"
+  ],
+  "playx.backpack.takesSlots %lld": [
+    "Takes %lld slots",
+    "占 %lld 格"
+  ],
+  "playx.backpack.carried": [
+    "Carried items",
+    "随身物品"
+  ],
+  "playx.backpack.perItemSlots %lld": [
+    "%lld slots each",
+    "每件 %lld 格"
+  ],
+  "playx.backpack.noItems": [
+    "No items yet",
+    "还没有物品"
+  ],
+  "playx.backpack.noClues": [
+    "No clues yet",
+    "还没有线索"
+  ],
+  "playx.backpack.clue": [
+    "Clue",
+    "线索"
+  ],
+  "playx.backpack.scope.public": [
+    "Public to everyone",
+    "全场公开"
+  ],
+  "playx.backpack.scope.team": [
+    "Your team’s clue",
+    "本队线索"
+  ],
+  "playx.backpack.clueImages %lld": [
+    "%lld images (not loaded in this version)",
+    "%lld 张图片（当前版本不加载）"
+  ],
+  "playx.backpack.gameUnavailable": [
+    "Tasks, trades and recovery actions aren’t available in this version.",
+    "当前版本暂未开放任务、交换与恢复操作。"
+  ],
+  "playx.backpack.carriedSupply": [
+    "Carried supply",
+    "随身物资"
+  ],
+  "playx.backpack.genericNumber": [
+    "Value",
+    "数值"
+  ],
+  "playx.backpack.genericSupply": [
+    "Supply",
+    "物资"
+  ],
+  "playx.backpack.unavailable": [
+    "The backpack isn’t available in this version.",
+    "当前版本暂未开放背包。"
+  ],
+  "playx.backpack.failed": [
+    "The backpack didn’t load. Tap to retry.",
+    "背包暂未加载，点击重试"
+  ],
+  "playx.backpack.retry": [
+    "Retry",
+    "重试"
+  ],
+  "playx.backpack.zeroPolicy.WAIT": [
+    "Rest to recover",
+    "休息恢复"
+  ],
+  "playx.backpack.zeroPolicy.CHALLENGE": [
+    "Depletion challenge",
+    "归零挑战"
+  ],
+  "playx.backpack.zeroPolicy.STEPS": [
+    "Walk to recover",
+    "步行恢复"
+  ],
+  "playx.backpack.zeroPolicy.BLOCK_HP_COST": [
+    "Costly tasks paused",
+    "暂停消耗任务"
+  ],
+  "playx.backpack.zeroPolicy.BLOCK_PAID": [
+    "Paid tasks paused",
+    "暂停付费任务"
+  ],
+  "playx.backpack.zeroPolicy.THEME_FAIL": [
+    "Run ended",
+    "本局结束"
+  ],
+  "playx.backpack.zeroPolicy.OTHER": [
+    "Depleted state",
+    "归零状态"
+  ]
+}

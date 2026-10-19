@@ -23,10 +23,15 @@ import SwiftUI
                 if reader.isOfflineExample { Text("ticketWallet.offlineExample").font(.caption) }
                 if !reader.isAuthenticated {
                     TicketWalletIssueView(issue: .login)
+                    Text("ticketWallet.parity.login.detail").font(.subheadline).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let onSignIn { Button("ticketWallet.signIn", action: onSignIn) }
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
                 else if model.isLoading || model.loadedOwner != key { ProgressView("ticketWallet.loading") }
                 else if let issue = model.issue(owner: key) {
+                    // Source failure title 票夹没能打开 precedes the specific reason.
+                    Text("ticketWallet.parity.error.title").font(.headline)
+                        .accessibilityIdentifier("ticketWallet.errorTitle")
                     TicketWalletIssueView(issue: issue, retry: { schedule(offeredPresentation) })
                 } else if let snapshot = model.value(owner: key) {
                     if let partial = snapshot.partialFailure {
@@ -40,6 +45,11 @@ import SwiftUI
                         // A partial empty response never claims the whole wallet is empty.
                         Text(LocalizedStringKey(snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"))
                             .accessibilityIdentifier("ticketWallet.empty")
+                        if snapshot.partialFailure == nil {
+                            Text("ticketWallet.parity.empty.detail").font(.subheadline).foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("ticketWallet.emptyHint")
+                        }
                     }
                     // Source preserves both lanes and row order, including repeated server IDs.
                     ForEach(Array(snapshot.tickets.enumerated()), id: \.offset) { rowIndex, ticket in
@@ -153,11 +163,15 @@ private struct TicketWalletRow: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top, spacing: 12) {
                 TicketWalletStatusBadge(status: ticket.status)
+                if let hint = ticket.statusHintKey {
+                    Text(LocalizedStringKey(hint)).font(.footnote.weight(.semibold)).foregroundStyle(QuestifyPalette.accent)
+                        .accessibilityIdentifier("ticketWallet.statusHint.\(ticket.id)")
+                }
                 Spacer(minLength: 0)
                 Image(systemName: "ticket")
                     .font(.title2).foregroundStyle(QuestifyPalette.accent).accessibilityHidden(true)
             }
-            TicketWalletTitle(title: ticket.title)
+            TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
                 .font(.title3.weight(.semibold)).foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
             if let date = ticket.participateDate, !date.isEmpty {
@@ -174,6 +188,13 @@ private struct TicketWalletRow: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            if ticket.needsScheduleSync {
+                Label {
+                    Text("ticketWallet.p2.notice.scheduleSync").fixedSize(horizontal: false, vertical: true)
+                } icon: { Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true) }
+                .font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
+            }
             if showsPendingOrderAction {
                 Label {
                     Text("ticketPendingOrder.open", tableName: "TicketPendingOrder")
@@ -183,7 +204,7 @@ private struct TicketWalletRow: View {
             }
             if showsActionNotice {
                 Label {
-                    Text(LocalizedStringKey("ticketWallet.action." + ticket.action.rawValue))
+                    Text(LocalizedStringKey(ticket.sourceNoticeKey))
                         .fixedSize(horizontal: false, vertical: true)
                 } icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
                 .font(.footnote).foregroundStyle(.secondary)

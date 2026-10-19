@@ -10,6 +10,7 @@ import Observation
     @State private var savedDestination: WalkingSavedDestination?
     @State private var checkpointFailed = false
     @State private var power = WalkingPowerPresentation()
+    @QuestifyReduceMotion private var reduceMotion
     @State private var restoreReadGate = WalkingCheckpointReadGate()
     @State private var restorationAttempted = false
     // Explicit controls adjust the camera within one authorized scope. Same-scope
@@ -32,7 +33,7 @@ import Observation
     var body: some View {
         GeometryReader { geometry in
             mapContent
-                .transaction { if power.isLowPowerMode { $0.animation = nil } }
+                .transaction { if power.isLowPowerMode || reduceMotion { $0.animation = nil } }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 // This reduces the map's safe area; it never paints over Apple attribution.
                 .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -79,10 +80,12 @@ import Observation
             }
             model?.setForeground(scenePhase == .active)
             while !Task.isCancelled {
+                let tick = NativePerformanceSignposts.shared.begin(.walkingRefreshTick)
                 model?.synchronize()
                 synchronizeCamera()
                 if scenePhase == .active { await model?.update() }
                 synchronizeCamera()
+                tick.end()
                 let interval = powerPolicy.interval(foreground: scenePhase == .active, lowPowerMode: power.isLowPowerMode)
                 do { try await Task.sleep(for: .seconds(interval)) } catch { break }
             }
@@ -130,9 +133,11 @@ import Observation
                 if let snapshot = model.cameraSnapshot {
                     let route = snapshot.route
                     let target = snapshot.target
-                    MapPolyline(coordinates: route.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
+                    // Convert once per render; casing and route share the same geometry.
+                    let coordinates = route.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+                    MapPolyline(coordinates: coordinates)
                         .stroke(QuestifyMapAppearance.routeCasing, lineWidth: 9)
-                    MapPolyline(coordinates: route.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
+                    MapPolyline(coordinates: coordinates)
                         .stroke(QuestifyMapAppearance.route, lineWidth: 5)
                     Marker(target.title, coordinate: .init(latitude: target.coordinate.point.latitude, longitude: target.coordinate.point.longitude))
                 }
@@ -178,6 +183,8 @@ import Observation
             Button {
                 // Query the live coordinator at action time, even before a scope-change
                 // render arrives. Old buttons cannot focus a revoked or replaced route.
+                let interval = NativePerformanceSignposts.shared.begin(.walkingCameraFit)
+                defer { interval.end() }
                 guard isCameraScopeCurrent(model) else { synchronizeCamera(); return }
                 guard let request, let fit = cameraGate.consume(request, current: model.cameraSnapshot) else {
                     synchronizeCamera(); return
@@ -276,7 +283,9 @@ import Observation
                             if model.progress?.stepIndex == index { Label("walking.nextStep", systemImage: "arrow.turn.up.right").font(.caption) }
                             Text(verbatim: step.instruction).fixedSize(horizontal: false, vertical: true)
                             WalkingDistanceText(meters: step.distanceMeters).foregroundStyle(.secondary)
-                        }.accessibilityElement(children: .combine).accessibilityIdentifier("walking.step.\(index)")
+                        }.accessibilityElement(children: .combine)
+                            .accessibilityAddTraits(model.progress?.stepIndex == index ? .isSelected : [])
+                            .accessibilityIdentifier("walking.step.\(index)")
                     }
                 }
                 if let provider = route.provider {

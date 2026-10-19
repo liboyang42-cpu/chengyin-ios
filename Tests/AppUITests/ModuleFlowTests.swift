@@ -127,6 +127,8 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["club.fixture.notice"].waitForExistence(timeout:10))
         tap(app.buttons["club.home.owned.81"])
         XCTAssertTrue(app.navigationBars["Club details"].waitForExistence(timeout:5))
+        // Members live on the overview tab; owners land on posts like the mini-program.
+        tap(app.buttons["club.detail.tab.overview"])
         let members=app.buttons["club.openMembers"]
         if !members.isHittable { app.swipeUp() }
         tap(members)
@@ -145,6 +147,7 @@ final class ModuleFlowTests: XCTestCase {
     func testClubMemberPublicProfileReturnsAndReopens() {
         launch(["--uitesting-club-fixture", "member"])
         tap(app.buttons["club.home.joined.81"])
+        tap(app.buttons["club.detail.tab.overview"])
         let members = app.buttons["club.openMembers"]
         if !members.isHittable { app.swipeUp() }
         tap(members)
@@ -158,6 +161,7 @@ final class ModuleFlowTests: XCTestCase {
     func testClubMemberProfileClearsOnSignOut() {
         launch(["--uitesting-club-fixture", "owner"])
         tap(app.buttons["club.home.owned.81"])
+        tap(app.buttons["club.detail.tab.overview"])
         let members = app.buttons["club.openMembers"]
         if !members.isHittable { app.swipeUp() }
         tap(members)

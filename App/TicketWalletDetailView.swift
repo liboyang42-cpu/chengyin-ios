@@ -235,7 +235,7 @@ private struct TicketWalletDetailHeader: View {
                 Image(systemName: "ticket")
                     .font(.title).foregroundStyle(QuestifyPalette.accent).accessibilityHidden(true)
             }
-            TicketWalletTitle(title: ticket.title)
+            TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
                 .font(.title2.weight(.bold)).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("ticketWallet.detail.title")
             if let date = ticket.participateDate, !date.isEmpty {

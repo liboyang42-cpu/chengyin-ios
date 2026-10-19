@@ -7,14 +7,29 @@ struct ProfileOrdersView: View {
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var ticketReader: (any TicketWalletReading)? = nil
+    /// Source 去发现城市路线 CTA. Nil (the default) renders no CTA and never navigates.
+    var discoverRoutes: (@MainActor () -> Void)? = nil
+    /// Inert unless the root TabView installed it; mirrors the source switchTab to the home page.
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @State private var filterSelection = ProfileOrderFilterSelection()
     private var filterOwner: ProfileOrderFilterOwner {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", load: { try await reader.profileOrders() }) { orders in
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, load: { try await reader.profileOrders() }) { orders in
             if orders.isEmpty {
-                ProfileEmptyState(title: "profile.orders.empty", hint: "profile.orders.emptyHint", symbol: "ticket", identifier: "profile.orders.empty")
+                VStack(spacing: 12) {
+                    ProfileEmptyState(title: "profile.orders.sourceEmpty", hint: "profile.orders.sourceEmptyHint", symbol: "ticket", identifier: "profile.orders.empty")
+                    if let discoverRoutes {
+                        Button("profile.orderParity.discover") { discoverRoutes() }
+                            .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                            .accessibilityIdentifier("profile.orders.discover")
+                    } else if rootTabSwitch.isAvailable {
+                        Button("profile.orderParity.discover") { rootTabSwitch(.home) }
+                            .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                            .accessibilityIdentifier("profile.orders.discover")
+                    }
+                }
             } else {
                 // Local time may move an already-loaded order between categories.
                 // No timer-triggered read or financial action is performed here.
@@ -47,17 +62,40 @@ private struct ProfileOrderRow: View {
     let order: ProfileOrder
     let historyState: OrderLifecycleState
     var body: some View {
+        // Source row order: 订单号 + state → mode tag → name → time → place → 实付款.
         VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                if let number = order.registrationNo, !number.isEmpty {
+                    Text("profile.orders.number \(number)").font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
+                Text(LocalizedStringKey("orderLifecycle.state." + historyState.rawValue)).font(.subheadline)
+            }
+            switch order.sourceMode {
+            case .cityOrienteering?:
+                (Text("profile.orders.mode.city").bold() + Text(verbatim: " · ") + Text("profile.orders.mode.cityHint")).font(.caption)
+            case .freeExplore?:
+                (Text("profile.orders.mode.free").bold() + Text(verbatim: " · ") + Text("profile.orders.mode.freeHint")).font(.caption)
+            case nil: EmptyView()
+            }
             if let title = order.title, !title.isEmpty { Text(verbatim: title).font(.headline) }
             else { Text("profile.orders.untitled").font(.headline) }
-            Text(LocalizedStringKey("orderLifecycle.state." + historyState.rawValue)).font(.subheadline)
-            if let date = order.participateDate ?? order.startDate, !date.isEmpty {
+            // Source row shows the owner's MM.dd HH:mm range; otherwise keep the literal date.
+            if let range = ProfileOrderTimeRangeText.text(start: order.startDate, end: order.endDate) {
+                Label { Text(verbatim: range).monospacedDigit() } icon: { Image(systemName: "calendar") }.font(.subheadline)
+                    .accessibilityIdentifier("profile.orderRow.timeRange")
+            } else if let date = order.participateDate ?? order.startDate, !date.isEmpty {
                 Label { Text(verbatim: date) } icon: { Image(systemName: "calendar") }.font(.subheadline)
             }
-            if let location = order.addressName, !location.isEmpty {
+            if let location = order.addressName?.trimmingCharacters(in: .whitespaces), !location.isEmpty, location.lowercased() != "null" {
                 Label { Text(verbatim: location) } icon: { Image(systemName: "mappin.and.ellipse") }.font(.subheadline)
+            } else {
+                Label { Text("profile.orders.placeUnconfirmed") } icon: { Image(systemName: "mappin.and.ellipse") }.font(.subheadline)
             }
-            ProfileOrderAmountLabel(amount: order.payableAmount)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("profile.orders.paid").font(.subheadline)
+                ProfileOrderAmountLabel(amount: order.actualPaidAmount)
+            }
         }.padding(.vertical, 6)
     }
 }
@@ -74,10 +112,11 @@ struct ProfileOrderDetailView: View {
     @State private var ticketEntryVisible = false
     @State private var ticketPresentationID = UUID()
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", load: { try await reader.profileOrder(id: id) }) { order in
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, load: { try await reader.profileOrder(id: id) }) { order in
             ProfileOrderMeetingPointHost(order: order, requestedID: id, reader: reader) { meetingPointEntry in
             List {
-                Section("profile.orders.summary") {
+                ProfileOrderStateNoticeSection(order: order)
+                Section(LocalizedStringKey("profile.orderParity.section.order")) {
                     if let title = order.title, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         ProfileOptionalRow(key: "profile.orders.name", value: title)
                             .accessibilityElement(children: .combine)
@@ -94,7 +133,6 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.organizer", value: order.organizerName)
                 }
                 Section("profile.orders.schedule") {
-                    ProfileOptionalRow(key: "profile.orders.participateDate", value: order.participateDate)
                     ProfileOrderTicketScheduleRows(order: order)
                     ProfileOptionalRow(key: "profile.orders.location", value: order.addressName)
                     if let makeExternalMaps {
@@ -102,19 +140,8 @@ struct ProfileOrderDetailView: View {
                     } else {
                         meetingPointEntry
                     }
-                    ProfileOptionalRow(key: "profile.orders.expires", value: order.expiresAt)
-                }
-                if order.realName?.isEmpty == false || order.phone?.isEmpty == false {
-                    Section("profile.orders.contact") {
-                        ProfileOptionalRow(key: "profile.participants.name", value: order.realName)
-                        ProfileOptionalRow(key: "profile.participants.phone", value: order.phone)
-                    }
                 }
                 Section("profile.orders.records") {
-                    ProfileOptionalRow(key: "profile.orders.created", value: order.createTime)
-                    ProfileOptionalRow(key: "profile.orders.paymentTime", value: order.paymentTime)
-                    ProfileOptionalRow(key: "profile.orders.paymentType", value: order.paymentTypeLabel)
-                    ProfileOptionalRow(key: "profile.orders.verifiedTime", value: order.verificationTime)
                     if let code = order.verificationStatus {
                         LabeledContent("profile.orders.verification") {
                             if code == 1 { Text("profile.orders.verified") }
@@ -123,25 +150,33 @@ struct ProfileOrderDetailView: View {
                         }
                     }
                     // Keep status dimensions distinct; never infer settlement/refund from registration.
-                    if let code = order.paymentStatus { LabeledContent("profile.orders.paymentCode", value: String(code)) }
+                    if let code = order.paymentStatus {
+                        LabeledContent("profile.orderParity.payment") { ProfileOrderCodeText(label: .payment(code)) }
+                    }
                     if let code = order.refundPayoutStatus {
                         LabeledContent("profile.orders.refund") { ProfileRefundStatus(code: code) }
-                        LabeledContent("profile.orders.refundCode", value: String(code))
                     }
                 }
-                Section("profile.orders.moneyFacts") {
+                Section(LocalizedStringKey(order.paymentSectionTitleKey)) {
                     if let amount = order.wechatPaymentAmount { LabeledContent("profile.orders.cashAmount") { ProfileOrderAmountLabel(amount: amount) } }
                     if let count = order.pointUsed { LabeledContent("profile.orders.pointsUsed", value: String(count)) }
                     if let amount = order.pointDeductAmount { LabeledContent("profile.orders.pointsDeduction") { ProfileOrderAmountLabel(amount: amount) } }
                     if let amount = order.pointPaymentAmount { LabeledContent("profile.orders.pointsMoney") { ProfileOrderAmountLabel(amount: amount) } }
                     if let code = order.pointsReturned { LabeledContent("profile.orders.pointsReturnedCode", value: String(code)) }
-                    if let code = order.paymentType { LabeledContent("profile.orders.paymentTypeCode", value: String(code)) }
+                    // The source shows only the payment method label; keep the code only when no label exists.
+                    if order.sourcePaymentTypeLabelKey == nil, let code = order.paymentType,
+                       order.paymentTypeLabel?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
+                        LabeledContent("profile.orders.paymentTypeCode", value: String(code))
+                    }
                     if let amount = order.refundAmount { LabeledContent("profile.orders.refundAmount") { ProfileOrderAmountLabel(amount: amount) } }
-                    if let code = order.refundApplicationStatus { LabeledContent("profile.orders.refundApplicationCode", value: String(code)) }
+                    if let code = order.refundApplicationStatus {
+                        LabeledContent("profile.orderParity.refundApplication") { ProfileOrderCodeText(label: .refundApplication(code)) }
+                    }
                     ProfileOptionalRow(key: "profile.orders.manualRefund", value: order.manualRefundCaseStatus)
                     ProfileOptionalRow(key: "profile.orders.refundDeadline", value: order.refundDeadlineDisplay)
                     Text("profile.orders.moneyFactsHint").foregroundStyle(.secondary)
                 }
+                ProfileOrderSourceDetailSections(order: order)
                 if let lifecycleCoordinator {
                     Section {
                         NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
@@ -153,6 +188,12 @@ struct ProfileOrderDetailView: View {
                     Section { ticketEntry(order: order, tickets: ticketReader) }
                 }
                 ExploreCompletionEntry(order: order, requestedID: id, origin: reader)
+                // Source 退款与客服 (报名与客服 when free): 联系客服 opens the read-only support page.
+                Section(LocalizedStringKey(order.isSourceFreeOrder ? "profile.orderP2.supportSection.free" : "profile.orderP2.supportSection")) {
+                    NavigationLink { ParticipationSupportView() } label: {
+                        Label("profile.orderP2.contactSupport", systemImage: "message")
+                    }.accessibilityIdentifier("profile.order.detail.support")
+                }
                 Section { Text("profile.readOnly").foregroundStyle(.secondary) }
             }
             }
@@ -275,6 +316,41 @@ private struct ProfileRefundStatus: View {
         case 5: Text("profile.orders.refundQueued")
         case 6: Text("profile.orders.refundDispatching")
         default: Text("profile.orders.unknown")
+        }
+    }
+}
+
+/// Source STATE_TITLE card: title, server orderHint and the projected state tag.
+private struct ProfileOrderStateNoticeSection: View {
+    let order: ProfileOrder
+    var body: some View {
+        // Evaluated on render like the source detail; the card never triggers a read.
+        if let notice = order.stateNotice() {
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(LocalizedStringKey(notice.titleKey)).font(.headline)
+                            .accessibilityIdentifier("profile.order.detail.stateTitle")
+                        Spacer(minLength: 8)
+                        Text(LocalizedStringKey(notice.tagKey)).font(.caption)
+                            .padding(.horizontal, 8).padding(.vertical, 2)
+                            .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                            .accessibilityIdentifier("profile.order.detail.stateTag")
+                    }
+                    if let hint = notice.hint { Text(verbatim: hint).font(.subheadline).foregroundStyle(.secondary) }
+                }.padding(.vertical, 4).accessibilityElement(children: .contain)
+            }
+        }
+    }
+}
+
+/// Known source codes are labeled; any other code stays visible as a raw value.
+private struct ProfileOrderCodeText: View {
+    let label: ProfileOrderCodeLabel
+    var body: some View {
+        switch label {
+        case .key(let key): Text(LocalizedStringKey(key))
+        case .raw(let code): Text("profile.orderParity.rawCode \(String(code))")
         }
     }
 }

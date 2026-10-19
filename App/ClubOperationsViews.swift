@@ -7,12 +7,15 @@ struct ClubOperationsEntryButton: View {
     let identity: ClubReadIdentity?
     let access: any ClubOperationsAccess
     let coordinator: ClubOperationsCoordinator
+    /// Mini-program club/create redirects non-hosts to club/apply; the host supplies the
+    /// existing host-status/become-leader governance read when it has one.
+    var hostApplication: ClubGovernanceContext? = nil
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: { Label(target == .create ? "club.ops.create" : "club.ops.manage", systemImage: target == .create ? "plus.circle" : "slider.horizontal.3") }
             .accessibilityIdentifier("club.ops." + (target == .create ? "openCreate" : "openManage"))
             .sheet(isPresented: $presented) {
-                NavigationStack { ClubOperationsWorkspaceView(target: target, identity: identity, access: access, coordinator: coordinator) }
+                NavigationStack { ClubOperationsWorkspaceView(target: target, identity: identity, access: access, coordinator: coordinator, hostApplication: hostApplication) }
             }
     }
 }
@@ -22,6 +25,7 @@ struct ClubOperationsWorkspaceView: View {
     let identity: ClubReadIdentity?
     let access: any ClubOperationsAccess
     let coordinator: ClubOperationsCoordinator
+    var hostApplication: ClubGovernanceContext? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var profileChoice = ClubProfileChoiceController()
@@ -115,7 +119,12 @@ struct ClubOperationsWorkspaceView: View {
         }
         if target == .create && !value.canCreate {
             Section {
-                Text(value.accountRole != "club" ? "club.ops.leaderRequired" : "club.ops.clubLimit")
+                if value.accountRole != "club", let hostApplication {
+                    Text("club.ops.leaderRequired.apply")
+                    ClubCreateHostApplicationLink(identity: identity, governance: hostApplication)
+                } else {
+                    Text(value.accountRole != "club" ? "club.ops.leaderRequired" : "club.ops.clubLimit")
+                }
             }
         } else {
             ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true,
@@ -271,6 +280,8 @@ private struct ClubOperationsProfileForm: View {
     let choiceController: ClubProfileChoiceController
     var body: some View {
         Section("club.ops.profile") {
+            // cy-scene-club-edit admin-note: administrators may only edit display information.
+            if !isCreate && !isOwner { Text("club.ops.adminNote").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
             field("name", text: $draft.name)
             field("city", text: $draft.city)
             if isCreate {
@@ -303,6 +314,14 @@ private struct ClubOperationsProfileForm: View {
                 ClubProfileChoiceControl(kind: .directions, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
             }
         }
+        if !isCreate && !isOwner {
+            // Locked card instead of disabled toggles, echoing the current owner-only values.
+            Section("club.ops.signupSettings") {
+                Text("club.ops.locked.title").font(.subheadline.bold())
+                Text("club.ops.locked.body").font(.footnote).foregroundStyle(.secondary)
+                lockedCurrent.font(.footnote).accessibilityIdentifier("club.ops.locked.current")
+            }
+        }
         if !isCreate && isOwner {
             Section("club.ops.signupSettings") {
                 Toggle("club.ops.prioritySignup", isOn: $draft.prioritySignupEnabled).accessibilityIdentifier("club.ops.prioritySignup")
@@ -318,6 +337,15 @@ private struct ClubOperationsProfileForm: View {
                 } else { Text("club.ops.joinPolicyUnavailable").font(.footnote) }
             }
         }
+    }
+    private var lockedCurrent: Text {
+        let quota = Int(draft.memberReservedQuota) ?? 0
+        var text = Text("club.ops.locked.current") + Text(verbatim: " ")
+            + Text(draft.prioritySignupEnabled ? "club.ops.locked.priority.on" : "club.ops.locked.priority.off")
+        if joinPolicySupported {
+            text = text + Text(verbatim: " · ") + Text(draft.joinPolicy == 1 ? "club.ops.locked.join.on" : "club.ops.locked.join.off")
+        }
+        return text + Text(verbatim: " · ") + Text("club.ops.locked.quota \(quota)")
     }
     private func field(_ key: String, text: Binding<String>, axis: Axis = .horizontal) -> some View {
         TextField(LocalizedStringKey("club.ops." + key), text: text, axis: axis)
