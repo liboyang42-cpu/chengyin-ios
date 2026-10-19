@@ -611,10 +611,7 @@ struct ClubGovernanceReadView: View {
             else { finishCaseSubmissionReturn() }
         }
         .task(id: CaseReadTrigger(context: readContext, visible: caseHostVisible, active: scenePhase == .active)) {
-            guard operation == .cases, caseHostVisible, scenePhase == .active else { return }
-            if caseSubmissionReturn.item != nil || caseSubmissionReturn.readID != nil { return }
-            if snapshotContext == readContext, generation == snapshotGeneration { return }
-            invalidateRead(); await load()
+            await refreshVisibleCases()
         }
         .onDisappear {
             if operation == .customers {
@@ -657,6 +654,13 @@ struct ClubGovernanceReadView: View {
             }
         }
         .refreshable { await load() }
+    }
+    // Kept outside the body's modifier chain so the view type-checks in bounded time.
+    @MainActor private func refreshVisibleCases() async {
+        guard operation == .cases, caseHostVisible, scenePhase == .active else { return }
+        if caseSubmissionReturn.item != nil || caseSubmissionReturn.readID != nil { return }
+        if snapshotContext == readContext, generation == snapshotGeneration { return }
+        invalidateRead(); await load()
     }
     private struct CaseReadTrigger: Equatable {
         let context: ClubGovernanceReadContext
