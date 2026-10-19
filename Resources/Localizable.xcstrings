@@ -7130,7 +7130,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无优惠券"
+            "value": "这里还没有优惠券"
           }
         }
       }
@@ -7140,13 +7140,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupons you receive will appear here"
+            "value": "Coupons from exploration or activity tasks will appear here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "领取的优惠券会出现在这里"
+            "value": "完成探索或活动任务后，领取的券会出现在这里。"
           }
         }
       }
@@ -7242,7 +7242,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有符合条件的优惠券"
+            "value": "当前筛选暂无优惠券"
           }
         }
       }
@@ -7252,13 +7252,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try another filter or search"
+            "value": "Switch to another status to view coupons."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "试试其他筛选条件或关键词"
+            "value": "切换其他状态查看优惠券。"
           }
         }
       }
@@ -171868,6 +171868,414 @@
           "stringUnit": {
             "state": "translated",
             "value": "时间未知"
+          }
+        }
+      }
+    },
+    "withdrawal.history.status.processing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal in progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现中"
+          }
+        }
+      }
+    },
+    "withdrawal.history.status.succeeded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal succeeded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现成功"
+          }
+        }
+      }
+    },
+    "withdrawal.history.status.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal failed; the full amount was returned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现失败，提现金额已全部退回"
+          }
+        }
+      }
+    },
+    "withdrawal.history.status.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status unconfirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态待确认"
+          }
+        }
+      }
+    },
+    "withdrawal.history.login.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to view withdrawal history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看提现记录"
+          }
+        }
+      }
+    },
+    "withdrawal.history.login.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After signing in you can view your actual withdrawal records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后可查看你的真实提现记录"
+          }
+        }
+      }
+    },
+    "withdrawal.history.denied.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account can't view withdrawal history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号无法查看提现记录"
+          }
+        }
+      }
+    },
+    "withdrawal.history.denied.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check this account's viewing permission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请确认当前账号的查看权限"
+          }
+        }
+      }
+    },
+    "withdrawal.history.failed.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal history didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现记录没加载出来"
+          }
+        }
+      }
+    },
+    "withdrawal.history.failed.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading is temporarily unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取暂不可用"
+          }
+        }
+      }
+    },
+    "withdrawal.history.unavailable.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal history is not available in this build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此版本暂未开放提现记录读取"
+          }
+        }
+      }
+    },
+    "withdrawal.apply.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现申请"
+          }
+        }
+      }
+    },
+    "withdrawal.apply.method": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal method"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现方式"
+          }
+        }
+      }
+    },
+    "withdrawal.apply.method.value": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact platform support; support handles it offline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系平台客服，由客服协助线下处理"
+          }
+        }
+      }
+    },
+    "withdrawal.apply.note.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal notes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现说明"
+          }
+        }
+      }
+    },
+    "withdrawal.apply.note.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawals are now handled offline by support. Add the platform support WeChat to verify."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现已改为客服协助线下处理，请添加平台客服微信核对。"
+          }
+        }
+      }
+    },
+    "withdrawal.apply.contact": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact support to withdraw"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系客服提现"
+          }
+        }
+      }
+    },
+    "couponCode.missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coupon details missing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺少券信息"
+          }
+        }
+      }
+    },
+    "couponCode.missing.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go back to your coupon wallet and open it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请返回票夹重新进入"
+          }
+        }
+      }
+    },
+    "couponCode.presentToMerchant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show this to the merchant to scan and redeem"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出示给商家扫码核销"
+          }
+        }
+      }
+    },
+    "couponCode.refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh QR code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新二维码"
+          }
+        }
+      }
+    },
+    "couponCode.fetchAgain": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fetch again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新获取"
+          }
+        }
+      }
+    },
+    "couponCode.serviceDisabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coupon codes are unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "优惠券出示码暂不可用"
+          }
+        }
+      }
+    },
+    "couponCode.serviceDisabled.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coupon code display is currently unavailable. Contact the administrator."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "优惠券出示码暂不可用，请联系管理员"
           }
         }
       }
