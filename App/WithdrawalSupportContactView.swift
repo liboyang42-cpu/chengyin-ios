@@ -20,15 +20,22 @@ extension EnvironmentValues {
     @State private var loadedScope: WalletCommerceScope?
     @State private var issue: String?
     @State private var busy = false
-    @State private var generation = UUID()
+    @State private var actions = WithdrawalSupportActionFence()
+    private var generation: UUID { actions.id }
+    private struct ReaderKey: Equatable {
+        let id: ObjectIdentifier?
+        let scope: WalletCommerceScope?
+    }
+    private var readerKey: ReaderKey { .init(id: reader.map { ObjectIdentifier($0) }, scope: reader?.scope) }
     var body: some View {
-        NavigationStack {
+        let offered = generation
+        return NavigationStack {
             Form {
                 Text("withdrawal.support.explanation")
                 if busy { ProgressView("wallet.loading") }
                 if let configuration, loadedScope == reader?.scope {
                     LabeledContent("withdrawal.support.weChat") { Text(verbatim: configuration.contact.weChatID) }
-                    Button("withdrawal.support.copyWeChat") { Task { await copy(configuration) } }
+                    Button("withdrawal.support.copyWeChat") { Task { await copy(configuration, offered: offered) } }
                         .disabled(busy).accessibilityIdentifier("withdrawal.support.copyWeChat")
                     Text("withdrawal.support.manualContact")
                 } else if !busy {
@@ -36,22 +43,26 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("withdrawal.support.unconfigured")
                 }
                 if let issue { Text(LocalizedStringKey(issue)).accessibilityIdentifier("withdrawal.support.status") }
-                Button("wallet.retry") { Task { await load() } }.disabled(busy)
+                Button("wallet.retry") { Task { await load(offered: offered) } }.disabled(busy)
             }.navigationTitle("withdrawal.support.contact")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { clear(); dismiss() }.accessibilityIdentifier("withdrawal.support.close") } }
         }
-        .task(id: reader?.scope) { clear(); await load() }
+        .task(id: readerKey) { await load(offered: offered) }
         .onChange(of: scenePhase) { _, phase in
             clear()
-            if phase == .active { Task { await load() } }
+            if phase == .active {
+                let offered = generation
+                Task { await load(offered: offered) }
+            }
         }
         .onDisappear { clear() }
         .presentationDetents([.medium, .large])
     }
     private func clear() {
-        generation = UUID(); configuration = nil; loadedScope = nil; issue = nil; busy = false
+        actions.invalidate(); configuration = nil; loadedScope = nil; issue = nil; busy = false
     }
-    private func load() async {
+    private func load(offered: UUID) async {
+        guard scenePhase == .active, actions.accepts(offered), !Task.isCancelled else { return }
         clear(); let ticket = generation; let scope = reader?.scope; busy = true
         defer { if ticket == generation { busy = false } }
         do {
@@ -64,9 +75,10 @@ extension EnvironmentValues {
             issue = "withdrawal.support.unconfigured"
         }
     }
-    private func copy(_ displayed: WithdrawalSupportSnapshot) async {
-        guard !busy, let reader, loadedScope == reader.scope else { return }
-        let ticket = generation; let scope = reader.scope; busy = true; issue = nil
+    private func copy(_ displayed: WithdrawalSupportSnapshot, offered: UUID) async {
+        guard scenePhase == .active, !Task.isCancelled, !busy, let reader, loadedScope == reader.scope,
+              let ticket = actions.begin(offered: offered) else { return }
+        let scope = reader.scope; busy = true; issue = nil
         defer { if ticket == generation { busy = false } }
         do {
             let contact = try await reader.contactForCopy(displayed)

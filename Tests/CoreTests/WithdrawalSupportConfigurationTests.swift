@@ -70,3 +70,29 @@ import XCTest
         do { _ = try await task.value; XCTFail("cancelled") } catch {}
     }
 }
+
+final class WithdrawalSupportActionFenceTests: XCTestCase {
+    func testCloseOrBackgroundRetiresQueuedCopyAndRetry() {
+        var fence = WithdrawalSupportActionFence(); let offered = fence.id
+        fence.invalidate()
+        XCTAssertFalse(fence.accepts(offered)); XCTAssertNil(fence.begin(offered: offered))
+    }
+    func testNewActionRetiresBothOldCompletionAndDuplicateQueuedAction() throws {
+        var fence = WithdrawalSupportActionFence(); let offered = fence.id
+        let current = try XCTUnwrap(fence.begin(offered: offered))
+        XCTAssertNotEqual(current, offered); XCTAssertTrue(fence.accepts(current))
+        XCTAssertNil(fence.begin(offered: offered)); XCTAssertTrue(fence.accepts(current))
+    }
+    func testReopenedPageCannotLendLifetimeToPriorAction() throws {
+        var fence = WithdrawalSupportActionFence(); let old = fence.id
+        fence.invalidate(); let reopened = fence.id
+        let current = try XCTUnwrap(fence.begin(offered: reopened))
+        XCTAssertNil(fence.begin(offered: old)); XCTAssertTrue(fence.accepts(current))
+        fence.invalidate(); XCTAssertFalse(fence.accepts(current))
+    }
+    func testIndependentScreensCannotAcceptEachOthersTickets() {
+        var first = WithdrawalSupportActionFence(); let second = WithdrawalSupportActionFence()
+        let original = first.id
+        XCTAssertNil(first.begin(offered: second.id)); XCTAssertTrue(first.accepts(original))
+    }
+}

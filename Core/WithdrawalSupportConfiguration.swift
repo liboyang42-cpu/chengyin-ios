@@ -64,3 +64,16 @@ public struct WithdrawalSupportSnapshot: Equatable {
         return fresh.contact.weChatID
     }
 }
+
+/// An offered UI action cannot borrow the lifetime of a later page or action.
+/// Contains no account data or contact; the reader still validates actual authority.
+public struct WithdrawalSupportActionFence {
+    public private(set) var id = UUID()
+    public init() {}
+    public func accepts(_ offered: UUID) -> Bool { id == offered }
+    public mutating func invalidate() { id = UUID() }
+    public mutating func begin(offered: UUID) -> UUID? {
+        guard accepts(offered) else { return nil }
+        invalidate(); return id
+    }
+}
