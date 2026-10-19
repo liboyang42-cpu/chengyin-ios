@@ -79,6 +79,7 @@ import UIKit
               state == .reviewing, review.command.operation == .correctAttendance,
               review.command.scope == expected.route.scope,
               review.command.fields["expectedVersion"] == expected.route.seed["expectedVersion"],
+              review.command.fields["arrived"] != nil, review.command.fields["arrived"] == expected.route.seed["arrived"],
               review.identity == expected.source.context.identity,
               review.authorizationGeneration == expected.source.context.authorizationGeneration,
               review.storageNamespace == expected.source.namespace, review.journalRealm == expected.source.realm,

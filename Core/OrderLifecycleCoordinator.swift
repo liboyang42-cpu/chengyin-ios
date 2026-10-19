@@ -26,7 +26,32 @@ public struct OrderCancellationObservation: Decodable, Equatable {
     public let cancellationStatus: String?
     public let cashRefundStatus: String?
     public let pointsRefundStatus: String?
+    /// Existing per-order counts. NULL means unconfirmed and is never read as zero returned.
+    public let pointsUsed: Int?
+    public let pointsReturned: Int?
     /// No Boolean success aggregate. Three independent server dimensions stay independent.
+}
+public enum OrderPointsReturnObservation: String, Equatable {
+    case notNeeded, returned, partial, unconfirmed
+}
+public extension OrderCancellationObservation {
+    /// The status string and the counts must agree; a contradiction or unknown value stays
+    /// unconfirmed so the UI never shows points as returned twice or offers another refund.
+    var pointsReturn: OrderPointsReturnObservation {
+        switch pointsRefundStatus {
+        case "NOT_NEEDED":
+            return pointsUsed.map { $0 == 0 } ?? true ? .notNeeded : .unconfirmed
+        case "RETURNED":
+            guard pointsUsed == pointsReturned, pointsUsed.map({ $0 > 0 }) ?? true else { return .unconfirmed }
+            return .returned
+        case "PARTIAL":
+            if pointsUsed == nil && pointsReturned == nil { return .partial }
+            guard let used = pointsUsed, let returned = pointsReturned, returned > 0, returned < used else { return .unconfirmed }
+            return .partial
+        default:
+            return .unconfirmed
+        }
+    }
 }
 public enum OrderLifecycleAttemptState: Equatable {
     case submitted(localAttemptID: UUID)
@@ -91,6 +116,8 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
         let replayContext: OrderLifecycleReplayContext?
     }
     private var recordScopes: [AttemptKey: UUID] = [:]
+    // An unreadable journal keeps one stable unknown marker per order, never a fresh identity.
+    private var unreadableJournalIDs: [AttemptKey: UUID] = [:]
     private var loading = false
     private var storedIssue: OrderLifecycleCoordinatorIssue?
     private var storedServerMessage: String?
@@ -145,7 +172,11 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
         }
         do {
             if let pending = try currentProduction()?.pending(orderID: orderID) { return .outcomeUnknown(localAttemptID: pending.attemptID) }
-        } catch { return .outcomeUnknown(localAttemptID: UUID()) }
+        } catch {
+            let id = unreadableJournalIDs[key] ?? UUID()
+            unreadableJournalIDs[key] = id
+            return .outcomeUnknown(localAttemptID: id)
+        }
         return nil
     }
     public func isAttemptBlocking(_ action: OrderLifecycleAction, orderID: Int) -> Bool {

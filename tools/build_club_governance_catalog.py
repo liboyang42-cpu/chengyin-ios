@@ -11,10 +11,10 @@ hostStatus|Become a host|申请成为主理人
 members|Member governance|成员治理
 stats|Performance dashboard|数据看板
 customerCount|Customer count|客户人数
-customers|Customers|客户名单
+customers|Customers|客户
 customer|Customer detail|客户详情
 checkin|Check-in record|核销记录
-settlement|Settlement summary|分润汇总
+settlement|Club settlement|俱乐部结算
 eventTopics|Plan a series|创建系列场次
 series|Event series|系列场次
 seriesDetail|Series detail|系列详情
@@ -24,7 +24,7 @@ roster|Attendance roster|考勤名册
 bans|Governance records|治理记录
 cases|My platform cases|我的平台工单
 roles|Roles and permissions|角色与权限
-audienceCounts|Member notifications|成员通知
+audienceCounts|Broadcast notification|群发通知
 notificationPreview|Audience preview|受众预览
 notificationStatus|Delivery status|通知送达状态
 topics|Club topics|俱乐部主题
@@ -52,7 +52,7 @@ invalid|Check the required fields and selected target|请检查必填项与选�
 rejected|The server rejected this request|服务端拒绝了此请求
 close|Close|关闭
 filter|Filter|筛选
-keyword|Search customers|搜索客户
+keyword|Search|搜索
 search|Search|搜索
 sort|Sort by|排序
 previous|Previous page|上一页
@@ -72,7 +72,7 @@ waitlist|Waitlist|候补
 arrived|Arrived|已到场
 noShow|Not arrived|未到场
 roleDefinitions|Available roles|可委派角色
-assignments|Active assignments|生效委派
+assignments|Current assignments|当前委派
 story|Story and gameplay|剧情与玩法
 chapters|Chapters|章节
 events|Event operations|场次运营
@@ -106,7 +106,7 @@ codeAvailable|Group code issued|团码已签发'''.splitlines():
 actions='''hostApply|Apply as host|申请成为主理人
 saveCustomer|Edit tags and remark|编辑标签与备注
 createSeries|Create event series|创建系列场次
-updateSeries|Update future occurrences|修改未来场次
+updateSeries|Edit future occurrences|编辑未来场次
 cancelOccurrence|Cancel this occurrence|取消本场
 correctAttendance|Correct attendance|更正考勤
 ban|Ban member|封禁成员
@@ -115,7 +115,7 @@ transferOwner|Transfer ownership|移交主理人
 report|Submit a platform report|提交平台举报
 appeal|Appeal a platform case|提交封禁申诉
 assignRole|Assign scoped role|委派范围角色
-revokeRole|Revoke assignment|撤销委派
+revokeRole|Revoke|撤销
 sendNotification|Compose member notification|编写成员通知
 retryNotification|Retry failed recipients|重试失败收件人
 saveTopicSettings|Edit topic settings|修改主题设置
@@ -155,18 +155,18 @@ state|State|状态
 occurrenceAt|Occurrence time|场次时间
 startDate|Start date, YYYY-MM-DD|开始日期，YYYY-MM-DD
 endDate|End date|结束日期
-startTime|Meeting time, HH:mm|集合时间，HH:mm
+startTime|Meeting time|集合时刻
 signupCount|Registrations|报名人数
 refundedCount|Refunded records|已退款记录
 lockReason|Lock reason|锁定原因
-recurrenceType|Recurrence|重复规则
-defaultLeadMemberId|Lead member ID|默认领队成员编号
+recurrenceType|Repeat|重复方式
+defaultLeadMemberId|Default lead|默认负责人
 defaultCapacity|Capacity|人数上限
-capacity|Capacity, blank if unlimited|人数上限，不限可留空
-offerMinutes|Waitlist offer minutes|候补名额有效分钟
-waitlistEnabled|Waitlist enabled|开启候补
-occurrenceCount|Number of occurrences|场次数量
-customDates|Custom dates, comma separated|自定义日期，以逗号分隔
+capacity|Capacity (optional)|容量（可选）
+offerMinutes|Waitlist claim window (minutes)|候补认领时长（分钟）
+waitlistEnabled|Open waitlist when full|满员后开启候补
+occurrenceCount|Occurrences|场次数
+customDates|Date list|日期清单
 version|Current version|当前版本
 expectedVersion|Reviewed version|审核版本
 banReason|Ban reason|封禁理由
@@ -191,7 +191,7 @@ durationMin|Duration (minutes)|用时（分钟）
 hostedCount|Hosted events|带队次数
 pace|Pace (minutes/km)|配速（分钟/公里）
 completionDuration|Completion time (minutes)|完成用时（分钟）
-settledAmountText|Settled amount|已入账金额
+settledAmountText|Credited revenue share|已入账分润
 settledAmountStatus|Amount verification|金额核验状态
 unverifiedSettledCount|Unverified settled records|待核验已结算笔数
 amountText|Amount|金额
@@ -210,8 +210,8 @@ ticketText|Ticket|票种
 orderTimeText|Order time|下单时间
 paidAmountText|Paid amount|支付金额
 verifyTimeText|Verification time|核销时间
-storeName|Store|门店
-operatorName|Operator|操作员
+storeName|Redemption store|核销门店
+operatorName|Operator|操作人
 railStep|Progress step|进度步骤
 phoneText|Server-visible contact|服务端允许显示的联系方式
 coopOpen|Merchant cooperation open|开放商家合作
@@ -292,9 +292,9 @@ for row in fields.splitlines():
 choices='''ALL_MEMBERS|All members|全部成员
 ADMINS|Administrators|管理员
 REGISTERED|Registered attendees|本场已报名
-WAITLIST|Waitlist|候补成员
-NO_SHOW|Not arrived|未到场
-INACTIVE|Inactive members|不活跃成员
+WAITLIST|This event waitlist|本场候补
+NO_SHOW|No-shows this event|本场未到场
+INACTIVE|Inactive for 90 days|近 90 天未活跃
 CLUB_OWNER|Club owner|主理人
 CLUB_CO_OWNER|Co-owner|联席主理人
 CLUB_OPERATOR|Club operator|俱乐部运营员
@@ -322,7 +322,7 @@ for row in choices.splitlines():
     key,en,zh=row.split('|');add('choice.'+key,en,zh)
     if key in ['ALL_MEMBERS','ADMINS','REGISTERED','WAITLIST','NO_SHOW','INACTIVE']:add('field.'+key,en,zh)
     if key.startswith('CLUB_') or key.startswith('EVENT_'):add('role.'+key,en,zh)
-for key,en,zh in [('all','All','全部'),('repeat','Repeat customers','回头客'),('new','New customers','新客户'),('remark','With remarks','有备注')]:add('filter.'+key,en,zh)
+for key,en,zh in [('all','All','全部'),('repeat','Repeat customers','回头客'),('new','New customers','新客'),('remark','With remarks','有备注')]:add('filter.'+key,en,zh)
 for key,en,zh in [('composite','Composite','综合'),('mileage','Distance','里程'),('pace','Pace','配速'),('duration','Duration','用时')]:add('sort.'+key,en,zh)
 path=ROOT/'Resources/ClubGovernanceLocalizations.fragment.json';path.write_text(json.dumps({'sourceLanguage':'en','strings':strings,'version':'1.0'},ensure_ascii=False,indent=2)+'\n')
 print(len(strings),'bilingual keys')

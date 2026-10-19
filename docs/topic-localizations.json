@@ -56,8 +56,8 @@
   },
   {
     "key": "topic.unauthorized",
-    "en": "Please sign in again to refresh your route access",
-    "zh-Hans": "请重新登录以刷新路线访问权限"
+    "en": "Sign in to view this topic, its sessions and sign-up.",
+    "zh-Hans": "登录后查看主题：可查看主题详情、场次和报名"
   },
   {
     "key": "topic.unavailable",

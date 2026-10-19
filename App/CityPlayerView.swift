@@ -13,6 +13,11 @@ struct CityPlayerView: View {
     @State private var selection: CityPointSelection?
     @State private var visible = false
     @State private var readRequest = UUID()
+    /// W20 business section factory. nil in production (no reviewed endpoint); DEBUG fixtures only.
+    private let gameFactory: (@MainActor (CityReadSnapshot) -> CityGameCoordinator?)?
+    init(reader: CityPlayerReader, gameFactory: (@MainActor (CityReadSnapshot) -> CityGameCoordinator?)? = nil) {
+        _reader = State(initialValue: reader); self.gameFactory = gameFactory
+    }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -26,6 +31,10 @@ struct CityPlayerView: View {
                     Text(verbatim: snapshot.board.title).font(.title2)
                     Text(lifecycle(snapshot.board.lifecycle))
                     Text(membership(snapshot.membership))
+                    if let context = reader.pointMapContext {
+                        // Keyed to this exact read so a reload never reuses old game state.
+                        CityGameSlot(snapshot: context.snapshot, factory: gameFactory).id(context.readID)
+                    }
                     if let context = reader.pointMapContext {
                         if context.points.isEmpty { Text("city.read.points.empty") }
                         else { pointContent(context) }

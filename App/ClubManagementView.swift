@@ -60,12 +60,20 @@ struct ClubManagementView: View {
                 if contextMatches, let snapshot {
                     Section { Text(verbatim: snapshot.club.name) }
                     Section("club.management.requests") {
-                        if snapshot.requests.isEmpty { Text("club.management.empty") }
+                        if snapshot.requests.isEmpty {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("club.management.empty")
+                                Text("club.management.emptyHint").font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
                         ForEach(snapshot.requests) { request in
                             Button { selection = .request(request.id) } label: {
                                 VStack(alignment: .leading) {
                                     Text(verbatim: request.nickname ?? "#\(request.id)")
-                                    Text(verbatim: request.joinTime ?? "").font(.caption).foregroundStyle(.secondary)
+                                    Group {
+                                        if let time = request.requestTimeText { Text("club.management.requestedAt \(time)") }
+                                        else { Text("club.management.timeUnknown") }
+                                    }.font(.caption).foregroundStyle(.secondary)
                                 }
                             }
                             .accessibilityIdentifier("club.management.request.\(request.id)")

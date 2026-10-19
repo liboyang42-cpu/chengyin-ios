@@ -1,13 +1,13 @@
 [
   {
     "key": "cooperation.title",
-    "en": "My cooperation",
-    "zh-Hans": "我的合作"
+    "en": "Cooperation invitations",
+    "zh-Hans": "协作邀请"
   },
   {
     "key": "cooperation.detail.title",
-    "en": "Invitation details",
-    "zh-Hans": "邀约详情"
+    "en": "Cooperation details",
+    "zh-Hans": "协作详情"
   },
   {
     "key": "cooperation.direction",
@@ -41,8 +41,8 @@
   },
   {
     "key": "cooperation.login",
-    "en": "Sign in to view your cooperation",
-    "zh-Hans": "登录后查看我的合作"
+    "en": "Sign in to view cooperation invitations",
+    "zh-Hans": "登录后查看协作邀请"
   },
   {
     "key": "cooperation.unconfigured",
@@ -488,5 +488,25 @@
     "key": "cooperation.currencyUnknown",
     "en": "Currency has not been confirmed by the service.",
     "zh-Hans": "服务端尚未确认币种。"
+  },
+  {
+    "key": "cooperation.parties",
+    "en": "Parties",
+    "zh-Hans": "合作双方"
+  },
+  {
+    "key": "cooperation.inviteType.0",
+    "en": "Topic publisher → Merchant",
+    "zh-Hans": "主题发布者 → 商家"
+  },
+  {
+    "key": "cooperation.inviteType.1",
+    "en": "Merchant → Club",
+    "zh-Hans": "商家 → 俱乐部"
+  },
+  {
+    "key": "cooperation.inviteType.2",
+    "en": "Merchant → Merchant node",
+    "zh-Hans": "商家 → 商家承接节点"
   }
 ]

@@ -37,11 +37,11 @@
   },
   "templateAuthor.begin": {
     "en": "Start creating",
-    "zh-Hans": "开始创作"
+    "zh-Hans": "开始创建"
   },
   "templateAuthor.nameStep": {
     "en": "Give this play a name",
-    "zh-Hans": "给玩法起个名字"
+    "zh-Hans": "给节点玩法起一个名字"
   },
   "templateAuthor.continue": {
     "en": "Continue to editor",
@@ -657,7 +657,7 @@
   },
   "templateAuthor.validation.title": {
     "en": "Name this play first.",
-    "zh-Hans": "请先给玩法起个名字。"
+    "zh-Hans": "请输入模板名称"
   },
   "templateAuthor.validation.description": {
     "en": "Add a description.",
