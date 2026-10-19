@@ -155,7 +155,7 @@ jobs:
       - name: Show test and compiler errors from failed commands
         if: failure()
         run: |
-          grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | sort | uniq | head -300 || true
+          grep -h -A 120 -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | head -600 || true
       - name: Preserve real per-shard results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
