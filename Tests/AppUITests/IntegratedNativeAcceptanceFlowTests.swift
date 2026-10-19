@@ -226,7 +226,7 @@ import XCTest
     }
     private func orders(_ app: XCUIApplication, owner: Int) {
         assertOrderRowMayMeetButNotCrossNavigationBoundary()
-        tab("Account", app); tap("profile.open.orders", app)
+        tab("Me", app); tap("profile.open.orders", app)
         XCTAssertTrue(app.staticTexts["Owner \(owner) list snapshot"].waitForExistence(timeout: 5))
         tap("profile.order.41", app)
         XCTAssertTrue(app.staticTexts["Activity or route, Owner \(owner) fresh detail"].waitForExistence(timeout: 5))
@@ -240,7 +240,7 @@ import XCTest
     /// Authored offline; compilation and simulator execution remain NOT_RUN.
     func testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen() throws {
         let app = launch(); signIn(app)
-        tab("Account", app)
+        tab("Me", app)
         let favoritesTabs = app.segmentedControls["accountCollection.favorites.tabs"]
         let unavailable = app.staticTexts["Collection service is not configured"]
         func expectDismissed(_ element: XCUIElement) {
@@ -296,9 +296,31 @@ import XCTest
         }, "No favorites list, detail or removal request is authorized by this fixture")
     }
 
+    /// Mini-program pages/shezhi: 个人资料, 成为俱乐部主理人, 成为商家, 城瘾玩法, 我的收藏 … 退出账号.
+    func testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut() throws {
+        let app = launch(); signIn(app)
+        tab("Me", app); tap("Settings", app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        let host = app.buttons["settings.becomeClubHost"], merchant = app.buttons["settings.becomeMerchant"]
+        let guide = app.buttons["settings.playGuide"], favorites = app.buttons["settingsNative.openFavorites"]
+        for element in [host, merchant, guide, favorites] { XCTAssertTrue(element.waitForExistence(timeout: 5), app.debugDescription) }
+        XCTAssertEqual(host.label, "Become a club host"); XCTAssertEqual(merchant.label, "Become a merchant")
+        XCTAssertLessThan(host.frame.minY, merchant.frame.minY)
+        XCTAssertLessThan(merchant.frame.minY, guide.frame.minY)
+        XCTAssertLessThan(guide.frame.minY, favorites.frame.minY)
+        tap("settings.signOut", app)
+        let confirmation = app.sheets["Sign out of this account?"]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
+        tapFixtureSheetAction("Sign out", in: confirmation, app: app)
+        XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(app.tabBars.firstMatch.exists)
+        wait(app) { $0.ledger.last?.route == "logout" }
+        XCTAssertNil(try evidence(app).accountID)
+    }
+
     func testNormalRootOwnedConfigurationReadOnlyAndStoryReturn() throws {
         let app = launch(); signIn(app, owner: 7)
-        tab("Account", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
+        tab("Me", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
         tap("templateAuthor.shelf.loadMore", app); tap("templateOwnerConfig.open.111", app)
         let answer = app.textFields["templateAuthor.field.questionAnswer"]
         XCTAssertTrue(revealFixtureElement(answer, in: app, requiresHittable: false)); XCTAssertEqual(answer.value as? String, "Synthetic owner answer")
@@ -329,7 +351,7 @@ import XCTest
         XCTAssertEqual(Set(entries.map(\.namespace)).count, 1)
     }
     func testNormalRootIMHistoryNeverMarksReadOrSends() throws {
-        let app = launch(); signIn(app); tab("Account", app); tap("Messages", app)
+        let app = launch(); signIn(app); tab("Me", app); tap("Messages", app)
         XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 5))
         tap("messaging.conversation.901", app)
         XCTAssertTrue(app.staticTexts["Synthetic latest history"].waitForExistence(timeout: 5))
@@ -354,7 +376,7 @@ import XCTest
 
     func testNormalRootTeamReadOnlyJourney() throws {
         let app = launch(); signIn(app)
-        tab("Account", app); tap("My teams", app)
+        tab("Me", app); tap("My teams", app)
         XCTAssertTrue(app.buttons["team.row.61"].waitForExistence(timeout: 5))
         tap("team.row.61", app)
         XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))

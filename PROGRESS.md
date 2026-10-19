@@ -435,3 +435,17 @@ All commits since 2026-10-13 were `[skip ci]` and had never been compiled. Full-
 - Run 39259912495 (fb4b8bf): pending/in progress; UI failure logs now keep 120 context lines so element hierarchies are visible without artifact access.
 
 The full plan is 8,726 Core + 5,141 AppUnit + 982 UI methods in 108 UI shards; with ~4 concurrent macOS runners a full run takes several hours. No assertion was removed or weakened; one stale contract check (customer-history read fence) was re-pointed at the real `check` closure with the same tokens plus a stronger binding check. No live endpoint, payment, SMS, OAuth or signing configuration was touched. gitleaks (8.24.3, full history) is clean. Not yet green; PRs #10–#13 are not merged pending their own green runs.
+
+## 2026-10-19 17:30 UTC — wave-2 integrator (w2-Z): first integration batch
+
+Branch `integration/wave2-20261019` (cut from `001ca41`), integration PR #18 into `migration/native-ios` (draft).
+
+- Base sync: merged `migration/native-ios@ae8c05c` (6ad7bd6).
+- Merged with merge commits (head SHA integrated): #29 w2-01 a0ad213, #33 w2-03 fd4e0cf, #23 w2-05 9054b43, #27 w2-06 3dfc336, #25 w2-10 09c8026, #30 w2-11 7a55d8f, #26 w2-12 dd06365, #31 w2-18 193875b, #28 w2-21 4227748, #34 w2-16 5e87229, #35 w3-I06 79af21a, #19 w2-13 ddc2a47, #20 w2-07 4cdee78, #22 w2-04 e682aa5. Head after batch: 6828eea.
+- Wave-1 content carried by these branches (not yet on `migration/native-ios`): align-B (#12), align-C (#13), align-D (#10), align-E (#11), plan-G (#16), plan-H (#17), at the commits the w2 branches merged.
+- Generated files were regenerated in every merge: `tools/generate_project.py`; ledger refresh keeping the existing 8 reviewed retirements (no new test retirements); `Resources/Localizable.xcstrings` key-wise union with no same-key conflicts. Replacement-test hash bindings for `Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift` and `IntegratedDeniedAcceptanceFlowTests.swift` were re-pinned after reviewing that the only change (9632b6a) is the tab label rename Account→Me / Explore the map→Roam.
+- One hand resolution: `App/SocialGuideViews.swift` play-guide title, align-E `discovery.playDetails` vs w2-07 `guideXcx.detailTitle` (identical copy 玩法详情/Play details); took w2-07 (owner).
+- Local checks on 6828eea: `check_scaffold.py` PASS (2461 Swift files), `current_ci.py check` PASS_CURRENT_SOURCE_LEDGER, `tools.tests.test_current_ci`/`test_current_native` OK. Per-branch scans: no deleted test files/methods, no added skips, only placeholder URLs (`*.example`, `*.invalid`, `*.test`), synthetic tokens/phones only.
+- Held: #24 w2-14 (conflict `Core/CooperationFlowService.swift` with w2-04), #21 w2-15 (conflict `App/ClubHomeView.swift` with w2-12), #32 w2-20 (conflict `App/QuestifyApp.swift` with the align-B root tabs); owners asked to merge the integration branch. w2-19 has no PR yet; its committed project file omits its new sources (regeneration fixes it).
+- CI: run 39292073606, related mode, on batch anchor 56af65c (tree = f56e9e1, first parent 6ad7bd6 so the dispatch plan covers the whole batch: 9169 Core, 5176 AppUnit, 459 UI methods in 31 shards). Queued; result pending. The five PRs merged after it (#34, #35, #19, #20, #22) are not covered by that run.
+- Not run here: Swift compilation, XCTest, simulator/device. No endpoint, payment, SMS, OAuth or signing configuration changed.

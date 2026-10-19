@@ -67,7 +67,7 @@ class ClubTopicSettingsReturnContracts(unittest.TestCase):
         self.assertIn('static func dismantleUIViewController',self.owner)
         self.assertIn('testActualDepartureRetiresReadButOldAttachmentCannotRetireReplacement',self.tests)
     def testLoadingScopeReplacementRetiresOldRunBeforeNewRead(self):
-        self.assertIn('if topicSettingsReads.synchronize(readContext) {\n                    topicSettingsReturn.retire(); invalidateRead(); loading = false',self.host)
+        self.assertIn('if topicSettingsReads.synchronize(readContext) {\n                topicSettingsReturn.retire(); invalidateRead(); loading = false',self.host)
         self.assertIn('guard context != next else { return false }\n        retire(); context = next',self.owner)
         self.assertIn('defer { if runID == run { runID = nil; loading = false } }',self.owner)
         self.assertIn('guard runID == run, context == expected, !Task.isCancelled',self.owner)

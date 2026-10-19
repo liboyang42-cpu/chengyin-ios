@@ -33,12 +33,14 @@ import SwiftUI
                     if stages.disputed.value > 0 { LabeledContent("wallet.disputed", value: amount(stages.disputed, currency: stages.currency)) }
                 } else { Text(LocalizedStringKey(stagesFailed ? "wallet.failed" : "wallet.unavailable")) }
             }
+            WithdrawalApplyParitySection(showContact: $showContact)
             Section {
                 NavigationLink("bank.withdrawal.title") { if let bankDestination { bankDestination() } else { BankWithdrawalView(reader: reader) } }
                     .accessibilityIdentifier("bank.withdrawal.entry")
                 Text("bank.withdrawal.supportAlternative")
                 Button("withdrawal.support.contact") { showContact = true }.accessibilityIdentifier("withdrawal.support.contact")
-                NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader) }
+                NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
+                    .accessibilityIdentifier("withdrawal.apply.history")
             }
         }.navigationTitle("withdrawal.support.title")
             .task(id: reader.scope) { balance = nil; stages = nil; loadedScope = nil; showContact = false; await load() }
