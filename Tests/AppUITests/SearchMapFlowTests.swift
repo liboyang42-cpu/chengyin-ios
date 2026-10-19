@@ -30,6 +30,18 @@ final class SearchMapFlowTests: XCTestCase {
         app.navigationBars.buttons.firstMatch.tap()
         XCTAssertTrue(app.buttons["searchMap.result.merchant-71"].waitForExistence(timeout: 5))
     }
+    func testRecommendedKeywordFillsFieldAndSearches() {
+        launch(chinese: true)
+        XCTAssertTrue(app.staticTexts["推荐搜索"].waitForExistence(timeout: 5), app.debugDescription)
+        let first = app.buttons["searchMap.recommended.0"]; reveal(first)
+        XCTAssertEqual(first.label, "骑行")
+        XCTAssertTrue(app.buttons["searchMap.recommended.7"].exists)
+        first.tap()
+        XCTAssertEqual(app.textFields["searchMap.keyword"].value as? String, "骑行")
+        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "searchMap.result."))
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.buttons["searchMap.recommended.0"].exists)
+    }
     func testGuestKeepsPublicResultsAndShowsExplicitGate() {
         launch("guest"); search()
         XCTAssertTrue(app.descendants(matching: .any)["searchMap.guestGate"].waitForExistence(timeout: 5))

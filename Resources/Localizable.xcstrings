@@ -130576,6 +130576,22 @@
         }
       }
     },
+    "searchMap.recommended": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggested searches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推荐搜索"
+          }
+        }
+      }
+    },
     "searchMap.category": {
       "localizations": {
         "en": {
