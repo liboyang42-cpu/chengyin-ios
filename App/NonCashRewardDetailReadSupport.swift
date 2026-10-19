@@ -13,6 +13,8 @@ import Observation
     @Published private var revision: UInt64 = 0
     let state: NonCashRewardDetailModel
     private(set) var presentation: NonCashRewardReadLifetime?
+    private(set) var snapshotToken = UUID()
+    var canOfferMerchant: Bool { isForeground && presentation?.isActive == true }
     private var isForeground = true
     private var offeredRead: NonCashRewardReadLifetime?
     private var task: Task<Void, Never>?
@@ -39,6 +41,7 @@ import Observation
     }
     func invalidate() { cancelPending() }
     func cancelPending() {
+        snapshotToken = UUID()
         offeredRead?.invalidate(); offeredRead = nil
         task?.cancel(); task = nil
         state.cancelPending(); revision &+= 1
@@ -124,6 +127,82 @@ struct NonCashRewardReadFactsView: View {
     private func fact(_ availability: NonCashRewardDetailProjection.FactAvailability, id: String) -> some View {
         switch availability {
         case .notProvided: return Text("rewards.read.notProvided").accessibilityIdentifier(id)
+        }
+    }
+}
+
+
+/// Backend merchantId is the canonical mms_merchant row, not a member or store ID.
+@MainActor struct NonCashRewardMerchantSelection: Identifiable {
+    let id = UUID()
+    let reward: NonCashReward
+    let merchantID: PublicMerchantRowID
+    let rewardScope: UUID
+    let merchantScope: UUID
+    let snapshotToken: UUID
+    let presentation: NonCashRewardReadLifetime
+    static func merchantRow(_ raw: String) -> PublicMerchantRowID? {
+        guard !raw.isEmpty, raw.utf8.allSatisfy({ (48...57).contains($0) }),
+              raw.first != "0", let wide = Int64(raw), wide > 0,
+              let value = Int(exactly: wide), String(value) == raw else { return nil }
+        return PublicMerchantRowID(value)
+    }
+    static func capture(model: NonCashRewardDetailScreenModel, rewardReader: any NonCashRewardReading,
+                        merchantReader: any PublicMerchantHomeReading, snapshotToken: UUID,
+                        presentation: NonCashRewardReadLifetime?) -> Self? {
+        guard let presentation, presentation.isActive, model.presentation === presentation,
+              model.canOfferMerchant, model.snapshotToken == snapshotToken,
+              rewardReader.isAuthenticated, rewardReader.isConfigured, merchantReader.isConfigured,
+              rewardReader.isOfflineExample == merchantReader.isOfflineExample,
+              !model.isLoading, let reward = model.value(scope: rewardReader.scope),
+              let merchantID = merchantRow(reward.merchantId) else { return nil }
+        return .init(reward: reward, merchantID: merchantID, rewardScope: rewardReader.scope,
+            merchantScope: merchantReader.scope, snapshotToken: snapshotToken, presentation: presentation)
+    }
+    func isCurrent(model: NonCashRewardDetailScreenModel, rewardReader: any NonCashRewardReading,
+                   merchantReader: any PublicMerchantHomeReading) -> Bool {
+        presentation.isActive && model.presentation === presentation && model.canOfferMerchant
+            && model.snapshotToken == snapshotToken && !model.isLoading
+            && rewardReader.scope == rewardScope && merchantReader.scope == merchantScope
+            && rewardReader.isAuthenticated && rewardReader.isConfigured && merchantReader.isConfigured
+            && rewardReader.isOfflineExample == merchantReader.isOfflineExample
+            && model.value(scope: rewardScope) == reward
+    }
+}
+@MainActor struct NonCashRewardMerchantNavigation {
+    private(set) var selection: NonCashRewardMerchantSelection?
+    private(set) var closing: NonCashRewardMerchantSelection?
+    var canOpen: Bool { selection == nil && closing == nil }
+    mutating func open(_ next: NonCashRewardMerchantSelection) {
+        guard canOpen else { return }; selection = next
+    }
+    mutating func close(_ id: UUID) {
+        guard let selected = selection, selected.id == id else { return }
+        closing = selected; selection = nil
+    }
+    mutating func finish(_ id: UUID) -> NonCashRewardMerchantSelection? {
+        guard let old = closing, old.id == id else { return nil }
+        closing = nil; return old
+    }
+    mutating func cancel() { selection = nil; closing = nil }
+}
+/// Public-home has no auth-expiry callback; the wrapper still rejects stale results.
+@MainActor struct NonCashRewardMerchantReader: PublicMerchantHomeReading {
+    let base: any PublicMerchantHomeReading
+    let selection: NonCashRewardMerchantSelection
+    let current: () -> Bool
+    var scope: UUID { selection.id }
+    var isConfigured: Bool { current() && base.isConfigured && base.scope == selection.merchantScope }
+    var isOfflineExample: Bool { base.isOfflineExample }
+    func home(_ target: PublicMerchantHomeTarget) async throws -> PublicMerchantHome {
+        guard isConfigured, target == .legacyMerchantRowID(selection.merchantID) else { throw CancellationError() }
+        do {
+            let value = try await base.home(target)
+            guard !Task.isCancelled, isConfigured, value.id == selection.merchantID.rawValue else { throw CancellationError() }
+            return value
+        } catch {
+            guard !Task.isCancelled, isConfigured else { throw CancellationError() }
+            throw error
         }
     }
 }

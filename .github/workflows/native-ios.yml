@@ -97,6 +97,10 @@ jobs:
           path: ${{ runner.temp }}/current-plan
       - name: Compile current products and execute the selected native group
         run: python3 -B tools/current_native.py run --plan "$RUNNER_TEMP/current-plan/plan.json" --role '${{ matrix.partition }}' --start-file "$RUNNER_TEMP/current-start" --output "$RUNNER_TEMP/current-native"
+      - name: Show compiler errors from failed commands
+        if: failure()
+        run: |
+          grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | sort | uniq | head -300 || true
       - name: Preserve exact command and result diagnostics
         if: ${{ always() && (matrix.partition != 'ui-build' || failure()) }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -120,10 +124,6 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
-      - name: Echo bounded compiler diagnostics on failure
-        if: ${{ failure() }}
-        run: |
-          grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout 2>/dev/null | sort -u | head -200 || true
   ui:
     needs: [controls, native]
     if: ${{ always() && needs.controls.result == 'success' && needs.native.outputs.ui_build_artifact != '' }}
@@ -152,6 +152,10 @@ jobs:
           path: ${{ runner.temp }}/current-ui-build
       - name: Execute complete assigned UI methods without rebuilding
         run: python3 -B tools/current_native.py run --plan "$RUNNER_TEMP/current-plan/plan.json" --role ui --index '${{ matrix.index }}' --build "$RUNNER_TEMP/current-ui-build" --start-file "$RUNNER_TEMP/current-start" --output "$RUNNER_TEMP/current-native"
+      - name: Show test and compiler errors from failed commands
+        if: failure()
+        run: |
+          grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | sort | uniq | head -300 || true
       - name: Preserve real per-shard results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
