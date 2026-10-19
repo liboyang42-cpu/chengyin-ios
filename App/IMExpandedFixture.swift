@@ -18,7 +18,9 @@ import SwiftUI
 }
 @MainActor struct IMExpandedFixtureRoot: View {
     let owner: IMExpandedCoordinator
+    let scenario: String
     init(scenario: String) {
+        self.scenario = scenario
         let identity = MessagingReadIdentity(accountID: 7, epoch: 1)
         let scope = try! IMScope(identity: identity, conversationID: 9)
         let writer = IMExpandedFixtureWriter(configured: scenario != "dormant")
@@ -26,6 +28,14 @@ import SwiftUI
         if scenario == "route-review", let intent = try? IMOutgoingIntent(scope: scope, payload: .route(topicID: 11)) { _ = owner.review(.send(intent)) }
     }
     var body: some View {
+        #if DEBUG
+        if scenario.hasPrefix("message-") {
+            MessagingFixtureHostView(scenario: MessagingFixtureScenario(rawValue: String(scenario.dropFirst(8))) ?? .empty)
+        } else {
+            NavigationStack { IMConversationControlsView(coordinator: owner, identity: owner.scope.identity, onReceipt: { _ in }) }
+        }
+        #else
         NavigationStack { IMConversationControlsView(coordinator: owner, identity: owner.scope.identity, onReceipt: { _ in }) }
+        #endif
     }
 }
