@@ -156,7 +156,7 @@ enum WalletReadFailurePresentation {
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
-                    Text("wallet.empty").accessibilityIdentifier("wallet.ledger.empty")
+                    Text(LocalizedStringKey(income ? "wallet.income.empty" : "wallet.empty")).accessibilityIdentifier("wallet.ledger.empty")
                 }
                 ForEach(filtered) { row in
                     if income {
@@ -380,9 +380,10 @@ enum WalletReadFailurePresentation {
             Text("bank.withdrawal.historyNotice")
             if model.loading { ProgressView("wallet.loading") }
             else if let page = model.value, model.loadedScope == reader.scope {
-                if page.rows.isEmpty { Text("wallet.empty").accessibilityIdentifier("wallet.withdrawals.empty") }
+                if page.rows.isEmpty { Text("wallet.withdrawals.emptyTitle").accessibilityIdentifier("wallet.withdrawals.empty") }
                 ForEach(page.rows) { item in
                     VStack(alignment: .leading, spacing: 6) {
+                        Text("wallet.withdrawal.rowTitle").font(.headline)
                         Text(format.amount(item.amount, currency: item.currency))
                         Text(LocalizedStringKey(item.statusKey))
                         if let date = item.createTime { Text(verbatim: date) }

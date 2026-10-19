@@ -14976,13 +14976,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Member notifications"
+            "value": "Broadcast notification"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "成员通知"
+            "value": "群发通知"
           }
         }
       }
@@ -15401,13 +15401,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inactive members"
+            "value": "Inactive for 90 days"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不活跃成员"
+            "value": "近 90 天未活跃"
           }
         }
       }
@@ -15435,13 +15435,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not arrived"
+            "value": "No-shows this event"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未到场"
+            "value": "本场未到场"
           }
         }
       }
@@ -15554,13 +15554,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waitlist"
+            "value": "This event waitlist"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "候补成员"
+            "value": "本场候补"
           }
         }
       }
@@ -15747,7 +15747,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "客户名单"
+            "value": "客户"
           }
         }
       }
@@ -16047,13 +16047,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inactive members"
+            "value": "Inactive for 90 days"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不活跃成员"
+            "value": "近 90 天未活跃"
           }
         }
       }
@@ -16064,13 +16064,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not arrived"
+            "value": "No-shows this event"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未到场"
+            "value": "本场未到场"
           }
         }
       }
@@ -16098,13 +16098,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waitlist"
+            "value": "This event waitlist"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "候补成员"
+            "value": "本场候补"
           }
         }
       }
@@ -17566,7 +17566,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "操作员"
+            "value": "操作人"
           }
         }
       }
@@ -18206,13 +18206,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settled amount"
+            "value": "Credited revenue share"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已入账金额"
+            "value": "已入账分润"
           }
         }
       }
@@ -18393,13 +18393,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store"
+            "value": "Redemption store"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "门店"
+            "value": "核销门店"
           }
         }
       }
@@ -18858,7 +18858,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新客户"
+            "value": "新客"
           }
         }
       }
@@ -19022,13 +19022,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search customers"
+            "value": "Search"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "搜索客户"
+            "value": "搜索"
           }
         }
       }
@@ -19617,13 +19617,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settlement summary"
+            "value": "Club settlement"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "分润汇总"
+            "value": "俱乐部结算"
           }
         }
       }
@@ -20533,7 +20533,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无待审核申请"
+            "value": "暂无待审申请"
           }
         }
       }
@@ -28673,13 +28673,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation details"
+            "value": "Cooperation details"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "邀约详情"
+            "value": "协作详情"
           }
         }
       }
@@ -29098,13 +29098,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to view your cooperation"
+            "value": "Sign in to view cooperation invitations"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录后查看我的合作"
+            "value": "登录后查看协作邀请"
           }
         }
       }
@@ -29846,13 +29846,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "My cooperation"
+            "value": "Cooperation invitations"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我的合作"
+            "value": "协作邀请"
           }
         }
       }
@@ -32402,7 +32402,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已到账"
+            "value": "已入账"
           }
         }
       }
@@ -32413,13 +32413,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting transfer"
+            "value": "Awaiting credit"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待打款"
+            "value": "待入账"
           }
         }
       }
@@ -153585,13 +153585,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Club cooperation finance"
+            "value": "Host revenue share"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "俱乐部合作财务"
+            "value": "主办分润"
           }
         }
       }
@@ -171474,6 +171474,176 @@
           "stringUnit": {
             "state": "translated",
             "value": "确认目的地"
+          }
+        }
+      }
+    },
+    "wallet.income.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No earnings records yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有收益记录"
+          }
+        }
+      }
+    },
+    "wallet.withdrawals.emptyTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No withdrawals yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有发起提现"
+          }
+        }
+      }
+    },
+    "wallet.withdrawal.rowTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal to bank card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现到银行卡"
+          }
+        }
+      }
+    },
+    "cooperation.parties": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parties"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作双方"
+          }
+        }
+      }
+    },
+    "cooperation.inviteType.0": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic publisher → Merchant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题发布者 → 商家"
+          }
+        }
+      }
+    },
+    "cooperation.inviteType.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant → Club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家 → 俱乐部"
+          }
+        }
+      }
+    },
+    "cooperation.inviteType.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant → Merchant node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家 → 商家承接节点"
+          }
+        }
+      }
+    },
+    "club.management.emptyHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New applications will appear here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新的申请会显示在这里"
+          }
+        }
+      }
+    },
+    "club.management.requestedAt %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请于 %@"
+          }
+        }
+      }
+    },
+    "club.management.timeUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间未知"
           }
         }
       }
