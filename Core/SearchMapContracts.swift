@@ -133,9 +133,11 @@ public struct SearchMapCityNode: Decodable, Equatable, Identifiable {
     public let templateTitle: String?
     public let validationMethod: Int?
     public let favorited: Bool
+    /// Display-only marker emphasis (`node-level-style.js`); absent or malformed stays nil.
+    public let nodeLevel: Int?
     enum CodingKeys: String, CodingKey {
         case poiId, name, description, lat, lng, radiusM, tags, coverImg, distance, status
-        case merchantId, merchantName, templateId, templateTitle, validationMethod, favorited
+        case merchantId, merchantName, templateId, templateTitle, validationMethod, favorited, nodeLevel
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -155,6 +157,7 @@ public struct SearchMapCityNode: Decodable, Equatable, Identifiable {
         templateTitle = try c.roamText(.templateTitle)
         validationMethod = try c.decodeIfPresent(Int.self, forKey: .validationMethod)
         favorited = (try? c.decode(Bool.self, forKey: .favorited)) == true
+        nodeLevel = (try? c.decodeIfPresent(Int.self, forKey: .nodeLevel)) ?? nil
     }
 }
 public struct CityNodeSearchQuery: Equatable, Hashable {
