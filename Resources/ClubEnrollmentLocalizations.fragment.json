@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open a player’s check-in record to inspect their registration. Refund counts do not grant refund permission."
+            "value": "Open a person to see their check-in detail; removal and refund sit at the bottom of that page and only the host can use them."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "点开玩家的核销记录查看报名详情。可退款人数不代表退款权限。"
+            "value": "点开某个人看核销详情;清退退款在那一页底部,仅主理人可操作。"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No groups yet"
+            "value": "No city orienteering teams yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有团"
+            "value": "还没有城市定向团"
           }
         }
       }
@@ -422,13 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending check-in · View details"
+            "value": "Awaiting check-in"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "待核销 · 查看详情"
+            "value": "待核销"
           }
         }
       }
@@ -438,13 +438,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checked in · View details"
+            "value": "Checked in"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已核销 · 查看详情"
+            "value": "已核销"
           }
         }
       }
@@ -477,6 +477,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "未知"
+          }
+        }
+      }
+    },
+    "club.enroll.escrow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registration fees are held in escrow by the platform."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名费由平台担保托管"
+          }
+        }
+      }
+    },
+    "club.enroll.emptyTeamsHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the “City orienteering” ticket type in the publisher and assign it to this club to see its roster here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在发布器选择「城市定向」票种并归属本俱乐部,即可在此查看报名名册。"
           }
         }
       }

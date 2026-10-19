@@ -95,9 +95,15 @@ extension EnvironmentValues {
             if host == liveHost, reader.isCurrentAccess, identity == reader.identity, identity == access.identity, reader.hasLoaded {
                 Section {
                     LabeledContent("club.enroll.teamCount") { Text(reader.teams.count, format: .number) }
+                    Text("club.enroll.escrow").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.enroll.escrow")
                     Text("club.enroll.readOnly").font(.footnote).foregroundStyle(.secondary)
                 }
-                if reader.teams.isEmpty { Text("club.enroll.emptyTeams").accessibilityIdentifier("club.enroll.emptyTeams") }
+                if reader.teams.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("club.enroll.emptyTeams").accessibilityIdentifier("club.enroll.emptyTeams")
+                        Text("club.enroll.emptyTeamsHint").font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
                 ForEach(reader.teams) { team in
                     Section {
                         Button { Task { if canRead { await reader.toggle(topicID: team.id) } } } label: {

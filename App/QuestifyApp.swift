@@ -28,6 +28,8 @@ struct QuestifyApp: App {
                     NativeVerificationFixtureView(scenario: fixtureArgument("--native-verification-fixture") ?? "success")
                 } else if ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") {
                     NavigationStack { MerchantNPCFixtureView() }
+                } else if ProcessInfo.processInfo.arguments.contains("--merchant-ai-commerce-fixture") {
+                    MerchantAICommerceFixtureHost()
                 } else if ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") {
                     PublisherLifecycleFixtureRoot()
                 } else if ProcessInfo.processInfo.arguments.contains("--retained-images-fixture") {
@@ -56,6 +58,8 @@ struct QuestifyApp: App {
                     NearbyTeamFixtureRoot()
                 } else if ProcessInfo.processInfo.arguments.contains("--official-action-fixture") {
                     OfficialActionFixtureHost()
+                } else if ProcessInfo.processInfo.arguments.contains("--second-registration-fixture") {
+                    SecondRegistrationFixtureHost(scenario: fixtureArgument("--second-registration-fixture") ?? "mature")
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-engagement-fixture") {
                     MerchantEngagementFixtureHostView()
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-business-fixture") {
@@ -110,6 +114,8 @@ struct QuestifyApp: App {
                     ProfileSelfEditFixtureHost(scenario: fixtureArgument("--profile-self-edit-scenario") ?? "own")
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-medals") {
                     ProfileSelfMedalsFixtureHost(scenario: fixtureArgument("--profile-self-medals-scenario") ?? "content")
+                } else if MemberParityFixture.isSelected {
+                    MemberParityFixtureRouter()
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-growth") {
                     ProfileSelfGrowthFixtureHost(scenario: fixtureArgument("--profile-self-growth-scenario") ?? "content")
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-projects") {
@@ -202,6 +208,7 @@ final class AppSessionContainer: ObservableObject {
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-favorite-removal") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-edit-return") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-medals") ||
+           MemberParityFixture.isSelected ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-growth") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-projects") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-author-posts-refresh") ||
@@ -220,7 +227,7 @@ final class AppSessionContainer: ObservableObject {
 struct SessionRootView: View {
     @ObservedObject var session: AppSession
     @State private var browsingAsGuest=false
-    @State private var selectedTab=0
+    @State private var selectedTab=RootTab.home
     @State private var showsAreaPicker=false
     #if DEBUG
     @State private var showsScannerFixture = false
@@ -230,9 +237,8 @@ struct SessionRootView: View {
         Group {
             if session.account != nil || browsingAsGuest {
                 TabView(selection:$selectedTab) {
-                    SessionHomeFeedView(onSignIn:{ selectedTab=4 }).tabItem { Label("homeFeed.title",systemImage:"house") }.tag(0)
-                    ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
-                    RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ selectedTab=4 },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView()) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader)) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
+                    SessionHomeFeedView(onSignIn:{ selectedTab = .mine }).tabItem { rootTabLabel(.home) }.tag(RootTab.home)
+                    RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ selectedTab = .mine },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView()) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader)) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
                         switch target {
                         case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true))
                         case .topic(let id): return AnyView(SessionTopicDetailView(id: id, session: session))
@@ -240,16 +246,21 @@ struct SessionRootView: View {
                     }, playerProfileDestination: { memberID in
                         AnyView(SocialPublicProfileView(memberID: memberID, reader: session.socialAccountReader,
                             squareReader: session.squareReader, actions: nil).id(session.socialAccountReader.identity))
-                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: { selectedTab=4 })) }, nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: { selectedTab=4 })) }, toolsReader: session.roamPassportToolsReader)
-                        .tabItem { Label("roam.title",systemImage:"map") }.tag(3)
-                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }) }
+                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: { selectedTab = .mine })) }, nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: { selectedTab = .mine })) }, toolsReader: session.roamPassportToolsReader)
+                        .tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
+                    NavigationStack {
+                        DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)
+                    }
+                        .id(session.templateAuthoringViewIdentity)
+                        .tabItem { rootTabLabel(.publish) }.tag(RootTab.publish)
+                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
-                        .tabItem { Label("club.title",systemImage:"person.3") }.tag(2)
+                        .tabItem { rootTabLabel(.club) }.tag(RootTab.club)
                     Group {
-                        if let account=session.account { AccountView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? 3 : 0 }).id(session.sessionRevision) }
+                        if let account=session.account { AccountView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home }).id(session.sessionRevision) }
                         else { WelcomeView() }
-                    }.tabItem { Label("account.title",systemImage:"person.crop.circle") }.tag(4)
-                }.id(session.account?.id ?? 0)
+                    }.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
+                }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
             } else { WelcomeView(onBrowse:{ browsingAsGuest=true }) }
         }
         .background {
@@ -257,6 +268,8 @@ struct SessionRootView: View {
         }
         .environmentObject(session)
         .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })
+        .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
+        .environment(\.merchantGameNodeDestination, { $1.view(service: $0) })
         .environment(\.merchantCityTemplateHandoffFactory, {
             .init(reader: session.merchantOperationsReader, imageHost: session.retainedMerchantImages,
                   templateAssistFactory: { session.merchantTemplateAssistFlow(coordinator: $0) })
@@ -271,6 +284,7 @@ struct SessionRootView: View {
         })
         .environment(\.verificationCodeFactory, { session.makeVerificationCodeCoordinator(target: $0) })
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
+        .environment(\.coopWalletReader, session.walletCommerceReader)
         .environment(\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))
         .environment(\.bankWithdrawalDestination, { AnyView(SessionBankWithdrawalView()) })
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
@@ -278,10 +292,12 @@ struct SessionRootView: View {
         .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
         .environment(\.merchantAcceptedProjectDestination, { AnyView(SessionMerchantAcceptedProjectView(session: session, source: $0)) })
         .environment(\.merchantOfficialRecruitmentDestination, { AnyView(SessionMerchantOfficialRecruitmentView(session: session, source: $0)) })
+        .environment(\.merchantCoopCenterDestination, { session.merchantCoopCenterDestination(initialTab: $0, focusTopicID: $1) })
         .environment(\.cooperationNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session)) })
         .environment(\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
+        .environment(\.registrationMySignupsDestination, { AnyView(SessionPlayerJourneyView(destination: .participations)) })
         .task { await session.bootstrap() }
         .onAppear { session.setPrivateHomePresentationActive(true) }
         .onAppear { session.setOwnerDraftPresentationActive(true) }
@@ -292,9 +308,11 @@ struct SessionRootView: View {
         .onOpenURL { session.receiveNativeURL($0) }
         .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { session.receiveWeChatUserActivity($0) }
         .sheet(item: Binding(get: { session.nativeEntry }, set: { if $0 == nil { session.dismissNativeEntry() } })) { entry in
-            NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = 0 })
+            NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = .home })
         }
         .sheet(isPresented:$showsAreaPicker) { RoamAreaPicker(onSelect:{ session.roamArea=$0 }) }
+        .usageConsentLaunchGate(signedIn: session.account != nil, market: session.operationalMarket, onDecline: { browsingAsGuest = true })
+        .sessionExpiryNotice(session: session, onContinueAsGuest: { browsingAsGuest = true })
         #if DEBUG
         .sheet(isPresented: $showsScannerFixture) { NativeQRScanner { _ in } }
         .onAppear {
@@ -303,6 +321,10 @@ struct SessionRootView: View {
             }
         }
         #endif
+    }
+
+    private func rootTabLabel(_ tab: RootTab) -> some View {
+        Label(LocalizedStringKey(tab.titleKey), systemImage: tab.systemImage)
     }
 }
 

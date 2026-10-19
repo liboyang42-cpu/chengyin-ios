@@ -226,7 +226,7 @@ import XCTest
     }
     private func orders(_ app: XCUIApplication, owner: Int) {
         assertOrderRowMayMeetButNotCrossNavigationBoundary()
-        tab("Account", app); tap("profile.open.orders", app)
+        tab("Me", app); tap("profile.open.orders", app)
         XCTAssertTrue(app.staticTexts["Owner \(owner) list snapshot"].waitForExistence(timeout: 5))
         tap("profile.order.41", app)
         XCTAssertTrue(app.staticTexts["Activity or route, Owner \(owner) fresh detail"].waitForExistence(timeout: 5))
@@ -249,7 +249,7 @@ import XCTest
     }
 
     func testNormalRootIMHistoryDefaultNilNeverDispatches() throws {
-        let app = launch("denied"); signIn(app); tab("Account", app); tap("Messages", app)
+        let app = launch("denied"); signIn(app); tab("Me", app); tap("Messages", app)
         XCTAssertTrue(app.staticTexts["messaging.list.unconfigured"].waitForExistence(timeout: 5))
         XCTAssertTrue(try evidence(app).ledger.filter { $0.route.hasPrefix("history.") }.isEmpty)
     }
@@ -261,10 +261,10 @@ import XCTest
         tap("homeFeed.nearby.activity.21", app)
         XCTAssertTrue(app.staticTexts["activity.detail.error"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["activity.openPlay"].exists)
-        tab("Explore the map", app); tap("roam.display.toggle", app); chooseManualArea(app)
+        tab("Roam", app); tap("roam.display.toggle", app); chooseManualArea(app)
         XCTAssertTrue(app.descendants(matching: .any)["roam.error"].firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Synthetic manual place"].exists)
-        tab("Account", app); tap("profile.open.orders", app)
+        tab("Me", app); tap("profile.open.orders", app)
         XCTAssertTrue(app.descendants(matching: .any)["profile.orders.unavailable"].firstMatch.waitForExistence(timeout: 5))
         let value = try evidence(app)
         XCTAssertEqual(Array(value.ledger.prefix(3)).map(\.route), ["sms-send", "phone", "userInfo"])

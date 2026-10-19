@@ -8,6 +8,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     var actionCoordinator: ClubActionCoordinator? = nil
     var management:ClubManagementContext? = nil
     var community: ClubCommunityContext? = nil
+    /// Deep-link intent (`tab=manage`); honored only after the detail read confirms access.
+    var requestedTab: ClubDetailTab? = nil
+    @State private var selectedTab: ClubDetailTab? = nil
+    @State private var manageGrant: ClubDetailManageGrant? = nil
     @State private var actionDetail: ClubRecord? = nil
     @State private var actionIdentity: ClubReadIdentity? = nil
     @State private var managementNeedsRefresh = false
@@ -28,6 +32,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                            return detail
                        }) { loadedClub in
             let club = actionIdentity == reader.clubIdentity && actionDetail?.id == id ? (actionDetail ?? loadedClub) : loadedClub
+            let tabs = ClubDetailTabPolicy(club: club, grant: manageGrant)
+            let tab = tabs.resolve(selectedTab ?? tabs.initialTab(requested: requestedTab))
             List {
                 Section {
                     ClubName(value: club.name).font(.title2.bold()).accessibilityIdentifier("club.detail.name")
@@ -47,18 +53,20 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         actionDetail = detail; actionIdentity = identity
                     }
                 }
-                if (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
+                ClubDetailTabBar(tabs: tabs.tabs, selection: tab) { selectedTab = tabs.select($0, from: tab) }
+                if tab == .posts, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
                     Section {
                         NavigationLink { SessionClubChatView(clubID: id, session: session) } label: { Label("club.chat.title", systemImage: "person.3") }
                             .accessibilityIdentifier("club.chat.entry")
                     }
                 }
-                if club.isOwner, let session = reader as? AppSession {
+                if tab == .manage, club.isOwner, let session = reader as? AppSession {
                     Section { NavigationLink("context.ai.title") { SessionClubAIDesignView(session: session, clubID: id) }.accessibilityIdentifier("club.context.openAI") }
                     Section { NavigationLink("club.projectLaunch.title") { SessionClubProjectLaunchView(session: session, club: club) }.accessibilityIdentifier("club.projectLaunch.entry") }
                 }
-                if let session = reader as? AppSession {
-                    // Keep the scope binder mounted for non-owners so owner loss fences old callbacks immediately.
+                if tab == .manage, let session = reader as? AppSession {
+                    // Keep the scope binder mounted for non-owners so owner loss fences old callbacks immediately;
+                    // leaving the manage tab unmounts it with the rest of the tab.
                     SessionClubMerchantProfileHost(session: session) {
                         ClubMerchantDiscoveryView(club: club, clubReader: reader, reader: session.cooperationFlowReader)
                     }
@@ -67,7 +75,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         ClubLeadProgressEntry(club: club, clubReader: reader, reader: session.cooperationFlowReader, access: governance.access, projects: session.creatorContentReader, destinations: session.clubLeadPrimaryDestinations(club: club, governance: governance))
                     }
                 }
-                if let community {
+                if tab == .posts, community == nil {
+                    Section { Text("club.detail.posts.unavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.posts.unavailable") }
+                }
+                if tab == .posts, let community {
                     Section {
                         ClubCommunityEntry(clubID: id, identity: reader.clubIdentity, context: community)
                             .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
@@ -76,13 +87,21 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
                 // V2 governance has its own access/me model, including delegated event staff.
-                if let governance = management?.governance {
+                if tab == .events, management?.governance == nil {
+                    Section { Text("club.detail.events.unavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.events.unavailable") }
+                }
+                if tab == .events, let governance = management?.governance {
                     Section {
                         NavigationLink {
                             ClubEventCalendarView(clubID: id, identity: reader.clubIdentity, governance: governance, reportClub: club, reportReader: reader)
                         } label: { Label("club.calendar.title", systemImage: "calendar") }
                             .accessibilityIdentifier("club.calendar.open")
                         ClubSessionQuickStartEntry(club: club, reader: reader, governance: governance)
+                    }
+                }
+                // Members without a manage tab still reach their own governance cases from the overview.
+                if tab == .manage || (tab == .overview && !tabs.canUseManageTab), let governance = management?.governance {
+                    Section {
                         if club.isOwner {
                             NavigationLink {
                                 ClubStatsOverviewView(clubID: id, identity: reader.clubIdentity, governance: governance)
@@ -92,7 +111,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates, terminalSessions: governance.terminalSessions, ownerFunds: governance.ownerFunds)
                     }
                 }
-                if (club.isOwner || club.viewerIsAdmin),let management {
+                if (club.isOwner || club.viewerIsAdmin), tab == .manage, let management {
                     Section {
                         if let operations = management.operations {
                             ClubOperationsEntryButton(target: .club(id), identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator)
@@ -107,25 +126,49 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         .accessibilityIdentifier("club.openManagement")
                     }
                 }
-                Section("club.introduction") {
-                    if let description = club.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Text(verbatim: description).textSelection(.enabled)
-                    } else { Text("club.noIntroduction").foregroundStyle(.secondary) }
-                    ClubOptionalRow(title: "club.leader", value: club.leaderName)
-                    ClubOptionalRow(title: "club.city", value: club.city)
-                    ClubOptionalRow(title: "club.address", value: club.address)
-                    ClubOptionalRow(title: "club.type", value: club.clubType ?? club.clubTypes)
-                    ClubOptionalRow(title: "club.preferences", value: club.activityPrefs.isEmpty ? nil : club.activityPrefs.joined(separator: ", "))
-                    ClubOptionalRow(title: "club.keywords", value: club.keywords)
+                if tab == .overview {
+                    Section("club.introduction") {
+                        if let description = club.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Text(verbatim: description).textSelection(.enabled)
+                        } else { Text("club.noIntroduction").foregroundStyle(.secondary) }
+                        ClubOptionalRow(title: "club.leader", value: club.leaderName)
+                        ClubOptionalRow(title: "club.city", value: club.city)
+                        ClubOptionalRow(title: "club.address", value: club.address)
+                        ClubOptionalRow(title: "club.type", value: club.clubType ?? club.clubTypes)
+                        ClubOptionalRow(title: "club.preferences", value: club.activityPrefs.isEmpty ? nil : club.activityPrefs.joined(separator: ", "))
+                        ClubOptionalRow(title: "club.keywords", value: club.keywords)
+                    }
+                    Section("club.members") {
+                        if club.canSeeMembers {
+                            NavigationLink {
+                                ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, governance: management?.governance, onSignIn: onSignIn)
+                            } label: { Label("club.viewMembers", systemImage: "person.3") }
+                                .accessibilityIdentifier("club.openMembers")
+                        } else { Text("club.joinToSeeMembers").foregroundStyle(.secondary).accessibilityIdentifier("club.members.gated") }
+                    }
+                    // Mini-program overview: 本团贡献榜 · 本周, gated on member visibility like the source.
+                    Section("club.detail.leaderboard.title") {
+                        if club.canSeeMembers, let governance = management?.governance {
+                            NavigationLink {
+                                ClubGovernanceReadView(operation: .leaderboard, scope: .init(clubID: id), identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
+                                    .environment(\.clubEnrollmentProfile, governance.enrollmentProfile)
+                            } label: { Label("club.detail.leaderboard.open", systemImage: "trophy") }
+                                .accessibilityIdentifier("club.detail.leaderboard.open")
+                            Text("club.detail.leaderboard.reset").font(.footnote).foregroundStyle(.secondary)
+                        } else if club.canSeeMembers {
+                            Text("club.detail.leaderboard.unavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.leaderboard.unavailable")
+                        } else {
+                            Text("club.detail.leaderboard.locked").accessibilityIdentifier("club.detail.leaderboard.locked")
+                            Text("club.detail.leaderboard.lockedHint").font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                    Section("club.detail.governanceHelp.title") {
+                        Text("club.detail.governanceHelp.body").font(.footnote).foregroundStyle(.secondary)
+                    }
                 }
-                Section("club.members") {
-                    if club.canSeeMembers {
-                        NavigationLink {
-                            ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, governance: management?.governance, onSignIn: onSignIn)
-                        } label: { Label("club.viewMembers", systemImage: "person.3") }
-                            .accessibilityIdentifier("club.openMembers")
-                    } else { Text("club.joinToSeeMembers").foregroundStyle(.secondary).accessibilityIdentifier("club.members.gated") }
-                }
+            }
+            .task(id: ClubDetailManageGrantKey(clubID: id, identity: reader.clubIdentity, hasGovernance: management?.governance != nil)) {
+                await loadManageGrant()
             }
         }.appNavigationTitle("club.detail")
             .id(id)
@@ -136,6 +179,27 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 actionDetail = nil; actionIdentity = nil
                 managementRevision &+= 1
             }
-            .onChange(of: reader.clubIdentity) { _, _ in actionDetail = nil; actionIdentity = nil }
+            .onChange(of: reader.clubIdentity) { _, _ in actionDetail = nil; actionIdentity = nil; manageGrant = nil; selectedTab = nil }
     }
+
+    /// `/api/club/access/me` only widens the manage tab; a failed or foreign read revokes
+    /// to the legacy owner/admin flags, as `revokeClubAccess` does in the mini-program.
+    private func loadManageGrant() async {
+        manageGrant = nil
+        guard let governance = management?.governance, reader.clubIdentity.isSignedIn else { return }
+        let identity = reader.clubIdentity
+        let grant: ClubDetailManageGrant?
+        do {
+            let snapshot = try await governance.access.read(.access, scope: .init(clubID: id), options: [:])
+            grant = snapshot.permissions.map { ClubDetailManageGrant($0) }
+        } catch { grant = nil }
+        guard !Task.isCancelled, identity == reader.clubIdentity else { return }
+        manageGrant = grant?.clubID == id ? grant : nil
+    }
+}
+
+private struct ClubDetailManageGrantKey: Hashable {
+    let clubID: Int
+    let identity: ClubReadIdentity
+    let hasGovernance: Bool
 }

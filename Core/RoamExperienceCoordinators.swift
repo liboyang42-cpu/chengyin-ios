@@ -40,6 +40,8 @@ public enum RoamRecoveryPhase: Equatable {
     public private(set) var loading = false
     public private(set) var error: Error?
     public private(set) var loaded = false
+    /// Server total from the latest successful page; nil until a page is actually read.
+    public private(set) var total: Int?
     private let reader: any RoamExperienceReading
     private var identity: RoamExperienceIdentity?
     private var nextPage = 1
@@ -48,7 +50,7 @@ public enum RoamRecoveryPhase: Equatable {
     public init(reader: any RoamExperienceReading, pageSize: Int = 20) { self.reader = reader; self.pageSize = pageSize }
     public func reset() {
         generation += 1; identity = reader.identity; nextPage = 1
-        stamps = []; hasMore = true; loading = false; error = nil; loaded = false
+        stamps = []; hasMore = true; loading = false; error = nil; loaded = false; total = nil
     }
     /// Preserve rows when a detail is pushed; invalidate only unfinished work.
     public func cancelPending() { generation += 1; loading = false }
@@ -67,7 +69,7 @@ public enum RoamRecoveryPhase: Equatable {
                 stamps.removeAll { $0.id == stamp.id }
                 if stamp.isVisible { stamps.append(stamp) }
             }
-            hasMore = result.hasMore; nextPage += 1; loaded = true
+            hasMore = result.hasMore; nextPage += 1; loaded = true; total = result.total
         } catch {
             guard !Task.isCancelled, generation == ticket, reader.identity == snapshot else { return }
             self.error = error

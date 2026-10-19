@@ -61,16 +61,29 @@ public struct ComplianceDeregistration: Decodable, Equatable {
     public let status: String
     public let blockers: [String]
     public let executeAfter: String?
+    /// Precheck only. Absent keeps the established SMS contract; the backend sends it for every precheck.
+    public let verificationMethod: String?
     public var eligible: Bool { status == "ELIGIBLE" }
     public var blocked: Bool { status == "BLOCKED" }
-    public var pending: Bool { executeAfter != nil && !["NORMAL", "ELIGIBLE", "BLOCKED"].contains(status) }
-    enum CodingKeys: String, CodingKey { case status, blockers, executeAfter }
+    /// Mini-program deregister-flow: PENDING is pending even before executeAfter is known;
+    /// CANCELLED and FAILED return to the precheck path like NORMAL.
+    public var pending: Bool { status == "PENDING" || (executeAfter != nil && !Self.startable.union(["ELIGIBLE", "BLOCKED"]).contains(status)) }
+    public var startable: Bool { Self.startable.contains(status) }
+    static let startable: Set<String> = ["NORMAL", "CANCELLED", "FAILED"]
+    /// iOS can verify only by SMS. WECHAT reconfirmation needs a fresh mini-program wx.login
+    /// code bound to the account's mini-program openid, which a native app cannot produce.
+    public var verificationAvailableOnThisDevice: Bool { verificationMethod == nil || verificationMethod == "SMS" }
+    enum CodingKeys: String, CodingKey { case status, blockers, executeAfter, verificationMethod }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         // Missing status is unknown, never guessed NORMAL/eligible.
         status = try c.decodeIfPresent(String.self, forKey: .status) ?? "UNKNOWN"
         blockers = try c.decodeIfPresent([String].self, forKey: .blockers) ?? []
         executeAfter = try c.decodeIfPresent(String.self, forKey: .executeAfter)
+        // A present but malformed method is never treated as the usable legacy SMS path.
+        if c.contains(.verificationMethod), (try? c.decodeNil(forKey: .verificationMethod)) != true {
+            verificationMethod = (try? c.decode(String.self, forKey: .verificationMethod)) ?? "UNKNOWN"
+        } else { verificationMethod = nil }
     }
 }
 public enum ComplianceMarketingChannel: String, CaseIterable { case inApp = "IN_APP", coupon = "COUPON" }

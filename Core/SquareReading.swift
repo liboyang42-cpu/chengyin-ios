@@ -32,7 +32,17 @@ public extension SquareReading {
         guard value.items.allSatisfy({ $0.generation == route.generation }) else { throw APIError.invalidRequest }; return value
     }
 }
-@MainActor public final class SquareSessionReader: SquareReading {
+public struct SquareCommunityFeatures: Equatable {
+    public let read: Bool
+    public let write: Bool
+    public init(read: Bool, write: Bool) { self.read = read; self.write = write }
+}
+/// Owner-bound community gate (source `canUseCommunity`). Results belong to the reader scope that produced them.
+@MainActor public protocol SquareCommunityFeatureReading: AnyObject {
+    var scope: UUID { get }
+    func communityFeatures() async throws -> SquareCommunityFeatures
+}
+@MainActor public final class SquareSessionReader: SquareReading, SquareCommunityFeatureReading {
     private let service: SquareService?
     private let currentSession: () -> SquareReadSession?
     private let onUnauthorized: (SquareReadSession) -> Void
@@ -55,6 +65,9 @@ public extension SquareReading {
     }
     public func squareDetail(id: Int) async throws -> SquarePost {
         try await read { try await $0.detail(id: id, token: $1) }
+    }
+    public func communityFeatures() async throws -> SquareCommunityFeatures {
+        try await read { try await $0.communityFeatures(token: $1) }
     }
     public func squareComments(postID: Int, pageNumber: Int) async throws -> SquareCommentPage {
         try await read { try await $0.comments(postID: postID, pageNumber: pageNumber, token: $1) }

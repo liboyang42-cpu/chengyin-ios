@@ -188,6 +188,7 @@ final class ClubManagementFlowTests: XCTestCase {
     func testActualClubDetailReloadsOnlyAfterReturningFromManagement() {
         launch("detailReturn")
         XCTAssertTrue(app.staticTexts["club.detail.name"].waitForExistence(timeout: 5))
+        app.buttons["club.detail.tab.manage"].tap()
         app.buttons["club.openManagement"].tap()
         open("request", 703); submit(prepare("approve", target: 703)); count(1)
         XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 10))
@@ -200,6 +201,7 @@ final class ClubManagementFlowTests: XCTestCase {
     func testFailedParentReloadDoesNotDismissManagementReceipt() {
         launch("detailReturnUnavailable")
         XCTAssertTrue(app.staticTexts["club.detail.name"].waitForExistence(timeout: 5))
+        app.buttons["club.detail.tab.manage"].tap()
         app.buttons["club.openManagement"].tap()
         open("request", 703); submit(prepare("approve", target: 703)); count(1)
         XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 10))
