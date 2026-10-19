@@ -7,6 +7,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
     @ObservedObject var reader: Reader
     var contentService: (any MerchantContentServing)? = nil
     var showsRecentEvents = true
+    var workspaceReadFactory: MerchantProjectWorkspaceReadFactory? = nil
     @StateObject private var model = MerchantLoadModel<MerchantProjectWorkspaceSnapshot>()
     @StateObject private var presentation = MerchantProjectWorkspacePresentation()
     @State private var tab: MerchantProjectBrowserTab = .topic
@@ -21,7 +22,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
         summaryFixtureEvents.append(event)
     }
     #endif
-    private var context: MerchantProjectWorkspaceContext { .init(reader: reader, service: contentService) }
+    private var context: MerchantProjectWorkspaceContext { .init(reader: reader, service: contentService, workspaceReadID: workspaceReadFactory?.id) }
     private var sourceFresh: Bool { !model.isLoading && model.errorKey == nil && model.loadedRevision == reader.sessionRevision }
     var body: some View {
         ZStack {
@@ -133,7 +134,11 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     }
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("merchant.done") { presentation.closeSummary(id: selected.id) }.accessibilityIdentifier("merchant.projectSummary.close") } }
                     .navigationDestination(item: presentation.workspaceBinding()) { route in
-                        if let contentService, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
+                        if let factory = workspaceReadFactory, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
+                            MerchantProjectWorkspaceReadHost(factory: factory, topicID: route.topicID, merchantID: route.merchantID,
+                                isCurrent: { presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) })
+                                .id(route.id)
+                        } else if let contentService, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
                             MerchantContentDocumentView(service: contentService, query: .project(topicID: route.topicID),
                                 focusedTopicID: route.topicID, focusedMerchantID: route.merchantID,
                                 projectEntryIsCurrent: { presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) })
@@ -209,11 +214,13 @@ struct MerchantProjectWorkspaceContext: Hashable {
     let revision: UInt64
     let configured: Bool
     let signedIn: Bool
+    let workspaceReadID: UUID?
     let serviceID: ObjectIdentifier?
     let serviceScope: UUID?
     let serviceConfigured: Bool
     let serviceAuthenticated: Bool
-    @MainActor init<Reader: MerchantReading>(reader: Reader, service: (any MerchantContentServing)?) {
+    @MainActor init<Reader: MerchantReading>(reader: Reader, service: (any MerchantContentServing)?, workspaceReadID: UUID? = nil) {
+        self.workspaceReadID = workspaceReadID
         readerID = ObjectIdentifier(reader); revision = reader.sessionRevision
         configured = reader.isConfigured; signedIn = reader.isSignedIn
         serviceID = service.map { ObjectIdentifier($0) }; serviceScope = service?.scope
@@ -271,7 +278,7 @@ struct MerchantProjectWorkspaceSnapshot {
     }
     func canOpenWorkspace(_ selected: Selection, snapshot: MerchantProjectWorkspaceSnapshot, context: MerchantProjectWorkspaceContext, sourceFresh: Bool) -> Bool {
         sourceFresh && selectionIsCurrent(selected, snapshot: snapshot, context: context) && selected.project.bizType == "topic" && selected.project.projectID > 0 &&
-            context.serviceID != nil && context.serviceConfigured && context.serviceAuthenticated
+            (context.workspaceReadID != nil || (context.serviceID != nil && context.serviceConfigured && context.serviceAuthenticated))
     }
     func openWorkspace(_ selected: Selection, snapshot: MerchantProjectWorkspaceSnapshot, context: MerchantProjectWorkspaceContext, sourceFresh: Bool) {
         guard route == nil, canOpenWorkspace(selected, snapshot: snapshot, context: context, sourceFresh: sourceFresh), let merchantID = snapshot.access.merchantID else { return }
