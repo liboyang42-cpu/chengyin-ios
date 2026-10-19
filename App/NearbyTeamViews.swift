@@ -16,11 +16,23 @@ import SwiftUI
     @State private var longitude = ""
     @State private var radius = 3000
     @State private var tab = 0
+    @State private var viewMode = NearbyTeamViewMode.map
+    @State private var focusedTeamID: NearbyTeamID?
+    @State private var mine = NearbyMineLoad()
+    @State private var recruiting = NearbyRecruitingLoad.idle
     let initialContext: NearbyQueryContext?
     let joinedTeams: [OwnedTeam]
+    let onSignIn: (() -> Void)?
     let navigate: (NearbyTeamDestination) -> Void
-    init(coordinator: NearbyTeamCoordinator, context: NearbyQueryContext? = nil, joinedTeams: [OwnedTeam] = [], navigate: @escaping (NearbyTeamDestination) -> Void = { _ in }) {
+    /// `initialRadius`/`focusTeamID`/`initialTab` mirror the xcx `?radius=&teamId=` and my-teams entry options.
+    init(coordinator: NearbyTeamCoordinator, context: NearbyQueryContext? = nil, joinedTeams: [OwnedTeam] = [],
+         initialTab: Int = 0, initialRadius: Int? = nil, focusTeamID: NearbyTeamID? = nil, onSignIn: (() -> Void)? = nil,
+         navigate: @escaping (NearbyTeamDestination) -> Void = { _ in }) {
         _model = StateObject(wrappedValue: NearbyTeamScreenModel(coordinator)); initialContext = context; self.joinedTeams = joinedTeams; self.navigate = navigate
+        self.onSignIn = onSignIn
+        _tab = State(initialValue: initialTab == 1 ? 1 : 0); _focusedTeamID = State(initialValue: focusTeamID)
+        if let initialRadius, NearbyQueryContext.radii.contains(initialRadius) { _radius = State(initialValue: initialRadius) }
+        else if let context { _radius = State(initialValue: context.radius) }
     }
     private var coordinator: NearbyTeamCoordinator { model.coordinator }
     var body: some View {
@@ -32,12 +44,28 @@ import SwiftUI
                 }.pickerStyle(.segmented).accessibilityIdentifier("nearby.section")
                 if tab == 0 {
                     contextControls
+                    NearbyTeamHeaderBar(loaded: coordinator.context != nil, count: coordinator.teams.count, mode: $viewMode)
                     if model.running { ProgressView("nearby.loading") }
-                    if !model.running && coordinator.teams.isEmpty {
-                        ContentUnavailableView("nearby.empty", systemImage: "person.3", description: Text("nearby.empty.detail"))
+                    if let issue = NearbyLoadIssue(messageKey: coordinator.messageKey), !model.running {
+                        NearbyLoadIssueCard(issue: issue, onSignIn: onSignIn) { Task { await refresh() } }
+                    } else if !model.running && coordinator.teams.isEmpty {
+                        ContentUnavailableView("nearby.empty", systemImage: "person.3", description: Text("nearby.w208.listEmpty"))
                     }
                     LabeledContent("nearby.recruitingCount") { Text(verbatim: String(coordinator.teams.count)) }
-                    ForEach(coordinator.teams) { team in teamCard(team) }
+                    if viewMode == .map {
+                        if let center = mapCenter {
+                            NearbyTeamMapSection(center: center, teams: coordinator.teams, focusedID: focusedTeamID) { focusedTeamID = $0 }
+                        }
+                        ForEach(orderedTeams) { team in teamCard(team) }
+                    } else {
+                        NearbyTeamListHeader(radius: coordinator.context?.radius ?? radius, count: coordinator.teams.count)
+                        ForEach(coordinator.teams) { team in
+                            NearbyTeamListRow(team: team, expanded: focusedTeamID == team.id) { focusedTeamID = focusedTeamID == team.id ? nil : team.id }
+                            if focusedTeamID == team.id { teamCard(team) }
+                        }
+                    }
+                    NearbyTeamCornerBar(radius: coordinator.context?.radius ?? radius,
+                                        mineCount: NearbyTeamBridge.activeCount(NearbyTeamBridge.myRows(joined: joinedTeams, applications: coordinator.myApplications))) { tab = 1 }
                     applicantSection
                 } else { mineSection }
                 Button("nearby.refresh") { Task { await refresh() } }.frame(minHeight: 44)
@@ -47,9 +75,13 @@ import SwiftUI
             .sheet(item: model.review) { review in NearbyTeamReviewView(model: model, snapshot: review) }
             .task {
                 coordinator.resume()
-                if let context = initialContext { latitude = String(context.latitude); longitude = String(context.longitude); radius = context.radius; await model.run { await coordinator.loadNearby(context) } }
+                if let context = initialContext {
+                    latitude = String(context.latitude); longitude = String(context.longitude)
+                    if tab == 0 { await model.run { await coordinator.loadNearby(.init(latitude: context.latitude, longitude: context.longitude, radius: radius)) } }
+                }
+                if tab == 1 { await loadMine() }
             }
-            .onChange(of: tab) { _, value in if value == 1 { Task { await model.run { await coordinator.loadMine() } } } }
+            .onChange(of: tab) { _, value in if value == 1 { Task { await loadMine() } } }
             .onDisappear { coordinator.leave() }
     }
     private var notice: some View {
@@ -76,26 +108,59 @@ import SwiftUI
         }
     }
     private func refresh() async {
-        if tab == 1 { await model.run { await coordinator.loadMine() }; return }
+        if tab == 1 { await loadMine(); return }
         guard let lat = Double(latitude), let lng = Double(longitude) else {
             await model.run { await coordinator.loadNearby(.init(latitude: .nan, longitude: .nan)) }; return
         }
         await model.run { await coordinator.loadNearby(.init(latitude: lat, longitude: lng, radius: radius)) }
     }
+    /// The manually selected query point only; there is no device-location fallback or self marker.
+    private var mapCenter: RoamSearchArea? {
+        guard let source = coordinator.context ?? initialContext,
+              let coordinate = RoamCoordinate(latitude: source.latitude, longitude: source.longitude) else { return nil }
+        return RoamSearchArea(coordinate: coordinate, label: "")
+    }
+    /// A tapped marker (or deep-link team) is shown first, like the xcx team card over the map.
+    private var orderedTeams: [NearbyTeam] {
+        guard let focusedTeamID, let focused = coordinator.teams.first(where: { $0.id == focusedTeamID }) else { return coordinator.teams }
+        return [focused] + coordinator.teams.filter { $0.id != focusedTeamID }
+    }
+    /// my-teams reads 附近招募 around the same manual point at a fixed 3 km. No location fallback.
+    private var recruitingContext: NearbyQueryContext? {
+        if let lat = Double(latitude), let lng = Double(longitude) { return .init(latitude: lat, longitude: lng, radius: NearbyTeamPresentation.recruitingRadius) }
+        return initialContext.map { .init(latitude: $0.latitude, longitude: $0.longitude, radius: NearbyTeamPresentation.recruitingRadius) }
+    }
+    /// my-teams `reload`; when the viewer has no rows, `loadOpen` runs automatically.
+    private func loadMine() async {
+        mine.loading = true; mine.failed = false
+        await model.run { await coordinator.loadMine() }
+        mine.loading = false; mine.loaded = true
+        mine.failed = NearbyLoadIssue(messageKey: coordinator.messageKey) != nil && coordinator.myApplications.isEmpty && joinedTeams.isEmpty
+        if !mine.failed && NearbyTeamBridge.myRows(joined: joinedTeams, applications: coordinator.myApplications).isEmpty { await loadRecruiting() }
+    }
+    private func loadRecruiting() async {
+        guard let context = recruitingContext, context.valid else { recruiting = .noArea; return }
+        recruiting = .loading
+        await model.run { await coordinator.loadNearby(context) }
+        if NearbyLoadIssue(messageKey: coordinator.messageKey) != nil || coordinator.context != context { recruiting = .failed }
+        else { radius = context.radius; recruiting = .loaded }
+    }
     private func teamCard(_ team: NearbyTeam) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            if team.title.isEmpty { Text("nearby.untitled").font(.title2.bold()) } else { Text(verbatim: team.title).font(.title2.bold()) }
-            if !team.activityName.isEmpty { Text(verbatim: team.activityName).font(.headline) }
-            Label(LocalizedStringKey(team.viewerStatus.key), systemImage: team.viewerStatus == .pending ? "clock" : "person.3")
-            Text(team.productType == 2 ? "nearby.freeExplore" : "nearby.urbanExplore").font(.caption)
-            if !team.addressName.isEmpty {
-                LabeledContent(team.coordSource == "GATHER" ? "nearby.gather" : "nearby.place") { Text(verbatim: team.addressName) }
+            HStack(alignment: .top) {
+                if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(.title2.bold()) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(.title2.bold()) }
+                Spacer(minLength: 8)
+                NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode))
             }
-            if let distance = team.distance { LabeledContent("nearby.distance") { Text(verbatim: distance >= 1000 ? String(format: "%.1f km", distance / 1000) : String(format: "%.0f m", distance)) } }
-            LabeledContent("nearby.leader") { if team.leaderName.isEmpty { Text("nearby.player") } else { Text(verbatim: team.leaderName) } }
-            LabeledContent("nearby.members") { Text(verbatim: "\(team.joinedCount) / \(team.maxMembers)") }
+            if !team.activityName.isEmpty, !team.title.isEmpty { Text(verbatim: team.title).font(.headline) }
+            NearbyTeamSubLine(team: team)
+            NearbyTeamMembersLine(team: team)
+            if !team.memberAvatars.isEmpty { NearbyTeamFaces(count: team.memberAvatars.count) }
+            NearbyTeamNotice(mode: team.mode)
+            Label(LocalizedStringKey(team.viewerStatus.key), systemImage: team.viewerStatus == .pending ? "clock" : "person.3")
             switch team.mode {
             case "leader":
+                Text("nearby.w208.leaderSub \(team.joinedCount) \(team.maxMembers) \(NearbyTeamPresentation.remainingSeats(team))").font(.subheadline)
                 LabeledContent("nearby.applicants") { Text(verbatim: "\(team.pendingCount)") }
                 Text("nearby.leader.foot").font(.footnote)
                 Button("nearby.applicants") { Task { await model.run { await coordinator.loadApplicants(teamID: team.id) } } }.frame(minHeight: 44).disabled(model.running)
@@ -104,8 +169,10 @@ import SwiftUI
             case "rejected": Text("nearby.rejected.foot").font(.footnote)
             case "apply": Text("nearby.apply.foot").font(.footnote); actionButton(.apply(team.id))
             case "buy":
-                Text("nearby.ticket.foot").font(.footnote)
-                if let destination = NearbyTeamBridge.purchaseDestination(team) { routeButton("nearby.buy", destination: destination) }
+                // xcx falls back to the topic page when the team has no activity session.
+                if let destination = NearbyTeamBridge.purchaseDestination(team) ?? team.topicID.flatMap({ $0 > 0 ? NearbyTeamDestination.topic($0) : nil }) {
+                    routeButton("nearby.w208.buyTicket", destination: destination)
+                }
             default: Text("nearby.actionUnavailable").font(.footnote)
             }
         }.fixedSize(horizontal: false, vertical: true).padding().frame(maxWidth: .infinity, alignment: .leading)
@@ -131,7 +198,12 @@ import SwiftUI
     }
     private var mineSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if model.running { ProgressView("nearby.loading") }
+            if mine.loading { ProgressView("nearby.w208.mine.loading") }
+            else if model.running { ProgressView("nearby.loading") }
+            if mine.failed && !model.running {
+                Button { Task { await loadMine() } } label: { Text("nearby.w208.mine.failed").frame(maxWidth: .infinity, alignment: .leading) }
+                    .frame(minHeight: 44).accessibilityIdentifier("nearby.w208.mine.retry")
+            }
             let rows = NearbyTeamBridge.myRows(joined: joinedTeams, applications: coordinator.myApplications)
             let groups = NearbyTeamBridge.myGroups(rows, viewerAccountID: coordinator.session?.accountID)
             LabeledContent("nearby.activeCount") { Text(verbatim: String(NearbyTeamBridge.activeCount(rows))) }
@@ -147,9 +219,13 @@ import SwiftUI
                     }
                 }.padding(.vertical, 8)
             }
-            if rows.isEmpty && !model.running {
-                Text("nearby.mine.empty")
-                Button("nearby.mine.findOnMap") { tab = 0 }.frame(minHeight: 44).accessibilityIdentifier("nearby.mine.findOnMap")
+            if rows.isEmpty && mine.loaded && !mine.loading && !mine.failed {
+                Text("nearby.w208.mine.empty").font(.headline).accessibilityIdentifier("nearby.mine.empty")
+                Button("nearby.mine.findOnMap") { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 }.frame(minHeight: 44).accessibilityIdentifier("nearby.mine.findOnMap")
+                NearbyRecruitingSection(state: recruiting, teams: recruiting == .loaded ? NearbyTeamPresentation.recruiting(coordinator.teams) : [],
+                                        retry: { Task { await loadRecruiting() } }) { id in
+                    radius = NearbyTeamPresentation.recruitingRadius; focusedTeamID = id; viewMode = .map; tab = 0
+                }
             }
             ForEach(groups) { group in
                 Text(LocalizedStringKey(group.kind.titleKey)).font(.title3.bold())
@@ -163,18 +239,32 @@ import SwiftUI
         switch row {
         case .joined(let team):
             VStack(alignment: .leading, spacing: 10) {
-                if team.title.isEmpty { Text("nearby.untitled").font(.headline) } else { Text(verbatim: team.title).font(.headline) }
-                Text(leading ? "nearby.mine.badge.leading" : "nearby.mine.badge.approved").font(.subheadline).foregroundStyle(.secondary)
+                HStack(alignment: .top) {
+                    NearbyTeamFaces(count: NearbyTeamPresentation.faceCount(real: 0, members: team.joinedCount))
+                    if team.title.isEmpty { Text("nearby.w208.mine.untitled").font(.headline) } else { Text(verbatim: team.title).font(.headline) }
+                    Spacer(minLength: 8)
+                    NearbyTeamBadgeView(badge: leading ? .leader : .joined, captain: leading)
+                }
+                if let start = NearbyTeamPresentation.startText(team.expireTime) { Text("nearby.w208.mine.start \(start)").font(.subheadline).foregroundStyle(.secondary) }
+                else { Text(leading ? "nearby.mine.badge.leading" : "nearby.mine.badge.approved").font(.subheadline).foregroundStyle(.secondary) }
+                NearbyMineMembersText(joined: team.joinedCount, maximum: team.maxMembers)
                 routeButton("nearby.enter", destination: .team(.init(team.id)))
             }.accessibilityElement(children: .contain)
                 .accessibilityIdentifier("nearby.joined.\(team.id)")
         case .application(let application):
             VStack(alignment: .leading, spacing: 10) {
-                if application.title.isEmpty { Text("nearby.untitled") } else { Text(verbatim: application.title).font(.headline) }
+                HStack(alignment: .top) {
+                    NearbyTeamFaces(count: NearbyTeamPresentation.faceCount(real: application.leaderAvatar.isEmpty ? 0 : 1, members: application.joinedCount))
+                    if application.title.isEmpty { Text("nearby.w208.mine.untitled").font(.headline) } else { Text(verbatim: application.title).font(.headline) }
+                    Spacer(minLength: 8)
+                    NearbyTeamBadgeView(badge: application.status == .pending ? .pending : .rejected)
+                }
+                if application.status == .pending, !application.activityName.isEmpty { Text(verbatim: application.activityName).font(.subheadline).foregroundStyle(.secondary) }
+                NearbyMineMembersText(joined: application.joinedCount, maximum: application.maxMembers)
                 Text(LocalizedStringKey(application.status.key))
                 if !application.leaderName.isEmpty { LabeledContent("nearby.leader") { Text(verbatim: application.leaderName) } }
                 if application.status == .pending { expiry(application.applyExpireTime); actionButton(.withdraw(application.id)) }
-                else { Text("nearby.rejected.foot"); Button("nearby.lookNearby") { tab = 0 }.frame(minHeight: 44) }
+                else { Text("nearby.rejected.foot"); Button("nearby.lookNearby") { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 }.frame(minHeight: 44) }
             }.accessibilityElement(children: .contain)
                 .accessibilityIdentifier("nearby.application.\(application.id.rawValue)")
         }
