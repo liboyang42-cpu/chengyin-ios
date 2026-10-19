@@ -145,6 +145,8 @@ ROWS = {
  'merchantOps.customer.summary.monthly %lld %lld': ('%1$lld · %2$lld new this month', '%1$lld 位 · 本月新增 %2$lld'),
  'merchantOps.customer.summary.total %lld': ('%lld customers', '%lld 位'),
  'merchantOps.customer.summary.unavailable': ('Customer count unavailable', '客户数量暂不可用'),
+ 'merchantOps.customer.identity.recent %lld %lld': ('Last interaction %1$lld/%2$lld', '最近互动 %1$lld月%2$lld日'),
+ 'merchantOps.customer.identity.none': ('No interactions yet', '尚无互动记录'),
  'merchantOps.customer.footer %lld': ('%lld customers · all shown', '共 %lld 位客户 · 已全部显示'),
  'merchantOps.aftercare.readOnly.closed': ('Platform review has ended; no further merchant opinion can be added.', '平台审核已结束，不能再追加商家意见。'),
 }

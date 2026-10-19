@@ -64,4 +64,13 @@ public enum MerchantCustomerListParity {
         if let monthly = summary["monthlyNew"]?.integer, monthly >= 0 { return .totalWithMonthly(total, monthly) }
         return .total(total)
     }
+
+    /// Source customer/detail buildIdentityLine: China-calendar month/day of the last interaction, nil for "尚无互动记录".
+    public static func identityDay(_ lastInteraction: Date?) -> (month: Int, day: Int)? {
+        guard let lastInteraction else { return nil }
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+        let parts = calendar.dateComponents([.month, .day], from: lastInteraction)
+        guard let month = parts.month, let day = parts.day else { return nil }
+        return (month, day)
+    }
 }

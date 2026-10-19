@@ -53,3 +53,15 @@ struct MerchantCustomerListFooter: View {
             .frame(maxWidth: .infinity).accessibilityIdentifier("merchantOps.customer.footer")
     }
 }
+
+/// Source customer/detail identity line: "最近互动 M月D日" or "尚无互动记录".
+struct MerchantCustomerIdentityLine: View {
+    let lastInteraction: Date?
+    var body: some View {
+        Group {
+            if let day = MerchantCustomerListParity.identityDay(lastInteraction) {
+                Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.identity.recent %lld %lld", day.month, day.day))
+            } else { Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.identity.none")) }
+        }.font(.subheadline).foregroundStyle(.secondary).accessibilityIdentifier("merchantOps.customer.identity")
+    }
+}

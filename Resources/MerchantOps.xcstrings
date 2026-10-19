@@ -732,6 +732,40 @@
         }
       }
     },
+    "merchantOps.customer.identity.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No interactions yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无互动记录"
+          }
+        }
+      }
+    },
+    "merchantOps.customer.identity.recent %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last interaction %1$lld/%2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近互动 %1$lld月%2$lld日"
+          }
+        }
+      }
+    },
     "merchantOps.customer.noteBadge": {
       "extractionState": "manual",
       "localizations": {

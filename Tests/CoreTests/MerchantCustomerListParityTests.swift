@@ -33,3 +33,12 @@ final class MerchantCustomerListParityTests: XCTestCase {
         XCTAssertNil(MerchantCustomerListParity.summary([:]))
     }
 }
+
+final class MerchantCustomerIdentityLineTests: XCTestCase {
+    func testIdentityDayUsesChinaCalendar() throws {
+        let late = try XCTUnwrap(MerchantCustomerListParity.instant(.string("2026-08-26T17:30:00Z"))) // 2026-08-27 01:30 China
+        let day = try XCTUnwrap(MerchantCustomerListParity.identityDay(late))
+        XCTAssertEqual(day.month, 8); XCTAssertEqual(day.day, 27)
+        XCTAssertNil(MerchantCustomerListParity.identityDay(nil))
+    }
+}
