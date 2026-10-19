@@ -190,5 +190,49 @@
   "playx.opening.disabled": [
     "Setting off from the opening chapter isn’t available in this version.",
     "当前版本暂未开放开局出发。"
+  ],
+  "playx.finishRoute.eyebrow": [
+    "Next route nearby",
+    "附近下一程"
+  ],
+  "playx.finishRoute.untitled": [
+    "Nearby route",
+    "附近路线"
+  ],
+  "playx.finishRoute.priceFrom %@": [
+    "From ¥%@",
+    "¥%@ 起"
+  ],
+  "playx.finishRoute.free": [
+    "Free",
+    "免费"
+  ],
+  "playx.finishRoute.action": [
+    "See prices and tickets →",
+    "查看票价并购票 →"
+  ],
+  "playx.finishRoute.metaKm %@ %@": [
+    "%1$@ km · %2$@",
+    "%1$@ 公里 · %2$@"
+  ],
+  "playx.finishRoute.metaM %@ %@": [
+    "%1$@ m · %2$@",
+    "%1$@ 米 · %2$@"
+  ],
+  "playx.finishRoute.km %@": [
+    "%@ km",
+    "%@ 公里"
+  ],
+  "playx.finishRoute.m %@": [
+    "%@ m",
+    "%@ 米"
+  ],
+  "playx.finishRoute.address %@": [
+    "%@",
+    "%@"
+  ],
+  "playx.finishRoute.fixtureLoaded": [
+    "Finish sheet (synthetic)",
+    "完成页（合成数据）"
   ]
 }

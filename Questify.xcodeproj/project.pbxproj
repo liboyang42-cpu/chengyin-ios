@@ -3635,6 +3635,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "9A98F071F7FCA66D7AC2D7C0";
 		};
+		"08754C14EA0F600364C4E722" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayFinishRouteCardView.swift";
+			"sourceTree" = "<group>";
+		};
+		"E78CD2DAEDA3D5C3DA28FE69" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "08754C14EA0F600364C4E722";
+		};
+		"0D16F0C9070DB1001EE769A8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayFinishRouteFixtureSupport.swift";
+			"sourceTree" = "<group>";
+		};
+		"FA0AC881637DDD5CBC84432A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0D16F0C9070DB1001EE769A8";
+		};
 		"2F946D4ED713A80D950EBE82" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -12174,6 +12194,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "EC8056083E373CC8CA802977";
 		};
+		"E50997FA73BAC235E4A5BE1A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PlayFinishRouteRecommendation.swift";
+			"sourceTree" = "<group>";
+		};
+		"0BAA0845F8D0E370BC0A913A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E50997FA73BAC235E4A5BE1A";
+		};
 		"7F213EB94CA153BCFE5C219E" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -17911,6 +17941,8 @@
 				"627ACF77932F60C2EE8157B0",
 				"CE99702B167340C18D8BB144",
 				"9A98F071F7FCA66D7AC2D7C0",
+				"08754C14EA0F600364C4E722",
+				"0D16F0C9070DB1001EE769A8",
 				"2F946D4ED713A80D950EBE82",
 				"726E833557F0C2BD925CD7E3",
 				"AC77B4A3357FCA67329B1BE9",
@@ -18764,6 +18796,7 @@
 				"13C013D20F4EB57835C9290C",
 				"AB9B4EA9567596FD5A62895B",
 				"EC8056083E373CC8CA802977",
+				"E50997FA73BAC235E4A5BE1A",
 				"7F213EB94CA153BCFE5C219E",
 				"23BE9072F8CE254686FDF195",
 				"595135CB0FA59410C288EBC4",
@@ -19407,6 +19440,7 @@
 				"2848BE6F29D86A5E3AC7277F",
 				"94ADCDB52A4694A7B6DEA117",
 				"2B38D205C877F9F4915129E2",
+				"CDFC182BF6D4D61A96C524F1",
 				"F0B55EAC53552ADCFDD8D5BC",
 				"E09EBD2A8C86A2EB3527CDA2",
 				"B4F672FA6CA17DF041837D1D",
@@ -20303,6 +20337,8 @@
 				"986F622B1D162E572E31721E",
 				"FC6912335932BA1684CC2434",
 				"5D600893552A363E7297AD12",
+				"E78CD2DAEDA3D5C3DA28FE69",
+				"FA0AC881637DDD5CBC84432A",
 				"BC97DA2422CF6AD4EA6F407B",
 				"01CEC4A87C9BA537BC2C1782",
 				"F45D816D302D7E7C43FBDB6E",
@@ -21156,6 +21192,7 @@
 				"54A0CD02E41DD07D40AEF2CE",
 				"90F8EFE8F6CEB15D9098252C",
 				"DA8BA0B4FFE7F50011972E5A",
+				"0BAA0845F8D0E370BC0A913A",
 				"00D22AC8609141FC244EDA2E",
 				"E1D5439611027D0B91A86CE3",
 				"A5161E5A63E0058D45C6483D",
@@ -22872,6 +22909,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "2B38D205C877F9F4915129E2";
 		};
+		"CDFC182BF6D4D61A96C524F1" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/PlayFinishRouteFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"98DCF5F192B0DB372B523B51" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CDFC182BF6D4D61A96C524F1";
+		};
 		"F0B55EAC53552ADCFDD8D5BC" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -24170,6 +24217,7 @@
 				"85E47D42906F749138C41CBE",
 				"0CAC798049C3A9C5437E3200",
 				"26595C4EDE305DCF45812C9B",
+				"98DCF5F192B0DB372B523B51",
 				"7E1FDE13D262C6127D8EFB94",
 				"07AAE9B5DE124A9673F142AB",
 				"17648B48CB720EDBA0A6BC54",

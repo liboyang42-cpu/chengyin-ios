@@ -6,7 +6,7 @@ enum ModuleFixture: String {
     case ownedOrderHistory
     case signedInContentDetail
     case publicTemplateDetail, publicPlayTemplate
-    case templateDetailParity, templateTabStaff, playOpening
+    case templateDetailParity, templateTabStaff, playOpening, playFinishRoute
     case privateHome
     case nativeEnrollment
     case nativePlatform
@@ -57,6 +57,7 @@ struct ModuleFixtureRootView: View {
             case .templateDetailParity: TemplateDetailParityFixtureHost()
             case .templateTabStaff: TemplateTabStaffFixtureHost()
             case .playOpening: PlayOpeningFixtureHost()
+            case .playFinishRoute: PlayFinishRouteFixtureHost()
             case .privateHome: PrivateHomeFixtureHost()
             case .nativeEnrollment: NativeEnrollmentFixtureHost()
             case .nativePlatform: NativePlatformFixtureHost()
