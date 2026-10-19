@@ -56,6 +56,8 @@ struct QuestifyApp: App {
                     NearbyTeamFixtureRoot()
                 } else if ProcessInfo.processInfo.arguments.contains("--official-action-fixture") {
                     OfficialActionFixtureHost()
+                } else if ProcessInfo.processInfo.arguments.contains("--second-registration-fixture") {
+                    SecondRegistrationFixtureHost(scenario: fixtureArgument("--second-registration-fixture") ?? "mature")
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-engagement-fixture") {
                     MerchantEngagementFixtureHostView()
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-business-fixture") {

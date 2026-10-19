@@ -73,8 +73,9 @@ import SwiftUI
                 Section {
                     if events.isEmpty { emptyRow("official.published.eventsEmpty", "official.published.eventsEmptyDetail") }
                     ForEach(events) { event in
-                        NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin) } label: { OfficialEventCard(event: event) }
-                            .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
+                        // Source official-mine row: title + publisher-view status badge, then city.
+                        NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin) } label: { publishedEventRow(event) }
+                            .accessibilityIdentifier("official.published.event.\(event.id)")
                     }
                 } header: { Text("official.published.eventsHeader \(events.count)") }
                 Section {
@@ -97,6 +98,22 @@ import SwiftUI
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
             }.accessibilityIdentifier("official.published.content")
         }.appNavigationTitle("official.published.title").navigationBarTitleDisplayMode(.inline)
+    }
+    private func publishedEventRow(_ event: OfficialEvent) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                if let title = OfficialPublishedPresentation.nonBlank(event.title) { Text(verbatim: title).font(.headline) }
+                else { Text("official.privateParity.published.untitledEvent").font(.headline) }
+                Spacer(minLength: 8)
+                Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(event.status)))
+                    .font(.caption).padding(.horizontal, 8).padding(.vertical, 2)
+                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                    .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
+            }
+            // Category is not decoded by the shared read contract; only the city is shown.
+            if let city = OfficialPublishedPresentation.nonBlank(event.city) { Text(verbatim: city).font(.subheadline).foregroundStyle(.secondary) }
+            else { Text("official.privateParity.published.cityUnknown").font(.subheadline).foregroundStyle(.secondary) }
+        }.fixedSize(horizontal: false, vertical: true)
     }
     private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 4) {
