@@ -273,6 +273,182 @@
           }
         }
       }
+    },
+    "merchant.operationsHint.profile": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name · address · hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称 · 地址 · 营业时间"
+          }
+        }
+      }
+    },
+    "merchant.operationsHint.businessStatus": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open or closed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "营业中 / 已打烊"
+          }
+        }
+      }
+    },
+    "merchant.operationsHint.decor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cover · tagline · feature tags · featured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封面 · 一句话介绍 · 特色标签 · 主推"
+          }
+        }
+      }
+    },
+    "merchant.operationsHint.gallery": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 9 store photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 9 张门店照片"
+          }
+        }
+      }
+    },
+    "merchant.operationsHint.story": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story · highlights · tagline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "故事 · 特色 · 一句话介绍"
+          }
+        }
+      }
+    },
+    "merchant.operationsHint.cooperation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacity · hours · fees · cooperation needs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承接 · 时段 · 收费 · 合作诉求"
+          }
+        }
+      }
+    },
+    "merchant.operationsHint.character": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Look · voice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "形象 · 语音"
+          }
+        }
+      }
+    },
+    "merchant.operationsHint.assets": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice · 3D assets"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "声音 · 3D 资源"
+          }
+        }
+      }
+    },
+    "merchant.operationsHint.cityNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host interactive play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挂互动玩法"
+          }
+        }
+      }
+    },
+    "merchant.operations.demand": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation needs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作诉求"
+          }
+        }
+      }
+    },
+    "merchant.operations.chargeType": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fee type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收费方式"
+          }
+        }
+      }
     }
   }
 }

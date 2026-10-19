@@ -27,6 +27,19 @@ PAIRS = {
 'merchant.operatorSelf.title': ('Your role permissions', '你的岗位权限'),
 'merchant.operatorSelf.copy': ('The workbench only shows the business entries available to your current role. The owner changes roles or ends access, and it takes effect on the next request.', '工作台只显示当前岗位可用的经营入口。岗位调整或离职由店主操作，并在下一次请求时立即生效。'),
 'merchant.operatorSelf.openWorkbench': ('Go to workbench', '进入工作台'),
+# pages/merchant/decor entry subtitles (index.wxml:69-119)
+'merchant.operationsHint.profile': ('Name · address · hours', '名称 · 地址 · 营业时间'),
+'merchant.operationsHint.businessStatus': ('Open or closed', '营业中 / 已打烊'),
+'merchant.operationsHint.decor': ('Cover · tagline · feature tags · featured', '封面 · 一句话介绍 · 特色标签 · 主推'),
+'merchant.operationsHint.gallery': ('Up to 9 store photos', '最多 9 张门店照片'),
+'merchant.operationsHint.story': ('Story · highlights · tagline', '故事 · 特色 · 一句话介绍'),
+'merchant.operationsHint.cooperation': ('Capacity · hours · fees · cooperation needs', '承接 · 时段 · 收费 · 合作诉求'),
+'merchant.operationsHint.character': ('Look · voice', '形象 · 语音'),
+'merchant.operationsHint.assets': ('Voice · 3D assets', '声音 · 3D 资源'),
+'merchant.operationsHint.cityNodes': ('Host interactive play', '挂互动玩法'),
+# pages/merchant/decor/coop-setting labels (index.wxml:73,80); key owned here, value realigned
+'merchant.operations.demand': ('Cooperation needs', '合作诉求'),
+'merchant.operations.chargeType': ('Fee type', '收费方式'),
 }
 
 

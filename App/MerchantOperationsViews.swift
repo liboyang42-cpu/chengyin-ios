@@ -21,7 +21,7 @@ struct MerchantOperationsHomeView: View {
                             else { MerchantOperationsDocumentView(reader: reader, destination: destination) }
                         } label: {
                             QuestifyImageEntityCard(imageSource: nil, title: "", fallbackTitle: LocalizedStringKey(destination.titleKey), fallbackSymbol: symbol(destination), minimumHeight: 180) {
-                                Text("merchant.operations.entryHint")
+                                Text(LocalizedStringKey(destination.entryHintKey))
                             }
                         }
                         .buttonStyle(.plain)
