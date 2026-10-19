@@ -12,7 +12,7 @@
   {
     "key": "ticketWallet.loading",
     "en": "Loading tickets…",
-    "zh-Hans": "正在读取票券…"
+    "zh-Hans": "正在加载我的票"
   },
   {
     "key": "ticketWallet.retry",
@@ -32,7 +32,7 @@
   {
     "key": "ticketWallet.empty",
     "en": "Your ticket wallet is empty",
-    "zh-Hans": "票夹里还没有票"
+    "zh-Hans": "还没有票"
   },
   {
     "key": "ticketWallet.partialEmpty",
@@ -46,8 +46,8 @@
   },
   {
     "key": "ticketWallet.readOnly",
-    "en": "Read-only ticket wallet. Payment, refunds, teams and completion rewards are not available here yet.",
-    "zh-Hans": "只读票夹。此处暂不提供支付、退款、队伍和完局奖励。"
+    "en": "Read-only ticket wallet. Payment, refunds and completion rewards are not available here; the team entry is view-only.",
+    "zh-Hans": "只读票夹。此处不提供支付、退款和完局奖励；队伍入口只用于查看。"
   },
   {
     "key": "ticketWallet.untitled",
@@ -132,7 +132,7 @@
   {
     "key": "ticketWallet.issue.login",
     "en": "Sign in to see your tickets",
-    "zh-Hans": "登录后查看你的票券"
+    "zh-Hans": "登录后查看票夹"
   },
   {
     "key": "ticketWallet.issue.notConfigured",

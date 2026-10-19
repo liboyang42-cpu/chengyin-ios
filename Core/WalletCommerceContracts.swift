@@ -21,10 +21,14 @@ public struct WalletLedgerRow: Decodable, Equatable, Identifiable {
     public let id: Int
     public let changeBalance: WalletAmount?
     public let afterBalance: WalletAmount?
+    /// Existing points-detail balance before the change. NULL stays unknown, never zero.
+    public let currentPoints: WalletAmount?
     public let changePoints: WalletAmount?
     public let afterPoints: WalletAmount?
     public let changeType: Int?
     public let eventType: Int?
+    /// Existing source event identity (with eventType). Read-back key only; never re-issued.
+    public let eventId: Int?
     public let changeReason: String?
     public let createTime: String?
     public let currency: String?
@@ -171,8 +175,10 @@ public struct WalletWithdrawalRecord: Decodable, Equatable, Identifiable {
     public let maskedAccount: String?
     public let createTime: String?
     public let currency: String?
+    /// 实际到账金额 (`receivedAmount`), which the mini-program record sheet shows. Unknown stays nil.
+    public let receivedAmount: WalletAmount?
     public var statusKey: String { ["wallet.pendingReview", "wallet.approved", "wallet.rejected", "wallet.paid"][status] }
-    private enum CodingKeys: String, CodingKey { case id, withdrawalAmount, amount, status, bankAccount, createTime, currency }
+    private enum CodingKeys: String, CodingKey { case id, withdrawalAmount, amount, status, bankAccount, createTime, currency, receivedAmount }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)
@@ -182,6 +188,8 @@ public struct WalletWithdrawalRecord: Decodable, Equatable, Identifiable {
         maskedAccount = WalletAddressReference.mask(try c.decodeIfPresent(String.self, forKey: .bankAccount))
         createTime = try c.decodeIfPresent(String.self, forKey: .createTime)
         currency = try c.decodeIfPresent(String.self, forKey: .currency)
+        let received = (try? c.decodeIfPresent(WalletAmount.self, forKey: .receivedAmount)) ?? nil
+        receivedAmount = received.flatMap { $0.value >= 0 ? $0 : nil }
     }
 }
 

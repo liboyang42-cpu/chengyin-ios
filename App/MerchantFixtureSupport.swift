@@ -57,7 +57,7 @@ private final class MerchantFixtureReader: MerchantReading {
     }
     func merchantTodo(access: MerchantAccess) async throws -> MerchantTodo {
         guard access.isOwner else { throw MerchantReadError.accessDenied }
-        return try decode(#"{"pendingOrders":2,"pendingVerify":1,"verifiedCount":3}"#)
+        return try decode(#"{"pendingOrders":2,"pendingVerify":1,"verifiedCount":3,"pendingPredict":2}"#)
     }
     func merchantEvents(access: MerchantAccess) async throws -> [MerchantEvent] {
         guard access.isOwner else { throw MerchantReadError.accessDenied }

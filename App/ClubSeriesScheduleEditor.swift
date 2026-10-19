@@ -53,7 +53,9 @@ import SwiftUI
                         }
                     }.accessibilityIdentifier("club.schedule.recurrence")
                     if schedule.recurrence != ClubSeriesScheduleDraft.Recurrence.custom.rawValue {
-                        DatePicker("club.gov.field.startDate", selection: dayBinding(now: clock.date), in: minimumDay(clock.date)..., displayedComponents: .date)
+                        DatePicker(selection: dayBinding(now: clock.date), in: minimumDay(clock.date)..., displayedComponents: .date) {
+                            Text("clubOpsEvent.field.firstDate", tableName: "ClubOpsEvent")
+                        }
                             .accessibilityIdentifier("club.schedule.startDate")
                     }
                     if schedule.recurrence == ClubSeriesScheduleDraft.Recurrence.weekly.rawValue {
@@ -64,7 +66,9 @@ import SwiftUI
                     if schedule.recurrence == ClubSeriesScheduleDraft.Recurrence.custom.rawValue {
                         ForEach(schedule.customDates) { item in
                             HStack {
-                                DatePicker("club.gov.field.startDate", selection: customBinding(item.id, now: clock.date), in: minimumDay(clock.date)..., displayedComponents: .date)
+                                DatePicker(selection: customBinding(item.id, now: clock.date), in: minimumDay(clock.date)..., displayedComponents: .date) {
+                                    Text("clubOpsEvent.field.date", tableName: "ClubOpsEvent")
+                                }
                                     .accessibilityIdentifier("club.schedule.customDate." + item.id.uuidString)
                                 Button(role: .destructive) { schedule.removeDate(id: item.id) } label: { Image(systemName: "minus.circle"); Text("club.schedule.remove") }
                                     .disabled(schedule.customDates.count <= 1).buttonStyle(.borderless)

@@ -7,7 +7,8 @@ import SwiftUI
               context.authorizationGeneration == access.authorizationGeneration, context.accessIdentity == ObjectIdentifier(access),
               snapshotGeneration == readGeneration,
               target.isCurrent(snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration, namespace: access.storageNamespace) else { return nil }
-        return .init(operation: .correctAttendance, scope: target.scope, seed: ["expectedVersion": .integer(target.version)])
+        return .init(operation: .correctAttendance, scope: target.scope,
+                     seed: ["expectedVersion": .integer(target.version), "arrived": .bool(target.arrived)])
     }
 }
 
@@ -18,9 +19,11 @@ import SwiftUI
     let namespace: String
     @Binding var selected: ClubRosterBucket
     let openCorrection: (ClubRosterCorrectionRoute) -> Void
+    @Environment(\.locale) private var locale
     var body: some View {
         Section {
-            LabeledContent("club.roster.total", value: String(roster.rosterTotal)).accessibilityIdentifier("club.roster.total")
+            Text("clubOpsEvent.roster.title \(roster.rosterTotal)", tableName: "ClubOpsEvent").font(.headline)
+                .accessibilityIdentifier("club.roster.total")
             Text("club.roster.totalNote").font(.footnote).foregroundStyle(.secondary)
             Text("club.roster.privacy").font(.footnote)
             ForEach(ClubRosterBucket.allCases, id: \.self) { bucket in
@@ -30,15 +33,17 @@ import SwiftUI
             Picker("club.gov.filter", selection: $selected) {
                 ForEach(ClubRosterBucket.allCases, id: \.self) { bucket in Text(LocalizedStringKey(bucket.localizationKey)).tag(bucket) }
             }.pickerStyle(.segmented).accessibilityIdentifier("club.roster.filter")
-            if roster.correctionOperable == false { Text("club.roster.windowClosed").accessibilityIdentifier("club.roster.windowClosed") }
-            if roster.correctionStart != nil || roster.correctionEnd != nil {
-                Text("club.roster.serverWindow").font(.footnote)
-                if let start = roster.correctionStart { LabeledContent("club.roster.windowStart", value: start) }
-                if let end = roster.correctionEnd { LabeledContent("club.roster.windowEnd", value: end) }
+            // Mini CU-C-73: the operable window is stated in place only while corrections are closed.
+            if roster.correctionOperable == false {
+                Group {
+                    if let range = ClubOpsEventClock.correctionRange(start: roster.correctionStart, end: roster.correctionEnd, locale: locale) {
+                        Text("clubOpsEvent.roster.window \(range)", tableName: "ClubOpsEvent")
+                    } else { Text("clubOpsEvent.roster.windowGeneric", tableName: "ClubOpsEvent") }
+                }.font(.footnote).foregroundStyle(.orange).accessibilityIdentifier("club.roster.windowClosed")
             }
         }
         Section(LocalizedStringKey(selected.localizationKey)) {
-            if roster.members(in: selected).isEmpty { Text("club.roster.emptyBucket").accessibilityIdentifier("club.roster.emptyBucket") }
+            if roster.members(in: selected).isEmpty { Text("clubOpsEvent.roster.emptyBucket", tableName: "ClubOpsEvent").accessibilityIdentifier("club.roster.emptyBucket") }
             ForEach(roster.members(in: selected)) { member in
                 VStack(alignment: .leading, spacing: 8) {
                     if let name = member.nickname { Text(verbatim: name).font(.headline) } else { Text("club.roster.unnamed").font(.headline) }
@@ -46,13 +51,20 @@ import SwiftUI
                     if let state = member.waitlistState { Text(verbatim: state) }
                     if let route = roster.correctionRoute(memberID: member.id, bucket: selected, context: context,
                                                           snapshotGeneration: snapshotGeneration, namespace: namespace) {
-                        Button("club.gov.action.correctAttendance") { openCorrection(route) }
+                        Button { openCorrection(route) } label: { correctionLabel(route.arrived) }
                             .buttonStyle(.borderless).accessibilityIdentifier("club.roster.correct.\(member.id)")
+                    } else if let arrived = ClubOpsEventAttendance.arrivedTarget(selected), roster.correctionOperable == false {
+                        Button {} label: { correctionLabel(arrived) }.buttonStyle(.borderless).disabled(true)
+                            .accessibilityIdentifier("club.roster.correct.\(member.id)")
+                        Text("clubOpsEvent.roster.closed", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(.secondary)
                     } else if selected != .waitlist && member.correctionVersion == nil {
                         Text("club.roster.versionUnknown").font(.footnote).accessibilityIdentifier("club.roster.versionUnknown")
                     }
                 }.accessibilityIdentifier("club.roster.member.\(member.id)")
             }
         }
+    }
+    private func correctionLabel(_ arrived: Bool) -> Text {
+        Text(arrived ? "clubOpsEvent.roster.markArrived" : "clubOpsEvent.roster.markAbsent", tableName: "ClubOpsEvent")
     }
 }

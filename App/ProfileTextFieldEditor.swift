@@ -65,6 +65,13 @@ struct ProfileTextFieldEditor: View {
                     TextField(LocalizedStringKey(edit.field.titleKey), text: $text)
                         .textContentType(.nickname).focused($focused)
                         .accessibilityIdentifier("profile.edit.name")
+                    ProfileFieldLimitCounter(text: text)
+                } else if edit.field == .introduction {
+                    TextField(LocalizedStringKey(edit.field.titleKey), text: $text,
+                              prompt: Text("member.profile.introductionPrompt", tableName: "MemberProfile"), axis: .vertical)
+                        .lineLimit(3...8).focused($focused)
+                        .accessibilityIdentifier("profile.edit.introduction")
+                    ProfileFieldLimitCounter(text: text)
                 } else if edit.field == .caseIntroduction, edit.snapshot.caseIntroduction == nil {
                     Text("profile.case.descriptionUnavailable")
                         .accessibilityIdentifier("profile.case.descriptionUnavailable")
@@ -94,7 +101,20 @@ struct ProfileTextFieldEditor: View {
                     .disabled(edit.field == .contactQR || (edit.field == .caseIntroduction && edit.snapshot.caseIntroduction == nil))
                     .disabled(edit.field == .preferences)
                     .disabled(edit.field == .casePictures)
+                    .disabled((edit.field == .name || edit.field == .introduction) && ProfileFieldLimit.exceeds(text))
             }
         }
+    }
+}
+
+/// N/140, as the source field counter.
+struct ProfileFieldLimitCounter: View {
+    let text: String
+    var body: some View {
+        Text(verbatim: "\(ProfileFieldLimit.count(text))/\(ProfileFieldLimit.maxUTF16)")
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(ProfileFieldLimit.exceeds(text) ? Color.red : Color.secondary)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .accessibilityIdentifier("profile.edit.limit")
     }
 }

@@ -237,8 +237,10 @@ struct ClubOwnerFundsSection: View {
             }
             if let key = workflow.failure { Text(LocalizedStringKey(key)).accessibilityIdentifier("club.ownerFunds.error") }
             if target.hasSettlementRows {
-            Text(LocalizedStringKey(workflow.availability == .zero ? "club.ownerFunds.zero" : workflow.availability == .unknown ? "club.ownerFunds.unknown" : "club.ownerFunds.manual"))
-                .font(.footnote)
+            if let hint = ClubOpsWithdrawHint(isOwner: true, availability: workflow.availability) {
+                Text(LocalizedStringKey(hint.localizationKey), tableName: "ClubOpsCustomer").font(.footnote)
+                    .accessibilityIdentifier("clubOps.settlement.withdraw." + hint.rawValue)
+            } else { Text("club.ownerFunds.manual").font(.footnote) }
             Button("club.ownerFunds.contact") {
                 guard let offered else { return }
                 Task { await parent.openContact(offered, access: access, context: context, current: currentSource,

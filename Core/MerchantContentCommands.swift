@@ -60,6 +60,9 @@ public enum MerchantContentCommand: Codable, Equatable {
             try positive(topic); try positive(node); var f = try draft.fields()
             f["topicId"] = .integer(topic); f["nodeId"] = .integer(node); f["mode"] = .integer(1)
             if !time.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { f["cooperateDate"] = .string(time.trimmingCharacters(in: .whitespacesAndNewlines)) }
+            if let range = try MerchantApplyXcx.dateRange(start: draft.createStartDay, end: draft.createEndDay) {
+                f["startDate"] = .string(range.start + " 00:00:00"); f["endDate"] = .string(range.end + " 23:59:59")
+            }
             return json("api/registration/merchant/create", f)
         case .updateRegistration(let id, let topic, let draft):
             try positive(id); try positive(topic); var f = try draft.fieldsIncludingAvailability(); f["id"] = .integer(id); f["topicId"] = .integer(topic)

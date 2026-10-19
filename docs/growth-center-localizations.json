@@ -186,5 +186,29 @@
   "growth.fixture.signOut": {
     "en": "End sample session",
     "zh-Hans": "结束示例会话"
+  },
+  "growth.denied": {
+    "en": "This account cannot view growth records. Check its access and refresh.",
+    "zh-Hans": "当前账号无法查看成长记录，请确认当前账号的查看权限"
+  },
+  "growth.badges.newlyLit": {
+    "en": "New badges lit",
+    "zh-Hans": "新徽章已点亮"
+  },
+  "growth.board.meTag": {
+    "en": "Me",
+    "zh-Hans": "我"
+  },
+  "growth.board.podium.first": {
+    "en": "First place",
+    "zh-Hans": "第一名"
+  },
+  "growth.board.podium.second": {
+    "en": "Second place",
+    "zh-Hans": "第二名"
+  },
+  "growth.board.podium.third": {
+    "en": "Third place",
+    "zh-Hans": "第三名"
   }
 }
