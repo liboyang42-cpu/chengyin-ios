@@ -14,6 +14,8 @@ import SwiftUI
     }
     var body: some View {
         switch page {
+        case "cityNode": MerchantCityNodeHubFixtureHost(scenario: scenario)
+        case "cityNodeCreate": MerchantCityNodeCreateFixtureHost(scenario: scenario)
         case "aiNPC": MerchantStoreCharacterFixtureHost(scenario: scenario)
         case "playMerchant": PlayStoreDayMerchantFixtureHost(scenario: scenario)
         default: MerchantCoopCenterFixtureHost(scenario: scenario)

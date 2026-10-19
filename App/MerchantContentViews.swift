@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct MerchantContentHomeView: View {
     let service: any MerchantContentServing
     var topicID: Int? = nil
+    @Environment(\.merchantCityNodeHubDestination) private var cityNodeHub
     private var routes: [MerchantContentQuery] {
         var routes: [MerchantContentQuery] = [.recruiting, .projects, .applications, .registrations(filter: 0), .city, .gameEntries]
         if let topicID, topicID > 0 { routes.insert(.chapters(topicID: topicID), at: 0) }
@@ -14,7 +15,8 @@ import SwiftUI
                 MerchantContentBoundary()
                 ForEach(routes) { query in
                     NavigationLink {
-                        MerchantContentDocumentView(service: service, query: query)
+                        // Source citynode/index; without a host destination keep the generic document.
+                        if query == .city, let cityNodeHub { cityNodeHub() } else { MerchantContentDocumentView(service: service, query: query) }
                     } label: {
                         QuestifyImageEntityCard(imageSource: nil, title: "", fallbackTitle: LocalizedStringKey("merchant.content." + query.key), fallbackSymbol: "map", minimumHeight: 180) {
                             Text("merchant.content.entryHint")
