@@ -48,6 +48,86 @@ import SwiftUI
         let session = try normal(wire); await login(session); wire.requests = []
         return (session, try XCTUnwrap(session.merchantPredictionReader))
     }
+    func testNormalInboxReviewUsesOnlyFreshCookieFreeReadsAndNeverSettlement() async throws {
+        let wire = Wire(), (session, reader) = try await self.reader(wire)
+        let round = try JSONDecoder().decode(MerchantPredictionInboxRound.self, from: Data(wire.row.utf8))
+        XCTAssertTrue(reader.supportsReview); XCTAssertTrue(reader.isolatedReader().supportsReview)
+        let model = MerchantPredictionReviewPreparationModel()
+        await model.prepare(round: round, optionKey: "a", reader: reader, isCurrent: { true })
+        XCTAssertEqual(model.phase, .ready); XCTAssertEqual(model.review?.round.topicID, 4)
+        XCTAssertEqual(model.review?.option.key, "a")
+        XCTAssertEqual(wire.requests.map { $0.url!.lastPathComponent }, ["me", "inbox"])
+        XCTAssertTrue(wire.requests.allSatisfy { $0.httpBody == nil && !$0.httpShouldHandleCookies })
+        let service = try XCTUnwrap(reader.makeReviewService(isCurrent: { true }))
+        XCTAssertFalse(service.permitsSettlement); XCTAssertFalse(service.permitsInsight)
+        let review = try await service.prepare(round: MerchantPredictionRound(inbox: round), optionKey: "a")
+        let count = wire.requests.count
+        do { _ = try await service.settle(review, acknowledgedCouponEffects: true); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantMarketingFailure, .unavailable) }
+        XCTAssertEqual(wire.requests.count, count); XCTAssertEqual(session.account?.id, 7)
+    }
+    func testRetiredReviewRejectsLate401WithoutExpiringCurrentAccount() async throws {
+        let wire = Wire(), (session, reader) = try await self.reader(wire)
+        let round = try JSONDecoder().decode(MerchantPredictionInboxRound.self, from: Data(wire.row.utf8))
+        let model = MerchantPredictionReviewPreparationModel(), started = expectation(description: "review inbox")
+        wire.holdPath = "inbox"; wire.onHeld = { started.fulfill() }
+        let task = Task { await model.prepare(round: round, optionKey: "a", reader: reader, isCurrent: { true }) }
+        await fulfillment(of: [started], timeout: 2)
+        model.retire(); wire.resume(status: 401); await task.value
+        XCTAssertEqual(model.phase, .retired); XCTAssertNil(model.review); XCTAssertEqual(session.account?.id, 7)
+    }
+    func testReviewRoleABARejectsOldRowsAndCannotFollowReplacementIdentity() async throws {
+        for status in [200, 401] {
+            let wire = Wire(), (session, reader) = try await self.reader(wire)
+            let round = try JSONDecoder().decode(MerchantPredictionInboxRound.self, from: Data(wire.row.utf8))
+            let model = MerchantPredictionReviewPreparationModel(), started = expectation(description: "old review context")
+            wire.holdPath = "inbox"; wire.onHeld = { started.fulfill() }
+            let task = Task { await model.prepare(round: round, optionKey: "a", reader: reader, isCurrent: { true }) }
+            await fulfillment(of: [started], timeout: 2)
+            wire.role = "merchant"; await session.refreshOwnAccount(); wire.role = "player"; await session.refreshOwnAccount()
+            wire.resume(status: status); await task.value
+            XCTAssertEqual(model.phase, .retired); XCTAssertNil(model.review); XCTAssertEqual(session.account?.id, 7)
+            XCTAssertNil(reader.makeReviewService(isCurrent: { true }))
+        }
+    }
+    func testCurrentReview401StillExpiresOnlyItsMatchingSession() async throws {
+        let wire = Wire(), (session, reader) = try await self.reader(wire)
+        let round = try JSONDecoder().decode(MerchantPredictionInboxRound.self, from: Data(wire.row.utf8))
+        let model = MerchantPredictionReviewPreparationModel(); wire.status = 401
+        await model.prepare(round: round, optionKey: "a", reader: reader, isCurrent: { true })
+        XCTAssertNil(session.account); XCTAssertNil(model.review)
+    }
+    func testClosedReviewDuringAccessCannotReadInboxOrExpireAccount() async throws {
+        for status in [200, 401] {
+            let wire = Wire(), (session, reader) = try await self.reader(wire)
+            let round = try JSONDecoder().decode(MerchantPredictionInboxRound.self, from: Data(wire.row.utf8))
+            let model = MerchantPredictionReviewPreparationModel(); var visible = true
+            let started = expectation(description: "review access pending")
+            wire.holdPath = "me"; wire.onHeld = { started.fulfill() }
+            let task = Task { await model.prepare(round: round, optionKey: "a", reader: reader, isCurrent: { visible }) }
+            await fulfillment(of: [started], timeout: 2)
+            visible = false; wire.resume(status: status); await task.value
+            XCTAssertEqual(wire.requests.map { $0.url!.lastPathComponent }, ["me"])
+            XCTAssertEqual(model.phase, .retired); XCTAssertNil(model.review); XCTAssertEqual(session.account?.id, 7)
+        }
+    }
+    func testQueuedReviewRetryAfterPresentationClosesCannotReadOrReopenReview() async throws {
+        let wire = Wire(), (session, reader) = try await self.reader(wire)
+        let round = try JSONDecoder().decode(MerchantPredictionInboxRound.self, from: Data(wire.row.utf8))
+        let model = MerchantPredictionReviewPreparationModel(); var visible = true
+        let queued = { await model.prepare(round: round, optionKey: "a", reader: reader, isCurrent: { visible }) }
+        visible = false; model.retire(); await queued()
+        XCTAssertTrue(wire.requests.isEmpty); XCTAssertNil(model.review)
+        XCTAssertEqual(model.phase, .retired); XCTAssertEqual(session.account?.id, 7)
+    }
+    func testClosedParentSnapshotCannotStartReviewRead() async throws {
+        let wire = Wire(), (session, reader) = try await self.reader(wire)
+        let round = try JSONDecoder().decode(MerchantPredictionInboxRound.self, from: Data(wire.row.utf8))
+        let model = MerchantPredictionReviewPreparationModel()
+        await model.prepare(round: round, optionKey: "a", reader: reader, isCurrent: { false })
+        XCTAssertTrue(wire.requests.isEmpty); XCTAssertNil(model.review); XCTAssertEqual(model.phase, .retired)
+        XCTAssertEqual(session.account?.id, 7)
+    }
     func testNormalAdmissionAndInboxUseOnlyTwoCookieFreeReadRoutes() async throws {
         let wire = Wire(), (session, reader) = try await self.reader(wire)
         let access = try await reader.access(), rows = try await reader.inbox(access: access)

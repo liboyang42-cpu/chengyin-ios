@@ -171605,6 +171605,230 @@
           }
         }
       }
+    },
+    "templateLowHPText.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low-HP easing preset"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低HP放宽预设"
+          }
+        }
+      }
+    },
+    "templateLowHPText.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to the current unsaved draft only. This does not save, run gameplay or submit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅应用到当前未保存草稿，不会保存、启动玩法或提交。"
+          }
+        }
+      }
+    },
+    "templateLowHPText.choice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjustment when HP ≤ 3"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP ≤ 3 时的放宽方式"
+          }
+        }
+      }
+    },
+    "templateLowHPText.off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No preset"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不使用此预设"
+          }
+        }
+      }
+    },
+    "templateLowHPText.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No valid adjustments are available. Configure and enable an eligible game first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有可安全放宽的配置。请先完成并启用玩法配置。"
+          }
+        }
+      }
+    },
+    "templateLowHPText.retained": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other rules and their order are retained. Preview applies the first matching rule only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他规则及其顺序保持不变，预演仅应用首个命中规则。"
+          }
+        }
+      }
+    },
+    "templateLowHPText.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A custom, unknown or unavailable low-HP rule needs the full rule editor. This page will not overwrite it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存在自定义、未知或不可用的低HP规则，请在原规则编辑器检查；本页不会覆盖。"
+          }
+        }
+      }
+    },
+    "templateLowHPText.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local preview at HP 3"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP为3的本地预演"
+          }
+        }
+      }
+    },
+    "templateLowHPText.rule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First matching rule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首个命中规则"
+          }
+        }
+      }
+    },
+    "templateLowHPText.noMatch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching rule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命中规则"
+          }
+        }
+      }
+    },
+    "templateLowHPText.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to current draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到当前草稿"
+          }
+        }
+      }
+    },
+    "templateLowHPText.applied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied to the draft. Not saved or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已应用到草稿，尚未保存或发布。"
+          }
+        }
+      }
+    },
+    "templateLowHPText.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel unapplied selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消未应用的选择"
+          }
+        }
+      }
+    },
+    "templateLowHPText.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前配置"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

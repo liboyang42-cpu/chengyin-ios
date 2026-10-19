@@ -11,7 +11,7 @@ import FoundationNetworking
     public var overrideReply: ((URLRequest) -> (Data, Int)?)?
     public private(set) var requests: [URLRequest] = []
     public init(scenario: String = "normal") { self.scenario = scenario }
-    public static let roundJSON = #"{"nodeId":81,"playDay":"2026-10-01","nodeName":"Example shop","question":"Which answer?","options":[{"key":"A","label":"Answer A"},{"key":"B","label":"Answer B"}],"betCount":7,"daysLeft":0}"#
+    public static let roundJSON = #"{"nodeId":81,"topicId":12,"playDay":"2026-10-01","nodeName":"Example shop","question":"Which answer?","options":[{"key":"A","label":"Answer A"},{"key":"B","label":"Answer B"}],"betCount":7,"daysLeft":0}"#
     public static let accessJSON = #"{"active":true,"merchant":{"id":42},"roleCode":"MERCHANT_OWNER","permissions":["merchant:marketing:read","merchant:project:manage"]}"#
     public func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request); beforeReply?(request)
@@ -34,7 +34,13 @@ import FoundationNetworking
             if scenario == "unknown" { throw URLError(.timedOut) }
             if scenario == "rejected" { return (Data(#"{"code":403,"msg":"Source rejection","data":null}"#.utf8), 200) }
             if scenario == "malformed-winners" { data = "{}" }
-            else { data = #"{"winners":3}"# }
+            else {
+                var form = URLComponents(); form.percentEncodedQuery = String(data: request.httpBody ?? Data(), encoding: .utf8)
+                let selected = form.queryItems?.first(where: { $0.name == "settledOption" })?.value ?? ""
+                let receipt: [String: Any] = ["settledOption": selected, "totalBets": 7, "winners": 3,
+                    "couponsGranted": 2, "rewardConfigured": true]
+                data = String(data: try JSONSerialization.data(withJSONObject: receipt), encoding: .utf8)!
+            }
         default: throw MerchantMarketingFailure.invalid
         }
         return (Data("{\"code\":200,\"data\":\(data)}".utf8), 200)
