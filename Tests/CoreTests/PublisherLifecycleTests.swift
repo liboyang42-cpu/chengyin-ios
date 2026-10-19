@@ -25,15 +25,29 @@ private actor LifecycleFakeHTTP: HTTPTransport {
     func center() async throws -> CreatorContentCenter { count += 1; return try JSONDecoder().decode(CreatorContentCenter.self, from: Data("{\"applyStatus\":\"\(status)\"}".utf8)) }
     func projects(query: CreatorContentQuery) async throws -> CreatorContentProjectPage { .init(rows: [], total: 0) }
 }
+@MainActor private final class LifecycleMerchantOwnerReader: PublicMerchantHomeReading {
+    var scope = UUID()
+    var isConfigured = true
+    let isOfflineExample = true
+    var targets: [PublicMerchantHomeTarget] = []
+    var beforeReturn: (() -> Void)?
+    var failure: Error?
+    var body = "{\"id\":31,\"memberId\":77,\"name\":\"Owner-bound merchant\"}"
+    func home(_ target: PublicMerchantHomeTarget) async throws -> PublicMerchantHome {
+        targets.append(target); beforeReturn?()
+        if let failure { throw failure }
+        return try JSONDecoder().decode(PublicMerchantHome.self, from: Data(body.utf8))
+    }
+}
 @MainActor final class PublisherLifecycleTests: XCTestCase {
     let floor = "{\"code\":200,\"data\":{\"priceMin\":12.5,\"lineup\":[]}}"
     let paid = "{\"code\":200,\"data\":{\"paidPlayers\":3}}"
-    private func setup(_ transport: LifecycleFakeHTTP, active: Bool = true) throws -> PublisherLifecycleHTTP {
+    private func setup(_ transport: LifecycleFakeHTTP, active: Bool = true, merchantReader: (any PublicMerchantHomeReading)? = nil) throws -> PublisherLifecycleHTTP {
         let config = try APIConfiguration(baseURL: URL(string: "https://example.com/test/")!)
         let session = PublishingSession(namespace: "fixture", accountID: 7, epoch: UUID(), role: "member", region: .china)
         let credentials = try PublishingCredentials(session: session, token: "fixture-token")
         let grant = try OperationEndpointApproval(baseURL: config.baseURL, namespace: "fixture", accountID: 7, paths: ["api/topic/pricing/preview", "api/topic/pricing/confirm", "api/topic/cancel_preview", "api/activity/cancel_preview", "api/topic/cancel", "api/activity/cancel", "api/topic/xp-budget", "api/topic/transfer-to-club", "api/topic/beta/graduate", "api/creator/apply", "api/club/detail", "api/merchant/public-detail"])
-        return PublisherLifecycleHTTP(configuration: config, transport: transport, grants: active ? .init(reads: grant, pricing: grant, cancellationRefunds: grant, ownership: grant, graduation: grant, creatorApplication: grant) : .dormant, credentials: { credentials })
+        return PublisherLifecycleHTTP(configuration: config, transport: transport, grants: active ? .init(reads: grant, pricing: grant, cancellationRefunds: grant, ownership: grant, graduation: grant, creatorApplication: grant) : .dormant, merchantPartnerReader: merchantReader, credentials: { credentials })
     }
     private func coordinator(_ client: PublisherLifecycleHTTP, journal: LifecycleJournal? = nil) -> PublisherLifecycleCoordinator {
         PublisherLifecycleCoordinator(client: client, journal: journal ?? LifecycleJournal()) { resource, _ in
@@ -97,7 +111,7 @@ private actor LifecycleFakeHTTP: HTTPTransport {
         let result = await owner.confirm(review, consequentialApproval: true); XCTAssertEqual(result, .unknown)
     }
     func testPartnerTermsComeFromFreshLineup() async throws {
-        let transport = LifecycleFakeHTTP(["{\"code\":200,\"data\":{\"priceMin\":5,\"lineup\":[{\"toType\":\"club\",\"toId\":9,\"shareMode\":1,\"shareRate\":\"25\"}]}}", "{\"code\":200,\"data\":{\"name\":\"Fixture club\"}}"])
+        let transport = LifecycleFakeHTTP(["{\"code\":200,\"data\":{\"priceMin\":5,\"lineup\":[{\"toType\":\"club\",\"toId\":9,\"shareMode\":1,\"shareRate\":\"25\"}]}}", "{\"code\":200,\"data\":{\"id\":9,\"name\":\"Fixture club\"}}"])
         let result = try await setup(transport).partner(topicID: 4, type: "club", id: 9)
         XCTAssertEqual(result.terms.shareRate, "25"); XCTAssertEqual(result.profile.object?["name"]?.text, "Fixture club")
     }
@@ -194,4 +208,89 @@ private actor LifecycleFakeHTTP: HTTPTransport {
         let requests = await transport.requests; XCTAssertTrue(requests.isEmpty)
     }
 
+    private func partnerPreview(_ rows: String) -> String {
+        "{\"code\":200,\"data\":{\"priceMin\":5,\"lineup\":[\(rows)]}}"
+    }
+    func testClubPartnerUsesJSONAndRequiresExactReturnedClubID() async throws {
+        let lineup = #"{"toType":"club","toId":9,"shareMode":0}"#
+        for returned in [9, 10] {
+            let wire = LifecycleFakeHTTP([partnerPreview(lineup), "{\"code\":200,\"data\":{\"id\":\(returned),\"name\":\"Club\"}}"])
+            do {
+                _ = try await setup(wire).partner(topicID: 4, type: "club", id: 9)
+                XCTAssertEqual(returned, 9)
+            } catch { XCTAssertEqual(returned, 10) }
+            let requests = await wire.requests
+            XCTAssertEqual(requests.count, 2)
+            XCTAssertEqual(requests.last?.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            let fields = try JSONDecoder().decode([String: ProjectEditJSON].self, from: XCTUnwrap(requests.last?.httpBody))
+            XCTAssertEqual(fields, ["id": .number(9)])
+        }
+    }
+    func testDuplicateSelectedPartnerIsRejectedBeforeAnyProfileRead() async throws {
+        for type in ["club", "merchant"] {
+            let row = "{\"toType\":\"\(type)\",\"toId\":77,\"shareMode\":0}"
+            let wire = LifecycleFakeHTTP([partnerPreview(row + "," + row)]), reader = LifecycleMerchantOwnerReader()
+            do { _ = try await setup(wire, merchantReader: reader).partner(topicID: 4, type: type, id: 77); XCTFail() } catch {}
+            let requests = await wire.requests
+            XCTAssertEqual(requests.count, 1); XCTAssertTrue(reader.targets.isEmpty)
+        }
+    }
+    func testMerchantPartnerResolvesOwnerMemberWithoutLegacyRowRequest() async throws {
+        let wire = LifecycleFakeHTTP([partnerPreview(#"{"toType":"merchant","toId":77,"shareMode":0}"#)])
+        let reader = LifecycleMerchantOwnerReader()
+        let result = try await setup(wire, merchantReader: reader).partner(topicID: 4, type: "merchant", id: 77)
+        XCTAssertEqual(reader.targets, [.ownerMemberID(PublicMerchantOwnerID(77)!)])
+        XCTAssertEqual(result.profile.object?["id"]?.integer, 31)
+        XCTAssertEqual(result.profile.object?["memberId"]?.integer, 77)
+        let requests = await wire.requests
+        XCTAssertEqual(requests.count, 1); XCTAssertTrue(requests.allSatisfy { $0.url?.lastPathComponent == "preview" })
+    }
+    func testLegacyPublicDetailGrantCannotSubstituteForIndependentHomeReader() async throws {
+        let row = #"{"toType":"merchant","toId":77,"shareMode":0}"#
+        let readers: [LifecycleMerchantOwnerReader?] = [nil, LifecycleMerchantOwnerReader()]
+        for reader in readers {
+            reader?.isConfigured = false
+            let wire = LifecycleFakeHTTP([partnerPreview(row)])
+            do { _ = try await setup(wire, merchantReader: reader).partner(topicID: 4, type: "merchant", id: 77); XCTFail() } catch {}
+            let requests = await wire.requests
+            XCTAssertEqual(requests.count, 1); XCTAssertTrue(reader?.targets.isEmpty ?? true)
+        }
+    }
+    func testMismatchedMissingIdentityAndRevokedMerchantHomeCannotBecomePartner() async throws {
+        let row = #"{"toType":"merchant","toId":77,"shareMode":0}"#
+        for body in [#"{"id":31,"memberId":78,"name":"Wrong owner"}"#, #"{"memberId":77,"name":"Missing row"}"#, #"{"id":0,"memberId":77,"name":"Invalid row"}"#] {
+            let wire = LifecycleFakeHTTP([partnerPreview(row)]), reader = LifecycleMerchantOwnerReader(); reader.body = body
+            do { _ = try await setup(wire, merchantReader: reader).partner(topicID: 4, type: "merchant", id: 77); XCTFail() } catch {}
+        }
+        for changeScope in [false, true] {
+            let wire = LifecycleFakeHTTP([partnerPreview(row)]), reader = LifecycleMerchantOwnerReader()
+            reader.beforeReturn = { if changeScope { reader.scope = UUID() } else { reader.isConfigured = false } }
+            do { _ = try await setup(wire, merchantReader: reader).partner(topicID: 4, type: "merchant", id: 77); XCTFail() } catch {}
+            reader.beforeReturn = nil
+        }
+    }
+    func testDormantPricingGrantCannotInvokeMerchantReader() async throws {
+        let wire = LifecycleFakeHTTP([]), reader = LifecycleMerchantOwnerReader()
+        do { _ = try await setup(wire, active: false, merchantReader: reader).partner(topicID: 4, type: "merchant", id: 77); XCTFail() } catch {}
+        let requests = await wire.requests
+        XCTAssertTrue(requests.isEmpty); XCTAssertTrue(reader.targets.isEmpty)
+    }
+
+    func testCredentialChangeDuringMerchantReadRejectsSuccessAndThrown401() async throws {
+        for failing in [false, true] {
+            let config = try APIConfiguration(baseURL: URL(string: "https://example.com/test/")!)
+            let session = PublishingSession(namespace: "fixture", accountID: 7, epoch: UUID(), role: "member", region: .china)
+            var current: PublishingCredentials? = try .init(session: session, token: "fixture-token")
+            let grant = try OperationEndpointApproval(baseURL: config.baseURL, namespace: "fixture", accountID: 7, paths: ["api/topic/pricing/preview"])
+            let wire = LifecycleFakeHTTP([partnerPreview(#"{"toType":"merchant","toId":77,"shareMode":0}"#)])
+            let reader = LifecycleMerchantOwnerReader()
+            reader.beforeReturn = { current = nil }
+            if failing { reader.failure = APIError.unauthorized }
+            let client = PublisherLifecycleHTTP(configuration: config, transport: wire, grants: .init(reads: grant), merchantPartnerReader: reader, credentials: { current })
+            do { _ = try await client.partner(topicID: 4, type: "merchant", id: 77); XCTFail() }
+            catch { XCTAssertEqual(error as? PublisherLifecycleError, .stale) }
+        }
+    }
+
 }
+

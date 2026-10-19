@@ -14,7 +14,8 @@ import Observation
     private var receipt = UUID()
     private var readGeneration = UUID()
     private var accepted: [Int: SocialInformation] = [:]
-    private var presented = false, foreground = false
+    private var presented = false
+    private var foreground = false
     public private(set) var hasAppeared = false
     public init(context: RuntimeDependencyContext, viewerRevision: UInt64, service: SocialAccountService?,
                 current: @escaping () -> Bool, access: @escaping (RuntimeDependencyContext) -> ProfileGuideReadAccess?,
@@ -95,7 +96,8 @@ import Observation
     private let service: SocialAccountService?
     private let access: (RuntimeDependencyContext) -> ProfileGuideReadAccess?
     private let onUnauthorized: (RuntimeDependencyContext) -> Void
-    private var presented = false, foreground = false
+    private var presented = false
+    private var foreground = false
     private var generation = UUID()
     private var observedAccess: UUID?
     private var revision: UInt64 = 0
