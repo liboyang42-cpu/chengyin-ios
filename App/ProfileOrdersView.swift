@@ -127,7 +127,6 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.organizer", value: order.organizerName)
                 }
                 Section("profile.orders.schedule") {
-                    ProfileOptionalRow(key: "profile.orders.participateDate", value: order.participateDate)
                     ProfileOrderTicketScheduleRows(order: order)
                     ProfileOptionalRow(key: "profile.orders.location", value: order.addressName)
                     if let makeExternalMaps {
@@ -135,23 +134,8 @@ struct ProfileOrderDetailView: View {
                     } else {
                         meetingPointEntry
                     }
-                    ProfileOptionalRow(key: "profile.orders.expires", value: order.expiresAt)
-                }
-                if order.realName?.isEmpty == false || order.phone?.isEmpty == false {
-                    Section("profile.orders.contact") {
-                        ProfileOptionalRow(key: "profile.participants.name", value: order.realName)
-                        ProfileOptionalRow(key: "profile.participants.phone", value: order.phone)
-                    }
                 }
                 Section("profile.orders.records") {
-                    ProfileOptionalRow(key: "profile.orders.created", value: order.createTime)
-                    ProfileOptionalRow(key: "profile.orders.paymentTime", value: order.paymentTime)
-                    if let key = order.sourcePaymentTypeLabelKey {
-                        LabeledContent("profile.orders.paymentType") { Text(LocalizedStringKey(key)) }
-                    } else {
-                        ProfileOptionalRow(key: "profile.orders.paymentType", value: order.paymentTypeLabel)
-                    }
-                    ProfileOptionalRow(key: "profile.orders.verifiedTime", value: order.verificationTime)
                     if let code = order.verificationStatus {
                         LabeledContent("profile.orders.verification") {
                             if code == 1 { Text("profile.orders.verified") }
@@ -186,6 +170,7 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.refundDeadline", value: order.refundDeadlineDisplay)
                     Text("profile.orders.moneyFactsHint").foregroundStyle(.secondary)
                 }
+                ProfileOrderSourceDetailSections(order: order)
                 if let lifecycleCoordinator {
                     Section {
                         NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
