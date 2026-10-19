@@ -811,6 +811,10 @@ import SwiftUI
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
         if !document.summary.isEmpty || document.query == .overview {
             Section("merchant.business.summary") {
+                if case .redemptions = document.query,
+                   let strip = MerchantLedgerParity.summary(document.summary, canReadFinance: state.snapshot?.access.allows("merchant:finance:read") == true) {
+                    MerchantLedgerSummaryStrip(summary: strip)
+                }
                 if document.query == .overview {
                     MerchantLedgerAssetsEntry(reader: reader, currentSnapshot: {
                         guard state.isCurrent, !state.isBusy, state.failureKey == nil,
@@ -855,6 +859,10 @@ import SwiftUI
                             if let group = aftercareDayGroup(opening: row) { MerchantAftercareDayHeader(group: group) }
                             MerchantAftercareRowLabel(row: line)
                         }
+                    } else if row.kind == .redemption || row.kind == .batch {
+                        MerchantLedgerRowLabel(line: row.kind == .batch ? MerchantLedgerParity.batch(row.fields)
+                                                   : MerchantLedgerParity.redemption(row.fields, canReadFinance: access.allows("merchant:finance:read")),
+                                               identifier: "merchantOps.ledger.row.\(row.id)")
                     } else {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(row.title).font(.headline)
@@ -867,7 +875,11 @@ import SwiftUI
             }
         } else {
             VStack(alignment: .leading, spacing: 10) {
+                if row.kind == .entry, case .entries = query {
+                    MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchantOps.ledger.entry.\(row.id)")
+                } else {
                 Text(row.title).font(.headline)
+                }
                 MerchantBusinessRecordFields(row: row, access: access, compact: false,
                     settlementEntries: { if case .batch = query { return true }; return false }(),
                     reviewPhotoOwner: model, settlementReader: reader, settlementSnapshot: {
