@@ -848,5 +848,115 @@
   "key": "merchantApplyXcx.editBlock.stateChanged",
   "en": "The registration status changed; go back to the details for the latest result",
   "zh-Hans": "报名状态已变化，请返回详情查看最新结果"
+ },
+ {
+  "key": "topicXcx.records.title",
+  "en": "My play records",
+  "zh-Hans": "我的游玩记录"
+ },
+ {
+  "key": "topicXcx.records.loading",
+  "en": "Loading play records",
+  "zh-Hans": "正在加载游玩记录"
+ },
+ {
+  "key": "topicXcx.records.empty",
+  "en": "No play records yet",
+  "zh-Hans": "还没有游玩记录"
+ },
+ {
+  "key": "topicXcx.records.failed",
+  "en": "Play records didn't load. Try again later.",
+  "zh-Hans": "游玩记录暂未加载，请稍后重试"
+ },
+ {
+  "key": "topicXcx.records.reload",
+  "en": "Reload",
+  "zh-Hans": "重新加载"
+ },
+ {
+  "key": "topicXcx.records.more",
+  "en": "Show more",
+  "zh-Hans": "查看更多"
+ },
+ {
+  "key": "topicXcx.records.completed",
+  "en": "Run completed",
+  "zh-Hans": "本局完成"
+ },
+ {
+  "key": "topicXcx.records.ended",
+  "en": "Run ended",
+  "zh-Hans": "本局结束"
+ },
+ {
+  "key": "topicXcx.records.playing",
+  "en": "In play",
+  "zh-Hans": "游玩中"
+ },
+ {
+  "key": "topicXcx.records.cardTitle",
+  "en": "Run result",
+  "zh-Hans": "本局结果"
+ },
+ {
+  "key": "topicXcx.records.scene",
+  "en": "Scene",
+  "zh-Hans": "场景"
+ },
+ {
+  "key": "topicXcx.records.value.hp",
+  "en": "Health",
+  "zh-Hans": "生命值"
+ },
+ {
+  "key": "topicXcx.records.value.luck",
+  "en": "Luck",
+  "zh-Hans": "幸运值"
+ },
+ {
+  "key": "topicXcx.records.value.actions",
+  "en": "Actions",
+  "zh-Hans": "行动次数"
+ },
+ {
+  "key": "topicXcx.records.value.rescues",
+  "en": "Rescues",
+  "zh-Hans": "获救次数"
+ },
+ {
+  "key": "topicXcx.records.items",
+  "en": "Items",
+  "zh-Hans": "道具"
+ },
+ {
+  "key": "topicXcx.records.medals",
+  "en": "Medals",
+  "zh-Hans": "勋章"
+ },
+ {
+  "key": "topicXcx.records.epilogues",
+  "en": "Endings found",
+  "zh-Hans": "已发现的结局"
+ },
+ {
+  "key": "topicXcx.records.nextScene %@",
+  "en": "Next scene: %@",
+  "zh-Hans": "下次场景：%@"
+ },
+ {
+  "key": "topicXcx.records.cardFailed",
+  "en": "This run's result didn't load. Try again later.",
+  "zh-Hans": "本局结果暂未加载，请稍后重试"
+ },
+ {
+  "key": "topicXcx.records.cardReload",
+  "en": "Reload this run's result",
+  "zh-Hans": "重新加载本局结果"
+ },
+ {
+  "key": "topicXcx.records.cardLoading",
+  "en": "Loading this run's result",
+  "zh-Hans": "正在加载本局结果"
  }
 ]
