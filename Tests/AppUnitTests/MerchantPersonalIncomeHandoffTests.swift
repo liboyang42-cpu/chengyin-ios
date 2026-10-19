@@ -9,6 +9,84 @@ import SwiftUI
         let service:WalletCommerceService?=configured ? try .init(configuration:.init(baseURL:URL(string:"https://example.com")!),transport:IncomeNoTransport()):nil
         return .init(service:service,onUnauthorized:onUnauthorized,session:{(scope,"synthetic-token")})
     }
+    func testRedemptionOwnerRevalidatesExactDetailAndUsesIndependentPrincipalWallet() async throws {
+        let (reader, source) = try setup(), original = try wallet(), owner = MerchantLedgerAssetsReadOwner()
+        await owner.open(source: source, currentWallet: { original }, isCurrent: { true })
+        XCTAssertEqual(reader.reads, 1); XCTAssertEqual(owner.wallet?.scope?.accountID, source.scope.accountID)
+        XCTAssertFalse(owner.wallet === original); XCTAssertTrue(source.active)
+    }
+    func testRedemptionOwnerMissingOrForeignWalletDoesNotProbeMerchant() async throws {
+        for wrong in [false, true] {
+            let (reader, source) = try setup(), original = try wallet(account: wrong ? 100 : 99, configured: wrong)
+            let owner = MerchantLedgerAssetsReadOwner()
+            await owner.open(source: source, currentWallet: { original }, isCurrent: { true })
+            XCTAssertNil(owner.wallet); XCTAssertEqual(reader.reads, 0)
+        }
+    }
+    func testRetiredRedemptionSuppressesWallet401QueuedReadsAndReopening() async throws {
+        let (_, source) = try setup(); var expired = 0
+        let original = try wallet(onUnauthorized: { _ in expired += 1 }), owner = MerchantLedgerAssetsReadOwner()
+        await owner.open(source: source, currentWallet: { original }, isCurrent: { true })
+        let protected = try XCTUnwrap(owner.wallet), started = expectation(description: "redemption wallet pending")
+        var completion: CheckedContinuation<Int, Error>?
+        let task = Task { try await protected.read { _, _ in
+            try await withCheckedThrowingContinuation { completion = $0; started.fulfill() }
+        } }
+        await fulfillment(of: [started], timeout: 2)
+        source.retire(); completion?.resume(throwing: APIError.unauthorized)
+        do { _ = try await task.value; XCTFail() } catch { }
+        XCTAssertEqual(expired, 0); XCTAssertNil(protected.scope)
+        do { let _: Int = try await protected.read { _, _ in XCTFail("closed read dispatched"); return 0 }; XCTFail() } catch { }
+        await owner.open(source: source, currentWallet: { original }, isCurrent: { true })
+        XCTAssertNil(owner.wallet); XCTAssertFalse(source.active)
+    }
+    func testCurrentRedemptionWallet401StillExpiresMatchingSession() async throws {
+        let (_, source) = try setup(); var expired = 0
+        let original = try wallet(onUnauthorized: { _ in expired += 1 }), owner = MerchantLedgerAssetsReadOwner()
+        await owner.open(source: source, currentWallet: { original }, isCurrent: { true })
+        let protected = try XCTUnwrap(owner.wallet)
+        do { let _: Int = try await protected.read { _, _ in throw APIError.unauthorized }; XCTFail() } catch { }
+        XCTAssertEqual(expired, 1)
+    }
+    func testRedemptionRetainedWalletRejectsReplacementAndSourceAuthorizationChange() async throws {
+        let (reader, source) = try setup(), first = try wallet(), second = try wallet(), owner = MerchantLedgerAssetsReadOwner()
+        var current = first
+        await owner.open(source: source, currentWallet: { current }, isCurrent: { true })
+        let old = try XCTUnwrap(owner.wallet); current = second; XCTAssertNil(old.scope)
+        await owner.open(source: source, currentWallet: { current }, isCurrent: { true })
+        XCTAssertNil(old.scope); XCTAssertNotNil(owner.wallet?.scope)
+        reader.authorizationGeneration = UUID(); XCTAssertNil(owner.wallet?.scope)
+    }
+    func testRedemptionIncomeDetailRemainsReadableWithinOuterSheetThenRetiresWithoutExtraRequest() async throws {
+        let (_, source) = try setup(), wire = RedemptionIncomeWire(), owner = MerchantLedgerAssetsReadOwner()
+        let configuration = try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://income.example")))
+        let scope = WalletCommerceScope(namespace: "synthetic", accountID: 99, epoch: UUID())
+        let original = try WalletCommerceReader(service: .init(configuration: configuration, transport: wire), session: { (scope, "synthetic-token") })
+        await owner.open(source: source, currentWallet: { original }, isCurrent: { true })
+        let protected = try XCTUnwrap(owner.wallet), pager = WalletLedgerPager()
+        await pager.load(reader: protected, kind: .income(.all))
+        let selection = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: protected)), count = wire.requests.count
+        XCTAssertEqual(pager.incomeDetailRow(selection, reader: protected)?.id, 61)
+        XCTAssertTrue(source.active); XCTAssertEqual(wire.requests.count, count)
+        source.retire(); XCTAssertNil(pager.incomeDetailRow(selection, reader: protected))
+        XCTAssertEqual(wire.requests.count, count)
+    }
+    func testRetirementDuringConcreteRedemptionDetailSuppressesSource401() async throws {
+        let wire = LedgerReadWire(), configuration = try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://redemption.example")))
+        wire.documentQuery = .redemption(recordID: "64001")
+        let captured = try MerchantBusinessSession(accountID: 99, epoch: 1, token: "synthetic-token"); var expired = 0
+        let reader = MerchantBusinessSessionReader(service: .init(configuration: configuration, readTransport: wire),
+            currentSession: { captured }, onUnauthorized: { _ in expired += 1 })
+        let baseline = try await reader.snapshot(wire.documentQuery)
+        let source = try XCTUnwrap(MerchantPersonalIncomeSource(row: XCTUnwrap(baseline.document.rows.first), reader: reader, currentSnapshot: { baseline }))
+        wire.requests = []; wire.holdAtCount = 2
+        let started = expectation(description: "redemption detail pending"); wire.onHeld = { started.fulfill() }
+        let task = Task { try await source.revalidate(isCurrent: { true }) }
+        await fulfillment(of: [started], timeout: 2)
+        source.retire(); wire.finish401()
+        do { try await task.value; XCTFail() } catch { }
+        XCTAssertEqual(expired, 0); XCTAssertEqual(wire.requests.count, 2)
+    }
     private func ledger() throws -> (IncomeMerchantFake, MerchantLedgerAssetsSource) {
         let reader = try IncomeMerchantFake(ledger: true)
         return (reader, try XCTUnwrap(MerchantLedgerAssetsSource(reader: reader, currentSnapshot: { reader.value })))
@@ -117,10 +195,11 @@ import SwiftUI
         let (_, first) = try setup(); source = first
         XCTAssertTrue(old.wrappedValue === first)
         old.wrappedValue = nil
+        XCTAssertFalse(first.active)
         let (_, second) = try setup(); source = second
         XCTAssertNil(old.wrappedValue)
         old.wrappedValue = nil
-        XCTAssertTrue(source === second)
+        XCTAssertTrue(source === second); XCTAssertTrue(second.active)
         let fresh = merchantPersonalIncomePresentation(.init(get: { source }, set: { source = $0 }))
         XCTAssertTrue(fresh.wrappedValue === second)
         fresh.wrappedValue = nil
@@ -159,15 +238,26 @@ private final class IncomeNoTransport:HTTPTransport {
 @MainActor private final class LedgerReadWire: HTTPTransport {
     var requests: [URLRequest] = []
     var hold = false
+    var holdAtCount: Int?
+    var documentQuery: MerchantBusinessQuery = .overview
     var onHeld: (() -> Void)?
     var pending: CheckedContinuation<(Data, Int), Error>?
     func finish401() { let old = pending; pending = nil; old?.resume(returning: (Data(), 401)) }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
-        if hold { hold = false; return try await withCheckedThrowingContinuation { pending = $0; onHeld?() } }
+        if hold || requests.count == holdAtCount { hold = false; holdAtCount = nil; return try await withCheckedThrowingContinuation { pending = $0; onHeld?() } }
         let payload: MerchantBusinessValue
         if request.url?.lastPathComponent == "me" { payload = try MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access) }
-        else { payload = try MerchantBusinessSyntheticFixtures.payload(.overview) }
+        else { payload = try MerchantBusinessSyntheticFixtures.payload(documentQuery) }
         return (try JSONEncoder().encode(MerchantBusinessValue.object(["code": .number(200), "data": payload])), 200)
+    }
+}
+
+@MainActor private final class RedemptionIncomeWire: HTTPTransport {
+    var requests: [URLRequest] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        XCTAssertTrue(request.url?.path.hasSuffix("/api/user/balance/list") == true)
+        return (Data(#"{"code":200,"data":{"rows":[{"id":61,"changeBalance":12}],"total":1}}"#.utf8), 200)
     }
 }

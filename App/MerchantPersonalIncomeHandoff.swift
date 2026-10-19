@@ -6,8 +6,9 @@ import SwiftUI
     func revalidate(isCurrent: () -> Bool) async throws
 }
 
-@MainActor final class MerchantPersonalIncomeSource: Identifiable, MerchantPersonalIncomeOrigin {
+@MainActor final class MerchantPersonalIncomeSource: ObservableObject, Identifiable, MerchantPersonalIncomeOrigin {
     let id = UUID()
+    @Published private(set) var active = true
     let reader: any MerchantBusinessReading
     let scope: MerchantBusinessScope
     let authorization: UUID?
@@ -22,9 +23,10 @@ import SwiftUI
         self.baseline = baseline; self.row = row; self.currentSnapshot = currentSnapshot
     }
     var current: Bool {
-        reader.isConfigured && reader.scope == scope && reader.authorizationGeneration == authorization
+        active && reader.isConfigured && reader.scope == scope && reader.authorizationGeneration == authorization
             && currentSnapshot() == baseline
     }
+    func retire() { active = false }
     func revalidate() async throws { try await revalidate(isCurrent: { true }) }
     func revalidate(isCurrent: () -> Bool) async throws {
         guard isCurrent(), current else { throw MerchantBusinessFailure.stale }
@@ -77,8 +79,8 @@ import SwiftUI
         if captured == nil { captured = current.id }
         return current.id == captured ? current : nil
     }, set: { next in
-        guard next == nil, let captured, source.wrappedValue?.id == captured else { return }
-        source.wrappedValue = nil
+        guard next == nil, let captured, let selected = source.wrappedValue, selected.id == captured else { return }
+        selected.retire(); source.wrappedValue = nil
     })
 }
 
@@ -102,21 +104,27 @@ import SwiftUI
                 NavigationStack {
                     destination(selected)
                         .toolbar { ToolbarItem(placement: .cancellationAction) {
-                            Button("merchant.personalIncome.close") { if source?.id == selected.id { source = nil } }
+                            Button("merchant.personalIncome.close") { close(selected) }
                         } }
                 }.presentationDetents([.medium, .large])
+                    .onDisappear { close(selected) }
             }
-            .onChange(of: scenePhase) { _, phase in if phase != .active { source = nil } }
-            .onChange(of: reader.scope) { _, _ in source = nil }
-            .onChange(of: reader.authorizationGeneration) { _, _ in source = nil }
+            .onChange(of: scenePhase) { _, phase in if phase != .active, let source { close(source) } }
+            .onChange(of: reader.scope) { _, _ in if let source { close(source) } }
+            .onChange(of: source?.current) { _, valid in if valid == false, let source { close(source) } }
+            .onChange(of: reader.authorizationGeneration) { _, _ in if let source { close(source) } }
         }
     }
+    private func close(_ selected: MerchantPersonalIncomeSource) {
+        selected.retire(); if source?.id == selected.id { source = nil }
+    }
+
 }
 
 @MainActor struct SessionMerchantPersonalIncomeView: View {
     @ObservedObject var session: AppSession
-    let source: MerchantPersonalIncomeSource
-    @StateObject private var gate = MerchantPersonalIncomeGate()
+    @ObservedObject var source: MerchantPersonalIncomeSource
+    @StateObject private var owner = MerchantLedgerAssetsReadOwner()
     @State private var showsFinance = false
     private var wallet: WalletCommerceReader { session.walletHistoryReader }
     private var sourceBelongsToSession: Bool { source.reader === session.merchantBusinessReader && source.current }
@@ -124,13 +132,13 @@ import SwiftUI
         Group {
             if !sourceBelongsToSession { Text("merchant.personalIncome.changed") }
             else if !wallet.isConfigured { Text("wallet.unavailable") }
-            else if gate.permits(source: source, wallet: wallet) {
+            else if let restricted = owner.wallet, restricted.scope != nil {
                 VStack(spacing: 8) {
                     Text("merchant.personalIncome.boundary").font(.footnote).foregroundStyle(.secondary).padding(.horizontal)
-                    WalletIncomeView(reader: wallet, onCooperationFinance: { showsFinance = true })
-                        .id(wallet.scope)
+                    WalletIncomeView(reader: restricted, onCooperationFinance: { showsFinance = true })
+                        .id(ObjectIdentifier(restricted))
                 }
-            } else if gate.busy { ProgressView("merchant.loading") }
+            } else if owner.busy { ProgressView("merchant.loading") }
             else {
                 VStack(spacing: 12) {
                     Text("merchant.personalIncome.changed")
@@ -140,7 +148,9 @@ import SwiftUI
         }
         .appNavigationTitle("merchant.personalIncome.title")
         .task(id: session.walletHistoryViewIdentity) { await open() }
-        .onDisappear { gate.cancel() }
+        .onChange(of: source.active) { _, active in if !active { owner.retire() } }
+        .onChange(of: sourceBelongsToSession) { _, current in if !current { source.retire(); owner.retire() } }
+        // The enclosing sheet owns retirement; income detail and finance pushes retain this lease.
         .navigationDestination(isPresented: $showsFinance) {
             if sourceBelongsToSession {
                 CoopFlowReadView(reader: session.cooperationFlowReader, resource: .finance, title: "coopflow.finance")
@@ -148,8 +158,8 @@ import SwiftUI
         }
     }
     private func open() async {
-        guard sourceBelongsToSession else { gate.cancel(); return }
-        await gate.open(source: source, currentWallet: { session.walletHistoryReader })
+        guard sourceBelongsToSession else { source.retire(); owner.retire(); return }
+        await owner.open(source: source, currentWallet: { session.walletHistoryReader }, isCurrent: { sourceBelongsToSession })
     }
 }
 
@@ -198,7 +208,7 @@ extension EnvironmentValues {
     private let gate = MerchantPersonalIncomeGate()
     private var generation = UUID()
     func retire() { generation = UUID(); gate.cancel(); wallet = nil; busy = false; failed = false }
-    func open(source: MerchantLedgerAssetsSource, currentWallet: @escaping () -> WalletCommerceReader,
+    func open(source: any MerchantPersonalIncomeOrigin, currentWallet: @escaping () -> WalletCommerceReader,
               isCurrent: @escaping () -> Bool) async {
         retire(); let ticket = generation, original = currentWallet(), scope = original.scope
         guard source.current, isCurrent() else { return }
@@ -252,6 +262,7 @@ extension EnvironmentValues {
                 .onDisappear { close(selected) }
             }
             .onChange(of: scenePhase) { _, phase in if phase != .active, let source { close(source) } }
+            .onChange(of: source?.current) { _, valid in if valid == false, let source { close(source) } }
             .onChange(of: reader.scope) { _, _ in if let source { close(source) } }
             .onChange(of: reader.authorizationGeneration) { _, _ in if let source { close(source) } }
         }
