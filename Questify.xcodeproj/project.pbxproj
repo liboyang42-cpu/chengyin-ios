@@ -19352,6 +19352,7 @@
 				"471143FD97C8DE0018F863FC",
 				"9DEAA5941B29C48CAB63AA5B",
 				"2BACCF86978FCFEB5AFA29CA",
+				"33C8E3EA1080E3D60A3C18C6",
 				"A1ED4F58A8DE61DC0934453C",
 				"3FC77E78D2B17731E15A00CF",
 				"D46C284B3A97B2BB4C3A0945",
@@ -25148,6 +25149,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "2BACCF86978FCFEB5AFA29CA";
 		};
+		"33C8E3EA1080E3D60A3C18C6" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/MerchantProjectBrowseCompositionTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"6DDF9CF43CDA574162AA3AB3" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "33C8E3EA1080E3D60A3C18C6";
+		};
 		"A1ED4F58A8DE61DC0934453C" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -28185,6 +28196,7 @@
 				"EA74C1A78F6DCB01EFA0ACE0",
 				"EAA78E2F940E5C79694CD66C",
 				"D2D63D9AE66ED170A7CCAAF3",
+				"6DDF9CF43CDA574162AA3AB3",
 				"54A03AC842E2A6EFDBCAB6D7",
 				"FDAD1659253283687D129A08",
 				"527B27CBEF50D255ACB15FD8",
