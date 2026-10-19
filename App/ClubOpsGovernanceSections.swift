@@ -99,6 +99,13 @@ struct ClubOpsCaseSection: View {
     let report: AnyView?
     let appeal: AnyView?
     var body: some View {
+        if list.appealMode {
+            // Mini governance `mode=appeal` page title, reached by a viewer this club has banned.
+            Section {
+                ClubOpsGovernanceCopy.text("clubOpsGov.appeal.mode").font(.title3.weight(.semibold))
+                    .accessibilityAddTraits(.isHeader).accessibilityIdentifier("clubOpsGov.appeal.mode")
+            }
+        }
         if list.canReport, let report {
             Section {
                 ClubOpsGovernanceCopy.text("clubOpsGov.report.note").font(.footnote).foregroundStyle(.secondary)
@@ -243,6 +250,8 @@ struct ClubOpsGovernanceDeniedNote: View {
             note("clubOpsGov.denied.title", "clubOpsGov.denied.body")
         case .roles:
             note("clubOpsGov.roles.denied.title", "clubOpsGov.roles.denied.body")
+        case .audienceCounts:
+            Section { ClubOpsNotifyDeniedText() }
         case .access:
             if let cases { Section { ClubOpsGovernanceCopy.text("clubOpsGov.appeal.entry").font(.footnote); cases } }
         default: EmptyView()

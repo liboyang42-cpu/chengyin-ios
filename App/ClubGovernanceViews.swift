@@ -180,6 +180,7 @@ struct ClubGovernanceReadView: View {
     @StateObject private var occurrenceCancellationReturn = ClubOccurrenceCancellationReturn()
     @State private var seriesHostVisible = false
     @StateObject private var seriesOccurrences = ClubSeriesOccurrenceHost()
+    @StateObject private var seriesTopicNames = ClubOpsEventTopicNameReads()
     @StateObject private var settlementReturn = ClubSettlementReturnOwner()
     @StateObject private var ownerFundsParent = ClubOwnerFundsParent()
     @StateObject private var caseSubmissionReturn = ClubCaseSubmissionReturn()
@@ -572,6 +573,9 @@ struct ClubGovernanceReadView: View {
             if let failure, let copy = ClubOpsFailureCopy(operation: operation, failure: failure) {
                 ClubOpsFailureSection(copy: copy) { Task { await load() } }
             }
+            if let failure, let copy = ClubOpsPageFailureCopy(operation: operation, failure: failure) {
+                ClubOpsPageFailureSection(copy: copy) { Task { await load() } }.disabled(loading)
+            }
             if let failure {
                 Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.error"); if let message = failure.message { Text(verbatim: message).textSelection(.enabled) } }
                 if failure == .forbidden { ClubOpsGovernanceDeniedNote(operation: operation, cases: scope.clubID == nil ? nil : AnyView(link(.cases))) }
@@ -914,6 +918,13 @@ struct ClubGovernanceReadView: View {
                                              active: scenePhase == .active) != nil else { return }
             await load()
         }
+        // Mini handleSeriesConflict: a definite 409 only re-reads; nothing is re-sent.
+        Task { @MainActor in
+            guard !Task.isCancelled, seriesHostVisible, scenePhase == .active,
+                  seriesUpdateReturn.consumeConflict(source: seriesUpdateSource, visible: seriesHostVisible,
+                                                     active: scenePhase == .active) != nil else { return }
+            await load()
+        }
     }
     private var terminalSource: ClubTerminalSessionPresentation.Source? {
         guard operation == .topicOverview, !loading, scenePhase == .active,
@@ -1243,7 +1254,11 @@ struct ClubGovernanceReadView: View {
                 }
             } }
         } else if operation == .audienceCounts {
-            Section { ClubGovernanceFactRows(value: value["counts"], fields: ["ALL_MEMBERS", "ADMINS", "REGISTERED", "WAITLIST", "NO_SHOW", "INACTIVE"], showUnknown: true); edit(.sendNotification) }
+            Section {
+                if let rows = try? ClubOpsNotifyPresentation.audienceRows(value) { ClubOpsNotifyAudienceRows(rows: rows) }
+                else { ClubGovernanceFactRows(value: value["counts"], fields: ["ALL_MEMBERS", "ADMINS", "REGISTERED", "WAITLIST", "NO_SHOW", "INACTIVE"], showUnknown: true) }
+                edit(.sendNotification)
+            } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.audience.title") }
         } else if operation == .dissolutionBlockers {
             Section("club.gov.deposits") { dataRows(value["deposits"].array ?? []) }
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
@@ -1300,6 +1315,12 @@ struct ClubGovernanceReadView: View {
                     customerTopicRoute(record.source).map { target in (id: target.topicID, open: { selectCustomerTopic(target) }) }
                 }, editButton: detail.canEdit ? AnyView(edit(.saveCustomer, seed: ["remark": value["remark"], "tags": value["tags"]])) : nil)
             } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customer.malformed") }
+        } else if operation == .notificationStatus, let campaign = try? ClubOpsNotifyCampaign(value: value) {
+            Section { ClubOpsNotifyCampaignRows(campaign: campaign) } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.title") }
+            if campaign.canRetryFailed {
+                Text("club.gov.deliveryPending"); ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.retryOnlyFailed").font(.footnote).foregroundStyle(.secondary)
+                edit(.retryNotification)
+            }
         } else {
             if operation == .customers {
                 if let list = try? ClubOpsCustomerListPresentation(value: value) {
@@ -1309,7 +1330,11 @@ struct ClubGovernanceReadView: View {
                 } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
             } else {
                 ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)
-                if operation == .series { ClubOpsEventSeriesHeader(empty: (value.array ?? []).isEmpty) }
+                if operation == .series {
+                    ClubOpsEventSeriesHeader(empty: (value.array ?? []).isEmpty, namesKey: readContext) { context in
+                        await seriesTopicNames.load(context: context, access: access)
+                    }
+                }
                 if operation != .series || !(value.array ?? []).isEmpty {
                     dataRows(ClubOpsEventAccess.focusFirst(value.array ?? value["items"].array ?? value["rows"].array ?? value["topics"].array ?? value["nodes"].array ?? [],
                                                            topicID: operation == .eventTopics ? scope.topicID : nil))
@@ -1349,6 +1374,7 @@ struct ClubGovernanceReadView: View {
                 }
             }
             if operation == .registrations { enrollmentLink(focusTopicID: scope.topicID) }
+            if operation == .seriesDetail, seriesUpdateReturn.conflictNotice == readContext { ClubOpsEventSeriesConflictNotice() }
             if operation == .seriesDetail { edit(.updateSeries, seed: value.object ?? [:]); link(.occurrences) }
             if operation == .occurrenceStatus {
                 ClubOpsEventOccurrenceStatusRows(value: value, activityID: scope.activityID)
@@ -1381,7 +1407,7 @@ struct ClubGovernanceReadView: View {
                     }.buttonStyle(.borderless)
                         .accessibilityIdentifier("club.gov.leaderboard.profile.\(target.memberID)")
                 } else if operation == .series, let id = row["id"].int,
-                          let item = snapshot.map({ ClubOpsEventSeriesList(value: $0.value) })?.rows.first(where: { $0.id == id }) {
+                          let item = snapshot.map({ ClubOpsEventSeriesList(value: $0.value, topicNames: seriesTopicNames.names(readContext)) })?.rows.first(where: { $0.id == id }) {
                     ClubOpsEventSeriesRowView(row: item)
                 } else {
                     ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields, showUnknown: operation == .leaderboard || operation == .occurrences)

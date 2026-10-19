@@ -404,6 +404,33 @@ import XCTest
             XCTAssertTrue(owner.isPresented); XCTAssertNil(owner.consume(source: source, visible: true, active: true))
         }
     }
+    func testDefiniteConflictClosesOnceForReadOnlyRefreshWithoutResend() async throws {
+        let access = Access(), owner = ClubSeriesUpdateReturn(), source = try source(access), item = try opened(owner, source)
+        let coordinator = ClubGovernanceCoordinator(access: access), review = try await coordinator.prepare(command())
+        XCTAssertTrue(owner.begin(review, state: coordinator.state, item: item, source: source, active: true))
+        access.failure = .conflict(message: nil)
+        do { _ = try await coordinator.confirm(review); XCTFail("Expected conflict") } catch {}
+        XCTAssertEqual(coordinator.state, .conflict); XCTAssertFalse(coordinator.isLocked(review.command, identity: review.identity))
+        owner.conflicted(review, failure: .conflict(message: nil), state: coordinator.state, item: item, source: source, active: true)
+        XCTAssertFalse(owner.isPresented); XCTAssertNil(owner.consume(source: source, visible: true, active: true))
+        XCTAssertNil(owner.consumeConflict(source: source, visible: true, active: true))
+        XCTAssertTrue(owner.dismissed(item, source: source, active: true))
+        XCTAssertNil(owner.consumeConflict(source: source, visible: false, active: true))
+        XCTAssertEqual(owner.consumeConflict(source: source, visible: true, active: true), source)
+        XCTAssertEqual(owner.conflictNotice, source.context)
+        XCTAssertNil(owner.consumeConflict(source: source, visible: true, active: true)); XCTAssertEqual(access.sends, 1)
+    }
+    func testUnknownOrRejectedOutcomeNeverQualifiesAsConflictRefresh() async throws {
+        for (failure, state) in [(ClubGovernanceFailure.unknown(message: nil), ClubGovernanceWriteState.unknown),
+                                 (.rejected(code: nil, message: nil), .rejected), (.conflict(message: nil), .unknown)] {
+            let access = Access(), owner = ClubSeriesUpdateReturn(), source = try source(access), item = try opened(owner, source)
+            let review = try await ClubGovernanceCoordinator(access: access).prepare(command())
+            XCTAssertTrue(owner.begin(review, state: .reviewing, item: item, source: source, active: true))
+            owner.conflicted(review, failure: failure, state: state, item: item, source: source, active: true)
+            XCTAssertTrue(owner.isPresented); XCTAssertFalse(owner.dismissed(item, source: source, active: true))
+            XCTAssertNil(owner.consumeConflict(source: source, visible: true, active: true)); XCTAssertNil(owner.conflictNotice)
+        }
+    }
     func testDifferentSubmissionReviewCannotAcknowledgeCurrentSheet() async throws {
         let access = Access(), owner = ClubSeriesUpdateReturn(), source = try source(access), item = try opened(owner, source)
         let coordinator = ClubGovernanceCoordinator(access: access), old = try await coordinator.prepare(command())

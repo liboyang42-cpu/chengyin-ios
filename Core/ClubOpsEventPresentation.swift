@@ -196,3 +196,28 @@ public enum ClubOpsEventInput {
     public static func cancelReasonInvalid(_ raw: String) -> Bool { !(2...255).contains(trimmed(raw).utf16.count) }
     public static func correctionReasonInvalid(_ raw: String) -> Bool { trimmed(raw).utf16.count < 2 }
 }
+
+/// Mini loadTopics → decorateSeriesRows: names come only from the same club's `.eventTopics` read. Blank or
+/// missing names stay unknown, so the row keeps `主题 #id`; a missing read never blocks the series list.
+public enum ClubOpsEventTopicNames {
+    public static func names(_ snapshot: ClubGovernanceSnapshot?, clubID: Int?) -> [Int: String] {
+        guard let snapshot, snapshot.operation == .eventTopics, let clubID, clubID > 0,
+              snapshot.scope.clubID == clubID, let rows = snapshot.value.array else { return [:] }
+        var result: [Int: String] = [:]
+        for row in rows {
+            guard let id = row["id"].int, id > 0, result[id] == nil,
+                  let name = row["name"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { continue }
+            result[id] = name
+        }
+        return result
+    }
+}
+
+/// Mini handleSeriesConflict (系列已被更新，正在刷新): only a definite 409 on updateSeries re-reads the series.
+/// Nothing is re-sent; an unknown outcome keeps its lock and never qualifies.
+public enum ClubOpsEventSeriesConflict {
+    public static func qualifies(operation: ClubGovernanceMutation, failure: ClubGovernanceFailure?, state: ClubGovernanceWriteState) -> Bool {
+        guard operation == .updateSeries, state == .conflict, case .conflict? = failure else { return false }
+        return true
+    }
+}

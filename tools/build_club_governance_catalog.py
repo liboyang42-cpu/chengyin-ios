@@ -114,7 +114,7 @@ unban|Remove club ban|解除俱乐部封禁
 transferOwner|Transfer ownership|移交主理人
 report|Submit a platform report|提交平台举报
 appeal|Appeal a platform case|提交封禁申诉
-assignRole|Assign scoped role|委派范围角色
+assignRole|Assign|分配
 revokeRole|Revoke|撤销
 sendNotification|Compose member notification|编写成员通知
 retryNotification|Retry failed recipients|重试失败收件人

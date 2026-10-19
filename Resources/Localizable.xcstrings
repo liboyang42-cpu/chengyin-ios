@@ -14570,13 +14570,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Assign scoped role"
+            "value": "Assign"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "委派范围角色"
+            "value": "分配"
           }
         }
       }

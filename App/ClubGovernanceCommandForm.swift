@@ -65,6 +65,7 @@ import SwiftUI
                     ClubNotificationAudienceView(context: audienceContext, access: access, model: notificationAudience,
                         selection: textBinding("audienceType"), canEdit: { audienceIsCurrent && !busy && !locked && review == nil },
                         isCurrent: { audienceIsCurrent })
+                    ClubOpsNotifyContentFields(title: textBinding("title"), content: textBinding("content"))
                 }
                 if route.operation == .assignRole {
                     ClubRoleAssignmentPicker(scope: route.scope, identity: identity, access: access, model: rolePicker,
@@ -115,6 +116,7 @@ import SwiftUI
                     (!isSeries || key != "capacity") && (route.operation != .updateSeries || key != "defaultLeadMemberId") &&
                     (![.cancelOccurrence, .correctAttendance].contains(route.operation) || key != "reason") &&
                     (route.operation != .sendNotification || key != "audienceType") &&
+                    (route.operation != .sendNotification || !["title", "content"].contains(key)) &&
                     (route.operation != .saveCustomer || !["tags", "remark"].contains(key))
                 }, id: \.self) { key in
                     if let choices = draft.choices(key) {
@@ -135,13 +137,18 @@ import SwiftUI
             if busy { ProgressView() }
             if let review {
                 Section("club.gov.review") {
-                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" }, showUnknown: true)
+                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && !(route.operation == .createSeries && $0 == "defaultLeadMemberId" && review.command.fields[$0] == .null) }, showUnknown: true)
+                    if route.operation == .createSeries, review.command.fields["defaultLeadMemberId"] == .null {
+                        LabeledContent("club.gov.field.defaultLeadMemberId") { Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent") }
+                            .accessibilityIdentifier("clubOpsEvent.review.ownerDefault")
+                    }
                     ClubOpsBanExpiryReview(fields: review.command.fields)
                     if showsCustomDateConversion {
                         Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
                             .accessibilityIdentifier("club.schedule.reviewConversion")
                     }
-                    if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["recipientCount", "inApp", "wechatSubscription"]) }
+                    if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["inApp", "wechatSubscription"]) }
+                    if route.operation == .sendNotification { ClubOpsNotifyPreviewSummary(value: review.snapshot.value) }
                     Button(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction") {
                         if route.operation == .cancelOccurrence { cancelConfirmReview = review } else { Task { await confirm(review) } }
                     }
@@ -163,7 +170,12 @@ import SwiftUI
                 Section("club.gov.acknowledged") { Text("club.gov.acknowledgedBody")
                     ClubOpsGovernanceSuccess(operation: route.operation)
                     if route.operation == .correctAttendance { Text("clubOpsEvent.correct.success", tableName: "ClubOpsEvent").accessibilityIdentifier("clubOpsEvent.correct.success") }
-                    ClubGovernanceFactRows(value: receipt, fields: ["id", "activityId", "refundStatus", "totalCount", "successCount", "failedCount", "refundedOrders", "manualOrders"])
+                    // Campaign counts render once, in the notify card, when the receipt parses as a campaign.
+                    let campaignReceipt = [.sendNotification, .retryNotification].contains(route.operation) && (try? ClubOpsNotifyCampaign(value: receipt)) != nil
+                    ClubGovernanceFactRows(value: receipt, fields: campaignReceipt ? ["id"] : ["id", "activityId", "refundStatus", "totalCount", "successCount", "failedCount", "refundedOrders", "manualOrders"])
+                    if [.sendNotification, .retryNotification].contains(route.operation), let campaign = try? ClubOpsNotifyCampaign(value: receipt) {
+                        ClubOpsNotifyCampaignRows(campaign: campaign, outcome: route.operation)
+                    }
                     if [.sendNotification, .retryNotification].contains(route.operation), let id = receipt["id"].int {
                         NavigationLink { ClubGovernanceReadView(operation: .notificationStatus, scope: .init(clubID: route.scope.clubID, activityID: route.scope.activityID, campaignID: id), identity: identity, access: access, coordinator: coordinator) } label: { Text("club.gov.notificationStatus") }
                     }
@@ -364,6 +376,9 @@ import SwiftUI
             if revision == generation && expected == identity {
                 failure = error as? ClubGovernanceFailure ?? .unknown(message: nil)
                 self.review = nil; locked = coordinator.isLocked(review.command, identity: review.identity)
+                if route.operation == .updateSeries, submittedRequestID == draft.requestID, !locked, let definite = failure {
+                    seriesUpdateReturn?.conflicted(review, definite)
+                }
             }
         }
         if revision == generation { busy = false }

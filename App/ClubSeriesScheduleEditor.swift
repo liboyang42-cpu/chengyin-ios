@@ -550,11 +550,15 @@ struct ClubCreatedSeriesReceipt: Equatable {
     struct Callbacks {
         let begin: (ClubGovernanceReview) -> Bool
         let acknowledged: (ClubGovernanceReview, ClubGovernanceValue) -> Void
+        var conflicted: (ClubGovernanceReview, ClubGovernanceFailure) -> Void = { _, _ in }
     }
     @Published private(set) var item: Item?
     @Published private(set) var isPresented = false
+    /// Read context that was re-read after a definite 409 (mini 系列已被更新，正在刷新).
+    @Published private(set) var conflictNotice: ClubGovernanceReadContext?
     private var submissionID: UUID?
     private var acknowledgedID: UUID?
+    private var conflictedID: UUID?
     private var didDismiss = false
 
     func open(_ source: Source?, visible: Bool, active: Bool) {
@@ -562,6 +566,7 @@ struct ClubCreatedSeriesReceipt: Equatable {
         item = Item(route: .init(operation: .updateSeries, scope: source.context.scope,
                                  seed: source.snapshot.value.object ?? [:]), source: source)
         isPresented = true; submissionID = nil; acknowledgedID = nil; didDismiss = false
+        conflictedID = nil; conflictNotice = nil
     }
     func current(_ expected: Item, source: Source?, active: Bool) -> Bool {
         active && item?.id == expected.id && expected.source == source
@@ -594,6 +599,7 @@ struct ClubCreatedSeriesReceipt: Equatable {
     @discardableResult func dismissed(_ expected: Item, source: Source?, active: Bool) -> Bool {
         guard current(expected, source: source, active: active), !isPresented else { return false }
         if acknowledgedID != nil { didDismiss = true }
+        else if conflictedID != nil { didDismiss = true }
         else { retire() }
         return true
     }
@@ -607,8 +613,25 @@ struct ClubCreatedSeriesReceipt: Equatable {
     func invalidateUnlessCurrent(source: Source?, active: Bool) {
         if let item, !current(item, source: source, active: active) { retire() }
     }
+    /// Only the submitted review's definite `.conflict` closes the sheet for a re-read; no write is repeated.
+    func conflicted(_ review: ClubGovernanceReview, failure: ClubGovernanceFailure,
+                    state: ClubGovernanceWriteState, item expected: Item, source: Source?, active: Bool) {
+        guard isPresented, current(expected, source: source, active: active),
+              submissionID == review.id, acknowledgedID == nil, conflictedID == nil,
+              ClubOpsEventSeriesConflict.qualifies(operation: review.command.operation, failure: failure, state: state) else { return }
+        conflictedID = review.id; isPresented = false
+    }
+    func consumeConflict(source: Source?, visible: Bool, active: Bool) -> Source? {
+        guard visible, active, !isPresented, didDismiss, acknowledgedID == nil, conflictedID != nil,
+              let item, current(item, source: source, active: active) else { return nil }
+        let result = item.source
+        retire()
+        conflictNotice = result.context
+        return result
+    }
     func retire() {
         isPresented = false; item = nil; submissionID = nil; acknowledgedID = nil; didDismiss = false
+        conflictedID = nil; conflictNotice = nil
     }
 }
 
@@ -636,6 +659,9 @@ struct ClubCreatedSeriesReceipt: Equatable {
                             owner.begin(review, state: coordinator.state, item: item, source: source(), active: active())
                         }, acknowledged: { review, receipt in
                             owner.acknowledge(review, receipt: receipt, state: coordinator.state,
+                                item: item, source: source(), active: active())
+                        }, conflicted: { review, failure in
+                            owner.conflicted(review, failure: failure, state: coordinator.state,
                                 item: item, source: source(), active: active())
                         }))
                 }

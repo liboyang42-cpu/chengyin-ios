@@ -110,6 +110,8 @@ public struct ClubOpsCaseList: Equatable {
     /// Reports are filed by active members; a banned viewer only sees own cases and the appeal fact.
     public let canReport: Bool
     public var canAppeal: Bool { if case .ban = appeal { return true }; return false }
+    /// Mini governance `mode=appeal` (封禁申诉): an inactive viewer (own-case read without access) or one with a known active ban.
+    public var appealMode: Bool { !canReport || canAppeal }
     public init(snapshot: ClubGovernanceSnapshot) throws {
         guard snapshot.operation == .cases, let clubID = snapshot.scope.clubID, clubID > 0 else { throw ClubGovernanceFailure.targetChanged }
         if let permissions = snapshot.permissions {

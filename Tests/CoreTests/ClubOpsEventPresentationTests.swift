@@ -156,4 +156,26 @@ final class ClubOpsEventPresentationTests: XCTestCase {
         do { _ = try await coordinator.prepare(draft.command()); XCTFail() } catch { XCTAssertEqual(error as? ClubGovernanceFailure, .targetChanged) }
         XCTAssertTrue(access.sent.isEmpty)
     }
+    func testTopicNamesComeOnlyFromSameClubEventTopicsRead() throws {
+        let scope = ClubGovernanceScope(clubID: 81)
+        let value: ClubGovernanceValue = .array([.object(["id": .integer(7), "name": .string(" 夜跑 ")]), .object(["id": .integer(8), "name": .string("  ")]),
+                                                 .object(["id": .integer(9)]), .object(["id": .integer(7), "name": .string("Duplicate")])])
+        let topics = ClubGovernanceSnapshot(operation: .eventTopics, scope: scope, permissions: nil, value: value)
+        XCTAssertEqual(ClubOpsEventTopicNames.names(topics, clubID: 81), [7: "夜跑"])
+        XCTAssertEqual(ClubOpsEventTopicNames.names(topics, clubID: 82), [:])
+        XCTAssertEqual(ClubOpsEventTopicNames.names(nil, clubID: 81), [:])
+        XCTAssertEqual(ClubOpsEventTopicNames.names(.init(operation: .topics, scope: scope, permissions: nil, value: value), clubID: 81), [:])
+        let rows = ClubOpsEventSeriesList(value: .array([.object(["id": .integer(1), "topicId": .integer(7), "recurrenceType": .string("WEEKLY")]),
+                                                         .object(["id": .integer(2), "topicId": .integer(8), "recurrenceType": .string("WEEKLY")])]),
+                                          topicNames: ClubOpsEventTopicNames.names(topics, clubID: 81)).rows
+        XCTAssertEqual(rows.map(\.topicName), ["夜跑", nil]); XCTAssertEqual(rows.map(\.suffix), [[], []])
+    }
+    func testOnlyDefiniteUpdateSeriesConflictQualifiesForRefresh() {
+        XCTAssertTrue(ClubOpsEventSeriesConflict.qualifies(operation: .updateSeries, failure: .conflict(message: "x"), state: .conflict))
+        XCTAssertFalse(ClubOpsEventSeriesConflict.qualifies(operation: .updateSeries, failure: .conflict(message: nil), state: .unknown))
+        XCTAssertFalse(ClubOpsEventSeriesConflict.qualifies(operation: .updateSeries, failure: .unknown(message: nil), state: .conflict))
+        XCTAssertFalse(ClubOpsEventSeriesConflict.qualifies(operation: .updateSeries, failure: nil, state: .conflict))
+        XCTAssertFalse(ClubOpsEventSeriesConflict.qualifies(operation: .createSeries, failure: .conflict(message: nil), state: .conflict))
+    }
+
 }
