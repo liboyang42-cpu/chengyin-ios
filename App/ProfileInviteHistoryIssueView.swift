@@ -24,3 +24,14 @@ struct ProfileInviteHistoryEmptyView: View {
         }.accessibilityElement(children: .combine).accessibilityIdentifier("profile.inviteHistory.empty")
     }
 }
+
+/// Source summary 累计邀请 {total} 人; absent until the server reports a total.
+struct ProfileInviteHistorySummaryLine: View {
+    let total: Int?
+    var body: some View {
+        if let total {
+            Text("profile.inviteHistoryP2.summary \(total)").font(.headline)
+                .accessibilityIdentifier("profile.inviteHistory.summary")
+        }
+    }
+}
