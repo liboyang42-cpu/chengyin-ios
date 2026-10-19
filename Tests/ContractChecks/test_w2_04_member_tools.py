@@ -63,6 +63,30 @@ class InviteHistoryCopyChecks(unittest.TestCase):
         self.assertFalse([k for k in fragment if k.startswith('social.')])
 
 
+class TemplateShelfPlanChecks(unittest.TestCase):
+    def setUp(self):
+        self.core = read('Core/TemplateOwnShelfMarketPlan.swift')
+    def test_plan_is_display_only_and_builds_no_request(self):
+        self.assertIn('public var isDispatchable: Bool { false }', self.core)
+        for t in ['TemplateAuthoringRequest', '/market-submit', 'updateLibraryStatus', 'URLSession', 'HTTPTransport', 'submit(']:
+            self.assertNotIn(t, self.core)
+    def test_marketview_order_and_targets(self):
+        self.assertLess(self.core.index('action = .submitReview'), self.core.index('action = .withdrawReview'))
+        self.assertIn('else if approved && state.market == .unlisted { action = .list }', self.core)
+        self.assertIn('case .withdrawReview, .delist: return 0', self.core)
+        self.assertIn('case .list: return 1', self.core)
+    def test_pinned_shelf_files_are_untouched(self):
+        # The own-shelf Core and View bytes are digest-pinned by test_template_shelf_state_projection;
+        # mounting this plan there needs a reviewed pin update, so it is recorded as blocked.
+        for path in ['Core/TemplateAuthoringShelf.swift', 'App/TemplateAuthoringMineView.swift']:
+            self.assertNotIn('TemplateOwnShelfMarketPlan', read(path))
+    def test_every_core_key_is_localized(self):
+        import re
+        catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']
+        for key in re.findall(r'"(templateOwnShelf\.[A-Za-z.]+(?: %@)?)"', self.core):
+            self.assertIn(key, catalog)
+
+
 class LocalizationChecks(unittest.TestCase):
     def test_fragment_is_bilingual_and_merged(self):
         fragment = json.loads(read('Resources/W204MemberToolsLocalizations.fragment.json'))['strings']

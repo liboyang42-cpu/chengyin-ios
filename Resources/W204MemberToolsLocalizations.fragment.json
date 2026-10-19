@@ -320,6 +320,150 @@
           }
         }
       }
+    },
+    "templateOwnShelf.market.submit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit for marketplace review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交广场审核"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.market.withdraw": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw marketplace review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回广场审核"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.market.delist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from marketplace"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从广场下架"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.market.list": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "List in marketplace"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上架广场"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.delete.title %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete node play “%@”?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除节点玩法「%@」?"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.delete.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you only want to stop others from using it, removing it from the play library is enough."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只是不想让别人再用的话,从玩法库下架就够了。"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.delete.keepsReferences": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nodes that already reference this play are unaffected and keep their configuration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已经引用了这个玩法的节点不受影响,继续按原配置跑"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.delete.irreversible": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This cannot be undone. The play configuration cannot be recovered."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销,玩法配置无法找回"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.delete.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除玩法"
+          }
+        }
+      }
     }
   }
 }

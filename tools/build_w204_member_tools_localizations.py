@@ -33,6 +33,16 @@ STRINGS = {
     'profile.inviteHistory.empty': ('No one has accepted your invitation yet', '还没有人接受你的邀请'),
     'profile.inviteHistory.emptyHint': ('Friends appear here by time after they join.', '好友加入后，会按时间出现在这里'),
     'profile.inviteHistory.nicknameUnknown': ('Nickname to be confirmed', '昵称待确认'),
+    # My node plays (subpackageMember/mytemplate, utils/template-market.js)
+    'templateOwnShelf.market.submit': ('Submit for marketplace review', '提交广场审核'),
+    'templateOwnShelf.market.withdraw': ('Withdraw marketplace review', '撤回广场审核'),
+    'templateOwnShelf.market.delist': ('Remove from marketplace', '从广场下架'),
+    'templateOwnShelf.market.list': ('List in marketplace', '上架广场'),
+    'templateOwnShelf.delete.title %@': ('Delete node play “%@”?', '删除节点玩法「%@」?'),
+    'templateOwnShelf.delete.body': ('If you only want to stop others from using it, removing it from the play library is enough.', '只是不想让别人再用的话,从玩法库下架就够了。'),
+    'templateOwnShelf.delete.keepsReferences': ('Nodes that already reference this play are unaffected and keep their configuration.', '已经引用了这个玩法的节点不受影响,继续按原配置跑'),
+    'templateOwnShelf.delete.irreversible': ('This cannot be undone. The play configuration cannot be recovered.', '此操作不可撤销,玩法配置无法找回'),
+    'templateOwnShelf.delete.confirm': ('Delete play', '删除玩法'),
 }
 
 
