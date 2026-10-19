@@ -31,6 +31,8 @@ public struct ComplianceState {
     private var requestID = UUID().uuidString
     private var reviewCode: String? // In memory only; cleared on apply, invalidation and failed SMS.
     private var retainedNPCChatData: NPCChatDataCoordinator?
+    /// Dormant: nil keeps NPC log deletion OFF; the service also needs its own endpoint approval.
+    public var npcChatLogDeletion: NPCChatLogDeletionService?
     public init(service: AccountComplianceService, auth: any AuthChannelServing, effects: any ComplianceRoamEffects,
                 current: @escaping () -> ComplianceSession?, invalidateSession: @escaping (ComplianceSession) async -> Void) {
         self.service = service; self.auth = auth; self.effects = effects; self.current = current; self.invalidateSession = invalidateSession
@@ -38,12 +40,21 @@ public struct ComplianceState {
     public func invalidate() { retainedNPCChatData?.invalidate(); retainedNPCChatData = nil; generation &+= 1; state = .init(); noticeAccepted = false; reviewCode = nil; requestID = UUID().uuidString; onChange?(state) }
     public func makeNPCChatDataCoordinator() -> NPCChatDataCoordinator {
         retainedNPCChatData?.invalidate()
+        var deleteLogs: ((ComplianceSession) async throws -> NPCChatLogDeletionOutcome)?
+        if npcChatLogDeletion != nil {
+            deleteLogs = { [weak self] session in
+                guard let deletion = self?.npcChatLogDeletion else { throw NPCChatDataFailure.unavailable }
+                return try await deletion.delete(session: session)
+            }
+        }
         let value = NPCChatDataCoordinator(current: current, available: { [weak self] session in
             self?.service.canReadNPCChatData(session: session) == true
         }, read: { [weak self] session in
             guard let self else { throw NPCChatDataFailure.staleSession }
             return try await self.service.readNPCChatData(session: session)
-        })
+        }, deletionAvailable: { [weak self] session in
+            self?.npcChatLogDeletion?.canDelete(session: session) == true
+        }, deleteLogs: deleteLogs)
         retainedNPCChatData = value; return value
     }
     private func changed() { onChange?(state) }

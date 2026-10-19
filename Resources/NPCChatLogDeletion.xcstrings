@@ -1,0 +1,294 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "npcLogDelete.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete my NPC chat logs…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除我的 NPC 聊天日志…"
+          }
+        }
+      }
+    },
+    "npcLogDelete.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "npcLogDelete.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除日志"
+          }
+        }
+      }
+    },
+    "npcLogDelete.confirmMessage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server hard-deletes these log rows for this account and they cannot be recovered. Request receipts and audit records remain. The request is sent once and is not retried automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器将硬删除此账号的这些日志行，无法恢复。请求回执与审计记录仍保留。请求只发送一次，不会自动重试。"
+          }
+        }
+      }
+    },
+    "npcLogDelete.confirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete all of your NPC chat logs?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除你的全部 NPC 聊天日志？"
+          }
+        }
+      }
+    },
+    "npcLogDelete.deletedBoundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The records below were read again after deletion. Anything still shown remains on the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下记录为删除后重新读取的结果，仍显示的内容仍保存在服务器上。"
+          }
+        }
+      }
+    },
+    "npcLogDelete.deletedCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log rows the server reported deleted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器报告已删除的日志行数"
+          }
+        }
+      }
+    },
+    "npcLogDelete.deleting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting logs…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在删除日志…"
+          }
+        }
+      }
+    },
+    "npcLogDelete.failure.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The deletion could not be confirmed. Read the records again to check what remains."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认此次删除，请重新读取记录确认仍保留的内容。"
+          }
+        }
+      }
+    },
+    "npcLogDelete.failure.malformed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The deletion could not be confirmed. Read the records again to check what remains."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认此次删除，请重新读取记录确认仍保留的内容。"
+          }
+        }
+      }
+    },
+    "npcLogDelete.failure.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server did not confirm this deletion. Read the records again to check what remains."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器未确认此次删除，请重新读取记录确认仍保留的内容。"
+          }
+        }
+      }
+    },
+    "npcLogDelete.failure.signedOut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again. The server did not accept this deletion."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录。服务器未接受此次删除。"
+          }
+        }
+      }
+    },
+    "npcLogDelete.failure.staleSession": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account, session, or authorization changed. The deletion result was discarded; read the records again to check."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号、会话或授权已改变，删除结果已丢弃，请重新读取记录确认。"
+          }
+        }
+      }
+    },
+    "npcLogDelete.failure.tooLarge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The deletion could not be confirmed. Read the records again to check what remains."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认此次删除，请重新读取记录确认仍保留的内容。"
+          }
+        }
+      }
+    },
+    "npcLogDelete.failure.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting NPC chat logs is not currently approved for this account and service. Nothing was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前尚未授权此账号在当前服务中删除 NPC 聊天日志，未发送请求。"
+          }
+        }
+      }
+    },
+    "npcLogDelete.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This deletes the NPC chat log rows the server keeps for the signed-in account. It is not full erasure: request receipts and service audit records are not covered, and a reply still in progress may write a new log afterwards."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作删除服务器为当前登录账号保存的 NPC 聊天日志行，并非彻底删除：请求回执与服务审计记录不在范围内，仍在处理中的回复之后可能再写入新日志。"
+          }
+        }
+      }
+    },
+    "npcLogDelete.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete NPC chat logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除 NPC 聊天日志"
+          }
+        }
+      }
+    },
+    "npcLogDelete.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The deletion result is unknown and the request was not resent. The records were read again to show what remains; you can choose to delete again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除结果未知，请求未重新发送。已重新读取以显示仍保留的记录，你可以再次选择删除。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
