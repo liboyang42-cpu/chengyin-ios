@@ -92003,13 +92003,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add participant"
+            "value": "Add participant information"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新增参与人"
+            "value": "新增参与人信息"
           }
         }
       }
@@ -112783,13 +112783,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No participants yet"
+            "value": "No participant information yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无参与人"
+            "value": "还没有参与人信息"
           }
         }
       }
@@ -112800,13 +112800,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved participant information will appear here."
+            "value": "Registrations need a contact. Add one here and choose it when you register."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已保存的参与人信息会显示在这里。"
+            "value": "报名活动需要填写联系人；新增后可在报名时直接选用"
           }
         }
       }
@@ -112851,13 +112851,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone"
+            "value": "Mobile number"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "联系电话"
+            "value": "手机号"
           }
         }
       }
