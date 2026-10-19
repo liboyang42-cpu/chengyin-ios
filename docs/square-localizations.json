@@ -538,5 +538,175 @@
     "key": "square.xcx.delete.unavailable",
     "en": "Deleting is not available in this version yet.",
     "zh-Hans": "当前版本暂未开放删除"
+  },
+  {
+    "key": "square.video.title",
+    "en": "Video",
+    "zh-Hans": "视频"
+  },
+  {
+    "key": "square.video.readTitle",
+    "en": "Post videos",
+    "zh-Hans": "动态视频"
+  },
+  {
+    "key": "square.video.policyUnavailable",
+    "en": "Video rules for posts are not connected yet. No video file is read or uploaded.",
+    "zh-Hans": "帖文视频规则尚未接通，不会读取或上传视频文件。"
+  },
+  {
+    "key": "square.video.empty",
+    "en": "No video selected",
+    "zh-Hans": "未选择视频"
+  },
+  {
+    "key": "square.video.processing",
+    "en": "Checking video…",
+    "zh-Hans": "正在检查视频…"
+  },
+  {
+    "key": "square.video.failed",
+    "en": "This video could not be read. Remove it or choose another.",
+    "zh-Hans": "这个视频无法读取，请移除或换一个。"
+  },
+  {
+    "key": "square.video.withinPolicy",
+    "en": "Video checked on this device",
+    "zh-Hans": "视频已在本机检查通过"
+  },
+  {
+    "key": "square.video.reject.policyUnavailable",
+    "en": "Video rules are unavailable",
+    "zh-Hans": "视频规则不可用"
+  },
+  {
+    "key": "square.video.reject.mimeNotAllowed",
+    "en": "This video format is not supported",
+    "zh-Hans": "不支持这种视频格式"
+  },
+  {
+    "key": "square.video.reject.noBytes",
+    "en": "The video file is empty",
+    "zh-Hans": "视频文件为空"
+  },
+  {
+    "key": "square.video.reject.byteLimit",
+    "en": "The video file is too large",
+    "zh-Hans": "视频文件过大"
+  },
+  {
+    "key": "square.video.reject.durationLimit",
+    "en": "The video is too long",
+    "zh-Hans": "视频时长超出限制"
+  },
+  {
+    "key": "square.video.reject.noVideoTrack",
+    "en": "The file has no video track",
+    "zh-Hans": "文件中没有视频画面"
+  },
+  {
+    "key": "square.video.reject.notPlayable",
+    "en": "The video cannot be played",
+    "zh-Hans": "视频无法播放"
+  },
+  {
+    "key": "square.video.reject.invalidDimensions",
+    "en": "The video size could not be read",
+    "zh-Hans": "无法读取视频尺寸"
+  },
+  {
+    "key": "square.video.restore.ready",
+    "en": "Restored from your draft",
+    "zh-Hans": "已从草稿恢复"
+  },
+  {
+    "key": "square.video.restore.missing",
+    "en": "The local video file is gone. Choose it again.",
+    "zh-Hans": "本机视频文件已不在，请重新选择。"
+  },
+  {
+    "key": "square.video.restore.changed",
+    "en": "The local video file changed. Choose it again.",
+    "zh-Hans": "本机视频文件已变化，请重新选择。"
+  },
+  {
+    "key": "square.video.restore.invalid",
+    "en": "This draft item could not be restored",
+    "zh-Hans": "这条草稿内容无法恢复"
+  },
+  {
+    "key": "square.video.remove",
+    "en": "Remove video",
+    "zh-Hans": "移除视频"
+  },
+  {
+    "key": "square.video.upload",
+    "en": "Upload video",
+    "zh-Hans": "上传视频"
+  },
+  {
+    "key": "square.video.uploadBlocked.noReviewedVideoUploadEndpoint",
+    "en": "Video upload is not available yet: the current upload service accepts JPEG and PNG images only.",
+    "zh-Hans": "暂不能上传视频：当前上传服务只接受 JPEG 和 PNG 图片。"
+  },
+  {
+    "key": "square.video.uploadBlocked.notApproved",
+    "en": "Video upload is not approved for this account.",
+    "zh-Hans": "此账号暂未开放视频上传。"
+  },
+  {
+    "key": "square.video.uploadBlocked.policyUnavailable",
+    "en": "Video upload stays off until video rules are connected.",
+    "zh-Hans": "视频规则接通前不会上传视频。"
+  },
+  {
+    "key": "square.video.duration %lld",
+    "en": "%lld s",
+    "zh-Hans": "%lld 秒"
+  },
+  {
+    "key": "square.video.play",
+    "en": "Play video",
+    "zh-Hans": "播放视频"
+  },
+  {
+    "key": "square.video.sourceUnavailable",
+    "en": "This video can't be played here",
+    "zh-Hans": "此视频暂无法播放"
+  },
+  {
+    "key": "square.video.review.pending",
+    "en": "Video in review",
+    "zh-Hans": "视频审核中"
+  },
+  {
+    "key": "square.video.review.rejected",
+    "en": "Video did not pass review",
+    "zh-Hans": "视频未通过审核"
+  },
+  {
+    "key": "square.video.fixture.pickValid",
+    "en": "Synthetic: pick a 15 s video",
+    "zh-Hans": "示例：选择 15 秒视频"
+  },
+  {
+    "key": "square.video.fixture.pickLong",
+    "en": "Synthetic: pick a 2 min video",
+    "zh-Hans": "示例：选择 2 分钟视频"
+  },
+  {
+    "key": "square.video.fixture.save",
+    "en": "Synthetic: save draft",
+    "zh-Hans": "示例：保存草稿"
+  },
+  {
+    "key": "square.video.fixture.restore",
+    "en": "Synthetic: restore draft",
+    "zh-Hans": "示例：恢复草稿"
+  },
+  {
+    "key": "square.video.fixture.loseFile",
+    "en": "Synthetic: lose local file",
+    "zh-Hans": "示例：模拟本机文件丢失"
   }
 ]

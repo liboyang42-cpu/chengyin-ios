@@ -16,8 +16,8 @@ import SwiftUI
                 SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { rows in
                     if rows.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("social.guideXcx.docsEmpty").font(.headline)
-                            Text("social.guideXcx.docsEmptyDetail").font(.footnote).foregroundStyle(.secondary)
+                            Text("guideXcx.docsEmpty").font(.headline)
+                            Text("guideXcx.docsEmptyDetail").font(.footnote).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.docsEmpty")
                     }
                     ForEach(rows) { row in
@@ -34,8 +34,8 @@ import SwiftUI
                 }
             } header: {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("social.guideXcx.docs")
-                    Text("social.guideXcx.docsHint").font(.caption).textCase(nil)
+                    Text("guideXcx.docs")
+                    Text("guideXcx.docsHint").font(.caption).textCase(nil)
                 }
             }
         }.appNavigationTitle("social.guide.title").accessibilityIdentifier("social.guide")
@@ -59,6 +59,6 @@ import SwiftUI
                     }
                 }
             }
-        }.appNavigationTitle("social.guideXcx.detailTitle").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("social.information.detail")
+        }.appNavigationTitle("guideXcx.detailTitle").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("social.information.detail")
     }
 }

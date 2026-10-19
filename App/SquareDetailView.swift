@@ -40,6 +40,7 @@ import SwiftUI
                 if let post {
                     Section {
                         SquarePostContent(post: post, mediaScope: reader.scope).accessibilityIdentifier("square.detailPost")
+                        if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
                         SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
                         if let accountReader, post.memberID > 0 {
                             NavigationLink { SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Label("social.viewAuthor", systemImage: "person.crop.circle") }

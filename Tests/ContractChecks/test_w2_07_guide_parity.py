@@ -21,9 +21,9 @@ class W207GuideParity(unittest.TestCase):
             for lang in ('en', 'zh-Hans'):
                 self.assertEqual(self.catalog[row['key']]['localizations'][lang]['stringUnit']['value'], row[lang], row['key'])
         self.assertEqual(self.zh('social.guide.title'), '城瘾玩法')
-        self.assertEqual(self.zh('social.guideXcx.go'), '去看看')
-        self.assertEqual(self.zh('social.guideXcx.docs'), '玩法文档')
-        self.assertEqual(self.zh('social.guideXcx.docsEmpty'), '暂无玩法说明')
+        self.assertEqual(self.zh('guideXcx.go'), '去看看')
+        self.assertEqual(self.zh('guideXcx.docs'), '玩法文档')
+        self.assertEqual(self.zh('guideXcx.docsEmpty'), '暂无玩法说明')
 
     def test_existing_read_path_and_identifiers_are_kept(self):
         self.assertIn('SocialReadScreen(reader: reader, requestKey: "information-list"', self.view)
@@ -32,7 +32,7 @@ class W207GuideParity(unittest.TestCase):
         self.assertIn('SocialGuideTemplateSection(reader: templateReader)', self.view)
         for mode in ('classic', 'free', 'roam'):
             for suffix in ('Tag', 'Detail'):
-                self.assertIn(f'"social.guideXcx.{mode}{suffix}"', self.parity)
+                self.assertIn(f'"guideXcx.{mode}{suffix}"', self.parity)
 
     def test_detail_shows_source_create_time(self):
         self.assertIn('SocialText.nonempty(row.createTime)', self.view)
