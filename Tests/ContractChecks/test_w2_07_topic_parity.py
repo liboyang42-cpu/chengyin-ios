@@ -20,6 +20,14 @@ class W207TopicParity(unittest.TestCase):
             self.assertIn(exact, view)
         self.assertIn('api/topic/info-to-user', read('Core/TopicService.swift'))
 
+    def test_records_are_read_only_and_session_scoped(self):
+        service = read('Core/TopicService.swift')
+        for exact in ['"api/play/theme/history"', '"api/play/theme/card"', 'URLQueryItem(name: "limit", value: String(Self.themeHistoryLimit))']:
+            self.assertIn(exact, service)
+        self.assertNotIn('api/play/theme/replay', service + read('App/TopicThemeRecordsView.swift'))
+        self.assertIn('TopicSessionReader: TopicReading, TopicThemeRecordsReading', read('Core/TopicReading.swift'))
+        self.assertIn('if let records = reader as? any TopicThemeRecordsReading', read('App/TopicDetailView.swift'))
+
     def test_action_bar_never_dispatches(self):
         bar = read('App/TopicXcxSections.swift')
         self.assertNotRegex(bar, r'URLSession|httpMethod|registration/create|requestPayment')

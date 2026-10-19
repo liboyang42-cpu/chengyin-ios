@@ -72,6 +72,14 @@ struct TopicDetailView: View {
                 if let count = value.merchantCount { LabeledContent("topic.merchants", value: String(count)) }
                 if let seconds = value.totalTimeSeconds { LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) } }
             }.id(TopicXcxTab.details.anchor)
+            if let records = reader as? any TopicThemeRecordsReading {
+                // Source 我的游玩记录 row; always shown, the sheet handles empty/sign-in states.
+                Section {
+                    NavigationLink { TopicThemeRecordsView(topicID: value.id, topicName: value.name, reader: records) } label: {
+                        Label("topicXcx.records.title", systemImage: "clock")
+                    }.accessibilityIdentifier("topic.records.entry")
+                }
+            }
             if let venue = TopicXcxFacts.venue(value.addressName) {
                 Section("topicXcx.section.venue") {
                     Label { VStack(alignment: .leading) { Text(verbatim: venue.name); if let address = venue.address { Text(verbatim: address).font(.caption) } } } icon: { Image(systemName: "mappin.circle") }

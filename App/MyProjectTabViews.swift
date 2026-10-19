@@ -17,6 +17,38 @@ extension EnvironmentValues {
     }
 }
 
+/// Host-provided publishing entry for the empty-state CTA and the activity create row.
+/// `canPublishActivity` mirrors the mini's local `roleGuard.role() === 'club'` gate; the publishing
+/// hub re-checks `api/publish/home` before any activity review, so this only decides visibility.
+struct MyProjectPublishEntry {
+    let canPublishActivity: Bool
+    let make: @MainActor () -> AnyView
+}
+
+private struct MyProjectPublishEntryKey: EnvironmentKey {
+    static let defaultValue: MyProjectPublishEntry? = nil
+}
+
+extension EnvironmentValues {
+    var myProjectPublishEntry: MyProjectPublishEntry? {
+        get { self[MyProjectPublishEntryKey.self] }
+        set { self[MyProjectPublishEntryKey.self] = newValue }
+    }
+}
+
+/// Mini "发布单场活动" row above a non-empty activity list.
+@MainActor struct MyProjectCreateActivityRow: View {
+    let type: String
+    let rowCount: Int
+    @Environment(\.myProjectPublishEntry) private var entry
+    var body: some View {
+        if type == MyProjectTab.activity.rawValue, rowCount > 0, let entry, entry.canPublishActivity {
+            NavigationLink { entry.make() } label: { Label("myProject.cta.activity", systemImage: "plus") }
+                .accessibilityIdentifier("myProject.createActivity")
+        }
+    }
+}
+
 @MainActor struct MyProjectTemplateTabSection: View {
     let shelf: MyProjectTemplateShelfHost?
     var body: some View {
@@ -35,13 +67,20 @@ extension EnvironmentValues {
 
 @MainActor struct MyProjectEmptyView: View {
     let type: String
+    @Environment(\.myProjectPublishEntry) private var entry
     var body: some View {
         if let tab = MyProjectTab(rawValue: type) {
-            let keys = MyProjectListPresentation.emptyKeys(for: tab, canPublishActivity: false)
+            let canPublishActivity = entry?.canPublishActivity == true
+            let keys = MyProjectListPresentation.emptyKeys(for: tab, canPublishActivity: canPublishActivity)
             ContentUnavailableView {
                 Label(LocalizedStringKey(keys.title), systemImage: "square.stack")
             } description: {
                 if let detail = keys.detail { Text(LocalizedStringKey(detail)) }
+            } actions: {
+                if let entry, let cta = MyProjectListPresentation.emptyCTAKey(for: tab, canPublishActivity: canPublishActivity) {
+                    NavigationLink { entry.make() } label: { Text(LocalizedStringKey(cta)) }
+                        .accessibilityIdentifier("myProject.emptyCTA." + type)
+                }
             }.accessibilityIdentifier("myProject.empty." + type)
         } else {
             ContentUnavailableView("creatorContent.empty", systemImage: "square.stack")
@@ -84,6 +123,12 @@ extension EnvironmentValues {
 }
 
 extension AppSession {
+    /// Ordinary publishing hub; activity visibility follows the local session role like the mini.
+    @MainActor func myProjectPublishEntry() -> MyProjectPublishEntry {
+        .init(canPublishActivity: publishingSession?.role == "club",
+              make: { AnyView(SessionPublishingModesView().environmentObject(self).id(self.publishingSession?.epoch)) })
+    }
+
     /// Same own-shelf the template launch page opens; reads `/api/template/my-list` through the session coordinator.
     @MainActor func myProjectTemplateShelf() -> AnyView {
         AnyView(TemplateAuthoringMineView(coordinator: templateShelfCoordinator(), sessionRevision: sessionRevision,

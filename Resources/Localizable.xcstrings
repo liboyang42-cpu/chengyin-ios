@@ -14806,13 +14806,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revoke assignment"
+            "value": "Revoke"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "撤销委派"
+            "value": "撤销"
           }
         }
       }
@@ -14925,13 +14925,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Update future occurrences"
+            "value": "Edit future occurrences"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "修改未来场次"
+            "value": "编辑未来场次"
           }
         }
       }
@@ -14959,13 +14959,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Active assignments"
+            "value": "Current assignments"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生效委派"
+            "value": "当前委派"
           }
         }
       }
@@ -16489,13 +16489,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capacity, blank if unlimited"
+            "value": "Capacity (optional)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "人数上限，不限可留空"
+            "value": "容量（可选）"
           }
         }
       }
@@ -16676,13 +16676,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Custom dates, comma separated"
+            "value": "Date list"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "自定义日期，以逗号分隔"
+            "value": "日期清单"
           }
         }
       }
@@ -16727,13 +16727,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lead member ID"
+            "value": "Default lead"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "默认领队成员编号"
+            "value": "默认负责人"
           }
         }
       }
@@ -17526,13 +17526,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Number of occurrences"
+            "value": "Occurrences"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "场次数量"
+            "value": "场次数"
           }
         }
       }
@@ -17543,13 +17543,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waitlist offer minutes"
+            "value": "Waitlist claim window (minutes)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "候补名额有效分钟"
+            "value": "候补认领时长（分钟）"
           }
         }
       }
@@ -17900,13 +17900,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recurrence"
+            "value": "Repeat"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重复规则"
+            "value": "重复方式"
           }
         }
       }
@@ -18308,13 +18308,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meeting time, HH:mm"
+            "value": "Meeting time"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "集合时间，HH:mm"
+            "value": "集合时刻"
           }
         }
       }
@@ -18784,13 +18784,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waitlist enabled"
+            "value": "Open waitlist when full"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开启候补"
+            "value": "满员后开启候补"
           }
         }
       }
@@ -186333,6 +186333,390 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用原图"
+          }
+        }
+      }
+    },
+    "myProject.cta.topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去发布"
+          }
+        }
+      }
+    },
+    "myProject.cta.activity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish a single-session activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布单场活动"
+          }
+        }
+      }
+    },
+    "topicXcx.records.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My play records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的游玩记录"
+          }
+        }
+      }
+    },
+    "topicXcx.records.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading play records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载游玩记录"
+          }
+        }
+      }
+    },
+    "topicXcx.records.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No play records yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有游玩记录"
+          }
+        }
+      }
+    },
+    "topicXcx.records.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play records didn't load. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "游玩记录暂未加载，请稍后重试"
+          }
+        }
+      }
+    },
+    "topicXcx.records.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载"
+          }
+        }
+      }
+    },
+    "topicXcx.records.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show more"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看更多"
+          }
+        }
+      }
+    },
+    "topicXcx.records.completed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局完成"
+          }
+        }
+      }
+    },
+    "topicXcx.records.ended": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run ended"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局结束"
+          }
+        }
+      }
+    },
+    "topicXcx.records.playing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "游玩中"
+          }
+        }
+      }
+    },
+    "topicXcx.records.cardTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局结果"
+          }
+        }
+      }
+    },
+    "topicXcx.records.scene": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scene"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场景"
+          }
+        }
+      }
+    },
+    "topicXcx.records.value.hp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值"
+          }
+        }
+      }
+    },
+    "topicXcx.records.value.luck": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幸运值"
+          }
+        }
+      }
+    },
+    "topicXcx.records.value.actions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行动次数"
+          }
+        }
+      }
+    },
+    "topicXcx.records.value.rescues": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rescues"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获救次数"
+          }
+        }
+      }
+    },
+    "topicXcx.records.items": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "道具"
+          }
+        }
+      }
+    },
+    "topicXcx.records.medals": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勋章"
+          }
+        }
+      }
+    },
+    "topicXcx.records.epilogues": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endings found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发现的结局"
+          }
+        }
+      }
+    },
+    "topicXcx.records.nextScene %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next scene: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下次场景：%@"
+          }
+        }
+      }
+    },
+    "topicXcx.records.cardFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This run's result didn't load. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局结果暂未加载，请稍后重试"
+          }
+        }
+      }
+    },
+    "topicXcx.records.cardReload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload this run's result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载本局结果"
+          }
+        }
+      }
+    },
+    "topicXcx.records.cardLoading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading this run's result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载本局结果"
           }
         }
       }

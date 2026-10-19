@@ -121,7 +121,7 @@ final class MerchantAIAuthoringTests: XCTestCase {
         XCTAssertTrue(MerchantAuthoringGuard.acceptsReadback(old: revision(stage: .draft, version: 1), new: revision(stage: .inReview, version: 3)))
         XCTAssertFalse(MerchantAuthoringGuard.acceptsReadback(old: revision(stage: .published, version: 4), new: revision(stage: .draft, version: 5)))
         XCTAssertFalse(MerchantAuthoringGuard.acceptsReadback(old: revision(version: 4), new: revision(version: 3)))
-        XCTAssertFalse(MerchantAuthoringGuard.acceptsReadback(old: revision(version: 3), new: revision(hash: "other", version: 3)))
+        XCTAssertFalse(MerchantAuthoringGuard.acceptsReadback(old: revision(version: 3), new: revision(version: 3, hash: "other")))
         XCTAssertTrue(MerchantAuthoringStage.withdrawn.allowedNext.isEmpty)
     }
     func testInStoreGameRequiresEveryOperationalFieldAndApprovedRules() {
