@@ -38,7 +38,7 @@ import XCTest
     func testExistingEmptyBlockReceivesExplicitAudioAndRestoresExactFilenameAndPreparedReference() throws {
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-audio", "--project-story-audio-cancel-first"]
-        app.launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
+        app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
         XCTAssertTrue(app.staticTexts["projectStoryAudio.fixture.scope"].exists)
         tap("projectEdit.saveLocal", app, fixed: true); var saved = try snapshot(app)
         let chapterID = try XCTUnwrap(chapter(saved)["id"] as? String)
