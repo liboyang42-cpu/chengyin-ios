@@ -54,11 +54,11 @@ public enum ClubGovernanceFixtures {
         case .saveCustomer: draft.text["remark"] = "Fixture note"
         case .createSeries, .updateSeries:
             draft = .init(operation: mutation, scope: scope, seed: value(.seriesDetail).object ?? [:]); draft.text["startDate"] = "2026-10-08"; draft.text["startTime"] = "09:00"; draft.text["defaultLeadMemberId"] = "704"
-        case .ban: draft = .init(operation: mutation, scope: scope, seed: ["targetMemberId": .integer(704)]); draft.text["reason"] = "Fixture reason"; draft.text["expiresAt"] = "2026-10-08 09:00:00"
+        case .ban: draft = .init(operation: mutation, scope: scope, seed: ["targetMemberId": .integer(704)]); draft.text["reason"] = "Fixture reason"; draft.text["banDays"] = "30"
         case .transferOwner: draft = .init(operation: mutation, scope: scope, seed: ["targetMemberId": .integer(704)]); draft.text["reason"] = "Fixture reason"
         case .unban: draft = .init(operation: mutation, scope: scope, seed: ["banId": .integer(161), "version": .integer(2)]); draft.text["reason"] = "Fixture reason"
         case .revokeRole: draft = .init(operation: mutation, scope: scope, seed: ["assignmentId": .integer(181), "version": .integer(2)]); draft.text["reason"] = "Fixture reason"
-        case .correctAttendance: draft = .init(operation: mutation, scope: scope, seed: ["expectedVersion": .integer(2)]); draft.text["reason"] = "Fixture reason"
+        case .correctAttendance: draft = .init(operation: mutation, scope: scope, seed: ["expectedVersion": .integer(2), "arrived": .bool(true)]); draft.text["reason"] = "Fixture reason"
         case .assignRole: draft.text["targetMemberId"] = "704"
         case .sendNotification: draft.text["title"] = "Fixture title"; draft.text["content"] = "Fixture content"
         case .report, .appeal, .cancelOccurrence: draft.text["reason"] = "Fixture reason"

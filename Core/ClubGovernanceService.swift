@@ -45,14 +45,20 @@ public struct ClubGovernanceService {
         try check()
         let (data, status) = try await transport.send(request)
         try check()
-        let value = try Self.decode(data: data, status: status, mutation: false)
-        return try ClubGovernanceValidation.validate(value, operation: operation, scope: scope)
+        let body = try Self.decodeEnvelope(data: data, status: status, mutation: false)
+        return try ClubGovernanceValidation.validate(Self.payload(body, operation: operation), operation: operation, scope: scope)
     }
     public func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue] = [:], session: ClubGovernanceSession, check: () throws -> Void) async throws -> ClubGovernanceSnapshot {
         try check(); _ = try operation.fields(scope: scope, options: options)
         var permissions: ClubGovernancePermissions?
         if scope.clubID != nil {
             let raw = try await post(.access, scope: scope, options: [:], token: session.token, check: check)
+            // A banned former member keeps only their own cases and appeal fact; every other read still needs active access.
+            if operation == .cases, raw["active"] == .bool(false) {
+                let own = try await post(operation, scope: scope, options: options, token: session.token, check: check)
+                try check()
+                return .init(operation: operation, scope: scope, permissions: nil, value: own)
+            }
             let access = try ClubGovernancePermissions(value: raw, scope: scope)
             var permitted = access.allows(operation.permission, scope: scope)
             if [.audienceCounts, .notificationStatus].contains(operation), scope.activityID != nil {
@@ -114,7 +120,16 @@ public struct ClubGovernanceService {
         } catch { throw ClubGovernanceFailure.unknown(message: nil) }
         return ClubGovernanceValidation.sanitize(value)
     }
+    /// Own cases keep `data` as the case array; the sibling `activeBan` (appeal fact) is carried as
+    /// `{"data": [...], "activeBan": …}` only when the server sent it, so an absent fact stays unknown.
+    static func payload(_ body: ClubGovernanceValue, operation: ClubGovernanceRead) -> ClubGovernanceValue {
+        guard operation == .cases, let ban = body.object?["activeBan"] else { return body["data"] }
+        return .object(["data": body["data"], "activeBan": ban])
+    }
     static func decode(data: Data, status: Int, mutation: Bool) throws -> ClubGovernanceValue {
+        try decodeEnvelope(data: data, status: status, mutation: mutation)["data"]
+    }
+    static func decodeEnvelope(data: Data, status: Int, mutation: Bool) throws -> ClubGovernanceValue {
         let envelope = try? JSONDecoder().decode(ClubGovernanceValue.self, from: data)
         let code = envelope?["code"].int, message = envelope?["msg"].string
         if status == 401 || code == 401 { throw mutation ? ClubGovernanceFailure.rejected(code: 401, message: message) : .signedOut }
@@ -126,7 +141,7 @@ public struct ClubGovernanceService {
             if code != nil || !(200..<300).contains(status) { throw ClubGovernanceFailure.rejected(code: code ?? status, message: message) }
             throw ClubGovernanceFailure.malformed
         }
-        return envelope["data"]
+        return envelope
     }
 }
 
@@ -252,7 +267,11 @@ public extension ClubGovernanceAccess {
         if [.createSeries, .updateSeries, .assignRole].contains(command.operation) {
             let members = try await service.read(.members, scope: command.scope, session: session) { try self.check(session); try reviewCheck() }
             let target = command.fields[command.operation == .assignRole ? "targetMemberId" : "defaultLeadMemberId"]?.int
-            guard members == review.supportingMembers, let target, (members.value.array ?? []).contains(where: { $0["memberId"].int == target && (command.operation != .assignRole || $0["isOwner"] == .bool(false)) }) else { throw ClubGovernanceFailure.targetChanged }
+            let ownerDefault = command.operation == .createSeries && command.fields["defaultLeadMemberId"] == .null
+            guard members == review.supportingMembers, (members.value.array ?? []).contains(where: { row in
+                ownerDefault ? (row["memberId"].int ?? 0) > 0 && row["isOwner"] == .bool(true)
+                    : target != nil && row["memberId"].int == target && (command.operation != .assignRole || row["isOwner"] == .bool(false))
+            }) else { throw ClubGovernanceFailure.targetChanged }
         }
         guard authorizationGeneration == review.authorizationGeneration else { throw ClubGovernanceFailure.staleReview }
         do { return try await service.dispatch(command, session: session, authorization: authorization) { try self.check(session); try reviewCheck() } }
