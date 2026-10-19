@@ -74,6 +74,8 @@ struct QuestifyApp: App {
                     OrderLifecycleFixtureHostView()
                 } else if RoamExperienceFixtureHostView.selected {
                     RoamExperienceFixtureHostView()
+                } else if RoamHomeFixtureHostView.selected {
+                    RoamHomeFixtureHostView()
                 } else if let scenario=ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ActivityFixtureRootView(scenario:scenario)
                 } else if let merchant=MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
@@ -181,7 +183,7 @@ final class AppSessionContainer: ObservableObject {
            ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-business-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-content-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--cooperation-flow-fixture") ||
-           RoamExperienceFixtureHostView.selected || ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           RoamExperienceFixtureHostView.selected || RoamHomeFixtureHostView.selected || ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil || ModuleFixture.selected != nil ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-operations-fixture") ||
            MerchantOnboardingFixtureRoot.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
@@ -236,7 +238,7 @@ struct SessionRootView: View {
                     }, playerProfileDestination: { memberID in
                         AnyView(SocialPublicProfileView(memberID: memberID, reader: session.socialAccountReader,
                             squareReader: session.squareReader, actions: nil).id(session.socialAccountReader.identity))
-                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
+                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, nearbyTeamDestination: { _ in AnyView(SessionRoamNearbyTeamsView()) }, toolsReader: session.roamPassportToolsReader)
                         .tabItem { Label("roam.title",systemImage:"map") }.tag(3)
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }) }
                         .id(session.sessionRevision)
