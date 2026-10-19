@@ -72,7 +72,6 @@ class ClubCustomerHistoryReadLifecycleContracts(unittest.TestCase):
         self.assertIn('viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 }', session)
     def test_view_supplies_read_generation_fence_to_access(self):
         view = (ROOT / 'App/ClubGovernanceViews.swift').read_text()
-        # The read fence is the shared check closure passed to every read path.
         check = view.split('let check: @MainActor () throws -> Void = {')[1].split('\n            }')[0]
         self.assertIn('result = try await access.read(operation, scope: scope, options: options, check: check)', view)
         for token in ['revision == generation', 'context == readContext', 'access.identity == expected', 'throw CancellationError()']:

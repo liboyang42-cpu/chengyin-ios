@@ -302,6 +302,54 @@ extension KeychainTokenStore: AppTokenStorage {}
             return true
         }
     }
+    private struct NearbyMerchantCompositionScope {
+        let configuration: RuntimeDependencyConfiguration
+        let context: RuntimeDependencyContext
+        let viewer: SessionIdentity
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard current == viewer, current.isSignedInContentViewer,
+                  configuration.nearbyLocation, configuration.endpoints.paths.contains("api/merchant/nearby"),
+                  let api = deployment.regional.apiConfiguration,
+                  let account = current.accountID, let role = current.role, let token = current.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return false }
+            let actual = RuntimeDependencyContext(market: deployment.regional.market,
+                baseURL: api.baseURL, role: role, session: session)
+            return actual == context && configuration.matches(actual)
+        }
+        /// Accept only the four canonical fields emitted by CoopFlowService.nearby.
+        static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            guard request.httpMethod == "POST",
+                  request.url?.absoluteString == baseURL.appendingPathComponent("api/merchant/nearby").absoluteString,
+                  request.url?.query == nil, request.url?.fragment == nil,
+                  request.httpBodyStream == nil, !request.httpShouldHandleCookies,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+                  let contentType = request.value(forHTTPHeaderField: "Content-Type"),
+                  contentType.hasPrefix("multipart/form-data; boundary=CoopNative-"),
+                  let body = request.httpBody, body.count <= 2048,
+                  let text = String(data: body, encoding: .utf8) else { return false }
+            let boundary = String(contentType.dropFirst("multipart/form-data; boundary=".count))
+            let uuidText = String(boundary.dropFirst("CoopNative-".count))
+            guard UUID(uuidString: uuidText)?.uuidString == uuidText else { return false }
+            let keys = ["latitude", "limit", "longitude", "radius"]
+            var remainder = text, fields: [String: String] = [:]
+            for key in keys {
+                let prefix = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
+                guard remainder.hasPrefix(prefix) else { return false }
+                remainder.removeFirst(prefix.count)
+                guard let end = remainder.range(of: "\r\n") else { return false }
+                fields[key] = String(remainder[..<end.lowerBound])
+                remainder = String(remainder[end.upperBound...])
+            }
+            guard remainder == "--\(boundary)--\r\n", fields["limit"] == "30", fields["radius"] == "5000",
+                  let rawLat = fields["latitude"], let lat = Double(rawLat), lat.isFinite,
+                  (-90...90).contains(lat), String(lat) == rawLat,
+                  let rawLng = fields["longitude"], let lng = Double(rawLng), lng.isFinite,
+                  (-180...180).contains(lng), String(lng) == rawLng else { return false }
+            return true
+        }
+    }
     private struct PublicMerchantHomeCompositionScope {
         let approval: MerchantPublicProductionApproval
         let context: MerchantPublicHostContext
@@ -355,6 +403,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     private var profileFavoriteTopicSelection: ProfileFavoriteTopicSelection?
     private var profilePublicInfoTarget: ProfilePublicInfoTarget?
     private var publicMerchantHomeScope: PublicMerchantHomeCompositionScope?
+    private var nearbyMerchantScope: NearbyMerchantCompositionScope?
+    private var nearbyMerchantOnly = false
     private var profileGuideSelection: ProfileGuideArticleSelection?
     private var profileFavoriteSelection: ProfileFavoritePostSelection?
     private let manualMapSelection: ManualMapAreaSelection?
@@ -472,6 +522,16 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
         return transport
     }
+    /// Carries an existing nearby grant; it never enables the general runtime transport.
+    func scopedForNearbyMerchants(configuration: RuntimeDependencyConfiguration,
+                                  context: RuntimeDependencyContext) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.nearbyMerchantOnly = true
+        if let viewer = current() {
+            transport.nearbyMerchantScope = .init(configuration: configuration, context: context, viewer: viewer)
+        }
+        return transport
+    }
     func scopedForProfilePublicInfo(_ target: ProfilePublicInfoTarget) -> CompositionHTTPTransport {
         let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
         transport.profilePublicInfoTarget = target
@@ -506,6 +566,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.profileFavoriteTopicSelection = profileFavoriteTopicSelection
         transport.profilePublicInfoTarget = profilePublicInfoTarget
         transport.publicMerchantHomeScope = publicMerchantHomeScope
+        transport.nearbyMerchantScope = nearbyMerchantScope
+        transport.nearbyMerchantOnly = nearbyMerchantOnly
         transport.profileGuideSelection = profileGuideSelection
         transport.profileFavoriteSelection = profileFavoriteSelection
         transport.activityCoverApproval = { self.activityCoverApproval($0) }
@@ -721,6 +783,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         guard let deployment, let api = deployment.regional.apiConfiguration,
               let url = request.url, url.fragment == nil else { throw APIError.notConfigured }
+        let nearbyMerchant = NearbyMerchantCompositionScope.accepts(request, baseURL: api.baseURL)
+        guard !nearbyMerchantOnly || nearbyMerchant else { throw APIError.notConfigured }
         let selectedArea = manualMapSelection?.snapshot
         let manualRead = selectedArea.flatMap { ManualMapReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
         let cityRead = CityReadRoute(request: request, baseURL: api.baseURL)
@@ -756,6 +820,14 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        } else if nearbyMerchant {
+            guard let scope = nearbyMerchantScope, scope.matches(deployment: deployment, viewer: captured) else {
+                throw APIError.notConfigured
+            }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
         } else if publicHome {
             guard let scope = publicMerchantHomeScope, scope.matches(deployment: deployment, viewer: captured) else {
                 throw APIError.notConfigured

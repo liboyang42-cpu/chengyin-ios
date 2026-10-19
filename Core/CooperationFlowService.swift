@@ -68,6 +68,8 @@ public struct CoopFlowService {
     public func read(_ resource: CoopFlowRead, session: CoopFlowSession) async throws -> CoopFlowJSON {
         let body = try resource.body()
         var request = try makeRequest(path: resource.path, body: body, session: session)
+        // Nearby composition is token-only; Foundation defaults cookie handling to true.
+        if case .nearby = resource { request.httpShouldHandleCookies = false }
         let isForm: Bool
         switch resource { case .nearby, .ownedTopics: isForm = true; default: isForm = false }
         if isForm {
@@ -176,3 +178,4 @@ extension CoopFlowReading {
         }
     }
 }
+

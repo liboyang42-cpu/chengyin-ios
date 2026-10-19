@@ -1416,10 +1416,12 @@ final class AppSession: ObservableObject {
         if let retainedPublisherLifecycle, retainedPublisherLifecycle.session == publishingSession { return retainedPublisherLifecycle.context }
         retainedPublisherLifecycle?.context.invalidate()
         guard let factory = runtimeDependencyFactory else { return nil }
+        let viewerRevision = compositionViewerRevision
         let context = PublisherLifecycleHostContext(configuration: configuration, transport: factory.transport, creatorReader: creatorContentReader,
-            grants: factory.publisherGrants,
+            grants: factory.publisherGrants, merchantPartnerReader: readOnlyPublicMerchantHomeContext.reader,
             credentials: { [weak self] in
-                guard let self, let session = self.publishingSession, let token = self.token else { return nil }
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      let session = self.publishingSession, session == publishingSession, let token = self.token else { return nil }
                 return try? PublishingCredentials(session: session, token: token)
             }, freshAuthority: { [weak self] resource, captured in
                 guard let self else { throw PublisherLifecycleError.unavailable }
@@ -2510,21 +2512,31 @@ final class AppSession: ObservableObject {
             guard let self, self.currentMerchantContentSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
-    private var retainedNearbyMerchants: (context: RuntimeDependencyContext, coordinator: NearbyMerchantCoordinator)?
+    private var retainedNearbyMerchants: (context: RuntimeDependencyContext, revision: UInt64, coordinator: NearbyMerchantCoordinator)?
     var nearbyMerchantCoordinator: NearbyMerchantCoordinator? {
-        guard let captured = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
-              let factory = runtimeDependencyFactory else { return nil }
-        if let retainedNearbyMerchants, retainedNearbyMerchants.context == captured { return retainedNearbyMerchants.coordinator }
+        guard let captured = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration else { return nil }
+        let revision = compositionViewerRevision
+        let isCurrent: () -> Bool = { [weak self] in
+            self?.compositionViewerRevision == revision && self?.currentRuntimeDependencyContext == captured
+        }
+        let transport: any HTTPTransport
+        if let configuration = runtimeDependencies.configuration {
+            transport = compositionTransport.scopedForNearbyMerchants(configuration: configuration, context: captured)
+        } else { transport = compositionTransport }
+        let factory = RuntimeDependencyFactory(api: api, configuration: runtimeDependencies.configuration,
+            transport: transport, current: { isCurrent() ? captured : nil })
+        if let retainedNearbyMerchants, retainedNearbyMerchants.context == captured,
+           retainedNearbyMerchants.revision == revision { return retainedNearbyMerchants.coordinator }
         retainedNearbyMerchants?.coordinator.cancel()
         let reader = CoopFlowSessionReader(service: CoopFlowService(configuration: api, transport: factory.transport),
-            current: { [weak self] in self?.currentCooperationFlowSession }, unauthorized: { [weak self] old in
-                guard let self, self.currentCooperationFlowSession == old else { return }
+            current: { [weak self] in isCurrent() ? self?.currentCooperationFlowSession : nil }, unauthorized: { [weak self] old in
+                guard let self, isCurrent(), self.currentCooperationFlowSession == old else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: old.epoch, credential: self.token)
             })
         let model = NearbyMerchantCoordinator(reader: reader,
             location: runtimeDependencies.location ?? RuntimeNativeLocationProvider(enabled: factory.allowsNearbyLocation),
-            approved: { [weak self] in factory.allowsNearbyLocation && self?.currentRuntimeDependencyContext == captured })
-        retainedNearbyMerchants = (captured, model); return model
+            approved: { factory.allowsNearbyLocation && isCurrent() })
+        retainedNearbyMerchants = (captured, revision, model); return model
     }
     private let cooperationFlowService: CoopFlowService?
     private var currentCooperationFlowSession: CoopFlowSession? {
