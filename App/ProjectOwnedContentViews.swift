@@ -86,6 +86,7 @@ import SwiftUI
                 }
             }, editorContextID: session.projectEditorContextID, publisherClient: session.publisherLifecycleContext?.client,
             publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
+            .environment(\.myProjectTemplateShelf, MyProjectTemplateShelfHost { session.myProjectTemplateShelf() })
             .id(session.creatorContentReader.scope)
     }
 }
