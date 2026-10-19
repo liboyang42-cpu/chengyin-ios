@@ -4,6 +4,74 @@ import UIKit
 @testable import Questify
 
 @MainActor final class ProfilePublicInfoReadTests: XCTestCase {
+    func testAuthorFeedRetentionSurvivesHeaderHideReturnButNotGrantReplacement() async throws {
+        let h = try Harness(); await h.login(); let reader = try h.reader()
+        let retained = try XCTUnwrap(reader.authorPostsRetentionIdentity)
+        let presentation = reader.presentationRevision
+        reader.disappear(); reader.appear(foreground: true)
+        XCTAssertGreaterThan(reader.presentationRevision, presentation)
+        XCTAssertEqual(reader.authorPostsRetentionIdentity, retained)
+        reader.requestRefresh()
+        XCTAssertEqual(reader.authorPostsRetentionIdentity, retained)
+        h.grants.access = nil
+        XCTAssertNotEqual(reader.authorPostsRetentionIdentity, retained)
+        h.grants.access?.revoke()
+        XCTAssertNil(reader.authorPostsRetentionIdentity)
+    }
+    func testPublicRetentionUnavailableNeverFallsBackToGenericRevision() async throws {
+        let h = try Harness(enabled: false); await h.login(); let reader = try h.reader()
+        let square = ProfileAuthorPostsRefreshFixtureReader()
+        XCTAssertNil(reader.authorPostsRetentionIdentity)
+        let denied = ProfileAuthorPostsContext(memberID: 81, accountReader: reader, squareReader: square)
+        XCTAssertFalse(denied.isConfigured)
+        h.grants.enabled = true
+        let allowed = ProfileAuthorPostsContext(memberID: 81, accountReader: reader, squareReader: square)
+        XCTAssertTrue(allowed.isConfigured); XCTAssertNotEqual(allowed, denied)
+        XCTAssertFalse(ProfileAuthorPostsContext(memberID: 82, accountReader: reader, squareReader: square).isConfigured)
+        reader.target.retire(); XCTAssertNil(reader.authorPostsRetentionIdentity)
+    }
+    func testRealPublicHeaderReturnPreservesPaginatedFeedAndReadsHeaderAgain() async throws {
+        let h = try Harness(); await h.login(); h.wire.target = 91
+        let reader = try h.reader(member: 91), square = ProfileAuthorPostsRefreshFixtureReader()
+        let model = ProfileAuthorPostsRefreshController()
+        _ = try await reader.publicProfile(memberID: 91)
+        await model.activate(memberID: 91, accountReader: reader, squareReader: square, isCurrent: { reader.isCurrent })
+        await model.loadMore(memberID: 91, accountReader: reader, squareReader: square, isCurrent: { reader.isCurrent })
+        XCTAssertEqual(model.pagination.items.map(\.id), [101, 201])
+        let context = ProfileAuthorPostsContext(memberID: 91, accountReader: reader, squareReader: square)
+        let row = try XCTUnwrap(model.pagination.items.last)
+        let ticket = ProfileAuthorPostTicket(postID: row.id, contentGeneration: row.generation, context: context)
+        model.suspend(); reader.disappear()
+        _ = try await square.squareDetail(id: ticket.postID)
+        reader.appear(foreground: true)
+        _ = try await reader.publicProfile(memberID: 91)
+        await model.activate(memberID: 91, accountReader: reader, squareReader: square, isCurrent: { reader.isCurrent })
+        XCTAssertEqual(square.reads, 2); XCTAssertEqual(model.pagination.items.map(\.id), [101, 201])
+        XCTAssertEqual(ticket.context, ProfileAuthorPostsContext(memberID: 91, accountReader: reader, squareReader: square))
+        XCTAssertEqual(h.wire.paths.filter { $0 == "public-info" }.count, 2)
+        h.grants.access?.revoke()
+        XCTAssertTrue(model.visibleRows(for: .init(memberID: 91, accountReader: reader, squareReader: square)).isEmpty)
+    }
+    func testRevokedPublicGrantDropsLateAuthorFeedCompletion() async throws {
+        let h = try Harness(); await h.login(); h.wire.target = 91
+        let reader = try h.reader(member: 91), square = ProfileAuthorPostsRefreshFixtureReader(scenario: "delayed")
+        let model = ProfileAuthorPostsRefreshController()
+        let request = Task { await model.activate(memberID: 91, accountReader: reader, squareReader: square) }
+        for _ in 0..<100 where square.reads == 0 { await Task.yield() }
+        XCTAssertEqual(square.reads, 1)
+        h.grants.access?.revoke()
+        await request.value
+        XCTAssertTrue(model.pagination.items.isEmpty); XCTAssertNil(model.context)
+        XCTAssertEqual(h.session.account?.id, 81)
+    }
+    func testObservedApprovalRoundTripNeverRestoresOldRetentionKey() async throws {
+        let h = try Harness(); await h.login(); let reader = try h.reader()
+        let first = try XCTUnwrap(reader.authorPostsRetentionIdentity)
+        h.grants.enabled = false; XCTAssertNil(reader.authorPostsRetentionIdentity)
+        h.grants.enabled = true
+        XCTAssertNotEqual(reader.authorPostsRetentionIdentity, first)
+        await h.session.logout(); XCTAssertNil(reader.authorPostsRetentionIdentity)
+    }
     func testSignedOutAndInvalidTargetsCannotCreateNormalReader() throws {
         let h=try Harness();XCTAssertNil(h.session.makeProfilePublicInfoReader(memberID:81))
         XCTAssertTrue(h.wire.requests.isEmpty)

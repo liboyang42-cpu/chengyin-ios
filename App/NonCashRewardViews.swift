@@ -3,9 +3,12 @@ import SwiftUI
 /// Normal account destination; its live service remains explicitly unconfigured in AppSession.
 @MainActor struct NonCashRewardsView: View {
     let reader: any NonCashRewardReading
+    let merchantHome: PublicMerchantHomeContext?
     @StateObject private var model = NonCashRewardCollectionScreenModel()
     private var key: AccountCollectionLoadKey { .init(rewardReader: reader) }
-    init(reader identity: any AccountCollectionReading, rewards: (any NonCashRewardReading)? = nil) {
+    init(reader identity: any AccountCollectionReading, rewards: (any NonCashRewardReading)? = nil,
+         merchantHome: PublicMerchantHomeContext? = nil) {
+        self.merchantHome = merchantHome
         #if DEBUG
         if let scenario = NonCashRewardDemo.scenario {
             reader = NonCashRewardFixtureReader(identity: identity, scenario: scenario)
@@ -36,7 +39,7 @@ import SwiftUI
                 ForEach(model.state.visibleSelections(scope: key.scope)) { selection in
                     let destination = NonCashRewardDetailDestination(selection: selection)
                     NavigationLink {
-                        NonCashRewardDetailView(destination: destination, reader: reader).id(destination.id)
+                        NonCashRewardDetailView(destination: destination, reader: reader, merchantHome: merchantHome).id(destination.id)
                     } label: { NonCashRewardCard(reward: selection.reference.snapshot) }
                     .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
                     .accessibilityIdentifier("rewards.row.\(selection.reference.awardId)")
@@ -78,19 +81,22 @@ private struct NonCashRewardCard: View {
 @MainActor private struct NonCashRewardDetailView: View {
     let reference: NonCashRewardReference
     let reader: any NonCashRewardReading
+    let merchantHome: PublicMerchantHomeContext?
     @StateObject private var model: NonCashRewardDetailScreenModel
     @Environment(\.scenePhase) private var scenePhase
     @State private var presenting = false
+    @State private var merchantNavigation = NonCashRewardMerchantNavigation()
     @State private var viewPresentation = NonCashRewardDetailViewPresentation()
     private var key: AccountCollectionLoadKey { .init(rewardReader: reader, awardId: reference.awardId) }
-    init(destination: NonCashRewardDetailDestination, reader: any NonCashRewardReading) {
-        self.reference = destination.selection.reference; self.reader = reader
+    init(destination: NonCashRewardDetailDestination, reader: any NonCashRewardReading, merchantHome: PublicMerchantHomeContext?) {
+        self.reference = destination.selection.reference; self.reader = reader; self.merchantHome = merchantHome
         _model = StateObject(wrappedValue: destination.makeScreenModel())
     }
     var body: some View {
         // Capture this presentation before SwiftUI may defer an action closure.
         let appearance = viewPresentation
         let presentation = appearance.permit
+        let renderedSnapshot = model.snapshotToken
         return List {
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
@@ -102,6 +108,18 @@ private struct NonCashRewardCard: View {
             } else if let reward = model.value(scope: key.scope) {
                 NonCashRewardDetailContent(reward: reward, reader: reader, present: present)
                 if let projection = model.projection(scope: key.scope) { NonCashRewardReadFactsView(projection: projection) }
+                if let merchantHome,
+                   NonCashRewardMerchantSelection.capture(model: model, rewardReader: reader,
+                     merchantReader: merchantHome.reader, snapshotToken: renderedSnapshot, presentation: presentation) != nil {
+                    Section {
+                        Button("merchant.publicHome.title") {
+                            guard !presenting, merchantNavigation.canOpen,
+                                  let selection = NonCashRewardMerchantSelection.capture(model: model, rewardReader: reader,
+                                    merchantReader: merchantHome.reader, snapshotToken: renderedSnapshot, presentation: presentation) else { return }
+                            merchantNavigation.open(selection)
+                        }.accessibilityIdentifier("rewards.merchant.open")
+                    }
+                }
             }
         }
         .listStyle(.insetGrouped).appNavigationTitle("rewards.detail")
@@ -110,7 +128,7 @@ private struct NonCashRewardCard: View {
             scheduleRefresh(presentation: permit)
         }
         .onChange(of: key) { _, _ in scheduleRefresh(presentation: presentation) }
-        .refreshable { presenting = false; await model.refresh(reader: reader, presentation: presentation) }
+        .refreshable { await refreshReward(presentation: presentation) }
         // The owning List survives row recycling. A sheet on the content Group
         // is distributed across lazy rows and can disappear while scrolling.
         .sheet(isPresented: $presenting) {
@@ -127,15 +145,32 @@ private struct NonCashRewardCard: View {
                 }
             }
         }
+        .sheet(item: merchantBinding, onDismiss: merchantDismissed) { selection in
+            if let merchantHome {
+                let fenced = NonCashRewardMerchantReader(base: merchantHome.reader, selection: selection,
+                    current: { merchantNavigation.selection?.id == selection.id &&
+                        selection.isCurrent(model: model, rewardReader: reader, merchantReader: merchantHome.reader) })
+                NavigationStack {
+                    PublicMerchantHomeView(target: .legacyMerchantRowID(selection.merchantID),
+                        context: PublicMerchantHomeContext(reader: fenced))
+                        .toolbar { ToolbarItem(placement: .cancellationAction) {
+                            Button("action.close") { merchantNavigation.close(selection.id) }
+                                .accessibilityIdentifier("rewards.merchant.close")
+                        } }
+                }.id(selection.id)
+            }
+        }
+        .onChange(of: merchantHome?.reader.scope) { _, _ in merchantNavigation.cancel() }
+        .onChange(of: merchantHome?.reader.isConfigured) { _, configured in if configured != true { merchantNavigation.cancel() } }
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { presenting = false }
+            if phase != .active { presenting = false; merchantNavigation.cancel() }
             model.setForeground(phase == .active, reader: reader, presentation: presentation)
         }
-        .onChange(of: reader.scope) { _, _ in presenting = false }
-        .onChange(of: reader.isAuthenticated) { _, authenticated in if !authenticated { presenting = false } }
-        .onChange(of: reader.isConfigured) { _, configured in if !configured { presenting = false } }
+        .onChange(of: reader.scope) { _, _ in presenting = false; merchantNavigation.cancel() }
+        .onChange(of: reader.isAuthenticated) { _, authenticated in if !authenticated { presenting = false; merchantNavigation.cancel() } }
+        .onChange(of: reader.isConfigured) { _, configured in if !configured { presenting = false; merchantNavigation.cancel() } }
         .onDisappear {
-            if appearance.end(model: model) { presenting = false }
+            if appearance.end(model: model) { presenting = false; merchantNavigation.cancel() }
             if viewPresentation === appearance { viewPresentation = NonCashRewardDetailViewPresentation() }
         }
     }
@@ -145,12 +180,31 @@ private struct NonCashRewardCard: View {
         return reward.canPresent(at: NonCashRewardDemo.now)
     }
     private func present() {
-        guard presentationAllowed else { return }
+        guard presentationAllowed, merchantNavigation.canOpen else { return }
         presenting = true
     }
+    private var merchantBinding: Binding<NonCashRewardMerchantSelection?> {
+        let id = merchantNavigation.selection?.id
+        return Binding(get: { merchantNavigation.selection }, set: { next in
+            guard next == nil, let id else { return }; merchantNavigation.close(id)
+        })
+    }
+    private var merchantDismissed: () -> Void {
+        let id = merchantNavigation.selection?.id ?? merchantNavigation.closing?.id
+        return {
+            guard let id, let old = merchantNavigation.finish(id) else { return }
+            scheduleRefresh(presentation: old.presentation)
+        }
+    }
     private func scheduleRefresh(presentation: NonCashRewardReadLifetime?) {
-        presenting = false
+        guard let presentation, presentation.isActive, model.presentation === presentation else { return }
+        presenting = false; merchantNavigation.cancel()
         model.scheduleRefresh(reader: reader, presentation: presentation)
+    }
+    private func refreshReward(presentation: NonCashRewardReadLifetime?) async {
+        guard let presentation, presentation.isActive, model.presentation === presentation else { return }
+        presenting = false; merchantNavigation.cancel()
+        await model.refresh(reader: reader, presentation: presentation)
     }
 }
 

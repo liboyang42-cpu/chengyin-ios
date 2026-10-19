@@ -123,6 +123,36 @@ import MapKit
         let _ = identityRegistration.bind(account: account, draftID: draftID, draft: draft)
         let _ = localClear.bind(account: account, draftID: draftID, draft: draft, editable: mayClear)
         let _ = timeRange.bind(account: account, draftID: draftID, draft: draft, editable: mayEditTimeRange)
+        // The modifier chain is split in two stages for the type checker;
+        // the modifiers keep their original order.
+        publishingForm(templateSelectionAction: templateSelectionAction, templateReadID: templateReadID)
+        .background {
+            if let original = timeRange.presentation {
+                ActivityPublishingTimeRangePresenter(owner: timeRange, original: original) { selected in
+                    timeRange.apply(selected, original: original, draft: $draft, account: account, draftID: draftID,
+                        timeZoneID: TimeZone.autoupdatingCurrent.identifier, allowed: mayEditTimeRange)
+                }.id(original.id)
+            }
+        }
+        .sheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) { pickerSheet }
+        .sheet(isPresented: $localReview) {
+            NavigationStack {
+                List {
+                    Text(draft.name); Text(draft.description); Text(draft.start + " → " + draft.end)
+                    Text("\(draft.tickets.count) " + appLocalized("publishModes.ticket", locale: locale))
+                    Text("publishModes.reviewNotice").foregroundStyle(.secondary)
+                    let snapshot = review
+                    Button("publishModes.confirm") { if let snapshot { Task { await submit(snapshot) } } }
+                        .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
+                    Button("publishModes.cancel", role: .cancel) {
+                        guard review == snapshot else { return }
+                        if let snapshot { service?.cancel(snapshot) }; review = nil; localReview = false
+                    }
+                }.navigationTitle(Text("publishModes.review"))
+            }
+        }
+    }
+    private func publishingForm(templateSelectionAction: UUID, templateReadID: UUID) -> some View {
         Form {
             Section { Text("publishModes.clubOnly"); Text("publishModes.offlineNotice").foregroundStyle(.secondary) }
             Section("publishModes.details") {
@@ -213,31 +243,6 @@ import MapKit
             }
         }
         .task(id: templateReadID) { await templateSelection.read(templateReadID) }
-        .background {
-            if let original = timeRange.presentation {
-                ActivityPublishingTimeRangePresenter(owner: timeRange, original: original) { selected in
-                    timeRange.apply(selected, original: original, draft: $draft, account: account, draftID: draftID,
-                        timeZoneID: TimeZone.autoupdatingCurrent.identifier, allowed: mayEditTimeRange)
-                }.id(original.id)
-            }
-        }
-        .sheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) { pickerSheet }
-        .sheet(isPresented: $localReview) {
-            NavigationStack {
-                List {
-                    Text(draft.name); Text(draft.description); Text(draft.start + " → " + draft.end)
-                    Text("\(draft.tickets.count) " + appLocalized("publishModes.ticket", locale: locale))
-                    Text("publishModes.reviewNotice").foregroundStyle(.secondary)
-                    let snapshot = review
-                    Button("publishModes.confirm") { if let snapshot { Task { await submit(snapshot) } } }
-                        .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
-                    Button("publishModes.cancel", role: .cancel) {
-                        guard review == snapshot else { return }
-                        if let snapshot { service?.cancel(snapshot) }; review = nil; localReview = false
-                    }
-                }.navigationTitle(Text("publishModes.review"))
-            }
-        }
     }
     private var mayClear: Bool { mayEditTimeRange && timeRange.presentation == nil }
     private var mayEditTimeRange: Bool {

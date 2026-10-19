@@ -98,7 +98,7 @@ import SwiftUI
                 },rewards:session.nonCashRewardReader,onOpenPost:{
                     guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
                     _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
-                }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader).id(session.accountCollectionReader.scope)
+                }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext).id(session.accountCollectionReader.scope)
                 Section {
                     NavigationLink { SessionObjectCardsView() } label: {
                         Label("objects.title", systemImage: "rectangle.stack")
@@ -117,6 +117,9 @@ import SwiftUI
                 Section {
                     Button { showsCooperation=true } label: { Label("cooperation.title",systemImage:"person.2") }
                         .accessibilityIdentifier("account.cooperation")
+                    NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
+                        Label("merchant.projects", systemImage: "calendar")
+                    }.accessibilityIdentifier("account.merchantProjectBrowse")
                     NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery) } label: {
                         Label("merchant.title",systemImage:"storefront")
                     }.accessibilityIdentifier("account.merchant")

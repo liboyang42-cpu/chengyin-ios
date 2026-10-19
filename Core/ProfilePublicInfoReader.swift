@@ -10,6 +10,7 @@ import Observation
     private let onUnauthorized: (RuntimeDependencyContext) -> Void
     private var observedAccess: UUID?
     private var revision: UInt64 = 0
+    private var retentionRevision: UInt64 = 0
     private var readGeneration = UUID()
     public private(set) var hasAppeared = false
     private var presented = false
@@ -26,6 +27,13 @@ import Observation
     }
     public var isCurrent: Bool { target.isCurrent }
     public var presentationRevision: UInt64 { _ = currentAccess(); return revision }
+    /// Retaining an author-feed snapshot never extends the underlying read grant.
+    /// Header visibility/read-generation and its presentation revision remain independent.
+    public var authorPostsRetentionIdentity: ProfilePublicInfoRetentionIdentity? {
+        guard let access = currentAccess(), service != nil else { return nil }
+        return .init(targetID: target.id, memberID: target.memberID, viewerRevision: target.viewerRevision,
+            approvalID: access.revision, revision: retentionRevision)
+    }
     public var isConfigured: Bool { currentAccess() != nil && service != nil }
     public var isOfflineExample: Bool { false }
     public var isVisible: Bool { presented && foreground }
@@ -36,7 +44,7 @@ import Observation
            let selected = selectAccess(target.context), selected.matches(target.context) { value = selected }
         else { value = nil }
         if observedAccess != value?.revision {
-            observedAccess = value?.revision; revision &+= 1; readGeneration = UUID()
+            observedAccess = value?.revision; revision &+= 1; retentionRevision &+= 1; readGeneration = UUID()
         }
         return value
     }
@@ -79,4 +87,14 @@ import Observation
     public func informationList() async throws -> [SocialInformation] { throw APIError.notConfigured }
     public func information(id: Int) async throws -> SocialInformation { throw APIError.notConfigured }
     public func invitationHistory(page: Int) async throws -> SocialInviteHistory { throw APIError.notConfigured }
+}
+
+
+/// Exact retained target and approval issuance, without credentials or new permission.
+public struct ProfilePublicInfoRetentionIdentity: Hashable {
+    public let targetID: UUID
+    public let memberID: Int
+    public let viewerRevision: UInt64
+    public let approvalID: UUID
+    public let revision: UInt64
 }

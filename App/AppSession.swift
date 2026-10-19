@@ -89,6 +89,7 @@ final class AppSession: ObservableObject {
     }
     private let disabledPublicMerchantHomeReader = DisabledPublicMerchantHomeReader()
     private var retainedMerchantPublicFactory: MerchantPublicProductionFactory?
+    private var retainedMerchantPublicViewerRevision: UInt64?
     private var currentMerchantPublicContext: MerchantPublicHostContext? {
         guard let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,
               let namespace = storageScope?.service else { return nil }
@@ -97,16 +98,31 @@ final class AppSession: ObservableObject {
     }
     private var merchantPublicFactory: MerchantPublicProductionFactory? {
         guard let api = regionalConfiguration?.apiConfiguration, let context = currentMerchantPublicContext else { return nil }
-        if let retainedMerchantPublicFactory, retainedMerchantPublicFactory.captured == context { return retainedMerchantPublicFactory }
-        let factory = runtimeDependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal, transportOverride: runtimeHTTPTransport,
-            current: { [weak self] in self?.currentMerchantPublicContext })
+        if let retainedMerchantPublicFactory, retainedMerchantPublicFactory.captured == context,
+           retainedMerchantPublicViewerRevision == compositionViewerRevision { return retainedMerchantPublicFactory }
+        let dependencies = runtimeDependencies
+        let transport: any HTTPTransport
+        if let approval = dependencies.merchantPublicApproval {
+            transport = compositionTransport.scopedForPublicMerchantHome(approval: approval, context: context)
+        } else { transport = runtimeHTTPTransport }
+        let viewerRevision = compositionViewerRevision
+        let factory = dependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal, transportOverride: transport,
+            current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentMerchantPublicContext
+            })
         retainedMerchantPublicFactory = factory
+        retainedMerchantPublicViewerRevision = viewerRevision
         return factory
     }
     private var publicMerchantHomeReader: any PublicMerchantHomeReading {
         merchantPublicFactory?.homeReader ?? disabledPublicMerchantHomeReader
     }
     private var publicMerchantReviewReader: any PublicMerchantReviewReading = DisabledPublicMerchantReviewReader()
+    /// Read-only consumers receive no reviews, NPC, owner-profile or action contexts.
+    var readOnlyPublicMerchantHomeContext: PublicMerchantHomeContext {
+        PublicMerchantHomeContext(reader: publicMerchantHomeReader)
+    }
     var publicMerchantHomeContext: PublicMerchantHomeContext {
         let retained = retainedPublicMerchantReviews
         let reviews: any PublicMerchantReviewReading = retained?.reader ?? publicMerchantReviewReader
@@ -1400,10 +1416,12 @@ final class AppSession: ObservableObject {
         if let retainedPublisherLifecycle, retainedPublisherLifecycle.session == publishingSession { return retainedPublisherLifecycle.context }
         retainedPublisherLifecycle?.context.invalidate()
         guard let factory = runtimeDependencyFactory else { return nil }
+        let viewerRevision = compositionViewerRevision
         let context = PublisherLifecycleHostContext(configuration: configuration, transport: factory.transport, creatorReader: creatorContentReader,
-            grants: factory.publisherGrants,
+            grants: factory.publisherGrants, merchantPartnerReader: readOnlyPublicMerchantHomeContext.reader,
             credentials: { [weak self] in
-                guard let self, let session = self.publishingSession, let token = self.token else { return nil }
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      let session = self.publishingSession, session == publishingSession, let token = self.token else { return nil }
                 return try? PublishingCredentials(session: session, token: token)
             }, freshAuthority: { [weak self] resource, captured in
                 guard let self else { throw PublisherLifecycleError.unavailable }
@@ -2420,6 +2438,29 @@ final class AppSession: ObservableObject {
     lazy var participantCoordinator=ParticipantMutationCoordinator(writer:participantWriter,reader:profileReader,onParticipantsChanged:{ [weak self] in
         self?.participantRevision &+= 1
     })
+    private var retainedMerchantProjectBrowse: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantProjectBrowseReader)?
+    // Uses the existing context-immutable dependency policy, not a hot-reloaded grant provider.
+    var merchantProjectBrowseReader: MerchantProjectBrowseReader? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantProjectBrowseApproval, approval.matches(context) else {
+            retainedMerchantProjectBrowse = nil; return nil
+        }
+        let revision = compositionViewerRevision
+        if let old = retainedMerchantProjectBrowse, old.context == context, old.revision == revision,
+           old.approval == approval.revision { return old.reader }
+        let isCurrent: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let live = self.runtimeDependencies.merchantProjectBrowseApproval else { return false }
+            return live.revision == approval.revision && live.matches(context)
+        }
+        let transport = compositionTransport.scopedForMerchantProjectBrowse(approval: approval, context: context, approved: isCurrent)
+        let reader = MerchantProjectBrowseReader(configuration: api, transport: transport, token: context.session.token,
+            revision: revision, current: isCurrent, unauthorized: { [weak self] in
+                guard let self, isCurrent() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        retainedMerchantProjectBrowse = (context, revision, approval.revision, reader); return reader
+    }
     private let merchantService: MerchantService?
     private let merchantEngagementService: MerchantEngagementService?
     lazy var merchantEngagementReader = MerchantEngagementSessionReader(
@@ -2494,21 +2535,31 @@ final class AppSession: ObservableObject {
             guard let self, self.currentMerchantContentSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
-    private var retainedNearbyMerchants: (context: RuntimeDependencyContext, coordinator: NearbyMerchantCoordinator)?
+    private var retainedNearbyMerchants: (context: RuntimeDependencyContext, revision: UInt64, coordinator: NearbyMerchantCoordinator)?
     var nearbyMerchantCoordinator: NearbyMerchantCoordinator? {
-        guard let captured = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
-              let factory = runtimeDependencyFactory else { return nil }
-        if let retainedNearbyMerchants, retainedNearbyMerchants.context == captured { return retainedNearbyMerchants.coordinator }
+        guard let captured = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration else { return nil }
+        let revision = compositionViewerRevision
+        let isCurrent: () -> Bool = { [weak self] in
+            self?.compositionViewerRevision == revision && self?.currentRuntimeDependencyContext == captured
+        }
+        let transport: any HTTPTransport
+        if let configuration = runtimeDependencies.configuration {
+            transport = compositionTransport.scopedForNearbyMerchants(configuration: configuration, context: captured)
+        } else { transport = compositionTransport }
+        let factory = RuntimeDependencyFactory(api: api, configuration: runtimeDependencies.configuration,
+            transport: transport, current: { isCurrent() ? captured : nil })
+        if let retainedNearbyMerchants, retainedNearbyMerchants.context == captured,
+           retainedNearbyMerchants.revision == revision { return retainedNearbyMerchants.coordinator }
         retainedNearbyMerchants?.coordinator.cancel()
         let reader = CoopFlowSessionReader(service: CoopFlowService(configuration: api, transport: factory.transport),
-            current: { [weak self] in self?.currentCooperationFlowSession }, unauthorized: { [weak self] old in
-                guard let self, self.currentCooperationFlowSession == old else { return }
+            current: { [weak self] in isCurrent() ? self?.currentCooperationFlowSession : nil }, unauthorized: { [weak self] old in
+                guard let self, isCurrent(), self.currentCooperationFlowSession == old else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: old.epoch, credential: self.token)
             })
         let model = NearbyMerchantCoordinator(reader: reader,
             location: runtimeDependencies.location ?? RuntimeNativeLocationProvider(enabled: factory.allowsNearbyLocation),
-            approved: { [weak self] in factory.allowsNearbyLocation && self?.currentRuntimeDependencyContext == captured })
-        retainedNearbyMerchants = (captured, model); return model
+            approved: { factory.allowsNearbyLocation && isCurrent() })
+        retainedNearbyMerchants = (captured, revision, model); return model
     }
     private let cooperationFlowService: CoopFlowService?
     private var currentCooperationFlowSession: CoopFlowSession? {

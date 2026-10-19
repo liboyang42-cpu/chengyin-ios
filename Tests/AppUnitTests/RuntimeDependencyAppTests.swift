@@ -152,3 +152,172 @@ import CoreLocation
     override func requestWhenInUseAuthorization() { XCTFail("Unexpected permission request") }
     override func stopUpdatingLocation() { stops += 1 }
 }
+
+
+/// Synthetic transport and location only; these cases never request OS location.
+@MainActor final class NearbyMerchantNormalCompositionTests: XCTestCase {
+    private final class Vault: AppTokenStorage {
+        var value: String?
+        func read() throws -> String? { value }
+        func write(_ token: String) throws { value = token }
+        func clear() throws { value = nil }
+    }
+    private final class Wire: HTTPTransport {
+        var requests: [URLRequest] = []
+        var role = "player", status = 200, hold = false
+        var onHeld: (() -> Void)?
+        var pending: CheckedContinuation<(Data, Int), Error>?
+        let body = Data(#"{"code":200,"data":[{"id":31,"memberId":77,"name":"Synthetic merchant"}]}"#.utf8)
+        func resume(status: Int) { let p = pending; pending = nil; p?.resume(returning: (body, status)) }
+        func send(_ request: URLRequest) async throws -> (Data, Int) {
+            requests.append(request)
+            switch request.url!.lastPathComponent {
+            case "phone": return (Data(#"{"code":200,"token":"synthetic-7","data":{"id":7,"role":"player"}}"#.utf8), 200)
+            case "userInfo": return (Data("{\"code\":200,\"appUser\":{\"userId\":7,\"role\":\"\(role)\"}}".utf8), 200)
+            default:
+                if hold { return try await withCheckedThrowingContinuation { pending = $0; onHeld?() } }
+                return (body, status)
+            }
+        }
+    }
+    private func deployment() throws -> ReviewedAppDeployment {
+        try .init(market: .china, baseURL: "https://nearby.example/native",
+            approvedBaseURLs: [.china: ["https://nearby.example/native"]],
+            verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: "test.nearby", realm: "synthetic", reads: [.homeAndSearch])
+    }
+    private func normal(_ wire: Wire, location: RuntimeAppTestLocation, flag: Bool? = true,
+                        includeEndpoint: Bool = true, wrongAccount: Bool = false) throws -> AppSession {
+        let suite = "nearby-" + UUID().uuidString, defaults = try XCTUnwrap(UserDefaults(suiteName: suite)), vault = Vault()
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        return AppCompositionRoot(deployment: .reviewed(try deployment()),
+            storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { wire },
+            sessionDependencies: { context in
+                guard let flag, let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL,
+                    namespace: context.session.namespace, accountID: wrongAccount ? 8 : context.session.accountID,
+                    paths: includeEndpoint ? ["api/merchant/nearby"] : ["api/merchant/list"]) else { return .init(location: location) }
+                return .init(configuration: .init(market: context.market, endpoints: endpoints, nearbyLocation: flag), location: location)
+            }).makeSession()
+    }
+    private func login(_ session: AppSession) async {
+        session.authChannels.cancel()
+        await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
+        XCTAssertEqual(session.account?.id, 7)
+    }
+    private func scoped(_ root: CompositionHTTPTransport, deployment d: ReviewedAppDeployment,
+                        viewer: CompositionHTTPTransport.SessionIdentity) throws -> CompositionHTTPTransport {
+        let api = try XCTUnwrap(d.regional.apiConfiguration)
+        let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: "player",
+            session: try .init(accountID: 7, epoch: viewer.epoch, namespace: d.storageScope.service, token: "synthetic-7"))
+        let endpoints = try OperationEndpointApproval(baseURL: api.baseURL, namespace: d.storageScope.service,
+            accountID: 7, paths: ["api/merchant/nearby"])
+        return root.scopedForNearbyMerchants(configuration: .init(market: .china, endpoints: endpoints, nearbyLocation: true), context: context)
+    }
+    private func request(_ d: ReviewedAppDeployment) throws -> URLRequest {
+        let boundary = "CoopNative-00000000-0000-0000-0000-000000000001"
+        var r = try AuthRequestBuilder.makeFormRequest(url: XCTUnwrap(d.regional.apiConfiguration).baseURL.appendingPathComponent("api/merchant/nearby"), fields: [:], token: "synthetic-7")
+        r.httpShouldHandleCookies = false
+        let fields = [("latitude", "39.0"), ("limit", "30"), ("longitude", "116.0"), ("radius", "5000")]
+        r.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        r.httpBody = Data((fields.map { "--\(boundary)\r\nContent-Disposition: form-data; name=\"\($0.0)\"\r\n\r\n\($0.1)\r\n" }.joined() + "--\(boundary)--\r\n").utf8)
+        return r
+    }
+    func testNormalNearbyRequiresPurposeThenUsesApprovedTransportAndReturnsTypedRows() async throws {
+        let wire = Wire(), location = RuntimeAppTestLocation(), session = try normal(wire, location: location)
+        await login(session); wire.requests = []
+        let model = try XCTUnwrap(session.nearbyMerchantCoordinator)
+        XCTAssertTrue(model.available); XCTAssertEqual(location.calls, 0)
+        await model.search(purposeAccepted: false)
+        XCTAssertEqual(model.phase, .consentRequired); XCTAssertTrue(wire.requests.isEmpty); XCTAssertEqual(location.calls, 0)
+        await model.search(purposeAccepted: true)
+        XCTAssertEqual(model.phase, .ready); XCTAssertEqual(model.rows.map(\.id), [31]); XCTAssertEqual(location.calls, 1)
+        XCTAssertNotNil(model.publicHomeSelection(rowID: 31))
+        let r = try XCTUnwrap(wire.requests.first)
+        XCTAssertEqual(wire.requests.count, 1); XCTAssertEqual(r.url?.lastPathComponent, "nearby")
+        XCTAssertEqual(r.value(forHTTPHeaderField: "Authorization"), "synthetic-7")
+        XCTAssertFalse(r.httpShouldHandleCookies)
+        XCTAssertTrue(r.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data; boundary=CoopNative-") == true)
+    }
+    func testMissingFalseWrongAccountAndMissingEndpointNeverStartLocationOrHTTP() async throws {
+        let cases: [(Bool?, Bool, Bool)] = [(nil, true, false), (false, true, false), (true, false, false), (true, true, true)]
+        for (flag, path, wrong) in cases {
+            let wire = Wire(), location = RuntimeAppTestLocation()
+            let session = try normal(wire, location: location, flag: flag, includeEndpoint: path, wrongAccount: wrong)
+            await login(session); wire.requests = []
+            let model = try XCTUnwrap(session.nearbyMerchantCoordinator)
+            XCTAssertFalse(model.available); await model.search(purposeAccepted: true)
+            XCTAssertEqual(location.calls, 0); XCTAssertTrue(wire.requests.isEmpty)
+        }
+    }
+    func testExactEnvelopeRejectsMalformedFieldsVerbsHeadersAndUnrelatedRoutes() async throws {
+        let d = try deployment(), wire = Wire(), root = CompositionHTTPTransport(deployment: d, underlying: wire)
+        let viewer = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: 7, role: "player", token: "synthetic-7")
+        root.current = { viewer }; let child = try scoped(root, deployment: d, viewer: viewer), valid = try request(d)
+        do { _ = try await root.send(valid); XCTFail("Generic search is not a nearby grant") } catch {}
+        var invalid: [URLRequest] = []
+        for replacement in ["91.0", "nan", "39", "039.0", "39.0\r\nextra"] {
+            var r = valid; r.httpBody = Data(String(data: valid.httpBody!, encoding: .utf8)!.replacingOccurrences(of: "39.0", with: replacement).utf8); invalid.append(r)
+        }
+        for replacement in ["5001", "-1"] {
+            var r = valid; r.httpBody = Data(String(data: valid.httpBody!, encoding: .utf8)!.replacingOccurrences(of: "5000", with: replacement).utf8); invalid.append(r)
+        }
+        for method in ["GET", "PUT", "DELETE"] { var r = valid; r.httpMethod = method; invalid.append(r) }
+        for suffix in ["?x=1", "#x", "/"] { var r = valid; r.url = URL(string: valid.url!.absoluteString + suffix); invalid.append(r) }
+        for path in ["api/merchant/list", "api/coop/list", "api/merchant/public-home"] {
+            var r = valid; r.url = d.regional.apiConfiguration!.baseURL.appendingPathComponent(path); invalid.append(r)
+        }
+        for header in ["Authorization", "Proxy-Authorization", "Cookie", "Content-Type"] {
+            var r = valid; r.setValue("wrong", forHTTPHeaderField: header); invalid.append(r)
+        }
+        var missing = valid; missing.setValue(nil, forHTTPHeaderField: "Authorization"); invalid.append(missing)
+        var cookie = valid; cookie.httpShouldHandleCookies = true; invalid.append(cookie)
+        var stream = valid; stream.httpBodyStream = InputStream(data: valid.httpBody!); invalid.append(stream)
+        var extra = valid; extra.httpBody?.append(Data("extra".utf8)); invalid.append(extra)
+        for r in invalid { do { _ = try await child.send(r); XCTFail("Malformed request forwarded") } catch {} }
+        XCTAssertTrue(wire.requests.isEmpty)
+        _ = try await child.replacingUnderlying(wire).send(valid)
+        XCTAssertEqual(wire.requests.count, 1)
+    }
+    func testCloneCreatedWithoutViewerRemainsClosedAfterViewerAppears() async throws {
+        let d = try deployment(), wire = Wire(), root = CompositionHTTPTransport(deployment: d, underlying: wire)
+        let viewer = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: 7, role: "player", token: "synthetic-7")
+        let child = try scoped(root, deployment: d, viewer: viewer)
+        root.current = { viewer }
+        let r = try request(d)
+        for transport in [child, child.replacingUnderlying(wire)] {
+            do { _ = try await transport.send(r); XCTFail() } catch {}
+            var other = r; other.url = d.regional.apiConfiguration!.baseURL.appendingPathComponent("api/merchant/list")
+            do { _ = try await transport.send(other); XCTFail() } catch {}
+        }
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+    func testRetainedNearbyCoordinatorCannotReviveAfterRoleABA() async throws {
+        let wire = Wire(), location = RuntimeAppTestLocation(), session = try normal(wire, location: location)
+        await login(session); let old = try XCTUnwrap(session.nearbyMerchantCoordinator)
+        wire.role = "merchant"; await session.refreshOwnAccount()
+        wire.role = "player"; await session.refreshOwnAccount()
+        let fresh = try XCTUnwrap(session.nearbyMerchantCoordinator)
+        XCTAssertFalse(old === fresh); XCTAssertFalse(old.available); XCTAssertTrue(fresh.available)
+        wire.requests = []; await old.search(purposeAccepted: true)
+        XCTAssertTrue(wire.requests.isEmpty); XCTAssertEqual(location.calls, 0)
+        await fresh.search(purposeAccepted: true); XCTAssertEqual(fresh.phase, .ready)
+    }
+    func testLateSuccessAnd401AfterRoleABACannotPublishOrExpireCurrentAccount() async throws {
+        for status in [200, 401] {
+            let wire = Wire(), location = RuntimeAppTestLocation(), session = try normal(wire, location: location)
+            await login(session); let model = try XCTUnwrap(session.nearbyMerchantCoordinator)
+            let started = expectation(description: "nearby held"); wire.hold = true; wire.onHeld = { started.fulfill() }
+            let task = Task { await model.search(purposeAccepted: true) }
+            await fulfillment(of: [started], timeout: 2)
+            wire.role = "merchant"; await session.refreshOwnAccount()
+            wire.role = "player"; await session.refreshOwnAccount()
+            wire.resume(status: status); await task.value
+            XCTAssertTrue(model.rows.isEmpty); XCTAssertFalse(model.available); XCTAssertEqual(session.account?.id, 7)
+        }
+    }
+    func testCurrentNearby401StillExpiresMatchingAccount() async throws {
+        let wire = Wire(), location = RuntimeAppTestLocation(), session = try normal(wire, location: location)
+        await login(session); wire.status = 401
+        let model = try XCTUnwrap(session.nearbyMerchantCoordinator); await model.search(purposeAccepted: true)
+        XCTAssertNil(session.account); XCTAssertTrue(model.rows.isEmpty)
+    }
+}

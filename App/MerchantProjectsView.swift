@@ -6,6 +6,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
     @Environment(\.scenePhase) private var scenePhase
     @ObservedObject var reader: Reader
     var contentService: (any MerchantContentServing)? = nil
+    var showsRecentEvents = true
     @StateObject private var model = MerchantLoadModel<MerchantProjectWorkspaceSnapshot>()
     @StateObject private var presentation = MerchantProjectWorkspacePresentation()
     @State private var tab: MerchantProjectBrowserTab = .topic
@@ -117,7 +118,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                         presentation.openWorkspace(selected, snapshot: snapshot, context: context, sourceFresh: sourceFresh)
                     }
                     .safeAreaInset(edge: .bottom) {
-                        if snapshot.access.isOwner, let merchantID = snapshot.access.merchantID,
+                        if showsRecentEvents, snapshot.access.isOwner, let merchantID = snapshot.access.merchantID,
                            MerchantProjectEventKey(project: selected.project) != nil, sourceFresh {
                             NavigationLink {
                                 MerchantProjectRecentEventsView(reader: reader, project: selected.project, merchantID: merchantID,
@@ -318,3 +319,4 @@ struct MerchantProjectWorkspaceSnapshot {
         })
     }
 }
+
