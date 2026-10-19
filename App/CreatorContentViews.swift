@@ -98,9 +98,15 @@ private struct CreatorContentIssueView: View {
         QuestifyImageEntityCard(imageSource: project.cover, title: project.title,
                                subtitle: project.projectTypeText, fallbackTitle: "creatorContent.untitled", minimumHeight: 240) {
             if let state = project.stateText { Text(verbatim: state) }
+            // Mini-program myproject footer: co-host acceptance text, otherwise always "N 报名 · N 浏览", then the owner identity.
             if let acceptance = project.acceptStatusText { Text(verbatim: acceptance) }
-            if project.signupCount > 0 { LabeledContent("creatorContent.signups", value: String(project.signupCount)) }
-            if project.viewCount > 0 { LabeledContent("creatorContent.views", value: String(project.viewCount)) }
+            else {
+                LabeledContent("creatorContent.signups", value: String(project.signupCount))
+                LabeledContent("creatorContent.views", value: String(project.viewCount))
+            }
+            Text(LocalizedStringKey(project.ownerType == "club" ? "creatorContent.filter.club"
+                : project.ownerType == "merchant" ? "creatorContent.filter.merchant" : "creatorContent.filter.member"))
+                .font(.caption).foregroundStyle(.secondary)
             if let start = project.startTime, let end = project.endTime { Text(verbatim: "\(start) – \(end)") }
         }.accessibilityElement(children: .combine)
     }

@@ -53,6 +53,6 @@ import SwiftUI
                     }
                 }
             }
-        }.appNavigationTitle("social.guide.information").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("social.information.detail")
+        }.appNavigationTitle("discovery.playDetails").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("social.information.detail")
     }
 }
