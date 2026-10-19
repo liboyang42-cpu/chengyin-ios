@@ -4,7 +4,7 @@ import SwiftUI
     var id: UUID { get }
     var isConfigured: Bool { get }
     func access() async throws -> MerchantAccess
-    func inbox(access: MerchantAccess) async throws -> [MerchantPredictionRound]
+    func inbox(access: MerchantAccess) async throws -> [MerchantPredictionInboxRound]
 }
 
 @MainActor final class MerchantPredictionReader: MerchantPredictionReading {
@@ -56,7 +56,7 @@ import SwiftUI
         let value = try await read(accepts: { request == generation }) { try await merchant.access(token: token) }
         accepted = value; return value
     }
-    func inbox(access: MerchantAccess) async throws -> [MerchantPredictionRound] {
+    func inbox(access: MerchantAccess) async throws -> [MerchantPredictionInboxRound] {
         guard accepted == access, access.allows(.projects) else { throw MerchantReadError.accessDenied }
         let request = generation
         return try await read(accepts: { request == generation && accepted == access }) {
@@ -70,10 +70,10 @@ import SwiftUI
     struct Selection: Identifiable {
         let id = UUID()
         let snapshotID: UUID
-        let round: MerchantPredictionRound
+        let round: MerchantPredictionInboxRound
     }
     @Published private(set) var phase: Phase = .idle
-    @Published private(set) var rows: [MerchantPredictionRound] = []
+    @Published private(set) var rows: [MerchantPredictionInboxRound] = []
     @Published private(set) var selection: Selection?
     private let reader: any MerchantPredictionReading
     private var requestID = UUID()
@@ -109,7 +109,7 @@ import SwiftUI
         selection = nil
     }
     func retire() { active = false; invalidate(); phase = .idle }
-    func open(_ round: MerchantPredictionRound) {
+    func open(_ round: MerchantPredictionInboxRound) {
         guard canEnter, phase == .ready, selection == nil, closingID == nil,
               rows.filter({ $0.id == round.id }).count == 1, rows.contains(round) else { return }
         selection = .init(snapshotID: snapshotID, round: round)

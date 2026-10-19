@@ -125,3 +125,78 @@ final class MerchantLoadModel<Value>: ObservableObject {
         }
     }
 }
+
+/// Isolated aggregate reads; other MerchantReading methods remain unavailable.
+@MainActor final class MerchantOverviewReader: MerchantReading {
+    let id = UUID()
+    let sessionRevision: UInt64
+    private let service: MerchantService
+    private let token: String
+    private let current: () -> Bool
+    private let unauthorized: () -> Void
+    private var proof: MerchantAccess?
+    private var generation: UInt64 = 0
+    var isConfigured: Bool { current() }
+    var isSignedIn: Bool { current() }
+    init(configuration: APIConfiguration, transport: any HTTPTransport, token: String, revision: UInt64,
+         current: @escaping () -> Bool, unauthorized: @escaping () -> Void) {
+        service = MerchantService(configuration: configuration, transport: CookieFreeTransport(underlying: transport))
+        self.token = token; sessionRevision = revision; self.current = current; self.unauthorized = unauthorized
+    }
+    private struct CookieFreeTransport: HTTPTransport {
+        let underlying: any HTTPTransport
+        func send(_ request: URLRequest) async throws -> (Data, Int) {
+            var exact = request; exact.httpShouldHandleCookies = false
+            return try await underlying.send(exact)
+        }
+    }
+    private func read<T>(accepts: () -> Bool, _ action: () async throws -> T) async throws -> T {
+        try Task.checkCancellation(); guard current(), accepts() else { throw APIError.notConfigured }
+        do {
+            let result = try await action()
+            try Task.checkCancellation(); guard current(), accepts() else { throw CancellationError() }
+            return result
+        } catch {
+            guard !Task.isCancelled, current(), accepts() else { throw CancellationError() }
+            if error as? APIError == .unauthorized { proof = nil; unauthorized() }
+            if error as? MerchantReadError == .accessDenied { proof = nil }
+            throw error
+        }
+    }
+    func merchantAccess() async throws -> MerchantAccess {
+        generation &+= 1; let captured = generation; proof = nil
+        let result = try await read(accepts: { generation == captured }) { try await service.access(token: token) }
+        guard !Task.isCancelled, current(), generation == captured else { throw CancellationError() }
+        proof = result; return result
+    }
+    private func aggregate<T>(_ access: MerchantAccess, _ action: () async throws -> T) async throws -> T {
+        guard proof == access, access.isOwner, access.allows(.basicRead) else { throw MerchantReadError.accessDenied }
+        let captured = generation
+        let result = try await read(accepts: { generation == captured && proof == access }, action)
+        guard !Task.isCancelled, current(), generation == captured, proof == access else { throw CancellationError() }
+        return result
+    }
+    func merchantDashboard(access: MerchantAccess) async throws -> MerchantDashboard {
+        guard access.canReadDashboard else { throw MerchantReadError.accessDenied }
+        return try await aggregate(access) { try await service.dashboard(access: access, token: token) }
+    }
+    func merchantTodo(access: MerchantAccess) async throws -> MerchantTodo {
+        try await aggregate(access) { try await service.todo(access: access, token: token) }
+    }
+    func merchantEvents(access: MerchantAccess) async throws -> [MerchantEvent] {
+        try await aggregate(access) { try await service.events(access: access, token: token) }
+    }
+    func merchantOrders(access: MerchantAccess, filter: MerchantOrderFilter) async throws -> [MerchantOrder] { throw APIError.notConfigured }
+    func merchantProjects(access: MerchantAccess) async throws -> MerchantProjectPage { throw APIError.notConfigured }
+}
+@MainActor struct SessionMerchantOverviewView: View {
+    @ObservedObject var session: AppSession
+    var body: some View {
+        if let reader = session.merchantOverviewReader {
+            // No operational destinations, writers, image hosts, or record links.
+            MerchantHomeView(reader: reader, showsRecordLinks: false).id(reader.id)
+        } else {
+            ContentUnavailableView("merchant.title", systemImage: "network.slash", description: Text("auth.notConfigured"))
+        }
+    }
+}

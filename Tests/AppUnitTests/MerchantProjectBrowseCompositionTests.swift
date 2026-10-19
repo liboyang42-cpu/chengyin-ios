@@ -168,3 +168,151 @@ import XCTest
         XCTAssertNil(session.account)
     }
 }
+
+@MainActor final class MerchantOverviewCompositionTests: XCTestCase {
+    private final class Vault: AppTokenStorage {
+        var value: String?
+        func read() throws -> String? { value }
+        func write(_ token: String) throws { value = token }
+        func clear() throws { value = nil }
+    }
+    private final class Wire: HTTPTransport {
+        var requests: [URLRequest] = []
+        var appRole = "player", merchantRole = "MERCHANT_OWNER", basic = true, finance = true, status = 200
+        var holdPath: String?, onHeld: (() -> Void)?, pending: CheckedContinuation<(Data, Int), Error>?, heldBody = Data()
+        func resume(status: Int = 200) { let p = pending; pending = nil; p?.resume(returning: (heldBody, status)) }
+        func send(_ request: URLRequest) async throws -> (Data, Int) {
+            requests.append(request); let path = request.url!.lastPathComponent
+            if path == "phone" { return (Data(#"{"code":200,"token":"synthetic-7","data":{"id":7,"role":"player"}}"#.utf8), 200) }
+            if path == "userInfo" { return (Data("{\"code\":200,\"appUser\":{\"userId\":7,\"role\":\"\(appRole)\"}}".utf8), 200) }
+            let payload: String
+            switch path {
+            case "me":
+                let permissions = [basic ? "merchant:basic:read" : nil, finance ? "merchant:finance:read" : nil, "merchant:project:manage", "merchant:order:read"].compactMap { $0 }
+                let fields: [String: Any] = ["active": true, "merchant": ["id": 31, "name": "Synthetic store"], "roleCode": merchantRole, "permissions": permissions]
+                payload = String(data: try JSONSerialization.data(withJSONObject: fields), encoding: .utf8)!
+            case "dashboard": payload = #"{"revenue":"12.30","pendingOrders":2,"revenue7d":[{"date":"10-19","amount":"4.50"}]}"#
+            case "todo-summary": payload = #"{"pendingVerify":1,"verifiedCount":3,"pendingScanConfirm":2,"pendingOrders":2,"refundCount":0}"#
+            case "events": payload = #"[{"content":"Synthetic event","time":"10-19 12:00"}]"#
+            default: payload = "{}"
+            }
+            let body = Data("{\"code\":200,\"data\":\(payload)}".utf8)
+            if path == holdPath { holdPath = nil; heldBody = body; return try await withCheckedThrowingContinuation { pending = $0; onHeld?() } }
+            return (body, status)
+        }
+    }
+    private func deployment() throws -> ReviewedAppDeployment {
+        try .init(market: .china, baseURL: "https://overview.example/native", approvedBaseURLs: [.china: ["https://overview.example/native"]],
+            verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: "test.overview", realm: "synthetic", reads: [.homeAndSearch])
+    }
+    private func normal(_ wire: Wire, enabled: Bool = true, wrongAccount: Bool = false, projectOnly: Bool = false) throws -> AppSession {
+        let suite = "overview-" + UUID().uuidString, defaults = try XCTUnwrap(UserDefaults(suiteName: suite)), vault = Vault()
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        return AppCompositionRoot(deployment: .reviewed(try deployment()), storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { wire },
+            sessionDependencies: { context in
+                if projectOnly { return .init(merchantProjectBrowseApproval: try? .init(market: context.market, baseURL: context.baseURL, namespace: context.session.namespace, accountID: context.session.accountID)) }
+                return .init(merchantOverviewReadApproval: enabled ? try? .init(market: context.market, baseURL: context.baseURL, namespace: context.session.namespace,
+                    accountID: wrongAccount ? 8 : context.session.accountID) : nil)
+            }).makeSession()
+    }
+    private func login(_ session: AppSession) async {
+        session.authChannels.cancel(); await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
+        XCTAssertEqual(session.account?.id, 7)
+    }
+    func testNormalOverviewReadsExactFourRoutesAndKeepsRecordLinksOff() async throws {
+        let wire = Wire(), session = try normal(wire); await login(session); wire.requests = []
+        let reader = try XCTUnwrap(session.merchantOverviewReader), access = try await reader.merchantAccess()
+        let dashboard = try await reader.merchantDashboard(access: access), todo = try await reader.merchantTodo(access: access), events = try await reader.merchantEvents(access: access)
+        XCTAssertEqual(dashboard.revenue, "12.30"); XCTAssertEqual(todo.pendingVerify, 1); XCTAssertEqual(events.count, 1)
+        XCTAssertEqual(wire.requests.map { $0.url!.lastPathComponent }, ["me", "dashboard", "todo-summary", "events"])
+        XCTAssertTrue(wire.requests.allSatisfy { !$0.httpShouldHandleCookies && $0.value(forHTTPHeaderField: "Authorization") == "synthetic-7" })
+        XCTAssertTrue(wire.requests.prefix(3).allSatisfy { $0.httpBody == nil && $0.value(forHTTPHeaderField: "Content-Type") == nil })
+        XCTAssertEqual(wire.requests.last?.httpBody, Data("{}".utf8)); XCTAssertEqual(wire.requests.last?.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        let view = MerchantHomeView(reader: reader, showsRecordLinks: false)
+        XCTAssertFalse(view.showsRecordLinks); XCTAssertNil(view.contentService); XCTAssertNil(view.businessReader); XCTAssertNil(view.operationsReader)
+        XCTAssertNil(view.marketingModel); XCTAssertNil(view.cooperationFlowReader); XCTAssertNil(view.engagementReader); XCTAssertNil(view.exportRecovery)
+        XCTAssertTrue(MerchantHomeView(reader: reader).showsRecordLinks)
+    }
+    func testMissingWrongAccountAndUnrelatedProjectGrantStayClosed() async throws {
+        XCTAssertNil(NativeRuntimeDependencies.dormant.merchantOverviewReadApproval)
+        for mode in 0..<3 {
+            let wire = Wire(), session = try normal(wire, enabled: mode != 0, wrongAccount: mode == 1, projectOnly: mode == 2)
+            await login(session); wire.requests = []; XCTAssertNil(session.merchantOverviewReader); XCTAssertTrue(wire.requests.isEmpty)
+        }
+    }
+    func testServerOwnerBasicAndFinancePermissionsAreNotInferredFromAppRole() async throws {
+        for mode in 0..<3 {
+            let wire = Wire(), session = try normal(wire); await login(session)
+            if mode == 0 { wire.merchantRole = "MERCHANT_MANAGER" }
+            if mode == 1 { wire.basic = false }
+            if mode == 2 { wire.finance = false }
+            let reader = try XCTUnwrap(session.merchantOverviewReader), access = try await reader.merchantAccess(); wire.requests = []
+            do { _ = try await reader.merchantDashboard(access: access); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
+            if mode == 2 { _ = try await reader.merchantTodo(access: access); _ = try await reader.merchantEvents(access: access); XCTAssertEqual(wire.requests.count, 2) }
+            else {
+                do { _ = try await reader.merchantTodo(access: access); XCTFail() } catch {}
+                do { _ = try await reader.merchantEvents(access: access); XCTFail() } catch {}
+                XCTAssertTrue(wire.requests.isEmpty)
+            }
+        }
+    }
+    func testOrdersProjectsAndStaleAccessCannotBorrowOverviewApproval() async throws {
+        let wire = Wire(), session = try normal(wire); await login(session)
+        let reader = try XCTUnwrap(session.merchantOverviewReader), old = try await reader.merchantAccess()
+        wire.finance = false; _ = try await reader.merchantAccess(); wire.requests = []
+        do { _ = try await reader.merchantDashboard(access: old); XCTFail() } catch {}
+        do { _ = try await reader.merchantOrders(access: old, filter: .init()); XCTFail() } catch {}
+        do { _ = try await reader.merchantProjects(access: old); XCTFail() } catch {}
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+    func testTransportRejectsForeignRoutesQueriesAndWrongBodies() async throws {
+        let d = try deployment(), api = try XCTUnwrap(d.regional.apiConfiguration), wire = Wire(), root = CompositionHTTPTransport(deployment: d, underlying: wire)
+        let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: "player", session: try .init(accountID: 7, epoch: 1, namespace: d.storageScope.service, token: "synthetic-7"))
+        root.current = { .init(epoch: 1, accountID: 7, role: "player", token: "synthetic-7") }
+        let child = root.scopedForMerchantOverview(approval: try .init(market: .china, baseURL: api.baseURL, namespace: d.storageScope.service, accountID: 7), context: context, approved: { true })
+        var valid = try AuthRequestBuilder.makeFormRequest(url: api.baseURL.appendingPathComponent("api/merchant/dashboard"), fields: [:], token: "synthetic-7", includesBody: false)
+        valid.httpShouldHandleCookies = false
+        do { _ = try await root.send(valid); XCTFail() } catch {}
+        var bad: [URLRequest] = []
+        for path in ["api/merchant/orders", "api/project/my", "api/merchant/predict/settle", "api/merchant/list"] { var r = valid; r.url = api.baseURL.appendingPathComponent(path); bad.append(r) }
+        for suffix in ["?merchantId=31", "#x", "/"] { var r = valid; r.url = URL(string: valid.url!.absoluteString + suffix); bad.append(r) }
+        for header in ["Authorization", "Content-Type", "Cookie", "Proxy-Authorization"] { var r = valid; r.setValue("wrong", forHTTPHeaderField: header); bad.append(r) }
+        var body = valid; body.httpBody = Data("{}".utf8); bad.append(body)
+        var cookie = valid; cookie.httpShouldHandleCookies = true; bad.append(cookie)
+        var stream = valid; stream.httpBodyStream = InputStream(data: Data()); bad.append(stream)
+        var get = valid; get.httpMethod = "GET"; bad.append(get)
+        var events = valid; events.url = api.baseURL.appendingPathComponent("api/merchant/events"); bad.append(events)
+        events.httpBody = Data("{\"merchantId\":31}".utf8); events.setValue("application/json", forHTTPHeaderField: "Content-Type"); bad.append(events)
+        for request in bad { do { _ = try await child.send(request); XCTFail() } catch {} }
+        XCTAssertTrue(wire.requests.isEmpty)
+        _ = try await child.replacingUnderlying(wire).send(valid); XCTAssertEqual(wire.requests.count, 1)
+    }
+    func testRetainedReaderRejectsLateDashboardAnd401AfterRoleABA() async throws {
+        for status in [200, 401] {
+            let wire = Wire(), session = try normal(wire); await login(session)
+            let reader = try XCTUnwrap(session.merchantOverviewReader), access = try await reader.merchantAccess(), started = expectation(description: "dashboard held")
+            wire.holdPath = "dashboard"; wire.onHeld = { started.fulfill() }
+            let task = Task { try await reader.merchantDashboard(access: access) }
+            await fulfillment(of: [started], timeout: 2)
+            wire.appRole = "merchant"; await session.refreshOwnAccount(); wire.appRole = "player"; await session.refreshOwnAccount()
+            wire.resume(status: status)
+            do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
+            XCTAssertFalse(reader.isConfigured); XCTAssertEqual(session.account?.id, 7)
+        }
+    }
+    func testSupersededAccess401CannotExpireRefreshedProof() async throws {
+        let wire = Wire(), session = try normal(wire); await login(session)
+        let reader = try XCTUnwrap(session.merchantOverviewReader), started = expectation(description: "old access held")
+        wire.holdPath = "me"; wire.onHeld = { started.fulfill() }
+        let task = Task { try await reader.merchantAccess() }; await fulfillment(of: [started], timeout: 2)
+        let fresh = try await reader.merchantAccess(); wire.resume(status: 401)
+        do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
+        _ = try await reader.merchantDashboard(access: fresh); XCTAssertEqual(session.account?.id, 7)
+    }
+    func testCurrent401ExpiresMatchingOverviewSession() async throws {
+        let wire = Wire(), session = try normal(wire); await login(session); wire.status = 401
+        let reader = try XCTUnwrap(session.merchantOverviewReader)
+        do { _ = try await reader.merchantAccess(); XCTFail() } catch {}
+        XCTAssertNil(session.account)
+    }
+}
