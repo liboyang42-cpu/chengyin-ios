@@ -438,6 +438,11 @@ extension WalletScreen where Value == WithdrawalBalance {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(format.amount(item.amount, currency: item.currency))
                         Text(LocalizedStringKey(item.statusKey))
+                        if let received = item.receivedAmount {
+                            LabeledContent { Text(verbatim: format.amount(received, currency: item.currency)) } label: {
+                                Text("member.wallet.received", tableName: "MemberProfile")
+                            }
+                        }
                         if let date = item.createTime { Text(verbatim: date) }
                         if let account = item.maskedAccount { Text(verbatim: account) }
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.withdrawal.\(item.id)")
