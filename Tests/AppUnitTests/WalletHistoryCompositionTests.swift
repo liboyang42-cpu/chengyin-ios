@@ -17,6 +17,29 @@ import XCTest
         session.authChannels.cancel(); await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
         XCTAssertNotNil(session.account)
     }
+    func testIncomeDetailUsesNormalReadLeaseAndRetiresWhenRevokedOrRoleChanges() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession()
+        await login(session); wire.requests = []
+        let reader = session.walletHistoryReader, pager = WalletLedgerPager()
+        await pager.load(reader: reader, kind: .income(.all))
+        let selection = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: reader))
+        let count = wire.requests.count
+        XCTAssertEqual(pager.incomeDetailRow(selection, reader: reader)?.id, 61)
+        XCTAssertEqual(wire.requests.count, count) // Detail is an existing server row, never a write or guessed endpoint.
+        grants.retained?.revoke()
+        XCTAssertNil(pager.incomeDetailRow(selection, reader: reader))
+        grants.retained = nil
+        let fresh = session.walletHistoryReader
+        XCTAssertNil(pager.incomeDetailRow(selection, reader: fresh))
+        let beforeFreshRead = wire.requests.count
+        await pager.load(reader: fresh, kind: .income(.all))
+        XCTAssertEqual(wire.requests.count, beforeFreshRead + 1)
+        let second = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: fresh))
+        wire.role = "merchant"; await session.refreshOwnAccount()
+        wire.role = "player"; await session.refreshOwnAccount()
+        XCTAssertNil(pager.incomeDetailRow(second, reader: fresh))
+    }
+
     func testNormalFactoryReadsOnlyVisibleHistoryRoutes() async throws {
         let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session); wire.requests = []
         let reader = session.walletHistoryReader

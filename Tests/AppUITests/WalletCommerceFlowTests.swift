@@ -7,6 +7,34 @@ final class WalletCommerceFlowTests: XCTestCase {
         app.launchArguments = ["--uitesting-reset-language", "--wallet-commerce-fixture", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
         app.launch(); return app
     }
+    func testIncomeEntryOpensExistingServerRowAndCloseReturnsToList() {
+        let app = launch(); app.buttons["wallet.fixture.income"].tap()
+        let row = app.buttons["wallet.income.detail.open.4"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
+        let close = app.buttons["wallet.income.detail.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["wallet.income.detail.retired"].exists)
+        XCTAssertFalse(app.buttons["Pay"].exists)
+        close.tap(); XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.tap(); XCTAssertTrue(close.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["wallet.income.detail.retired"].exists)
+        close.tap()
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.buttons["wallet.fixture.income"].waitForExistence(timeout: 5))
+    }
+    func testIncomeDetailClosesOnBackgroundAndCanBeOpenedAgain() {
+        let app = launch(); app.buttons["wallet.fixture.income"].tap()
+        let row = app.buttons["wallet.income.detail.open.4"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
+        XCTAssertTrue(app.buttons["wallet.income.detail.close"].waitForExistence(timeout: 5))
+        XCUIDevice.shared.press(.home); app.activate()
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["wallet.income.detail.close"].exists)
+        row.tap()
+        XCTAssertTrue(app.buttons["wallet.income.detail.close"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["wallet.income.detail.retired"].exists)
+    }
+
     func testFundsStagesUnknownCurrencyAndZeroRemainDistinct() {
         let app = launch(); app.buttons["wallet.fixture.assets"].tap()
         XCTAssertTrue(app.staticTexts["wallet.assets.unknown"].waitForExistence(timeout: 5))

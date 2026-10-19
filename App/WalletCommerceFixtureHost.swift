@@ -74,6 +74,7 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
             List {
                 Text("Synthetic offline wallet fixture")
                 NavigationLink("Assets") { WalletAssetsView(reader: state.reader) }.accessibilityIdentifier("wallet.fixture.assets")
+                NavigationLink("Income") { WalletIncomeView(reader: state.reader, onCooperationFinance: {}) }.accessibilityIdentifier("wallet.fixture.income")
                 NavigationLink("Points") { WalletLedgerView(reader: state.reader, kind: .points) }.accessibilityIdentifier("wallet.fixture.points")
                 NavigationLink("Cart") { WalletCartView(reader: state.reader) }.accessibilityIdentifier("wallet.fixture.cart")
                 NavigationLink("Bank withdrawal") { BankWithdrawalView(reader: state.reader) }.accessibilityIdentifier("wallet.fixture.bankWithdrawal")

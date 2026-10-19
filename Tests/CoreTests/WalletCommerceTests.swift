@@ -21,6 +21,100 @@ private final class WalletRecordingTransport: HTTPTransport {
     private func service(_ transport: WalletRecordingTransport) throws -> WalletCommerceService { try .init(configuration: config(), transport: transport) }
     private func fields(_ request: URLRequest) -> String { String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "" }
     private func scope() -> WalletCommerceScope { .init(namespace: "synthetic", accountID: 9, epoch: UUID()) }
+    func testIncomeDetailUsesLoadedRowWithoutAnotherRequest() async throws {
+        let active = scope()
+        let fake = WalletRecordingTransport(#"{"code":200,"data":{"rows":[{"id":61,"changeBalance":"-1.25","changeType":2,"eventType":4,"currency":"CNY","changeReason":"Returned"}],"total":1}}"#)
+        let reader = WalletCommerceReader(service: try service(fake), session: { (active, "fake") })
+        let pager = WalletLedgerPager(); await pager.load(reader: reader, kind: .income(.all))
+        let selection = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: reader))
+        let row = try XCTUnwrap(pager.incomeDetailRow(selection, reader: reader))
+        XCTAssertEqual(row, pager.rows[0]); XCTAssertEqual(row.signedText(points: false, income: true), "−1.25")
+        XCTAssertEqual(row.incomeEventKey, "wallet.event.withdrawalRejected")
+        XCTAssertEqual(fake.requests.count, 1)
+        XCTAssertNil(pager.incomeDetail(rowID: 62, reader: reader))
+        XCTAssertNil(pager.incomeDetail(rowID: 0, reader: reader))
+    }
+    func testIncomeDetailPreservesUnknownAmountsAndKnownZero() async throws {
+        let active = scope()
+        let fake = WalletRecordingTransport(#"{"code":200,"data":{"rows":[{"id":1},{"id":2,"changeBalance":"0","changeType":1,"currency":"USD"}],"total":2}}"#)
+        let reader = WalletCommerceReader(service: try service(fake), session: { (active, "fake") })
+        let pager = WalletLedgerPager(); await pager.load(reader: reader, kind: .income(.all))
+        let unknown = try XCTUnwrap(pager.incomeDetail(rowID: 1, reader: reader))
+        let row = try XCTUnwrap(pager.incomeDetailRow(unknown, reader: reader))
+        XCTAssertNil(row.changeBalance); XCTAssertNil(row.currency); XCTAssertEqual(row.incomeDirection, .unknown)
+        let zero = try XCTUnwrap(pager.incomeDetail(rowID: 2, reader: reader))
+        XCTAssertEqual(pager.incomeDetailRow(zero, reader: reader)?.changeBalance?.value, 0)
+        XCTAssertEqual(pager.incomeDetailRow(zero, reader: reader)?.currency, "USD")
+    }
+    func testIncomeDetailRejectsAccountEpochNamespaceChangesAndLogout() async throws {
+        let active = scope(); var current: WalletCommerceScope? = active
+        let fake = WalletRecordingTransport(#"{"code":200,"data":{"rows":[{"id":61}],"total":1}}"#)
+        let reader = WalletCommerceReader(service: try service(fake), session: { current.map { ($0, "fake") } })
+        let pager = WalletLedgerPager(); await pager.load(reader: reader, kind: .income(.all))
+        let selected = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: reader))
+        for changed in [nil, WalletCommerceScope(namespace: active.namespace, accountID: 10, epoch: active.epoch),
+                        WalletCommerceScope(namespace: active.namespace, accountID: active.accountID, epoch: UUID()),
+                        WalletCommerceScope(namespace: "other", accountID: active.accountID, epoch: active.epoch)] {
+            current = changed
+            XCTAssertNil(pager.incomeDetailRow(selected, reader: reader))
+            XCTAssertNil(pager.incomeDetail(rowID: 61, reader: reader))
+        }
+    }
+    func testIncomeDetailRetiredByRefreshEvenWithIdenticalRows() async throws {
+        let active = scope(), fake = WalletRecordingTransport(#"{"code":200,"data":{"rows":[{"id":61}],"total":1}}"#)
+        let reader = WalletCommerceReader(service: try service(fake), session: { (active, "fake") })
+        let pager = WalletLedgerPager(); await pager.load(reader: reader, kind: .income(.all))
+        let old = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: reader))
+        pager.reset(); XCTAssertNil(pager.incomeDetailRow(old, reader: reader))
+        await pager.load(reader: reader, kind: .income(.all))
+        XCTAssertNil(pager.incomeDetailRow(old, reader: reader))
+        let new = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: reader))
+        XCTAssertNotEqual(old.id, new.id)
+    }
+    func testIncomeDetailFilterABADoesNotReviveOldSelection() async throws {
+        let active = scope(), fake = WalletRecordingTransport(#"{"code":200,"data":{"rows":[{"id":61}],"total":1}}"#)
+        let reader = WalletCommerceReader(service: try service(fake), session: { (active, "fake") })
+        let pager = WalletLedgerPager(); await pager.load(reader: reader, kind: .income(.all))
+        let old = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: reader))
+        await pager.load(reader: reader, kind: .income(.brand))
+        XCTAssertNil(pager.incomeDetailRow(old, reader: reader))
+        await pager.load(reader: reader, kind: .income(.all))
+        XCTAssertNil(pager.incomeDetailRow(old, reader: reader))
+    }
+    func testIncomeDetailCannotOpenFromBalanceOrUnloadedPager() async throws {
+        let active = scope(), fake = WalletRecordingTransport(#"{"code":200,"data":[{"id":61}]}"#)
+        let reader = WalletCommerceReader(service: try service(fake), session: { (active, "fake") })
+        let pager = WalletLedgerPager()
+        XCTAssertNil(pager.incomeDetail(rowID: 61, reader: reader))
+        await pager.load(reader: reader, kind: .balance)
+        XCTAssertEqual(pager.rows.count, 1); XCTAssertNil(pager.incomeDetail(rowID: 61, reader: reader))
+    }
+
+    func testReplacementReaderMustReadBeforeOpeningSameScopeDetails() async throws {
+        let active = scope(), oldWire = WalletRecordingTransport(#"{"code":200,"data":{"rows":[{"id":61,"changeBalance":1}],"total":1}}"#)
+        let oldReader = WalletCommerceReader(service: try service(oldWire), session: { (active, "fake") })
+        let pager = WalletLedgerPager(); await pager.load(reader: oldReader, kind: .income(.all))
+        let old = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: oldReader))
+        let newWire = WalletRecordingTransport(#"{"code":200,"data":{"rows":[{"id":61,"changeBalance":2}],"total":1}}"#)
+        let newReader = WalletCommerceReader(service: try service(newWire), session: { (active, "fake") })
+        XCTAssertNil(pager.incomeDetail(rowID: 61, reader: newReader))
+        XCTAssertNil(pager.incomeDetailRow(old, reader: newReader))
+        await pager.load(reader: newReader, kind: .income(.all))
+        XCTAssertEqual(newWire.requests.count, 1)
+        let new = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: newReader))
+        XCTAssertEqual(pager.incomeDetailRow(new, reader: newReader)?.changeBalance?.value, 2)
+        XCTAssertNil(pager.incomeDetailRow(old, reader: oldReader))
+    }
+    func testLeavingPagerRetiresSelectionWithoutDeletingLoadedRows() async throws {
+        let active = scope(), fake = WalletRecordingTransport(#"{"code":200,"data":{"rows":[{"id":61}],"total":1}}"#)
+        let reader = WalletCommerceReader(service: try service(fake), session: { (active, "fake") })
+        let pager = WalletLedgerPager(); await pager.load(reader: reader, kind: .income(.all))
+        let selection = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: reader))
+        pager.cancel()
+        XCTAssertNil(pager.incomeDetailRow(selection, reader: reader))
+        XCTAssertEqual(pager.rows.count, 1)
+    }
+
     func testMissingAmountAndCurrencyNeverBecomeZero() throws {
         let row = try decode(WalletLedgerRow.self, #"{"id":1,"changeType":1}"#)
         XCTAssertNil(row.changeBalance); XCTAssertNil(row.currency)

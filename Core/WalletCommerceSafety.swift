@@ -186,6 +186,16 @@ public struct WalletCommerceReview: Equatable {
     // This commerce adapter remains unrelated to bank operations.
 }
 
+/// Memory-only selection of an existing income row. No detail endpoint or payout state is invented.
+public struct WalletIncomeDetailSelection: Identifiable {
+    public let id = UUID()
+    fileprivate let row: WalletLedgerRow
+    fileprivate let scope: WalletCommerceScope
+    fileprivate let kind: WalletLedgerKind
+    fileprivate let snapshotID: UUID
+    fileprivate let readerID: ObjectIdentifier
+}
+
 /// Stable ordering, raw-page pagination and no advance on failure. Filtering is only presentation.
 @MainActor public final class WalletLedgerPager {
     public private(set) var rows: [WalletLedgerRow] = []
@@ -198,21 +208,39 @@ public struct WalletCommerceReview: Equatable {
     public private(set) var loadedScope: WalletCommerceScope?
     private var requestedScope: WalletCommerceScope?
     private var requestedKind: WalletLedgerKind?
+    private var requestedReaderID: ObjectIdentifier?
     private var nextPage = 1
+    private var snapshotID = UUID()
     private var generation = UUID()
     public init() {}
-    public func cancel() { generation = UUID(); isLoading = false }
+    public func cancel() { generation = UUID(); snapshotID = UUID(); isLoading = false }
     public func reset() {
-        generation = UUID(); rows = []; nextPage = 1; hasMore = true
+        generation = UUID(); snapshotID = UUID(); rows = []; nextPage = 1; hasMore = true
         isLoading = false; failed = false; requiresLogin = false; unavailable = false
-        hasLoadedPage = false; loadedScope = nil; requestedScope = nil; requestedKind = nil
+        hasLoadedPage = false; loadedScope = nil; requestedScope = nil; requestedKind = nil; requestedReaderID = nil
+    }
+    /// Selection is admitted only from this pager's successfully loaded, current-owner income page.
+    public func incomeDetail(rowID: Int, reader: WalletCommerceReader) -> WalletIncomeDetailSelection? {
+        guard requestedReaderID == ObjectIdentifier(reader), let kind = requestedKind, case .income = kind,
+              hasLoadedPage, !requiresLogin, !unavailable,
+              let scope = loadedScope, scope == reader.scope, reader.isConfigured,
+              rowID > 0, let row = rows.first(where: { $0.id == rowID }) else { return nil }
+        return WalletIncomeDetailSelection(row: row, scope: scope, kind: kind, snapshotID: snapshotID, readerID: ObjectIdentifier(reader))
+    }
+    /// A refreshed page, changed filter, revoked read lease, or another authentication epoch retires it.
+    public func incomeDetailRow(_ selection: WalletIncomeDetailSelection, reader: WalletCommerceReader) -> WalletLedgerRow? {
+        guard hasLoadedPage, !requiresLogin, !unavailable, reader.isConfigured,
+              requestedReaderID == ObjectIdentifier(reader), selection.readerID == ObjectIdentifier(reader), selection.snapshotID == snapshotID, selection.kind == requestedKind,
+              selection.scope == loadedScope, selection.scope == reader.scope,
+              rows.contains(selection.row) else { return nil }
+        return selection.row
     }
     public func load(reader: WalletCommerceReader, kind: WalletLedgerKind) async {
         let scope = reader.scope
         // Bind before dispatch, not only after success: repeated first-page taps
         // must share the in-flight gate, while another owner/kind starts fresh.
-        if requestedScope != scope || requestedKind != kind { reset() }
-        requestedScope = scope; requestedKind = kind
+        if requestedScope != scope || requestedKind != kind || requestedReaderID != ObjectIdentifier(reader) { reset() }
+        requestedScope = scope; requestedKind = kind; requestedReaderID = ObjectIdentifier(reader)
         guard !isLoading, hasMore else { return }
         let captured = generation; let pageNumber = nextPage
         isLoading = true; failed = false; requiresLogin = false; unavailable = false

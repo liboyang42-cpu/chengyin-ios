@@ -122,12 +122,14 @@ enum WalletReadFailurePresentation {
     }
 }
 @MainActor struct WalletLedgerView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
     let kind: WalletLedgerKind
     @StateObject private var model = WalletPagerScreen()
     @State private var direction = "all"
+    @State private var incomeDetail: WalletIncomeDetailSelection?
     private var points: Bool { kind == .points || kind == .assetPoints }
     private var income: Bool { if case .income = kind { return true }; return false }
     private var filtered: [WalletLedgerRow] {
@@ -147,18 +149,16 @@ enum WalletReadFailurePresentation {
                     Text("wallet.empty").accessibilityIdentifier("wallet.ledger.empty")
                 }
                 ForEach(filtered) { row in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
-                        if income { Text(LocalizedStringKey(row.incomeEventKey)) }
-                        Text(LocalizedStringKey("wallet.direction." + (income ? row.incomeDirection : row.assetDirection).rawValue))
-                        HStack {
-                            Text(verbatim: format.signed(row, points: points, income: income))
-                            if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
-                            else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
+                    if income {
+                        Button {
+                            incomeDetail = model.pager.incomeDetail(rowID: row.id, reader: reader)
+                        } label: {
+                            HStack { ledgerRow(row); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary).accessibilityHidden(true) }
+                                .contentShape(Rectangle()).frame(minHeight: 44)
                         }
-                        if !points, let balance = row.afterBalance { LabeledContent("wallet.balanceAfter", value: format.amount(balance, currency: row.currency)) }
-                        if let date = row.createTime { Text(verbatim: date).font(.caption) }
-                    }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.ledger.\(row.id)")
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("wallet.income.detail.open.\(row.id)")
+                    } else { ledgerRow(row) }
                 }
             }
             if model.pager.failed || !reader.isConfigured || reader.scope == nil {
@@ -169,10 +169,47 @@ enum WalletReadFailurePresentation {
                 Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
                     .accessibilityIdentifier("wallet.ledger.loadMore")
             }
-        }.appNavigationTitle(key: points ? "wallet.pointsLedger" : "wallet.balanceLedger")
+        }.appNavigationTitle(key: income ? "wallet.income" : points ? "wallet.pointsLedger" : "wallet.balanceLedger")
             .task(id: reader.scope) { model.reset(); await model.load(reader, kind: kind) }
-            .onDisappear { model.cancel() }
-            .refreshable { model.reset(); await model.load(reader, kind: kind) }
+            .onDisappear { if incomeDetail == nil { model.cancel() } }
+            .refreshable { incomeDetail = nil; model.reset(); await model.load(reader, kind: kind) }
+            .onChange(of: reader.scope) { _, _ in incomeDetail = nil }
+            .onChange(of: direction) { _, _ in incomeDetail = nil }
+            .onChange(of: scenePhase) { _, phase in if phase != .active { incomeDetail = nil } }
+            .sheet(item: $incomeDetail) { selection in
+                NavigationStack {
+                    List {
+                        if let row = model.pager.incomeDetailRow(selection, reader: reader) {
+                            Section { ledgerRow(row) }
+                            Section { LabeledContent("wallet.entry", value: String(row.id)) }
+                        } else {
+                            Text(LocalizedStringKey(reader.scope == nil ? "wallet.login" : "wallet.failed"))
+                                .accessibilityIdentifier("wallet.income.detail.retired")
+                        }
+                    }
+                    .privacySensitive()
+                    .appNavigationTitle("wallet.income")
+                    .toolbar { ToolbarItem(placement: .confirmationAction) {
+                        Button("action.close") { incomeDetail = nil }
+                            .accessibilityIdentifier("wallet.income.detail.close")
+                    } }
+                    .accessibilityIdentifier("wallet.income.detail")
+                }
+            }
+    }
+    private func ledgerRow(_ row: WalletLedgerRow) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+            if income { Text(LocalizedStringKey(row.incomeEventKey)) }
+            Text(LocalizedStringKey("wallet.direction." + (income ? row.incomeDirection : row.assetDirection).rawValue))
+            HStack {
+                Text(verbatim: format.signed(row, points: points, income: income))
+                if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
+                else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
+            }
+            if !points, let balance = row.afterBalance { LabeledContent("wallet.balanceAfter", value: format.amount(balance, currency: row.currency)) }
+            if let date = row.createTime { Text(verbatim: date).font(.caption) }
+        }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.ledger.\(row.id)")
     }
 }
 @MainActor struct WalletIncomeView: View {
