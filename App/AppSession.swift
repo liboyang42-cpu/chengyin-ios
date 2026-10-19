@@ -2938,6 +2938,43 @@ final class AppSession: ObservableObject {
                   ContentDraftContextFence.matches(captured, current) else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
+    /// Roam home 附近活动 peek: separate approval, manual roam centre, no default grant.
+    lazy var roamEntryNearbyReader = RoamEntryNearbyReader(configuration: regionalConfiguration?.apiConfiguration,
+        transport: compositionTransport.scopedForManualMap(roamMapSelection),
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        area: { [weak self] in self?.roamMapSelection.snapshot },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.roamEntryNearbyReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
+    /// 那年今日 / 月度回顾: live wiring behind its own approval; without one the tools stay "not configured".
+    lazy var roamPassportToolsReader = RoamPassportToolsSessionReader(configuration: regionalConfiguration?.apiConfiguration,
+        transport: compositionTransport,
+        currentSession: { [weak self] in self?.currentRoamExperienceSession },
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.roamPassportToolsReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, self.currentRoamExperienceSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
+        })
+    /// The peek's team layer: a separate coordinator so the nearby page's own list is untouched.
+    /// nil means the team read failed; an unconfigured team read contributes no teams.
+    func roamEntryTeams(area: RoamSearchArea) async -> [NearbyTeam]? {
+        let reader = makeNearbyTeamCoordinator()
+        reader.bind(nearbyTeamSession)
+        guard reader.configured, reader.authenticated else { return [] }
+        await reader.loadNearby(.init(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude, radius: RoamEntryNearbyRoute.radius))
+        return reader.messageKey == nil ? reader.teams : nil
+    }
     private let roamService: RoamService?
     // Exact dormant IM adapter exists, but ordinary production composition has no live grant.
     private var imExpandedCoordinators: [IMScope: IMExpandedCoordinator] = [:]

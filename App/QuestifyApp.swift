@@ -76,8 +76,12 @@ struct QuestifyApp: App {
                     TemplateAuthoringFixtureHostView()
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-order-lifecycle-fixture") {
                     OrderLifecycleFixtureHostView()
+                } else if RoamSubpageFixtureHost.selected {
+                    RoamSubpageFixtureHost()
                 } else if RoamExperienceFixtureHostView.selected {
                     RoamExperienceFixtureHostView()
+                } else if RoamHomeFixtureHostView.selected {
+                    RoamHomeFixtureHostView()
                 } else if let scenario=ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ActivityFixtureRootView(scenario:scenario)
                 } else if let merchant=MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
@@ -124,6 +128,8 @@ struct QuestifyApp: App {
                     ClubActionFixtureRootView(scenario:clubAction)
                 } else if let registration=RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     RegistrationFixtureHostView(scenario:registration)
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-map-core-entry") {
+                    MapCoreEntryFixtureHost()
                 } else if let module=ModuleFixture.selected {
                     ModuleFixtureRootView(module:module)
                 } else if let session=sessionContainer.session {
@@ -185,7 +191,7 @@ final class AppSessionContainer: ObservableObject {
            ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-business-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-content-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--cooperation-flow-fixture") ||
-           RoamExperienceFixtureHostView.selected || ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           RoamExperienceFixtureHostView.selected || RoamHomeFixtureHostView.selected || RoamSubpageFixtureHost.selected || ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil || ModuleFixture.selected != nil ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-operations-fixture") ||
            MerchantOnboardingFixtureRoot.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
@@ -240,7 +246,7 @@ struct SessionRootView: View {
                     }, playerProfileDestination: { memberID in
                         AnyView(SocialPublicProfileView(memberID: memberID, reader: session.socialAccountReader,
                             squareReader: session.squareReader, actions: nil).id(session.socialAccountReader.identity))
-                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
+                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: { selectedTab = .mine })) }, nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: { selectedTab = .mine })) }, toolsReader: session.roamPassportToolsReader)
                         .tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
                     NavigationStack {
                         DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)

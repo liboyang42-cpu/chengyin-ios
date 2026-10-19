@@ -113,6 +113,9 @@ extension KeychainTokenStore: AppTokenStorage {}
     let roamSessionFactReadAccess: @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess?
     let roamNearbyEventsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess?
     let roamNearbyPlayersReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess?
+    /// Roam home 附近活动 peek and passport tools. No reviewed default exists; nil keeps both unavailable.
+    let roamEntryNearbyReadAccess: @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess?
+    let roamPassportToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess?
     let profileOwnedCouponReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?
     let roamAlbumMetadataReadAccess: @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess?
     let roamTileMemoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess?
@@ -170,6 +173,8 @@ extension KeychainTokenStore: AppTokenStorage {}
          roamSessionFactReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess? = { _ in nil },
          roamNearbyEventsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess? = { _ in nil },
          roamNearbyPlayersReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess? = { _ in nil },
+         roamEntryNearbyReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess? = { _ in nil },
+         roamPassportToolsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? = { _ in nil },
          profileOwnedCouponReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? = { _ in nil },
          roamAlbumMetadataReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess? = { _ in nil },
          roamTileMemoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess? = { _ in nil },
@@ -212,6 +217,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.roamSessionFactReadAccess = roamSessionFactReadAccess
         self.roamNearbyEventsReadAccess = roamNearbyEventsReadAccess
         self.roamNearbyPlayersReadAccess = roamNearbyPlayersReadAccess
+        self.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
+        self.roamPassportToolsReadAccess = roamPassportToolsReadAccess
         self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess
         self.roamAlbumMetadataReadAccess = roamAlbumMetadataReadAccess
         self.roamTileMemoryReadAccess = roamTileMemoryReadAccess
