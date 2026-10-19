@@ -18,6 +18,7 @@ enum OwnedCouponReadRequest: Equatable {
     private(set) var isLoading = false
     private(set) var loadedRequest: OwnedCouponReadRequest?
     private var value: Value?
+    private weak var acceptedReader: (any AccountCollectionReading)?
     private var failure: AccountCollectionIssue?
     private var offer: OwnedCouponReadLifetime?
     private var task: Task<Void, Never>?
@@ -61,7 +62,7 @@ enum OwnedCouponReadRequest: Equatable {
                    presentation permit: OwnedCouponReadLifetime?) -> OfferedRead? {
         guard let permit, permit.isActive, presentation === permit, presentedRequest == request, foreground,
               reader.scope == request.ownerScope else { return nil }
-        cancelPending(); value = nil; failure = nil; loadedRequest = nil
+        cancelPending(); value = nil; acceptedReader = nil; failure = nil; loadedRequest = nil
         let read = OwnedCouponReadLifetime(ownerScope: request.ownerScope); offer = read
         revision &+= 1
         return { [weak self] in
@@ -89,7 +90,7 @@ enum OwnedCouponReadRequest: Equatable {
                 guard !Task.isCancelled, read.isActive, self.offer === read, permit.isActive,
                       self.presentation === permit, reader.scope == request.ownerScope,
                       reader.isAuthenticated, reader.isConfigured else { return }
-                self.value = result; self.loadedRequest = request
+                self.value = result; self.loadedRequest = request; self.acceptedReader = reader
             } catch {
                 guard !Task.isCancelled, !(error is CancellationError), read.isActive, self.offer === read,
                       permit.isActive, self.presentation === permit, reader.scope == request.ownerScope else { return }
@@ -100,6 +101,17 @@ enum OwnedCouponReadRequest: Equatable {
     private func accept(_ issue: AccountCollectionIssue, request: OwnedCouponReadRequest, read: OwnedCouponReadLifetime) {
         guard offer === read, read.isActive else { return }
         failure = issue; loadedRequest = request; read.invalidate(); offer = nil; task = nil; isLoading = false; revision &+= 1
+    }
+    /// Returning from metadata detail keeps only an accepted list from the exact reader.
+    /// This is not a grant for detail/code reads; explicit refresh and foreground still reread.
+    func scheduleListIfNeeded(request: OwnedCouponReadRequest, reader: any AccountCollectionReading,
+                              presentation permit: OwnedCouponReadLifetime?) {
+        guard let permit, permit.isActive, presentation === permit,
+              presentedRequest == request, foreground else { return }
+        if case .list = request, reader.isAuthenticated, reader.isConfigured,
+           reader.scope == request.ownerScope, acceptedReader === reader,
+           rows(for: request) != nil, failure == nil { return }
+        schedule(request: request, reader: reader, presentation: permit)
     }
     func schedule(request: OwnedCouponReadRequest, reader: any AccountCollectionReading, presentation: OwnedCouponReadLifetime?) {
         guard let action = offerRead(request: request, reader: reader, presentation: presentation) else { return }
