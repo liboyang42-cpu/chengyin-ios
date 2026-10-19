@@ -342,6 +342,8 @@ struct TemplateLowHPPresetConfiguration {
 
 enum TemplateLowHPPresetText: CaseIterable {
     case title, scope, choice, off, empty, retained, unsupported, preview, rule, noMatch, apply, applied, cancel, reload
+    /// Stable per-case identity for this table's copy; values come from value(_:).
+    var localizationKey: String { "templateLowHPText." + String(describing: self) }
     func value(_ locale: Locale) -> String {
         let chinese = locale.language.languageCode?.identifier == "zh"
         switch self {
