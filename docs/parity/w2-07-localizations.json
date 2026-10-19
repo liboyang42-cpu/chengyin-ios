@@ -78,5 +78,265 @@
   "key": "social.guideXcx.detailTitle",
   "en": "Play details",
   "zh-Hans": "玩法详情"
+ },
+ {
+  "key": "square.xcx.navTitle",
+  "en": "Square",
+  "zh-Hans": "动态"
+ },
+ {
+  "key": "square.xcx.defaultName",
+  "en": "Questify player",
+  "zh-Hans": "城瘾玩家"
+ },
+ {
+  "key": "square.xcx.level %lld",
+  "en": "Lv.%lld",
+  "zh-Hans": "Lv.%lld"
+ },
+ {
+  "key": "square.xcx.justNow",
+  "en": "Just now",
+  "zh-Hans": "刚刚"
+ },
+ {
+  "key": "square.xcx.ageDays %lld",
+  "en": "%lld d ago",
+  "zh-Hans": "%lld天前"
+ },
+ {
+  "key": "square.xcx.ageHours %lld",
+  "en": "%lld h ago",
+  "zh-Hans": "%lld时前"
+ },
+ {
+  "key": "square.xcx.ageMinutes %lld",
+  "en": "%lld min ago",
+  "zh-Hans": "%lld分前"
+ },
+ {
+  "key": "square.xcx.ageHoursMinutes %lld %lld",
+  "en": "%1$lld h %2$lld min ago",
+  "zh-Hans": "%1$lld时%2$lld分前"
+ },
+ {
+  "key": "square.xcx.lifecycle.DRAFT",
+  "en": "Draft",
+  "zh-Hans": "草稿"
+ },
+ {
+  "key": "square.xcx.lifecycle.CHECKING",
+  "en": "In review",
+  "zh-Hans": "审核中"
+ },
+ {
+  "key": "square.xcx.lifecycle.LIMITED",
+  "en": "Limited visibility",
+  "zh-Hans": "展示受限"
+ },
+ {
+  "key": "square.xcx.lifecycle.HIDDEN",
+  "en": "Hidden",
+  "zh-Hans": "已隐藏"
+ },
+ {
+  "key": "square.xcx.lifecycle.REMOVED",
+  "en": "Removed",
+  "zh-Hans": "已移除"
+ },
+ {
+  "key": "square.xcx.expand",
+  "en": "More",
+  "zh-Hans": "展开"
+ },
+ {
+  "key": "square.xcx.templateBadge",
+  "en": "Ready-to-start template",
+  "zh-Hans": "可直接开局的模板"
+ },
+ {
+  "key": "square.xcx.completionFallback",
+  "en": "This roam",
+  "zh-Hans": "本次漫游"
+ },
+ {
+  "key": "square.xcx.play.completedNodes %lld",
+  "en": "Cleared · %lld stops",
+  "zh-Hans": "已通关 · 共 %lld 个节点"
+ },
+ {
+  "key": "square.xcx.play.progress %lld %lld",
+  "en": "In progress · %1$lld/%2$lld done",
+  "zh-Hans": "进行中 · 已完成 %1$lld/%2$lld"
+ },
+ {
+  "key": "square.xcx.play.completed",
+  "en": "Cleared",
+  "zh-Hans": "已通关"
+ },
+ {
+  "key": "square.xcx.play.inProgress",
+  "en": "In progress",
+  "zh-Hans": "进行中"
+ },
+ {
+  "key": "square.xcx.countPill %lld",
+  "en": "%lld photos",
+  "zh-Hans": "%lld 张"
+ },
+ {
+  "key": "square.xcx.likesA11y %lld",
+  "en": "%lld likes",
+  "zh-Hans": "%lld 个赞"
+ },
+ {
+  "key": "square.xcx.commentsA11y %lld",
+  "en": "%lld comments",
+  "zh-Hans": "%lld 条评论"
+ },
+ {
+  "key": "square.xcx.upcoming.kicker",
+  "en": "Starting soon",
+  "zh-Hans": "即将开始"
+ },
+ {
+  "key": "square.xcx.upcoming.days %lld",
+  "en": "Starts in %lld d",
+  "zh-Hans": "%lld 天后开始"
+ },
+ {
+  "key": "square.xcx.upcoming.hours %lld",
+  "en": "Starts in %lld h",
+  "zh-Hans": "%lld 小时后开始"
+ },
+ {
+  "key": "square.xcx.upcoming.minutes %lld",
+  "en": "Starts in %lld min",
+  "zh-Hans": "%lld 分钟后开始"
+ },
+ {
+  "key": "square.xcx.upcoming.soon",
+  "en": "Starting now",
+  "zh-Hans": "马上开始"
+ },
+ {
+  "key": "square.xcx.upcoming.participants",
+  "en": "Participants",
+  "zh-Hans": "参与者"
+ },
+ {
+  "key": "square.xcx.upcoming.overflow %lld",
+  "en": "+%lld",
+  "zh-Hans": "+%lld"
+ },
+ {
+  "key": "square.xcx.emptyTitle",
+  "en": "The square is quiet",
+  "zh-Hans": "广场还很安静"
+ },
+ {
+  "key": "square.xcx.emptyDetail",
+  "en": "Be the first to share a creative route",
+  "zh-Hans": "成为第一个发布创意路线的人吧"
+ },
+ {
+  "key": "square.xcx.noCommentsTitle",
+  "en": "No comments yet",
+  "zh-Hans": "还没有评论"
+ },
+ {
+  "key": "square.xcx.noCommentsDetail",
+  "en": "Tell us what you think of this post",
+  "zh-Hans": "说说你对这条动态的想法吧"
+ },
+ {
+  "key": "square.xcx.commentDeleted",
+  "en": "This comment was deleted",
+  "zh-Hans": "该评论已删除"
+ },
+ {
+  "key": "square.xcx.commentPlaceholder",
+  "en": "Leave a comment",
+  "zh-Hans": "留下你的评论"
+ },
+ {
+  "key": "square.xcx.delete.post",
+  "en": "Delete",
+  "zh-Hans": "删除"
+ },
+ {
+  "key": "square.xcx.delete.comment",
+  "en": "Delete",
+  "zh-Hans": "删除"
+ },
+ {
+  "key": "square.xcx.delete.postTitle %@",
+  "en": "Delete the post “%@”?",
+  "zh-Hans": "删除这条动态「%@」?"
+ },
+ {
+  "key": "square.xcx.delete.postTitleImageOnly",
+  "en": "Delete this post (images only)?",
+  "zh-Hans": "删除这条动态「(仅图片动态)」?"
+ },
+ {
+  "key": "square.xcx.delete.postCascade",
+  "en": "All comments and likes on this post will be deleted with it",
+  "zh-Hans": "这条动态下的全部评论和点赞会一起删掉"
+ },
+ {
+  "key": "square.xcx.delete.postIrreversible",
+  "en": "This can't be undone and the post can't be recovered",
+  "zh-Hans": "此操作不可撤销，动态内容无法找回"
+ },
+ {
+  "key": "square.xcx.delete.postConfirm",
+  "en": "Delete post",
+  "zh-Hans": "删除动态"
+ },
+ {
+  "key": "square.xcx.delete.commentTitle",
+  "en": "Delete this comment?",
+  "zh-Hans": "删除这条评论?"
+ },
+ {
+  "key": "square.xcx.delete.commentIrreversible",
+  "en": "This can't be undone and the comment can't be recovered",
+  "zh-Hans": "此操作不可撤销，评论内容无法找回"
+ },
+ {
+  "key": "square.xcx.delete.commentConfirm",
+  "en": "Delete comment",
+  "zh-Hans": "删除评论"
+ },
+ {
+  "key": "square.xcx.delete.postDone",
+  "en": "Deleted. Your post has been removed.",
+  "zh-Hans": "已删除，你的推文已被删除"
+ },
+ {
+  "key": "square.xcx.delete.commentDone",
+  "en": "Comment deleted",
+  "zh-Hans": "评论已删除"
+ },
+ {
+  "key": "square.xcx.delete.failed",
+  "en": "Delete failed. Try again.",
+  "zh-Hans": "删除失败，请重试"
+ },
+ {
+  "key": "square.xcx.delete.unknown",
+  "en": "The delete result is not confirmed yet. Check before trying again.",
+  "zh-Hans": "删除结果未确认，请先核对再操作"
+ },
+ {
+  "key": "square.xcx.delete.verify",
+  "en": "Check result",
+  "zh-Hans": "核对结果"
+ },
+ {
+  "key": "square.xcx.delete.unavailable",
+  "en": "Deleting is not available in this version yet.",
+  "zh-Hans": "当前版本暂未开放删除"
  }
 ]
