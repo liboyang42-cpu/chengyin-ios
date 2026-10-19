@@ -171701,6 +171701,38 @@
           }
         }
       }
+    },
+    "playx.device.accuracy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Measured accuracy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位精度"
+          }
+        }
+      }
+    },
+    "playx.device.lowAccuracy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low location accuracy · you can scan the code to complete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位精度不足 · 可扫码完成"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
