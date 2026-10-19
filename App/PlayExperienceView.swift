@@ -475,8 +475,10 @@ struct PlayExperienceIssueView: View {
                     else { actionButton(context: context, .broadcast); actionButton(context: context, .unlockChapter); actionButton(context: context, .settle) }
                 }
                 if model.leaderOutcomeUnknown { Text("playx.lead.unknown") }
+                if model.leadReadFailed { PlayRuntimePhaseText(phase: "failed") }
             }
         }
+        .modifier(PlayLeadProgressPollingModifier(model: model, context: context))
         .confirmationDialog("playx.review", isPresented: $review, titleVisibility: .visible) {
             Button("playx.submit") {
                 if let action {
