@@ -1229,7 +1229,11 @@ struct ClubGovernanceReadView: View {
                 }
             } }
         } else if operation == .audienceCounts {
-            Section { ClubGovernanceFactRows(value: value["counts"], fields: ["ALL_MEMBERS", "ADMINS", "REGISTERED", "WAITLIST", "NO_SHOW", "INACTIVE"], showUnknown: true); edit(.sendNotification) }
+            Section {
+                if let rows = try? ClubOpsNotifyPresentation.audienceRows(value) { ClubOpsNotifyAudienceRows(rows: rows) }
+                else { ClubGovernanceFactRows(value: value["counts"], fields: ["ALL_MEMBERS", "ADMINS", "REGISTERED", "WAITLIST", "NO_SHOW", "INACTIVE"], showUnknown: true) }
+                edit(.sendNotification)
+            } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.audience.title") }
         } else if operation == .dissolutionBlockers {
             Section("club.gov.deposits") { dataRows(value["deposits"].array ?? []) }
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
@@ -1284,6 +1288,12 @@ struct ClubGovernanceReadView: View {
                     customerTopicRoute(record.source).map { target in (id: target.topicID, open: { selectCustomerTopic(target) }) }
                 }, editButton: detail.canEdit ? AnyView(edit(.saveCustomer, seed: ["remark": value["remark"], "tags": value["tags"]])) : nil)
             } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customer.malformed") }
+        } else if operation == .notificationStatus, let campaign = try? ClubOpsNotifyCampaign(value: value) {
+            Section { ClubOpsNotifyCampaignRows(campaign: campaign) } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.title") }
+            if campaign.canRetryFailed {
+                Text("club.gov.deliveryPending"); ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.retryOnlyFailed").font(.footnote).foregroundStyle(.secondary)
+                edit(.retryNotification)
+            }
         } else {
             if operation == .customers {
                 if let list = try? ClubOpsCustomerListPresentation(value: value) {

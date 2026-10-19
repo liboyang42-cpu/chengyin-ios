@@ -71,6 +71,18 @@ public protocol ClubManagementAccess: AnyObject {
     func snapshot(clubID: Int) async throws -> ClubManagementSnapshot
     func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int,
                  expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt
+    /// Reject may carry the reviewer's optional `reviewReason` (mini-program join-requests).
+    func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int, reviewReason: String?,
+                 expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt
+}
+
+public extension ClubManagementAccess {
+    /// Conformers without reason support never drop a reviewed reason: they refuse before dispatch.
+    func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int, reviewReason: String?,
+                 expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt {
+        guard reviewReason == nil else { throw ClubActionWriteError.notSent(.invalidRequest) }
+        return try await perform(action, clubID: clubID, memberID: memberID, expectedIdentity: expectedIdentity)
+    }
 }
 
 /// A list transport failure after a fresh successful permission read. No server,
