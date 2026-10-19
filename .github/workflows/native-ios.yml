@@ -99,7 +99,8 @@ jobs:
         run: python3 -B tools/current_native.py run --plan "$RUNNER_TEMP/current-plan/plan.json" --role '${{ matrix.partition }}' --start-file "$RUNNER_TEMP/current-start" --output "$RUNNER_TEMP/current-native"
       - name: Show compiler errors from failed commands
         if: failure()
-        run: grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | sort | uniq | head -300 || true
+        run: |
+          grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | sort | uniq | head -300 || true
       - name: Preserve exact command and result diagnostics
         if: ${{ always() && (matrix.partition != 'ui-build' || failure()) }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -153,7 +154,8 @@ jobs:
         run: python3 -B tools/current_native.py run --plan "$RUNNER_TEMP/current-plan/plan.json" --role ui --index '${{ matrix.index }}' --build "$RUNNER_TEMP/current-ui-build" --start-file "$RUNNER_TEMP/current-start" --output "$RUNNER_TEMP/current-native"
       - name: Show test and compiler errors from failed commands
         if: failure()
-        run: grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | sort | uniq | head -300 || true
+        run: |
+          grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | sort | uniq | head -300 || true
       - name: Preserve real per-shard results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
