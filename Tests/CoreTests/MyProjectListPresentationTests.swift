@@ -73,4 +73,11 @@ final class MyProjectListPresentationTests: XCTestCase {
         XCTAssertNil(MyProjectListPresentation.emptyKeys(for: .activity, canPublishActivity: false).detail)
         XCTAssertEqual(MyProjectListPresentation.emptyKeys(for: .template, canPublishActivity: false).title, "myProject.empty.template")
     }
+
+    func testEmptyCTAOnlyOffersActivityToPublishers() {
+        XCTAssertEqual(MyProjectListPresentation.emptyCTAKey(for: .topic, canPublishActivity: false), "myProject.cta.topic")
+        XCTAssertEqual(MyProjectListPresentation.emptyCTAKey(for: .activity, canPublishActivity: true), "myProject.cta.activity")
+        XCTAssertNil(MyProjectListPresentation.emptyCTAKey(for: .activity, canPublishActivity: false))
+        XCTAssertNil(MyProjectListPresentation.emptyCTAKey(for: .template, canPublishActivity: true))
+    }
 }
