@@ -239,7 +239,7 @@ struct ClubGovernanceReadView: View {
         .onDisappear { leaveReadHost() }
         .refreshable { await load() }
     }
-    private var bodyReturnOwners: some View {
+    private var bodyReturnOwnersStage1: some View {
         bodyNavigation
         .background {
             if let item = terminalPresentation.presented {
@@ -325,6 +325,9 @@ struct ClubGovernanceReadView: View {
         .onChange(of: topicSettingsSource) { _, source in
             topicSettingsReturn.invalidateUnlessCurrent(source: source, active: scenePhase == .active)
         }
+    }
+    private var bodyReturnOwnersStage2: some View {
+        bodyReturnOwnersStage1
         .onChange(of: scenePhase) { _, phase in
             if operation == .topicSettings {
                 if phase != .active { topicSettingsReturn.retire(); topicSettingsReads.retire(); generation &+= 1; loading = false }
@@ -402,6 +405,9 @@ struct ClubGovernanceReadView: View {
                 Task { await loadSettlementIfNeeded() }
             }
         }
+    }
+    private var bodyReturnOwners: some View {
+        bodyReturnOwnersStage2
         .onChange(of: settlementSource) { _, source in settlementReturn.invalidate(source: source, active: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
             if operation == .settlement {
