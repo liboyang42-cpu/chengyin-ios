@@ -162,7 +162,7 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                     .accessibilityIdentifier("club.audience.choice." + option.id)
                 }
             }
-            if isCurrent(), permit != nil, let failure = model.failure {
+            if isCurrent(), permit != nil, let failure = model.failure, failure != .forbidden {
                 Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.audience.error")
             }
             if isCurrent(), permit != nil, model.failure == .forbidden { ClubOpsNotifyDeniedText() }

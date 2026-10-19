@@ -16,7 +16,8 @@ public enum ClubOpsJoinRequestCopy {
     /// `入会申请加载失败` without a list, `入会申请暂未更新` over a retained one. Denial keeps its own copy.
     /// The only offered action is the existing read refresh, never a replayed write.
     public static func loadIssue(failed: Bool, denied: Bool, stale: Bool, hasSnapshot: Bool) -> LoadIssue? {
-        if stale && hasSnapshot { return .stale }
+        // A kept list is only "not updated" after a failed reload; an in-flight refresh is not an issue.
+        if failed && stale && hasSnapshot { return .stale }
         guard failed, !denied, !hasSnapshot else { return nil }
         return .failed
     }

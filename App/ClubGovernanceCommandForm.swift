@@ -147,7 +147,7 @@ import SwiftUI
                         Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
                             .accessibilityIdentifier("club.schedule.reviewConversion")
                     }
-                    if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["recipientCount", "inApp", "wechatSubscription"]) }
+                    if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["inApp", "wechatSubscription"]) }
                     if route.operation == .sendNotification { ClubOpsNotifyPreviewSummary(value: review.snapshot.value) }
                     Button(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction") {
                         if route.operation == .cancelOccurrence { cancelConfirmReview = review } else { Task { await confirm(review) } }
@@ -170,7 +170,9 @@ import SwiftUI
                 Section("club.gov.acknowledged") { Text("club.gov.acknowledgedBody")
                     ClubOpsGovernanceSuccess(operation: route.operation)
                     if route.operation == .correctAttendance { Text("clubOpsEvent.correct.success", tableName: "ClubOpsEvent").accessibilityIdentifier("clubOpsEvent.correct.success") }
-                    ClubGovernanceFactRows(value: receipt, fields: ["id", "activityId", "refundStatus", "totalCount", "successCount", "failedCount", "refundedOrders", "manualOrders"])
+                    // Campaign counts render once, in the notify card, when the receipt parses as a campaign.
+                    let campaignReceipt = [.sendNotification, .retryNotification].contains(route.operation) && (try? ClubOpsNotifyCampaign(value: receipt)) != nil
+                    ClubGovernanceFactRows(value: receipt, fields: campaignReceipt ? ["id"] : ["id", "activityId", "refundStatus", "totalCount", "successCount", "failedCount", "refundedOrders", "manualOrders"])
                     if [.sendNotification, .retryNotification].contains(route.operation), let campaign = try? ClubOpsNotifyCampaign(value: receipt) {
                         ClubOpsNotifyCampaignRows(campaign: campaign, outcome: route.operation)
                     }

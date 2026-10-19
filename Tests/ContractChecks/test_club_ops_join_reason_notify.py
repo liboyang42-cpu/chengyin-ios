@@ -116,7 +116,7 @@ class ClubOpsJoinNotifyContracts(unittest.TestCase):
         self.assertIn('case .outcomeUnknown(let issue): next = .outcomeUnknown(issue)', confirm)
         m = self.management
         self.assertIn('let pending = item.confirmation.reviewing(reason: reviewReasonDraft)', m)
-        self.assertIn('if pending.action == .reject { ClubOpsJoinRejectReasonField(text: $reviewReasonDraft) }', m)
+        self.assertIn('if pending.action == .reject { ClubOpsJoinRejectReasonField(text: $reviewReasonDraft).disabled(state == .submitting || state.preventsNewAction) }', m)
         self.assertIn('.disabled(pending.action == .reject && !ClubOpsJoinReviewReason.isValid(reviewReasonDraft))', m)
         self.assertIn('state = .checking; reviewReasonDraft = ""', m)
         self.assertEqual(m.count('coordinator.confirm(pending)'), 1)

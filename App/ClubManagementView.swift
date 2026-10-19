@@ -53,11 +53,13 @@ struct ClubManagementView: View {
                 Text("club.management.unconfigured")
             } else {
                 if loading { ProgressView().accessibilityLabel(Text("club.management.loading")) }
-                if let issue = ClubOpsJoinRequestCopy.loadIssue(failed: failed, denied: denied, stale: stale, hasSnapshot: contextMatches && snapshot != nil) {
+                let loadIssue = ClubOpsJoinRequestCopy.loadIssue(failed: failed, denied: denied, stale: stale, hasSnapshot: contextMatches && snapshot != nil)
+                if let issue = loadIssue {
                     ClubOpsJoinRequestLoadIssue(issue: issue, disabled: loading || state == .checking || state == .awaitingConfirmation || state == .submitting) { Task { await refresh() } }
                 }
                 if failed {
-                    Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable")).foregroundStyle(.secondary)
+                    // The mini page title replaces the generic unavailable line; denial keeps its own copy.
+                    if denied || loadIssue == nil { Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable")).foregroundStyle(.secondary) }
                     if let serverReadMessage { Text(verbatim: serverReadMessage) }
                 }
                 status
@@ -128,7 +130,8 @@ struct ClubManagementView: View {
                 switch selected {
                 case .request(let id):
                     if let request = snapshot.requests.first(where: { $0.id == id }) {
-                        Text(verbatim: request.nickname ?? "#\(id)")
+                        if let name = ClubOpsJoinRequestPresentation.displayName(request.nickname) { Text(verbatim: name) }
+                        else { Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify") }
                         Text(verbatim: "#\(id)")
                         if let time = request.joinTime { Text(verbatim: time) }
                         if let message = request.joinMessage, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -248,7 +251,7 @@ struct ClubManagementView: View {
                     else { ClubOpsJoinReviewNotes(action: pending.action) }
                     LabeledContent("club.management.club") { Text(verbatim: "\(pending.clubName) (#\(pending.clubID))") }
                     LabeledContent("club.management.target") { Text(verbatim: "\(pending.memberName) (#\(pending.memberID))") }
-                    if pending.action == .reject { ClubOpsJoinRejectReasonField(text: $reviewReasonDraft) }
+                    if pending.action == .reject { ClubOpsJoinRejectReasonField(text: $reviewReasonDraft).disabled(state == .submitting || state.preventsNewAction) }
                     Button(role: pending.action == .approve ? nil : .destructive) {
                         guard reviewOwner.claim(item, context: reviewContext, active: scenePhase == .active) else { return }
                         state = .submitting

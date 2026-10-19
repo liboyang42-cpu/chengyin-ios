@@ -17,6 +17,7 @@ final class ClubOpsJoinNotifyPresentationTests: XCTestCase {
         XCTAssertNil(ClubOpsJoinRequestCopy.loadIssue(failed: true, denied: true, stale: false, hasSnapshot: false))
         XCTAssertNil(ClubOpsJoinRequestCopy.loadIssue(failed: false, denied: false, stale: false, hasSnapshot: true))
         XCTAssertNil(ClubOpsJoinRequestCopy.loadIssue(failed: false, denied: false, stale: true, hasSnapshot: false))
+        XCTAssertNil(ClubOpsJoinRequestCopy.loadIssue(failed: false, denied: false, stale: true, hasSnapshot: true))
     }
     func testNotifyFailureCopyUsesOwnTableAndLeavesDenialToNote() {
         let copy = ClubOpsPageFailureCopy(operation: .audienceCounts, failure: .malformed)
