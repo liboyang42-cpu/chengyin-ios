@@ -58,6 +58,8 @@ final class AppSession: ObservableObject {
         return factory.chatClient(currentScope: { [weak self] row in self?.merchantNPCScope(row: row) })
     }
     func merchantOperationsDestination(_ destination: MerchantOperationsDestination, access: MerchantOperationsAccess) -> AnyView {
+        // w2-19: source pages/merchant/decor/ai-npc has its own page; saves stay dormant.
+        if destination == .character { return merchantStoreCharacterDestination() }
         guard destination == .assets else { return AnyView(MerchantOperationsDocumentView(reader: merchantOperationsReader, destination: destination, imageHost: retainedMerchantImages, templateAssistFactory: { [weak self] coordinator in
             self?.merchantTemplateAssistFlow(coordinator: coordinator) ?? MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
         })) }
