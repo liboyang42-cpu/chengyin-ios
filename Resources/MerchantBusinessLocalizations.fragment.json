@@ -164,13 +164,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Batch details"
+          "value": "Public-account settlement"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "批次详情"
+          "value": "对公结算"
         }
       }
     }
@@ -292,13 +292,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Change role"
+          "value": "Adjust role"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "修改岗位"
+          "value": "调整岗位"
         }
       }
     }
@@ -410,7 +410,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "客户名册"
+          "value": "客户"
         }
       }
     }
@@ -714,7 +714,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "平均评分"
+          "value": "近 30 天均分"
         }
       }
     }
@@ -1172,13 +1172,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "New reviews this month (server)"
+          "value": "New this month"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "本月新增评价（服务端）"
+          "value": "本月新增"
         }
       }
     }
@@ -1364,13 +1364,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Authorized spending amount"
+          "value": "Total paid"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "可查看消费金额"
+          "value": "累计实付"
         }
       }
     }
@@ -1450,7 +1450,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "待核销次数"
+          "value": "待核销"
         }
       }
     }
@@ -1460,13 +1460,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Awaiting reply (server)"
+          "value": "Awaiting reply"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "待回复（服务端）"
+          "value": "待回复"
         }
       }
     }
@@ -1700,13 +1700,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Refunds"
+          "value": "Refunded"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "退款次数"
+          "value": "已退款"
         }
       }
     }
@@ -1748,13 +1748,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reply rate (server)"
+          "value": "Replied rate"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "回复率（服务端）"
+          "value": "已回复率"
         }
       }
     }
@@ -2308,13 +2308,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Prepare operator invitation"
+          "value": "Invite employee"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "准备团队邀请"
+          "value": "邀请员工"
         }
       }
     }
@@ -2708,13 +2708,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redemption ledger"
+          "value": "Redemptions and refunds"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "核销台账"
+          "value": "核销与退款"
         }
       }
     }
@@ -2980,13 +2980,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reviews"
+          "value": "Reputation"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "评价管理"
+          "value": "口碑"
         }
       }
     }
@@ -3028,13 +3028,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "All reviews"
+          "value": "All"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "全部评价"
+          "value": "全部"
         }
       }
     }
@@ -3044,13 +3044,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "3 stars or fewer"
+          "value": "Low ratings"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "3星及以下"
+          "value": "低分"
         }
       }
     }
@@ -3082,7 +3082,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "有图评价"
+          "value": "有图"
         }
       }
     }
@@ -4292,13 +4292,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Recommend rejection"
+          "value": "Disagree with request"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "建议驳回"
+          "value": "不同意申请"
         }
       }
     }
