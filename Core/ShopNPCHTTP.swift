@@ -30,7 +30,8 @@ public extension ShopNPCHTTPTransport {
     }
     public func text(_ message: String, requestID: UUID, scope: ShopNPCScope) async throws -> ShopNPCReply {
         struct Body: Encodable { let requestId: String; let nodeId: Int; let message: String }
-        let bytes = try JSONEncoder().encode(Body(requestId: requestID.uuidString, nodeId: scope.nodeID.rawValue, message: message))
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        let bytes = try encoder.encode(Body(requestId: requestID.uuidString, nodeId: scope.nodeID.rawValue, message: message))
         return try await dispatch(path: "/api/ai/npc/shop-chat", type: "application/json", body: bytes, scope: scope, voice: false)
     }
     public func voice(_ clip: ShopNPCVoiceClip, requestID: UUID, scope: ShopNPCScope) async throws -> ShopNPCReply {

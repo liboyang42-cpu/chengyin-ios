@@ -418,6 +418,115 @@ import XCTest
         XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
         XCTAssertFalse(screen.loading)
     }
+    func testPersonalEarningsFactoryHidesSupportAndFinanceBranches() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.requests = []
+        let home = ProfilePersonalToolsAssociation.earningsHome(reader: session.walletHistoryReader)
+        XCTAssertTrue(home.visibility.income); XCTAssertTrue(home.visibility.withdrawalRecords)
+        XCTAssertFalse(home.visibility.assets); XCTAssertFalse(home.visibility.points); XCTAssertFalse(home.visibility.mall)
+        XCTAssertFalse(home.showsWithdrawalSupport); XCTAssertFalse(home.showsCooperationFinance)
+        XCTAssertNil(home.invitationHistory); XCTAssertTrue(wire.requests.isEmpty)
+        let ordinary = WalletCommerceHomeView(reader: session.walletHistoryReader,
+            visibility: home.visibility, onCooperationFinance: {})
+        XCTAssertTrue(ordinary.showsWithdrawalSupport); XCTAssertTrue(ordinary.showsCooperationFinance)
+        XCTAssertTrue(WalletWithdrawalsView(reader: session.walletHistoryReader).showsSupportContact)
+    }
+    func testPersonalToolsAdmitIndependentOwnerReadsWithoutDispatch() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession()
+        await login(session); wire.requests = []
+        let social = PersonalToolsSocial(), coop = try PersonalToolsCoop()
+        let access = ProfilePersonalToolsAccess(owner: social.identity, wallet: session.walletHistoryReader, complaint: coop)
+        let association = ProfilePersonalToolsAssociation(memberID: 7, social: social, access: access, isCurrent: { true })
+        XCTAssertTrue(association.walletIsCurrent); XCTAssertTrue(association.complaintIsCurrent)
+        XCTAssertTrue(wire.requests.isEmpty); XCTAssertTrue(coop.calls.isEmpty)
+        grants.retained?.revoke(); grants.enabled = false
+        XCTAssertFalse(association.walletIsCurrent); XCTAssertTrue(association.complaintIsCurrent)
+        social.identity = .init(accountID: 7, epoch: 1, role: "merchant")
+        XCTAssertFalse(association.walletIsCurrent); XCTAssertFalse(association.complaintIsCurrent)
+    }
+    func testPersonalEarningsOwnerReadAndLate401Retirement() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.requests = []
+        let social = PersonalToolsSocial(), coop = try PersonalToolsCoop()
+        let access = ProfilePersonalToolsAccess(owner: social.identity, wallet: session.walletHistoryReader, complaint: coop)
+        let association = ProfilePersonalToolsAssociation(memberID: 7, social: social, access: access, isCurrent: { true })
+        let reader = association.walletReader(), screen = WalletScreen<WithdrawalBalance>()
+        await screen.loadEarnings(reader)
+        XCTAssertEqual(screen.value?.balance.text, "12")
+        _ = try await reader.read { try await $0.withdrawals(token: $1) }
+        wire.pause = true; let started = expectation(description: "personal earnings 401"); wire.onPaused = { started.fulfill() }
+        let task = Task { await screen.loadEarnings(reader) }
+        await fulfillment(of: [started], timeout: 2)
+        social.presentationRevision += 1
+        wire.finish(code: 401); await task.value
+        XCTAssertNil(screen.value); XCTAssertNil(reader.scope); XCTAssertNotNil(session.account)
+        let count = wire.requests.count
+        do { _ = try await reader.read { try await $0.withdrawals(token: $1) }; XCTFail() } catch { }
+        XCTAssertEqual(wire.requests.count, count)
+    }
+    func testPersonalToolsRejectForeignGuestMerchantAndRetiredOwner() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session)
+        for role in ["player", "club", "merchant"] {
+            let social = PersonalToolsSocial(); social.identity = .init(accountID: 7, epoch: 1, role: role)
+            let access = ProfilePersonalToolsAccess(owner: social.identity, wallet: session.walletHistoryReader, complaint: try PersonalToolsCoop())
+            let same = ProfilePersonalToolsAssociation(memberID: 7, social: social, access: access, isCurrent: { true })
+            XCTAssertEqual(same.ownerIsCurrent, role != "merchant")
+            XCTAssertFalse(ProfilePersonalToolsAssociation(memberID: 8, social: social, access: access, isCurrent: { true }).ownerIsCurrent)
+            XCTAssertFalse(ProfilePersonalToolsAssociation(memberID: 7, social: social, access: access, isCurrent: { false }).ownerIsCurrent)
+            social.identity = .init(accountID: nil, epoch: 2)
+            XCTAssertFalse(same.ownerIsCurrent)
+        }
+    }
+    func testPersonalComplaintOnlyAllowsPreparationReadAndRetiresBefore401() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session)
+        let social = PersonalToolsSocial(), coop = try PersonalToolsCoop()
+        let association = ProfilePersonalToolsAssociation(memberID: 7, social: social,
+            access: .init(owner: social.identity, wallet: session.walletHistoryReader, complaint: coop), isCurrent: { true })
+        let reader = ProfilePersonalComplaintReader(association)
+        _ = try await reader.read(.complaintTopics)
+        do { _ = try await reader.read(.finance); XCTFail() } catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+        XCTAssertEqual(coop.calls, [.complaintTopics])
+        coop.pause = true; let started = expectation(description: "complaint preparation 401"); coop.onPaused = { started.fulfill() }
+        let task = Task { try await reader.read(.complaintTopics, isCurrent: { true }) }
+        await fulfillment(of: [started], timeout: 2)
+        social.presentationRevision += 1
+        coop.pending?.resume(throwing: APIError.unauthorized); coop.pending = nil
+        do { _ = try await task.value; XCTFail() } catch { XCTAssertEqual(error as? CoopFlowFailure, .stale) }
+        XCTAssertEqual(coop.unauthorized, 0); XCTAssertNil(reader.session)
+    }
+    @MainActor private final class PersonalToolsSocial: SocialAccountReading {
+        var identity = SocialAccountIdentity(accountID: 7, epoch: 1, role: "player")
+        var presentationRevision: UInt64 = 0
+        var isConfigured = true
+        var isOfflineExample = false
+        func publicProfile(memberID: Int) async throws -> SocialPublicProfile { throw APIError.notConfigured }
+        func informationList() async throws -> [SocialInformation] { throw APIError.notConfigured }
+        func information(id: Int) async throws -> SocialInformation { throw APIError.notConfigured }
+        func invitationHistory(page: Int) async throws -> SocialInviteHistory { throw APIError.notConfigured }
+    }
+    @MainActor private final class PersonalToolsCoop: CoopFlowReading {
+        var session: CoopFlowSession?
+        var calls: [CoopFlowRead] = [], pause = false, unauthorized = 0
+        var onPaused: (() -> Void)?, pending: CheckedContinuation<CoopFlowJSON, Error>?
+        init() throws { session = try .init(accountID: 7, epoch: 1, token: "synthetic") }
+        func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON { try await read(resource, isCurrent: { true }) }
+        func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON {
+            guard isCurrent() else { throw CoopFlowFailure.stale }; calls.append(resource)
+            do {
+                let result: CoopFlowJSON
+                if pause { result = try await withCheckedThrowingContinuation { pending = $0; onPaused?() } }
+                else { result = .array([]) }
+                guard isCurrent() else { throw CoopFlowFailure.stale }; return result
+            } catch {
+                guard isCurrent() else { throw CoopFlowFailure.stale }
+                if error as? APIError == .unauthorized { unauthorized += 1 }
+                throw error
+            }
+        }
+        func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement { throw APIError.notConfigured }
+    }
     private func form(_ path: String, _ fields: [String: String]) throws -> URLRequest {
         try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: fields, token: "synthetic-7", boundary: "wallet-test")
     }
