@@ -40,6 +40,8 @@ PAIRS = {
 # pages/merchant/decor/coop-setting labels (index.wxml:73,80); key owned here, value realigned
 'merchant.operations.demand': ('Cooperation needs', '合作诉求'),
 'merchant.operations.chargeType': ('Fee type', '收费方式'),
+# pages/merchant/apply description counter (index.wxml:149-153)
+'merchant.onboarding.descriptionCount %lld %lld': ('%lld / %lld', '%lld / %lld'),
 }
 
 

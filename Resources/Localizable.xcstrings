@@ -172287,6 +172287,22 @@
           }
         }
       }
+    },
+    "merchant.onboarding.descriptionCount %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / %lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

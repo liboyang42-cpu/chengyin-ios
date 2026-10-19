@@ -176,6 +176,15 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             }
                 .accessibilityIdentifier("merchant.onboarding.hours")
             TextField("merchant.onboarding.description", text: $model.draft.description, axis: .vertical).lineLimit(3...8)
+                .onChange(of: model.draft.description) { old, new in
+                    // Only user edits are clamped; a loaded reapplication is never rewritten on display.
+                    if new.count > MerchantOnboardingDescriptionLimit.maximum, old.count <= MerchantOnboardingDescriptionLimit.maximum {
+                        model.draft.description = MerchantOnboardingDescriptionLimit.clamped(new)
+                    }
+                }
+            Text("merchant.onboarding.descriptionCount \(model.draft.description.count) \(MerchantOnboardingDescriptionLimit.maximum)")
+                .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                .accessibilityIdentifier("merchant.onboarding.descriptionCount")
         }
     }
     private var licenseSection: some View {
