@@ -2486,6 +2486,40 @@ final class AppSession: ObservableObject {
                 accountID: context.session.accountID, epoch: context.session.epoch, token: context.session.token))
         retainedMerchantPrediction = (context, revision, approval.revision, reader); return reader
     }
+    var merchantProjectWorkspaceReadFactory: MerchantProjectWorkspaceReadFactory? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantProjectWorkspaceReadApproval, approval.matches(context),
+              let browse = runtimeDependencies.merchantProjectBrowseApproval, browse.matches(context) else { return nil }
+        let revision = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let live = self.runtimeDependencies.merchantProjectWorkspaceReadApproval,
+                  let list = self.runtimeDependencies.merchantProjectBrowseApproval else { return false }
+            return live.revision == approval.revision && live.matches(context) && list.revision == browse.revision && list.matches(context)
+        }
+        return MerchantProjectWorkspaceReadFactory(id: approval.revision) { [weak self] topicID, merchantID, presentationCurrent in
+            guard let self, topicID > 0, merchantID > 0, current(), presentationCurrent(),
+                  let captured = try? MerchantContentSession(accountID: context.session.accountID, epoch: context.session.epoch,
+                    storageScope: context.session.namespace, token: context.session.token) else { return nil }
+            let valid = { current() && presentationCurrent() }
+            let scoped = self.compositionTransport.scopedForMerchantProjectWorkspace(approval: approval, context: context,
+                topicID: topicID, approved: valid)
+            let source = MerchantContentService(configuration: api, transport: MerchantProjectCookieFreeTransport(underlying: scoped),
+                currentSession: { valid() ? captured : nil }, execution: .disabled, requiredMerchantID: merchantID,
+                onUnauthorized: { [weak self] _ in
+                    guard let self, valid() else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                })
+            return MerchantProjectWorkspaceReadService(source: source, topicID: topicID, merchantID: merchantID, current: valid)
+        }
+    }
+    private struct MerchantProjectCookieFreeTransport: HTTPTransport {
+        let underlying: any HTTPTransport
+        func send(_ request: URLRequest) async throws -> (Data, Int) {
+            var exact = request; exact.httpShouldHandleCookies = false
+            return try await underlying.send(exact)
+        }
+    }
     private var retainedMerchantProjectBrowse: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantProjectBrowseReader)?
     // Uses the existing context-immutable dependency policy, not a hot-reloaded grant provider.
     var merchantProjectBrowseReader: MerchantProjectBrowseReader? {
