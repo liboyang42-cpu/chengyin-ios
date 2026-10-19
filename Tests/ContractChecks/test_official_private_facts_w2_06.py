@@ -25,6 +25,11 @@ class OfficialPrivateFactsChecks(unittest.TestCase):
         self.assertNotIn("sourceText", text)
         self.assertNotIn("sourceLine", text)
 
+    def test_published_row_shows_category_only_when_sent(self):
+        views = read("App/OfficialPrivateViews.swift")
+        self.assertIn("if OfficialPublishedPresentation.nonBlank(event.category) != nil", views)
+        self.assertIn("Text(LocalizedStringKey(event.categoryKey))", views)
+
     def test_keys_exist_in_both_languages(self):
         text = read("App/OfficialPrivateFactsText.swift")
         catalog = json.loads(read("Resources/Localizable.xcstrings"))["strings"]

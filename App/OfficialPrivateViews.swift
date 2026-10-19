@@ -115,9 +115,12 @@ import SwiftUI
                     .background(Capsule().fill(Color.secondary.opacity(0.15)))
                     .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
             }
-            // Category is not decoded by the shared read contract; only the city is shown.
-            if let city = OfficialPublishedPresentation.nonBlank(event.city) { Text(verbatim: city).font(.subheadline).foregroundStyle(.secondary) }
-            else { Text("official.privateParity.published.cityUnknown").font(.subheadline).foregroundStyle(.secondary) }
+            // Source sub line: city, then " · category" only when the server sent one.
+            let city = OfficialPublishedPresentation.nonBlank(event.city).map { Text(verbatim: $0) } ?? Text("official.privateParity.published.cityUnknown")
+            Group {
+                if OfficialPublishedPresentation.nonBlank(event.category) != nil { city + Text(verbatim: " · ") + Text(LocalizedStringKey(event.categoryKey)) }
+                else { city }
+            }.font(.subheadline).foregroundStyle(.secondary)
         }.fixedSize(horizontal: false, vertical: true)
     }
     private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
