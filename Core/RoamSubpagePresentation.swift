@@ -160,8 +160,8 @@ public enum RoamShareSnapshotOutcome: Equatable {
 
 /// Offline DEBUG reader. Production composition supplies no reader until the anonymous route is reviewed.
 @MainActor public final class RoamShareSnapshotFixtureReader: RoamShareSnapshotReading {
-    public static let readyToken = "0123456789abcdef0123456789abcdef"
-    public static let goneToken = "fedcba9876543210fedcba9876543210"
+    public static let readyToken = String(repeating: "0a", count: 16)
+    public static let goneToken = String(repeating: "f1", count: 16)
     public static let readyBody = #"{"code":200,"data":{"ts":1760857200000,"routeName":"Demo lane footprints","time":"42:10","distance":2.4,"explorePct":18,"shops":3,"medal":"","shopMedalName":"","track":[{"lat":37.781,"lng":-122.421},{"lat":37.784,"lng":-122.418}],"pois":[{"name":"Demo cafe","cat":"merchant","catLabel":"Cafe"}]}}"#
     public init() {}
     public func snapshot(_ token: RoamShareToken) async -> RoamShareSnapshotOutcome {

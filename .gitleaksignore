@@ -139,3 +139,13 @@ c95737b4c54881a7492ca72bd31f68749304d1d1:docs/square-post-local-media.md:generic
 # Public source SHA256, verified against Tests/ContractChecks/test_merchant_business_access_lifetime.py.
 # Exact merge-history observation only; all other commits, paths, rules and lines remain scanned.
 ed6f7f91ae18a4268110a3902a91d286d277a7c4:tools/run138_editor_readiness_contract.json:generic-api-key:7149
+
+# w2-08 reviewed false positives: synthetic 32-hex share-snapshot fixture tokens (sequential hex digits)
+# and localization-key string literals ("nearby.w208.*"); no credential value is present.
+# Exact historical findings only. Other commits, paths, rules and lines remain scanned.
+e3530b44159733414c592696baa24ccbe5e691db:Core/RoamSubpagePresentation.swift:generic-api-key:163
+e3530b44159733414c592696baa24ccbe5e691db:Core/RoamSubpagePresentation.swift:generic-api-key:164
+fb4cae602b83e2a471d1aef9d427fadaeb70d200:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+fb4cae602b83e2a471d1aef9d427fadaeb70d200:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+fb4cae602b83e2a471d1aef9d427fadaeb70d200:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+fb4cae602b83e2a471d1aef9d427fadaeb70d200:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
