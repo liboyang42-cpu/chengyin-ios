@@ -38,5 +38,10 @@ final class ClubDetailTabsFlowTests: XCTestCase {
         XCTAssertTrue(tab("overview").exists)
         XCTAssertFalse(tab("manage").exists)
         XCTAssertFalse(app.buttons["club.openManagement"].exists)
+        tab("overview").tap()
+        // This fixture host has no governance context, so the board states it is unavailable.
+        let board = app.descendants(matching: .any)["club.detail.leaderboard.unavailable"]
+        for _ in 0..<4 where !board.exists { app.swipeUp() }
+        XCTAssertTrue(board.exists, app.debugDescription)
     }
 }

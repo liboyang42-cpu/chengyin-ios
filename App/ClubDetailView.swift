@@ -146,6 +146,25 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 .accessibilityIdentifier("club.openMembers")
                         } else { Text("club.joinToSeeMembers").foregroundStyle(.secondary).accessibilityIdentifier("club.members.gated") }
                     }
+                    // Mini-program overview: 本团贡献榜 · 本周, gated on member visibility like the source.
+                    Section("club.detail.leaderboard.title") {
+                        if club.canSeeMembers, let governance = management?.governance {
+                            NavigationLink {
+                                ClubGovernanceReadView(operation: .leaderboard, scope: .init(clubID: id), identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
+                                    .environment(\.clubEnrollmentProfile, governance.enrollmentProfile)
+                            } label: { Label("club.detail.leaderboard.open", systemImage: "trophy") }
+                                .accessibilityIdentifier("club.detail.leaderboard.open")
+                            Text("club.detail.leaderboard.reset").font(.footnote).foregroundStyle(.secondary)
+                        } else if club.canSeeMembers {
+                            Text("club.detail.leaderboard.unavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.leaderboard.unavailable")
+                        } else {
+                            Text("club.detail.leaderboard.locked").accessibilityIdentifier("club.detail.leaderboard.locked")
+                            Text("club.detail.leaderboard.lockedHint").font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                    Section("club.detail.governanceHelp.title") {
+                        Text("club.detail.governanceHelp.body").font(.footnote).foregroundStyle(.secondary)
+                    }
                 }
             }
             .task(id: ClubDetailManageGrantKey(clubID: id, identity: reader.clubIdentity, hasGovernance: management?.governance != nil)) {

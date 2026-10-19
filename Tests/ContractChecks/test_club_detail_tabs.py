@@ -30,12 +30,16 @@ class ClubDetailTabContracts(unittest.TestCase):
         self.assertLess(view.index('ClubActionPanel('), view.index('ClubDetailTabBar('))
         for marker, tab in [('club.chat.entry', '.posts'), ('ClubCommunityEntry(', '.posts'), ('club.calendar.open', '.events'),
                             ('club.openManagement', '.manage'), ('club.statsOverview.open', '.manage'), ('club.openMembers', '.overview'),
-                            ('ClubMerchantDiscoveryView(', '.manage'), ('club.projectLaunch.entry', '.manage')]:
+                            ('ClubMerchantDiscoveryView(', '.manage'), ('club.projectLaunch.entry', '.manage'),
+                            ('club.detail.leaderboard.open', '.overview'), ('club.detail.governanceHelp.body', '.overview')]:
             head = view[:view.index(marker)]
             self.assertIn(f'tab == {tab}', head[head.rindex('\n                if '):], marker)
         # The manage grant is the existing access/me read and revokes on account change.
         self.assertIn('governance.access.read(.access, scope: .init(clubID: id), options: [:])', view)
         self.assertIn('manageGrant = nil; selectedTab = nil', view)
+        # Overview board reuses the existing leaderboard read (server sort, member-gated).
+        self.assertIn('ClubGovernanceReadView(operation: .leaderboard, scope: .init(clubID: id)', view)
+        self.assertIn('if club.canSeeMembers, let governance = management?.governance {', view)
         self.assertNotRegex(view, r'\b(send|dispatch|URLSession)\s*\(')
 
     def test_tab_copy_is_bilingual_in_catalog(self):
