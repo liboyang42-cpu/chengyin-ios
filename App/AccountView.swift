@@ -117,6 +117,9 @@ import SwiftUI
                 Section {
                     Button { showsCooperation=true } label: { Label("cooperation.title",systemImage:"person.2") }
                         .accessibilityIdentifier("account.cooperation")
+                    NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
+                        Label("merchant.projects", systemImage: "calendar")
+                    }.accessibilityIdentifier("account.merchantProjectBrowse")
                     NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery) } label: {
                         Label("merchant.title",systemImage:"storefront")
                     }.accessibilityIdentifier("account.merchant")

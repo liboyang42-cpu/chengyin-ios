@@ -2438,6 +2438,29 @@ final class AppSession: ObservableObject {
     lazy var participantCoordinator=ParticipantMutationCoordinator(writer:participantWriter,reader:profileReader,onParticipantsChanged:{ [weak self] in
         self?.participantRevision &+= 1
     })
+    private var retainedMerchantProjectBrowse: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantProjectBrowseReader)?
+    // Uses the existing context-immutable dependency policy, not a hot-reloaded grant provider.
+    var merchantProjectBrowseReader: MerchantProjectBrowseReader? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantProjectBrowseApproval, approval.matches(context) else {
+            retainedMerchantProjectBrowse = nil; return nil
+        }
+        let revision = compositionViewerRevision
+        if let old = retainedMerchantProjectBrowse, old.context == context, old.revision == revision,
+           old.approval == approval.revision { return old.reader }
+        let isCurrent: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let live = self.runtimeDependencies.merchantProjectBrowseApproval else { return false }
+            return live.revision == approval.revision && live.matches(context)
+        }
+        let transport = compositionTransport.scopedForMerchantProjectBrowse(approval: approval, context: context, approved: isCurrent)
+        let reader = MerchantProjectBrowseReader(configuration: api, transport: transport, token: context.session.token,
+            revision: revision, current: isCurrent, unauthorized: { [weak self] in
+                guard let self, isCurrent() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        retainedMerchantProjectBrowse = (context, revision, approval.revision, reader); return reader
+    }
     private let merchantService: MerchantService?
     private let merchantEngagementService: MerchantEngagementService?
     lazy var merchantEngagementReader = MerchantEngagementSessionReader(

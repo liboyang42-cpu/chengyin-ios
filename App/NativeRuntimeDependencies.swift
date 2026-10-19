@@ -15,6 +15,7 @@ import Foundation
     let bankDocument: (any BankWithdrawalCurrentDocumentProviding)?
     let verificationCodeApproval: VerificationCodeApproval?
     let couponCodeApproval: CouponCodeApproval?
+    let merchantProjectBrowseApproval: MerchantProjectBrowseApproval?
     let merchantPublicApproval: MerchantPublicProductionApproval?
     let merchantNPCGrants: MerchantNPCGrants
     let socialReaderApproval: SocialReaderProductionApproval?
@@ -34,11 +35,12 @@ import Foundation
          location: (any RoamDeviceLocationProviding)? = nil, shopNPCGrants: ShopNPCGrants = .init(), motion: (any PlayMotionSampleProviding)? = nil,
          verificationCodeApproval: VerificationCodeApproval? = nil, couponCodeApproval: CouponCodeApproval? = nil, socialReaderApproval: SocialReaderProductionApproval? = nil,
          clubOpsTimeApproval: ClubOpsTimeApproval? = nil, contextualReviewApproval: ContextualReviewApproval? = nil,
-         ownerRefundApproval: ClubOwnerRefundApproval? = nil, nativePlatform: NativePlatformAcceptance? = nil, clubGovernanceApproval: ClubGovernanceProductionApproval? = nil, merchantBusinessApproval: MerchantBusinessProductionApproval? = nil, merchantEngagementApproval: MerchantEngagementProductionApproval? = nil, orderLifecycleConfiguration: OrderLifecycleProductionConfiguration? = nil, journeyNarrativeImageReader: (any RetainedPublicImageReading)? = nil, merchantPublicApproval: MerchantPublicProductionApproval? = nil, merchantNPCGrants: MerchantNPCGrants = .init()) {
+         ownerRefundApproval: ClubOwnerRefundApproval? = nil, nativePlatform: NativePlatformAcceptance? = nil, clubGovernanceApproval: ClubGovernanceProductionApproval? = nil, merchantBusinessApproval: MerchantBusinessProductionApproval? = nil, merchantEngagementApproval: MerchantEngagementProductionApproval? = nil, orderLifecycleConfiguration: OrderLifecycleProductionConfiguration? = nil, journeyNarrativeImageReader: (any RetainedPublicImageReading)? = nil, merchantPublicApproval: MerchantPublicProductionApproval? = nil, merchantNPCGrants: MerchantNPCGrants = .init(), merchantProjectBrowseApproval: MerchantProjectBrowseApproval? = nil) {
         self.clubOpsTimeApproval = clubOpsTimeApproval; self.contextualReviewApproval = contextualReviewApproval
         self.walkingNavigation = walkingNavigation
         self.officialActionApproval = officialActionApproval
         self.socialMemberActionApprovals = socialMemberActionApprovals
+        self.merchantProjectBrowseApproval = merchantProjectBrowseApproval
         self.merchantPublicApproval = merchantPublicApproval; self.merchantNPCGrants = merchantNPCGrants
         self.journeyNarrativeImageReader = journeyNarrativeImageReader
         self.socialReaderApproval = socialReaderApproval
@@ -64,3 +66,4 @@ import Foundation
     }
     static var dormant: Self { .init() }
 }
+
