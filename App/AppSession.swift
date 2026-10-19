@@ -119,6 +119,10 @@ final class AppSession: ObservableObject {
         merchantPublicFactory?.homeReader ?? disabledPublicMerchantHomeReader
     }
     private var publicMerchantReviewReader: any PublicMerchantReviewReading = DisabledPublicMerchantReviewReader()
+    /// Read-only consumers receive no reviews, NPC, owner-profile or action contexts.
+    var readOnlyPublicMerchantHomeContext: PublicMerchantHomeContext {
+        PublicMerchantHomeContext(reader: publicMerchantHomeReader)
+    }
     var publicMerchantHomeContext: PublicMerchantHomeContext {
         let retained = retainedPublicMerchantReviews
         let reviews: any PublicMerchantReviewReading = retained?.reader ?? publicMerchantReviewReader

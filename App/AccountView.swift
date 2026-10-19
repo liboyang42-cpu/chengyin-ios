@@ -98,7 +98,7 @@ import SwiftUI
                 },rewards:session.nonCashRewardReader,onOpenPost:{
                     guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
                     _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
-                }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader).id(session.accountCollectionReader.scope)
+                }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext).id(session.accountCollectionReader.scope)
                 Section {
                     NavigationLink { SessionObjectCardsView() } label: {
                         Label("objects.title", systemImage: "rectangle.stack")
