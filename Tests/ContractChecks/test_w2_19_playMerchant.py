@@ -77,5 +77,13 @@ class PlayMerchantContractChecks(unittest.TestCase):
             self.assertEqual(zh[key], text)
         self.assertIn('Text(verbatim:', read(VIEW))
 
+    def test_session_factory_is_fenced_and_read_only(self):
+        session = read('App/AppSession.swift')
+        factory = session.split('func playStoreDay(', 1)[1].split('// Journey extras', 1)[0]
+        self.assertIn('gates: .disabled, readsEnabled: true', factory)
+        self.assertEqual(factory.count('self.playStoreDayFence(key)'), 2)
+        self.assertIn('key.approval != nil && compositionViewerRevision == key.viewerRevision && currentPlayReadApprovalKey == key.approval', factory)
+        self.assertNotIn('execution:', factory)
+
 if __name__ == '__main__':
     unittest.main()

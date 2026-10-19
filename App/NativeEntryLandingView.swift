@@ -105,8 +105,8 @@ import SwiftUI
                 if session.merchantOperationsReader.isAuthenticated, session.merchantOperationsReader.scope == route.origin.readerScope {
                     switch route.kind {
                     case .topic:
-                        // Source ai-insight goRecTopic opens coop-center?topicId=.
-                        session.merchantCoopCenterDestination(focusTopicID: route.targetID)
+                        MerchantContentDocumentView(service: session.merchantContentService, query: .recruiting,
+                            focusedTopicID: route.targetID, focusedMerchantID: route.origin.merchantID)
                     case .partner:
                         if let owner = PublicMerchantOwnerID(route.targetID) {
                             let home = session.publicMerchantHomeContext
@@ -119,7 +119,8 @@ import SwiftUI
                 } else { Text("merchantMarketing.stale") }
             case .cooperationCenter(let origin):
                 if session.merchantOperationsReader.isAuthenticated, session.merchantOperationsReader.scope == origin.readerScope {
-                    session.merchantCoopCenterDestination()
+                    MerchantContentDocumentView(service: session.merchantContentService, query: .recruiting,
+                        focusedMerchantID: origin.merchantID)
                 } else { Text("merchantMarketing.stale") }
             case .cooperationSettings(let origin):
                 if session.merchantOperationsReader.isAuthenticated, session.merchantOperationsReader.scope == origin.readerScope {
