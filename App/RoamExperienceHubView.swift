@@ -49,7 +49,7 @@ import SwiftUI
                 NavigationLink { RoamOfficialTasksDestination(roamReader: reader) } label: { Label("roam.tasks.title", systemImage: "checklist") }
                     .disabled(reader.identity == nil)
                     .accessibilityIdentifier("roam.tasks.open")
-                NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination, toolsReader: toolsReader) } label: { Label("roam.experience.history", systemImage: "clock.arrow.circlepath") }
+                NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination) } label: { Label("roam.experience.history", systemImage: "clock.arrow.circlepath") }
                     .accessibilityIdentifier("roam.experience.history.open")
                 NavigationLink { RoamRecoveryView(reader: effectiveSessionReader).id(sessionFactReader?.scope) } label: { Label("roam.experience.recovery", systemImage: "arrow.clockwise.circle") }
                     .accessibilityIdentifier("roam.experience.recovery.open")

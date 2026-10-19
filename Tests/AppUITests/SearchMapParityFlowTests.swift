@@ -60,20 +60,4 @@ final class SearchMapParityFlowTests: XCTestCase {
         XCTAssertTrue(element("searchMap.destination.activity.71").waitForExistence(timeout: 5))
     }
 
-    func testFilterSheetUsesMerchantDiscoveryDateChoiceAndPriceMessages() {
-        launch()
-        app.buttons["searchMap.filters"].tap()
-        XCTAssertTrue(app.staticTexts["商家发现"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.textFields["searchMap.tag"].exists)
-        let today = app.buttons["mapDatePreset.today"]
-        XCTAssertTrue(revealFixtureElement(today, in: app)); today.tap()
-        XCTAssertEqual(element("searchMap.w208.date.selected").label, "今天")
-        let minimum = app.textFields["searchMap.filter.min"]
-        XCTAssertTrue(revealFixtureElement(minimum, in: app)); minimum.tap(); minimum.typeText("30")
-        let maximum = app.textFields["searchMap.filter.max"]; maximum.tap(); maximum.typeText("20")
-        let order = element("searchMap.w208.price.order")
-        XCTAssertTrue(revealFixtureElement(order, in: app, requiresHittable: false))
-        XCTAssertEqual(order.label, "最高价格不能小于等于最低价格")
-        XCTAssertTrue(element("searchMap.w208.price.range").exists)
-    }
 }

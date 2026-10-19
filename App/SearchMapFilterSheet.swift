@@ -8,7 +8,6 @@ import SwiftUI
     @State private var dateDraft: SearchMapDateFilterDraft
     @State private var datePicker: SearchMapDatePickerDraft?
     @State private var invalid = false
-    @State private var priceEdited = SearchMapPriceBound.minimum
     @State private var tag: String
     @State private var cityRole: String
     @State private var sortType: Int
@@ -36,8 +35,8 @@ import SwiftUI
         NavigationStack {
             Form {
                 if applyCityOptions != nil {
-                    Section("searchMap.w208.merchantDiscovery") {
-                        TextField("searchMap.w208.exploreTag", text: $tag).accessibilityIdentifier("searchMap.tag")
+                    Section("searchMap.cityOptions") {
+                        TextField("searchMap.tag", text: $tag).accessibilityIdentifier("searchMap.tag")
                         TextField("searchMap.cityRole", text: $cityRole).accessibilityIdentifier("searchMap.cityRole")
                         Picker("searchMap.sort", selection: $sortType) {
                             Text("searchMap.nearest").tag(1); Text("searchMap.popular").tag(2)
@@ -46,7 +45,7 @@ import SwiftUI
                 }
                 Section("searchMap.categories") {
                     Picker("searchMap.category", selection: $draft.categoryID) {
-                        Text(applyCityOptions != nil ? "searchMap.w208.allCategories" : "searchMap.all").tag(Int?.none)
+                        Text("searchMap.all").tag(Int?.none)
                         ForEach(categories) { Text(verbatim: $0.name).tag(Optional($0.id)) }
                         // Keep an explicit tag for a selection missing from the new directory.
                         // Only the user's selection/reset/Apply may change this manual draft.
@@ -80,14 +79,6 @@ import SwiftUI
                     } else {
                         Text("globalDatePreset.disclosure").font(.footnote).foregroundStyle(.secondary)
                     }
-                    // Mini-program 今天 / 明天 / 选择日期 are exclusive; the choice is derived from the draft.
-                    if let choice = SearchMapDateChoice.current(dateDraft) {
-                        Label(LocalizedStringKey(choice.key), systemImage: "checkmark")
-                            .accessibilityIdentifier("searchMap.w208.date.selected")
-                    }
-                    Button { openDatePicker(.start) } label: {
-                        Label("searchMap.w208.date.custom", systemImage: SearchMapDateChoice.current(dateDraft) == .custom ? "checkmark.circle.fill" : "calendar")
-                    }.frame(minHeight: 44).accessibilityIdentifier("searchMap.w208.date.custom")
                     TextField("searchMap.startDate", text: $dateDraft.startDate).accessibilityIdentifier("searchMap.filter.start")
                     Button("mapDatePicker.start") { openDatePicker(.start) }
                         .frame(minHeight: 44).accessibilityIdentifier("mapDatePicker.open.start")
@@ -98,14 +89,7 @@ import SwiftUI
                 }
                 Section("searchMap.price") {
                     TextField("searchMap.minimum", text: $minimum).keyboardType(.decimalPad).accessibilityIdentifier("searchMap.filter.min")
-                        .onChange(of: minimum) { _, _ in priceEdited = .minimum }
                     TextField("searchMap.maximum", text: $maximum).keyboardType(.decimalPad).accessibilityIdentifier("searchMap.filter.max")
-                        .onChange(of: maximum) { _, _ in priceEdited = .maximum }
-                    Text("searchMap.w208.price.range").font(.footnote).accessibilityIdentifier("searchMap.w208.price.range")
-                    if let key = SearchMapPriceRule.messageKey(minimum: minimum, maximum: maximum, edited: priceEdited) {
-                        Label(LocalizedStringKey(key), systemImage: "exclamationmark.circle")
-                            .accessibilityIdentifier("searchMap.w208.price.order")
-                    }
                     Text("searchMap.clientFilters").font(.footnote).foregroundStyle(.secondary)
                 }
                 if invalid { Label("searchMap.invalidInput", systemImage: "exclamationmark.circle").accessibilityIdentifier("searchMap.filter.invalid") }
