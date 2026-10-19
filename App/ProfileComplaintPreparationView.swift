@@ -35,6 +35,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
 @MainActor private struct ProfileComplaintPreparationScreen: View {
     let reader: any CoopFlowReading
     @State private var model: ProfileComplaintPreparationController
+    @State private var progress: ProfileComplaintProgressController
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var focused: Field?
@@ -42,10 +43,13 @@ private struct ProfileComplaintPresentationKey: Hashable {
     init(reader: any CoopFlowReading, isCurrent: @escaping @MainActor () -> Bool) {
         self.reader = reader
         _model = State(initialValue: .init(reader: reader, isCurrent: isCurrent))
+        _progress = State(initialValue: .init(reader: reader, isCurrent: isCurrent))
     }
     var body: some View {
         Form {
             Section {
+                Text("profile.complaint.pageSubtitle").font(.subheadline)
+                    .accessibilityIdentifier("profile.complaint.pageSubtitle")
                 Text("profile.complaint.localOnly").font(.footnote)
                     .accessibilityIdentifier("profile.complaint.localOnly")
             }
@@ -66,14 +70,18 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 }
                 if let topics = model.topics {
                     if topics.isEmpty && model.issue == nil && !model.isLoading {
-                        Section { Text("profile.complaint.empty").accessibilityIdentifier("profile.complaint.empty") }
+                        Section {
+                            Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty")
+                            Text("profile.complaint.sourceEmptyHint").font(.footnote).foregroundStyle(.secondary)
+                        }
                     } else if !topics.isEmpty {
                         editor(topics).disabled(!model.canEdit)
                     }
                 }
+                if model.contextMatches { ProfileComplaintProgressSection(model: progress) }
             }
         }
-        .navigationTitle("profile.complaint.title")
+        .navigationTitle("profile.complaint.pageTitle")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -89,11 +97,15 @@ private struct ProfileComplaintPresentationKey: Hashable {
             }
         }
         .task { await model.load() }
+        .task { await progress.load() }
         .onChange(of: reader.session) { _, _ in model.retire() }
+        .onChange(of: reader.session) { _, _ in progress.retire() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background { focused = nil; model.retire() }
         }
         .onDisappear { model.retire() }
+        .onDisappear { progress.retire() }
+        .onChange(of: scenePhase) { _, phase in if phase == .background { progress.retire() } }
         .privacySensitive()
     }
     private func editor(_ topics: [ProfileComplaintTopic]) -> some View {

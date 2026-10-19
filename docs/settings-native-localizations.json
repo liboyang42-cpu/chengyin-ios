@@ -161,18 +161,18 @@
   },
   {
     "key": "settingsNative.about.playerCode",
-    "en": "My personal code",
-    "zh-Hans": "我的个人码"
+    "en": "My QR code",
+    "zh-Hans": "我的二维码"
   },
   {
     "key": "settingsNative.about.playerCodeUnavailable",
-    "en": "Personal-code service is not connected in this build",
-    "zh-Hans": "本版本尚未接入个人码服务"
+    "en": "Player code not generated yet",
+    "zh-Hans": "玩家个人码待生成"
   },
   {
     "key": "settingsNative.about.playerCodeHint",
-    "en": "The source app displays an authenticated code returned by its server. This build does not generate a substitute code.",
-    "zh-Hans": "源应用展示服务器返回的登录用户身份码。本版本不会生成替代码。"
+    "en": "Your Questify identity code, used to show who you are at events. It's still being set up and will appear here automatically once it's ready.",
+    "zh-Hans": "你的城瘾身份码，用来在活动现场亮明身份。这项功能还在开通中，开通后会自动出现在这里。"
   },
   {
     "key": "settingsNative.about.contact",

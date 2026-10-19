@@ -1,0 +1,972 @@
+[
+ {
+  "key": "social.guide.title",
+  "en": "Play guide",
+  "zh-Hans": "城瘾玩法"
+ },
+ {
+  "key": "guideXcx.heroLead",
+  "en": "Three ways to play, ",
+  "zh-Hans": "三种玩法，"
+ },
+ {
+  "key": "guideXcx.heroEmphasis",
+  "en": "ready when you are",
+  "zh-Hans": "即开即玩"
+ },
+ {
+  "key": "guideXcx.heroDetail",
+  "en": "No rules to learn first. Pick a way to set out and the city will tell the rest.",
+  "zh-Hans": "不用先学规则。挑一种出发方式，城市自己会讲下去。"
+ },
+ {
+  "key": "guideXcx.classicTag",
+  "en": "Group · In order",
+  "zh-Hans": "组队 · 按顺序"
+ },
+ {
+  "key": "guideXcx.freeTag",
+  "en": "Anytime · On your own",
+  "zh-Hans": "随时 · 自己走"
+ },
+ {
+  "key": "guideXcx.roamTag",
+  "en": "No finish · Stroll",
+  "zh-Hans": "无终点 · 散步"
+ },
+ {
+  "key": "guideXcx.classicDetail",
+  "en": "Check in stop by stop and set out together at the start time. Good for meetups and story routes.",
+  "zh-Hans": "按顺序打卡通关，到点了大家一起出发。适合约人、适合有剧情的路线。"
+ },
+ {
+  "key": "guideXcx.freeDetail",
+  "en": "Every stop is open; start wherever you like. Get a pass and play any time without waiting for a full group.",
+  "zh-Hans": "点位全开，想从哪个开始都行。买张通行证随时开玩，不用等人凑齐。"
+ },
+ {
+  "key": "guideXcx.roamDetail",
+  "en": "Light up the city's fog as you walk, with no tasks and no finish line. A stroll on the way counts too.",
+  "zh-Hans": "边走边点亮城市迷雾，没有任务也没有终点。顺路散个步也算数。"
+ },
+ {
+  "key": "guideXcx.go",
+  "en": "Take a look",
+  "zh-Hans": "去看看"
+ },
+ {
+  "key": "guideXcx.docs",
+  "en": "Play docs",
+  "zh-Hans": "玩法文档"
+ },
+ {
+  "key": "guideXcx.docsHint",
+  "en": "Rules and play details",
+  "zh-Hans": "规则与玩法细节"
+ },
+ {
+  "key": "guideXcx.docsEmpty",
+  "en": "No play guides yet",
+  "zh-Hans": "暂无玩法说明"
+ },
+ {
+  "key": "guideXcx.docsEmptyDetail",
+  "en": "They will appear here once published",
+  "zh-Hans": "内容上线后会出现在这里"
+ },
+ {
+  "key": "guideXcx.detailTitle",
+  "en": "Play details",
+  "zh-Hans": "玩法详情"
+ },
+ {
+  "key": "square.xcx.navTitle",
+  "en": "Square",
+  "zh-Hans": "动态"
+ },
+ {
+  "key": "square.xcx.defaultName",
+  "en": "Questify player",
+  "zh-Hans": "城瘾玩家"
+ },
+ {
+  "key": "square.xcx.level %lld",
+  "en": "Lv.%lld",
+  "zh-Hans": "Lv.%lld"
+ },
+ {
+  "key": "square.xcx.justNow",
+  "en": "Just now",
+  "zh-Hans": "刚刚"
+ },
+ {
+  "key": "square.xcx.ageDays %lld",
+  "en": "%lld d ago",
+  "zh-Hans": "%lld天前"
+ },
+ {
+  "key": "square.xcx.ageHours %lld",
+  "en": "%lld h ago",
+  "zh-Hans": "%lld时前"
+ },
+ {
+  "key": "square.xcx.ageMinutes %lld",
+  "en": "%lld min ago",
+  "zh-Hans": "%lld分前"
+ },
+ {
+  "key": "square.xcx.ageHoursMinutes %lld %lld",
+  "en": "%1$lld h %2$lld min ago",
+  "zh-Hans": "%1$lld时%2$lld分前"
+ },
+ {
+  "key": "square.xcx.lifecycle.DRAFT",
+  "en": "Draft",
+  "zh-Hans": "草稿"
+ },
+ {
+  "key": "square.xcx.lifecycle.CHECKING",
+  "en": "In review",
+  "zh-Hans": "审核中"
+ },
+ {
+  "key": "square.xcx.lifecycle.LIMITED",
+  "en": "Limited visibility",
+  "zh-Hans": "展示受限"
+ },
+ {
+  "key": "square.xcx.lifecycle.HIDDEN",
+  "en": "Hidden",
+  "zh-Hans": "已隐藏"
+ },
+ {
+  "key": "square.xcx.lifecycle.REMOVED",
+  "en": "Removed",
+  "zh-Hans": "已移除"
+ },
+ {
+  "key": "square.xcx.expand",
+  "en": "More",
+  "zh-Hans": "展开"
+ },
+ {
+  "key": "square.xcx.templateBadge",
+  "en": "Ready-to-start template",
+  "zh-Hans": "可直接开局的模板"
+ },
+ {
+  "key": "square.xcx.completionFallback",
+  "en": "This roam",
+  "zh-Hans": "本次漫游"
+ },
+ {
+  "key": "square.xcx.play.completedNodes %lld",
+  "en": "Cleared · %lld stops",
+  "zh-Hans": "已通关 · 共 %lld 个节点"
+ },
+ {
+  "key": "square.xcx.play.progress %lld %lld",
+  "en": "In progress · %1$lld/%2$lld done",
+  "zh-Hans": "进行中 · 已完成 %1$lld/%2$lld"
+ },
+ {
+  "key": "square.xcx.play.completed",
+  "en": "Cleared",
+  "zh-Hans": "已通关"
+ },
+ {
+  "key": "square.xcx.play.inProgress",
+  "en": "In progress",
+  "zh-Hans": "进行中"
+ },
+ {
+  "key": "square.xcx.countPill %lld",
+  "en": "%lld photos",
+  "zh-Hans": "%lld 张"
+ },
+ {
+  "key": "square.xcx.likesA11y %lld",
+  "en": "%lld likes",
+  "zh-Hans": "%lld 个赞"
+ },
+ {
+  "key": "square.xcx.commentsA11y %lld",
+  "en": "%lld comments",
+  "zh-Hans": "%lld 条评论"
+ },
+ {
+  "key": "square.xcx.upcoming.kicker",
+  "en": "Starting soon",
+  "zh-Hans": "即将开始"
+ },
+ {
+  "key": "square.xcx.upcoming.days %lld",
+  "en": "Starts in %lld d",
+  "zh-Hans": "%lld 天后开始"
+ },
+ {
+  "key": "square.xcx.upcoming.hours %lld",
+  "en": "Starts in %lld h",
+  "zh-Hans": "%lld 小时后开始"
+ },
+ {
+  "key": "square.xcx.upcoming.minutes %lld",
+  "en": "Starts in %lld min",
+  "zh-Hans": "%lld 分钟后开始"
+ },
+ {
+  "key": "square.xcx.upcoming.soon",
+  "en": "Starting now",
+  "zh-Hans": "马上开始"
+ },
+ {
+  "key": "square.xcx.upcoming.participants",
+  "en": "Participants",
+  "zh-Hans": "参与者"
+ },
+ {
+  "key": "square.xcx.upcoming.overflow %lld",
+  "en": "+%lld",
+  "zh-Hans": "+%lld"
+ },
+ {
+  "key": "square.xcx.emptyTitle",
+  "en": "The square is quiet",
+  "zh-Hans": "广场还很安静"
+ },
+ {
+  "key": "square.xcx.emptyDetail",
+  "en": "Be the first to share a creative route",
+  "zh-Hans": "成为第一个发布创意路线的人吧"
+ },
+ {
+  "key": "square.xcx.noCommentsTitle",
+  "en": "No comments yet",
+  "zh-Hans": "还没有评论"
+ },
+ {
+  "key": "square.xcx.noCommentsDetail",
+  "en": "Tell us what you think of this post",
+  "zh-Hans": "说说你对这条动态的想法吧"
+ },
+ {
+  "key": "square.xcx.commentDeleted",
+  "en": "This comment was deleted",
+  "zh-Hans": "该评论已删除"
+ },
+ {
+  "key": "square.xcx.commentPlaceholder",
+  "en": "Leave a comment",
+  "zh-Hans": "留下你的评论"
+ },
+ {
+  "key": "square.xcx.delete.post",
+  "en": "Delete",
+  "zh-Hans": "删除"
+ },
+ {
+  "key": "square.xcx.delete.comment",
+  "en": "Delete",
+  "zh-Hans": "删除"
+ },
+ {
+  "key": "square.xcx.delete.postTitle %@",
+  "en": "Delete the post “%@”?",
+  "zh-Hans": "删除这条动态「%@」?"
+ },
+ {
+  "key": "square.xcx.delete.postTitleImageOnly",
+  "en": "Delete this post (images only)?",
+  "zh-Hans": "删除这条动态「(仅图片动态)」?"
+ },
+ {
+  "key": "square.xcx.delete.postCascade",
+  "en": "All comments and likes on this post will be deleted with it",
+  "zh-Hans": "这条动态下的全部评论和点赞会一起删掉"
+ },
+ {
+  "key": "square.xcx.delete.postIrreversible",
+  "en": "This can't be undone and the post can't be recovered",
+  "zh-Hans": "此操作不可撤销，动态内容无法找回"
+ },
+ {
+  "key": "square.xcx.delete.postConfirm",
+  "en": "Delete post",
+  "zh-Hans": "删除动态"
+ },
+ {
+  "key": "square.xcx.delete.commentTitle",
+  "en": "Delete this comment?",
+  "zh-Hans": "删除这条评论?"
+ },
+ {
+  "key": "square.xcx.delete.commentIrreversible",
+  "en": "This can't be undone and the comment can't be recovered",
+  "zh-Hans": "此操作不可撤销，评论内容无法找回"
+ },
+ {
+  "key": "square.xcx.delete.commentConfirm",
+  "en": "Delete comment",
+  "zh-Hans": "删除评论"
+ },
+ {
+  "key": "square.xcx.delete.postDone",
+  "en": "Deleted. Your post has been removed.",
+  "zh-Hans": "已删除，你的推文已被删除"
+ },
+ {
+  "key": "square.xcx.delete.commentDone",
+  "en": "Comment deleted",
+  "zh-Hans": "评论已删除"
+ },
+ {
+  "key": "square.xcx.delete.failed",
+  "en": "Delete failed. Try again.",
+  "zh-Hans": "删除失败，请重试"
+ },
+ {
+  "key": "square.xcx.delete.unknown",
+  "en": "The delete result is not confirmed yet. Check before trying again.",
+  "zh-Hans": "删除结果未确认，请先核对再操作"
+ },
+ {
+  "key": "square.xcx.delete.verify",
+  "en": "Check result",
+  "zh-Hans": "核对结果"
+ },
+ {
+  "key": "square.xcx.delete.unavailable",
+  "en": "Deleting is not available in this version yet.",
+  "zh-Hans": "当前版本暂未开放删除"
+ },
+ {
+  "key": "square.video.title",
+  "en": "Video",
+  "zh-Hans": "视频"
+ },
+ {
+  "key": "square.video.readTitle",
+  "en": "Post videos",
+  "zh-Hans": "动态视频"
+ },
+ {
+  "key": "square.video.policyUnavailable",
+  "en": "Video rules for posts are not connected yet. No video file is read or uploaded.",
+  "zh-Hans": "帖文视频规则尚未接通，不会读取或上传视频文件。"
+ },
+ {
+  "key": "square.video.empty",
+  "en": "No video selected",
+  "zh-Hans": "未选择视频"
+ },
+ {
+  "key": "square.video.processing",
+  "en": "Checking video…",
+  "zh-Hans": "正在检查视频…"
+ },
+ {
+  "key": "square.video.failed",
+  "en": "This video could not be read. Remove it or choose another.",
+  "zh-Hans": "这个视频无法读取，请移除或换一个。"
+ },
+ {
+  "key": "square.video.withinPolicy",
+  "en": "Video checked on this device",
+  "zh-Hans": "视频已在本机检查通过"
+ },
+ {
+  "key": "square.video.reject.policyUnavailable",
+  "en": "Video rules are unavailable",
+  "zh-Hans": "视频规则不可用"
+ },
+ {
+  "key": "square.video.reject.mimeNotAllowed",
+  "en": "This video format is not supported",
+  "zh-Hans": "不支持这种视频格式"
+ },
+ {
+  "key": "square.video.reject.noBytes",
+  "en": "The video file is empty",
+  "zh-Hans": "视频文件为空"
+ },
+ {
+  "key": "square.video.reject.byteLimit",
+  "en": "The video file is too large",
+  "zh-Hans": "视频文件过大"
+ },
+ {
+  "key": "square.video.reject.durationLimit",
+  "en": "The video is too long",
+  "zh-Hans": "视频时长超出限制"
+ },
+ {
+  "key": "square.video.reject.noVideoTrack",
+  "en": "The file has no video track",
+  "zh-Hans": "文件中没有视频画面"
+ },
+ {
+  "key": "square.video.reject.notPlayable",
+  "en": "The video cannot be played",
+  "zh-Hans": "视频无法播放"
+ },
+ {
+  "key": "square.video.reject.invalidDimensions",
+  "en": "The video size could not be read",
+  "zh-Hans": "无法读取视频尺寸"
+ },
+ {
+  "key": "square.video.restore.ready",
+  "en": "Restored from your draft",
+  "zh-Hans": "已从草稿恢复"
+ },
+ {
+  "key": "square.video.restore.missing",
+  "en": "The local video file is gone. Choose it again.",
+  "zh-Hans": "本机视频文件已不在，请重新选择。"
+ },
+ {
+  "key": "square.video.restore.changed",
+  "en": "The local video file changed. Choose it again.",
+  "zh-Hans": "本机视频文件已变化，请重新选择。"
+ },
+ {
+  "key": "square.video.restore.invalid",
+  "en": "This draft item could not be restored",
+  "zh-Hans": "这条草稿内容无法恢复"
+ },
+ {
+  "key": "square.video.remove",
+  "en": "Remove video",
+  "zh-Hans": "移除视频"
+ },
+ {
+  "key": "square.video.upload",
+  "en": "Upload video",
+  "zh-Hans": "上传视频"
+ },
+ {
+  "key": "square.video.uploadBlocked.noReviewedVideoUploadEndpoint",
+  "en": "Video upload is not available yet: the current upload service accepts JPEG and PNG images only.",
+  "zh-Hans": "暂不能上传视频：当前上传服务只接受 JPEG 和 PNG 图片。"
+ },
+ {
+  "key": "square.video.uploadBlocked.notApproved",
+  "en": "Video upload is not approved for this account.",
+  "zh-Hans": "此账号暂未开放视频上传。"
+ },
+ {
+  "key": "square.video.uploadBlocked.policyUnavailable",
+  "en": "Video upload stays off until video rules are connected.",
+  "zh-Hans": "视频规则接通前不会上传视频。"
+ },
+ {
+  "key": "square.video.duration %lld",
+  "en": "%lld s",
+  "zh-Hans": "%lld 秒"
+ },
+ {
+  "key": "square.video.play",
+  "en": "Play video",
+  "zh-Hans": "播放视频"
+ },
+ {
+  "key": "square.video.sourceUnavailable",
+  "en": "This video can't be played here",
+  "zh-Hans": "此视频暂无法播放"
+ },
+ {
+  "key": "square.video.review.pending",
+  "en": "Video in review",
+  "zh-Hans": "视频审核中"
+ },
+ {
+  "key": "square.video.review.rejected",
+  "en": "Video did not pass review",
+  "zh-Hans": "视频未通过审核"
+ },
+ {
+  "key": "square.video.fixture.pickValid",
+  "en": "Synthetic: pick a 15 s video",
+  "zh-Hans": "示例：选择 15 秒视频"
+ },
+ {
+  "key": "square.video.fixture.pickLong",
+  "en": "Synthetic: pick a 2 min video",
+  "zh-Hans": "示例：选择 2 分钟视频"
+ },
+ {
+  "key": "square.video.fixture.save",
+  "en": "Synthetic: save draft",
+  "zh-Hans": "示例：保存草稿"
+ },
+ {
+  "key": "square.video.fixture.restore",
+  "en": "Synthetic: restore draft",
+  "zh-Hans": "示例：恢复草稿"
+ },
+ {
+  "key": "square.video.fixture.loseFile",
+  "en": "Synthetic: lose local file",
+  "zh-Hans": "示例：模拟本机文件丢失"
+ },
+ {
+  "key": "topic.unauthorized",
+  "en": "Sign in to view this topic, its sessions and sign-up.",
+  "zh-Hans": "登录后查看主题：可查看主题详情、场次和报名"
+ },
+ {
+  "key": "topicXcx.tabs",
+  "en": "Sections",
+  "zh-Hans": "分区"
+ },
+ {
+  "key": "topicXcx.tab.details",
+  "en": "Details",
+  "zh-Hans": "详情"
+ },
+ {
+  "key": "topicXcx.tab.nodes",
+  "en": "Route stops",
+  "zh-Hans": "路线节点"
+ },
+ {
+  "key": "topicXcx.tab.route",
+  "en": "Route",
+  "zh-Hans": "路线"
+ },
+ {
+  "key": "topicXcx.type.explore",
+  "en": "Free exploration",
+  "zh-Hans": "自由探索"
+ },
+ {
+  "key": "topicXcx.type.orienteering",
+  "en": "City orienteering",
+  "zh-Hans": "城市定向"
+ },
+ {
+  "key": "topicXcx.clubHost %@",
+  "en": "%@ | Host club",
+  "zh-Hans": "%@ | 承接俱乐部"
+ },
+ {
+  "key": "topicXcx.stat.rating",
+  "en": "Rating",
+  "zh-Hans": "评价"
+ },
+ {
+  "key": "topicXcx.stat.hours",
+  "en": "Estimated play",
+  "zh-Hans": "预计游玩"
+ },
+ {
+  "key": "topicXcx.stat.hoursUnit",
+  "en": "hours",
+  "zh-Hans": "小时"
+ },
+ {
+  "key": "topicXcx.stat.open",
+  "en": "Open",
+  "zh-Hans": "开放时间"
+ },
+ {
+  "key": "topicXcx.stat.mileage",
+  "en": "Total distance",
+  "zh-Hans": "总里程"
+ },
+ {
+  "key": "topicXcx.stat.mileageUnit",
+  "en": "km",
+  "zh-Hans": "公里"
+ },
+ {
+  "key": "topicXcx.stat.merchants",
+  "en": "Merchants",
+  "zh-Hans": "参与商家"
+ },
+ {
+  "key": "topicXcx.stat.merchantsUnit",
+  "en": "shops",
+  "zh-Hans": "家"
+ },
+ {
+  "key": "topicXcx.duration.zero",
+  "en": "0 h",
+  "zh-Hans": "0时"
+ },
+ {
+  "key": "topicXcx.duration.underMinute",
+  "en": "Under 1 min",
+  "zh-Hans": "小于1分钟"
+ },
+ {
+  "key": "topicXcx.duration.minutes %lld",
+  "en": "%lld min",
+  "zh-Hans": "%lld分钟"
+ },
+ {
+  "key": "topicXcx.duration.hours %lld",
+  "en": "%lld h",
+  "zh-Hans": "%lld时"
+ },
+ {
+  "key": "topicXcx.duration.hoursMinutes %lld %lld",
+  "en": "%1$lld h %2$lld min",
+  "zh-Hans": "%1$lld时%2$lld分"
+ },
+ {
+  "key": "topicXcx.section.venue",
+  "en": "Meeting place",
+  "zh-Hans": "集合地点"
+ },
+ {
+  "key": "topicXcx.section.contents",
+  "en": "What's included",
+  "zh-Hans": "活动内容"
+ },
+ {
+  "key": "topicXcx.section.lineup",
+  "en": "Lineup",
+  "zh-Hans": "阵容"
+ },
+ {
+  "key": "topicXcx.include.chapters %lld",
+  "en": "%lld chapters",
+  "zh-Hans": "%lld 个章节"
+ },
+ {
+  "key": "topicXcx.include.stops %lld",
+  "en": "%lld stops",
+  "zh-Hans": "%lld 个站点"
+ },
+ {
+  "key": "topicXcx.include.plays %lld",
+  "en": "%lld games",
+  "zh-Hans": "%lld 个玩法"
+ },
+ {
+  "key": "topicXcx.include.audioMinutes %lld",
+  "en": "Audio guide, %lld min",
+  "zh-Hans": "语音导览 %lld 分钟"
+ },
+ {
+  "key": "topicXcx.include.audio",
+  "en": "Audio guide",
+  "zh-Hans": "语音导览"
+ },
+ {
+  "key": "topicXcx.include.medal %@",
+  "en": "Finish medal: %@",
+  "zh-Hans": "通关勋章：%@"
+ },
+ {
+  "key": "topicXcx.include.medalFallback",
+  "en": "Finish medal: finisher keepsake",
+  "zh-Hans": "通关勋章：通关纪念"
+ },
+ {
+  "key": "topicXcx.include.coupon",
+  "en": "A coupon after you finish",
+  "zh-Hans": "通关后可领一张优惠券"
+ },
+ {
+  "key": "topicXcx.lineup.club",
+  "en": "Club",
+  "zh-Hans": "俱乐部"
+ },
+ {
+  "key": "topicXcx.lineup.merchant",
+  "en": "Merchant",
+  "zh-Hans": "商家"
+ },
+ {
+  "key": "topicXcx.merchantClosed",
+  "en": "The merchant is closed; sign-up is paused",
+  "zh-Hans": "商家暂停营业，暂不可报名"
+ },
+ {
+  "key": "topicXcx.cta.ticketWallet",
+  "en": "Purchased · see your ticket in the ticket wallet",
+  "zh-Hans": "去票夹 · 查看我的票"
+ },
+ {
+  "key": "topicXcx.cta.confirmPrice",
+  "en": "Confirm final price",
+  "zh-Hans": "确认终价"
+ },
+ {
+  "key": "topicXcx.cta.locked.1",
+  "en": "Recruiting · not on sale",
+  "zh-Hans": "招募中 · 未开售"
+ },
+ {
+  "key": "topicXcx.cta.locked.2",
+  "en": "Pricing · not on sale",
+  "zh-Hans": "定价中 · 未开售"
+ },
+ {
+  "key": "topicXcx.cta.locked.7",
+  "en": "Awaiting approval · not on sale",
+  "zh-Hans": "立项待审 · 未开售"
+ },
+ {
+  "key": "topicXcx.cta.sessions",
+  "en": "View sessions",
+  "zh-Hans": "查看场次"
+ },
+ {
+  "key": "topicXcx.cta.selfPlay %@",
+  "en": "%@ · Play any time",
+  "zh-Hans": "%@ 随时开玩"
+ },
+ {
+  "key": "topicXcx.cta.selfPlayNoPrice",
+  "en": "Play any time",
+  "zh-Hans": "随时开玩"
+ },
+ {
+  "key": "topicXcx.cta.signUp",
+  "en": "Sign up now",
+  "zh-Hans": "立即报名"
+ },
+ {
+  "key": "topicXcx.route.emptyTitle",
+  "en": "This route has no stops yet",
+  "zh-Hans": "这条路线还没有站点"
+ },
+ {
+  "key": "topicXcx.route.emptyDetail",
+  "en": "Each stop appears here once the publisher finishes the route",
+  "zh-Hans": "发布者完成路线配置后，这里会显示每一站"
+ },
+ {
+  "key": "topicXcx.route.walk %lld",
+  "en": "%lld min walk",
+  "zh-Hans": "%lldmin 步行"
+ },
+ {
+  "key": "topicXcx.nodes.emptyDetail",
+  "en": "The route and stops appear here once the publisher finishes the route",
+  "zh-Hans": "发布者完成路线配置后，这里会显示路线与节点"
+ },
+ {
+  "key": "topicXcx.reviews.emptyTitle",
+  "en": "No one has reviewed this route yet",
+  "zh-Hans": "还没有人评价过这条路线"
+ },
+ {
+  "key": "topicXcx.reviews.emptyDetail",
+  "en": "Come back after you play and write one to earn platform points.",
+  "zh-Hans": "玩过之后回来写一条，可以获得平台积分。"
+ },
+ {
+  "key": "topicXcx.paywall.detail",
+  "en": "Unlock to see the full story, quiz reveals and in-store perks",
+  "zh-Hans": "解锁后可看全部故事线、答题揭秘与到店权益"
+ },
+ {
+  "key": "topicXcx.paywall.unlock",
+  "en": "Unlock now",
+  "zh-Hans": "立即解锁"
+ },
+ {
+  "key": "topicXcx.paywall.recover",
+  "en": "Already bought a ticket? Find it in My orders.",
+  "zh-Hans": "已购票？去「我的订单」找回"
+ },
+ {
+  "key": "merchantApplyXcx.timeGroup",
+  "en": "Available time",
+  "zh-Hans": "可配合的时间"
+ },
+ {
+  "key": "merchantApplyXcx.pickDates",
+  "en": "Choose a date range",
+  "zh-Hans": "点击选择日期区间"
+ },
+ {
+  "key": "merchantApplyXcx.startDay",
+  "en": "From",
+  "zh-Hans": "开始日期"
+ },
+ {
+  "key": "merchantApplyXcx.endDay",
+  "en": "To",
+  "zh-Hans": "结束日期"
+ },
+ {
+  "key": "merchantApplyXcx.locationPurpose",
+  "en": "Location is requested only when you choose a place, to match the hosting area and guide arrivals; you can still fill in the rest if you decline.",
+  "zh-Hans": "选择地点时才会请求定位，用于匹配承接范围与到场导航；拒绝后仍可继续填写其他资料。"
+ },
+ {
+  "key": "merchantApplyXcx.photosHint",
+  "en": "5:3 landscape photos recommended · at least 1, up to 9",
+  "zh-Hans": "建议 5:3 横图 · 至少 1 张，最多 9 张"
+ },
+ {
+  "key": "merchantApplyXcx.missing.address",
+  "en": "Choose a hosting location first",
+  "zh-Hans": "请先选择承接地点"
+ },
+ {
+  "key": "merchantApplyXcx.missing.dates",
+  "en": "Choose the available date range",
+  "zh-Hans": "请选择可配合日期区间"
+ },
+ {
+  "key": "merchantApplyXcx.missing.description",
+  "en": "Describe the available space and on-site conditions",
+  "zh-Hans": "请填写可用空间与现场条件"
+ },
+ {
+  "key": "merchantApplyXcx.missing.photos",
+  "en": "Add photos of the venue",
+  "zh-Hans": "请添加场地照片"
+ },
+ {
+  "key": "merchantApplyXcx.notAWin",
+  "en": "Signing up is not winning the stop; it counts once the organizer confirms you.",
+  "zh-Hans": "报名成功不等于中标，主理人确认后才算接上这一站"
+ },
+ {
+  "key": "merchantApplyXcx.editBlockTitle",
+  "en": "This registration can't be changed now",
+  "zh-Hans": "这份报名现在不能修改"
+ },
+ {
+  "key": "merchantApplyXcx.editBlock.topicStarted",
+  "en": "The topic has started; hosting details can no longer be changed",
+  "zh-Hans": "主题已开始，承接内容不能再修改"
+ },
+ {
+  "key": "merchantApplyXcx.editBlock.approved",
+  "en": "This registration was approved; hosting details can no longer be changed",
+  "zh-Hans": "该报名已通过审核，承接内容不能再修改"
+ },
+ {
+  "key": "merchantApplyXcx.editBlock.stateChanged",
+  "en": "The registration status changed; go back to the details for the latest result",
+  "zh-Hans": "报名状态已变化，请返回详情查看最新结果"
+ },
+ {
+  "key": "topicXcx.records.title",
+  "en": "My play records",
+  "zh-Hans": "我的游玩记录"
+ },
+ {
+  "key": "topicXcx.records.loading",
+  "en": "Loading play records",
+  "zh-Hans": "正在加载游玩记录"
+ },
+ {
+  "key": "topicXcx.records.empty",
+  "en": "No play records yet",
+  "zh-Hans": "还没有游玩记录"
+ },
+ {
+  "key": "topicXcx.records.failed",
+  "en": "Play records didn't load. Try again later.",
+  "zh-Hans": "游玩记录暂未加载，请稍后重试"
+ },
+ {
+  "key": "topicXcx.records.reload",
+  "en": "Reload",
+  "zh-Hans": "重新加载"
+ },
+ {
+  "key": "topicXcx.records.more",
+  "en": "Show more",
+  "zh-Hans": "查看更多"
+ },
+ {
+  "key": "topicXcx.records.completed",
+  "en": "Run completed",
+  "zh-Hans": "本局完成"
+ },
+ {
+  "key": "topicXcx.records.ended",
+  "en": "Run ended",
+  "zh-Hans": "本局结束"
+ },
+ {
+  "key": "topicXcx.records.playing",
+  "en": "In play",
+  "zh-Hans": "游玩中"
+ },
+ {
+  "key": "topicXcx.records.cardTitle",
+  "en": "Run result",
+  "zh-Hans": "本局结果"
+ },
+ {
+  "key": "topicXcx.records.scene",
+  "en": "Scene",
+  "zh-Hans": "场景"
+ },
+ {
+  "key": "topicXcx.records.value.hp",
+  "en": "Health",
+  "zh-Hans": "生命值"
+ },
+ {
+  "key": "topicXcx.records.value.luck",
+  "en": "Luck",
+  "zh-Hans": "幸运值"
+ },
+ {
+  "key": "topicXcx.records.value.actions",
+  "en": "Actions",
+  "zh-Hans": "行动次数"
+ },
+ {
+  "key": "topicXcx.records.value.rescues",
+  "en": "Rescues",
+  "zh-Hans": "获救次数"
+ },
+ {
+  "key": "topicXcx.records.items",
+  "en": "Items",
+  "zh-Hans": "道具"
+ },
+ {
+  "key": "topicXcx.records.medals",
+  "en": "Medals",
+  "zh-Hans": "勋章"
+ },
+ {
+  "key": "topicXcx.records.epilogues",
+  "en": "Endings found",
+  "zh-Hans": "已发现的结局"
+ },
+ {
+  "key": "topicXcx.records.nextScene %@",
+  "en": "Next scene: %@",
+  "zh-Hans": "下次场景：%@"
+ },
+ {
+  "key": "topicXcx.records.cardFailed",
+  "en": "This run's result didn't load. Try again later.",
+  "zh-Hans": "本局结果暂未加载，请稍后重试"
+ },
+ {
+  "key": "topicXcx.records.cardReload",
+  "en": "Reload this run's result",
+  "zh-Hans": "重新加载本局结果"
+ },
+ {
+  "key": "topicXcx.records.cardLoading",
+  "en": "Loading this run's result",
+  "zh-Hans": "正在加载本局结果"
+ },
+ {
+  "key": "square.xcx.closedTitle",
+  "en": "Community isn't open for this account",
+  "zh-Hans": "当前账号未开放社区"
+ },
+ {
+  "key": "square.xcx.closedDetail",
+  "en": "Other city exploration features are still available",
+  "zh-Hans": "其他城市探索功能仍可使用"
+ }
+]

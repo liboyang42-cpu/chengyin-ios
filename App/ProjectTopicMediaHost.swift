@@ -25,6 +25,7 @@ import SwiftUI
             }
             Text(text("主题视频尚未接通，暂不提供选择入口。", "Topic video is not connected yet."))
                 .font(.caption).accessibilityIdentifier("projectTopicMedia.videoUnavailable")
+            ProjectTopicMediaStageSummary()
         }
         .sheet(item: controller.binding(original)) { captured in
             ProjectTopicMediaSheet(controller: controller, original: captured)

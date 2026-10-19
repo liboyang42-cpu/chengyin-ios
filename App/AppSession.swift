@@ -1139,6 +1139,35 @@ final class AppSession: ObservableObject {
             guard let self, self.currentProfileWeeklyPointsSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
         })
+    /// 我的 header and 当前权益. Identity reuses the bootstrap `user/info` read; role info needs a lease.
+    private var memberHomeService: MemberHomeService?
+    private var currentMemberHomeSession: MemberHomeSession? {
+        guard let account, let token else { return nil }
+        let approval = currentRuntimeDependencyContext.flatMap { context in
+            composition.memberRoleInfoReadApproval(context).flatMap { $0.matches(context) ? $0.revision : nil }
+        }
+        return try? MemberHomeSession(accountID: account.id, epoch: gate.currentStamp, token: token, roleInfoApproval: approval)
+    }
+    lazy var memberHomeReader = MemberHomeSessionReader(service: memberHomeService,
+        currentSession: { [weak self] in self?.currentMemberHomeSession },
+        onUnauthorized: { [weak self] captured in
+            guard let self, self.currentMemberHomeSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+        })
+    private var ownMediaService: OwnMediaService?
+    private var currentOwnMediaSession: OwnMediaSession? {
+        guard let account, let token else { return nil }
+        let approval = currentRuntimeDependencyContext.flatMap { context in
+            composition.ownMediaReadApproval(context).flatMap { $0.matches(context) ? $0.revision : nil }
+        }
+        return try? OwnMediaSession(accountID: account.id, epoch: gate.currentStamp, token: token, approval: approval)
+    }
+    lazy var ownMediaReader = OwnMediaSessionReader(service: ownMediaService,
+        currentSession: { [weak self] in self?.currentOwnMediaSession },
+        onUnauthorized: { [weak self] captured in
+            guard let self, self.currentOwnMediaSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+        })
     private let growthCenterService:GrowthCenterService?
     private var currentGrowthCenterSession:GrowthCenterReadSession? {
         guard let account,let token else { return nil }
@@ -2941,6 +2970,51 @@ final class AppSession: ObservableObject {
         let owner = IMConversationStarter(identity: identity, writer: imExpandedWriter)
         imStarters[identity] = owner; return owner
     }
+    // w2-20: IM safety (delete/report/block/unblock) and unread-total stay dormant
+    // unless the reviewed business runtime grants each exact path.
+    private var imSafetyOwners: [IMScope: IMSafetyCoordinator] = [:]
+    private var currentIMSafetySession: IMSafetySession? {
+        guard let account, let token else { return nil }
+        return try? IMSafetySession(accountID: account.id, epoch: gate.currentStamp, token: token)
+    }
+    private func imRuntimePaths(_ features: Set<BusinessRuntimeFeature>) -> (BusinessRuntimeFactory, APIConfiguration, Set<String>)? {
+        guard let factory = businessRuntimeFactory, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let paths = Set(factory.routes(features).map(\.path))
+        return paths.isEmpty ? nil : (factory, configuration, paths)
+    }
+    var imSafetyWriter: IMSafetyWriter {
+        let features: Set<BusinessRuntimeFeature> = [.imDelete, .imReport, .imBlock, .imUnblock]
+        guard let runtime = imRuntimePaths(features) else {
+            return IMSafetyWriter(service: nil, session: { [weak self] in self?.currentIMSafetySession })
+        }
+        let (factory, configuration, paths) = runtime
+        let captured = factory.captured
+        return IMSafetyWriter(service: IMSafetyService(configuration: configuration, transport: factory.client(features), enabledPaths: paths),
+            session: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return nil }; return self.currentIMSafetySession
+            }, onUnauthorized: { [weak self] snapshot in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: self.token)
+            })
+    }
+    func imSafetyCoordinator(for conversationID: Int) -> IMSafetyCoordinator? {
+        let reader = messagingReader
+        guard let identity = reader.identity, let scope = try? IMScope(identity: identity, conversationID: conversationID) else { return nil }
+        if let existing = imSafetyOwners[scope], existing.isCurrent { return existing }
+        let owner = IMSafetyCoordinator(scope: scope, writer: imSafetyWriter, reader: reader)
+        imSafetyOwners[scope] = owner; return owner
+    }
+    var imUnreadTotalReader: IMUnreadTotalReader {
+        guard let runtime = imRuntimePaths([.imUnreadTotal]) else {
+            return IMUnreadTotalReader(service: nil, session: { nil })
+        }
+        let (factory, configuration, paths) = runtime
+        let captured = factory.captured
+        return IMUnreadTotalReader(service: IMUnreadTotalService(configuration: configuration, transport: factory.client([.imUnreadTotal]), enabledPaths: paths),
+            session: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return nil }; return self.currentIMSafetySession
+            })
+    }
     private var clubChatOwners: [Int: ClubChatCoordinator] = [:]
     func clubChatCoordinator(clubID: Int) -> ClubChatCoordinator? {
         if let owner = clubChatOwners[clubID], owner.isCurrent { return owner }
@@ -3262,6 +3336,8 @@ final class AppSession: ObservableObject {
             officialEventService=OfficialEventService(configuration:configuration,transport:transport)
             profileWeeklyPointsService = ProfileWeeklyPointsService(configuration: configuration, transport: transport)
             growthCenterService=GrowthCenterService(configuration:configuration,transport:transport)
+            memberHomeService = MemberHomeService(configuration: configuration, transport: transport)
+            ownMediaService = OwnMediaService(configuration: configuration, transport: transport)
             creatorContentService=CreatorContentService(configuration:configuration,transport:transport)
             accountCollectionService=AccountCollectionService(configuration:configuration,transport:transport)
             cooperationService=CooperationService(configuration:configuration,transport:transport)
@@ -3615,6 +3691,7 @@ extension AppSession: DiscoveryReading, MerchantReading {
         })
     }
     func discoveryPlayTemplate(id:Int) async throws -> DiscoveryPlayTemplate { try await readDiscovery { try await $0.playTemplate(id:id,token:$1) } }
+    func discoveryPlayTemplateRead(id:Int) async throws -> DiscoveryPlayTemplateRead { try await readDiscovery { try await $0.playTemplateRead(id:id,token:$1) } }
 
     private func readMerchant<Value>(access:MerchantAccess?=nil, expectedDiscoveryScope: ClubDiscoveryScope? = nil,_ operation:(MerchantService,String) async throws -> Value) async throws -> Value {
         guard let merchantService else { throw APIError.notConfigured }

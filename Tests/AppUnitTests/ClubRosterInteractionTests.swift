@@ -37,7 +37,7 @@ import XCTest
     func testCurrentRowCreatesOnlyExistingScopedFormWithImmutableVersion() throws {
         let access = Access(), (target, source, expected) = try self.target(access), route = try XCTUnwrap(form(target, source, expected, access))
         XCTAssertEqual(route.operation, .correctAttendance); XCTAssertEqual(route.scope, .init(clubID: 81, activityID: 205, memberID: 41))
-        XCTAssertEqual(route.seed, ["expectedVersion": .integer(4)]); XCTAssertEqual(access.sends, 0); XCTAssertEqual(access.resources, [])
+        XCTAssertEqual(route.seed, ["expectedVersion": .integer(4), "arrived": .bool(true)]); XCTAssertEqual(access.sends, 0); XCTAssertEqual(access.resources, [])
     }
     func testReloadInProgressAndMissingSnapshotCannotOpenOldRow() throws {
         let access = Access(), (target, source, expected) = try self.target(access)
