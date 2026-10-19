@@ -172905,6 +172905,57 @@
           }
         }
       }
+    },
+    "playerJourney.sourceUntitled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity details pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动信息待补充"
+          }
+        }
+      }
+    },
+    "playerJourney.timeTBD": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time TBD"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间待定"
+          }
+        }
+      }
+    },
+    "playerJourney.placeTBD": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location TBD"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点待定"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
