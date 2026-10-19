@@ -119,7 +119,7 @@ final class MerchantLoadModel<Value>: ObservableObject {
     @ObservedObject var session: AppSession
     var body: some View {
         if let reader = session.merchantProjectBrowseReader {
-            MerchantProjectsView(reader: reader, showsRecentEvents: false).id(reader.id)
+            MerchantProjectsView(reader: reader, showsRecentEvents: false, workspaceReadFactory: session.merchantProjectWorkspaceReadFactory).id(reader.id)
         } else {
             ContentUnavailableView("merchant.projects", systemImage: "network.slash", description: Text("auth.notConfigured"))
         }
@@ -198,5 +198,77 @@ final class MerchantLoadModel<Value>: ObservableObject {
         } else {
             ContentUnavailableView("merchant.title", systemImage: "network.slash", description: Text("auth.notConfigured"))
         }
+    }
+}
+
+/// A selected workspace gets a fresh service and its own presentation lifetime.
+@MainActor struct MerchantProjectWorkspaceReadFactory {
+    let id: UUID
+    let make: (Int, Int, @escaping () -> Bool) -> (any MerchantContentServing)?
+}
+@MainActor final class MerchantProjectWorkspaceReadService: MerchantContentServing {
+    private let source: MerchantContentService
+    private let topicID: Int
+    private let merchantID: Int
+    private let current: () -> Bool
+    var scope: UUID { source.scope }
+    var isConfigured: Bool { current() && source.isConfigured }
+    var isAuthenticated: Bool { current() && source.isAuthenticated }
+    var permitsWrites: Bool { false }
+    init(source: MerchantContentService, topicID: Int, merchantID: Int, current: @escaping () -> Bool) {
+        self.source = source; self.topicID = topicID; self.merchantID = merchantID; self.current = current
+    }
+    func load(_ query: MerchantContentQuery) async throws -> MerchantContentSnapshot {
+        guard current(), query == .project(topicID: topicID) else { throw MerchantContentFailure.disabled }
+        let result = try await source.load(query)
+        guard !Task.isCancelled, current() else { throw MerchantContentFailure.changedSession }
+        guard MerchantProjectWorkspacePresentation.matches(snapshot: result, topicID: topicID, merchantID: merchantID),
+              result.value.object != nil, case .string(let role) = result.value["role"],
+              (role == "host" && result.value["host"].object != nil) || (role == "join" && result.value["join"].object != nil) else {
+            throw MerchantContentFailure.malformed
+        }
+        return result
+    }
+    func pending() throws -> [MerchantContentPendingRecord] { [] }
+    func perform(_ command: MerchantContentCommand, baseline: MerchantContentSnapshot) async throws -> MerchantContentReceipt { throw MerchantContentFailure.disabled }
+    func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt { throw MerchantContentFailure.disabled }
+    func retryStation(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt { throw MerchantContentFailure.disabled }
+}
+@MainActor final class MerchantProjectWorkspaceReadOwner: ObservableObject {
+    @Published private(set) var service: (any MerchantContentServing)?
+    private var generation = UUID()
+    private var active = false
+    func activate(factory: MerchantProjectWorkspaceReadFactory, topicID: Int, merchantID: Int, isCurrent: @escaping () -> Bool) {
+        retire(); guard isCurrent() else { return }; active = true; let ticket = generation
+        service = factory.make(topicID, merchantID, { [weak self] in self?.active == true && self?.generation == ticket && isCurrent() })
+    }
+    func retire() { active = false; generation = UUID(); service = nil }
+}
+@MainActor struct MerchantProjectWorkspaceReadHost: View {
+    let factory: MerchantProjectWorkspaceReadFactory
+    let topicID: Int
+    let merchantID: Int
+    let isCurrent: () -> Bool
+    @StateObject private var owner = MerchantProjectWorkspaceReadOwner()
+    @State private var visible = false
+    @Environment(\.scenePhase) private var scenePhase
+    var body: some View {
+        Group {
+            if let service = owner.service, isCurrent() {
+                MerchantContentDocumentView(service: service, query: .project(topicID: topicID),
+                    focusedTopicID: topicID, focusedMerchantID: merchantID, projectEntryIsCurrent: isCurrent,
+                    readOnlyProject: true)
+                    .id(service.scope)
+            } else { Text("merchant.projectWorkspace.changed") }
+        }
+        .onAppear { visible = true }
+        .task(id: visible && scenePhase == .active) {
+            guard !Task.isCancelled else { return }
+            if visible && scenePhase == .active {
+                owner.activate(factory: factory, topicID: topicID, merchantID: merchantID,
+                    isCurrent: { visible && scenePhase == .active && isCurrent() })
+            } else { owner.retire() }
+        }
+        .onDisappear { visible = false; owner.retire() }
     }
 }
