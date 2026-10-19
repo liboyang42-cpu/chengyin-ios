@@ -7322,7 +7322,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有收藏的主题"
+            "value": "暂无收藏的主题"
           }
         }
       }
@@ -7332,13 +7332,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Topics you save will appear here"
+            "value": "Save a city topic you want to try, then find it here later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "收藏的主题会出现在这里"
+            "value": "遇到想体验的城市主题，可以先收藏，之后从这里找回。"
           }
         }
       }

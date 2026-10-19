@@ -62,12 +62,12 @@
   {
     "key": "accountCollection.favorites.empty",
     "en": "No saved topics yet",
-    "zh-Hans": "还没有收藏的主题"
+    "zh-Hans": "暂无收藏的主题"
   },
   {
     "key": "accountCollection.favorites.emptyHint",
-    "en": "Topics you save will appear here",
-    "zh-Hans": "收藏的主题会出现在这里"
+    "en": "Save a city topic you want to try, then find it here later.",
+    "zh-Hans": "遇到想体验的城市主题，可以先收藏，之后从这里找回。"
   },
   {
     "key": "accountCollection.favorites.untitled",
