@@ -375,6 +375,17 @@ final class OfficialEventTests: XCTestCase {
         XCTAssertEqual(try decode(OfficialBroadcast.self, #"{"id":9,"title":"N","reach":3}"#).reach, 3)
         XCTAssertNil(try decode(OfficialBroadcast.self, #"{"id":9,"title":"N","reachedCount":-1}"#).reach)
     }
+    func testInviteSourceStatusRoleAndScopeTables() throws {
+        let invite = try decode(OfficialPartyInvite.self, #"{"partyId":5,"eventTitle":"E","status":"ACTIVE","role":"FULFILLMENT_CLUB","targetType":"ROUTE","responsibilitySummary":"Guide"}"#)
+        XCTAssertEqual(invite.sourceStatusKey, "official.inbox.status.active")
+        XCTAssertEqual(invite.roleKey, "official.inbox.role.club"); XCTAssertEqual(invite.scopeKey, "official.inbox.scope.route")
+        XCTAssertEqual(invite.responsibilitySummary, "Guide")
+        let bare = try decode(OfficialPartyInvite.self, #"{"partyId":6,"state":"INVITED","role":"FUTURE"}"#)
+        XCTAssertEqual(bare.sourceStatusKey, "official.inbox.status.unknown")
+        XCTAssertNil(bare.roleKey); XCTAssertEqual(bare.role, "FUTURE"); XCTAssertEqual(bare.scopeKey, "official.inbox.scope.event")
+        XCTAssertEqual(try decode(OfficialPartyInvite.self, #"{"partyId":7,"targetType":"EVENT"}"#).scopeKey, "official.inbox.scope.event")
+        XCTAssertEqual(try decode(OfficialPartyInvite.self, #"{"partyId":8,"targetType":"ZONE"}"#).scopeKey, "official.inbox.scope.unknown")
+    }
     func testUnknownVisibilityStillRejectsIncompleteAndDuplicateRows() throws {
         let rows = try decode([OfficialEvent].self, #"[{"id":1,"title":"Unknown","status":99},{"id":1,"title":"Duplicate"},{"id":0,"title":"Invalid"},{"id":2,"title":""}]"#)
         XCTAssertEqual(OfficialEventBrowseQuery(bucket: .live, keyword: "unknown").visible(rows).map(\.id), [1])

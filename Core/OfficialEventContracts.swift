@@ -295,8 +295,13 @@ public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {
     public let eventTitle: String?
     public let status: String?
     public let city: String?
+    /// Source official-inbox display fields: role, responsibility scope and summary.
+    public let role: String?
+    public let targetType: String?
+    public let responsibilitySummary: String?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
+        role = c.text("role"); targetType = c.text("targetType"); responsibilitySummary = c.text("responsibilitySummary")
         id = c.integer("partyId") ?? c.integer("id") ?? 0
         title = c.text("title") ?? c.text("partyName") ?? c.text("responsibilitySummary") ?? ""
         partyType = c.text("partyType"); eventTitle = c.text("eventTitle")
@@ -308,6 +313,37 @@ public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {
         case "ACCEPTED": return "official.invite.accepted"
         case "ACTIVE": return "official.invite.active"
         default: return "official.status.unknown"
+        }
+    }
+    /// Source STATUS table (待你确认 / 已接受 / 履约中); unknown codes stay explicit.
+    public var sourceStatusKey: String {
+        switch status {
+        case "INVITED": return "official.inbox.status.invited"
+        case "ACCEPTED": return "official.inbox.status.accepted"
+        case "ACTIVE": return "official.inbox.status.active"
+        default: return "official.inbox.status.unknown"
+        }
+    }
+    /// Source ROLE table; nil when the server role is unknown (its raw code is shown verbatim).
+    public var roleKey: String? {
+        switch role {
+        case "ORGANIZER": return "official.inbox.role.organizer"
+        case "CO_ORGANIZER": return "official.inbox.role.coOrganizer"
+        case "FULFILLMENT_MERCHANT": return "official.inbox.role.merchant"
+        case "FULFILLMENT_CLUB": return "official.inbox.role.club"
+        case "SPONSOR": return "official.inbox.role.sponsor"
+        case "PROMOTION_PARTNER": return "official.inbox.role.promotion"
+        default: return nil
+        }
+    }
+    /// EVENT (or absent) is the whole event; internal target IDs are never displayed.
+    public var scopeKey: String {
+        switch targetType {
+        case "NODE": return "official.inbox.scope.node"
+        case "ROUTE": return "official.inbox.scope.route"
+        case "CHAPTER": return "official.inbox.scope.chapter"
+        case nil, "EVENT": return "official.inbox.scope.event"
+        default: return "official.inbox.scope.unknown"
         }
     }
 }

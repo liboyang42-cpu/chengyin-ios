@@ -79,7 +79,7 @@ final class OfficialEventFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["internalObject"].exists)
         XCTAssertFalse(app.buttons["Publish"].exists)
         app.navigationBars["Broadcast statistics"].buttons.firstMatch.tap()
-        XCTAssertTrue(app.navigationBars["My published content"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["My published"].waitForExistence(timeout: 5))
     }
     func testSignOutImmediatelyHidesPrivateInvitationsAndCanReenter() {
         launch("content", destination: "inbox")

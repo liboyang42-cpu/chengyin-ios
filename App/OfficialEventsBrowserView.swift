@@ -73,7 +73,7 @@ import SwiftUI
                         case .mine: Text("official.summary.mine \(visible.count)")
                         }
                     }
-                }.font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("official.summary")
+                }.font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("officialList.summary")
                 if visible.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(LocalizedStringKey(query.emptyTitleKey)).font(.headline)
