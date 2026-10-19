@@ -22,7 +22,7 @@ public struct MerchantPredictionReadApproval {
     }
 }
 
-public struct MerchantPredictionRound: Decodable, Equatable, Identifiable {
+public struct MerchantPredictionInboxRound: Decodable, Equatable, Identifiable {
     public struct Option: Decodable, Equatable, Identifiable {
         public let key: String
         public let label: String
@@ -79,7 +79,7 @@ public struct MerchantPredictionReadService {
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
-    public func inbox(access: MerchantAccess, token: String) async throws -> [MerchantPredictionRound] {
+    public func inbox(access: MerchantAccess, token: String) async throws -> [MerchantPredictionInboxRound] {
         guard access.allows(.projects), (access.merchantID ?? 0) > 0 else { throw MerchantReadError.accessDenied }
         var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/merchant/predict/inbox"),
             fields: [:], token: token, includesBody: false)
@@ -95,14 +95,14 @@ public struct MerchantPredictionReadService {
         return envelope.rows
     }
     private struct Envelope: Decodable {
-        let rows: [MerchantPredictionRound]
+        let rows: [MerchantPredictionInboxRound]
         enum CodingKeys: String, CodingKey { case code, data }
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: CodingKeys.self), code = try c.decode(Int.self, forKey: .code)
             if code == 401 { throw APIError.unauthorized }
             if code == 403 { throw MerchantReadError.accessDenied }
             guard code == 200 else { throw APIError.businessCode(code) }
-            rows = try c.decode([MerchantPredictionRound].self, forKey: .data)
+            rows = try c.decode([MerchantPredictionInboxRound].self, forKey: .data)
         }
     }
 }
