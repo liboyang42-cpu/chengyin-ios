@@ -210,6 +210,20 @@ STRINGS = {
     'cooperation.list.official.reward.fixed %@': ('Fixed ¥%@/person', '固定 ¥%@/人'),
     'cooperation.list.official.reward.resources': ('Resource support', '资源支持'),
     'cooperation.list.official.reward.unconfirmed': ('Reward awaiting official confirmation', '报酬待官方确认'),
+    # pages/coop/invite
+    'cooperation.invite.nearby': ('Nearby merchants · includes unlisted merchants you can call', '附近商家 · 含未入驻商家可电话联系'),
+    'cooperation.invite.messagePlaceholder': ('Write a note to the other party', '写下想对对方说的话'),
+    'cooperation.invite.terms': ('Cooperation terms', '合作条款'),
+    'cooperation.invite.terms.traffic': ('Traffic cooperation (no cash settlement)', '引流合作（不产生现金结算）'),
+    'cooperation.invite.fee.club': ('Guide fee per redeemed participant', '按核销人头付带队费'),
+    'cooperation.invite.fee.merchant': ('Pay per redemption', '按核销付费'),
+    'cooperation.invite.feeUnit.club': ('/ per redeemed participant', '/ 每核销 1 人'),
+    'cooperation.invite.feeUnit.merchant': ('/ person', '/ 人'),
+    'cooperation.invite.defaultMessage.club': ('We invite your club to join this activity', '邀请贵俱乐部来参加活动'),
+    'cooperation.invite.defaultMessage.merchant': ('We invite your shop to host this topic', '邀请贵店承接本主题合作'),
+    'cooperation.invite.members %lld': ('%lld members', '%lld 位成员'),
+    'cooperation.invite.membersUnknown': ('Member count awaiting confirmation', '成员数待确认'),
+    'cooperation.invite.openToHost': ('Open to hosting', '开放承接'),
 }
 
 

@@ -174927,6 +174927,214 @@
           }
         }
       }
+    },
+    "cooperation.invite.nearby": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearby merchants · includes unlisted merchants you can call"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近商家 · 含未入驻商家可电话联系"
+          }
+        }
+      }
+    },
+    "cooperation.invite.messagePlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write a note to the other party"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写下想对对方说的话"
+          }
+        }
+      }
+    },
+    "cooperation.invite.terms": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation terms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作条款"
+          }
+        }
+      }
+    },
+    "cooperation.invite.terms.traffic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traffic cooperation (no cash settlement)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引流合作（不产生现金结算）"
+          }
+        }
+      }
+    },
+    "cooperation.invite.fee.club": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guide fee per redeemed participant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按核销人头付带队费"
+          }
+        }
+      }
+    },
+    "cooperation.invite.fee.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay per redemption"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按核销付费"
+          }
+        }
+      }
+    },
+    "cooperation.invite.feeUnit.club": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ per redeemed participant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 每核销 1 人"
+          }
+        }
+      }
+    },
+    "cooperation.invite.feeUnit.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ person"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 人"
+          }
+        }
+      }
+    },
+    "cooperation.invite.defaultMessage.club": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We invite your club to join this activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请贵俱乐部来参加活动"
+          }
+        }
+      }
+    },
+    "cooperation.invite.defaultMessage.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We invite your shop to host this topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请贵店承接本主题合作"
+          }
+        }
+      }
+    },
+    "cooperation.invite.members %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 位成员"
+          }
+        }
+      }
+    },
+    "cooperation.invite.membersUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member count awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员数待确认"
+          }
+        }
+      }
+    },
+    "cooperation.invite.openToHost": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open to hosting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开放承接"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

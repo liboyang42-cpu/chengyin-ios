@@ -35,6 +35,13 @@ final class CoopListParityTests: XCTestCase {
         XCTAssertThrowsError(try CoopChapterApplication.rows(json(#"{"rows":[]}"#), leg: .owner))
     }
 
+    func testInviteTargetMetaFollowsKind() throws {
+        let club = CoopFlowTargetCandidate(kind: .club, row: try json(#"{"id":3,"name":"North","memberCount":12,"city":"Hangzhou","address":"ignored"}"#))
+        XCTAssertEqual(club?.memberCount, 12); XCTAssertEqual(club?.city, "Hangzhou"); XCTAssertNil(club?.merchantMeta)
+        let merchant = CoopFlowTargetCandidate(kind: .merchant, row: try json(#"{"memberId":4,"name":"Cafe","suitActivityTypes":" ","address":"Lake Rd"}"#))
+        XCTAssertEqual(merchant?.merchantMeta, "Lake Rd"); XCTAssertNil(merchant?.memberCount)
+    }
+
     func testPermissionClassificationForMerchantOnlyLeg() {
         XCTAssertTrue(CoopListReadFailure.isPermission(CoopFlowFailure.inactiveMerchant))
         XCTAssertTrue(CoopListReadFailure.isPermission(CoopFlowFailure.server(500, "仅商家可查看")))
