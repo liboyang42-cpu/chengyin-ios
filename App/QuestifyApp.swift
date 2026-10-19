@@ -20,6 +20,8 @@ struct QuestifyApp: App {
                 #if DEBUG
                 if ProcessInfo.processInfo.arguments.contains("--owner-draft-fixture") {
                     OwnerDraftFixtureHost(mode: fixtureArgument("--owner-draft-fixture") ?? "ready")
+                } else if ProcessInfo.processInfo.arguments.contains("--ops-safety-fixture") {
+                    OpsSafetyFixtureHost(scenario: fixtureArgument("--ops-safety-fixture") ?? "theme")
                 } else if ProcessInfo.processInfo.arguments.contains("--group-poll-fixture") {
                     GroupPollFixtureRoot(scenario: fixtureArgument("--group-poll-fixture") ?? "success")
                 } else if ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") {
