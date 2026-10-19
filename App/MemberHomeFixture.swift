@@ -20,6 +20,17 @@ enum MemberParityFixture {
         switch page {
         case "privacy": OwnMediaFixtureHost(scenario: scenario)
         case "favorites": TopicUnlikeFixtureHost(scenario: scenario)
+        case "earnings":
+            NavigationStack {
+                List {
+                    WalletEarningsEmptyNote()
+                    ForEach(["2026-01-05 09:00:00", "2026-01-04 23:00:00", "2025-12-31 08:00:00"], id: \.self) { raw in
+                        if let day = WalletIncomeDay.make(raw, now: WalletIncomeDay.serverCalendar.date(from: DateComponents(year: 2026, month: 1, day: 5, hour: 12))!) {
+                            WalletIncomeDayText(day: day).accessibilityIdentifier("member.fixture.day.\(raw.prefix(10))")
+                        }
+                    }
+                }
+            }
         default: MemberHomeFixtureHost(scenario: scenario)
         }
     }
