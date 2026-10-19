@@ -214,6 +214,8 @@ struct ActivityDetailView: View {
                     .accessibilityIdentifier("activity.detail.cancelled")
                 }
             }
+            // Source meta block (分类 / 集合点 / 已报名) sits after the cancellation notice.
+            ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail))
             if let topicID = detail.summary.linkedTopicID, let topicDestination {
                 Section {
                     NavigationLink { topicDestination(topicID) } label: {
@@ -378,5 +380,32 @@ struct ActivityDetailView: View {
         }
         catch is CancellationError { }
         catch { if generation == operation, !Task.isCancelled { failed=true } }
+    }
+}
+
+/// Source detail meta rows. Unknown values use explicit unconfirmed copy, never zero.
+@MainActor private struct ActivityDetailMetaSection: View {
+    let facts: ActivityDetailHeaderFacts
+    var body: some View {
+        Section {
+            LabeledContent("activityParity.header.category") {
+                if let category = facts.categoryText { Text(verbatim: category) }
+                else { Text("activityParity.header.categoryUnconfirmed") }
+            }
+            .accessibilityIdentifier("activity.detail.category")
+            LabeledContent("activityParity.header.meetingPoint") {
+                switch facts.meetingPoint {
+                case .named(let place): Text(verbatim: place)
+                case .mapOnly: Text("activityParity.header.meetingPointOnMap")
+                case .unconfirmed: Text("activityParity.header.meetingPointUnconfirmed")
+                }
+            }
+            .accessibilityIdentifier("activity.detail.meetingPoint")
+            LabeledContent("activityParity.header.registered") {
+                if let count = facts.registrationCount { Text("activityParity.header.registeredCount \(count)") }
+                else { Text("activity.people.countUnknown") }
+            }
+            .accessibilityIdentifier("activity.detail.registeredCount")
+        }
     }
 }

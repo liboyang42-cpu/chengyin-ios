@@ -8,7 +8,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 KEYS_FRAGMENT = Path(os.environ.get(
     'OFFICIAL_PRIVATE_PARITY_KEYS',
-    '/tmp/claude-0/-home-user/defa8317-3e9a-511e-816c-5f4025240f14/scratchpad/keys/official-private.json'))
+    ''))
 SWIFT = ['App/OfficialPrivateViews.swift', 'App/OfficialActionViews.swift', 'App/OfficialActionFixtureHost.swift',
          'Core/OfficialPrivatePresentation.swift', 'Core/OfficialActionContracts.swift']
 
@@ -83,7 +83,7 @@ class OfficialPrivateParityChecks(unittest.TestCase):
     def test_every_parity_key_is_localized(self):
         known = set(json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text(encoding='utf-8'))['strings'])
         fragment = {}
-        if KEYS_FRAGMENT.exists():
+        if KEYS_FRAGMENT.is_file():
             fragment = json.loads(KEYS_FRAGMENT.read_text(encoding='utf-8'))
             for key, value in fragment.items():
                 self.assertTrue(key.startswith('official.privateParity.') and key.isascii(), key)

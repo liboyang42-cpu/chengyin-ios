@@ -8184,6 +8184,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "3763B23C284D37776F6F43BE";
 		};
+		"F09433EDF274FC9C99F18977" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ActivityDetailHeaderPresentation.swift";
+			"sourceTree" = "<group>";
+		};
+		"9A518991A416BD015753BE68" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F09433EDF274FC9C99F18977";
+		};
 		"F85A4DBDE16D9D7F78E4CBAB" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -13994,6 +14004,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "1A409AECCDEEDAC4BC5F9E35";
 		};
+		"DE8EE0EA032283372C533509" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RegistrationCheckoutPresentation.swift";
+			"sourceTree" = "<group>";
+		};
+		"3BCE2A343107C4CB35EBA7F0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DE8EE0EA032283372C533509";
+		};
+		"237F729E0BC17F829F043774" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RegistrationConfirmedReadback.swift";
+			"sourceTree" = "<group>";
+		};
+		"C497C86A7A0654A5657921D6" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "237F729E0BC17F829F043774";
+		};
 		"EFB8827629E1C73493D5C85D" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -18155,6 +18185,7 @@
 				"D1F3BB6C12664DC1467D35BB",
 				"81814D0BC3E163A0527914C3",
 				"3763B23C284D37776F6F43BE",
+				"F09433EDF274FC9C99F18977",
 				"F85A4DBDE16D9D7F78E4CBAB",
 				"4C8653A5CC71366243345BA1",
 				"650EFC6D915CB2D53C8435DA",
@@ -18736,6 +18767,8 @@
 				"7772107B4325C8EA9CF9F66B",
 				"CC9FD8C28273859BB1FACF24",
 				"1A409AECCDEEDAC4BC5F9E35",
+				"DE8EE0EA032283372C533509",
+				"237F729E0BC17F829F043774",
 				"EFB8827629E1C73493D5C85D",
 				"FB816FB1FCAD6B56D26DAAF3",
 				"C0FACE4AB4316A16EAF90C5A",
@@ -20522,6 +20555,7 @@
 				"F18B5C7116FEE4C53CE98F1B",
 				"B992B18A2F2F985CF9BFCF0A",
 				"998052F18D28B531A21A68C8",
+				"9A518991A416BD015753BE68",
 				"80684DFA45D42490B93CBE76",
 				"7DA570A3D8F747D196226898",
 				"BCDA209A852DA5A3C25A6C3A",
@@ -21103,6 +21137,8 @@
 				"C881FD2F7ED46F763A4F296D",
 				"E7E34939B42A8BC60B769116",
 				"7D4E7D959138138055B1E65F",
+				"3BCE2A343107C4CB35EBA7F0",
+				"C497C86A7A0654A5657921D6",
 				"F5731394B8094B41FDB5FAC5",
 				"1E972F0D7C9787F1BD789F45",
 				"C9BEDFC1B7DBD97CBA30A782",
