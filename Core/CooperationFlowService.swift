@@ -9,6 +9,8 @@ public enum CoopFlowRead: Equatable {
     case complaintTopics, relations, clubs(name: String?), nearby(longitude: Double, latitude: Double)
     case depositStatus(inviteID: Int)
     case merchants(name: String?), ownedTopics(kind: CoopFlowTargetKind, scope: String?, page: Int)
+    /// Source `pages/coop/list` legs: official merchant invites (GET) and merchant chapter applications.
+    case officialMerchantInvites, chapterApplicationsOwned(scope: String?), chapterApplicationsMine
     public var path: String {
         switch self {
         case .invitations: return "api/coop/list"; case .pool: return "api/coop/pool/list"
@@ -22,9 +24,13 @@ public enum CoopFlowRead: Equatable {
         case .depositStatus: return "api/coop/deposit/status"
         case .merchants: return "api/club/merchants"
         case .ownedTopics: return "api/topic/list"
+        case .officialMerchantInvites: return "api/official/merchant-invites"
+        case .chapterApplicationsOwned: return "api/merchant/chapter-application/owner-mine"
+        case .chapterApplicationsMine: return "api/merchant/chapter-application/mine"
         }
     }
-    public var expectsArray: Bool { switch self { case .applications, .receivedApplications, .templates, .perks, .complaintTopics, .clubs, .merchants, .nearby: return true; default: return false } }
+    public var expectsArray: Bool { switch self { case .applications, .receivedApplications, .templates, .perks, .complaintTopics, .clubs, .merchants, .nearby,
+                                                   .officialMerchantInvites, .chapterApplicationsOwned, .chapterApplicationsMine: return true; default: return false } }
     public func body() throws -> CoopFlowJSON {
         switch self {
         case .perks(let id), .depositStatus(let id): guard id > 0 else { throw APIError.invalidRequest }; return .object(["inviteId": .id(id)])
@@ -37,6 +43,9 @@ public enum CoopFlowRead: Equatable {
             return .object(fields)
         case .clubs(let name), .merchants(let name): return .object(name.map { ["name": .string($0)] } ?? [:])
         case .relations: return .object(["limit": .id(10)])
+        case .chapterApplicationsOwned(let scope):
+            guard scope == nil || scope == "MERCHANT" else { throw APIError.invalidRequest }
+            return .object(["scope": .string(scope ?? "")])
         case .nearby(let lng, let lat):
             guard lng.isFinite, lat.isFinite, (-180...180).contains(lng), (-90...90).contains(lat) else { throw APIError.invalidRequest }
             return .object(["longitude": .string(String(lng)), "latitude": .string(String(lat)), "radius": .string("5000"), "limit": .string("30")])
@@ -80,7 +89,14 @@ public struct CoopFlowService {
             request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
             request.httpBody = Data((parts + "--\(boundary)--\r\n").utf8)
         }
-        let value = try await send(request)
+        if resource == .officialMerchantInvites { request.httpMethod = "GET"; request.httpBody = nil; request.setValue(nil, forHTTPHeaderField: "Content-Type") }
+        let value: CoopFlowJSON
+        do { value = try await send(request) }
+        catch CoopFlowFailure.inactiveMerchant {
+            // Non-merchants have no official invites; every other read keeps its forbidden classification.
+            guard resource == .officialMerchantInvites else { throw CoopFlowFailure.server(403, nil) }
+            return .array([])
+        }
         if resource.expectsArray { guard value.rows != nil else { throw CoopFlowFailure.malformed } }
         else { guard case .object = value else { throw CoopFlowFailure.malformed } }
         switch resource {
@@ -133,6 +149,7 @@ public struct CoopFlowService {
         guard let envelope = try? JSONDecoder().decode(CoopFlowJSON.self, from: data) else { throw CoopFlowFailure.malformed }
         let code = envelope["code"].integer
         if status == 401 || code == 401 { throw APIError.unauthorized }
+        if envelope["errorCode"].text == "NOT_ACTIVE_MERCHANT" { throw CoopFlowFailure.inactiveMerchant }
         guard (200..<300).contains(status), code == 200 else { throw CoopFlowFailure.server(code ?? status, envelope["msg"].text) }
         return envelope["data"]
     }

@@ -88,3 +88,37 @@ import SwiftUI
         }
     }
 }
+
+/// Source `typeText`: "from → to" party labels, else the invite-type label.
+struct CooperationInvitePartyText: View {
+    let view: CooperationInvitePresentation
+    var body: some View {
+        if let keys = view.partyKeys {
+            Text(LocalizedStringKey(keys.from)) + Text(verbatim: " → ") + Text(LocalizedStringKey(keys.to))
+        } else { Text(LocalizedStringKey(view.inviteTypeKey)) }
+    }
+}
+/// Source `termsOf`: a missing rate or fee shows "?" rather than a default.
+struct CooperationInviteTermsText: View {
+    let terms: CooperationInvitePresentation.Terms
+    var body: some View {
+        switch terms {
+        case .traffic: Text("cooperation.terms.traffic")
+        case .share(let rate): Text("cooperation.detail.terms.share \(rate.map(cooperationInviteNumber) ?? "?")")
+        case .fixed(let fee): Text("cooperation.detail.terms.fixed \(fee.map(cooperationInviteNumber) ?? "?")")
+        case .unknown: Text(verbatim: "—")
+        }
+    }
+}
+struct CooperationInviteDepositText: View {
+    let deposit: CooperationInvitePresentation.Deposit
+    var body: some View {
+        switch deposit {
+        case .notRequired: Text("cooperation.detail.deposit.none")
+        case .owed(let amount?): Text("cooperation.detail.deposit.owed \(cooperationInviteNumber(amount))").foregroundStyle(.orange)
+        case .owed(nil): Text("cooperation.detail.deposit.owedUnknown").foregroundStyle(.orange)
+        }
+    }
+}
+/// No default amount, exchange rate, estimated deposit or contract total.
+func cooperationInviteNumber(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(0...8))) }

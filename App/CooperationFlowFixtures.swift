@@ -22,6 +22,9 @@ import SwiftUI
         case .nearby, .perks: return .array([])
         case .reviewSummary, .credit: return .object([:])
         case .depositStatus: return .object(["paymentStatus": .string("unknown")])
+        case .officialMerchantInvites: return .array([.object(["inviteId": .id(41), "title": .string("Synthetic official event"), "status": .id(0), "shareMode": .id(0), "expireTime": .string("2026-11-02 18:00:00")])])
+        case .chapterApplicationsOwned: return .array([.object(["id": .id(51), "topicId": .id(8), "topicName": .string("Synthetic chapter topic"), "chapterName": .string("Market chapter"), "merchantName": .string("Synthetic merchant"), "status": .id(0), "source": .id(0)])])
+        case .chapterApplicationsMine: return .array([])
         }
     }
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement {

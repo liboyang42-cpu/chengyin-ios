@@ -72,14 +72,14 @@ import UIKit
             }
             Section("cooperation.detail.section.terms") {
                 // Mini-program invite detail lists the two parties first (utils/coop-invite-view.js typeText).
-                LabeledContent { partyText(view) } label: { Text("cooperation.parties") }
+                LabeledContent { CooperationInvitePartyText(view: view) } label: { Text("cooperation.parties") }
                     .accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.detail.parties")
-                LabeledContent { terms(view.terms) } label: { Text("cooperation.detail.share") }
+                LabeledContent { CooperationInviteTermsText(terms: view.terms) } label: { Text("cooperation.detail.share") }
                     .accessibilityIdentifier("cooperation.detail.terms")
                 if let occupancy = detail.occupancy {
                     CooperationField(key: occupancy.kind == .gamePending ? "cooperation.slot.game" : "cooperation.slot.topic", value: "\(occupancy.count) / \(occupancy.capacity)")
                 }
-                LabeledContent { deposit(view.deposit) } label: { Text("cooperation.detail.section.deposit") }
+                LabeledContent { CooperationInviteDepositText(deposit: view.deposit) } label: { Text("cooperation.detail.section.deposit") }
                     .accessibilityIdentifier("cooperation.detail.deposit")
                 if row.termsFrozen { Label("cooperation.termsFrozen", systemImage: "lock") }
             }
@@ -121,30 +121,6 @@ import UIKit
         .onChange(of: reader.scope) { _, _ in phoneCopy.retire() }
         .onChange(of: ObjectIdentifier(reader)) { _, _ in phoneCopy.retire() }
         .onChange(of: key) { _, _ in phoneCopy.retire() }
-    }
-    @ViewBuilder private func partyText(_ view: CooperationInvitePresentation) -> some View {
-        if let keys = view.partyKeys {
-            Text(LocalizedStringKey(keys.from)) + Text(verbatim: " → ") + Text(LocalizedStringKey(keys.to))
-        } else { Text(LocalizedStringKey(view.inviteTypeKey)) }
-    }
-    @ViewBuilder private func terms(_ terms: CooperationInvitePresentation.Terms) -> some View {
-        switch terms {
-        case .traffic: Text("cooperation.terms.traffic")
-        case .share(let rate): Text("cooperation.detail.terms.share \(rate.map { number($0) } ?? "?")")
-        case .fixed(let fee): Text("cooperation.detail.terms.fixed \(fee.map { number($0) } ?? "?")")
-        case .unknown: Text(verbatim: "—")
-        }
-    }
-    @ViewBuilder private func deposit(_ deposit: CooperationInvitePresentation.Deposit) -> some View {
-        switch deposit {
-        case .notRequired: Text("cooperation.detail.deposit.none")
-        case .owed(let amount?): Text("cooperation.detail.deposit.owed \(number(amount))").foregroundStyle(.orange)
-        case .owed(nil): Text("cooperation.detail.deposit.owedUnknown").foregroundStyle(.orange)
-        }
-    }
-    private func number(_ value: Double) -> String {
-        // No default amount, exchange rate, estimated deposit or contract total.
-        value.formatted(.number.precision(.fractionLength(0...8)))
     }
 }
 

@@ -76,6 +76,11 @@ public struct CooperationInvitePresentation: Equatable {
         return (id ?? 0) > 0 && (invite.topicId ?? 0) > 0 ? id : nil
     }
     public var cancelLocked: Bool { invite.termsFrozen }
+    /// Source `decisionReady`: partner name, topic and terms must all be known before a decision is offered.
+    public var decisionReady: Bool {
+        invite.partner?.name?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            && (invite.topicName != nil || invite.topicId != nil) && terms != .unknown
+    }
     /// Who wrote `handleReason`: a sent invite's cancel (3) and a received invite's reject (2) are ours.
     public var handleReasonIsOurs: Bool { direction == .sent ? invite.status == 3 : invite.status == 2 }
     public var messageIsOurs: Bool { direction == .sent }
