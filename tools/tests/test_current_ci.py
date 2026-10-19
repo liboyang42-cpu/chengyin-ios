@@ -137,7 +137,7 @@ final class Real: XCTestCase {
         name='current-ui-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
         self.assertIn('name: '+name,native);self.assertIn('name: '+name,ui)
         for section in (native,ui):
-            self.assertIn('max-parallel: 3',section);self.assertIn('timeout-minutes: 45',section)
+            self.assertIn('max-parallel: 20',section);self.assertIn('timeout-minutes: 45',section)
 
     def test_missing_ui_execution_or_failed_units_still_fail_current_aggregate(self):
         from tools import current_native as native
