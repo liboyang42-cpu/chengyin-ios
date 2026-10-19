@@ -120,6 +120,9 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
+      - name: Echo bounded compiler diagnostics on failure
+        if: ${{ failure() }}
+        run: grep -h -E "(error|fatal error): " "$RUNNER_TEMP"/current-native/*.stdout 2>/dev/null | sort -u | head -200 || true
   ui:
     needs: [controls, native]
     if: ${{ always() && needs.controls.result == 'success' && needs.native.outputs.ui_build_artifact != '' }}
