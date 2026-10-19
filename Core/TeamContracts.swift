@@ -12,7 +12,9 @@ public struct OwnedTeam: Decodable, Equatable, Identifiable {
     public let expireTime: String?
     public let joinMode: TeamJoinMode
     public let inviteCode: String?
-    enum CodingKeys: String, CodingKey { case id, teamId, title, status, joinedCount, maxMembers, ownerType, ownerId, expireTime, joinMode, inviteCode }
+    /// From the viewer's own /api/team/my rows only; used to group 我带的队 exactly as the mini-program does.
+    public let leaderMemberID: Int?
+    enum CodingKeys: String, CodingKey { case id, teamId, title, status, joinedCount, maxMembers, ownerType, ownerId, expireTime, joinMode, inviteCode, leaderMemberId }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let id = try c.teamInt(.id), alias = try c.teamInt(.teamId)
@@ -25,6 +27,8 @@ public struct OwnedTeam: Decodable, Equatable, Identifiable {
         expireTime = try c.decodeIfPresent(String.self, forKey: .expireTime)
         joinMode = TeamJoinMode(rawValue: try c.teamInt(.joinMode) ?? -1) ?? .unknown
         inviteCode = try c.decodeIfPresent(String.self, forKey: .inviteCode)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let leader = try c.teamInt(.leaderMemberId)
+        leaderMemberID = leader.flatMap { $0 > 0 ? $0 : nil }
     }
     public var ownerKey: TeamOwnerKey? {
         guard let ownerType, let ownerID, ownerType > 0, ownerID > 0 else { return nil }
