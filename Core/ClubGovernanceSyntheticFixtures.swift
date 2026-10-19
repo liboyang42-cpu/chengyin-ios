@@ -100,6 +100,10 @@ public enum ClubGovernanceFixtures {
         guard isConfigured else { throw ClubGovernanceFailure.notConfigured }; guard identity != nil else { throw ClubGovernanceFailure.signedOut }
         _ = try operation.fields(scope: scope, options: options)
         onRead?(); if let readFailure { throw readFailure }
+        if operation == .cases, scope.clubID != nil, permissionValue["active"] == .bool(false), permissionValue["club"]["id"].int == scope.clubID {
+            let raw = overrideValue[operation] ?? ClubGovernanceFixtures.value(operation, scope: scope)
+            return .init(operation: operation, scope: scope, permissions: nil, value: try ClubGovernanceValidation.validate(raw, operation: operation, scope: scope))
+        }
         let permissions = scope.clubID == nil ? nil : try ClubGovernancePermissions(value: permissionValue, scope: scope)
         if let permissions { guard permissions.allows(operation.permission, scope: scope) || ([.audienceCounts, .notificationPreview, .notificationStatus].contains(operation) && permissions.allows("club:event:operate", scope: scope)) else { throw ClubGovernanceFailure.forbidden } }
         let raw = overrideValue[operation] ?? (operation == .access ? permissionValue : ClubGovernanceFixtures.value(operation, scope: scope))

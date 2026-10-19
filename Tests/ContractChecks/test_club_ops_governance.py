@@ -95,12 +95,17 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
         for key, value in expected.items(): self.assertEqual(self.zh(key), value, key)
 
     def test_banned_viewer_reads_only_own_cases(self):
-        branch = self.service.split('if operation == .cases, raw["active"] == .bool(false) {', 1)[1].split('}', 1)[0]
+        gate = 'if operation == .cases, accessReply["active"] == .bool(false), let clubID = accessReply["club"]["id"].int, clubID == scope.clubID {'
+        branch = self.service.split(gate, 1)[1].split('}', 1)[0]
         self.assertIn('permissions: nil', branch)
-        self.assertLess(self.service.index('if operation == .cases, raw["active"] == .bool(false)'), self.service.index('let access = try ClubGovernancePermissions(value: raw, scope: scope)'))
+        # The raw access reply is unvalidated only for this exact inactive-own-cases check; every other path validates it.
+        self.assertIn('let accessReply = try await post(.access, scope: scope, options: [:], token: session.token, validating: false, check: check)', self.service)
+        self.assertEqual(self.service.count('validating: false'), 1)
+        self.assertLess(self.service.index(gate), self.service.index('let raw = try ClubGovernanceValidation.validate(accessReply, operation: .access, scope: scope)'))
+        self.assertLess(self.service.index('let raw = try ClubGovernanceValidation.validate(accessReply, operation: .access, scope: scope)'), self.service.index('let access = try ClubGovernancePermissions(value: raw, scope: scope)'))
         self.assertEqual(self.service.count('permissions: nil'), 1)
         self.assertIn('guard operation == .cases, let ban = body.object?["activeBan"] else { return body["data"] }', self.service)
-        self.assertIn('return try ClubGovernanceValidation.validate(Self.payload(body, operation: operation), operation: operation, scope: scope)', self.service)
+        self.assertIn('return validating ? try ClubGovernanceValidation.validate(payload, operation: operation, scope: scope) : payload', self.service)
 
     def test_active_ban_fact_and_appeal_review_fail_closed(self):
         self.assertIn('try require(Set(object.keys) == ["data", "activeBan"])', self.validation)
@@ -159,7 +164,7 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
         self.assertEqual(self.form.count('ClubOpsGovernanceSuccess('), 1)
         self.assertIn('receipt = value; self.review = nil; locked = true', self.form)
         review = self.form.split('Section("club.gov.review") {', 1)[1].split('Button(', 1)[0]
-        self.assertIn('.filter { $0 != "expiresAtEpochMs" }', review)
+        self.assertIn('.filter { $0 != "expiresAtEpochMs" && ', review)
         self.assertIn('ClubOpsBanExpiryReview(fields: review.command.fields)', review)
 
     def test_localizable_copy_diffs_changed_in_fragment_and_catalog(self):

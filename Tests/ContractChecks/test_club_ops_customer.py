@@ -251,3 +251,9 @@ class ClubOpsSettlementWiring(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ClubOpsCustomerRecordIdentityChecks(unittest.TestCase):
+    def test_duplicate_record_keys_fail_closed(self):
+        core = (ROOT / 'Core/ClubOpsCustomerPresentation.swift').read_text()
+        self.assertIn('guard Set(records.map(\\.id)).count == records.count else { throw ClubGovernanceFailure.malformed }', core)

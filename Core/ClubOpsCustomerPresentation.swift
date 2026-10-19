@@ -113,6 +113,8 @@ public struct ClubOpsCustomerDetailPresentation: Equatable {
             return .init(id: key, topicID: ClubCustomerHistoryTopicRoute.positiveID(row["topicId"]), title: ClubOpsCustomerText.trimmed(row["title"]),
                          day: parts?.day, month: parts?.month, status: status, source: row)
         }
+        // Record keys are list identities; a repeated key is a malformed receipt, not two rows.
+        guard Set(records.map(\.id)).count == records.count else { throw ClubGovernanceFailure.malformed }
         tags = try rawTags.map { tag in
             guard let name = ClubOpsCustomerText.trimmed(tag) ?? ClubOpsCustomerText.trimmed(tag["name"]) else { throw ClubGovernanceFailure.malformed }
             return name

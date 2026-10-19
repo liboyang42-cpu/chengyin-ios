@@ -130,3 +130,14 @@ class ClubOpsEventContracts(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ClubOpsEventAnchorChecks(unittest.TestCase):
+    def test_roster_anchor_cannot_be_replaced_by_a_draft_flag(self):
+        draft = (ROOT / 'Core/ClubGovernanceFormDraft.swift').read_text()
+        self.assertIn('case .correctAttendance: anchorKeys = ["expectedVersion", "arrived"]', draft)
+        self.assertIn('for (key, flag) in flags where anchors[key] == nil {', draft)
+
+    def test_owner_default_lead_reviews_as_owner_not_unknown(self):
+        form = (ROOT / 'App/ClubGovernanceCommandForm.swift').read_text()
+        self.assertIn('LabeledContent("club.gov.field.defaultLeadMemberId") { Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent") }', form)

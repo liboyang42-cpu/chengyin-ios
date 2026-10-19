@@ -39,26 +39,29 @@ public struct ClubGovernanceService {
         request.httpBody = try encoder.encode(fields)
         return request
     }
-    private func post(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue], token: String, check: () throws -> Void) async throws -> ClubGovernanceValue {
+    private func post(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue], token: String, validating: Bool = true, check: () throws -> Void) async throws -> ClubGovernanceValue {
         let fields = try operation.fields(scope: scope, options: options)
         let request = try request(path: operation.path, fields: fields, form: [.topicOverview, .members].contains(operation), token: token)
         try check()
         let (data, status) = try await transport.send(request)
         try check()
         let body = try Self.decodeEnvelope(data: data, status: status, mutation: false)
-        return try ClubGovernanceValidation.validate(Self.payload(body, operation: operation), operation: operation, scope: scope)
+        let payload = Self.payload(body, operation: operation)
+        return validating ? try ClubGovernanceValidation.validate(payload, operation: operation, scope: scope) : payload
     }
     public func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue] = [:], session: ClubGovernanceSession, check: () throws -> Void) async throws -> ClubGovernanceSnapshot {
         try check(); _ = try operation.fields(scope: scope, options: options)
         var permissions: ClubGovernancePermissions?
         if scope.clubID != nil {
-            let raw = try await post(.access, scope: scope, options: [:], token: session.token, check: check)
+            // Access is validated below; only an explicit inactive answer for this exact club may skip it, and only for own cases.
+            let accessReply = try await post(.access, scope: scope, options: [:], token: session.token, validating: false, check: check)
             // A banned former member keeps only their own cases and appeal fact; every other read still needs active access.
-            if operation == .cases, raw["active"] == .bool(false) {
+            if operation == .cases, accessReply["active"] == .bool(false), let clubID = accessReply["club"]["id"].int, clubID == scope.clubID {
                 let own = try await post(operation, scope: scope, options: options, token: session.token, check: check)
                 try check()
                 return .init(operation: operation, scope: scope, permissions: nil, value: own)
             }
+            let raw = try ClubGovernanceValidation.validate(accessReply, operation: .access, scope: scope)
             let access = try ClubGovernancePermissions(value: raw, scope: scope)
             var permitted = access.allows(operation.permission, scope: scope)
             if [.audienceCounts, .notificationStatus].contains(operation), scope.activityID != nil {

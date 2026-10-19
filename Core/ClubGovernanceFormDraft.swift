@@ -100,7 +100,8 @@ public struct ClubGovernanceFormDraft {
             } else if key == "actualHours" { guard let number = Double(value), number.isFinite else { throw ClubGovernanceFailure.invalidRequest }; values[key] = .decimal(number) }
             else { values[key] = .string(key == "evidenceHash" ? value.lowercased() : value) }
         }
-        for (key, flag) in flags { values[key] = operation == .hostApply || key == "enabled" ? .integer(flag ? 1 : 0) : .bool(flag) }
+        // Wire anchors (e.g. a roster-derived `arrived`) are immutable; a draft flag never replaces one.
+        for (key, flag) in flags where anchors[key] == nil { values[key] = operation == .hostApply || key == "enabled" ? .integer(flag ? 1 : 0) : .bool(flag) }
         if operation == .hostApply { values["hasExperience"] = .integer(text["experience"] == "没有经验" ? 0 : 1) }
         if [.createSeries, .updateSeries].contains(operation) {
             if text["recurrenceType"] != "CUSTOM_DATES" { values["customDates"] = .null }
