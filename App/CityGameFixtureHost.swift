@@ -122,11 +122,16 @@ import Observation
         _service = State(initialValue: service)
         enabled = !args.contains("--city-game-disabled")
     }
+    private var gameFactory: (@MainActor (CityReadSnapshot) -> CityGameCoordinator?)? {
+        guard enabled else { return nil }
+        let service = service
+        return { read in
+            CityGameCoordinator(read: read, service: service, capabilities: .syntheticFixture([.cityActions]), memberId: "member-12", isCurrent: { true })
+        }
+    }
     var body: some View {
         NavigationStack {
-            CityPlayerView(reader: reader, gameFactory: enabled ? { read in
-                CityGameCoordinator(read: read, service: service, capabilities: .syntheticFixture([.cityActions]), memberId: "member-12", isCurrent: { true })
-            } : nil)
+            CityPlayerView(reader: reader, gameFactory: gameFactory)
         }
         .safeAreaInset(edge: .bottom) {
             // Payload-free recorder: proves review/cancel never send and retries never repeat an effect.
