@@ -9,6 +9,7 @@ import SwiftUI
     @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
     @Environment(\.scenePhase) private var scenePhase
     @State private var showsSettings=false
+    @State private var settingsGuideHandoff = SettingsGuideHandoff()
     @State private var showsTickets=false
     @State private var showsCooperation=false
     @State private var confirmsLogout=false
@@ -131,7 +132,9 @@ import SwiftUI
             .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
-                    Button("settings.title",systemImage:"gearshape") { showsSettings=true }
+                    Button("settings.title",systemImage:"gearshape") {
+                        if settingsGuideHandoff.begin() { showsSettings=true }
+                    }
                 }
             }
             .navigationDestination(isPresented:$showsMerchantApplication) {
@@ -152,7 +155,18 @@ import SwiftUI
             .onChange(of: session.profileFavoritesReader.scope) { _, scope in
                 savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)
             }
-            .sheet(isPresented:$showsSettings) { SettingsView() }
+            .sheet(isPresented:$showsSettings, onDismiss: settingsDismissHandler) {
+                let presentation = settingsGuideHandoff.presentation
+                let revision = session.sessionRevision
+                SettingsView(onOpenGuideDestination: onOpenGuideDestination.map { open in { destination in
+                    guard showsSettings, session.sessionRevision == revision,
+                          settingsGuideHandoff.request(presentation, action: {
+                              guard session.sessionRevision == revision else { return }
+                              open(destination)
+                          }) else { return }
+                    showsSettings = false
+                } })
+            }
             .sheet(isPresented:$showsCooperation) { CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader).id(session.cooperationReader.scope) }
             .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope) }
             .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible) {
@@ -163,6 +177,11 @@ import SwiftUI
         .onAppear { savedPostOwner.appear(scope: session.profileFavoritesReader.scope, foreground: scenePhase == .active); savedTopicOwner.appear(scope: session.profileFavoritesReader.scope, foreground: scenePhase == .active) }
         .onDisappear { savedPostOwner.disappear(); savedTopicOwner.disappear() }
         .onChange(of: scenePhase) { _, phase in savedPostOwner.setForeground(phase == .active); savedTopicOwner.setForeground(phase == .active) }
+    }
+
+    private var settingsDismissHandler: () -> Void {
+        let presentation = settingsGuideHandoff.presentation
+        return { settingsGuideHandoff.finish(presentation)?() }
     }
 
     @MainActor private var ticketPendingOrderProvider: TicketWalletPendingOrderProvider {

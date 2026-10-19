@@ -4,6 +4,39 @@ import UIKit
 @testable import Questify
 
 @MainActor final class ProfileGuideReadTests:XCTestCase {
+    func testSettingsGuideModeRunsOnlyAfterDismissAndOnlyOnce() {
+        var owner = SettingsGuideHandoff(), calls = 0
+        XCTAssertTrue(owner.begin()); let id = owner.presentation
+        XCTAssertTrue(owner.request(id) { calls += 1 })
+        XCTAssertEqual(calls, 0)
+        XCTAssertFalse(owner.request(id) { calls += 10 })
+        XCTAssertFalse(owner.begin())
+        owner.finish(id)?()
+        XCTAssertEqual(calls, 1)
+        XCTAssertNil(owner.finish(id))
+        XCTAssertTrue(owner.begin())
+    }
+    func testOldSettingsCallbacksCannotRouteOrConsumeNewPresentation() {
+        var owner = SettingsGuideHandoff(), calls = 0
+        XCTAssertTrue(owner.begin()); let old = owner.presentation
+        XCTAssertNil(owner.finish(old))
+        XCTAssertTrue(owner.begin()); let next = owner.presentation
+        XCTAssertFalse(owner.request(old) { calls += 10 })
+        XCTAssertTrue(owner.request(next) { calls += 1 })
+        XCTAssertNil(owner.finish(old))
+        owner.finish(next)?()
+        XCTAssertEqual(calls, 1)
+    }
+    func testSettingsGuideConstructionKeepsExistingIndependentGrantClosed() async throws {
+        let h = try Harness(enabled: false); await h.login(); h.wire.requests = []
+        let guide = ProfileGuideHost(reader: h.session.makeProfileGuideReader(),
+            makeArticleReader: { h.session.makeProfileGuideArticleReader($0) }, templateReader: h.session)
+        _ = guide
+        XCTAssertTrue(h.wire.requests.isEmpty)
+        let reader = try h.reader()
+        XCTAssertFalse(reader.isConfigured)
+    }
+
     func testSignedOutAndDefaultNilNeverDispatchGuideRequests()async throws {
         let h=try Harness(enabled:false);XCTAssertNil(h.session.makeProfileGuideReader());await h.login()
         let reader=try h.reader();h.wire.requests=[];XCTAssertFalse(reader.isConfigured)
