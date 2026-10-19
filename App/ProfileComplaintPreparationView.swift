@@ -61,6 +61,12 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 if model.isLoading { ProgressView("profile.loading").accessibilityIdentifier("profile.complaint.loading") }
                 if let issue = model.issue {
                     Section {
+                        Text(LocalizedStringKey(issue.sourceTitleKey)).font(.headline)
+                            .accessibilityIdentifier("profile.complaint.issueTitle")
+                        if issue != .unavailable {
+                            Text(LocalizedStringKey(issue.sourceDetailKey)).font(.subheadline)
+                                .accessibilityIdentifier("profile.complaint.issueDetail")
+                        }
                         Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier("profile.complaint.issue")
                         if issue == .failed {
                             Button("action.retry") { Task { await model.load() } }
