@@ -199,7 +199,8 @@ import XCTest
         {"id":\(id),"memberId":\(member),"ownerType":\(type),"ownerId":\(activity),"ticketId":\(ticket),"registrationStatus":0,"paymentStatus":null}
         """.utf8))
     }
-    private func opened(_ base: WaitlistOrderReadFixture, service: ResultOrderCreationFixture = .init(), ticket: Int? = 11) throws -> (RegistrationUIFlow, ResultOrderCreationFixture) {
+    private func opened(_ base: WaitlistOrderReadFixture, service: ResultOrderCreationFixture? = nil, ticket: Int? = 11) throws -> (RegistrationUIFlow, ResultOrderCreationFixture) {
+        let service = service ?? ResultOrderCreationFixture()
         let coordinator = RegistrationCoordinator(service: service, makeRequestID: { "synthetic-result-request" })
         try coordinator.setAccount(id: 1, token: "synthetic-token")
         let flow = try RegistrationUIFlow(activity: activity(ticket: ticket), coordinator: coordinator, currentIdentity: { base.identity })

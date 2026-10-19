@@ -208,136 +208,118 @@ struct ClubGovernanceReadView: View {
     @State private var page = 1
     @State private var editor: ClubGovernanceFormRoute?
     private var title: LocalizedStringKey { LocalizedStringKey("club.gov." + operation.rawValue) }
+    // Split into stages so the type checker handles the long modifier chain;
+    // the modifiers apply in exactly the same order as one chain.
     var body: some View {
-        List {
-            if loading { ProgressView().accessibilityIdentifier("club.gov.loading") }
-            if operation == .occurrenceStatus, let readback = occurrenceCancellationReturn.readback,
-               readback.source.live(context: readContext, access: access) {
-                Section {
-                    if !occurrenceCancellationReturn.confirmed {
-                        Text("club.gov.unknown").accessibilityIdentifier("club.cancel.readback.unconfirmed")
-                    }
-                    ClubGovernanceFactRows(value: readback.receipt, fields: ["refundStatus"])
+        bodyReturnOwners
+        .task(id: readContext) {
+            if operation == .occurrenceStatus { return }
+            guard operation != .cases, operation != .settlement else { return }
+            if operation == .seriesDetail, snapshotContext == readContext, snapshot != nil, generation == snapshotGeneration { return }
+            if operation == .eventTopics, seriesCreationReturn.holdsSource,
+               seriesCreationReturn.isBound(context: readContext, access: access) { return }
+            if operation == .series {
+                if snapshotContext != readContext || snapshotGeneration != generation {
+                    seriesOccurrences.retire(); invalidateRead(); loading = false; await load()
                 }
-            }
-            if let failure {
-                Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.error"); if let message = failure.message { Text(verbatim: message).textSelection(.enabled) } }
-            }
-            if operation == .customers {
-                Section {
-                    Picker("club.gov.filter", selection: customerFilterBinding) {
-                        ForEach(["all", "repeat", "new", "remark"], id: \.self) { Text(LocalizedStringKey("club.gov.filter." + $0)).tag($0) }
-                    }
-                    TextField("club.gov.keyword", text: customerKeywordBinding).submitLabel(.search)
-                        .onSubmit { loadCustomersNow() }
-                    Button("club.gov.search") { loadCustomersNow() }.disabled(loading)
+                await loadSeriesOccurrencesIfNeeded()
+            } else if operation == .roster {
+                if attendanceReads.synchronize(readContext) {
+                    attendanceReturn.retire(); invalidateRead(); loading = false
                 }
-            }
-            if operation == .topicCustomers {
-                Section {
-                    Picker("club.gov.filter", selection: $topicCustomerFilter) {
-                        ForEach(ClubTopicCustomerFilter.allCases, id: \.rawValue) { item in
-                            Text(LocalizedStringKey(item.localizationKey)).tag(item)
-                        }
-                    }.accessibilityIdentifier("club.gov.topicCustomers.filter")
-                        .onChange(of: topicCustomerFilter) { _, _ in Task { await load() } }
-                    Text("club.gov.topicCustomers.countScope").font(.footnote).foregroundStyle(.secondary)
+                attendanceReturn.invalidateUnlessCurrent(source: attendanceSource, active: scenePhase == .active)
+                if let ticket = attendanceReturn.readTicket, ticket.source.context != readContext { attendanceReturn.retire() }
+                await loadRosterIfNeeded()
+            } else if operation == .roles {
+                if roleReads.synchronize(readContext) {
+                    roleManagementReturn.retire(); invalidateRead(); loading = false
                 }
-            }
-            if operation == .leaderboard {
-                Picker("club.gov.sort", selection: $sort) { ForEach(["composite", "mileage", "pace", "duration"], id: \.self) { Text(LocalizedStringKey("club.gov.sort." + $0)).tag($0) } }
-                    .onChange(of: sort) { _, _ in Task { await load() } }
-            }
-            if let snapshot, snapshotContext == readContext, identity == access.identity { content(snapshot) }
-            if operation == .posts, snapshot != nil {
-                Section {
-                    HStack {
-                        Button("club.gov.previous") { page -= 1; Task { await load() } }.disabled(page <= 1 || loading).accessibilityIdentifier("club.gov.previous")
-                        Spacer(); Text(page, format: .number)
-                        Button("club.gov.next") { page += 1; Task { await load() } }.disabled(loading || (snapshot?.value.array ?? snapshot?.value["rows"].array ?? []).count < 20).accessibilityIdentifier("club.gov.next")
-                    }
+                roleManagementReturn.invalidateUnlessCurrent(source: roleManagementSource, active: scenePhase == .active)
+                if let ticket = roleManagementReturn.readTicket, ticket.source.context != readContext { roleManagementReturn.retire() }
+                await loadRolesIfNeeded()
+            } else if operation == .topicSettings {
+                if topicSettingsReads.synchronize(readContext) {
+                    topicSettingsReturn.retire(); invalidateRead(); loading = false
                 }
-            }
-            if !loading { Button("club.gov.refresh") { Task { await load() } }.accessibilityIdentifier("club.gov.refresh") }
-        }
-        .navigationTitle(title)
-        .sheet(item: $editor) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }
-        .background {
-            if let item = seriesUpdateReturn.item {
-                ClubSeriesUpdatePresentationOwner(item: item, owner: seriesUpdateReturn,
-                    source: { seriesUpdateSource }, active: { scenePhase == .active },
-                    access: access, coordinator: coordinator, didDismiss: finishSeriesUpdateReturn)
-                    .id(item.id)
-            }
+                topicSettingsReturn.invalidateUnlessCurrent(source: topicSettingsSource, active: scenePhase == .active)
+                if let ticket = topicSettingsReturn.readTicket, ticket.source.context != readContext { topicSettingsReturn.retire() }
+                await loadTopicSettingsIfNeeded()
+            } else if operation == .bans {
+                if banReads.synchronize(readContext) {
+                    banRemovalReturn.retire(); invalidateRead(); loading = false
+                }
+                banRemovalReturn.invalidateUnlessCurrent(source: banRemovalSource, active: scenePhase == .active)
+                if let ticket = banRemovalReturn.readTicket, ticket.source.context != readContext { banRemovalReturn.retire() }
+                await loadBansIfNeeded()
+            } else { invalidateRead(); await load() }
+
         }
         .background {
-            if let item = seriesCreationReturn.item {
-                ClubSeriesCreationPresentationOwner(item: item, owner: seriesCreationReturn,
-                    source: { seriesCreationSource(topicID: item.route.scope.topicID) },
-                    active: { scenePhase == .active }, access: access, coordinator: coordinator,
-                    didDismiss: finishSeriesCreationReturn).id(item.id)
-            }
-            if let target = seriesCreationReturn.destination {
-                ClubCreatedSeriesDestinationOwner(target: target, owner: seriesCreationReturn,
-                    current: { seriesCreationReturn.destinationIsCurrent(target, context: readContext, access: access) },
-                    access: access, coordinator: coordinator).id(target.id)
+            if let item = caseSubmissionReturn.item {
+                ClubCaseSubmissionPresentationOwner(item: item, owner: caseSubmissionReturn,
+                    source: { caseSubmissionSource }, active: { scenePhase == .active },
+                    access: access, coordinator: coordinator, didDismiss: finishCaseSubmissionReturn).id(item.id)
             }
         }
-        .background {
-            if let item = occurrenceCancellationReturn.item {
-                ClubOccurrenceCancellationPresentationOwner(item: item, owner: occurrenceCancellationReturn,
-                    source: { occurrenceCancellationSource }, active: { scenePhase == .active },
-                    access: access, coordinator: coordinator, didDismiss: finishOccurrenceCancellationReturn)
-                    .id(item.id)
-            }
-        }
-        .onAppear { seriesHostVisible = true; finishSeriesUpdateReturn() }
-        .onAppear { finishOccurrenceCancellationReturn() }
-        .onChange(of: occurrenceCancellationSource) { _, source in
-            occurrenceCancellationReturn.invalidateForm(source: source, active: scenePhase == .active)
-        }
-        .onAppear { finishSeriesCreationReturn() }
-        .onDisappear { seriesHostVisible = false }
-        .onChange(of: seriesUpdateSource) { _, source in
-            seriesUpdateReturn.invalidateUnlessCurrent(source: source, active: scenePhase == .active)
+        .onAppear { caseHostVisible = true; finishCaseSubmissionReturn() }
+        .onChange(of: caseSubmissionSource) { _, source in
+            caseSubmissionReturn.invalidateUnlessCurrent(source: source, active: scenePhase == .active)
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { seriesUpdateReturn.retire() }
-            if phase != .active { seriesCreationReturn.retire() }
-            if phase != .active { occurrenceCancellationReturn.retire() }
+            guard operation == .cases else { return }
+            if phase != .active { caseSubmissionReturn.retire(); generation &+= 1 }
+            else { finishCaseSubmissionReturn() }
         }
-        .navigationDestination(item: $leaderboardMember) { target in
-            Group {
-                if let profile = leaderboardProfile, current(target) {
-                    SocialPublicProfileView(memberID: target.memberID, reader: profile.reader,
-                        squareReader: profile.squareReader, actions: profile.actions,
-                        isCurrent: { current(target) })
-                        .id(target.id)
-                } else { Color.clear }
-            }
-            // This destination remains active while the leaderboard is covered.
-            // Retire the route here as well, instead of leaving an empty pushed page.
-            .onChange(of: current(target), initial: true) { _, valid in
-                if !valid, leaderboardMember?.id == target.id { leaderboardMember = nil }
+        .task(id: CaseReadTrigger(context: readContext, visible: caseHostVisible, active: scenePhase == .active)) {
+            guard operation == .cases, caseHostVisible, scenePhase == .active else { return }
+            if caseSubmissionReturn.item != nil || caseSubmissionReturn.readID != nil { return }
+            if snapshotContext == readContext && generation == snapshotGeneration { return }
+            invalidateRead(); await load()
+        }
+        .onDisappear {
+            if operation == .customers {
+                customerKeywordDebounce.cancel()
+                generation &+= 1
             }
         }
-        .navigationDestination(item: $customerTopic) { target in
-            if let destination = customerTopics.destination, current(target) {
-                destination(target.topicID).id(target.id)
-            }
-        }
-        .navigationDestination(item: $feedClub) { target in
-            if let destination = feedContext.destination, current(target) {
-                destination(target.clubID).id(target.id)
-            } else {
-                // The read screen is offscreen while its destination is pushed.
-                // Retire the invalid route here too, so account changes cannot
-                // leave an empty detail on top of the refreshed feed.
-                Color.clear.onAppear {
-                    if feedClub?.id == target.id { feedClub = nil }
+        .onDisappear {
+            caseHostVisible = false
+            if operation == .settlement {
+                settlementReturn.hide()
+                ownerFundsParent.hide()
+                if !settlementReturn.retainsChild, let attachment = settlementReturn.attachment {
+                    if !ownerFundsParent.retainsContact {
+                        if settlementReturn.depart(attachment) { generation &+= 1; loading = false }
+                    }
+                }
+            } else if operation == .series {
+                seriesOccurrences.hide()
+                if !seriesOccurrences.retainsDestination { seriesOccurrences.retire(); generation &+= 1; loading = false }
+            } else if operation == .roster {
+                attendanceReturn.hide()
+                if !attendanceReturn.retainsReturn { attendanceReads.retire(); generation &+= 1; loading = false }
+            } else if operation == .roles {
+                roleManagementReturn.hide()
+                if !roleManagementReturn.retainsReturn { roleReads.retire(); generation &+= 1; loading = false }
+            } else if operation == .topicSettings {
+                topicSettingsReturn.hide()
+                if !topicSettingsReturn.retainsReturn { topicSettingsReads.retire(); generation &+= 1; loading = false }
+            } else if operation == .bans {
+                banRemovalReturn.hide()
+                if !banRemovalReturn.retainsReturn { banReads.retire(); generation &+= 1; loading = false }
+            } else if operation != .cases || caseSubmissionReturn.item == nil {
+                if operation == .cases { caseSubmissionReturn.retire() }
+                if operation != .occurrenceStatus || occurrenceCancellationReturn.item == nil {
+                if operation != .eventTopics || !seriesCreationReturn.holdsSource {
+                    if operation != .seriesDetail || seriesUpdateReturn.item == nil { generation &+= 1 }
+                }
                 }
             }
         }
+        .refreshable { await load() }
+    }
+    private var bodyReturnOwners: some View {
+        bodyNavigation
         .background {
             if let item = terminalPresentation.presented {
                 ClubTerminalSessionOwner(item: item, presentation: terminalPresentation,
@@ -552,111 +534,137 @@ struct ClubGovernanceReadView: View {
                 await load()
             } else { invalidateRead(); await load() }
         }
-        .task(id: readContext) {
-            if operation == .occurrenceStatus { return }
-            guard operation != .cases, operation != .settlement else { return }
-            if operation == .seriesDetail, snapshotContext == readContext, snapshot != nil, generation == snapshotGeneration { return }
-            if operation == .eventTopics, seriesCreationReturn.holdsSource,
-               seriesCreationReturn.isBound(context: readContext, access: access) { return }
-            if operation == .series {
-                if snapshotContext != readContext || snapshotGeneration != generation {
-                    seriesOccurrences.retire(); invalidateRead(); loading = false; await load()
+    }
+    private var bodyNavigation: some View {
+        List {
+            if loading { ProgressView().accessibilityIdentifier("club.gov.loading") }
+            if operation == .occurrenceStatus, let readback = occurrenceCancellationReturn.readback,
+               readback.source.live(context: readContext, access: access) {
+                Section {
+                    if !occurrenceCancellationReturn.confirmed {
+                        Text("club.gov.unknown").accessibilityIdentifier("club.cancel.readback.unconfirmed")
+                    }
+                    ClubGovernanceFactRows(value: readback.receipt, fields: ["refundStatus"])
                 }
-                await loadSeriesOccurrencesIfNeeded()
-            } else if operation == .roster {
-                if attendanceReads.synchronize(readContext) {
-                    attendanceReturn.retire(); invalidateRead(); loading = false
-                }
-                attendanceReturn.invalidateUnlessCurrent(source: attendanceSource, active: scenePhase == .active)
-                if let ticket = attendanceReturn.readTicket, ticket.source.context != readContext { attendanceReturn.retire() }
-                await loadRosterIfNeeded()
-            } else if operation == .roles {
-                if roleReads.synchronize(readContext) {
-                    roleManagementReturn.retire(); invalidateRead(); loading = false
-                }
-                roleManagementReturn.invalidateUnlessCurrent(source: roleManagementSource, active: scenePhase == .active)
-                if let ticket = roleManagementReturn.readTicket, ticket.source.context != readContext { roleManagementReturn.retire() }
-                await loadRolesIfNeeded()
-            } else if operation == .topicSettings {
-                if topicSettingsReads.synchronize(readContext) {
-                    topicSettingsReturn.retire(); invalidateRead(); loading = false
-                }
-                topicSettingsReturn.invalidateUnlessCurrent(source: topicSettingsSource, active: scenePhase == .active)
-                if let ticket = topicSettingsReturn.readTicket, ticket.source.context != readContext { topicSettingsReturn.retire() }
-                await loadTopicSettingsIfNeeded()
-            } else if operation == .bans {
-                if banReads.synchronize(readContext) {
-                    banRemovalReturn.retire(); invalidateRead(); loading = false
-                }
-                banRemovalReturn.invalidateUnlessCurrent(source: banRemovalSource, active: scenePhase == .active)
-                if let ticket = banRemovalReturn.readTicket, ticket.source.context != readContext { banRemovalReturn.retire() }
-                await loadBansIfNeeded()
-            } else { invalidateRead(); await load() }
-
-        }
-        .background {
-            if let item = caseSubmissionReturn.item {
-                ClubCaseSubmissionPresentationOwner(item: item, owner: caseSubmissionReturn,
-                    source: { caseSubmissionSource }, active: { scenePhase == .active },
-                    access: access, coordinator: coordinator, didDismiss: finishCaseSubmissionReturn).id(item.id)
             }
-        }
-        .onAppear { caseHostVisible = true; finishCaseSubmissionReturn() }
-        .onChange(of: caseSubmissionSource) { _, source in
-            caseSubmissionReturn.invalidateUnlessCurrent(source: source, active: scenePhase == .active)
-        }
-        .onChange(of: scenePhase) { _, phase in
-            guard operation == .cases else { return }
-            if phase != .active { caseSubmissionReturn.retire(); generation &+= 1 }
-            else { finishCaseSubmissionReturn() }
-        }
-        .task(id: CaseReadTrigger(context: readContext, visible: caseHostVisible, active: scenePhase == .active)) {
-            guard operation == .cases, caseHostVisible, scenePhase == .active else { return }
-            if caseSubmissionReturn.item != nil || caseSubmissionReturn.readID != nil { return }
-            if snapshotContext == readContext && generation == snapshotGeneration { return }
-            invalidateRead(); await load()
-        }
-        .onDisappear {
+            if let failure {
+                Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.error"); if let message = failure.message { Text(verbatim: message).textSelection(.enabled) } }
+            }
             if operation == .customers {
-                customerKeywordDebounce.cancel()
-                generation &+= 1
+                Section {
+                    Picker("club.gov.filter", selection: customerFilterBinding) {
+                        ForEach(["all", "repeat", "new", "remark"], id: \.self) { Text(LocalizedStringKey("club.gov.filter." + $0)).tag($0) }
+                    }
+                    TextField("club.gov.keyword", text: customerKeywordBinding).submitLabel(.search)
+                        .onSubmit { loadCustomersNow() }
+                    Button("club.gov.search") { loadCustomersNow() }.disabled(loading)
+                }
             }
-        }
-        .onDisappear {
-            caseHostVisible = false
-            if operation == .settlement {
-                settlementReturn.hide()
-                ownerFundsParent.hide()
-                if !settlementReturn.retainsChild, let attachment = settlementReturn.attachment {
-                    if !ownerFundsParent.retainsContact {
-                        if settlementReturn.depart(attachment) { generation &+= 1; loading = false }
+            if operation == .topicCustomers {
+                Section {
+                    Picker("club.gov.filter", selection: $topicCustomerFilter) {
+                        ForEach(ClubTopicCustomerFilter.allCases, id: \.rawValue) { item in
+                            Text(LocalizedStringKey(item.localizationKey)).tag(item)
+                        }
+                    }.accessibilityIdentifier("club.gov.topicCustomers.filter")
+                        .onChange(of: topicCustomerFilter) { _, _ in Task { await load() } }
+                    Text("club.gov.topicCustomers.countScope").font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            if operation == .leaderboard {
+                Picker("club.gov.sort", selection: $sort) { ForEach(["composite", "mileage", "pace", "duration"], id: \.self) { Text(LocalizedStringKey("club.gov.sort." + $0)).tag($0) } }
+                    .onChange(of: sort) { _, _ in Task { await load() } }
+            }
+            if let snapshot, snapshotContext == readContext, identity == access.identity { content(snapshot) }
+            if operation == .posts, snapshot != nil {
+                Section {
+                    HStack {
+                        Button("club.gov.previous") { page -= 1; Task { await load() } }.disabled(page <= 1 || loading).accessibilityIdentifier("club.gov.previous")
+                        Spacer(); Text(page, format: .number)
+                        Button("club.gov.next") { page += 1; Task { await load() } }.disabled(loading || (snapshot?.value.array ?? snapshot?.value["rows"].array ?? []).count < 20).accessibilityIdentifier("club.gov.next")
                     }
                 }
-            } else if operation == .series {
-                seriesOccurrences.hide()
-                if !seriesOccurrences.retainsDestination { seriesOccurrences.retire(); generation &+= 1; loading = false }
-            } else if operation == .roster {
-                attendanceReturn.hide()
-                if !attendanceReturn.retainsReturn { attendanceReads.retire(); generation &+= 1; loading = false }
-            } else if operation == .roles {
-                roleManagementReturn.hide()
-                if !roleManagementReturn.retainsReturn { roleReads.retire(); generation &+= 1; loading = false }
-            } else if operation == .topicSettings {
-                topicSettingsReturn.hide()
-                if !topicSettingsReturn.retainsReturn { topicSettingsReads.retire(); generation &+= 1; loading = false }
-            } else if operation == .bans {
-                banRemovalReturn.hide()
-                if !banRemovalReturn.retainsReturn { banReads.retire(); generation &+= 1; loading = false }
-            } else if operation != .cases || caseSubmissionReturn.item == nil {
-                if operation == .cases { caseSubmissionReturn.retire() }
-                if operation != .occurrenceStatus || occurrenceCancellationReturn.item == nil {
-                if operation != .eventTopics || !seriesCreationReturn.holdsSource {
-                    if operation != .seriesDetail || seriesUpdateReturn.item == nil { generation &+= 1 }
-                }
+            }
+            if !loading { Button("club.gov.refresh") { Task { await load() } }.accessibilityIdentifier("club.gov.refresh") }
+        }
+        .navigationTitle(title)
+        .sheet(item: $editor) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }
+        .background {
+            if let item = seriesUpdateReturn.item {
+                ClubSeriesUpdatePresentationOwner(item: item, owner: seriesUpdateReturn,
+                    source: { seriesUpdateSource }, active: { scenePhase == .active },
+                    access: access, coordinator: coordinator, didDismiss: finishSeriesUpdateReturn)
+                    .id(item.id)
+            }
+        }
+        .background {
+            if let item = seriesCreationReturn.item {
+                ClubSeriesCreationPresentationOwner(item: item, owner: seriesCreationReturn,
+                    source: { seriesCreationSource(topicID: item.route.scope.topicID) },
+                    active: { scenePhase == .active }, access: access, coordinator: coordinator,
+                    didDismiss: finishSeriesCreationReturn).id(item.id)
+            }
+            if let target = seriesCreationReturn.destination {
+                ClubCreatedSeriesDestinationOwner(target: target, owner: seriesCreationReturn,
+                    current: { seriesCreationReturn.destinationIsCurrent(target, context: readContext, access: access) },
+                    access: access, coordinator: coordinator).id(target.id)
+            }
+        }
+        .background {
+            if let item = occurrenceCancellationReturn.item {
+                ClubOccurrenceCancellationPresentationOwner(item: item, owner: occurrenceCancellationReturn,
+                    source: { occurrenceCancellationSource }, active: { scenePhase == .active },
+                    access: access, coordinator: coordinator, didDismiss: finishOccurrenceCancellationReturn)
+                    .id(item.id)
+            }
+        }
+        .onAppear { seriesHostVisible = true; finishSeriesUpdateReturn() }
+        .onAppear { finishOccurrenceCancellationReturn() }
+        .onChange(of: occurrenceCancellationSource) { _, source in
+            occurrenceCancellationReturn.invalidateForm(source: source, active: scenePhase == .active)
+        }
+        .onAppear { finishSeriesCreationReturn() }
+        .onDisappear { seriesHostVisible = false }
+        .onChange(of: seriesUpdateSource) { _, source in
+            seriesUpdateReturn.invalidateUnlessCurrent(source: source, active: scenePhase == .active)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { seriesUpdateReturn.retire() }
+            if phase != .active { seriesCreationReturn.retire() }
+            if phase != .active { occurrenceCancellationReturn.retire() }
+        }
+        .navigationDestination(item: $leaderboardMember) { target in
+            Group {
+                if let profile = leaderboardProfile, current(target) {
+                    SocialPublicProfileView(memberID: target.memberID, reader: profile.reader,
+                        squareReader: profile.squareReader, actions: profile.actions,
+                        isCurrent: { current(target) })
+                        .id(target.id)
+                } else { Color.clear }
+            }
+            // This destination remains active while the leaderboard is covered.
+            // Retire the route here as well, instead of leaving an empty pushed page.
+            .onChange(of: current(target), initial: true) { _, valid in
+                if !valid, leaderboardMember?.id == target.id { leaderboardMember = nil }
+            }
+        }
+        .navigationDestination(item: $customerTopic) { target in
+            if let destination = customerTopics.destination, current(target) {
+                destination(target.topicID).id(target.id)
+            }
+        }
+        .navigationDestination(item: $feedClub) { target in
+            if let destination = feedContext.destination, current(target) {
+                destination(target.clubID).id(target.id)
+            } else {
+                // The read screen is offscreen while its destination is pushed.
+                // Retire the invalid route here too, so account changes cannot
+                // leave an empty detail on top of the refreshed feed.
+                Color.clear.onAppear {
+                    if feedClub?.id == target.id { feedClub = nil }
                 }
             }
         }
-        .refreshable { await load() }
     }
     private struct CaseReadTrigger: Equatable {
         let context: ClubGovernanceReadContext
