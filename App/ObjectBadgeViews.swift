@@ -28,6 +28,8 @@ struct ObjectBadgeWallLayoutSelection {
 @MainActor struct ObjectBadgeWallView: View {
     let reader: any ProfileReading
     var media: (any ObjectCardImageLoading)? = nil
+    /// Play-side badge code to read back on the loaded wall (source query `badgeCode`).
+    var focusBadgeCode: String? = nil
     @State private var layoutSelection = ObjectBadgeWallLayoutSelection()
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var layoutOwner: ObjectBadgeWallLayoutOwner {
@@ -44,6 +46,7 @@ struct ObjectBadgeWallLayoutSelection {
                         set: { layoutSelection.choose($0, rendered: owner, current: layoutOwner) }))
                     if layout == .wall { Text("objects.badgeLayout.staticOnly").font(.caption).foregroundStyle(.secondary) }
                 }
+                ObjectBadgeWallParityHeader(wall: wall, focusBadgeCode: focusBadgeCode)
                 if wall.isPartial {
                     Section {
                         Text("profile.badges.partial")
@@ -95,6 +98,7 @@ struct ObjectBadgeWallLayoutSelection {
         let capturedIdentity = reader.identity
         return NavigationLink {
             ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media)
+                .modifier(ObjectBadgeThreeDEntry(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media))
         } label: {
             ObjectBadgeWallBadgeLabel(badge: badge, layout: layout)
         }.accessibilityIdentifier(identifier)

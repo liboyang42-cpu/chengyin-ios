@@ -753,13 +753,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "AI suggestions"
+          "value": "Business interpretation"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "AI 建议"
+          "value": "经营解读"
         }
       }
     }
@@ -838,13 +838,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server-recommended topics"
+          "value": "Topics recommended for you"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端推荐主题"
+          "value": "为你推荐的主题"
         }
       }
     }
@@ -855,13 +855,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server-recommended partners"
+          "value": "Recommended partner merchants"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端推荐商家"
+          "value": "推荐联动的商家"
         }
       }
     }

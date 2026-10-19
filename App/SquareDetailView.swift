@@ -10,6 +10,7 @@ import SwiftUI
     var workspace: SquareWorkspaceCoordinator? = nil
     @Environment(\.squareReportContext) private var reportContext
     @Environment(\.squareRelatedTopic) private var relatedTopicContext
+    @Environment(\.squareDeletion) private var deletion
     @State private var relatedTopic: SquareRelatedTopicSelection?
     @State private var reportTarget: ReportRoute?
     private struct ReportRoute: Identifiable { let id = UUID(); let target: SquareReportTarget }
@@ -29,6 +30,7 @@ import SwiftUI
     var body: some View {
         List {
             if let governanceContext { SquareGovernanceEntryView(context: governanceContext) }
+            if let deletion { SquareDeletionStatusView(coordinator: deletion) { Task { await verifyDeletion() } } }
             if reader.isOfflineExample { Text("square.offlineExample").font(.caption) }
             if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
             else if loadedKey != key { ProgressView("square.loading") }
@@ -38,6 +40,7 @@ import SwiftUI
                 if let post {
                     Section {
                         SquarePostContent(post: post, mediaScope: reader.scope).accessibilityIdentifier("square.detailPost")
+                        if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
                         SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
                         if let accountReader, post.memberID > 0 {
                             NavigationLink { SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Label("social.viewAuthor", systemImage: "person.crop.circle") }
@@ -56,7 +59,13 @@ import SwiftUI
                             commentRow(comment).accessibilityIdentifier("square.comment.\(comment.id)")
                         }
                         if commentsLoading { ProgressView("square.commentsLoading") }
-                        else if comments.items.isEmpty && commentIssue == nil { Text("square.noComments").accessibilityIdentifier("square.noComments") }
+                        else if comments.items.isEmpty && commentIssue == nil {
+                            // Source empty comments: 还没有评论 / 说说你对这条动态的想法吧.
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("square.xcx.noCommentsTitle").font(.headline).accessibilityIdentifier("square.noComments")
+                                Text("square.xcx.noCommentsDetail").font(.footnote).foregroundStyle(.secondary)
+                            }
+                        }
                         if !commentsLoading && comments.hasMore && commentIssue == nil {
                             Button("square.moreComments") { Task { await loadComments(operation: generation, captured: key) } }.accessibilityIdentifier("square.moreComments")
                         }
@@ -66,6 +75,15 @@ import SwiftUI
             }
         }
         .appNavigationTitle("square.detail")
+        .safeAreaInset(edge: .bottom) {
+            if let post, let actions, actions.identity.accountID != nil, loadedKey == key {
+                // Source sticky bar "留下你的评论"; opens the existing reviewed comment editor.
+                Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
+                    Label("square.xcx.commentPlaceholder", systemImage: "text.bubble").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                }.buttonStyle(.bordered).disabled(!post.viewerCanComment).padding(.horizontal).padding(.vertical, 6)
+                    .background(.bar).accessibilityIdentifier("square.commentBar")
+            }
+        }
         .navigationDestination(item: $relatedTopic) { selected in
             if let context = relatedTopicContext {
                 SquareRelatedTopicDestination(selection: selected, squareReader: reader, topicReader: context.reader)
@@ -83,6 +101,14 @@ import SwiftUI
         .sheet(isPresented: $showsWorkspaceEdit) {
             if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace, initialPostID: id, initialLane: contentGeneration == .communityV1 ? .communityV1 : .legacy) }.id(workspace.session) }
         }
+        .sheet(item: deletionBinding) { item in
+            if let deletion { NavigationStack { SquareDeletionConfirmView(target: item.target, excerpt: SquareDeletionConfirmView.excerpt(post?.contents), coordinator: deletion) }.presentationDetents([.medium]) }
+        }
+        .onChange(of: deletion?.phase) { _, phase in
+            // A confirmed comment deletion refreshes the thread; a deleted post leaves no stale body on screen.
+            if case .done(let target)? = phase { if case .post = target { post = nil; comments = SquareCommentPagination() } else { Task { await reload() } } }
+        }
+        .onChange(of: key) { _, _ in deletion?.retire() }
         .task(id: key) { await reload() }
         .refreshable { await reload() }
         .onDisappear { generation += 1; detailLoading = false; commentsLoading = false }
@@ -99,6 +125,11 @@ import SwiftUI
                     Button("social.editor.editPost") { if workspace != nil { showsWorkspaceEdit = true } else { editor = .init(purpose: .editPost, target: .post(post.id), text: post.contents ?? "") } }
                         .disabled(contentGeneration == .communityV1 && workspace == nil)
                 }
+                if post.memberID == actions.identity.accountID {
+                    let target = SquareDeletionTarget(post: post)
+                    Button("square.xcx.delete.post", role: .destructive) { if let target { deletion?.prepare(target) } }
+                        .disabled(target.map { deletion?.isAllowed($0) != true } ?? true).accessibilityIdentifier("square.delete.postEntry")
+                }
                 Button("social.editor.report") {
                     if post.generation == .legacySquare { editor = .init(purpose: .report, target: .post(post.id), text: "") }
                     else if let target = try? SquareReportTarget(post: post) { reportTarget = .init(target: target) }
@@ -111,7 +142,14 @@ import SwiftUI
             if post.generation == .legacySquare { Text("squareReport.legacyBookmarkBoundary").font(.footnote).foregroundStyle(.secondary) }
         } else { Text("social.signIn").font(.footnote) }
     }
-    private func commentRow(_ comment: SquareComment) -> some View {
+    @ViewBuilder private func commentRow(_ comment: SquareComment) -> some View {
+        if comment.lifecycle == "DELETED" {
+            // Source deleted-row placeholder; the removed body is never shown.
+            Text("square.xcx.commentDeleted").font(.footnote).foregroundStyle(.secondary)
+                .padding(.leading, comment.parentID == nil ? 0 : 12)
+        } else { liveCommentRow(comment) }
+    }
+    private func liveCommentRow(_ comment: SquareComment) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             if let nickname = comment.nickname, !nickname.isEmpty { Text(verbatim: nickname).font(.headline) }
             else { Text("square.unknownAuthor").font(.headline) }
@@ -121,6 +159,11 @@ import SwiftUI
             if let actions, actions.identity.accountID != nil {
                 Menu {
                     Button("social.reply") { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") }.disabled(post?.viewerCanComment != true)
+                    if comment.memberID == actions.identity.accountID, let post {
+                        let target = SquareDeletionTarget(post: post, comment: comment)
+                        Button("square.xcx.delete.comment", role: .destructive) { if let target { deletion?.prepare(target) } }
+                            .disabled(target.map { deletion?.isAllowed($0) != true } ?? true).accessibilityIdentifier("square.delete.commentEntry.\(comment.id)")
+                    }
                     Button("social.editor.commentLike") { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) }
                     Button("social.editor.report") {
                         if comment.generation == .legacySquare { editor = .init(purpose: .report, target: .comment(postID: id, commentID: comment.id), text: "") }
@@ -136,8 +179,31 @@ import SwiftUI
             if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }
             NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
             LabeledContent("square.likes", value: String(max(0, comment.likeCount))).font(.caption)
-            if !comment.createTime.isEmpty { Text(verbatim: comment.createTime).font(.caption).foregroundStyle(.secondary) }
+            if !comment.createTime.isEmpty { SquareXcxRelativeTime(createTime: comment.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
         }.padding(.leading, comment.parentID == nil ? 0 : 12)
+    }
+    private struct DeletionRoute: Identifiable { let target: SquareDeletionTarget; var id: SquareDeletionTarget { target } }
+    private var deletionBinding: Binding<DeletionRoute?> {
+        Binding(get: {
+            if case .confirming(let target)? = deletion?.phase { return DeletionRoute(target: target) }
+            if case .sending(let target)? = deletion?.phase { return DeletionRoute(target: target) }
+            return nil
+        }, set: { if $0 == nil { deletion?.cancel() } })
+    }
+    /// Unknown-outcome readback through the same scoped reads; a failed read keeps the unknown lock.
+    private func verifyDeletion() async {
+        guard let deletion, case .unknown(let target) = deletion.phase else { return }
+        await reload()
+        guard loadedKey == key else { return }
+        switch target {
+        case .post:
+            if post != nil { deletion.resolveUnknown(stillPresent: true) }
+            else if (detailIssue as? SquareReadFailure) == .unavailable || (detailIssue as? APIError) == .httpStatus(404) { deletion.resolveUnknown(stillPresent: false) }
+        case .comment(_, let commentID, _):
+            guard post != nil, commentIssue == nil, !comments.hasMore else { return }
+            let row = comments.items.first { $0.id == commentID }
+            deletion.resolveUnknown(stillPresent: row.map { $0.lifecycle != "DELETED" } ?? false)
+        }
     }
     private func reload() async {
         generation += 1

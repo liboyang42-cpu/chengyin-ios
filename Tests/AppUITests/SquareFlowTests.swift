@@ -58,8 +58,8 @@ final class SquareFlowTests: XCTestCase {
     }
     func testChineseEmptyStateUsesLocalizedControls() {
         launch("empty", chinese: true)
-        XCTAssertTrue(app.navigationBars["广场"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["暂无动态"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["动态"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["广场还很安静"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label == %@", "square.empty")).firstMatch.exists)
     }
     func testSearchSubmitAndClearRestoreFeed() {

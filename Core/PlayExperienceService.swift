@@ -4,7 +4,7 @@ import FoundationNetworking
 #endif
 
 public enum PlayExperienceCapability: Hashable {
-    case directorCommands, reads, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims, journeyChecks, journeyEggCollection, journeyAsks
+    case directorCommands, reads, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims, journeyChecks, journeyEggCollection, journeyAsks, journeyOpening
 }
 public enum PlayCompletionEvidence: Codable, Equatable {
     case answer(String)
@@ -237,14 +237,14 @@ public struct PlayExperienceService {
         let journeyRoutes: [(String, PlayExperienceCapability)] = [
             ("check/roll", .journeyChecks), ("check/reroll", .journeyChecks),
             ("check/settle", .journeyChecks), ("egg/collect", .journeyEggCollection),
-            ("journey/ask", .journeyAsks)
+            ("journey/ask", .journeyAsks), ("journey/opening/complete", .journeyOpening)
         ]
         let journeyCapability = journeyRoutes.first {
             configuration.baseURL.appendingPathComponent("api/play/" + $0.0) == route.url
         }?.1
         if let journeyCapability {
             guard capability == journeyCapability, request.httpMethod == "POST" else { throw PlayExperienceError.persistenceUnavailable }
-        } else if [.journeyChecks, .journeyEggCollection, .journeyAsks].contains(capability) {
+        } else if [.journeyChecks, .journeyEggCollection, .journeyAsks, .journeyOpening].contains(capability) {
             throw PlayExperienceError.persistenceUnavailable
         }
         let protected = ["answer", "checkin", "arrive", "photo", "sensor-result", "run-session/save", "run-session/clear"].contains { configuration.baseURL.appendingPathComponent("api/play/" + $0) == route.url }

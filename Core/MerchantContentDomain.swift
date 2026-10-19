@@ -114,6 +114,8 @@ public struct MerchantRegistrationContentDraft: Codable, Equatable {
     /// Explicit edited group only; absence preserves the existing server availability.
     public var availabilityReplacement: MerchantRegistrationAvailability? = nil
     public var addressName = "", address = "", longitude = "", latitude = "", activityDesc = "", picUrl = "", limitNum = ""
+    /// Create-only source date range (`YYYY-MM-DD`), sent as `startDate … 00:00:00` / `endDate … 23:59:59`.
+    public var createStartDay: String? = nil, createEndDay: String? = nil
     public init(detail: MerchantContentValue = .object([:])) {
         addressName = detail["addressName"].text ?? ""; address = detail["address"].text ?? ""
         longitude = detail["longitude"].display ?? ""; latitude = detail["latitude"].display ?? ""

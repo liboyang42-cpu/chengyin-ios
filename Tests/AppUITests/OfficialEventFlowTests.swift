@@ -26,7 +26,8 @@ final class OfficialEventFlowTests: XCTestCase {
     }
     private func select(_ title: String) {
         let picker = app.descendants(matching: .any)["official.filter"].firstMatch
-        XCTAssertTrue(picker.waitForExistence(timeout: 5)); picker.tap()
+        // Source chip tabs render as a segmented control; each segment is a button.
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
         app.buttons[title].firstMatch.tap()
     }
     func testListDetailBackReopenAndStatusBuckets() {
@@ -50,15 +51,16 @@ final class OfficialEventFlowTests: XCTestCase {
         launch()
         let field = app.textFields["official.search"]
         XCTAssertTrue(field.waitForExistence(timeout: 10), app.debugDescription); field.tap(); field.typeText("No synthetic match\n")
-        XCTAssertTrue(app.staticTexts["No matching official events"].waitForExistence(timeout: 5))
-        select("Joined")
+        XCTAssertTrue(app.staticTexts["No matching events"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Try another keyword, or browse other categories"].exists)
+        select("Mine")
         XCTAssertTrue(app.buttons["official.event.71"].waitForExistence(timeout: 5))
         XCTAssertFalse(field.exists)
     }
     func testGuestCanBrowseButPrivateInboxRequiresLogin() {
         launch("guest")
         XCTAssertTrue(app.buttons["official.event.71"].waitForExistence(timeout: 10))
-        app.buttons["official.more"].tap(); app.buttons["Invitations"].firstMatch.tap()
+        app.buttons["official.inboxLink"].tap()
         XCTAssertTrue(app.staticTexts["Sign in to view your official-event records"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.descendants(matching: .any)["official.inbox.content"].exists)
     }
@@ -77,7 +79,7 @@ final class OfficialEventFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["internalObject"].exists)
         XCTAssertFalse(app.buttons["Publish"].exists)
         app.navigationBars["Broadcast statistics"].buttons.firstMatch.tap()
-        XCTAssertTrue(app.navigationBars["My published content"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["My published"].waitForExistence(timeout: 5))
     }
     func testSignOutImmediatelyHidesPrivateInvitationsAndCanReenter() {
         launch("content", destination: "inbox")
@@ -106,7 +108,7 @@ final class OfficialEventFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Free"].exists)
     }
     func testEmptyUnconfiguredAndUnavailableHaveDistinctCopy() {
-        for (scenario, destination, text) in [("empty", "browser", "No official events in this category"), ("unconfigured", "browser", "Official-event service is not configured"), ("unavailable", "detail", "This record is unavailable for this account")] {
+        for (scenario, destination, text) in [("empty", "browser", "No live events yet"), ("unconfigured", "browser", "Official-event service is not configured"), ("unavailable", "detail", "This record is unavailable for this account")] {
             launch(scenario, destination: destination)
             XCTAssertTrue(app.staticTexts[text].waitForExistence(timeout: 10), scenario)
             app.terminate()

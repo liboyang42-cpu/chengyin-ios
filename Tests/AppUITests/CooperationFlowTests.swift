@@ -89,6 +89,6 @@ final class CooperationFlowTests: XCTestCase {
             app.terminate()
         }
         launch("guest", chinese: true)
-        XCTAssertTrue(app.staticTexts["登录后查看我的合作"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["登录后查看协作邀请"].waitForExistence(timeout: 10))
     }
 }

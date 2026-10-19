@@ -6,7 +6,8 @@ import SwiftUI
     var onSignIn: (() -> Void)? = nil
     var body: some View {
         GlobalSearchView(reader: session.searchMapReader, historyNamespace: session.searchMapHistoryNamespace, publicMerchant: session.publicMerchantHomeContext,
-                         onSignIn: onSignIn, destination: destination)
+                         onSignIn: onSignIn, recommendedKeywords: GlobalSearchRecommendedKeywords.keywords(for: session.operationalMarket),
+                         destination: destination)
             .environment(\.walkingNavigationFactory, session.walkingNavigationFactory)
             .id(session.searchMapReader.scope)
     }
