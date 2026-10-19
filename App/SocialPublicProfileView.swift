@@ -16,6 +16,8 @@ import SwiftUI
     var localCoverOwner: ProfileLocalCoverOwner? = nil
     var isCurrent: @MainActor () -> Bool = { true }
     private enum Tab: String, CaseIterable { case posts, achievements, about, projects, orders }
+    @State private var authorPosts = ProfileAuthorPostsRefreshController()
+    @State private var authorPostTicket: ProfileAuthorPostTicket?
     @State private var tab = Tab.posts
     @State private var selfEditNavigation = ProfileSelfEditNavigation()
     @StateObject private var identityShareOwner = ProfileIdentitySharePageOwner()
@@ -52,7 +54,21 @@ import SwiftUI
                     guard isCurrent() else { throw CancellationError() }
                     let shareContext = ProfileIdentitySharePageContext(memberID: memberID, reader: reader, isCurrent: isCurrent())
                     let shareRead = identityShareOwner.beginSourceRead(shareContext)
-                    let loaded = try await reader.publicProfile(memberID: memberID)
+                    let headerKey = SocialReadPresentationKey(reader: reader,
+                        request: "profile-\(memberID)-\(selfEditNavigation.refreshID)", requiresSignIn: false)
+                    let feedContext = authorPostsContext
+                    let loaded: SocialPublicProfile
+                    do { loaded = try await reader.publicProfile(memberID: memberID) }
+                    catch {
+                        let currentKey = SocialReadPresentationKey(reader: reader,
+                            request: "profile-\(memberID)-\(selfEditNavigation.refreshID)", requiresSignIn: false)
+                        if !Task.isCancelled, isCurrent(), headerKey == currentKey,
+                           feedContext == authorPostsContext,
+                           authorPosts.rejectHeader(error, context: feedContext) {
+                            if authorPostTicket?.context == feedContext { authorPostTicket = nil }
+                        }
+                        throw error
+                    }
                     guard isCurrent() else { throw CancellationError() }
                     guard !Task.isCancelled else { throw CancellationError() }
                     identityShareOwner.acceptSource(loaded, reader: reader, expected: shareContext,
@@ -102,7 +118,8 @@ import SwiftUI
                             ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent)
                         }
                     case .posts:
-                        ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader, actions: actions, isCurrent: isCurrent)
+                        ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader,
+                            actions: actions, isCurrent: isCurrent, retainedModel: authorPosts, onOpenPost: openAuthorPost)
                     case .achievements:
                         if let selfObjectCardsAccess {
                             ProfileObjectCardsEntry(memberID: memberID, accountReader: reader,
@@ -150,9 +167,45 @@ import SwiftUI
                     isCurrent: { selfEditNavigation.isCurrent(ticket, context: selfEditContext) },
                     diagnosticText: selfEditDiagnostic(for: ticket))
             }
+            .navigationDestination(isPresented: authorPostBinding) {
+                if let ticket = authorPostTicket, ticket.context == authorPostsContext,
+                   isCurrent(), ticket.context.isConfigured, ticket.context.isSignedIn {
+                    SquareDetailView(id: ticket.postID, contentGeneration: ticket.contentGeneration,
+                        reader: squareReader, accountReader: reader, actions: actions).id(ticket.id)
+                } else { Text("social.changed") }
+            }
+            .onChange(of: authorPostsContext) { _, context in
+                if authorPosts.context != context { authorPosts.retire() }
+                if let ticket = authorPostTicket, ticket.context != context { authorPostTicket = nil }
+            }
             .accessibilityIdentifier("social.profile")
             .onChange(of: selfOrdersAccess?.context(memberID: memberID, social: reader, isCurrent: isCurrent())) { _, context in
                 if context == nil && tab == .orders { tab = .posts }
             }
     }
+    private var authorPostsContext: ProfileAuthorPostsContext {
+        .init(memberID: memberID, accountReader: reader, squareReader: squareReader)
+    }
+    private func openAuthorPost(_ post: SquarePost) {
+        let context = authorPostsContext
+        guard authorPostTicket == nil, authorPosts.canOpen(post, context: context, isCurrent: isCurrent()) else { return }
+        authorPostTicket = .init(postID: post.id, contentGeneration: post.generation, context: context)
+        authorPosts.suspend()
+    }
+    private var authorPostBinding: Binding<Bool> {
+        let id = authorPostTicket?.id
+        return Binding(get: { authorPostTicket != nil }, set: { shown in
+            guard !shown, let id, authorPostTicket?.id == id else { return }
+            authorPostTicket = nil
+        })
+    }
+
+}
+
+
+struct ProfileAuthorPostTicket: Identifiable {
+    let id = UUID()
+    let postID: Int
+    let contentGeneration: SquareContentGeneration
+    let context: ProfileAuthorPostsContext
 }

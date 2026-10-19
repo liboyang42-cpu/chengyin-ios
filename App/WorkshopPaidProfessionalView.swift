@@ -240,6 +240,16 @@ private func professionalText(_ key: String) -> Text { Text(LocalizedStringKey("
                     selection.live && selection.revision == controller.generatedDetailRevision && controller.generatedTemplateID(appearance, expected: selection.operation) == Int64(selection.templateID.rawValue)
                 })
                 .id(selection.id)
+                .toolbar { ToolbarItem(placement: .primaryAction) {
+                    NavigationLink {
+                        OwnedTemplateConfigurationView(
+                            host: reader.configurationHost(id: selection.templateID, acceptsResult: isCurrentReceipt),
+                            id: selection.templateID)
+                            .id(selection.id)
+                    } label: { Text("templateOwnerConfig.open") }
+                        .disabled(!isCurrentReceipt() || !reader.isConfigured)
+                        .accessibilityIdentifier("workshopPaidProfessional.generatedDetail.configuration")
+                } }
             } else { Text("memberTemplate.notConfigured") }
             }
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
@@ -247,6 +257,10 @@ private func professionalText(_ key: String) -> Text { Text(LocalizedStringKey("
                         .accessibilityIdentifier("workshopPaidProfessional.generatedDetail.close")
                 } }
         }.onDisappear { selection.retire() }
+    }
+    private func isCurrentReceipt() -> Bool {
+        selection.live && selection.revision == controller.generatedDetailRevision
+            && controller.generatedTemplateID(appearance, expected: selection.operation) == Int64(selection.templateID.rawValue)
     }
 }
 /// Read-only adapter: the base owns the independent read approval and verifies both template ID
