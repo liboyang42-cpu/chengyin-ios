@@ -204,6 +204,51 @@ import UIKit
         XCTAssertTrue(failed); XCTAssertTrue(fixture.downloads.isEmpty)
         XCTAssertEqual(fixture.activations, 0); XCTAssertEqual(fixture.deactivations, 0)
     }
+    func testHeadphonePlugInKeepsPlayingAndUnplugStopsWithoutAutoResume() {
+        let fixture = NativeAudioFixture(), value = model(fixture)
+        play(fixture)
+        fixture.post(AVAudioSession.routeChangeNotification,
+                     [AVAudioSessionRouteChangeReasonKey: AVAudioSession.RouteChangeReason.newDeviceAvailable.rawValue])
+        fixture.delivery.drain(); XCTAssertEqual(value.state, .playing); XCTAssertEqual(fixture.deactivations, 0)
+        fixture.post(AVAudioSession.routeChangeNotification,
+                     [AVAudioSessionRouteChangeReasonKey: AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue])
+        fixture.delivery.drain(); XCTAssertEqual(value.state, .idle); XCTAssertEqual(fixture.deactivations, 1)
+        fixture.post(AVAudioSession.interruptionNotification, [
+            AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.ended.rawValue,
+            AVAudioSessionInterruptionOptionKey: AVAudioSession.InterruptionOptions.shouldResume.rawValue
+        ])
+        fixture.delivery.drain()
+        XCTAssertEqual(value.state, .idle); XCTAssertEqual(fixture.players[0].plays, 1)
+        XCTAssertEqual(fixture.downloads.count, 1); XCTAssertEqual(fixture.activations, 1)
+        value.dispose()
+    }
+    func testNewDeviceUnderForeignCategoryStillStops() {
+        let fixture = NativeAudioFixture(), value = model(fixture)
+        play(fixture); fixture.playbackConfiguration = false
+        fixture.post(AVAudioSession.routeChangeNotification,
+                     [AVAudioSessionRouteChangeReasonKey: AVAudioSession.RouteChangeReason.newDeviceAvailable.rawValue])
+        fixture.delivery.drain(); XCTAssertEqual(value.state, .idle); XCTAssertEqual(fixture.deactivations, 1)
+        value.dispose()
+    }
+    func testRepeatedStartsKeepOneObserverSetAndDisposeReleasesAll() {
+        let fixture = NativeAudioFixture()
+        XCTAssertEqual(fixture.driver.lifecycleRegistrations, 0)
+        let value = model(fixture)
+        XCTAssertEqual(fixture.driver.lifecycleRegistrations, NativeAudioLifecycleObservation.names.count)
+        for path in ["two.mp3", "three.mp3"] {
+            value.select(fixture.source(path)); value.approveSelectedMedia(); value.toggle()
+            XCTAssertEqual(fixture.driver.lifecycleRegistrations, NativeAudioLifecycleObservation.names.count)
+        }
+        play(fixture); XCTAssertEqual(value.state, .playing)
+        // One interruption stops exactly once, not once per earlier run.
+        fixture.post(AVAudioSession.interruptionNotification,
+                     [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.began.rawValue])
+        fixture.delivery.drain()
+        XCTAssertEqual(value.state, .idle); XCTAssertEqual(fixture.deactivations, 1)
+        XCTAssertEqual(fixture.driver.lifecycleRegistrations, 0)
+        value.dispose(); XCTAssertEqual(fixture.driver.lifecycleRegistrations, 0)
+        XCTAssertEqual(fixture.deactivations, 1)
+    }
 }
 
 private final class NativeAudioDeliveryQueue: @unchecked Sendable {

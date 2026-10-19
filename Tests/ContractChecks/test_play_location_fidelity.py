@@ -101,5 +101,44 @@ class PlayLocationFidelitySourceChecks(unittest.TestCase):
         self.assertIn('XCTAssertNil(next.delegate)', app)
 
 
+    def test_arrival_accuracy_label_is_advisory_and_never_gates_or_drops(self):
+        helper = block(read('Core/PlayDeviceTasks.swift'), 'public enum PlayArrivalAccuracy', '\n}\n')
+        self.assertIn('advisoryLimitMeters = 80.0', helper)
+        self.assertIn('accuracyMeters.isFinite, accuracyMeters >= 0 else { return false }', helper)
+        for path in ['Core/PlayExperienceService.swift', 'Core/PlayExperienceCoordinator.swift',
+                     'Core/PlayPrefabRuntime.swift', 'App/RuntimePlayDeviceProvider.swift',
+                     'App/PlayNativeDeviceProvider.swift']:
+            self.assertNotIn('PlayArrivalAccuracy', read(path), path)
+        view = read('App/PlayDeviceTaskViews.swift')
+        review = block(view, 'Text("playx.device.locationCaptured")', 'case .photo(')
+        self.assertIn('PlayArrivalAccuracy.isLow(accuracyMeters)', review)
+        self.assertIn(".disabled(!model.canReviewOutput || coordinateSystem != \"GCJ02\")", review)
+        self.assertNotIn('isLow(accuracyMeters)) ||', review)
+
+    def test_unprojectable_runtime_sample_is_invalid_not_unknown(self):
+        wrapper = block(read('App/RuntimePlayDeviceProvider.swift'), 'if kind == .location {', '} else { result')
+        self.assertIn('RuntimeLocationProjection.gcj02(raw)', wrapper)
+        self.assertIn('catch { throw PlayExperienceError.invalidAction }', wrapper)
+        self.assertLess(wrapper.index('location.currentFix()'), wrapper.index('do {'))
+        self.assertIn('coordinateSystem: "GCJ02", accuracyMeters: fix.accuracyMeters, measuredAt: fix.measuredAt', wrapper)
+
+    def test_i01_wave3_localizations_and_tests_are_present(self):
+        import json
+        strings = json.loads(read('Resources/Localizable.xcstrings'))['strings']
+        for key in ['playx.device.accuracy', 'playx.device.lowAccuracy']:
+            self.assertEqual(set(strings[key]['localizations']), {'en', 'zh-Hans'}, key)
+        self.assertEqual(strings['playx.device.lowAccuracy']['localizations']['zh-Hans']['stringUnit']['value'], '定位精度不足 · 可扫码完成')
+        core = read('Tests/CoreTests/PlayExperienceTests.swift')
+        for test in ['testMissingAccuracyStaysLegacyAndInsideThresholdIsSentExactly',
+                     'testOutsideThresholdIsStillSentAndServerVerdictIsARejectionNotUnknown',
+                     'testInvalidIncompleteStaleAndWGS84EvidenceNeverReachesTransport',
+                     'testScanCompletionCarriesNoLocationMetadata',
+                     'testProjectionBoundaryKeepsMeasurementOrStaysUnavailable',
+                     'testAdvisoryLabelNeverTreatsMissingOrInvalidAsLow']:
+            self.assertIn('func ' + test, core)
+        self.assertIn('func testAccuracyBoundaryKeepsMeasuredMetadataThroughProjection', read('Tests/CoreTests/RoamLiveSessionTests.swift'))
+        self.assertIn('func testScopedLocationWrapperCarriesPoorAccuracyAndRefusesUnprojectableSamples', read('Tests/AppUnitTests/RuntimeDependencyAppTests.swift'))
+
+
 if __name__ == '__main__':
     unittest.main()

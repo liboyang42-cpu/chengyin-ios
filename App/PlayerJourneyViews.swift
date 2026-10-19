@@ -78,27 +78,35 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
     @State private var returnFocusID: Int?
     @AccessibilityFocusState private var focusedParticipationID: Int?
     @State private var loading = false
-    @State private var issue: String?
+    @State private var issue: ParticipationLoadIssue?
     @State private var generation = UUID()
     var body: some View {
         List {
             Section {
+                // Source mycanyu uses fill tabs over one client-side read.
                 Picker("playerJourney.filter", selection: $filter) {
                     ForEach(ParticipationFilter.allCases) { value in Text(LocalizedStringKey("playerJourney.filter." + value.rawValue)).tag(value) }
-                }.pickerStyle(.menu).accessibilityIdentifier("playerJourney.filter")
+                }.pickerStyle(.segmented).accessibilityIdentifier("playerJourney.filter")
             }
             if !reader.isAuthenticated { PlayerJourneyLogin(signIn: signIn) }
             else if loading && (rows == nil || rowsScope != reader.scope) { ProgressView("playerJourney.loading") }
             else if let rows, rowsScope == reader.scope {
-                let visible = rows.filter { filter.includes($0) }
-                if visible.isEmpty { ContentUnavailableView("playerJourney.empty", systemImage: "ticket", description: Text("playerJourney.empty.detail")) }
+                let visible = rows.filter { filter.matches($0) }
+                if loading {
+                    Text("playerJourney.parity.refreshing").font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("playerJourney.refreshing")
+                }
+                if visible.isEmpty {
+                    ContentUnavailableView(LocalizedStringKey(filter.emptyTitleKey), systemImage: "ticket",
+                        description: Text(LocalizedStringKey(filter.emptyDetailKey)))
+                        .accessibilityIdentifier("playerJourney.empty")
+                }
                 ForEach(visible) { row in
                     Button { returnFocusID = row.id; selected = Selection(record: row, scope: reader.scope) } label: { ParticipationRow(record: row) }
                         .buttonStyle(.plain).accessibilityIdentifier("playerJourney.participation.\(row.id)")
                         .accessibilityFocused($focusedParticipationID, equals: row.id)
                 }
-                if let issue { Text(LocalizedStringKey(issue)).font(.footnote).foregroundStyle(.secondary) }
-            } else if let issue { PlayerJourneyIssue(key: issue, retry: { Task { await load() } }) }
+            } else if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }
         }
         .navigationTitle("playerJourney.participations")
         .navigationBarTitleDisplayMode(.inline)
@@ -141,20 +149,28 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
         } catch {
             guard generation == request, scope == reader.scope, !Task.isCancelled else { return }
             if error as? APIError == .unauthorized { rows = nil; resetPresentation() }
-            issue = rows == nil ? PlayerJourneyIssue.key(error) : "playerJourney.refreshFailed"
+            // Source mycanyu keeps an existing snapshot silently when a refresh fails.
+            issue = rows == nil ? ParticipationLoadIssue(error, detail: false) : nil
         }
     }
 }
 private struct ParticipationRow: View {
     let record: ParticipationRecord
     var body: some View {
+        // Source mycanyu row: state badge above the name, "MM.DD - MM.DD", then "type · address".
         VStack(alignment: .leading, spacing: 8) {
-            if let name = record.name { Text(verbatim: name).font(.headline) } else { Text("playerJourney.untitled").font(.headline) }
-            Text(LocalizedStringKey("orderLifecycle.state." + record.order.summary().state.rawValue))
-            Text(LocalizedStringKey(record.isFreeExplore ? "playerJourney.freeExplore" : record.isTopic ? "playerJourney.route" : "playerJourney.activity"))
-                .font(.subheadline).foregroundStyle(.secondary)
-            if let date = record.order.ownerStartDate { Label { Text(verbatim: date) } icon: { Image(systemName: "calendar") } }
-            if let address = record.address { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") } }
+            ParticipationStatusBadge(status: record.participationStatus(), detail: false)
+            if let name = record.name { Text(verbatim: name).font(.headline) } else { Text("playerJourney.sourceUntitled").font(.headline) }
+            Label {
+                if let range = ParticipationDateText.range(start: record.order.ownerStartDate, end: record.order.ownerEndDate) { Text(verbatim: range) }
+                else { Text("playerJourney.timeTBD") }
+            } icon: { Image(systemName: "calendar") }
+            Label {
+                Text(LocalizedStringKey(record.modeKey))
+                    + Text(verbatim: " · ")
+                    + (record.address.map { Text(verbatim: $0) } ?? Text("playerJourney.placeTBD"))
+            } icon: { Image(systemName: "mappin.and.ellipse") }
+            .font(.subheadline).foregroundStyle(.secondary)
         }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
     }
 }
@@ -164,35 +180,40 @@ private struct ParticipationRow: View {
     let lifecycle: OrderLifecycleCoordinator
     let open: (PlayerJourneyRoute) -> Void
     @State private var detail: ParticipationDetail?
-    @State private var issue: String?
+    @State private var issue: ParticipationLoadIssue?
     @State private var loading = false
     @State private var generation = UUID()
     var body: some View {
         List {
-            if loading { ProgressView("playerJourney.loading") }
-            if let issue { PlayerJourneyIssue(key: issue, retry: { Task { await load() } }) }
+            if loading { ProgressView("playerJourney.parity.detailLoading") }
+            if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }
             if let detail {
-                Section { ParticipationRow(record: detail.record) }
+                ParticipationDetailHeader(detail: detail)
                 ProfileParticipationScheduleSection(start: detail.record.order.ownerStartDate,
                     end: detail.record.order.ownerEndDate)
-                if let description = detail.description { Section("playerJourney.description") { Text(verbatim: description) } }
-                Section {
-                    if let end = detail.record.order.ownerEndDate { LabeledContent("playerJourney.end") { Text(verbatim: end) } }
-                    if let node = detail.nodeName { LabeledContent("playerJourney.node") { Text(verbatim: node) } }
-                    if let date = detail.cooperateDate { LabeledContent("playerJourney.cooperateDate") { Text(verbatim: date) } }
-                    if let deadline = detail.refundDeadline { Text(verbatim: deadline).foregroundStyle(.secondary) }
+                if detail.nodeName != nil || detail.cooperateDate != nil {
+                    Section {
+                        if let node = detail.nodeName { LabeledContent("playerJourney.parity.finalNode") { Text(verbatim: node) } }
+                        if let date = detail.cooperateDate { LabeledContent("playerJourney.cooperateDate") { Text(verbatim: date) } }
+                    }
                 }
                 if detail.showOrderStats {
                     Section("playerJourney.verification") {
-                        PlayerJourneyCount(label: "playerJourney.pending", value: detail.pending)
-                        PlayerJourneyCount(label: "playerJourney.verified", value: detail.verified)
-                        PlayerJourneyCount(label: "playerJourney.total", value: detail.total)
+                        // Source shows two cells in 人 and 0 for unknown statistics.
+                        LabeledContent("playerJourney.pending") { Text("playerJourney.parity.people \(detail.pendingText)").monospacedDigit() }
+                            .accessibilityIdentifier("playerJourney.stats.pending")
+                        LabeledContent("playerJourney.parity.verifiedOfTotal") {
+                            Text("playerJourney.parity.peopleRatio \(detail.verifiedText) \(detail.totalText)").monospacedDigit()
+                        }.accessibilityIdentifier("playerJourney.stats.verified")
                         NavigationLink { SessionNativeVerificationView() } label: {
                             Label("verification.title", systemImage: "qrcode.viewfinder")
                         }.accessibilityIdentifier("playerJourney.verification")
                     }
                 }
-                if let rules = detail.rules { Section("playerJourney.rules") { Text(verbatim: rules) } }
+                if detail.rules != nil {
+                    // Source mycanyuinfo renders its fixed exit/pause text whenever ruleInstructions is present.
+                    Section("playerJourney.rules") { Text("playerJourney.parity.fixedRules").accessibilityIdentifier("playerJourney.rules") }
+                }
                 if let rawID = detail.templateID, let id = MemberPlayTemplateID(rawValue: rawID) {
                     Section("playerJourney.template") {
                         if let templateName = detail.templateName { Text(verbatim: templateName) }
@@ -207,13 +228,13 @@ private struct ParticipationRow: View {
                             .accessibilityIdentifier("playerJourney.start")
                     }
                     NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycle).id(lifecycle.scope) } label: {
-                        Label(detail.canCancel() ? "playerJourney.cancellation" : "playerJourney.orderProgress", systemImage: "list.bullet.rectangle")
+                        Label(detail.sourceCanCancel() ? "playerJourney.cancellation" : "playerJourney.orderProgress", systemImage: "list.bullet.rectangle")
                     }.accessibilityIdentifier("playerJourney.orderLifecycle")
                     if detail.needsModification {
                         // Player registration IDs cannot address the separate merchant-registration table.
                         Text("playerJourney.modifyNeedsReview").foregroundStyle(.secondary)
                     }
-                    if !detail.canCancel(), !detail.needsModification {
+                    if detail.showsContactService() {
                         NavigationLink { ParticipationSupportView() } label: {
                             Label("participationSupport.title", systemImage: "message")
                         }.accessibilityIdentifier("playerJourney.support")
@@ -235,7 +256,7 @@ private struct ParticipationRow: View {
             detail = value
         } catch {
             guard generation == request, scope == reader.scope, !Task.isCancelled else { return }
-            detail = nil; issue = PlayerJourneyIssue.key(error)
+            detail = nil; issue = ParticipationLoadIssue(error, detail: true)
         }
     }
 }

@@ -26,20 +26,29 @@ import XCTest
         app.launchArguments=["--uitesting-reset-language","--uitesting-profile-order-filters","-AppleLanguages","(en)","-AppleLocale","en_US"] + (empty ? ["--profile-order-filters-empty"] : [])
         app.launch()
     }
-    private func choose(_ text:String) {
-        let picker=app.buttons["profile.orderFilter.picker"]; XCTAssertTrue(picker.waitForExistence(timeout:5));picker.tap()
-        let option=app.buttons[text];XCTAssertTrue(option.waitForExistence(timeout:3));option.tap()
+    /// Source chip row: every filter is a visible chip; scroll the row until the chip is hittable.
+    private func choose(_ filter:String, label:String) {
+        let row=app.descendants(matching: .any).matching(identifier: "profile.orderFilter.picker").firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout:5))
+        let option=app.buttons["profile.orderFilter.chip.\(filter)"];XCTAssertTrue(option.waitForExistence(timeout:3))
+        XCTAssertEqual(option.label,label)
+        var swipes=0
+        while !option.isHittable && swipes<6 { row.swipeLeft(); swipes+=1 }
+        XCTAssertTrue(option.isHittable)
+        option.tap()
+        XCTAssertTrue(option.isSelected)
     }
     func testFilterAndClearDoNotReload() {
-        launch();choose("Manual after-sales")
+        launch();choose("manualRefund",label:"Manual after-sales")
         XCTAssertTrue(app.staticTexts["profile.orderFilter.empty"].waitForExistence(timeout:3))
+        XCTAssertTrue(app.staticTexts["profile.orderFilter.emptyHint"].exists)
         let before=app.staticTexts["profile.orderFilter.fixture.listReads"].label
         app.buttons["profile.orderFilter.clear"].tap()
         XCTAssertTrue(app.buttons["profile.order.701"].exists)
         XCTAssertEqual(app.staticTexts["profile.orderFilter.fixture.listReads"].label,before)
     }
     func testRefunderRowOpensItsOriginalDetail() {
-        launch();choose("Refunded");app.buttons["profile.order.705"].tap()
+        launch();choose("refunded",label:"Refunded");app.buttons["profile.order.705"].tap()
         let name = app.descendants(matching: .any).matching(identifier: "profile.order.detail.name").firstMatch
         let nameExists = name.waitForExistence(timeout:5)
         if !nameExists { captureFirstFailure(expected: "refunded original detail name row") }
@@ -62,14 +71,15 @@ import XCTest
         let unavailableExists = unavailable.waitForExistence(timeout:5)
         if !unavailableExists { captureFirstFailure(expected: "revoked orders unavailable") }
         XCTAssertTrue(unavailableExists)
-        let pickerExists = app.buttons["profile.orderFilter.picker"].exists
+        let pickerExists = app.descendants(matching: .any).matching(identifier: "profile.orderFilter.picker").firstMatch.exists
+            || app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "profile.orderFilter.chip.")).count != 0
         let rowCount = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "profile.order.")).count
         if pickerExists || rowCount != 0 { captureFirstFailure(expected: "revoked order rows and picker absent") }
         XCTAssertFalse(pickerExists)
         XCTAssertEqual(rowCount, 0)
     }
     func testAccountSwitchRemovesPreviousRows() {
-        launch();choose("Refunded");app.buttons["profile.orderFilter.fixture.switch"].tap()
+        launch();choose("refunded",label:"Refunded");app.buttons["profile.orderFilter.fixture.switch"].tap()
         XCTAssertTrue(app.staticTexts["profile.orders.empty"].waitForExistence(timeout:5))
         XCTAssertFalse(app.buttons["profile.order.705"].exists)
     }

@@ -127,6 +127,27 @@ import FoundationNetworking
             await owner.start(purposeAccepted: true); XCTAssertEqual(service.reveals, 0); XCTAssertEqual(owner.phase, .locationDenied)
         }
     }
+    /// I01: the Roam quality gate is inclusive at 80 m; an accepted WGS84 sample is
+    /// projected exactly once and keeps its real accuracy and sample time.
+    func testAccuracyBoundaryKeepsMeasuredMetadataThroughProjection() async throws {
+        let raw = try XCTUnwrap(RoamCoordinate(latitude: 39.916527, longitude: 116.397128))
+        for accuracy in [0.0, 80.0] {
+            let (owner, service, location, _, _) = try fixture()
+            location.value = try RoamDeviceFix(coordinate: raw, accuracyMeters: accuracy, measuredAt: date.addingTimeInterval(-30), datum: .wgs84)
+            await owner.start(purposeAccepted: true)
+            XCTAssertEqual(owner.phase, .active); XCTAssertEqual(service.reveals, 1)
+            let fix = try XCTUnwrap(owner.lastFix)
+            XCTAssertEqual(fix.datum, .gcj02); XCTAssertNotEqual(fix.coordinate, raw)
+            XCTAssertEqual(fix.accuracyMeters, accuracy); XCTAssertEqual(fix.measuredAt, date.addingTimeInterval(-30))
+            XCTAssertEqual(service.lastPlacesReadFix?.accuracyMeters, accuracy)
+        }
+        for accuracy in [80.001, 100.0] {
+            let (owner, service, location, _, _) = try fixture()
+            location.value = try RoamDeviceFix(coordinate: raw, accuracyMeters: accuracy, measuredAt: date, datum: .wgs84)
+            await owner.start(purposeAccepted: true)
+            XCTAssertEqual(owner.phase, .locationDenied); XCTAssertEqual(service.reveals, 0); XCTAssertNil(owner.lastFix)
+        }
+    }
     func testGPSJumpAddsNeitherDistanceNorTile() async throws {
         let (owner, service, location, _, _) = try fixture(); await owner.start(purposeAccepted: true)
         location.value = try RoamDeviceFix(coordinate: RoamCoordinate(latitude: 31.3, longitude: 121.5)!, accuracyMeters: 10, measuredAt: date.addingTimeInterval(1), datum: .gcj02)
