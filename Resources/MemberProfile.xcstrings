@@ -1137,6 +1137,22 @@
         }
       }
     },
+    "member.wallet.received": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount received"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实际到账金额"
+          }
+        }
+      }
+    },
     "member.wallet.today": {
       "localizations": {
         "en": {

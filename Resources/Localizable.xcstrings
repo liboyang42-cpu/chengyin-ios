@@ -7322,7 +7322,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有收藏的主题"
+            "value": "暂无收藏的主题"
           }
         }
       }
@@ -7332,13 +7332,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Topics you save will appear here"
+            "value": "Save a city topic you want to try, then find it here later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "收藏的主题会出现在这里"
+            "value": "遇到想体验的城市主题，可以先收藏，之后从这里找回。"
           }
         }
       }
@@ -92003,13 +92003,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add participant"
+            "value": "Add participant information"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新增参与人"
+            "value": "新增参与人信息"
           }
         }
       }
@@ -112783,13 +112783,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No participants yet"
+            "value": "No participant information yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无参与人"
+            "value": "还没有参与人信息"
           }
         }
       }
@@ -112800,13 +112800,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved participant information will appear here."
+            "value": "Registrations need a contact. Add one here and choose it when you register."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已保存的参与人信息会显示在这里。"
+            "value": "报名活动需要填写联系人；新增后可在报名时直接选用"
           }
         }
       }
@@ -112851,13 +112851,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone"
+            "value": "Mobile number"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "联系电话"
+            "value": "手机号"
           }
         }
       }
@@ -132639,13 +132639,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "My personal code"
+            "value": "My QR code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我的个人码"
+            "value": "我的二维码"
           }
         }
       }
@@ -132656,13 +132656,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source app displays an authenticated code returned by its server. This build does not generate a substitute code."
+            "value": "Your Questify identity code, used to show who you are at events. It's still being set up and will appear here automatically once it's ready."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "源应用展示服务器返回的登录用户身份码。本版本不会生成替代码。"
+            "value": "你的城瘾身份码，用来在活动现场亮明身份。这项功能还在开通中，开通后会自动出现在这里。"
           }
         }
       }
@@ -132673,13 +132673,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Personal-code service is not connected in this build"
+            "value": "Player code not generated yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本版本尚未接入个人码服务"
+            "value": "玩家个人码待生成"
           }
         }
       }

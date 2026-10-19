@@ -9,6 +9,8 @@ public struct SocialPublicProfile: Decodable, Equatable, Identifiable {
     public let level: Int?
     public let following: Int?
     public let followers: Int?
+    /// Mutual follows (`friendNum`, PublicMemberVO); shown as 好友 like the mini-program header.
+    public let friends: Int?
     public let likes: Int?
     public let topics: Int?
     public let activities: Int?
@@ -25,7 +27,7 @@ public struct SocialPublicProfile: Decodable, Equatable, Identifiable {
         guard let id = v["id"].integer, id > 0 else { throw APIError.malformedResponse }
         self.id = id; nickname = v["nickname"].text; avatar = v["avatar"].text
         introduction = v["introduction"].text; level = v["levelId"].integer
-        following = v["followNum"].integer; followers = v["fansNum"].integer
+        following = v["followNum"].integer; followers = v["fansNum"].integer; friends = v["friendNum"].integer
         likes = v["likeNum"].integer; topics = v["topicNum"].integer; activities = v["activityNum"].integer
         isFollowed = v["isFollow"].flag
         interests = (v["sysCategoryList"].array ?? []).compactMap {
