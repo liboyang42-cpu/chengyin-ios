@@ -37,6 +37,16 @@ enum WalletReadFailurePresentation {
         }
     }
 }
+/// The account earnings overview uses the same owner-scoped read as withdrawal support.
+/// It does not load fund stages or authorize any payout operation.
+extension WalletScreen where Value == WithdrawalBalance {
+    func loadEarnings(_ reader: WalletCommerceReader) async {
+        guard let owner = reader.scope?.accountID else { clear(); return }
+        await load(reader) { service, token in
+            try await service.withdrawalBalance(memberID: owner, token: token)
+        }
+    }
+}
 @MainActor private struct WalletIssueView: View {
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
@@ -56,6 +66,9 @@ enum WalletReadFailurePresentation {
 /// Additive destination only. Host must keep existing entry gates and reset .id(reader.scope)
 /// whenever deployment/account/epoch changes; no new root navigation entry is installed here.
 @MainActor struct WalletCommerceHomeView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var earnings = WalletScreen<WithdrawalBalance>()
+    @State private var isVisible = false
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
@@ -64,6 +77,21 @@ enum WalletReadFailurePresentation {
     var invitationHistory: WalletInvitationHistoryAccess? = nil
     var body: some View {
         List {
+            if visibility.income {
+                Section("withdrawal.support.balance") {
+                    if earnings.loading {
+                        ProgressView("wallet.loading").accessibilityIdentifier("wallet.earnings.loading")
+                    } else if let value = earnings.value, reader.isConfigured,
+                              earnings.loadedScope == reader.scope, reader.scope != nil {
+                        Text(verbatim: format.amount(value.balance, currency: value.currency))
+                            .font(.title2.bold()).privacySensitive()
+                            .accessibilityIdentifier("wallet.earnings.balance")
+                    } else {
+                        WalletIssueView(reader: reader, requiresLogin: earnings.requiresLogin,
+                            unavailable: earnings.unavailable) { Task { await loadEarnings() } }
+                    }
+                }.accessibilityIdentifier("wallet.earnings.overview")
+            }
             if visibility.assets { NavigationLink("wallet.assets") { WalletAssetsView(reader: reader) } }
             if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance) } }
             if visibility.income, let invitationHistory {
@@ -82,6 +110,21 @@ enum WalletReadFailurePresentation {
                 NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader) }
             }
         }.appNavigationTitle("wallet.title")
+            .task(id: reader.scope) {
+                isVisible = true
+                earnings.clear()
+                await loadEarnings()
+            }
+            .onDisappear { isVisible = false; earnings.clear() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase != .active { earnings.clear() }
+                else if isVisible { Task { await loadEarnings() } }
+            }
+            .refreshable { await loadEarnings() }
+    }
+    private func loadEarnings() async {
+        guard visibility.income, isVisible, scenePhase == .active else { return }
+        await earnings.loadEarnings(reader)
     }
 }
 @MainActor struct WalletAssetsView: View {

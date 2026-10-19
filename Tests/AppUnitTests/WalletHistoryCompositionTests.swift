@@ -354,6 +354,70 @@ import XCTest
         await screen.load(fresh) { _, _ in 2 }
         XCTAssertEqual(screen.value, 2); XCTAssertEqual(screen.loadedScope, fresh.scope)
     }
+    func testEarningsOverviewUsesOnlyCurrentOwnerReadAndPreservesLedgerDestination() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.requests = []
+        let reader = session.walletHistoryReader, screen = WalletScreen<WithdrawalBalance>()
+        await screen.loadEarnings(reader)
+        XCTAssertEqual(screen.value?.balance.text, "12")
+        XCTAssertNil(screen.value?.currency)
+        XCTAssertEqual(screen.loadedScope, reader.scope)
+        XCTAssertEqual(wire.requests.compactMap { $0.url?.lastPathComponent }, ["info"])
+        let body = String(data: try XCTUnwrap(wire.requests.first?.httpBody), encoding: .utf8) ?? ""
+        XCTAssertTrue(body.contains("name=\"member_id\"")); XCTAssertTrue(body.contains("\r\n7\r\n"))
+        let pager = WalletLedgerPager()
+        await pager.load(reader: reader, kind: .income(.all))
+        let detail = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: reader))
+        XCTAssertEqual(pager.incomeDetailRow(detail, reader: reader)?.id, 61)
+        screen.clear() // Leave for the existing income or history destination.
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        await screen.loadEarnings(reader) // Return/reopen refreshes the owner read.
+        XCTAssertEqual(screen.value?.balance.text, "12")
+        _ = try await reader.read { try await $0.withdrawals(token: $1) }
+        XCTAssertFalse(wire.requests.contains { $0.url?.path.contains("withdrawal/create") == true })
+    }
+    func testEarningsOverviewFailureRetryAndMissingApproval() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession()
+        await login(session); wire.code = 500
+        let screen = WalletScreen<WithdrawalBalance>(), reader = session.walletHistoryReader
+        await screen.loadEarnings(reader)
+        XCTAssertTrue(screen.failed); XCTAssertNil(screen.value)
+        wire.code = 200
+        await screen.loadEarnings(reader)
+        XCTAssertFalse(screen.failed); XCTAssertNotNil(screen.value)
+        grants.retained?.revoke(); grants.enabled = false; wire.requests = []
+        await screen.loadEarnings(session.walletHistoryReader)
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+    func testEarningsOverviewRetirementRejectsLateBalanceAndCanReload() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.pause = true
+        let screen = WalletScreen<WithdrawalBalance>(), reader = session.walletHistoryReader
+        let started = expectation(description: "earnings suspended")
+        wire.onPaused = { started.fulfill() }
+        let task = Task { await screen.loadEarnings(reader) }
+        await fulfillment(of: [started], timeout: 2)
+        screen.clear() // Background/disappear must remove private values and retire the request.
+        wire.finish(code: 200); await task.value
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope); XCTAssertFalse(screen.loading)
+        wire.pause = false
+        await screen.loadEarnings(reader)
+        XCTAssertEqual(screen.value?.balance.text, "12")
+    }
+    func testEarningsOverviewRoleReplacementRejectsLateBalance() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.pause = true
+        let screen = WalletScreen<WithdrawalBalance>(), reader = session.walletHistoryReader
+        let started = expectation(description: "old owner scope")
+        wire.onPaused = { started.fulfill() }
+        let task = Task { await screen.loadEarnings(reader) }
+        await fulfillment(of: [started], timeout: 2)
+        wire.role = "merchant"; await session.refreshOwnAccount()
+        wire.finish(code: 200); await task.value
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        XCTAssertFalse(screen.loading)
+    }
     private func form(_ path: String, _ fields: [String: String]) throws -> URLRequest {
         try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: fields, token: "synthetic-7", boundary: "wallet-test")
     }
