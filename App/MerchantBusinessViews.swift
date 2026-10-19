@@ -489,7 +489,11 @@ import SwiftUI
                         Task { await reload() }
                     }
                 } else if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
+                    if case .aftercare(let bucket, _) = query {
+                        Text(verbatim: MerchantOpsCopy.text(MerchantAftercareParity.emptyKey(bucket.rawValue))).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
+                    } else {
                     Text(isRedemptionLedger ? "merchant.refundPreview.noRedemptions" : "merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
+                    }
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
                     Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
                 }
@@ -807,6 +811,11 @@ import SwiftUI
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
         if !document.summary.isEmpty || document.query == .overview {
             Section("merchant.business.summary") {
+                if case .customers = document.query { MerchantCustomerListHero(summary: MerchantCustomerListParity.summary(document.summary)) }
+                if case .redemptions = document.query,
+                   let strip = MerchantLedgerParity.summary(document.summary, canReadFinance: state.snapshot?.access.allows("merchant:finance:read") == true) {
+                    MerchantLedgerSummaryStrip(summary: strip)
+                }
                 if document.query == .overview {
                     MerchantLedgerAssetsEntry(reader: reader, currentSnapshot: {
                         guard state.isCurrent, !state.isBusy, state.failureKey == nil,
@@ -846,9 +855,22 @@ import SwiftUI
                         .accessibilityValue(selection.contains(id) ? Text("merchant.business.selected") : Text("merchant.business.unselected"))
                 }
                 NavigationLink { MerchantBusinessPage(reader: reader, journal: journal, query: destination) } label: {
+                    if row.kind == .refund, let line = MerchantAftercareParity.ListRow(row) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            if let group = aftercareDayGroup(opening: row) { MerchantAftercareDayHeader(group: group) }
+                            MerchantAftercareRowLabel(row: line)
+                        }
+                    } else if row.kind == .customer, case .customers = query {
+                        MerchantCustomerRowLabel(row: MerchantCustomerListParity.row(row.fields, now: Date()), identifier: "merchantOps.customer.row.\(row.id)")
+                    } else if row.kind == .redemption || row.kind == .batch {
+                        MerchantLedgerRowLabel(line: row.kind == .batch ? MerchantLedgerParity.batch(row.fields)
+                                                   : MerchantLedgerParity.redemption(row.fields, canReadFinance: access.allows("merchant:finance:read")),
+                                               identifier: "merchantOps.ledger.row.\(row.id)")
+                    } else {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(row.title).font(.headline)
                         MerchantBusinessRecordFields(row: row, access: access, compact: true)
+                    }
                     }
                 }.accessibilityIdentifier("merchant.business.row.\(row.kind.rawValue).\(row.id)")
             }
@@ -856,7 +878,15 @@ import SwiftUI
             }
         } else {
             VStack(alignment: .leading, spacing: 10) {
+                if row.kind == .entry, case .entries = query {
+                    MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchantOps.ledger.entry.\(row.id)")
+                } else if row.kind == .redemption, case .redemption = query {
+                    MerchantLedgerRedemptionHero(hero: MerchantLedgerParity.redemptionHero(row.fields))
+                } else if row.kind == .batch, case .batch = query {
+                    MerchantLedgerBatchHero(hero: MerchantLedgerParity.batchHero(row.fields))
+                } else {
                 Text(row.title).font(.headline)
+                }
                 MerchantBusinessRecordFields(row: row, access: access, compact: false,
                     settlementEntries: { if case .batch = query { return true }; return false }(),
                     reviewPhotoOwner: model, settlementReader: reader, settlementSnapshot: {
@@ -885,6 +915,11 @@ import SwiftUI
         if row.kind == .refund, row.fields["canRespond"]?.bool == true, access.allows("merchant:aftercare:respond") {
             Button("merchant.business.respond") { editor = .init(kind: .aftercare(row)) }.accessibilityIdentifier("merchant.business.respond")
             Text("merchant.business.opinionOnly").font(.footnote).foregroundStyle(.secondary)
+        }
+        if row.kind == .refund, case .refund = query,
+           let reason = MerchantAftercareParity.readOnlyReason(canRespondPermission: access.allows("merchant:aftercare:respond"),
+                                                               detailCanRespond: row.fields["canRespond"]?.bool == true) {
+            MerchantAftercareReadOnlyNote(reason: reason)
         }
         if case .customer(let customer) = query, access.allows("merchant:crm:segment") {
             if row.kind == .tag, let id = Int(row.id) {
@@ -918,6 +953,9 @@ import SwiftUI
                 }
             }
         }
+        if case .customers = query, !snapshot.document.hasMore, let total = snapshot.document.summary["all"]?.integer, total > 0 {
+            MerchantCustomerListFooter(total: total)
+        }
         if case .customers = query, !selection.isEmpty, snapshot.access.allows("merchant:crm:segment") {
             Button("merchant.business.batchTag") { editor = .init(kind: .tag(selection.sorted().compactMap { try? .init($0) })) }
         }
@@ -926,6 +964,14 @@ import SwiftUI
         }
     }
     private var isAftercare: Bool { if case .aftercare = query { return true }; return false }
+    /// Source aftercare list day grouping; totals only without a search and when the last day cannot be cut off.
+    private func aftercareDayGroup(opening row: MerchantBusinessRecord) -> MerchantAftercareParity.DayGroup? {
+        guard isAftercare, let snapshot = state.snapshot else { return nil }
+        let rows = snapshot.document.sections.flatMap { visibleRows($0, in: snapshot.document) }.compactMap(MerchantAftercareParity.ListRow.init)
+        let today = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        return MerchantAftercareParity.leadingGroup(rowID: row.id, in: rows, today: today,
+            allowTotals: !model.listFilters.isActive(for: snapshot.document.query), lastGroupComplete: !snapshot.document.hasMore)
+    }
     private var isLocalList: Bool {
         switch query { case .aftercare, .reviews: return true; default: return false }
     }
