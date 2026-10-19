@@ -68,7 +68,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "商户意见"
+          "value": "商家意见"
         }
       },
       "en": {
@@ -100,7 +100,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "等待商户意见"
+          "value": "等待商家意见"
         }
       },
       "en": {
@@ -116,7 +116,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "商户已同意申请"
+          "value": "商家已同意申请"
         }
       },
       "en": {
@@ -132,7 +132,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "商户不同意申请"
+          "value": "商家不同意申请"
         }
       },
       "en": {
@@ -196,7 +196,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅显示服务端记录的申请、商户回应与转平台事实。记录时间按手机时区显示，包含完整日期与UTC偏移；不推算到账时间。"
+          "value": "仅显示服务端记录的申请、商家回应与转平台事实。记录时间按手机时区显示，包含完整日期与UTC偏移；不推算到账时间。"
         }
       },
       "en": {
@@ -244,7 +244,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "商户提交同意意见"
+          "value": "商家提交同意意见"
         }
       },
       "en": {
@@ -260,7 +260,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "商户提交不同意意见"
+          "value": "商家提交不同意意见"
         }
       },
       "en": {
@@ -276,7 +276,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "商户补充凭证"
+          "value": "商家补充凭证"
         }
       },
       "en": {
@@ -452,7 +452,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "商户成员"
+          "value": "商家成员"
         }
       },
       "en": {
