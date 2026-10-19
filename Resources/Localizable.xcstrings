@@ -173316,6 +173316,74 @@
           }
         }
       }
+    },
+    "playx.circleLink.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This exploration link is incomplete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "探索链接不完整"
+          }
+        }
+      }
+    },
+    "playx.circleLink.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open it again from the circle theme or the invite a companion shared"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请从圈层主题或同行人分享的邀请重新进入"
+          }
+        }
+      }
+    },
+    "playx.circleLink.home": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to home"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回首页"
+          }
+        }
+      }
+    },
+    "playx.circleLink.fixtureHome": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home (synthetic)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首页（合成数据）"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

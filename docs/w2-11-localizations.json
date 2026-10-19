@@ -234,5 +234,21 @@
   "playx.finishRoute.fixtureLoaded": [
     "Finish sheet (synthetic)",
     "完成页（合成数据）"
+  ],
+  "playx.circleLink.title": [
+    "This exploration link is incomplete",
+    "探索链接不完整"
+  ],
+  "playx.circleLink.subtitle": [
+    "Open it again from the circle theme or the invite a companion shared",
+    "请从圈层主题或同行人分享的邀请重新进入"
+  ],
+  "playx.circleLink.home": [
+    "Back to home",
+    "返回首页"
+  ],
+  "playx.circleLink.fixtureHome": [
+    "Home (synthetic)",
+    "首页（合成数据）"
   ]
 }
