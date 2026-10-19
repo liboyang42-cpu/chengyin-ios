@@ -172095,6 +172095,54 @@
           }
         }
       }
+    },
+    "merchant.operatorSelf.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your role permissions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的岗位权限"
+          }
+        }
+      }
+    },
+    "merchant.operatorSelf.copy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The workbench only shows the business entries available to your current role. The owner changes roles or ends access, and it takes effect on the next request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作台只显示当前岗位可用的经营入口。岗位调整或离职由店主操作，并在下一次请求时立即生效。"
+          }
+        }
+      }
+    },
+    "merchant.operatorSelf.openWorkbench": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to workbench"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入工作台"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

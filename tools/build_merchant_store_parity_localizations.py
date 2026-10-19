@@ -23,6 +23,10 @@ PAIRS = {
 'merchant.reviewSummary.rateHint': ('Across all public reviews', '按全量公开评价计算'),
 'merchant.reviewSummary.average30': ('30-day average', '近 30 天均分'),
 'merchant.reviewSummary.average30Hint': ('Average of public reviews', '公开评价平均分'),
+# pages/merchant/team non-admin card (index.wxml:109-114)
+'merchant.operatorSelf.title': ('Your role permissions', '你的岗位权限'),
+'merchant.operatorSelf.copy': ('The workbench only shows the business entries available to your current role. The owner changes roles or ends access, and it takes effect on the next request.', '工作台只显示当前岗位可用的经营入口。岗位调整或离职由店主操作，并在下一次请求时立即生效。'),
+'merchant.operatorSelf.openWorkbench': ('Go to workbench', '进入工作台'),
 }
 
 

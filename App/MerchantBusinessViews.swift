@@ -311,6 +311,9 @@ import SwiftUI
                     Text(access.name ?? "#\(access.merchantID)").font(.title3.bold())
                     Text(LocalizedStringKey("merchant.business.role." + String(access.role)))
                 }
+                if MerchantOperatorSelfRoleCard.isShown(for: access) {
+                    MerchantOperatorSelfRoleCard(access: access)
+                }
                 Section("merchant.business.workspace") {
                     ForEach(destinations, id: \.self) { query in
                         if (try? access.require(query.permissions)) != nil {
