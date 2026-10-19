@@ -29,6 +29,7 @@ struct SettingsView: View {
                         .accessibilityIdentifier("settings.playGuide")
                 }
                 ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner)
+                SettingsPrivacyLocationEntry(session: session)
                 Section {
                     LabeledContent { Text(verbatim:RegionalLaunchConfiguration.market?.rawValue ?? "—").accessibilityIdentifier("region.market.value") } label: { Text("region.market") }
                     Text("region.languageBoundary").font(.footnote).foregroundStyle(.secondary)
