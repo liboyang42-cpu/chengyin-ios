@@ -29,10 +29,19 @@ import UIKit
             LazyVStack(alignment: .leading, spacing: 20) {
                 if canShowAlbum {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
-                if let error = pager.error { RoamExperienceIssue(error: error) { Task { await load() } } }
+                if let total = pager.total { StampAlbumTotalHeader(total: total) }
+                if let error = pager.error {
+                    if CollectionReadAccess(error) == .denied { StampAlbumDeniedNotice() }
+                    else { RoamExperienceIssue(error: error) { Task { await load() } } }
+                }
                 if pager.loaded && pager.stamps.isEmpty {
                     ContentUnavailableView("roam.experience.albumEmpty", systemImage: "rectangle.stack", description: Text("roam.experience.albumEmptyHint"))
                         .accessibilityIdentifier("roam.experience.album.empty")
+                    if allowsCapture {
+                        NavigationLink { captureDestination } label: { Label("stampAlbum.openCamera", systemImage: "camera") }
+                            .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                            .accessibilityIdentifier("roam.experience.album.openCamera")
+                    }
                 }
                 ForEach(pager.stamps) { stamp in
                     NavigationLink { RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope, allowsRemoteImages: allowsRemoteImages) } label: {

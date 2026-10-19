@@ -28,7 +28,7 @@ public enum TeamSyntheticFixtures {
     }
 }
 @MainActor public final class TeamSyntheticService: TeamServing {
-    public enum Scenario: String { case content, empty, failure, retry, guest, unconfigured, invitation, full, inProgress, ended, disbanded, unknownStatus, missingRole, unknownOutcome, rejected, notSent }
+    public enum Scenario: String { case content, empty, failure, retry, guest, unconfigured, invitation, full, inProgress, ended, disbanded, unknownStatus, missingRole, unknownOutcome, rejected, notSent, invitationFull, invitationEnded }
     public var authority: TeamServiceAuthority { scenario == .unconfigured ? .unconfigured : .synthetic }
     public let scenario: Scenario
     public var currentDetail: TeamDetail
@@ -43,6 +43,9 @@ public enum TeamSyntheticFixtures {
         var json = TeamSyntheticFixtures.detailJSON
         switch scenario {
         case .invitation: json = json.replacingOccurrences(of: "\"joined\":true,\"leader\":true", with: "\"joined\":false,\"leader\":false")
+        case .invitationFull, .invitationEnded:
+            json = json.replacingOccurrences(of: "\"joined\":true,\"leader\":true", with: "\"joined\":false,\"leader\":false")
+                .replacingOccurrences(of: "\"status\":0", with: scenario == .invitationFull ? "\"status\":1" : "\"status\":3")
         case .full: json = json.replacingOccurrences(of: "\"status\":0", with: "\"status\":1")
         case .inProgress: json = json.replacingOccurrences(of: "\"status\":0", with: "\"status\":2")
         case .ended: json = json.replacingOccurrences(of: "\"status\":0", with: "\"status\":3")

@@ -17,6 +17,12 @@ public struct ClubManagementRequest: Decodable, Equatable, Identifiable {
         joinTime = try c.decodeIfPresent(String.self, forKey: .joinTime)
         joinMessage = try c.decodeIfPresent(String.self, forKey: .joinMessage)
     }
+    /// Mini-program join-requests: `joinTime` with `T` replaced by a space, cut to 16 characters
+    /// (yyyy-MM-dd HH:mm). Nil means the page shows its "time unknown" copy.
+    public var requestTimeText: String? {
+        guard let raw = joinTime?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else { return nil }
+        return String(raw.replacingOccurrences(of: "T", with: " ").prefix(16))
+    }
 }
 
 public enum ClubManagementAction: String, CaseIterable, Equatable {

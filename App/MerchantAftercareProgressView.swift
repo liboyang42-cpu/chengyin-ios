@@ -63,6 +63,7 @@ struct MerchantAftercareProgressView: View {
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
             phoneTimeZone = .current
         }
+        MerchantAftercareDetailParitySections(progress: progress)
         if progress.policyCode != nil || progress.policyVersion != nil || progress.refundDeadline != nil {
             Section("merchant.aftercareProgress.policy") {
                 if let code = progress.policyCode { LabeledContent("merchant.business.field.refundPolicyCode", value: code) }

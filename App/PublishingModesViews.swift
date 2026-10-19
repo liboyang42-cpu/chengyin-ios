@@ -194,6 +194,8 @@ import MapKit
                     Button("publishModes.remove", role: .destructive) { draft.tickets.removeAll { $0.id == ticket.id } }
                 }.disabled(!editable)
             }
+            // Mini-program publish/activity: 添加票单 directly follows the ticket list, before publisher identity.
+            Button("publishModes.addTicket") { draft.tickets.append(.init()) }.disabled(!editable)
             Section {
                 Button("publishModes.saveLocal") {
                     guard let account, let draftStore else { return }
@@ -218,7 +220,6 @@ import MapKit
             if requiresIdentity {
                 PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
             }
-            Button("publishModes.addTicket") { draft.tickets.append(.init()) }.disabled(!editable)
             if !message.isEmpty { Text(LocalizedStringKey(message)).accessibilityIdentifier("publishModes.message") }
             submissionResult
             Button("publishModes.review") { Task { await prepare() } }.disabled(!editable).accessibilityIdentifier("publishModes.activity.review")

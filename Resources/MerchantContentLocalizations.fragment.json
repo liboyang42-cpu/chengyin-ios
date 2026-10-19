@@ -356,13 +356,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "City nodes"
+          "value": "Become a node"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "城市据点"
+          "value": "成为节点"
         }
       }
     }
@@ -2308,13 +2308,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Station workspace"
+          "value": "Station preparation and run"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "本站工作台"
+          "value": "本站准备与运行"
         }
       }
     }

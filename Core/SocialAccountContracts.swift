@@ -43,6 +43,8 @@ public struct SocialInformation: Decodable, Equatable, Identifiable {
     public let title: String
     public let subtitle: String?
     public let contents: String?
+    /// Source `createTime` ("yyyy-MM-dd HH:mm:ss"), shown verbatim like the mini-program detail meta line.
+    public let createTime: String?
     public var summary: String? { SocialText.nonempty(subtitle).flatMap { $0 == title.trimmingCharacters(in: .whitespacesAndNewlines) ? nil : $0 } }
     public var isUsable: Bool {
         let title = title.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -52,12 +54,12 @@ public struct SocialInformation: Decodable, Equatable, Identifiable {
     public var isRemoved: Bool { id <= 0 }
     /// A successful explicit missing-article reply, never a network/error fallback.
     static let removed = SocialInformation(removed: ())
-    private init(removed: Void) { id = 0; title = ""; subtitle = nil; contents = nil }
+    private init(removed: Void) { id = 0; title = ""; subtitle = nil; contents = nil; createTime = nil }
     public init(from decoder: Decoder) throws {
         let v = try SocialValue(from: decoder)
         guard v.object != nil else { throw APIError.malformedResponse }
         id = v["id"].integer ?? 0; title = v["title"].text ?? ""
-        subtitle = v["subtitle"].text; contents = v["contents"].text
+        subtitle = v["subtitle"].text; contents = v["contents"].text; createTime = v["createTime"].text
     }
 }
 public enum SocialGuideDestination: String, CaseIterable { case home, roam }

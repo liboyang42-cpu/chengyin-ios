@@ -3646,6 +3646,7 @@ extension AppSession: DiscoveryReading, MerchantReading {
         })
     }
     func discoveryPlayTemplate(id:Int) async throws -> DiscoveryPlayTemplate { try await readDiscovery { try await $0.playTemplate(id:id,token:$1) } }
+    func discoveryPlayTemplateRead(id:Int) async throws -> DiscoveryPlayTemplateRead { try await readDiscovery { try await $0.playTemplateRead(id:id,token:$1) } }
 
     private func readMerchant<Value>(access:MerchantAccess?=nil, expectedDiscoveryScope: ClubDiscoveryScope? = nil,_ operation:(MerchantService,String) async throws -> Value) async throws -> Value {
         guard let merchantService else { throw APIError.notConfigured }

@@ -28,6 +28,8 @@ struct QuestifyApp: App {
                     NativeVerificationFixtureView(scenario: fixtureArgument("--native-verification-fixture") ?? "success")
                 } else if ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") {
                     NavigationStack { MerchantNPCFixtureView() }
+                } else if ProcessInfo.processInfo.arguments.contains("--merchant-ai-commerce-fixture") {
+                    MerchantAICommerceFixtureHost()
                 } else if ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") {
                     PublisherLifecycleFixtureRoot()
                 } else if ProcessInfo.processInfo.arguments.contains("--retained-images-fixture") {
@@ -56,6 +58,8 @@ struct QuestifyApp: App {
                     NearbyTeamFixtureRoot()
                 } else if ProcessInfo.processInfo.arguments.contains("--official-action-fixture") {
                     OfficialActionFixtureHost()
+                } else if ProcessInfo.processInfo.arguments.contains("--second-registration-fixture") {
+                    SecondRegistrationFixtureHost(scenario: fixtureArgument("--second-registration-fixture") ?? "mature")
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-engagement-fixture") {
                     MerchantEngagementFixtureHostView()
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-merchant-business-fixture") {
@@ -296,6 +300,8 @@ struct SessionRootView: View {
             NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = .home })
         }
         .sheet(isPresented:$showsAreaPicker) { RoamAreaPicker(onSelect:{ session.roamArea=$0 }) }
+        .usageConsentLaunchGate(signedIn: session.account != nil, market: session.operationalMarket, onDecline: { browsingAsGuest = true })
+        .sessionExpiryNotice(session: session, onContinueAsGuest: { browsingAsGuest = true })
         #if DEBUG
         .sheet(isPresented: $showsScannerFixture) { NativeQRScanner { _ in } }
         .onAppear {

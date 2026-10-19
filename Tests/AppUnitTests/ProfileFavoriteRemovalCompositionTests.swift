@@ -19,7 +19,7 @@ import XCTest
             return try await base.send(request)
         }
     }
-    private final class Grants {
+    @MainActor private final class Grants {
         var enabled = true
         var access: ProfileFavoriteRemovalAccess?
         func select(_ context: RuntimeDependencyContext, _ scope: UUID) -> [ProfileFavoriteRemovalAccess] {

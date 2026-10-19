@@ -125,6 +125,9 @@ import Combine
                 }
             }
             Text("creatorIntro.scope",tableName:"CreatorIntroExamples").font(.caption).foregroundStyle(.secondary)
+            // Mini pages/publish/template-intro value proposition, shown above the shared exits.
+            VStack(alignment:.leading,spacing:2) { Text("publishParity.intro.lead"); Text("publishParity.intro.tail").font(.title3.bold()) }
+                .accessibilityElement(children:.combine).accessibilityIdentifier("publishParity.intro.value")
             Button(action:advance) { Text("templateAuthor.begin") }
                 .disabled(!controller.canContinue || scenePhase != .active).accessibilityIdentifier("templateAuthor.begin")
             Button(action:advance) { Text("creatorIntro.skip",tableName:"CreatorIntroExamples") }
