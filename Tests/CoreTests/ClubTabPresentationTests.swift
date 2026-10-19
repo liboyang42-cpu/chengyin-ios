@@ -41,3 +41,11 @@ final class ClubTabPresentationTests: XCTestCase {
         XCTAssertEqual(ClubTabPresentation.feedEmptyKeys(clubCount: 2).detail, "club.tab.feed.empty.detail")
     }
 }
+
+final class ClubTabTopTabTests: XCTestCase {
+    func testTopTabsMatchSourceOrderAndCopy() {
+        XCTAssertEqual(ClubTabPresentation.TopTab.allCases, [.feed, .club])
+        XCTAssertEqual(ClubTabPresentation.TopTab.feed.key, "club.tab.top.feed")
+        XCTAssertEqual(ClubTabPresentation.TopTab.club.key, "club.tab.top.club")
+    }
+}

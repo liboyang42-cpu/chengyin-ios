@@ -5,6 +5,11 @@ import Foundation
 /// joined before drawing `cy-club-card`; rows themselves may omit those flags.
 public enum ClubTabPresentation {
     public enum Section: Equatable, Sendable { case owned, joined, nearby }
+    /// Source `topTabs`: 帖文 then 俱乐部, with 俱乐部 active on open.
+    public enum TopTab: String, CaseIterable, Sendable {
+        case feed, club
+        public var key: String { self == .feed ? "club.tab.top.feed" : "club.tab.top.club" }
+    }
 
     /// L1–L5 organiser level copy inherited by the club (level 0 shows nothing; others `Lv.N`).
     public static func levelKey(_ level: Int) -> (key: String?, fallback: String?) {

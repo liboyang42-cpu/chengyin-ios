@@ -14,7 +14,19 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     var onTopicDestination: ((Int) -> Void)? = nil
     @State private var locality = MerchantClubDiscoveryState()
     private var discoveryScope: ClubDiscoveryScope { reader.clubDiscoveryScope }
+    /// Source talent/list top tabs 帖文 / 俱乐部; it opens on 俱乐部 and loads the feed only when chosen.
+    @State private var topTab = ClubTabPresentation.TopTab.club
     var body: some View {
+        VStack(spacing: 0) {
+        if community != nil {
+            Picker("club.title", selection: $topTab) {
+                ForEach(ClubTabPresentation.TopTab.allCases, id: \.self) { Text(LocalizedStringKey($0.key)).tag($0) }
+            }.pickerStyle(.segmented).padding(.horizontal).padding(.vertical, 8)
+                .accessibilityIdentifier("clubTab.topTabs")
+        }
+        if topTab == .feed, let community {
+            ClubCommunityFeedView(context: community, identity: reader.clubIdentity)
+        } else {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.home", onSignIn: onSignIn,
                        load: { try await reader.clubHome() }) { home in
             List {
@@ -68,6 +80,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
+        }
+        }
         }
         .appNavigationTitle("club.title")
         .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
