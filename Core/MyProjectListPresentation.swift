@@ -76,6 +76,15 @@ public enum MyProjectListPresentation {
         }
     }
 
+    /// Mini empty CTA: topic → 去发布; activity → 发布单场活动 only for those who may publish; template has none.
+    public static func emptyCTAKey(for tab: MyProjectTab, canPublishActivity: Bool) -> String? {
+        switch tab {
+        case .topic: return "myProject.cta.topic"
+        case .activity: return canPublishActivity ? "myProject.cta.activity" : nil
+        case .template: return nil
+        }
+    }
+
     public static func card(_ p: CreatorContentProject, canEditActivity: Bool = true) -> MyProjectCardPresentation {
         let state = p.state ?? ""
         let online = state == "running" || state == "notStarted"

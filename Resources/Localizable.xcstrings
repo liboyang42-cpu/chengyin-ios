@@ -186336,6 +186336,38 @@
           }
         }
       }
+    },
+    "myProject.cta.topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去发布"
+          }
+        }
+      }
+    },
+    "myProject.cta.activity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish a single-session activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布单场活动"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

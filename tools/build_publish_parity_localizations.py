@@ -18,6 +18,8 @@ entries = {
 'myProject.empty.activityPublish': ('Publish your first single-session activity here', '在这里发布你的第一场单场活动'),
 'myProject.empty.template': ('No node plays yet', '还没有节点玩法'),
 'myProject.empty.templateDetail': ('Node interactions you build while publishing routes can be reused and managed here', '发布路线时可以沉淀自己的节点互动，之后在这里复用和管理'),
+'myProject.cta.topic': ('Publish', '去发布'),
+'myProject.cta.activity': ('Publish a single-session activity', '发布单场活动'),
 'myProject.longPressHint': ('Long-press a card to list, unlist or delete', '长按卡片可上下架 / 删除'),
 'myProject.op.viewApplies': ('Received applications', '收到的申请'),
 'myProject.op.edit': ('Edit', '编辑'),

@@ -67,6 +67,7 @@ private struct CreatorContentIssueView: View {
                     if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
                     if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
                     let rowScope = key.scope
+                    MyProjectCreateActivityRow(type: query.type, rowCount: page.rows.count)
                     if MyProjectRowOperationsMenu.hasOperations(page.rows) {
                         Text("myProject.longPressHint").font(.caption).foregroundStyle(.secondary)
                     }
