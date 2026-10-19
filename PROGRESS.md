@@ -451,3 +451,13 @@ Branch `integration/wave2-20261019` (cut from `001ca41`), integration PR #18 int
 - Held: #24 w2-14 (conflict `Core/CooperationFlowService.swift` with w2-04), #21 w2-15 (conflict `App/ClubHomeView.swift` with w2-12), #32 w2-20 (conflict `App/QuestifyApp.swift` with the align-B root tabs); owners asked to merge the integration branch. w2-19 has no PR yet; its committed project file omits its new sources (regeneration fixes it).
 - CI: run 39292073606, related mode, on batch anchor 56af65c (tree = f56e9e1, first parent 6ad7bd6 so the dispatch plan covers the whole batch: 9169 Core, 5176 AppUnit, 459 UI methods in 31 shards). Queued; result pending. The five PRs merged after it (#34, #35, #19, #20, #22) are not covered by that run.
 - Not run here: Swift compilation, XCTest, simulator/device. No endpoint, payment, SMS, OAuth or signing configuration changed.
+
+## 2026-10-19 18:20 UTC — wave-2 integrator (w2-Z): CI run 1 and second batch
+
+- Run 39292073606 (related, anchor 56af65c): controls PASS, secrets/gitleaks PASS; core, app-unit and ui-build FAILED at compile, so no test executed. Errors and integration-level fixes (no assertion changed): `App/CityGameFixtureHost.swift:125` closure-or-nil ternary without contextual type (w2-21) → typed `gameFactory` property (1fc4a49); `Tests/CoreTests/AccountDeregistrationParityTests.swift:34` main-actor fake as default argument (w2-01), `Tests/CoreTests/MemberHomeTests.swift:70,79` `await` inside `XCTUnwrap` autoclosure (w2-03), `Tests/CoreTests/MerchantAICommerceContractTests.swift:124` argument order (plan-G) → 7ce2cae.
+- Run 39298367489 (related, anchor 0752466 = tree 7ce2cae, first parent 6ad7bd6; plan 9227 Core, 5183 AppUnit, 477 UI in 32 shards): queued/in progress.
+- External evidence (comment on #18): `swiftc -typecheck` of App+Core at 6ad7bd6 on Xcode 26.6: 0 errors (pre-wave-2 base only).
+- Base sync: merged `migration/native-ios@857487e` (c98921f); PROGRESS.md conflict resolved by keeping both appended sections.
+- Second batch merged: #37 w3-I04 ba58993, #38 w3-I01 028e23e, #41 w3-I02 010caae, #42 w3-I03 1a0270b, #43 w3-I00-I11 54b2fdc, #36 w2-03 follow-up 98227f4, #20 w2-07 follow-up 88d67fb, #32 w2-20 96e26e6. Head efbcf66. Not yet covered by any CI run.
+- Held: #24 w2-14 and #21 w2-15 (conflicts reported earlier, not yet resolved), #40 w2-09 (`App/QuestifyApp.swift` root tabs), #39 w2-17 (overlaps w2-18 in `Core/MerchantAccess.swift`, `Core/MerchantContracts.swift`, `App/AccountView.swift`). w2-19 has no PR.
+- Recorded by #43 (IOS-I00-1): the backend master `userInfoView` projection carries no `role`; native login readback and cold restore require an explicit server role and fail closed against it. This is a backend/contract decision (C00), unchanged by this branch.
