@@ -16,6 +16,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     var cooperationFlowReader: (any CoopFlowReading)? = nil
     var engagementReader: (any MerchantEngagementReading)? = nil
     var exportRecovery: (any MerchantExportRecoveryStoring)? = nil
+    var showsRecordLinks = true
     @StateObject private var access = MerchantLoadModel<MerchantAccess>()
 
     var body: some View {
@@ -26,7 +27,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 ContentUnavailableView("merchant.title", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("merchant.signIn"))
             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
                 if identity.active {
-                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, refreshAccess: reload)
+                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, refreshAccess: reload)
                         .id("\(reader.sessionRevision):\(identity.merchantID ?? 0):\(identity.role?.rawValue ?? "")")
                 } else {
                     List {
@@ -74,6 +75,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     let cooperationFlowReader: (any CoopFlowReading)?
     let engagementReader: (any MerchantEngagementReading)?
     let exportRecovery: (any MerchantExportRecoveryStoring)?
+    let showsRecordLinks: Bool
     let refreshAccess: () async -> Void
     @StateObject private var dashboard = MerchantLoadModel<MerchantDashboard>()
     @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
@@ -189,7 +191,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     }
                 }
             }
-            if access.allows(.orders) || access.allows(.projects) {
+            if showsRecordLinks && (access.allows(.orders) || access.allows(.projects)) {
                 Section("merchant.records") {
                     if access.allows(.orders) {
                         NavigationLink { MerchantOrdersView(reader: reader) } label: { Label("merchant.orders", systemImage: "receipt") }
@@ -380,3 +382,4 @@ struct MerchantWorkbenchBusinessRoute: Hashable {
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
     static func dismantleUIViewController(_ controller: UIViewController, coordinator: Coordinator) { coordinator.reader?.retire() }
 }
+

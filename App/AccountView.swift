@@ -4,6 +4,7 @@ import SwiftUI
     let account: Account
     var privateHomeCoordinator: PrivateHomeCoordinator? = nil
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
+    @Environment(\.locale) private var locale
     @EnvironmentObject private var session: AppSession
     @State private var savedTopicOwner = ProfileFavoriteTopicNavigationOwner()
     @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
@@ -117,6 +118,9 @@ import SwiftUI
                 Section {
                     Button { showsCooperation=true } label: { Label("cooperation.title",systemImage:"person.2") }
                         .accessibilityIdentifier("account.cooperation")
+                    NavigationLink { SessionMerchantOverviewView(session: session) } label: {
+                        Label(locale.language.languageCode?.identifier == "zh" ? "商家只读概览" : "Merchant overview (read-only)", systemImage: "chart.bar.doc.horizontal")
+                    }.accessibilityIdentifier("account.merchantOverview")
                     NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
                         Label("merchant.projects", systemImage: "calendar")
                     }.accessibilityIdentifier("account.merchantProjectBrowse")
