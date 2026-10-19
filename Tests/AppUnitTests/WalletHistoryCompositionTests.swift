@@ -4,14 +4,15 @@ import XCTest
 /// Real AppSession factories and the outer transport, with synthetic HTTP only.
 @MainActor final class WalletHistoryCompositionTests: XCTestCase {
     private let base = URL(string: "https://example.test/native")!
-    private func root(_ wire: Wire, _ grants: Grants, _ vault: Vault) throws -> AppCompositionRoot {
+    private func root(_ wire: Wire, _ grants: Grants, _ vault: Vault, invite: InviteGrants? = nil) throws -> AppCompositionRoot {
         let suite = "wallet-history-" + UUID().uuidString, defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let deployment = try ReviewedAppDeployment(market: .china, baseURL: base.absoluteString,
             approvedBaseURLs: [.china: [base.absoluteString]], verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.wallet-history", realm: "synthetic")
         return .init(deployment: .reviewed(deployment), storage: .init(defaults: defaults, tokenStore: { _ in vault }),
-            makeTransport: { wire }, walletHistoryReadApproval: { grants.select($0) })
+            makeTransport: { wire }, walletHistoryReadApproval: { grants.select($0) },
+            profileInviteHistoryReadAccess: { invite?.select($0) })
     }
     private func login(_ session: AppSession) async {
         session.authChannels.cancel(); await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
@@ -38,6 +39,64 @@ import XCTest
         wire.role = "merchant"; await session.refreshOwnAccount()
         wire.role = "player"; await session.refreshOwnAccount()
         XCTAssertNil(pager.incomeDetailRow(second, reader: fresh))
+    }
+
+    func testWalletInvitationEntryUsesIndependentReaderWithoutLoading() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.requests = []
+        let access = WalletInvitationHistoryAccess(session: session)
+        XCTAssertEqual(access.reader.identity, session.profileInviteHistoryReader.identity)
+        XCTAssertFalse(access.reader.isConfigured) // Wallet approval does not grant invitation reads.
+        XCTAssertTrue(wire.requests.isEmpty)
+        do {
+            _ = try await access.reader.invitationHistory(page: 1)
+            XCTFail("Missing invitation approval must not use wallet authority")
+        } catch { }
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+
+    func testWalletInvitationEntrySignedOutDoesNotIssueRequests() throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        let access = WalletInvitationHistoryAccess(session: session)
+        XCTAssertNil(access.reader.identity.accountID)
+        XCTAssertFalse(access.reader.isConfigured)
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+
+    func testWalletInvitationEntryLoadsExistingMonthAndRewardProjection() async throws {
+        let wire = Wire(), grants = Grants(), invite = InviteGrants()
+        let session = try root(wire, grants, Vault(), invite: invite).makeSession()
+        await login(session); wire.requests = []
+        let access = WalletInvitationHistoryAccess(session: session)
+        XCTAssertTrue(wire.requests.isEmpty)
+        let model = SocialInviteHistoryModel()
+        await model.appear(access.reader)?.value
+        XCTAssertEqual(model.pagination.members.map(\.id), [201])
+        XCTAssertEqual(model.timeline(access.reader)?.months.map(\.id), ["2026-10"])
+        XCTAssertEqual(ProfileInviteRewardReview(scan: model.scan).cumulativePoints, Decimal(string: "2.5"))
+        XCTAssertEqual(wire.requests.compactMap { $0.url?.lastPathComponent }, ["invite_list", "list"])
+        model.suspend()
+        await model.appear(access.reader)?.value
+        XCTAssertEqual(model.pagination.members.map(\.id), [201])
+        XCTAssertEqual(wire.requests.count, 4)
+    }
+
+    func testWalletInvitationGrantDoesNotBorrowWalletLeaseAndRevocationHidesResults() async throws {
+        let wire = Wire(), grants = Grants(), invite = InviteGrants()
+        let session = try root(wire, grants, Vault(), invite: invite).makeSession()
+        await login(session)
+        _ = session.walletHistoryReader.isConfigured
+        let access = WalletInvitationHistoryAccess(session: session), model = SocialInviteHistoryModel()
+        grants.retained?.revoke(); grants.enabled = false
+        XCTAssertTrue(access.reader.isConfigured)
+        await model.appear(access.reader)?.value
+        XCTAssertNotNil(model.timeline(access.reader))
+        invite.retained?.revoke()
+        XCTAssertFalse(access.reader.isConfigured)
+        XCTAssertNil(model.timeline(access.reader))
+        wire.requests = []
+        do { _ = try await access.reader.invitationHistory(page: 1); XCTFail() } catch { }
+        XCTAssertTrue(wire.requests.isEmpty)
     }
 
     func testNormalFactoryReadsOnlyVisibleHistoryRoutes() async throws {
@@ -298,6 +357,18 @@ import XCTest
     private func form(_ path: String, _ fields: [String: String]) throws -> URLRequest {
         try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: fields, token: "synthetic-7", boundary: "wallet-test")
     }
+    @MainActor private final class InviteGrants {
+        var retained: ProfileInviteHistoryReadAccess?
+        func select(_ context: RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? {
+            if retained == nil {
+                let approval = try? OperationEndpointApproval(baseURL: context.baseURL,
+                    namespace: context.session.namespace, accountID: context.session.accountID,
+                    paths: ProfileInviteHistoryReadRoute.paths)
+                if let approval { retained = try? .init(context: context, approval: approval) }
+            }
+            return retained
+        }
+    }
     @MainActor private final class Grants {
         var enabled = true, freeze = false; var retained: WalletHistoryReadApproval?
         func select(_ context: RuntimeDependencyContext) -> WalletHistoryReadApproval? {
@@ -317,6 +388,8 @@ import XCTest
             requests.append(request); let path = request.url!.path, json: String
             if path.hasSuffix("/phone") { json = "{\"code\":200,\"token\":\"synthetic-\(account)\",\"data\":{\"id\":\(account),\"role\":\"\(role)\"}}" }
             else if path.hasSuffix("/userInfo") { json = "{\"code\":200,\"appUser\":{\"userId\":\(account),\"role\":\"\(role)\"}}" }
+            else if path.hasSuffix("/user/invite_list") { json = #"{"code":200,"data":{"rows":[{"id":201,"nickname":"Synthetic invite","createTime":"2026-10-01 00:30:00"}],"total":1}}"# }
+            else if path.hasSuffix("/user/points/list") { json = #"{"code":200,"data":{"rows":[{"eventType":5,"eventId":"201","changePoints":"2.5","createTime":"2026-10-02 10:00:00"}],"total":1}}"# }
             else if path.hasSuffix("/wallet/stages") { json = "{\"code\":\(code),\"data\":{\"pendingSettlement\":1,\"disputed\":2,\"withdrawable\":3,\"complaintPeriod\":[]}}" }
             else if path.hasSuffix("/user/balance/list") { json = "{\"code\":\(code),\"data\":{\"rows\":[{\"id\":61,\"changeBalance\":12}],\"total\":1}}" }
             else if path.hasSuffix("/user/info") { json = "{\"code\":\(code),\"data\":{\"id\":\(account),\"balance\":12}}" }

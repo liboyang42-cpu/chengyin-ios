@@ -61,10 +61,20 @@ enum WalletReadFailurePresentation {
     let reader: WalletCommerceReader
     let visibility: WalletCommerceVisibility
     let onCooperationFinance: () -> Void
+    var invitationHistory: WalletInvitationHistoryAccess? = nil
     var body: some View {
         List {
             if visibility.assets { NavigationLink("wallet.assets") { WalletAssetsView(reader: reader) } }
             if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance) } }
+            if visibility.income, let invitationHistory {
+                NavigationLink {
+                    SocialInviteHistoryView(reader: invitationHistory.reader,
+                        squareReader: invitationHistory.squareReader, actions: invitationHistory.actions)
+                        .id(invitationHistory.reader.identity)
+                } label: {
+                    Label("social.invites.title", systemImage: "person.2.badge.plus")
+                }.accessibilityIdentifier("wallet.inviteHistory")
+            }
             if visibility.points { NavigationLink("wallet.points") { WalletLedgerView(reader: reader, kind: .points) } }
             if visibility.mall { NavigationLink("wallet.mall") { WalletProductsView(reader: reader) } }
             if visibility.withdrawalRecords {

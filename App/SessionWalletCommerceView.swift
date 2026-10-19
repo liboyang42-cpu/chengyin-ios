@@ -11,10 +11,25 @@ import SwiftUI
     }()
     var body: some View {
         WalletCommerceHomeView(reader: session.walletHistoryReader, visibility: visibility,
-            onCooperationFinance: { showsClubFinance = true })
+            onCooperationFinance: { showsClubFinance = true },
+            invitationHistory: WalletInvitationHistoryAccess(session: session))
             .id(session.walletHistoryViewIdentity)
             .navigationDestination(isPresented: $showsClubFinance) {
                 CoopFlowReadView(reader: session.cooperationFlowReader, resource: .finance, title: "coopflow.finance")
             }
+    }
+}
+
+
+/// Uses the account invitation grant, never the wallet ledger grant. Construction
+/// does not read history; the existing destination owns its request lifetime.
+@MainActor struct WalletInvitationHistoryAccess {
+    let reader: any SocialAccountReading
+    let squareReader: any SquareReading
+    let actions: SocialActionCoordinator?
+    init(session: AppSession) {
+        reader = session.profileInviteHistoryReader
+        squareReader = session.squareReader
+        actions = session.socialActionCoordinator
     }
 }
