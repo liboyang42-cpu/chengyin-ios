@@ -106,6 +106,8 @@ struct QuestifyApp: App {
                     ProfileSelfEditFixtureHost(scenario: fixtureArgument("--profile-self-edit-scenario") ?? "own")
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-medals") {
                     ProfileSelfMedalsFixtureHost(scenario: fixtureArgument("--profile-self-medals-scenario") ?? "content")
+                } else if MemberParityFixture.isSelected {
+                    MemberParityFixtureRouter()
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-growth") {
                     ProfileSelfGrowthFixtureHost(scenario: fixtureArgument("--profile-self-growth-scenario") ?? "content")
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-projects") {
@@ -196,6 +198,7 @@ final class AppSessionContainer: ObservableObject {
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-favorite-removal") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-edit-return") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-medals") ||
+           MemberParityFixture.isSelected ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-growth") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-projects") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-author-posts-refresh") ||

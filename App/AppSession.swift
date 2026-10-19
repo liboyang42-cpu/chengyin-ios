@@ -1139,6 +1139,35 @@ final class AppSession: ObservableObject {
             guard let self, self.currentProfileWeeklyPointsSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
         })
+    /// 我的 header and 当前权益. Identity reuses the bootstrap `user/info` read; role info needs a lease.
+    private var memberHomeService: MemberHomeService?
+    private var currentMemberHomeSession: MemberHomeSession? {
+        guard let account, let token else { return nil }
+        let approval = currentRuntimeDependencyContext.flatMap { context in
+            composition.memberRoleInfoReadApproval(context).flatMap { $0.matches(context) ? $0.revision : nil }
+        }
+        return try? MemberHomeSession(accountID: account.id, epoch: gate.currentStamp, token: token, roleInfoApproval: approval)
+    }
+    lazy var memberHomeReader = MemberHomeSessionReader(service: memberHomeService,
+        currentSession: { [weak self] in self?.currentMemberHomeSession },
+        onUnauthorized: { [weak self] captured in
+            guard let self, self.currentMemberHomeSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+        })
+    private var ownMediaService: OwnMediaService?
+    private var currentOwnMediaSession: OwnMediaSession? {
+        guard let account, let token else { return nil }
+        let approval = currentRuntimeDependencyContext.flatMap { context in
+            composition.ownMediaReadApproval(context).flatMap { $0.matches(context) ? $0.revision : nil }
+        }
+        return try? OwnMediaSession(accountID: account.id, epoch: gate.currentStamp, token: token, approval: approval)
+    }
+    lazy var ownMediaReader = OwnMediaSessionReader(service: ownMediaService,
+        currentSession: { [weak self] in self?.currentOwnMediaSession },
+        onUnauthorized: { [weak self] captured in
+            guard let self, self.currentOwnMediaSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+        })
     private let growthCenterService:GrowthCenterService?
     private var currentGrowthCenterSession:GrowthCenterReadSession? {
         guard let account,let token else { return nil }
@@ -3262,6 +3291,8 @@ final class AppSession: ObservableObject {
             officialEventService=OfficialEventService(configuration:configuration,transport:transport)
             profileWeeklyPointsService = ProfileWeeklyPointsService(configuration: configuration, transport: transport)
             growthCenterService=GrowthCenterService(configuration:configuration,transport:transport)
+            memberHomeService = MemberHomeService(configuration: configuration, transport: transport)
+            ownMediaService = OwnMediaService(configuration: configuration, transport: transport)
             creatorContentService=CreatorContentService(configuration:configuration,transport:transport)
             accountCollectionService=AccountCollectionService(configuration:configuration,transport:transport)
             cooperationService=CooperationService(configuration:configuration,transport:transport)

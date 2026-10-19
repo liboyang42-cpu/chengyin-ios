@@ -88,6 +88,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                         Text(verbatim: format.amount(value.balance, currency: value.currency))
                             .font(.title2.bold()).privacySensitive()
                             .accessibilityIdentifier("wallet.earnings.balance")
+                        if value.balance.value == 0 { WalletEarningsEmptyNote() }
                     } else {
                         WalletIssueView(reader: reader, requiresLogin: earnings.requiresLogin,
                             unavailable: earnings.unavailable) { Task { await loadEarnings() } }
@@ -265,7 +266,8 @@ extension WalletScreen where Value == WithdrawalBalance {
                 else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
             }
             if !points, let balance = row.afterBalance { LabeledContent("wallet.balanceAfter", value: format.amount(balance, currency: row.currency)) }
-            if let date = row.createTime { Text(verbatim: date).font(.caption) }
+            if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(.caption) }
+            else if let date = row.createTime { Text(verbatim: date).font(.caption) }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.ledger.\(row.id)")
     }
 }
