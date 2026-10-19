@@ -368,7 +368,7 @@ struct RoamToolUnavailableView: View {
     @ViewBuilder private func tileDestination(_ tile: RoamPassportHome.Tile) -> some View {
         switch tile {
         case .history:
-            if let reader { RoamHistoryView(reader: reader, liveDestination: liveDestination) }
+            if let reader { RoamHistoryView(reader: reader, liveDestination: liveDestination, toolsReader: toolsReader) }
         case .stamp:
             if let albumMetadataReader { RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope) }
             else if let reader { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) }
