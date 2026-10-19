@@ -16,8 +16,9 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // Mini-program pages/shezhi order: 个人资料, 成为俱乐部主理人/成为商家, 城瘾玩法, 我的收藏.
                 ProfileSettingsProfileEntry(session: session, owner: profileOwner)
-                ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner)
+                SettingsIdentityApplicationEntries(session: session)
                 Section {
                     NavigationLink {
                         ProfileGuideHost(reader: session.makeProfileGuideReader(),
@@ -27,6 +28,7 @@ struct SettingsView: View {
                     } label: { Label("social.guide.title", systemImage: "questionmark.circle") }
                         .accessibilityIdentifier("settings.playGuide")
                 }
+                ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner)
                 Section {
                     LabeledContent { Text(verbatim:RegionalLaunchConfiguration.market?.rawValue ?? "—").accessibilityIdentifier("region.market.value") } label: { Text("region.market") }
                     Text("region.languageBoundary").font(.footnote).foregroundStyle(.secondary)
@@ -40,6 +42,7 @@ struct SettingsView: View {
                     .pickerStyle(.inline)
                 } footer: { Text("settings.languageNotice") }
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
+                SettingsSignOutEntry(session: session) { dismiss() }
             }
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner))
