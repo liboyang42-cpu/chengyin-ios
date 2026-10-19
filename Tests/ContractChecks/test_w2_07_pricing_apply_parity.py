@@ -29,6 +29,7 @@ class W207PricingApplyParity(unittest.TestCase):
         editor = read('App/MerchantContentEditor.swift')
         self.assertIn('if case .registrationCreate = kind { applyDateSection }', editor)
         self.assertIn('MerchantApplyXcx.firstMissing(', editor)
+        self.assertIn('MerchantApplyXcx.editBlock(status: s.value["status"].integer', editor)
 
 
 if __name__ == '__main__':

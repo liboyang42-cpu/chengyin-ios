@@ -828,5 +828,25 @@
   "key": "merchantApplyXcx.notAWin",
   "en": "Signing up is not winning the stop; it counts once the organizer confirms you.",
   "zh-Hans": "报名成功不等于中标，主理人确认后才算接上这一站"
+ },
+ {
+  "key": "merchantApplyXcx.editBlockTitle",
+  "en": "This registration can't be changed now",
+  "zh-Hans": "这份报名现在不能修改"
+ },
+ {
+  "key": "merchantApplyXcx.editBlock.topicStarted",
+  "en": "The topic has started; hosting details can no longer be changed",
+  "zh-Hans": "主题已开始，承接内容不能再修改"
+ },
+ {
+  "key": "merchantApplyXcx.editBlock.approved",
+  "en": "This registration was approved; hosting details can no longer be changed",
+  "zh-Hans": "该报名已通过审核，承接内容不能再修改"
+ },
+ {
+  "key": "merchantApplyXcx.editBlock.stateChanged",
+  "en": "The registration status changed; go back to the details for the latest result",
+  "zh-Hans": "报名状态已变化，请返回详情查看最新结果"
  }
 ]

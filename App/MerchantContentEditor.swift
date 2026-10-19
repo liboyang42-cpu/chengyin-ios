@@ -204,6 +204,14 @@ import SwiftUI
                 if case .registrationCreate = kind { Text("merchant.content.registrationPreservation").font(.footnote) }
             }
             if case .registrationCreate = kind { applyDateSection }
+            if case .registrationEdit = kind, let block = MerchantApplyXcx.editBlock(status: s.value["status"].integer, auditStatus: s.value["auditStatus"].integer,
+                                                                                     topicStartDay: s.value["topicStartDate"].text, today: MerchantApplyXcx.chinaToday()) {
+                // Source merchantapply edit-block notice; the server still decides on submit.
+                Section {
+                    Text(LocalizedStringKey("merchantApplyXcx.editBlock." + String(describing: block))).foregroundStyle(.orange)
+                        .accessibilityIdentifier("merchantApply.editBlock")
+                } header: { Text("merchantApplyXcx.editBlockTitle") }
+            }
             if case .registrationEdit(let id) = kind {
                 MerchantRegistrationAvailabilityPicker(context: .init(scope: s.scope, registrationID: id, observedAt: s.observedAt),
                     source: .init(s.value), replacement: availabilityReplacement,

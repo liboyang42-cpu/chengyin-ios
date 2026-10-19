@@ -175838,6 +175838,70 @@
           }
         }
       }
+    },
+    "merchantApplyXcx.editBlockTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This registration can't be changed now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份报名现在不能修改"
+          }
+        }
+      }
+    },
+    "merchantApplyXcx.editBlock.topicStarted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The topic has started; hosting details can no longer be changed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题已开始，承接内容不能再修改"
+          }
+        }
+      }
+    },
+    "merchantApplyXcx.editBlock.approved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This registration was approved; hosting details can no longer be changed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该报名已通过审核，承接内容不能再修改"
+          }
+        }
+      }
+    },
+    "merchantApplyXcx.editBlock.stateChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The registration status changed; go back to the details for the latest result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名状态已变化，请返回详情查看最新结果"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
