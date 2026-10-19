@@ -3,8 +3,14 @@ import SwiftUI
 @MainActor protocol MerchantPredictionReading: AnyObject {
     var id: UUID { get }
     var isConfigured: Bool { get }
+    var supportsReview: Bool { get }
+    func makeReviewService(isCurrent: @escaping () -> Bool) -> MerchantMarketingService?
     func access() async throws -> MerchantAccess
     func inbox(access: MerchantAccess) async throws -> [MerchantPredictionInboxRound]
+}
+extension MerchantPredictionReading {
+    var supportsReview: Bool { false }
+    func makeReviewService(isCurrent: @escaping () -> Bool) -> MerchantMarketingService? { nil }
 }
 
 @MainActor final class MerchantPredictionReader: MerchantPredictionReading {
@@ -14,22 +20,35 @@ import SwiftUI
     private let merchant: MerchantService
     private let predictions: MerchantPredictionReadService
     private let token: String
+    private let reviewScope: MerchantMarketingScope?
     private let current: () -> Bool
     private let unauthorized: () -> Void
     private var accepted: MerchantAccess?
     private var generation: UInt64 = 0
     var isConfigured: Bool { current() }
+    var supportsReview: Bool { current() && reviewScope != nil }
     init(configuration: APIConfiguration, transport: any HTTPTransport, token: String,
-         current: @escaping () -> Bool, unauthorized: @escaping () -> Void) {
+         current: @escaping () -> Bool, unauthorized: @escaping () -> Void, reviewScope: MerchantMarketingScope? = nil) {
         self.configuration = configuration; self.transport = transport
         let cookieFree = CookieFreeTransport(underlying: transport)
         merchant = MerchantService(configuration: configuration, transport: cookieFree)
         predictions = MerchantPredictionReadService(configuration: configuration, transport: cookieFree)
-        self.token = token; self.current = current; self.unauthorized = unauthorized
+        self.token = token; self.current = current; self.unauthorized = unauthorized; self.reviewScope = reviewScope
     }
     /// Admission and the pushed inbox own separate access generations.
     func isolatedReader() -> MerchantPredictionReader {
-        .init(configuration: configuration, transport: transport, token: token, current: current, unauthorized: unauthorized)
+        .init(configuration: configuration, transport: transport, token: token, current: current, unauthorized: unauthorized, reviewScope: reviewScope)
+    }
+    /// Review preparation reuses only the existing read scope. There is no writer,
+    /// settlement approval, or replay-store construction on this normal path.
+    func makeReviewService(isCurrent: @escaping () -> Bool) -> MerchantMarketingService? {
+        guard let reviewScope, current(), isCurrent() else { return nil }
+        let valid = { [weak self] in self?.current() == true && isCurrent() }
+        return MerchantMarketingService(configuration: configuration,
+            transport: CookieFreeTransport(underlying: transport),
+            gates: .init(reads: true, insight: false, settlement: false), locks: nil,
+            currentSession: { valid() ? reviewScope : nil },
+            onUnauthorized: { [weak self] _ in guard valid() else { return }; self?.unauthorized() })
     }
     private struct CookieFreeTransport: HTTPTransport {
         let underlying: any HTTPTransport
@@ -228,7 +247,16 @@ import SwiftUI
                         Text(verbatim: selected.round.playDay)
                         Text(verbatim: selected.round.question)
                         ForEach(selected.round.options) { option in
-                            LabeledContent { Text(verbatim: option.label) } label: { Text(verbatim: option.key) }
+                            if reader.supportsReview {
+                                NavigationLink {
+                                    MerchantPredictionReadOnlyReviewView(round: selected.round, optionKey: option.key,
+                                        reader: reader, isCurrent: { model.isCurrent(selected) })
+                                } label: {
+                                    LabeledContent { Text(verbatim: option.label) } label: { Text(verbatim: option.key) }
+                                }.accessibilityIdentifier("merchant.prediction.review.option.\(option.key)")
+                            } else {
+                                LabeledContent { Text(verbatim: option.label) } label: { Text(verbatim: option.key) }
+                            }
                         }
                         Text(zh ? "参与记录：\(selected.round.betCount)；服务器剩余自然日：\(selected.round.daysLeft)" : "Entries: \(selected.round.betCount); server calendar days remaining: \(selected.round.daysLeft)")
                         Text(zh ? "这是收件箱快照。刷新后轮次消失不代表已由你结算成功。" : "Inbox snapshot. A round disappearing after refresh does not prove you settled it.").font(.footnote)
@@ -239,5 +267,84 @@ import SwiftUI
             .onAppear { model.didPresent(id: selected.id) }
             .onDisappear { model.close(id: selected.id); model.didDismiss(id: selected.id) }
         }
+    }
+}
+
+@MainActor final class MerchantPredictionReviewPreparationModel: ObservableObject {
+    enum Phase: Equatable { case idle, loading, ready, failed, retired }
+    @Published private(set) var phase = Phase.idle
+    @Published private(set) var review: MerchantPredictionReview?
+    @Published private(set) var failure: MerchantMarketingFailure?
+    private var generation = UUID()
+    private var service: MerchantMarketingService?
+    func retire() {
+        generation = UUID(); service?.discardReview(); service = nil
+        review = nil; failure = nil; phase = .retired
+    }
+    func prepare(round: MerchantPredictionInboxRound, optionKey: String,
+                 reader: any MerchantPredictionReading, isCurrent: @escaping () -> Bool) async {
+        retire(); let ticket = generation
+        let valid = { [weak self] in self?.generation == ticket && reader.isConfigured && isCurrent() }
+        guard !Task.isCancelled, valid(), reader.supportsReview else { return }
+        guard let service = reader.makeReviewService(isCurrent: valid), !service.permitsSettlement else {
+            phase = .failed; failure = .unavailable; return
+        }
+        self.service = service; phase = .loading
+        do {
+            let value = try await service.prepare(round: MerchantPredictionRound(inbox: round), optionKey: optionKey)
+            guard !Task.isCancelled, valid() else { if generation == ticket { retire() }; return }
+            review = value; phase = .ready
+        } catch {
+            guard !Task.isCancelled, valid() else { if generation == ticket { retire() }; return }
+            failure = (error as? MerchantMarketingFailure) ?? .malformed; phase = .failed
+        }
+    }
+}
+
+@MainActor private struct MerchantPredictionReadOnlyReviewView: View {
+    let round: MerchantPredictionInboxRound
+    let optionKey: String
+    let reader: any MerchantPredictionReading
+    let isCurrent: @MainActor () -> Bool
+    @StateObject private var model = MerchantPredictionReviewPreparationModel()
+    @State private var visible = false
+    @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
+    private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
+    var body: some View {
+        List {
+            if !isCurrent() || !reader.isConfigured || model.phase == .retired {
+                Text(zh ? "这份题面已失效，请返回刷新" : "This question is no longer current. Return and refresh.")
+            } else if model.phase == .loading || model.phase == .idle {
+                ProgressView(zh ? "正在重新核实题面和权限" : "Rechecking the question and permission")
+            } else if let review = model.review {
+                Text(verbatim: review.round.question ?? "").font(.headline)
+                Text(verbatim: review.round.playDay)
+                LabeledContent { Text(verbatim: review.option.key + " · " + review.option.label) } label: {
+                    Text(zh ? "拟公布的答案" : "Answer to publish")
+                }.accessibilityIdentifier("merchant.prediction.review.choice")
+                Text(zh ? "正式确认会一次性公布答案，并可能发放配置的经验值和优惠券。" : "A future confirmed settlement publishes the answer once and may grant configured XP and coupons.")
+                Text(zh ? "当前只提供确认预览，结算未启用，不会公布答案或发奖。" : "Review preview only. Settlement is disabled; no answer or reward is sent.")
+                    .accessibilityIdentifier("merchant.prediction.review.readOnly")
+                Text(zh ? "后端尚未冻结本轮题目与奖励配置；重新核实题面不能消除配置变化的风险。" : "The backend does not freeze this round's question and reward configuration. Rechecking cannot eliminate configuration-change races.").font(.footnote)
+            } else if let failure = model.failure {
+                Text(LocalizedStringKey(failure.key))
+                if failure != .stale && failure != .denied && failure != .signIn {
+                    Button(zh ? "重新核实" : "Recheck") { Task { await prepare() } }
+                }
+            }
+        }
+        .navigationTitle(zh ? "答案确认预览" : "Answer review")
+        .privacySensitive()
+        .onAppear { visible = true }
+        .task(id: visible && scenePhase == .active) {
+            if visible && scenePhase == .active { await prepare() } else { model.retire() }
+        }
+        .onDisappear { visible = false; model.retire() }
+    }
+    private func prepare() async {
+        guard visible, scenePhase == .active else { return }
+        await model.prepare(round: round, optionKey: optionKey, reader: reader,
+            isCurrent: { visible && scenePhase == .active && isCurrent() })
     }
 }
