@@ -32,6 +32,8 @@ struct RoamItemDetailView: View {
     @State private var readOwner = ManualMapReadTaskOwner()
     @State private var loading = false
     @State private var issue: RoamScreenIssue?
+    /// 410 from city/nodes/{id}: 据点未开放或已下线, shown without a retry.
+    @State private var nodeUnavailable = false
     @State private var generation = 0
     init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil, eventDestination: ((RoamEventDestination) -> AnyView)? = nil, playerProfileDestination: ((Int) -> AnyView)? = nil, couponWalletDestination: (() -> AnyView)? = nil) {
         self.stampDestination = stampDestination; self.posterDestination = posterDestination; self.eventDestination = eventDestination; self.playerProfileDestination = playerProfileDestination
@@ -69,6 +71,7 @@ struct RoamItemDetailView: View {
                 if !reader.isConfigured { RoamStatusView(issue: .notConfigured) }
                 else if !isCurrent { RoamStatusView(issue: .unauthorized) }
                 else if loading { ProgressView("roam.loading") }
+                else if nodeUnavailable { RoamPOIUnavailableView { merchantRetry.cancel(); dismiss() } }
                 else if let issue { RoamStatusView(issue: issue) { startLoad() } }
                 else { content }
             }
@@ -175,6 +178,7 @@ struct RoamItemDetailView: View {
                 PlatformExternalMapHost(destination: .init(name: node.name, address: node.merchantAddress ?? place.address, latitude: node.coordinate?.latitude, longitude: node.coordinate?.longitude), scope: mediaScope, makeModel: makeExternalMaps)
                 if node.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash") }
             }
+            Section { RoamPOINodeParityCard(node: node, stampDestination: stampDestination) }
             Section("roam.yourStatus") {
                 Label(LocalizedStringKey(node.completed ? "roam.completed" : "roam.notCompleted"), systemImage: node.completed ? "checkmark.circle" : "circle")
                 if node.favorited { Label("roam.favorited", systemImage: "heart.fill") }
@@ -232,6 +236,9 @@ struct RoamItemDetailView: View {
         let merchant = detail.merchant
         Section("roam.merchant") {
             if let name = merchant.name { Text(verbatim: name).font(.headline) }
+            if let role = merchant.cityRole { Text(verbatim: role).font(.subheadline).foregroundStyle(.secondary) }
+            LabeledContent("roamSub.w208.poi.chargeLabel") { Text(LocalizedStringKey(RoamPOINodePresentation.chargeKey(merchant.chargeType))) }
+                .accessibilityIdentifier("roamSub.w208.poi.charge")
             if let title = merchant.storyTitle { Text(verbatim: title) }
             if let description = merchant.description { Text(verbatim: description) }
             if let address = merchant.address { LabeledContent("roam.address", value: address) }
@@ -404,7 +411,7 @@ struct RoamItemDetailView: View {
         generation += 1
         let operation = generation
         merchantReadSnapshot = UUID(); featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil
-        node = nil; merchant = nil; merchantFailed = false; issue = nil
+        node = nil; merchant = nil; merchantFailed = false; issue = nil; nodeUnavailable = false
         guard reader.isConfigured, isCurrent else { loading = false; return }
         guard case .place(let place) = item else { loading = false; return }
         loading = true
@@ -430,7 +437,8 @@ struct RoamItemDetailView: View {
         } catch is CancellationError { }
         catch {
             guard operation == generation, isCurrent else { return }
-            node = nil; merchant = nil; issue = RoamScreenIssue(error: error)
+            node = nil; merchant = nil
+            if error as? RoamReadFailure == .nodeUnavailable { nodeUnavailable = true } else { issue = RoamScreenIssue(error: error) }
         }
     }
 }

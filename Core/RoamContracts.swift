@@ -200,10 +200,12 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
     public let favorited: Bool
     public let canInteract: Bool?
     public let needRedeem: Bool
+    /// Present when completing the node grants a merchant coupon (mini-program 完成领券). Display only.
+    public let couponId: Int?
     public var isPublished: Bool { status == 1 }
     enum CodingKeys: String, CodingKey {
         case poiId, name, description, lat, lng, radiusM, nodeLevel, tags, status, merchantId
-        case merchantName, merchantAddress, templateTitle, validationMethod, completed, favorited, canInteract, needRedeem
+        case merchantName, merchantAddress, templateTitle, validationMethod, completed, favorited, canInteract, needRedeem, couponId
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -222,6 +224,7 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
         favorited = (try? c.decode(Bool.self, forKey: .favorited)) == true
         canInteract = try c.decodeIfPresent(Bool.self, forKey: .canInteract)
         needRedeem = try c.decodeIfPresent(Bool.self, forKey: .needRedeem) ?? false
+        couponId = c.roamInteger(.couponId).flatMap { $0 > 0 ? $0 : nil }
     }
 }
 
@@ -243,7 +246,8 @@ public struct RoamExploreDay: Decodable, Equatable, Identifiable {
     }
 }
 
-public enum RoamReadFailure: Error, Equatable { case searchAreaRequired, nodeNotFound }
+/// `nodeUnavailable`: the city node answered 410 (据点未开放或已下线). It is not retryable.
+public enum RoamReadFailure: Error, Equatable { case searchAreaRequired, nodeNotFound, nodeUnavailable }
 
 struct RoamRows<T: Decodable>: Decodable {
     let values: [T]

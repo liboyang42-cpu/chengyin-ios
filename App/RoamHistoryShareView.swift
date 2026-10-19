@@ -39,6 +39,7 @@ import UIKit
                     }
                 }), isBusy: photoSave.inFlight || albumGuide.pending != nil)
                 card
+                RoamShareLinkDormantNotice()
                 if renderingFailed { Text("roam.share.renderFailed").foregroundStyle(.secondary) }
                 if guideSourceChanged { Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary) }
                 if let image, renderedRecord == record, renderedIncludeRoute == includeRoute,
@@ -210,6 +211,7 @@ import UIKit
             if let date = record.recordedAt { Text(date, style: .date).foregroundStyle(.secondary) }
             RoamRecordedStats(record: record)
             if includeRoute { privateRoute }
+            RoamShareCardParityFooter(record: record)
         }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
     }
