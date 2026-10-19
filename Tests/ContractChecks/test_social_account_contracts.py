@@ -70,5 +70,5 @@ class SocialAccountSourceTests(unittest.TestCase):
    for language in ['en','zh-Hans']:self.assertTrue(entry['localizations'][language]['stringUnit']['value'].strip(),key)
   fixture=self.read('App/SocialAccountFixtureSupport.swift'); self.assertTrue(fixture.startswith('#if DEBUG'))
   self.assertNotIn('URLSession',fixture);self.assertNotIn('AppSession(',fixture)
-  self.assertIn('destination == .roam ? 3 : 0',self.read('App/QuestifyApp.swift'))
+  self.assertIn('destination == .roam ? .roam : .home',self.read('App/QuestifyApp.swift'))
 if __name__=='__main__':unittest.main()

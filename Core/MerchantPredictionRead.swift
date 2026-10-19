@@ -50,7 +50,8 @@ public struct MerchantPredictionInboxRound: Decodable, Equatable, Identifiable {
         }
         playDay = try c.decode(String.self, forKey: .playDay)
         guard Self.validDay(playDay) else { throw APIError.malformedResponse }
-        nodeName = try c.decode(String.self, forKey: .nodeName)
+        // Source predict/index.js shapeRound: a missing name falls back to "未命名点位" in the view.
+        nodeName = try c.decodeIfPresent(String.self, forKey: .nodeName) ?? ""
         question = try c.decode(String.self, forKey: .question)
         options = try c.decode([Option].self, forKey: .options)
         guard options.allSatisfy({ !$0.key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),

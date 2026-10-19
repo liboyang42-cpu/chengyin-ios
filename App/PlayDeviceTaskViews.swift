@@ -32,6 +32,10 @@ import SwiftUI
                     case .location(let longitude, let latitude, let coordinateSystem, let accuracyMeters, let measuredAt):
                         Text("playx.device.locationCaptured")
                         Text(verbatim: coordinateSystem).font(.caption)
+                        if let accuracyMeters, accuracyMeters.isFinite {
+                            LabeledContent("playx.device.accuracy") { Text(verbatim: "±" + accuracyMeters.formatted(.number.precision(.fractionLength(0))) + " m") }
+                        }
+                        if PlayArrivalAccuracy.isLow(accuracyMeters) { Text("playx.device.lowAccuracy").font(.footnote).accessibilityIdentifier("playx.device.lowAccuracy") }
                         Button("playx.review") { onEvidence(.location(longitude: longitude, latitude: latitude, coordinateSystem: coordinateSystem, accuracyMeters: accuracyMeters, measuredAt: measuredAt), outputContext) }
                             .disabled(!model.canReviewOutput || coordinateSystem != "GCJ02").accessibilityIdentifier("playx.device.review")
                     case .photo(let bytes, let mime):

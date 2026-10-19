@@ -31,6 +31,24 @@ import CoreLocation
         do { _ = try await provider.capture(.location, context: context); XCTFail() } catch {}
         XCTAssertEqual(location.calls, 1)
     }
+    /// I01: poor but projectable accuracy is carried for the server to judge; an
+    /// unprojectable or stale sample is unusable evidence, never an unknown write.
+    func testScopedLocationWrapperCarriesPoorAccuracyAndRefusesUnprojectableSamples() async throws {
+        let location = RuntimeAppTestLocation()
+        let provider = RuntimePlayDeviceProvider(native: PlayNativeDeviceProvider(grants: []), location: location, grants: [.location], isCurrent: { true })
+        let session = try PlayExperienceSession(accountID: 7, epoch: 1, namespace: "fixture", token: "synthetic")
+        let context = try PlayDeviceContext(session: session, scope: .topic(4), nodeID: 8)
+        for accuracy in [80.0, 81.0, 100.0] {
+            location.accuracyMeters = accuracy; location.measuredAt = Date()
+            guard case .location(_, _, let datum, let carried, let time) = try await provider.capture(.location, context: context) else { return XCTFail() }
+            XCTAssertEqual(datum, "GCJ02"); XCTAssertEqual(carried, accuracy); XCTAssertEqual(time, location.measuredAt)
+        }
+        for (accuracy, age) in [(100.5, 0.0), (5.0, 31.0), (5.0, -31.0)] {
+            location.accuracyMeters = accuracy; location.measuredAt = Date().addingTimeInterval(-age)
+            do { _ = try await provider.capture(.location, context: context); XCTFail("\(accuracy) / \(age)") }
+            catch { XCTAssertEqual(error as? PlayExperienceError, .invalidAction) }
+        }
+    }
     func testCancelledQueuedSensorTaskNeverStartsTheUnderlyingProvider() async {
         let sensor = RuntimeAppTestSensor()
         let provider = RuntimePlayKitSensorProvider(provider: sensor, isCurrent: { true })
@@ -46,10 +64,11 @@ import CoreLocation
 }
 @MainActor private final class RuntimeAppTestLocation: RoamDeviceLocationProviding {
     var calls = 0
-    let measuredAt = Date()
+    var accuracyMeters = 5.0
+    var measuredAt = Date()
     func currentFix() async throws -> RoamDeviceFix {
         calls += 1
-        return try RoamDeviceFix(coordinate: XCTUnwrap(RoamCoordinate(latitude: 39.916527, longitude: 116.397128)), accuracyMeters: 5, measuredAt: measuredAt, datum: .wgs84)
+        return try RoamDeviceFix(coordinate: XCTUnwrap(RoamCoordinate(latitude: 39.916527, longitude: 116.397128)), accuracyMeters: accuracyMeters, measuredAt: measuredAt, datum: .wgs84)
     }
     func stop() {}
 }

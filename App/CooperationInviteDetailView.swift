@@ -42,6 +42,14 @@ import UIKit
                 Section { NavigationLink("context.coop.peerCredit") { CoopPeerCreditView(reader: peerReader, peer: peer) } }
             }
             Section("cooperation.terms") {
+                // Mini-program invite detail lists the two parties first (utils/coop-invite-view.js TYPE_LABEL).
+                if let type = row.inviteType, (0...2).contains(type) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("cooperation.parties").font(.caption).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey("cooperation.inviteType." + String(type)))
+                    }.padding(.vertical, 2).accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("cooperation.detail.parties")
+                }
                 terms(row)
                 if row.termsFrozen { Label("cooperation.termsFrozen", systemImage: "lock") }
                 if let occupancy = detail.occupancy {

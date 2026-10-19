@@ -37,11 +37,27 @@ public struct OfficialMission: Decodable, Equatable {
     public let type: String?
     public let complete: Bool?
     public let canVerifyArrival: Bool?
+    public let binding: OfficialMissionBinding?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
         code = c.text("missionCode") ?? ""; title = c.text("title") ?? ""
         description = c.text("description"); type = c.text("missionType")
         complete = c.flag("complete"); canVerifyArrival = c.flag("canVerifyArrival")
+        binding = try? c.decode(OfficialMissionBinding.self, forKey: OfficialKey("binding"))
+    }
+}
+/// Source mission `binding`. A THEME sourceRefId is a cms_topic id: a positive long,
+/// supplied as a number or a digit string. Anything else stays nil, never zero.
+public struct OfficialMissionBinding: Decodable, Equatable {
+    public let bindingType: String?
+    public let sourceRefID: Int64?
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: OfficialKey.self)
+        bindingType = c.text("bindingType")
+        let digits = c.text("sourceRefId")?.trimmingCharacters(in: .whitespaces)
+        let parsed = (try? c.decode(Int64.self, forKey: OfficialKey("sourceRefId")))
+            ?? digits.flatMap { !$0.isEmpty && $0.allSatisfy({ $0.isASCII && $0.isNumber }) ? Int64($0) : nil }
+        sourceRefID = parsed.flatMap { $0 > 0 ? $0 : nil }
     }
 }
 public struct OfficialCollectiveProgress: Decodable, Equatable {
@@ -88,6 +104,9 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     public let participantAvatars: [String]
     public let missions: [OfficialMission]
     public let collective: OfficialCollectiveProgress?
+    /// Source display-only fields: CATEGORY_TEXT key and the v1 `contentJson` task cards.
+    public let category: String?
+    public let contentJSON: String?
     public var isCompleteRecord: Bool { id > 0 && !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     public var isV2: Bool { (contractVersion ?? 1) >= 2 }
     /// Exact official_event codes from the existing task-list source. This is a
@@ -121,27 +140,39 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
         participantAvatars = avatars.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         missions = try c.list("missions")
         collective = try c.decodeIfPresent(OfficialCollectiveProgress.self, forKey: OfficialKey("collective"))
+        category = c.text("category"); contentJSON = c.text("contentJson")
     }
     private var rewardMap: [String: Any] {
         guard let data = rewardJSON?.data(using: .utf8), let value = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
         return value
     }
+    /// Source reward contract (official-detail positiveInt): settleBadge must be exactly true;
+    /// settleXp is a positive Java int and coupon IDs positive Java longs, as numbers or digit strings.
     public var rewards: [OfficialReward] {
         let map = rewardMap
-        func present(_ key: String) -> Bool { map[key] != nil && !(map[key] is NSNull) }
         var result: [OfficialReward] = []
-        if present("settleBadge") { result.append(.badge) }
-        if present("settleCouponId") { result.append(.coupon) }
-        if let value = map["settleXp"], !(value is NSNull) { result.append(.experience(String(describing: value))) }
-        if present("collectiveCouponId") { result.append(.collectiveCoupon) }
+        if let badge = map["settleBadge"] as? NSNumber, CFGetTypeID(badge) == CFBooleanGetTypeID(), badge.boolValue { result.append(.badge) }
+        if Self.positiveInteger(map["settleCouponId"], max: Self.longMax) != nil { result.append(.coupon) }
+        if let xp = Self.positiveInteger(map["settleXp"], max: Self.intMax) { result.append(.experience(xp)) }
+        if hasCollectiveReward { result.append(.collectiveCoupon) }
         return result
     }
-    public var hasCollectiveReward: Bool {
-        if let value = rewardMap["collectiveCouponId"] as? String { return (Int(value) ?? 0) > 0 }
-        if let value = rewardMap["collectiveCouponId"] as? NSNumber {
-            return CFGetTypeID(value) != CFBooleanGetTypeID() && value.doubleValue > 0
-        }
-        return false
+    public var hasCollectiveReward: Bool { Self.positiveInteger(rewardMap["collectiveCouponId"], max: Self.longMax) != nil }
+    static let intMax = "2147483647", longMax = "9223372036854775807"
+    /// Normalized positive decimal text within the backend type's range, or nil.
+    static func positiveInteger(_ value: Any?, max: String) -> String? {
+        var text: String
+        if let number = value as? NSNumber {
+            guard CFGetTypeID(number) != CFBooleanGetTypeID(), number.doubleValue.isFinite,
+                  number.doubleValue == number.doubleValue.rounded(.towardZero) else { return nil }
+            text = number.stringValue
+        } else if let string = value as? String {
+            text = string.trimmingCharacters(in: .whitespaces)
+        } else { return nil }
+        guard !text.isEmpty, text.allSatisfy({ $0.isASCII && $0.isNumber }) else { return nil }
+        while text.count > 1 && text.hasPrefix("0") { text.removeFirst() }
+        guard text != "0", text.count < max.count || (text.count == max.count && text <= max) else { return nil }
+        return text
     }
     public var statusKey: String {
         guard let status else { return "official.status.unknown" }
@@ -189,6 +220,59 @@ public enum OfficialEventBucket: String, CaseIterable, Identifiable {
         }
     }
 }
+/// Source list copy (pages/activity/list): tab-specific summary and empty states.
+public extension OfficialEventBucket {
+    /// The source chip reads "我的"; the shared bucket title stays for other hosts.
+    var tabTitleKey: String { self == .mine ? "official.tab.mine" : titleKey }
+    var emptyTitleKey: String {
+        switch self {
+        case .live: return "official.empty.live"
+        case .upcoming: return "official.empty.upcoming"
+        case .ended: return "official.empty.ended"
+        case .mine: return "official.empty.mine"
+        }
+    }
+    var emptyDetailKey: String {
+        switch self {
+        case .live, .upcoming: return "official.emptyDetail.curated"
+        case .ended: return "official.emptyDetail.ended"
+        case .mine: return "official.emptyDetail.mine"
+        }
+    }
+    /// The source hides search on its "mine" tab; a hidden keyword never filters it here.
+    var isSearchable: Bool { self != .mine }
+}
+
+/// Rounded source countdown units: days from 24 h, hours from 1 h, otherwise at least one minute.
+public enum OfficialCountdownSpan: Equatable {
+    case days(Int), hours(Int), minutes(Int)
+    public init(milliseconds: Double) {
+        let hours = Int(milliseconds / 3_600_000)
+        if hours >= 24 { self = .days(hours / 24) }
+        else if hours >= 1 { self = .hours(hours) }
+        else { self = .minutes(max(1, Int(milliseconds / 60_000))) }
+    }
+}
+public enum OfficialEventCountdown: Equatable {
+    case startsIn(OfficialCountdownSpan), startingSoon, endsIn(OfficialCountdownSpan), endingSoon
+}
+public extension OfficialEvent {
+    /// Mirrors the source card timer for numeric timestamps only. Timezone-less text
+    /// dates are not reinterpreted, so they fall back to the status label alone.
+    func countdown(now: Date) -> OfficialEventCountdown? {
+        let current = now.timeIntervalSince1970 * 1000
+        if status == 1, case .milliseconds(let start)? = activityStart, start > 0 {
+            return start - current > 0 ? .startsIn(.init(milliseconds: start - current)) : .startingSoon
+        }
+        if status == 2 || status == 3, case .milliseconds(let end)? = activityEnd, end > 0 {
+            return end - current > 0 ? .endsIn(.init(milliseconds: end - current)) : .endingSoon
+        }
+        return nil
+    }
+    /// Collective progress is shown only when the server enables it; nil percent stays unknown.
+    var collectivePercentShown: Bool { collective?.enabled == true }
+}
+
 public enum OfficialEventFilter {
     public static func visible(_ rows: [OfficialEvent], bucket: OfficialEventBucket, keyword: String = "") -> [OfficialEvent] {
         let keyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -211,6 +295,15 @@ public struct OfficialEventBrowseQuery: Equatable {
         if !keyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return "official.searchEmpty" }
         return isPrivate ? "official.emptyMine" : "official.empty"
     }
+    /// Source (pages/activity/list) tab-specific empty title.
+    public var emptyTitleKey: String { isSearching ? "official.empty.search" : bucket.emptyTitleKey }
+    public var emptyDetailKey: String { isSearching ? "official.searchEmptyDetail" : bucket.emptyDetailKey }
+    public var trimmedKeyword: String { keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
+    public var isSearching: Bool { !trimmedKeyword.isEmpty }
+    /// The source list page hides search on "mine", so its hidden keyword never applies there.
+    public static func sourceList(bucket: OfficialEventBucket, keyword: String) -> Self {
+        .init(bucket: bucket, keyword: bucket.isSearchable ? keyword : "")
+    }
     public func visible(_ rows: [OfficialEvent]) -> [OfficialEvent] {
         OfficialEventFilter.visible(rows, bucket: bucket, keyword: keyword)
     }
@@ -222,8 +315,16 @@ public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {
     public let eventTitle: String?
     public let status: String?
     public let city: String?
+    /// Source official-inbox display fields: role, responsibility scope and summary.
+    public let role: String?
+    public let targetType: String?
+    public let responsibilitySummary: String?
+    /// Source service window (windowStart/windowEnd); absent fields read as unbounded.
+    public let windowFacts: OfficialInboxWindowFacts?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
+        role = c.text("role"); targetType = c.text("targetType"); responsibilitySummary = c.text("responsibilitySummary")
+        windowFacts = try? OfficialInboxWindowFacts(from: decoder)
         id = c.integer("partyId") ?? c.integer("id") ?? 0
         title = c.text("title") ?? c.text("partyName") ?? c.text("responsibilitySummary") ?? ""
         partyType = c.text("partyType"); eventTitle = c.text("eventTitle")
@@ -237,16 +338,52 @@ public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {
         default: return "official.status.unknown"
         }
     }
+    /// Source STATUS table (待你确认 / 已接受 / 履约中); unknown codes stay explicit.
+    public var sourceStatusKey: String {
+        switch status {
+        case "INVITED": return "official.inbox.status.invited"
+        case "ACCEPTED": return "official.inbox.status.accepted"
+        case "ACTIVE": return "official.inbox.status.active"
+        default: return "official.inbox.status.unknown"
+        }
+    }
+    /// Source ROLE table; nil when the server role is unknown (its raw code is shown verbatim).
+    public var roleKey: String? {
+        switch role {
+        case "ORGANIZER": return "official.inbox.role.organizer"
+        case "CO_ORGANIZER": return "official.inbox.role.coOrganizer"
+        case "FULFILLMENT_MERCHANT": return "official.inbox.role.merchant"
+        case "FULFILLMENT_CLUB": return "official.inbox.role.club"
+        case "SPONSOR": return "official.inbox.role.sponsor"
+        case "PROMOTION_PARTNER": return "official.inbox.role.promotion"
+        default: return nil
+        }
+    }
+    /// EVENT (or absent) is the whole event; internal target IDs are never displayed.
+    public var scopeKey: String {
+        switch targetType {
+        case "NODE": return "official.inbox.scope.node"
+        case "ROUTE": return "official.inbox.scope.route"
+        case "CHAPTER": return "official.inbox.scope.chapter"
+        case nil, "EVENT": return "official.inbox.scope.event"
+        default: return "official.inbox.scope.unknown"
+        }
+    }
 }
 public struct OfficialBroadcast: Decodable, Equatable, Identifiable {
     public let id: Int
     public let title: String
     public let content: String?
     public let reach: Int?
+    /// Source official-mine row facts (copyMode, audience, status, city).
+    public let facts: OfficialPublishedBroadcastFacts?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
+        facts = try? OfficialPublishedBroadcastFacts(from: decoder)
         id = c.integer("id") ?? 0; title = c.text("title") ?? ""
-        content = c.text("content"); reach = c.integer("reach").flatMap { $0 >= 0 ? $0 : nil }
+        content = c.text("content")
+        // Source official-mine reads the domain field `reachedCount`; `reach` stays a fallback.
+        reach = (c.integer("reachedCount") ?? c.integer("reach")).flatMap { $0 >= 0 ? $0 : nil }
     }
 }
 public struct OfficialPublished: Decodable, Equatable {

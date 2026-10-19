@@ -133,12 +133,20 @@ extension PlayExperienceService {
     public private(set) var receipt: PlayGameReceipt?
     public private(set) var phase = "idle"
     public private(set) var issue: PlayExperienceError?
+    public private(set) var localRecoveryFailed = false
     let service: PlayExperienceService
     let currentSession: () -> PlayExperienceSession?
+    /// Optional durable lock for the exact pending envelope. Without one, the lock lives only
+    /// as long as this coordinator; with one, a restart restores the original requestId.
+    private let journal: (any PlayGameCommandJournal)?
+    private var journalLease: PlayGameCommandJournalSnapshot?
+    private var journalRestored = false
+    private var pendingSessionID: Int?
     private var owner: PlayExperienceSession?
     private var generation: UInt64 = 0
-    public init(activityID: Int, service: PlayExperienceService, currentSession: @escaping () -> PlayExperienceSession?) {
-        self.activityID = activityID; self.service = service; self.currentSession = currentSession
+    public init(activityID: Int, service: PlayExperienceService, currentSession: @escaping () -> PlayExperienceSession?,
+                journal: (any PlayGameCommandJournal)? = nil) {
+        self.activityID = activityID; self.service = service; self.currentSession = currentSession; self.journal = journal
     }
     public var hasCurrentProjection: Bool { owner != nil && owner == currentSession() }
     public func load() async {
@@ -146,6 +154,7 @@ extension PlayExperienceService {
         if owner != nil && owner != session { projection = nil; receipt = nil; phase = "stale"; return }
         owner = session; generation &+= 1; let generation = generation; phase = "loading"; issue = nil
         do {
+            try await restoreJournal(session, generation)
             // Reopening/refreshing an unknown attempt must consult its original
             // receipt. A current view alone cannot prove which command applied,
             // and must not replace the session identity used by accept below.
@@ -168,7 +177,24 @@ extension PlayExperienceService {
         // A disabled first dispatch has no unknown result. Once an attempt exists,
         // however, a later read/dispatch denial is never evidence it did not apply.
         guard service.enabled.contains(.playerCommands) else { issue = .disabled; phase = "disabled"; return }
-        receipt = nil; issue = nil; pending = command; await sendExact()
+        guard let session = owner, let sessionID = projection?.sessionID else { return }
+        receipt = nil; issue = nil; pending = command; pendingSessionID = sessionID
+        if let journal {
+            // Fence synchronously, then persist the exact envelope before any byte is sent.
+            let generation = generation; phase = "submitting"
+            do {
+                journalLease = try await journal.recordGameCommand(.init(command: command, session: session, sessionID: sessionID),
+                                                                   key: journalKey(session))
+            } catch {
+                // Nothing was dispatched. Re-read the journal on next load instead of assuming it is empty.
+                pending = nil; pendingSessionID = nil; journalRestored = false; localRecoveryFailed = true
+                guard self.generation == generation else { return }
+                issue = .persistenceUnavailable; phase = currentSession() == session ? "failed" : "stale"; return
+            }
+            // The lock now exists for the original owner; a switched session leaves it untouched.
+            guard self.generation == generation, currentSession() == session else { projection = nil; receipt = nil; phase = "stale"; return }
+        }
+        await sendExact()
     }
     private func sendExact() async {
         guard let pending, let session = owner, session == currentSession() else { return }
@@ -179,12 +205,37 @@ extension PlayExperienceService {
     private func accept(_ receipt: PlayGameReceipt, _ session: PlayExperienceSession, _ generation: UInt64) async throws {
         try check(session, generation); self.receipt = receipt
         if receipt.outcome == "PENDING" { phase = "unknown"; return }
-        if receipt.outcome == "FAILED" { pending = nil; phase = "rejected"; return }
+        if receipt.outcome == "FAILED" { try await retireJournal(session, generation); pending = nil; pendingSessionID = nil; phase = "rejected"; return }
         // APPLIED receipt alone does not permit subsequent actions against stale revision.
         let value = try await service.playerProjection(activityID: activityID, token: session.token)
         try check(session, generation)
-        guard value.revision >= receipt.revision, value.sessionID == projection?.sessionID else { throw PlayExperienceError.malformed }
-        projection = value; pending = nil; phase = "ready"
+        guard value.revision >= receipt.revision, value.sessionID == (pendingSessionID ?? projection?.sessionID) else { throw PlayExperienceError.malformed }
+        try await retireJournal(session, generation)
+        projection = value; pending = nil; pendingSessionID = nil; phase = "ready"
+    }
+    private func journalKey(_ session: PlayExperienceSession) -> String { PlayRunStorageKey.make(session: session, scope: .activity(activityID)) }
+    /// Adopts a lock left by an earlier process for this exact owner/activity. An unreadable
+    /// or foreign lock fails closed: no new command may be reviewed until it is readable.
+    private func restoreJournal(_ session: PlayExperienceSession, _ generation: UInt64) async throws {
+        guard let journal, !journalRestored, pending == nil else { return }
+        let stored: PlayGameCommandJournalSnapshot?
+        do { stored = try await journal.readGameCommand(journalKey(session)) }
+        catch { localRecoveryFailed = true; throw PlayExperienceError.persistenceUnavailable }
+        try check(session, generation)
+        if let stored {
+            guard stored.value.owner.matches(session), stored.value.activityID == activityID,
+                  let command = try? stored.value.command() else { localRecoveryFailed = true; throw PlayExperienceError.persistenceUnavailable }
+            pending = command; pendingSessionID = stored.value.sessionID; journalLease = stored; receipt = nil
+        }
+        journalRestored = true
+    }
+    /// Only a definite outcome releases the lock. A failed release keeps the command pending.
+    private func retireJournal(_ session: PlayExperienceSession, _ generation: UInt64) async throws {
+        guard let journal, let lease = journalLease else { return }
+        do { try await journal.clearGameCommand(lease, key: journalKey(session)) }
+        catch { localRecoveryFailed = true; throw PlayExperienceError.persistenceUnavailable }
+        journalLease = nil; localRecoveryFailed = false
+        try check(session, generation)
     }
     public func recover() async {
         guard pending != nil, let session = owner, session == currentSession(), phase == "unknown" else { return }
@@ -193,8 +244,8 @@ extension PlayExperienceService {
     /// Explicit user retry, with frozen command/requestId. No new payload or ID.
     public func retryExact() async {
         guard phase == "unknown", pending != nil else { return }
-        // Once applied, only finish the readback; there is no command left to send.
-        if receipt?.outcome == "APPLIED" { await recover() }
+        // Once applied or failed, only finish the readback/release; there is no command left to send.
+        if receipt?.outcome == "APPLIED" || receipt?.outcome == "FAILED" { await recover() }
         else { await sendExact() }
     }
     private func check(_ session: PlayExperienceSession, _ generation: UInt64) throws {

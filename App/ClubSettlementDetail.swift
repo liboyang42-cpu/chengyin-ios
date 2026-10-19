@@ -219,7 +219,7 @@ import UIKit
     let active: () -> Bool
     var body: some View {
         Group {
-            if presentation.records.isEmpty { Text("club.gov.empty") }
+            if presentation.records.isEmpty { Text("clubOps.settlement.empty", tableName: "ClubOpsCustomer").accessibilityIdentifier("clubOps.settlement.empty") }
             ForEach(presentation.records) { row in
                 if let target = presentation.target(recordID: row.id, context: context, snapshotGeneration: snapshotGeneration, namespace: namespace) {
                     Button {
@@ -227,10 +227,15 @@ import UIKit
                         owner.open(target, source: source, current: currentSource(), active: active())
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(verbatim: row.name).font(.headline)
-                            Text(LocalizedStringKey(row.status.localizationKey))
-                            if let amount = row.amountText { Text(verbatim: amount) }
-                            else { Text("club.settlementDetail.amountUnknown") }
+                            HStack(alignment: .firstTextBaseline) {
+                                Text(verbatim: row.name).font(.headline)
+                                Spacer()
+                                if let amount = row.amountText { Text(verbatim: amount).font(.headline) }
+                                else { Text("clubOps.settlement.rowUnverified", tableName: "ClubOpsCustomer").font(.headline) }
+                            }
+                            Text(LocalizedStringKey(row.status.localizationKey)).font(.caption)
+                                .padding(.horizontal, 8).padding(.vertical, 2)
+                                .background(Capsule().fill(row.status == .credited ? Color.green.opacity(0.18) : Color.secondary.opacity(0.15)))
                             LabeledContent("club.settlementDetail.original") { Text(verbatim: row.originalAmountText) }
                             LabeledContent("club.settlementDetail.adjustment") { Text(verbatim: row.executedAdjustmentText) }
                             LabeledContent("club.settlementDetail.net") { Text(verbatim: row.netAmountText) }

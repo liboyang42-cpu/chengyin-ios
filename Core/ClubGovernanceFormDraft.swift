@@ -8,6 +8,8 @@ public struct ClubGovernanceFormDraft {
     public var text: [String: String] = [:] { didSet { if text != oldValue { requestID = "club-native-" + UUID().uuidString } } }
     public var flags: [String: Bool] = [:] { didSet { if flags != oldValue { requestID = "club-native-" + UUID().uuidString } } }
     public private(set) var requestID = "club-native-" + UUID().uuidString
+    /// Explicit "owner (default)" lead choice for a new series; sent as null, which the server resolves to the owner.
+    public static let ownerDefaultLead = "OWNER_DEFAULT"
     public init(operation: ClubGovernanceMutation, scope: ClubGovernanceScope, seed: [String: ClubGovernanceValue] = [:]) {
         self.operation = operation; self.scope = scope
         let anchorKeys: [String]
@@ -15,7 +17,7 @@ public struct ClubGovernanceFormDraft {
         case .ban, .transferOwner: anchorKeys = ["targetMemberId"]
         case .unban: anchorKeys = ["banId", "version"]
         case .revokeRole: anchorKeys = ["assignmentId", "version"]
-        case .correctAttendance: anchorKeys = ["expectedVersion"]
+        case .correctAttendance: anchorKeys = ["expectedVersion", "arrived"]
         default: anchorKeys = []
         }
         anchors = seed.filter { anchorKeys.contains($0.key) }
@@ -28,8 +30,9 @@ public struct ClubGovernanceFormDraft {
             text["remark"] = seed["remark"]?.string ?? ""
             text["tags"] = (seed["tags"]?.array ?? []).compactMap { $0.string ?? $0["name"].string }.joined(separator: ",")
         case .createSeries, .updateSeries:
-            text = ["recurrenceType": seed["recurrenceType"]?.string ?? "ONCE", "startDate": "", "startTime": operation == .createSeries ? "09:00" : "", "occurrenceCount": "1", "customDates": (seed["futureDates"]?.array ?? []).compactMap(\.string).joined(separator: ","), "capacity": seed["defaultCapacity"]?.text ?? "", "defaultLeadMemberId": seed["defaultLeadMemberId"]?.text ?? "", "offerMinutes": seed["offerMinutes"]?.text ?? "1440"]
-            flags["waitlistEnabled"] = seed["waitlistEnabled"]?.bool ?? false
+            text = ["recurrenceType": seed["recurrenceType"]?.string ?? "ONCE", "startDate": "", "startTime": operation == .createSeries ? "09:00" : "", "occurrenceCount": operation == .createSeries ? "4" : "1", "customDates": (seed["futureDates"]?.array ?? []).compactMap(\.string).joined(separator: ","), "capacity": seed["defaultCapacity"]?.text ?? "", "defaultLeadMemberId": seed["defaultLeadMemberId"]?.text ?? "", "offerMinutes": seed["offerMinutes"]?.text ?? "1440"]
+            // Mini create defaults: waitlist on; WEEKLY count 4 (ONCE still sends 1).
+            flags["waitlistEnabled"] = seed["waitlistEnabled"]?.bool ?? (operation == .createSeries)
             if operation == .updateSeries {
                 anchors["expectedVersion"] = seed["version"]
                 // BK-SCHEDULE: absent, mixed or invalid readback is unknown, never a create default.
@@ -37,9 +40,11 @@ public struct ClubGovernanceFormDraft {
                     text["startTime"] = time
                 }
             }
-        case .ban: text = ["reason": "", "expiresAt": ""]
-        case .unban, .transferOwner, .cancelOccurrence, .revokeRole, .appeal: text["reason"] = ""
-        case .correctAttendance: text["reason"] = ""; flags["arrived"] = false
+        case .ban: text = ["reason": "", "banDays": String(Self.defaultBanDays)]
+        case .unban, .transferOwner, .cancelOccurrence, .appeal: text["reason"] = ""
+        case .revokeRole: text["reason"] = Self.revokeRoleReason
+        // arrived is the roster row's immutable anchor; there is no default-false toggle.
+        case .correctAttendance: text["reason"] = ""
         case .report:
             if seed["targetType"] != nil || seed["targetId"] != nil {
                 // A contextual entry freezes its exact target. Incomplete or
@@ -59,8 +64,13 @@ public struct ClubGovernanceFormDraft {
         default: break
         }
     }
+    /// Mini-program parity: club bans are 7/30/90 days from submission, revocation sends a fixed audit note.
+    public static let banDayChoices = [7, 30, 90]
+    public static let defaultBanDays = 30
+    public static let revokeRoleReason = "主理人在角色管理页撤销"
     public func choices(_ key: String) -> [String]? {
         switch key {
+        case "banDays": return Self.banDayChoices.map(String.init)
         case "experience": return ["没有经验", "1-5场", "5-20场", "20场以上"]
         case "recurrenceType": return ["ONCE", "WEEKLY", "CUSTOM_DATES"]
         case "targetType": return ["CLUB", "ACTIVITY", "MEMBER"]
@@ -71,7 +81,7 @@ public struct ClubGovernanceFormDraft {
         default: return nil
         }
     }
-    public func command() throws -> ClubGovernanceCommand {
+    public func command(now: Date = Date()) throws -> ClubGovernanceCommand {
         var values = anchors
         let integers = Set(["maxEventSize", "avgEventSize", "occurrenceCount", "capacity", "defaultLeadMemberId", "offerMinutes", "targetMemberId", "targetId"])
         let nullable = Set(["maxEventSize", "avgEventSize", "capacity"])
@@ -80,6 +90,7 @@ public struct ClubGovernanceFormDraft {
             // inserting a second editable field into the public draft dictionary.
             guard operation != .report || anchors[key] == nil else { throw ClubGovernanceFailure.invalidRequest }
             let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            if operation == .createSeries, key == "defaultLeadMemberId", value == Self.ownerDefaultLead { values[key] = .null; continue }
             if integers.contains(key) {
                 if nullable.contains(key), value.isEmpty { values[key] = .null }
                 else { guard let number = Int(value) else { throw ClubGovernanceFailure.invalidRequest }; values[key] = .integer(number) }
@@ -89,13 +100,18 @@ public struct ClubGovernanceFormDraft {
             } else if key == "actualHours" { guard let number = Double(value), number.isFinite else { throw ClubGovernanceFailure.invalidRequest }; values[key] = .decimal(number) }
             else { values[key] = .string(key == "evidenceHash" ? value.lowercased() : value) }
         }
-        for (key, flag) in flags { values[key] = operation == .hostApply || key == "enabled" ? .integer(flag ? 1 : 0) : .bool(flag) }
+        // Wire anchors (e.g. a roster-derived `arrived`) are immutable; a draft flag never replaces one.
+        for (key, flag) in flags where anchors[key] == nil { values[key] = operation == .hostApply || key == "enabled" ? .integer(flag ? 1 : 0) : .bool(flag) }
         if operation == .hostApply { values["hasExperience"] = .integer(text["experience"] == "没有经验" ? 0 : 1) }
         if [.createSeries, .updateSeries].contains(operation) {
             if text["recurrenceType"] != "CUSTOM_DATES" { values["customDates"] = .null }
             if text["recurrenceType"] == "ONCE" { values["occurrenceCount"] = .integer(1) }
         }
+        if operation == .ban, values["banDays"] != nil {
+            guard let raw = values.removeValue(forKey: "banDays")?.string, let days = Int(raw), Self.banDayChoices.contains(days) else { throw ClubGovernanceFailure.invalidRequest }
+            values["expiresAtEpochMs"] = .integer(Int((now.timeIntervalSince1970 * 1000).rounded(.down)) + days * 86_400_000)
+        }
         if [.saveCustomer, .createSeries, .cancelOccurrence, .correctAttendance, .ban, .unban, .transferOwner, .report, .appeal, .assignRole, .revokeRole, .sendNotification].contains(operation) { values["requestId"] = .string(requestID) }
-        return try ClubGovernanceCommand(operation: operation, scope: scope, values: values)
+        return try ClubGovernanceCommand(operation: operation, scope: scope, values: values, now: now)
     }
 }

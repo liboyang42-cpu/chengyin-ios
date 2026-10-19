@@ -53,7 +53,7 @@ final class ProfileDraftReviewRestoreFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["profile.caseRemoval.remove"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["profile.caseRemoval.restore"].exists)
     }
     func testDiscardThenEditAndSaveIsStillAvailable() {
-        launch(); changeName(); review(); app.buttons["profile.reviewRestore.open"].tap(); app.buttons["profile.reviewRestore.confirm"].tap()
+        launch(); changeName(); review(); app.buttons["profile.reviewRestore.open"].tap(); confirmLocalDiscard()
         changeName(" Saved"); review(); app.buttons["profile.edit.confirm"].tap()
         let status = app.staticTexts["profile.edit.status"]; XCTAssertTrue(status.waitForExistence(timeout: 10))
         XCTAssertEqual(status.label, "Your profile was saved and verified.")

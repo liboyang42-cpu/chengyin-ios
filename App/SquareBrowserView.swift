@@ -9,6 +9,9 @@ import SwiftUI
     var governance: SquareGovernanceCoordinator? = nil
     var governanceAccess: ((Int?) -> SquareGovernanceSessionAccess)? = nil
     var onSignIn: (() -> Void)? = nil
+    /// Optional source "即将开始" strip (official events within 24h); nil hides it.
+    var upcomingReader: (any OfficialEventReading)? = nil
+    var upcomingDestination: ((Int) -> AnyView)? = nil
     @State private var showsWorkspace = false
     @State private var showsComposer = false
     var onClose: (() -> Void)? = nil
@@ -23,6 +26,12 @@ import SwiftUI
     @State private var loading = false
     @State private var issue: Error?
     @State private var path: [Int] = []
+    /// Source `canUseCommunity(false)`: owner-bound flags; anything but a literal true keeps the community closed.
+    @State private var communityGate: SquareCommunityFeatures?
+    @State private var gateScope: UUID?
+    private var gateReader: (any SquareCommunityFeatureReading)? { reader as? any SquareCommunityFeatureReading }
+    private var gatePending: Bool { gateReader != nil && gateScope != reader.scope }
+    private var communityClosed: Bool { gateReader != nil && gateScope == reader.scope && communityGate?.read != true }
     private struct Key: Hashable { let scope: UUID; let configured: Bool; let query: SquareQuery }
     private var key: Key { Key(scope: reader.scope, configured: reader.isConfigured, query: query) }
     var body: some View {
@@ -40,14 +49,32 @@ import SwiftUI
                     }.accessibilityIdentifier("square.feed")
                     filters
                 }
+                if let upcomingReader, reader.isConfigured { SquareXcxUpcomingStrip(reader: upcomingReader, destination: upcomingDestination) }
                 if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
+                else if gatePending { ProgressView("square.loading") }
+                else if communityClosed {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("square.xcx.closedTitle").font(.headline).accessibilityIdentifier("square.communityClosed")
+                        Text("square.xcx.closedDetail").font(.footnote).foregroundStyle(.secondary)
+                        Button("square.retry") { gateScope = nil; Task { await loadGate(); await load(reset: true) } }
+                    }
+                }
                 else if query.mode.requiresAccount && !reader.isSignedIn { SquareIssueView(error: SquareReadFailure.signInRequired) }
                 else if loadedKey != key { ProgressView("square.loading") }
                 else {
                     if let issue { SquareIssueView(error: issue) { Task { await load(reset: !pagination.hasLoadedPage) } } }
-                    if pagination.items.isEmpty && !loading && issue == nil { Text("square.empty").accessibilityIdentifier("square.empty") }
+                    if pagination.items.isEmpty && !loading && issue == nil {
+                        if query.keyword != nil { Text("square.empty").accessibilityIdentifier("square.empty") }
+                        else {
+                            // Source empty feed: 广场还很安静 / 成为第一个发布创意路线的人吧.
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("square.xcx.emptyTitle").font(.headline).accessibilityIdentifier("square.empty")
+                                Text("square.xcx.emptyDetail").font(.footnote).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                     ForEach(pagination.items) { post in
-                        NavigationLink(value: post.id) { SquarePostContent(post: post, compact: true, showImages: false) }
+                        NavigationLink(value: post.id) { SquareXcxPostCard(post: post, mediaScope: reader.scope, showsMedia: false) }
                             .accessibilityIdentifier("square.row.\(post.id)")
                         NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages", compact: true)
                     }
@@ -59,7 +86,7 @@ import SwiftUI
                 }
                 Section { Text("square.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
-            .appNavigationTitle("square.title")
+            .appNavigationTitle("square.xcx.navTitle")
             .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
             .toolbar { if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } } }
             .toolbar {
@@ -80,7 +107,7 @@ import SwiftUI
             .onSubmit(of: .search) { query.keyword = keyword.isEmpty ? nil : keyword }
             .onChange(of: keyword) { _, value in if value.isEmpty { query.keyword = nil } }
             .onChange(of: reader.scope) { _, _ in path = []; generation += 1; pagination = SquareFeedPagination(); loadedKey = nil }
-            .task(id: key) { await load(reset: true) }
+            .task(id: key) { await loadGate(); await load(reset: true) }
             .refreshable { await load(reset: true) }
             .onDisappear { generation += 1; loading = false }
             .accessibilityIdentifier("square.browser")
@@ -105,8 +132,17 @@ import SwiftUI
             Button("square.applyFilter") { query.communityID = Int(communityID.trimmingCharacters(in: .whitespacesAndNewlines)) }
         }
     }
+    private func loadGate() async {
+        guard let gateReader, reader.isConfigured, gateScope != reader.scope else { return }
+        let scope = reader.scope
+        let value = try? await gateReader.communityFeatures()
+        guard !Task.isCancelled, scope == reader.scope else { return }
+        communityGate = value; gateScope = scope
+    }
     private func load(reset: Bool) async {
         guard reset || !loading else { return }
+        // A closed or unresolved community gate never requests the feed (source aborts reads when closed).
+        guard !gatePending, !communityClosed else { pagination = SquareFeedPagination(); loadedKey = nil; loading = false; return }
         generation += 1
         let operation = generation, captured = key
         if reset { pagination = SquareFeedPagination(); loadedKey = nil }

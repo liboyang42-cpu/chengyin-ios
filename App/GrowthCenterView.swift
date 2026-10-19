@@ -20,6 +20,9 @@ extension EnvironmentValues {
     @State private var badgeVisible = false
     @State private var badgeExploreConsumed = false
     @State private var latestReaderID: ObjectIdentifier?
+    @State private var unlockTracker = GrowthBadgeUnlockTracker()
+    @State private var unlockTrackerKey: GrowthCenterLoadKey?
+    @State private var newlyLitBadges: [String] = []
     @StateObject private var model = GrowthCenterScreenModel<GrowthCenterOverview>()
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope) }
     var body: some View {
@@ -30,6 +33,12 @@ extension EnvironmentValues {
             else if model.isLoading || model.loadedKey != key { ProgressView("growth.loading") }
             else if let issue = model.issue(key: key) { GrowthCenterIssueView(issue: issue, retry: { Task { await load() } }) }
             else if let overview = model.value(key: key) {
+                if !newlyLitBadges.isEmpty {
+                    Section {
+                        Label { GrowthNewlyLitBadges(names: newlyLitBadges) } icon: { Image(systemName: "sparkles").accessibilityHidden(true) }
+                            .accessibilityIdentifier("growth.badges.newlyLit")
+                    }
+                }
                 score(overview)
                 footprint(overview)
                 badges(overview)
@@ -149,7 +158,12 @@ extension EnvironmentValues {
         badgePresentationID = UUID(); badgeExploreConsumed = false; latestReaderID = ObjectIdentifier(reader)
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
         let captured = key
+        if unlockTrackerKey != captured { unlockTracker.reset(); unlockTrackerKey = captured }
+        newlyLitBadges = []
         await model.load(key: captured, currentKey: { key }) { try await reader.overview() }
+        // Only a successful center section in the same scope can light a badge; failures keep the baseline.
+        guard captured == key, let center = model.value(key: captured)?.center.value else { return }
+        newlyLitBadges = unlockTracker.observe(center.badges).compactMap(\.displayName)
     }
 }
 
@@ -166,5 +180,16 @@ struct GrowthBadgeExploreSelection {
         visible && authenticated && configured && !loading && !hasIssue &&
             self.readerID == readerID && self.key == key && self.presentationID == presentationID &&
             self.center.badges.isEmpty && self.center == center
+    }
+}
+
+/// Mirrors the source's 新徽章已点亮：A、B status line for badges new since the previous read.
+struct GrowthNewlyLitBadges: View {
+    let names: [String]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("growth.badges.newlyLit").font(.headline)
+            Text(verbatim: names.formatted(.list(type: .and))).fixedSize(horizontal: false, vertical: true)
+        }.accessibilityElement(children: .combine)
     }
 }

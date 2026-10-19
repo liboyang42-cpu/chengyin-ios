@@ -1,0 +1,582 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "merchantAICommerce.blocker.capabilityDisabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publishing AI drafts is not enabled. Nothing will be published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未启用 AI 草稿发布，不会发布任何内容。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.blocker.editedAfterReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft changed after review. Submit it for review again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿在审核后有改动，请重新提交审核。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.blocker.missingMerchantFacts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The store owner has not confirmed the store facts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店负责人尚未确认本店信息。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.blocker.missingThemeApproval": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The theme owner has not approved the story, characters or rewards."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题负责人尚未批准剧情、角色或奖励。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.blocker.notApproved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This revision has not been approved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该版本尚未审核通过。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.blocker.selfApproval": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The author cannot approve their own draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作者不能审核自己的草稿。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.blocker.wrongAuthority": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An approval came from a role that cannot approve this part."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有审核来自无权批准该部分的角色。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.branch.fallback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditions are unknown or unmet, so the reviewed fallback branch is used."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条件未知或不满足，改用已审核的固定替代分支。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.branch.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No approved branch is available right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有可用的已审核分支。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.branch.paused": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused for safety. You can leave safely; no new challenge is created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "因安全原因暂停，可安全退出，不会临时生成新挑战。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.branch.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An approved branch matches current conditions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选中符合当前条件的已审核分支。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.gate.authoring": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish approved AI drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布已审核 AI 草稿"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.gate.ledger": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reward ledger readback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励账本回读"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.gate.orders": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Order line readback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单行回读"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.gate.payment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment, cash and payouts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付、现金与付款"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.gate.rewards": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non-cash sponsored rewards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非现金赞助奖励"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.gate.sceneAI": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scene AI and NPC generation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分场景 AI 与 NPC 生成"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.gate.staff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store staff scope readback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店员工权限回读"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.notice.offline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline synthetic example. Nothing is sent, saved, paid or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "离线示例数据。不会发送、保存、支付或发布任何内容。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.order.awaiting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paid on the server; waiting for store fulfilment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认支付，等待门店履约。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.order.checkServer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the latest order status from the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请以服务端最新订单状态为准。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.order.entitlementSeparate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme access from this purchase is shown separately and does not mean pickup or arrival."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买附带的主题权益单独显示，不代表已取货或已到店。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.order.fulfilled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every line has been fulfilled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有订单行均已履约。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.order.partial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Part of this order has been fulfilled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单已部分履约。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.order.refund": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A refund is being processed. Check the latest result before acting."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款处理中，请先查看最新结果再操作。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.reward.guaranteed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A reward is reserved for this qualification."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已为该资格预留奖励。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.reward.limited": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limited quantity, while supplies last."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "限量，领完为止。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.reward.notEnabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sponsored rewards are not enabled. Nothing can be claimed here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未启用赞助奖励，此处不能领取。"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.section.authoring": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI draft publish check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 草稿发布检查"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.section.branch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time, weather and place branch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间、天气与地点分支"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.section.gates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capability switches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "能力开关"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.section.order": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Order by line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按订单行查看"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.section.reward": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant-sponsored reward"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户赞助奖励"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.state.off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未开启"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.state.on": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已开启"
+          }
+        }
+      }
+    },
+    "merchantAICommerce.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI & commerce readiness"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 与商户交易准备"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
