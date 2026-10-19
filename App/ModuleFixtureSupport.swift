@@ -20,6 +20,7 @@ enum ModuleFixture: String {
     case settingsNative
     case presentationPatterns
     case homeFeed = "home-feed"
+    case merchantCityNPC = "merchant-city-npc"
     case ticketWallet, square, cooperation, accountCollections, creatorContent, growthCenter, officialEvents, projectEdit
     case discovery, profile, messaging, roam, participants, play, composer, topic, localization
     static var selected: Self? {
@@ -68,6 +69,7 @@ struct ModuleFixtureRootView: View {
             case .settingsNative: SettingsFixtureHostView()
             case .presentationPatterns: NativePresentationFixtureHost()
             case .homeFeed: HomeFeedFixtureHostView()
+            case .merchantCityNPC: MerchantCityNPCParityFixtureHost()
             case .ticketWallet: TicketWalletFixtureHostView()
             case .square: SquareFixtureHostView()
             case .officialEvents: OfficialFixtureHostView()

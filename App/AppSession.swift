@@ -395,6 +395,23 @@ final class AppSession: ObservableObject {
         playExperienceCoordinators[key] = coordinator
         return coordinator
     }
+    // w2-19 source pages/play/merchant: store-day reads share the play read approval; every write gate stays off.
+    func playStoreDay(scope: PlaySessionScope, nodeID: Int, registrationID: Int = 0, justScanned: Bool = false) -> PlayStoreDayCoordinator? {
+        let key = PlayReaderKey(accountID: account?.id, epoch: gate.currentStamp, role: account?.effectiveRole, viewerRevision: compositionViewerRevision, approval: currentPlayReadApprovalKey, scope: scope)
+        guard scope.isValid, nodeID > 0, key.approval != nil, let regional = regionalConfiguration, let api = regional.apiConfiguration,
+              let factory = playReadDependencyFactory, factory.accepted?.play.contains(.reads) == true else { return nil }
+        let service = PlayStoreDayService(configuration: api, transport: factory.transport, market: regional.market, gates: .disabled, readsEnabled: true,
+            currentSession: { [weak self] in
+                guard let self, self.compositionViewerRevision == key.viewerRevision, self.currentPlayReadApprovalKey == key.approval,
+                      let account = self.account, let token = self.token else { return nil }
+                return try? PlayStoreDaySession(accountID: account.id, epoch: self.gate.currentStamp, token: token)
+            },
+            onUnauthorized: { [weak self] snapshot in
+                guard let self, self.compositionViewerRevision == key.viewerRevision, self.currentPlayReadApprovalKey == key.approval else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.epoch, credential: self.token)
+            })
+        return PlayStoreDayCoordinator(nodeID: nodeID, scope: scope, registrationID: registrationID, justScanned: justScanned, service: service)
+    }
     // Journey extras are independent of task completion, advanced games and local dice.
     private var retainedJourneyNarratives: [String: JourneyNarrativeCoordinator] = [:]
     var journeyNarrativeImageReader: (any RetainedPublicImageReading)? { runtimeDependencies.journeyNarrativeImageReader }

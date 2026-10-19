@@ -63,6 +63,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
 @MainActor
 private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.locale) private var locale
+    @Environment(\.merchantCoopCenterDestination) private var coopCenterDestination
     @ObservedObject var reader: Reader
     let access: MerchantAccess
     let marketingModel: MerchantMarketingCoordinator?
@@ -146,6 +147,12 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             { source in AnyView(MerchantCooperationSupplyView(source: source, reader: flowReader)) }
                         }).id(contentService.scope) } label: { Label("merchant.content.title", systemImage: "map") }
                         .accessibilityIdentifier("merchant.content.open")
+                }
+            }
+            if let coopCenterDestination {
+                Section {
+                    NavigationLink { coopCenterDestination(.plaza, nil) } label: { Label(mcc("merchantCoopCenter.title", locale), systemImage: "person.2.wave.2") }
+                        .accessibilityIdentifier("merchant.coopCenter.open")
                 }
             }
             if let cooperationFlowReader {
