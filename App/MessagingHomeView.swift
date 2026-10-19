@@ -9,11 +9,14 @@ struct MessagingHomeView: View {
     var senderForConversation: ((Int)->MessageActionCoordinator?)? = nil
     var expanded: IMExpandedNavigationContext? = nil
     var squareDestination: ((@escaping () -> Void) -> AnyView)? = nil
+    var predictionEntry: (() -> AnyView)? = nil
     private let identity: MessagingReadIdentity?
-    init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil,squareDestination:((@escaping () -> Void) -> AnyView)?=nil) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;self.squareDestination=squareDestination;identity=reader.identity }
+    init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil,squareDestination:((@escaping () -> Void) -> AnyView)?=nil,predictionEntry:(() -> AnyView)?=nil) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;self.squareDestination=squareDestination;self.predictionEntry=predictionEntry;identity=reader.identity }
     var body: some View {
-        MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
-            .appNavigationTitle("messaging.title")
+        VStack(spacing: 0) {
+            if let predictionEntry { predictionEntry().padding(.horizontal) }
+            MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
+        }.appNavigationTitle("messaging.title")
     }
 }
 
