@@ -19,8 +19,12 @@ final class NearbyMyTeamsUITests: XCTestCase {
         XCTAssertTrue(revealFixtureElement(leading, in: app, requiresHittable: false))
         XCTAssertEqual(leading.label, "我带的队")
         XCTAssertTrue(element("nearby.joined.503", app).exists)
-        XCTAssertTrue(element("nearby.mine.stat.leading", app).label.contains("带队"))
-        XCTAssertTrue(element("nearby.mine.stat.approved", app).label.contains("1"))
+        let leadingStat = element("nearby.mine.stat.leading", app).label
+        XCTAssertTrue(leadingStat.hasPrefix("1") && leadingStat.contains("带队"), leadingStat)
+        let approvedStat = element("nearby.mine.stat.approved", app).label
+        XCTAssertTrue(approvedStat.hasPrefix("1") && approvedStat.contains("已通过"), approvedStat)
+        let pendingStat = element("nearby.mine.stat.pending", app).label
+        XCTAssertTrue(pendingStat.hasPrefix("1") && pendingStat.contains("审核中"), pendingStat)
         XCTAssertTrue(revealFixtureElement(element("nearby.mine.group.approved", app), in: app, requiresHittable: false))
         XCTAssertTrue(revealFixtureElement(element("nearby.joined.505", app), in: app, requiresHittable: false))
         XCTAssertTrue(revealFixtureElement(element("nearby.mine.group.pending", app), in: app, requiresHittable: false))
