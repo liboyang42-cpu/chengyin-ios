@@ -226,7 +226,7 @@ import XCTest
     }
     private func orders(_ app: XCUIApplication, owner: Int) {
         assertOrderRowMayMeetButNotCrossNavigationBoundary()
-        tab("Account", app); tap("profile.open.orders", app)
+        tab("Me", app); tap("profile.open.orders", app)
         XCTAssertTrue(app.staticTexts["Owner \(owner) list snapshot"].waitForExistence(timeout: 5))
         tap("profile.order.41", app)
         XCTAssertTrue(app.staticTexts["Activity or route, Owner \(owner) fresh detail"].waitForExistence(timeout: 5))
@@ -240,7 +240,7 @@ import XCTest
     /// Authored offline; compilation and simulator execution remain NOT_RUN.
     func testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen() throws {
         let app = launch(); signIn(app)
-        tab("Account", app)
+        tab("Me", app)
         let favoritesTabs = app.segmentedControls["accountCollection.favorites.tabs"]
         let unavailable = app.staticTexts["Collection service is not configured"]
         func expectDismissed(_ element: XCUIElement) {
@@ -298,7 +298,7 @@ import XCTest
 
     func testNormalRootOwnedConfigurationReadOnlyAndStoryReturn() throws {
         let app = launch(); signIn(app, owner: 7)
-        tab("Account", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
+        tab("Me", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
         tap("templateAuthor.shelf.loadMore", app); tap("templateOwnerConfig.open.111", app)
         let answer = app.textFields["templateAuthor.field.questionAnswer"]
         XCTAssertTrue(revealFixtureElement(answer, in: app, requiresHittable: false)); XCTAssertEqual(answer.value as? String, "Synthetic owner answer")
@@ -329,7 +329,7 @@ import XCTest
         XCTAssertEqual(Set(entries.map(\.namespace)).count, 1)
     }
     func testNormalRootIMHistoryNeverMarksReadOrSends() throws {
-        let app = launch(); signIn(app); tab("Account", app); tap("Messages", app)
+        let app = launch(); signIn(app); tab("Me", app); tap("Messages", app)
         XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 5))
         tap("messaging.conversation.901", app)
         XCTAssertTrue(app.staticTexts["Synthetic latest history"].waitForExistence(timeout: 5))
@@ -354,7 +354,7 @@ import XCTest
 
     func testNormalRootTeamReadOnlyJourney() throws {
         let app = launch(); signIn(app)
-        tab("Account", app); tap("My teams", app)
+        tab("Me", app); tap("My teams", app)
         XCTAssertTrue(app.buttons["team.row.61"].waitForExistence(timeout: 5))
         tap("team.row.61", app)
         XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))
