@@ -39531,7 +39531,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我发布的内容"
+            "value": "我的项目"
           }
         }
       }
@@ -120662,13 +120662,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add a ticket"
+            "value": "Add ticket option"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "添加票种"
+            "value": "添加票单"
           }
         }
       }
@@ -122054,13 +122054,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket"
+            "value": "Ticket option"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "票种"
+            "value": "票单"
           }
         }
       }
@@ -134738,13 +134738,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Published guides will appear here."
+            "value": "No play guides yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法说明上线后会显示在这里。"
+            "value": "暂无玩法说明"
           }
         }
       }
@@ -134754,13 +134754,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explore"
+            "value": "Take a look"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "去探索"
+            "value": "去看看"
           }
         }
       }
@@ -134802,13 +134802,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "More information"
+            "value": "Play documents"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "更多说明"
+            "value": "玩法文档"
           }
         }
       }
@@ -134850,13 +134850,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This guide is no longer available. Go back to the guide list."
+            "value": "This play guide is no longer available"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这篇说明已不可用，请返回玩法列表。"
+            "value": "这篇玩法说明不在了"
           }
         }
       }
@@ -134904,7 +134904,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法指南"
+            "value": "城瘾玩法"
           }
         }
       }
