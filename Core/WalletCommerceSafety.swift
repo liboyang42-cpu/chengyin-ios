@@ -33,6 +33,17 @@ public struct WalletCommerceVisibility {
     public init(service: WalletCommerceService? = nil, onUnauthorized: @escaping (WalletCommerceScope) -> Void = { _ in }, session: @escaping () -> (scope: WalletCommerceScope, token: String)?) {
         self.service = service; self.session = session; self.onUnauthorized = onUnauthorized
     }
+    /// Reuses this reader's authority while narrowing it to one retained presentation.
+    /// Returning nil from the captured session also suppresses stale 401 callbacks.
+    public func restrictedToPresentation(_ isCurrent: @escaping () -> Bool) -> WalletCommerceReader {
+        WalletCommerceReader(service: service, onUnauthorized: { [self] scope in
+            guard isCurrent() else { return }
+            onUnauthorized(scope)
+        }, session: { [self] in
+            guard isCurrent() else { return nil }
+            return session()
+        })
+    }
     public var scope: WalletCommerceScope? { session()?.scope }
     public var isConfigured: Bool { service != nil }
     public func checkout(cartIDs: [Int]) async throws -> WalletCheckoutSnapshot {

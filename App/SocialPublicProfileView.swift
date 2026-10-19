@@ -9,6 +9,7 @@ import SwiftUI
     var selfProjectsAccess: ProfileSelfProjectsAccess? = nil
     var selfGrowthAccess: ProfileSelfGrowthAccess? = nil
     var weeklyPointsAccess: ProfileWeeklyPointsAccess? = nil
+    var personalToolsAccess: ProfilePersonalToolsAccess? = nil
     var selfCouponAccess: ProfileSelfCouponAccess? = nil
     var selfObjectCardsAccess: ProfileObjectCardsAccess? = nil
     var selfMedalsReader: (any ProfileReading)? = nil
@@ -141,6 +142,10 @@ import SwiftUI
                             SocialOptionalCount(title: "social.followingCount", count: profile.following)
                         }
                     case .about:
+                        if let personalToolsAccess {
+                            ProfilePersonalToolsEntry(memberID: memberID, social: reader,
+                                access: personalToolsAccess, isCurrent: isCurrent)
+                        }
                         if let selfCouponAccess {
                             ProfileSelfCouponEntry(memberID: memberID, accountReader: reader,
                                 access: selfCouponAccess, isCurrent: isCurrent)

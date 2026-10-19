@@ -75,6 +75,8 @@ extension WalletScreen where Value == WithdrawalBalance {
     let visibility: WalletCommerceVisibility
     let onCooperationFinance: () -> Void
     var invitationHistory: WalletInvitationHistoryAccess? = nil
+    var showsWithdrawalSupport = true
+    var showsCooperationFinance = true
     var body: some View {
         List {
             if visibility.income {
@@ -93,7 +95,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                 }.accessibilityIdentifier("wallet.earnings.overview")
             }
             if visibility.assets { NavigationLink("wallet.assets") { WalletAssetsView(reader: reader) } }
-            if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance) } }
+            if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance) } }
             if visibility.income, let invitationHistory {
                 NavigationLink {
                     SocialInviteHistoryView(reader: invitationHistory.reader,
@@ -106,8 +108,10 @@ extension WalletScreen where Value == WithdrawalBalance {
             if visibility.points { NavigationLink("wallet.points") { WalletLedgerView(reader: reader, kind: .points) } }
             if visibility.mall { NavigationLink("wallet.mall") { WalletProductsView(reader: reader) } }
             if visibility.withdrawalRecords {
-                NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
-                NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader) }
+                if showsWithdrawalSupport {
+                    NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
+                }
+                NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader, showsSupportContact: showsWithdrawalSupport) }
             }
         }.appNavigationTitle("wallet.title")
             .task(id: reader.scope) {
@@ -270,6 +274,7 @@ extension WalletScreen where Value == WithdrawalBalance {
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
     let onCooperationFinance: () -> Void
+    var showsCooperationFinance = true
     @State private var filter = WalletIncomeFilter.all
     var body: some View {
         VStack {
@@ -278,7 +283,9 @@ extension WalletScreen where Value == WithdrawalBalance {
                 Text("wallet.creationIncome").tag(WalletIncomeFilter.create)
                 Text("wallet.brandIncome").tag(WalletIncomeFilter.brand)
             }.pickerStyle(.segmented).padding()
-            Button("wallet.clubFinance", action: onCooperationFinance).frame(minHeight: 44)
+            if showsCooperationFinance {
+                Button("wallet.clubFinance", action: onCooperationFinance).frame(minHeight: 44)
+            }
             WalletLedgerView(reader: reader, kind: .income(filter)).id(filter.rawValue)
         }.appNavigationTitle("wallet.income")
     }
@@ -416,6 +423,7 @@ extension WalletScreen where Value == WithdrawalBalance {
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
+    var showsSupportContact = true
     @StateObject private var model = WalletScreen<WalletPage<WalletWithdrawalRecord>>()
     @State private var showContact = false
     var body: some View {
@@ -434,9 +442,11 @@ extension WalletScreen where Value == WithdrawalBalance {
                 }
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
-            Section {
-                Button("withdrawal.support.contact") { showContact = true }
-                    .accessibilityIdentifier("wallet.withdrawals.support")
+            if showsSupportContact {
+                Section {
+                    Button("withdrawal.support.contact") { showContact = true }
+                        .accessibilityIdentifier("wallet.withdrawals.support")
+                }
             }
         }.appNavigationTitle("wallet.withdrawals").task(id: reader.scope) { showContact = false; model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { await load() }
