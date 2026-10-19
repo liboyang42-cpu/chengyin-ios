@@ -31,6 +31,10 @@ public struct CooperationInvite: Decodable, Equatable {
     public let createTime: CooperationSourceTime?
     public let partner: CooperationPartner?
     public let coverURL: String?
+    /// Display-only joins the source list adds (`topicName`, `viewerPartyName`, `topicStartDate`); tolerant of absence.
+    public let topicName: String?
+    public let viewerPartyName: String?
+    public let topicStartDate: CooperationSourceTime?
     public var legacyReadonly: Bool { inviteType == 2 }
     public var statusKey: String {
         guard let status, (0...5).contains(status) else { return "cooperation.status.unknown" }
@@ -40,6 +44,7 @@ public struct CooperationInvite: Decodable, Equatable {
         case id, inviteType, fromId, fromType, toType, toId, topicId, gameId, status, message, handleReason
         case shareMode, shareRate, fixedFee, depositOwed, depositAmount, depositRefundPending, termsFrozen
         case expireTime, createTime, partner, cover, topicCover, topicImgUrl
+        case topicName, viewerPartyName, topicStartDate
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -65,6 +70,9 @@ public struct CooperationInvite: Decodable, Equatable {
         createTime = try c.decodeIfPresent(CooperationSourceTime.self, forKey: .createTime)
         partner = try c.decodeIfPresent(CooperationPartner.self, forKey: .partner)
         coverURL = try [c.decodeIfPresent(String.self, forKey: .cover), c.decodeIfPresent(String.self, forKey: .topicCover), c.decodeIfPresent(String.self, forKey: .topicImgUrl)].compactMap { $0 }.first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        topicName = (try? c.decodeIfPresent(String.self, forKey: .topicName)).flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        viewerPartyName = (try? c.decodeIfPresent(String.self, forKey: .viewerPartyName)).flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        topicStartDate = try? c.decodeIfPresent(CooperationSourceTime.self, forKey: .topicStartDate)
     }
 }
 public struct CooperationPartner: Decodable, Equatable {

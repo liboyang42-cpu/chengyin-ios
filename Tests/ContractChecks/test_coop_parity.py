@@ -5,8 +5,9 @@ import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
-PAGES = ['App/CoopFinanceProfitView.swift', 'App/CoopSettlementDetailView.swift', 'App/CoopWithdrawShellViews.swift']
-MODELS = ['Core/CoopFinanceProfit.swift', 'Core/CoopSettlementDetailModel.swift']
+PAGES = ['App/CoopFinanceProfitView.swift', 'App/CoopSettlementDetailView.swift', 'App/CoopWithdrawShellViews.swift',
+         'App/CooperationInviteActionSections.swift', 'App/CooperationInviteDetailView.swift']
+MODELS = ['Core/CoopFinanceProfit.swift', 'Core/CoopSettlementDetailModel.swift', 'Core/CooperationInvitePresentation.swift']
 
 
 class CoopParityTests(unittest.TestCase):
@@ -27,6 +28,9 @@ class CoopParityTests(unittest.TestCase):
             self.assertNotRegex(source, r'\d{7,}', name)
             self.assertNotIn('TextField', source, name)
         self.assertIn('WithdrawalSupportContactView()', self.text('App/CoopWithdrawShellViews.swift'))
+        actions = self.text('App/CooperationInviteActionSections.swift')
+        self.assertIn('Button("cooperation.detail.deposit.pay") {}.disabled(true)', actions)
+        self.assertNotIn('CoopFlowSessionReader', actions)
         finance = self.text('App/CoopFinanceProfitView.swift')
         self.assertIn('.disabled(!profit.canWithdraw)', finance)
 
@@ -45,7 +49,7 @@ class CoopParityTests(unittest.TestCase):
         used = set()
         for name in PAGES:
             source = re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', self.text(name))
-            used |= set(re.findall(r'"(cooperation\.(?:finance|settlement|withdraw|withdrawRecords)\.[A-Za-z0-9.]+)"', source))
+            used |= set(re.findall(r'"(cooperation\.(?:finance|settlement|withdraw|withdrawRecords|detail|party)\.[A-Za-z0-9.]+)"', source))
         self.assertFalse({key for key in used if not key.endswith('.')} - set(fragment) - set(catalog))
         for prefix, cases in [('cooperation.finance.status.', ['settlementUnknown', 'unsettled', 'amountUnknown', 'noIncomeDue', 'arrivalUnknown', 'credited', 'awaitingCredit']),
                               ('cooperation.finance.merchant.', ['amountUnknown', 'noMerchantShare', 'payoutUnknown', 'paid', 'partiallyPaid', 'unpaid']),
