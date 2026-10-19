@@ -7,10 +7,15 @@ class BackendSyncSourceTests(unittest.TestCase):
  def swift(self):
   return {p: p.read_text() for d in ('Core', 'App') for p in (ROOT/d).rglob('*.swift')}
  def test_endpoints_recorded_without_ios_consumer_stay_unused(self):
-  # E06-17 share snapshot, E01-19 topic like/unlike: a future consumer must adopt the handoff first.
-  for p, value in self.swift().items():
-   self.assertNotIn('roam/share/snapshot', value, p)
-   self.assertIsNone(re.search(r'"api/topic/like"', value), p)
+  # E06-17 share snapshot: a future consumer must adopt the handoff first.
+  for p, value in self.swift().items(): self.assertNotIn('roam/share/snapshot', value, p)
+ def test_topic_like_write_is_only_the_explicit_type0_unlike(self):
+  # E01-19 consumer: the explicit cancel only; the legacy blank-type toggle keeps failing on DELETE0.
+  users = sorted(str(p.relative_to(ROOT)) for p, v in self.swift().items() if re.search(r'"api/topic/like"', v))
+  self.assertEqual(users, ['Core/TopicUnlike.swift'])
+  value = (ROOT/'Core/TopicUnlike.swift').read_text()
+  self.assertIn('fields: ["id": String(topicID), "type": "0"]', value)
+  self.assertIn('if envelope.code == 200 {\n            unresolved.remove(topicID); phase = .removed(topicID: topicID)', value)
  def test_legacy_square_bookmark_never_routes_through_community_id(self):
   contracts = (ROOT/'Core/SocialActionContracts.swift').read_text()
   self.assertIn('case .communityComment, .communityCommentLike, .postAction: return .communityV1', contracts)

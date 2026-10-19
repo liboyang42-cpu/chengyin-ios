@@ -82,6 +82,35 @@ private let untrustedLegacyMappingRejection = #"{"code":500,"msg":"旧帖尚无�
         XCTAssertEqual(request.url?.path, "/fixture/api/v1/community/posts/701/actions/BOOKMARK"); XCTAssertEqual(request.httpMethod, "DELETE")
     }
 
+    // MARK: E01-19 explicit topic unfavorite concurrency ACK
+
+    private final class TopicLikeWire: HTTPTransport {
+        var requests: [URLRequest] = []
+        func send(_ request: URLRequest) async throws -> (Data, Int) {
+            requests.append(request); return (Data(#"{"code":200,"msg":"取消点赞成功"}"#.utf8), 200)
+        }
+    }
+
+    func testE0119SecondConcurrentExplicitCancelAckIsRemovedWithoutReplay() async throws {
+        let base = URL(string: "https://unlike.example/native")!, wire = TopicLikeWire()
+        let session = try TopicUnlikeSession(accountID: 4, epoch: 1, namespace: "synthetic", market: .china, token: "synthetic-unlike")
+        let approval = try TopicUnlikeApproval(endpoint: try OperationEndpointApproval(baseURL: base, namespace: "synthetic", accountID: 4, paths: TopicUnlikeApproval.paths),
+                                               accountID: 4, expiresAt: Date().addingTimeInterval(600))
+        // Two presentations of the same account race; E01-19 now ACKs the DELETE0 loser with code200.
+        let controllers = try (0..<2).map { _ in
+            TopicUnlikeController(configuration: try APIConfiguration(baseURL: base), approvals: [approval], transport: wire, current: { session })
+        }
+        for controller in controllers {
+            let id = try XCTUnwrap(controller.request(topicID: 9)); await controller.confirm(id)
+            XCTAssertEqual(controller.phase, .removed(topicID: 9)); XCTAssertTrue(controller.unresolved.isEmpty)
+        }
+        XCTAssertEqual(wire.requests.count, 2)
+        for request in wire.requests {
+            XCTAssertEqual(request.url?.lastPathComponent, "like")
+            XCTAssertTrue((String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "").contains("name=\"type\"\r\n\r\n0\r\n"))
+        }
+    }
+
     // MARK: E02-24 comment replay binds the parent target
 
     private final class CommentWire: HTTPTransport {
