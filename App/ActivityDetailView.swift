@@ -252,7 +252,12 @@ struct ActivityDetailView: View {
             }
             Section("activity.tickets") {
                 if detail.tickets.isEmpty {
-                    Text("activity.noTickets")
+                    // Source empty ticket copy: title plus host explanation.
+                    VStack(alignment:.leading,spacing:4) {
+                        Text("activity.source.noTickets").font(.headline)
+                        Text("activity.source.noTicketsDetail").font(.subheadline)
+                    }
+                        .fixedSize(horizontal:false,vertical:true)
                         .foregroundStyle(.secondary)
                         .questifyCardSurface()
                         .questifyCardListRow()

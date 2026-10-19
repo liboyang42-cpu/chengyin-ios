@@ -172956,6 +172956,40 @@
           }
         }
       }
+    },
+    "activity.source.noTickets": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No ticket types available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可选票种"
+          }
+        }
+      }
+    },
+    "activity.source.noTicketsDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The host has not published ticket types for registration yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主办方还没有发布可报名票种。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
