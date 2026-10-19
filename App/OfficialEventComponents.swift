@@ -128,7 +128,32 @@ struct OfficialEventCard: View {
             if let city = event.city, !city.isEmpty {
                 QuestifyImageEntityMetadata(label: "official.city", value: city, systemImage: "mappin")
             } else { Text("official.cityUnknown") }
+            // Source card meta: countdown · city · "N 人参与", then "全城已点亮 N%".
+            if let countdown = event.countdown(now: Date()) { OfficialCountdownText(value: countdown) }
+            if let participants = event.participants { Text("official.card.participants \(participants)") }
+            if event.collectivePercentShown {
+                if let percent = event.collective?.percent { Text("official.card.collective \(min(100, max(0, percent)))") }
+                else { Text("official.card.collectiveUnknown") }
+            }
             if QuestifyCardArtwork.safeURL(event.coverImage) == nil { Text("official.imageUnavailable").font(.caption) }
+        }
+    }
+}
+struct OfficialCountdownText: View {
+    let value: OfficialEventCountdown
+    var body: some View {
+        switch value {
+        case .startsIn(let span): Label { prefix("official.countdown.start", span) } icon: { Image(systemName: "clock").accessibilityHidden(true) }
+        case .endsIn(let span): Label { prefix("official.countdown.end", span) } icon: { Image(systemName: "clock").accessibilityHidden(true) }
+        case .startingSoon: Label("official.countdown.startingSoon", systemImage: "clock")
+        case .endingSoon: Label("official.countdown.endingSoon", systemImage: "clock")
+        }
+    }
+    private func prefix(_ key: LocalizedStringKey, _ span: OfficialCountdownSpan) -> Text {
+        switch span {
+        case .days(let n): return Text(key) + Text(verbatim: " ") + Text("official.countdown.days \(n)")
+        case .hours(let n): return Text(key) + Text(verbatim: " ") + Text("official.countdown.hours \(n)")
+        case .minutes(let n): return Text(key) + Text(verbatim: " ") + Text("official.countdown.minutes \(n)")
         }
     }
 }
