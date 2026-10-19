@@ -74,6 +74,7 @@ struct ActivityDetailView: View {
     @State private var gateIsVisible = false
     @State private var showsReview = false
     @State private var showsRegistration=false
+    @State private var showsTicketWallet=false
     @State private var access: ActivityDetailAccess?
     @State private var loading=false
     @State private var failed=false
@@ -162,6 +163,14 @@ struct ActivityDetailView: View {
         .sheet(isPresented:$showsRegistration) {
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
         }
+        .sheet(isPresented:$showsTicketWallet) {
+            // Source: a registered viewer's CTA opens the ticket wallet (subpackageMember/signup).
+            if let session = reader as? AppSession {
+                TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTicketWallet=false },
+                                 orderLifecycleCoordinator:session.orderLifecycleCoordinator)
+                    .id(session.ticketWalletReader.scope)
+            }
+        }
     }
     @ViewBuilder private func requiredClubAction(_ renderedAccess: ActivityDetailAccess) -> some View {
         let renderedScope = gateScope
@@ -191,6 +200,19 @@ struct ActivityDetailView: View {
             Section {
                 ActivityDetailHeader(summary:detail.summary)
                     .questifyCardListRow()
+            }
+            if detail.isCancelled {
+                Section {
+                    VStack(alignment:.leading,spacing:6) {
+                        Text("activity.cancelled.title").font(.headline)
+                        if let reason = detail.cancelReason { Text("activity.cancelled.reason \(reason)") }
+                        Text("activity.cancelled.hint").font(.footnote).foregroundStyle(.secondary)
+                    }
+                    .fixedSize(horizontal:false,vertical:true)
+                    .questifyCardSurface()
+                    .questifyCardListRow()
+                    .accessibilityIdentifier("activity.detail.cancelled")
+                }
             }
             if let topicID = detail.summary.linkedTopicID, let topicDestination {
                 Section {
@@ -290,23 +312,42 @@ struct ActivityDetailView: View {
                                                               people: detail.people, identity: identity, snapshotID: snapshotID)
         }
     }
+    private var primaryAction: ActivityPrimaryAction {
+        if let access, case .allowed(let detail) = access { return detail.primaryAction(now: Date()) }
+        return .signUp
+    }
     private var registrationAction: some View {
         VStack(spacing:0) {
             Divider()
-            Button { showsRegistration=true } label: {
-                Text("registration.form.title")
-                    .font(.headline)
-                    .fixedSize(horizontal:false,vertical:true)
-                    .frame(maxWidth:.infinity,minHeight:44)
+            if primaryAction == .signUp {
+                Button { showsRegistration=true } label: { primaryActionLabel(.signUp) }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .tint(QuestifyPalette.accent)
+                    .accessibilityIdentifier("activity.openRegistration")
+                    .padding(.horizontal,16)
+                    .padding(.vertical,12)
+            } else {
+                // A registered or cancelled activity never reopens the registration sheet.
+                let action = primaryAction
+                let walletAvailable = reader is AppSession
+                Button { if action != .cancelled, walletAvailable { showsTicketWallet=true } } label: { primaryActionLabel(action) }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .tint(QuestifyPalette.accent)
+                    .disabled(action == .cancelled || !walletAvailable)
+                    .accessibilityIdentifier("activity.primaryAction")
+                    .padding(.horizontal,16)
+                    .padding(.vertical,12)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .tint(QuestifyPalette.accent)
-            .accessibilityIdentifier("activity.openRegistration")
-            .padding(.horizontal,16)
-            .padding(.vertical,12)
         }
         .background(Color(uiColor:.secondarySystemGroupedBackground))
+    }
+    private func primaryActionLabel(_ action: ActivityPrimaryAction) -> some View {
+        Text(LocalizedStringKey(action.titleKey))
+            .font(.headline)
+            .fixedSize(horizontal:false,vertical:true)
+            .frame(maxWidth:.infinity,minHeight:44)
     }
     @MainActor private func load() async {
         generation += 1
