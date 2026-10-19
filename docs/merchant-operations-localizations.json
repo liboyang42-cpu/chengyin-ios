@@ -1,7 +1,7 @@
 {
   "merchant.operations.title": {
-    "en": "Store operations",
-    "zh-Hans": "门店经营"
+    "en": "Brand center",
+    "zh-Hans": "品牌中心"
   },
   "merchant.operations.profile": {
     "en": "Store profile",
@@ -24,8 +24,8 @@
     "zh-Hans": "承接设置"
   },
   "merchant.operations.character": {
-    "en": "Store character",
-    "zh-Hans": "门店形象"
+    "en": "AI store character",
+    "zh-Hans": "AI 店铺角色"
   },
   "merchant.operations.assets": {
     "en": "Voice and 3D resources",
