@@ -57,6 +57,14 @@ class ClubMemberPageContracts(unittest.TestCase):
                            'club.checkin.rail.reviewed': '已评价', 'club.checkin.rail.refunded': '这单已退款，履约轨迹不再推进。'}.items():
             self.assertEqual(zh(self.catalog, key), value)
         self.assertIn('testRefundedOrUnknownStepLightsNothing', read('Tests/CoreTests/ClubCheckinRailTests.swift'))
+    def test_edit_admin_note_and_locked_settings(self):
+        view = read('App/ClubOperationsViews.swift')
+        self.assertIn('if !isCreate && !isOwner { Text("club.ops.adminNote")', view)
+        self.assertIn('lockedCurrent.font(.footnote).accessibilityIdentifier("club.ops.locked.current")', view)
+        self.assertEqual(zh(self.catalog, 'club.ops.adminNote'), '你是管理员 · 只能改展示信息')
+        self.assertEqual(zh(self.catalog, 'club.ops.locked.title'), '只有主理人能改经营配置')
+        self.assertEqual(zh(self.catalog, 'club.ops.locked.quota %lld'), '保留 %lld 个')
+        self.assertIn('testAdministratorSeesNoteAndLockedSettingsWithoutToggles', read('Tests/AppUITests/ClubEditAdminLockFlowTests.swift'))
 
 if __name__ == '__main__':
     unittest.main()

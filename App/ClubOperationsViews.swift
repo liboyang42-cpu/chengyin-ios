@@ -280,6 +280,8 @@ private struct ClubOperationsProfileForm: View {
     let choiceController: ClubProfileChoiceController
     var body: some View {
         Section("club.ops.profile") {
+            // cy-scene-club-edit admin-note: administrators may only edit display information.
+            if !isCreate && !isOwner { Text("club.ops.adminNote").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
             field("name", text: $draft.name)
             field("city", text: $draft.city)
             if isCreate {
@@ -312,6 +314,14 @@ private struct ClubOperationsProfileForm: View {
                 ClubProfileChoiceControl(kind: .directions, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
             }
         }
+        if !isCreate && !isOwner {
+            // Locked card instead of disabled toggles, echoing the current owner-only values.
+            Section("club.ops.signupSettings") {
+                Text("club.ops.locked.title").font(.subheadline.bold())
+                Text("club.ops.locked.body").font(.footnote).foregroundStyle(.secondary)
+                lockedCurrent.font(.footnote).accessibilityIdentifier("club.ops.locked.current")
+            }
+        }
         if !isCreate && isOwner {
             Section("club.ops.signupSettings") {
                 Toggle("club.ops.prioritySignup", isOn: $draft.prioritySignupEnabled).accessibilityIdentifier("club.ops.prioritySignup")
@@ -327,6 +337,15 @@ private struct ClubOperationsProfileForm: View {
                 } else { Text("club.ops.joinPolicyUnavailable").font(.footnote) }
             }
         }
+    }
+    private var lockedCurrent: Text {
+        let quota = Int(draft.memberReservedQuota) ?? 0
+        var text = Text("club.ops.locked.current") + Text(verbatim: " ")
+            + Text(draft.prioritySignupEnabled ? "club.ops.locked.priority.on" : "club.ops.locked.priority.off")
+        if joinPolicySupported {
+            text = text + Text(verbatim: " · ") + Text(draft.joinPolicy == 1 ? "club.ops.locked.join.on" : "club.ops.locked.join.off")
+        }
+        return text + Text(verbatim: " · ") + Text("club.ops.locked.quota \(quota)")
     }
     private func field(_ key: String, text: Binding<String>, axis: Axis = .horizontal) -> some View {
         TextField(LocalizedStringKey("club.ops." + key), text: text, axis: axis)
