@@ -60,13 +60,14 @@ import SwiftUI
 }
 struct TeamCard: View {
     let team: OwnedTeam
+    var confirmedJoinMode: TeamJoinMode? = nil
     var body: some View {
         QuestifyImageEntityCard(imageSource: nil, title: team.title, fallbackTitle: "team.untitled", fallbackSymbol: "person.3", minimumHeight: 220) {
             Label(LocalizedStringKey(team.status.key), systemImage: "person.2")
             if let joined = team.joinedCount, let max = team.maxMembers {
                 QuestifyImageEntityMetadata(label: "team.members.count", value: "\(joined) / \(max)", systemImage: "person.2.fill")
             } else { Text("team.members.unknown") }
-            Text(LocalizedStringKey(team.joinMode.key))
+            Text(LocalizedStringKey((confirmedJoinMode ?? team.joinMode).key))
         }
     }
 }
@@ -87,6 +88,7 @@ struct TeamMemberRow: View {
 @MainActor struct TeamReviewSheet: View {
     @ObservedObject var model: TeamScreenModel
     let review: TeamReview
+    @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         NavigationStack {
@@ -105,7 +107,20 @@ struct TeamMemberRow: View {
                         LabeledContent("team.size") { Text(verbatim: "\(size)") }
                         Text(inviteOnly ? "team.mode.invitation" : "team.mode.public")
                     }
-                    Text(LocalizedStringKey(review.action.consequenceKey)).fixedSize(horizontal: false, vertical: true)
+                    if case .changeJoinMode(_, let mode) = review.action {
+                        LabeledContent {
+                            Text(LocalizedStringKey(review.detail?.team.joinMode.key ?? "team.mode.unknown"))
+                        } label: { Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "当前方式" : "Current mode") }
+                        LabeledContent {
+                            Text(LocalizedStringKey(mode.key))
+                        } label: { Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "确认后的方式" : "Requested mode") }
+                        Text(verbatim: locale.language.languageCode?.identifier == "zh"
+                            ? "仅更改加入队伍的方式，不变更成员或报名。结果不明时会保留锁定，不自动重试。"
+                            : "Only the joining mode changes; membership and registration stay unchanged. An unknown outcome remains locked without automatic retry.")
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        Text(LocalizedStringKey(review.action.consequenceKey)).fixedSize(horizontal: false, vertical: true)
+                    }
                     TeamNotice(coordinator: model.coordinator)
                     Button(LocalizedStringKey(model.coordinator.canSimulate ? "team.simulate" : "team.confirmLive")) {
                         let permit = model.captureRun()

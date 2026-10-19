@@ -302,6 +302,89 @@ extension KeychainTokenStore: AppTokenStorage {}
             return true
         }
     }
+    private struct MerchantOverviewScope {
+        let approval: MerchantOverviewReadApproval
+        let context: RuntimeDependencyContext
+        let viewer: SessionIdentity
+        let approved: () -> Bool
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard approved(), current == viewer, current.isSignedInContentViewer,
+                  let api = deployment.regional.apiConfiguration, let account = current.accountID,
+                  let role = current.role, let token = current.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return false }
+            return context == RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session) && approval.matches(context)
+        }
+        static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            guard request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil,
+                  !request.httpShouldHandleCookies, request.httpBodyStream == nil,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil else { return false }
+            if request.url?.absoluteString == baseURL.appendingPathComponent("api/merchant/events").absoluteString {
+                return request.value(forHTTPHeaderField: "Content-Type") == "application/json" && request.httpBody == Data("{}".utf8)
+            }
+            guard request.httpBody == nil, request.value(forHTTPHeaderField: "Content-Type") == nil else { return false }
+            return ["api/merchant/access/me", "api/merchant/dashboard", "api/merchant/todo-summary"].contains {
+                request.url?.absoluteString == baseURL.appendingPathComponent($0).absoluteString
+            }
+        }
+    }
+    private struct MerchantPredictionScope {
+        let approval: MerchantPredictionReadApproval
+        let context: RuntimeDependencyContext
+        let viewer: SessionIdentity
+        let approved: () -> Bool
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard approved(), current == viewer, current.isSignedInContentViewer,
+                  let api = deployment.regional.apiConfiguration, let account = current.accountID,
+                  let role = current.role, let token = current.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return false }
+            let actual = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            return actual == context && approval.matches(actual)
+        }
+        static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            guard request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil,
+                  !request.httpShouldHandleCookies, request.httpBody == nil, request.httpBodyStream == nil,
+                  request.value(forHTTPHeaderField: "Content-Type") == nil,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil else { return false }
+            return ["api/merchant/access/me", "api/merchant/predict/inbox"].contains {
+                request.url?.absoluteString == baseURL.appendingPathComponent($0).absoluteString
+            }
+        }
+    }
+    private struct MerchantProjectWorkspaceScope {
+        let approval: MerchantProjectWorkspaceReadApproval
+        let topicID: Int
+        let context: RuntimeDependencyContext
+        let viewer: SessionIdentity
+        let approved: () -> Bool
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard approved(), current == viewer, current.isSignedInContentViewer,
+                  let api = deployment.regional.apiConfiguration, let account = current.accountID,
+                  let role = current.role, let token = current.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return false }
+            let actual = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            return actual == context && approval.matches(actual)
+        }
+        func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            guard topicID > 0, request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil,
+                  !request.httpShouldHandleCookies, request.httpBodyStream == nil,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil else { return false }
+            if request.url?.absoluteString == baseURL.appendingPathComponent("api/merchant/access/me").absoluteString {
+                return request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil
+            }
+            guard request.url?.absoluteString == baseURL.appendingPathComponent("api/project/home").absoluteString,
+                  request.value(forHTTPHeaderField: "Content-Type") == "application/json", let body = request.httpBody else { return false }
+            // Exactly the two JSONEncoder field orders; no extra, duplicate, coerced or alternate-topic keys.
+            let first = "{\"topicId\":\(topicID),\"scope\":\"MERCHANT\"}"
+            let second = "{\"scope\":\"MERCHANT\",\"topicId\":\(topicID)}"
+            return body == Data(first.utf8) || body == Data(second.utf8)
+        }
+    }
     private struct MerchantProjectBrowseScope {
         let approval: MerchantProjectBrowseApproval
         let context: RuntimeDependencyContext
@@ -438,6 +521,12 @@ extension KeychainTokenStore: AppTokenStorage {}
     private var publicMerchantHomeScope: PublicMerchantHomeCompositionScope?
     private var nearbyMerchantScope: NearbyMerchantCompositionScope?
     private var nearbyMerchantOnly = false
+    private var merchantOverviewOnly = false
+    private var merchantOverviewScope: MerchantOverviewScope?
+    private var merchantPredictionOnly = false
+    private var merchantPredictionScope: MerchantPredictionScope?
+    private var merchantProjectWorkspaceOnly = false
+    private var merchantProjectWorkspaceScope: MerchantProjectWorkspaceScope?
     private var merchantProjectBrowseOnly = false
     private var merchantProjectBrowseScope: MerchantProjectBrowseScope?
     private var profileGuideSelection: ProfileGuideArticleSelection?
@@ -557,6 +646,30 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
         return transport
     }
+    func scopedForMerchantOverview(approval: MerchantOverviewReadApproval, context: RuntimeDependencyContext,
+                                   approved: @escaping () -> Bool) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.merchantOverviewOnly = true; transport.merchantOverviewScope = nil
+        if let viewer = current() { transport.merchantOverviewScope = .init(approval: approval, context: context, viewer: viewer, approved: approved) }
+        return transport
+    }
+    func scopedForMerchantPrediction(approval: MerchantPredictionReadApproval, context: RuntimeDependencyContext,
+                                     approved: @escaping () -> Bool) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.merchantPredictionOnly = true
+        transport.merchantPredictionScope = nil
+        if let viewer = current() { transport.merchantPredictionScope = .init(approval: approval, context: context, viewer: viewer, approved: approved) }
+        return transport
+    }
+    func scopedForMerchantProjectWorkspace(approval: MerchantProjectWorkspaceReadApproval, context: RuntimeDependencyContext,
+                                          topicID: Int, approved: @escaping () -> Bool) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.merchantProjectWorkspaceOnly = true; transport.merchantProjectWorkspaceScope = nil
+        if topicID > 0, let viewer = current() {
+            transport.merchantProjectWorkspaceScope = .init(approval: approval, topicID: topicID, context: context, viewer: viewer, approved: approved)
+        }
+        return transport
+    }
     /// Dedicated read-only scope; no general merchant endpoint receives this grant.
     func scopedForMerchantProjectBrowse(approval: MerchantProjectBrowseApproval, context: RuntimeDependencyContext,
                                        approved: @escaping () -> Bool) -> CompositionHTTPTransport {
@@ -612,6 +725,12 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.publicMerchantHomeScope = publicMerchantHomeScope
         transport.nearbyMerchantScope = nearbyMerchantScope
         transport.nearbyMerchantOnly = nearbyMerchantOnly
+        transport.merchantOverviewOnly = merchantOverviewOnly
+        transport.merchantOverviewScope = merchantOverviewScope
+        transport.merchantPredictionOnly = merchantPredictionOnly
+        transport.merchantPredictionScope = merchantPredictionScope
+        transport.merchantProjectWorkspaceOnly = merchantProjectWorkspaceOnly
+        transport.merchantProjectWorkspaceScope = merchantProjectWorkspaceScope
         transport.merchantProjectBrowseOnly = merchantProjectBrowseOnly
         transport.merchantProjectBrowseScope = merchantProjectBrowseScope
         transport.profileGuideSelection = profileGuideSelection
@@ -829,6 +948,12 @@ extension KeychainTokenStore: AppTokenStorage {}
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         guard let deployment, let api = deployment.regional.apiConfiguration,
               let url = request.url, url.fragment == nil else { throw APIError.notConfigured }
+        let merchantOverview = MerchantOverviewScope.accepts(request, baseURL: api.baseURL)
+        guard !merchantOverviewOnly || merchantOverview else { throw APIError.notConfigured }
+        let merchantPrediction = MerchantPredictionScope.accepts(request, baseURL: api.baseURL)
+        guard !merchantPredictionOnly || merchantPrediction else { throw APIError.notConfigured }
+        let merchantProjectWorkspace = merchantProjectWorkspaceScope?.accepts(request, baseURL: api.baseURL) == true
+        guard !merchantProjectWorkspaceOnly || merchantProjectWorkspace else { throw APIError.notConfigured }
         let merchantProjectBrowse = MerchantProjectBrowseScope.accepts(request, baseURL: api.baseURL)
         guard !merchantProjectBrowseOnly || merchantProjectBrowse else { throw APIError.notConfigured }
         let nearbyMerchant = NearbyMerchantCompositionScope.accepts(request, baseURL: api.baseURL)
@@ -868,6 +993,27 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        } else if merchantOverviewOnly {
+            guard merchantOverview, let scope = merchantOverviewScope,
+                  scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
+        } else if merchantPredictionOnly {
+            guard merchantPrediction, let scope = merchantPredictionScope,
+                  scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
+        } else if merchantProjectWorkspaceOnly {
+            guard merchantProjectWorkspace, let scope = merchantProjectWorkspaceScope,
+                  scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
         } else if merchantProjectBrowseOnly {
             guard merchantProjectBrowse, let scope = merchantProjectBrowseScope,
                   scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }

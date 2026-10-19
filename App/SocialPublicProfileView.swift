@@ -9,6 +9,8 @@ import SwiftUI
     var selfProjectsAccess: ProfileSelfProjectsAccess? = nil
     var selfGrowthAccess: ProfileSelfGrowthAccess? = nil
     var weeklyPointsAccess: ProfileWeeklyPointsAccess? = nil
+    var personalToolsAccess: ProfilePersonalToolsAccess? = nil
+    var selfCouponAccess: ProfileSelfCouponAccess? = nil
     var selfObjectCardsAccess: ProfileObjectCardsAccess? = nil
     var selfMedalsReader: (any ProfileReading)? = nil
     var selfEditAccess: ProfileSelfEditAccess? = nil
@@ -140,6 +142,14 @@ import SwiftUI
                             SocialOptionalCount(title: "social.followingCount", count: profile.following)
                         }
                     case .about:
+                        if let personalToolsAccess {
+                            ProfilePersonalToolsEntry(memberID: memberID, social: reader,
+                                access: personalToolsAccess, isCurrent: isCurrent)
+                        }
+                        if let selfCouponAccess {
+                            ProfileSelfCouponEntry(memberID: memberID, accountReader: reader,
+                                access: selfCouponAccess, isCurrent: isCurrent)
+                        }
                         Section("social.introduction") {
                             if let introduction = profile.introduction { Text(verbatim: introduction).textSelection(.enabled) }
                             else { Text("social.noIntroduction").foregroundStyle(.secondary) }
@@ -208,4 +218,120 @@ struct ProfileAuthorPostTicket: Identifiable {
     let postID: Int
     let contentGeneration: SquareContentGeneration
     let context: ProfileAuthorPostsContext
+}
+
+/// Optional self-profile metadata entry. Captured scopes never authorize coupon codes.
+@MainActor struct ProfileSelfCouponAccess {
+    let reader: ProfileOwnedCouponReader
+    let owner: SocialAccountIdentity
+    let scope: UUID
+    init(reader: ProfileOwnedCouponReader, owner: SocialAccountIdentity) {
+        self.reader = reader; self.owner = owner; scope = reader.scope
+    }
+}
+
+struct ProfileSelfCouponContext: Hashable {
+    let memberID: Int
+    let viewer: SocialAccountIdentity
+    let viewerRevision: UInt64
+    let accountReaderID: ObjectIdentifier
+    let couponReaderID: ObjectIdentifier
+    let couponScope: UUID
+    @MainActor static func capture(memberID: Int, accountReader: any SocialAccountReading,
+        access: ProfileSelfCouponAccess, isCurrent: Bool) -> Self? {
+        guard isCurrent, memberID > 0, access.owner.accountID == memberID,
+              accountReader.identity == access.owner, accountReader.isConfigured,
+              ["player", "club"].contains(access.owner.role ?? ""),
+              access.reader.isAuthenticated, access.reader.isConfigured,
+              access.reader.scope == access.scope else { return nil }
+        return .init(memberID: memberID, viewer: access.owner,
+            viewerRevision: accountReader.presentationRevision,
+            accountReaderID: ObjectIdentifier(accountReader),
+            couponReaderID: ObjectIdentifier(access.reader), couponScope: access.scope)
+    }
+}
+
+@MainActor final class ProfileSelfCouponScopedReader: AccountCollectionReading {
+    // Keep the underlying scope so the existing operation lifetime remains valid.
+    let scope: UUID
+    private let expected: ProfileSelfCouponContext
+    private let accountReader: any SocialAccountReading
+    private let access: ProfileSelfCouponAccess
+    private let current: @MainActor () -> Bool
+    init(context: ProfileSelfCouponContext, accountReader: any SocialAccountReading,
+         access: ProfileSelfCouponAccess, isCurrent: @escaping @MainActor () -> Bool) {
+        expected = context; scope = context.couponScope
+        self.accountReader = accountReader; self.access = access; current = isCurrent
+    }
+    var associationIsCurrent: Bool {
+        ProfileSelfCouponContext.capture(memberID: expected.memberID, accountReader: accountReader,
+            access: access, isCurrent: current()) == expected
+    }
+    var isAuthenticated: Bool { associationIsCurrent && access.reader.isAuthenticated }
+    var isConfigured: Bool { associationIsCurrent && access.reader.isConfigured }
+    var isOfflineExample: Bool { false }
+    func favoriteTopics(pageNumber: Int, pageSize: Int) async throws -> TopicPage { throw APIError.notConfigured }
+    func favoritePosts(pageNumber: Int, pageSize: Int) async throws -> AccountCollectionPostPage { throw APIError.notConfigured }
+    func ownedCoupons(keyword: String?) async throws -> [AccountCollectionCoupon] {
+        try await read { try await self.access.reader.ownedCoupons(keyword: keyword, associationIsCurrent: { self.associationIsCurrent }) }
+    }
+    func ownedCoupon(id: Int) async throws -> AccountCollectionCoupon {
+        try await read { try await self.access.reader.ownedCoupon(id: id, associationIsCurrent: { self.associationIsCurrent }) }
+    }
+    func ownedCoupons(keyword: String?, lifetime: OwnedCouponReadLifetime) async throws -> [AccountCollectionCoupon] {
+        try await read { try await self.access.reader.ownedCoupons(keyword: keyword, lifetime: lifetime, associationIsCurrent: { self.associationIsCurrent }) }
+    }
+    func ownedCoupon(id: Int, lifetime: OwnedCouponReadLifetime) async throws -> AccountCollectionCoupon {
+        try await read { try await self.access.reader.ownedCoupon(id: id, lifetime: lifetime, associationIsCurrent: { self.associationIsCurrent }) }
+    }
+    private func read<T>(_ operation: () async throws -> T) async throws -> T {
+        try Task.checkCancellation()
+        guard associationIsCurrent else { throw CancellationError() }
+        do {
+            let value = try await operation()
+            try Task.checkCancellation()
+            guard associationIsCurrent else { throw CancellationError() }
+            return value
+        } catch {
+            guard !Task.isCancelled, associationIsCurrent else { throw CancellationError() }
+            throw error
+        }
+    }
+}
+
+@MainActor private struct ProfileSelfCouponEntry: View {
+    let memberID: Int
+    let accountReader: any SocialAccountReading
+    let access: ProfileSelfCouponAccess
+    let isCurrent: @MainActor () -> Bool
+    var body: some View {
+        if let context = ProfileSelfCouponContext.capture(memberID: memberID,
+            accountReader: accountReader, access: access, isCurrent: isCurrent()) {
+            Section {
+                NavigationLink {
+                    ProfileSelfCouponDestination(context: context, accountReader: accountReader,
+                        access: access, isCurrent: isCurrent).id(context)
+                } label: { Label("accountCollection.coupons.title", systemImage: "ticket") }
+                    .accessibilityIdentifier("profile.selfCoupons")
+            }.id(context)
+        }
+    }
+}
+
+@MainActor private struct ProfileSelfCouponDestination: View {
+    @EnvironmentObject private var session: AppSession
+    @State private var reader: ProfileSelfCouponScopedReader
+    init(context: ProfileSelfCouponContext, accountReader: any SocialAccountReading,
+         access: ProfileSelfCouponAccess, isCurrent: @escaping @MainActor () -> Bool) {
+        _reader = State(initialValue: .init(context: context, accountReader: accountReader,
+            access: access, isCurrent: isCurrent))
+    }
+    var body: some View {
+        Group {
+            if reader.associationIsCurrent { AccountCollectionCouponsView(reader: reader) }
+            else { Text("social.changed") }
+        }
+        .environment(\.couponCodeFactory, nil)
+        .id(session.profileOwnedCouponReader.scope)
+    }
 }

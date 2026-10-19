@@ -176,19 +176,45 @@ public struct MerchantMarketingCommerce: Equatable {
 }
 
 public struct MerchantPredictionRound: Equatable, Identifiable {
-    public let nodeID: String, playDay: String, nodeName: String?, question: String?, options: [Option], betCount: Int?, daysLeft: Int?
+    public let nodeID: String, topicID: Int?, playDay: String, nodeName: String?, question: String?, options: [Option], betCount: Int?, daysLeft: Int?
     public var id: String { "\(nodeID):\(playDay)" }
-    public struct Option: Equatable, Identifiable { public let key: String, label: String; public var id: String { key } }
-    public init(_ raw: MerchantMarketingValue) throws {
-        guard let id = raw["nodeId"].integer, id > 0, let day = raw["playDay"].text, !day.isEmpty, day.utf8.count <= 32,
-              let options = raw["options"].array else { throw MerchantMarketingFailure.malformed }
-        nodeID = String(id); playDay = day; nodeName = raw["nodeName"].text; question = raw["question"].text
-        self.options = try options.map {
-            guard let key = $0["key"].text, !key.isEmpty, let label = $0["label"].text else { throw MerchantMarketingFailure.malformed }
-            return Option(key: key, label: label)
+    public struct Option: Equatable, Identifiable {
+        public let key: String, label: String
+        public var id: String { key }
+        public static func == (lhs: Self, rhs: Self) -> Bool {
+            lhs.key.utf8.elementsEqual(rhs.key.utf8) && lhs.label.utf8.elementsEqual(rhs.label.utf8)
         }
-        guard Set(self.options.map(\.key)).count == self.options.count else { throw MerchantMarketingFailure.malformed }
-        betCount = raw["betCount"].integer; daysLeft = raw["daysLeft"].integer
+    }
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        func exact(_ a: String?, _ b: String?) -> Bool {
+            switch (a, b) {
+            case (nil, nil): return true
+            case let (a?, b?): return a.utf8.elementsEqual(b.utf8)
+            default: return false
+            }
+        }
+        return exact(lhs.nodeID, rhs.nodeID) && lhs.topicID == rhs.topicID && exact(lhs.playDay, rhs.playDay)
+            && exact(lhs.nodeName, rhs.nodeName) && exact(lhs.question, rhs.question) && lhs.options == rhs.options
+            && lhs.betCount == rhs.betCount && lhs.daysLeft == rhs.daysLeft
+    }
+    public init(inbox: MerchantPredictionInboxRound) throws {
+        guard inbox.options.allSatisfy({ $0.key == $0.key.trimmingCharacters(in: .whitespacesAndNewlines)
+            && $0.key.rangeOfCharacter(from: .controlCharacters) == nil }) else { throw MerchantMarketingFailure.malformed }
+        nodeID = String(inbox.nodeID); topicID = inbox.topicID; playDay = inbox.playDay
+        nodeName = inbox.nodeName; question = inbox.question
+        options = inbox.options.map { .init(key: $0.key, label: $0.label) }
+        betCount = inbox.betCount; daysLeft = inbox.daysLeft
+    }
+    public init(_ raw: MerchantMarketingValue) throws {
+        // The legacy metadata container uses Double. Reject identifiers outside its
+        // exact integer range instead of freezing a rounded ID into a review.
+        for field in ["nodeId", "topicId"] {
+            if case .number(let value) = raw[field], abs(value) > 9_007_199_254_740_991 {
+                throw MerchantMarketingFailure.malformed
+            }
+        }
+        do { try self.init(inbox: JSONDecoder().decode(MerchantPredictionInboxRound.self, from: JSONEncoder().encode(raw))) }
+        catch { throw MerchantMarketingFailure.malformed }
     }
 }
 
@@ -199,4 +225,21 @@ public struct MerchantPredictionReview: Equatable, Identifiable {
         id = UUID(); self.scope = scope; self.access = access; self.round = round; self.option = option
     }
 }
-public struct MerchantPredictionAcknowledgement: Equatable { public let winners: Int }
+public struct MerchantPredictionAcknowledgement: Equatable {
+    public let settledOption: String
+    public let totalBets: Int
+    public let winners: Int
+    public let couponsGranted: Int
+    public let rewardConfigured: Bool
+    init(_ raw: MerchantMarketingValue, expectedOption: String) throws {
+        func count(_ key: String) -> Int? {
+            guard case .number = raw[key], let value = raw[key].integer, value >= 0 else { return nil }
+            return value
+        }
+        guard case .string(let option) = raw["settledOption"], option.utf8.elementsEqual(expectedOption.utf8),
+              let total = count("totalBets"), let winners = count("winners"), winners <= total,
+              let coupons = count("couponsGranted"), coupons <= winners,
+              case .bool(let configured) = raw["rewardConfigured"] else { throw MerchantMarketingFailure.malformed }
+        settledOption = option; totalBets = total; self.winners = winners; couponsGranted = coupons; rewardConfigured = configured
+    }
+}

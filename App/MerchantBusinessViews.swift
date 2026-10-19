@@ -807,6 +807,13 @@ import SwiftUI
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
         if !document.summary.isEmpty || document.query == .overview {
             Section("merchant.business.summary") {
+                if document.query == .overview {
+                    MerchantLedgerAssetsEntry(reader: reader, currentSnapshot: {
+                        guard state.isCurrent, !state.isBusy, state.failureKey == nil,
+                              state.snapshot?.document == document else { return nil }
+                        return state.snapshot
+                    })
+                }
                 if case .reviews = document.query {
                     Text("merchant.business.reviews.summaryScope").font(.footnote).foregroundStyle(.secondary)
                 }

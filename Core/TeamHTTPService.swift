@@ -3,7 +3,8 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Dormant source-backed JSON adapter. No join-mode setter or remote receipt is invented.
+/// Dormant source-backed JSON adapter. Join-mode uses the verified mini/backend setter.
+/// No remote operation receipt or automatic retry is invented.
 /// The caller must persist the exact local operation identity before invoking submit.
 @MainActor public final class TeamHTTPService: TeamServing {
     private let configuration: APIConfiguration
@@ -35,7 +36,7 @@ import FoundationNetworking
             let path = String(contract.path.dropFirst())
             guard let approval, approval.allows(configuration: configuration, namespace: session.storageNamespace, accountID: session.accountID, path: path) else { return .notSent }
             try check(session)
-            let expected = TeamPendingRecord(operationID: operationID, ownerKey: session.ownerKey, targetKey: action.targetKey)
+            let expected = TeamPendingRecord(operationID: operationID, ownerKey: session.ownerKey, targetKey: action.targetKey, joinMode: action.requestedJoinMode)
             guard let persisted = try journal.pending(ownerKey: session.ownerKey, targetKey: action.targetKey), persisted.operationID == expected.operationID else { return .notSent }
             if persisted.dispatchStarted == true { return .unknown }
             guard persisted == expected else { return .notSent }
@@ -67,6 +68,13 @@ import FoundationNetworking
         if status == 401 || status == 403 { return .rejected }
         guard (200..<300).contains(status), let code = envelope?["code"]?.integer else { return .unknown }
         guard code == 200 else { return .rejected }
+        if case .changeJoinMode(let teamID, let requested) = action {
+            guard teamID > 0, requested != .unknown,
+                  let raw = envelope?["data"]?.object?["joinMode"]?.integer,
+                  let returned = TeamJoinMode(rawValue: raw), returned != .unknown,
+                  returned == requested else { return .unknown }
+            return .joinModeAcknowledged(operationID: operationID, teamID: teamID, mode: returned)
+        }
         let teamID: Int
         if case .create = action {
             guard let id = OperationAdapterHTTP.positiveID(envelope?["data"]?.object?["teamId"]) else { return .unknown }

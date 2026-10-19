@@ -181,9 +181,9 @@ extension MerchantNPCVoiceSamplesTests {
         let c = try await consumer(h, device: d, upload: u, journal: j); await fill(c, d)
         c.prepareLocalReset(); let reset = try XCTUnwrap(c.resetReview)
         c.prepareUpload(); await c.confirmUpload(try XCTUnwrap(c.review).id)
-        let journal = try JSONEncoder().encode(j.records)
+        let journal = j.records
         XCTAssertTrue(c.unresolved); XCTAssertFalse(c.confirmLocalReset(reset.id)); c.prepareLocalReset()
-        XCTAssertNil(c.resetReview); XCTAssertEqual(try JSONEncoder().encode(j.records), journal)
+        XCTAssertNil(c.resetReview); XCTAssertEqual(j.records, journal)
         XCTAssertEqual(c.clips.count, 5); XCTAssertEqual(u.calls, [0])
     }
     func testConsentCycleInvalidatesOldResetEvenWithNewSamples() async throws {

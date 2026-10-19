@@ -66,7 +66,7 @@ import SwiftUI
                         .accessibilityIdentifier("teamMembershipRetired")
                 }
                 if let detail = model.coordinator.detail {
-                    TeamCard(team: detail.team).accessibilityIdentifier("team.detail.card")
+                    TeamCard(team: detail.team, confirmedJoinMode: model.coordinator.confirmedJoinMode).accessibilityIdentifier("team.detail.card")
                     LabeledContent("team.sessionStart") { Text(verbatim: detail.team.expireTime?.isEmpty == false ? detail.team.expireTime! : "—") }
                     if detail.team.expireTime?.isEmpty != false { Text("team.timeUnknown").font(.footnote) }
                     Text("team.ticketSeparation").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
@@ -104,8 +104,18 @@ import SwiftUI
                     if detail.leader == true, detail.team.status == .recruiting {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("team.mode.title").font(.headline)
-                            Text(LocalizedStringKey(detail.team.joinMode.key))
-                            Text("team.mode.provisional").font(.footnote).foregroundStyle(.secondary)
+                            Text(LocalizedStringKey((model.coordinator.confirmedJoinMode ?? detail.team.joinMode).key))
+                                .accessibilityIdentifier("team.mode.current")
+                            if !readOnly {
+                                ForEach([TeamJoinMode.invitation, .publicApplication], id: \.rawValue) { mode in
+                                    let action = TeamAction.changeJoinMode(teamID: detail.team.id, mode: mode)
+                                    if action.isAllowed(detail: detail) {
+                                        Button { model.prepare(action) } label: { Text(LocalizedStringKey(mode.key)) }
+                                            .frame(minHeight: 44).disabled(model.actionLocked)
+                                            .accessibilityIdentifier("team.mode.change.\(mode.rawValue)")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
