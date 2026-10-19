@@ -48,15 +48,31 @@ import Foundation
     public func ownedCoupon(id: Int, lifetime: OwnedCouponReadLifetime) async throws -> AccountCollectionCoupon {
         try await read(lifetime: lifetime) { try await $0.coupon(id: id, token: $1) }
     }
+    /// Additional presentation guard for a retained self-profile route. It only narrows
+    /// the existing lease and is checked before any unauthorized-session callback.
+    public func ownedCoupons(keyword: String?, lifetime: OwnedCouponReadLifetime? = nil,
+                             associationIsCurrent: () -> Bool) async throws -> [AccountCollectionCoupon] {
+        try await read(lifetime: lifetime, associationIsCurrent: associationIsCurrent) {
+            try await $0.coupons(keyword: keyword, token: $1)
+        }
+    }
+    public func ownedCoupon(id: Int, lifetime: OwnedCouponReadLifetime? = nil,
+                            associationIsCurrent: () -> Bool) async throws -> AccountCollectionCoupon {
+        try await read(lifetime: lifetime, associationIsCurrent: associationIsCurrent) {
+            try await $0.coupon(id: id, token: $1)
+        }
+    }
     private func read<T>(lifetime: OwnedCouponReadLifetime? = nil,
+                         associationIsCurrent: () -> Bool = { true },
                          operation: (AccountCollectionService, String) async throws -> T) async throws -> T {
         try Task.checkCancellation(); try lifetime?.check()
+        guard associationIsCurrent() else { throw CancellationError() }
         guard let context = current() else { throw APIError.unauthorized }
         guard let selected = synchronize(), let service else { throw APIError.notConfigured }
         let capturedScope = stamp, capturedViewer = viewerRevision()
         if let expected = lifetime?.ownerScope, expected != capturedScope { throw CancellationError() }
         func valid() -> Bool {
-            guard !Task.isCancelled, lifetime?.isActive != false, let fresh = current(),
+            guard !Task.isCancelled, lifetime?.isActive != false, associationIsCurrent(), let fresh = current(),
                   ContentDraftContextFence.matches(context, fresh), viewerRevision() == capturedViewer else { return false }
             return synchronize() === selected && stamp == capturedScope
         }
