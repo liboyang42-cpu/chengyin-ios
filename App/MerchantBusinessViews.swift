@@ -383,6 +383,7 @@ import SwiftUI
 
 @MainActor struct MerchantBusinessPage: View {
     @Environment(\.merchantCustomerQueryDestination) private var customerQueryDestination
+    @Environment(\.merchantCoopCenterDestination) private var coopCenterDestination
     @Environment(\.locale) private var locale
     @State private var customerQueryRoute: MerchantCustomerAppliedQuery?
     @Environment(\.scenePhase) private var scenePhase
@@ -487,6 +488,11 @@ import SwiftUI
                         sourceStart = next.sourceStart ?? ""; sourceEnd = next.sourceEnd ?? ""
                         query = .customers(next); selection = []
                         Task { await reload() }
+                    }
+                    // Source customer empty CTA: 先去合作中心承接项目.
+                    if recovery.kind == .noCustomers, let coopCenterDestination {
+                        NavigationLink { coopCenterDestination(.plaza, nil) } label: { Text(mcc("merchantCoopCenter.customerEntry", locale)) }
+                            .accessibilityIdentifier("merchant.business.customers.coopCenter")
                     }
                 } else if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
                     Text(isRedemptionLedger ? "merchant.refundPreview.noRedemptions" : "merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")

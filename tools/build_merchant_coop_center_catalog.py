@@ -5,6 +5,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 P = 'merchantCoopCenter.'
 ROWS = {
  'title': ('Cooperation center', '合作中心'),
+ 'customerEntry': ('Go to the cooperation center', '去合作中心'),
  'tab.official': ('Official events', '官方活动'),
  'tab.plaza': ('Plaza', '广场'),
  'inbox': ('Cooperation invitations: received and sent', '协作邀请：收到的与我发出的'),
@@ -51,7 +52,7 @@ ROWS = {
 strings = {P + k: {'localizations': {'en': {'stringUnit': {'state': 'translated', 'value': en}}, 'zh-Hans': {'stringUnit': {'state': 'translated', 'value': zh}}}} for k, (en, zh) in sorted(ROWS.items())}
 out = ROOT / 'Resources/MerchantCoopCenter.xcstrings'
 out.write_text(json.dumps({'sourceLanguage': 'en', 'strings': strings, 'version': '1.0'}, ensure_ascii=False, indent=2, sort_keys=True) + '\n')
-SOURCES = ['App/MerchantCoopCenterView.swift', 'App/MerchantCoopCenterFixtureHost.swift', 'App/MerchantCoopCenterSessionBinding.swift']
+SOURCES = ['App/MerchantCoopCenterView.swift', 'App/MerchantCoopCenterFixtureHost.swift', 'App/MerchantCoopCenterSessionBinding.swift', 'App/MerchantHomeView.swift', 'App/MerchantBusinessViews.swift']
 used = set()
 for source in SOURCES:
     used |= set(re.findall(r'mcc\("(merchantCoopCenter\.[A-Za-z0-9.]+)"', (ROOT / source).read_text()))

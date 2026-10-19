@@ -1,6 +1,22 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "merchantCoopCenter.customerEntry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to the cooperation center"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去合作中心"
+          }
+        }
+      }
+    },
     "merchantCoopCenter.date.monthDay": {
       "localizations": {
         "en": {
