@@ -198,3 +198,29 @@ private final class DeletionTransport: HTTPTransport {
         XCTAssertNil(flow.requestID(for: target))
     }
 }
+
+private final class FeatureTransport: HTTPTransport {
+    var requests: [URLRequest] = []
+    let body: String
+    init(_ body: String) { self.body = body }
+    func send(_ request: URLRequest) async throws -> (Data, Int) { requests.append(request); return (Data(body.utf8), 200) }
+}
+
+/// Source `loadFeatureFlags` / `canUseCommunity`: only a literal JSON true opens community read or write.
+final class SquareCommunityFeatureTests: XCTestCase {
+    private func features(_ body: String) async throws -> (SquareCommunityFeatures, URLRequest?) {
+        let transport = FeatureTransport(body)
+        let service = SquareService(configuration: try APIConfiguration(baseURL: URL(string: "https://api.example.invalid")!), transport: transport)
+        return (try await service.communityFeatures(token: "synthetic-token"), transport.requests.first)
+    }
+    func testOnlyLiteralTrueOpensCommunity() async throws {
+        let (open, request) = try await features(#"{"code":200,"data":{"communityPostRead":true,"communityPostWrite":false}}"#)
+        XCTAssertEqual(open, .init(read: true, write: false))
+        XCTAssertEqual(request?.httpMethod, "POST")
+        XCTAssertEqual(request?.url?.path, "/api/config/features")
+        let (loose, _) = try await features(#"{"code":200,"data":{"communityPostRead":1,"communityPostWrite":"true"}}"#)
+        XCTAssertEqual(loose, .init(read: false, write: false))
+        let (missing, _) = try await features(#"{"code":200,"data":{}}"#)
+        XCTAssertEqual(missing, .init(read: false, write: false))
+    }
+}
