@@ -340,26 +340,11 @@ struct TemplateLowHPPresetConfiguration {
     }
 }
 
-enum TemplateLowHPPresetText: CaseIterable {
+enum TemplateLowHPPresetText: String, CaseIterable {
     case title, scope, choice, off, empty, retained, unsupported, preview, rule, noMatch, apply, applied, cancel, reload
+    var localizationKey: String { "templateLowHPText." + rawValue }
     func value(_ locale: Locale) -> String {
-        let chinese = locale.language.languageCode?.identifier == "zh"
-        switch self {
-        case .title: return chinese ? "低HP放宽预设" : "Low-HP easing preset"
-        case .scope: return chinese ? "仅应用到当前未保存草稿，不会保存、启动玩法或提交。" : "Apply to the current unsaved draft only. This does not save, run gameplay or submit."
-        case .choice: return chinese ? "HP ≤ 3 时的放宽方式" : "Adjustment when HP ≤ 3"
-        case .off: return chinese ? "不使用此预设" : "No preset"
-        case .empty: return chinese ? "当前没有可安全放宽的配置。请先完成并启用玩法配置。" : "No valid adjustments are available. Configure and enable an eligible game first."
-        case .retained: return chinese ? "其他规则及其顺序保持不变，预演仅应用首个命中规则。" : "Other rules and their order are retained. Preview applies the first matching rule only."
-        case .unsupported: return chinese ? "存在自定义、未知或不可用的低HP规则，请在原规则编辑器检查；本页不会覆盖。" : "A custom, unknown or unavailable low-HP rule needs the full rule editor. This page will not overwrite it."
-        case .preview: return chinese ? "HP为3的本地预演" : "Local preview at HP 3"
-        case .rule: return chinese ? "首个命中规则" : "First matching rule"
-        case .noMatch: return chinese ? "未命中规则" : "No matching rule"
-        case .apply: return chinese ? "应用到当前草稿" : "Apply to current draft"
-        case .applied: return chinese ? "已应用到草稿，尚未保存或发布。" : "Applied to the draft. Not saved or published."
-        case .cancel: return chinese ? "取消未应用的选择" : "Cancel unapplied selection"
-        case .reload: return chinese ? "重新读取当前配置" : "Reload current configuration"
-        }
+        appLocalized(String.LocalizationValue(stringLiteral: localizationKey), locale: locale)
     }
 }
 
