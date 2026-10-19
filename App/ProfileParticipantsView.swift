@@ -22,6 +22,8 @@ struct ProfileParticipantsView: View {
                                     if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(.headline) }
                                     else { Text(verbatim: participant.fullName).font(.headline) }
                                     if !participant.mobilePhone.isEmpty { Text(verbatim: participant.mobilePhone).foregroundStyle(.secondary) }
+                                    // Mini-program address list repeats the purpose on every row.
+                                    Text("profile.participants.hint").font(.caption).foregroundStyle(.tertiary)
                                 }.padding(.vertical, 4)
                             }.accessibilityIdentifier("profile.participant.\(participant.id)")
                         }

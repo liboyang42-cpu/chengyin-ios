@@ -5,7 +5,7 @@ import SwiftUI
     @State private var coordinator = NearbyTeamSyntheticFixtures.coordinator()
     var body: some View {
         NavigationStack {
-            NearbyTeamsView(coordinator: coordinator, context: NearbyTeamSyntheticFixtures.context) { destination = $0 }
+            NearbyTeamsView(coordinator: coordinator, context: NearbyTeamSyntheticFixtures.context, joinedTeams: NearbyTeamSyntheticFixtures.joinedTeams) { destination = $0 }
                 .overlay(alignment: .bottom) {
                     if let destination { Text(verbatim: String(describing: destination)).accessibilityIdentifier("nearby.fixture.destination") }
                 }

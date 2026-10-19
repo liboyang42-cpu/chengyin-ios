@@ -25,6 +25,7 @@ import SwiftUI
                 Section("merchant.customerDetail.identity") {
                     Text(verbatim: detail.customer.title).font(.title3.bold())
                         .fixedSize(horizontal: false, vertical: true)
+                    MerchantCustomerIdentityLine(lastInteraction: detail.lastInteractionAt)
                     LabeledContent("merchant.customerDetail.lastInteraction") { timestamp(detail.lastInteractionAt) }
                     LabeledContent("merchant.business.field.paidAmount") {
                         if let paidAmount { Text(verbatim: paidAmount).monospacedDigit() }

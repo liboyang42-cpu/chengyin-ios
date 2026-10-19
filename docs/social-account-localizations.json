@@ -167,7 +167,7 @@
   {
     "key": "social.guide.title",
     "en": "Play guide",
-    "zh-Hans": "玩法指南"
+    "zh-Hans": "城瘾玩法"
   },
   {
     "key": "social.guide.modes",
@@ -206,23 +206,23 @@
   },
   {
     "key": "social.guide.explore",
-    "en": "Explore",
-    "zh-Hans": "去探索"
+    "en": "Take a look",
+    "zh-Hans": "去看看"
   },
   {
     "key": "social.guide.information",
-    "en": "More information",
-    "zh-Hans": "更多说明"
+    "en": "Play documents",
+    "zh-Hans": "玩法文档"
   },
   {
     "key": "social.guide.empty",
-    "en": "Published guides will appear here.",
-    "zh-Hans": "玩法说明上线后会显示在这里。"
+    "en": "No play guides yet",
+    "zh-Hans": "暂无玩法说明"
   },
   {
     "key": "social.guide.removed",
-    "en": "This guide is no longer available. Go back to the guide list.",
-    "zh-Hans": "这篇说明已不可用，请返回玩法列表。"
+    "en": "This play guide is no longer available",
+    "zh-Hans": "这篇玩法说明不在了"
   },
   {
     "key": "social.guide.noContent",
