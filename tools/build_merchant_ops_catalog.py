@@ -6,6 +6,7 @@ The script fails when App sources use a key that is not defined here, or a defin
 """
 import json, pathlib, re
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+DYNAMIC_PREFIXES = ['merchantOps.aftercare.processing.', 'merchantOps.aftercare.processingHint.', 'merchantOps.aftercare.stepState.']
 ROWS = {
  # pages/merchant/marketing/index.{js,wxml}
  'merchantOps.marketing.hero.label %lld': ('Sign-ups in the last %lld days', '近 %lld 天报名'),
@@ -48,19 +49,68 @@ ROWS = {
  'merchantOps.predict.noBets': ('Nobody has picked this round yet', '这一轮还没有人押'),
  'merchantOps.predict.options %lld': ('%lld options', '%lld 个选项'),
  'merchantOps.predict.workbenchAlert %lld': ('%lld prediction rounds are waiting for your answer', '有 %lld 轮竞猜待给答案'),
+ # pages/merchant/aftercare/index.* and aftercare/detail/view-model.js
+ 'merchantOps.aftercare.status.awaitingResponse': ('Awaiting response', '待回应'),
+ 'merchantOps.aftercare.status.returned': ('Returned', '已退回'),
+ 'merchantOps.aftercare.takenOver': ('Sent to platform support', '已转平台客服'),
+ 'merchantOps.aftercare.amountPending': ('Amount to be confirmed', '金额待确认'),
+ 'merchantOps.aftercare.day.today': ('Today', '今天'),
+ 'merchantOps.aftercare.day.yesterday': ('Yesterday', '昨天'),
+ 'merchantOps.aftercare.day.monthDay %lld %lld': ('%1$lld/%2$lld', '%1$lld月%2$lld日'),
+ 'merchantOps.aftercare.day.yearMonthDay %lld %lld %lld': ('%1$lld/%2$lld/%3$lld', '%1$lld年%2$lld月%3$lld日'),
+ 'merchantOps.aftercare.day.unknown': ('Time to be confirmed', '时间待确认'),
+ 'merchantOps.aftercare.empty.PENDING': ('No requests awaiting your response', '没有待回应售后'),
+ 'merchantOps.aftercare.empty.PROCESSING': ('No requests in progress', '没有处理中的售后'),
+ 'merchantOps.aftercare.empty.COMPLETED': ('No completed requests yet', '还没有已完成售后'),
+ 'merchantOps.aftercare.source.registration': ('Registration refund', '报名退款'),
+ 'merchantOps.aftercare.source.other': ('Refund request', '退款申请'),
+ 'merchantOps.aftercare.policy.exploreEnd': ('Full refund can be requested before redemption and the deadline', '截止前未核销可全额申请'),
+ 'merchantOps.aftercare.policy.snapshot': ('Refund rules follow the order snapshot', '退款规则以订单快照为准'),
+ 'merchantOps.aftercare.policy.unknown': ('Refund policy to be confirmed', '退款政策待确认'),
+ 'merchantOps.aftercare.policyVersion %lld': ('Policy version %lld', '政策版本 %lld'),
+ 'merchantOps.aftercare.platformSteps': ('Platform progress', '平台处理进度'),
+ 'merchantOps.aftercare.step.funds': ('Funds result', '款项结果'),
+ 'merchantOps.aftercare.step.approved': ('Platform approved the refund', '平台已批准退款'),
+ 'merchantOps.aftercare.funds.unconfirmed': ('Return not confirmed yet', '尚未确认退回'),
+ 'merchantOps.aftercare.stepState.done': ('Done', '已完成'),
+ 'merchantOps.aftercare.stepState.doing': ('In progress', '进行中'),
+ 'merchantOps.aftercare.stepState.todo': ('Not yet', '未开始'),
+ 'merchantOps.aftercare.stepState.rejected': ('Ended', '已结束'),
+ 'merchantOps.aftercare.processing.WAITING_PLATFORM_REVIEW': ('Platform reviewing', '平台审核中'),
+ 'merchantOps.aftercare.processing.PLATFORM_REJECTED': ('Platform did not approve the refund', '平台未通过退款'),
+ 'merchantOps.aftercare.processing.REFUND_PROCESSING': ('Refund processing', '退款处理中'),
+ 'merchantOps.aftercare.processing.MANUAL_REFUND_PENDING': ('Waiting for manual refund', '等待人工退款'),
+ 'merchantOps.aftercare.processing.MANUAL_REFUND_REVIEW': ('Manual refund awaiting review', '人工退款待复核'),
+ 'merchantOps.aftercare.processing.REFUNDED': ('Platform confirmed the refund', '平台确认已退款'),
+ 'merchantOps.aftercare.processing.UNKNOWN': ('Platform status to be confirmed', '平台状态待确认'),
+ 'merchantOps.aftercare.processingHint.WAITING_PLATFORM_REVIEW': ('The platform has not finished reviewing the refund', '平台尚未完成退款审核'),
+ 'merchantOps.aftercare.processingHint.PLATFORM_REJECTED': ('Review has ended; the money will not be returned because of it', '平台审核已结束，款项不会因此退回'),
+ 'merchantOps.aftercare.processingHint.REFUND_PROCESSING': ('Approved by the platform; the money is still being processed', '平台已批准，款项仍在处理'),
+ 'merchantOps.aftercare.processingHint.MANUAL_REFUND_PENDING': ('The original-route refund failed; the platform is handling it manually', '原路退款异常，平台正在人工处理'),
+ 'merchantOps.aftercare.processingHint.MANUAL_REFUND_REVIEW': ('Manual handling is recorded and still awaits platform review', '人工处理已登记，仍待平台复核'),
+ 'merchantOps.aftercare.processingHint.REFUNDED': ('The platform confirmed the money was returned', '平台已确认款项退回'),
+ 'merchantOps.aftercare.processingHint.UNKNOWN': ('The current status cannot be judged safely; refresh later', '当前状态无法安全判断，请稍后刷新'),
+ 'merchantOps.aftercare.readOnly.role': ('Your role can only view this. Ask the store owner to adjust permissions.', '当前岗位只有查看权限，请联系店主调整权限。'),
+ 'merchantOps.aftercare.readOnly.closed': ('Platform review has ended; no further merchant opinion can be added.', '平台审核已结束，不能再追加商家意见。'),
 }
 
 def main():
     strings = {k: {'extractionState': 'manual', 'localizations': {'en': {'stringUnit': {'state': 'translated', 'value': en}},
                'zh-Hans': {'stringUnit': {'state': 'translated', 'value': zh}}}} for k, (en, zh) in sorted(ROWS.items())}
     for key, (en, zh) in ROWS.items():
-        specs = re.findall(r'%(?:lld|@)', key)
-        assert re.findall(r'%(?:lld|@)', en) == specs == re.findall(r'%(?:lld|@)', zh), key
+        count = lambda text: len(re.findall(r'%(?:\d\$)?(?:lld|@)', text))
+        assert count(en) == count(key) == count(zh), key
     out = ROOT / 'Resources/MerchantOps.xcstrings'
     out.write_text(json.dumps({'sourceLanguage': 'en', 'strings': strings, 'version': '1.0'}, ensure_ascii=False, indent=2, sort_keys=True) + '\n')
-    used = set()
-    for path in sorted((ROOT / 'App').glob('*.swift')):
-        used |= set(re.findall(r'MerchantOpsCopy\.text\("(merchantOps\.[^"]+)"', path.read_text()))
+    used, sources = set(), ''
+    for path in sorted((ROOT / 'App').glob('*.swift')) + sorted((ROOT / 'Core').glob('*.swift')):
+        text = path.read_text(); sources += text
+        used |= set(re.findall(r'MerchantOpsCopy\.text\("(merchantOps\.[^"]+)"', text))
+    # Keys chosen at runtime (row status, platform steps) must be spelled out in Core or reached by a listed prefix.
+    for key in strings:
+        if '"' + key + '"' in sources or any(key.startswith(prefix) and '"' + prefix + '"' in sources for prefix in DYNAMIC_PREFIXES):
+            used.add(key)
+    used = {key for key in used if not key.endswith('.')}
     assert used == set(strings), sorted(used ^ set(strings))
     print(len(strings), 'keys')
 
