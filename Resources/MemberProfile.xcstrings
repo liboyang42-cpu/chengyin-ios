@@ -865,6 +865,22 @@
         }
       }
     },
+    "member.profile.introductionPrompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe how you like to explore the city"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写一句你喜欢的城市探索方式"
+          }
+        }
+      }
+    },
     "member.unlike.action": {
       "localizations": {
         "en": {
