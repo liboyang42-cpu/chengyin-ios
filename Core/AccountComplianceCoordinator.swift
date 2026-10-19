@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ComplianceStep: Equatable { case idle, notice, blocked, verify, review, pending, freshLogin, unknown }
+public enum ComplianceStep: Equatable { case idle, notice, blocked, verify, verificationUnavailable, review, pending, freshLogin, unknown }
 public enum ComplianceRoamCleanup: Equatable { case idle, serverConfirmed, trackingStopped, complete }
 public struct ComplianceState {
     public var step: ComplianceStep = .idle
@@ -70,7 +70,7 @@ public struct ComplianceState {
             let result = try await self.service.status(session: session); try self.fence(session, stamp)
             self.state.status = result
             let unresolved = try self.service.unresolved("deregister", session: session)
-            self.state.step = unresolved != nil && !result.pending ? .unknown : result.pending ? .pending : result.blocked ? .blocked : result.status == "NORMAL" ? .notice : .unknown
+            self.state.step = unresolved != nil && !result.pending ? .unknown : result.pending ? .pending : result.blocked ? .blocked : result.startable ? .notice : .unknown
         }
     }
     public func precheckAndAgree(documentRead: Bool, explicitAgreement: Bool) async {
@@ -79,6 +79,8 @@ public struct ComplianceState {
             let result = try await self.service.precheck(session: session); try self.fence(session, stamp)
             self.state.status = result
             guard result.eligible else { self.state.step = result.blocked ? .blocked : .unknown; return }
+            // No consent is recorded when this device cannot complete the server's verification method.
+            guard result.verificationAvailableOnThisDevice else { self.state.step = .verificationUnavailable; return }
             _ = try await self.service.consent(.cancellation, event: .agree, requestID: self.requestID, session: session)
             try self.fence(session, stamp); self.noticeAccepted = true; self.state.step = .verify
         }

@@ -91,7 +91,7 @@ struct SquarePostContent: View {
                 LabeledContent("square.routeProgress", value: "\(post.nodeDoneCount) / \(post.nodeTotal)")
             }
             if post.completed { Label("square.completed", systemImage: "checkmark.circle") }
-            if !post.createTime.isEmpty { Text(verbatim: post.createTime).font(.caption).foregroundStyle(.secondary) }
+            if !post.createTime.isEmpty { SquareXcxRelativeTime(createTime: post.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
             LabeledContent("square.likes", value: String(max(0, post.likeCount)))
             LabeledContent("square.comments", value: String(max(0, post.commentCount)))
             if post.disclosureType != "NONE" { LabeledContent("square.disclosure", value: post.disclosureType) }
