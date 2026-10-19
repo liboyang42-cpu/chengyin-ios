@@ -2859,6 +2859,23 @@ final class AppSession: ObservableObject {
                   ContentDraftContextFence.matches(captured, current) else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
+    /// Passport tools (那年今日 / 月度回顾 / 探索目标 / 时光胶囊 / 导出). No reviewed approval exists yet, so the
+    /// access selector returns nil and every call fails closed as not configured; writes need a separate grant.
+    private var roamPrivateToolsAccess: (RuntimeDependencyContext) -> RoamPrivateToolsAccess? { { _ in nil } }
+    lazy var roamPassportToolsReader = RoamPassportToolsSessionReader(
+        service: regionalConfiguration?.apiConfiguration.map { RoamPassportToolsService(configuration: $0, transport: compositionTransport) },
+        current: { [weak self] in self?.currentRuntimeDependencyContext }, access: roamPrivateToolsAccess,
+        onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext, ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
+    lazy var roamPrivateToolsReader = RoamPrivateToolsSessionReader(
+        service: regionalConfiguration?.apiConfiguration.map { RoamPrivateToolsService(configuration: $0, transport: compositionTransport) },
+        current: { [weak self] in self?.currentRuntimeDependencyContext }, access: roamPrivateToolsAccess,
+        onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext, ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
     lazy var roamNearbyEventsReader = RoamNearbyEventsReader(configuration: regionalConfiguration?.apiConfiguration,
         transport: compositionTransport.scopedForManualMap(roamMapSelection),
         current: { [weak self] in self?.currentRuntimeDependencyContext },

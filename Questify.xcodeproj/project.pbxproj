@@ -5904,6 +5904,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "2318FF82B1DC0DCE9D8CAA5F";
 		};
+		"0C928008D2E5E214A8636622" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/RoamExplorationExportView.swift";
+			"sourceTree" = "<group>";
+		};
+		"C5BE5BC7235F2CAFBB9FDF79" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0C928008D2E5E214A8636622";
+		};
 		"E857D36452456D3482E1B9CD" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -6043,6 +6053,16 @@
 		"79DA9397744C7C154103B1CF" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "523AE5952B9A6634B0811C90";
+		};
+		"3CB33A45B1864CD142AF773E" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/RoamPassportPrivateToolsViews.swift";
+			"sourceTree" = "<group>";
+		};
+		"28AA44B4A5811D4BB9F2A649" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3CB33A45B1864CD142AF773E";
 		};
 		"668F97321EEB42214680375B" = {
 			"isa" = "PBXFileReference";
@@ -14244,6 +14264,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "BFB6AC9FB30F3B36B8BC8A0D";
 		};
+		"5B7B2AC854289C3CA35D6836" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamExplorationExport.swift";
+			"sourceTree" = "<group>";
+		};
+		"DA4751BC3AC62DB05B09532C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "5B7B2AC854289C3CA35D6836";
+		};
+		"2049925FFC35178D54938B3A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamExplorationGoals.swift";
+			"sourceTree" = "<group>";
+		};
+		"2E6E7D354618E6B4616E9BD3" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "2049925FFC35178D54938B3A";
+		};
 		"46990D310D953F3B3053F228" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -14393,6 +14433,46 @@
 		"793187C56699B9B72F1FECDC" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "C9C37D1C59B453BFDA366A8F";
+		};
+		"E252ADDE1FA473DCBB473A69" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamPassportPrivateCoordinators.swift";
+			"sourceTree" = "<group>";
+		};
+		"70489219B4B8982CDC2FA9AA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E252ADDE1FA473DCBB473A69";
+		};
+		"21F3840C7C8C00B298D805D9" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamPassportPrivateTools.swift";
+			"sourceTree" = "<group>";
+		};
+		"949719770D88BCDD04E2F4ED" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "21F3840C7C8C00B298D805D9";
+		};
+		"65CAC283959DCA0ED0C9E8DC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamPassportPrivateToolsFixture.swift";
+			"sourceTree" = "<group>";
+		};
+		"21DA9090281D56DC06EA7E82" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "65CAC283959DCA0ED0C9E8DC";
+		};
+		"E95B179F0415ABC71A5BB6BF" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamPassportPrivateToolsReading.swift";
+			"sourceTree" = "<group>";
+		};
+		"F9ECF0295C22CF6E802ECDE2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E95B179F0415ABC71A5BB6BF";
 		};
 		"6FDA8EBC445259A3CE3372D3" = {
 			"isa" = "PBXFileReference";
@@ -17917,6 +17997,7 @@
 				"98191369B95665B87E336A80",
 				"DA94D07248C5EB3751E87A2F",
 				"2318FF82B1DC0DCE9D8CAA5F",
+				"0C928008D2E5E214A8636622",
 				"E857D36452456D3482E1B9CD",
 				"B1A9D8A058F19F46EDE93260",
 				"00606821E4046C1436F10400",
@@ -17931,6 +18012,7 @@
 				"7509101505DFAD3C4D24B68A",
 				"69650D613E76E55B8D730ACE",
 				"523AE5952B9A6634B0811C90",
+				"3CB33A45B1864CD142AF773E",
 				"668F97321EEB42214680375B",
 				"B0BB78CCABF1863D0BFEAF28",
 				"DD40F54D852648375ACF4657",
@@ -18751,6 +18833,8 @@
 				"564A620F18783BC67F9AF8B3",
 				"7DCB6B30D63AEAABB44AADD2",
 				"BFB6AC9FB30F3B36B8BC8A0D",
+				"5B7B2AC854289C3CA35D6836",
+				"2049925FFC35178D54938B3A",
 				"46990D310D953F3B3053F228",
 				"772D40228F534FE33C49320A",
 				"1B681AF38E2E65C8F79D6BD3",
@@ -18766,6 +18850,10 @@
 				"35154F36C7018B20AAF0598C",
 				"DC9FC35680F4ED3C6DBC9119",
 				"C9C37D1C59B453BFDA366A8F",
+				"E252ADDE1FA473DCBB473A69",
+				"21F3840C7C8C00B298D805D9",
+				"65CAC283959DCA0ED0C9E8DC",
+				"E95B179F0415ABC71A5BB6BF",
 				"6FDA8EBC445259A3CE3372D3",
 				"72985904EBDFB65D35ECD889",
 				"4BBA5C7FB1D4F668B0E1D8EA",
@@ -19244,6 +19332,7 @@
 				"D82D5AD3E1E0CBF0DDFC3581",
 				"4DC4832211F72143EFABB571",
 				"553DF77F96406A86BCEBB3CE",
+				"D5FA25691337EC63CDE98CAA",
 				"4336B29B5BACDCA8A8555F22",
 				"70C525399965EA01F9B984FA",
 				"B3CD3FAF641329E87594C108",
@@ -20284,6 +20373,7 @@
 				"7F621435A3A09548E2FB286B",
 				"45A29371F1F4EA014D38667B",
 				"AD304DC12A48222D7A750587",
+				"C5BE5BC7235F2CAFBB9FDF79",
 				"F786C0FE961AE5B5C3EB82DC",
 				"3E28833F9E73CC097C28F488",
 				"D6F0C489AA24B9C100101467",
@@ -20298,6 +20388,7 @@
 				"6F1E4A1C6E8FEA5111FBE675",
 				"E88803D820E882AFD201D6CB",
 				"79DA9397744C7C154103B1CF",
+				"28AA44B4A5811D4BB9F2A649",
 				"72E99C557D442BCDA9582C41",
 				"EF9590294A51C21829EC6858",
 				"965E86053841AF8D77D9396A",
@@ -21118,6 +21209,8 @@
 				"32DE325360E3358396DC20E3",
 				"08DD24917979F39801C2B1F3",
 				"30190F4593D03F087428FEDC",
+				"DA4751BC3AC62DB05B09532C",
+				"2E6E7D354618E6B4616E9BD3",
 				"38A53194702DB0EF02E928A8",
 				"634154C7DDBF21BE16ABC77E",
 				"096DF8857E10FABFB3243A82",
@@ -21133,6 +21226,10 @@
 				"8879BA5FF8CACD05DF4F3399",
 				"5E14714E350D7A91D61CD93E",
 				"793187C56699B9B72F1FECDC",
+				"70489219B4B8982CDC2FA9AA",
+				"949719770D88BCDD04E2F4ED",
+				"21DA9090281D56DC06EA7E82",
+				"F9ECF0295C22CF6E802ECDE2",
 				"51A32178A4B30DEB13747B08",
 				"9E0A8B90174A758B608B867C",
 				"967084D9C7864FDE26C78B3C",
@@ -23395,6 +23492,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "553DF77F96406A86BCEBB3CE";
 		};
+		"D5FA25691337EC63CDE98CAA" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/RoamPassportPrivateToolsFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"413BAEBF40AE8F8EE14B965A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D5FA25691337EC63CDE98CAA";
+		};
 		"4336B29B5BACDCA8A8555F22" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -23952,6 +24059,7 @@
 				"88F9AE049D16A837BEF86A3B",
 				"680E1B200023A3EE1BF9EBA3",
 				"BEB4D8A488A1F44F6C7F46DD",
+				"413BAEBF40AE8F8EE14B965A",
 				"A13881D50F46399BCEABEA5F",
 				"5B2FE7714EB775F9C32DA260",
 				"E733270D14301C094A1F7535",

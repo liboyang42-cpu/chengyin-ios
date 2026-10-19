@@ -23,6 +23,9 @@ struct RoamBrowserView: View {
     var couponWalletDestination: (() -> AnyView)? = nil
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    /// Passport tools: 那年今日 / 月度回顾 and the private 探索目标 / 时光胶囊 / 导出.
+    var passportToolsReader: (any RoamPassportToolsReading)? = nil
+    var privateToolsReader: (any RoamPrivateToolsServing)? = nil
     @State private var layer: RoamLayer = .places
     @State private var radiusM = 3000
     @State private var placeFilter: RoamPlaceFilter = .all
@@ -151,7 +154,7 @@ struct RoamBrowserView: View {
                 if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
                 if let experienceReader {
                     ToolbarItem(placement: .topBarLeading) {
-                        NavigationLink { RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination) } label: {
+                        NavigationLink { RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: passportToolsReader, privateToolsReader: privateToolsReader) } label: {
                             Label("roam.experience.title", systemImage: "book.closed")
                         }.accessibilityIdentifier("roam.experience.open")
                     }
