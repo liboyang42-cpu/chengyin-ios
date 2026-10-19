@@ -251,13 +251,13 @@
   },
   {
     "key": "profile.participants.empty",
-    "en": "No participants yet",
-    "zh-Hans": "暂无参与人"
+    "en": "No participant information yet",
+    "zh-Hans": "还没有参与人信息"
   },
   {
     "key": "profile.participants.emptyHint",
-    "en": "Saved participant information will appear here.",
-    "zh-Hans": "已保存的参与人信息会显示在这里。"
+    "en": "Registrations need a contact. Add one here and choose it when you register.",
+    "zh-Hans": "报名活动需要填写联系人；新增后可在报名时直接选用"
   },
   {
     "key": "profile.participants.unnamed",
@@ -281,8 +281,8 @@
   },
   {
     "key": "profile.participants.phone",
-    "en": "Phone",
-    "zh-Hans": "联系电话"
+    "en": "Mobile number",
+    "zh-Hans": "手机号"
   },
   {
     "key": "profile.participants.savedAddress",

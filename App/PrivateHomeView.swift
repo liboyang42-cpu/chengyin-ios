@@ -29,6 +29,7 @@ import SwiftUI
     @State private var invalidInput = false
     @State private var picker: PrivateHomeMapPickerModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.homeReturnCoordinator) private var homeReturn
     init(model: PrivateHomeCoordinator, mapAdapter: (any PrivateHomeMapPointPicking)? = nil) {
         self.model = model
         _picker = State(initialValue: PrivateHomeMapPickerModel(owner: model, adapter: mapAdapter ?? PrivateHomeInactiveMapKitAdapter()))
@@ -91,6 +92,7 @@ import SwiftUI
                     Button("privateHome.retry") { Task { await model.retryExact() } }.accessibilityIdentifier("privateHome.retry")
                 }
             }
+            HomeReturnSection(model: homeReturn, home: model.home)
         }
         .navigationTitle("privateHome.title").privacySensitive().accessibilityIdentifier("privateHome.host")
         .task { await model.load() }

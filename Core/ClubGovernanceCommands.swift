@@ -35,7 +35,8 @@ public enum ClubGovernanceMutation: String, CaseIterable {
         switch self {
         case .hostApply, .report, .appeal: return nil
         case .transferOwner, .reportHours, .submitEvidence, .dissolve: return "OWNER"
-        case .saveCustomer: return "club:member:list:read"
+        // Backend tag-remark uses the same canGovernClub/MEMBER_MANAGE rule as the directory reads.
+        case .saveCustomer: return "CUSTOMER_DIRECTORY"
         case .createSeries, .updateSeries, .cancelOccurrence: return "club:activity:manage"
         case .correctAttendance, .issueGroupCode: return "club:event:checkin"
         case .ban, .unban: return "club:member:manage"
@@ -82,7 +83,8 @@ public struct ClubGovernanceCommand: Equatable {
     public let operation: ClubGovernanceMutation
     public let scope: ClubGovernanceScope
     public let fields: [String: ClubGovernanceValue]
-    public init(operation: ClubGovernanceMutation, scope: ClubGovernanceScope, values: [String: ClubGovernanceValue]) throws {
+    public static let maximumClubBanMilliseconds = 90 * 86_400_000
+    public init(operation: ClubGovernanceMutation, scope: ClubGovernanceScope, values: [String: ClubGovernanceValue], now: Date = Date()) throws {
         try scope.validate()
         self.operation = operation; self.scope = scope
         var result: [String: ClubGovernanceValue] = [:]
@@ -97,7 +99,7 @@ public struct ClubGovernanceCommand: Equatable {
             scopeKeys = ["clubId", "topicId"]; requiredKeys = ["recurrenceType", "startDate", "startTime", "occurrenceCount", "customDates", "capacity", "defaultLeadMemberId", "waitlistEnabled", "offerMinutes"] + (operation == .createSeries ? ["requestId"] : ["expectedVersion"])
         case .cancelOccurrence: scopeKeys = ["clubId", "activityId"]; requiredKeys = ["reason", "requestId"]
         case .correctAttendance: scopeKeys = ["clubId", "activityId", "memberId"]; requiredKeys = ["arrived", "expectedVersion", "reason", "requestId"]
-        case .ban: scopeKeys = ["clubId"]; requiredKeys = ["targetMemberId", "reason", "expiresAt", "requestId"]
+        case .ban: scopeKeys = ["clubId"]; requiredKeys = ["targetMemberId", "reason", "requestId"]; optionalKeys = ["expiresAt", "expiresAtEpochMs"]
         case .unban: scopeKeys = ["clubId"]; requiredKeys = ["banId", "version", "reason", "requestId"]
         case .transferOwner: scopeKeys = ["clubId"]; requiredKeys = ["targetMemberId", "reason", "requestId"]
         case .report: scopeKeys = ["clubId"]; requiredKeys = ["targetType", "targetId", "reason", "requestId"]
@@ -126,9 +128,11 @@ public struct ClubGovernanceCommand: Equatable {
         if [.chapterRecruit, .chapterFinish].contains(operation) { guard (result["scope"] ?? .string("")) == .string("") else { throw ClubGovernanceFailure.invalidRequest }; result["scope"] = .string("") }
         if operation == .dissolve { result["id"] = .integer(scope.clubID ?? 0); guard result["dissolveConfirmed"] == .bool(true), result["memberConsequencesConfirmed"]?.bool != nil else { throw ClubGovernanceFailure.invalidRequest } }
         if let request = result["requestId"] { guard let id = request.string, !id.isEmpty, id.count <= 200 else { throw ClubGovernanceFailure.invalidRequest } }
-        for key in ["targetMemberId", "banId", "assignmentId", "targetId", "defaultLeadMemberId"] where result[key] != nil { guard (result[key]?.int ?? 0) > 0 else { throw ClubGovernanceFailure.invalidRequest } }
+        // createSeries alone may send an explicit null lead: the server resolves it to the club owner.
+        for key in ["targetMemberId", "banId", "assignmentId", "targetId", "defaultLeadMemberId"] where result[key] != nil && !(operation == .createSeries && key == "defaultLeadMemberId" && result[key] == .null) { guard (result[key]?.int ?? 0) > 0 else { throw ClubGovernanceFailure.invalidRequest } }
         for key in ["version", "expectedVersion"] where result[key] != nil { guard let raw = result[key], case .integer(let version) = raw, version >= 0 else { throw ClubGovernanceFailure.invalidRequest } }
-        if let reason = result["reason"] { guard let value = reason.string, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw ClubGovernanceFailure.invalidRequest } }
+        // Unban review notes are optional upstream (blank is stored as none); every other reason stays required.
+        if let reason = result["reason"] { guard let value = reason.string, operation == .unban ? value.trimmingCharacters(in: .whitespacesAndNewlines).count <= 500 : !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw ClubGovernanceFailure.invalidRequest } }
         for key in ["arrived", "waitlistEnabled", "coopOpen", "pinned", "memberOnly"] where result[key] != nil { guard result[key]?.bool != nil else { throw ClubGovernanceFailure.invalidRequest } }
         if [.cancelOccurrence, .correctAttendance].contains(operation) {
             let count = Self.fieldsReasonLength(result)
@@ -152,7 +156,16 @@ public struct ClubGovernanceCommand: Equatable {
         if operation == .report { guard ["CLUB", "ACTIVITY", "MEMBER"].contains(result["targetType"]?.string ?? "") else { throw ClubGovernanceFailure.invalidRequest } }
         if operation == .sendNotification { try Self.validateNotification(result, scope: scope) }
         if operation == .chapterRecruit { guard [0, 1].contains(result["enabled"]?.int ?? -1) else { throw ClubGovernanceFailure.invalidRequest } }
-        if operation == .ban { guard let expiration = result["expiresAt"]?.string, !expiration.isEmpty else { throw ClubGovernanceFailure.invalidRequest } }
+        if operation == .ban {
+            // Exactly one expiry form. The absolute instant must be in the future and within the 90-day club cap.
+            switch (result["expiresAt"], result["expiresAtEpochMs"]) {
+            case (.some(let expiration), .none): guard let text = expiration.string, !text.isEmpty else { throw ClubGovernanceFailure.invalidRequest }
+            case (.none, .some(.integer(let epoch))):
+                let nowMs = Int((now.timeIntervalSince1970 * 1000).rounded(.down))
+                guard epoch > nowMs, epoch - nowMs <= Self.maximumClubBanMilliseconds else { throw ClubGovernanceFailure.invalidRequest }
+            default: throw ClubGovernanceFailure.invalidRequest
+            }
+        }
         if operation == .reportHours { guard ["PREP", "CONTENT", "ONSITE", "REVIEW"].contains(result["hourKind"]?.string ?? ""), let number = result["actualHours"]?.number, number.isFinite, number >= 0 else { throw ClubGovernanceFailure.invalidRequest } }
         if operation == .submitEvidence { guard ["DELIVERY_SAFETY", "PLAYER_EXPERIENCE", "CONTENT_REPORT"].contains(result["dimension"]?.string ?? ""), Self.matches(result["evidenceHash"]?.string, "^[0-9a-f]{64}$") else { throw ClubGovernanceFailure.invalidRequest } }
         if operation == .hostApply {

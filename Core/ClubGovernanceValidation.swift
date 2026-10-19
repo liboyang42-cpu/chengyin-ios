@@ -32,7 +32,7 @@ public enum ClubGovernanceValidation {
             let summary = value["summary"]
             try require(summary["memberId"].int == scope.memberID && count(summary["arrivedCount"]) && count(summary["pendingCount"]) && count(summary["refundedCount"]))
             if summary["paidAmount"] != .null && summary["paidAmount"] != .string("") { try require((summary["paidAmount"].number ?? -1) >= 0) }
-            for row in try rows(value["records"]) { try require(nonempty(row["key"]) && ["VERIFIED", "PENDING", "CONTACTED", "REFUNDED", "REGISTERED"].contains(row["statusCode"].string ?? "")) }
+            for row in try rows(value["records"]) { try require(nonempty(row["key"]) && ["VERIFIED", "PENDING", "CONTACTED", "REFUNDED", "CANCELLED", "REGISTERED"].contains(row["statusCode"].string ?? "")) }
             guard let tags = value["tags"].array else { throw ClubGovernanceFailure.malformed }
             try require(tags.allSatisfy { nonempty($0) || nonempty($0["name"]) })
         case .checkin:
@@ -67,7 +67,13 @@ public enum ClubGovernanceValidation {
                 if row["sourceType"] == .string("CLUB") { try require(nonempty(row["expiresAt"])) }
             }
         case .cases:
-            let list = try rows(value); try unique(list, key: "id")
+            // `{"data": [...], "activeBan": …}` carries the appeal fact: null is a known "none"; a value must be this club's active ban.
+            if let object = value.object {
+                let ban = object["activeBan"] ?? .null
+                try require(Set(object.keys) == ["data", "activeBan"])
+                if ban != .null { try require(ban.object != nil && positive(ban["id"]) && ban["clubId"].int == scope.clubID && ban["status"] == .string("ACTIVE") && ["CLUB", "PLATFORM"].contains(ban["sourceType"].string ?? "")) }
+            }
+            let list = try rows(value.object == nil ? value : value["data"]); try unique(list, key: "id")
             for row in list {
                 try require(row["clubId"].int == scope.clubID && version(row["version"]) && positive(row["targetId"]) && ["PENDING", "APPROVED", "REJECTED"].contains(row["status"].string ?? ""))
                 try require((row["caseType"] == .string("APPEAL") && row["targetType"] == .string("BAN")) || (row["caseType"] == .string("REPORT") && ["CLUB", "ACTIVITY", "MEMBER"].contains(row["targetType"].string ?? "")))
@@ -159,7 +165,12 @@ public enum ClubGovernanceValidation {
 extension ClubGovernanceCommand {
     public func validateReview(_ snapshot: ClubGovernanceSnapshot, accountID: Int) throws {
         guard snapshot.operation == operation.reviewRead, snapshot.scope == scope else { throw ClubGovernanceFailure.targetChanged }
-        if operation != .hostApply { guard let p = snapshot.permissions else { throw ClubGovernanceFailure.forbidden }; try authorize(p) }
+        if operation == .appeal {
+            // An inactive (banned) viewer may appeal only a known active ban; a known "no ban" blocks everyone.
+            let ban = snapshot.value.object?["activeBan"]
+            guard ban != ClubGovernanceValue.null else { throw ClubGovernanceFailure.forbidden }
+            if let p = snapshot.permissions { try authorize(p) } else { guard ban?.object != nil else { throw ClubGovernanceFailure.forbidden } }
+        } else if operation != .hostApply { guard let p = snapshot.permissions else { throw ClubGovernanceFailure.forbidden }; try authorize(p) }
         let value = snapshot.value
         switch operation {
         case .hostApply: guard value["registered"] == .bool(true), value["accountID"].int == accountID, !["merchant", "club"].contains(value["accountRole"].string ?? "merchant") else { throw ClubGovernanceFailure.forbidden }

@@ -89,47 +89,34 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
 /// Playback-only category, never requests microphone access or background-audio entitlement.
 @MainActor final class NativePlatformAudioDriver: NSObject, PlatformAudioDriving, AVAudioPlayerDelegate {
     private let dependencies: NativePlatformAudioDependencies
-    private let notifications: NotificationCenter
     private var player: (any NativePlatformAudioPlaying)?
     private var download: (any NativePlatformAudioDownloading)?
     private var generation = 0
     private var sessionActive = false
     private var event: (@MainActor (PlatformAudioEvent) -> Void)?
-    private var observers: [NSObjectProtocol] = []
+    private let lifecycle: NativeAudioLifecycleObservation
+    var lifecycleRegistrations: Int { lifecycle.registrations }
     override convenience init() { self.init(dependencies: .live) }
     init(dependencies: NativePlatformAudioDependencies) {
         self.dependencies = dependencies
-        notifications = dependencies.notifications
+        lifecycle = .init(notifications: dependencies.notifications, enqueue: dependencies.enqueue)
         super.init()
     }
-    private func observeLifecycle(token: Int) {
-        let enqueue = dependencies.enqueue
-        for name in [AVAudioSession.interruptionNotification, AVAudioSession.routeChangeNotification,
-                     AVAudioSession.mediaServicesWereResetNotification, UIApplication.didEnterBackgroundNotification] {
-            observers.append(notifications.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
-                let interruption = (notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? NSNumber)?.uintValue
-                let route = (notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? NSNumber)?.uintValue
-                enqueue { [weak self] in
-                    // An already enqueued notification still belongs to the run that registered it.
-                    guard let self, self.generation == token, self.event != nil else { return }
-                    if name == AVAudioSession.interruptionNotification,
-                       interruption == AVAudioSession.InterruptionType.ended.rawValue { return }
-                    // setCategory during this driver's own start also emits a route change.
-                    // An incompatible category takeover remains a stop-worthy event.
-                    if name == AVAudioSession.routeChangeNotification,
-                       route == AVAudioSession.RouteChangeReason.categoryChange.rawValue,
-                       self.dependencies.hasPlaybackConfiguration() { return }
-                    self.finish(.interrupted)
-                }
-            })
+    private func observeLifecycle() {
+        lifecycle.observe { [weak self] signal in
+            guard let self, self.event != nil,
+                  // setCategory during this driver's own start also emits a route change;
+                  // an incompatible category takeover remains a stop-worthy event.
+                  PlatformAudioLifecyclePolicy.action(for: signal, ownsConfiguration: self.dependencies.hasPlaybackConfiguration()) == .stop
+            else { return }
+            self.finish(.interrupted)
         }
     }
-    deinit { observers.forEach(notifications.removeObserver) }
     func start(source: PlatformMediaSource, policy: PlatformMediaPolicy, event: @escaping @MainActor (PlatformAudioEvent) -> Void) {
         stop(); self.event = event
         guard policy.allows(source.url) else { finish(.failed); return }
         let token = generation
-        observeLifecycle(token: token)
+        observeLifecycle()
         let download = dependencies.makeDownload(policy); self.download = download
         let enqueue = dependencies.enqueue
         download.start(source.url) { [weak self] data in
@@ -154,7 +141,7 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
     }
     func stop() {
         generation += 1
-        observers.forEach(notifications.removeObserver); observers.removeAll()
+        lifecycle.invalidate()
         download?.cancel(); download = nil
         player?.stop(); player?.delegate = nil; player = nil; event = nil
         let usedSession = sessionActive; sessionActive = false

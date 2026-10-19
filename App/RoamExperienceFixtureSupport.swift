@@ -54,10 +54,13 @@ import SwiftUI
     @State private var reader: RoamExperienceFixtureReader
     @State private var revision = 0
     @State private var liveFixture: RoamLiveFixture
+    @State private var toolsReader: RoamPassportToolsFixtureReader
     init() {
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-roam-experience-scenario")
         let raw = index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil }
+        let tools: RoamPassportToolsFixtureReader.Scenario = raw == "empty" ? .empty : raw == "failure" ? .failure : raw == "unauthorized" ? .unauthorized : .content
+        _toolsReader = State(initialValue: RoamPassportToolsFixtureReader(scenario: tools))
         _liveFixture = State(initialValue: RoamLiveFixture(failReveal: raw == "liveUnknown"))
         _reader = State(initialValue: RoamExperienceFixtureReader(scenario: raw.flatMap(RoamExperienceFixtureReader.Scenario.init(rawValue:)) ?? .content))
     }
@@ -75,7 +78,7 @@ import SwiftUI
                 Button("roam.experience.fixtureSignOut") { reader.signOut(); revision += 1 }
                     .accessibilityIdentifier("roam.experience.fixture.signOut")
             }
-            NavigationStack { RoamExperienceHubView(reader: reader, stampDestination: stampDestination, liveDestination: liveDestination) }.id(revision)
+            NavigationStack { RoamExperienceHubView(reader: reader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: toolsReader) }.id(revision)
         }
     }
 }

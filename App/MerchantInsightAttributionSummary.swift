@@ -3,6 +3,7 @@ import SwiftUI
 struct MerchantInsightAttributionSummary: View {
     let summary: MerchantInsightAttribution
     let isCurrent: Bool
+    var facts: MerchantMarketingValue = .null
     var body: some View {
         Section("merchant.insightAttribution.title") {
             if !isCurrent {
@@ -16,6 +17,7 @@ struct MerchantInsightAttributionSummary: View {
                     LabeledContent("merchant.insightAttribution.checkins", value: String(counts.checkins))
                     LabeledContent("merchant.insightAttribution.redeems", value: String(counts.redeems))
                     if counts.isEmpty { Text("merchant.insightAttribution.empty").foregroundStyle(.secondary) }
+                    MerchantInsightParityRows(facts: facts, isEmpty: counts.isEmpty)
                 } else {
                     Text("merchant.insightAttribution.unavailable").foregroundStyle(.secondary)
                         .accessibilityIdentifier("merchant.insightAttribution.unavailable")

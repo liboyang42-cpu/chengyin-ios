@@ -6,7 +6,7 @@ import FoundationNetworking
 public enum CoopFlowRead: Equatable {
     case invitations, pool, applications, receivedApplications, registrations
     case finance, myBusiness, templates, perks(inviteID: Int), reviewSummary(memberID: Int), credit(memberID: Int?)
-    case complaintTopics, relations, clubs(name: String?), nearby(longitude: Double, latitude: Double)
+    case complaintTopics, complaintProgress, relations, clubs(name: String?), nearby(longitude: Double, latitude: Double)
     case depositStatus(inviteID: Int)
     case merchants(name: String?), ownedTopics(kind: CoopFlowTargetKind, scope: String?, page: Int)
     /// Source `pages/coop/list` legs: official merchant invites (GET) and merchant chapter applications.
@@ -19,7 +19,8 @@ public enum CoopFlowRead: Equatable {
         case .finance: return "api/coop/finance"; case .myBusiness: return "api/coop/mybiz"
         case .templates: return "api/coop/perk-template/list"; case .perks: return "api/coop/perks/list"
         case .reviewSummary: return "api/coop/review/summary"; case .credit: return "api/coop/credit"
-        case .complaintTopics: return "api/coop/complaint/topics"; case .relations: return "api/merchant/relation-home"
+        case .complaintTopics: return "api/coop/complaint/topics"; case .complaintProgress: return "api/coop/complaint/mine"
+        case .relations: return "api/merchant/relation-home"
         case .clubs: return "api/merchant/clubs"; case .nearby: return "api/merchant/nearby"
         case .depositStatus: return "api/coop/deposit/status"
         case .merchants: return "api/club/merchants"
@@ -29,7 +30,7 @@ public enum CoopFlowRead: Equatable {
         case .chapterApplicationsMine: return "api/merchant/chapter-application/mine"
         }
     }
-    public var expectsArray: Bool { switch self { case .applications, .receivedApplications, .templates, .perks, .complaintTopics, .clubs, .merchants, .nearby,
+    public var expectsArray: Bool { switch self { case .applications, .receivedApplications, .templates, .perks, .complaintTopics, .complaintProgress, .clubs, .merchants, .nearby,
                                                    .officialMerchantInvites, .chapterApplicationsOwned, .chapterApplicationsMine: return true; default: return false } }
     public func body() throws -> CoopFlowJSON {
         switch self {

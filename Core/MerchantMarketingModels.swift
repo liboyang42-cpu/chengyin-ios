@@ -87,6 +87,9 @@ public struct MerchantMarketingAccess: Equatable {
     }
     public var canReadMarketing: Bool { active && permissions.contains("merchant:marketing:read") }
     public var canSettlePrediction: Bool { active && permissions.contains("merchant:project:manage") }
+    /// Source utils/merchant-access-policy.js tool filters on the marketing home.
+    public var canManageProjects: Bool { canSettlePrediction }
+    public var canManageCoop: Bool { active && permissions.contains("merchant:coop:manage") }
 }
 
 public struct MerchantMarketingDashboard: Equatable {

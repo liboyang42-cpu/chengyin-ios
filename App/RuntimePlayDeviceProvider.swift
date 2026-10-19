@@ -22,8 +22,13 @@ import Foundation
         guard supported.contains(kind) else { throw PlayExperienceError.disabled }
         let result: PlayDeviceOutput
         if kind == .location {
-            let fix = try RuntimeLocationProjection.gcj02(await location.currentFix())
-            try PlayLocationMeasurement.validate(accuracyMeters: fix.accuracyMeters, measuredAt: fix.measuredAt)
+            let raw = try await location.currentFix()
+            // An unprojectable or stale sample is unusable evidence, not an unknown write.
+            let fix: RoamDeviceFix
+            do {
+                fix = try RuntimeLocationProjection.gcj02(raw)
+                try PlayLocationMeasurement.validate(accuracyMeters: fix.accuracyMeters, measuredAt: fix.measuredAt)
+            } catch { throw PlayExperienceError.invalidAction }
             result = .location(fix.coordinate.longitude, fix.coordinate.latitude, coordinateSystem: "GCJ02", accuracyMeters: fix.accuracyMeters, measuredAt: fix.measuredAt)
         } else { result = try await native.capture(kind, context: context) }
         guard isCurrent(), !Task.isCancelled else { throw PlayExperienceError.staleSession }; return result
