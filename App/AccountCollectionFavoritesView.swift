@@ -118,11 +118,12 @@ private struct AccountCollectionFavoriteCard: View {
     private var ownedCouponReader: any AccountCollectionReading { couponReader ?? reader }
     var favoritesReader: (any AccountCollectionReading)? = nil
     private var savedReader: any AccountCollectionReading { favoritesReader ?? reader }
+    var rewardMerchant: PublicMerchantHomeContext? = nil
     var body: some View {
         let saved = savedReader, renderedScope = saved.scope
         Section {
             NavigationLink {
-                NonCashRewardsView(reader: reader, rewards: rewards).id(reader.scope)
+                NonCashRewardsView(reader: reader, rewards: rewards, merchantHome: rewardMerchant).id(reader.scope)
             } label: { Label("rewards.title", systemImage: "gift") }
             .accessibilityIdentifier("rewards.open")
             NavigationLink {

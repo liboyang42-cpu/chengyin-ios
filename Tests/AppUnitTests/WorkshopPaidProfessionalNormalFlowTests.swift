@@ -290,6 +290,41 @@ import UIKit
         XCTAssertTrue(h.wire.writes.isEmpty)
     }
 
+    func testGeneratedReceiptConfigurationUsesSameOwnerReadAndRetiresOnRefresh() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve(write: false, prepare: false)
+        h.wire.command = try F.command(); h.wire.state = "CREATED"
+        let c = try h.controller(), a = WorkshopPaidProfessionalAppearance()
+        await (try XCTUnwrap(c.appear(a)))()
+        await (try XCTUnwrap(c.offerInspect(XCTUnwrap(c.operations.first), displayed: a)))()
+        let result = try XCTUnwrap(c.operation), id = try XCTUnwrap(MemberPlayTemplateID(rawValue: 700))
+        let context = try h.context(), wire = DetailWire()
+        wire.response = Data(#"{"code":200,"data":{"id":700,"memberId":7,"title":"Generated","validationMethod":1,"questionAnswer":"Owner answer"}}"#.utf8)
+        let approval = try TemplateShelfReadApproval(context: context, expiresAt: Date().addingTimeInterval(600))
+        let transport = TemplateShelfReadTransport(configuration: try .init(baseURL: h.base), http: wire,
+            approval: approval, current: { context })
+        let reader = OwnedMemberTemplateReader(transport: transport, authenticated: { true })
+        let selection = WorkshopGeneratedDetailSelection(templateID: id, operation: result, reader: reader, revision: c.generatedDetailRevision)
+        let host = reader.configurationHost(id: id, acceptsResult: {
+            selection.live && selection.revision == c.generatedDetailRevision && c.generatedTemplateID(a, expected: result) == 700
+        })
+        XCTAssertEqual(wire.calls, 0)
+        await host.load(id: id)
+        XCTAssertEqual(host.snapshot?.field(.questionAnswer), .value("Owner answer")); XCTAssertEqual(wire.calls, 1)
+        _ = try XCTUnwrap(c.offerRefreshStatus(a))
+        XCTAssertNil(host.snapshot)
+        await host.load(id: id); XCTAssertEqual(wire.calls, 1)
+        XCTAssertTrue(h.wire.writes.isEmpty)
+    }
+    func testGeneratedReceiptDoesNotGrantIndependentConfigurationRead() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve(write: false, prepare: false)
+        let id = try XCTUnwrap(MemberPlayTemplateID(rawValue: 700))
+        let reader = h.session.makeOwnedMemberTemplateReader()
+        let calls = h.wire.requests.count
+        let host = reader.configurationHost(id: id, acceptsResult: { true })
+        XCTAssertFalse(host.available)
+        await host.load(id: id); XCTAssertNil(host.snapshot)
+        XCTAssertEqual(h.wire.requests.count, calls); XCTAssertTrue(h.wire.writes.isEmpty)
+    }
     func testGeneratedDetailEnvironmentIsNilByDefaultForStandaloneFixtures() {
         XCTAssertNil(EnvironmentValues().workshopGeneratedTemplateReaderFactory)
     }

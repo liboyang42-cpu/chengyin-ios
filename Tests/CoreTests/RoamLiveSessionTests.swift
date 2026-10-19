@@ -1069,7 +1069,7 @@ private final class LiveTransport: HTTPTransport {
         let (owner, service, location, storage, _) = try fixture()
         XCTAssertNil(owner.currentRouteTrack)
         await owner.start(purposeAccepted: true); XCTAssertEqual(owner.currentRouteTrack?.count, 1)
-        await secondPoint(owner, location)
+        try await secondPoint(owner, location)
         let track = try XCTUnwrap(owner.currentRouteTrack); XCTAssertEqual(track.count, 2)
         owner.pause(); XCTAssertEqual(owner.phase, .paused); XCTAssertNil(owner.lastFix)
         let bytes = storage.bytes, fixes = location.calls, reads = service.reads, reveals = service.reveals
@@ -1082,7 +1082,7 @@ private final class LiveTransport: HTTPTransport {
     }
     func testForegroundReturnOnlyReviewsPausedTrackAndExplicitResumeKeepsExistingContract() async throws {
         let (owner, service, location, storage, _) = try fixture()
-        await owner.start(purposeAccepted: true); await secondPoint(owner, location)
+        await owner.start(purposeAccepted: true); try await secondPoint(owner, location)
         let track = try XCTUnwrap(owner.currentRouteTrack)
         owner.setForeground(false); XCTAssertNil(owner.currentRouteTrack)
         let bytes = storage.bytes, fixes = location.calls, reveals = service.reveals
@@ -1102,7 +1102,7 @@ private final class LiveTransport: HTTPTransport {
     }
     func testRestoredRecordDoesNotInventEarlierRouteFromDistanceOrTiles() async throws {
         let (owner, service, location, storage, _) = try fixture()
-        await owner.start(purposeAccepted: true); await secondPoint(owner, location); owner.pause()
+        await owner.start(purposeAccepted: true); try await secondPoint(owner, location); owner.pause()
         XCTAssertGreaterThan(try XCTUnwrap(owner.record).distanceMeters, 0)
         let restored = RoamLiveSessionController(service: service, location: location, journal: .init(storage: storage), now: { self.date })
         restored.prepare(); XCTAssertNil(restored.currentRouteTrack)
@@ -1115,7 +1115,7 @@ private final class LiveTransport: HTTPTransport {
     }
     func testAccountEpochMissingIdentityRevocationAndInvalidateHideOldTrack() async throws {
         let (owner, service, location, storage, scope) = try fixture()
-        await owner.start(purposeAccepted: true); await secondPoint(owner, location); owner.pause()
+        await owner.start(purposeAccepted: true); try await secondPoint(owner, location); owner.pause()
         let current = try XCTUnwrap(service.identity), bytes = storage.bytes, fixes = location.calls
         service.identity = .init(scope: scope, epoch: 2)
         XCTAssertTrue(service.isAvailable); XCTAssertNil(owner.currentRouteTrack)
@@ -1128,7 +1128,7 @@ private final class LiveTransport: HTTPTransport {
     }
     func testFailedPauseKeepsRiskAndViewingNeverRetriesLocation() async throws {
         let (owner, service, location, storage, _) = try fixture()
-        await owner.start(purposeAccepted: true); await secondPoint(owner, location)
+        await owner.start(purposeAccepted: true); try await secondPoint(owner, location)
         let track = try XCTUnwrap(owner.currentRouteTrack)
         location.value = try RoamDeviceFix(coordinate: location.value.coordinate, accuracyMeters: 81,
             measuredAt: date.addingTimeInterval(2), datum: .gcj02)
