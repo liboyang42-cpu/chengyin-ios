@@ -68,7 +68,8 @@ import SwiftUI
                 TeamNotice(coordinator: model.coordinator)
                 if model.running { ProgressView(LocalizedStringKey(TeamPagePresentation.loadingKey(pageKind, hasDetail: model.coordinator.detail != nil))) }
                 if !model.running, let state = TeamPagePresentation.blockingState(kind: pageKind, messageKey: model.coordinator.messageKey,
-                                                                                hasDetail: model.coordinator.detail != nil, legacyTeamID: legacyTeamID) {
+                                                                                hasDetail: model.coordinator.detail != nil, legacyTeamID: legacyTeamID,
+                                                                                failure: model.coordinator.readFailure) {
                     TeamPageStateView(state: state, signIn: onLogin, reload: stateReload)
                 }
                 if let banner = TeamPagePresentation.staleBanner(kind: pageKind, messageKey: model.coordinator.messageKey, hasDetail: model.coordinator.detail != nil) {
@@ -99,7 +100,13 @@ import SwiftUI
                                 .frame(minHeight: 44).disabled(model.actionLocked)
                                 .accessibilityIdentifier("team.invitation.openDetail")
                         }
-                        else if TeamPagePresentation.invitationCTA(detail) == .join { actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail) }
+                        else if TeamPagePresentation.invitationCTA(detail) == .join {
+                            if TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) {
+                                TeamJoinRetryNotice()
+                            }
+                            actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail,
+                                         labelKey: TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) ? "team.page.retryJoin" : nil)
+                        }
                         else { TeamClosedInvitationButton(cta: TeamPagePresentation.invitationCTA(detail)) }
                     }
                     if invitationCode == nil, !readOnly, let code = TeamPagePresentation.joinRouteCode(detail) {

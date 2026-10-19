@@ -96,3 +96,15 @@ struct TeamClosedInvitationButton: View {
             .buttonStyle(.bordered).disabled(true).accessibilityIdentifier("teamPage.closedInvitation")
     }
 }
+
+/// Source join page `cy-inline-error` 暂时无法加入; the retry button below opens a new review.
+struct TeamJoinRetryNotice: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label("team.page.joinFailed", systemImage: "exclamationmark.circle").font(.subheadline.weight(.semibold))
+            Text("team.page.joinFailed.detail").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }.padding().frame(maxWidth: .infinity, alignment: .leading)
+            .background(.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+            .accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.joinFailed")
+    }
+}
