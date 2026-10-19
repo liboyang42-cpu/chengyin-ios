@@ -83,3 +83,19 @@ import SwiftUI
         }
     }
 }
+
+/// Source ai-insight value card delta and the explicit all-zero guidance.
+struct MerchantInsightParityRows: View {
+    let facts: MerchantMarketingValue
+    let isEmpty: Bool
+    var body: some View {
+        if let delta = MerchantInsightParity.visitorDelta(facts) {
+            Text(verbatim: MerchantOpsCopy.text("merchantOps.insight.delta %@", (delta > 0 ? "+" : "") + String(delta)))
+                .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("merchantOps.insight.delta")
+        }
+        if isEmpty {
+            Text(verbatim: MerchantOpsCopy.text("merchantOps.insight.empty.body")).font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("merchantOps.insight.empty")
+        }
+    }
+}

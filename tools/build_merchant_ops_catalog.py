@@ -34,6 +34,9 @@ ROWS = {
  'merchantOps.marketing.denied.title': ('Your role does not have marketing data access yet', '你的岗位还没有营销数据权限'),
  'merchantOps.marketing.denied.body': ('Ask the store owner to enable it', '请联系店主开通'),
  'merchantOps.marketing.denied.retry': ('Check again', '重新确认'),
+ # pages/merchant/marketing/ai-insight/index.{js,wxml}
+ 'merchantOps.insight.delta %@': ('%@ players vs previous period', '比上期 %@ 位玩家'),
+ 'merchantOps.insight.empty.body': ('Take on a theme in the cooperation center first; data appears here after players check in at your store', '先去合作中心承接一个主题，玩家到店打卡后这里就有数据了'),
  # pages/merchant/predict/index.{js,wxml}
  'merchantOps.predict.denied.title': ('Your role cannot settle predictions', '当前岗位不能结算竞猜'),
  'merchantOps.predict.denied.body': ('Settling issues coupons by your rules and needs project management access. Ask the store owner to adjust team permissions.', '结算会按规则发券，需要项目管理权限。请联系店主调整经营团队权限'),

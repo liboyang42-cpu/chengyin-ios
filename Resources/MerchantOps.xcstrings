@@ -1021,6 +1021,40 @@
         }
       }
     },
+    "merchantOps.insight.delta %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ players vs previous period"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "比上期 %@ 位玩家"
+          }
+        }
+      }
+    },
+    "merchantOps.insight.empty.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take on a theme in the cooperation center first; data appears here after players check in at your store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先去合作中心承接一个主题，玩家到店打卡后这里就有数据了"
+          }
+        }
+      }
+    },
     "merchantOps.ledger.amount.none": {
       "extractionState": "manual",
       "localizations": {

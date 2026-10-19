@@ -110,7 +110,7 @@ import SwiftUI
                 && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
         MerchantInsightAttributionSummary(summary: .init(insight.facts),
             isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
-                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
+                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight, facts: insight.facts)
         Section("merchantMarketing.facts") {
             LabeledContent("merchantMarketing.window", value: MerchantInsightAttribution(insight.facts).window ?? "—")
             LabeledContent("merchantMarketing.sample", value: value(insight.facts["sampleMembers"].integer))
