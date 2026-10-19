@@ -34,12 +34,15 @@ public struct SquareWorkspaceRevisionRead {
     private let service: SquareWorkspaceService?
     private let currentSession: () -> SquareWorkspaceSession?
     private let token: () -> String?
+    private let mediaEviction: any SquareWorkspaceMediaEviction
     private var usedReviews: Set<UUID> = []
     private var revisionGeneration = UUID()
     private var revisionReadStarted = false
     public init(session: SquareWorkspaceSession, store: SquareWorkspaceStore, service: SquareWorkspaceService? = nil,
-                grants: SquareWorkspaceGrants = .init(), currentSession: @escaping () -> SquareWorkspaceSession?, token: @escaping () -> String? = { nil }) {
+                grants: SquareWorkspaceGrants = .init(), currentSession: @escaping () -> SquareWorkspaceSession?, token: @escaping () -> String? = { nil },
+                mediaEviction: (any SquareWorkspaceMediaEviction)? = nil) {
         self.session = session; self.store = store; self.service = service; self.grants = grants; self.currentSession = currentSession; self.token = token
+        self.mediaEviction = mediaEviction ?? SquareWorkspaceURLCacheEviction()
     }
     private func check(_ expected: SquareWorkspaceSession) throws {
         guard expected == session, currentSession() == expected else {
@@ -54,6 +57,66 @@ public struct SquareWorkspaceRevisionRead {
         guard grants.live, let service, let token = token() else { throw SquareWorkspaceFailure.disabled }
         let captured = session
         return (service.scoped { [weak self] in guard let self else { throw SquareWorkspaceFailure.sessionChanged }; try self.check(captured) }, token)
+    }
+    /// Every detail read re-decides access; a business 404 or DELETED projection purges cached copies.
+    private func freshDetail(_ api: SquareWorkspaceService, postID: Int, lane: SquareWorkspaceLane = .communityV1, token: String) async throws -> SquareWorkspacePost {
+        let post: SquareWorkspacePost
+        do { post = try await api.detail(postID: postID, lane: lane, token: token) }
+        catch { if SquareWorkspaceFailure.isRevocation(error) { revoke(postID: postID) }; throw error }
+        guard !post.isDeletedProjection else { revoke(postID: postID); throw SquareWorkspaceFailure.rejected(404) }
+        return post
+    }
+    /// Drops every cached copy of a post whose fresh read was denied: displayed detail, history,
+    /// draft rows, unsent local edit hydrations and their cached media. Pending or receipted write
+    /// recovery entries stay, and media another still-visible copy renders is not evicted.
+    public func revoke(postID: Int) {
+        guard postID > 0, currentSession() == session else { return }
+        var urls = Set<URL>()
+        if let post = lastPost, post.id == postID { urls.formUnion(post.cachedMediaURLs); lastPost = nil }
+        for post in server where post.id == postID { urls.formUnion(post.cachedMediaURLs) }
+        server.removeAll { $0.id == postID }
+        // An in-flight history read keeps its generation so it can still report the denial itself.
+        if revisionPostID == postID { if revisionsLoading { revisionData = nil } else { clearRevisions() } }
+        if let entries = try? store.entries(session: session) {
+            for entry in entries where entry.draft.postID == postID && !entry.pending && entry.receipt == nil {
+                urls.formUnion(SquareWorkspaceMedia.absoluteURLs(entry.draft.media.filter { $0.existingMediaID != nil }.map(\.objectKey)))
+                try? store.discard(workflowID: entry.id, session: session)
+            }
+            if let fresh = try? store.entries(session: session) { local = fresh }
+        }
+        evict(urls)
+    }
+    /// Shows a fresh authorized projection and evicts media the previous copy had but this one dropped.
+    private func adopt(_ fresh: SquareWorkspacePost, replacing dropped: SquareWorkspacePost? = nil) {
+        var urls = dropped?.cachedMediaURLs ?? []
+        if let post = lastPost, post.id == fresh.id { urls.formUnion(post.cachedMediaURLs) }
+        for (index, post) in server.enumerated() where post.id == fresh.id { urls.formUnion(post.cachedMediaURLs); server[index] = fresh }
+        lastPost = fresh
+        evict(urls)
+    }
+    private func evict(_ candidates: Set<URL>) {
+        var urls = candidates
+        if let post = lastPost { urls.subtract(post.cachedMediaURLs) }
+        for post in server { urls.subtract(post.cachedMediaURLs) }
+        if !urls.isEmpty { mediaEviction.evict(urls) }
+    }
+    /// Host hook after leaving a community, revoking a share, or editing elsewhere: the displayed
+    /// copy is dropped first, then only what a fresh read authorizes now is shown again.
+    public func revalidate(postID: Int, lane: SquareWorkspaceLane = .communityV1) async throws -> SquareWorkspacePost {
+        guard postID > 0 else { throw SquareWorkspaceFailure.invalid }
+        let dropped = lastPost?.id == postID ? lastPost : nil
+        if dropped != nil { lastPost = nil }
+        if revisionPostID == postID { clearRevisions() }
+        let (api, token) = try connection()
+        let fresh: SquareWorkspacePost
+        do { fresh = try await freshDetail(api, postID: postID, lane: lane, token: token) }
+        catch { if SquareWorkspaceFailure.isRevocation(error) { evict(dropped?.cachedMediaURLs ?? []) }; throw error }
+        try check(session)
+        guard fresh.authorID == session.accountID else {
+            // No longer an owner row; the post may still be legal public content, so its media cache stays.
+            server.removeAll { $0.id == postID }; throw SquareWorkspaceFailure.ownerRequired
+        }
+        adopt(fresh, replacing: dropped); return fresh
     }
     public func refreshLocal() throws { try check(session); local = try store.entries(session: session) }
     public func saveLocal(_ draft: SquareWorkspaceDraft, lane: SquareWorkspaceLane) throws {
@@ -79,7 +142,7 @@ public struct SquareWorkspaceRevisionRead {
         }
         guard !entry.pending, entry.receipt == nil else { throw SquareWorkspaceFailure.pending }
         let (api, token) = try connection()
-        let post = try await api.detail(postID: postID, lane: entry.lane, token: token)
+        let post = try await freshDetail(api, postID: postID, lane: entry.lane, token: token)
         try check(session)
         guard post.authorID == session.accountID else { throw SquareWorkspaceFailure.ownerRequired }
         var updated = entry
@@ -105,12 +168,14 @@ public struct SquareWorkspaceRevisionRead {
         guard page.items.allSatisfy({ $0.authorID == session.accountID }) else { throw SquareWorkspaceFailure.ownerRequired }
         if more { server += page.items.filter { item in !server.contains(where: { $0.id == item.id }) } } else { server = page.items }
         hasMore = page.hasMore && page.nextCursor != nil && page.nextCursor != cursor; nextCursor = page.nextCursor
+        // A DELETED row is not a draft its author may still see.
+        for post in page.items where post.isDeletedProjection { revoke(postID: post.id) }
     }
     /// Edit hydration is a fresh owner-scoped detail, never the lossy public feed projection.
     public func editableDraft(postID: Int, lane: SquareWorkspaceLane = .communityV1) async throws -> SquareWorkspaceDraft {
         clearRevisions()
         let (api, token) = try connection()
-        let post = try await api.detail(postID: postID, lane: lane, token: token)
+        let post = try await freshDetail(api, postID: postID, lane: lane, token: token)
         try check(session)
         guard post.id == postID, post.authorID == session.accountID else { throw SquareWorkspaceFailure.ownerRequired }
         return try post.editableDraft(lane: lane)
@@ -147,7 +212,7 @@ public struct SquareWorkspaceRevisionRead {
         try Task.checkCancellation()
         do {
             let (api, token) = try connection()
-            let post = try await api.detail(postID: postID, token: token)
+            let post = try await freshDetail(api, postID: postID, token: token)
             try check(expected)
             guard operation == revisionGeneration else { throw CancellationError() }
             guard post.authorID == expected.accountID else { throw SquareWorkspaceFailure.ownerRequired }
@@ -185,7 +250,7 @@ public struct SquareWorkspaceRevisionRead {
         let guideline = lane == .communityV1 ? try await api.guideline(token: token) : nil
         let original: SquareWorkspacePost?
         if let id = draft.postID {
-            original = try await api.detail(postID: id, lane: lane, token: token)
+            original = try await freshDetail(api, postID: id, lane: lane, token: token)
             guard original?.authorID == session.accountID, original?.version == draft.expectedVersion, original?.lifecycle == draft.sourceLifecycle else { throw SquareWorkspaceFailure.staleReview }
             if lane == .legacy {
                 guard original?.sourceDigest == draft.legacySourceDigest else { throw SquareWorkspaceFailure.staleReview }
@@ -204,15 +269,15 @@ public struct SquareWorkspaceRevisionRead {
         if value.lane == .communityV1 { guard grants.legal, acceptCurrentGuideline else { throw SquareWorkspaceFailure.disabled } }
         let (api, token) = try connection(); busy = true; defer { busy = false }; review = nil
         if let guideline = value.guideline { guard try await api.guideline(token: token) == guideline else { throw SquareWorkspaceFailure.staleReview } }
-        if let original = value.original { guard try await api.detail(postID: original.id, lane: value.lane, token: token) == original else { throw SquareWorkspaceFailure.staleReview } }
+        if let original = value.original { guard try await freshDetail(api, postID: original.id, lane: value.lane, token: token) == original else { throw SquareWorkspaceFailure.staleReview } }
         try check(value.session); try pending(value.draft, lane: value.lane); usedReviews.insert(value.id)
         do {
             if value.lane == .legacy {
                 try await api.legacyPublish(draft: value.draft, token: token)
                 if let id = value.draft.postID {
-                    let fresh = try await api.detail(postID: id, lane: .legacy, token: token)
+                    let fresh = try await freshDetail(api, postID: id, lane: .legacy, token: token)
                     guard fresh.authorID == session.accountID else { throw SquareWorkspaceFailure.unknown }
-                    lastPost = fresh
+                    adopt(fresh)
                 }
                 try check(value.session); status = "squareWorkspace.acknowledged"
             } else {
@@ -221,8 +286,9 @@ public struct SquareWorkspaceRevisionRead {
                 let saved = try await api.upsert(draft: value.draft, guidelineID: guidelineID, publishing: true, token: token)
                 guard saved.authorID == session.accountID, value.draft.postID == nil || saved.id == value.draft.postID else { throw SquareWorkspaceFailure.unknown }
                 let submitted = saved.lifecycle == "DRAFT" ? try await api.publish(post: saved, workflowID: value.draft.workflowID, token: token) : saved
-                lastPost = try await api.detail(postID: submitted.id, token: token); try check(value.session)
-                guard lastPost?.authorID == session.accountID else { throw SquareWorkspaceFailure.unknown }
+                let fresh = try await freshDetail(api, postID: submitted.id, token: token); try check(value.session)
+                guard fresh.authorID == session.accountID else { throw SquareWorkspaceFailure.unknown }
+                adopt(fresh)
                 status = "squareWorkspace.readback"
             }
             try pending(value.draft, lane: value.lane, receipt: status); try refreshLocal()
@@ -236,14 +302,14 @@ public struct SquareWorkspaceRevisionRead {
         let (api, token) = try connection(); busy = true; defer { busy = false }
         let guideline = try await api.guideline(token: token)
         if let id = draft.postID {
-            let original = try await api.detail(postID: id, token: token)
+            let original = try await freshDetail(api, postID: id, token: token)
             guard original.authorID == session.accountID, original.version == draft.expectedVersion, original.lifecycle == "DRAFT" else { throw SquareWorkspaceFailure.staleReview }
         }
         try draft.validate(publishing: false, lane: .communityV1); try check(session); try pending(draft, lane: .communityV1)
         do {
             let saved = try await api.upsert(draft: draft, guidelineID: guideline.id, publishing: false, token: token)
             guard draft.postID == nil || saved.id == draft.postID else { throw SquareWorkspaceFailure.unknown }
-            let fresh = try await api.detail(postID: saved.id, token: token)
+            let fresh = try await freshDetail(api, postID: saved.id, token: token)
             guard fresh.authorID == session.accountID, fresh.lifecycle == "DRAFT" else { throw SquareWorkspaceFailure.unknown }
             let updated = try fresh.editableDraft()
             // A completed server save ends the old workflow. Resume the fresh server projection
@@ -251,7 +317,7 @@ public struct SquareWorkspaceRevisionRead {
             guard draft.media.isEmpty || (updated.media.count == draft.media.count && updated.media.allSatisfy({ $0.existingMediaID != nil })) else { throw SquareWorkspaceFailure.unknown }
             try store.save(.init(draft: draft, lane: .communityV1, pending: false, receipt: "squareWorkspace.savedServer", updatedAt: Date()), session: session)
             try store.save(.init(draft: updated, lane: .communityV1, pending: false, receipt: nil, updatedAt: Date()), session: session)
-            lastPost = fresh; try refreshLocal(); status = "squareWorkspace.savedServer"
+            adopt(fresh); try refreshLocal(); status = "squareWorkspace.savedServer"
         } catch { status = "squareWorkspace.unknown"; throw error }
     }
     public func withdrawLocation(reviewed: SquareWorkspacePost, explicitIntent: Bool) async throws {
@@ -259,14 +325,14 @@ public struct SquareWorkspaceRevisionRead {
         guard reviewed.lane == .communityV1 else { throw SquareWorkspaceFailure.invalid }
         clearRevisions()
         let (api, token) = try connection(); busy = true; defer { busy = false }
-        let fresh = try await api.detail(postID: reviewed.id, token: token)
+        let fresh = try await freshDetail(api, postID: reviewed.id, token: token)
         guard fresh == reviewed, fresh.authorID == session.accountID else { throw SquareWorkspaceFailure.staleReview }
         let key = "location-withdraw-\(reviewed.id)"
         guard !(try store.entries(session: session)).contains(where: { $0.id == key && $0.pending }) else { throw SquareWorkspaceFailure.pending }
         let marker = SquareWorkspaceDraft(workflowID: key, postID: reviewed.id, expectedVersion: reviewed.version, sourceLifecycle: reviewed.lifecycle)
         try pending(marker, lane: .communityV1)
         try await api.withdrawLocation(post: fresh, requestID: "location-withdraw-\(Int(Date().timeIntervalSince1970 * 1_000_000))-0", token: token)
-        lastPost = try await api.detail(postID: fresh.id, token: token); try check(session)
+        let readback = try await freshDetail(api, postID: fresh.id, token: token); adopt(readback); try check(session)
         // Keep the write lock until a host displays/reconciles the fresh server location state.
         status = "squareWorkspace.readback"
     }
