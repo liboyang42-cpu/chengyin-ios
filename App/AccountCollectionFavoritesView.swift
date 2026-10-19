@@ -33,6 +33,8 @@ import SwiftUI
     let onOpenTopic: (Int) -> Void
     var pageSize = 10
     @StateObject private var model = AccountCollectionFavoritesScreenModel()
+    @Environment(\.topicUnlikeController) private var unlike
+    @State private var unliked: Set<Int> = []
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
     var body: some View {
         List {
@@ -44,15 +46,18 @@ import SwiftUI
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
-                if model.state.visibleRows(scope: key.scope).isEmpty {
+                if model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
                     ContentUnavailableView("accountCollection.favorites.empty", systemImage: "heart",
                                            description: Text("accountCollection.favorites.emptyHint"))
                         .accessibilityIdentifier("accountCollection.favorites.empty")
                 }
-                ForEach(model.state.visibleRows(scope: key.scope)) { topic in
+                ForEach(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }) { topic in
                     Button { onOpenTopic(topic.id) } label: { AccountCollectionFavoriteCard(topic: topic) }
                         .buttonStyle(QuestifyCardButtonStyle())
                         .accessibilityIdentifier("accountCollection.favorite.\(topic.id)")
+                        .overlay(alignment: .topTrailing) {
+                            if let unlike, unlike.isAvailable { TopicUnlikeButton(topicID: topic.id, controller: unlike).padding(8) }
+                        }
                         .questifyCardListRow()
                 }
                 if let issue = model.state.moreIssue {
@@ -75,9 +80,11 @@ import SwiftUI
             }
         }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
+        .modifier(TopicUnlikeFlow(controller: unlike) { unliked.insert($0) })
     }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
+        unliked = []
         await model.refresh(reader: reader, pageSize: pageSize)
     }
     private func loadMore() async {
