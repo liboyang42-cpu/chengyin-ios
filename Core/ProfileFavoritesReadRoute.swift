@@ -133,7 +133,8 @@ enum ProfileFavoritesRequestContract {
         for chunk in chunks.dropFirst().dropLast() {
             let prefix = "\r\nContent-Disposition: form-data; name=\""
             guard chunk.hasPrefix(prefix), chunk.hasSuffix("\r\n") else { return nil }
-            let parts = String(chunk.dropFirst(prefix.count).dropLast(2)).components(separatedBy: "\"\r\n\r\n")
+            // "\r\n" is a single Character in Swift, so drop exactly the trailing CRLF grapheme.
+            let parts = String(chunk.dropFirst(prefix.count).dropLast("\r\n".count)).components(separatedBy: "\"\r\n\r\n")
             guard parts.count == 2, !parts[0].isEmpty, fields[parts[0]] == nil else { return nil }
             fields[parts[0]] = parts[1]
         }
