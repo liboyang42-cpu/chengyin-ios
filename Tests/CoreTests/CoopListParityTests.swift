@@ -43,7 +43,7 @@ final class CoopListParityTests: XCTestCase {
     }
 
     func testPermissionClassificationForMerchantOnlyLeg() {
-        XCTAssertTrue(CoopListReadFailure.isPermission(CoopFlowFailure.inactiveMerchant))
+        XCTAssertTrue(CoopListReadFailure.isPermission(CoopFlowFailure.inactiveMerchant(403, nil)))
         XCTAssertTrue(CoopListReadFailure.isPermission(CoopFlowFailure.server(500, "仅商家可查看")))
         XCTAssertFalse(CoopListReadFailure.isPermission(CoopFlowFailure.server(500, "busy")))
         XCTAssertFalse(CoopListReadFailure.isPermission(CoopFlowFailure.malformed))
@@ -69,7 +69,7 @@ private final class CoopListFakeTransport: HTTPTransport {
         let empty = try await service.read(.officialMerchantInvites, session: session)
         XCTAssertEqual(empty, .array([]))
         do { _ = try await service.read(.chapterApplicationsMine, session: session); XCTFail("Inactive merchant accepted") }
-        catch { XCTAssertEqual(error as? CoopFlowFailure, .server(403, nil)) }
+        catch { XCTAssertEqual(error as? CoopFlowFailure, .server(403, "not merchant")) }
     }
 
     func testChapterOwnerLegSendsScope() async throws {

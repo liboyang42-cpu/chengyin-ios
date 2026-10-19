@@ -93,9 +93,9 @@ public struct CoopFlowService {
         if resource == .officialMerchantInvites { request.httpMethod = "GET"; request.httpBody = nil; request.setValue(nil, forHTTPHeaderField: "Content-Type") }
         let value: CoopFlowJSON
         do { value = try await send(request) }
-        catch CoopFlowFailure.inactiveMerchant {
-            // Non-merchants have no official invites; every other read keeps its forbidden classification.
-            guard resource == .officialMerchantInvites else { throw CoopFlowFailure.server(403, nil) }
+        catch CoopFlowFailure.inactiveMerchant(let code, let message) {
+            // Non-merchants have no official invites; every other read keeps its original server failure.
+            guard resource == .officialMerchantInvites else { throw CoopFlowFailure.server(code, message) }
             return .array([])
         }
         if resource.expectsArray { guard value.rows != nil else { throw CoopFlowFailure.malformed } }
@@ -150,8 +150,10 @@ public struct CoopFlowService {
         guard let envelope = try? JSONDecoder().decode(CoopFlowJSON.self, from: data) else { throw CoopFlowFailure.malformed }
         let code = envelope["code"].integer
         if status == 401 || code == 401 { throw APIError.unauthorized }
-        if envelope["errorCode"].text == "NOT_ACTIVE_MERCHANT" { throw CoopFlowFailure.inactiveMerchant }
-        guard (200..<300).contains(status), code == 200 else { throw CoopFlowFailure.server(code ?? status, envelope["msg"].text) }
+        guard (200..<300).contains(status), code == 200 else {
+            if envelope["errorCode"].text == "NOT_ACTIVE_MERCHANT" { throw CoopFlowFailure.inactiveMerchant(code ?? status, envelope["msg"].text) }
+            throw CoopFlowFailure.server(code ?? status, envelope["msg"].text)
+        }
         return envelope["data"]
     }
 }

@@ -42,18 +42,19 @@ import SwiftUI
 /// records (`subpackageMember/tixianjilu`). Without a composed wallet reader it shows the source's
 /// open-failure state with a retry instead of a blank page.
 @MainActor struct CoopWithdrawRecordsShell: View {
-    let reader: WalletCommerceReader?
+    var reader: WalletCommerceReader? = nil
+    /// Retry resolves the wallet session again from the environment; the attempt identity rebuilds the whole shell.
+    @Environment(\.coopWalletReader) private var composedReader
     @State private var attempt = 0
     var body: some View {
         Group {
-            if let reader {
+            if let reader = reader ?? composedReader {
                 WalletWithdrawalsView(reader: reader)
                     .safeAreaInset(edge: .top) {
                         Text("cooperation.withdrawRecords.subtitle").font(.footnote).foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.vertical, 4)
                             .background(.bar)
                     }
-                    .id(attempt)
             } else {
                 List {
                     VStack(alignment: .leading, spacing: 6) {
@@ -64,6 +65,7 @@ import SwiftUI
                 }
             }
         }
+        .id(attempt)
         .appNavigationTitle("cooperation.withdrawRecords.title")
         .accessibilityIdentifier("cooperation.withdrawRecords")
     }
