@@ -79,7 +79,7 @@ jobs:
     timeout-minutes: 45
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 20
       matrix:
         partition: [core, app-unit, ui-build]
     env:
@@ -127,7 +127,7 @@ jobs:
     timeout-minutes: 45
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 20
       matrix: ${{ fromJSON(needs.controls.outputs.ui_matrix) }}
     env:
       PYTHONDONTWRITEBYTECODE: '1'
@@ -173,7 +173,7 @@ jobs:
     timeout-minutes: ${{ matrix.minutes }}
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 20
       matrix:
         include:
           - kind: device

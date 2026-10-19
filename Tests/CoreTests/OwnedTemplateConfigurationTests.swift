@@ -139,13 +139,78 @@ import FoundationNetworking
             lease.revoke(); XCTAssertNil(host.snapshot)
         }
     }
+    func testReceiptBoundHostRejectsWrongIDAndRetiredVisitWithoutDispatch() async throws {
+        let base = URL(string: "https://example.test/native")!, wire = Wire()
+        wire.bytes = try response()
+        let context = RuntimeDependencyContext(market: .china, baseURL: base, role: "player",
+            session: try .init(accountID: 7, epoch: 1, namespace: "scope", token: "synthetic"))
+        let lease = try TemplateShelfReadApproval(context: context, expiresAt: Date().addingTimeInterval(600))
+        let transport = TemplateShelfReadTransport(configuration: try .init(baseURL: base), http: wire,
+            approval: lease, current: { context })
+        var signedIn = true
+        let reader = OwnedMemberTemplateReader(transport: transport, authenticated: { signedIn })
+        var live = true
+        let host = reader.configurationHost(id: id, acceptsResult: { live })
+        XCTAssertTrue(wire.requests.isEmpty)
+        await host.load(id: try XCTUnwrap(MemberPlayTemplateID(rawValue: 102)))
+        XCTAssertNil(host.snapshot); XCTAssertTrue(wire.requests.isEmpty)
+        await host.load(id: id)
+        XCTAssertEqual(host.snapshot?.field(.questionAnswer), .value("Exact secret"))
+        XCTAssertEqual(wire.requests.count, 1)
+        signedIn = false
+        XCTAssertNil(host.snapshot); XCTAssertFalse(host.available)
+        await host.load(id: id); XCTAssertEqual(wire.requests.count, 1)
+        signedIn = true; live = false
+        XCTAssertNil(host.snapshot); XCTAssertFalse(host.available)
+        await host.load(id: id); XCTAssertEqual(wire.requests.count, 1)
+    }
+    func testReceiptRetirementRejectsLateSuccessUnauthorizedAndError() async throws {
+        for outcome in ["success", "401", "error", "http401", "throw401"] {
+            let base = URL(string: "https://example.test/native")!, wire = SelectionWire()
+            let context = RuntimeDependencyContext(market: .china, baseURL: base, role: "player",
+                session: try .init(accountID: 7, epoch: 1, namespace: "scope", token: "synthetic"))
+            let lease = try TemplateShelfReadApproval(context: context, expiresAt: Date().addingTimeInterval(600))
+            var live = true, expired = 0
+            let transport = TemplateShelfReadTransport(configuration: try .init(baseURL: base), http: wire,
+                approval: lease, current: { context }, onUnauthorized: { expired += 1 })
+            let reader = OwnedMemberTemplateReader(transport: transport, authenticated: { true })
+            let host = reader.configurationHost(id: id, acceptsResult: { live })
+            let started = expectation(description: outcome); wire.onPending = { started.fulfill() }
+            let read = Task { await host.load(id: id) }
+            await fulfillment(of: [started], timeout: 2)
+            live = false
+            wire.finishFirst(outcome == "401" ? Data(#"{"code":401}"#.utf8) : try response(),
+                failure: outcome == "error", status: outcome == "http401" ? 401 : 200,
+                thrown: outcome == "throw401" ? APIError.unauthorized : nil)
+            await read.value
+            XCTAssertNil(host.snapshot); XCTAssertFalse(host.loading); XCTAssertEqual(expired, 0)
+        }
+    }
+    func testReceiptHostKeepsIndependentApprovalAndCurrentUnauthorizedBehavior() async throws {
+        let base = URL(string: "https://example.test/native")!, wire = Wire()
+        wire.bytes = Data(#"{"code":401}"#.utf8)
+        let context = RuntimeDependencyContext(market: .china, baseURL: base, role: "player",
+            session: try .init(accountID: 7, epoch: 1, namespace: "scope", token: "synthetic"))
+        let lease = try TemplateShelfReadApproval(context: context, expiresAt: Date().addingTimeInterval(600))
+        var expired = 0
+        let transport = TemplateShelfReadTransport(configuration: try .init(baseURL: base), http: wire,
+            approval: lease, current: { context }, onUnauthorized: { expired += 1 })
+        let reader = OwnedMemberTemplateReader(transport: transport, authenticated: { true })
+        let host = reader.configurationHost(id: id, acceptsResult: { true })
+        await host.load(id: id); XCTAssertEqual(expired, 1); XCTAssertNil(host.snapshot)
+        lease.revoke(); await host.load(id: id); XCTAssertEqual(wire.requests.count, 1)
+        let missing = OwnedMemberTemplateReader(transport: nil, authenticated: { true })
+        let unavailable = missing.configurationHost(id: id, acceptsResult: { true })
+        XCTAssertFalse(unavailable.available)
+    }
     private final class SelectionWire: HTTPTransport {
         var onPending: (() -> Void)?
         var pending: CheckedContinuation<(Data, Int), Error>?
-        func finishFirst(_ data: Data, failure: Bool) {
+        func finishFirst(_ data: Data, failure: Bool, status: Int = 200, thrown: Error? = nil) {
             let continuation = pending; pending = nil
-            if failure { continuation?.resume(throwing: APIError.httpStatus(503)) }
-            else { continuation?.resume(returning: (data, 200)) }
+            if let thrown { continuation?.resume(throwing: thrown) }
+            else if failure { continuation?.resume(throwing: APIError.httpStatus(503)) }
+            else { continuation?.resume(returning: (data, status)) }
         }
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             if String(decoding: request.httpBody ?? Data(), as: UTF8.self).contains("\r\n\r\n101\r\n") {

@@ -35,6 +35,74 @@ import XCTest
     private func more(_ m: ProfileAuthorPostsRefreshController, _ r: Reader) async { await m.loadMore(memberID: 91, accountReader: r, squareReader: r) }
     private func retry(_ m: ProfileAuthorPostsRefreshController, _ r: Reader) async { await m.retry(memberID: 91, accountReader: r, squareReader: r) }
     private func waitForPending(_ r: Reader) async { for _ in 0..<100 where r.pending == nil { await Task.yield() }; XCTAssertNotNil(r.pending) }
+    func testActivatePreservesAllPagesCursorAndGenericRevisionFence() async throws {
+        let r = Reader(), m = ProfileAuthorPostsRefreshController()
+        r.replies = [.success(try page([1], next: 1)), .success(try page([2], next: 2)), .success(try page([3]))]
+        await m.activate(memberID: 91, accountReader: r, squareReader: r)
+        await more(m, r); m.suspend()
+        await m.activate(memberID: 91, accountReader: r, squareReader: r)
+        XCTAssertEqual(r.calls.count, 2); XCTAssertEqual(m.pagination.items.map(\.id), [1, 2])
+        XCTAssertEqual(m.pagination.nextCursor?.id, 2)
+        r.presentationRevision += 1
+        await m.activate(memberID: 91, accountReader: r, squareReader: r)
+        XCTAssertEqual(r.calls.count, 3); XCTAssertNil(r.calls.last?.1)
+        XCTAssertEqual(m.pagination.items.map(\.id), [3])
+    }
+    func testActivateThenMoreUsesSavedContinuation() async throws {
+        let r = Reader(), m = ProfileAuthorPostsRefreshController()
+        r.replies = [.success(try page([1], next: 1)), .success(try page([2], next: 2)), .success(try page([3]))]
+        await refresh(m, r); await more(m, r); m.suspend()
+        await m.activate(memberID: 91, accountReader: r, squareReader: r)
+        await more(m, r)
+        XCTAssertEqual(r.calls.count, 3); XCTAssertEqual(r.calls[2].1?.id, 2)
+        XCTAssertEqual(m.pagination.items.map(\.id), [1, 2, 3])
+    }
+    func testActivateKeepsFailedRetryIntentWithoutImplicitRetry() async throws {
+        let r = Reader(), m = ProfileAuthorPostsRefreshController()
+        r.replies = [.failure(APIError.httpStatus(503)), .success(try page([1]))]
+        await m.activate(memberID: 91, accountReader: r, squareReader: r); m.suspend()
+        await m.activate(memberID: 91, accountReader: r, squareReader: r)
+        XCTAssertEqual(r.calls.count, 1); XCTAssertEqual(m.failedOperation, .refresh)
+        await retry(m, r); XCTAssertEqual(r.calls.count, 2)
+    }
+    func testActivateRetainsSuccessfulEmptyInsteadOfReloading() async throws {
+        let r = Reader(), m = ProfileAuthorPostsRefreshController(); r.replies = [.success(try page([]))]
+        await m.activate(memberID: 91, accountReader: r, squareReader: r); m.suspend()
+        await m.activate(memberID: 91, accountReader: r, squareReader: r)
+        XCTAssertEqual(r.calls.count, 1); XCTAssertTrue(m.pagination.hasLoadedPage)
+        XCTAssertTrue(m.pagination.items.isEmpty)
+    }
+    func testInvalidActivationClearsPagesBeforeConfigurationRestores() async throws {
+        let r = Reader(), m = ProfileAuthorPostsRefreshController()
+        r.replies = [.success(try page([1], next: 1)), .success(try page([3]))]
+        await m.activate(memberID: 91, accountReader: r, squareReader: r)
+        r.isConfigured = false
+        await m.activate(memberID: 91, accountReader: r, squareReader: r)
+        XCTAssertNil(m.context); XCTAssertTrue(m.pagination.items.isEmpty)
+        XCTAssertNil(m.failedOperation); XCTAssertFalse(m.isBusy)
+        r.isConfigured = true
+        await m.activate(memberID: 91, accountReader: r, squareReader: r)
+        XCTAssertEqual(m.pagination.items.map(\.id), [3]); XCTAssertEqual(r.calls.count, 2)
+    }
+    func testServiceHeaderRejectionsClearOnlyAuthoritativeDeniedOrMissingTarget() async throws {
+        for code in [2, 401, 403, 404] {
+            let r = Reader(), m = ProfileAuthorPostsRefreshController(); r.replies = [.success(try page([1]))]
+            await refresh(m, r)
+            XCTAssertFalse(m.rejectHeader(SocialAccountFailure.rejected(code: 503, message: nil), context: key(r)))
+            XCTAssertTrue(m.rejectHeader(SocialAccountFailure.rejected(code: code, message: nil), context: key(r)))
+            XCTAssertNil(m.context); XCTAssertTrue(m.pagination.items.isEmpty)
+        }
+    }
+    func testHeaderDenialOnlyRetiresMatchingContextAndTransientFailureDoesNot() async throws {
+        let r = Reader(), m = ProfileAuthorPostsRefreshController(); r.replies = [.success(try page([1]))]
+        await refresh(m, r); let captured = key(r)
+        XCTAssertFalse(m.rejectHeader(APIError.httpStatus(503), context: captured))
+        r.presentationRevision += 1
+        XCTAssertFalse(m.rejectHeader(APIError.httpStatus(403), context: key(r)))
+        XCTAssertEqual(m.pagination.items.map(\.id), [1])
+        XCTAssertTrue(m.rejectHeader(APIError.httpStatus(404), context: captured))
+        XCTAssertNil(m.context); XCTAssertTrue(m.pagination.items.isEmpty)
+    }
     func testRefreshFailurePreservesAllPagesAndCursorThenRetryReplaces() async throws {
         let r = Reader(), m = ProfileAuthorPostsRefreshController()
         r.replies = [.success(try page([1], next: 1)), .success(try page([2], next: 2)), .failure(APIError.httpStatus(503)), .success(try page([3], next: 3)), .success(try page([4]))]
