@@ -298,12 +298,14 @@ extension WalletScreen where Value == WithdrawalBalance {
     @State private var keyword = ""
     @State private var submittedKeyword = ""
     @State private var sort = 0
+    @State private var isVisible = false
+    @State private var pendingLoad: Task<Void, Never>?
     var body: some View {
         List {
             NavigationLink("wallet.cart") { WalletCartView(reader: reader) }
             Picker("wallet.sort", selection: $sort) {
                 ForEach(0..<5) { value in Text(LocalizedStringKey("wallet.sort." + String(value))).tag(value) }
-            }.onChange(of: sort) { _, _ in Task { await load() } }
+            }.onChange(of: sort) { _, _ in scheduleLoad() }
             if model.loading { ProgressView("wallet.loading") }
             else if let page = model.value, model.loadedScope == reader.scope {
                 if page.rows.isEmpty { Text("wallet.empty") }
@@ -316,7 +318,12 @@ extension WalletScreen where Value == WithdrawalBalance {
                     }
                 }
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
-            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
+            } else if model.failed || !reader.isConfigured || reader.scope == nil {
+                WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { scheduleLoad() }
+            } else {
+                // An interrupted read is retryable, not a reported business failure.
+                Button("wallet.retry") { scheduleLoad() }.frame(minHeight: 44)
+            }
         }.appNavigationTitle("wallet.mall").searchable(text: $keyword)
             .onSubmit(of: .search) { submitSearch() }
             .onChange(of: keyword) { _, value in
@@ -324,16 +331,41 @@ extension WalletScreen where Value == WithdrawalBalance {
                 guard value.isEmpty, !submittedKeyword.isEmpty else { return }
                 submitSearch()
             }
-            .task(id: reader.scope) { model.clear(); await load() }
-            .onDisappear { model.cancel() }.refreshable { await load() }
+            .task(id: reader.scope) {
+                guard !Task.isCancelled else { return }
+                pendingLoad?.cancel()
+                isVisible = true
+                model.clear()
+                await load()
+            }
+            .onDisappear {
+                isVisible = false
+                pendingLoad?.cancel()
+                model.cancel()
+            }.refreshable {
+                guard isVisible, !Task.isCancelled else { return }
+                pendingLoad?.cancel()
+                await load()
+            }
     }
     private func submitSearch() {
         submittedKeyword = keyword
-        // Retire the previous query before scheduling its replacement.
+        scheduleLoad()
+    }
+    private func scheduleLoad() {
+        guard isVisible else { return }
+        pendingLoad?.cancel()
+        // Retire old results synchronously, without painting an interim failure.
         model.clear()
-        Task { await load() }
+        model.loading = true
+        let scope = reader.scope
+        pendingLoad = Task {
+            guard !Task.isCancelled, isVisible, scope == reader.scope else { return }
+            await load()
+        }
     }
     private func load() async {
+        guard isVisible, !Task.isCancelled else { return }
         // Draft edits do not change refresh, retry, or sorting until submitted.
         let search = submittedKeyword; let order = sort
         await model.load(reader) { try await $0.products(sortType: order, keyword: search, token: $1) }
