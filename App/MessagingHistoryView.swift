@@ -50,6 +50,7 @@ struct MessagingHistoryView: View {
     let sender: MessageActionCoordinator?
     let mediaReader: (any SocialMessageMediaReading)?
     let expanded: IMExpandedNavigationContext?
+    let onConversationMutationAccepted: (IMScope) -> Void
     @StateObject private var replyAuthority = IMConversationReplyAuthority()
     @State private var history: MessagingHistory
     @State private var loadedIdentity: MessagingReadIdentity?
@@ -62,8 +63,9 @@ struct MessagingHistoryView: View {
     @State private var visibleMessageID: Int?
     @State private var showingPollComposer = false
 
-    init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil) {
+    init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil, onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }) {
         self.conversationID = conversationID; self.conversation = conversation; self.reader = reader;self.sender=sender;self.mediaReader=mediaReader;self.expanded=expanded
+        self.onConversationMutationAccepted = onConversationMutationAccepted
         _history = State(initialValue: MessagingHistory(conversationID: conversationID))
     }
     private var replyPolicy: IMConversationReplyPolicy {
@@ -126,7 +128,8 @@ struct MessagingHistoryView: View {
                         IMConversationControlsView(coordinator: owner, identity: reader.identity,
                             uploadOwner: replyPolicy.permitsReply ? expanded?.uploadCoordinator(conversationID) : nil,
                             topicReader: expanded?.topicReader, replyPolicy: replyPolicy,
-                            isConversationCurrent: { authority.isCurrent(lease) }) { _ in Task { await reload() } }
+                            isConversationCurrent: { authority.isCurrent(lease) },
+                            onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
                     } label: { Label("im.full.title", systemImage: "ellipsis.circle") }
                     .accessibilityIdentifier("im.full.controlsEntry")
                 }

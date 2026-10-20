@@ -58,7 +58,8 @@ private struct MessagingConversationListView: View {
                         Section {
                             ForEach(Array(rows.prefix(displayLimit))) { conversation in
                                 NavigationLink {
-                                    MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded)
+                                    MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded,
+                                        onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
                                 } label: { MessagingConversationRow(conversation: conversation) }
                                 .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -100,7 +101,8 @@ private struct MessagingConversationListView: View {
             }
         }
         .navigationDestination(item: $newConversation) { id in
-            MessagingHistoryView(conversationID: id, reader: reader, sender: senderForConversation?(id), mediaReader: mediaReader, expanded: expanded)
+            MessagingHistoryView(conversationID: id, reader: reader, sender: senderForConversation?(id), mediaReader: mediaReader, expanded: expanded,
+                onConversationMutationAccepted: conversationInvalidation(for: id))
         }
         .sheet(isPresented: $showsSquare) {
             if let squareDestination { squareDestination { showsSquare = false } }
@@ -183,6 +185,15 @@ private struct MessagingConversationListView: View {
             reader: reader, coordinator: expanded.coordinator)
         guard !batch.items.isEmpty else { return }
         readAll = .init(batch: batch)
+    }
+    private func conversationInvalidation(for conversationID: Int) -> (IMScope) -> Void {
+        let source = reader, identity = reader.identity, owner = listModel
+        return { [weak owner] scope in
+            guard scope.conversationID == conversationID, scope.identity == identity else { return }
+            // Exact reader/account/epoch validation lives in the retained list owner.
+            // Invalidation preserves this view's search, filter and display window.
+            owner?.invalidate(reader: source, identity: scope.identity)
+        }
     }
     private func retireReviews() {
         readAll?.batch.stop(); readAll = nil; rowAction = nil
