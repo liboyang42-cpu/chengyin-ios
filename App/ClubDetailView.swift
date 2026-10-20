@@ -91,11 +91,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     Section { Text("club.detail.events.unavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.events.unavailable") }
                 }
                 if tab == .events, let governance = management?.governance {
+                    ClubDetailEventsSection(club: club, identity: reader.clubIdentity, governance: governance, reader: reader)
                     Section {
-                        NavigationLink {
-                            ClubEventCalendarView(clubID: id, identity: reader.clubIdentity, governance: governance, reportClub: club, reportReader: reader)
-                        } label: { Label("club.calendar.title", systemImage: "calendar") }
-                            .accessibilityIdentifier("club.calendar.open")
                         ClubSessionQuickStartEntry(club: club, reader: reader, governance: governance)
                     }
                 }
