@@ -29,9 +29,11 @@ public struct RoamPublicMerchant: Decodable, Equatable, Identifiable {
     public let businessTime: String?
     public let capacity: Int?
     public let availableTime: String?
+    /// 1 = 收费承接, 0 = 免费承接; anything else stays unknown (收费方式待确认).
+    public let chargeType: Int?
     enum CodingKeys: String, CodingKey {
         case id, name, cityRole, storyTitle, description, tags, gallery, sysCategoryList
-        case businessStatus, address, businessTime, capacity, availableTime
+        case businessStatus, address, businessTime, capacity, availableTime, chargeType
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -43,6 +45,7 @@ public struct RoamPublicMerchant: Decodable, Equatable, Identifiable {
         availableTime = try c.roamText(.availableTime)
         businessStatus = try c.decodeIfPresent(Int.self, forKey: .businessStatus)
         capacity = c.roamInteger(.capacity)
+        chargeType = c.roamInteger(.chargeType)
         if let array = try? c.decode(RoamStringArray.self, forKey: .tags) { tags = array.values }
         else if let json = try? c.decode(String.self, forKey: .tags),
                 let array = try? JSONDecoder().decode(RoamStringArray.self, from: Data(json.utf8)) { tags = array.values }

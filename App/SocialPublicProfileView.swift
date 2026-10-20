@@ -138,6 +138,9 @@ import SwiftUI
                         Section("social.achievements") {
                             SocialOptionalCount(title: "social.published", count: profile.published)
                             SocialOptionalCount(title: "social.likes", count: profile.likes)
+                            LabeledContent { Text(verbatim: profile.friends.map(String.init) ?? "—") } label: {
+                                Text("member.card.friends", tableName: "MemberProfile")
+                            }.accessibilityIdentifier("social.profile.friends")
                             SocialOptionalCount(title: "social.followers", count: profile.followers)
                             SocialOptionalCount(title: "social.followingCount", count: profile.following)
                         }

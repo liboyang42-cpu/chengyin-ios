@@ -148,7 +148,10 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                                 if selection == option.id { Image(systemName: "checkmark") }
                             }
                             if option.needsActivity { Text("club.audience.chooseEvent").font(.footnote) }
-                            else if !option.enabled { Text("club.gov.denied").font(.footnote) }
+                            else if !option.enabled {
+                                if ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id) { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.eventDenied").font(.footnote) }
+                                else { Text("club.gov.denied").font(.footnote) }
+                            }
                             else if let count = option.count {
                                 LabeledContent("club.gov.field.totalCount", value: String(count)).font(.footnote)
                             } else { Text("club.gov.unknownValue").font(.footnote) }
@@ -159,9 +162,10 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                     .accessibilityIdentifier("club.audience.choice." + option.id)
                 }
             }
-            if isCurrent(), permit != nil, let failure = model.failure {
+            if isCurrent(), permit != nil, let failure = model.failure, failure != .forbidden {
                 Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.audience.error")
             }
+            if isCurrent(), permit != nil, model.failure == .forbidden { ClubOpsNotifyDeniedText() }
             if model.countsUnavailable, isCurrent() { Text("club.gov.unknownValue").accessibilityIdentifier("club.audience.countsUnavailable") }
             if model.failure != .forbidden {
                 Button(LocalizedStringKey(model.failure == nil && !model.countsUnavailable ? "club.gov.refresh" : "action.retry")) {

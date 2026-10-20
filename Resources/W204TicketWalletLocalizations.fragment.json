@@ -1,0 +1,101 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "ticketWallet.parity.error.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your ticket wallet couldn't open"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票夹没能打开"
+          }
+        }
+      }
+    },
+    "ticketWallet.parity.login.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see the route and session tickets you registered for."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后可查看你报名的路线票和场次票"
+          }
+        }
+      }
+    },
+    "ticketWallet.parity.empty.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discover routes or register for a session on Home, and your tickets will appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去首页发现路线或报名场次，票会在这里出现。"
+          }
+        }
+      }
+    },
+    "ticketWallet.parity.untitled.route": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route details are still syncing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线信息待同步"
+          }
+        }
+      }
+    },
+    "ticketWallet.parity.untitled.activity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity details are still syncing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动信息待同步"
+          }
+        }
+      }
+    },
+    "ticketWallet.parity.hint.ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start playing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入游玩"
+          }
+        }
+      }
+    }
+  }
+}

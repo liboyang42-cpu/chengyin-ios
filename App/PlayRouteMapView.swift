@@ -29,7 +29,7 @@ import MapKit
                         .accessibilityIdentifier("playRoute.explanation")
                     if let id = presentation.currentNodeID,
                        let current = presentation.stops.first(where: { $0.id == id }) {
-                        Label("playRoute.current", systemImage: "flag.fill").font(.headline)
+                        Label("playRoute.current", systemImage: "flag.fill").font(.headline).accessibilityAddTraits(.isHeader)
                         stopName(current)
                         Button("playRoute.openCurrent") { choose(id, snapshot: snapshot, context: context) }
                             .accessibilityIdentifier("playRoute.openCurrent")
@@ -121,6 +121,8 @@ import MapKit
             onOpen: { choose($0, snapshot: snapshot, context: context) })
     }
     private func focus(_ request: PlayRouteMapCamera.Gate.Request) {
+        let interval = NativePerformanceSignposts.shared.begin(.playRouteCameraFocus)
+        defer { interval.end() }
         guard let decision = cameraGate.consume(request, current: cameraRead) else { return }
         cameraControlsExpanded = true
         cameraPreview = decision.preview; cameraIssue = decision.issue
@@ -149,7 +151,12 @@ import MapKit
         selected = choice
     }
     private func map(_ presentation: PlayRouteMapPresentation, snapshot: PlaySnapshot, context: PlayInteractionContext) -> some View {
-        Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
+        // Project the displayed read once per render, not once per annotation:
+        // each Read rebuilds the whole stop projection, which grew quadratically.
+        let (read, inspectingID) = NativePerformanceSignposts.shared.measure(.playRouteMapProjection) {
+            (PlayRouteMapCamera.Read(snapshot: snapshot, context: context), cameraPreview?.resolve(current: cameraRead)?.id)
+        }
+        return Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
             ForEach(presentation.segments) { segment in
                 MapPolyline(coordinates: [coordinate(segment.start), coordinate(segment.end)])
                     .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, dash: [6, 5]))
@@ -157,8 +164,8 @@ import MapKit
             ForEach(presentation.mappedStops) { stop in
                 if let location = stop.coordinate {
                     Annotation("", coordinate: coordinate(location)) {
-                        let request = cameraGate.request(.preview(stop.id), read: .init(snapshot: snapshot, context: context))
-                        let inspecting = cameraPreview?.resolve(current: cameraRead)?.id == stop.id
+                        let request = cameraGate.request(.preview(stop.id), read: read)
+                        let inspecting = inspectingID == stop.id
                         Button { if let request { focus(request) } } label: {
                             VStack(spacing: 3) {
                                 Image(systemName: stop.state.symbol).font(.title2)
@@ -169,6 +176,7 @@ import MapKit
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(inspecting ? Color.primary : Color.clear, lineWidth: 2))
                         }.buttonStyle(.plain).disabled(request == nil)
                             .accessibilityLabel(stopName(stop) + Text(verbatim: ", ") + Text(LocalizedStringKey(stop.state.labelKey)))
+                            .accessibilityHint(request == nil ? Text(verbatim: "") : Text("playRouteCamera.notice"))
                             .accessibilityIdentifier("playRoute.pin.\(stop.id)")
                             .accessibilityAddTraits(inspecting ? .isSelected : [])
                     }

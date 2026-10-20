@@ -3,6 +3,8 @@ import SwiftUI
 @MainActor struct RoamHistoryView: View {
     let reader: any RoamExperienceReading
     var liveDestination: (() -> AnyView)? = nil
+    /// 那年今日 / 月度回顾 reader; nil shows each tool's own "not configured" state.
+    var toolsReader: (any RoamPassportToolsReading)? = nil
     @State private var records: [RoamHistoryRecord] = []
     @State private var error: Error?
     @State private var loaded = false
@@ -13,8 +15,9 @@ import SwiftUI
             LazyVStack(alignment: .leading, spacing: 16) {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
                 if let error { RoamExperienceIssue(error: error, retry: load) }
-                else if !loaded { ProgressView("roam.loading") }
+                else if !loaded { ProgressView("roamSub.w208.history.loading") }
                 else if records.isEmpty {
+                    RoamHistoryToolsRow(reader: toolsReader)
                     if let keys = localWalk.noticeKeys(reader: reader) {
                         ContentUnavailableView(LocalizedStringKey(keys.title), systemImage: "pause.circle",
                             description: Text(LocalizedStringKey(keys.hint)))
@@ -39,7 +42,9 @@ import SwiftUI
                     }
                 } else {
                     let summary = RoamHistorySummary(records)
+                    RoamHistoryToolsRow(reader: toolsReader)
                     RoamExperienceCard {
+                        RoamHistoryParityStrip(records: records)
                         LabeledContent("roam.experience.trips", value: String(summary.trips)).font(.headline)
                         if let distance = summary.knownKilometers, summary.tripsWithDistance > 0 {
                             LabeledContent("roam.experience.knownDistance") { Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " km") }
@@ -60,11 +65,9 @@ import SwiftUI
                         NavigationLink { RoamHistoryDetailView(reader: reader, timestamp: record.ts) } label: {
                             RoamExperienceCard {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    if let zone = record.meaningfulZone { Text(verbatim: zone).font(.title3).bold() }
-                                    else { Text("roam.experience.cityWalk").font(.title3).bold() }
-                                    if let date = record.recordedAt { Text(date, style: .date).font(.caption).foregroundStyle(.secondary) }
+                                    RoamRunCardTitle(record: record)
                                     RoamRouteSketchView(record: record)
-                                    RoamRecordedStats(record: record)
+                                    RoamRunCardParityMeta(record: record)
                                 }
                             }
                         }.buttonStyle(QuestifyCardButtonStyle())
@@ -218,9 +221,10 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     RoamExperienceCard {
                         VStack(alignment: .leading, spacing: 18) {
                             Label("roam.experience.savedRecord", systemImage: "book.closed").font(.caption).foregroundStyle(.secondary)
-                            if let zone = record.meaningfulZone { Text(verbatim: zone).font(.title2).bold() }
-                            else { Text("roam.experience.cityWalk").font(.title2).bold() }
-                            if let date = record.recordedAt { Text(date, style: .date) }
+                            RoamSessionParityHeader(record: record)
+                            RoamSessionRouteNameText(name: RoamSessionRouteName(record)).font(.title3).bold()
+                                .accessibilityIdentifier("roamSub.w208.session.routeName")
+                            Text("roamSub.w208.session.completeFact").font(.subheadline).foregroundStyle(.secondary)
                             RoamSavedRouteReplayView(reader: reader, record: record)
                             RoamRecordedStats(record: record)
                         }
