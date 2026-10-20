@@ -8,6 +8,8 @@ import SwiftUI
     let reader: any MemberHomeReading
     var growth: (any GrowthCenterReading)? = nil
     var onOpenTickets: (() -> Void)? = nil
+    /// Bump from the owning screen's pull-to-refresh to reload identity and growth together.
+    var refreshToken: Int = 0
     enum Phase: Equatable { case loading, ready(MemberIdentitySnapshot), failed(signedOut: Bool) }
     @State private var phase: Phase = .loading
     @State private var level: Int?
@@ -77,8 +79,9 @@ import SwiftUI
             case .ready: EmptyView()
             }
         }
-        .task(id: reader.scope) { await load() }
+        .task(id: TaskKey(scope: reader.scope, refresh: refreshToken)) { await load() }
     }
+    private struct TaskKey: Equatable { let scope: UUID; let refresh: Int }
 
     private var snapshot: MemberIdentitySnapshot? { if case .ready(let value) = phase { return value }; return nil }
 
@@ -89,12 +92,31 @@ import SwiftUI
     @ViewBuilder private var city: some View {
         if let value = snapshot?.city, !value.isEmpty { Text(verbatim: value) } else { Text(verbatim: "—") }
     }
-    private var avatar: some View {
+    /// Remote avatar comes only from the already-loaded user-info `avatar` URL (https only);
+    /// anything else, or a load failure, keeps the lettermark.
+    static func remoteAvatarURL(_ raw: String?) -> URL? {
+        let text = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text.lowercased().hasPrefix("https://"), let url = URL(string: text), url.host != nil else { return nil }
+        return url
+    }
+    private var lettermark: some View {
         let nickname = snapshot?.nickname ?? account.nickname
         return ZStack {
             Circle().fill(.tint.opacity(0.15))
             if let initial = nickname.first { Text(verbatim: String(initial)).font(.title2.weight(.semibold)) }
             else { Image(systemName: "person.fill").font(.title2) }
+        }
+    }
+    private var avatar: some View {
+        Group {
+            if let url = Self.remoteAvatarURL(snapshot?.avatar) {
+                AsyncImage(url: url) { image in
+                    switch image {
+                    case .success(let loaded): loaded.resizable().scaledToFill().clipShape(Circle())
+                    default: lettermark
+                    }
+                }
+            } else { lettermark }
         }.frame(width: 56, height: 56).accessibilityHidden(true)
     }
     private func stat(_ value: Int?, id: String, label: () -> Text) -> some View {
