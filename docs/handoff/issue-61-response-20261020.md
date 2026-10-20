@@ -27,7 +27,7 @@
   1. **入口与页面**：漫游主页（`RoamView`）→ 漫游护照 / 私人工具入口（`RoamPassportToolsSheet` / `RoamPrivateToolsSheet`，含月度回顾 `monthly-recap`、探索周年 `anniversary`、探索目标 `exploration-goals`、时光胶囊 `capsule`、探索导出 `exploration-export`）。
   2. **读取链路**：`AppSession` 通过 `roamPassportToolsReadAccessSelector` 与 `roamPrivateToolsAccess` 委托调用 `composition.roamPassportToolsReadAccess(context)` / `composition.roamPrivateToolsReadAccess(context)`，并在 `CompositionHTTPTransport.send(_:)` 中校验 `RoamPassportToolsRoute.reads` 与 `RoamPrivateToolsRoute.reads`。
   3. **会话与写隔离边界**：每次读取及读回落地均校验 `ContentDraftContextFence.matches(context, current)` 与 `!selected.allowsWrites`；未登录、退出、切账号、401 或撤销授权时立即清空 `roamPassportToolsState` / `roamPrivateToolsState` 并丢弃迟到响应；所有写路由（`RoamPrivateToolsRoute.writes`）不在 `CompositionHTTPTransport` 放行，写权限保持独立关闭。
-  4. **生产默认关闭边界**：`AppCompositionRoot.init` 的 `roamPassportToolsReadAccess` 与 `roamPrivateToolsReadAccess` 默认仍为 `{ _ in nil }`，`Config/ApprovedProductionEndpoints.json` 仍为空数组 `[]`；仅在显式注入经审阅的只读 Access 对象且端点位于该 Access 的 `endpoints` 白名单时才会发起请求，不等于生产端点已启用。
+  4. **生产默认关闭边界**：`AppCompositionRoot.init` 的 `roamPassportToolsReadAccess` 与 `roamPrivateToolsReadAccess` 默认仍为 `{ _ in nil }`，生产端点白名单（已审阅 registry）是 `App/RegionalLaunchConfiguration.swift` 中硬编码的空字典（仓库内不存在 `Config/ApprovedProductionEndpoints.json`）；仅在显式注入经审阅的只读 Access 对象且端点位于该 Access 的 `endpoints` 白名单时才会发起请求，不等于生产端点已启用。
 
 ### A4 — 发布证书改为证据驱动 Fail-Closed（预览样例与正式验收入口分离）
 - **状态**：已提交代码修正。
@@ -80,6 +80,6 @@
 
 ## 三、iOS 环境、配置与产品决策阻塞（独立列出，不替换原 B1–B3）
 
-1. **生产端点白名单与构建签名配置**：`Config/ApprovedProductionEndpoints.json` 仍为空 `[]`，`Config/Base.xcconfig` 保持 `QUESTIFY_API_BASE_URL =` 与 `CODE_SIGNING_ALLOWED = NO`。
+1. **生产端点白名单与构建签名配置**：生产端点白名单是 `App/RegionalLaunchConfiguration.swift:67` 中硬编码的空字典 `[:]`（不存在 `Config/ApprovedProductionEndpoints.json`）；`Config/Base.xcconfig` 保持 `QUESTIFY_API_BASE_URL =` 为空，且不设置 `CODE_SIGNING_ALLOWED`——`CODE_SIGNING_ALLOWED=NO` 仅由 `.github/workflows/native-ios.yml` 的 CI `xcodebuild` 命令行传入。
 2. **共用后端合同状态**：`CLAIM-MATERIAL`、`AI-DELETE`、`AI-VOICE` 仍为 `DRAFT`，全部 `BK-*` 仍为 `TEST_DEPLOYED = NO`。
 3. **产品政策决定 `D-01` 至 `D-10`**：未决期间全部保持现状与默认关闭状态。

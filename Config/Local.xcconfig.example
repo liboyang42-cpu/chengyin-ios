@@ -1,0 +1,16 @@
+// Copy to Config/Local.xcconfig (gitignored) and fill in the placeholders.
+// Never commit Config/Local.xcconfig, and never put secrets in build settings.
+// Config/Base.xcconfig pulls this file in via #include? so these values override its defaults.
+
+// Apple Developer Team ID used for automatic signing.
+// DEVELOPMENT_TEAM = <YOUR_APPLE_TEAM_ID>
+
+// Production bundle identifier registered in App Store Connect.
+// PRODUCT_BUNDLE_IDENTIFIER = <YOUR_PRODUCTION_BUNDLE_ID>
+
+// Approved public HTTPS API base URL, preserving the gateway prefix.
+// xcconfig treats // as a comment, so write the scheme as https:/$()/<host>/<prefix>.
+// QUESTIFY_API_BASE_URL = https:/$()/<YOUR_APPROVED_API_HOST>/<GATEWAY_PREFIX>
+
+// Explicit deployment identity for isolated local session persistence.
+// QUESTIFY_SESSION_REALM = <YOUR_SESSION_REALM>

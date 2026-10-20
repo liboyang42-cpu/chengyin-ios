@@ -4,12 +4,11 @@ Updated: 2026-10-20 UTC
 
 ## 1. Local & Release Signing Configuration (`Config/Local.xcconfig`)
 
-`Config/Base.xcconfig` ships with safe non-routable / empty defaults so CI and unconfigured checkouts remain fail-closed (`CODE_SIGNING_ALLOWED = NO`, `PRODUCT_BUNDLE_IDENTIFIER = com.example.questify`, empty `QUESTIFY_MARKET` / `QUESTIFY_API_BASE_URL` / `QUESTIFY_SESSION_REALM`).
+`Config/Base.xcconfig` ships with safe non-routable / empty defaults so CI and unconfigured checkouts remain fail-closed (`PRODUCT_BUNDLE_IDENTIFIER = invalid.example.questify.ios`, `QUESTIFY_MARKET = CN`, empty `QUESTIFY_API_BASE_URL` / `QUESTIFY_SESSION_REALM`). `Base.xcconfig` does not set `CODE_SIGNING_ALLOWED`; `CODE_SIGNING_ALLOWED=NO` is only passed on the `xcodebuild` command line by CI (`.github/workflows/native-ios.yml`). The approved-endpoint registry is a hard-coded empty dictionary in `App/RegionalLaunchConfiguration.swift`, so any non-empty `QUESTIFY_API_BASE_URL` stays unapproved until that registry is reviewed and updated in source.
 
-Before archiving for **TestFlight** or **App Store Connect**, create an untracked `Config/Local.xcconfig` (copied from `Config/Local.xcconfig.example`) with your release coordinates:
+Before archiving for **TestFlight** or **App Store Connect**, create an untracked `Config/Local.xcconfig` (copied from `Config/Local.xcconfig.example`, which contains commented placeholders only) with your release coordinates:
 
 ```xcconfig
-CODE_SIGNING_ALLOWED = YES
 CODE_SIGN_STYLE = Automatic
 DEVELOPMENT_TEAM = <YOUR_APPLE_TEAM_ID>
 PRODUCT_BUNDLE_IDENTIFIER = <YOUR_PRODUCTION_BUNDLE_ID>
