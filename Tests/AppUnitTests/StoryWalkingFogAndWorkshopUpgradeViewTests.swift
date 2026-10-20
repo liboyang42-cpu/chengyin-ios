@@ -182,4 +182,24 @@ final class StoryWalkingFogAndWorkshopUpgradeViewTests: XCTestCase {
         XCTAssertEqual(compatiblePresentation.manifestIssueNotice?.isH5DesignOnlyRejection, true)
         XCTAssertFalse(compatiblePresentation.canConfirmUpgrade(confirmedByBuyer: true))
     }
+
+    func testPurchasedUpgradeEntryHostsInjectedCompareAndStaysClosedByDefault() async throws {
+        let item = try makePurchasedItem()
+        let term = try WorkshopPurchasedUseTerm(item)
+        let installed = try makeVersion(versionId: "v1-0-0", semver: "1.0.0", hashChar: "a", capabilities: ["choice"])
+        let candidate = try makeVersion(versionId: "v1-1-0", semver: "1.1.0", hashChar: "c", capabilities: ["choice"])
+        let presentation = WorkshopModUpgradePresentation(term: term, preview: try WorkshopUpgradePreview(installed: installed, candidate: candidate, coverage: .covered))
+        let defaultFactory: WorkshopPurchasedUpgradeFactory = { nil }
+        XCTAssertNil(defaultFactory())
+        var saved: WorkshopUpgradeDraftRequest?
+        let handlers = WorkshopPurchasedUpgradeHandlers(compare: { _ in presentation }, saveDraft: { saved = $0 })
+        let entry = WorkshopPurchasedUpgradeEntry(item: item, handlers: handlers)
+        _ = entry.body
+        let compared = await handlers.compare(item)
+        XCTAssertEqual(compared, presentation)
+        XCTAssertNil(saved)
+        handlers.saveDraft(try presentation.makeUpgradeDraftRequest(confirmedByBuyer: true))
+        XCTAssertEqual(saved?.toVersionId, "v1-1-0")
+        XCTAssertEqual(saved?.fromVersionId, item.purchasedVersionId)
+    }
 }
