@@ -18,7 +18,11 @@ import SwiftUI
     }
     private var summary: ClubDetailEventsSummary {
         let accepted = model.accepted(readContext, access: governance.access)
-        return .init(overview: accepted ? model.activityOverview : nil, failure: model.failure, loading: model.loading)
+        return .init(overview: accepted ? model.activityOverview : nil,
+                     acceptedContext: accepted ? model.context : nil,
+                     expectedContext: readContext,
+                     failure: model.failure,
+                     loading: model.loading)
     }
     var body: some View {
         Section {

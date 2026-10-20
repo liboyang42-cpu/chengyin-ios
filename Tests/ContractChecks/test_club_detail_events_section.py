@@ -32,6 +32,60 @@ class ClubDetailEventsSectionTests(unittest.TestCase):
         for key in keys:
             self.assertIn('"%s"' % key, catalog, key)
 
+    def test_loaded_empty_and_context_isolation_projection_tests(self):
+        summary = self.text('Core/ClubDetailEventsSummary.swift')
+        section = self.text('App/ClubDetailEventsSection.swift')
+        tests = self.text('Tests/CoreTests/ClubDetailEventsSummaryTests.swift')
+
+        for token in [
+            'case loading',
+            'case failed(localizationKey: String)',
+            'case empty',
+            'case loaded(current: Int, ended: Int, upcoming: [ClubActivityRow])',
+            'overview.rows.isEmpty ? .empty',
+            'Array(overview.current.prefix(Self.upcomingLimit))',
+            'acceptedContext: ClubGovernanceReadContext?',
+            'expectedContext: ClubGovernanceReadContext',
+        ]:
+            self.assertIn(token, summary)
+
+        for token in [
+            'let accepted = model.accepted(readContext, access: governance.access)',
+            'acceptedContext: accepted ? model.context : nil',
+            'expectedContext: readContext',
+            'club.detail.events.loading',
+            'club.detail.events.error',
+            'club.detail.events.empty',
+            'club.detail.events.currentCount',
+            'club.detail.events.endedCount',
+        ]:
+            self.assertIn(token, section)
+
+        required_test_methods = [
+            'testNoOverviewAndNoFailureIsLoading',
+            'testFailuresAreIsolatedAndMapToExistingKeys',
+            'testUpcomingLimitIsThree',
+            'testEmptyAuthorizedOverviewProjectsEmptyState',
+            'testLoadedProjectionCountsCurrentAndEndedAndCapsUpcomingAtThreeInSourceOrder',
+            'testEndedOnlyOverviewProjectsLoadedWithZeroCurrentAndEmptyUpcomingRatherThanEmpty',
+            'testScopeAccessAndStaleContextDiscardProjectLoadingWithoutLeakingRows',
+        ]
+        for method in required_test_methods:
+            self.assertIn(f'func {method}(', tests)
+
+        for assertion_token in [
+            '.empty',
+            '.loaded(current, ended, upcoming)',
+            '.loaded(current: 0, ended: 2, upcoming: [])',
+            'XCTAssertEqual(upcoming.map(\\.id), [92, 93, 95])',
+            'XCTAssertEqual(upcoming.map(\\.name), ["Morning Run", nil, "City Orienteering"])',
+            'XCTAssertEqual(upcoming.map(\\.status), [.live, .recruiting, .recruiting])',
+            'context(clubID: 82)',
+            'context(authorizationGeneration: UUID())',
+            'context(accessIdentity: ObjectIdentifier(otherToken))',
+        ]:
+            self.assertIn(assertion_token, tests)
+
 
 if __name__ == '__main__':
     unittest.main()

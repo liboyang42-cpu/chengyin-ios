@@ -25,4 +25,14 @@ public struct ClubDetailEventsSummary: Equatable {
                           upcoming: Array(overview.current.prefix(Self.upcomingLimit)))
         } else { state = .loading }
     }
+
+    /// Projects `overview` only when `acceptedContext` matches `expectedContext` for a signed-in
+    /// `.topics` club scope; any club/account/revision/authorization/access mismatch discards
+    /// stale rows and stale context failures into `.loading`.
+    public init(overview: ClubActivityOverview?, acceptedContext: ClubGovernanceReadContext?, expectedContext: ClubGovernanceReadContext, failure: ClubGovernanceFailure?, loading: Bool = true) {
+        let valid = expectedContext.operation == .topics && (expectedContext.scope.clubID ?? 0) > 0 &&
+            (expectedContext.identity?.accountID ?? 0) > 0 && acceptedContext == expectedContext &&
+            overview?.calendar.clubID == expectedContext.scope.clubID
+        self.init(overview: valid ? overview : nil, failure: valid || acceptedContext == nil ? failure : nil, loading: loading)
+    }
 }
