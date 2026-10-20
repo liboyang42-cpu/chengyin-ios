@@ -10,8 +10,9 @@ import SwiftUI
     @State private var selectedTab: Tab = .posts
     @State private var gateFeatures: SquareCommunityFeatures?
     @State private var gateScope: UUID?
+    @State private var gateFailed = false
     private enum Tab: Hashable { case posts, topics }
-    private var postsAllowed: Bool { guard let communityGate else { return true }; return gateScope == communityGate.scope && gateFeatures?.read == true }
+    private var postsAllowed: Bool { guard let communityGate else { return true }; return gateScope == communityGate.scope && gateFeatures?.read == true && !gateFailed }
     var body: some View {
         VStack(spacing: 0) {
             if postsAllowed {
@@ -25,18 +26,35 @@ import SwiftUI
             if postsAllowed && selectedTab == .posts {
                 AccountCollectionFavoritePostsView(reader: reader, pageSize: pageSize, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval)
             } else {
-                AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize)
+                AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize, retryGate: {
+                    if gateFailed || gateScope != communityGate?.scope { await loadGate() }
+                })
             }
         }
         .appNavigationTitle("accountCollection.favorites.title")
         .task(id: communityGate?.scope) { await loadGate() }
+        .onChange(of: communityGate?.scope) { _, next in
+            if gateScope != next { gateFeatures = nil; gateScope = nil; gateFailed = false }
+        }
+        .onChange(of: reader.scope) { _, _ in
+            gateFeatures = nil; gateScope = nil; gateFailed = false
+        }
     }
     private func loadGate() async {
-        guard let communityGate, reader.isAuthenticated, reader.isConfigured, gateScope != communityGate.scope else { return }
+        guard let communityGate, reader.isAuthenticated, reader.isConfigured else {
+            gateFeatures = nil; gateScope = nil; gateFailed = false; return
+        }
+        guard gateScope != communityGate.scope else { return }
         let scope = communityGate.scope
-        let value = try? await communityGate.communityFeatures()
-        guard !Task.isCancelled, scope == communityGate.scope else { return }
-        gateFeatures = value; gateScope = scope
+        gateFailed = false
+        do {
+            let value = try await communityGate.communityFeatures()
+            guard !Task.isCancelled, scope == communityGate.scope else { return }
+            gateFeatures = value; gateScope = scope; gateFailed = false
+        } catch {
+            guard !Task.isCancelled, !(error is CancellationError), scope == communityGate.scope else { return }
+            gateFeatures = nil; gateScope = nil; gateFailed = true
+        }
     }
 }
 
@@ -46,6 +64,7 @@ import SwiftUI
     let reader: any AccountCollectionReading
     let onOpenTopic: (Int) -> Void
     var pageSize = 10
+    var retryGate: (() async -> Void)? = nil
     @StateObject private var model = AccountCollectionFavoritesScreenModel()
     @Environment(\.topicUnlikeController) private var unlike
     @State private var unliked: Set<Int> = []
@@ -102,6 +121,7 @@ import SwiftUI
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
         unliked = []
+        await retryGate?()
         await model.refresh(reader: reader, pageSize: pageSize)
     }
     private func loadMore() async {
@@ -143,6 +163,7 @@ private struct AccountCollectionFavoriteCard: View {
     var favoritesReader: (any AccountCollectionReading)? = nil
     private var savedReader: any AccountCollectionReading { favoritesReader ?? reader }
     var rewardMerchant: PublicMerchantHomeContext? = nil
+    var communityGate: (any SquareCommunityFeatureReading)? = nil
     var body: some View {
         let saved = savedReader, renderedScope = saved.scope
         Section {
@@ -157,7 +178,7 @@ private struct AccountCollectionFavoriteCard: View {
                 }, onOpenPost: onOpenPost.map { open in { route in
                     guard saved.isAuthenticated, saved.isConfigured, saved.scope == renderedScope else { return }
                     open(route)
-                } }, favoriteRemoval: favoriteRemoval).id(renderedScope)
+                } }, favoriteRemoval: favoriteRemoval, communityGate: communityGate).id(renderedScope)
             } label: { Label("accountCollection.favorites.title", systemImage: "heart") }
             .accessibilityIdentifier("accountCollection.openFavorites")
             NavigationLink {

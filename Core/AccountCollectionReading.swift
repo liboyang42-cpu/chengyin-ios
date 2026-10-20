@@ -225,3 +225,63 @@ public extension AccountCollectionReading {
         }
     }
 }
+
+/// Scoped community-feature gate state for Account Favorites (`我的收藏`).
+/// Keeps `postsAllowed == false` while pending, denied (`read == false`), or failed,
+/// leaves `gateScope == nil` on error so same-scope retries can recover, and clears
+/// state when the reader or gate scope changes.
+@MainActor public final class AccountCollectionCommunityGateModel {
+    public private(set) var features: SquareCommunityFeatures?
+    public private(set) var resolvedScope: UUID?
+    public private(set) var failed = false
+    private var generation: UInt64 = 0
+
+    public init() {}
+
+    public func postsAllowed(hasGate: Bool, currentScope: UUID?) -> Bool {
+        guard hasGate else { return true }
+        guard let currentScope else { return false }
+        return resolvedScope == currentScope && features?.read == true && !failed
+    }
+
+    public func invalidate() {
+        generation &+= 1
+        features = nil
+        resolvedScope = nil
+        failed = false
+    }
+
+    public func load(
+        gate: (any SquareCommunityFeatureReading)?,
+        isAuthenticated: Bool,
+        isConfigured: Bool,
+        forceRetry: Bool = false
+    ) async {
+        guard let gate, isAuthenticated, isConfigured else {
+            invalidate()
+            return
+        }
+        let scope = gate.scope
+        if resolvedScope != nil && resolvedScope != scope {
+            invalidate()
+        }
+        if resolvedScope == scope && !forceRetry {
+            return
+        }
+        generation &+= 1
+        let captured = generation
+        failed = false
+        do {
+            let value = try await gate.communityFeatures()
+            guard !Task.isCancelled, captured == generation, gate.scope == scope else { return }
+            features = value
+            resolvedScope = scope
+            failed = false
+        } catch {
+            guard !Task.isCancelled, !(error is CancellationError), captured == generation, gate.scope == scope else { return }
+            features = nil
+            resolvedScope = nil
+            failed = true
+        }
+    }
+}

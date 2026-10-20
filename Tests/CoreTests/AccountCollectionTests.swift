@@ -377,4 +377,58 @@ extension AccountCollectionTests {
         squareSession = try SquareReadSession(accountID: 1, epoch: 2, token: "synthetic-token")
         XCTAssertNotEqual(gate.scope, firstScope)
     }
+
+    @MainActor func testCommunityGateModelFailureRetryRecoveryAndScopeReset() async throws {
+        @MainActor final class StubGate: SquareCommunityFeatureReading {
+            var scope = UUID()
+            var callCount = 0
+            var shouldFail = true
+            var readAllowed = false
+            func communityFeatures() async throws -> SquareCommunityFeatures {
+                callCount += 1
+                if shouldFail { throw APIError.network("transient") }
+                let json = #"{"communityPostRead":\#(readAllowed),"communityPostWrite":false}"#
+                return try JSONDecoder().decode(SquareCommunityFeatures.self, from: Data(json.utf8))
+            }
+        }
+
+        let stub = StubGate()
+        let gateModel = AccountCollectionCommunityGateModel()
+        let firstScope = stub.scope
+
+        // Pending before load: postsAllowed is false.
+        XCTAssertFalse(gateModel.postsAllowed(hasGate: true, currentScope: firstScope))
+
+        // 1. Initial load fails: resolvedScope stays nil so same-scope retry works; postsAllowed is false.
+        await gateModel.load(gate: stub, isAuthenticated: true, isConfigured: true)
+        XCTAssertTrue(gateModel.failed)
+        XCTAssertNil(gateModel.resolvedScope)
+        XCTAssertFalse(gateModel.postsAllowed(hasGate: true, currentScope: firstScope))
+        XCTAssertEqual(stub.callCount, 1)
+
+        // 2. Retry on the SAME scope when gate returns read == false: resolvedScope is set, postsAllowed stays false.
+        stub.shouldFail = false
+        stub.readAllowed = false
+        await gateModel.load(gate: stub, isAuthenticated: true, isConfigured: true)
+        XCTAssertFalse(gateModel.failed)
+        XCTAssertEqual(gateModel.resolvedScope, firstScope)
+        XCTAssertFalse(gateModel.postsAllowed(hasGate: true, currentScope: firstScope))
+        XCTAssertEqual(stub.callCount, 2)
+
+        // 3. Force retry on same scope (or after failure) when gate returns read == true: postsAllowed becomes true.
+        stub.readAllowed = true
+        await gateModel.load(gate: stub, isAuthenticated: true, isConfigured: true, forceRetry: true)
+        XCTAssertFalse(gateModel.failed)
+        XCTAssertEqual(gateModel.resolvedScope, firstScope)
+        XCTAssertTrue(gateModel.postsAllowed(hasGate: true, currentScope: firstScope))
+        XCTAssertEqual(stub.callCount, 3)
+
+        // 4. Scope change immediately invalidates postsAllowed for the new scope until reloaded.
+        let secondScope = UUID()
+        stub.scope = secondScope
+        XCTAssertFalse(gateModel.postsAllowed(hasGate: true, currentScope: secondScope))
+        gateModel.invalidate()
+        XCTAssertNil(gateModel.features)
+        XCTAssertNil(gateModel.resolvedScope)
+    }
 }
