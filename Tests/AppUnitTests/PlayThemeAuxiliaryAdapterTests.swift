@@ -1,6 +1,10 @@
 import XCTest
 @testable import Questify
-@testable import QuestifyCore
+#if canImport(QuestifyCore)
+import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 @MainActor final class PlayThemeAuxiliaryAdapterTests: XCTestCase {
     private final class StubTransport: HTTPTransport {
