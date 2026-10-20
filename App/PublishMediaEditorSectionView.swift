@@ -32,7 +32,7 @@ public struct PublishMediaEditorSectionView: View {
                     )) != nil
                     Text(verbatim: permitted ? "编辑权限：当前归属方允许编辑" : "编辑权限：跨归属方或跨世界编辑已拒绝")
                         .font(.footnote)
-                        .foregroundStyle(permitted ? .secondary : .red)
+                        .foregroundStyle(permitted ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
                         .accessibilityIdentifier("publishMediaEditor.permission")
                 }
 

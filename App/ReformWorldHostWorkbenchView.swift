@@ -20,15 +20,15 @@ public struct ReformWorldHostWorkbenchView: View {
     public init(
         readinessReport: WaveUnifiedParityInventory.ReleaseReadinessReport = WaveUnifiedParityInventory.verifyReleaseReadinessInvariants(),
         highRiskSwitches: [WaveUnifiedParityInventory.HighRiskSwitchStatus] = WaveUnifiedParityInventory.evaluateHighRiskSwitches(),
-        preflightDiagnosticsView: ReleasePreflightDiagnosticsView = .init(),
+        preflightDiagnosticsView: ReleasePreflightDiagnosticsView? = nil,
         runAuthoritySectionView: RunAuthorityHostSectionView? = nil,
-        npcAISceneGuardSectionView: NPCAISceneGuardSectionView = .init()
+        npcAISceneGuardSectionView: NPCAISceneGuardSectionView? = nil
     ) {
         self.readinessReport = readinessReport
         self.highRiskSwitches = highRiskSwitches
-        self.preflightDiagnosticsView = preflightDiagnosticsView
+        self.preflightDiagnosticsView = preflightDiagnosticsView ?? ReleasePreflightDiagnosticsView()
         self.runAuthoritySectionView = runAuthoritySectionView ?? Self.makeDefaultRunAuthoritySectionView()
-        self.npcAISceneGuardSectionView = npcAISceneGuardSectionView
+        self.npcAISceneGuardSectionView = npcAISceneGuardSectionView ?? NPCAISceneGuardSectionView()
     }
 
     public static func makeDefaultRunAuthoritySectionView() -> RunAuthorityHostSectionView {
