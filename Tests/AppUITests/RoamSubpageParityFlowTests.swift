@@ -83,7 +83,7 @@ final class RoamSubpageParityFlowTests: XCTestCase {
         XCTAssertEqual(element("roamSub.w208.stamp.serial", app).label, "NO. 2345")
         XCTAssertFalse(app.buttons["roamSub.w208.stamp.done"].isEnabled)
         let paper = element("roamSub.w208.stamp.slip", app)
-        paper.press(forDuration: 0.1, thenDragTo: paper.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.6)))
+        paper.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 0.1, thenDragTo: paper.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.6)))
         if app.buttons["roamSub.w208.stamp.tear"].exists { app.buttons["roamSub.w208.stamp.tear"].tap() }
         XCTAssertTrue(app.buttons["roamSub.w208.stamp.scratch"].waitForExistence(timeout: 5))
         app.buttons["roamSub.w208.stamp.scratch"].tap()
