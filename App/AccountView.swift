@@ -10,6 +10,7 @@ import SwiftUI
     @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
     @Environment(\.scenePhase) private var scenePhase
     @State private var showsSettings=false
+    @State private var memberRefreshToken = 0
     @State private var settingsGuideHandoff = SettingsGuideHandoff()
     @State private var showsTickets=false
     @State private var showsCooperation=false
@@ -29,7 +30,7 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTickets = true })
+                MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTickets = true }, refreshToken: memberRefreshToken)
                 Section {
                     NavigationLink { SessionDoorInviterView(session: session) } label: { Text("door.inviter.title") }
                         .accessibilityIdentifier("door.inviter.entry")
@@ -137,6 +138,7 @@ import SwiftUI
                     Button("auth.signOut",role:.destructive) { confirmsLogout=true }
                 }
             }
+            .refreshable { memberRefreshToken += 1 }
             .appNavigationTitle("account.title")
             .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
             .toolbar {
