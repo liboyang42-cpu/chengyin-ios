@@ -137,7 +137,7 @@ import SwiftUI
             .task { await reload() }.refreshable { await reload() }
             .onDisappear { model.leave() }
             .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
-            .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team) } }
+            .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail) -> some View {
         if !readOnly, action.isAllowed(detail: detail) {

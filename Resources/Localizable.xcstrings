@@ -1,6 +1,40 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "team.invite.copied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation code copied. No invitation was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请码已复制，尚未发送邀请。"
+          }
+        }
+      }
+    },
+    "team.invite.copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy invitation code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制邀请码"
+          }
+        }
+      }
+    },
     "roam.players.readScope": {
       "localizations": {
         "en": {
@@ -140522,13 +140556,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is a local preview. Sharing and sending invitations are unavailable."
+            "value": "Copying only places the existing code on this device’s clipboard. It does not send an invitation or create a link."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这里只显示本地预览，暂不支持分享或发送邀请。"
+            "value": "复制仅将现有邀请码放入本机剪贴板，不会发送邀请或创建链接。"
           }
         }
       }
