@@ -213,3 +213,11 @@ c06ff3415676dfd9a04fd936f2a838bc0ecd970d:Tests/CoreTests/CommerceOrderLifecycleB
 c06ff3415676dfd9a04fd936f2a838bc0ecd970d:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
 c06ff3415676dfd9a04fd936f2a838bc0ecd970d:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
 c06ff3415676dfd9a04fd936f2a838bc0ecd970d:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+
+# Same reviewed fixture lines re-observed by the -m history scan in base merge da625216.
+# Exact merge-history observation only; all other commits, paths, rules and lines remain scanned.
+da625216ba7d81d70c9e42826618ef96ed2ad6ad:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+da625216ba7d81d70c9e42826618ef96ed2ad6ad:Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift:generic-api-key:127
+da625216ba7d81d70c9e42826618ef96ed2ad6ad:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+da625216ba7d81d70c9e42826618ef96ed2ad6ad:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+da625216ba7d81d70c9e42826618ef96ed2ad6ad:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77

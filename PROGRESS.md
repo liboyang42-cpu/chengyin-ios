@@ -469,3 +469,16 @@ Added 21 authored core methods, nine synthetic UI methods, eight aggregate Pytho
 - Run 39430388099 (57af9d44): `secrets` failed on one gitleaks finding, the synthetic `scannedCredential` fixture at Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift:127, so the native jobs were skipped. d02d6c48 adds the exact fingerprint and refreshes the ledger (929 entries added in 57af9d44).
 - c06ff341 merges origin/migration/native-ios (50e2cf9b). Both conflicts were additive and both sides were kept, in App/MerchantContentViews.swift and Core/MerchantContentService.swift. The base renamed testExistingSensitivePlayersRequestRemainsByteEquivalent to testMerchantPlayersRequestUsesExplicitOwnerScope, which is a stronger assertion, and Z reviewed the retirement in the ledger.
 - The `-m` history scan re-observes 5 reviewed lines under c06ff341: nearby.w208 ×4 and the voucher fixture. Exact fingerprints were added in the follow-up commit. Any later merge whose diff re-introduces wave-2 lines needs the same.
+
+### 2026-10-20 15:30 UTC — integrator Z (wave-2)
+
+- Fixes for 57af9d44 that block the build, all on top of the owner's branch with no rewrite:
+  - a4c2af77 guards Core imports in 26 App views.
+  - fd22f916 fixes import plumbing in 72 test files (QuestifyCore / Questify module names, guarded optional imports).
+  - 897147a1 and 1e72f991 fix the Questify module type errors: mixed HierarchicalShapeStyle/Color ternaries ×22, and main-actor default arguments.
+- Run 39439432984 (1e72f991):
+  - The app module and the AppUnit target now compile and run. AppUnit failures are the known base set plus PlayAnswerReviewTests.
+  - ui-build passed. UI shards are mostly red, as on the base.
+  - native (core) fails only in the 3 owner test files written against APIs that don't exist: MyProjectListPresentationTests, PlayGameSessionCompositionTests and RoamEntryNearbyTests.
+- 1bfb4ce6 (owner, #61): the release certificate now fails closed by default, and evidence is bound to a target SHA. Imports are guarded, and no secrets or live hosts were found. It was committed without a ledger refresh; Z's next merge records it.
+- da625216 merges origin/migration/native-ios (4a9b4cd9) cleanly. The -m scan re-observes the same 5 reviewed lines under the merge SHA, so their exact fingerprints are added.
