@@ -28,7 +28,7 @@ class Pkg11MerchantReviewCardContracts(unittest.TestCase):
     def test_review_card_view_uses_localization_table_and_host_wiring_keeps_existing_reply_flow(self):
         card = self.read("App/MerchantReviewCard.swift")
         self.assertIn("struct MerchantReviewCard: View", card)
-        self.assertIn("tableName: MerchantReviewCardPresentation.localizationTableName", card)
+        self.assertIn('tableName: "MerchantReviewAndCustomerDetail"', card)
         self.assertNotIn("已核销用户", card)
         self.assertNotIn("张图", card)
         self.assertIn('.accessibilityIdentifier("merchant.business.review.visibility")', card)

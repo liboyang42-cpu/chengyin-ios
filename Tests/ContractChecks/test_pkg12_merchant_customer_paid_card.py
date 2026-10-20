@@ -43,10 +43,10 @@ class MerchantCustomerPaidCardContracts(unittest.TestCase):
             "case .amount(let text):",
             "Text(verbatim: text).monospacedDigit()",
             "case .unknown:",
-            'Text("merchant.customerDetail.paidAmountUnrecorded", tableName: Self.paidCardLocalizationTableName)',
+            'Text("merchant.customerDetail.paidAmountUnrecorded", tableName: "MerchantReviewAndCustomerDetail")',
             "case .permissionHidden:",
             'Text("merchant.business.sensitiveUnavailable").foregroundStyle(.secondary)',
-            'Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: Self.paidCardLocalizationTableName)',
+            'Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: "MerchantReviewAndCustomerDetail")',
             '.accessibilityIdentifier("merchant.customerDetail.paidCard")',
         ]:
             self.assertIn(token, source)
@@ -67,7 +67,7 @@ class MerchantCustomerPaidCardContracts(unittest.TestCase):
         self.assertIn("XCTAssertEqual(view.paidCardState, .permissionHidden)", tests)
         self.assertIn('XCTAssertEqual(populated.paidCardState, .amount("CNY 42.00"))', tests)
         self.assertIn("XCTAssertEqual(absent.paidCardState, .unknown)", tests)
-        self.assertIn('XCTAssertEqual(absent.paidCardState.localizedStatusKey, "merchant.customerDetail.paidAmountUnrecorded")', tests)
+        self.assertIn("XCTAssertTrue(absent.paidCardState.isUnrecorded)", tests)
         self.assertIn('XCTAssertEqual(zero.paidCardState, .amount("CNY 0.00"))', tests)
 
 

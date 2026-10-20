@@ -21,17 +21,8 @@ import SwiftUI
     /// Cumulative-paid card state. Missing/null is `.unknown` (never 0); refunds never feed this value.
     enum PaidCardState: Equatable {
         case permissionHidden, unknown, amount(String)
-        var localizedStatusKey: String? {
-            switch self {
-            case .permissionHidden: return "merchant.business.sensitiveUnavailable"
-            case .unknown: return "merchant.customerDetail.paidAmountUnrecorded"
-            case .amount: return nil
-            }
-        }
+        var isUnrecorded: Bool { self == .unknown }
     }
-    static let paidCardLocalizationTableName = "MerchantReviewAndCustomerDetail"
-    static let paidAmountUnrecordedKey = "merchant.customerDetail.paidAmountUnrecorded"
-    static let paidAmountExcludesRefundsKey = "merchant.customerDetail.paidAmountExcludesRefunds"
     var paidCardState: PaidCardState {
         guard canRead, access.allows("merchant:crm:sensitive:read") else { return .permissionHidden }
         if let paidAmount { return .amount(paidAmount) }
@@ -56,13 +47,13 @@ import SwiftUI
                         case .amount(let text):
                             Text(verbatim: text).monospacedDigit()
                         case .unknown:
-                            Text("merchant.customerDetail.paidAmountUnrecorded", tableName: Self.paidCardLocalizationTableName)
+                            Text("merchant.customerDetail.paidAmountUnrecorded", tableName: "MerchantReviewAndCustomerDetail")
                                 .foregroundStyle(.secondary)
                         case .permissionHidden:
                             Text("merchant.business.sensitiveUnavailable").foregroundStyle(.secondary)
                         }
                     }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
-                    Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: Self.paidCardLocalizationTableName)
+                    Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: "MerchantReviewAndCustomerDetail")
                         .font(.footnote).foregroundStyle(.secondary)
                 }.accessibilityIdentifier("merchant.customerDetail.paidCard")
                 Section("merchant.customerDetail.participation") {

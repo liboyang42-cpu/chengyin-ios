@@ -12,10 +12,7 @@ struct MerchantReviewCard: View {
                 }
                 if presentation.verifiedRedemption {
                     Label {
-                        Text(
-                            LocalizedStringKey(MerchantReviewCardPresentation.verifiedRedemptionKey),
-                            tableName: MerchantReviewCardPresentation.localizationTableName
-                        )
+                        Text("merchant.review.verifiedRedemption", tableName: "MerchantReviewAndCustomerDetail")
                     } icon: {
                         Image(systemName: "checkmark.seal")
                     }
@@ -25,7 +22,7 @@ struct MerchantReviewCard: View {
                     Label {
                         Text(
                             "merchant.review.photoCount \(presentation.photoCount)",
-                            tableName: MerchantReviewCardPresentation.localizationTableName
+                            tableName: "MerchantReviewAndCustomerDetail"
                         )
                     } icon: {
                         Image(systemName: "photo")
@@ -36,14 +33,14 @@ struct MerchantReviewCard: View {
             HStack(spacing: 8) {
                 Text(
                     LocalizedStringKey(presentation.visibilityTitleKey),
-                    tableName: MerchantReviewCardPresentation.localizationTableName
+                    tableName: "MerchantReviewAndCustomerDetail"
                 )
                 .font(.footnote).padding(.horizontal, 8).padding(.vertical, 2)
                 .background(.quaternary, in: Capsule())
                 .accessibilityIdentifier("merchant.business.review.visibility")
                 Text(
                     LocalizedStringKey(presentation.replyTitleKey),
-                    tableName: MerchantReviewCardPresentation.localizationTableName
+                    tableName: "MerchantReviewAndCustomerDetail"
                 )
                 .font(.footnote).foregroundStyle(.secondary)
                 .accessibilityIdentifier("merchant.business.review.replyState")

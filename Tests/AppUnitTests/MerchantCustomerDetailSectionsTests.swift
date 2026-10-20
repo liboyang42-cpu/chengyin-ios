@@ -31,16 +31,14 @@ import XCTest
         let populated = MerchantCustomerDetailSections(detail: try detail(), access: grant) { _ in EmptyView() }
         XCTAssertEqual(populated.paidAmount, "CNY 42.00")
         XCTAssertEqual(populated.paidCardState, .amount("CNY 42.00"))
-        XCTAssertNil(populated.paidCardState.localizedStatusKey)
+        XCTAssertFalse(populated.paidCardState.isUnrecorded)
         let absent = MerchantCustomerDetailSections(detail: try detail(amount: .null), access: grant) { _ in EmptyView() }
         XCTAssertNil(absent.paidAmount)
         XCTAssertEqual(absent.paidCardState, .unknown)
-        XCTAssertEqual(absent.paidCardState.localizedStatusKey, "merchant.customerDetail.paidAmountUnrecorded")
+        XCTAssertTrue(absent.paidCardState.isUnrecorded)
         let zero = MerchantCustomerDetailSections(detail: try detail(amount: .string("0.00")), access: grant) { _ in EmptyView() }
         XCTAssertEqual(zero.paidAmount, "CNY 0.00")
         XCTAssertEqual(zero.paidCardState, .amount("CNY 0.00"))
-        XCTAssertEqual(MerchantCustomerDetailSections<EmptyView>.paidAmountUnrecordedKey, "merchant.customerDetail.paidAmountUnrecorded")
-        XCTAssertEqual(MerchantCustomerDetailSections<EmptyView>.paidAmountExcludesRefundsKey, "merchant.customerDetail.paidAmountExcludesRefunds")
     }
 
     @MainActor private final class Reader: MerchantBusinessReading {
