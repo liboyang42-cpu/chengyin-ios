@@ -79,10 +79,52 @@ private final class WorkspaceRequestTransport: HTTPTransport {
         do { _ = try await service(t, session: session).load(.project(topicID: 70)); XCTFail("Expected changed session") } catch { }
         XCTAssertEqual(t.requests.count, 2)
     }
-    func testExistingSensitivePlayersRequestRemainsByteEquivalent() async throws {
+    func testMerchantPlayersRequestUsesExplicitOwnerScope() async throws {
         let t = WorkspaceRequestTransport(), session = Session(); t.append(MerchantContentFixtureData.access); t.append(#"{"rows":[]}"#)
         _ = try await service(t, session: session).load(.players(topicID: 70))
-        XCTAssertEqual(t.requests[1].url?.path, "/api/project/players"); XCTAssertEqual(try body(t.requests[1]), ["topicId": .integer(70)])
+        XCTAssertEqual(t.requests[1].url?.path, "/api/project/players"); XCTAssertEqual(try body(t.requests[1]), ["topicId": .integer(70), "scope": .string("MERCHANT")])
+    }
+    func testOnlyExactOrdinaryHostProjectionOffersParticipants() throws {
+        let valid: MerchantContentValue = .object(["role": .string("host"), "topic": .object(["productType": .integer(1)]), "host": .object([:])])
+        XCTAssertTrue(MerchantOrdinaryParticipantsProjection.allowsHost(valid))
+        for kind in [MerchantContentValue.null, .integer(2), .integer(3), .string("1")] {
+            XCTAssertFalse(MerchantOrdinaryParticipantsProjection.allowsHost(.object(["role": .string("host"), "topic": .object(["productType": kind]), "host": .object([:])])))
+        }
+        XCTAssertFalse(MerchantOrdinaryParticipantsProjection.allowsHost(.object(["role": .string("join"), "topic": .object(["productType": .integer(1)]), "host": .object([:]), "join": .object([:])])))
+    }
+    func testRosterSanitizesContactAndDoesNotRetainUnrenderedIdentifiers() throws {
+        let raw = try JSONDecoder().decode(MerchantContentValue.self, from: Data(#"{"rows":[{"name":"Example","ticketName":"Ticket","state":"contacted","phone":"example-phone","avatar":"https://example.invalid/avatar","ticketNo":"private","registrationId":8}],"summary":{"paidCount":1,"arrivedCount":0,"pendingCount":0,"contactedCount":1,"refundedCount":0},"contactVisible":true,"contactHint":null}"#.utf8))
+        let hidden = try MerchantOrdinaryParticipantsProjection.sanitized(raw, mayReadContact: false)
+        XCTAssertEqual(hidden["rows"].array?.first?["phone"], .null)
+        XCTAssertNil(hidden["rows"].array?.first?.object?["avatar"])
+        XCTAssertNil(hidden["rows"].array?.first?.object?["ticketNo"])
+        XCTAssertNil(hidden["rows"].array?.first?.object?["registrationId"])
+        let visible = try MerchantOrdinaryParticipantsProjection.sanitized(raw, mayReadContact: true)
+        XCTAssertEqual(visible["rows"].array?.first?["phone"], .string("example-phone"))
+        XCTAssertEqual(visible["summary"]["contactedCount"], .integer(1))
+    }
+    func testRosterEmptySuccessRetainsExplicitZeroCountersAndHint() throws {
+        let raw = try JSONDecoder().decode(MerchantContentValue.self, from: Data(#"{"rows":[],"summary":{"paidCount":0,"arrivedCount":0,"pendingCount":0,"contactedCount":0,"refundedCount":0},"contactVisible":false,"contactHint":"No contact access"}"#.utf8))
+        let value = try MerchantOrdinaryParticipantsProjection.sanitized(raw, mayReadContact: false)
+        XCTAssertEqual(value["rows"], .array([])); XCTAssertEqual(value["summary"]["paidCount"], .integer(0))
+        XCTAssertEqual(value["contactHint"], .string("No contact access"))
+    }
+    func testRosterMalformedRowAndUnknownStateAreNotDroppedIntoEmptySuccess() throws {
+        let summary: MerchantContentValue = .object(["paidCount": .integer(1), "arrivedCount": .integer(0), "pendingCount": .integer(1), "contactedCount": .integer(0), "refundedCount": .integer(0)])
+        for row in [MerchantContentValue.null, .object(["state": .string("new-state")]),
+                    .object(["state": .string("pending"), "phone": .object([:])]),
+                    .object(["state": .string("pending"), "name": .integer(7)])] {
+            let value: MerchantContentValue = .object(["rows": .array([row]), "summary": summary, "contactVisible": .bool(false), "contactHint": .null])
+            XCTAssertThrowsError(try MerchantOrdinaryParticipantsProjection.sanitized(value, mayReadContact: true))
+        }
+    }
+    func testRosterRejectsMalformedShapeInsteadOfSuccessfulEmpty() throws {
+        for json in [#"{"rows":[],"summary":{},"contactVisible":true}"#,
+                     #"{"rows":null,"summary":{},"contactVisible":false}"#,
+                     #"{"rows":[],"summary":{"paidCount":0,"arrivedCount":0,"pendingCount":0,"contactedCount":0,"refundedCount":0},"contactVisible":1}"#] {
+            let raw = try JSONDecoder().decode(MerchantContentValue.self, from: Data(json.utf8))
+            XCTAssertThrowsError(try MerchantOrdinaryParticipantsProjection.sanitized(raw, mayReadContact: true))
+        }
     }
     func testWorkspaceReadDoesNotActivateWrites() async throws {
         let t = WorkspaceRequestTransport(), session = Session(); t.append(MerchantContentFixtureData.access); t.append(#"{"topic":{"id":70},"host":{}}"#)

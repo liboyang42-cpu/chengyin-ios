@@ -17,6 +17,7 @@ import Foundation
     let couponCodeApproval: CouponCodeApproval?
     let merchantOverviewReadApproval: MerchantOverviewReadApproval?
     let merchantPredictionReadApproval: MerchantPredictionReadApproval?
+    let merchantProjectParticipantsReadApproval: MerchantProjectParticipantsReadApproval?
     let merchantProjectWorkspaceReadApproval: MerchantProjectWorkspaceReadApproval?
     let merchantProjectBrowseApproval: MerchantProjectBrowseApproval?
     let merchantPublicApproval: MerchantPublicProductionApproval?
@@ -38,13 +39,14 @@ import Foundation
          location: (any RoamDeviceLocationProviding)? = nil, shopNPCGrants: ShopNPCGrants = .init(), motion: (any PlayMotionSampleProviding)? = nil,
          verificationCodeApproval: VerificationCodeApproval? = nil, couponCodeApproval: CouponCodeApproval? = nil, socialReaderApproval: SocialReaderProductionApproval? = nil,
          clubOpsTimeApproval: ClubOpsTimeApproval? = nil, contextualReviewApproval: ContextualReviewApproval? = nil,
-         ownerRefundApproval: ClubOwnerRefundApproval? = nil, nativePlatform: NativePlatformAcceptance? = nil, clubGovernanceApproval: ClubGovernanceProductionApproval? = nil, merchantBusinessApproval: MerchantBusinessProductionApproval? = nil, merchantEngagementApproval: MerchantEngagementProductionApproval? = nil, orderLifecycleConfiguration: OrderLifecycleProductionConfiguration? = nil, journeyNarrativeImageReader: (any RetainedPublicImageReading)? = nil, merchantPublicApproval: MerchantPublicProductionApproval? = nil, merchantNPCGrants: MerchantNPCGrants = .init(), merchantProjectBrowseApproval: MerchantProjectBrowseApproval? = nil, merchantPredictionReadApproval: MerchantPredictionReadApproval? = nil, merchantOverviewReadApproval: MerchantOverviewReadApproval? = nil, merchantProjectWorkspaceReadApproval: MerchantProjectWorkspaceReadApproval? = nil) {
+         ownerRefundApproval: ClubOwnerRefundApproval? = nil, nativePlatform: NativePlatformAcceptance? = nil, clubGovernanceApproval: ClubGovernanceProductionApproval? = nil, merchantBusinessApproval: MerchantBusinessProductionApproval? = nil, merchantEngagementApproval: MerchantEngagementProductionApproval? = nil, orderLifecycleConfiguration: OrderLifecycleProductionConfiguration? = nil, journeyNarrativeImageReader: (any RetainedPublicImageReading)? = nil, merchantPublicApproval: MerchantPublicProductionApproval? = nil, merchantNPCGrants: MerchantNPCGrants = .init(), merchantProjectBrowseApproval: MerchantProjectBrowseApproval? = nil, merchantPredictionReadApproval: MerchantPredictionReadApproval? = nil, merchantOverviewReadApproval: MerchantOverviewReadApproval? = nil, merchantProjectWorkspaceReadApproval: MerchantProjectWorkspaceReadApproval? = nil, merchantProjectParticipantsReadApproval: MerchantProjectParticipantsReadApproval? = nil) {
         self.clubOpsTimeApproval = clubOpsTimeApproval; self.contextualReviewApproval = contextualReviewApproval
         self.walkingNavigation = walkingNavigation
         self.officialActionApproval = officialActionApproval
         self.socialMemberActionApprovals = socialMemberActionApprovals
         self.merchantOverviewReadApproval = merchantOverviewReadApproval
         self.merchantPredictionReadApproval = merchantPredictionReadApproval
+        self.merchantProjectParticipantsReadApproval = merchantProjectParticipantsReadApproval
         self.merchantProjectWorkspaceReadApproval = merchantProjectWorkspaceReadApproval
         self.merchantProjectBrowseApproval = merchantProjectBrowseApproval
         self.merchantPublicApproval = merchantPublicApproval; self.merchantNPCGrants = merchantNPCGrants

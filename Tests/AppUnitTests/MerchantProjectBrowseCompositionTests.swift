@@ -12,7 +12,9 @@ import XCTest
         var requests: [URLRequest] = []
         var role = "player", allowed = true, status = 200
         var merchantID = 31, businessCode = 200
-        var home = #"{"role":"host","topic":{"id":70,"name":"Fresh project"},"host":{},"join":{}}"#
+        var verifyRecords = true, sensitive = false
+        var roster = #"{"rows":[{"name":"Example","ticketName":"Ticket","state":"contacted","phone":null}],"summary":{"paidCount":1,"arrivedCount":0,"pendingCount":0,"contactedCount":1,"refundedCount":0},"contactVisible":false,"contactHint":"Contact withheld"}"#
+        var home = #"{"role":"host","topic":{"id":70,"productType":1,"name":"Fresh project"},"host":{},"join":{}}"#
         var holdPath: String?, onHeld: (() -> Void)?
         var pending: CheckedContinuation<(Data, Int), Error>?
         var heldBody = Data()
@@ -22,9 +24,14 @@ import XCTest
             let path = request.url!.lastPathComponent
             if path == "phone" { return (Data(#"{"code":200,"token":"synthetic-7","data":{"id":7,"role":"player"}}"#.utf8), 200) }
             if path == "userInfo" { return (Data("{\"code\":200,\"appUser\":{\"userId\":7,\"role\":\"\(role)\"}}".utf8), 200) }
+            var permissions: [String] = []
+            if allowed { permissions.append("merchant:project:manage") }
+            if verifyRecords { permissions.append("merchant:verify:record:read") }
+            if sensitive { permissions.append("merchant:crm:sensitive:read") }
+            let encodedPermissions = String(decoding: try JSONEncoder().encode(permissions), as: UTF8.self)
             let payload = path == "me"
-                ? "{\"active\":true,\"merchant\":{\"id\":\(merchantID)},\"roleCode\":\"MERCHANT_MANAGER\",\"permissions\":\(allowed ? "[\"merchant:project:manage\"]" : "[]")}"
-                : (path == "home" ? home : #"{"rows":[{"id":70,"bizType":"topic","title":"Synthetic project"}],"total":1}"#)
+                ? "{\"active\":true,\"merchant\":{\"id\":\(merchantID)},\"roleCode\":\"MERCHANT_MANAGER\",\"permissions\":\(encodedPermissions)}"
+                : (path == "players" ? roster : path == "home" ? home : #"{"rows":[{"id":70,"bizType":"topic","title":"Synthetic project"}],"total":1}"#)
             let body = Data("{\"code\":\(businessCode),\"data\":\(payload)}".utf8)
             if path == holdPath { holdPath = nil; heldBody = body; return try await withCheckedThrowingContinuation { pending = $0; onHeld?() } }
             return (body, status)
@@ -35,7 +42,7 @@ import XCTest
             approvedBaseURLs: [.china: ["https://projects.example/native"]], verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.project.browse", realm: "synthetic", reads: [.homeAndSearch])
     }
-    private func normal(_ wire: Wire, enabled: Bool = true, wrongAccount: Bool = false, workspace: Bool = false) throws -> AppSession {
+    private func normal(_ wire: Wire, enabled: Bool = true, wrongAccount: Bool = false, workspace: Bool = false, participants: Bool = false, wrongParticipants: Bool = false) throws -> AppSession {
         let suite = "projects-" + UUID().uuidString, defaults = try XCTUnwrap(UserDefaults(suiteName: suite)), vault = Vault()
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         return AppCompositionRoot(deployment: .reviewed(try deployment()), storage: .init(defaults: defaults, tokenStore: { _ in vault }),
@@ -43,7 +50,9 @@ import XCTest
                 .init(merchantProjectBrowseApproval: enabled ? try? .init(market: context.market, baseURL: context.baseURL,
                     namespace: context.session.namespace, accountID: wrongAccount ? 8 : context.session.accountID) : nil,
                       merchantProjectWorkspaceReadApproval: workspace ? try? .init(market: context.market, baseURL: context.baseURL,
-                        namespace: context.session.namespace, accountID: wrongAccount ? 8 : context.session.accountID) : nil)
+                        namespace: context.session.namespace, accountID: wrongAccount ? 8 : context.session.accountID) : nil,
+                      merchantProjectParticipantsReadApproval: participants ? try? .init(market: context.market, baseURL: context.baseURL,
+                        namespace: context.session.namespace, accountID: wrongParticipants ? 8 : context.session.accountID) : nil)
             }).makeSession()
     }
     private func login(_ session: AppSession) async {
@@ -63,6 +72,130 @@ import XCTest
             fields: projects ? ["type":"all", "state":"all", "ownerType":"all", "scope":"MERCHANT", "pageNum":"1", "pageSize":"200"] : [:],
             token: "synthetic-7", includesBody: projects, boundary: "00000000-0000-0000-0000-000000000001")
         r.httpShouldHandleCookies = false; return r
+    }
+    private func rosterContext(_ wire: Wire) async throws -> (AppSession, MerchantProjectParticipantsReadFactory, MerchantContentSnapshot) {
+        let session = try normal(wire, workspace: true, participants: true); await login(session)
+        let factory = try XCTUnwrap(session.merchantProjectWorkspaceReadFactory)
+        let source = try XCTUnwrap(factory.make(70, 31, { true })), parent = try await source.load(.project(topicID: 70))
+        wire.requests = []
+        return (session, try XCTUnwrap(factory.participants), parent)
+    }
+    func testRosterApprovalIsSeparateFromBrowseAndWorkspace() async throws {
+        XCTAssertNil(NativeRuntimeDependencies.dormant.merchantProjectParticipantsReadApproval)
+        for mode in 0..<3 {
+            let wire = Wire(), session = try normal(wire, workspace: mode != 1, participants: mode != 0, wrongParticipants: mode == 2)
+            await login(session); wire.requests = []
+            XCTAssertNil(session.merchantProjectWorkspaceReadFactory?.participants)
+            XCTAssertTrue(wire.requests.isEmpty)
+        }
+    }
+    func testRosterFactoryRejectsNonHostFreeExploreUnknownAndWrongParentIdentity() async throws {
+        let wire = Wire(), (session, factory, parent) = try await rosterContext(wire)
+        for json in [#"{"role":"join","topic":{"id":70,"productType":1},"host":{},"join":{}}"#,
+                     #"{"role":"host","topic":{"id":70,"productType":2},"host":{}}"#,
+                     #"{"role":"host","topic":{"id":70},"host":{}}"#,
+                     #"{"role":"host","topic":{"id":71,"productType":1},"host":{}}"#] {
+            let value = try JSONDecoder().decode(MerchantContentValue.self, from: Data(json.utf8))
+            let invalid = MerchantContentSnapshot(query: parent.query, scope: parent.scope, access: parent.access, value: value, observedAt: parent.observedAt)
+            XCTAssertNil(factory.make(70, 31, invalid, { true }))
+        }
+        XCTAssertNil(factory.make(71, 31, parent, { true })); XCTAssertNil(factory.make(70, 32, parent, { true }))
+        XCTAssertTrue(wire.requests.isEmpty); XCTAssertEqual(session.account?.id, 7)
+    }
+    func testNormalRosterUsesFreshSeparatePermissionAndExactSelectedRequest() async throws {
+        let wire = Wire(), (session, factory, parent) = try await rosterContext(wire)
+        let service = try XCTUnwrap(factory.make(70, 31, parent, { true }))
+        let result = try await service.load(.players(topicID: 70))
+        XCTAssertEqual(result.query, .players(topicID: 70)); XCTAssertEqual(result.access.merchantID, 31)
+        XCTAssertEqual(result.value["summary"]["contactedCount"], .integer(1))
+        XCTAssertEqual(result.value["rows"].array?.first?["state"], .string("contacted"))
+        XCTAssertEqual(wire.requests.map { $0.url!.lastPathComponent }, ["me", "players"])
+        let body = try JSONDecoder().decode([String: MerchantContentValue].self, from: XCTUnwrap(wire.requests.last?.httpBody))
+        XCTAssertEqual(body, ["topicId": .integer(70), "scope": .string("MERCHANT")])
+        XCTAssertTrue(wire.requests.allSatisfy { !$0.httpShouldHandleCookies })
+        XCTAssertFalse(service.permitsWrites); XCTAssertTrue(try service.pending().isEmpty)
+        do { _ = try await service.load(.project(topicID: 70)); XCTFail() } catch { }
+        XCTAssertEqual(wire.requests.count, 2); XCTAssertEqual(session.account?.id, 7)
+    }
+    func testMissingRecordPermissionOrChangedMerchantStopsBeforeRoster() async throws {
+        for wrongStore in [false, true] {
+            let wire = Wire(), (session, factory, parent) = try await rosterContext(wire)
+            let service = try XCTUnwrap(factory.make(70, 31, parent, { true }))
+            if wrongStore { wire.merchantID = 32 } else { wire.verifyRecords = false }
+            do { _ = try await service.load(.players(topicID: 70)); XCTFail() }
+            catch { XCTAssertEqual(error as? MerchantContentFailure, .denied) }
+            XCTAssertEqual(wire.requests.map { $0.url!.lastPathComponent }, ["me"]); XCTAssertEqual(session.account?.id, 7)
+        }
+    }
+    func testRosterPhoneNeedsBothFreshSensitivePermissionAndServerVisibilityWithoutRestoringNull() async throws {
+        for sensitive in [false, true] {
+            for visible in [false, true] {
+                let wire = Wire(), (session, factory, parent) = try await rosterContext(wire)
+                wire.sensitive = sensitive
+                wire.roster = #"{"rows":[{"name":"Example","ticketName":"Ticket","state":"pending","phone":"example-phone","ticketNo":"private"},{"name":"Withheld","state":"pending","phone":null}],"summary":{"paidCount":2,"arrivedCount":0,"pendingCount":2,"contactedCount":0,"refundedCount":0},"contactVisible":VISIBLE,"contactHint":null}"#.replacingOccurrences(of: "VISIBLE", with: visible ? "true" : "false")
+                let service = try XCTUnwrap(factory.make(70, 31, parent, { true })), result = try await service.load(.players(topicID: 70))
+                let rows = try XCTUnwrap(result.value["rows"].array)
+                XCTAssertEqual(rows[0]["phone"], sensitive && visible ? .string("example-phone") : .null)
+                XCTAssertEqual(rows[1]["phone"], .null); XCTAssertNil(rows[0].object?["ticketNo"]); XCTAssertEqual(session.account?.id, 7)
+            }
+        }
+    }
+    func testRosterRetiredDuringAccessOrRowsSuppressesLateSuccessAnd401() async throws {
+        for path in ["me", "players"] {
+            for status in [200, 401] {
+                let wire = Wire(), (session, factory, parent) = try await rosterContext(wire); var current = true
+                let service = try XCTUnwrap(factory.make(70, 31, parent, { current })), started = expectation(description: "roster pending")
+                wire.holdPath = path; wire.onHeld = { started.fulfill() }
+                let task = Task { try await service.load(.players(topicID: 70)) }
+                await fulfillment(of: [started], timeout: 2)
+                current = false; wire.resume(status: status)
+                do { _ = try await task.value; XCTFail() } catch { }
+                XCTAssertEqual(session.account?.id, 7); XCTAssertFalse(service.isAuthenticated)
+                XCTAssertEqual(wire.requests.count, path == "me" ? 1 : 2)
+            }
+        }
+    }
+    func testRosterRoleABADiscardsLate401WithoutExpiringSuccessor() async throws {
+        let wire = Wire(), (session, factory, parent) = try await rosterContext(wire)
+        let service = try XCTUnwrap(factory.make(70, 31, parent, { true })), started = expectation(description: "old roster context")
+        wire.holdPath = "players"; wire.onHeld = { started.fulfill() }
+        let task = Task { try await service.load(.players(topicID: 70)) }
+        await fulfillment(of: [started], timeout: 2)
+        wire.role = "merchant"; await session.refreshOwnAccount(); wire.role = "player"; await session.refreshOwnAccount()
+        wire.resume(status: 401)
+        do { _ = try await task.value; XCTFail() } catch { }
+        XCTAssertEqual(session.account?.id, 7); XCTAssertFalse(service.isAuthenticated)
+    }
+    func testRosterCurrent401ExpiresOnlyMatchingSession() async throws {
+        let wire = Wire(), (session, factory, parent) = try await rosterContext(wire)
+        let service = try XCTUnwrap(factory.make(70, 31, parent, { true })); wire.status = 401
+        do { _ = try await service.load(.players(topicID: 70)); XCTFail() } catch { }
+        XCTAssertNil(session.account)
+    }
+    func testRosterTransportCannotBorrowWorkspaceOrBroaderRoutes() async throws {
+        let d = try deployment(), wire = Wire(), root = CompositionHTTPTransport(deployment: d, underlying: wire), c = try context(d)
+        root.current = { .init(epoch: 1, accountID: 7, role: "player", token: "synthetic-7") }
+        let a = try MerchantProjectParticipantsReadApproval(market: c.market, baseURL: c.baseURL, namespace: c.session.namespace, accountID: 7)
+        let scoped = root.scopedForMerchantProjectParticipants(approval: a, context: c, topicID: 70, approved: { true })
+        let homeApproval = try MerchantProjectWorkspaceReadApproval(market: c.market, baseURL: c.baseURL, namespace: c.session.namespace, accountID: 7)
+        let workspace = root.scopedForMerchantProjectWorkspace(approval: homeApproval, context: c, topicID: 70, approved: { true })
+        var valid = try request(d); valid.url = c.baseURL.appendingPathComponent("api/project/players")
+        valid.setValue("application/json", forHTTPHeaderField: "Content-Type"); valid.httpBody = Data(#"{"topicId":70,"scope":"MERCHANT"}"#.utf8)
+        do { _ = try await workspace.send(valid); XCTFail() } catch { }
+        var invalid: [URLRequest] = []
+        for json in [#"{"topicId":71,"scope":"MERCHANT"}"#, #"{"topicId":"70","scope":"MERCHANT"}"#,
+                     #"{"topicId":70,"scope":"CLUB"}"#, #"{"topicId":70,"scope":"MERCHANT","topicId":70}"#,
+                     #"{"topicId":70,"scope":"MERCHANT","extra":0}"#] {
+            var request = valid; request.httpBody = Data(json.utf8); invalid.append(request)
+        }
+        for path in ["api/project/home", "api/project/my", "api/merchant/verify", "api/project/players/"] {
+            var request = valid; request.url = c.baseURL.appendingPathComponent(path); invalid.append(request)
+        }
+        var cookie = valid; cookie.httpShouldHandleCookies = true; invalid.append(cookie)
+        var token = valid; token.setValue("other", forHTTPHeaderField: "Authorization"); invalid.append(token)
+        for request in invalid { do { _ = try await scoped.send(request); XCTFail() } catch { } }
+        XCTAssertTrue(wire.requests.isEmpty)
+        _ = try await scoped.replacingUnderlying(wire).send(valid); XCTAssertEqual(wire.requests.count, 1)
     }
     func testWorkspaceApprovalIsIndependentAndDefaultsOff() async throws {
         XCTAssertNil(NativeRuntimeDependencies.dormant.merchantProjectWorkspaceReadApproval)

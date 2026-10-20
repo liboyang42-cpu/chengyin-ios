@@ -2497,7 +2497,7 @@ final class AppSession: ObservableObject {
                   let list = self.runtimeDependencies.merchantProjectBrowseApproval else { return false }
             return live.revision == approval.revision && live.matches(context) && list.revision == browse.revision && list.matches(context)
         }
-        return MerchantProjectWorkspaceReadFactory(id: approval.revision) { [weak self] topicID, merchantID, presentationCurrent in
+        let make: (Int, Int, @escaping () -> Bool) -> (any MerchantContentServing)? = { [weak self] topicID, merchantID, presentationCurrent in
             guard let self, topicID > 0, merchantID > 0, current(), presentationCurrent(),
                   let captured = try? MerchantContentSession(accountID: context.session.accountID, epoch: context.session.epoch,
                     storageScope: context.session.namespace, token: context.session.token) else { return nil }
@@ -2511,6 +2511,39 @@ final class AppSession: ObservableObject {
                     self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
                 })
             return MerchantProjectWorkspaceReadService(source: source, topicID: topicID, merchantID: merchantID, current: valid)
+        }
+        return .init(id: approval.revision, make: make, participants: merchantProjectParticipantsReadFactory)
+    }
+    private var merchantProjectParticipantsReadFactory: MerchantProjectParticipantsReadFactory? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantProjectParticipantsReadApproval, approval.matches(context),
+              let workspace = runtimeDependencies.merchantProjectWorkspaceReadApproval, workspace.matches(context),
+              let browse = runtimeDependencies.merchantProjectBrowseApproval, browse.matches(context) else { return nil }
+        let revision = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let live = self.runtimeDependencies.merchantProjectParticipantsReadApproval,
+                  let home = self.runtimeDependencies.merchantProjectWorkspaceReadApproval,
+                  let list = self.runtimeDependencies.merchantProjectBrowseApproval else { return false }
+            return live.revision == approval.revision && live.matches(context) && home.revision == workspace.revision
+                && home.matches(context) && list.revision == browse.revision && list.matches(context)
+        }
+        return .init(id: approval.revision) { [weak self] topicID, merchantID, parentSnapshot, presentationCurrent in
+            guard let self, topicID > 0, merchantID > 0, current(), presentationCurrent(),
+                  MerchantProjectWorkspacePresentation.matches(snapshot: parentSnapshot, topicID: topicID, merchantID: merchantID),
+                  MerchantOrdinaryParticipantsProjection.allowsHost(parentSnapshot.value),
+                  let captured = try? MerchantContentSession(accountID: context.session.accountID, epoch: context.session.epoch,
+                    storageScope: context.session.namespace, token: context.session.token) else { return nil }
+            let valid = { current() && presentationCurrent() }
+            let scoped = self.compositionTransport.scopedForMerchantProjectParticipants(approval: approval, context: context,
+                topicID: topicID, approved: valid)
+            let source = MerchantContentService(configuration: api, transport: MerchantProjectCookieFreeTransport(underlying: scoped),
+                currentSession: { valid() ? captured : nil }, execution: .disabled, requiredMerchantID: merchantID,
+                onUnauthorized: { [weak self] _ in
+                    guard let self, valid() else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                })
+            return MerchantProjectParticipantsReadService(source: source, topicID: topicID, merchantID: merchantID, current: valid)
         }
     }
     private struct MerchantProjectCookieFreeTransport: HTTPTransport {

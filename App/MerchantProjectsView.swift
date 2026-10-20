@@ -136,7 +136,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     .navigationDestination(item: presentation.workspaceBinding()) { route in
                         if let factory = workspaceReadFactory, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
                             MerchantProjectWorkspaceReadHost(factory: factory, topicID: route.topicID, merchantID: route.merchantID,
-                                isCurrent: { presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) })
+                                isCurrent: { presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) }, owner: presentation.readOwner)
                                 .id(route.id)
                         } else if let contentService, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
                             MerchantContentDocumentView(service: contentService, query: .project(topicID: route.topicID),
@@ -234,6 +234,7 @@ struct MerchantProjectWorkspaceSnapshot {
     let context: MerchantProjectWorkspaceContext
 }
 @MainActor final class MerchantProjectWorkspacePresentation: ObservableObject {
+    let readOwner = MerchantProjectWorkspaceReadOwner()
     struct Permit { let generation: UUID; let snapshotID: UUID }
     struct Selection: Identifiable {
         let id = UUID()
@@ -258,7 +259,7 @@ struct MerchantProjectWorkspaceSnapshot {
     private(set) var active = true
     func permit(snapshot: MerchantProjectWorkspaceSnapshot) -> Permit { .init(generation: generation, snapshotID: snapshot.id) }
     func activate() { if !active { active = true; invalidate() } }
-    func invalidate() { generation = UUID(); selection = nil; route = nil }
+    func invalidate() { readOwner.retire(); generation = UUID(); selection = nil; route = nil }
     func retire() { active = false; invalidate() }
     private func current(_ snapshot: MerchantProjectWorkspaceSnapshot, _ context: MerchantProjectWorkspaceContext) -> Bool {
         active && context == snapshot.context && context.configured && context.signedIn && snapshot.access.allows(.projects) && (snapshot.access.merchantID ?? 0) > 0
@@ -282,6 +283,7 @@ struct MerchantProjectWorkspaceSnapshot {
     }
     func openWorkspace(_ selected: Selection, snapshot: MerchantProjectWorkspaceSnapshot, context: MerchantProjectWorkspaceContext, sourceFresh: Bool) {
         guard route == nil, canOpenWorkspace(selected, snapshot: snapshot, context: context, sourceFresh: sourceFresh), let merchantID = snapshot.access.merchantID else { return }
+        readOwner.retire()
         route = .init(selectionID: selected.id, topicID: selected.project.projectID, merchantID: merchantID,
                       snapshotID: snapshot.id, context: context, generation: generation)
     }
@@ -322,7 +324,7 @@ struct MerchantProjectWorkspaceSnapshot {
             return current.id == captured ? current : nil
         }, set: { [weak self] value in
             guard let self, self.generation == epoch, value == nil, let captured, self.route?.id == captured else { return }
-            self.route = nil
+            self.readOwner.retire(); self.route = nil
         })
     }
 }

@@ -145,6 +145,26 @@ public struct MerchantContentReceipt: Equatable {
         try ensure(session)
         return .init(query: query, scope: capturedScope, access: access, value: value, observedAt: Date())
     }
+    /// A separate normal-entry reader calls this with a selected merchant and a scoped transport.
+    public func loadOrdinaryMerchantParticipants(topicID: Int) async throws -> MerchantContentSnapshot {
+        guard topicID > 0, let merchantID = requiredMerchantID, merchantID > 0 else { throw MerchantContentFailure.invalid }
+        guard let session = currentSession() else { throw APIError.unauthorized }
+        let capturedScope = scope
+        let raw = try await read("api/merchant/access/me", session: session)
+        let access = try raw.decoded(MerchantAccess.self)
+        guard access.active, access.merchantID == merchantID, access.allows(.projects), let rawPermissions = raw["permissions"].array else {
+            throw MerchantContentFailure.denied
+        }
+        let permissions = try rawPermissions.map { item -> String in
+            guard case .string(let value) = item else { throw MerchantContentFailure.malformed }; return value
+        }
+        guard permissions.contains("merchant:verify:record:read") else { throw MerchantContentFailure.denied }
+        let query = MerchantContentQuery.players(topicID: topicID)
+        let value = try await document(query, session: session)
+        try ensure(session)
+        let clean = try MerchantOrdinaryParticipantsProjection.sanitized(value, mayReadContact: permissions.contains("merchant:crm:sensitive:read"))
+        return .init(query: query, scope: capturedScope, access: access, value: clean, observedAt: Date())
+    }
     private func document(_ q: MerchantContentQuery, session s: MerchantContentSession) async throws -> MerchantContentValue {
         func optionalTopic(_ id: Int?) -> [String: MerchantContentValue] { id.map { ["topicId": .integer($0)] } ?? [:] }
         let value: MerchantContentValue
@@ -204,7 +224,9 @@ public struct MerchantContentReceipt: Equatable {
         case .project(let id):
             var fields = optionalTopic(id); fields["scope"] = .string("MERCHANT")
             value = try await read("api/project/home", .json(fields), session: s)
-        case .players(let id): value = try await read("api/project/players", .json(optionalTopic(id)), session: s)
+        case .players(let id):
+            var fields = optionalTopic(id); fields["scope"] = .string("MERCHANT")
+            value = try await read("api/project/players", .json(fields), session: s)
         case .city: value = try await read("api/merchant/city-node/list", session: s)
         case .claimable(let keyword):
             let catalog = try await read("api/merchant/city-node/list", session: s)
