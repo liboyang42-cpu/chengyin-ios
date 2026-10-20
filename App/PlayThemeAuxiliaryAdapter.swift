@@ -39,7 +39,7 @@ import SwiftUI
 
     func state() async throws -> PlayWireValue {
         let session = try live()
-        let value = try await service.themeState(scope: scope, token: session.token)
+        let value = try await service.themeState(scope: scope, topicID: topicID, token: session.token)
         _ = try live()
         return value
     }

@@ -15,7 +15,7 @@ class Pkg01PlayEntryClosureContracts(unittest.TestCase):
         self.assertIn("guard let session = current(), session == captured else { throw PlayExperienceError.staleSession }", adapter)
         self.assertIn("service.themeHistory(topicID: topicID, beforeSessionID: beforeSessionID, token: session.token)", adapter)
         self.assertIn("service.themeCard(sessionID: sessionID, token: session.token)", adapter)
-        self.assertIn("service.themeState(scope: scope, token: session.token)", adapter)
+        self.assertIn("service.themeState(scope: scope, topicID: topicID, token: session.token)", adapter)
         self.assertIn("final class PlayThemeAuxiliaryStore", adapter)
         for forbidden in ["URLSession", "https://", "http://", "api/play/"]:
             self.assertNotIn(forbidden, adapter)
