@@ -7,168 +7,227 @@ public struct ReleaseCertificatePillarRow: Sendable, Equatable, Identifiable {
     public let id: String
     public let pillarTitle: String
     public let scopeSummary: String
-    public let isCertified: Bool
+    public let corePillar: ReleaseCertificatePillar
+    public let isCertifiedByCore: Bool
     public let statusText: String
     public let commitSHA: String?
     public let evidenceLink: String?
     public let blockerNote: String?
 
+    public var isCertified: Bool {
+        isCertifiedByCore
+    }
+
     public init(
-        id: String,
+        corePillar: ReleaseCertificatePillar,
         pillarTitle: String,
         scopeSummary: String,
-        isCertified: Bool = false,
+        isCertifiedByCore: Bool,
         statusText: String = "UNVERIFIED",
-        commitSHA: String? = nil,
-        evidenceLink: String? = nil,
         blockerNote: String? = nil
     ) {
-        self.id = id
+        self.id = corePillar.id
         self.pillarTitle = pillarTitle
         self.scopeSummary = scopeSummary
-        self.isCertified = isCertified
+        self.corePillar = corePillar
+        self.isCertifiedByCore = isCertifiedByCore
         self.statusText = statusText
-        self.commitSHA = commitSHA
-        self.evidenceLink = evidenceLink
+        let trimmedSHA = corePillar.commitSHA.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.commitSHA = trimmedSHA.isEmpty ? nil : trimmedSHA
+        self.evidenceLink = corePillar.evidenceLinks.first
         self.blockerNote = blockerNote
     }
 }
 
 public struct FinalReleaseCertificateSnapshot: Sendable, Equatable {
-    /// Fail-closed default: without external SHA-bound verification evidence, every pillar starts unverified.
-    public static let defaultUnverifiedPillars: [ReleaseCertificatePillarRow] = [
-        ReleaseCertificatePillarRow(
-            id: "Wave 1–3 Tickets",
-            pillarTitle: "Wave 1–3 Tickets",
-            scopeSummary: "Wave 1 (B..H)、Wave 2 (w2-01..w2-21) 与 Wave 3 (I00..I11 + BK) 范围映射与真机验收状态",
-            isCertified: false,
-            statusText: "PENDING_VERIFICATION",
-            blockerNote: "需绑定最新整合 SHA 的完整真机/模拟器与后端联调证据"
-        ),
-        ReleaseCertificatePillarRow(
-            id: "Reform v9 W02..W20",
-            pillarTitle: "Reform v9 W02..W20",
-            scopeSummary: "原方案 176 项稳定 ID (MV01..MV41 / U01..U08 / W01..W20) 逐条代码、接线、测试与部署状态",
-            isCertified: false,
-            statusText: "PENDING_VERIFICATION",
-            blockerNote: "跨仓后端运行态与模拟器全量回归尚未全部落锤"
-        ),
-        ReleaseCertificatePillarRow(
-            id: "Mini-Program 99 Pages",
-            pillarTitle: "Mini-Program 99 Pages",
-            scopeSummary: "小程序 99 个真实页面路由逐条对齐台账（区分代码、生产接线、测试与后端状态）",
-            isCertified: false,
-            statusText: "PENDING_VERIFICATION",
-            blockerNote: "部分页面依赖独立生产门禁或后端权限核验，未默认全绿"
-        ),
-        ReleaseCertificatePillarRow(
-            id: "RC-GATE-01..06",
-            pillarTitle: "RC-GATE-01..06",
-            scopeSummary: "六大发布候选安全与商业边界门禁默认关闭 (fail-closed) 核验",
-            isCertified: false,
-            statusText: "PENDING_VERIFICATION",
-            blockerNote: "需对最终发布 SHA 完成独立门禁证据核验"
-        ),
-        ReleaseCertificatePillarRow(
-            id: "App Store Privacy & UGC",
-            pillarTitle: "App Store Privacy & UGC",
-            scopeSummary: "隐私门禁、账号注销、UGC 举报拉黑与权属声明合规核验",
-            isCertified: false,
-            statusText: "PENDING_VERIFICATION",
-            blockerNote: "需绑定最终发布构建产物与审核元数据核验记录"
-        ),
-        ReleaseCertificatePillarRow(
-            id: "Cloud CI & ContractChecks",
-            pillarTitle: "Cloud CI & ContractChecks",
-            scopeSummary: "静态门禁、Swift 类型检查、Python 契约检查与 Simulator/Device XCTest 分片核验",
-            isCertified: false,
-            statusText: "NOT_RUN_ON_SIMULATOR",
-            blockerNote: "本地仅完成静态/typecheck/ContractChecks，Simulator/XCUITest 分片需独立运行证据"
-        )
-    ]
-
-    /// Preview/fixture-only rows used by UI previews or synthetic unit tests. Never used as default release status.
-    public static let previewFixturePillars: [ReleaseCertificatePillarRow] = defaultUnverifiedPillars.map { row in
-        ReleaseCertificatePillarRow(
-            id: row.id,
-            pillarTitle: row.pillarTitle,
-            scopeSummary: row.scopeSummary,
-            isCertified: true,
-            statusText: "PASS (FIXTURE)",
-            commitSHA: "fixture-preview-sha",
-            evidenceLink: "docs/handoff/issue-61-response-20261020.md",
-            blockerNote: nil
-        )
+    private struct PillarMetadata: Sendable, Equatable {
+        let id: String
+        let displayTitle: String
+        let scopeSummary: String
+        let defaultStatusText: String
+        let defaultBlockerNote: String
     }
 
-    public static let defaultPillars: [ReleaseCertificatePillarRow] = defaultUnverifiedPillars
+    private static let canonicalMetadata: [PillarMetadata] = [
+        PillarMetadata(
+            id: "pillar-wave1-to-wave3-tickets",
+            displayTitle: "Wave 1–3 Tickets",
+            scopeSummary: "Wave 1 (B..H)、Wave 2 (w2-01..w2-21) 与 Wave 3 (I00..I11 + BK) 范围映射与真机验收状态",
+            defaultStatusText: "PENDING_VERIFICATION",
+            defaultBlockerNote: "需绑定最新整合 SHA 的完整真机/模拟器与后端联调证据"
+        ),
+        PillarMetadata(
+            id: "pillar-reform-v9-w02-to-w20",
+            displayTitle: "Reform v9 W02..W20",
+            scopeSummary: "客户端跟踪索引 176 项 (MV01..MV41 / U01..U08 / W01..W20) 逐条代码、接线、测试与部署状态",
+            defaultStatusText: "PENDING_VERIFICATION",
+            defaultBlockerNote: "跨仓后端运行态与模拟器全量回归尚未全部落锤"
+        ),
+        PillarMetadata(
+            id: "pillar-miniprogram-99-pages",
+            displayTitle: "Mini-Program 99 Pages",
+            scopeSummary: "小程序 99 页基线子集逐条对齐台账（区分代码、生产接线、测试与后端状态）",
+            defaultStatusText: "PENDING_VERIFICATION",
+            defaultBlockerNote: "部分页面依赖独立生产门禁或后端权限核验，未默认全绿"
+        ),
+        PillarMetadata(
+            id: "pillar-rc-gates-01-to-06",
+            displayTitle: "RC-GATE-01..06",
+            scopeSummary: "六大发布候选安全与商业边界门禁默认关闭 (fail-closed) 核验",
+            defaultStatusText: "PENDING_VERIFICATION",
+            defaultBlockerNote: "需对最终发布 SHA 完成独立门禁证据核验"
+        ),
+        PillarMetadata(
+            id: "pillar-appstore-privacy-and-ugc",
+            displayTitle: "App Store Privacy & UGC",
+            scopeSummary: "隐私门禁、账号注销、UGC 举报拉黑与权属声明合规核验",
+            defaultStatusText: "PENDING_VERIFICATION",
+            defaultBlockerNote: "需绑定最终发布构建产物与审核元数据核验记录"
+        ),
+        PillarMetadata(
+            id: "pillar-cloud-ci-and-contract-checks",
+            displayTitle: "Cloud CI & ContractChecks",
+            scopeSummary: "静态门禁、Swift 类型检查、Python 契约检查与 Simulator/Device XCTest 分片核验",
+            defaultStatusText: "NOT_RUN_ON_SIMULATOR",
+            defaultBlockerNote: "本地仅完成静态/ContractChecks，Simulator/XCUITest 分片需独立运行证据"
+        )
+    ]
 
     public static let defaultUnverified = FinalReleaseCertificateSnapshot(
         certificateID: "RC-UNVERIFIED-20261020",
         targetCommitSHA: nil,
-        pillars: defaultUnverifiedPillars
+        corePillars: FinalReleaseSignoffAndZeroGapCertificateContract.canonicalPillars
     )
 
-    /// Synthetic preview fixture snapshot; explicitly labeled for tests/previews.
+    /// Synthetic preview fixture snapshot; uses `.previewFixture` Core pillars so Core evaluation
+    /// keeps `isZeroGapCertified == false` and prevents preview fixtures from masquerading as formal signoff.
     public static let previewReadyFixture = FinalReleaseCertificateSnapshot(
         certificateID: "RC-FIXTURE-PREVIEW",
         targetCommitSHA: "fixture-preview-sha",
-        pillars: previewFixturePillars
+        corePillars: FinalReleaseSignoffAndZeroGapCertificateContract.previewFixturePillars()
     )
+
+    public static var defaultUnverifiedPillars: [ReleaseCertificatePillarRow] {
+        defaultUnverified.pillars
+    }
+
+    public static var previewFixturePillars: [ReleaseCertificatePillarRow] {
+        previewReadyFixture.pillars
+    }
+
+    public static var defaultPillars: [ReleaseCertificatePillarRow] {
+        defaultUnverified.pillars
+    }
 
     public let certificateID: String
     public let targetCommitSHA: String?
-    public let pillars: [ReleaseCertificatePillarRow]
+    public let notBeforeISO8601: String?
+    public let hasMergeConflict: Bool
+    public let corePillars: [ReleaseCertificatePillar]
 
     public init(
         certificateID: String = "RC-UNVERIFIED-20261020",
         targetCommitSHA: String? = nil,
-        pillars: [ReleaseCertificatePillarRow] = FinalReleaseCertificateSnapshot.defaultUnverifiedPillars
+        notBeforeISO8601: String? = nil,
+        hasMergeConflict: Bool = false,
+        corePillars: [ReleaseCertificatePillar] = FinalReleaseSignoffAndZeroGapCertificateContract.canonicalPillars
     ) {
         self.certificateID = certificateID
         self.targetCommitSHA = targetCommitSHA
-        self.pillars = pillars
+        self.notBeforeISO8601 = notBeforeISO8601
+        self.hasMergeConflict = hasMergeConflict
+        self.corePillars = corePillars
+    }
+
+    /// Constructs a snapshot directly from external formal evidence via `FinalReleaseSignoffAndZeroGapCertificateContract.evaluateCertificate`.
+    public static func fromFormalEvidence(
+        certificateID: String = "RC-FORMAL-EVALUATION",
+        expectedCommitSHA: String,
+        notBeforeISO8601: String? = nil,
+        hasMergeConflict: Bool = false,
+        evidence: [ReleasePillarEvidenceInput]
+    ) -> FinalReleaseCertificateSnapshot {
+        let evaluated = FinalReleaseSignoffAndZeroGapCertificateContract.evaluateCertificate(
+            expectedCommitSHA: expectedCommitSHA,
+            notBeforeISO8601: notBeforeISO8601,
+            hasMergeConflict: hasMergeConflict,
+            evidence: evidence
+        )
+        return FinalReleaseCertificateSnapshot(
+            certificateID: certificateID,
+            targetCommitSHA: expectedCommitSHA,
+            notBeforeISO8601: notBeforeISO8601,
+            hasMergeConflict: hasMergeConflict,
+            corePillars: evaluated.evaluatedPillars
+        )
+    }
+
+    private var coreEvaluation: (totalPillars: Int, certifiedPillars: Int, isZeroGapCertified: Bool) {
+        FinalReleaseSignoffAndZeroGapCertificateContract.issueCertificate(
+            pillars: corePillars,
+            expectedCommitSHA: targetCommitSHA ?? "",
+            notBeforeISO8601: notBeforeISO8601,
+            hasMergeConflict: hasMergeConflict
+        )
+    }
+
+    public var pillars: [ReleaseCertificatePillarRow] {
+        let metadataByID = Dictionary(uniqueKeysWithValues: Self.canonicalMetadata.map { ($0.id, $0) })
+        let expectedSHA = targetCommitSHA ?? ""
+        return corePillars.map { pillar in
+            let meta = metadataByID[pillar.id]
+            let certified = FinalReleaseSignoffAndZeroGapCertificateContract.isCanonicalPillarCertified(
+                pillar,
+                in: corePillars,
+                expectedCommitSHA: expectedSHA,
+                notBeforeISO8601: notBeforeISO8601,
+                hasMergeConflict: hasMergeConflict
+            )
+            let statusText: String
+            let blockerNote: String?
+            if certified {
+                statusText = "PASSED"
+                blockerNote = nil
+            } else if pillar.isPreviewFixture {
+                statusText = "PREVIEW_FIXTURE_NOT_FORMAL"
+                blockerNote = "预览/测试夹具不可作为正式签收证据"
+            } else {
+                statusText = meta?.defaultStatusText ?? pillar.status.rawValue.uppercased()
+                blockerNote = meta?.defaultBlockerNote ?? "未满足正式签收证据或 SHA 绑定要求"
+            }
+            return ReleaseCertificatePillarRow(
+                corePillar: pillar,
+                pillarTitle: meta?.displayTitle ?? pillar.title,
+                scopeSummary: meta?.scopeSummary ?? pillar.title,
+                isCertifiedByCore: certified,
+                statusText: statusText,
+                blockerNote: blockerNote
+            )
+        }
     }
 
     public var certifiedPillarCount: Int {
-        guard let sha = targetCommitSHA?.trimmingCharacters(in: .whitespacesAndNewlines), !sha.isEmpty else {
-            return 0
-        }
-        return pillars.filter {
-            $0.isCertified &&
-            $0.commitSHA == sha &&
-            !($0.evidenceLink?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-        }.count
+        coreEvaluation.certifiedPillars
     }
 
     public var uncertifiedPillars: [ReleaseCertificatePillarRow] {
-        guard let sha = targetCommitSHA?.trimmingCharacters(in: .whitespacesAndNewlines), !sha.isEmpty else {
-            return pillars
-        }
-        return pillars.filter {
-            !$0.isCertified ||
-            $0.commitSHA != sha ||
-            ($0.evidenceLink?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-        }
+        pillars.filter { !$0.isCertifiedByCore }
     }
 
     public var isZeroGapCertified: Bool {
-        guard let sha = targetCommitSHA?.trimmingCharacters(in: .whitespacesAndNewlines), !sha.isEmpty else {
-            return false
-        }
-        return pillars.count == 6 && uncertifiedPillars.isEmpty
+        coreEvaluation.isZeroGapCertified
     }
 
     public var statusHeadline: String {
         if isZeroGapCertified {
-            return "发布签收证据已齐备 (\(certifiedPillarCount)/\(pillars.count))"
+            return "发布签收证据已齐备 (\(certifiedPillarCount)/\(FinalReleaseSignoffAndZeroGapCertificateContract.canonicalPillars.count))"
         }
         return "未验证/未签收：存在 \(uncertifiedPillars.count) 项待核验阻断，暂不可签发发布证书"
     }
 }
 
 /// Self-contained SwiftUI view displaying the 6-pillar Final Release Signoff & Zero-Gap Certificate.
-/// Defaults to `.defaultUnverified` (fail-closed) unless an explicit verified/fixture snapshot is supplied.
+/// All certification verdicts are computed strictly by `FinalReleaseSignoffAndZeroGapCertificateContract`.
 @MainActor
 public struct FinalReleaseSignoffAndZeroGapCertificateView: View {
     public let snapshot: FinalReleaseCertificateSnapshot

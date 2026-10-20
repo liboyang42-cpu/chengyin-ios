@@ -36,10 +36,12 @@
   - `App/FinalReleaseSignoffAndZeroGapCertificateView.swift`
   - `Tests/CoreTests/FinalReleaseSignoffAndZeroGapCertificateContractTests.swift`
   - `Tests/AppUnitTests/FinalReleaseSignoffAndZeroGapCertificateViewTests.swift`
-- **反例与门禁规则**：
-  - 默认 `canonicalPillars` 全部为 `status = .notRun`、`completedCount = 0`、`zeroOpenBlockers = false`；无参调用 `issueCertificate()` 或空证据调用 `evaluateCertificate(expectedCommitSHA:evidence:)` 恒返回 `isZeroGapCertified == false`。
-  - 覆盖并通过反例校核：空证据（`evidence: []`）、非通过状态（`.failed` / `.pending` / `.notRun`）、错误/不匹配 `commitSHA`、缺失或非法 `evaluatedAtISO8601`、早于 `notBeforeISO8601` 的过期时间、空 `evidenceLinks`、存在合并冲突（`hasMergeConflict == true`）。
-  - 预览样例 `previewFixturePillars(commitSHA:)` 使用 `"fixture-preview-sha"`，在 `ReleaseCertificatePillar.isPreviewOrFixtureSHA` 与 `evaluateCertificate` 中被显式拦截，无法通过正式验收入口。
+- **反例与门禁规则（2026-10-20 按 dot 15:01 UTC 审查意见修正）**：
+  - 默认 `canonicalPillars` 全部为 `status = .notRun`、`completedCount = 0`、`zeroOpenBlockers = false`；无参 `issueCertificate()` 恒 `false`。
+  - `issueCertificate` 现要求：①完整 canonical 6 个 ID 各出现一次（重复 ID / 未知 ID 直接拒绝，例如把一个 `id=x`、1/1、passed 的 pillar 复制六次不再通过）；②`requiredCount`/`completedCount` 不得低于 `canonicalRequiredCount(forPillarID:)`（要求数不能自行降低）；③`expectedCommitSHA` 不可省略，必须为合法 40 位十六进制，所有 pillar 绑定同一 SHA（混合 SHA 拒绝）；④显式传入但无法解析的 `notBeforeISO8601` 直接拒绝，不再被忽略；⑤证据来源 `ReleaseEvidenceOrigin`：`.previewFixture` 即使携带真实 40 位 SHA 也无法通过正式认证。
+  - `evaluateCertificate` 复用同一 `issueCertificate` 评价，并额外拒绝重复/未知证据 ID。
+  - UI（`FinalReleaseCertificateSnapshot`）不再自行计算布尔“已认证”，改由 Core `issueCertificate` / `isCanonicalPillarCertified` 得出；`previewReadyFixture` 现为 `isZeroGapCertified == false`。
+  - 新增反例测试（源码级，未运行）：重复/未知 ID、降低 requiredCount、省略/混合 SHA、非法 notBefore、预览夹具冒充真实 SHA。
 
 ### A5 — 99 页与 176 项要求映射台账（注明来源版本与差异，四层状态分离）
 - **状态**：已更新代码枚举与四层状态字段（不宣称全量已上线或 100% 端到端通过）。
@@ -48,8 +50,8 @@
   - `Core/MiniProgram99PageParityRegistry.swift`
   - `Core/ThreeDocumentMasterCrosswalkContract.swift`
 - **来源版本与差异说明**：
-  1. **99 页路由清单来源**：取自公共仓库 `liboyang42-cpu/hengyin`（`chengyinhub-xcx/app.json`，对照基线 `a6ec8bbdadd88ac4fb83bdab6f78e3a976ea3f18`）的 99 条核心与分包页面路径（`pages/*`、`subpackageP3/*`、`subpackageRoam/*`、`subpackageTools/*`、`subpackageMember/*`）。注：当前 `hengyin/chengyinhub-xcx/app.json` 全量注册为 136 条路由（130 页面 + 6 拆分路由），本文件的 99 条为 Wave-1/Wave-2 初版冻结的 99 页基线子集，其余 37 条在 `docs/parity/w2-01.md`..`w2-21.md`（共 198 行对账表）中按模块分列。每条记录拆分 `codeStatus`、`wiringStatus`、`testStatus`（默认 `.notRun`）、`deploymentStatus`（默认 `.notRun`），`evaluateEndToEndVerification()` 默认返回 `false`。
-  2. **176 项改革计划枚举说明**：`ThreeDocumentMasterCrosswalkContract.reformPlanV9All176StableIDs` 收录了 `docs/plan-progress/{F,G,H,I}-20261019.md` 中已登记的 `W01..W20` 子项（127 项）+ `U01..U08`（8 项）+ `MV01..MV41`（41 项）共 176 个客户端跟踪 ID。**重要差异说明**：正如 `docs/ios-current-status.md` 第 14–15 行所载，原《Questify城瘾全面改革施工计划》（封面版次 9 / 文件记录版本 10）的 176 项原始文本在公共仓库中尚未形成与正文逐字核验的完整对照；此处 `127 W + 8 U + 41 MV = 176` 是客户端按 `F–I` 进度卡整理的工作包/决策/视觉规范跟踪枚举，不能仅凭数量等于 176 替代原始施工文档的逐条业务签收。四层状态中 `wiringStatus = .pending`、`testStatus = .notRun`、`deploymentStatus = .notRun`，`evaluateEndToEndDeploymentVerified()` 默认返回 `false`。
+  1. **99 页路由清单来源**：取自公共仓库 `liboyang42-cpu/hengyin`（`chengyinhub-xcx/app.json`，对照基线 `a6ec8bbdadd88ac4fb83bdab6f78e3a976ea3f18`）的 99 条核心与分包页面路径（`pages/*`、`subpackageP3/*`、`subpackageRoam/*`、`subpackageTools/*`、`subpackageMember/*`）。注：当前 `hengyin/chengyinhub-xcx/app.json` 全量注册为 136 条路由（130 页面 + 6 拆分路由），本文件的 99 条为 Wave-1/Wave-2 初版冻结的 99 页基线子集，其余 37 条在 `docs/parity/w2-01.md`..`w2-21.md`（共 198 行对账表）中按模块分列。**修正（dot 15:01 UTC 审查）**：99 行 `codeStatus`/`wiringStatus` 现默认 `.pending`（不再批量 `.passed`）；`MiniProgram99PageParityRegistry.all99BaselinePageEntries` 不再按五组粗映射，也不再把 `decisionMode` 字符串当作 native 符号——仅 7 条已核实路由（如 `subpackageTools/capsule/index` → `RoamCapsuleView` @ `App/RoamPassportPrivateToolsViews.swift`，宿主 `RoamPassportPrivateLinks`）填写真实文件/符号/宿主，其余留空且 `isSourceMappingVerified == false`；`evaluateEndToEndVerification` 拒绝重复路由、未知路由、缺失/混合/非法 SHA 与空证据。
+  2. **176 项改革计划枚举说明**：`ThreeDocumentMasterCrosswalkContract.clientTracking176EnumerationIDs`（已从 `reformPlanV9All176StableIDs` 重命名，明确为客户端跟踪枚举、不强称原 176 baseline；默认 `mappedItems` 为空，`isHundredPercentCovered` 默认 `false`；四层 ledger 默认 `.pending`；评价器拒绝重复 ID/未知 ID/缺失或混合 SHA）收录了 `docs/plan-progress/{F,G,H,I}-20261019.md` 中已登记的 `W01..W20` 子项（127 项）+ `U01..U08`（8 项）+ `MV01..MV41`（41 项）共 176 个客户端跟踪 ID。**重要差异说明**：正如 `docs/ios-current-status.md` 第 14–15 行所载，原《Questify城瘾全面改革施工计划》（封面版次 9 / 文件记录版本 10）的 176 项原始文本在公共仓库中尚未形成与正文逐字核验的完整对照；此处 `127 W + 8 U + 41 MV = 176` 是客户端按 `F–I` 进度卡整理的工作包/决策/视觉规范跟踪枚举，不能仅凭数量等于 176 替代原始施工文档的逐条业务签收。四层状态中 `wiringStatus = .pending`、`testStatus = .notRun`、`deploymentStatus = .notRun`，`evaluateEndToEndDeploymentVerified()` 默认返回 `false`。
 
 ### A6 — 本次提交实际执行的检查命令与未运行边界
 - **实际执行并通过（源码静态契约与工程结构检查，非 Swift 编译/XCTest 运行）**：

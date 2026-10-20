@@ -71,25 +71,49 @@ public struct MiniProgramWave2ScopeDescriptor: Sendable, Equatable, Identifiable
 
 public struct MiniProgramPageParityEntry: Sendable, Equatable, Identifiable {
     public let pagePath: String
-    public let domain: MiniProgramAlignmentDomain
+    public let domain: MiniProgramAlignmentDomain?
     public let wave2ScopeID: String
     public let nativeReaderOrPresentationContract: String
+    public let verifiedSourceFile: String
+    public let verifiedHostSymbol: String
     public let writeGatePosture: MiniProgramWriteGatePosture
 
     public var id: String { pagePath }
 
     public init(
         pagePath: String,
-        domain: MiniProgramAlignmentDomain,
-        wave2ScopeID: String,
-        nativeReaderOrPresentationContract: String,
+        domain: MiniProgramAlignmentDomain? = nil,
+        wave2ScopeID: String = "",
+        nativeReaderOrPresentationContract: String = "",
+        verifiedSourceFile: String = "",
+        verifiedHostSymbol: String = "",
         writeGatePosture: MiniProgramWriteGatePosture = .readOnlyFailClosed
     ) {
         self.pagePath = pagePath
         self.domain = domain
         self.wave2ScopeID = wave2ScopeID
         self.nativeReaderOrPresentationContract = nativeReaderOrPresentationContract
+        self.verifiedSourceFile = verifiedSourceFile
+        self.verifiedHostSymbol = verifiedHostSymbol
         self.writeGatePosture = writeGatePosture
+    }
+
+    /// True only when an entry maps to a verified source file, real Swift symbol (never a decision-mode string),
+    /// verified host container, and Wave-2 scope ID. Unverified routes leave those fields blank and return `false`.
+    public var isSourceMappingVerified: Bool {
+        let symbol = nativeReaderOrPresentationContract.trimmingCharacters(in: .whitespacesAndNewlines)
+        let file = verifiedSourceFile.trimmingCharacters(in: .whitespacesAndNewlines)
+        let host = verifiedHostSymbol.trimmingCharacters(in: .whitespacesAndNewlines)
+        let scope = wave2ScopeID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard domain != nil,
+              !scope.isEmpty,
+              !symbol.isEmpty,
+              !file.isEmpty,
+              !host.isEmpty else {
+            return false
+        }
+        return symbol != MiniProgram99PageDecisionMode.strictMiniProgramParity.rawValue
+            && symbol != MiniProgram99PageDecisionMode.nativeSupersetEnhanced.rawValue
     }
 }
 
@@ -378,36 +402,104 @@ public struct MiniProgram99PageParityRegistry: Sendable, Equatable {
     }
 
     public static func entry(forPagePath pagePath: String) -> MiniProgramPageParityEntry? {
-        representativePages.first { $0.pagePath == pagePath }
-            ?? all99BaselinePageEntries.first { $0.pagePath == pagePath }
+        all99BaselinePageEntries.first { $0.pagePath == pagePath }
+            ?? representativePages.first { $0.pagePath == pagePath }
     }
+
+    private struct VerifiedBaselineRouteTarget: Sendable, Equatable {
+        let domain: MiniProgramAlignmentDomain
+        let wave2ScopeID: String
+        let nativeSymbol: String
+        let sourceFile: String
+        let hostSymbol: String
+    }
+
+    /// Only routes whose concrete Swift file, symbol, and host container have been directly verified in the repository
+    /// are populated here. All other routes in the 99-page baseline subset remain explicitly blank (`""`) rather than
+    /// using coarse 5-group placeholders or `decisionMode` strings.
+    private static let verifiedBaselineTargetsByRoute: [String: VerifiedBaselineRouteTarget] = [
+        "pages/searchmap/index": VerifiedBaselineRouteTarget(
+            domain: .domainD,
+            wave2ScopeID: "w2-11",
+            nativeSymbol: "SearchMapExplorerView",
+            sourceFile: "App/SearchMapExplorerView.swift",
+            hostSymbol: "MainTabView"
+        ),
+        "subpackageTools/capsule/index": VerifiedBaselineRouteTarget(
+            domain: .domainD,
+            wave2ScopeID: "w2-08",
+            nativeSymbol: "RoamCapsuleView",
+            sourceFile: "App/RoamPassportPrivateToolsViews.swift",
+            hostSymbol: "RoamPassportPrivateLinks"
+        ),
+        "subpackageTools/exploration-goals/index": VerifiedBaselineRouteTarget(
+            domain: .domainD,
+            wave2ScopeID: "w2-08",
+            nativeSymbol: "RoamExplorationGoalsView",
+            sourceFile: "App/RoamPassportPrivateToolsViews.swift",
+            hostSymbol: "RoamPassportPrivateLinks"
+        ),
+        "subpackageTools/monthly-recap/index": VerifiedBaselineRouteTarget(
+            domain: .domainD,
+            wave2ScopeID: "w2-08",
+            nativeSymbol: "RoamMonthlyRecapView",
+            sourceFile: "App/RoamPassportToolsViews.swift",
+            hostSymbol: "RoamPassportView"
+        ),
+        "subpackageTools/anniversary/index": VerifiedBaselineRouteTarget(
+            domain: .domainD,
+            wave2ScopeID: "w2-08",
+            nativeSymbol: "RoamAnniversaryView",
+            sourceFile: "App/RoamPassportToolsViews.swift",
+            hostSymbol: "RoamPassportView"
+        ),
+        "pages/merchant/index/index": VerifiedBaselineRouteTarget(
+            domain: .domainE,
+            wave2ScopeID: "w2-12",
+            nativeSymbol: "SessionMerchantOverviewView",
+            sourceFile: "App/MerchantReading.swift",
+            hostSymbol: "MerchantContentHomeView"
+        ),
+        "pages/shezhi/shezhi": VerifiedBaselineRouteTarget(
+            domain: .domainB,
+            wave2ScopeID: "w2-05",
+            nativeSymbol: "SettingsView",
+            sourceFile: "App/SettingsView.swift",
+            hostSymbol: "AppCompositionRoot"
+        )
+    ]
 
     public static let all99BaselinePageEntries: [MiniProgramPageParityEntry] = {
         MiniProgramPageByPage99DecisionLedgerContract.canonical99PageRows.map { row in
-            let domain: MiniProgramAlignmentDomain
-            let scopeID: String
-            switch row.groupID {
-            case "group-tabbar-and-home-15":
-                domain = .domainB
-                scopeID = "w2-02"
-            case "group-roam-and-passport-22":
-                domain = .domainD
-                scopeID = "w2-08"
-            case "group-play-and-story-18":
-                domain = .domainC
-                scopeID = "w2-07"
-            case "group-club-team-and-coop-24":
-                domain = .domainE
-                scopeID = "w2-18"
-            default:
-                domain = .domainE
-                scopeID = "w2-12"
+            if let verified = verifiedBaselineTargetsByRoute[row.pagePath] {
+                return MiniProgramPageParityEntry(
+                    pagePath: row.pagePath,
+                    domain: verified.domain,
+                    wave2ScopeID: verified.wave2ScopeID,
+                    nativeReaderOrPresentationContract: verified.nativeSymbol,
+                    verifiedSourceFile: verified.sourceFile,
+                    verifiedHostSymbol: verified.hostSymbol,
+                    writeGatePosture: .readOnlyFailClosed
+                )
+            }
+            if let rep = representativePages.first(where: { $0.pagePath == row.pagePath }) {
+                return MiniProgramPageParityEntry(
+                    pagePath: row.pagePath,
+                    domain: rep.domain,
+                    wave2ScopeID: rep.wave2ScopeID,
+                    nativeReaderOrPresentationContract: rep.nativeReaderOrPresentationContract,
+                    verifiedSourceFile: "",
+                    verifiedHostSymbol: "",
+                    writeGatePosture: .readOnlyFailClosed
+                )
             }
             return MiniProgramPageParityEntry(
                 pagePath: row.pagePath,
-                domain: domain,
-                wave2ScopeID: scopeID,
-                nativeReaderOrPresentationContract: row.decisionMode.rawValue,
+                domain: nil,
+                wave2ScopeID: "",
+                nativeReaderOrPresentationContract: "",
+                verifiedSourceFile: "",
+                verifiedHostSymbol: "",
                 writeGatePosture: .readOnlyFailClosed
             )
         }

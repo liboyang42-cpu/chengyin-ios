@@ -1,9 +1,13 @@
 import Foundation
 
-/// Pure self-contained value types cataloging the complete crosswalk across all 3 master handoff/ticket documents:
+/// Pure self-contained value types cataloging the crosswalk across all 3 master handoff/ticket documents:
 /// 1. `交接文档_20261020.md`: Wave 1 (`B..E`, `F..H`), Wave 2 (`w2-01..w2-21`), Wave 3 (`I00..I11` + `BK`), and Cloud CI (`macos-26` + `ubuntu-24.04`).
 /// 2. `落地清单.md`: Rollout sequence (`Phase 0..Phase 5`), 11 high-risk fail-closed switches, and backend prerequisites (`IOS-I00-1`, `BK-GPS`, `BK-SCHEDULE`).
-/// 3. `工单-统一实施版.md`: Reform Plan v9 work packages (`W02..W20`), unified decisions (`U01..U08`), and map visual spec (`MV01..MV41`).
+/// 3. `工单-统一实施版.md`: Work packages (`W02..W20`), unified decisions (`U01..U08`), and map visual spec (`MV01..MV41`).
+///
+/// Per `docs/ios-current-status.md:14-15`, the 176 client tracking IDs (`127 Wxx.y` + `8 U01..U08` + `41 MV01..MV41`)
+/// form an iOS client tracking enumeration index derived from `docs/plan-progress/{F,G,H,I}-20261019.md` and do NOT
+/// claim 1:1 exhaustive coverage of the original Reform Plan v9 text.
 public enum MasterSourceDocumentID: String, CaseIterable, Sendable, Equatable {
     case handoff20261020 = "交接文档_20261020.md"
     case rolloutChecklist = "落地清单.md"
@@ -27,7 +31,7 @@ public struct MasterDocumentCrosswalkSection: Equatable, Sendable {
     public let expectedItems: [String]
     public let mappedItems: [String]
 
-    public init(document: MasterSourceDocumentID, expectedItems: [String], mappedItems: [String]) {
+    public init(document: MasterSourceDocumentID, expectedItems: [String], mappedItems: [String] = []) {
         self.document = document
         self.expectedItems = expectedItems
         self.mappedItems = mappedItems
@@ -38,8 +42,16 @@ public struct MasterDocumentCrosswalkSection: Equatable, Sendable {
         return expectedItems.filter { !mappedSet.contains($0) }
     }
 
+    public var hasDuplicateOrUnknownMappedItems: Bool {
+        let expectedSet = Set(expectedItems)
+        let mappedSet = Set(mappedItems)
+        return mappedSet.count != mappedItems.count || !mappedSet.isSubset(of: expectedSet)
+    }
+
     public var isComplete: Bool {
-        !expectedItems.isEmpty && unmappedItems.isEmpty
+        !expectedItems.isEmpty
+            && unmappedItems.isEmpty
+            && !hasDuplicateOrUnknownMappedItems
     }
 }
 
@@ -69,14 +81,14 @@ public struct ThreeDocumentMasterCrosswalkContract: Equatable, Sendable {
     ]
     public static let backendPrerequisites: [String] = ["IOS-I00-1", "BK-GPS", "BK-SCHEDULE"]
 
-    // MARK: - Document 3 (`工单-统一实施版.md` & Reform Plan v9 176 Stable Requirement IDs)
+    // MARK: - Document 3 (`工单-统一实施版.md` & Client Tracking Enumeration Index)
     public static let workPackages: [String] = (2...20).map { String(format: "W%02d", $0) }
     public static let unifiedDecisions: [String] = (1...8).map { String(format: "U%02d", $0) }
     public static let mapVisualSpecs: [String] = (1...41).map { String(format: "MV%02d", $0) }
 
-    /// Exact 127 Reform Plan v9 sub-requirement IDs across `W01` through `W20` that together with
-    /// `U01..U08` (8) and `MV01..MV41` (41) form the 176-item Reform Plan v9 requirement baseline.
-    public static let reformPlanV9WorkPackageSubRequirementIDs: [String] = [
+    /// 127 client-tracked `Wxx.y` sub-item IDs from `docs/plan-progress/{F,G,H,I}-20261019.md`.
+    /// This is a client tracking index and does NOT represent an exhaustive 1:1 baseline of the original Reform Plan v9 text.
+    public static let clientTrackingWorkPackageSubIDs: [String] = [
         // W01 (1)
         "W01.1",
         // W02 (4)
@@ -120,52 +132,67 @@ public struct ThreeDocumentMasterCrosswalkContract: Equatable, Sendable {
         "W20.11", "W20.12", "W20.13", "W20.14", "W20.15", "W20.16", "W20.17", "W20.18", "W20.19", "W20.21"
     ]
 
-    /// All 176 Reform Plan v9 stable requirement IDs (`127 Wxx.y` + `8 U01..U08` + `41 MV01..MV41` = 176).
-    public static let reformPlanV9All176StableIDs: [String] =
-        reformPlanV9WorkPackageSubRequirementIDs + unifiedDecisions + mapVisualSpecs
+    /// 176-item iOS client tracking enumeration index (`127 Wxx.y` + `8 U01..U08` + `41 MV01..MV41` = 176).
+    /// Explicitly distinguished from the original Reform Plan v9 text per `docs/ios-current-status.md:14-15`.
+    public static let clientTracking176EnumerationIDs: [String] =
+        clientTrackingWorkPackageSubIDs + unifiedDecisions + mapVisualSpecs
 
-    /// Four-layer verification ledger for all 176 Reform Plan v9 items.
-    /// Separates client contract code (`codeStatus`) from runtime test (`testStatus`) and backend deployment (`deploymentStatus`).
-    public static let reformPlanV9FourLayerLedger: [ReformRequirementFourLayerLedgerEntry] =
-        reformPlanV9All176StableIDs.map { id in
+    public static let clientTracking176EnumerationSet: Set<String> = Set(clientTracking176EnumerationIDs)
+
+    /// Unverified default 4-layer ledger for the 176 client tracking enumeration IDs.
+    /// Every row starts in `.pending`/`.notRun` without assuming `.passed` by default.
+    public static let clientTrackingFourLayerLedger: [ReformRequirementFourLayerLedgerEntry] =
+        clientTracking176EnumerationIDs.map { id in
             ReformRequirementFourLayerLedgerEntry(
                 requirementID: id,
-                codeStatus: .passed,
+                codeStatus: .pending,
                 wiringStatus: .pending,
                 testStatus: .notRun,
                 deploymentStatus: .notRun
             )
         }
 
+    public static let canonicalDocument1ExpectedItems: [String] =
+        wave1AlignmentTracks + wave2ParityLanes + wave3HandoffLanes + cloudCIRunners
+
+    public static var canonicalDocument2ExpectedItems: [String] {
+        rolloutPhases + highRiskFailClosedSwitches.map(\.id) + backendPrerequisites
+    }
+
+    public static let canonicalDocument3ExpectedItems: [String] =
+        workPackages + unifiedDecisions + mapVisualSpecs
+
     public let document1Section: MasterDocumentCrosswalkSection
     public let document2Section: MasterDocumentCrosswalkSection
     public let document3Section: MasterDocumentCrosswalkSection
     public let failClosedSwitches: [FailClosedSwitchAuditItem]
 
+    /// Default initialization leaves `mappedItems` empty (`[]`) so `isComplete` and `isHundredPercentCovered`
+    /// default to `false` until explicit verified mappings are supplied.
     public init(
         document1Section: MasterDocumentCrosswalkSection? = nil,
         document2Section: MasterDocumentCrosswalkSection? = nil,
         document3Section: MasterDocumentCrosswalkSection? = nil,
         failClosedSwitches: [FailClosedSwitchAuditItem] = ThreeDocumentMasterCrosswalkContract.highRiskFailClosedSwitches
     ) {
-        let doc1Items = Self.wave1AlignmentTracks + Self.wave2ParityLanes + Self.wave3HandoffLanes + Self.cloudCIRunners
+        let doc1Items = Self.canonicalDocument1ExpectedItems
         let doc2Items = Self.rolloutPhases + failClosedSwitches.map(\.id) + Self.backendPrerequisites
-        let doc3Items = Self.workPackages + Self.unifiedDecisions + Self.mapVisualSpecs
+        let doc3Items = Self.canonicalDocument3ExpectedItems
 
         self.document1Section = document1Section ?? MasterDocumentCrosswalkSection(
             document: .handoff20261020,
             expectedItems: doc1Items,
-            mappedItems: doc1Items
+            mappedItems: []
         )
         self.document2Section = document2Section ?? MasterDocumentCrosswalkSection(
             document: .rolloutChecklist,
             expectedItems: doc2Items,
-            mappedItems: doc2Items
+            mappedItems: []
         )
         self.document3Section = document3Section ?? MasterDocumentCrosswalkSection(
             document: .unifiedImplementationTickets,
             expectedItems: doc3Items,
-            mappedItems: doc3Items
+            mappedItems: []
         )
         self.failClosedSwitches = failClosedSwitches
     }
@@ -179,22 +206,58 @@ public struct ThreeDocumentMasterCrosswalkContract: Equatable, Sendable {
     }
 
     public var areAllSwitchesFailClosed: Bool {
-        !failClosedSwitches.isEmpty && failClosedSwitches.allSatisfy { !$0.defaultEnabled }
+        !failClosedSwitches.isEmpty
+            && failClosedSwitches.map(\.id) == Self.highRiskFailClosedSwitches.map(\.id)
+            && failClosedSwitches.allSatisfy { !$0.defaultEnabled }
     }
 
+    /// Evaluates whether all three canonical document sections have complete, non-duplicate mappings against
+    /// the full canonical expected item lists. Defaults to `false` because `mappedItems` starts empty (`[]`).
     public var isHundredPercentCovered: Bool {
         sections.count == MasterSourceDocumentID.allCases.count
+            && document1Section.expectedItems == Self.canonicalDocument1ExpectedItems
+            && document2Section.expectedItems == Self.canonicalDocument2ExpectedItems
+            && document3Section.expectedItems == Self.canonicalDocument3ExpectedItems
             && sections.allSatisfy(\.isComplete)
             && allUnmappedItems.isEmpty
             && areAllSwitchesFailClosed
-            && Self.reformPlanV9All176StableIDs.count == 176
     }
 
+    /// Evaluates whether the 176-item client tracking ledger is end-to-end verified.
+    /// Rejects:
+    /// 1. Default unverified rows (`codeStatus`/`.wiringStatus` default to `.pending`, `testStatus`/`.deploymentStatus` default to `.notRun`).
+    /// 2. Duplicate `requirementID` records (copying one passed row 176 times is rejected).
+    /// 3. Any unknown ID outside `clientTracking176EnumerationSet`.
+    /// 4. Missing, invalid, preview/fixture, or mixed 40-hex `verifiedCommitSHA` across the 176 rows.
+    /// 5. Empty `evidenceSymbolOrPath`.
     public static func evaluateEndToEndDeploymentVerified(
-        ledger: [ReformRequirementFourLayerLedgerEntry] = reformPlanV9FourLayerLedger
+        ledger: [ReformRequirementFourLayerLedgerEntry] = clientTrackingFourLayerLedger,
+        expectedCommitSHA: String = ""
     ) -> Bool {
-        guard ledger.count == 176 else { return false }
-        return ledger.allSatisfy(\.isEndToEndVerified)
+        guard ledger.count == clientTracking176EnumerationIDs.count else { return false }
+
+        var seenIDs = Set<String>()
+        var normalizedSHAs = Set<String>()
+        for entry in ledger {
+            guard clientTracking176EnumerationSet.contains(entry.requirementID) else { return false }
+            guard seenIDs.insert(entry.requirementID).inserted else { return false }
+            guard entry.isEndToEndVerified else { return false }
+            let sha = entry.verifiedCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            normalizedSHAs.insert(sha)
+        }
+
+        guard seenIDs == clientTracking176EnumerationSet, normalizedSHAs.count == 1, let singleSHA = normalizedSHAs.first else {
+            return false
+        }
+
+        let trimmedExpected = expectedCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if !trimmedExpected.isEmpty {
+            guard ReleaseCertificatePillar.isValidFormalCommitSHA(trimmedExpected),
+                  singleSHA == trimmedExpected else {
+                return false
+            }
+        }
+        return true
     }
 }
 
@@ -204,21 +267,27 @@ public struct ReformRequirementFourLayerLedgerEntry: Identifiable, Equatable, Se
     public let wiringStatus: ReleaseCheckStatus
     public let testStatus: ReleaseCheckStatus
     public let deploymentStatus: ReleaseCheckStatus
+    public let verifiedCommitSHA: String
+    public let evidenceSymbolOrPath: String
 
     public var id: String { requirementID }
 
     public init(
         requirementID: String,
-        codeStatus: ReleaseCheckStatus = .passed,
+        codeStatus: ReleaseCheckStatus = .pending,
         wiringStatus: ReleaseCheckStatus = .pending,
         testStatus: ReleaseCheckStatus = .notRun,
-        deploymentStatus: ReleaseCheckStatus = .notRun
+        deploymentStatus: ReleaseCheckStatus = .notRun,
+        verifiedCommitSHA: String = "",
+        evidenceSymbolOrPath: String = ""
     ) {
         self.requirementID = requirementID
         self.codeStatus = codeStatus
         self.wiringStatus = wiringStatus
         self.testStatus = testStatus
         self.deploymentStatus = deploymentStatus
+        self.verifiedCommitSHA = verifiedCommitSHA
+        self.evidenceSymbolOrPath = evidenceSymbolOrPath
     }
 
     public var isEndToEndVerified: Bool {
@@ -226,5 +295,7 @@ public struct ReformRequirementFourLayerLedgerEntry: Identifiable, Equatable, Se
             && wiringStatus == .passed
             && testStatus == .passed
             && deploymentStatus == .passed
+            && ReleaseCertificatePillar.isValidFormalCommitSHA(verifiedCommitSHA)
+            && !evidenceSymbolOrPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }

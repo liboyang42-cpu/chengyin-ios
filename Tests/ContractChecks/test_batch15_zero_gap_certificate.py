@@ -116,6 +116,38 @@ class Batch15ZeroGapCertificateContractTests(unittest.TestCase):
             self.assertIn("XCTestCase", content, f"{rel_path} must define an XCTestCase")
             self.assertIn("func test", content, f"{rel_path} must contain test methods")
 
+    def test_a4_and_a5_formal_evidence_and_fail_closed_ledger_contracts(self) -> None:
+        a4_core = (REPO_ROOT / "Core/FinalReleaseSignoffAndZeroGapCertificateContract.swift").read_text(encoding="utf-8")
+        self.assertIn("public enum ReleaseEvidenceOrigin", a4_core)
+        self.assertIn("public static func isValidFormalCommitSHA(_ raw: String) -> Bool", a4_core)
+        self.assertIn("public static func canonicalRequiredCount(forPillarID id: String) -> Int?", a4_core)
+        self.assertIn("public static func isCanonicalPillarCertified(", a4_core)
+        self.assertIn("evidenceOrigin: .previewFixture", a4_core)
+
+        a4_view = (REPO_ROOT / "App/FinalReleaseSignoffAndZeroGapCertificateView.swift").read_text(encoding="utf-8")
+        self.assertIn("FinalReleaseSignoffAndZeroGapCertificateContract.issueCertificate(", a4_view)
+        self.assertIn("FinalReleaseSignoffAndZeroGapCertificateContract.isCanonicalPillarCertified(", a4_view)
+        self.assertIn("FinalReleaseSignoffAndZeroGapCertificateContract.evaluateCertificate(", a4_view)
+
+        a5_ledger = (REPO_ROOT / "Core/MiniProgramPageByPage99DecisionLedgerContract.swift").read_text(encoding="utf-8")
+        self.assertIn("codeStatus: .pending", a5_ledger)
+        self.assertIn("wiringStatus: .pending", a5_ledger)
+        self.assertIn("canonical99PageRouteSet", a5_ledger)
+        self.assertNotIn("codeStatus: .passed,\n                        wiringStatus: .passed", a5_ledger)
+
+        a5_registry = (REPO_ROOT / "Core/MiniProgram99PageParityRegistry.swift").read_text(encoding="utf-8")
+        self.assertIn("verifiedBaselineTargetsByRoute", a5_registry)
+        self.assertIn("public var isSourceMappingVerified: Bool", a5_registry)
+        self.assertNotIn("nativeReaderOrPresentationContract: row.decisionMode.rawValue", a5_registry)
+
+        a5_crosswalk = (REPO_ROOT / "Core/ThreeDocumentMasterCrosswalkContract.swift").read_text(encoding="utf-8")
+        self.assertIn("public static let clientTrackingWorkPackageSubIDs: [String]", a5_crosswalk)
+        self.assertIn("public static let clientTracking176EnumerationIDs: [String]", a5_crosswalk)
+        self.assertIn("mappedItems: []", a5_crosswalk)
+        self.assertNotIn("mappedItems: doc1Items", a5_crosswalk)
+        self.assertNotIn("mappedItems: doc2Items", a5_crosswalk)
+        self.assertNotIn("mappedItems: doc3Items", a5_crosswalk)
+
 
 if __name__ == "__main__":
     unittest.main()

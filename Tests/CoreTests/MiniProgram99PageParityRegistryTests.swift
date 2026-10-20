@@ -62,4 +62,36 @@ final class MiniProgram99PageParityRegistryTests: XCTestCase {
             XCTAssertFalse(scope.nativeContracts.isEmpty)
         }
     }
+
+    func testAll99BaselineEntriesDoNotUseDecisionModeAsSymbolAndLeaveUnverifiedMappingsBlank() {
+        let entries = MiniProgram99PageParityRegistry.all99BaselinePageEntries
+        XCTAssertEqual(entries.count, 99)
+
+        for entry in entries {
+            XCTAssertNotEqual(
+                entry.nativeReaderOrPresentationContract,
+                MiniProgram99PageDecisionMode.strictMiniProgramParity.rawValue,
+                "Route \(entry.pagePath) must not use STRICT_1_TO_1_PARITY as a native contract symbol"
+            )
+            XCTAssertNotEqual(
+                entry.nativeReaderOrPresentationContract,
+                MiniProgram99PageDecisionMode.nativeSupersetEnhanced.rawValue,
+                "Route \(entry.pagePath) must not use NATIVE_SUPERSET_ENHANCED as a native contract symbol"
+            )
+        }
+
+        // Verified routes must carry concrete file, symbol, and host container
+        let verifiedCapsule = MiniProgram99PageParityRegistry.entry(forPagePath: "subpackageTools/capsule/index")
+        XCTAssertEqual(verifiedCapsule?.nativeReaderOrPresentationContract, "RoamCapsuleView")
+        XCTAssertEqual(verifiedCapsule?.verifiedSourceFile, "App/RoamPassportPrivateToolsViews.swift")
+        XCTAssertEqual(verifiedCapsule?.verifiedHostSymbol, "RoamPassportPrivateLinks")
+        XCTAssertTrue(verifiedCapsule?.isSourceMappingVerified ?? false)
+
+        // Unverified routes must leave symbol/file/host blank and report isSourceMappingVerified == false
+        let unverifiedRoute = MiniProgram99PageParityRegistry.entry(forPagePath: "pages/talent/list/index")
+        XCTAssertEqual(unverifiedRoute?.nativeReaderOrPresentationContract, "")
+        XCTAssertEqual(unverifiedRoute?.verifiedSourceFile, "")
+        XCTAssertEqual(unverifiedRoute?.verifiedHostSymbol, "")
+        XCTAssertFalse(unverifiedRoute?.isSourceMappingVerified ?? true)
+    }
 }

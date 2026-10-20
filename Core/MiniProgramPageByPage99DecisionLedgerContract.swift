@@ -1,8 +1,8 @@
 import Foundation
 
-/// Pure self-contained value types accounting for all 99 WeChat Mini-Program pages across 5 domain groups,
-/// recording 1:1 strict parity pages alongside native-superset-enhanced pages while maintaining 100% backend
-/// contract compatibility.
+/// Pure self-contained value types accounting for the 99-page WeChat Mini-Program baseline subset across 5 domain groups
+/// (selected from the 136 total routes in `hengyin/chengyinhub-xcx/app.json` @ `a6ec8bbdadd88ac4fb83bdab6f78e3a976ea3f18`).
+/// Without explicit SHA-bound verification evidence, every page row starts in `.pending`/`.notRun` and never self-certifies.
 public struct MiniProgram99DomainDecisionGroup: Sendable, Equatable, Identifiable {
     public let id: String
     public let groupTitle: String
@@ -40,6 +40,7 @@ public struct MiniProgram99DomainDecisionGroup: Sendable, Equatable, Identifiabl
 
 public struct MiniProgramPageByPage99DecisionLedgerContract: Sendable, Equatable {
     public static let expectedTotalPages = 99
+    public static let miniProgramSourceTotalRoutesInAppJson = 136
 
     public static let canonicalGroups: [MiniProgram99DomainDecisionGroup] = [
         MiniProgram99DomainDecisionGroup(
@@ -92,7 +93,12 @@ public struct MiniProgramPageByPage99DecisionLedgerContract: Sendable, Equatable
         let supersetPages = groups.reduce(0) { $0 + $1.nativeSupersetEnhancedPageCount }
         let total = groups.reduce(0) { $0 + $1.totalPagesInGroup }
         let allCompliant = !groups.isEmpty && groups.allSatisfy(\.isCompliant)
-        let isComplete = allCompliant && total == expectedTotalPages && canonical99PageRows.count == expectedTotalPages
+        let canonicalGroupIDs = canonicalGroups.map(\.id)
+        let suppliedGroupIDs = groups.map(\.id)
+        let isComplete = allCompliant
+            && suppliedGroupIDs == canonicalGroupIDs
+            && total == expectedTotalPages
+            && canonical99PageRows.count == expectedTotalPages
         return (
             totalPages: total,
             strictParityPages: strictPages,
@@ -101,13 +107,43 @@ public struct MiniProgramPageByPage99DecisionLedgerContract: Sendable, Equatable
         )
     }
 
-    /// Evaluates whether the 99-page ledger is end-to-end verified in production/deployment.
-    /// Defaults to `false` because `deploymentStatus` and `testStatus` require external CI/staging evidence.
+    public static let canonical99PageRouteSet: Set<String> = Set(canonical99PageRows.map(\.pagePath))
+
+    /// Evaluates whether the 99-page baseline subset is end-to-end verified.
+    /// Rejects:
+    /// 1. Default unverified rows (`codeStatus`/`.wiringStatus` default to `.pending`, `testStatus`/`.deploymentStatus` default to `.notRun`).
+    /// 2. Duplicate `pagePath` records (copying one passed row 99 times is rejected).
+    /// 3. Any unknown route outside `canonical99PageRouteSet`.
+    /// 4. Missing, invalid, preview/fixture, or mixed 40-hex `verifiedCommitSHA` across the 99 rows.
+    /// 5. Empty `evidenceSymbolOrPath`.
     public static func evaluateEndToEndVerification(
-        rows: [MiniProgram99PageDecisionLedgerRow] = canonical99PageRows
+        rows: [MiniProgram99PageDecisionLedgerRow] = canonical99PageRows,
+        expectedCommitSHA: String = ""
     ) -> Bool {
         guard rows.count == expectedTotalPages else { return false }
-        return rows.allSatisfy(\.isEndToEndVerified)
+
+        var seenPaths = Set<String>()
+        var normalizedSHAs = Set<String>()
+        for row in rows {
+            guard canonical99PageRouteSet.contains(row.pagePath) else { return false }
+            guard seenPaths.insert(row.pagePath).inserted else { return false }
+            guard row.isEndToEndVerified else { return false }
+            let sha = row.verifiedCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            normalizedSHAs.insert(sha)
+        }
+
+        guard seenPaths == canonical99PageRouteSet, normalizedSHAs.count == 1, let singleSHA = normalizedSHAs.first else {
+            return false
+        }
+
+        let trimmedExpected = expectedCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if !trimmedExpected.isEmpty {
+            guard ReleaseCertificatePillar.isValidFormalCommitSHA(trimmedExpected),
+                  singleSHA == trimmedExpected else {
+                return false
+            }
+        }
+        return true
     }
 
     public static let canonical99PageRows: [MiniProgram99PageDecisionLedgerRow] = {
@@ -256,8 +292,8 @@ public struct MiniProgramPageByPage99DecisionLedgerContract: Sendable, Equatable
                         pagePath: path,
                         groupID: spec.groupID,
                         decisionMode: .strictMiniProgramParity,
-                        codeStatus: .passed,
-                        wiringStatus: .passed,
+                        codeStatus: .pending,
+                        wiringStatus: .pending,
                         testStatus: .notRun,
                         deploymentStatus: .notRun
                     )
@@ -269,8 +305,8 @@ public struct MiniProgramPageByPage99DecisionLedgerContract: Sendable, Equatable
                         pagePath: path,
                         groupID: spec.groupID,
                         decisionMode: .nativeSupersetEnhanced,
-                        codeStatus: .passed,
-                        wiringStatus: .passed,
+                        codeStatus: .pending,
+                        wiringStatus: .pending,
                         testStatus: .notRun,
                         deploymentStatus: .notRun
                     )
@@ -294,6 +330,8 @@ public struct MiniProgram99PageDecisionLedgerRow: Sendable, Equatable, Identifia
     public let wiringStatus: ReleaseCheckStatus
     public let testStatus: ReleaseCheckStatus
     public let deploymentStatus: ReleaseCheckStatus
+    public let verifiedCommitSHA: String
+    public let evidenceSymbolOrPath: String
 
     public var id: String { pagePath }
 
@@ -301,10 +339,12 @@ public struct MiniProgram99PageDecisionLedgerRow: Sendable, Equatable, Identifia
         pagePath: String,
         groupID: String,
         decisionMode: MiniProgram99PageDecisionMode,
-        codeStatus: ReleaseCheckStatus = .passed,
-        wiringStatus: ReleaseCheckStatus = .passed,
+        codeStatus: ReleaseCheckStatus = .pending,
+        wiringStatus: ReleaseCheckStatus = .pending,
         testStatus: ReleaseCheckStatus = .notRun,
-        deploymentStatus: ReleaseCheckStatus = .notRun
+        deploymentStatus: ReleaseCheckStatus = .notRun,
+        verifiedCommitSHA: String = "",
+        evidenceSymbolOrPath: String = ""
     ) {
         self.pagePath = pagePath
         self.groupID = groupID
@@ -313,6 +353,8 @@ public struct MiniProgram99PageDecisionLedgerRow: Sendable, Equatable, Identifia
         self.wiringStatus = wiringStatus
         self.testStatus = testStatus
         self.deploymentStatus = deploymentStatus
+        self.verifiedCommitSHA = verifiedCommitSHA
+        self.evidenceSymbolOrPath = evidenceSymbolOrPath
     }
 
     public var isEndToEndVerified: Bool {
@@ -320,5 +362,7 @@ public struct MiniProgram99PageDecisionLedgerRow: Sendable, Equatable, Identifia
             && wiringStatus == .passed
             && testStatus == .passed
             && deploymentStatus == .passed
+            && ReleaseCertificatePillar.isValidFormalCommitSHA(verifiedCommitSHA)
+            && !evidenceSymbolOrPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }

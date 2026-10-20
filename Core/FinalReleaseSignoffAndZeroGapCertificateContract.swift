@@ -8,6 +8,13 @@ public enum ReleaseCheckStatus: String, Sendable, Equatable, CaseIterable {
     case notRun
 }
 
+/// Origin of release signoff evidence. Preview/synthetic fixtures can never impersonate formal release evidence,
+/// even if a caller supplies a real 40-character hexadecimal commit SHA.
+public enum ReleaseEvidenceOrigin: String, Sendable, Equatable {
+    case formal
+    case previewFixture
+}
+
 /// External evidence record required to evaluate a release certificate pillar against a specific commit SHA.
 public struct ReleasePillarEvidenceInput: Sendable, Equatable, Identifiable {
     public var id: String { pillarID }
@@ -20,6 +27,7 @@ public struct ReleasePillarEvidenceInput: Sendable, Equatable, Identifiable {
     public let openBlockerCount: Int
     public let hasMergeConflict: Bool
     public let evidenceLinks: [String]
+    public let evidenceOrigin: ReleaseEvidenceOrigin
 
     public init(
         pillarID: String,
@@ -30,7 +38,8 @@ public struct ReleasePillarEvidenceInput: Sendable, Equatable, Identifiable {
         requiredCount: Int,
         openBlockerCount: Int,
         hasMergeConflict: Bool = false,
-        evidenceLinks: [String]
+        evidenceLinks: [String],
+        evidenceOrigin: ReleaseEvidenceOrigin = .formal
     ) {
         self.pillarID = pillarID
         self.targetCommitSHA = targetCommitSHA
@@ -41,11 +50,13 @@ public struct ReleasePillarEvidenceInput: Sendable, Equatable, Identifiable {
         self.openBlockerCount = openBlockerCount
         self.hasMergeConflict = hasMergeConflict
         self.evidenceLinks = evidenceLinks
+        self.evidenceOrigin = evidenceOrigin
     }
 }
 
 /// Single pillar in the Final Release Signoff & Zero-Gap Certificate.
-/// Never defaults to certified: requires explicit `.passed` status, non-empty commit SHA, timestamp, and evidence links.
+/// Never defaults to certified: requires canonical ID membership, canonical requiredCount floor,
+/// `.formal` origin, `.passed` status, valid 40-hex commit SHA, valid ISO-8601 timestamp, and non-empty evidence links.
 public struct ReleaseCertificatePillar: Sendable, Equatable, Identifiable {
     public let id: String
     public let title: String
@@ -56,6 +67,7 @@ public struct ReleaseCertificatePillar: Sendable, Equatable, Identifiable {
     public let commitSHA: String
     public let evaluatedAtISO8601: String
     public let evidenceLinks: [String]
+    public let evidenceOrigin: ReleaseEvidenceOrigin
 
     public init(
         id: String,
@@ -66,7 +78,8 @@ public struct ReleaseCertificatePillar: Sendable, Equatable, Identifiable {
         status: ReleaseCheckStatus = .notRun,
         commitSHA: String = "",
         evaluatedAtISO8601: String = "",
-        evidenceLinks: [String] = []
+        evidenceLinks: [String] = [],
+        evidenceOrigin: ReleaseEvidenceOrigin = .formal
     ) {
         self.id = id
         self.title = title
@@ -77,6 +90,7 @@ public struct ReleaseCertificatePillar: Sendable, Equatable, Identifiable {
         self.commitSHA = commitSHA
         self.evaluatedAtISO8601 = evaluatedAtISO8601
         self.evidenceLinks = evidenceLinks
+        self.evidenceOrigin = evidenceOrigin
     }
 
     public var isPreviewOrFixtureSHA: Bool {
@@ -84,37 +98,61 @@ public struct ReleaseCertificatePillar: Sendable, Equatable, Identifiable {
         return lower.contains("fixture") || lower.contains("preview") || lower.contains("mock")
     }
 
-    public static func isValidISO8601Timestamp(_ raw: String) -> Bool {
+    public var isPreviewFixture: Bool {
+        evidenceOrigin != .formal || isPreviewOrFixtureSHA
+    }
+
+    public static func isValidFormalCommitSHA(_ raw: String) -> Bool {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.count >= 20, trimmed.contains("T"),
-              (trimmed.hasSuffix("Z") || trimmed.contains("+") || trimmed.dropFirst(10).contains("-")) else {
+        guard trimmed.count == 40 else { return false }
+        let lower = trimmed.lowercased()
+        guard !lower.contains("fixture"), !lower.contains("preview"), !lower.contains("mock") else {
             return false
         }
+        return lower.unicodeScalars.allSatisfy { scalar in
+            (scalar.value >= 48 && scalar.value <= 57) || (scalar.value >= 97 && scalar.value <= 102)
+        }
+    }
+
+    public static func parseISO8601Date(_ raw: String) -> Date? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.count >= 20,
+              trimmed.contains("T"),
+              (trimmed.hasSuffix("Z") || trimmed.contains("+") || trimmed.dropFirst(10).contains("-")) else {
+            return nil
+        }
         let formatter = ISO8601DateFormatter()
-        return formatter.date(from: trimmed) != nil
+        return formatter.date(from: trimmed)
+    }
+
+    public static func isValidISO8601Timestamp(_ raw: String) -> Bool {
+        parseISO8601Date(raw) != nil
     }
 
     public var hasValidEvidence: Bool {
-        let trimmedSHA = commitSHA.trimmingCharacters(in: .whitespacesAndNewlines)
-        return !trimmedSHA.isEmpty &&
-            !isPreviewOrFixtureSHA &&
+        !isPreviewFixture &&
+            Self.isValidFormalCommitSHA(commitSHA) &&
             Self.isValidISO8601Timestamp(evaluatedAtISO8601) &&
             !evidenceLinks.isEmpty &&
             evidenceLinks.allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
 
     public var isCertified: Bool {
-        status == .passed &&
-        completedCount >= requiredCount &&
-        requiredCount > 0 &&
-        zeroOpenBlockers &&
-        hasValidEvidence
+        guard let canonicalRequired = FinalReleaseSignoffAndZeroGapCertificateContract.canonicalRequiredCount(forPillarID: id),
+              canonicalRequired > 0 else {
+            return false
+        }
+        return status == .passed &&
+            requiredCount >= canonicalRequired &&
+            completedCount >= requiredCount &&
+            zeroOpenBlockers &&
+            hasValidEvidence
     }
 }
 
 /// Final Release Signoff & Zero-Gap Certificate evaluator.
-/// Default state is fail-closed (`unverified` / `isZeroGapCertified == false`) until all 6 pillars
-/// supply passing evidence bound to the exact target `commitSHA` with zero open blockers and no merge conflicts.
+/// Default state is fail-closed (`unverified` / `isZeroGapCertified == false`) until all 6 canonical pillars
+/// appear once each with passing formal evidence bound to a single valid 40-hex `expectedCommitSHA`.
 public struct FinalReleaseSignoffAndZeroGapCertificateContract: Sendable, Equatable {
     public static let totalBatches = 15
     public static let totalParallelLanes = 175
@@ -138,7 +176,7 @@ public struct FinalReleaseSignoffAndZeroGapCertificateContract: Sendable, Equata
         ),
         .init(
             id: "pillar-reform-v9-w02-to-w20",
-            title: "Reform Plan v9 Original Requirements Ledger (176 Stable IDs)",
+            title: "Reform Plan v9 Client Tracking Index (176 Tracked IDs)",
             completedCount: 0,
             requiredCount: 176,
             zeroOpenBlockers: false,
@@ -146,7 +184,7 @@ public struct FinalReleaseSignoffAndZeroGapCertificateContract: Sendable, Equata
         ),
         .init(
             id: "pillar-miniprogram-99-pages",
-            title: "WeChat Mini-Program 99-Page Parity Alignment (Domains B–E)",
+            title: "WeChat Mini-Program 99-Page Baseline Subset (Domains B–E)",
             completedCount: 0,
             requiredCount: 99,
             zeroOpenBlockers: false,
@@ -178,7 +216,17 @@ public struct FinalReleaseSignoffAndZeroGapCertificateContract: Sendable, Equata
         )
     ]
 
-    /// Synthetic fixture data for unit/UI preview rendering only. Never used as default release signoff.
+    public static let canonicalRequiredCountsByID: [String: Int] = Dictionary(
+        uniqueKeysWithValues: canonicalPillars.map { ($0.id, $0.requiredCount) }
+    )
+
+    public static func canonicalRequiredCount(forPillarID id: String) -> Int? {
+        canonicalRequiredCountsByID[id]
+    }
+
+    /// Synthetic fixture data for UI preview rendering only. Tagged with `.previewFixture` origin
+    /// so it can never pass formal `isCertified`, `evaluateCertificate`, or `issueCertificate` even if
+    /// called with a 40-character hexadecimal `commitSHA`.
     public static func previewFixturePillars(
         commitSHA: String = "fixture-preview-sha",
         evaluatedAtISO8601: String = "2026-10-20T00:00:00Z"
@@ -193,16 +241,18 @@ public struct FinalReleaseSignoffAndZeroGapCertificateContract: Sendable, Equata
                 status: .passed,
                 commitSHA: commitSHA,
                 evaluatedAtISO8601: evaluatedAtISO8601,
-                evidenceLinks: ["docs/handoff/issue-61-response-20261020.md#\(base.id)"]
+                evidenceLinks: ["docs/handoff/issue-61-response-20261020.md#\(base.id)"],
+                evidenceOrigin: .previewFixture
             )
         }
     }
 
     public init() {}
 
-    /// Evaluates external evidence against the canonical 6 pillars and a target commit SHA.
-    /// Empty input, `pending`, `notRun`, `failed`, mismatched SHA, preview/fixture SHA, invalid/expired timestamp,
-    /// missing evidence links, or merge conflicts always return `isZeroGapCertified: false`.
+    /// Evaluates external evidence against the canonical 6 pillars and a single formal target commit SHA.
+    /// Rejects empty input, duplicate/unknown pillar IDs, lowered requiredCount, `.pending`/`.notRun`/`.failed`,
+    /// missing/invalid/mismatched 40-hex SHA, `.previewFixture` origin, invalid/expired `notBeforeISO8601` or `evaluatedAtISO8601`,
+    /// empty `evidenceLinks`, or merge conflicts.
     public static func evaluateCertificate(
         expectedCommitSHA: String,
         notBeforeISO8601: String? = nil,
@@ -210,19 +260,48 @@ public struct FinalReleaseSignoffAndZeroGapCertificateContract: Sendable, Equata
         evidence: [ReleasePillarEvidenceInput]
     ) -> (totalPillars: Int, certifiedPillars: Int, isZeroGapCertified: Bool, evaluatedPillars: [ReleaseCertificatePillar]) {
         let trimmedTargetSHA = expectedCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines)
-        let lowerTargetSHA = trimmedTargetSHA.lowercased()
-        let isPreviewTarget = lowerTargetSHA.contains("fixture") || lowerTargetSHA.contains("preview") || lowerTargetSHA.contains("mock")
-        let formatter = ISO8601DateFormatter()
-        let cutoffDate = notBeforeISO8601.flatMap { formatter.date(from: $0.trimmingCharacters(in: .whitespacesAndNewlines)) }
-        let byID = Dictionary( evidence.map { ($0.pillarID, $0) }, uniquingKeysWith: { _, last in last })
+        let normalizedTargetSHA = trimmedTargetSHA.lowercased()
+        let isValidTargetSHA = ReleaseCertificatePillar.isValidFormalCommitSHA(trimmedTargetSHA)
+
+        let cutoffDate: Date?
+        let isCutoffValid: Bool
+        if let notBeforeISO8601 {
+            if let parsed = ReleaseCertificatePillar.parseISO8601Date(notBeforeISO8601) {
+                cutoffDate = parsed
+                isCutoffValid = true
+            } else {
+                cutoffDate = nil
+                isCutoffValid = false
+            }
+        } else {
+            cutoffDate = nil
+            isCutoffValid = true
+        }
+
+        var idOccurrences: [String: Int] = [:]
+        var hasUnknownOrDuplicateIDs = false
+        for item in evidence {
+            idOccurrences[item.pillarID, default: 0] += 1
+            if canonicalRequiredCount(forPillarID: item.pillarID) == nil || idOccurrences[item.pillarID, default: 0] > 1 {
+                hasUnknownOrDuplicateIDs = true
+            }
+        }
+
+        let byID = Dictionary(evidence.map { ($0.pillarID, $0) }, uniquingKeysWith: { _, last in last })
         let evaluated: [ReleaseCertificatePillar] = canonicalPillars.map { requirement in
-            guard !trimmedTargetSHA.isEmpty,
-                  !isPreviewTarget,
+            guard isValidTargetSHA,
+                  isCutoffValid,
                   !hasMergeConflict,
+                  !hasUnknownOrDuplicateIDs,
+                  idOccurrences[requirement.id] == 1,
                   let item = byID[requirement.id],
+                  item.evidenceOrigin == .formal,
                   !item.hasMergeConflict,
-                  item.targetCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedTargetSHA,
-                  let itemDate = formatter.date(from: item.evaluatedAtISO8601.trimmingCharacters(in: .whitespacesAndNewlines)),
+                  ReleaseCertificatePillar.isValidFormalCommitSHA(item.targetCommitSHA),
+                  item.targetCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == normalizedTargetSHA,
+                  item.requiredCount >= requirement.requiredCount,
+                  item.completedCount >= requirement.requiredCount,
+                  let itemDate = ReleaseCertificatePillar.parseISO8601Date(item.evaluatedAtISO8601),
                   cutoffDate.map({ itemDate >= $0 }) ?? true else {
                 return ReleaseCertificatePillar(
                     id: requirement.id,
@@ -233,42 +312,131 @@ public struct FinalReleaseSignoffAndZeroGapCertificateContract: Sendable, Equata
                     status: byID[requirement.id]?.status ?? .notRun,
                     commitSHA: byID[requirement.id]?.targetCommitSHA ?? "",
                     evaluatedAtISO8601: byID[requirement.id]?.evaluatedAtISO8601 ?? "",
-                    evidenceLinks: byID[requirement.id]?.evidenceLinks ?? []
+                    evidenceLinks: byID[requirement.id]?.evidenceLinks ?? [],
+                    evidenceOrigin: byID[requirement.id]?.evidenceOrigin ?? .formal
                 )
             }
             return ReleaseCertificatePillar(
                 id: requirement.id,
                 title: requirement.title,
                 completedCount: item.completedCount,
-                requiredCount: max(requirement.requiredCount, item.requiredCount),
+                requiredCount: item.requiredCount,
                 zeroOpenBlockers: item.openBlockerCount == 0,
                 status: item.status,
-                commitSHA: item.targetCommitSHA,
-                evaluatedAtISO8601: item.evaluatedAtISO8601,
-                evidenceLinks: item.evidenceLinks
+                commitSHA: item.targetCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines),
+                evaluatedAtISO8601: item.evaluatedAtISO8601.trimmingCharacters(in: .whitespacesAndNewlines),
+                evidenceLinks: item.evidenceLinks,
+                evidenceOrigin: item.evidenceOrigin
             )
         }
-        let certified = evaluated.filter(\.isCertified).count
-        let total = canonicalPillars.count
-        let isZeroGap = !trimmedTargetSHA.isEmpty && !isPreviewTarget && !hasMergeConflict && total == 6 && certified == total
-        return (totalPillars: total, certifiedPillars: certified, isZeroGapCertified: isZeroGap, evaluatedPillars: evaluated)
+
+        let evaluation = issueCertificate(
+            pillars: evaluated,
+            expectedCommitSHA: trimmedTargetSHA,
+            notBeforeISO8601: notBeforeISO8601,
+            hasMergeConflict: hasMergeConflict
+        )
+        let isZeroGap = !hasUnknownOrDuplicateIDs
+            && evidence.count == canonicalPillars.count
+            && evaluation.isZeroGapCertified
+        return (
+            totalPillars: canonicalPillars.count,
+            certifiedPillars: hasUnknownOrDuplicateIDs ? 0 : evaluation.certifiedPillars,
+            isZeroGapCertified: isZeroGap,
+            evaluatedPillars: evaluated
+        )
     }
 
+    /// Evaluates whether an individual pillar within a candidate pillar set satisfies all formal canonical rules.
+    public static func isCanonicalPillarCertified(
+        _ pillar: ReleaseCertificatePillar,
+        in allPillars: [ReleaseCertificatePillar],
+        expectedCommitSHA: String,
+        notBeforeISO8601: String? = nil,
+        hasMergeConflict: Bool = false
+    ) -> Bool {
+        let trimmedTargetSHA = expectedCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !hasMergeConflict,
+              ReleaseCertificatePillar.isValidFormalCommitSHA(trimmedTargetSHA),
+              let canonicalRequired = canonicalRequiredCount(forPillarID: pillar.id) else {
+            return false
+        }
+
+        let cutoffDate: Date?
+        if let notBeforeISO8601 {
+            guard let parsed = ReleaseCertificatePillar.parseISO8601Date(notBeforeISO8601) else {
+                return false
+            }
+            cutoffDate = parsed
+        } else {
+            cutoffDate = nil
+        }
+
+        var idCounts: [String: Int] = [:]
+        for candidate in allPillars {
+            guard canonicalRequiredCount(forPillarID: candidate.id) != nil else { return false }
+            idCounts[candidate.id, default: 0] += 1
+        }
+        guard idCounts[pillar.id] == 1 else { return false }
+
+        let normalizedTargetSHA = trimmedTargetSHA.lowercased()
+        let normalizedPillarSHA = pillar.commitSHA.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard normalizedPillarSHA == normalizedTargetSHA,
+              pillar.evidenceOrigin == .formal,
+              !pillar.isPreviewFixture,
+              pillar.requiredCount >= canonicalRequired,
+              pillar.completedCount >= canonicalRequired,
+              let itemDate = ReleaseCertificatePillar.parseISO8601Date(pillar.evaluatedAtISO8601),
+              cutoffDate.map({ itemDate >= $0 }) ?? true else {
+            return false
+        }
+
+        return pillar.isCertified
+    }
+
+    /// Formal certificate issuance check.
+    /// Requires:
+    /// 1. Complete canonical 6-pillar ID set with each canonical ID appearing exactly once (no duplicates, no unknown IDs).
+    /// 2. Each pillar's `requiredCount` and `completedCount` >= canonical requirement for that ID.
+    /// 3. Non-empty, valid 40-hex `expectedCommitSHA` matched by all 6 pillars (no omitted or mixed SHAs).
+    /// 4. Valid `notBeforeISO8601` if supplied (invalid non-nil cutoff is always rejected).
+    /// 5. `.formal` evidence origin (preview fixtures are always rejected even with a real 40-hex SHA).
     public static func issueCertificate(
         pillars: [ReleaseCertificatePillar] = canonicalPillars,
-        expectedCommitSHA: String? = nil,
+        expectedCommitSHA: String = "",
+        notBeforeISO8601: String? = nil,
         hasMergeConflict: Bool = false
     ) -> (totalPillars: Int, certifiedPillars: Int, isZeroGapCertified: Bool) {
         let total = pillars.count
-        let certified = pillars.filter { pillar in
-            guard !hasMergeConflict, pillar.isCertified else { return false }
-            if let expectedCommitSHA {
-                let trimmed = expectedCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !trimmed.isEmpty && pillar.commitSHA == trimmed else { return false }
+        var idCounts: [String: Int] = [:]
+        var hasUnknownOrDuplicateID = false
+        for pillar in pillars {
+            idCounts[pillar.id, default: 0] += 1
+            if canonicalRequiredCount(forPillarID: pillar.id) == nil || idCounts[pillar.id, default: 0] > 1 {
+                hasUnknownOrDuplicateID = true
             }
-            return true
+        }
+
+        guard !hasUnknownOrDuplicateID else {
+            return (totalPillars: total, certifiedPillars: 0, isZeroGapCertified: false)
+        }
+
+        let certified = pillars.filter { pillar in
+            isCanonicalPillarCertified(
+                pillar,
+                in: pillars,
+                expectedCommitSHA: expectedCommitSHA,
+                notBeforeISO8601: notBeforeISO8601,
+                hasMergeConflict: hasMergeConflict
+            )
         }.count
-        let isZeroGap = !hasMergeConflict && total == canonicalPillars.count && certified == total
+
+        let canonicalIDSet = Set(canonicalPillars.map(\.id))
+        let suppliedIDSet = Set(pillars.map(\.id))
+        let isZeroGap = !hasMergeConflict &&
+            total == canonicalPillars.count &&
+            suppliedIDSet == canonicalIDSet &&
+            certified == canonicalPillars.count
         return (totalPillars: total, certifiedPillars: certified, isZeroGapCertified: isZeroGap)
     }
 }
