@@ -50,6 +50,36 @@ final class OrderLifecycleServiceTests: XCTestCase {
             catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
         }
     }
+    func testExpectedAccountIDRejectsMissingOrMismatchedTopLevelBuyerMemberIdEvenWhenNestedOwnerMatches() async throws {
+        // Matching top-level memberId succeeds and remains distinct from nested ownerMemberID.
+        let matchingJSON = #"{"code":200,"data":{"id":41,"memberId":7,"cmsActivity":{"name":"Activity","memberId":999}}}"#
+        let detail = try await service(LifecycleRecordingTransport(matchingJSON)).detail(id: 41, token: "synthetic-session", expectedAccountID: 7)
+        XCTAssertEqual(detail.id, 41)
+        XCTAssertEqual(detail.memberID, 7)
+        XCTAssertEqual(detail.ownerMemberID, 999)
+
+        // Wrong top-level memberId (even if nested cmsActivity.memberId matches expectedAccountID) is rejected.
+        let wrongBuyerJSON = #"{"code":200,"data":{"id":41,"memberId":8,"cmsActivity":{"name":"Activity","memberId":7}}}"#
+        do {
+            _ = try await service(LifecycleRecordingTransport(wrongBuyerJSON)).detail(id: 41, token: "synthetic-session", expectedAccountID: 7)
+            XCTFail("Expected malformedResponse for wrong top-level buyer memberId")
+        } catch {
+            XCTAssertEqual(error as? APIError, .malformedResponse)
+        }
+
+        // Missing top-level memberId (even if nested cmsActivity.memberId or cmsTopic.memberId matches expectedAccountID) is rejected.
+        for missingBuyerJSON in [
+            #"{"code":200,"data":{"id":41,"cmsActivity":{"name":"Activity","memberId":7}}}"#,
+            #"{"code":200,"data":{"id":41,"cmsTopic":{"name":"Topic","memberId":7}}}"#
+        ] {
+            do {
+                _ = try await service(LifecycleRecordingTransport(missingBuyerJSON)).detail(id: 41, token: "synthetic-session", expectedAccountID: 7)
+                XCTFail("Expected malformedResponse for missing top-level buyer memberId")
+            } catch {
+                XCTAssertEqual(error as? APIError, .malformedResponse)
+            }
+        }
+    }
     func testUnauthorizedPrecedesMalformedData() async throws {
         do { _ = try await service(LifecycleRecordingTransport(#"{"code":401,"data":"bad"}"#)).detail(id: 7, token: "synthetic-session"); XCTFail("Unexpected success") }
         catch { XCTAssertEqual(error as? APIError, .unauthorized) }

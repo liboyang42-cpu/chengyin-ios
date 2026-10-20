@@ -33,28 +33,38 @@ import SwiftUI
 @MainActor final class OwnedOrderLifecycleReader: OrderLifecycleReading {
     private let origin: any ProfileReading
     private let base: any OrderLifecycleReading
+    private let originReaderID: ObjectIdentifier
+    private let baseReaderID: ObjectIdentifier
     private let originIdentity: ProfileReadIdentity?
+    private let baseScope: UUID
     private let activeScope = UUID(), retiredScope = UUID()
+    private var retired = false
     init(origin: any ProfileReading, base: any OrderLifecycleReading) {
-        self.origin = origin; self.base = base; originIdentity = origin.identity
+        self.origin = origin; self.base = base
+        originReaderID = ObjectIdentifier(origin); baseReaderID = ObjectIdentifier(base)
+        originIdentity = origin.identity; baseScope = base.scope
     }
     private var current: Bool {
-        guard let originIdentity, origin.isConfigured, origin.identity == originIdentity,
-              base.isConfigured, base.accountID == originIdentity.accountID else { return false }
+        guard !retired, ObjectIdentifier(origin) == originReaderID, ObjectIdentifier(base) == baseReaderID,
+              let originIdentity, originIdentity.accountID > 0, origin.isConfigured, origin.identity == originIdentity,
+              base.isConfigured, base.accountID == originIdentity.accountID, base.scope == baseScope else {
+            retired = true
+            return false
+        }
         return true
     }
-    var accountID: Int? { current ? base.accountID : nil }
+    var accountID: Int? { current ? originIdentity?.accountID : nil }
     var scope: UUID { current ? activeScope : retiredScope }
     var isConfigured: Bool { current }
     var isOfflineExample: Bool { false }
     func detail(id: Int) async throws -> OrderLifecycleDetail {
-        guard current, id > 0 else { throw APIError.notConfigured }
+        guard let expectedAccountID = originIdentity?.accountID, current, id > 0 else { throw APIError.notConfigured }
         try Task.checkCancellation()
         do {
             let value = try await base.detail(id: id)
             try Task.checkCancellation()
             guard current else { throw CancellationError() }
-            guard value.id == id else { throw APIError.malformedResponse }
+            guard value.id == id, value.memberID == expectedAccountID else { throw APIError.malformedResponse }
             return value
         } catch {
             guard !Task.isCancelled, current else { throw CancellationError() }

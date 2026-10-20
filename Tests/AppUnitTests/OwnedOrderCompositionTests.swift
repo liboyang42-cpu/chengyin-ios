@@ -112,6 +112,63 @@ import XCTest
             XCTAssertEqual(wire.requests.count,2);XCTAssertTrue(unused.requests.isEmpty)
         }
     }
+    func testOwnedOrderLifecycleReaderEnforcesTopLevelBuyerMemberIdGrantAccountAndKeepsWritesClosed() async throws {
+        let wire=Wire(),grants=Grants(),session=try root(wire,grants,Vault()).makeSession()
+        await login(session);wire.requests=[]
+        let reader=OwnedOrderLifecycleReader(origin:session.ownedOrderReader,base:session.orderLifecycleReader)
+        let coordinator=OrderLifecycleCoordinator(reader:reader)
+        XCTAssertTrue(reader.isConfigured)
+        XCTAssertFalse(reader.isOfflineExample)
+        XCTAssertFalse(coordinator.canDispatch)
+        XCTAssertFalse(coordinator.canSimulate)
+
+        // 1. Valid top-level memberId == 7 succeeds; nested cmsActivity.memberId is not confused with buyer memberId.
+        wire.override=#"{"code":200,"data":{"id":41,"memberId":7,"cmsActivity":{"name":"Fresh detail","memberId":999},"registrationStatus":1,"paymentStatus":0,"payableAmount":12.34}}"#
+        let valid=try await reader.detail(id:41)
+        XCTAssertEqual(valid.id,41)
+        XCTAssertEqual(valid.memberID,7)
+        XCTAssertEqual(valid.ownerMemberID,999)
+        await coordinator.load(id:41)
+        XCTAssertEqual(coordinator.detail?.id,41)
+        XCTAssertFalse(coordinator.canDispatch)
+        XCTAssertFalse(coordinator.canSimulate)
+
+        // 2. Wrong top-level memberId (even when nested cmsActivity.memberId == 7) is rejected as malformedResponse.
+        wire.override=#"{"code":200,"data":{"id":41,"memberId":8,"cmsActivity":{"name":"Wrong buyer","memberId":7},"registrationStatus":1,"paymentStatus":0}}"#
+        do { _=try await reader.detail(id:41);XCTFail("Expected malformedResponse for wrong top-level memberId") }
+        catch { XCTAssertEqual(error as? APIError,.malformedResponse) }
+
+        // 3. Missing top-level memberId (even when nested cmsActivity.memberId or cmsTopic.memberId == 7) is rejected.
+        for missing in [
+            #"{"code":200,"data":{"id":41,"cmsActivity":{"name":"Missing buyer","memberId":7}}}"#,
+            #"{"code":200,"data":{"id":41,"cmsTopic":{"name":"Missing buyer topic","memberId":7}}}"#
+        ] {
+            wire.override=missing
+            do { _=try await reader.detail(id:41);XCTFail("Expected malformedResponse for missing top-level memberId") }
+            catch { XCTAssertEqual(error as? APIError,.malformedResponse) }
+        }
+
+        // 4. Wrong id is rejected.
+        wire.override=#"{"code":200,"data":{"id":42,"memberId":7,"cmsActivity":{"name":"Wrong ID"}}}"#
+        do { _=try await reader.detail(id:41);XCTFail("Expected malformedResponse for wrong id") }
+        catch { XCTAssertEqual(error as? APIError,.malformedResponse) }
+
+        // 5. Grant revocation / account switch / late 401 retires reader and throws CancellationError on in-flight read.
+        wire.override=#"{"code":200,"data":{"id":41,"memberId":7,"cmsActivity":{"name":"Paused"}}}"#
+        wire.pause=true
+        let paused=expectation(description:"paused")
+        wire.onPaused={paused.fulfill()}
+        let task=Task { try await reader.detail(id:41) }
+        await fulfillment(of:[paused],timeout:2)
+        grants.revoke()
+        wire.finish(code:401,status:401)
+        do { _=try await task.value;XCTFail("Expected CancellationError after grant revocation") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertFalse(reader.isConfigured)
+        XCTAssertNotNil(session.account)
+        do { _=try await reader.detail(id:41);XCTFail("Retired reader must throw notConfigured") }
+        catch { XCTAssertEqual(error as? APIError,.notConfigured) }
+    }
     private func form(_ path:String,_ fields:[String:String])throws->URLRequest{try AuthRequestBuilder.makeFormRequest(url:URL(string:Self.base+"/"+path)!,fields:fields,token:"synthetic-7")}
     @MainActor private final class Grants {
         var enabled=true;var retained:OwnedOrderReadApproval?
