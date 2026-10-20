@@ -321,6 +321,7 @@ extension WalletScreen where Value == WithdrawalBalance {
     let reader: WalletCommerceReader
     @StateObject private var model = WalletScreen<WalletPage<WalletProduct>>()
     @State private var keyword = ""
+    @State private var submittedKeyword = ""
     @State private var sort = 0
     var body: some View {
         List {
@@ -340,14 +341,26 @@ extension WalletScreen where Value == WithdrawalBalance {
                     }
                 }
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
-            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
+            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
         }.appNavigationTitle("wallet.mall").searchable(text: $keyword)
-            .onSubmit(of: .search) { Task { await load() } }
+            .onSubmit(of: .search) { submitSearch() }
+            .onChange(of: keyword) { _, value in
+                // Clearing or cancelling search must restore the unfiltered catalogue.
+                guard value.isEmpty, !submittedKeyword.isEmpty else { return }
+                submitSearch()
+            }
             .task(id: reader.scope) { model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { await load() }
     }
+    private func submitSearch() {
+        submittedKeyword = keyword
+        // Retire the previous query before scheduling its replacement.
+        model.clear()
+        Task { await load() }
+    }
     private func load() async {
-        let search = keyword; let order = sort
+        // Draft edits do not change refresh, retry, or sorting until submitted.
+        let search = submittedKeyword; let order = sort
         await model.load(reader) { try await $0.products(sortType: order, keyword: search, token: $1) }
     }
 }
