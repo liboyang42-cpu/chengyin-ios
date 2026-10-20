@@ -26,12 +26,69 @@ import SwiftUI
     private var active = false
     private var pageLoaded = false
 
+    enum ReadAction { case page, query(HomeFeedQuery), banners, categories, section(HomeFeedSection) }
+    private enum ReadSlot: Hashable { case page, banners, categories, section(HomeFeedSection) }
+    struct ActionPermit: Equatable {
+        let binding: Binding
+        let generation: UUID
+        let pageGeneration: UUID
+    }
+    private struct OwnedRead { let id: UUID; let task: Task<Void, Never> }
+    private var scheduled: [ReadSlot: OwnedRead] = [:]
+
+    func permit(_ reader: any HomeFeedReading) -> ActionPermit? {
+        guard matches(reader), let bound else { return nil }
+        return ActionPermit(binding: bound, generation: generation, pageGeneration: pageGeneration)
+    }
+    /// Admission happens synchronously, before Task creation. Repeated taps share
+    /// their read; only a query replacement cancels and retires the page slot.
+    @discardableResult
+    func schedule(_ action: ReadAction, reader: any HomeFeedReading, permit: ActionPermit?) -> Task<Void, Never>? {
+        guard let permit, permit.binding == bound, valid(permit.generation, reader) else { return nil }
+        let slot: ReadSlot
+        switch action {
+        case .query(let query): replacePageQuery(query); slot = .page
+        case .page:
+            guard permit.pageGeneration == pageGeneration else { return nil }
+            slot = .page
+        case .banners: slot = .banners
+        case .categories: slot = .categories
+        case .section(let section): slot = .section(section)
+        }
+        if let existing = scheduled[slot] { return existing.task }
+        let ticket = generation, pageTicket = pageGeneration, id = UUID()
+        let task = Task { [weak self] in
+            guard let self else { return }
+            defer { if self.scheduled[slot]?.id == id { self.scheduled[slot] = nil } }
+            guard self.valid(ticket, reader) else { return }
+            switch action {
+            case .page, .query:
+                await self.loadMore(reader: reader, expected: ticket, expectedPage: pageTicket)
+            case .banners: await self.loadBanners(reader: reader, expected: ticket)
+            case .categories: await self.loadCategories(reader: reader, expected: ticket)
+            case .section(let section): await self.loadSection(section, reader: reader, expected: ticket)
+            }
+        }
+        scheduled[slot] = OwnedRead(id: id, task: task)
+        return task
+    }
+    private func cancelScheduledReads() {
+        let previous = scheduled; scheduled = [:]
+        for read in previous.values { read.task.cancel() }
+    }
+    private func replacePageQuery(_ query: HomeFeedQuery) {
+        scheduled.removeValue(forKey: .page)?.task.cancel()
+        pageGeneration = UUID(); loadingPage = false
+        self.query = query; pagination = HomeFeedPagination(); pageLoaded = false; pageFailed = false
+    }
+
     // Bind before lifecycle tasks run so a replacement reader cannot display or
     // complete work into the previous reader's retained navigation snapshot.
     @discardableResult func bind(_ reader: any HomeFeedReading, available: Bool = true) -> Binding {
         let key = Binding(reader: ObjectIdentifier(reader), scope: reader.scope, configured: reader.isConfigured, available: available)
         if let bound, bound.reader == key.reader, bound.scope == key.scope,
            bound.configured == key.configured, bound.available == key.available { return bound }
+        cancelScheduledReads()
         bound = key; snapshot = nil; active = false; generation = UUID(); pageGeneration = UUID()
         return key
     }
@@ -44,6 +101,7 @@ import SwiftUI
         active && matches(reader) && reader.isConfigured
     }
     func suspend() {
+        cancelScheduledReads()
         active = false; generation = UUID(); pageGeneration = UUID()
         loading = false; loadingPage = false
     }
@@ -53,14 +111,14 @@ import SwiftUI
         guard key.configured, key.available else { invalidate(); return }
         if snapshot != key { invalidate(); bound = key; snapshot = key }
         active = true
-        if self.query != query { self.query = query; pagination = HomeFeedPagination(); pageLoaded = false; pageFailed = false }
+        if self.query != query { replacePageQuery(query) }
         await loadMissing(reader: reader)
     }
     private func loadMissing(reader: any HomeFeedReading) async {
         let needsRead = !bannersLoaded && !bannerFailed || !categoriesLoaded && !categoryFailed ||
             HomeFeedSection.allCases.contains { sections[$0] == nil && !failedSections.contains($0) } || !pageLoaded && !pageFailed
         guard needsRead else { return }
-        let ticket = generation
+        let ticket = generation, pageTicket = pageGeneration
         loading = true
         let bannersNeeded = !bannersLoaded && !bannerFailed
         let categoriesNeeded = !categoriesLoaded && !categoryFailed
@@ -73,7 +131,7 @@ import SwiftUI
         async let c: Void = recommendedNeeded ? loadSection(.recommended, reader: reader, expected: ticket) : ()
         async let d: Void = nearbyNeeded ? loadSection(.nearby, reader: reader, expected: ticket) : ()
         async let e: Void = upcomingNeeded ? loadSection(.upcoming, reader: reader, expected: ticket) : ()
-        async let f: Void = pageNeeded ? loadMore(reader: reader, expected: ticket) : ()
+        async let f: Void = pageNeeded ? loadMore(reader: reader, expected: ticket, expectedPage: pageTicket) : ()
         _ = await (a, b, c, d, e, f)
         if owns(ticket, reader) { loading = false }
     }
@@ -93,6 +151,7 @@ import SwiftUI
         !Task.isCancelled && owns(ticket, reader)
     }
     func invalidate() {
+        cancelScheduledReads()
         generation = UUID(); pageGeneration = UUID(); snapshot = nil; active = false
         pageLoaded = false; bannersLoaded = false; categoriesLoaded = false
         banners = []; categories = []; sections = [:]; pagination = HomeFeedPagination()
@@ -121,14 +180,13 @@ import SwiftUI
     }
     func resetPage(reader: any HomeFeedReading, query: HomeFeedQuery) async {
         guard active, matches(reader), !Task.isCancelled else { return }
-        pageLoaded = false
-        pageGeneration = UUID(); self.query = query; pagination = HomeFeedPagination(); loadingPage = false; pageFailed = false
-        await loadMore(reader: reader)
+        replacePageQuery(query)
+        await loadMore(reader: reader, expected: generation, expectedPage: pageGeneration)
     }
-    func loadMore(reader: any HomeFeedReading, expected: UUID? = nil) async {
+    func loadMore(reader: any HomeFeedReading, expected: UUID? = nil, expectedPage: UUID? = nil) async {
         guard active, matches(reader), !Task.isCancelled, !loadingPage, pagination.hasMore else { return }
         let ticket = expected ?? generation
-        guard valid(ticket, reader) else { return }
+        guard valid(ticket, reader), expectedPage == nil || expectedPage == pageGeneration else { return }
         let pageTicket = pageGeneration; let requestedQuery = query
         loadingPage = true; pageFailed = false
         defer { if owns(ticket, reader), pageTicket == pageGeneration { loadingPage = false } }

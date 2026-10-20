@@ -55,10 +55,18 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertIn("if start <= context.date", source)
         self.assertNotIn("TimeZone.current", source)
 
-    def test_navigation_scope_pagination_and_duplicate_rows_stay_explicit(self):
+    def test_home_navigation_preserves_results_and_retires_scoped_reads(self):
         home = app("HomeFeedView.swift")
-        for required in ("onDestination(item.id)", 'homeFeed.\\(section).\\(item.accessibilityKey)', "model.loadMore(reader: reader)", "model.invalidate()"):
+        for required in ("onDestination(item.id)", 'homeFeed.\\(section).\\(item.accessibilityKey)', "model.schedule(.page, reader: reader, permit: permit)", "model.suspend()", "model.canOpen(reader)"):
             self.assertIn(required, home)
+        model = app("HomeFeedModel.swift")
+        suspend = model.split("func suspend()", 1)[1].split("func resume(", 1)[0]
+        self.assertIn("cancelScheduledReads()", suspend)
+        self.assertIn("active = false; generation = UUID(); pageGeneration = UUID()", suspend)
+        self.assertNotIn("pagination =", suspend)
+        self.assertIn("if let existing = scheduled[slot] { return existing.task }", model)
+        self.assertIn("expectedPage: pageTicket", model)
+    def test_navigation_scope_pagination_and_duplicate_rows_stay_explicit(self):
         wallet = app("TicketWalletView.swift")
         self.assertIn("ForEach(Array(snapshot.tickets.enumerated()), id: \\.offset)", wallet)
         self.assertIn("if ticket.action == .detail", wallet)

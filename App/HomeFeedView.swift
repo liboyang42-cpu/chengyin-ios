@@ -8,7 +8,6 @@ import SwiftUI
     var sourceTimeZone: TimeZone? = nil
     let onDestination: (HomeFeedDestination) -> Void
     @StateObject private var model = HomeFeedModel()
-    @State private var ownedTask: Task<Void, Never>?
     @State private var kind: HomeFeedKind = .topics
     @State private var keyword = ""
     @State private var categoryID: Int?
@@ -16,6 +15,7 @@ import SwiftUI
     private var query: HomeFeedQuery { HomeFeedQuery(kind: kind, keyword: submittedKeyword, categoryID: categoryID) }
     var body: some View {
         let binding = model.bind(reader, available: unavailableMessageKey == nil)
+        let permit = model.permit(reader)
         ZStack {
             if !reader.isConfigured || unavailableMessageKey != nil {
                 ContentUnavailableView("homeFeed.unavailable", systemImage: "network.slash", description: Text(LocalizedStringKey(unavailableMessageKey ?? "auth.notConfigured")))
@@ -39,16 +39,16 @@ import SwiftUI
                             Text("homeFeed.allCategories").tag(Int?.none)
                             ForEach(model.categories) { category in Text(verbatim: category.name).tag(Optional(category.id)) }
                         }.accessibilityIdentifier("homeFeed.category")
-                        if model.categoryFailed { retry("homeFeed.categoriesError", id: "categories") { await model.loadCategories(reader: reader) } }
+                        if model.categoryFailed { retry("homeFeed.categoriesError", id: "categories") { model.schedule(.categories, reader: reader, permit: permit) } }
                         ForEach(model.pagination.items) { item in row(item, section: "stream") }
-                        if model.pageFailed { retry("homeFeed.loadError", id: "page") { await model.loadMore(reader: reader) } }
+                        if model.pageFailed { retry("homeFeed.loadError", id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
                         if model.loadingPage { ProgressView("homeFeed.loading") }
                         else if !model.pageFailed && model.pagination.items.isEmpty {
                             ContentUnavailableView("homeFeed.empty", systemImage: "magnifyingglass", description: Text("homeFeed.emptyHint"))
                                 .accessibilityIdentifier("homeFeed.empty")
                         }
                         if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
-                            Button("homeFeed.loadMore") { schedule { await model.loadMore(reader: reader) } }
+                            Button("homeFeed.loadMore") { model.schedule(.page, reader: reader, permit: permit) }
                                 .frame(minHeight: 44)
                                 .accessibilityIdentifier("homeFeed.loadMore")
                         }
@@ -59,21 +59,17 @@ import SwiftUI
                 .searchable(text: $keyword, prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
-                .onChange(of: query) { _, value in schedule { await model.resetPage(reader: reader, query: value) } }
+                .onChange(of: query) { _, value in model.schedule(.query(value), reader: reader, permit: permit) }
                 .refreshable { await model.reload(reader: reader, query: query) }
             }
         }
         .appNavigationTitle("homeFeed.title")
         .task(id: binding) { await model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding) }
-        .onChange(of: binding) { _, _ in ownedTask?.cancel(); ownedTask = nil }
-        .onDisappear { ownedTask?.cancel(); ownedTask = nil; model.suspend() }
-    }
-    private func schedule(_ action: @escaping @MainActor () async -> Void) {
-        ownedTask?.cancel()
-        ownedTask = Task { await action() }
+        .onDisappear { model.suspend() }
     }
     @ViewBuilder private var bannerSection: some View {
-        if model.bannerFailed { retry("homeFeed.bannersError", id: "banners") { await model.loadBanners(reader: reader) } }
+        let permit = model.permit(reader)
+        if model.bannerFailed { retry("homeFeed.bannersError", id: "banners") { model.schedule(.banners, reader: reader, permit: permit) } }
         if !model.banners.isEmpty {
             Section {
                 ForEach(Array(model.banners.enumerated()), id: \.offset) { _, banner in
@@ -98,10 +94,11 @@ import SwiftUI
         }
     }
     @ViewBuilder private func feedSection(_ section: HomeFeedSection) -> some View {
+        let permit = model.permit(reader)
         Section {
             if section == .nearby { Text("homeFeed.noLocation").font(.caption).foregroundStyle(.secondary) }
             if model.failedSections.contains(section) {
-                retry("homeFeed.loadError", id: section.rawValue) { await model.loadSection(section, reader: reader) }
+                retry("homeFeed.loadError", id: section.rawValue) { model.schedule(.section(section), reader: reader, permit: permit) }
             } else if let items = model.sections[section] {
                 if items.isEmpty { Text("homeFeed.sectionEmpty").foregroundStyle(.secondary) }
                 ForEach(items) { item in row(item, section: section.rawValue) }
@@ -120,10 +117,10 @@ import SwiftUI
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
             .questifyCardListRow()
     }
-    private func retry(_ message: LocalizedStringKey, id: String, action: @escaping () async -> Void) -> some View {
+    private func retry(_ message: LocalizedStringKey, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading) {
             Text(message)
-            Button("homeFeed.retry") { schedule(action) }
+            Button("homeFeed.retry", action: action)
                 .buttonStyle(.bordered).controlSize(.large)
                 .accessibilityIdentifier("homeFeed.retry.\(id)")
         }

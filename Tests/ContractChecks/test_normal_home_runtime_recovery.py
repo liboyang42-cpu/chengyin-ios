@@ -39,7 +39,17 @@ class NormalHomeRuntimeRecoveryContracts(unittest.TestCase):
         self.assertIn('SessionTopicDetailView(id: id, session: session)', view)
         self.assertIn('.onChange(of:session.homeFeedReader.scope)', view)
     def test_normal_blocked_views_prevent_loading_and_have_bilingual_reasons(self):
-        self.assertIn('if reader.isConfigured && unavailableMessageKey == nil { await model.reload', self.read('App/HomeFeedView.swift'))
+        view = self.read('App/HomeFeedView.swift')
+        model = self.read('App/HomeFeedModel.swift')
+        self.assertIn('model.bind(reader, available: unavailableMessageKey == nil)', view)
+        self.assertIn('model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding)', view)
+        resume = model.split('func resume(', 1)[1].split('private func loadMissing', 1)[0]
+        unavailable_guard = 'guard key.configured, key.available else { invalidate(); return }'
+        self.assertIn(unavailable_guard, resume)
+        self.assertLess(resume.index(unavailable_guard), resume.index('await loadMissing'))
+        self.assertIn('expectedBinding == bound', resume)
+        self.assertIn('testUnavailableMessageRetiresReadScopeAndRestorationLoadsAgain',
+                      self.read('Tests/AppUnitTests/HomeFeedReturnModelTests.swift'))
         self.assertIn('session.contentDetailReadAvailability.messageKey', self.read('App/PlatformConsumerSessionOwner.swift'))
         entries = json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
         for key in ['deploymentMissing','buildMismatch','homeReadNotApproved','detailReadNotApproved','signInRequired','sessionUnavailable','serviceUnavailable']:
