@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 /// Self-contained surface row for `I10` `accessibilityReduceMotion` crossfade replacement,
 /// `>= 120ms` haptic cooldown, and Low Power Mode shader throttling.

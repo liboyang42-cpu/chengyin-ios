@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 public struct MerchantParityStepRow: Identifiable, Equatable, Sendable {
     public enum StepState: String, Equatable, Sendable {

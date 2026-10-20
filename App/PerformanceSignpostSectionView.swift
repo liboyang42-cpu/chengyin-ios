@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 /// Self-contained latency and interval row for an `I10` `NativePerformancePoint` metric.
 public struct PerformanceSignpostMetricRow: Identifiable, Equatable, Sendable {

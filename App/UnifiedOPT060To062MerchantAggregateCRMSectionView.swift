@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
+import QuestifyCore
+#elseif canImport(Core)
 import Core
+#endif
 
 public struct UnifiedOPT060To062MerchantAggregateCRMSectionView: View {
     public init() {}

@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 /// Presentation row for one of the 3 auth, session admission & public discovery pillars:
 /// - `w2-01` fail-closed auth flags & privacy view

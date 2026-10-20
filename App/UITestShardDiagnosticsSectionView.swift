@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 /// Self-contained summary row for a parallel `QuestifyUITests` shard (`ui-0`, `ui-1`, `ui-2`).
 public struct UITestShardSummaryRow: Identifiable, Equatable, Sendable {

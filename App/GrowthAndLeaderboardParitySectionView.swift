@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 public struct GrowthLeaderboardAuditRow: Identifiable, Equatable, Sendable {
     public static let anonymousMonogramFallback = "匿"

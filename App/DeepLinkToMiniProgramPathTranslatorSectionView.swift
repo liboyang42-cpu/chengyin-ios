@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 /// Self-contained route mapping row for bidirectional Mini-Program path <-> Native Universal Link translation.
 public struct MiniProgramRouteMappingRow: Sendable, Equatable, Identifiable {

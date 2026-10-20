@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 /// Self-contained diagnostic row for `I05` 404/DELETED `URLCache` media eviction
 /// and fail-closed topic like write gate (`w2-13`).

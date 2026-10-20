@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
+import QuestifyCore
+#elseif canImport(Core)
 import Core
+#endif
 
 public struct BaseUISuiteFailureRemediationSectionView: View {
     public init() {}

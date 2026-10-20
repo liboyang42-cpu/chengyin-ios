@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
+import QuestifyCore
+#elseif canImport(Core)
 import Core
+#endif
 
 public struct Legacy52TicketsAndMP01To21SliceSectionView: View {
     public init() {}

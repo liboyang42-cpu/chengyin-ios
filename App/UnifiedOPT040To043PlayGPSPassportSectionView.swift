@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
+import QuestifyCore
+#elseif canImport(Core)
 import Core
+#endif
 
 public struct UnifiedOPT040To043PlayGPSPassportSectionView: View {
     public init() {}

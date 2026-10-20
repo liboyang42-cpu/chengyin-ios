@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 /// Self-contained row for a `ScenePhase` or `BGTask` lifecycle subsystem check.
 public struct SceneLifecycleSubsystemRow: Sendable, Equatable, Identifiable {

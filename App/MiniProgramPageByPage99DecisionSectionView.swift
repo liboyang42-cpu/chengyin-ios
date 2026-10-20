@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 /// Self-contained group row for the 99-Page Decision Ledger (`1:1 Mini-Program Parity`
 /// vs `iOS Native Superset Preserved`).

@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 /// Self-contained diagnostic row for `AppSessionContainer`, `ContentDraftContextFence`,
 /// and `AccountSessionGate` composition invariants.

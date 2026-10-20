@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 /// Self-contained safety row for `G-W04` Scene AI guard and `I08` NPC chat deletion fence status.
 public struct NPCSceneAISafetyRow: Identifiable, Equatable, Sendable {
