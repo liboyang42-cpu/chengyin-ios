@@ -355,4 +355,26 @@ extension AccountCollectionTests {
         XCTAssertNil(try startDayCoupon("2025-12-31").futureStartDay(relativeTo: now))
         XCTAssertNil(try startDayCoupon("2026-01-01").futureStartDay(relativeTo: now))
     }
+    @MainActor func testCommunityGateClosureKeepsFavoriteTopicsReadableWhilePostsRequireScopedReadFlag() async throws {
+        let config = try APIConfiguration(baseURL: URL(string: "https://example.com/test/")!)
+        let closedTransport = AccountCollectionTransport([
+            "features": .init(json: #"{"code":200,"data":{"communityPostRead":false,"communityPostWrite":false}}"#),
+            "like_list": .init(json: AccountCollectionSyntheticFixtures.favoritesJSON)
+        ])
+        var squareSession: SquareReadSession? = try SquareReadSession(accountID: 1, epoch: 1, token: "synthetic-token")
+        let gate: any SquareCommunityFeatureReading = SquareSessionReader(
+            service: SquareService(configuration: config, transport: closedTransport),
+            currentSession: { squareSession }
+        )
+        let firstScope = gate.scope
+        let closedFeatures = try await gate.communityFeatures()
+        XCTAssertFalse(closedFeatures.read)
+        XCTAssertEqual(gate.scope, firstScope)
+        let collectionSession = try AccountCollectionReadSession(accountID: 1, epoch: 1, token: "synthetic-token")
+        let reader = AccountCollectionSessionReader(service: try service(closedTransport), currentSession: { collectionSession })
+        let topics = try await reader.favoriteTopics(pageNumber: 1, pageSize: 2)
+        XCTAssertEqual(topics.rows.map(\.id), [301, 302])
+        squareSession = try SquareReadSession(accountID: 1, epoch: 2, token: "synthetic-token")
+        XCTAssertNotEqual(gate.scope, firstScope)
+    }
 }

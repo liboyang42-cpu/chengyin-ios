@@ -6,23 +6,37 @@ import SwiftUI
     var pageSize = 10
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
+    var communityGate: (any SquareCommunityFeatureReading)? = nil
     @State private var selectedTab: Tab = .posts
+    @State private var gateFeatures: SquareCommunityFeatures?
+    @State private var gateScope: UUID?
     private enum Tab: Hashable { case posts, topics }
+    private var postsAllowed: Bool { guard let communityGate else { return true }; return gateScope == communityGate.scope && gateFeatures?.read == true }
     var body: some View {
         VStack(spacing: 0) {
-            Picker("accountCollection.favorites.title", selection: $selectedTab) {
-                Text("social.posts").tag(Tab.posts)
-                Text("searchMap.kind.topic").tag(Tab.topics)
+            if postsAllowed {
+                Picker("accountCollection.favorites.title", selection: $selectedTab) {
+                    Text("social.posts").tag(Tab.posts)
+                    Text("searchMap.kind.topic").tag(Tab.topics)
+                }
+                .pickerStyle(.segmented).padding()
+                .accessibilityIdentifier("accountCollection.favorites.tabs")
             }
-            .pickerStyle(.segmented).padding()
-            .accessibilityIdentifier("accountCollection.favorites.tabs")
-            if selectedTab == .posts {
+            if postsAllowed && selectedTab == .posts {
                 AccountCollectionFavoritePostsView(reader: reader, pageSize: pageSize, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval)
             } else {
                 AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize)
             }
         }
         .appNavigationTitle("accountCollection.favorites.title")
+        .task(id: communityGate?.scope) { await loadGate() }
+    }
+    private func loadGate() async {
+        guard let communityGate, reader.isAuthenticated, reader.isConfigured, gateScope != communityGate.scope else { return }
+        let scope = communityGate.scope
+        let value = try? await communityGate.communityFeatures()
+        guard !Task.isCancelled, scope == communityGate.scope else { return }
+        gateFeatures = value; gateScope = scope
     }
 }
 
