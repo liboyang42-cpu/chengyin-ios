@@ -38,7 +38,9 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                         ToolbarItem(placement: .primaryAction) {
                             NavigationLink {
                                 TicketWalletDetailView(id: entry.registrationID, reader: session.ticketWalletReader,
-                                    lifecycleCoordinator: session.orderLifecycleCoordinator).id(session.ticketWalletReader.scope)
+                                    lifecycleCoordinator: session.orderLifecycleCoordinator)
+                                    .environment(\.ticketWalletPlayProvider, nil)
+                                    .id(session.ticketWalletReader.scope)
                             } label: { Label("ticketWallet.detail", systemImage: "ticket") }
                             .accessibilityIdentifier("playerJourney.play.ticket")
                         }
