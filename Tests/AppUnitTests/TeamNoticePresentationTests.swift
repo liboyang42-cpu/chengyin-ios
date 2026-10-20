@@ -330,3 +330,87 @@ import XCTest
         XCTAssertEqual(environment.service.submissions, [review.id]); XCTAssertTrue(model.actionLocked)
     }
 }
+
+@MainActor final class TeamInviteCopyTests: XCTestCase {
+    func testOnlyExplicitCopyWritesExactCodeAndNeverSubmits() async throws {
+        let environment = try TeamFixtureEnvironment(scenario: .content)
+        let coordinator = environment.makeCoordinator(), model = TeamScreenModel(coordinator)
+        await coordinator.loadDetail(.id(4101))
+        let team = try XCTUnwrap(coordinator.detail?.team)
+        let permit = model.beginInvitePreview()
+        var writes: [String] = []
+        XCTAssertTrue(writes.isEmpty)
+        for _ in 0..<2 {
+            XCTAssertTrue(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: permit) { writes.append($0) })
+        }
+        XCTAssertEqual(writes, ["SYNTHETIC-TEAM", "SYNTHETIC-TEAM"])
+        XCTAssertEqual(coordinator.detail?.team, team)
+        XCTAssertTrue(environment.service.submissions.isEmpty)
+    }
+
+    func testLogoutAccountSwitchAndReauthenticationRejectOldPreview() async throws {
+        for change in ["logout", "account", "epoch"] {
+            let environment = try TeamFixtureEnvironment(scenario: .content)
+            let coordinator = environment.makeCoordinator(), model = TeamScreenModel(coordinator)
+            await coordinator.loadDetail(.id(4101))
+            let team = try XCTUnwrap(coordinator.detail?.team)
+            let permit = model.beginInvitePreview()
+            if change == "logout" { environment.becomeGuest() }
+            else if change == "account" { environment.switchAccount() }
+            else { environment.reauthenticate() }
+            XCTAssertFalse(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: permit) { _ in XCTFail("Stale preview wrote clipboard") })
+            XCTAssertNil(coordinator.detail)
+            if change == "logout" { environment.reauthenticate() }
+            await coordinator.loadDetail(.id(4101))
+            XCTAssertFalse(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: permit) { _ in XCTFail("Old session preview revived after reload") })
+            XCTAssertTrue(environment.service.submissions.isEmpty)
+        }
+    }
+
+    func testClosedDepartedAndReplacedPreviewPermitsCannotCopy() async throws {
+        let environment = try TeamFixtureEnvironment(scenario: .content)
+        let coordinator = environment.makeCoordinator(), model = TeamScreenModel(coordinator)
+        await coordinator.loadDetail(.id(4101))
+        let team = try XCTUnwrap(coordinator.detail?.team)
+        let closed = model.beginInvitePreview()
+        model.endInvitePreview(closed)
+        XCTAssertFalse(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: closed) { _ in XCTFail("Closed preview wrote clipboard") })
+        let reopened = model.beginInvitePreview()
+        XCTAssertFalse(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: closed) { _ in XCTFail("Old preview revived after reopen") })
+        model.endInvitePreview(closed) // A late old disappearance must not revoke the replacement.
+        var writes: [String] = []
+        XCTAssertTrue(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: reopened) { writes.append($0) })
+        model.leave()
+        XCTAssertFalse(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: reopened) { _ in XCTFail("Departed screen wrote clipboard") })
+        await coordinator.loadDetail(.id(4101))
+        XCTAssertFalse(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: reopened) { _ in XCTFail("Departed screen permit revived after reload") })
+        XCTAssertFalse(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: nil) { _ in XCTFail("Missing permit wrote clipboard") })
+        XCTAssertEqual(writes, ["SYNTHETIC-TEAM"])
+        XCTAssertTrue(environment.service.submissions.isEmpty)
+    }
+
+    func testChangedCodeTeamStatusAndInvalidCodeRejectCopy() async throws {
+        for replacement in [("SYNTHETIC-TEAM", "NEW-TEAM"), ("4101", "4102"), ("\"status\":0", "\"status\":1")] {
+            let environment = try TeamFixtureEnvironment(scenario: .content)
+            let coordinator = environment.makeCoordinator(), model = TeamScreenModel(coordinator)
+            await coordinator.loadDetail(.id(4101))
+            let team = try XCTUnwrap(coordinator.detail?.team)
+            let permit = model.beginInvitePreview()
+            environment.service.currentDetail = try JSONDecoder().decode(TeamDetail.self, from: Data(TeamSyntheticFixtures.detailJSON.replacingOccurrences(of: replacement.0, with: replacement.1).utf8))
+            await coordinator.loadDetail(.id(environment.service.currentDetail.team.id))
+            XCTAssertFalse(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: permit) { _ in XCTFail("Changed source wrote clipboard") })
+            XCTAssertTrue(environment.service.submissions.isEmpty)
+        }
+        let environment = try TeamFixtureEnvironment(scenario: .content)
+        let coordinator = environment.makeCoordinator(), model = TeamScreenModel(coordinator)
+        await coordinator.loadDetail(.id(4101))
+        let team = try XCTUnwrap(coordinator.detail?.team)
+        let permit = model.beginInvitePreview()
+        for code in ["", "  ", "OTHER", "SYNTHETIC-TEAM\n"] {
+            XCTAssertFalse(model.copyInvitationCode(from: team, code: code, permit: permit) { _ in XCTFail("Invalid code wrote clipboard") })
+        }
+        await model.run {
+            XCTAssertFalse(model.copyInvitationCode(from: team, code: "SYNTHETIC-TEAM", permit: permit) { _ in XCTFail("Loading screen wrote clipboard") })
+        }
+    }
+}

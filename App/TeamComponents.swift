@@ -1,7 +1,15 @@
 import SwiftUI
+import UIKit
+import UniformTypeIdentifiers
 
 @MainActor final class TeamScreenModel: ObservableObject {
     struct RunPermit: Equatable { fileprivate let presentationID: UUID }
+    struct InviteCopyPermit: Equatable {
+        fileprivate let presentationID: UUID
+        fileprivate let scope: UUID
+        fileprivate let previewID: UUID
+    }
+    private var inviteCopyPermit: InviteCopyPermit?
     let coordinator: TeamCoordinator
     @Published private(set) var running = false
     private var presentationID = UUID()
@@ -27,8 +35,31 @@ import SwiftUI
     func leave() {
         // The coordinator retires old results and keeps unresolved write locks.
         // Release only this screen run so re-entry need not await the old transport.
-        presentationID = UUID(); runID = nil
+        presentationID = UUID(); runID = nil; inviteCopyPermit = nil
         coordinator.leaveScreen(); running = false; objectWillChange.send()
+    }
+    func beginInvitePreview() -> InviteCopyPermit {
+        coordinator.synchronizeSession()
+        let permit = InviteCopyPermit(presentationID: presentationID, scope: coordinator.scope, previewID: UUID())
+        inviteCopyPermit = permit
+        return permit
+    }
+    func endInvitePreview(_ permit: InviteCopyPermit?) {
+        if inviteCopyPermit == permit { inviteCopyPermit = nil }
+    }
+    /// Synchronous user-tap boundary. The writer is injected so tests never touch the clipboard.
+    func copyInvitationCode(from team: OwnedTeam, code: String, permit: InviteCopyPermit?, write: (String) -> Void) -> Bool {
+        coordinator.synchronizeSession()
+        objectWillChange.send()
+        guard let permit, inviteCopyPermit == permit,
+              permit.presentationID == presentationID, permit.scope == coordinator.scope,
+              coordinator.authenticated, !actionLocked,
+              let current = coordinator.detail?.team,
+              current.id == team.id, current.status == .recruiting,
+              team.inviteCode == code, current.inviteCode == code,
+              TeamLookup.validInvite(code) else { return false }
+        write(code)
+        return true
     }
     var reviewBinding: Binding<TeamReview?> { Binding(get: { self.coordinator.review }, set: { if $0 == nil { self.cancel() } }) }
     var actionLocked: Bool { running || coordinator.busy || coordinator.pending != nil || coordinator.writeState == .simulated || coordinator.writeState == .acknowledged || coordinator.writeState == .blocked }
@@ -143,20 +174,46 @@ struct TeamMemberRow: View {
         }
     }
 }
-struct TeamInvitePreview: View {
+@MainActor struct TeamInvitePreview: View {
     let team: OwnedTeam
+    @ObservedObject var model: TeamScreenModel
+    @State private var copyMessageKey: String?
+    @State private var copyPermit: TeamScreenModel.InviteCopyPermit?
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         NavigationStack {
             Form {
                 Section("team.invitation") {
                     Text(verbatim: team.title)
-                    if let code = team.inviteCode, TeamLookup.validInvite(code) { Text(verbatim: code).accessibilityIdentifier("team.invite.code") }
+                    if let code = team.inviteCode, TeamLookup.validInvite(code) {
+                        Text(verbatim: code).accessibilityIdentifier("team.invite.code")
+                        Button("team.invite.copy") { copyInvitationCode(code) }
+                            .frame(minHeight: 44)
+                            .accessibilityIdentifier("team.invite.copy")
+                    }
                     else { Text("team.invite.unavailable") }
+                    if let copyMessageKey {
+                        Text(LocalizedStringKey(copyMessageKey))
+                            .accessibilityIdentifier("team.invite.copyFeedback")
+                    }
                     Text("team.invite.previewOnly").font(.footnote).foregroundStyle(.secondary)
                 }
             }.appNavigationTitle("team.invitePreview")
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("team.close") { dismiss() }.accessibilityIdentifier("team.invite.close") } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("team.close") { endPreview(); dismiss() }.accessibilityIdentifier("team.invite.close") } }
         }
+        .onAppear { copyPermit = model.beginInvitePreview() }
+        .onChange(of: team) { _, _ in endPreview() }
+        .onDisappear { endPreview() }
+    }
+    private func endPreview() {
+        model.endInvitePreview(copyPermit)
+        copyPermit = nil
+        copyMessageKey = nil
+    }
+    private func copyInvitationCode(_ code: String) {
+        let copied = model.copyInvitationCode(from: team, code: code, permit: copyPermit) { value in
+            UIPasteboard.general.setItems([[UTType.utf8PlainText.identifier: value]], options: [.localOnly: true])
+        }
+        copyMessageKey = copied ? "team.invite.copied" : "team.invite.unavailable"
     }
 }
