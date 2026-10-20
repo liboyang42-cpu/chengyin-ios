@@ -10,6 +10,10 @@ import SwiftUI
     @State private var revision = 0
     @State private var recording = false
     @State private var localFailure: ShopNPCFailure?
+    // W09.5/W09.6: confirmation bound to exact text + request + account/session scope; memory only.
+    @State private var sendGate = AIOutgoingSendGate<ShopNPCScope, UUID?>()
+    @State private var sensitiveFindings: Set<AIOutgoingSensitiveKind> = []
+    @State private var pendingSend: (current: () -> (String, UUID?)?, run: () -> Void)?
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
@@ -104,7 +108,9 @@ import SwiftUI
             }
         }
         .navigationTitle("shopNPC.title").navigationBarTitleDisplayMode(.inline).privacySensitive()
-        .onDisappear { invalidate() }
+        .modifier(AIOutgoingSensitiveConfirmation(findings: $sensitiveFindings, send: confirmedSend, cancel: cancelSensitiveConfirmation))
+        .onChange(of: draft) { _, _ in cancelSensitiveConfirmation() }
+        .onDisappear { cancelSensitiveConfirmation(); invalidate() }
         .onChange(of: coordinator.active) { _, active in if !active { clearTransient() } }
         .onChange(of: coordinator.scope) { _, _ in clearTransient() }
         .onChange(of: coordinator.grants) { _, _ in clearTransient() }
@@ -140,7 +146,7 @@ import SwiftUI
         }.padding().background(.regularMaterial)
     }
     private var textReviewButton: some View {
-        Button("shopNPC.reviewText") { typing = false; attempt { try coordinator.reviewText(draft) } }
+        Button("shopNPC.reviewText") { typing = false; guardedSend(current: { (draft, nil) }) { attempt { try coordinator.reviewText(draft) } } }
             .buttonStyle(.borderedProminent).controlSize(.large)
             .disabled(!canCompose || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .accessibilityIdentifier("shopNPC.reviewText")
@@ -185,6 +191,7 @@ import SwiftUI
                 } else {
                     Button {
                         typing = false; localFailure = nil
+        guardedSend(current: { finalText(of: review) }) {
                         attempt {
                             let intent = try coordinator.prepareTransmission(reviewID: review.id)
                             Task {
@@ -197,6 +204,7 @@ import SwiftUI
                                 revision += 1
                             }
                         }
+        }
                     } label: {
                         Text(coordinator.failure == nil ? LocalizedStringKey("shopNPC.confirmSend") : LocalizedStringKey("shopNPC.retry"))
                     }
@@ -211,15 +219,36 @@ import SwiftUI
         }.padding().frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
     }
+    /// The text that would actually leave the device for this review; nil for voice or a stale review.
+    private func finalText(of review: ShopNPCReview) -> (String, UUID?)? {
+        guard coordinator.pending?.id == review.id, case .text(let text) = review.content else { return nil }
+        return (text, review.id)
+    }
+    /// Screens the final text; clean text runs `run` unchanged, otherwise asks first.
+    private func guardedSend(current: @escaping () -> (String, UUID?)?, run: @escaping () -> Void) {
+        guard let (text, request) = current() else { run(); return }
+        switch sendGate.evaluate(text: text, scope: coordinator.scope, request: request) {
+        case .proceed: run()
+        case .confirm(let found): pendingSend = (current, run); sensitiveFindings = found
+        }
+    }
+    /// Runs only if the exact text, request and scope still match what the person was shown.
+    private func confirmedSend() {
+        let held = pendingSend; pendingSend = nil
+        guard let held, let (text, request) = held.current(),
+              sendGate.confirm(text: text, scope: coordinator.scope, request: request) else { sendGate.cancel(); return }
+        held.run()
+    }
+    private func cancelSensitiveConfirmation() { sendGate.cancel(); pendingSend = nil; sensitiveFindings = [] }
     private func attempt(_ action: () throws -> Void) {
         do { try action(); localFailure = nil } catch { localFailure = error as? ShopNPCFailure ?? .invalid }
         revision += 1
     }
     private func suspend() {
-        capture?.cancel(); typing = false; recording = false; localFailure = nil
+        cancelSensitiveConfirmation(); capture?.cancel(); typing = false; recording = false; localFailure = nil
         coordinator.suspend()
     }
-    private func clearTransient() { capture?.cancel(); typing = false; recording = false; draft = ""; localFailure = nil; revision += 1 }
+    private func clearTransient() { cancelSensitiveConfirmation(); capture?.cancel(); typing = false; recording = false; draft = ""; localFailure = nil; revision += 1 }
     private func invalidate() { coordinator.invalidate(); clearTransient() }
 }
 

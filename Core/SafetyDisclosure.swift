@@ -58,6 +58,34 @@ public enum AIOutgoingTextScreen {
     }
 }
 
+/// W09.5/W09.6: binds one sensitive-text confirmation to the exact text, the current request
+/// and the current account/session scope. The held text lives in memory only until it is
+/// confirmed, cancelled or invalidated; it is never persisted, logged or sent by this type.
+/// Any change of text, request or scope makes an earlier confirmation unusable.
+public struct AIOutgoingSendGate<Scope: Equatable, Request: Equatable> {
+    public enum Decision: Equatable { case proceed, confirm(Set<AIOutgoingSensitiveKind>) }
+    private struct Binding { let text: String; let scope: Scope; let request: Request }
+    private var pending: Binding?
+    public init() {}
+    public var hasPendingConfirmation: Bool { pending != nil }
+    /// Screens the FINAL text. Clean text proceeds; otherwise a confirmation is armed for exactly this text.
+    public mutating func evaluate(text: String, scope: Scope, request: Request) -> Decision {
+        let findings = AIOutgoingTextScreen.findings(in: text)
+        guard !findings.isEmpty else { pending = nil; return .proceed }
+        pending = Binding(text: text, scope: scope, request: request)
+        return .confirm(findings)
+    }
+    /// Single use. True only when text, request and scope all still match what was shown.
+    public mutating func confirm(text: String, scope: Scope, request: Request) -> Bool {
+        defer { pending = nil }
+        guard let held = pending, held.text.utf8.elementsEqual(text.utf8),
+              held.scope == scope, held.request == request else { return false }
+        return true
+    }
+    /// Go back and edit, page exit, or account/session change.
+    public mutating func cancel() { pending = nil }
+}
+
 // MARK: Offline safety (W09.8)
 
 /// Review categories from W09.8. A server code outside this list is kept verbatim.

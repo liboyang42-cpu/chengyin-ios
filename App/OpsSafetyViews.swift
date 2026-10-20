@@ -97,12 +97,14 @@ struct OfflineNodeSafetyView: View {
 struct AIOutgoingSensitiveConfirmation: ViewModifier {
     @Binding var findings: Set<AIOutgoingSensitiveKind>
     let send: () -> Void
+    /// Called for "go back and edit" and for any dismissal, so a bound confirmation can be dropped.
+    var cancel: () -> Void = {}
     func body(content: Content) -> some View {
         content.confirmationDialog(Text(LocalizedStringKey("opsSafety.ai.sensitive.title"), tableName: "OpsSafety"),
-                                   isPresented: Binding(get: { !findings.isEmpty }, set: { if !$0 { findings = [] } }),
+                                   isPresented: Binding(get: { !findings.isEmpty }, set: { if !$0 { findings = []; cancel() } }),
                                    titleVisibility: .visible) {
             Button(role: .destructive) { findings = []; send() } label: { opsText("opsSafety.ai.sensitive.send") }
-            Button(role: .cancel) { findings = [] } label: { opsText("opsSafety.ai.sensitive.edit") }
+            Button(role: .cancel) { findings = []; cancel() } label: { opsText("opsSafety.ai.sensitive.edit") }
         } message: {
             Text(findings.sorted { $0.rawValue < $1.rawValue }
                 .map { String(localized: String.LocalizationValue(stringLiteral: $0.copyKey), table: "OpsSafety") }

@@ -109,3 +109,35 @@ import XCTest
         func resume() { let value = pending; pending = nil; value?.resume() }
     }
 }
+
+/// Source-level checks (not runtime): W09.5/W09.6 pre-send sensitive-info confirmation wiring.
+@MainActor final class NPCSendGuardSourceTests: XCTestCase {
+    private func source(_ name: String) throws -> String {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        return try String(contentsOf: root.appendingPathComponent("App/" + name), encoding: .utf8)
+    }
+    func testShopNPCScreensInputAndFinalReviewTextAndBindsConfirmation() throws {
+        let view = try source("ShopNPCView.swift")
+        XCTAssertTrue(view.contains("AIOutgoingSendGate<ShopNPCScope, UUID?>"))
+        XCTAssertTrue(view.contains("guardedSend(current: { (draft, nil) })"))
+        XCTAssertTrue(view.contains("guardedSend(current: { finalText(of: review) })"))
+        XCTAssertTrue(view.contains("sendGate.confirm(text: text, scope: coordinator.scope, request: request)"))
+        XCTAssertTrue(view.contains("AIOutgoingSensitiveConfirmation(findings: $sensitiveFindings, send: confirmedSend, cancel: cancelSensitiveConfirmation)"))
+        XCTAssertTrue(view.contains(".onChange(of: draft) { _, _ in cancelSensitiveConfirmation() }"))
+    }
+    func testMerchantNPCScreensSendAndRetryAndInvalidatesOnEditScopeAndExit() throws {
+        let view = try source("MerchantNPCViews.swift")
+        XCTAssertTrue(view.contains("AIOutgoingSendGate<MerchantNPCScope, UUID?>"))
+        XCTAssertTrue(view.contains("guardedSend(current: { (text, nil) }, request: nil)"))
+        XCTAssertTrue(view.contains("capturedRequestID) }, request: capturedRequestID)"))
+        XCTAssertTrue(view.contains(".onChange(of: text) { _, _ in cancelSensitiveConfirmation() }"))
+        XCTAssertTrue(view.contains(".onChange(of: model.coordinator.scope) { _, _ in cancelSensitiveConfirmation() }"))
+        XCTAssertTrue(view.contains(".onDisappear { cancelSensitiveConfirmation();"))
+    }
+    func testGuardAddsNoPersistenceLoggingOrNetworkSurface() throws {
+        for name in ["ShopNPCView.swift", "MerchantNPCViews.swift"] {
+            let view = try source(name)
+            for banned in ["UserDefaults", "print(", "NSLog", "os_log", "Logger("] { XCTAssertFalse(view.contains(banned), name + banned) }
+        }
+    }
+}
