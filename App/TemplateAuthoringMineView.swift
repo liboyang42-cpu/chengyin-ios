@@ -37,8 +37,9 @@ import SwiftUI
                 if !keyword.isEmpty {
                     Button {
                         guard !busy else { return }
+                        let stamp = viewRequest
                         keyword = ""
-                        Task { await refresh() }
+                        Task { await refreshClearedKeyword(stamp: stamp, refreshUnfiltered: true) }
                     } label: {
                         Label {
                             Text(verbatim: creatorLocale.language.languageCode?.identifier == "zh" ? "清除搜索" : "Clear search")
@@ -101,9 +102,13 @@ import SwiftUI
             .navigationDestination(item: $selectedCreatorConsent) { selection in
                 if let creatorConsent { creatorConsent(selection) }
             }
-            .onChange(of: keyword) { _, _ in
+            .onChange(of: keyword) { _, newValue in
                 review = nil
                 coordinator.cancelShelfReview()
+                // An empty field is a submitted clear. Non-empty drafts stay unapplied.
+                guard newValue.isEmpty, appliedKeyword?.isEmpty == false else { return }
+                let stamp = viewRequest
+                Task { await refreshClearedKeyword(stamp: stamp) }
             }
             .onChange(of: sessionRevision) { _, _ in selectedCreatorConsent = nil }
             .onChange(of: sessionRevision) { _, _ in selectedConfiguration = nil }
@@ -173,6 +178,13 @@ import SwiftUI
         await coordinator.shelfReader.loadMore()
         guard stamp == viewRequest, !Task.isCancelled else { return }
         sync(); busy = false
+    }
+    private func refreshClearedKeyword(stamp: UUID, refreshUnfiltered: Bool = false) async {
+        guard stamp == viewRequest, keyword.isEmpty, !Task.isCancelled else { return }
+        // Explicit Clear still refreshes an already-unfiltered shelf. The first
+        // refresh rotates viewRequest before suspension, retiring a duplicate listener task.
+        guard refreshUnfiltered || appliedKeyword?.isEmpty == false else { return }
+        await refresh()
     }
     private func refresh() async {
         guard !busy else { return }
