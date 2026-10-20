@@ -1,5 +1,252 @@
 import SwiftUI
 
+/// Canonical workspace tabs for post-create club management routing.
+/// Validates `requestedTab` and safely falls back to `.overview` when nil, unknown, or unverified.
+public enum ClubWorkspaceTab: String, CaseIterable, Equatable, Sendable {
+    case posts
+    case events
+    case overview
+    case manage
+
+    public static let defaultFallback: ClubWorkspaceTab = .overview
+
+    public static func validate(requestedTab: String?) -> ClubWorkspaceTab {
+        guard let raw = requestedTab?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+              !raw.isEmpty,
+              let tab = ClubWorkspaceTab(rawValue: raw) else {
+            return .overview
+        }
+        return tab
+    }
+
+    public static func validate(_ requestedTab: ClubWorkspaceTab?) -> ClubWorkspaceTab {
+        requestedTab ?? .overview
+    }
+
+    public static func resolve(requestedTab: String?, canEnterManagement: Bool = true) -> ClubWorkspaceTab {
+        let validated = validate(requestedTab: requestedTab)
+        if validated == .manage && !canEnterManagement {
+            return .overview
+        }
+        return validated
+    }
+
+    public static func resolve(requestedTab: ClubWorkspaceTab?, canEnterManagement: Bool = true) -> ClubWorkspaceTab {
+        let validated = validate(requestedTab)
+        if validated == .manage && !canEnterManagement {
+            return .overview
+        }
+        return validated
+    }
+}
+
+/// Production gate for club creation ("不扩 Club28"): keeps the 28-subview Club feature catalog
+/// fixed and defaults to closed (`writeAvailability == .unverified`, `isConfigured == false`)
+/// when no live backend or explicit approval is configured.
+public struct ClubCreationGate: Equatable, Sendable {
+    public static let club28SubviewLimit = 28
+    public static let productionDefault = ClubCreationGate(
+        isConfigured: false,
+        writeAvailability: .unverified,
+        catalogSubviewCount: club28SubviewLimit
+    )
+
+    public let isConfigured: Bool
+    public let writeAvailability: ClubOperationsWriteAvailability
+    public let catalogSubviewCount: Int
+
+    public init(
+        isConfigured: Bool = false,
+        writeAvailability: ClubOperationsWriteAvailability = .unverified,
+        catalogSubviewCount: Int = Self.club28SubviewLimit
+    ) {
+        self.isConfigured = isConfigured
+        self.writeAvailability = writeAvailability
+        self.catalogSubviewCount = catalogSubviewCount
+    }
+
+    @MainActor
+    public init(access: any ClubOperationsAccess) {
+        self.init(
+            isConfigured: access.isConfigured,
+            writeAvailability: access.writeAvailability,
+            catalogSubviewCount: Self.club28SubviewLimit
+        )
+    }
+
+    public var withinClub28Scope: Bool {
+        catalogSubviewCount == Self.club28SubviewLimit
+    }
+
+    public var isCreationAllowed: Bool {
+        isConfigured && withinClub28Scope && (writeAvailability == .approved || writeAvailability == .syntheticOnly)
+    }
+
+    public var isBlocked: Bool {
+        !isCreationAllowed
+    }
+
+    public var bilingualGateCopy: String {
+        if isCreationAllowed {
+            return "俱乐部创建门控已授权（不扩 Club28）/ Club creation gate authorized (within Club28 scope)."
+        }
+        return "俱乐部创建门控未开启，暂不可进入俱乐部管理 / Club creation gate is closed; entering Club Management is blocked."
+    }
+}
+
+/// Verified post-create destination for jumping from club creation into club management.
+public struct ClubCreateToManageDestination: Equatable, Identifiable, Sendable {
+    public let accountId: Int
+    public let clubId: Int
+    public let tab: ClubWorkspaceTab
+    public var id: String { "\(accountId):\(clubId):\(tab.rawValue)" }
+
+    public init(accountId: Int, clubId: Int, tab: ClubWorkspaceTab = .manage) {
+        self.accountId = accountId
+        self.clubId = clubId
+        self.tab = tab
+    }
+}
+
+public enum ClubCreateToManageBlockReason: String, Equatable, Sendable {
+    case gateBlocked
+    case awaitingConfirmedReceipt
+    case readbackFailed
+    case accountMismatch
+    case clubIdMismatch
+}
+
+/// Post-create closure state machine:
+/// Confirmed Receipt -> Same-Account Readback Verification (`accountId` & `clubId` match) -> Explicit "Enter Club Management" action.
+public struct ClubCreateToManageFlowState: Equatable, Sendable {
+    public static let enterManagementButtonTitle = "进入俱乐部管理 / Enter Club Management"
+
+    public let gate: ClubCreationGate
+    public let receiptAccountId: Int?
+    public let receiptClubId: Int?
+    public let currentAccountId: Int?
+    public let readbackAccountId: Int?
+    public let readbackOwnedClubIds: [Int]
+    public let readbackSucceeded: Bool
+    public let requestedTab: String?
+    public private(set) var enteredDestination: ClubCreateToManageDestination?
+
+    public init(
+        gate: ClubCreationGate = .productionDefault,
+        receiptAccountId: Int? = nil,
+        receiptClubId: Int? = nil,
+        currentAccountId: Int? = nil,
+        readbackAccountId: Int? = nil,
+        readbackOwnedClubIds: [Int] = [],
+        readbackSucceeded: Bool = false,
+        requestedTab: String? = ClubWorkspaceTab.manage.rawValue,
+        enteredDestination: ClubCreateToManageDestination? = nil
+    ) {
+        self.gate = gate
+        self.receiptAccountId = receiptAccountId
+        self.receiptClubId = receiptClubId
+        self.currentAccountId = currentAccountId
+        self.readbackAccountId = readbackAccountId
+        self.readbackOwnedClubIds = readbackOwnedClubIds
+        self.readbackSucceeded = readbackSucceeded
+        self.requestedTab = requestedTab
+        self.enteredDestination = enteredDestination
+    }
+
+    public var hasConfirmedReceipt: Bool {
+        guard !gate.isBlocked,
+              let receiptAccountId, receiptAccountId > 0,
+              let receiptClubId, receiptClubId > 0 else {
+            return false
+        }
+        return true
+    }
+
+    public var isSameAccountVerified: Bool {
+        guard let receiptAccountId, receiptAccountId > 0,
+              let currentAccountId, currentAccountId == receiptAccountId,
+              let readbackAccountId, readbackAccountId == receiptAccountId else {
+            return false
+        }
+        return true
+    }
+
+    public var isClubIdVerified: Bool {
+        guard readbackSucceeded,
+              let receiptClubId, receiptClubId > 0 else {
+            return false
+        }
+        return readbackOwnedClubIds.contains(receiptClubId)
+    }
+
+    public var isSameAccountReadbackVerified: Bool {
+        hasConfirmedReceipt && isSameAccountVerified && isClubIdVerified
+    }
+
+    public var canEnterManagement: Bool {
+        isSameAccountReadbackVerified
+    }
+
+    public var blockReason: ClubCreateToManageBlockReason? {
+        if gate.isBlocked {
+            return .gateBlocked
+        }
+        guard let receiptAccountId, receiptAccountId > 0,
+              let receiptClubId, receiptClubId > 0 else {
+            return .awaitingConfirmedReceipt
+        }
+        if currentAccountId != receiptAccountId || (readbackAccountId != nil && readbackAccountId != receiptAccountId) {
+            return .accountMismatch
+        }
+        if !readbackSucceeded || readbackAccountId == nil {
+            return .readbackFailed
+        }
+        if !readbackOwnedClubIds.contains(receiptClubId) {
+            return .clubIdMismatch
+        }
+        return nil
+    }
+
+    public var validatedTab: ClubWorkspaceTab {
+        ClubWorkspaceTab.resolve(requestedTab: requestedTab, canEnterManagement: canEnterManagement)
+    }
+
+    public var bilingualStatusCopy: String {
+        switch blockReason {
+        case .gateBlocked:
+            return "俱乐部创建门控未开启，暂不可进入俱乐部管理 / Club creation gate is closed; entering Club Management is blocked."
+        case .awaitingConfirmedReceipt:
+            return "等待俱乐部创建确认回执 / Awaiting confirmed club creation receipt."
+        case .accountMismatch:
+            return "账号已变更或不匹配，已拦截进入俱乐部管理 / Account mismatch detected; entering Club Management is blocked."
+        case .readbackFailed:
+            return "同账号回读校验未通过，暂不可进入俱乐部管理 / Same-account readback verification failed; entering Club Management is blocked."
+        case .clubIdMismatch:
+            return "俱乐部 ID 回读不匹配，已拦截进入俱乐部管理 / Club ID readback mismatch; entering Club Management is blocked."
+        case nil:
+            let clubId = receiptClubId ?? 0
+            return "同账号回读已确认（俱乐部 #\(clubId)），可进入俱乐部管理 / Same-account readback verified (Club #\(clubId)); ready to enter Club Management."
+        }
+    }
+
+    @discardableResult
+    public mutating func enterClubManagement(requestedTab overrideTab: String? = nil) -> ClubCreateToManageDestination? {
+        guard canEnterManagement,
+              let accountId = receiptAccountId,
+              let clubId = receiptClubId else {
+            enteredDestination = nil
+            return nil
+        }
+        let resolvedTab = ClubWorkspaceTab.resolve(
+            requestedTab: overrideTab ?? requestedTab,
+            canEnterManagement: true
+        )
+        let destination = ClubCreateToManageDestination(accountId: accountId, clubId: clubId, tab: resolvedTab)
+        enteredDestination = destination
+        return destination
+    }
+}
+
 /// Session host owns access/coordinator and passes a published identity. This additive
 /// entry can be mounted on ClubHome (.create) and ClubDetail (.club(id)).
 struct ClubOperationsEntryButton: View {
@@ -26,6 +273,8 @@ struct ClubOperationsWorkspaceView: View {
     let access: any ClubOperationsAccess
     let coordinator: ClubOperationsCoordinator
     var hostApplication: ClubGovernanceContext? = nil
+    var requestedTab: String? = ClubWorkspaceTab.manage.rawValue
+    var onEnterClubManagement: ((ClubCreateToManageDestination) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var profileChoice = ClubProfileChoiceController()
@@ -44,8 +293,31 @@ struct ClubOperationsWorkspaceView: View {
     @State private var readbackUnavailable = false
     @State private var ownerID = UUID()
     @State private var artworkRevision = UUID()
+    @State private var createReceiptIdentity: ClubReadIdentity?
+    @State private var createReceiptClubID: Int?
+    @State private var readbackIdentity: ClubReadIdentity?
+    @State private var enteredManageDestination: ClubCreateToManageDestination?
     private var dirty: Bool { draft != baseline }
     private var title: LocalizedStringKey { target == .create ? "club.ops.create" : "club.ops.manage" }
+    var createToManageFlow: ClubCreateToManageFlowState {
+        let gate = ClubCreationGate(access: access)
+        var ownedIDs = snapshot?.ownedClubIDs ?? []
+        if let profileID = snapshot?.profile?.club.id, !ownedIDs.contains(profileID) {
+            ownedIDs.append(profileID)
+        }
+        let readbackSucceeded = !readbackUnavailable && snapshot != nil && readbackIdentity != nil
+        return ClubCreateToManageFlowState(
+            gate: gate,
+            receiptAccountId: createReceiptIdentity?.accountID,
+            receiptClubId: createReceiptClubID,
+            currentAccountId: identity?.accountID,
+            readbackAccountId: readbackIdentity?.accountID,
+            readbackOwnedClubIds: ownedIDs,
+            readbackSucceeded: readbackSucceeded,
+            requestedTab: requestedTab,
+            enteredDestination: enteredManageDestination
+        )
+    }
     var body: some View {
         Form {
             if loading { ProgressView().accessibilityIdentifier("club.ops.loading") }
@@ -90,6 +362,10 @@ struct ClubOperationsWorkspaceView: View {
         .task(id: identity) {
             generation &+= 1; cancelReview(); snapshot = nil; draft = .init(); baseline = .init()
             screenIdentity = identity; errorKey = nil; serverMessage = nil; readbackUnavailable = false
+            readbackIdentity = nil; enteredManageDestination = nil
+            if createReceiptIdentity == nil || createReceiptIdentity?.accountID == identity?.accountID {
+                createReceiptIdentity = nil; createReceiptClubID = nil
+            }
             coordinator.synchronizeSession()
             state = coordinator.state(target: target); loading = false
             await load()
@@ -203,6 +479,49 @@ struct ClubOperationsWorkspaceView: View {
             if snapshot == nil, identity != nil, access.isConfigured, !loading {
                 Button("club.ops.retryRead") { Task { await load() } }.accessibilityIdentifier("club.ops.retryRead")
             }
+            if target == .create, shouldShowPostCreateManagementClosure {
+                postCreateManagementClosure
+            }
+        }
+    }
+    private var shouldShowPostCreateManagementClosure: Bool {
+        if case .acknowledged = state { return true }
+        if case .notSent = state { return true }
+        return createReceiptClubID != nil || readbackUnavailable
+    }
+    @ViewBuilder private var postCreateManagementClosure: some View {
+        let flow = createToManageFlow
+        Text(verbatim: flow.bilingualStatusCopy)
+            .font(.footnote)
+            .foregroundStyle(flow.canEnterManagement ? .primary : .secondary)
+            .accessibilityIdentifier("clubCreateManage.status")
+        Button {
+            var nextFlow = createToManageFlow
+            if let destination = nextFlow.enterClubManagement(requestedTab: requestedTab) {
+                enteredManageDestination = destination
+                onEnterClubManagement?(destination)
+            }
+        } label: {
+            Text(verbatim: ClubCreateToManageFlowState.enterManagementButtonTitle)
+        }
+        .disabled(loading || !flow.canEnterManagement)
+        .accessibilityIdentifier("clubCreateManage.enterManagement")
+        if let destination = enteredManageDestination,
+           flow.canEnterManagement,
+           destination.accountId == identity?.accountID {
+            NavigationLink {
+                ClubOperationsWorkspaceView(
+                    target: .club(destination.clubId),
+                    identity: identity,
+                    access: access,
+                    coordinator: coordinator,
+                    hostApplication: hostApplication
+                )
+            } label: {
+                Text(verbatim: "已就绪：俱乐部 #\(destination.clubId) 管理工作台（分栏：\(destination.tab.rawValue)）/ Ready: Club #\(destination.clubId) Management Workspace (Tab: \(destination.tab.rawValue))")
+                    .font(.footnote)
+            }
+            .accessibilityIdentifier("clubCreateManage.destination")
         }
     }
     @MainActor private func load() async {
@@ -239,10 +558,16 @@ struct ClubOperationsWorkspaceView: View {
     }
     @MainActor private func confirm(_ pending: ClubOperationsReview) async {
         generation &+= 1; let run = generation
-        snapshot = nil; readbackUnavailable = false
+        snapshot = nil; readbackUnavailable = false; readbackIdentity = nil; enteredManageDestination = nil
+        if target == .create { createReceiptIdentity = pending.identity; createReceiptClubID = nil }
         await coordinator.confirm(pending)
         guard run == generation, access.identity == pending.identity, !Task.isCancelled else { return }
-        state = coordinator.state(target: target); acceptReadback()
+        state = coordinator.state(target: target)
+        if target == .create, case .acknowledged(let receipt) = state {
+            createReceiptIdentity = pending.identity
+            createReceiptClubID = receipt.clubID
+        }
+        acceptReadback()
     }
     @MainActor private func readBack() async {
         guard let identity, !loading else { return }
@@ -255,10 +580,17 @@ struct ClubOperationsWorkspaceView: View {
         switch coordinator.readback(target: target) {
         case .received(let value):
             artworkRevision = UUID(); snapshot = value; readbackUnavailable = false
-            if case .acknowledged = coordinator.state(target: target) {
+            readbackIdentity = access.identity
+            if case .acknowledged(let receipt) = coordinator.state(target: target) {
+                if target == .create {
+                    if createReceiptIdentity == nil { createReceiptIdentity = identity }
+                    createReceiptClubID = receipt.clubID
+                }
                 draft = value.profile.map(ClubOperationsDraft.init(profile:)) ?? .init(); baseline = draft
             }
-        case .unavailable: readbackUnavailable = true
+        case .unavailable:
+            readbackUnavailable = true
+            readbackIdentity = nil
         default: break
         }
     }
