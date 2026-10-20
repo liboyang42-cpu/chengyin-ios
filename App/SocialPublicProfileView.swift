@@ -17,6 +17,7 @@ import SwiftUI
     var selfEditDiagnostics: (@MainActor (ProfileSelfEditTicket?, ProfileSelfEditTicket, ProfileSelfEditContext?) -> String)? = nil
     var localCoverOwner: ProfileLocalCoverOwner? = nil
     var isCurrent: @MainActor () -> Bool = { true }
+    @Environment(\.dismiss) private var dismiss
     private enum Tab: String, CaseIterable { case posts, achievements, about, projects, orders }
     @State private var authorPosts = ProfileAuthorPostsRefreshController()
     @State private var authorPostTicket: ProfileAuthorPostTicket?
@@ -48,7 +49,25 @@ import SwiftUI
                 ProfileWeeklyPointsEntry(memberID: memberID, accountReader: reader,
                     access: weeklyPointsAccess, isCurrent: isCurrent)
             }
-            if memberID <= 0 { Text("social.incompleteLink") }
+            if memberID <= 0 {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(verbatim: "这个主页链接不完整")
+                        .font(.headline)
+                        .accessibilityIdentifier("social.incompleteLink.title")
+                    Text("social.incompleteLink")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text(verbatim: "回到我的主页")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("social.incompleteLink.backHome")
+                }
+                .padding(.vertical, 6)
+                .accessibilityIdentifier("social.incompleteLink")
+            }
             else {
                 SocialReadScreen(reader: reader, requestKey: "profile-\(memberID)-\(selfEditNavigation.refreshID)", load: {
                     // A scoped parent may retire before SwiftUI unmounts this screen.

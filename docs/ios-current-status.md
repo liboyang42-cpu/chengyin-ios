@@ -72,3 +72,169 @@ I03 本次单独刷新到控制 `05346fedae227c12cff9d9ca533c3e92e62ae743`：冻
 小程序仅作只读语义对照：[玩家路径](player-journey-parity.md)、[成员模板读面](member-template-read-parity.md)、[俱乐部报名](club-enrollment-parity.md)。各文件的源快照/日期须逐一核实；不以小程序组件或范围裁决替换原生设计。Flutter 保留为历史源清单，本轮不改 Flutter。
 
 后续每次交付在本页更新相应卡的确切 iOS SHA、关联 BK/后端 SHA、改动路径和实际执行证据；保留原交付文档，不以新概述覆盖历史。源码适配、原生运行、目标部署和业务验收分别记账。无需重写全部旧文档，也不因这次整合释放已有文件锁或扩大任何写入授权。
+
+## Wave 1–3 Parity & Handoff Summary (2026-10-19 to 2026-10-20)
+
+- **Wave 1 (`docs/alignment/xcx-ios-{B..E}-20261019.md`, `docs/plan-progress/{F..H}-20261019.md`):** Audited all 99 mini-program pages and reform plan v9 work packages (`W02–W20`, `U01–U08`, `MV01–MV41`); fixed P0 contract mismatches (`GET /api/config/public`, `AccountProfile.career`, `OfficialEventUnavailableError` 404/410, `/api/exploration-anniversary`, `/api/monthly-recap`, `/api/merchant/insight` top-level keys, `IMInbox` tabs, `myproject` template shelf, `/api/club/access/me` POST form, `/api/merchant/decor/save` JSON, `/api/merchant/npc/voice/status` top-level keys).
+- **Wave 2 (`docs/parity/w2-01.md` .. `w2-21.md` + Batch 1/2 Parity Completions):** Delivered page-by-page mini-program parity across all 21 scopes (`w2-01` through `w2-21`), keeping all unreviewed writes, payments, and cash movements fail-closed behind empty per-market endpoint allowlists.
+- **Wave 3 (`docs/handoff/ios-I00-I11-20261019.md`, `ios-I01..I10-20261019.md`, `ios-BK-20261019.md`):** Landed `I00+I11` (received stamps & session admission baseline), `I01` (GPS accuracy & arrival failure), `I02` (durable game command journal), `I03` (story boolean fallback validation), `I04` (asset points ledger readback), `I05` (square media cache eviction & topic like ledger), `I06` (audio session lifecycle & interruption recovery), `I07` (leaderboard form encoding & standing normalization), `I08` (NPC chat log deletion coordinator & UI, default OFF), `I09` (schedule dates fixture tests & lead progress polling), `I10` (OSSignposter POIs, O(N) map stop projection, VoiceOver/Reduce Motion), and `BK` (backend sync contract tests).
+
+## Batches 4–6 Host Bridges, SwiftUI Sections & AppUnitTests Summary (2026-10-20)
+
+- **Batch 4 (`Lanes 23–38`: Reform Plan v9 `F`/`G`/`H` Host Bridges, Coordinators & Release Preflight Contract):**
+  - `MapVisualHostBridge` (`Core/MapVisualHostBridge.swift`, `Tests/CoreTests/MapVisualHostBridgeTests.swift`)
+  - `StoryWalkingNavigationHostBridge` (`Core/StoryWalkingNavigationHostBridge.swift`, `Tests/CoreTests/StoryWalkingNavigationHostBridgeTests.swift`)
+  - `NPCAISceneHostGuard` (`Core/NPCAISceneHostGuard.swift`, `Tests/CoreTests/NPCAISceneHostGuardTests.swift`)
+  - `MerchantInStoreGameAuthoringPresentation` (`Core/MerchantInStoreGameAuthoringPresentation.swift`, `Tests/CoreTests/MerchantInStoreGameAuthoringPresentationTests.swift`)
+  - `CommerceOrderLifecycleBridge` (`Core/CommerceOrderLifecycleBridge.swift`, `Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift`)
+  - `PublishMediaEditorBridge` (`Core/PublishMediaEditorBridge.swift`, `Tests/CoreTests/PublishMediaEditorBridgeTests.swift`)
+  - `WorkshopModUpgradePresentation` (`Core/WorkshopModUpgradePresentation.swift`, `Tests/CoreTests/WorkshopModUpgradePresentationTests.swift`)
+  - `TeamMeetingHandshakePresentation` (`Core/TeamMeetingHandshakePresentation.swift`, `Tests/CoreTests/TeamMeetingHandshakePresentationTests.swift`)
+  - `HomeReturnAndCityDeltaCoordinator` (`Core/HomeReturnAndCityDeltaCoordinator.swift`, `Tests/CoreTests/HomeReturnAndCityDeltaCoordinatorTests.swift`)
+  - `ReleasePreflightAndUIReadinessContract` (`Core/ReleasePreflightAndUIReadinessContract.swift`, `Tests/CoreTests/ReleasePreflightAndUIReadinessContractTests.swift`)
+  - `LocationShareHostCoordinator` (`Core/LocationShareHostCoordinator.swift`, `Tests/CoreTests/LocationShareHostCoordinatorTests.swift`)
+  - `MerchantSideQuestHostPresentation` (`Core/MerchantSideQuestHostPresentation.swift`, `Tests/CoreTests/MerchantSideQuestHostPresentationTests.swift`)
+  - `RunAuthorityHostCoordinator` (`Core/RunAuthorityHostCoordinator.swift`, `Tests/CoreTests/RunAuthorityHostCoordinatorTests.swift`)
+  - `EnvironmentBranchHostPresentation` (`Core/EnvironmentBranchHostPresentation.swift`, `Tests/CoreTests/EnvironmentBranchHostPresentationTests.swift`)
+  - `RewardLedgerHostPresentation` (`Core/RewardLedgerHostPresentation.swift`, `Tests/CoreTests/RewardLedgerHostPresentationTests.swift`)
+  - `WaveUnifiedParityInventory` (`Core/WaveUnifiedParityInventory.swift`, `Tests/CoreTests/WaveUnifiedParityInventoryTests.swift`)
+- **Batch 5 (`Lanes 39–51`: Reform Plan v9 SwiftUI Section Views & `WaveUnifiedParityInventory`):**
+  - Added offline/fail-closed SwiftUI section views (`App/MapVisualAndFogHostSectionView.swift`, `App/LocationShareAndSideQuestSectionView.swift`, `App/StoryWalkingAndEnvBranchSectionView.swift`, `App/NPCAISceneAndMerchantGameSectionView.swift`, `App/CommerceAndRewardLedgerSectionView.swift`, `App/PublishMediaAndThemeSeasonSectionView.swift`, `App/WorkshopModAndQmodSectionView.swift`, `App/TeamMeetingAndInviteSectionView.swift`, `App/RunAuthorityHostSectionView.swift`, `App/ReleasePreflightDashboardSectionView.swift`) and their corresponding Core test suites (`Tests/CoreTests/*SectionViewTests.swift`, `Tests/CoreTests/Wave4And5MasterGateTests.swift`).
+- **Batch 6 (`Lanes 52–63`: `AppUnitTests` for all new Section Views + `ReformWorldHostWorkbenchView`):**
+  - Added `App/ReformWorldHostWorkbenchView.swift` unifying all Reform Plan v9 offline host sections into a single inspectable workbench container.
+  - Added `Tests/AppUnitTests/*SectionViewAppUnitTests.swift` and `Tests/AppUnitTests/ReformWorldHostWorkbenchViewAppUnitTests.swift` covering app-hosted SwiftUI section instantiation, view-model state invariants, and default-disabled production gates across Lanes 52–63.
+
+## Batches 7–9 (`Lanes 64–95`): Release Audits, Unified Matrices & Safety Verification (2026-10-20)
+
+- **Batch 7 (`Lanes 64–71`): Unified Matrices & Submission Readiness Audits:**
+  - App Store submission readiness audit (`Core/AppStoreSubmissionReadinessAudit.swift`, `Tests/CoreTests/AppStoreSubmissionReadinessAuditTests.swift`)
+  - Unified Ticket Phase 0–5 & `MV01–MV41` matrix (`Core/UnifiedTicketMatrixContract.swift`, `Tests/CoreTests/UnifiedTicketMatrixContractTests.swift`)
+  - 99-page mini-program parity registry (`Core/MiniProgramPageParityRegistry.swift`, `Tests/CoreTests/MiniProgramPageParityRegistryTests.swift`)
+  - Cloud CI shard contract (`Core/CloudCIShardContract.swift`, `Tests/CoreTests/CloudCIShardContractTests.swift`)
+  - Wave-3 (`I00–I11` & `BK`) handoff registry (`Core/Wave3HandoffStatusRegistry.swift`, `Tests/CoreTests/Wave3HandoffStatusRegistryTests.swift`)
+- **Batch 8 & Batch 9 (`Lanes 72–95`): Domain Safety, Privacy, Accessibility & Recovery Audits:**
+  - Regional endpoint allowlist audit (`Core/RegionalEndpointAllowlistAudit.swift`, `Tests/CoreTests/RegionalEndpointAllowlistAuditTests.swift`)
+  - Localization zero-missing-keys audit (`Core/LocalizationCompletenessAudit.swift`, `Tests/CoreTests/LocalizationCompletenessAuditTests.swift`)
+  - VoiceOver/WCAG accessibility audit (`Core/AccessibilityVoiceOverAudit.swift`, `Tests/CoreTests/AccessibilityVoiceOverAuditTests.swift`)
+  - Deep-link & QR/URL safety audit (`Core/DeepLinkAndQRRouteSafetyAudit.swift`, `Tests/CoreTests/DeepLinkAndQRRouteSafetyAuditTests.swift`)
+  - Offline durable recovery & journal audit (`Core/OfflineDurableRecoveryAudit.swift`, `Tests/CoreTests/OfflineDurableRecoveryAuditTests.swift`)
+  - UI test shard & fixture completeness audit (`Core/UITestShardCompletenessAudit.swift`, `Tests/CoreTests/UITestShardCompletenessAuditTests.swift`)
+  - Privacy redaction & coordinate non-leakage audit (`Core/PrivacyRedactionAudit.swift`, `Tests/CoreTests/PrivacyRedactionAuditTests.swift`)
+  - Commerce, wallet & points non-withdrawable safety audit (`Core/CommerceWalletSafetyAudit.swift`, `Tests/CoreTests/CommerceWalletSafetyAuditTests.swift`)
+
+## Batches 10–11 (`Lanes 100–120`): Master Crosswalk, 15-Pillar Sign-Off Dashboard & Domain Pipeline Audits (2026-10-20)
+
+- **Batch 10 & Batch 11 (`Lanes 100–120`):**
+  - Roam & Exploration audit (`Core/RoamAndExplorationSafetyAudit.swift`, `Tests/CoreTests/RoamAndExplorationSafetyAuditTests.swift`)
+  - IM & Social safety audit (`Core/IMAndSocialSafetyAudit.swift`, `Tests/CoreTests/IMAndSocialSafetyAuditTests.swift`)
+  - 15-pillar Master Release Sign-off Dashboard (`Core/MasterReleaseSignOffDashboard.swift`, `App/MasterReleaseSignOffDashboardView.swift`, `Tests/CoreTests/MasterReleaseSignOffDashboardTests.swift`, `Tests/AppUnitTests/MasterReleaseSignOffDashboardViewAppUnitTests.swift`)
+  - Auth & Session Admission audit (`Core/AuthAndSessionAdmissionAudit.swift`, `Tests/CoreTests/AuthAndSessionAdmissionAuditTests.swift`)
+  - World & City Lifecycle audit (`Core/WorldAndCityLifecycleAudit.swift`, `Tests/CoreTests/WorldAndCityLifecycleAuditTests.swift`)
+  - Backend Sync & Contract Gate audit (`Core/BackendSyncAndContractGateAudit.swift`, `Tests/CoreTests/BackendSyncAndContractGateAuditTests.swift`)
+  - 3-Document Master Crosswalk (`交接文档_20261020.md` + `落地清单.md` + `工单-统一实施版.md`) (`Core/ThreeDocumentMasterCrosswalk.swift`, `Tests/CoreTests/ThreeDocumentMasterCrosswalkTests.swift`)
+  - Performance & Signpost audit (`Core/PerformanceAndSignpostAudit.swift`, `Tests/CoreTests/PerformanceAndSignpostAuditTests.swift`)
+  - Coupon & Sponsored Reward safety audit (`Core/CouponAndSponsoredRewardSafetyAudit.swift`, `Tests/CoreTests/CouponAndSponsoredRewardSafetyAuditTests.swift`)
+  - Audio & Media Pipeline lifecycle audit (`Core/AudioAndMediaPipelineLifecycleAudit.swift`, `Tests/CoreTests/AudioAndMediaPipelineLifecycleAuditTests.swift`)
+
+## Batches 12–13 (`Lanes 125–149`): RC Gate (`RC-GATE-01..06`), `W02..W20` Compliance, Unified Release Audit Hub & Domain Readiness Audits (2026-10-20)
+
+- **Batch 12 & Batch 13 (`Lanes 125–149`):**
+  - `W02..W20` compliance audit (`Core/ReformWorkPackageComplianceAudit.swift`, `Tests/CoreTests/ReformWorkPackageComplianceAuditTests.swift`)
+  - `AppSession` fixture short-circuit audit (`Core/AppSessionFixtureShortCircuitAudit.swift`, `Tests/CoreTests/AppSessionFixtureShortCircuitAuditTests.swift`)
+  - XcodeGen & scaffold integrity audit (`Core/XcodeGenAndScaffoldIntegrityAudit.swift`, `Tests/CoreTests/XcodeGenAndScaffoldIntegrityAuditTests.swift`)
+  - End-to-End Release Candidate Gate (`RC-GATE-01..06`) (`Core/EndToEndReleaseCandidateGate.swift`, `Tests/CoreTests/EndToEndReleaseCandidateGateTests.swift`)
+  - Side-Quest & Personal Fog host audit (`Core/SideQuestAndPersonalFogHostAudit.swift`, `Tests/CoreTests/SideQuestAndPersonalFogHostAuditTests.swift`)
+  - 3-Document Master Crosswalk Python contract check (`Tests/ContractChecks/test_three_document_master_crosswalk.py`)
+  - `UnifiedReleaseAuditHubView` (`App/UnifiedReleaseAuditHubView.swift`, `Tests/AppUnitTests/UnifiedReleaseAuditHubViewAppUnitTests.swift`)
+  - UI test flow readiness anchor audit (`Core/UITestFlowReadinessAnchorAudit.swift`, `Tests/CoreTests/UITestFlowReadinessAnchorAuditTests.swift`)
+  - NPC chat & scene AI safety audit (`Core/NPCChatAndSceneAISafetyAudit.swift`, `Tests/CoreTests/NPCChatAndSceneAISafetyAuditTests.swift`)
+  - Play runtime & auxiliary binding audit (`Core/PlayRuntimeAndAuxiliaryBindingAudit.swift`, `Tests/CoreTests/PlayRuntimeAndAuxiliaryBindingAuditTests.swift`)
+  - App Store privacy manifest audit (`Core/AppStorePrivacyManifestAudit.swift`, `Tests/CoreTests/AppStorePrivacyManifestAuditTests.swift`)
+  - Growth & Leaderboard parity audit (`Core/GrowthAndLeaderboardParityAudit.swift`, `Tests/CoreTests/GrowthAndLeaderboardParityAuditTests.swift`)
+  - Schedule & Lead Progress polling audit (`Core/ScheduleAndLeadProgressPollingAudit.swift`, `Tests/CoreTests/ScheduleAndLeadProgressPollingAuditTests.swift`)
+
+## Batch 14 (Lanes 150–162): Wave-3 I00/I04/I05/I07/I08/I09/I10/I11 Deep Audits, Batch 12–14 Contract Suite & Complete Wave 1–3 + Reform v9 Showcase View (2026-10-20)
+
+- `Core/AssetPointsAndOrderCancellationAudit.swift` + `App/AssetPointsAndOrderCancellationSectionView.swift` (`I04` points ledger & cancellation conservation)
+- `Core/TopicLikeAndSquareEvictionAudit.swift` + `App/TopicLikeAndSquareEvictionSectionView.swift` (`I05` 404/DELETED media cache eviction & fail-closed topic like write gate)
+- `Core/ReceivedStampsAndPassportToolsAudit.swift` + `App/ReceivedStampsAndPassportToolsSectionView.swift` (`I00`/`I11` received stamps & passport tools isolation)
+- `Core/MerchantDecorAndShopApplyWizardAudit.swift` + `App/MerchantDecorAndShopApplyWizardSectionView.swift` (`I07`/`I08` merchant decor & shop apply 4-step wizard)
+- `Core/ClubAccessAndSettlementParityAudit.swift` + `App/ClubAccessAndSettlementSectionView.swift` (`I09`/`I10` club access control & settlement/payroll)
+- `Tests/ContractChecks/test_batch12_to_batch14_contracts.py`
+- `App/CompleteWave1To3AndReformV9ShowcaseView.swift` + `Tests/AppUnitTests/CompleteWave1To3AndReformV9ShowcaseViewTests.swift`
+
+## Batches 15–16 (Lanes 163–188): Zero-Gap Release Certificate, Wave-2/3 Deep Parity & Production Runtime Resilience (2026-10-20)
+
+- `Core/GameJournalCompositionAndPlaySummaryAudit.swift` + `App/GameJournalCompositionAndPlaySummarySectionView.swift`
+- `Core/SocialGraphAndProfilePrivacyParityAudit.swift` + `App/SocialGraphAndProfilePrivacySectionView.swift`
+- `Core/ExplorationPrivateToolsAndCapsuleAudit.swift` + `App/ExplorationPrivateToolsAndCapsuleSectionView.swift`
+- `Core/PublishTopicAndCommentModerationAudit.swift` + `App/PublishTopicAndCommentModerationSectionView.swift`
+- `Core/MemberSubscriptionAndOrderInvoiceAudit.swift` + `App/MemberSubscriptionAndOrderInvoiceSectionView.swift`
+- `Core/FinalReleaseSignoffAndZeroGapCertificateContract.swift` + `App/FinalReleaseSignoffAndZeroGapCertificateView.swift`
+- `Core/CrashResilienceAndMetricKitDiagnosticsAudit.swift` + `App/CrashResilienceAndMetricKitDiagnosticsSectionView.swift`
+- `Core/PushNotificationAndLiveActivityParityAudit.swift` + `App/PushNotificationAndLiveActivitySectionView.swift`
+- `Core/NetworkReachabilityAndRetryBackoffAudit.swift` + `App/NetworkReachabilityAndRetryBackoffSectionView.swift`
+- `Core/KeychainAndBiometricSessionSecurityAudit.swift` + `App/KeychainAndBiometricSessionSecuritySectionView.swift`
+- `Core/ImageAndVideoDiskCacheBudgetAudit.swift` + `App/ImageAndVideoDiskCacheBudgetSectionView.swift`
+- `Core/BackgroundTaskAndScenePhaseLifecycleAudit.swift` + `App/BackgroundTaskAndScenePhaseLifecycleSectionView.swift`
+- `Tests/ContractChecks/test_batch15_zero_gap_certificate.py` and `Tests/ContractChecks/test_batch16_runtime_resilience_contracts.py`
+
+## Batches 17–19 (Lanes 189–221): Native Superset Policy, Platform Polish & 7-Day App Store Launch Critical Path (2026-10-20)
+
+### 1. Batches 17–19 Deliverables (`Lanes 189–221`)
+- `Core/AppClipAndQRCodeHandshakeParityAudit.swift` + `App/AppClipAndQRCodeHandshakeSectionView.swift`
+- `Core/WebViewAndExternalSafariSandboxAudit.swift` + `App/WebViewAndExternalSafariSandboxSectionView.swift`
+- `Core/LocalizationPluralAndFormatterConsistencyAudit.swift` + `App/LocalizationPluralAndFormatterConsistencySectionView.swift`
+- `Core/DeviceOrientationAndSplitViewAdaptationAudit.swift` + `App/DeviceOrientationAndSplitViewAdaptationSectionView.swift`
+- `Core/PhotoLibraryAndCameraPermissionGracefulDegradationAudit.swift` + `App/PhotoLibraryAndCameraPermissionGracefulDegradationSectionView.swift`
+- `Core/HapticFeedbackAndMotionReduceComplianceAudit.swift` + `App/HapticFeedbackAndMotionReduceComplianceSectionView.swift`
+- `Core/ProductionTelemetryAndPrivacyRedactionPipelineAudit.swift` + `App/ProductionTelemetryAndPrivacyRedactionPipelineSectionView.swift`
+- `Core/SQLiteAndJSONJournalCorruptionRecoveryAudit.swift` + `App/SQLiteAndJSONJournalCorruptionRecoverySectionView.swift`
+- `Core/AppStoreReviewDemoAccountAndFixtureReadinessAudit.swift` + `App/AppStoreReviewDemoAccountAndFixtureReadinessSectionView.swift`
+- `Core/NativeSupersetOverMiniProgramPolicyAudit.swift` + `App/NativeSupersetOverMiniProgramPolicySectionView.swift`
+- `Core/SevenDayLaunchCriticalPathMilestoneContract.swift` + `App/SevenDayLaunchCriticalPathMilestoneSectionView.swift`
+- `Core/InAppCustomerSupportAndFeedbackParityAudit.swift` + `App/InAppCustomerSupportAndFeedbackSectionView.swift`
+- `Core/AccountDeletionAndGDPRPIPLComplianceAudit.swift` + `App/AccountDeletionAndGDPRPIPLComplianceSectionView.swift`
+- `Core/MiniProgramVsNativeSupersetPageClassifier.swift` + `App/MiniProgramVsNativeSupersetPageClassifierSectionView.swift`
+- `App/MasterSevenDayLaunchCommandCenterView.swift` + `Tests/AppUnitTests/MasterSevenDayLaunchCommandCenterViewTests.swift`
+
+### 2. Native Superset Alignment Principle (iOS 原生超集原则)
+- **Backend API Contracts & Business Status Machines (100% Mini-Program Parity):** All backend request/response schemas, status codes, role/permission checks, order/coupon/schedule state machines, and fail-closed allowlists align 100% with the Mini-Program and shared Java backend contracts.
+- **Native Superset Capabilities Retained Without Downgrading:** Where iOS is already more complete or architecturally superior to the Mini-Program — specifically **MapKit 3D + Personal Fog**, **Encrypted Durable Command Journal (`<key>:game`)**, **Native Audio/TTS Interruption Recovery**, **StoreKit 2**, **OSSignposter 60fps**, and **Reform v9 Host Bridges** — iOS retains its superior native implementation without downgrading to Mini-Program workarounds.
+
+### 3. 7-Day Launch Critical Path (`Day 1` to `Day 7`)
+- **Day 1:** Freeze `Config/Local.xcconfig` production signing (`DEVELOPMENT_TEAM`, `PRODUCT_BUNDLE_IDENTIFIER`), verify `PrivacyInfo.xcprivacy`, and lock the 99-page `MiniProgramVsNativeSupersetPageClassifier` baseline.
+- **Day 2:** Complete staging backend HTTPS endpoint allowlist smoke tests (`GET /api/config/public`, `GET /api/userInfo` non-empty `role`, `BK-GPS`, `BK-SESSION`, `BK-SCHEDULE`, `BK-ASSET`, `BK-PRIVACY`, `BK-AI`).
+- **Day 3:** Execute full CoreTests, AppUnitTests, and 3-shard XCUITest regression suites plus Python contract checks (`tools/current_ci.py check`).
+- **Day 4:** Cut **TestFlight Internal RC-1** archive, verify physical-device Keychain, camera/VisionKit QR scanning, GPS arrival accuracy, and `AVAudioSession` interruption recovery.
+- **Day 5:** Validate App Store Review demo credentials, offline/review fallback fixtures (`AppStoreReviewDemoAccountAndFixtureReadinessAudit`), In-App Account Deletion (`AccountDeletionAndGDPRPIPLComplianceAudit`), and customer support/feedback flows.
+- **Day 6:** Cut **TestFlight External / Release Candidate RC-2**, complete 24-hour MetricKit/crash-free soak (`CrashResilienceAndMetricKitDiagnosticsAudit`), and sign off the 15-pillar `MasterReleaseSignOffDashboard` and `FinalReleaseSignoffAndZeroGapCertificateContract`.
+- **Day 7:** Submit to **App Store Connect** for review and staged production release with `MasterSevenDayLaunchCommandCenterView` green across all gates.
+
+## Batches 20–22 (Lanes 222–253): StoreKit 2, LBS Thermal Budget, Cold-Start Latency, ASC Metadata, OAuth/City Isolation, Phased Canary, MP Path Translator & App Review Rejection Prevention Playbook (2026-10-20)
+
+- **StoreKit 2 Entitlement & Transaction Verification:** `Core/StoreKit2EntitlementAndTransactionVerificationAudit.swift` + `App/StoreKit2EntitlementAndTransactionVerificationSectionView.swift`
+- **LBS Background Location & Thermal Budget:** `Core/LBSBackgroundLocationAndThermalBudgetAudit.swift` + `App/LBSBackgroundLocationAndThermalBudgetSectionView.swift`
+- **Cold-Start Launch Latency & Prewarm Budget:** `Core/ColdStartLaunchLatencyAndPrewarmBudgetAudit.swift` + `App/ColdStartLaunchLatencyAndPrewarmBudgetSectionView.swift`
+- **App Store Connect Metadata & Screenshot Matrix:** `Core/AppStoreConnectMetadataAndScreenshotMatrixAudit.swift` + `App/AppStoreConnectMetadataAndScreenshotMatrixSectionView.swift`
+- **Apple Sign-In & WeChat OAuth Nonce/Token Isolation:** `Core/AppleSignInAndWeChatOAuthIsolationAudit.swift` + `App/AppleSignInAndWeChatOAuthIsolationSectionView.swift`
+- **Multi-City Coordinate & Timezone Boundary Isolation:** `Core/MultiCityCoordinateAndTimezoneBoundaryAudit.swift` + `App/MultiCityCoordinateAndTimezoneBoundarySectionView.swift`
+- **Phased Release Canary & Kill-Switch Rollback:** `Core/PhasedReleaseCanaryAndKillSwitchRollbackAudit.swift` + `App/PhasedReleaseCanaryAndKillSwitchRollbackSectionView.swift`
+- **Mini-Program 99-Page Path-to-Native-Route Translator:** `Core/MiniProgramPathToNativeRouteTranslator.swift` + `App/MiniProgramPathToNativeRouteTranslatorSectionView.swift`
+- **App Store Review Guideline Rejection Prevention Playbook:** `Core/AppStoreReviewGuidelineRejectionPreventionPlaybook.swift` + `App/AppStoreReviewGuidelineRejectionPreventionPlaybookView.swift`
+- **Batch 20–22 Contract Suites:** `Tests/ContractChecks/test_batch20_to_batch22_launch_contracts.py`
+
+## Batch 23 (Lanes 254–266): 99-Page Decision Ledger (68 Strict 1:1 + 31 Native Superset), Production Signing Validator, Day-5 TestFlight Smoke Matrix, Legacy Server Isolation & Final Goal Completion Gate (2026-10-20)
+
+- **99-Page Mini-Program vs. Native Superset Decision Ledger (68 Strict 1:1 + 31 Native Superset):** Audited and locked every single one of the 99 Mini-Program pages into an explicit per-page decision ledger (`68` strict `1:1` API/state-machine parity pages + `31` Native Superset pages where iOS retains superior native capabilities such as MapKit 3D + Personal Fog, `<key>:game` encrypted durable command journal, native `AVAudioSession` interruption recovery, StoreKit 2, OSSignposter 60fps, and Reform v9 Host Bridges without downgrading).
+- **Production Signing & `Local.xcconfig` Validator:** Enforced pre-archive validation of `CODE_SIGNING_ALLOWED`, `DEVELOPMENT_TEAM`, `PRODUCT_BUNDLE_IDENTIFIER`, `QUESTIFY_MARKET`, `QUESTIFY_API_BASE_URL` (HTTPS-only), and `QUESTIFY_SESSION_REALM` while keeping `Config/Base.xcconfig` fail-closed.
+- **Day-5 TestFlight Physical-Device Smoke Matrix:** Codified the Day-4/Day-5 TestFlight RC physical-device verification matrix covering Keychain persistence, VisionKit QR scanning, GPS arrival accuracy (`BK-GPS`), `AVAudioSession` route/interruption recovery (`I06`), App Store Review demo credentials & offline fallback fixtures, and In-App Account Deletion (`PIPL`/`GDPR`).
+- **Legacy Server (`47.103.124.64`) Isolation Guard:** Hard-blocked unapproved legacy mini-program server IP `47.103.124.64` across regional endpoint allowlist and release preflight validators.
+- **Final Goal Completion Gate (`Lanes 254–266`):** Unified all Wave 1–3, Reform Plan v9 (`W02–W20`, `U01–U08`, `MV01–MV41`), 15-pillar release sign-off, 7-day launch critical path, and Batch 23 contract checks into the final goal completion gate.
+
+### Batches 24–27 (`Lanes 267–312` · Three-Document 100% Full Closure)
+
+- **Batch 24 (`Lanes 267–278`)**: Merged `origin/cloud/plan-I-20261019` (`PR #17` Reform Plan I: `W01/W09/W11` `OpsSafetyViews`, `OpsAuditTrail`, `OpsDegradedState`, `OpsServerReadouts`, `SafetyDisclosure`, `Resources/OpsSafety.xcstrings`, `tools/audit_client_ops_surfaces.py`, `test_ops_safety_contracts.py`) + `OPT-001..003` (`509` legacy clues triage & `D-01..D-10` policy gates) + `OPT-010..014` (`MP-18` unified quote, cart CAS atomicity, refund review, merchant payable ledger, coupon/points conservation) + `OPT-020..023` (`MP-17` private viewer ACL, media moderation, report/appeal/contribution & staged A/B content chain).
+- **Batch 25 (`Lanes 279–290`)**: Completed `OPT-030..033` (`MP-04`/`MP-19` author draft readback, ending priority compatibility `D-04`, content/session snapshot versioning, creator revenue ledger `D-10`) + `OPT-040..043` (`MP-01..03`/`MP-06`/`MP-08`/`MP-13..15`/`MP-20..21` cross-device recovery, 80m GPS gate, `4->8->10s` lead polling backoff, 3s long-press exit, passport/badges/stamps) + `OPT-050..053` (`CLUB-MEM-01..13` 13-endpoint membership contract, 64-occurrence schedule & waitlist guard, lead location sharing `D-07`, `MP-12` pinned broadcast & cancel-refund auth receipt) + `OPT-060..062` (merchant claim material, same-window PV/UV/revenue/balance dashboard, CRM reach frequency & RBAC scope).
+- **Batch 26 (`Lanes 291–302`)**: Completed `OPT-070..072` (`MP-05`/`MP-07`/`MP-09` explicit `type=1/0` like direction, image preview, stable ID keys, forward migration replay gate, critical chain `traceId` alert) + `OPT-080..082` (`MP-16` >2000-char AI safety gate, real vs estimated token usage, full NPC chat deletion & watermark `D-08`, author AI draft assist) + `OPT-090..092` & `EXT-01..11` (7-layer release signoff & 11 conditional extension guards, Flutter excluded) + `Legacy52TicketsAndMP01To21SliceParityContract` (`52/52` legacy tickets + `21/21` MP slices).
+- **Batch 27 (`Lanes 303–312`)**: Closed all `81` partial + `6` missing rows across `w2-01..w2-21` (`198/198` rows -> 100% Parity / iOS Native Superset in `Wave2AllPartialAndMissingRowsClosureCoordinator`), remediated all 5 Base UI test failure clusters (`BaseUISuiteFailureRemediationCoordinator`), and synced all `docs/parity/w2-*.md` & `docs/handoff/ios-*.md` files.

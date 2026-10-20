@@ -14,7 +14,7 @@ private final class RecordsTransport: HTTPTransport {
 /// w2-07: topic "我的游玩记录" reads (`api/play/theme/history`, `api/play/theme/card`).
 final class TopicThemeRecordsTests: XCTestCase {
     private func service(_ transport: RecordsTransport) throws -> TopicService {
-        TopicService(configuration: try APIConfiguration(baseURL: URL(string: "https://api.example.invalid")!), transport: transport)
+        TopicService(configuration: try APIConfiguration(baseURL: URL(string: "https://api.example.com")!), transport: transport)
     }
 
     func testHistoryRequestAndTitleFallbacks() async throws {

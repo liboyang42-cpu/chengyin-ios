@@ -1,5 +1,7 @@
 name: Current native checks
 on:
+  push:
+    branches: [integration/wave2-20261019]
   workflow_dispatch:
     inputs:
       mode:
@@ -38,7 +40,7 @@ jobs:
           MODE: ${{ inputs.mode || 'related' }}
         run: |
           base="$EVENT_BASE"
-          if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ]; then base="$(git rev-parse HEAD^)"; fi
+          if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ] || [ "${GITHUB_REF_NAME:-}" = "integration/wave2-20261019" ]; then base="$(git rev-parse HEAD^)"; fi
           python3 -B tools/current_ci.py plan --base "$base" --mode "$MODE" --output "$RUNNER_TEMP/current-plan/plan.json"
           python3 -B - <<'PY'
           import json, os

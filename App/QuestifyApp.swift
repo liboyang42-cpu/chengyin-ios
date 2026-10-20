@@ -20,6 +20,8 @@ struct QuestifyApp: App {
                 #if DEBUG
                 if ProcessInfo.processInfo.arguments.contains("--owner-draft-fixture") {
                     OwnerDraftFixtureHost(mode: fixtureArgument("--owner-draft-fixture") ?? "ready")
+                } else if ProcessInfo.processInfo.arguments.contains("--ops-safety-fixture") {
+                    OpsSafetyFixtureHost(scenario: fixtureArgument("--ops-safety-fixture") ?? "theme")
                 } else if ProcessInfo.processInfo.arguments.contains("--group-poll-fixture") {
                     GroupPollFixtureRoot(scenario: fixtureArgument("--group-poll-fixture") ?? "success")
                 } else if ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") {
@@ -246,7 +248,7 @@ struct SessionRootView: View {
                     }, playerProfileDestination: { memberID in
                         AnyView(SocialPublicProfileView(memberID: memberID, reader: session.socialAccountReader,
                             squareReader: session.squareReader, actions: nil).id(session.socialAccountReader.identity))
-                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: { selectedTab = .mine })) }, nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: { selectedTab = .mine })) }, toolsReader: session.roamPassportToolsReader)
+                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: { selectedTab = .mine })) }, nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: { selectedTab = .mine })) }, toolsReader: session.roamPassportToolsReader, passportToolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader)
                         .tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
                     NavigationStack {
                         DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)

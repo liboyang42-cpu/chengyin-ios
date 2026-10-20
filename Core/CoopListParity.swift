@@ -110,3 +110,50 @@ public enum CoopListReadFailure {
         }
     }
 }
+
+/// Deep-link `topicId` / `topicName` filter seed for `pages/coop/list` with clear-filter support.
+public struct CoopTopicFilterSeed: Equatable, Sendable {
+    public private(set) var topicID: Int?
+    public private(set) var topicName: String?
+
+    public init(topicID: Int? = nil, topicName: String? = nil) {
+        if let id = topicID, id > 0 {
+            self.topicID = id
+            let trimmed = topicName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            self.topicName = trimmed.isEmpty ? nil : trimmed
+        } else {
+            self.topicID = nil
+            self.topicName = nil
+        }
+    }
+
+    public init(rawTopicID: String?, rawTopicName: String? = nil) {
+        let parsedID = rawTopicID.flatMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+        self.init(topicID: parsedID, topicName: rawTopicName)
+    }
+
+    public var isActive: Bool { topicID != nil }
+
+    public var displayLabel: String? {
+        guard let topicID else { return nil }
+        if let topicName { return "\(topicName) (#\(topicID))" }
+        return "#\(topicID)"
+    }
+
+    public mutating func clear() {
+        topicID = nil
+        topicName = nil
+    }
+
+    public func cleared() -> CoopTopicFilterSeed { .init() }
+
+    public func matches(topicID candidate: Int?) -> Bool {
+        guard let active = topicID else { return true }
+        return candidate == active
+    }
+
+    public func filter<Row>(_ rows: [Row], topic: (Row) -> Int?) -> [Row] {
+        guard isActive else { return rows }
+        return rows.filter { matches(topicID: topic($0)) }
+    }
+}

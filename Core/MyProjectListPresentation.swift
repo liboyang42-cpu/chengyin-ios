@@ -92,18 +92,23 @@ public enum MyProjectListPresentation {
         }
     }
 
-    public static func card(_ p: CreatorContentProject, canEditActivity: Bool = true) -> MyProjectCardPresentation {
+    public static func card(
+        _ p: CreatorContentProject,
+        canEditActivity: Bool = true,
+        merchantScopeAccess: MyProjectMerchantScopeAccess = .init()
+    ) -> MyProjectCardPresentation {
         let state = p.state ?? ""
         let online = state == "running" || state == "notStarted"
         let merchantActivity = p.ownerType == "merchant" && p.bizType == "activity"
         let sold = p.bizType == "activity" && p.signupCount > 0
         let publishedActivity = p.bizType == "activity" && ["running", "notStarted", "offline", "pending", "rejected"].contains(state)
-        let canEdit = !merchantActivity && publishedActivity
-        let canToggle = !merchantActivity && (online || state == "offline")
-        let canDelete = !merchantActivity && ["draft", "offline", "rejected", "completed"].contains(state)
-        let canCancel = p.bizType == "topic"
+        let allowWrite = !merchantScopeAccess.isBrowseOnly
+        let canEdit = allowWrite && !merchantActivity && publishedActivity
+        let canToggle = allowWrite && !merchantActivity && (online || state == "offline")
+        let canDelete = allowWrite && !merchantActivity && ["draft", "offline", "rejected", "completed"].contains(state)
+        let canCancel = allowWrite && (p.bizType == "topic"
             ? (p.ownerType != "club" && (online || state == "offline"))
-            : (!merchantActivity && sold && (online || state == "offline"))
+            : (!merchantActivity && sold && (online || state == "offline")))
         let accepted = p.acceptStatus == "clubAccepted" || p.acceptStatus == "merchantAccepted"
         let canViewApplies = p.bizType == "topic" && (p.acceptStatus == "clubOpen" || p.acceptStatus == "merchantOpen" || accepted)
         var ops: [MyProjectRowOperation] = []
@@ -114,14 +119,28 @@ public enum MyProjectListPresentation {
         if canDelete { ops.append(.delete) }
         return .init(roleKey: roleKey(bizType: p.bizType, ownerType: p.ownerType), pending: pendingRanks[state] != nil,
                      online: online, operations: ops, toggleKey: state == "offline" ? "myProject.op.toggleOn" : "myProject.op.toggleOff",
-                     route: route(p, canEdit: canEdit && canEditActivity))
+                     route: resolveRoute(p, canEditActivity: canEdit && canEditActivity, merchantScopeAccess: merchantScopeAccess))
     }
 
-    static func route(_ p: CreatorContentProject, canEdit: Bool) -> MyProjectCardRoute? {
+    public static func resolveRoute(
+        _ p: CreatorContentProject,
+        canEditActivity: Bool = true,
+        merchantScopeAccess: MyProjectMerchantScopeAccess = .init()
+    ) -> MyProjectCardRoute? {
+        let merchantActivity = p.ownerType == "merchant" && p.bizType == "activity"
+        let publishedActivity = p.bizType == "activity" && ["running", "notStarted", "offline", "pending", "rejected"].contains(p.state ?? "")
+        let allowEdit = !merchantScopeAccess.isBrowseOnly && !merchantActivity && publishedActivity && canEditActivity
+        return route(p, canEdit: allowEdit, allowTopicEditor: !merchantScopeAccess.isBrowseOnly)
+    }
+
+    static func route(_ p: CreatorContentProject, canEdit: Bool, allowTopicEditor: Bool = true) -> MyProjectCardRoute? {
         guard p.sourceID > 0 else { return nil }
         switch p.bizType {
         case "topic":
-            return p.state == "draft" || p.state == "rejected" ? .topicEditor(p.sourceID) : .projectHome(p.sourceID)
+            if p.state == "draft" || p.state == "rejected" {
+                return allowTopicEditor ? .topicEditor(p.sourceID) : .projectHome(p.sourceID)
+            }
+            return .projectHome(p.sourceID)
         case "activity":
             return canEdit && (p.state == "pending" || p.state == "rejected") ? .activityEditor(p.sourceID) : .activityDetail(p.sourceID)
         default: return nil
@@ -156,5 +175,76 @@ public enum MyProjectListPresentation {
         let hh = String(chars[11...12]), mm = String(chars[14...15])
         guard chars[13] == ":", Int(hh) != nil, Int(mm) != nil, !(hh == "00" && mm == "00") else { return nil }
         return hh + ":" + mm
+    }
+}
+
+/// Merchant scope (`scope=MERCHANT`) + `merchant/access/me` project-manage gate for `subpackageA/pages/myproject`.
+public struct MyProjectMerchantScopeAccess: Equatable, Sendable {
+    public static let projectManagePermission = "merchant:project:manage"
+    public static let browseOnlyNoticeText = "当前岗位仅可查看门店项目，需项目管理权限才能发布或修改"
+
+    public let isMerchantScope: Bool
+    public let canManageProjects: Bool
+
+    public init(isMerchantScope: Bool = false, canManageProjects: Bool = true) {
+        self.isMerchantScope = isMerchantScope
+        self.canManageProjects = isMerchantScope ? canManageProjects : true
+    }
+
+    public init(scope: String?, merchantAccess: MerchantMarketingAccess?) {
+        let normalized = (scope ?? "").trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let isMerchant = normalized == "MERCHANT"
+        let hasManage = merchantAccess.map { $0.active && $0.permissions.contains(Self.projectManagePermission) } ?? false
+        self.init(isMerchantScope: isMerchant, canManageProjects: isMerchant ? hasManage : true)
+    }
+
+    public var isBrowseOnly: Bool { isMerchantScope && !canManageProjects }
+    public var browseOnlyNotice: String? { isBrowseOnly ? Self.browseOnlyNoticeText : nil }
+}
+
+/// AI Quick Publishing (`pages/publish/simple`) max-3-points and per-point POI confirmation state helper.
+public struct QuickPublishPointValidation: Equatable, Sendable {
+    public static let minimumPoints = 1
+    public static let maximumPoints = 3
+
+    public struct PointState: Equatable, Sendable {
+        public let id: UUID
+        public let index: Int
+        public let hasName: Bool
+        public let isPOIConfirmed: Bool
+        public var isReady: Bool { hasName && isPOIConfirmed }
+    }
+
+    public let points: [PointState]
+
+    public init(nodes: [QuickPublishNode]) {
+        self.points = nodes.enumerated().map { index, node in
+            let hasName = !node.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let isConfirmed: Bool
+            if let place = node.confirmedPlace {
+                isConfirmed = !place.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    && place.latitude.isFinite
+                    && place.longitude.isFinite
+            } else {
+                isConfirmed = false
+            }
+            return PointState(id: node.id, index: index, hasName: hasName, isPOIConfirmed: isConfirmed)
+        }
+    }
+
+    public init(draft: QuickPublishDraft) {
+        self.init(nodes: draft.nodes)
+    }
+
+    public var count: Int { points.count }
+    public var canAddPoint: Bool { points.count < Self.maximumPoints }
+    public var exceedsMaximumPoints: Bool { points.count > Self.maximumPoints }
+    public var isCountWithinBounds: Bool { (Self.minimumPoints...Self.maximumPoints).contains(points.count) }
+    public var unconfirmedPointIDs: [UUID] { points.filter { !$0.isPOIConfirmed }.map(\.id) }
+    public var allPOIsConfirmed: Bool { !points.isEmpty && points.allSatisfy(\.isPOIConfirmed) }
+    public var isValid: Bool { isCountWithinBounds && points.allSatisfy(\.isReady) }
+
+    public func isPOIConfirmed(for id: UUID) -> Bool {
+        points.first(where: { $0.id == id })?.isPOIConfirmed ?? false
     }
 }

@@ -36,7 +36,7 @@ final class ParticipationParityTests: XCTestCase {
         XCTAssertEqual(try record(free).participationStatus(now: early).state, .notStarted)
         let pointsPaid = String(free.dropLast()) + #","pointPaymentAmount":3}"#
         XCTAssertFalse(try record(pointsPaid).parity.isFree)
-        let missingTotal = free.replacingOccurrences(of: #""totalAmount":0,"#, with: "")
+        let missingTotal = free.replacingOccurrences(of: #""totalAmount":"0.00","#, with: "")
         XCTAssertFalse(try record(missingTotal).parity.isFree)
     }
 

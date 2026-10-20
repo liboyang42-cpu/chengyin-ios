@@ -79,6 +79,32 @@ public enum IMReplyBlock: Equatable {
     }
 }
 
+/// Read-receipt trigger policy for P033 chat load (`/api/im/read`). Defaults to
+/// `.explicitUserActionOnly` (`shouldAutoMarkRead == false`) so opening a chat
+/// never dispatches an implicit write unless `.autoOnLoadWhenGranted(imReadGranted: true)`
+/// is explicitly configured.
+public enum IMReadReceiptTriggerPolicy: Equatable, Sendable {
+    case explicitUserActionOnly
+    case autoOnLoadWhenGranted(imReadGranted: Bool)
+
+    public static let defaultPolicy: Self = .explicitUserActionOnly
+
+    public var shouldAutoMarkRead: Bool {
+        switch self {
+        case .explicitUserActionOnly:
+            return false
+        case .autoOnLoadWhenGranted(let imReadGranted):
+            return imReadGranted
+        }
+    }
+
+    public func shouldAutoMarkRead(unreadCount: Int?) -> Bool {
+        guard shouldAutoMarkRead else { return false }
+        guard let unreadCount else { return true }
+        return unreadCount > 0
+    }
+}
+
 public struct IMSafetySession: Equatable {
     public let identity: MessagingReadIdentity
     fileprivate let token: String

@@ -87,6 +87,9 @@ extension EnvironmentValues {
             if let issue = reader.failure {
                 Section {
                     if reader.hasLoaded { Text("club.enroll.stale").accessibilityIdentifier("club.enroll.stale") }
+                    if let deniedTitle = ClubEnrollmentReader.failureTitle(for: issue) {
+                        Text(verbatim: deniedTitle).font(.headline).accessibilityIdentifier("club.enroll.deniedTitle")
+                    }
                     Text(LocalizedStringKey(issue.localizationKey))
                     if let message = issue.message { Text(verbatim: message) }
                     Button("club.enroll.retry") { Task { await refreshVisible() } }.disabled(reader.loading)
@@ -94,6 +97,7 @@ extension EnvironmentValues {
             }
             if host == liveHost, reader.isCurrentAccess, identity == reader.identity, identity == access.identity, reader.hasLoaded {
                 Section {
+                    Text(verbatim: reader.headerLine).font(.subheadline.weight(.medium)).accessibilityIdentifier("club.enroll.headerLine")
                     LabeledContent("club.enroll.teamCount") { Text(reader.teams.count, format: .number) }
                     Text("club.enroll.escrow").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.enroll.escrow")
                     Text("club.enroll.readOnly").font(.footnote).foregroundStyle(.secondary)
@@ -210,6 +214,10 @@ extension EnvironmentValues {
         }
         if let roster = reader.rosters[team.id] {
             VStack(alignment: .leading, spacing: 6) {
+                Text(verbatim: roster.paymentRefundSummaryText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("club.enroll.paidRefundSummary.\(team.id)")
                 LabeledContent("club.enroll.paid") { Text(roster.paidCount, format: .number) }
                 LabeledContent("club.enroll.refundable") { number(roster.refundableCount) }
                 if let deadline = roster.deadline { LabeledContent("club.enroll.deadline") { Text(verbatim: deadline) } }

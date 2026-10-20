@@ -78,4 +78,21 @@ final class TeamPagePresentationTests: XCTestCase {
         XCTAssertEqual(TeamPagePresentation.loadingKey(.detail, hasDetail: true), "team.loading")
         XCTAssertEqual(TeamPagePresentation.loadingKey(.invitation, hasDetail: true), "team.page.checkingInvite")
     }
+
+    func testInviteShareCardPayloadMatchesMiniProgramPath() throws {
+        let payload = TeamInviteShareCardPayload(teamID: 4101, inviteCode: "SYNTHETIC-TEAM", title: "  ", canShareExternally: true)
+        XCTAssertEqual(payload.teamID, 4101)
+        XCTAssertEqual(payload.inviteCode, "SYNTHETIC-TEAM")
+        XCTAssertEqual(payload.title, "一起出发的玩家队伍")
+        XCTAssertEqual(payload.miniProgramPath, "/pages/team/join/index?code=SYNTHETIC-TEAM")
+        XCTAssertTrue(payload.canShareExternally)
+
+        let recruiting = try detail()
+        let derived = TeamPagePresentation.inviteShareCard(recruiting)
+        XCTAssertEqual(derived?.miniProgramPath, "/pages/team/join/index?code=SYNTHETIC-TEAM")
+        XCTAssertEqual(derived?.title, "Synthetic")
+        XCTAssertEqual(derived?.canShareExternally, false)
+        XCTAssertNil(TeamPagePresentation.inviteShareCard(try detail(status: 1)))
+        XCTAssertNil(TeamPagePresentation.inviteShareCard(try detail(code: nil)))
+    }
 }

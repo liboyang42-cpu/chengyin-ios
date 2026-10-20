@@ -208,12 +208,18 @@ import SwiftUI
     let invite: OfficialPartyInvite
     /// Kept for callers; the source shows organizer controls without a client-side publisher check.
     let publisher: Bool
+    var window: OfficialServiceWindow? = nil
     @State private var reviewed: OfficialActionCommand?
     @State private var reviewedAction: OfficialResponseAction?
     @State private var transferHint = false
     private var actions: [OfficialResponseAction] { OfficialInboxPresentation.actions(for: invite) }
     var body: some View {
         Section("officialAction.respond") {
+            if let window {
+                LabeledContent("official.privateParity.inbox.window") {
+                    Text(verbatim: window.sourceText)
+                }.font(.footnote).accessibilityIdentifier("official.inbox.actionWindow.\(invite.id)")
+            }
             if OfficialInboxPresentation.showsOrganizerTransferNotice(invite) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("official.privateParity.inbox.organizerTransferHint").font(.subheadline)

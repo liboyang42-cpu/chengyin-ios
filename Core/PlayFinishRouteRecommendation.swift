@@ -84,7 +84,7 @@ public struct PlayFinishRouteCard: Equatable, Sendable {
 
     /// `utils/geo.js distanceText`: ≥1000 m → one decimal km, else whole metres.
     public static func distanceParts(_ meters: Double) -> (value: String, kilometres: Bool) {
-        meters >= 1000 ? (String(format: "%.1f", meters / 1000), true) : (String(Int(meters.rounded())), false)
+        meters >= 1000 ? (String(format: "%.1f", (meters / 100).rounded() / 10), true) : (String(Int(meters.rounded())), false)
     }
 }
 

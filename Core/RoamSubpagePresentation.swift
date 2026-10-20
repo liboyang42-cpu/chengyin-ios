@@ -93,6 +93,67 @@ public struct RoamShareToken: Equatable {
     }
 }
 
+/// Validates a 32-hex `shareToken` query parameter for `subpackageRoam/session`,
+/// normalizing valid hex tokens to lowercase `NormalizedToken` or returning `.invalidToken`
+/// with copy `"分享链接无效或已过期"`.
+public enum RoamShareTokenValidator: Equatable, Sendable {
+    public static let invalidTokenMessage = "分享链接无效或已过期"
+
+    public struct NormalizedToken: Equatable, Sendable {
+        public let rawValue: String
+        public var value: String { rawValue }
+        public var shareToken: RoamShareToken? { RoamShareToken(rawValue) }
+
+        public init?(_ raw: String?) {
+            guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+                  let token = RoamShareToken(trimmed) else {
+                return nil
+            }
+            self.rawValue = token.value
+        }
+    }
+
+    case normalized(NormalizedToken)
+    case invalidToken
+
+    public init(_ raw: String?) {
+        self = Self.validate(raw)
+    }
+
+    public init(url: URL) {
+        self = Self.validate(url: url)
+    }
+
+    public static func validate(_ raw: String?) -> Self {
+        guard let token = NormalizedToken(raw) else { return .invalidToken }
+        return .normalized(token)
+    }
+
+    public static func validate(url: URL) -> Self {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let items = components.queryItems else {
+            return .invalidToken
+        }
+        return validate(queryItems: items)
+    }
+
+    public static func validate(queryItems: [URLQueryItem]) -> Self {
+        let matching = queryItems.filter { $0.name == "shareToken" || $0.name == "token" }
+        guard matching.count == 1 else { return .invalidToken }
+        return validate(matching[0].value)
+    }
+
+    public var normalizedToken: NormalizedToken? {
+        if case .normalized(let token) = self { return token }
+        return nil
+    }
+
+    public var errorMessage: String? {
+        if case .invalidToken = self { return Self.invalidTokenMessage }
+        return nil
+    }
+}
+
 /// Server-normalized snapshot (ApiRoamShareController/RoamSharePrivacyService): time to the hour,
 /// coordinates already coarse. Optional numbers stay optional; a malformed shape is "gone".
 public struct RoamShareSnapshot: Decodable, Equatable {

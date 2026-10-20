@@ -232,4 +232,43 @@ public enum MerchantLedgerParity {
         }
         return BatchHero(period: fields.mbText("periodYm"), amount: money(fields["amountTotal"]).map { yuan($0) }, stateKey: stateKey, variant: variant, invoiceKey: invoice)
     }
+
+    public enum RedemptionRecordIssueState: String, Equatable, Sendable {
+        case missing
+        case accessDenied
+
+        public var title: String {
+            switch self {
+            case .missing: return "找不到这条核销记录"
+            case .accessDenied: return "当前账号无权查看该核销记录"
+            }
+        }
+    }
+
+    public static func redemptionRecordIssueState(record: MerchantBusinessObject?, denied: Bool = false) -> RedemptionRecordIssueState? {
+        if denied { return .accessDenied }
+        guard let record, !record.isEmpty else { return .missing }
+        return nil
+    }
+
+    public struct BatchStatementSummary: Equatable, Sendable {
+        public let title: String
+        public let totalText: String?
+        public let emptyText: String?
+        public let stepTimestamps: [String]
+    }
+
+    public static func batchStatementSummary(_ fields: MerchantBusinessObject, lineCount: Int = 0) -> BatchStatementSummary {
+        let total = money(fields["amountTotal"]).map { yuan($0) }
+        let stamps = ["createdAt", "confirmedAt", "paidAt"].compactMap { key -> String? in
+            guard let text = fields.mbText(key)?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+            return text.count >= 16 ? String(text.prefix(16)) : text
+        }
+        return BatchStatementSummary(
+            title: "对账单",
+            totalText: lineCount > 0 ? total : nil,
+            emptyText: lineCount > 0 ? nil : "当前批次暂无对账明细",
+            stepTimestamps: stamps
+        )
+    }
 }

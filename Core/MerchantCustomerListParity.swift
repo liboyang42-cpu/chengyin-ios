@@ -73,4 +73,29 @@ public enum MerchantCustomerListParity {
         guard let month = parts.month, let day = parts.day else { return nil }
         return (month, day)
     }
+
+    public static let maxNoteLength = 500
+    public static let noteCorrectionHint = "备注仅本店可见"
+
+    public static func noteCounterText(_ text: String, maxLength: Int = maxNoteLength) -> String {
+        "\(min(max(text.count, 0), maxLength))/\(maxLength)"
+    }
+
+    public static func isNoteValid(_ text: String, maxLength: Int = maxNoteLength) -> Bool {
+        text.count <= maxLength
+    }
+
+    public struct ParticipationRow: Equatable, Sendable {
+        public let title: String
+        public let dateText: String?
+        public let paidAmountText: String?
+    }
+
+    public static func participationRow(_ fields: MerchantBusinessObject) -> ParticipationRow {
+        let title = fields.mbText("topicName") ?? fields.mbText("activityName") ?? "参与记录"
+        let rawDate = fields.mbText("occurredAt") ?? fields.mbText("createTime")
+        let dateText = rawDate.flatMap { $0.count >= 10 ? String($0.prefix(10)) : $0 }
+        let paid = MerchantLedgerParity.money(fields["paidAmount"]).map { MerchantLedgerParity.yuan($0) }
+        return ParticipationRow(title: title, dateText: dateText, paidAmountText: paid)
+    }
 }

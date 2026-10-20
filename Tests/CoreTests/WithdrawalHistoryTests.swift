@@ -75,6 +75,30 @@ import FoundationNetworking
         scope = WalletCommerceScope(namespace: "synthetic-cn", accountID: 10, epoch: UUID())
         XCTAssertTrue(model.rows.isEmpty)
     }
+    func testWithdrawalRoleGateAndThemeStyle() {
+        XCTAssertEqual(WithdrawalRoleGatePresentation(canWithdraw: true), .allowed)
+        XCTAssertTrue(WithdrawalRoleGatePresentation.allowed.isAllowed)
+        XCTAssertNil(WithdrawalRoleGatePresentation.allowed.noticeText)
+
+        XCTAssertEqual(WithdrawalRoleGatePresentation(canWithdraw: false), .denied)
+        XCTAssertFalse(WithdrawalRoleGatePresentation.denied.isAllowed)
+        XCTAssertEqual(WithdrawalRoleGatePresentation.denied.noticeText, "当前身份暂不支持提现")
+
+        XCTAssertEqual(WithdrawalRoleGatePresentation(canWithdraw: nil), .unverified)
+        XCTAssertFalse(WithdrawalRoleGatePresentation.unverified.isAllowed)
+        XCTAssertNil(WithdrawalRoleGatePresentation.unverified.noticeText)
+
+        XCTAssertEqual(WithdrawalRoleGatePresentation(permissions: ["withdrawable", "orders"]), .allowed)
+        XCTAssertEqual(WithdrawalRoleGatePresentation(permissions: ["orders"]), .denied)
+        XCTAssertEqual(WithdrawalRoleGatePresentation(permissions: nil), .unverified)
+
+        XCTAssertEqual(WithdrawalThemeStyle(rawTheme: "merchant"), .merchant)
+        XCTAssertEqual(WithdrawalThemeStyle(rawTheme: " MERCHANT "), .merchant)
+        XCTAssertEqual(WithdrawalThemeStyle(rawTheme: "member"), .member)
+        XCTAssertEqual(WithdrawalThemeStyle(rawTheme: nil), .member)
+        XCTAssertEqual(WithdrawalThemeStyle.merchant.badgeTitle, "商家提现")
+        XCTAssertEqual(WithdrawalThemeStyle.member.badgeTitle, "个人提现")
+    }
 }
 
 private final class WithdrawalHistoryTestTransport: HTTPTransport {

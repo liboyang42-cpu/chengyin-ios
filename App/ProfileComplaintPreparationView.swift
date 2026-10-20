@@ -64,8 +64,13 @@ private struct ProfileComplaintPresentationKey: Hashable {
                         Text(LocalizedStringKey(issue.sourceTitleKey)).font(.headline)
                             .accessibilityIdentifier("profile.complaint.issueTitle")
                         if issue != .unavailable {
-                            Text(LocalizedStringKey(issue.sourceDetailKey)).font(.subheadline)
-                                .accessibilityIdentifier("profile.complaint.issueDetail")
+                            if model.isNetworkFailure && issue == .failed {
+                                Text(ProfileComplaintTopicLoadFailureCopy.networkSubtitle).font(.subheadline)
+                                    .accessibilityIdentifier("profile.complaint.issueDetail")
+                            } else {
+                                Text(LocalizedStringKey(issue.sourceDetailKey)).font(.subheadline)
+                                    .accessibilityIdentifier("profile.complaint.issueDetail")
+                            }
                         }
                         Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier("profile.complaint.issue")
                         if issue == .failed {

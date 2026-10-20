@@ -65,3 +65,26 @@ struct MerchantCustomerIdentityLine: View {
         }.font(.subheadline).foregroundStyle(.secondary).accessibilityIdentifier("merchantOps.customer.identity")
     }
 }
+
+struct MerchantCustomerNoteEditorAccessory: View {
+    let text: String
+    var onClear: () -> Void = {}
+    var body: some View {
+        HStack {
+            Text(verbatim: MerchantCustomerListParity.noteCorrectionHint)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(verbatim: MerchantCustomerListParity.noteCounterText(text))
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("merchantOps.customer.noteCounter")
+            if !text.isEmpty {
+                Button(action: onClear) {
+                    Text(verbatim: "×")
+                }
+                .accessibilityIdentifier("merchantOps.customer.noteClear")
+            }
+        }
+    }
+}

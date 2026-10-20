@@ -37,6 +37,28 @@ public struct GrowthLeaderboardPodium: Equatable {
     public var isEmpty: Bool { first == nil && me == nil }
 }
 
+/// Deterministic fallback avatar monogram/glyph from player nickname (`"匿"` when blank)
+/// so leaderboard rows have a clean native avatar representation without loading remote media.
+public struct GrowthLeaderboardAvatarBadge: Equatable, Sendable {
+    public let monogram: String
+    public let paletteIndex: Int
+
+    public init(nickname: String?, memberID: Int? = nil) {
+        let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if let first = trimmed.first {
+            self.monogram = String(first).uppercased()
+        } else {
+            self.monogram = "匿"
+        }
+        let seed = memberID ?? trimmed.unicodeScalars.reduce(0) { ($0 &* 31) &+ Int($1.value) }
+        self.paletteIndex = abs(seed) % 6
+    }
+
+    public init(entry: GrowthLeaderboardEntry) {
+        self.init(nickname: entry.nickname, memberID: entry.memberID)
+    }
+}
+
 /// Badge wall caption: "已点亮 X / N · 还有 Y 枚等待探索". Counts only rows actually received;
 /// a failed medal read (nil) is not counted as zero medals.
 public struct ObjectBadgeWallSummary: Equatable {
@@ -77,5 +99,49 @@ public enum CollectionReadAccess: Equatable {
         case APIError.httpStatus(403), APIError.businessCode(403): self = .denied
         default: return nil
         }
+    }
+}
+
+/// Object-card pile/grid toggle (`onGather` parity: `✦ 收拢` / `✦ 散开`).
+public enum ObjectCardPileMode: String, Equatable, Sendable {
+    case scatteredPile
+    case gatheredGrid
+
+    public var buttonLabel: String {
+        switch self {
+        case .scatteredPile: return "✦ 收拢"
+        case .gatheredGrid: return "✦ 散开"
+        }
+    }
+
+    public mutating func toggle() {
+        self = (self == .scatteredPile) ? .gatheredGrid : .scatteredPile
+    }
+
+    public func toggled() -> ObjectCardPileMode {
+        self == .scatteredPile ? .gatheredGrid : .scatteredPile
+    }
+}
+
+/// Deterministic stamp-album collage slot (`layout.js` rotation & offset parity + page-size constants).
+public struct StampAlbumCollageSlot: Equatable, Sendable {
+    public static let sourcePageSize: Int = 50
+    public static let fixturePageSize: Int = 20
+    private static let rotationTable: [Double] = [-4, 2.5, -2, 3.5, -3, 1.5, 4, -1.5, 2, -3.5]
+    private static let offsetXTable: [Double] = [-6, 4, -3, 6, -5, 3, 5, -4, 2, -2]
+    private static let offsetYTable: [Double] = [2, -3, 4, -2, 3, -4, 1, 3, -2, 4]
+
+    public let index: Int
+    public let rotationDegrees: Double
+    public let offsetX: Double
+    public let offsetY: Double
+
+    public init(index: Int) {
+        let normalized = max(0, index)
+        let slot = normalized % Self.rotationTable.count
+        self.index = normalized
+        self.rotationDegrees = Self.rotationTable[slot]
+        self.offsetX = Self.offsetXTable[slot]
+        self.offsetY = Self.offsetYTable[slot]
     }
 }

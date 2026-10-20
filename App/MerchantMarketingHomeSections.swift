@@ -88,6 +88,7 @@ import SwiftUI
 struct MerchantInsightParityRows: View {
     let facts: MerchantMarketingValue
     let isEmpty: Bool
+    var onCoopCenter: (() -> Void)? = nil
     var body: some View {
         if let delta = MerchantInsightParity.visitorDelta(facts) {
             Text(verbatim: MerchantOpsCopy.text("merchantOps.insight.delta %@", (delta > 0 ? "+" : "") + String(delta)))
@@ -96,6 +97,14 @@ struct MerchantInsightParityRows: View {
         if isEmpty {
             Text(verbatim: MerchantOpsCopy.text("merchantOps.insight.empty.body")).font(.footnote).foregroundStyle(.secondary)
                 .accessibilityIdentifier("merchantOps.insight.empty")
+            if let cta = MerchantInsightParity.emptyCTATitle(isEmpty: isEmpty) {
+                Button {
+                    onCoopCenter?()
+                } label: {
+                    Text(verbatim: cta)
+                }
+                .accessibilityIdentifier("merchantOps.insight.emptyGuidance.cta")
+            }
         }
     }
 }

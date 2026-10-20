@@ -118,4 +118,11 @@ private actor MemberHomeWire: HTTPTransport {
         XCTAssertFalse(guest.isSignedIn)
         do { _ = try await guest.identity(); XCTFail() } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
     }
+    func testProfileTabsAndBalancePreviewText() throws {
+        XCTAssertEqual(MemberHomeProfileTab.allCases.map(\.zhTitle), ["我的", "推文", "成就", "关于"])
+        let withBalance = try identity(#"{"balance":12.5}"#)
+        XCTAssertEqual(withBalance.balancePreviewText, "12.50")
+        let missingBalance = try identity(#"{"balance":null}"#)
+        XCTAssertEqual(missingBalance.balancePreviewText, "—")
+    }
 }

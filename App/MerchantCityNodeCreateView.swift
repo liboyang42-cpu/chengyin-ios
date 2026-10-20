@@ -101,11 +101,16 @@ import SwiftUI
             HStack(spacing: 10) { ProgressView(); MerchantCityNodeCopy.text("merchantCityNode.create.accessLoading") }
                 .frame(maxWidth: .infinity).padding(.vertical, 40).accessibilityIdentifier("cityNodeCreate.loading")
         } else if c.issue == "merchant.content.signedOut" || !service.isAuthenticated {
-            stateView(title: "merchantCityNode.create.login", sub: nil, identifier: "cityNodeCreate.login", retry: false)
+            VStack(spacing: 12) {
+                stateView(title: "merchantCityNode.create.login", sub: nil, identifier: "cityNodeCreate.login", retry: false)
+                Button { dismiss() } label: { Text(verbatim: "去登录") }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("cityNodeCreate.login.action")
+            }
         } else if c.issue == "merchant.content.denied" {
             stateView(title: "merchantCityNode.permission.title", sub: MerchantCityNodeCopy.string("merchantCityNode.permission.sub"), identifier: "cityNodeCreate.noPermission", retry: false)
         } else {
-            stateView(title: "merchantCityNode.create.accessFailed", sub: MerchantCityNodeCopy.failure(c, fallback: MerchantCityNodeCopy.string("merchantCityNode.create.accessFallback")),
+            stateView(title: "merchantCityNode.create.accessFailed", sub: MerchantCityNodeCopy.failure(c, fallback: "门店信息加载失败，请重试"),
                       identifier: "cityNodeCreate.accessError", retry: true)
         }
     }

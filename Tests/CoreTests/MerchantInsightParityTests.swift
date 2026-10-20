@@ -12,4 +12,13 @@ final class MerchantInsightParityTests: XCTestCase {
         XCTAssertNil(MerchantInsightParity.visitorDelta(try facts(#"{"attribution":{"visitors":4}}"#)))
         XCTAssertNil(MerchantInsightParity.visitorDelta(try facts(#"{"attribution":{"visitors":"4","prevVisitors":2}}"#)))
     }
+    func testEmptyGuidanceCTAAndUnknownFactCopy() {
+        XCTAssertEqual(MerchantInsightParity.emptyCTATitle(isEmpty: true), "去合作中心看看")
+        XCTAssertNil(MerchantInsightParity.emptyCTATitle(isEmpty: false))
+        XCTAssertEqual(MerchantInsightParity.factValueText(nil), "数据待同步")
+        XCTAssertEqual(MerchantInsightParity.factValueText(" — "), "数据待同步")
+        XCTAssertEqual(MerchantInsightParity.factValueText("32%"), "32%")
+        XCTAssertEqual(MerchantInsightParity.factIntText(nil), "数据待同步")
+        XCTAssertEqual(MerchantInsightParity.factIntText(18), "18")
+    }
 }

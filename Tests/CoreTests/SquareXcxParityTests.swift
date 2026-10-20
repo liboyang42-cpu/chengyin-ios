@@ -98,7 +98,7 @@ private final class DeletionTransport: HTTPTransport {
 }
 
 @MainActor final class SquareDeletionFlowTests: XCTestCase {
-    private let baseURL = URL(string: "https://api.example.invalid")!
+    private let baseURL = URL(string: "https://api.example.com")!
     private func coordinator(_ transport: DeletionTransport, approved: Set<String>?) throws -> SquareDeletionCoordinator {
         let configuration = try APIConfiguration(baseURL: baseURL)
         let approval = try approved.map { try OperationEndpointApproval(baseURL: baseURL, namespace: "cn", accountID: 7, paths: $0) }
@@ -210,7 +210,7 @@ private final class FeatureTransport: HTTPTransport {
 final class SquareCommunityFeatureTests: XCTestCase {
     private func features(_ body: String) async throws -> (SquareCommunityFeatures, URLRequest?) {
         let transport = FeatureTransport(body)
-        let service = SquareService(configuration: try APIConfiguration(baseURL: URL(string: "https://api.example.invalid")!), transport: transport)
+        let service = SquareService(configuration: try APIConfiguration(baseURL: URL(string: "https://api.example.com")!), transport: transport)
         return (try await service.communityFeatures(token: "synthetic-token"), transport.requests.first)
     }
     func testOnlyLiteralTrueOpensCommunity() async throws {

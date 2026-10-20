@@ -311,6 +311,9 @@ import SwiftUI
                     Text(access.name ?? "#\(access.merchantID)").font(.title3.bold())
                     Text(LocalizedStringKey("merchant.business.role." + String(access.role)))
                 }
+                if MerchantOperatorSelfRoleCard.isShown(for: access) {
+                    MerchantOperatorSelfRoleCard(access: access)
+                }
                 Section("merchant.business.workspace") {
                     ForEach(destinations, id: \.self) { query in
                         if (try? access.require(query.permissions)) != nil {
@@ -815,7 +818,7 @@ import SwiftUI
         }
     }
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
-        if !document.summary.isEmpty || document.query == .overview {
+        if !document.summary.isEmpty || document.query == .overview || MerchantReviewSummaryPresentation(document: document) != nil {
             Section("merchant.business.summary") {
                 if case .customers = document.query { MerchantCustomerListHero(summary: MerchantCustomerListParity.summary(document.summary)) }
                 if case .redemptions = document.query,
@@ -830,6 +833,9 @@ import SwiftUI
                     })
                 }
                 if case .reviews = document.query {
+                    if let presentation = MerchantReviewSummaryPresentation(document: document) {
+                        MerchantReviewSummaryHeader(presentation: presentation)
+                    }
                     Text("merchant.business.reviews.summaryScope").font(.footnote).foregroundStyle(.secondary)
                 }
                 ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount", "pendingReplyCount", "monthNewCount", "replyRatePct", "averageRating", "all", "repeat", "new", "noted", "monthlyNew"], id: \.self) { key in

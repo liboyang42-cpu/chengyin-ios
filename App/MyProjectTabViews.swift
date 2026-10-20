@@ -88,12 +88,50 @@ extension EnvironmentValues {
     }
 }
 
-/// Card lines the mini-program derives locally: role tag, pending dot, schedule text.
+private struct MyProjectMerchantScopeAccessKey: EnvironmentKey {
+    static let defaultValue = MyProjectMerchantScopeAccess()
+}
+
+extension EnvironmentValues {
+    var myProjectMerchantScopeAccess: MyProjectMerchantScopeAccess {
+        get { self[MyProjectMerchantScopeAccessKey.self] }
+        set { self[MyProjectMerchantScopeAccessKey.self] = newValue }
+    }
+}
+
+@MainActor struct MyProjectMerchantBrowseOnlyBanner: View {
+    @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
+    var body: some View {
+        if let notice = merchantScopeAccess.browseOnlyNotice {
+            Text(verbatim: notice)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("myProject.merchant.browseOnlyNotice")
+        }
+    }
+}
+
+/// Card lines the mini-program derives locally: role tag, pending dot, schedule text, and resolved card route.
 @MainActor struct MyProjectCardMeta: View {
     let project: CreatorContentProject
     let chinese: Bool
+    var canEditActivity: Bool = true
+    @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
+
+    var resolvedRoute: MyProjectCardRoute? {
+        MyProjectListPresentation.resolveRoute(
+            project,
+            canEditActivity: canEditActivity,
+            merchantScopeAccess: merchantScopeAccess
+        )
+    }
+
     var body: some View {
-        let card = MyProjectListPresentation.card(project)
+        let card = MyProjectListPresentation.card(
+            project,
+            canEditActivity: canEditActivity,
+            merchantScopeAccess: merchantScopeAccess
+        )
         HStack(spacing: 6) {
             if card.pending { Circle().fill(Color.red).frame(width: 6, height: 6).accessibilityHidden(true) }
             Text(LocalizedStringKey(card.roleKey)).font(.caption.bold())

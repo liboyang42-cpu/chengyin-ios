@@ -19,6 +19,7 @@ public struct MemberIdentitySnapshot: Decodable, Equatable {
     /// All five source counters (follow, fans, topic, activity, like) were numeric.
     public let countersReady: Bool
     public let balanceText: String?
+    public var balancePreviewText: String { balanceText ?? "—" }
     public let joinDate: String?
     public let introduction: String
     public let interests: [String]
@@ -178,6 +179,24 @@ public enum MemberRoleInfoReadRoute {
               let token = request.value(forHTTPHeaderField: "Authorization"),
               AuthRequestBuilder.isValidToken(token) else { return false }
         return true
+    }
+}
+
+public enum MemberHomeProfileTab: String, CaseIterable, Equatable, Identifiable, Sendable {
+    case mine
+    case posts
+    case achievements
+    case about
+
+    public var id: String { rawValue }
+
+    public var zhTitle: String {
+        switch self {
+        case .mine: return "我的"
+        case .posts: return "推文"
+        case .achievements: return "成就"
+        case .about: return "关于"
+        }
     }
 }
 

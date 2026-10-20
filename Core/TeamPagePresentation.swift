@@ -26,6 +26,24 @@ public enum TeamInvitationCTA: Equatable, Sendable {
     }
 }
 
+/// Share card payload for the `邀请队友` action on `pages/team/detail`.
+public struct TeamInviteShareCardPayload: Equatable, Sendable {
+    public let teamID: Int
+    public let inviteCode: String
+    public let title: String
+    public let miniProgramPath: String
+    public let canShareExternally: Bool
+
+    public init(teamID: Int, inviteCode: String, title: String, canShareExternally: Bool = false) {
+        self.teamID = teamID
+        self.inviteCode = inviteCode
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.title = trimmed.isEmpty ? "一起出发的玩家队伍" : trimmed
+        self.miniProgramPath = "/pages/team/join/index?code=\(inviteCode)"
+        self.canShareExternally = canShareExternally
+    }
+}
+
 public enum TeamPagePresentation {
     /// `team.status < 2` renders the live chip in the source.
     public static func statusIsLive(_ status: TeamStatus) -> Bool { status == .recruiting || status == .full }
@@ -44,6 +62,20 @@ public enum TeamPagePresentation {
 
     /// Source detail action row (`team.status == 0`): 邀请队友 for everyone, 加入队伍 when not joined.
     public static func showsInviteEntry(_ detail: TeamDetail) -> Bool { detail.team.status == .recruiting }
+
+    /// Builds the `邀请队友` share card payload when the team is recruiting and has a valid invite code.
+    public static func inviteShareCard(_ detail: TeamDetail, canShareExternally: Bool = false) -> TeamInviteShareCardPayload? {
+        guard showsInviteEntry(detail),
+              let code = detail.team.inviteCode,
+              TeamLookup.validInvite(code) else { return nil }
+        return TeamInviteShareCardPayload(
+            teamID: detail.team.id,
+            inviteCode: code,
+            title: detail.team.title,
+            canShareExternally: canShareExternally
+        )
+    }
+
     /// The source routes a non-member to the join page with the team's own invite code.
     /// Membership must be an explicit `false`; an omitted fact never offers a join.
     public static func joinRouteCode(_ detail: TeamDetail) -> String? {

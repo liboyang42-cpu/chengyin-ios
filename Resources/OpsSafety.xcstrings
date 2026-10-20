@@ -1,0 +1,838 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "opsSafety.fixture.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service status and safety"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务状态与安全"
+          }
+        }
+      }
+    },
+    "opsSafety.notice.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some features are paused"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分功能已暂停"
+          }
+        }
+      }
+    },
+    "opsSafety.notice.unverified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service status could not be confirmed. The server will decide when you continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法确认服务状态；继续操作时以服务端结果为准。"
+          }
+        }
+      }
+    },
+    "opsSafety.notice.preserved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orders, refunds and after-sales stay available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单查询、退款与售后仍可使用。"
+          }
+        }
+      }
+    },
+    "opsSafety.incident.nodeUnsafeOrClosed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stop is paused for safety or opening hours. Do not go there now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该点位因安全或营业原因已暂停，请暂时不要前往。"
+          }
+        }
+      }
+    },
+    "opsSafety.incident.aiDisabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI replies are paused. You can continue the story without them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 回复暂时关闭，不影响继续完成剧情。"
+          }
+        }
+      }
+    },
+    "opsSafety.incident.paymentPendingEntitlement": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your payment may still be processing. Do not pay again; check the order status first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付结果可能仍在处理中，请勿重复支付，先查看订单状态。"
+          }
+        }
+      }
+    },
+    "opsSafety.incident.inventoryPaused": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New sales for this item are paused. Existing orders are unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该商品已暂停新售，已有订单不受影响。"
+          }
+        }
+      }
+    },
+    "opsSafety.incident.eventBacklog": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some updates are delayed. Check again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分状态更新延迟，请稍后再查看。"
+          }
+        }
+      }
+    },
+    "opsSafety.incident.redemptionFrozen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This redemption is on hold for review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该核销暂时冻结，等待复核。"
+          }
+        }
+      }
+    },
+    "opsSafety.incident.serviceDegraded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This feature is temporarily unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该功能暂时不可用。"
+          }
+        }
+      }
+    },
+    "opsSafety.action.viewAlternativeIfProvided": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View the alternative stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看替代点位"
+          }
+        }
+      }
+    },
+    "opsSafety.action.contactSupport": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系客服"
+          }
+        }
+      }
+    },
+    "opsSafety.action.continueWithoutAI": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue without AI"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不使用 AI 继续"
+          }
+        }
+      }
+    },
+    "opsSafety.action.doNotPayAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do not pay again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请勿重复支付"
+          }
+        }
+      }
+    },
+    "opsSafety.action.viewOrder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看订单"
+          }
+        }
+      }
+    },
+    "opsSafety.action.afterSales": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After-sales"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "售后"
+          }
+        }
+      }
+    },
+    "opsSafety.timeout.read": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading took too long. Showing what was already loaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载超时，仅显示已加载内容。"
+          }
+        }
+      }
+    },
+    "opsSafety.timeout.writeUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is not confirmed yet. It may already have been saved; check before trying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果尚未确认，可能已经保存成功；请先查看再决定是否重试。"
+          }
+        }
+      }
+    },
+    "opsSafety.timeout.ai": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The AI reply timed out. Here is the standard guide instead."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 回复超时，以下为固定指引。"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI-generated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 生成"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.scope.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generated by AI, answering only from information this store provided."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由 AI 生成，仅基于这家店提供的信息回答"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.scope.progress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generated by AI, answering only from your current progress."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由 AI 生成，仅基于本次漫游进度回答"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.scope.draft": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI-generated content. Check it before publishing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 生成内容，请核对后再发布"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.notHuman": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replies are generated by AI, not a real person."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回复由 AI 生成，并非真人。"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.noCommitments": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI cannot promise prices, stock, orders, rewards or redemptions. These follow the official order and store staff."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 不能承诺价格、库存、订单、奖励或核销，以正式订单和门店人员为准。"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.mayBeWrong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI replies may be inaccurate."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 回复可能不准确。"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.storyStillCompletable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The main story can be completed without AI."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不使用 AI 也能完成主线。"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.draftOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI only creates drafts. Nothing is published until you confirm and it passes review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 只生成草稿，经你确认并通过审核后才会发布。"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.sensitive.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send personal information to AI?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要把个人信息发给 AI 吗？"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.sensitive.mainlandMobile": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This message looks like it contains a phone number."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息中可能包含手机号。"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.sensitive.residentIdentity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This message looks like it contains an ID number."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息中可能包含身份证号。"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.sensitive.email": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This message looks like it contains an email address."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息中可能包含邮箱地址。"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.sensitive.send": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send anyway"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仍然发送"
+          }
+        }
+      }
+    },
+    "opsSafety.fixture.screen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check sample message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查示例消息"
+          }
+        }
+      }
+    },
+    "opsSafety.ai.sensitive.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改消息"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop paused"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点位已暂停"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.businessHours": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outside opening hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不在营业时间"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.night": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not recommended at night"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夜间不建议前往"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.roadTraffic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Road or traffic risk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "道路或交通风险"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.weather": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather risk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "天气风险"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.restrictedArea": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restricted area"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "禁入区域"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.crowding": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crowded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "人流拥挤"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.photoConsent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photography needs consent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍照需经同意"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.emergencyExit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency exit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紧急退出"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.unrecognized": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other safety reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他安全原因"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.noAlternative": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No alternative stop is available yet. Contact support if you need help."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无替代点位，如需帮助请联系客服。"
+          }
+        }
+      }
+    },
+    "opsSafety.offline.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safety status unknown. Check the venue before going."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全状态未知，前往前请先确认现场情况。"
+          }
+        }
+      }
+    },
+    "opsSafety.presence.accepted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrival confirmed by the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认到场。"
+          }
+        }
+      }
+    },
+    "opsSafety.presence.needsReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your arrival is under review. Location can be inaccurate; you have not been penalised."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到场记录复核中。定位可能存在误差，不会因此判定违规。"
+          }
+        }
+      }
+    },
+    "opsSafety.presence.alternativeOffered": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An alternative way to confirm arrival is available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可使用其他方式确认到场。"
+          }
+        }
+      }
+    },
+    "opsSafety.presence.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrival status is not confirmed yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到场状态尚未确认。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

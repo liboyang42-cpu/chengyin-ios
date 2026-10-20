@@ -26,7 +26,7 @@ import XCTest
         func snapshot(_ scope: ClubGovernanceScope) throws -> ClubGovernanceSnapshot {
             let permissions = try ClubGovernancePermissions(value: .object(["active": .bool(true),
                 "club": .object(["id": .integer(scope.clubID ?? 81)]), "roleCodes": .array([.string("CLUB_OWNER")]),
-                "permissions": .array([]), "canManageRoles": .bool(false)]), scope: scope)
+                "permissions": .array([.string("club:content:manage")]), "canManageRoles": .bool(false)]), scope: scope)
             return .init(operation: .topicSettings, scope: scope, permissions: permissions, value: settings)
         }
         func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope,

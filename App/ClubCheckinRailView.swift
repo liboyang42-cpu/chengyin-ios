@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ClubCheckinRailView: View {
     let rail: ClubCheckinRail
+    var stateKind: ClubCheckinRail.StateKind? = nil
     var body: some View {
         Section("club.checkin.rail.title") {
             HStack(spacing: 6) {
@@ -19,6 +20,18 @@ struct ClubCheckinRailView: View {
                     .accessibilityValue(Text(stop.reached ? "club.checkin.rail.reached" : "club.checkin.rail.notReached"))
                     .accessibilityIdentifier("club.checkin.rail." + stop.step.rawValue)
                 }
+            }
+            if let stateKind {
+                Text(verbatim: stateKind.title).font(.footnote.weight(.medium)).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("club.checkin.rail.stateTitle")
+            }
+            if let sessionTime = rail.sessionTimeText {
+                Text(verbatim: sessionTime).font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("club.checkin.rail.sessionTime")
+            }
+            if let statusTime = rail.statusTimeText {
+                Text(verbatim: statusTime).font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("club.checkin.rail.statusTime")
             }
             if rail.refunded {
                 Text("club.checkin.rail.refunded").font(.footnote).foregroundStyle(.secondary)

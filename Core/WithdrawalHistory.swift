@@ -1,6 +1,66 @@
 import Foundation
 import Observation
 
+/// Role-permission presentation for `subpackageMember/tixian` (`roleGuard.can('withdrawable')`).
+public enum WithdrawalRoleGatePresentation: String, Equatable, Sendable {
+    case allowed
+    case denied
+    case unverified
+
+    public init(canWithdraw: Bool?) {
+        switch canWithdraw {
+        case true:
+            self = .allowed
+        case false:
+            self = .denied
+        case nil:
+            self = .unverified
+        }
+    }
+
+    public init(permissions: [String]?) {
+        guard let permissions else {
+            self = .unverified
+            return
+        }
+        let normalized = Set(permissions.map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() })
+        self = normalized.contains("withdrawable") ? .allowed : .denied
+    }
+
+    public var isAllowed: Bool {
+        self == .allowed
+    }
+
+    public var noticeText: String? {
+        switch self {
+        case .denied:
+            return "当前身份暂不支持提现"
+        case .allowed, .unverified:
+            return nil
+        }
+    }
+}
+
+/// Theme style for `subpackageMember/tixianjilu` (`theme=merchant` vs member default).
+public enum WithdrawalThemeStyle: String, Equatable, Sendable {
+    case member
+    case merchant
+
+    public init(rawTheme: String?) {
+        let normalized = rawTheme?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        self = normalized == "merchant" ? .merchant : .member
+    }
+
+    public var badgeTitle: String {
+        switch self {
+        case .merchant:
+            return "商家提现"
+        case .member:
+            return "个人提现"
+        }
+    }
+}
+
 /// Read-only withdrawal history in the mini-program's presentation contract
 /// (components/cy/scene-member-withdraw-history). Unlike `WalletWithdrawalRecord`, one
 /// unexpected row never fails the table: unknown status reads "status unconfirmed" and a

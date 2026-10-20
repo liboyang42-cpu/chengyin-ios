@@ -35,6 +35,87 @@ public enum LaunchFeatureFlagsOutcome: Equatable {
     case unavailable
 }
 
+public enum LaunchFeatureFlagsMountState: Equatable {
+    case unmountedAllowlistPending
+    case loaded([String: Bool])
+    case failed
+
+    public func isEnabled(_ flag: String) -> Bool {
+        guard case let .loaded(flags) = self, LaunchFeatureFlags.knownKeys.contains(flag) else {
+            return false
+        }
+        return flags[flag] == true
+    }
+
+    public var statusNotice: String {
+        switch self {
+        case .unmountedAllowlistPending:
+            return "功能开关待接入白名单"
+        case .loaded:
+            return "功能开关已加载"
+        case .failed:
+            return "功能开关加载失败，已回退默认关闭"
+        }
+    }
+
+    public static func fromOutcome(_ outcome: LaunchFeatureFlagsOutcome, approved: Bool = false) -> LaunchFeatureFlagsMountState {
+        guard approved else { return .unmountedAllowlistPending }
+        switch outcome {
+        case let .loaded(flags):
+            var values: [String: Bool] = [:]
+            for key in LaunchFeatureFlags.knownKeys {
+                values[key] = flags.isOn(key)
+            }
+            return .loaded(values)
+        case .unavailable:
+            return .failed
+        }
+    }
+}
+
+public struct PrivacyGuideSummaryItem: Equatable, Identifiable {
+    public let id: String
+    public let title: String
+    public let detail: String
+
+    public init(id: String, title: String, detail: String) {
+        self.id = id
+        self.title = title
+        self.detail = detail
+    }
+}
+
+public struct PrivacyGuideSummaryPresentation: Equatable {
+    public static let defaultItems: [PrivacyGuideSummaryItem] = [
+        PrivacyGuideSummaryItem(
+            id: "collection_scope",
+            title: "信息收集范围",
+            detail: "仅在提供剧本组局、漫游打卡与账号安全服务所必需的范围内收集基础账号信息。"
+        ),
+        PrivacyGuideSummaryItem(
+            id: "permission_usage",
+            title: "权限使用说明",
+            detail: "位置、相册与通知等系统权限仅在对应功能触发时申请，拒绝授权不影响基础浏览。"
+        ),
+        PrivacyGuideSummaryItem(
+            id: "revoke_and_deregister",
+            title: "撤回同意与注销入口",
+            detail: "可随时在设置与隐私保护页面撤回位置、营销授权或发起账号注销申请。"
+        )
+    ]
+
+    public let items: [PrivacyGuideSummaryItem]
+    public let pendingBundledSourceNotice: String
+
+    public init(
+        items: [PrivacyGuideSummaryItem] = PrivacyGuideSummaryPresentation.defaultItems,
+        pendingBundledSourceNotice: String = "完整隐私保护指引正文待法务终稿内置，当前展示核心合规摘要。"
+    ) {
+        self.items = items
+        self.pendingBundledSourceNotice = pendingBundledSourceNotice
+    }
+}
+
 public final class LaunchFeatureFlagsReader {
     public static let path = "api/config/features"
     private let configuration: APIConfiguration?

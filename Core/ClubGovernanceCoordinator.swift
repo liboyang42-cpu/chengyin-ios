@@ -108,6 +108,9 @@ public enum ClubGovernanceWriteState: Equatable { case idle, reviewing, prefligh
         defer { busy = false }
         do {
             let fresh = try await access.read(pending.command.operation.reviewRead, scope: pending.command.scope, options: pending.command.reviewOptions)
+            guard let permissions = fresh.permissions, permissions.allows(pending.command.operation.permission, scope: pending.command.scope) else {
+                throw ClubGovernanceFailure.forbidden
+            }
             try pending.command.validateReview(fresh, accountID: accountID)
             let members = try await memberProof(pending.command)
             guard fresh == pending.snapshot, members == pending.supportingMembers, generation == revision, access.identity == pending.identity, access.storageNamespace == pending.storageNamespace, access.authorizationGeneration == pending.authorizationGeneration, !Task.isCancelled else { throw ClubGovernanceFailure.staleReview }

@@ -54,4 +54,21 @@ final class ClubDetailTabTests: XCTestCase {
         XCTAssertEqual(policy(admin: true).resolve(.manage), .manage)
         XCTAssertEqual(policy().resolve(nil), .overview)
     }
+
+    func testOverviewFactsGridAndEnrollmentHeaderFormatting() {
+        let grid = ClubDetailOverviewFactsGrid(leaderName: " 阿青 ", level: 4, city: " 杭州 ")
+        XCTAssertEqual(grid.items.map(\.label), ["主理人", "等级", "所在城市"])
+        XCTAssertEqual(grid.items.map(\.value), ["阿青", "L4", "杭州"])
+
+        let fallbackGrid = ClubDetailOverviewFactsGrid(leaderName: " ", level: 0, city: nil)
+        XCTAssertEqual(fallbackGrid.items.map(\.value), ["待补充", "待定", "待补充"])
+
+        XCTAssertEqual(ClubEnrollmentReader.formatHeaderLine(clubName: "山野社", teamCount: 3), "山野社 · 3 个团")
+        XCTAssertEqual(ClubEnrollmentReader.formatHeaderLine(clubName: "  ", teamCount: 2), "2 个团")
+        XCTAssertEqual(ClubEnrollmentReader.formatPaymentRefundSummary(paidCount: 8, refundableCount: 5), "已支付 8 / 可退款 5")
+        XCTAssertEqual(ClubEnrollmentReader.formatPaymentRefundSummary(paidCount: 8, refundableCount: nil), "已支付 8 / 可退款 待确认")
+        XCTAssertEqual(ClubEnrollmentReader.failureTitle(for: .forbidden), "没有权限查看报名名册")
+        XCTAssertEqual(ClubEnrollmentReader.failureTitle(for: .rejected(code: 403, message: nil)), "没有权限查看报名名册")
+        XCTAssertNil(ClubEnrollmentReader.failureTitle(for: .signedOut))
+    }
 }

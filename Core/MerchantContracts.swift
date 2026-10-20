@@ -24,9 +24,13 @@ public struct MerchantTodo: Decodable, Equatable {
     public let pendingScanConfirm: Int
     public let pendingOrders: Int
     public let refundCount: Int
-    /// Source merchant/index todo.pendingPredict: rounds waiting for the merchant's answer (count only).
+    /// Prediction rounds still awaiting the merchant's answer (mini-program todo-summary).
+    /// Expired rounds are no longer reported, so the reminder disappears with zero.
     public let pendingPredict: Int
-    enum CodingKeys: String, CodingKey { case pendingVerify, verifiedCount, pendingScanConfirm, pendingOrders, refundCount, pendingPredict }
+    public let biddingTopics: Int
+    /// nil when the server omits `byProject`: per-project chips are then unknown, not "no todo".
+    public let byProject: [MerchantProjectTodo]?
+    enum CodingKeys: String, CodingKey { case pendingVerify, verifiedCount, pendingScanConfirm, pendingOrders, refundCount, pendingPredict, biddingTopics, byProject }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         pendingVerify = try c.decodeIfPresent(Int.self, forKey: .pendingVerify) ?? 0
@@ -34,10 +38,33 @@ public struct MerchantTodo: Decodable, Equatable {
         pendingScanConfirm = try c.decodeIfPresent(Int.self, forKey: .pendingScanConfirm) ?? 0
         pendingOrders = try c.decodeIfPresent(Int.self, forKey: .pendingOrders) ?? 0
         refundCount = try c.decodeIfPresent(Int.self, forKey: .refundCount) ?? 0
-        pendingPredict = try max(0, c.decodeIfPresent(Int.self, forKey: .pendingPredict) ?? 0)
+        // Negative or non-integer counts never become a visible reminder.
+        pendingPredict = max(0, (try? c.decodeIfPresent(Int.self, forKey: .pendingPredict)) ?? 0)
+        biddingTopics = max(0, (try? c.decodeIfPresent(Int.self, forKey: .biddingTopics)) ?? 0)
+        byProject = (try? c.decodeIfPresent([MerchantProjectTodo].self, forKey: .byProject)) ?? nil
     }
     /// Completed verifications are not pending work.
     public var hasPendingWork: Bool { pendingVerify > 0 || pendingScanConfirm > 0 || pendingOrders > 0 || refundCount > 0 }
+}
+
+public struct MerchantProjectTodo: Decodable, Equatable {
+    /// Source strings are preserved; "01" is not the canonical owner ID "1".
+    public let ownerType: String
+    public let ownerID: String
+    public let pendingVerify: Int
+    public let pendingScanConfirm: Int
+    enum CodingKeys: String, CodingKey { case ownerType, ownerId, pendingVerify, pendingScanConfirm }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        func scalar(_ key: CodingKeys) throws -> String {
+            if let value = try? c.decode(String.self, forKey: key) { return value }
+            if let value = try? c.decode(Int.self, forKey: key) { return String(value) }
+            throw DecodingError.dataCorruptedError(forKey: key, in: c, debugDescription: "Missing project owner")
+        }
+        ownerType = try scalar(.ownerType); ownerID = try scalar(.ownerId)
+        pendingVerify = max(0, (try? c.decodeIfPresent(Int.self, forKey: .pendingVerify)) ?? 0)
+        pendingScanConfirm = max(0, (try? c.decodeIfPresent(Int.self, forKey: .pendingScanConfirm)) ?? 0)
+    }
 }
 
 public struct MerchantEvent: Decodable, Equatable {

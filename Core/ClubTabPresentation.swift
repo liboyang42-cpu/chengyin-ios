@@ -1,5 +1,37 @@
 import Foundation
 
+/// Priority-signup badge and topic count presentation for `cy-club-card` in `pages/talent/list`.
+public struct ClubPriorityMemberBadge: Equatable, Sendable {
+    public let prioritySignup: Bool
+    public let topicCount: Int?
+
+    public init(prioritySignup: Bool, topicCount: Int? = nil) {
+        self.prioritySignup = prioritySignup
+        self.topicCount = topicCount
+    }
+
+    public var badgeText: String? {
+        prioritySignup ? "成员优先报名" : nil
+    }
+
+    public var topicCountText: String? {
+        guard let count = topicCount, count > 0 else { return nil }
+        return "\(count) 个主题"
+    }
+}
+
+/// Strict response shape validator for `/api/club/home` matching the mini-program contract.
+public enum ClubHomeStrictShapeCheck: Sendable {
+    public static let requiredKeys: [String] = ["owned", "joined", "nearby", "leaderStatus"]
+
+    public static func validate(jsonObject: [String: Any]) -> Bool {
+        requiredKeys.allSatisfy { key in
+            guard let value = jsonObject[key] else { return false }
+            return !(value is NSNull)
+        }
+    }
+}
+
 /// Mini-program `pages/talent/list` (俱乐部 tab) facts over the existing `/api/club/home` read.
 /// Presentation only. The source marks every `owned` row as owner and every `joined` row as
 /// joined before drawing `cy-club-card`; rows themselves may omit those flags.

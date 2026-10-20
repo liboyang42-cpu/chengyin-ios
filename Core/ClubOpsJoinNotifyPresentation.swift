@@ -39,3 +39,71 @@ public struct ClubOpsPageFailureCopy: Equatable {
     }
 }
 
+/// Distinguishes transport/network failures (`网络连接失败`) from business/service unavailability (`通知工具暂时不可用` / `入会申请加载失败`).
+public enum ClubOpsNetworkFailureClassifier: Equatable {
+    public enum Kind: Equatable {
+        case network
+        case serviceUnavailable
+    }
+
+    public enum Surface: Equatable {
+        case notify
+        case joinRequests
+    }
+
+    public static let networkFailureTitle = "网络连接失败"
+    public static let notifyUnavailableTitle = "通知工具暂时不可用"
+    public static let joinRequestsUnavailableTitle = "入会申请加载失败"
+
+    public static func classify(_ error: Error) -> Kind {
+        if error is ClubManagementListConnectionFailure {
+            return .network
+        }
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut, .cannotFindHost, .cannotConnectToHost, .networkConnectionLost,
+                 .dnsLookupFailed, .notConnectedToInternet:
+                return .network
+            default:
+                return .serviceUnavailable
+            }
+        }
+        return .serviceUnavailable
+    }
+
+    public static func title(for surface: Surface, kind: Kind) -> String {
+        switch kind {
+        case .network:
+            return networkFailureTitle
+        case .serviceUnavailable:
+            switch surface {
+            case .notify: return notifyUnavailableTitle
+            case .joinRequests: return joinRequestsUnavailableTitle
+            }
+        }
+    }
+
+    public static func title(for surface: Surface, error: Error) -> String {
+        title(for: surface, kind: classify(error))
+    }
+}
+
+/// Per-row join-request failure banner (`这次处理没有完成`) paired with a readback-safe `重新核对` action.
+/// Never replays a write; its action only triggers a fresh list readback.
+public struct ClubJoinRequestRowIssuePresentation: Equatable {
+    public static let issueTitle = "这次处理没有完成"
+    public static let actionTitle = "重新核对"
+
+    public let memberID: Int
+    public let title: String
+    public let actionTitle: String
+    public let replaysWrite: Bool
+
+    public init?(memberID: Int, failedMemberID: Int?, submitting: Bool = false) {
+        guard !submitting, memberID > 0, failedMemberID == memberID else { return nil }
+        self.memberID = memberID
+        self.title = Self.issueTitle
+        self.actionTitle = Self.actionTitle
+        self.replaysWrite = false
+    }
+}

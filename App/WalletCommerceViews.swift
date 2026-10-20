@@ -5,6 +5,19 @@ enum WalletReadFailurePresentation {
     static func isUnavailable(_ error: Error) -> Bool {
         (error as? APIError) == .notConfigured || (error as? WalletCommerceSafetyError) == .unavailable
     }
+    static func isForbidden(_ error: Error) -> Bool {
+        if let apiError = error as? APIError {
+            return apiError == .httpStatus(403) || apiError == .businessCode(403)
+        }
+        return false
+    }
+    static func incomeSourceBadge(for row: WalletLedgerRow) -> String? {
+        switch row.eventType {
+        case 1: return "创"
+        case 2, 5: return "品"
+        default: return nil
+        }
+    }
 }
 
 @MainActor final class WalletScreen<Value>: ObservableObject {
@@ -257,7 +270,17 @@ extension WalletScreen where Value == WithdrawalBalance {
     }
     private func ledgerRow(_ row: WalletLedgerRow) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+            HStack(spacing: 6) {
+                if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
+                    Text(verbatim: badge)
+                        .font(.caption2.bold())
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.accentColor.opacity(0.15), in: Capsule())
+                        .accessibilityIdentifier("wallet.income.badge.\(row.id)")
+                }
+                Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+            }
             if income { Text(LocalizedStringKey(row.incomeEventKey)) }
             Text(LocalizedStringKey("wallet.direction." + (income ? row.incomeDirection : row.assetDirection).rawValue))
             HStack {

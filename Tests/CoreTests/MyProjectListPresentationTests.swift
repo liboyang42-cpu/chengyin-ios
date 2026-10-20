@@ -80,4 +80,54 @@ final class MyProjectListPresentationTests: XCTestCase {
         XCTAssertNil(MyProjectListPresentation.emptyCTAKey(for: .activity, canPublishActivity: false))
         XCTAssertNil(MyProjectListPresentation.emptyCTAKey(for: .template, canPublishActivity: true))
     }
+
+    func testTemplateAuthoringIntroCategoryDecodingDefaultsToNodeGameplayWhenAbsentOrBlank() throws {
+        let payload: [String: Any] = [
+            "recommendList": [
+                ["id": 11, "title": "A", "sysCategoryList": [["categoryName": "实景解谜"]]],
+                ["id": 12, "title": "B", "sysCategoryList": [["categoryName": "   "]]],
+                ["id": 13, "title": "C"]
+            ]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: payload)
+        let examples = try TemplateAuthoringIntroExamples(homeData: data)
+        XCTAssertEqual(examples.categoryNames, ["实景解谜", "节点玩法", "节点玩法"])
+        XCTAssertEqual(examples.categoryName(at: 0), "实景解谜")
+        XCTAssertEqual(examples.categoryName(at: 1), "节点玩法")
+        XCTAssertEqual(examples.categoryName(at: 2), "节点玩法")
+        XCTAssertEqual(examples.categoryName(at: 99), "节点玩法")
+    }
+
+    func testMerchantScopeAccessAndCardRouteResolution() throws {
+        let activeManage = try JSONDecoder().decode(MerchantMarketingAccess.self, from: Data(#"{"merchantId":1,"active":true,"permissions":["merchant:project:manage"]}"#.utf8))
+        let activeReadOnly = try JSONDecoder().decode(MerchantMarketingAccess.self, from: Data(#"{"merchantId":1,"active":true,"permissions":["merchant:project:view"]}"#.utf8))
+        let allowed = MyProjectMerchantScopeAccess(scope: "MERCHANT", merchantAccess: activeManage)
+        XCTAssertTrue(allowed.isMerchantScope)
+        XCTAssertFalse(allowed.isBrowseOnly)
+        let browseOnly = MyProjectMerchantScopeAccess(scope: "MERCHANT", merchantAccess: activeReadOnly)
+        XCTAssertTrue(browseOnly.isBrowseOnly)
+        XCTAssertEqual(browseOnly.browseOnlyNotice, "当前岗位仅可查看门店项目，需项目管理权限才能发布或修改")
+
+        let draftTopic = try project(#"{"id":19,"bizType":"topic","state":"draft"}"#)
+        XCTAssertEqual(MyProjectListPresentation.resolveRoute(draftTopic, merchantScopeAccess: allowed), .topicEditor(19))
+        XCTAssertEqual(MyProjectListPresentation.resolveRoute(draftTopic, merchantScopeAccess: browseOnly), .projectHome(19))
+    }
+
+    func testQuickPublishPointValidationMaxThreeAndPOIConfirmation() {
+        let place = PublishingPlace(name: "西湖文化广场", address: "杭州市", latitude: 30.27, longitude: 120.16)
+        let confirmedNode = QuickPublishNode(name: "第一站", description: "签到", confirmedPlace: place)
+        let unconfirmedNode = QuickPublishNode(name: "第二站", description: "打卡", confirmedPlace: nil)
+        let partial = QuickPublishPointValidation(nodes: [confirmedNode, unconfirmedNode])
+        XCTAssertEqual(partial.count, 2)
+        XCTAssertTrue(partial.canAddPoint)
+        XCTAssertFalse(partial.allPOIsConfirmed)
+        XCTAssertFalse(partial.isValid)
+        let threeConfirmed = QuickPublishPointValidation(nodes: [
+            confirmedNode,
+            QuickPublishNode(name: "第二站", description: "", confirmedPlace: place),
+            QuickPublishNode(name: "第三站", description: "", confirmedPlace: place)
+        ])
+        XCTAssertTrue(threeConfirmed.allPOIsConfirmed)
+        XCTAssertTrue(threeConfirmed.isValid)
+    }
 }

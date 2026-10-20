@@ -54,4 +54,26 @@ public enum TopicPricingXcx {
     }
     /// Lineup rows tied to a chapter open the merchant project view; others open the partner terms page.
     public static func opensChapterProject(_ row: PublisherLineup) -> Bool { row.chapterID != nil }
+
+    public enum LineupRowTarget: Equatable, Sendable {
+        case chapterProject(topicID: Int, chapterID: Int, partnerID: Int)
+        case partnerTerms(topicID: Int, partnerType: String, partnerID: Int)
+    }
+
+    public static let lineupLockedNote = "阵容已锁定，点开可查该合作方在本主题中的结算条款。"
+    public static let partnerLockedNote = "阵容已锁定，以下为该合作方在本主题中的结算条款。"
+
+    public static func lockedNote(forPartnerDetail: Bool = false) -> String {
+        forPartnerDetail ? partnerLockedNote : lineupLockedNote
+    }
+
+    public static func rowTarget(topicID: Int, row: PublisherLineup) -> LineupRowTarget? {
+        guard topicID > 0, row.partnerID > 0 else { return nil }
+        if let chapterID = row.chapterID, chapterID > 0 {
+            return .chapterProject(topicID: topicID, chapterID: chapterID, partnerID: row.partnerID)
+        }
+        let partnerType = row.type.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !partnerType.isEmpty else { return nil }
+        return .partnerTerms(topicID: topicID, partnerType: partnerType, partnerID: row.partnerID)
+    }
 }

@@ -93,4 +93,36 @@ final class IMInboxTests: XCTestCase {
         XCTAssertNil(absent.blocked); XCTAssertNil(absent.blockedByMe)
         XCTAssertNil(try page(#","blocked":"yes""#).blocked)
     }
+    func testPreviewPolicySilentRefreshAndReadReceiptTriggerPolicy() throws {
+        let conversation = try XCTUnwrap(rows([
+            ["conversationId": 11, "type": 1, "lastMsgText": "  周末集合点确认  "]
+        ]).first)
+        XCTAssertEqual(IMConversationPreviewPolicy.defaultPolicy, .redactedPlaceholder)
+        XCTAssertEqual(IMConversationPreviewPolicy.resolve(for: conversation), "打开会话查看消息")
+        XCTAssertEqual(
+            IMConversationPreviewPolicy.resolve(for: conversation, policy: .serverPreviewWhenUnrecalled),
+            "周末集合点确认"
+        )
+        XCTAssertEqual(
+            IMConversationPreviewPolicy.resolve(for: conversation, policy: .serverPreviewWhenUnrecalled, isRecalled: true),
+            "打开会话查看消息"
+        )
+        XCTAssertEqual(
+            IMConversationPreviewPolicy.serverPreviewWhenUnrecalled.previewText(serverPreview: "   "),
+            "打开会话查看消息"
+        )
+
+        let refreshing = IMSilentRefreshPresentation(isRefreshingWithSnapshot: true)
+        XCTAssertEqual(refreshing.statusText, "正在刷新消息")
+        let idle = IMSilentRefreshPresentation(isLoading: false, hasSnapshot: true)
+        XCTAssertFalse(idle.isRefreshingWithSnapshot)
+        XCTAssertNil(idle.statusText)
+
+        XCTAssertEqual(IMReadReceiptTriggerPolicy.defaultPolicy, .explicitUserActionOnly)
+        XCTAssertFalse(IMReadReceiptTriggerPolicy.explicitUserActionOnly.shouldAutoMarkRead)
+        XCTAssertFalse(IMReadReceiptTriggerPolicy.autoOnLoadWhenGranted(imReadGranted: false).shouldAutoMarkRead)
+        XCTAssertTrue(IMReadReceiptTriggerPolicy.autoOnLoadWhenGranted(imReadGranted: true).shouldAutoMarkRead)
+        XCTAssertTrue(IMReadReceiptTriggerPolicy.autoOnLoadWhenGranted(imReadGranted: true).shouldAutoMarkRead(unreadCount: 2))
+        XCTAssertFalse(IMReadReceiptTriggerPolicy.autoOnLoadWhenGranted(imReadGranted: true).shouldAutoMarkRead(unreadCount: 0))
+    }
 }

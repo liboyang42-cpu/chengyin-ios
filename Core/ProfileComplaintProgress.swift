@@ -50,6 +50,43 @@ public enum ProfileComplaintProgressIssue: Equatable {
     }
 }
 
+/// Source topic-load failure copy distinguishing network errors (`网络异常，请重试`)
+/// from generic load failures (`可投诉活动加载失败，请重试`) and expired sign-in (`登录状态已失效，请重新进入`).
+public enum ProfileComplaintTopicLoadFailureCopy: Equatable, Sendable {
+    public static let title = "可投诉活动没能加载出来"
+    public static let networkSubtitle = "网络异常，请重试"
+    public static let genericSubtitle = "可投诉活动加载失败，请重试"
+    public static let signInSubtitle = "登录状态已失效，请重新进入"
+
+    public static func isNetworkError(_ error: Error) -> Bool {
+        if error is URLError { return true }
+        let nsError = error as NSError
+        return nsError.domain == NSURLErrorDomain
+    }
+
+    public static func sourceSubtitle(for error: Error) -> String {
+        let issue = ProfileComplaintReadIssue(error)
+        return sourceSubtitle(issue: issue, isNetworkError: isNetworkError(error))
+    }
+
+    public static func sourceSubtitle(issue: ProfileComplaintReadIssue, isNetworkError: Bool = false) -> String {
+        switch issue {
+        case .failed:
+            return isNetworkError ? networkSubtitle : genericSubtitle
+        case .signIn:
+            return signInSubtitle
+        case .unavailable:
+            return "当前配置暂未启用此读取服务"
+        }
+    }
+}
+
+public extension ProfileComplaintReadIssue {
+    func sourceSubtitle(isNetworkError: Bool = false) -> String {
+        ProfileComplaintTopicLoadFailureCopy.sourceSubtitle(issue: self, isNetworkError: isNetworkError)
+    }
+}
+
 @MainActor @Observable public final class ProfileComplaintProgressController {
     public private(set) var rows: [ProfileComplaintProgressRow] = []
     public private(set) var issue: ProfileComplaintProgressIssue?

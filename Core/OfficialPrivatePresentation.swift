@@ -49,6 +49,17 @@ public enum OfficialInboxPresentation {
         }
         return action == .accept ? "official.privateParity.inbox.confirm.acceptBody" : "official.privateParity.inbox.confirm.changeBody"
     }
+    /// Source official-inbox load failure title and detail copy.
+    public static let loadFailureTitle = "邀约没有加载出来"
+    public static let loadFailureDetail = "邀约加载失败"
+    public static let loadFailureTitleKey = "official.w206.inbox.failed.title"
+    public static let loadFailureDetailKey = "official.w206.inbox.failed.detail"
+    public static func serviceWindow(start: OfficialEventTime?, end: OfficialEventTime?) -> OfficialServiceWindow {
+        OfficialServiceWindow(start: start, end: end)
+    }
+    public static func serviceWindowText(start: OfficialEventTime?, end: OfficialEventTime?) -> String {
+        OfficialServiceWindow(start: start, end: end).sourceText
+    }
 }
 
 public extension OfficialResponseAction {
@@ -154,6 +165,20 @@ public enum OfficialPublishedPresentation {
         guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else { return nil }
         return trimmed
     }
+    /// Source official-mine category suffix: `" · \(category)"` when non-blank.
+    public static func categorySuffix(_ category: String?) -> String? {
+        guard let trimmed = nonBlank(category) else { return nil }
+        return " · \(trimmed)"
+    }
+    /// Source official-mine city + optional category suffix line.
+    public static func cityAndCategoryLine(city: String?, category: String?, cityFallback: String = "城市待确认") -> String {
+        let cityText = nonBlank(city) ?? cityFallback
+        return cityText + (categorySuffix(category) ?? "")
+    }
+    /// Source official-mine broadcast summary line (`"一起发/分开发 · 发给 … · 城市"` with `"待确认"` fallbacks).
+    public static func broadcastSummaryLine(_ facts: OfficialPublishedBroadcastFacts) -> String {
+        facts.sourceLine
+    }
 }
 
 /// Source official-mine `_decoBc` over broadcast fields the shared OfficialBroadcast does not
@@ -169,6 +194,13 @@ public struct OfficialPublishedBroadcastFacts: Decodable, Equatable {
     /// nil when blank (source "范围待确认").
     public let city: String?
     private enum CodingKeys: String, CodingKey { case id, copyMode, audience, status, city }
+    public init(id: Int? = nil, mode: Mode, status: Status = .unknown, audience: [OfficialAudience]?, city: String?) {
+        self.id = id
+        self.mode = mode
+        self.status = status
+        self.audience = (audience?.isEmpty == false) ? audience : nil
+        self.city = OfficialPublishedPresentation.nonBlank(city)
+    }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try? c.decode(Int.self, forKey: .id)

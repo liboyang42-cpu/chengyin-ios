@@ -72,3 +72,38 @@ public struct ClubDetailTabPolicy: Equatable, Sendable {
         tabs.contains(tab) ? tab : current
     }
 }
+
+/// Mini-program `pages/club/detail` 3-up overview facts grid: 主理人 / 等级 / 所在城市.
+public struct ClubDetailOverviewFactsGrid: Equatable, Sendable {
+    public enum Field: String, CaseIterable, Identifiable, Sendable {
+        case leader, level, city
+        public var id: String { rawValue }
+        public var label: String {
+            switch self {
+            case .leader: return "主理人"
+            case .level: return "等级"
+            case .city: return "所在城市"
+            }
+        }
+    }
+    public struct Item: Equatable, Identifiable, Sendable {
+        public let field: Field
+        public let label: String
+        public let value: String
+        public var id: String { field.rawValue }
+    }
+    public let items: [Item]
+    public init(leaderName: String?, level: Int, city: String?) {
+        let normalizedLeader = leaderName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let normalizedCity = city?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let levelText = (1...5).contains(level) ? "L\(level)" : "待定"
+        items = [
+            Item(field: .leader, label: Field.leader.label, value: normalizedLeader.isEmpty ? "待补充" : normalizedLeader),
+            Item(field: .level, label: Field.level.label, value: levelText),
+            Item(field: .city, label: Field.city.label, value: normalizedCity.isEmpty ? "待补充" : normalizedCity),
+        ]
+    }
+    public init(club: ClubRecord) {
+        self.init(leaderName: club.leaderName, level: club.level, city: club.city)
+    }
+}

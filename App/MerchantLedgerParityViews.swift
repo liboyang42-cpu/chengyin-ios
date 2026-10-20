@@ -87,3 +87,26 @@ struct MerchantLedgerBatchHero: View {
         }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.ledger.batchHero")
     }
 }
+
+struct MerchantLedgerBatchStatementCard: View {
+    let statement: MerchantLedgerParity.BatchStatementSummary
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(verbatim: statement.title).font(.headline)
+            if let total = statement.totalText {
+                LabeledContent {
+                    Text(verbatim: total).monospacedDigit()
+                } label: {
+                    Text(verbatim: "合计")
+                }
+            } else if let empty = statement.emptyText {
+                Text(verbatim: empty).font(.footnote).foregroundStyle(.secondary)
+            }
+            ForEach(Array(statement.stepTimestamps.enumerated()), id: \.offset) { _, stamp in
+                Text(verbatim: stamp).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("merchantOps.ledger.batchStatement")
+    }
+}

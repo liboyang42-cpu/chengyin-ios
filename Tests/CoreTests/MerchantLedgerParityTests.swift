@@ -72,4 +72,21 @@ final class MerchantLedgerParityTests: XCTestCase {
         XCTAssertEqual(paid.stateKey, "merchantOps.ledger.state.settledPaid"); XCTAssertEqual(paid.variant, .success)
         XCTAssertEqual(MerchantLedgerParity.batchHero(["netDirection": .string("MERCHANT_OWES_PLATFORM")]).variant, .danger)
     }
+    func testBatchStatementAndRedemptionIssueState() {
+        let emptyStatement = MerchantLedgerParity.batchStatementSummary(["amountTotal": .string("18.00")], lineCount: 0)
+        XCTAssertEqual(emptyStatement.title, "对账单")
+        XCTAssertNil(emptyStatement.totalText)
+        XCTAssertEqual(emptyStatement.emptyText, "当前批次暂无对账明细")
+
+        let populatedStatement = MerchantLedgerParity.batchStatementSummary(
+            ["amountTotal": .string("18.00"), "createdAt": .string("2026-10-19 10:00:00"), "paidAt": .string("2026-10-20 12:30:00")],
+            lineCount: 2
+        )
+        XCTAssertEqual(populatedStatement.totalText, "¥18.00")
+        XCTAssertNil(populatedStatement.emptyText)
+        XCTAssertEqual(populatedStatement.stepTimestamps, ["2026-10-19 10:00", "2026-10-20 12:30"])
+
+        XCTAssertEqual(MerchantLedgerParity.redemptionRecordIssueState(record: nil)?.title, "找不到这条核销记录")
+        XCTAssertEqual(MerchantLedgerParity.redemptionRecordIssueState(record: [:], denied: true)?.title, "当前账号无权查看该核销记录")
+    }
 }

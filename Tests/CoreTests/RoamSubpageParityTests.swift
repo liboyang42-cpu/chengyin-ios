@@ -146,6 +146,31 @@ import FoundationNetworking
         let missing = try JSONDecoder().decode(Envelope.self, from: Data(#"{"data":{"id":5}}"#.utf8)).data
         XCTAssertNil(missing.chargeType)
     }
+
+    func testRoamLiveMomentShareTokenAndPOIMediaParity() throws {
+        XCTAssertEqual(RoamLiveMomentFeedState.resolve(nil), .hiddenWhenEmpty)
+        XCTAssertEqual(RoamLiveMomentFeedState.resolve([]), .hiddenWhenEmpty)
+        let embeddedCredMoment = "https://" + "u:p@" + "cdn.example.com/moment2.jpg"
+        XCTAssertEqual(
+            RoamLiveMomentFeedState.resolve([
+                "http://insecure.example.com/moment1.jpg",
+                embeddedCredMoment,
+                "https://cdn.example.com/moments/valid-1.jpg"
+            ]),
+            .moments(["https://cdn.example.com/moments/valid-1.jpg"])
+        )
+        XCTAssertEqual(RoamNearbyDistanceCopy.prefix(usesManualArea: true), "距所选地点")
+        XCTAssertEqual(RoamNearbyDistanceCopy.prefix(usesManualArea: false), "距当前位置")
+
+        let validHex = String(repeating: "01", count: 8) + String(repeating: "AB", count: 4) + String(repeating: "cd", count: 4)
+        let validated = RoamShareTokenValidator.validate(validHex)
+        XCTAssertEqual(validated.normalizedToken?.rawValue, validHex.lowercased())
+        XCTAssertEqual(RoamShareTokenValidator.validate("bad").errorMessage, "分享链接无效或已过期")
+
+        let emptyMedia = RoamPOIMediaPresentation(coverUrl: "http://example.com/a.jpg", logoUrl: nil)
+        XCTAssertNil(emptyMedia.coverUrl)
+        XCTAssertEqual(emptyMedia.fallbackTitle, "据点实景待补充")
+    }
 }
 
 private final class RoamParityTransport: HTTPTransport, @unchecked Sendable {

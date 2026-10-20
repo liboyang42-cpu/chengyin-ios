@@ -48,6 +48,19 @@ final class CoopListParityTests: XCTestCase {
         XCTAssertFalse(CoopListReadFailure.isPermission(CoopFlowFailure.server(500, "busy")))
         XCTAssertFalse(CoopListReadFailure.isPermission(CoopFlowFailure.malformed))
     }
+
+    func testTopicFilterSeedAndClear() {
+        var seed = CoopTopicFilterSeed(rawTopicID: "42", rawTopicName: " 城市漫游 ")
+        XCTAssertTrue(seed.isActive)
+        XCTAssertEqual(seed.topicID, 42)
+        XCTAssertEqual(seed.topicName, "城市漫游")
+        XCTAssertEqual(seed.displayLabel, "城市漫游 (#42)")
+        XCTAssertEqual(seed.filter([10, 42, 99], topic: { $0 }), [42])
+        seed.clear()
+        XCTAssertFalse(seed.isActive)
+        XCTAssertNil(seed.displayLabel)
+        XCTAssertEqual(seed.filter([10, 42, 99], topic: { $0 }), [10, 42, 99])
+    }
 }
 
 private final class CoopListFakeTransport: HTTPTransport {

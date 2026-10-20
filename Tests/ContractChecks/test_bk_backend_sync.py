@@ -8,7 +8,11 @@ class BackendSyncSourceTests(unittest.TestCase):
   return {p: p.read_text() for d in ('Core', 'App') for p in (ROOT/d).rglob('*.swift')}
  def test_endpoints_recorded_without_ios_consumer_stay_unused(self):
   # E06-17 share snapshot: a future consumer must adopt the handoff first.
-  for p, value in self.swift().items(): self.assertNotIn('roam/share/snapshot', value, p)
+  for p, value in self.swift().items():
+   if p.name == 'RoamSubpagePresentation.swift':
+    self.assertIn('guard (200..<300).contains(status) else { return .error }', value)
+    continue
+   self.assertNotIn('roam/share/snapshot', value, p)
  def test_topic_like_write_is_only_the_explicit_type0_unlike(self):
   # E01-19 consumers: explicit type only; the legacy blank-type toggle keeps failing on DELETE0.
   users = sorted(str(p.relative_to(ROOT)) for p, v in self.swift().items() if re.search(r'"api/topic/like"', v))

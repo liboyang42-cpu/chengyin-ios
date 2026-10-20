@@ -44,6 +44,15 @@ import SwiftUI
                 Divider()
                 stat(snapshot?.fansCount, id: "fans") { Text("member.card.fans", tableName: "MemberProfile") }
             }.frame(maxWidth: .infinity)
+            LabeledContent {
+                Text(verbatim: snapshot?.balancePreviewText ?? "—")
+                    .font(.subheadline.weight(.semibold).monospacedDigit())
+                    .accessibilityIdentifier("member.card.balanceValue")
+            } label: {
+                Text(verbatim: "我的资产").font(.subheadline)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("member.card.balance")
             if let onOpenTickets {
                 Button(action: onOpenTickets) {
                     Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }

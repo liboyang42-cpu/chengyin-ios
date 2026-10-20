@@ -51,6 +51,63 @@ public struct IMInboxSummary: Equatable {
     }
 }
 
+/// Policy for conversation row preview text in P032 (`im/list`). Defaults to
+/// `.redactedPlaceholder` (`"打开会话查看消息"`) so existing privacy-preserving row
+/// rendering stays unchanged while allowing server preview text when unrecalled.
+public enum IMConversationPreviewPolicy: Equatable, Sendable {
+    case redactedPlaceholder
+    case serverPreviewWhenUnrecalled
+
+    public static let defaultPolicy: Self = .redactedPlaceholder
+    public static let redactedPlaceholderText = "打开会话查看消息"
+
+    public func previewText(serverPreview: String?, isRecalled: Bool = false) -> String {
+        switch self {
+        case .redactedPlaceholder:
+            return Self.redactedPlaceholderText
+        case .serverPreviewWhenUnrecalled:
+            guard !isRecalled,
+                  let trimmed = serverPreview?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !trimmed.isEmpty else {
+                return Self.redactedPlaceholderText
+            }
+            return trimmed
+        }
+    }
+
+    public func previewText(for conversation: MessagingConversation, isRecalled: Bool = false) -> String {
+        previewText(serverPreview: conversation.lastMessageText, isRecalled: isRecalled)
+    }
+
+    public static func resolve(
+        for conversation: MessagingConversation,
+        policy: Self = .redactedPlaceholder,
+        isRecalled: Bool = false
+    ) -> String {
+        policy.previewText(for: conversation, isRecalled: isRecalled)
+    }
+}
+
+/// Silent-refresh indicator model for P032/P033 (`正在刷新消息`) when refreshing
+/// on top of an already-rendered conversation or message snapshot.
+public struct IMSilentRefreshPresentation: Equatable, Sendable {
+    public static let refreshingText = "正在刷新消息"
+
+    public let isRefreshingWithSnapshot: Bool
+
+    public init(isRefreshingWithSnapshot: Bool) {
+        self.isRefreshingWithSnapshot = isRefreshingWithSnapshot
+    }
+
+    public init(isLoading: Bool, hasSnapshot: Bool) {
+        self.isRefreshingWithSnapshot = isLoading && hasSnapshot
+    }
+
+    public var statusText: String? {
+        isRefreshingWithSnapshot ? Self.refreshingText : nil
+    }
+}
+
 /// Mini-program `fmtTime` (list) and `fmtAbs` (chat dividers). Server wall-clock
 /// strings without an offset are anchored to China time (+08:00), as
 /// utils/datetime `parseChinaString` does; calendar comparisons use that zone,

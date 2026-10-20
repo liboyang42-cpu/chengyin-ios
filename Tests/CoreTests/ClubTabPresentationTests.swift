@@ -40,6 +40,32 @@ final class ClubTabPresentationTests: XCTestCase {
         XCTAssertEqual(ClubTabPresentation.feedEmptyKeys(clubCount: 0).detail, "club.tab.feed.noClub.detail")
         XCTAssertEqual(ClubTabPresentation.feedEmptyKeys(clubCount: 2).detail, "club.tab.feed.empty.detail")
     }
+
+    func testPriorityMemberBadgeAndTopicCountCopy() {
+        let active = ClubPriorityMemberBadge(prioritySignup: true, topicCount: 3)
+        XCTAssertEqual(active.badgeText, "成员优先报名")
+        XCTAssertEqual(active.topicCountText, "3 个主题")
+
+        let zeroTopics = ClubPriorityMemberBadge(prioritySignup: false, topicCount: 0)
+        XCTAssertNil(zeroTopics.badgeText)
+        XCTAssertNil(zeroTopics.topicCountText)
+
+        let missingTopics = ClubPriorityMemberBadge(prioritySignup: true, topicCount: nil)
+        XCTAssertEqual(missingTopics.badgeText, "成员优先报名")
+        XCTAssertNil(missingTopics.topicCountText)
+    }
+
+    func testStrictShapeCheckValidatesClubHomeKeys() {
+        let valid: [String: Any] = [
+            "owned": [],
+            "joined": [],
+            "nearby": [],
+            "leaderStatus": 1
+        ]
+        XCTAssertTrue(ClubHomeStrictShapeCheck.validate(jsonObject: valid))
+        XCTAssertFalse(ClubHomeStrictShapeCheck.validate(jsonObject: ["owned": [], "joined": [], "nearby": []]))
+        XCTAssertFalse(ClubHomeStrictShapeCheck.validate(jsonObject: ["owned": [], "joined": [], "nearby": [], "leaderStatus": NSNull()]))
+    }
 }
 
 final class ClubTabTopTabTests: XCTestCase {

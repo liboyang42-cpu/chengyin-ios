@@ -28,4 +28,18 @@ final class ClubCheckinRailTests: XCTestCase {
         XCTAssertEqual(rail.stops.map(\.reached), [true, true, true, true])
         XCTAssertFalse(rail.stops.contains { $0.current })
     }
+    func testStateTitlesAndTimeFormatting() {
+        XCTAssertEqual(ClubCheckinRail.stateTitle(for: nil, recordPresent: false), "核销记录不存在")
+        XCTAssertEqual(ClubCheckinRail.stateTitle(for: .forbidden), "无权查看该核销记录")
+        XCTAssertEqual(ClubCheckinRail.stateTitle(for: .rejected(code: 403, message: nil)), "无权查看该核销记录")
+        XCTAssertEqual(ClubCheckinRail.stateTitle(for: .rejected(code: 500, message: "err")), "核销详情加载失败")
+        let rail = ClubCheckinRail(
+            railStep: .integer(1),
+            statusCode: .string("CONTACTED"),
+            sessionTime: .string("2026-10-19T14:30:00"),
+            statusTime: .string("2026-10-19 15:00:00")
+        )
+        XCTAssertEqual(rail.sessionTimeText, "2026-10-19 14:30")
+        XCTAssertEqual(rail.statusTimeText, "2026-10-19 15:00")
+    }
 }

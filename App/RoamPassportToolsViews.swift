@@ -4,6 +4,8 @@ import SwiftUI
 @MainActor struct RoamPassportToolsSection: View {
     let reader: (any RoamPassportToolsReading)?
     var routeDestination: ((String) -> AnyView)? = nil
+    /// 导出探索记录 (scene-roam-history tools `export`).
+    var privateTools: (any RoamPrivateToolsServing)? = nil
     var body: some View {
         Section("roam.tools.title") {
             NavigationLink { RoamAnniversaryView(reader: reader, routeDestination: routeDestination) } label: {
@@ -12,6 +14,9 @@ import SwiftUI
             NavigationLink { RoamMonthlyRecapView(reader: reader) } label: {
                 Label("roam.tools.recap", systemImage: "chart.bar")
             }.accessibilityIdentifier("roam.tools.recap.open")
+            NavigationLink { RoamExplorationExportView(tools: privateTools) } label: {
+                Label("roam.export.title", systemImage: "square.and.arrow.down")
+            }.accessibilityIdentifier("roam.export.open")
         }
     }
 }

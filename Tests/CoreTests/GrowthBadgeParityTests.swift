@@ -90,4 +90,28 @@ final class GrowthBadgeParityTests: XCTestCase {
         await model.load(category: .all, reader: reader)
         XCTAssertTrue(model.failed); XCTAssertNil(model.access)
     }
+
+    func testAvatarFallbackPileModeAndCollageSlot() {
+        let blankAvatar = GrowthLeaderboardAvatarBadge(nickname: "   ", memberID: 7)
+        XCTAssertEqual(blankAvatar.monogram, "匿")
+        XCTAssertTrue((0..<6).contains(blankAvatar.paletteIndex))
+
+        let namedAvatar = GrowthLeaderboardAvatarBadge(nickname: "chengyin", memberID: 12)
+        XCTAssertEqual(namedAvatar.monogram, "C")
+
+        var mode = ObjectCardPileMode.scatteredPile
+        XCTAssertEqual(mode.buttonLabel, "✦ 收拢")
+        mode.toggle()
+        XCTAssertEqual(mode, .gatheredGrid)
+        XCTAssertEqual(mode.buttonLabel, "✦ 散开")
+        XCTAssertEqual(mode.toggled(), .scatteredPile)
+
+        let slot0 = StampAlbumCollageSlot(index: 0)
+        let slot3 = StampAlbumCollageSlot(index: 3)
+        XCTAssertTrue((-4.0...4.0).contains(slot0.rotationDegrees))
+        XCTAssertTrue((-4.0...4.0).contains(slot3.rotationDegrees))
+        XCTAssertNotEqual(slot0.rotationDegrees, slot3.rotationDegrees)
+        XCTAssertEqual(StampAlbumCollageSlot.sourcePageSize, 50)
+        XCTAssertEqual(StampAlbumCollageSlot.fixturePageSize, 20)
+    }
 }

@@ -28,7 +28,10 @@ struct RoamBrowserView: View {
     var entryTeams: ((RoamSearchArea) async -> [NearbyTeam]?)? = nil
     var myTeamsDestination: (() -> AnyView)? = nil
     var nearbyTeamDestination: ((NearbyTeamID) -> AnyView)? = nil
+    /// Passport tools: 那年今日 / 月度回顾 and the private 探索目标 / 时光胶囊 / 导出.
     var toolsReader: (any RoamPassportToolsReading)? = nil
+    var passportToolsReader: (any RoamPassportToolsReading)? = nil
+    var privateToolsReader: (any RoamPrivateToolsServing)? = nil
     @State private var homeTab: RoamHomeTab = .start
     @State private var entryCard: RoamEntryActivityCard?
     @State private var recoveryBanner: RoamHomeRecoveryBanner?
@@ -123,7 +126,7 @@ struct RoamBrowserView: View {
                 if homeTab == .passport {
                     RoamHomePassportView(reader: experienceReader, albumMetadataReader: albumMetadataReader,
                         stampDestination: stampDestination, liveDestination: liveDestination,
-                        toolsReader: toolsReader, discoverDestination: nearbyTeamsDestination)
+                        toolsReader: passportToolsReader ?? toolsReader, discoverDestination: nearbyTeamsDestination)
                 } else {
                     controls
                     ZStack {
@@ -171,7 +174,7 @@ struct RoamBrowserView: View {
                 if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
                 if let experienceReader {
                     ToolbarItem(placement: .topBarLeading) {
-                        NavigationLink { RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: toolsReader) } label: {
+                        NavigationLink { RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: passportToolsReader ?? toolsReader, privateToolsReader: privateToolsReader) } label: {
                             Label("roam.experience.title", systemImage: "book.closed")
                         }.accessibilityIdentifier("roam.experience.open")
                     }

@@ -140,4 +140,24 @@ final class LaunchFeatureFlagsTests: XCTestCase {
         XCTAssertEqual(rejected, .unavailable)
         XCTAssertEqual(transport.requests.count, 4)
     }
+
+    func testLaunchFeatureFlagsMountStateAndPrivacySummaryItems() {
+        let unmounted = LaunchFeatureFlagsMountState.unmountedAllowlistPending
+        XCTAssertFalse(unmounted.isEnabled("drops"))
+        XCTAssertEqual(unmounted.statusNotice, "功能开关待接入白名单")
+        XCTAssertEqual(LaunchFeatureFlagsMountState.fromOutcome(.unavailable, approved: false), .unmountedAllowlistPending)
+
+        let loaded = LaunchFeatureFlagsMountState.loaded(["drops": true, "roamNpcChat": false, "unknownFlag": true])
+        XCTAssertTrue(loaded.isEnabled("drops"))
+        XCTAssertFalse(loaded.isEnabled("roamNpcChat"))
+        XCTAssertFalse(loaded.isEnabled("unknownFlag"))
+
+        let failed = LaunchFeatureFlagsMountState.fromOutcome(.unavailable, approved: true)
+        XCTAssertEqual(failed, .failed)
+        XCTAssertFalse(failed.isEnabled("drops"))
+
+        let summary = PrivacyGuideSummaryPresentation()
+        XCTAssertEqual(summary.items.map(\.title), ["信息收集范围", "权限使用说明", "撤回同意与注销入口"])
+        XCTAssertTrue(summary.items.allSatisfy { !$0.detail.isEmpty })
+    }
 }

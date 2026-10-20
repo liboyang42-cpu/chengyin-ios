@@ -12,6 +12,15 @@ struct PrivacyProtectionView: View {
         Form {
             Section { Text("authEntry.gate.body", tableName: "AuthEntry").fixedSize(horizontal: false, vertical: true) }
             Section {
+                ForEach(PrivacyGuideSummaryPresentation.defaultItems) { item in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(verbatim: item.title).font(.subheadline.weight(.medium))
+                        Text(verbatim: item.detail).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .accessibilityIdentifier("privacy.guide.summaryItems")
+            Section {
                 Button { document = AuthEntryLegalSheet(type: .privacyPolicy) } label: { Text("authEntry.gate.openPrivacyGuide", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.guide")
                 // The guide text itself is not bundled yet (SettingsSourceLegalCatalog: pendingSourceText).

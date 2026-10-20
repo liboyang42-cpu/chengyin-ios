@@ -41,4 +41,13 @@ final class MerchantCustomerIdentityLineTests: XCTestCase {
         XCTAssertEqual(day.month, 8); XCTAssertEqual(day.day, 27)
         XCTAssertNil(MerchantCustomerListParity.identityDay(nil))
     }
+    func testNoteCounterAndParticipationRow() {
+        XCTAssertEqual(MerchantCustomerListParity.noteCounterText("常来"), "2/500")
+        XCTAssertEqual(MerchantCustomerListParity.noteCorrectionHint, "备注仅本店可见")
+        XCTAssertTrue(MerchantCustomerListParity.isNoteValid("常来"))
+        let row = MerchantCustomerListParity.participationRow(["topicName": .string("夜游西湖"), "occurredAt": .string("2026-10-18 19:00:00"), "paidAmount": .string("39.9")])
+        XCTAssertEqual(row.title, "夜游西湖")
+        XCTAssertEqual(row.dateText, "2026-10-18")
+        XCTAssertEqual(row.paidAmountText, "¥39.90")
+    }
 }

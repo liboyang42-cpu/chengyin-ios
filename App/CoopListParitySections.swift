@@ -6,13 +6,14 @@ import SwiftUI
     let reader: any CoopFlowReading
     let direction: CooperationDirection
     var operationScope: String? = nil
+    var topicFilter: CoopTopicFilterSeed = .init()
     @State private var rows: [CoopChapterApplication] = []
     @State private var failed = false
     @State private var loading = false
     @State private var loadedSession: CoopFlowSession?
     @State private var refresh = UUID()
     var body: some View {
-        let visible = loadedSession == reader.session ? rows.filter { $0.direction == direction } : []
+        let visible = loadedSession == reader.session ? topicFilter.filter(rows.filter { $0.direction == direction }, topic: \.topicID) : []
         Group {
             if loading || failed || !visible.isEmpty {
                 Section("cooperation.list.chapter.title") {

@@ -127,9 +127,81 @@ public struct RoamEntryActivityCard: Equatable, Identifiable {
         if let topic = activity.linkedTopicID { return .topic(topic) }
         return activity.kind == "activity" ? .activity(activity.sourceID) : nil
     }
+    public var liveMomentFeedState: RoamLiveMomentFeedState { .hiddenWhenEmpty }
     static func date(_ text: String?, timeZone: TimeZone) -> Date? {
         guard let text, !text.isEmpty else { return nil }
         return NearbyServerTime.text(text).date(timeZone: timeZone)
+    }
+}
+
+/// Presentation state for the 现场动态 section in `pages/roam/index`.
+/// Filters valid `https` moment image URLs without credentials and collapses to `.hiddenWhenEmpty`
+/// when the entry payload carries no moments.
+public enum RoamLiveMomentFeedState: Equatable, Sendable {
+    case hiddenWhenEmpty
+    case moments([String])
+
+    public init(_ rawURLs: [String?]? = nil) {
+        self = Self.resolve(rawURLs)
+    }
+
+    public init(urls: [String]) {
+        self = Self.resolve(urls)
+    }
+
+    public static func resolve(_ rawURLs: [String?]?) -> Self {
+        guard let rawURLs else { return .hiddenWhenEmpty }
+        return resolve(rawURLs.compactMap { $0 })
+    }
+
+    public static func resolve(_ rawURLs: [String]) -> Self {
+        var valid: [String] = []
+        for raw in rawURLs {
+            guard let sanitized = sanitizeHTTPSMomentURL(raw), !valid.contains(sanitized) else { continue }
+            valid.append(sanitized)
+        }
+        return valid.isEmpty ? .hiddenWhenEmpty : .moments(valid)
+    }
+
+    public var isHidden: Bool {
+        if case .hiddenWhenEmpty = self { return true }
+        return false
+    }
+
+    public var momentURLs: [String] {
+        switch self {
+        case .hiddenWhenEmpty: return []
+        case .moments(let urls): return urls
+        }
+    }
+
+    public static func sanitizeHTTPSMomentURL(_ raw: String?) -> String? {
+        guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty,
+              let components = URLComponents(string: trimmed),
+              components.scheme?.lowercased() == "https",
+              let host = components.host, !host.isEmpty,
+              components.user == nil, components.password == nil,
+              components.url != nil else {
+            return nil
+        }
+        return trimmed
+    }
+}
+
+/// Distance prefix copy for nearby roam/team surfaces: manual area selection (`"距所选地点"`)
+/// vs live device location (`"距当前位置"`).
+public enum RoamNearbyDistanceCopy: Equatable, Sendable {
+    public static let selectedAreaPrefix = "距所选地点"
+    public static let currentLocationPrefix = "距当前位置"
+
+    public static func prefix(usesManualArea: Bool = true) -> String {
+        usesManualArea ? selectedAreaPrefix : currentLocationPrefix
+    }
+
+    public static func label(usesManualArea: Bool = true, distanceKilometers: Double? = nil) -> String {
+        let base = prefix(usesManualArea: usesManualArea)
+        guard let distanceKilometers, distanceKilometers >= 0 else { return base }
+        return "\(base) \(String(format: "%.1f", distanceKilometers))km"
     }
 }
 
