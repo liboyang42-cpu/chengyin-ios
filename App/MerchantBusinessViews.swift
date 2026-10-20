@@ -899,6 +899,7 @@ import SwiftUI
                 } else {
                 Text(row.title).font(.headline)
                 }
+                if let card = MerchantReviewCardPresentation(row: row) { MerchantReviewCard(presentation: card) }
                 MerchantBusinessRecordFields(row: row, access: access, compact: false,
                     settlementEntries: { if case .batch = query { return true }; return false }(),
                     reviewPhotoOwner: model, settlementReader: reader, settlementSnapshot: {
