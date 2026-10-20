@@ -202,3 +202,6 @@ e586c81060a41e17b90ccf6d3407fead97eb5c5c:Core/RoamSubpagePresentation.swift:gene
 e586c81060a41e17b90ccf6d3407fead97eb5c5c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
 e586c81060a41e17b90ccf6d3407fead97eb5c5c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
 e586c81060a41e17b90ccf6d3407fead97eb5c5c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+
+# Synthetic voucher scan code in a Core test fixture (not a credential); exact finding only.
+57af9d4464b56da01650f6111218f65d812b4236:Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift:generic-api-key:127
