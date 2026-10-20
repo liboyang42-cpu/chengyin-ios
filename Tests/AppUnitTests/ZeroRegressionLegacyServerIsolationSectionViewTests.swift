@@ -1,6 +1,13 @@
+#if canImport(QuestifyApp)
 @testable import QuestifyApp
+#endif
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 import XCTest
+@testable import Questify
 
 @MainActor
 final class ZeroRegressionLegacyServerIsolationSectionViewTests: XCTestCase {

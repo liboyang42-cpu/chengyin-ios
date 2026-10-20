@@ -2,7 +2,11 @@ import SwiftUI
 import XCTest
 #if canImport(QuestifyApp)
 @testable import QuestifyApp
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 #else
 @testable import Questify
 #endif

@@ -1,7 +1,14 @@
 import SwiftUI
 import XCTest
+@testable import Questify
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
+#if canImport(QuestifyApp)
 @testable import QuestifyApp
+#endif
 
 @MainActor
 final class EnvironmentBranchAndRewardLedgerViewTests: XCTestCase {

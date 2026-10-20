@@ -1,5 +1,5 @@
 import XCTest
-@testable import Core
+@testable import QuestifyCore
 
 final class Batches24To27ThreeDocsFullClosureCoreTests: XCTestCase {
     func testOPT001To003And509CluesAndD01ToD10() {

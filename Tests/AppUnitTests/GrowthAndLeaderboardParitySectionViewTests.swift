@@ -1,7 +1,14 @@
 import XCTest
+@testable import Questify
 import SwiftUI
+#if canImport(QuestifyApp)
 @testable import QuestifyApp
+#endif
+#if canImport(QuestifyCore)
 import QuestifyCore
+#elseif canImport(Core)
+import Core
+#endif
 
 @MainActor
 final class GrowthAndLeaderboardParitySectionViewTests: XCTestCase {
