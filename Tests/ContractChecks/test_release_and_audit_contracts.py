@@ -137,6 +137,20 @@ class ReleaseAndAuditContractsTests(unittest.TestCase):
                 f"{rel} must use Text(verbatim:) instead of bare localized Text(\"...\")",
             )
 
+    def test_regional_endpoint_release_blockers_separate_safely_closed_from_releasable(self):
+        core = read_repo_text("Core/RegionalEndpointAllowlistAudit.swift")
+        for symbol in ("enum ReleaseBlocker", "case emptyBaseURL", "case missingRealm",
+                       "case missingApprovedConfiguration", "var isSafelyClosed",
+                       "var isBusinessReleasable", "realm: String? = nil"):
+            self.assertIn(symbol, core)
+        view = read_repo_text("App/RegionalEndpointAllowlistSectionView.swift")
+        for symbol in ("isReleaseReady", "RELEASE BLOCKER", "regionalAllowlist.releaseBlocker"):
+            self.assertIn(symbol, view)
+        self.assertIn("ReleaseBlocker.allCases", view)  # default is blocked, never green
+        launch = read_repo_text("App/RegionalLaunchConfiguration.swift")
+        self.assertIn("approved:[RegionalMarket:Set<String>]=[:]", launch)
+        self.assertNotIn("47.103.124.64", launch)
+
 
 if __name__ == "__main__":
     unittest.main()

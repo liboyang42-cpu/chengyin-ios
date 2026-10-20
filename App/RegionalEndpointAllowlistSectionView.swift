@@ -81,13 +81,17 @@ public struct RegionalEndpointAllowlistSnapshot: Equatable, Sendable {
     public let crossRegionIsolationEnforced: Bool
     public let rejectsForbiddenLegacyHost: Bool
     public let rows: [RegionalEndpointGateRow]
+    /// Defaults to all blockers: shipped artifact has no reviewed deployment, so never release-ready.
+    public let releaseBlockers: [RegionalEndpointAuditReport.ReleaseBlocker]
 
     public init(
         activeRegion: RegionalEndpointGateRow.MarketRegion = .cn,
         crossRegionIsolationEnforced: Bool = true,
         rejectsForbiddenLegacyHost: Bool = true,
-        rows: [RegionalEndpointGateRow] = Self.defaultFailClosedRows()
+        rows: [RegionalEndpointGateRow] = Self.defaultFailClosedRows(),
+        releaseBlockers: [RegionalEndpointAuditReport.ReleaseBlocker] = RegionalEndpointAuditReport.ReleaseBlocker.allCases
     ) {
+        self.releaseBlockers = releaseBlockers
         self.activeRegion = activeRegion
         self.crossRegionIsolationEnforced = crossRegionIsolationEnforced
         self.rejectsForbiddenLegacyHost = rejectsForbiddenLegacyHost
@@ -98,6 +102,15 @@ public struct RegionalEndpointAllowlistSnapshot: Equatable, Sendable {
         crossRegionIsolationEnforced
             && rejectsForbiddenLegacyHost
             && rows.allSatisfy(\.isFailClosedInAllRegions)
+    }
+
+    /// Safely closed is not business releasable.
+    public var isReleaseReady: Bool { isPostureCompliant && releaseBlockers.isEmpty }
+
+    public var releaseBlockerText: String {
+        isReleaseReady
+            ? "发布条件已满足。"
+            : "发布阻断（RELEASE BLOCKER）：部署未配置（URL / realm / 已审批配置缺失）。当前仅为安全关闭，不可发布。"
     }
 
     public var isolationNoticeText: String {
@@ -182,18 +195,25 @@ public struct RegionalEndpointAllowlistSectionView: View {
                         .accessibilityIdentifier("regionalAllowlist.header.isolation")
                 }
                 Spacer()
-                Text(verbatim: snapshot.isPostureCompliant ? "Fail-Closed 合规" : "存在风险")
+                Text(verbatim: snapshot.isReleaseReady ? "可发布" : (snapshot.isPostureCompliant ? "发布阻断" : "存在风险"))
                     .font(.caption.weight(.semibold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
                         Capsule().fill(
-                            snapshot.isPostureCompliant
+                            snapshot.isReleaseReady
                                 ? Color.green.opacity(0.15)
-                                : Color.red.opacity(0.15)
+                                : (snapshot.isPostureCompliant ? Color.orange.opacity(0.2) : Color.red.opacity(0.15))
                         )
                     )
                     .accessibilityIdentifier("regionalAllowlist.header.badge")
+            }
+
+            if !snapshot.isReleaseReady {
+                Text(verbatim: snapshot.releaseBlockerText)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.red)
+                    .accessibilityIdentifier("regionalAllowlist.releaseBlocker")
             }
 
             VStack(alignment: .leading, spacing: 4) {

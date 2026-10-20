@@ -76,6 +76,14 @@ public struct RegionalEndpointAuditReport: Equatable, Sendable {
         case unapprovedHighRiskWriteEnabled(String)
     }
 
+    /// Business-release blockers. A fail-closed (safely closed) report can still be NOT releasable.
+    public enum ReleaseBlocker: String, Equatable, Sendable, CaseIterable {
+        case emptyBaseURL
+        case missingRealm
+        case missingApprovedConfiguration
+        case baseURLNotApproved
+    }
+
     public let market: RegionalMarket
     public let evaluatedBaseURL: String?
     public let isBaseURLApproved: Bool
@@ -84,6 +92,8 @@ public struct RegionalEndpointAuditReport: Equatable, Sendable {
     public let allowlistedHighRiskRoutes: [String]
     public let routeDecisions: [RouteDecision]
     public let violations: [Violation]
+    /// Defaults to every blocker (unconfigured) so a hand-built report never reads as release-ready.
+    public let releaseBlockers: [ReleaseBlocker]
 
     public init(
         market: RegionalMarket,
@@ -93,8 +103,10 @@ public struct RegionalEndpointAuditReport: Equatable, Sendable {
         blockedHighRiskRoutes: [String],
         allowlistedHighRiskRoutes: [String],
         routeDecisions: [RouteDecision],
-        violations: [Violation]
+        violations: [Violation],
+        releaseBlockers: [ReleaseBlocker] = ReleaseBlocker.allCases
     ) {
+        self.releaseBlockers = releaseBlockers
         self.market = market
         self.evaluatedBaseURL = evaluatedBaseURL
         self.isBaseURLApproved = isBaseURLApproved
@@ -116,6 +128,15 @@ public struct RegionalEndpointAuditReport: Equatable, Sendable {
     /// True when no legacy `47.103.124.64` URLs or policy violations were detected.
     public var passesReleasePreflight: Bool {
         rejectedLegacyMiniProgramURLs.isEmpty && violations.isEmpty
+    }
+
+    /// "Safely closed": nothing risky is enabled. Says nothing about business releasability.
+    public var isSafelyClosed: Bool { isFailClosedDefaultCompliant }
+
+    /// True only when preflight passes AND deployment is configured (URL, realm, approved config).
+    /// Empty/unconfigured deployments are safely closed but NOT releasable.
+    public var isBusinessReleasable: Bool {
+        passesReleasePreflight && releaseBlockers.isEmpty
     }
 
     public func decision(for route: RegionalHighRiskWriteRoute) -> RouteDecision? {
@@ -276,7 +297,8 @@ public enum RegionalEndpointAllowlistAudit {
         approvedBaseURLs: [RegionalMarket: Set<String>] = [:],
         allowlistedWriteRoutes: [RegionalMarket: Set<String>] = [:],
         signedOffHighRiskRoutes: [RegionalMarket: Set< RegionalHighRiskWriteRoute >]? = nil,
-        additionalCandidateURLs: [String] = []
+        additionalCandidateURLs: [String] = [],
+        realm: String? = nil
     ) -> RegionalEndpointAuditReport {
         let trimmedBase = baseURL?.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalizedBase = (trimmedBase?.isEmpty == true) ? nil : trimmedBase
@@ -364,6 +386,16 @@ public enum RegionalEndpointAllowlistAudit {
             decisions.append(decision)
         }
 
+        var blockers: [RegionalEndpointAuditReport.ReleaseBlocker] = []
+        if normalizedBase == nil { blockers.append(.emptyBaseURL) }
+        if realm?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true {
+            blockers.append(.missingRealm)
+        }
+        if approvedBaseURLs[market]?.isEmpty ?? true {
+            blockers.append(.missingApprovedConfiguration)
+        }
+        if normalizedBase != nil, !isBaseApproved { blockers.append(.baseURLNotApproved) }
+
         return RegionalEndpointAuditReport(
             market: market,
             evaluatedBaseURL: normalizedBase,
@@ -372,7 +404,8 @@ public enum RegionalEndpointAllowlistAudit {
             blockedHighRiskRoutes: blockedHighRisk.sorted(),
             allowlistedHighRiskRoutes: allowlistedHighRisk.sorted(),
             routeDecisions: decisions,
-            violations: violations
+            violations: violations,
+            releaseBlockers: blockers
         )
     }
 }

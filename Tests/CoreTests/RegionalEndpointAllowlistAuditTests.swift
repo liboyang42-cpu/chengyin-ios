@@ -161,4 +161,35 @@ final class RegionalEndpointAllowlistAuditTests: XCTestCase {
         XCTAssertEqual(signedReport.decision(forPath: "/api/asset/withdraw")?.isAllowed, false)
         XCTAssertEqual(signedReport.decision(forPath: "/api/npc/chat/delete")?.isAllowed, false)
     }
+
+    func testUnconfiguredDeploymentIsSafelyClosedButReleaseBlocked() {
+        let report = RegionalEndpointAllowlistAudit.audit(market: .china, baseURL: "  ")
+        XCTAssertTrue(report.isSafelyClosed)
+        XCTAssertFalse(report.isBusinessReleasable)
+        XCTAssertEqual(
+            Set(report.releaseBlockers),
+            [.emptyBaseURL, .missingRealm, .missingApprovedConfiguration]
+        )
+    }
+
+    func testMissingRealmBlocksReleaseEvenWithApprovedBaseURL() {
+        let approved: [RegionalMarket: Set<String>] = [.china: [cnBaseURL]]
+        let noRealm = RegionalEndpointAllowlistAudit.audit(
+            market: .china, baseURL: cnBaseURL, approvedBaseURLs: approved)
+        XCTAssertEqual(noRealm.releaseBlockers, [.missingRealm])
+        XCTAssertFalse(noRealm.isBusinessReleasable)
+
+        let configured = RegionalEndpointAllowlistAudit.audit(
+            market: .china, baseURL: cnBaseURL, approvedBaseURLs: approved, realm: "cn-prod")
+        XCTAssertTrue(configured.releaseBlockers.isEmpty)
+        XCTAssertTrue(configured.isBusinessReleasable)
+    }
+
+    func testUnapprovedBaseURLIsReleaseBlocker() {
+        let report = RegionalEndpointAllowlistAudit.audit(
+            market: .china, baseURL: cnBaseURL, realm: "cn-prod")
+        XCTAssertTrue(report.releaseBlockers.contains(.missingApprovedConfiguration))
+        XCTAssertTrue(report.releaseBlockers.contains(.baseURLNotApproved))
+        XCTAssertFalse(report.isBusinessReleasable)
+    }
 }
