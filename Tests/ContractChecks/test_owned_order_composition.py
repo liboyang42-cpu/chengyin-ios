@@ -12,8 +12,8 @@ class OwnedOrderContracts(unittest.TestCase):
         self.assertNotIn('ownedOrder',self.read('App/RegionalLaunchConfiguration.swift'))
     def test_normal_account_orders_and_actual_task_cancellation(self):
         self.assertIn('SessionOwnedOrdersView(session: session)',self.read('App/AccountView.swift'))
-        s=self.read('App/OwnedOrderComposition.swift');self.assertIn('ProfileOrdersView(reader: session.ownedOrderReader, ticketReader: session.ticketWalletReader)',s);self.assertIn('.id(session.ownedOrderReader.identity)',s)
-        self.assertNotIn('lifecycleCoordinator:',s);self.assertNotIn('makeExternalMaps:',s)
+        s=self.read('App/OwnedOrderComposition.swift');self.assertIn('ProfileOrdersView(reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader)',s);self.assertIn('.id(session.ownedOrderReader.identity)',s)
+        self.assertNotIn('lifecycleCoordinator: session',s);self.assertNotIn('makeExternalMaps:',s)
         s=self.read('App/ProfileReadScreen.swift')
         for v in ['loadOwner.start { await reload() }','loadOwner.run { await reload() }','loadOwner.deactivate()']:self.assertIn(v,s)
         self.assertNotIn('Task { await reload() }',s)
