@@ -18,14 +18,14 @@ import Core
     }
 
     private func makeConfig() throws -> APIConfiguration {
-        try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.invalid")), region: .cn)
+        try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.invalid")))
     }
 
     func testReaderReturnsNilWhenReadsDisabledOrSessionMissing() throws {
         let transport = StubTransport()
         let dormant = PlayExperienceService(configuration: try makeConfig(), transport: transport, enabled: [])
         let scope = PlaySessionScope.topic(71)
-        let session = try PlayExperienceSession(accountID: 9, epoch: 1, token: "tok")
+        let session = try PlayExperienceSession(accountID: 9, epoch: 1, namespace: "fixture-play", token: "tok")
 
         XCTAssertNil(PlayThemeAuxiliaryReader(service: dormant, scope: scope, topicID: 71, current: { session }))
         let enabled = PlayExperienceService(configuration: try makeConfig(), transport: transport, enabled: [.reads])
@@ -37,11 +37,11 @@ import Core
         let transport = StubTransport()
         let service = PlayExperienceService(configuration: try makeConfig(), transport: transport, enabled: [.reads])
         let scope = PlaySessionScope.topic(71)
-        var current: PlayExperienceSession? = try PlayExperienceSession(accountID: 9, epoch: 1, token: "tok")
+        var current: PlayExperienceSession? = try PlayExperienceSession(accountID: 9, epoch: 1, namespace: "fixture-play", token: "tok")
         let reader = try XCTUnwrap(PlayThemeAuxiliaryReader(service: service, scope: scope, topicID: 71, current: { current }))
 
         transport.onSend = {
-            current = try? PlayExperienceSession(accountID: 10, epoch: 2, token: "other")
+            current = try? PlayExperienceSession(accountID: 10, epoch: 2, namespace: "fixture-play", token: "other")
         }
         transport.responseJSON = #"{"code":200,"data":[]}"#
         do {
@@ -55,7 +55,7 @@ import Core
     func testStoreReplacesModelsOnRevisionOrTopicChange() throws {
         let transport = StubTransport()
         let service = PlayExperienceService(configuration: try makeConfig(), transport: transport, enabled: [.reads])
-        let session = try PlayExperienceSession(accountID: 9, epoch: 1, token: "tok")
+        let session = try PlayExperienceSession(accountID: 9, epoch: 1, namespace: "fixture-play", token: "tok")
         let provider: PlayThemeAuxiliaryProvider = { scope, topicID in
             PlayThemeAuxiliaryReader(service: service, scope: scope, topicID: topicID, current: { session })
         }
