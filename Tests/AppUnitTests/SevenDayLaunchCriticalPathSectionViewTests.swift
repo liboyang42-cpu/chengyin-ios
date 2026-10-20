@@ -26,7 +26,9 @@ final class SevenDayLaunchCriticalPathSectionViewTests: XCTestCase {
         XCTAssertEqual(snapshot.days.count, 7)
         XCTAssertTrue(snapshot.coversAllSevenDays)
         XCTAssertFalse(snapshot.hasBlockedMilestone)
-        XCTAssertTrue(snapshot.isLaunchPathReady)
+        // Fail-closed default: no evidence means not ready.
+        XCTAssertFalse(snapshot.isLaunchPathReady)
+        XCTAssertTrue(snapshot.days.allSatisfy { $0.status == .notVerified })
         XCTAssertTrue(snapshot.localXcconfigCheckText.contains("Config/Local.xcconfig"))
         XCTAssertTrue(snapshot.userInfoRoleContractText.contains("/api/userInfo"))
         XCTAssertTrue(snapshot.testFlightArchiveCheckText.contains("TestFlight"))
@@ -63,5 +65,46 @@ final class SevenDayLaunchCriticalPathSectionViewTests: XCTestCase {
             )
         )
         _ = customView.body
+    }
+
+    func testSnapshotFromCoreContractIsFailClosedWithoutEvidence() {
+        let snapshot = SevenDayLaunchPlanSnapshot.from(
+            milestones: SevenDayLaunchCriticalPathMilestoneContract.canonicalMilestones
+        )
+        XCTAssertTrue(snapshot.coversAllSevenDays)
+        XCTAssertFalse(snapshot.contractFullyVerified)
+        XCTAssertFalse(snapshot.isLaunchPathReady)
+        XCTAssertNil(snapshot.boundCommitSHA)
+        XCTAssertTrue(snapshot.days.allSatisfy { $0.status == .notVerified })
+    }
+
+    func testSnapshotFromCoreContractRequiresShaBoundEvidenceAndSignoff() {
+        let sha = "0123456789abcdef0123456789abcdef01234567"
+        let verified = SevenDayLaunchCriticalPathMilestoneContract.canonicalMilestones.map {
+            LaunchDayMilestoneDescriptor(
+                id: $0.id,
+                dayNumber: $0.dayNumber,
+                title: $0.title,
+                requiresExternalOpsSignoff: $0.requiresExternalOpsSignoff,
+                evidence: LaunchDayEvidence(
+                    commitSHA: sha,
+                    codeAndTestResult: .passed,
+                    externalSignoffSHA: sha,
+                    externalSignoffResult: .passed
+                )
+            )
+        }
+        XCTAssertTrue(SevenDayLaunchPlanSnapshot.from(milestones: verified).isLaunchPathReady)
+
+        let noSignoff = verified.map {
+            LaunchDayMilestoneDescriptor(
+                id: $0.id,
+                dayNumber: $0.dayNumber,
+                title: $0.title,
+                requiresExternalOpsSignoff: $0.requiresExternalOpsSignoff,
+                evidence: LaunchDayEvidence(commitSHA: sha, codeAndTestResult: .passed)
+            )
+        }
+        XCTAssertFalse(SevenDayLaunchPlanSnapshot.from(milestones: noSignoff).isLaunchPathReady)
     }
 }

@@ -11,13 +11,14 @@ import XCTest
 
 @MainActor final class MasterSevenDayLaunchCommandCenterViewTests: XCTestCase {
     func testDefaultReadySnapshotUnitesAllSixCommandCenterPillars() {
+        // Fail-closed default: structure is present but nothing is verified.
         let snapshot = MasterSevenDayLaunchCommandSnapshot.defaultReady
-        XCTAssertTrue(snapshot.isCommandCenterLaunchReady)
+        XCTAssertFalse(snapshot.isCommandCenterLaunchReady)
         XCTAssertEqual(snapshot.pillars.count, 6)
-        XCTAssertEqual(snapshot.readyPillarCount, 6)
-        XCTAssertEqual(snapshot.blockedPillarCount, 0)
-        XCTAssertTrue(snapshot.zeroGapCertificateIssued)
-        XCTAssertTrue(snapshot.nativeSupersetPolicyEnforced)
+        XCTAssertEqual(snapshot.readyPillarCount, 0)
+        XCTAssertEqual(snapshot.blockedPillarCount, 6)
+        XCTAssertFalse(snapshot.zeroGapCertificateIssued)
+        XCTAssertFalse(snapshot.nativeSupersetPolicyEnforced)
         XCTAssertEqual(
             snapshot.pillars.map(\.pillarType),
             [
@@ -53,8 +54,8 @@ import XCTest
             statusBadge: "BLOCKED"
         )
         let blockedPillarSnapshot = MasterSevenDayLaunchCommandSnapshot(pillars: customPillars)
-        XCTAssertEqual(blockedPillarSnapshot.readyPillarCount, 5)
-        XCTAssertEqual(blockedPillarSnapshot.blockedPillarCount, 1)
+        XCTAssertEqual(blockedPillarSnapshot.readyPillarCount, 0)
+        XCTAssertEqual(blockedPillarSnapshot.blockedPillarCount, 6)
         XCTAssertFalse(blockedPillarSnapshot.isCommandCenterLaunchReady)
 
         let withheldCertificateSnapshot = MasterSevenDayLaunchCommandSnapshot(
@@ -71,7 +72,7 @@ import XCTest
     func testMainActorViewBodyInstantiatesAcrossDefaultAndBlockedSnapshots() {
         let readyView = MasterSevenDayLaunchCommandCenterView()
         _ = readyView.body
-        XCTAssertTrue(readyView.snapshot.isCommandCenterLaunchReady)
+        XCTAssertFalse(readyView.snapshot.isCommandCenterLaunchReady)
 
         let blockedView = MasterSevenDayLaunchCommandCenterView(
             snapshot: MasterSevenDayLaunchCommandSnapshot(
@@ -82,5 +83,14 @@ import XCTest
         )
         _ = blockedView.body
         XCTAssertFalse(blockedView.snapshot.isCommandCenterLaunchReady)
+    }
+
+    func testSevenDayPillarReadsFailClosedCoreResult() {
+        let unverified = MasterSevenDayLaunchCommandSnapshot.from(
+            sevenDayEvaluation: SevenDayLaunchCriticalPathMilestoneContract.evaluate()
+        )
+        XCTAssertFalse(unverified.pillars[0].isReady)
+        XCTAssertEqual(unverified.pillars[0].statusBadge, "NOT_VERIFIED")
+        XCTAssertFalse(unverified.isCommandCenterLaunchReady)
     }
 }

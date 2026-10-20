@@ -76,7 +76,8 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionGate: Sendable, Equatab
             id: "seven_day_launch_plan",
             documentOrPlanName: "SevenDayLaunchCriticalPathMilestoneContract",
             scopeCoverageSummary: "Day 1..7 App Store Launch Plan, Review Playbook & Canary Phased Rollout",
-            isDocumentScopeComplete: true,
+            // Fail-closed: derived from SHA-bound evidence + external sign-off; false when evidence is absent.
+            isDocumentScopeComplete: SevenDayLaunchCriticalPathMilestoneContract.evaluate().isSevenDayLaunchFullyVerified,
             strictMiniProgramAPIAndCopyParity: true,
             nativeSupersetPreserved: true
         )

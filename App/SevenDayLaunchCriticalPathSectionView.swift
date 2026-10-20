@@ -10,6 +10,10 @@ public struct LaunchDayMilestoneRow: Sendable, Equatable, Identifiable {
         case codeComplete = "CODE_COMPLETE"
         case awaitingExternalOps = "AWAITING_EXTERNAL_OPS"
         case blocked = "BLOCKED"
+        /// Fail-closed default: no SHA-bound evidence has been supplied.
+        case notVerified = "NOT_VERIFIED"
+        /// Code/test evidence and (when required) external ops sign-off verified against a 40-hex SHA.
+        case verified = "VERIFIED"
     }
 
     public let id: String
@@ -26,6 +30,10 @@ public struct LaunchDayMilestoneRow: Sendable, Equatable, Identifiable {
             return "待外部联调"
         case .blocked:
             return "存在阻塞"
+        case .notVerified:
+            return "未验证"
+        case .verified:
+            return "已验证"
         }
     }
 
@@ -60,10 +68,15 @@ public struct SevenDayLaunchPlanSnapshot: Sendable, Equatable {
         ]
     }
 
+    /// True only when the Core contract reported full SHA-bound verification AND every row is `.verified`.
+    public let contractFullyVerified: Bool
+    public let boundCommitSHA: String?
+
     public var isLaunchPathReady: Bool {
-        coversAllSevenDays &&
+        contractFullyVerified &&
+            coversAllSevenDays &&
             !hasBlockedMilestone &&
-            days.allSatisfy { $0.status != .blocked }
+            days.allSatisfy { $0.status == .verified }
     }
 
     public init(
@@ -73,56 +86,58 @@ public struct SevenDayLaunchPlanSnapshot: Sendable, Equatable {
         userInfoRoleContractText: String = "/api/userInfo 角色权限与 Realm 隔离校验",
         testFlightArchiveCheckText: String = "TestFlight Archive 符号表与隐私清单核验",
         hasBlockedMilestone: Bool = false,
-        bannerSummaryText: String = "7天上线关键路径代码侧 100% 完备 · 仅剩外部运维开关与真机签名归档",
+        contractFullyVerified: Bool = false,
+        boundCommitSHA: String? = nil,
+        bannerSummaryText: String = "未验证 · 缺少绑定 40 位提交 SHA 的测试结果与外部运维签收证据",
         days: [LaunchDayMilestoneRow] = [
             .init(
                 id: "day-1",
                 dayLabel: "Day 1",
                 title: "环境配置与生产 HTTPS 门禁冻结",
                 deliverableSummary: "注入 Config/Local.xcconfig，阻断 47.103.124.64 与非 HTTPS 路由",
-                status: .codeComplete
+                status: .notVerified
             ),
             .init(
                 id: "day-2",
                 dayLabel: "Day 2",
                 title: "认证会话、/api/userInfo 角色与 403/401 分离",
                 deliverableSummary: "完成 SMS 验证码节流、圈子 403 保持会话与多 Realm 隔离",
-                status: .codeComplete
+                status: .notVerified
             ),
             .init(
                 id: "day-3",
                 dayLabel: "Day 3",
                 title: "地图视觉 MV01..MV41 与个人迷雾默认关闭",
                 deliverableSummary: "6层确定性渲染、GCJ-02/WGS-84 坐标系隔离、revealSyncEnabled 默认关闭",
-                status: .codeComplete
+                status: .notVerified
             ),
             .init(
                 id: "day-4",
                 dayLabel: "Day 4",
                 title: "漫游打卡、支线照片举证与同行握手安全校验",
                 deliverableSummary: "照片待审防自动完成、二维码单次 Nonce 与 TTL <= 300s 校验",
-                status: .codeComplete
+                status: .notVerified
             ),
             .init(
                 id: "day-5",
                 dayLabel: "Day 5",
                 title: "商户装修入驻四步向导与主题发布审核闭环",
                 deliverableSummary: "decor/save JSON、shop/apply 四步向导、结局布尔 fallback 与 UGC 1.2",
-                status: .codeComplete
+                status: .notVerified
             ),
             .init(
                 id: "day-6",
                 dayLabel: "Day 6",
                 title: "回城恢复 H-W19、城市看板增量 H-W20 与无障碍巡检",
                 deliverableSummary: "拒绝 ALL_GAMES 通配符、隐藏私宅坐标、ReduceMotion 与触觉节流",
-                status: .codeComplete
+                status: .notVerified
             ),
             .init(
                 id: "day-7",
                 dayLabel: "Day 7",
                 title: "TestFlight 归档提审与真机全链路回归",
                 deliverableSummary: "执行生产构建归档、上传 App Store Connect 并完成提审前冒烟",
-                status: .awaitingExternalOps
+                status: .notVerified
             )
         ]
     ) {
@@ -132,18 +147,61 @@ public struct SevenDayLaunchPlanSnapshot: Sendable, Equatable {
         self.userInfoRoleContractText = userInfoRoleContractText
         self.testFlightArchiveCheckText = testFlightArchiveCheckText
         self.hasBlockedMilestone = hasBlockedMilestone
+        self.contractFullyVerified = contractFullyVerified
+        self.boundCommitSHA = boundCommitSHA
         self.bannerSummaryText = bannerSummaryText
         self.days = days
     }
 
-    public static let defaultReady = SevenDayLaunchPlanSnapshot()
+    /// Fail-closed default: every day is `.notVerified` and the path is NOT ready.
+    public static let unverified = SevenDayLaunchPlanSnapshot()
+
+    /// Deprecated name kept for source compatibility; it is fail-closed (NOT ready).
+    public static let defaultReady = SevenDayLaunchPlanSnapshot.unverified
+
+    /// Builds the snapshot from the Core fail-closed contract result; never reports ready on its own.
+    public static func from(
+        milestones: [LaunchDayMilestoneDescriptor],
+        expectedCommitSHA: String? = nil
+    ) -> SevenDayLaunchPlanSnapshot {
+        let evaluation = SevenDayLaunchCriticalPathMilestoneContract.evaluate(
+            milestones: milestones,
+            expectedCommitSHA: expectedCommitSHA
+        )
+        let rows = milestones.map { milestone -> LaunchDayMilestoneRow in
+            let status: LaunchDayMilestoneRow.MilestoneStatus
+            switch milestone.verificationStatus {
+            case .notVerified: status = .notVerified
+            case .failed: status = .blocked
+            case .codeVerifiedAwaitingExternalSignoff: status = .awaitingExternalOps
+            case .verified: status = .verified
+            }
+            return LaunchDayMilestoneRow(
+                id: milestone.id,
+                dayLabel: "Day \(milestone.dayNumber)",
+                title: milestone.title,
+                deliverableSummary: milestone.verificationStatus.rawValue,
+                status: status
+            )
+        }
+        let verified = evaluation.isSevenDayLaunchFullyVerified
+        return SevenDayLaunchPlanSnapshot(
+            hasBlockedMilestone: evaluation.failedDays > 0,
+            contractFullyVerified: verified,
+            boundCommitSHA: evaluation.boundCommitSHA,
+            bannerSummaryText: verified
+                ? "已验证 · 提交 \(evaluation.boundCommitSHA ?? "")"
+                : "未通过 · 已验证 \(evaluation.verifiedDays)/7 天，失败 \(evaluation.failedDays) 天",
+            days: rows
+        )
+    }
 }
 
 @MainActor
 public struct SevenDayLaunchCriticalPathSectionView: View {
     public let snapshot: SevenDayLaunchPlanSnapshot
 
-    public init(snapshot: SevenDayLaunchPlanSnapshot = .defaultReady) {
+    public init(snapshot: SevenDayLaunchPlanSnapshot = .unverified) {
         self.snapshot = snapshot
     }
 
@@ -180,7 +238,7 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
 
     private var statusBannerView: some View {
         HStack(spacing: 8) {
-            Text(verbatim: snapshot.hasBlockedMilestone ? "LAUNCH_PATH_BLOCKED" : "LAUNCH_PATH_READY")
+            Text(verbatim: snapshot.hasBlockedMilestone ? "LAUNCH_PATH_BLOCKED" : (snapshot.isLaunchPathReady ? "LAUNCH_PATH_VERIFIED" : "LAUNCH_PATH_NOT_VERIFIED"))
                 .font(.caption2.monospaced().weight(.bold))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
@@ -188,7 +246,7 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
                     Capsule().fill(
                         snapshot.hasBlockedMilestone
                             ? Color.red.opacity(0.22)
-                            : Color.green.opacity(0.2)
+                            : (snapshot.isLaunchPathReady ? Color.green.opacity(0.2) : Color.orange.opacity(0.22))
                     )
                 )
                 .accessibilityIdentifier("sevenDayLaunchPlan.bannerState")

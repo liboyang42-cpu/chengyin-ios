@@ -32,8 +32,8 @@ public struct SevenDayCommandPillarItem: Sendable, Equatable, Identifiable {
         pillarType: PillarType,
         title: String,
         summary: String,
-        isReady: Bool = true,
-        statusBadge: String = "READY"
+        isReady: Bool = false,
+        statusBadge: String = "NOT_VERIFIED"
     ) {
         self.id = id
         self.pillarType = pillarType
@@ -48,7 +48,7 @@ public struct SevenDayCommandPillarItem: Sendable, Equatable, Identifiable {
             id: "day-1-7-critical-path",
             pillarType: .dayOneToSevenCriticalPath,
             title: "Day 1–7 Launch Critical Path",
-            summary: "All seven daily milestones (scaffold freeze, runtime parity, map/world contracts, commerce safety, review fixtures, and release sign-off) verified."
+            summary: "Seven daily milestones require 40-hex-SHA-bound test results and external ops sign-off; no evidence means not verified."
         ),
         SevenDayCommandPillarItem(
             id: "native-superset-policy",
@@ -93,8 +93,8 @@ public struct MasterSevenDayLaunchCommandSnapshot: Sendable, Equatable {
 
     public init(
         targetWindowLabel: String = "Day 1–Day 7 Launch Window",
-        zeroGapCertificateIssued: Bool = true,
-        nativeSupersetPolicyEnforced: Bool = true,
+        zeroGapCertificateIssued: Bool = false,
+        nativeSupersetPolicyEnforced: Bool = false,
         blockedPillarCount: Int? = nil,
         pillars: [SevenDayCommandPillarItem] = SevenDayCommandPillarItem.defaultPillars
     ) {
@@ -105,7 +105,31 @@ public struct MasterSevenDayLaunchCommandSnapshot: Sendable, Equatable {
         self.blockedPillarCount = blockedPillarCount ?? pillars.filter { !$0.isReady }.count
     }
 
-    public static let defaultReady = MasterSevenDayLaunchCommandSnapshot()
+    /// Fail-closed default: no pillar, certificate or policy is reported as verified.
+    public static let unverified = MasterSevenDayLaunchCommandSnapshot()
+
+    /// Deprecated name kept for source compatibility; it is fail-closed (NOT ready).
+    public static let defaultReady = MasterSevenDayLaunchCommandSnapshot.unverified
+
+    /// Reads the Core fail-closed 7-day result into pillar 1. Other pillars stay unverified
+    /// until their own evidence is wired, so this never yields a ready command center by itself.
+    public static func from(
+        sevenDayEvaluation: SevenDayLaunchMilestoneEvaluation
+    ) -> MasterSevenDayLaunchCommandSnapshot {
+        var pillars = SevenDayCommandPillarItem.defaultPillars
+        let verified = sevenDayEvaluation.isSevenDayLaunchFullyVerified
+        pillars[0] = SevenDayCommandPillarItem(
+            id: pillars[0].id,
+            pillarType: pillars[0].pillarType,
+            title: pillars[0].title,
+            summary: verified
+                ? "Verified against commit \(sevenDayEvaluation.boundCommitSHA ?? "")."
+                : "Verified days \(sevenDayEvaluation.verifiedDays)/7, failed \(sevenDayEvaluation.failedDays).",
+            isReady: verified,
+            statusBadge: verified ? "VERIFIED" : (sevenDayEvaluation.failedDays > 0 ? "FAILED" : "NOT_VERIFIED")
+        )
+        return MasterSevenDayLaunchCommandSnapshot(pillars: pillars)
+    }
 
     public var readyPillarCount: Int {
         pillars.filter(\.isReady).count
@@ -125,7 +149,7 @@ public struct MasterSevenDayLaunchCommandSnapshot: Sendable, Equatable {
 @MainActor public struct MasterSevenDayLaunchCommandCenterView: View {
     public let snapshot: MasterSevenDayLaunchCommandSnapshot
 
-    public init(snapshot: MasterSevenDayLaunchCommandSnapshot = .defaultReady) {
+    public init(snapshot: MasterSevenDayLaunchCommandSnapshot = .unverified) {
         self.snapshot = snapshot
     }
 
@@ -141,7 +165,7 @@ public struct MasterSevenDayLaunchCommandSnapshot: Sendable, Equatable {
             LabeledContent {
                 Text(verbatim: snapshot.isCommandCenterLaunchReady
                     ? "LAUNCH READY (6/6 Pillars Verified)"
-                    : "BLOCKED (\(snapshot.blockedPillarCount) Pillar(s) Pending)")
+                    : "NOT VERIFIED (\(snapshot.blockedPillarCount) Pillar(s) Pending)")
             } label: {
                 Text(verbatim: "Command Center Status")
             }

@@ -5,7 +5,9 @@ final class FinalThreeDocumentAndSevenDayGoalCompletionGateTests: XCTestCase {
     func testCanonicalEntriesPassFullGoalCompletionGate() {
         let entries = FinalThreeDocumentAndSevenDayGoalCompletionGate.canonicalEntries
         XCTAssertEqual(entries.count, 4)
-        XCTAssertTrue(entries.allSatisfy(\.isCompliant))
+        // Seven-day entry is fail-closed until SHA-bound evidence + external sign-off exist.
+        XCTAssertEqual(entries.filter(\.isCompliant).count, 3)
+        XCTAssertFalse(entries[3].isCompliant)
         XCTAssertEqual(
             entries.map(\.documentOrPlanName),
             [
@@ -18,8 +20,8 @@ final class FinalThreeDocumentAndSevenDayGoalCompletionGateTests: XCTestCase {
 
         let result = FinalThreeDocumentAndSevenDayGoalCompletionGate.evaluate()
         XCTAssertEqual(result.totalEntries, 4)
-        XCTAssertEqual(result.completedEntries, 4)
-        XCTAssertTrue(result.isGoal100PercentComplete)
+        XCTAssertEqual(result.completedEntries, 3)
+        XCTAssertFalse(result.isGoal100PercentComplete)
     }
 
     func testIncompleteDocumentScopeFailsGoalCompletionGate() {
@@ -36,7 +38,7 @@ final class FinalThreeDocumentAndSevenDayGoalCompletionGateTests: XCTestCase {
         XCTAssertFalse(entries[0].isCompliant)
         let result = FinalThreeDocumentAndSevenDayGoalCompletionGate.evaluate(entries: entries)
         XCTAssertEqual(result.totalEntries, 4)
-        XCTAssertEqual(result.completedEntries, 3)
+        XCTAssertEqual(result.completedEntries, 2)
         XCTAssertFalse(result.isGoal100PercentComplete)
     }
 
@@ -63,7 +65,7 @@ final class FinalThreeDocumentAndSevenDayGoalCompletionGateTests: XCTestCase {
         XCTAssertFalse(entries[2].isCompliant)
         let result = FinalThreeDocumentAndSevenDayGoalCompletionGate.evaluate(entries: entries)
         XCTAssertEqual(result.totalEntries, 4)
-        XCTAssertEqual(result.completedEntries, 2)
+        XCTAssertEqual(result.completedEntries, 1)
         XCTAssertFalse(result.isGoal100PercentComplete)
     }
 
