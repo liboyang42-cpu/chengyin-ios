@@ -75,9 +75,14 @@ public struct MiniProgramPageByPage99DecisionLedgerContract: Sendable, Equatable
     ]
 
     public let groups: [MiniProgram99DomainDecisionGroup]
+    public let pageEntries: [MiniProgram99PageDecisionLedgerRow]
 
-    public init(groups: [MiniProgram99DomainDecisionGroup] = MiniProgramPageByPage99DecisionLedgerContract.canonicalGroups) {
+    public init(
+        groups: [MiniProgram99DomainDecisionGroup] = MiniProgramPageByPage99DecisionLedgerContract.canonicalGroups,
+        pageEntries: [MiniProgram99PageDecisionLedgerRow] = MiniProgramPageByPage99DecisionLedgerContract.canonical99PageRows
+    ) {
         self.groups = groups
+        self.pageEntries = pageEntries
     }
 
     public static func evaluate(
@@ -87,12 +92,233 @@ public struct MiniProgramPageByPage99DecisionLedgerContract: Sendable, Equatable
         let supersetPages = groups.reduce(0) { $0 + $1.nativeSupersetEnhancedPageCount }
         let total = groups.reduce(0) { $0 + $1.totalPagesInGroup }
         let allCompliant = !groups.isEmpty && groups.allSatisfy(\.isCompliant)
-        let isComplete = allCompliant && total == expectedTotalPages
+        let isComplete = allCompliant && total == expectedTotalPages && canonical99PageRows.count == expectedTotalPages
         return (
             totalPages: total,
             strictParityPages: strictPages,
             nativeSupersetPages: supersetPages,
             is99PageLedgerComplete: isComplete
         )
+    }
+
+    /// Evaluates whether the 99-page ledger is end-to-end verified in production/deployment.
+    /// Defaults to `false` because `deploymentStatus` and `testStatus` require external CI/staging evidence.
+    public static func evaluateEndToEndVerification(
+        rows: [MiniProgram99PageDecisionLedgerRow] = canonical99PageRows
+    ) -> Bool {
+        guard rows.count == expectedTotalPages else { return false }
+        return rows.allSatisfy(\.isEndToEndVerified)
+    }
+
+    public static let canonical99PageRows: [MiniProgram99PageDecisionLedgerRow] = {
+        let groupSpecs: [(groupID: String, strictPaths: [String], supersetPaths: [String])] = [
+            (
+                groupID: "group-tabbar-and-home-15",
+                strictPaths: [
+                    "pages/index/index",
+                    "pages/template/index",
+                    "pages/talent/list/index",
+                    "pages/member/index/index",
+                    "pages/privacy/index",
+                    "pages/agreement/index",
+                    "pages/deregister/index",
+                    "pages/search2/index",
+                    "pages/search2/result/index",
+                    "pages/gerenziliao/gerenziliao",
+                    "pages/userinfo/userinfo"
+                ],
+                supersetPaths: [
+                    "pages/roam/index",
+                    "pages/play/index",
+                    "pages/searchmap/index",
+                    "pages/templatedetail/templatedetail"
+                ]
+            ),
+            (
+                groupID: "group-roam-and-passport-22",
+                strictPaths: [
+                    "subpackageP3/pages/growthcenter/index/index",
+                    "subpackageP3/pages/growthcenter/leaderboard/index",
+                    "subpackageP3/pages/stamp-album/index/index",
+                    "subpackageP3/pages/badge-wall/index/index",
+                    "subpackageP3/pages/object-cards/index/index",
+                    "subpackageRoam/citynode-code/index",
+                    "subpackageRoam/history/index",
+                    "subpackageRoam/nearby/index",
+                    "subpackageRoam/citystamp/index",
+                    "subpackageRoam/my-teams/index",
+                    "subpackageTools/capsule/index",
+                    "subpackageTools/monthly-recap/index",
+                    "subpackageTools/exploration-goals/index",
+                    "subpackageTools/anniversary/index"
+                ],
+                supersetPaths: [
+                    "subpackageP3/pages/stamp-camera/index/index",
+                    "subpackageP3/pages/badge-3d/index",
+                    "subpackageRoam/poi-detail/index",
+                    "subpackageRoam/session/index",
+                    "subpackageTools/exploration-export/index",
+                    "pages/play/merchant/index",
+                    "pages/play/circle/index",
+                    "pages/mylike/mylike"
+                ]
+            ),
+            (
+                groupID: "group-play-and-story-18",
+                strictPaths: [
+                    "pages/activity/detail/index",
+                    "pages/activity/baoming/baoming",
+                    "pages/activity/list/index",
+                    "pages/activity/official-detail/index",
+                    "pages/activity/official-inbox/index",
+                    "pages/activity/official-mine/index",
+                    "pages/square/list/index",
+                    "pages/square/detail/index",
+                    "pages/topic/index/index",
+                    "pages/topic/merchantinfo/merchantinfo",
+                    "pages/topic/merchantapply/index"
+                ],
+                supersetPaths: [
+                    "pages/publish/fabu/index",
+                    "pages/publish/simple/index",
+                    "pages/publish/temp/index",
+                    "pages/publish/activity/index",
+                    "pages/publish/topicadd/topicadd",
+                    "pages/publish/templateadd/templateadd",
+                    "pages/publish/template-intro/index"
+                ]
+            ),
+            (
+                groupID: "group-club-team-and-coop-24",
+                strictPaths: [
+                    "pages/team/detail/index",
+                    "pages/team/join/index",
+                    "pages/club/apply/index",
+                    "pages/club/create/index",
+                    "pages/club/customer-detail/index",
+                    "pages/club/customers/index",
+                    "pages/club/detail/index",
+                    "pages/club/edit/index",
+                    "pages/club/enroll/index",
+                    "pages/club/checkin-detail/index",
+                    "pages/club/governance/index",
+                    "pages/club/group-code/index",
+                    "pages/club/join-requests/index",
+                    "pages/club/notify/index",
+                    "pages/club/roles/index",
+                    "pages/club/settlement/index",
+                    "pages/coop/list/index",
+                    "pages/coop/invite-detail/index"
+                ],
+                supersetPaths: [
+                    "pages/club/event-ops/index",
+                    "pages/club/topic-detail/index",
+                    "pages/club/topic-story/index",
+                    "pages/club/workbench/index",
+                    "pages/coop/invite/index",
+                    "pages/coop/nearby/index"
+                ]
+            ),
+            (
+                groupID: "group-merchant-profile-and-legal-20",
+                strictPaths: [
+                    "pages/merchant/index/index",
+                    "pages/merchant/apply/index",
+                    "pages/merchant/ledger/index",
+                    "pages/merchant/ledger/order-detail/index",
+                    "pages/merchant/ledger/batch-detail/index",
+                    "pages/merchant/aftercare/index",
+                    "pages/merchant/aftercare/detail/index",
+                    "pages/merchant/profile/index",
+                    "pages/merchant/marketing/index",
+                    "pages/merchant/reviews/index",
+                    "pages/merchant/relation/index",
+                    "pages/shezhi/shezhi",
+                    "pages/shezhi/about/index",
+                    "subpackageMember/order/order"
+                ],
+                supersetPaths: [
+                    "pages/merchant/predict/index",
+                    "pages/merchant/marketing/ai-insight/index",
+                    "pages/merchant/citynode/index",
+                    "pages/merchant/decor/index",
+                    "pages/merchant/decor/ai-npc/index",
+                    "pages/merchant/game-node/index"
+                ]
+            )
+        ]
+
+        var rows: [MiniProgram99PageDecisionLedgerRow] = []
+        for spec in groupSpecs {
+            for path in spec.strictPaths {
+                rows.append(
+                    MiniProgram99PageDecisionLedgerRow(
+                        pagePath: path,
+                        groupID: spec.groupID,
+                        decisionMode: .strictMiniProgramParity,
+                        codeStatus: .passed,
+                        wiringStatus: .passed,
+                        testStatus: .notRun,
+                        deploymentStatus: .notRun
+                    )
+                )
+            }
+            for path in spec.supersetPaths {
+                rows.append(
+                    MiniProgram99PageDecisionLedgerRow(
+                        pagePath: path,
+                        groupID: spec.groupID,
+                        decisionMode: .nativeSupersetEnhanced,
+                        codeStatus: .passed,
+                        wiringStatus: .passed,
+                        testStatus: .notRun,
+                        deploymentStatus: .notRun
+                    )
+                )
+            }
+        }
+        return rows
+    }()
+}
+
+public enum MiniProgram99PageDecisionMode: String, Sendable, Equatable {
+    case strictMiniProgramParity = "STRICT_1_TO_1_PARITY"
+    case nativeSupersetEnhanced = "NATIVE_SUPERSET_ENHANCED"
+}
+
+public struct MiniProgram99PageDecisionLedgerRow: Sendable, Equatable, Identifiable {
+    public let pagePath: String
+    public let groupID: String
+    public let decisionMode: MiniProgram99PageDecisionMode
+    public let codeStatus: ReleaseCheckStatus
+    public let wiringStatus: ReleaseCheckStatus
+    public let testStatus: ReleaseCheckStatus
+    public let deploymentStatus: ReleaseCheckStatus
+
+    public var id: String { pagePath }
+
+    public init(
+        pagePath: String,
+        groupID: String,
+        decisionMode: MiniProgram99PageDecisionMode,
+        codeStatus: ReleaseCheckStatus = .passed,
+        wiringStatus: ReleaseCheckStatus = .passed,
+        testStatus: ReleaseCheckStatus = .notRun,
+        deploymentStatus: ReleaseCheckStatus = .notRun
+    ) {
+        self.pagePath = pagePath
+        self.groupID = groupID
+        self.decisionMode = decisionMode
+        self.codeStatus = codeStatus
+        self.wiringStatus = wiringStatus
+        self.testStatus = testStatus
+        self.deploymentStatus = deploymentStatus
+    }
+
+    public var isEndToEndVerified: Bool {
+        codeStatus == .passed
+            && wiringStatus == .passed
+            && testStatus == .passed
+            && deploymentStatus == .passed
     }
 }

@@ -113,9 +113,10 @@ extension KeychainTokenStore: AppTokenStorage {}
     let roamSessionFactReadAccess: @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess?
     let roamNearbyEventsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess?
     let roamNearbyPlayersReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess?
-    /// Roam home 附近活动 peek and passport tools. No reviewed default exists; nil keeps both unavailable.
+    /// Roam home 附近活动 peek and passport/private read tools. No reviewed default exists; nil keeps them unavailable, and writes remain strictly independent.
     let roamEntryNearbyReadAccess: @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess?
     let roamPassportToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess?
+    let roamPrivateToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess?
     let profileOwnedCouponReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?
     let roamAlbumMetadataReadAccess: @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess?
     let roamTileMemoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess?
@@ -175,6 +176,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          roamNearbyPlayersReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess? = { _ in nil },
          roamEntryNearbyReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess? = { _ in nil },
          roamPassportToolsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? = { _ in nil },
+         roamPrivateToolsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil },
          profileOwnedCouponReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? = { _ in nil },
          roamAlbumMetadataReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess? = { _ in nil },
          roamTileMemoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess? = { _ in nil },
@@ -219,6 +221,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.roamNearbyPlayersReadAccess = roamNearbyPlayersReadAccess
         self.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
         self.roamPassportToolsReadAccess = roamPassportToolsReadAccess
+        self.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
         self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess
         self.roamAlbumMetadataReadAccess = roamAlbumMetadataReadAccess
         self.roamTileMemoryReadAccess = roamTileMemoryReadAccess
@@ -272,6 +275,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         let transport = CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamAlbumMetadataReadAccess: roamAlbumMetadataReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
         transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
         transport.ownMediaReadApproval = ownMediaReadApproval
+        transport.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
+        transport.roamPassportToolsReadAccess = roamPassportToolsReadAccess
+        transport.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
         return transport
     }
     func makeSession() -> AppSession { AppSession(composition: self) }
@@ -544,6 +550,9 @@ extension KeychainTokenStore: AppTokenStorage {}
     var current: () -> SessionIdentity? = { nil }
     var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
     var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
+    var roamEntryNearbyReadAccess: @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess? = { _ in nil }
+    var roamPassportToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? = { _ in nil }
+    var roamPrivateToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil }
     /// Internal scheduling seam, never a grant; the one-use final fence runs after it.
     var couponBeforeForward: (@MainActor () async -> Void)?
     /// Installed by AppSession; no runtime capability can be inferred from a root grant.
@@ -780,6 +789,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.current = { self.current() }
         transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
         transport.ownMediaReadApproval = ownMediaReadApproval
+        transport.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
+        transport.roamPassportToolsReadAccess = roamPassportToolsReadAccess
+        transport.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
         transport.profileFavoriteTopicSelection = profileFavoriteTopicSelection
         transport.profilePublicInfoTarget = profilePublicInfoTarget
         transport.publicMerchantHomeScope = publicMerchantHomeScope
@@ -1047,7 +1059,23 @@ extension KeychainTokenStore: AppTokenStorage {}
         let favoriteDetail = ProfileFavoriteDetailRoute(request: request, baseURL: api.baseURL)
         let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
         let ownMedia = OwnMediaReadRoute.accepts(request, baseURL: api.baseURL)
-        guard ownMedia || nearbyEvents != nil || url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        let entryNearbyArea = manualMapSelection?.snapshot
+        let entryNearby: URLRequest? = entryNearbyArea.flatMap { areaSnapshot in
+            guard request.httpMethod == "GET",
+                  let expected = try? RoamEntryNearbyRoute.request(baseURL: api.baseURL, area: areaSnapshot.area, token: "synthetic"),
+                  request.url == expected.url else { return nil }
+            return expected
+        }
+        let requestPath = URLComponents(url: url, resolvingAgainstBaseURL: false)?.path
+        let passportToolPath: String? = request.httpMethod == "GET"
+            ? RoamPassportToolsService.paths.first(where: { requestPath == api.baseURL.appendingPathComponent($0).path })
+            : nil
+        let privateToolReadPath: String? = RoamPrivateToolsRoute.reads.first(where: { path in
+            guard requestPath == api.baseURL.appendingPathComponent(path).path else { return false }
+            let expectedMethod = (path == RoamPrivateToolsRoute.exportPrepare || path == RoamPrivateToolsRoute.exportPage) ? "POST" : "GET"
+            return request.httpMethod == expectedMethod
+        })
+        guard ownMedia || nearbyEvents != nil || entryNearby != nil || passportToolPath != nil || privateToolReadPath != nil || url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -1374,6 +1402,56 @@ extension KeychainTokenStore: AppTokenStorage {}
                 guard manualMapSelection?.snapshot == snapshot,
                       let fresh = roamNearbyPlayersReadAccess(context) else { return false }
                 return fresh === selected && fresh.matches(context)
+            }
+        } else if entryNearby != nil {
+            guard captured.isSignedInContentViewer, let snapshot = entryNearbyArea,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = roamEntryNearbyReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: RoamEntryNearbyRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [roamEntryNearbyReadAccess, manualMapSelection] in
+                guard manualMapSelection?.snapshot == snapshot,
+                      let fresh = roamEntryNearbyReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if let passportToolPath {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            if let selected = roamPassportToolsReadAccess(context), selected.matches(context),
+               selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                 accountID: account, path: passportToolPath) {
+                readApprovalStillValid = { [roamPassportToolsReadAccess] in
+                    guard let fresh = roamPassportToolsReadAccess(context) else { return false }
+                    return fresh === selected && fresh.matches(context)
+                }
+            } else if let selected = roamPrivateToolsReadAccess(context), selected.matches(context), !selected.allowsWrites,
+                      selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                        accountID: account, path: passportToolPath) {
+                readApprovalStillValid = { [roamPrivateToolsReadAccess] in
+                    guard let fresh = roamPrivateToolsReadAccess(context) else { return false }
+                    return fresh === selected && fresh.matches(context) && !fresh.allowsWrites
+                }
+            } else {
+                throw APIError.notConfigured
+            }
+        } else if let privateToolReadPath {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = roamPrivateToolsReadAccess(context), selected.matches(context), !selected.allowsWrites,
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: privateToolReadPath) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [roamPrivateToolsReadAccess] in
+                guard let fresh = roamPrivateToolsReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context) && !fresh.allowsWrites
             }
         } else if let inviteRoute = ProfileInviteHistoryReadRoute(request: request, baseURL: api.baseURL) {
             guard captured.isSignedInContentViewer,

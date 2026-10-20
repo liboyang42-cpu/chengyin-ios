@@ -379,10 +379,43 @@ public struct MiniProgram99PageParityRegistry: Sendable, Equatable {
 
     public static func entry(forPagePath pagePath: String) -> MiniProgramPageParityEntry? {
         representativePages.first { $0.pagePath == pagePath }
+            ?? all99BaselinePageEntries.first { $0.pagePath == pagePath }
     }
+
+    public static let all99BaselinePageEntries: [MiniProgramPageParityEntry] = {
+        MiniProgramPageByPage99DecisionLedgerContract.canonical99PageRows.map { row in
+            let domain: MiniProgramAlignmentDomain
+            let scopeID: String
+            switch row.groupID {
+            case "group-tabbar-and-home-15":
+                domain = .domainB
+                scopeID = "w2-02"
+            case "group-roam-and-passport-22":
+                domain = .domainD
+                scopeID = "w2-08"
+            case "group-play-and-story-18":
+                domain = .domainC
+                scopeID = "w2-07"
+            case "group-club-team-and-coop-24":
+                domain = .domainE
+                scopeID = "w2-18"
+            default:
+                domain = .domainE
+                scopeID = "w2-12"
+            }
+            return MiniProgramPageParityEntry(
+                pagePath: row.pagePath,
+                domain: domain,
+                wave2ScopeID: scopeID,
+                nativeReaderOrPresentationContract: row.decisionMode.rawValue,
+                writeGatePosture: .readOnlyFailClosed
+            )
+        }
+    }()
 
     public static var areAllWriteGatesFailClosedByDefault: Bool {
         wave2Scopes.allSatisfy { !$0.writeGatePosture.isWriteGateEnabledByDefault } &&
-            representativePages.allSatisfy { !$0.writeGatePosture.isWriteGateEnabledByDefault }
+            representativePages.allSatisfy { !$0.writeGatePosture.isWriteGateEnabledByDefault } &&
+            all99BaselinePageEntries.allSatisfy { !$0.writeGatePosture.isWriteGateEnabledByDefault }
     }
 }

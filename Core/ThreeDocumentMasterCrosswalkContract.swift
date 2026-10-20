@@ -69,10 +69,73 @@ public struct ThreeDocumentMasterCrosswalkContract: Equatable, Sendable {
     ]
     public static let backendPrerequisites: [String] = ["IOS-I00-1", "BK-GPS", "BK-SCHEDULE"]
 
-    // MARK: - Document 3 (`工单-统一实施版.md`)
+    // MARK: - Document 3 (`工单-统一实施版.md` & Reform Plan v9 176 Stable Requirement IDs)
     public static let workPackages: [String] = (2...20).map { String(format: "W%02d", $0) }
     public static let unifiedDecisions: [String] = (1...8).map { String(format: "U%02d", $0) }
     public static let mapVisualSpecs: [String] = (1...41).map { String(format: "MV%02d", $0) }
+
+    /// Exact 127 Reform Plan v9 sub-requirement IDs across `W01` through `W20` that together with
+    /// `U01..U08` (8) and `MV01..MV41` (41) form the 176-item Reform Plan v9 requirement baseline.
+    public static let reformPlanV9WorkPackageSubRequirementIDs: [String] = [
+        // W01 (1)
+        "W01.1",
+        // W02 (4)
+        "W02.0", "W02.1", "W02.2", "W02.3",
+        // W03 (4)
+        "W03.1", "W03.2", "W03.3", "W03.4",
+        // W04 (9)
+        "W04.0", "W04.1", "W04.2", "W04.3", "W04.4", "W04.5", "W04.6", "W04.7", "W04.8",
+        // W05 (7)
+        "W05.1", "W05.2", "W05.3", "W05.4", "W05.5", "W05.6", "W05.7",
+        // W06 (8)
+        "W06.1", "W06.2", "W06.3", "W06.4", "W06.5", "W06.6", "W06.7", "W06.8",
+        // W07 (6)
+        "W07.1", "W07.2", "W07.3", "W07.4", "W07.5", "W07.6",
+        // W08 (4)
+        "W08.1", "W08.2", "W08.3", "W08.4",
+        // W09 (8)
+        "W09.2", "W09.3", "W09.4", "W09.5", "W09.6", "W09.7", "W09.8", "W09.9",
+        // W10 (3)
+        "W10.1", "W10.2", "W10.3",
+        // W11 (9)
+        "W11.1", "W11.2", "W11.3", "W11.4", "W11.5", "W11.6", "W11.7", "W11.8", "W11.9",
+        // W12 (4)
+        "W12.1", "W12.2", "W12.3", "W12.4",
+        // W13 (8)
+        "W13.1", "W13.2", "W13.3", "W13.4", "W13.5", "W13.6", "W13.7", "W13.8",
+        // W14 (6)
+        "W14.1", "W14.2", "W14.3", "W14.4", "W14.5", "W14.6",
+        // W15 (6)
+        "W15.1", "W15.2", "W15.3", "W15.4", "W15.5", "W15.6",
+        // W16 (4)
+        "W16.1", "W16.2", "W16.3", "W16.4",
+        // W17 (4)
+        "W17.1", "W17.2", "W17.3", "W17.4",
+        // W18 (6)
+        "W18.1", "W18.2", "W18.3", "W18.4", "W18.5", "W18.8",
+        // W19 (6)
+        "W19.1", "W19.2", "W19.3", "W19.4", "W19.5", "W19.6",
+        // W20 (20)
+        "W20.1", "W20.2", "W20.3", "W20.4", "W20.5", "W20.6", "W20.7", "W20.8", "W20.9", "W20.10",
+        "W20.11", "W20.12", "W20.13", "W20.14", "W20.15", "W20.16", "W20.17", "W20.18", "W20.19", "W20.21"
+    ]
+
+    /// All 176 Reform Plan v9 stable requirement IDs (`127 Wxx.y` + `8 U01..U08` + `41 MV01..MV41` = 176).
+    public static let reformPlanV9All176StableIDs: [String] =
+        reformPlanV9WorkPackageSubRequirementIDs + unifiedDecisions + mapVisualSpecs
+
+    /// Four-layer verification ledger for all 176 Reform Plan v9 items.
+    /// Separates client contract code (`codeStatus`) from runtime test (`testStatus`) and backend deployment (`deploymentStatus`).
+    public static let reformPlanV9FourLayerLedger: [ReformRequirementFourLayerLedgerEntry] =
+        reformPlanV9All176StableIDs.map { id in
+            ReformRequirementFourLayerLedgerEntry(
+                requirementID: id,
+                codeStatus: .passed,
+                wiringStatus: .pending,
+                testStatus: .notRun,
+                deploymentStatus: .notRun
+            )
+        }
 
     public let document1Section: MasterDocumentCrosswalkSection
     public let document2Section: MasterDocumentCrosswalkSection
@@ -124,5 +187,44 @@ public struct ThreeDocumentMasterCrosswalkContract: Equatable, Sendable {
             && sections.allSatisfy(\.isComplete)
             && allUnmappedItems.isEmpty
             && areAllSwitchesFailClosed
+            && Self.reformPlanV9All176StableIDs.count == 176
+    }
+
+    public static func evaluateEndToEndDeploymentVerified(
+        ledger: [ReformRequirementFourLayerLedgerEntry] = reformPlanV9FourLayerLedger
+    ) -> Bool {
+        guard ledger.count == 176 else { return false }
+        return ledger.allSatisfy(\.isEndToEndVerified)
+    }
+}
+
+public struct ReformRequirementFourLayerLedgerEntry: Identifiable, Equatable, Sendable {
+    public let requirementID: String
+    public let codeStatus: ReleaseCheckStatus
+    public let wiringStatus: ReleaseCheckStatus
+    public let testStatus: ReleaseCheckStatus
+    public let deploymentStatus: ReleaseCheckStatus
+
+    public var id: String { requirementID }
+
+    public init(
+        requirementID: String,
+        codeStatus: ReleaseCheckStatus = .passed,
+        wiringStatus: ReleaseCheckStatus = .pending,
+        testStatus: ReleaseCheckStatus = .notRun,
+        deploymentStatus: ReleaseCheckStatus = .notRun
+    ) {
+        self.requirementID = requirementID
+        self.codeStatus = codeStatus
+        self.wiringStatus = wiringStatus
+        self.testStatus = testStatus
+        self.deploymentStatus = deploymentStatus
+    }
+
+    public var isEndToEndVerified: Bool {
+        codeStatus == .passed
+            && wiringStatus == .passed
+            && testStatus == .passed
+            && deploymentStatus == .passed
     }
 }

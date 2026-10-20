@@ -37,7 +37,9 @@ class RoamPrivateToolsContracts(unittest.TestCase):
         self.assertEqual(result.stderr.strip().splitlines()[-1], 'AssertionError: ' + expected)
 
     def test_production_cannot_ship_an_approval(self):
-        self.check_mutant('App/AppSession.swift', '{ { _ in nil } }', '{ { try? RoamPrivateToolsAccess(context: $0, approval: .init(baseURL: $0.baseURL, namespace: "x", accountID: 1, paths: RoamPrivateToolsRoute.reads)) } }',
+        self.check_mutant('App/AppCompositionRoot.swift',
+                          'roamPrivateToolsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil },',
+                          'roamPrivateToolsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { try? RoamPrivateToolsAccess(context: $0, approval: .init(baseURL: $0.baseURL, namespace: "x", accountID: 1, paths: RoamPrivateToolsRoute.reads)) },',
                           'Production composition supplies no approval')
 
     def test_409_capsule_conflict_must_not_become_a_refusal(self):

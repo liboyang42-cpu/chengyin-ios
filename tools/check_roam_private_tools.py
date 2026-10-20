@@ -37,6 +37,7 @@ views = read('App/RoamPassportPrivateToolsViews.swift')
 export_view = read('App/RoamExplorationExportView.swift')
 copy = views + export_view
 session = read('App/AppSession.swift')
+composition = read('App/AppCompositionRoot.swift')
 hub = read('App/RoamExperienceHubView.swift')
 tools_section = read('App/RoamPassportToolsViews.swift')
 fixture_host = read('App/RoamExperienceFixtureSupport.swift')
@@ -65,7 +66,9 @@ check('Approval is bound to market, player role, deployment, namespace and accou
 check('Identity change clears pending requests and confirmed cancellations',
       'if !same { bound = context; storedCapsule = nil; storedGoal = nil; storedCancelled = [] }' in reading)
 check('Production composition supplies no approval',
-      'private var roamPrivateToolsAccess: (RuntimeDependencyContext) -> RoamPrivateToolsAccess? { { _ in nil } }' in session
+      'roamPrivateToolsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil },' in composition
+      and 'let access = self.composition.roamPrivateToolsReadAccess(context),' in session
+      and 'access.matches(context), !access.allowsWrites else { return nil }' in session
       and session.count('access: roamPrivateToolsAccess') == 2)
 check('Private content is never persisted by Core',
       not any(x in src for src in private_sources for x in ['UserDefaults', 'Keychain', 'FileManager', 'write(to:', 'AppStorage']))

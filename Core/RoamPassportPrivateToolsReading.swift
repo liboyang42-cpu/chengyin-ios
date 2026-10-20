@@ -301,44 +301,93 @@ public struct RoamPrivateToolsService {
 /// Session-scoped 那年今日 / 月度回顾 reader with the same approval fence. Without an approval it reports
 /// not configured, which the views show honestly.
 @MainActor public final class RoamPassportToolsSessionReader: RoamPassportToolsReading {
+    private enum ApprovalToken {
+        case privateAccess(RoamPrivateToolsAccess)
+        case readAccess(RoamPassportToolsReadAccess)
+        func isSame(as other: ApprovalToken) -> Bool {
+            switch (self, other) {
+            case (.privateAccess(let lhs), .privateAccess(let rhs)): return lhs === rhs
+            case (.readAccess(let lhs), .readAccess(let rhs)): return lhs === rhs
+            default: return false
+            }
+        }
+    }
     private let service: RoamPassportToolsService?
+    private let currentSession: (() -> RoamExperienceSession?)?
     private let current: () -> RuntimeDependencyContext?
     private let selectAccess: (RuntimeDependencyContext) -> RoamPrivateToolsAccess?
+    private let selectReadAccess: (RuntimeDependencyContext) -> RoamPassportToolsReadAccess?
     private let onUnauthorized: (RuntimeDependencyContext) -> Void
+    private let onUnauthorizedSession: (RoamExperienceSession) -> Void
     public init(service: RoamPassportToolsService?, current: @escaping () -> RuntimeDependencyContext?,
                 access: @escaping (RuntimeDependencyContext) -> RoamPrivateToolsAccess?,
+                readAccess: @escaping (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? = { _ in nil },
                 onUnauthorized: @escaping (RuntimeDependencyContext) -> Void = { _ in }) {
-        self.service = service; self.current = current; selectAccess = access; self.onUnauthorized = onUnauthorized
+        self.service = service; self.currentSession = nil; self.current = current
+        self.selectAccess = access; self.selectReadAccess = readAccess
+        self.onUnauthorized = onUnauthorized; self.onUnauthorizedSession = { _ in }
+    }
+    public init(configuration: APIConfiguration?, transport: any HTTPTransport,
+                currentSession: @escaping () -> RoamExperienceSession?,
+                current: @escaping () -> RuntimeDependencyContext?,
+                access: @escaping (RuntimeDependencyContext) -> RoamPassportToolsReadAccess?,
+                onUnauthorized: @escaping (RoamExperienceSession) -> Void = { _ in }) {
+        self.service = configuration.map { RoamPassportToolsService(configuration: $0, transport: transport) }
+        self.currentSession = currentSession; self.current = current
+        self.selectAccess = { _ in nil }; self.selectReadAccess = access
+        self.onUnauthorized = { _ in }; self.onUnauthorizedSession = onUnauthorized
     }
     public var identity: RoamExperienceIdentity? {
+        if let currentSession { return currentSession()?.identity }
         guard let context = current(), let scope = try? RoamHistoryScope(market: context.market.rawValue, deployment: context.baseURL,
               accountID: context.session.accountID, namespace: context.session.namespace) else { return nil }
         return .init(scope: scope, epoch: context.session.epoch)
     }
-    private func approved() -> (RuntimeDependencyContext, RoamPrivateToolsAccess, RoamPassportToolsService)? {
-        guard let context = current(), let service, let access = selectAccess(context), access.matches(context),
-              access.allows(Set(RoamPassportToolsService.paths)),
+    private func approved() -> (RuntimeDependencyContext, ApprovalToken, RoamPassportToolsService)? {
+        if let currentSession, currentSession() == nil { return nil }
+        guard let context = current(), let service,
               service.deployment.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8) else { return nil }
-        return (context, access, service)
+        if let access = selectAccess(context), access.matches(context), access.allows(Set(RoamPassportToolsService.paths)) {
+            return (context, .privateAccess(access), service)
+        }
+        if let readAccess = selectReadAccess(context), readAccess.matches(context),
+           readAccess.endpoints.paths == Set(RoamPassportToolsService.paths) {
+            return (context, .readAccess(readAccess), service)
+        }
+        return nil
     }
     public var isConfigured: Bool { approved() != nil }
     public var isOfflineExample: Bool { false }
     private func run<T>(_ body: (RoamPassportToolsService, String) async throws -> T) async throws -> T {
         try Task.checkCancellation()
+        let capturedSession: RoamExperienceSession?
+        if let currentSession {
+            guard let session = currentSession() else { throw APIError.unauthorized }
+            capturedSession = session
+        } else {
+            capturedSession = nil
+        }
         guard current() != nil else { throw APIError.unauthorized }
         guard let approval = approved() else { throw APIError.notConfigured }
-        let (captured, access, service) = approval
+        let (captured, accessToken, service) = approval
+        let token = capturedSession?.mutationToken ?? captured.session.token
         func valid() -> Bool {
-            guard let fresh = current(), ContentDraftContextFence.matches(captured, fresh) else { return false }
-            return approved()?.1 === access
+            guard !Task.isCancelled else { return false }
+            if let currentSession, currentSession() != capturedSession { return false }
+            guard let fresh = current(), ContentDraftContextFence.matches(captured, fresh),
+                  let currentApproval = approved() else { return false }
+            return currentApproval.1.isSame(as: accessToken)
         }
         do {
-            let value = try await body(service, captured.session.token)
+            let value = try await body(service, token)
             guard valid() else { throw CancellationError() }
             return value
         } catch {
             guard valid() else { throw CancellationError() }
-            if error as? APIError == .unauthorized { onUnauthorized(captured) }
+            if error as? APIError == .unauthorized {
+                onUnauthorized(captured)
+                if let capturedSession { onUnauthorizedSession(capturedSession) }
+            }
             throw error
         }
     }

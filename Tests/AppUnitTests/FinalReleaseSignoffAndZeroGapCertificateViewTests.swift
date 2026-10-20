@@ -12,12 +12,24 @@ import QuestifyCore
 @MainActor
 final class FinalReleaseSignoffAndZeroGapCertificateViewTests: XCTestCase {
     func testDefaultReadySnapshotCoversAllSixReleaseCertificatePillars() {
-        let snapshot = FinalReleaseCertificateSnapshot.defaultReady
-        XCTAssertTrue(snapshot.isZeroGapCertified)
-        XCTAssertEqual(snapshot.certifiedPillarCount, 6)
-        XCTAssertTrue(snapshot.uncertifiedPillars.isEmpty)
+        testDefaultUnverifiedSnapshotFailsClosedUntilEvidenceIsSupplied()
+    }
+
+    func testUncertifiedBlillarTriggersBlockedWarningState() {
+        testUncertifiedPillarOrMismatchedSHATriggersBlockedWarningState()
+    }
+
+    func testMainActorViewBodyInstantiationForReadyAndBlockedStates() {
+        testMainActorViewBodyInstantiationForDefaultUnverifiedAndPreviewFixtureStates()
+    }
+
+    func testDefaultUnverifiedSnapshotFailsClosedUntilEvidenceIsSupplied() {
+        let defaultSnapshot = FinalReleaseCertificateSnapshot.defaultUnverified
+        XCTAssertFalse(defaultSnapshot.isZeroGapCertified)
+        XCTAssertEqual(defaultSnapshot.certifiedPillarCount, 0)
+        XCTAssertEqual(defaultSnapshot.uncertifiedPillars.count, 6)
         XCTAssertEqual(
-            snapshot.pillars.map(\.pillarTitle),
+            defaultSnapshot.pillars.map(\.pillarTitle),
             [
                 "Wave 1–3 Tickets",
                 "Reform v9 W02..W20",
@@ -27,45 +39,44 @@ final class FinalReleaseSignoffAndZeroGapCertificateViewTests: XCTestCase {
                 "Cloud CI & ContractChecks"
             ]
         )
-        XCTAssertEqual(snapshot.statusHeadline, "零差距发布签收证书已就绪 (6/6)")
+        XCTAssertEqual(defaultSnapshot.statusHeadline, "未验证/未签收：存在 6 项待核验阻断，暂不可签发发布证书")
+
+        let previewFixture = FinalReleaseCertificateSnapshot.previewReadyFixture
+        XCTAssertTrue(previewFixture.isZeroGapCertified)
+        XCTAssertEqual(previewFixture.certifiedPillarCount, 6)
+        XCTAssertEqual(previewFixture.statusHeadline, "发布签收证据已齐备 (6/6)")
     }
 
-    func testUncertifiedBlillarTriggersBlockedWarningState() {
-        var pillars = FinalReleaseCertificateSnapshot.defaultPillars
+    func testUncertifiedPillarOrMismatchedSHATriggersBlockedWarningState() {
+        var pillars = FinalReleaseCertificateSnapshot.previewFixturePillars
         pillars[3] = ReleaseCertificatePillarRow(
             id: "RC-GATE-01..06",
             pillarTitle: "RC-GATE-01..06",
             scopeSummary: "六大发布候选安全与商业边界门禁",
             isCertified: false,
+            statusText: "FAILED",
+            commitSHA: "fixture-preview-sha",
+            evidenceLink: "docs/evidence",
             blockerNote: "发现未评审写接口开关被开启"
         )
         let blockedSnapshot = FinalReleaseCertificateSnapshot(
             certificateID: "RC-BLOCKED-TEST",
+            targetCommitSHA: "fixture-preview-sha",
             pillars: pillars
         )
         XCTAssertFalse(blockedSnapshot.isZeroGapCertified)
         XCTAssertEqual(blockedSnapshot.certifiedPillarCount, 5)
         XCTAssertEqual(blockedSnapshot.uncertifiedPillars.map(\.id), ["RC-GATE-01..06"])
-        XCTAssertEqual(blockedSnapshot.statusHeadline, "存在 1 项未签收发布阻断，暂不可签发发布证书")
+        XCTAssertEqual(blockedSnapshot.statusHeadline, "未验证/未签收：存在 1 项待核验阻断，暂不可签发发布证书")
     }
 
-    func testMainActorViewBodyInstantiationForReadyAndBlockedStates() {
-        let readyView = FinalReleaseSignoffAndZeroGapCertificateView(snapshot: .defaultReady)
-        XCTAssertTrue(readyView.snapshot.isZeroGapCertified)
-        _ = readyView.body
+    func testMainActorViewBodyInstantiationForDefaultUnverifiedAndPreviewFixtureStates() {
+        let defaultView = FinalReleaseSignoffAndZeroGapCertificateView()
+        XCTAssertFalse(defaultView.snapshot.isZeroGapCertified)
+        _ = defaultView.body
 
-        var blockedPillars = FinalReleaseCertificateSnapshot.defaultPillars
-        blockedPillars[0] = ReleaseCertificatePillarRow(
-            id: "Wave 1–3 Tickets",
-            pillarTitle: "Wave 1–3 Tickets",
-            scopeSummary: "待补充回归项",
-            isCertified: false,
-            blockerNote: "缺少签收记录"
-        )
-        let blockedView = FinalReleaseSignoffAndZeroGapCertificateView(
-            snapshot: FinalReleaseCertificateSnapshot(pillars: blockedPillars)
-        )
-        XCTAssertFalse(blockedView.snapshot.isZeroGapCertified)
-        _ = blockedView.body
+        let previewView = FinalReleaseSignoffAndZeroGapCertificateView(snapshot: .previewReadyFixture)
+        XCTAssertTrue(previewView.snapshot.isZeroGapCertified)
+        _ = previewView.body
     }
 }
