@@ -42,3 +42,20 @@ The normal document is read-only: existing projected fields and reload/error sta
 Verified source baseline: backend and mini 57b22916e05e0c7eccccb75f68a46a4576ab5bf8. Mini myproject/index.js 242–267 routes topic cards to merchantinfo; merchantinfo.js 1529–1605 calls project/home. ApiProjectController.java 93–126 requires MERCHANT project-manage authority and resolves ownerMemberId. ProjectHomeReadServiceImpl.java 73–114 rejects unrelated viewers and supplies authoritative topic/host/join data.
 
 Validation for this change: independent static review and authored composition/lifetime tests. Swift compilation, Swift tests and actual App navigation are NOT_RUN; no CI, live project request, mutation, deployment or release was performed. Source connection is not evidence that a production approval has been enabled.
+
+
+## 2026-10-19 independently scoped ordinary participant roster
+
+Normal workspace approval still denies project/players. A separate nil-default `MerchantProjectParticipantsReadApproval` is required, alongside the existing browse/workspace approvals. Only an authoritative `.project` snapshot matching the selected integer topic ID and merchant, with role host, host object and integer productType 1, offers the participant destination. Missing/unknown product types, type 2 FREE_EXPLORE and join-only views do not acquire this entry.
+
+Opening the roster rereads access/me and requires active access, the captured merchant, project-manage and `merchant:verify:record:read` before POST project/players. The request is exactly JSON topicId plus scope MERCHANT, matching the mini contract. The historical generic merchant players request is corrected to include this scope; the earlier unscoped test expectation is deliberately replaced. The dedicated transport admits only that selected request and bodyless access/me; it rejects home/my, different topics, extra/duplicate/coerced fields, cookies, streams and alternate authority.
+
+The server remains authoritative for participant-read authorization. The response does not echo topic or merchant IDs. Correlation is the selected query, fresh access, captured parent snapshot, session/approval and child lifetime, rather than fabricated fields.
+
+Ordinary rows retain only name, ticketName, the proven state (refunded/arrived/contacted/pending) and an allowed returned phone. The five nonnegative summary counters, Boolean contactVisible and nullable contactHint are validated. Fresh `merchant:crm:sensitive:read` and contactVisible true are both necessary to retain any phone. A null phone stays null: server-withheld contact data is never reconstructed by the client. No phone is inferred from another field or cache. Ticket numbers, avatars, registration/ticket IDs, dates and unrelated metadata are discarded from this read projection; there is no contact/export/profile/image action.
+
+The root workspace route now owns its service lifetime. A child push preserves the parent snapshot/service, while Back from the workspace, summary close, refresh/context replacement and background retire the relevant lease. The roster has its own owner; closing it does not retire the parent. Old replies and 401s are fenced before callback effects. The existing document and roster rendering are reused, with contacted count added using scoped bilingual text; no held string catalog or project file is changed.
+
+This client flow supports only ordinary type-1 host projects. Type 2 and other roster formats are explicitly outside this group.
+
+Static review and authored tests are not execution evidence. Compilation, Swift tests and actual App push/Back/background tests are NOT_RUN. No live participant read, new production approval, mutation, CI run, deployment or release was performed.

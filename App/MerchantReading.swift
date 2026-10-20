@@ -202,9 +202,14 @@ final class MerchantLoadModel<Value>: ObservableObject {
 }
 
 /// A selected workspace gets a fresh service and its own presentation lifetime.
+@MainActor struct MerchantProjectParticipantsReadFactory {
+    let id: UUID
+    let make: (Int, Int, MerchantContentSnapshot, @escaping () -> Bool) -> (any MerchantContentServing)?
+}
 @MainActor struct MerchantProjectWorkspaceReadFactory {
     let id: UUID
     let make: (Int, Int, @escaping () -> Bool) -> (any MerchantContentServing)?
+    var participants: MerchantProjectParticipantsReadFactory? = nil
 }
 @MainActor final class MerchantProjectWorkspaceReadService: MerchantContentServing {
     private let source: MerchantContentService
@@ -249,15 +254,63 @@ final class MerchantLoadModel<Value>: ObservableObject {
     let topicID: Int
     let merchantID: Int
     let isCurrent: () -> Bool
-    @StateObject private var owner = MerchantProjectWorkspaceReadOwner()
-    @State private var visible = false
+    @ObservedObject var owner: MerchantProjectWorkspaceReadOwner
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Group {
             if let service = owner.service, isCurrent() {
                 MerchantContentDocumentView(service: service, query: .project(topicID: topicID),
                     focusedTopicID: topicID, focusedMerchantID: merchantID, projectEntryIsCurrent: isCurrent,
-                    readOnlyProject: true)
+                    readOnlyProject: true, participantsFactory: factory.participants)
+                    .id(service.scope)
+            } else { Text("merchant.projectWorkspace.changed") }
+        }
+        .task(id: scenePhase) {
+            guard !Task.isCancelled else { return }
+            if scenePhase == .active && isCurrent() {
+                if owner.service == nil { owner.activate(factory: factory, topicID: topicID, merchantID: merchantID, isCurrent: isCurrent) }
+            } else { owner.retire() }
+        }
+        // Root workspace route owns retirement; a participant push must retain this document.
+    }
+}
+
+
+@MainActor final class MerchantProjectParticipantsReadService: MerchantContentServing {
+    private let source: MerchantContentService
+    private let topicID: Int, merchantID: Int
+    private let current: () -> Bool
+    var scope: UUID { source.scope }
+    var isConfigured: Bool { current() && source.isConfigured }
+    var isAuthenticated: Bool { current() && source.isAuthenticated }
+    var permitsWrites: Bool { false }
+    init(source: MerchantContentService, topicID: Int, merchantID: Int, current: @escaping () -> Bool) {
+        self.source = source; self.topicID = topicID; self.merchantID = merchantID; self.current = current
+    }
+    func load(_ query: MerchantContentQuery) async throws -> MerchantContentSnapshot {
+        guard current(), query == .players(topicID: topicID) else { throw MerchantContentFailure.disabled }
+        let result = try await source.loadOrdinaryMerchantParticipants(topicID: topicID)
+        guard !Task.isCancelled, current(), result.scope == source.scope else { throw MerchantContentFailure.changedSession }
+        guard result.query == query, result.access.merchantID == merchantID else { throw MerchantContentFailure.malformed }
+        return result
+    }
+    func pending() throws -> [MerchantContentPendingRecord] { [] }
+    func perform(_ command: MerchantContentCommand, baseline: MerchantContentSnapshot) async throws -> MerchantContentReceipt { throw MerchantContentFailure.disabled }
+    func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt { throw MerchantContentFailure.disabled }
+    func retryStation(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt { throw MerchantContentFailure.disabled }
+}
+@MainActor struct MerchantProjectParticipantsReadHost: View {
+    let factory: MerchantProjectParticipantsReadFactory
+    let topicID: Int, merchantID: Int
+    let parentSnapshot: MerchantContentSnapshot
+    let isCurrent: () -> Bool
+    @StateObject private var owner = MerchantProjectWorkspaceReadOwner()
+    @State private var visible = false
+    @Environment(\.scenePhase) private var scenePhase
+    var body: some View {
+        Group {
+            if let service = owner.service, isCurrent() {
+                MerchantContentDocumentView(service: service, query: .players(topicID: topicID), readOnlyProject: true)
                     .id(service.scope)
             } else { Text("merchant.projectWorkspace.changed") }
         }
@@ -265,7 +318,9 @@ final class MerchantLoadModel<Value>: ObservableObject {
         .task(id: visible && scenePhase == .active) {
             guard !Task.isCancelled else { return }
             if visible && scenePhase == .active {
-                owner.activate(factory: factory, topicID: topicID, merchantID: merchantID,
+                owner.activate(factory: .init(id: factory.id, make: { topic, merchant, current in
+                    factory.make(topic, merchant, parentSnapshot, current)
+                }), topicID: topicID, merchantID: merchantID,
                     isCurrent: { visible && scenePhase == .active && isCurrent() })
             } else { owner.retire() }
         }
