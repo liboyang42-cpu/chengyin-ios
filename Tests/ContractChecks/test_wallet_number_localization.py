@@ -37,10 +37,16 @@ class WalletNumberLocalizationSourceTests(unittest.TestCase):
 
     def testAllNormalWalletScreensUseTheCurrentEnvironmentLocale(self):
         source = (ROOT/'App/WalletCommerceViews.swift').read_text()
-        for name in ['WalletAssetsView','WalletLedgerView','WalletIncomeView','WalletProductsView','WalletProductView','WalletCartView','WalletCheckoutView','WalletWithdrawalsView','WalletPointsTasksView']:
+        for name in ['WalletAssetsView','WalletLedgerView','WalletProductsView','WalletProductView','WalletCartView','WalletCheckoutView','WalletWithdrawalsView','WalletPointsTasksView']:
             part = source.split('struct '+name+': View {',1)[1].split('var body: some View',1)[0]
             self.assertIn('@Environment(\\.locale) private var locale', part)
             self.assertIn('WalletFormatting { .init(locale: locale) }', part)
+        # Income is now a tab host. Its ledger still owns locale-aware numeric rendering.
+        income = source.split('struct WalletIncomeView: View {', 1)[1].split('struct WalletProductsView: View {', 1)[0]
+        self.assertIn('WalletLedgerView(reader: reader, kind: .income(filter)).id(filter.rawValue)', income)
+        self.assertNotIn('.environment(\\.locale', income)
+        ledger = source.split('struct WalletLedgerView: View {', 1)[1].split('struct WalletIncomeView: View {', 1)[0]
+        self.assertIn('format.signed(row, points: points, income: income)', ledger)
 
     def testMissingValuesCurrencyAndCoreDirectionAreNotInvented(self):
         source = (ROOT/'App/WalletNumberLocalization.swift').read_text()

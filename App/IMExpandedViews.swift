@@ -17,7 +17,12 @@ struct IMExpandedSubmission: Equatable {
     init(_ owner: IMExpandedCoordinator) { self.owner = owner }
     func observe() {
         appearance = UUID()
-        owner.onChange = { [weak self] in self?.state = self?.owner.visibleState ?? .idle }
+        owner.onChange = { [weak self] in
+            guard let self, self.appearance != nil else { return }
+            if case .acknowledged = self.owner.visibleState,
+               self.executing?.appearance != self.appearance { return }
+            self.state = self.owner.visibleState
+        }
         state = owner.visibleState
     }
     func retire() { appearance = nil; queued = nil; executing = nil; owner.cancelReview() }
@@ -41,7 +46,8 @@ struct IMExpandedSubmission: Equatable {
         queued = token; return token
     }
     @discardableResult func perform(_ token: IMExpandedSubmission,
-                                    permits: (IMMutation) -> Bool) async -> Bool {
+                                    permits: (IMMutation) -> Bool,
+                                    onConversationMutationAccepted: (IMScope) -> Void = { _ in }) async -> Bool {
         guard queued == token else { return false }
         queued = nil
         guard appearance == token.appearance, !Task.isCancelled, owner.isCurrent,
@@ -57,10 +63,29 @@ struct IMExpandedSubmission: Equatable {
         case .confirm: await owner.confirm()
         case .retry: await owner.retryUnchanged()
         }
+        // A definite response to this already-dispatched operation can stale the
+        // retained list after Controls closes. Do not revive the UI or start reads.
+        if !Task.isCancelled, owner.isCurrent, owner.writer.isConfigured,
+           token.mutation.conversationID == owner.scope.conversationID,
+           case .acknowledged(let receipt) = owner.visibleState {
+            switch (token.mutation, receipt) {
+            case (.read, .read): onConversationMutationAccepted(owner.scope)
+            case (.mute(_, let requested), .muted(let received)) where requested == received:
+                onConversationMutationAccepted(owner.scope)
+            default: break
+            }
+        }
         guard appearance == token.appearance, executing == token, !Task.isCancelled,
               owner.isCurrent, permits(token.mutation) else { return false }
         state = owner.visibleState
-        if case .acknowledged = state { return true }
+        if case .acknowledged(let receipt) = state {
+            switch (token.mutation, receipt) {
+            case (.read, .read): return true
+            case (.mute(_, let requested), .muted(let received)): return requested == received
+            case (.read, _), (.mute, _): return false
+            default: return true
+            }
+        }
         return false
     }
 }
@@ -70,6 +95,7 @@ struct IMExpandedSubmission: Equatable {
     @StateObject private var model: IMExpandedViewModel
     let identity: MessagingReadIdentity?
     let onReceipt: (IMMutationReceipt) -> Void
+    let onConversationMutationAccepted: (IMScope) -> Void
     let uploadOwner: IMImageUploadCoordinator?
     let topicReader: (any TopicReading)?
     let replyPolicy: IMConversationReplyPolicy
@@ -81,10 +107,12 @@ struct IMExpandedSubmission: Equatable {
     @State private var latitude = ""
     @State private var longitude = ""
     init(coordinator: IMExpandedCoordinator, identity: MessagingReadIdentity?, uploadOwner: IMImageUploadCoordinator? = nil, topicReader: (any TopicReading)? = nil, replyPolicy: IMConversationReplyPolicy? = nil,
-         isConversationCurrent: @escaping () -> Bool = { true }, onReceipt: @escaping (IMMutationReceipt) -> Void) {
+         isConversationCurrent: @escaping () -> Bool = { true },
+         onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }, onReceipt: @escaping (IMMutationReceipt) -> Void) {
         _model = StateObject(wrappedValue: IMExpandedViewModel(coordinator)); self.identity = identity; self.uploadOwner = uploadOwner; self.topicReader = topicReader; self.onReceipt = onReceipt
         self.replyPolicy = replyPolicy ?? .init(conversationID: coordinator.scope.conversationID, conversation: nil)
         self.isConversationCurrent = isConversationCurrent
+        self.onConversationMutationAccepted = onConversationMutationAccepted
     }
     private var permitsReply: Bool { replyPolicy.permitsReply && isConversationCurrent() && identity == model.owner.scope.identity && model.owner.isCurrent }
     private func permits(_ mutation: IMMutation) -> Bool {
@@ -166,13 +194,6 @@ struct IMExpandedSubmission: Equatable {
         .navigationTitle(Text("im.full.title")).privacySensitive()
         .accessibilityIdentifier("im.full.controls")
         .onAppear { model.observe() }
-        .onChange(of: model.state) { _, state in
-            guard model.appearance != nil, isConversationCurrent(), identity == model.owner.scope.identity else { return }
-            if case .acknowledged(let receipt) = state {
-                if case .sent = receipt, !permitsReply { return }
-                onReceipt(receipt)
-            }
-        }
         .onChange(of: identity) { _, _ in clearDrafts(); model.invalidateQueued(); model.state = model.owner.visibleState }
         .onChange(of: permitsReply) { _, allowed in if !allowed { clearDrafts(); model.invalidateQueued() } }
         .onChange(of: isConversationCurrent()) { _, current in if !current { clearDrafts(); model.invalidateQueued() } }
@@ -181,7 +202,15 @@ struct IMExpandedSubmission: Equatable {
     private func review(_ mutation: IMMutation) { _ = model.review(mutation, permits: permits) }
     private func submit(_ operation: IMExpandedSubmission.Operation) {
         guard let token = model.prepare(operation, permits: permits) else { return }
-        Task { await model.perform(token, permits: permits) }
+        Task {
+            let accepted = await model.perform(token, permits: permits,
+                onConversationMutationAccepted: onConversationMutationAccepted)
+            guard accepted, model.appearance == token.appearance,
+                  isConversationCurrent(), identity == model.owner.scope.identity,
+                  case .acknowledged(let receipt) = model.state else { return }
+            if case .sent = receipt, !permitsReply { return }
+            onReceipt(receipt)
+        }
     }
     private func clearDrafts() { selectedTopic = nil; showingTopics = false; name = ""; address = ""; latitude = ""; longitude = "" }
 }

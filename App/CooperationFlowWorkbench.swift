@@ -138,7 +138,12 @@ struct CoopFlowSafetyNotice: View {
     @ViewBuilder private func content(_ value: CoopFlowJSON) -> some View {
         switch resource {
         case .finance:
-            CoopFinanceSummarySection(summary: CoopFinanceSummary(value))
+            if value["topics"].rows != nil {
+                CoopFinanceSummarySection(summary: CoopFinanceSummary(value))
+            } else {
+                Text("coopflow.amount.unknown")
+                    .accessibilityIdentifier("coopflow.summary.unknown")
+            }
             settlementRows(value["topics"].rows ?? [], source: .finance)
         case .myBusiness:
             Section("coopflow.credit") { CoopFlowFields(value: value["credit"], keys: ["fulfillmentRate", "violationCount"]) }
