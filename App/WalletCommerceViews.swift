@@ -68,6 +68,7 @@ extension WalletScreen where Value == WithdrawalBalance {
 @MainActor struct WalletCommerceHomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var earnings = WalletScreen<WithdrawalBalance>()
+    @StateObject private var funds = WalletScreen<WalletFundsStages>()
     @State private var isVisible = false
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
@@ -77,6 +78,7 @@ extension WalletScreen where Value == WithdrawalBalance {
     var invitationHistory: WalletInvitationHistoryAccess? = nil
     var showsWithdrawalSupport = true
     var showsCooperationFinance = true
+    var organizerFinance: WalletOrganizerFinanceAccess? = nil
     var body: some View {
         List {
             if visibility.income {
@@ -94,8 +96,13 @@ extension WalletScreen where Value == WithdrawalBalance {
                     }
                 }.accessibilityIdentifier("wallet.earnings.overview")
             }
+            if visibility.assets {
+                Section("wallet.fundStages") {
+                    WalletFundsStagesInline(reader: reader, funds: funds) { Task { await loadFunds() } }
+                }.accessibilityIdentifier("wallet.earnings.stages.home")
+            }
             if visibility.assets { NavigationLink("wallet.assets") { WalletAssetsView(reader: reader) } }
-            if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance) } }
+            if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance, organizerFinance: organizerFinance) } }
             if visibility.income, let invitationHistory {
                 NavigationLink {
                     SocialInviteHistoryView(reader: invitationHistory.reader,
@@ -117,18 +124,24 @@ extension WalletScreen where Value == WithdrawalBalance {
             .task(id: reader.scope) {
                 isVisible = true
                 earnings.clear()
+                funds.clear()
                 await loadEarnings()
+                await loadFunds()
             }
-            .onDisappear { isVisible = false; earnings.clear() }
+            .onDisappear { isVisible = false; earnings.clear(); funds.clear() }
             .onChange(of: scenePhase) { _, phase in
-                if phase != .active { earnings.clear() }
-                else if isVisible { Task { await loadEarnings() } }
+                if phase != .active { earnings.clear(); funds.clear() }
+                else if isVisible { Task { await loadEarnings(); await loadFunds() } }
             }
-            .refreshable { await loadEarnings() }
+            .refreshable { await loadEarnings(); await loadFunds() }
     }
     private func loadEarnings() async {
         guard visibility.income, isVisible, scenePhase == .active else { return }
         await earnings.loadEarnings(reader)
+    }
+    private func loadFunds() async {
+        guard visibility.assets, isVisible, scenePhase == .active else { return }
+        await funds.load(reader) { try await $0.stages(token: $1) }
     }
 }
 @MainActor struct WalletAssetsView: View {
@@ -270,25 +283,82 @@ extension WalletScreen where Value == WithdrawalBalance {
     }
 }
 @MainActor struct WalletIncomeView: View {
-    @Environment(\.locale) private var locale
-    private var format: WalletFormatting { .init(locale: locale) }
+    @Environment(\.scenePhase) private var scenePhase
     let reader: WalletCommerceReader
     let onCooperationFinance: () -> Void
     var showsCooperationFinance = true
+    var organizerFinance: WalletOrganizerFinanceAccess? = nil
     @State private var filter = WalletIncomeFilter.all
+    @State private var hold = WalletEarningsTabHold()
+    #if DEBUG
+    @StateObject private var debugFinance = WalletEarningsDebugFinance()
+    @StateObject private var debugStages = WalletScreen<WalletFundsStages>()
+    #endif
+    private var financeAccess: WalletOrganizerFinanceAccess? {
+        #if DEBUG
+        if WalletEarningsDebugFinance.enabled { return debugFinance.access }
+        #endif
+        return organizerFinance
+    }
+    private var showIncome: Bool { financeAccess == nil || hold.tab == .income }
     var body: some View {
+        VStack(spacing: 0) {
+            if financeAccess != nil {
+                WalletEarningsTabBar(tab: hold.tab) { hold.select($0) }
+                #if DEBUG
+                if WalletEarningsDebugFinance.enabled {
+                    Text(verbatim: String(debugFinance.financeReads))
+                        .accessibilityIdentifier("wallet.earnings.finance.reads")
+                    WalletFundsStagesInline(reader: reader, funds: debugStages) { Task { await loadDebugStages() } }
+                }
+                #endif
+            }
+            ZStack {
+                incomeBody
+                    .opacity(showIncome ? 1 : 0)
+                    .allowsHitTesting(showIncome)
+                    .accessibilityHidden(!showIncome)
+                    .zIndex(showIncome ? 1 : 0)
+                // ponytail: finance stays mounted across tab switches so the finance task does not restart; background drops it.
+                if let access = financeAccess, hold.mounted {
+                    WalletOrganizerFinancePane(access: access, mounted: hold.mounted)
+                        .opacity(hold.tab == .organizer ? 1 : 0)
+                        .allowsHitTesting(hold.tab == .organizer)
+                        .accessibilityHidden(hold.tab != .organizer)
+                        .zIndex(hold.tab == .organizer ? 1 : 0)
+                }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
+        }.appNavigationTitle("wallet.income")
+            .onChange(of: scenePhase) { _, phase in
+                guard financeAccess != nil else { return }
+                if phase != .active { hold.background() } else { hold.foreground() }
+            }
+            #if DEBUG
+            .task(id: reader.scope) {
+                guard WalletEarningsDebugFinance.enabled else { return }
+                debugStages.clear(); await loadDebugStages()
+            }
+            #endif
+    }
+    private var incomeBody: some View {
         VStack {
             Picker("wallet.income", selection: $filter) {
                 Text("wallet.all").tag(WalletIncomeFilter.all)
                 Text("wallet.creationIncome").tag(WalletIncomeFilter.create)
                 Text("wallet.brandIncome").tag(WalletIncomeFilter.brand)
             }.pickerStyle(.segmented).padding()
-            if showsCooperationFinance {
+            if financeAccess == nil, showsCooperationFinance {
                 Button("wallet.clubFinance", action: onCooperationFinance).frame(minHeight: 44)
             }
             WalletLedgerView(reader: reader, kind: .income(filter)).id(filter.rawValue)
-        }.appNavigationTitle("wallet.income")
+        }
     }
+    #if DEBUG
+    private func loadDebugStages() async {
+        guard WalletEarningsDebugFinance.enabled else { return }
+        await debugStages.load(reader) { try await $0.stages(token: $1) }
+    }
+    #endif
 }
 @MainActor struct WalletProductsView: View {
     @Environment(\.locale) private var locale

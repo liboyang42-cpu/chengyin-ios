@@ -1,0 +1,97 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "wallet.earnings.tab.income": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Income" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "收入" } }
+      }
+    },
+    "wallet.earnings.tab.organizer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Organizer share" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "主办分润" } }
+      }
+    },
+    "wallet.earnings.stages.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Loading funds stages" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在读取资金阶段" } }
+      }
+    },
+    "wallet.earnings.stages.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No amount is in a funds stage" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "没有进行中的资金阶段" } }
+      }
+    },
+    "wallet.earnings.stages.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Couldn't load funds stages" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "资金阶段读取失败" } }
+      }
+    },
+    "wallet.earnings.stages.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Try again" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重试" } }
+      }
+    },
+    "wallet.earnings.stages.unconfigured": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not configured / unavailable" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未配置/暂不可用" } }
+      }
+    },
+    "wallet.earnings.stages.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Sign in to view funds stages" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "登录后查看资金阶段" } }
+      }
+    },
+    "wallet.earnings.stages.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Unknown" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未知" } }
+      }
+    },
+    "wallet.earnings.stages.separate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Funds stages are not added to the wallet balance or organizer share" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "资金阶段不与钱包余额或主办分润相加" } }
+      }
+    },
+    "wallet.earnings.finance.unconfigured": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not configured / unavailable" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未配置/暂不可用" } }
+      }
+    },
+    "wallet.earnings.finance.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Sign in to view organizer share" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "登录后查看主办分润" } }
+      }
+    },
+    "wallet.earnings.finance.separate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Organizer share is in CNY and is not added to the wallet balance or funds stages" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "主办分润以人民币计，不与钱包余额或资金阶段相加" } }
+      }
+    }
+  },
+  "version": "1.0"
+}
