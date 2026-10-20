@@ -150,7 +150,7 @@ public struct ExplorationPrivateToolsAndCapsuleSectionView: View {
                         Spacer()
                         Text(verbatim: tool.isCompliant ? "FAIL-CLOSED" : "NON-COMPLIANT")
                             .font(.caption.monospaced())
-                            .foregroundStyle(tool.isCompliant ? .secondary : .red)
+                            .foregroundStyle(tool.isCompliant ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
                             .accessibilityIdentifier("explorationPrivateTools.tool.\(tool.id).status")
                     }
                     Text(verbatim: tool.routeSummary)
@@ -172,7 +172,7 @@ public struct ExplorationPrivateToolsAndCapsuleSectionView: View {
                         : "词表缺失或未翻译"
                 )
                 .font(.caption.monospaced())
-                .foregroundStyle(snapshot.isCatalogBilingualComplete ? .secondary : .red)
+                .foregroundStyle(snapshot.isCatalogBilingualComplete ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
             }
             .accessibilityIdentifier("explorationPrivateTools.catalogStatus")
 

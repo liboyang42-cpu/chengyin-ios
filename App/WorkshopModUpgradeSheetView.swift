@@ -110,7 +110,7 @@ public struct WorkshopModUpgradeSheetView: View {
                     .accessibilityIdentifier("workshop.upgrade.reReviewNotice")
                 Text(verbatim: presentation.coverageNotice)
                     .font(.footnote)
-                    .foregroundStyle(presentation.preview.coverage == .covered ? .secondary : .orange)
+                    .foregroundStyle(presentation.preview.coverage == .covered ? AnyShapeStyle(.secondary) : AnyShapeStyle(.orange))
                     .accessibilityIdentifier("workshop.upgrade.coverageNotice")
             }
 

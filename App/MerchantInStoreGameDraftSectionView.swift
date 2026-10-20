@@ -31,7 +31,7 @@ public struct MerchantInStoreGameDraftSectionView: View {
                     Spacer()
                     Text(verbatim: item.isSatisfied ? "已完备" : "待补充")
                         .font(.caption)
-                        .foregroundStyle(item.isSatisfied ? .secondary : .orange)
+                        .foregroundStyle(item.isSatisfied ? AnyShapeStyle(.secondary) : AnyShapeStyle(.orange))
                 }
                 .accessibilityIdentifier("merchantInStoreGame.field." + item.id)
             }

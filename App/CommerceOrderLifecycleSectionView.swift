@@ -62,7 +62,7 @@ import SwiftUI
                         Spacer()
                         Text(verbatim: line.isLineFulfilled ? "已履约" : "履约 \(line.fulfilledQuantity)/\(line.orderedQuantity)")
                             .font(.caption)
-                            .foregroundStyle(line.isLineFulfilled ? .green : .secondary)
+                            .foregroundStyle(line.isLineFulfilled ? AnyShapeStyle(.green) : AnyShapeStyle(.secondary))
                     }
                     Text(verbatim: "主题权益：生效 \(line.activeEntitlementCount) · 已核销 \(line.consumedEntitlementCount)（不计入实物履约）")
                         .font(.caption2)
@@ -85,7 +85,7 @@ import SwiftUI
                         .foregroundStyle(.secondary)
                     Text(verbatim: Self.finalOutcomeLabel(redemption))
                         .font(.caption)
-                        .foregroundStyle(redemption.isDuplicateRedemption ? .orange : .primary)
+                        .foregroundStyle(redemption.isDuplicateRedemption ? AnyShapeStyle(.orange) : AnyShapeStyle(.primary))
                 }
                 .accessibilityIdentifier("commerceOrderLifecycle.redemption")
             }

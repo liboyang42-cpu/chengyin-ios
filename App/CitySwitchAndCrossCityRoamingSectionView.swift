@@ -146,7 +146,7 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
                         Spacer()
                         Text(verbatim: row.statusBadgeText)
                             .font(.caption.monospaced())
-                            .foregroundStyle(row.isIsolated ? .secondary : .red)
+                            .foregroundStyle(row.isIsolated ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
                             .accessibilityIdentifier("citySwitchIsolation.row.\(row.id).status")
                     }
                     Text(verbatim: row.detail)

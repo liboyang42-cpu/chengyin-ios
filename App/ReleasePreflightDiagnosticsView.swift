@@ -207,7 +207,7 @@ public extension ReleasePreflightAndUIReadinessContract {
                     Spacer()
                     Text(verbatim: Self.describeGateState(enabled: isEnabled, approved: isApproved))
                         .font(.caption.monospaced())
-                        .foregroundStyle(isEnabled && !isApproved ? .red : .secondary)
+                        .foregroundStyle(isEnabled && !isApproved ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("releasePreflight.gates.row")
@@ -232,7 +232,7 @@ public extension ReleasePreflightAndUIReadinessContract {
                         Spacer()
                         Text(verbatim: Self.describeReadinessBadge(evaluation))
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(evaluation == .ready ? .green : .secondary)
+                            .foregroundStyle(evaluation == .ready ? AnyShapeStyle(.green) : AnyShapeStyle(.secondary))
                     }
                     Text(verbatim: "Root 锚点: \(contract.rootAccessibilityIdentifier) · 主交互锚点: \(contract.primaryInteractiveAnchorIdentifier)")
                         .font(.caption.monospaced())

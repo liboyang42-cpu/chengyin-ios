@@ -236,11 +236,11 @@ public struct RegionalEndpointAllowlistSectionView: View {
             HStack(spacing: 10) {
                 Text(verbatim: "CN: \(RegionalEndpointGateRow.badgeText(for: row.cnDisposition))")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(row.cnDisposition == .failClosedBlocked ? .orange : .primary)
+                    .foregroundStyle(row.cnDisposition == .failClosedBlocked ? AnyShapeStyle(.orange) : AnyShapeStyle(.primary))
                     .accessibilityIdentifier("regionalAllowlist.row.\(row.id).cnStatus")
                 Text(verbatim: "US: \(RegionalEndpointGateRow.badgeText(for: row.usDisposition))")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(row.usDisposition == .failClosedBlocked ? .orange : .primary)
+                    .foregroundStyle(row.usDisposition == .failClosedBlocked ? AnyShapeStyle(.orange) : AnyShapeStyle(.primary))
                     .accessibilityIdentifier("regionalAllowlist.row.\(row.id).usStatus")
             }
 

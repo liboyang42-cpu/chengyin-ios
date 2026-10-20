@@ -218,7 +218,7 @@ private struct AccessibilitySurfaceRowView: View {
 
             Text(verbatim: String(format: "对比度：%.2f:1（最低 %.1f:1） · Reduce Motion：%@", row.contrastRatio, AccessibilitySurfaceCheckRow.minimumWCAGContrastRatio, row.reduceMotionFallbackVerified ? "已回退" : "未验证"))
                 .font(.caption2)
-                .foregroundStyle(row.meetsWCAGAA ? .secondary : .red)
+                .foregroundStyle(row.meetsWCAGAA ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
         }
         .padding(.vertical, 4)
         .accessibilityIdentifier("accessibilityReadiness.row")

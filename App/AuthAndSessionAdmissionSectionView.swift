@@ -181,7 +181,7 @@ public struct AuthAndSessionAdmissionSectionView: View {
                         Spacer()
                         Text(verbatim: row.badgeText)
                             .font(.caption.monospaced())
-                            .foregroundStyle(row.isFailClosedCompliant ? .secondary : .red)
+                            .foregroundStyle(row.isFailClosedCompliant ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
                             .accessibilityIdentifier("authAdmissionAudit.pillar.\(row.id).status")
                     }
                     Text(verbatim: row.detail)

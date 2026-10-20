@@ -93,7 +93,7 @@ public struct TeamMeetingHandshakeSectionView: View {
             HStack(spacing: 8) {
                 Text(verbatim: banner.advisoryStatusText)
                     .font(.caption)
-                    .foregroundStyle(banner.hint == .likelyClosed ? .orange : .secondary)
+                    .foregroundStyle(banner.hint == .likelyClosed ? AnyShapeStyle(.orange) : AnyShapeStyle(.secondary))
                     .accessibilityIdentifier("w16.deadline.advisory")
                 Spacer()
                 if banner.allowsSubmission {
@@ -204,7 +204,7 @@ public struct TeamMeetingHandshakeSectionView: View {
 
             Text(verbatim: card.isReviewValid ? "名单复核有效，可发送邀请" : "选择变更后需重新复核名单")
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(card.isReviewValid ? .primary : .orange)
+                .foregroundStyle(card.isReviewValid ? AnyShapeStyle(.primary) : AnyShapeStyle(.orange))
                 .accessibilityIdentifier("w16.invite.reviewStatus")
 
             Text(verbatim: "发送汇总：已发 \(card.summary.sent) · 待重试 \(card.summary.retryable) · 未明 \(card.summary.unknown) · 已撤回 \(card.summary.revoked)")
@@ -241,7 +241,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                     Spacer()
                     Text(verbatim: row.statusBadgeText)
                         .font(.caption)
-                        .foregroundStyle(row.isRetryable ? .orange : .secondary)
+                        .foregroundStyle(row.isRetryable ? AnyShapeStyle(.orange) : AnyShapeStyle(.secondary))
                 }
                 .accessibilityIdentifier("w16.invite.row.\(row.friendId)")
             }
@@ -276,7 +276,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                     .foregroundStyle(.secondary)
                 Text(verbatim: badge.statusText)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(badge.isRevokeFinal ? .red : .primary)
+                    .foregroundStyle(badge.isRevokeFinal ? AnyShapeStyle(.red) : AnyShapeStyle(.primary))
                     .accessibilityIdentifier("w16.revoke.statusText")
             }
             Spacer()

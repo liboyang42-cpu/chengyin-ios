@@ -128,7 +128,7 @@ public struct LBSGeofenceAndBatteryThermalSectionView: View {
                         Spacer()
                         Text(verbatim: row.targetMetricText)
                             .font(.caption.monospaced())
-                            .foregroundStyle(row.isCompliant ? .secondary : .red)
+                            .foregroundStyle(row.isCompliant ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
                             .accessibilityIdentifier("lbsBatteryThermal.row.\(row.id).metric")
                     }
                     Text(verbatim: row.detail)

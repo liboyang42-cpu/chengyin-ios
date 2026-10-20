@@ -251,7 +251,7 @@ public struct RewardLedgerHostSectionView: View {
                 Spacer()
                 Text(verbatim: row.amount > 0 ? "+\(row.amount)" : "\(row.amount)")
                     .font(.caption.monospaced())
-                    .foregroundStyle(row.isReversal ? .orange : .primary)
+                    .foregroundStyle(row.isReversal ? AnyShapeStyle(.orange) : AnyShapeStyle(.primary))
             }
             .accessibilityIdentifier("rewardLedger.host.row.\(row.entryID)")
         }

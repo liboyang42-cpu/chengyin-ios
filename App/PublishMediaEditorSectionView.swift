@@ -43,7 +43,7 @@ public struct PublishMediaEditorSectionView: View {
 
                     Text(verbatim: bridge.selection.publishable ? "发布就绪：已满足" : "发布就绪：未满足")
                         .font(.subheadline)
-                        .foregroundStyle(bridge.selection.publishable ? .green : .secondary)
+                        .foregroundStyle(bridge.selection.publishable ? AnyShapeStyle(.green) : AnyShapeStyle(.secondary))
                         .accessibilityIdentifier("publishMediaEditor.publishable")
                 }
 
@@ -135,7 +135,7 @@ private struct PublishMediaEditorItemRow: View {
             if let review = item.review {
                 Text(verbatim: reviewSummary(review))
                     .font(.caption)
-                    .foregroundStyle(review == .rejected ? .red : .secondary)
+                    .foregroundStyle(review == .rejected ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
             }
 
             if let assetId = item.assetId {
