@@ -366,5 +366,37 @@
         }
       }
     }
+  },
+  "merchant.customerDetail.paidAmountUnrecorded": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not recorded"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.paidAmountExcludesRefunds": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "累计已付不含退款记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cumulative paid excludes refunded records"
+        }
+      }
+    }
   }
 }

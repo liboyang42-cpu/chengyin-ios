@@ -11,22 +11,42 @@ struct MerchantReviewCard: View {
                     Text(verbatim: "★ \(rating)/5").font(.subheadline.bold())
                 }
                 if presentation.verifiedRedemption {
-                    Label { Text(verbatim: "已核销用户") } icon: { Image(systemName: "checkmark.seal") }
-                        .font(.footnote)
+                    Label {
+                        Text(
+                            LocalizedStringKey(MerchantReviewCardPresentation.verifiedRedemptionKey),
+                            tableName: MerchantReviewCardPresentation.localizationTableName
+                        )
+                    } icon: {
+                        Image(systemName: "checkmark.seal")
+                    }
+                    .font(.footnote)
                 }
                 if presentation.photoCount > 0 {
-                    Label { Text(verbatim: "\(presentation.photoCount) 张图") } icon: { Image(systemName: "photo") }
-                        .font(.footnote)
+                    Label {
+                        Text(
+                            "merchant.review.photoCount \(presentation.photoCount)",
+                            tableName: MerchantReviewCardPresentation.localizationTableName
+                        )
+                    } icon: {
+                        Image(systemName: "photo")
+                    }
+                    .font(.footnote)
                 }
             }
             HStack(spacing: 8) {
-                Text(verbatim: presentation.visibilityTitle)
-                    .font(.footnote).padding(.horizontal, 8).padding(.vertical, 2)
-                    .background(.quaternary, in: Capsule())
-                    .accessibilityIdentifier("merchant.business.review.visibility")
-                Text(verbatim: presentation.replyTitle)
-                    .font(.footnote).foregroundStyle(.secondary)
-                    .accessibilityIdentifier("merchant.business.review.replyState")
+                Text(
+                    LocalizedStringKey(presentation.visibilityTitleKey),
+                    tableName: MerchantReviewCardPresentation.localizationTableName
+                )
+                .font(.footnote).padding(.horizontal, 8).padding(.vertical, 2)
+                .background(.quaternary, in: Capsule())
+                .accessibilityIdentifier("merchant.business.review.visibility")
+                Text(
+                    LocalizedStringKey(presentation.replyTitleKey),
+                    tableName: MerchantReviewCardPresentation.localizationTableName
+                )
+                .font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("merchant.business.review.replyState")
             }
         }.accessibilityElement(children: .combine)
     }

@@ -19,7 +19,19 @@ import SwiftUI
         return amount.display
     }
     /// Cumulative-paid card state. Missing/null is `.unknown` (never 0); refunds never feed this value.
-    enum PaidCardState: Equatable { case permissionHidden, unknown, amount(String) }
+    enum PaidCardState: Equatable {
+        case permissionHidden, unknown, amount(String)
+        var localizedStatusKey: String? {
+            switch self {
+            case .permissionHidden: return "merchant.business.sensitiveUnavailable"
+            case .unknown: return "merchant.customerDetail.paidAmountUnrecorded"
+            case .amount: return nil
+            }
+        }
+    }
+    static let paidCardLocalizationTableName = "MerchantReviewAndCustomerDetail"
+    static let paidAmountUnrecordedKey = "merchant.customerDetail.paidAmountUnrecorded"
+    static let paidAmountExcludesRefundsKey = "merchant.customerDetail.paidAmountExcludesRefunds"
     var paidCardState: PaidCardState {
         guard canRead, access.allows("merchant:crm:sensitive:read") else { return .permissionHidden }
         if let paidAmount { return .amount(paidAmount) }
@@ -44,12 +56,14 @@ import SwiftUI
                         case .amount(let text):
                             Text(verbatim: text).monospacedDigit()
                         case .unknown:
-                            Text(verbatim: "未记录").foregroundStyle(.secondary)
+                            Text("merchant.customerDetail.paidAmountUnrecorded", tableName: Self.paidCardLocalizationTableName)
+                                .foregroundStyle(.secondary)
                         case .permissionHidden:
                             Text("merchant.business.sensitiveUnavailable").foregroundStyle(.secondary)
                         }
                     }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
-                    Text(verbatim: "累计已付不含退款记录").font(.footnote).foregroundStyle(.secondary)
+                    Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: Self.paidCardLocalizationTableName)
+                        .font(.footnote).foregroundStyle(.secondary)
                 }.accessibilityIdentifier("merchant.customerDetail.paidCard")
                 Section("merchant.customerDetail.participation") {
                     Text("merchant.customerDetail.recentScope").font(.footnote).foregroundStyle(.secondary)

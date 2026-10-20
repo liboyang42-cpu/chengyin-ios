@@ -4,8 +4,18 @@ import Foundation
 /// It never grants a write capability: reply/report/edit remain governed by the
 /// server `canReply`/`canReport`/`canEditReply` flags and the existing mutation gate.
 public struct MerchantReviewCardPresentation: Equatable {
-    public enum Visibility: String, Equatable { case publicVisible, pendingReview, hidden, unknown }
-    public enum ReplyState: String, Equatable { case replied, awaitingReply, noReplyAvailable }
+    public static let localizationTableName = "MerchantReviewAndCustomerDetail"
+    public static let verifiedRedemptionKey = "merchant.review.verifiedRedemption"
+    public static let photoCountFormatKey = "merchant.review.photoCount %lld"
+
+    public enum Visibility: String, Equatable, CaseIterable {
+        case publicVisible, pendingReview, hidden, unknown
+        public var titleKey: String { "merchant.review.visibility." + rawValue }
+    }
+    public enum ReplyState: String, Equatable, CaseIterable {
+        case replied, awaitingReply, noReplyAvailable
+        public var titleKey: String { "merchant.review.reply." + rawValue }
+    }
 
     public let visibility: Visibility
     public let replyState: ReplyState
@@ -30,19 +40,8 @@ public struct MerchantReviewCardPresentation: Equatable {
         photoCount = row.fields["imageUrls"]?.array?.count ?? 0
     }
 
-    public var visibilityTitle: String {
-        switch visibility {
-        case .publicVisible: return "公开展示"
-        case .pendingReview: return "审核中（暂未公开）"
-        case .hidden: return "已隐藏（未公开）"
-        case .unknown: return "可见性未知（不按公开处理）"
-        }
-    }
-    public var replyTitle: String {
-        switch replyState {
-        case .replied: return "已回复"
-        case .awaitingReply: return "待回复"
-        case .noReplyAvailable: return "不可回复"
-        }
-    }
+    public var visibilityTitleKey: String { visibility.titleKey }
+    public var replyTitleKey: String { replyState.titleKey }
+    public var visibilityTitle: String { visibilityTitleKey }
+    public var replyTitle: String { replyTitleKey }
 }
