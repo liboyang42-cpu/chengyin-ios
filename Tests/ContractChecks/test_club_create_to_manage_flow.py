@@ -9,27 +9,32 @@ ROOT = Path(__file__).resolve().parents[2]
 class ClubCreateToManageFlowContracts(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        cls.contracts = (ROOT / "Core/ClubOperationsContracts.swift").read_text(encoding="utf-8")
         cls.views = (ROOT / "App/ClubOperationsViews.swift").read_text(encoding="utf-8")
         cls.core_tests = (ROOT / "Tests/CoreTests/ClubCreateToManageFlowTests.swift").read_text(encoding="utf-8")
 
-    def test_club28_scope_and_production_default_gate_remain_closed(self):
-        self.assertIn("public struct ClubCreationGate: Equatable, Sendable", self.views)
-        self.assertIn("public static let club28SubviewLimit = 28", self.views)
-        self.assertIn("public static let productionDefault = ClubCreationGate(", self.views)
-        self.assertIn("isConfigured: false", self.views)
-        self.assertIn("writeAvailability: .unverified", self.views)
-        self.assertIn("isConfigured && withinClub28Scope && (writeAvailability == .approved || writeAvailability == .syntheticOnly)", self.views)
+    def test_club28_scope_and_production_default_gate_remain_closed_without_coverage_claims(self):
+        self.assertIn("public struct ClubCreationGate: Equatable, Sendable", self.contracts)
+        self.assertNotIn("club28SubviewLimit", self.contracts)
+        self.assertNotIn("club28SubviewLimit", self.views)
+        self.assertIn("public static let productionDefault = ClubCreationGate(", self.contracts)
+        self.assertIn("isConfigured: false", self.contracts)
+        self.assertIn("writeAvailability: .unverified", self.contracts)
+        self.assertIn("isConfigured && (writeAvailability == .approved || writeAvailability == .syntheticOnly)", self.contracts)
         for forbidden in ["URLSession", "https://", "http://", "api/club/create"]:
             self.assertNotIn(forbidden, self.views)
 
-    def test_workspace_tab_validates_requested_tab_and_falls_back_to_overview(self):
-        self.assertIn("public enum ClubWorkspaceTab: String, CaseIterable, Equatable, Sendable", self.views)
+    def test_workspace_tab_validates_requested_tab_and_only_manage_opens_management_workspace(self):
+        self.assertIn("public enum ClubWorkspaceTab: String, CaseIterable, Equatable, Sendable", self.contracts)
         for case_name in ["case posts", "case events", "case overview", "case manage"]:
-            self.assertIn(case_name, self.views)
-        self.assertIn("public static let defaultFallback: ClubWorkspaceTab = .overview", self.views)
-        self.assertIn("if validated == .manage && !canEnterManagement {\n            return .overview\n        }", self.views)
+            self.assertIn(case_name, self.contracts)
+        self.assertIn("public static let defaultFallback: ClubWorkspaceTab = .overview", self.contracts)
+        self.assertIn("if validated == .manage && !canEnterManagement {\n            return .overview\n        }", self.contracts)
+        self.assertIn("public var opensManagementWorkspace: Bool {\n        tab == .manage\n    }", self.contracts)
+        self.assertIn("if destination.opensManagementWorkspace {", self.views)
+        self.assertIn('.accessibilityIdentifier("clubCreateManage.fallbackDestination")', self.views)
 
-    def test_confirmed_receipt_same_account_readback_and_enter_management_action(self):
+    def test_confirmed_receipt_same_account_readback_recovery_and_enter_management_action(self):
         for symbol in [
             "public struct ClubCreateToManageDestination: Equatable, Identifiable, Sendable",
             "public enum ClubCreateToManageBlockReason: String, Equatable, Sendable",
@@ -40,13 +45,15 @@ class ClubCreateToManageFlowContracts(unittest.TestCase):
             "public var isClubIdVerified: Bool",
             "public var isSameAccountReadbackVerified: Bool",
             "hasConfirmedReceipt && isSameAccountVerified && isClubIdVerified",
+            "public func requiresReadbackRecovery(state: ClubOperationsState, hasSnapshot: Bool) -> Bool",
+            "public mutating func retryReadback(",
             "public mutating func enterClubManagement(requestedTab overrideTab: String? = nil) -> ClubCreateToManageDestination?",
         ]:
-            self.assertIn(symbol, self.views)
+            self.assertIn(symbol, self.contracts)
 
-        # Verify UI wiring in ClubOperationsWorkspaceView
         for wiring in [
             "var createToManageFlow: ClubCreateToManageFlowState",
+            "if createToManageFlow.requiresReadbackRecovery(state: state, hasSnapshot: snapshot != nil)",
             '.accessibilityIdentifier("clubCreateManage.status")',
             '.accessibilityIdentifier("clubCreateManage.enterManagement")',
             '.accessibilityIdentifier("clubCreateManage.destination")',
@@ -63,16 +70,19 @@ class ClubCreateToManageFlowContracts(unittest.TestCase):
             ("俱乐部 ID 回读不匹配，已拦截进入俱乐部管理", "Club ID readback mismatch; entering Club Management is blocked."),
             ("同账号回读已确认（俱乐部 #", "Same-account readback verified (Club #"),
         ]:
-            self.assertIn(copy_pair[0], self.views)
-            self.assertIn(copy_pair[1], self.views)
+            self.assertIn(copy_pair[0], self.contracts)
+            self.assertIn(copy_pair[1], self.contracts)
 
-    def test_core_tests_cover_gate_receipt_readback_tab_and_mismatch_scenarios(self):
+    def test_core_tests_exercise_production_types_without_copy_paste_and_cover_readback_recovery(self):
+        self.assertNotIn("#if canImport(Questify)", self.core_tests)
+        self.assertNotIn("public struct ClubCreateToManageFlowState", self.core_tests)
         test_methods = re.findall(r"func (test\w+)\(", self.core_tests)
-        self.assertGreaterEqual(len(test_methods), 4)
+        self.assertGreaterEqual(len(test_methods), 6)
         for expected in [
-            "testProductionDefaultCreationGateRemainsClosedAndWithinClub28Scope",
+            "testProductionDefaultCreationGateRemainsClosedAndDoesNotClaimClub28Coverage",
             "testConfirmedReceiptAndSameAccountReadbackEnablesEnterManagementAndValidatesTab",
-            "testWorkspaceTabValidationFallsBackSafelyToOverviewWhenNilInvalidOrBlocked",
+            "testWorkspaceTabValidationFallsBackSafelyToOverviewAndDoesNotOpenManagementWorkspace",
+            "testConfirmedCreateReceiptReadbackFailureThenRetryReadbackSucceedsAndUnlocksNavigation",
             "testReadbackFailureOrClubIdMismatchBlocksEnteringManagement",
             "testAccountMismatchBlocksEnteringManagementEvenAfterReceipt",
         ]:

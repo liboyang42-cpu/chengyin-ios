@@ -1,247 +1,5 @@
 import XCTest
 @testable import QuestifyCore
-#if canImport(Questify)
-@testable import Questify
-#else
-public enum ClubWorkspaceTab: String, CaseIterable, Equatable, Sendable {
-    case posts
-    case events
-    case overview
-    case manage
-
-    public static let defaultFallback: ClubWorkspaceTab = .overview
-
-    public static func validate(requestedTab: String?) -> ClubWorkspaceTab {
-        guard let raw = requestedTab?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
-              !raw.isEmpty,
-              let tab = ClubWorkspaceTab(rawValue: raw) else {
-            return .overview
-        }
-        return tab
-    }
-
-    public static func validate(_ requestedTab: ClubWorkspaceTab?) -> ClubWorkspaceTab {
-        requestedTab ?? .overview
-    }
-
-    public static func resolve(requestedTab: String?, canEnterManagement: Bool = true) -> ClubWorkspaceTab {
-        let validated = validate(requestedTab: requestedTab)
-        if validated == .manage && !canEnterManagement {
-            return .overview
-        }
-        return validated
-    }
-
-    public static func resolve(requestedTab: ClubWorkspaceTab?, canEnterManagement: Bool = true) -> ClubWorkspaceTab {
-        let validated = validate(requestedTab)
-        if validated == .manage && !canEnterManagement {
-            return .overview
-        }
-        return validated
-    }
-}
-
-public struct ClubCreationGate: Equatable, Sendable {
-    public static let club28SubviewLimit = 28
-    public static let productionDefault = ClubCreationGate(
-        isConfigured: false,
-        writeAvailability: .unverified,
-        catalogSubviewCount: club28SubviewLimit
-    )
-
-    public let isConfigured: Bool
-    public let writeAvailability: ClubOperationsWriteAvailability
-    public let catalogSubviewCount: Int
-
-    public init(
-        isConfigured: Bool = false,
-        writeAvailability: ClubOperationsWriteAvailability = .unverified,
-        catalogSubviewCount: Int = Self.club28SubviewLimit
-    ) {
-        self.isConfigured = isConfigured
-        self.writeAvailability = writeAvailability
-        self.catalogSubviewCount = catalogSubviewCount
-    }
-
-    @MainActor
-    public init(access: any ClubOperationsAccess) {
-        self.init(
-            isConfigured: access.isConfigured,
-            writeAvailability: access.writeAvailability,
-            catalogSubviewCount: Self.club28SubviewLimit
-        )
-    }
-
-    public var withinClub28Scope: Bool {
-        catalogSubviewCount == Self.club28SubviewLimit
-    }
-
-    public var isCreationAllowed: Bool {
-        isConfigured && withinClub28Scope && (writeAvailability == .approved || writeAvailability == .syntheticOnly)
-    }
-
-    public var isBlocked: Bool {
-        !isCreationAllowed
-    }
-
-    public var bilingualGateCopy: String {
-        if isCreationAllowed {
-            return "俱乐部创建门控已授权（不扩 Club28）/ Club creation gate authorized (within Club28 scope)."
-        }
-        return "俱乐部创建门控未开启，暂不可进入俱乐部管理 / Club creation gate is closed; entering Club Management is blocked."
-    }
-}
-
-public struct ClubCreateToManageDestination: Equatable, Identifiable, Sendable {
-    public let accountId: Int
-    public let clubId: Int
-    public let tab: ClubWorkspaceTab
-    public var id: String { "\(accountId):\(clubId):\(tab.rawValue)" }
-
-    public init(accountId: Int, clubId: Int, tab: ClubWorkspaceTab = .manage) {
-        self.accountId = accountId
-        self.clubId = clubId
-        self.tab = tab
-    }
-}
-
-public enum ClubCreateToManageBlockReason: String, Equatable, Sendable {
-    case gateBlocked
-    case awaitingConfirmedReceipt
-    case readbackFailed
-    case accountMismatch
-    case clubIdMismatch
-}
-
-public struct ClubCreateToManageFlowState: Equatable, Sendable {
-    public static let enterManagementButtonTitle = "进入俱乐部管理 / Enter Club Management"
-
-    public let gate: ClubCreationGate
-    public let receiptAccountId: Int?
-    public let receiptClubId: Int?
-    public let currentAccountId: Int?
-    public let readbackAccountId: Int?
-    public let readbackOwnedClubIds: [Int]
-    public let readbackSucceeded: Bool
-    public let requestedTab: String?
-    public private(set) var enteredDestination: ClubCreateToManageDestination?
-
-    public init(
-        gate: ClubCreationGate = .productionDefault,
-        receiptAccountId: Int? = nil,
-        receiptClubId: Int? = nil,
-        currentAccountId: Int? = nil,
-        readbackAccountId: Int? = nil,
-        readbackOwnedClubIds: [Int] = [],
-        readbackSucceeded: Bool = false,
-        requestedTab: String? = ClubWorkspaceTab.manage.rawValue,
-        enteredDestination: ClubCreateToManageDestination? = nil
-    ) {
-        self.gate = gate
-        self.receiptAccountId = receiptAccountId
-        self.receiptClubId = receiptClubId
-        self.currentAccountId = currentAccountId
-        self.readbackAccountId = readbackAccountId
-        self.readbackOwnedClubIds = readbackOwnedClubIds
-        self.readbackSucceeded = readbackSucceeded
-        self.requestedTab = requestedTab
-        self.enteredDestination = enteredDestination
-    }
-
-    public var hasConfirmedReceipt: Bool {
-        guard !gate.isBlocked,
-              let receiptAccountId, receiptAccountId > 0,
-              let receiptClubId, receiptClubId > 0 else {
-            return false
-        }
-        return true
-    }
-
-    public var isSameAccountVerified: Bool {
-        guard let receiptAccountId, receiptAccountId > 0,
-              let currentAccountId, currentAccountId == receiptAccountId,
-              let readbackAccountId, readbackAccountId == receiptAccountId else {
-            return false
-        }
-        return true
-    }
-
-    public var isClubIdVerified: Bool {
-        guard readbackSucceeded,
-              let receiptClubId, receiptClubId > 0 else {
-            return false
-        }
-        return readbackOwnedClubIds.contains(receiptClubId)
-    }
-
-    public var isSameAccountReadbackVerified: Bool {
-        hasConfirmedReceipt && isSameAccountVerified && isClubIdVerified
-    }
-
-    public var canEnterManagement: Bool {
-        isSameAccountReadbackVerified
-    }
-
-    public var blockReason: ClubCreateToManageBlockReason? {
-        if gate.isBlocked {
-            return .gateBlocked
-        }
-        guard let receiptAccountId, receiptAccountId > 0,
-              let receiptClubId, receiptClubId > 0 else {
-            return .awaitingConfirmedReceipt
-        }
-        if currentAccountId != receiptAccountId || (readbackAccountId != nil && readbackAccountId != receiptAccountId) {
-            return .accountMismatch
-        }
-        if !readbackSucceeded || readbackAccountId == nil {
-            return .readbackFailed
-        }
-        if !readbackOwnedClubIds.contains(receiptClubId) {
-            return .clubIdMismatch
-        }
-        return nil
-    }
-
-    public var validatedTab: ClubWorkspaceTab {
-        ClubWorkspaceTab.resolve(requestedTab: requestedTab, canEnterManagement: canEnterManagement)
-    }
-
-    public var bilingualStatusCopy: String {
-        switch blockReason {
-        case .gateBlocked:
-            return "俱乐部创建门控未开启，暂不可进入俱乐部管理 / Club creation gate is closed; entering Club Management is blocked."
-        case .awaitingConfirmedReceipt:
-            return "等待俱乐部创建确认回执 / Awaiting confirmed club creation receipt."
-        case .accountMismatch:
-            return "账号已变更或不匹配，已拦截进入俱乐部管理 / Account mismatch detected; entering Club Management is blocked."
-        case .readbackFailed:
-            return "同账号回读校验未通过，暂不可进入俱乐部管理 / Same-account readback verification failed; entering Club Management is blocked."
-        case .clubIdMismatch:
-            return "俱乐部 ID 回读不匹配，已拦截进入俱乐部管理 / Club ID readback mismatch; entering Club Management is blocked."
-        case nil:
-            let clubId = receiptClubId ?? 0
-            return "同账号回读已确认（俱乐部 #\(clubId)），可进入俱乐部管理 / Same-account readback verified (Club #\(clubId)); ready to enter Club Management."
-        }
-    }
-
-    @discardableResult
-    public mutating func enterClubManagement(requestedTab overrideTab: String? = nil) -> ClubCreateToManageDestination? {
-        guard canEnterManagement,
-              let accountId = receiptAccountId,
-              let clubId = receiptClubId else {
-            enteredDestination = nil
-            return nil
-        }
-        let resolvedTab = ClubWorkspaceTab.resolve(
-            requestedTab: overrideTab ?? requestedTab,
-            canEnterManagement: true
-        )
-        let destination = ClubCreateToManageDestination(accountId: accountId, clubId: clubId, tab: resolvedTab)
-        enteredDestination = destination
-        return destination
-    }
-}
-#endif
 
 @MainActor
 final class ClubCreateToManageFlowTests: XCTestCase {
@@ -254,23 +12,18 @@ final class ClubCreateToManageFlowTests: XCTestCase {
         return draft
     }
 
-    func testProductionDefaultCreationGateRemainsClosedAndWithinClub28Scope() async throws {
+    func testProductionDefaultCreationGateRemainsClosedAndDoesNotClaimClub28Coverage() async throws {
         let defaultGate = ClubCreationGate.productionDefault
         XCTAssertFalse(defaultGate.isConfigured)
         XCTAssertEqual(defaultGate.writeAvailability, .unverified)
-        XCTAssertEqual(defaultGate.catalogSubviewCount, 28)
-        XCTAssertTrue(defaultGate.withinClub28Scope)
         XCTAssertTrue(defaultGate.isBlocked)
         XCTAssertFalse(defaultGate.isCreationAllowed)
+        XCTAssertTrue(defaultGate.bilingualGateCopy.contains("俱乐部创建门控未开启"))
 
-        // Expanding beyond the 28-subview Club feature catalog is rejected by the gate.
-        let expandedGate = ClubCreationGate(
-            isConfigured: true,
-            writeAvailability: .approved,
-            catalogSubviewCount: 29
-        )
-        XCTAssertFalse(expandedGate.withinClub28Scope)
-        XCTAssertTrue(expandedGate.isBlocked)
+        let enabledGate = ClubCreationGate(isConfigured: true, writeAvailability: .approved)
+        XCTAssertTrue(enabledGate.isCreationAllowed)
+        XCTAssertFalse(enabledGate.isBlocked)
+        XCTAssertTrue(enabledGate.bilingualGateCopy.contains("不扩 Club28，旧暂停边界保持不变"))
 
         // Unverified fixture adapter refuses creation dispatch and blocks entering management.
         let access = ClubOperationsFixtureAccess(scenario: .unverified)
@@ -325,36 +78,36 @@ final class ClubCreateToManageFlowTests: XCTestCase {
         let createdClubID = try XCTUnwrap(receipt.clubID)
         XCTAssertEqual(createdClubID, 82)
 
-        guard case .received(let readbackSnapshot) = coordinator.readback(target: .create) else {
-            XCTFail("Expected same-account readback snapshot")
-            return
-        }
-        XCTAssertTrue(readbackSnapshot.ownedClubIDs.contains(createdClubID))
-
-        var flow = ClubCreateToManageFlowState(
-            gate: ClubCreationGate(access: access),
-            receiptAccountId: identity.accountID,
-            receiptClubId: createdClubID,
-            currentAccountId: access.identity?.accountID,
-            readbackAccountId: access.identity?.accountID,
-            readbackOwnedClubIds: readbackSnapshot.ownedClubIDs,
-            readbackSucceeded: true,
-            requestedTab: "manage"
+        var flow = ClubCreateToManageFlowState(requestedTab: "manage")
+        flow.applyConfirmedReceipt(
+            state: coordinator.state(target: .create),
+            pendingIdentity: review.identity,
+            currentIdentity: access.identity,
+            access: access
         )
+        let readbackSnapshot = try XCTUnwrap(
+            flow.acceptReadback(from: coordinator, access: access, currentIdentity: access.identity)
+        )
+        XCTAssertTrue(readbackSnapshot.ownedClubIDs.contains(createdClubID))
+        XCTAssertFalse(flow.requiresReadbackRecovery(state: coordinator.state(target: .create), hasSnapshot: true))
 
         XCTAssertNil(flow.blockReason)
         XCTAssertTrue(flow.canEnterManagement)
         XCTAssertEqual(flow.validatedTab, .manage)
-        XCTAssertEqual(ClubCreateToManageFlowState.enterManagementButtonTitle, "进入俱乐部管理 / Enter Club Management")
+        XCTAssertEqual(flow.actionButtonTitle, "进入俱乐部管理 / Enter Club Management")
         XCTAssertTrue(flow.bilingualStatusCopy.contains("同账号回读已确认（俱乐部 #82）"))
         XCTAssertTrue(flow.bilingualStatusCopy.contains("Same-account readback verified (Club #82)"))
 
         let destination = try XCTUnwrap(flow.enterClubManagement())
         XCTAssertEqual(destination, ClubCreateToManageDestination(accountId: 701, clubId: 82, tab: .manage))
+        XCTAssertTrue(destination.opensManagementWorkspace)
         XCTAssertEqual(flow.enteredDestination, destination)
+
+        let createdClubSnapshot = try await access.snapshot(target: .club(createdClubID))
+        XCTAssertEqual(createdClubSnapshot.profile?.club.id, 82)
     }
 
-    func testWorkspaceTabValidationFallsBackSafelyToOverviewWhenNilInvalidOrBlocked() {
+    func testWorkspaceTabValidationFallsBackSafelyToOverviewAndDoesNotOpenManagementWorkspace() {
         XCTAssertEqual(ClubWorkspaceTab.validate(requestedTab: nil), .overview)
         XCTAssertEqual(ClubWorkspaceTab.validate(requestedTab: ""), .overview)
         XCTAssertEqual(ClubWorkspaceTab.validate(requestedTab: "   "), .overview)
@@ -377,43 +130,74 @@ final class ClubCreateToManageFlowTests: XCTestCase {
         )
         XCTAssertTrue(verifiedFlow.canEnterManagement)
         XCTAssertEqual(verifiedFlow.validatedTab, .overview)
+        let fallbackDestination = verifiedFlow.enterClubManagement(requestedTab: nil)
         XCTAssertEqual(
-            verifiedFlow.enterClubManagement(requestedTab: nil),
+            fallbackDestination,
             ClubCreateToManageDestination(accountId: 701, clubId: 82, tab: .overview)
         )
+        XCTAssertEqual(fallbackDestination?.opensManagementWorkspace, false)
+        XCTAssertTrue(fallbackDestination?.bilingualDestinationLabel.contains("俱乐部详情（分栏：overview）") == true)
     }
 
-    func testReadbackFailureOrClubIdMismatchBlocksEnteringManagement() async throws {
+    func testConfirmedCreateReceiptReadbackFailureThenRetryReadbackSucceedsAndUnlocksNavigation() async throws {
         let access = ClubOperationsFixtureAccess(scenario: .readbackUnavailable)
         let coordinator = ClubOperationsCoordinator(access: access)
         let identity = try XCTUnwrap(access.identity)
+        let ownerID = UUID()
+
         let review = try await coordinator.prepare(
             .create(validCreateDraft()),
             target: .create,
             expectedIdentity: identity,
-            ownerID: UUID()
+            ownerID: ownerID
         )
         await coordinator.confirm(review)
 
+        guard case .acknowledged(let receipt) = coordinator.state(target: .create) else {
+            XCTFail("Expected confirmed create receipt")
+            return
+        }
+        XCTAssertEqual(receipt.clubID, 82)
         XCTAssertEqual(coordinator.readback(target: .create), .unavailable)
 
-        var failedReadbackFlow = ClubCreateToManageFlowState(
-            gate: ClubCreationGate(access: access),
-            receiptAccountId: identity.accountID,
-            receiptClubId: 82,
-            currentAccountId: identity.accountID,
-            readbackAccountId: nil,
-            readbackOwnedClubIds: [],
-            readbackSucceeded: false,
-            requestedTab: "manage"
+        var flow = ClubCreateToManageFlowState(requestedTab: "manage")
+        flow.applyConfirmedReceipt(
+            state: coordinator.state(target: .create),
+            pendingIdentity: review.identity,
+            currentIdentity: access.identity,
+            access: access
         )
-        XCTAssertEqual(failedReadbackFlow.blockReason, .readbackFailed)
-        XCTAssertFalse(failedReadbackFlow.canEnterManagement)
-        XCTAssertEqual(failedReadbackFlow.validatedTab, .overview)
-        XCTAssertNil(failedReadbackFlow.enterClubManagement())
-        XCTAssertTrue(failedReadbackFlow.bilingualStatusCopy.contains("同账号回读校验未通过"))
-        XCTAssertTrue(failedReadbackFlow.bilingualStatusCopy.contains("Same-account readback verification failed"))
+        let initialSnapshot = flow.acceptReadback(from: coordinator, access: access, currentIdentity: access.identity)
+        XCTAssertNil(initialSnapshot)
+        XCTAssertTrue(flow.readbackUnavailable)
+        XCTAssertEqual(flow.blockReason, .readbackFailed)
+        XCTAssertFalse(flow.canEnterManagement)
+        XCTAssertTrue(flow.requiresReadbackRecovery(state: coordinator.state(target: .create), hasSnapshot: false))
+        XCTAssertNil(flow.enterClubManagement())
 
+        // Recover readback on the same account via retryReadback (the same path triggered by retryRead / readBack).
+        access.readbackRecoveryEnabled = true
+        let recoveredSnapshot = await flow.retryReadback(
+            using: coordinator,
+            access: access,
+            currentIdentity: access.identity,
+            ownerID: ownerID
+        )
+        XCTAssertNotNil(recoveredSnapshot)
+        XCTAssertFalse(flow.readbackUnavailable)
+        XCTAssertTrue(flow.readbackSucceeded)
+        XCTAssertEqual(flow.readbackAccountId, 701)
+        XCTAssertEqual(flow.readbackOwnedClubIds, [81, 82])
+        XCTAssertNil(flow.blockReason)
+        XCTAssertTrue(flow.canEnterManagement)
+        XCTAssertFalse(flow.requiresReadbackRecovery(state: coordinator.state(target: .create), hasSnapshot: true))
+
+        let destination = try XCTUnwrap(flow.enterClubManagement())
+        XCTAssertEqual(destination, ClubCreateToManageDestination(accountId: 701, clubId: 82, tab: .manage))
+        XCTAssertTrue(destination.opensManagementWorkspace)
+    }
+
+    func testReadbackFailureOrClubIdMismatchBlocksEnteringManagement() async throws {
         var mismatchedClubFlow = ClubCreateToManageFlowState(
             gate: ClubCreationGate(isConfigured: true, writeAvailability: .approved),
             receiptAccountId: 701,

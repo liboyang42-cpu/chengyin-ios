@@ -205,3 +205,356 @@ public enum ClubOperationsWriteAvailability: Equatable { case unverified, approv
 private extension String { var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) } }
 
 public extension ClubOperationsAccess { func hasPending(target: ClubOperationsTarget) -> Bool { false } }
+
+/// Canonical workspace tabs for post-create club routing.
+/// Validates `requestedTab` and safely falls back to `.overview` when nil, unknown, or unverified.
+public enum ClubWorkspaceTab: String, CaseIterable, Equatable, Sendable {
+    case posts
+    case events
+    case overview
+    case manage
+
+    public static let defaultFallback: ClubWorkspaceTab = .overview
+
+    public static func validate(requestedTab: String?) -> ClubWorkspaceTab {
+        guard let raw = requestedTab?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+              !raw.isEmpty,
+              let tab = ClubWorkspaceTab(rawValue: raw) else {
+            return .overview
+        }
+        return tab
+    }
+
+    public static func validate(_ requestedTab: ClubWorkspaceTab?) -> ClubWorkspaceTab {
+        requestedTab ?? .overview
+    }
+
+    public static func resolve(requestedTab: String?, canEnterManagement: Bool = true) -> ClubWorkspaceTab {
+        let validated = validate(requestedTab: requestedTab)
+        if validated == .manage && !canEnterManagement {
+            return .overview
+        }
+        return validated
+    }
+
+    public static func resolve(requestedTab: ClubWorkspaceTab?, canEnterManagement: Bool = true) -> ClubWorkspaceTab {
+        let validated = validate(requestedTab)
+        if validated == .manage && !canEnterManagement {
+            return .overview
+        }
+        return validated
+    }
+}
+
+/// Production gate for club creation (`不扩 Club28`).
+/// Defaults to closed (`isConfigured == false`, `writeAvailability == .unverified`).
+/// Legacy Club28 pauses remain unverified and unchanged; this gate does not claim authorization
+/// or full coverage of any legacy Club28 boundary and only checks adapter configuration and write availability.
+public struct ClubCreationGate: Equatable, Sendable {
+    public static let productionDefault = ClubCreationGate(
+        isConfigured: false,
+        writeAvailability: .unverified
+    )
+
+    public let isConfigured: Bool
+    public let writeAvailability: ClubOperationsWriteAvailability
+
+    public init(
+        isConfigured: Bool = false,
+        writeAvailability: ClubOperationsWriteAvailability = .unverified
+    ) {
+        self.isConfigured = isConfigured
+        self.writeAvailability = writeAvailability
+    }
+
+    @MainActor
+    public init(access: any ClubOperationsAccess) {
+        self.init(
+            isConfigured: access.isConfigured,
+            writeAvailability: access.writeAvailability
+        )
+    }
+
+    public var isCreationAllowed: Bool {
+        isConfigured && (writeAvailability == .approved || writeAvailability == .syntheticOnly)
+    }
+
+    public var isBlocked: Bool {
+        !isCreationAllowed
+    }
+
+    public var bilingualGateCopy: String {
+        if isCreationAllowed {
+            return "俱乐部创建门控已开启（不扩 Club28，旧暂停边界保持不变）/ Club creation gate enabled (no Club28 expansion; legacy pauses remain unchanged)."
+        }
+        return "俱乐部创建门控未开启，暂不可进入俱乐部管理 / Club creation gate is closed; entering Club Management is blocked."
+    }
+}
+
+/// Verified post-create destination for jumping from club creation into the resolved club workspace tab.
+public struct ClubCreateToManageDestination: Equatable, Identifiable, Sendable {
+    public let accountId: Int
+    public let clubId: Int
+    public let tab: ClubWorkspaceTab
+    public var id: String { "\(accountId):\(clubId):\(tab.rawValue)" }
+
+    public init(accountId: Int, clubId: Int, tab: ClubWorkspaceTab = .manage) {
+        self.accountId = accountId
+        self.clubId = clubId
+        self.tab = tab
+    }
+
+    /// True only when the resolved destination tab is `.manage`.
+    /// When `requestedTab` falls back to `.overview` (or another non-manage tab),
+    /// navigation must not open the management workspace.
+    public var opensManagementWorkspace: Bool {
+        tab == .manage
+    }
+
+    public var bilingualDestinationLabel: String {
+        switch tab {
+        case .manage:
+            return "已就绪：俱乐部 #\(clubId) 管理工作台（分栏：manage）/ Ready: Club #\(clubId) Management Workspace (Tab: manage)"
+        case .overview, .posts, .events:
+            return "已就绪：俱乐部 #\(clubId) 俱乐部详情（分栏：\(tab.rawValue)）/ Ready: Club #\(clubId) Club Detail (Tab: \(tab.rawValue))"
+        }
+    }
+}
+
+public enum ClubCreateToManageBlockReason: String, Equatable, Sendable {
+    case gateBlocked
+    case awaitingConfirmedReceipt
+    case readbackFailed
+    case accountMismatch
+    case clubIdMismatch
+}
+
+/// Post-create closure state machine:
+/// Confirmed Receipt -> Same-Account Readback Verification (`accountId` & `clubId` match) -> Explicit navigation action.
+public struct ClubCreateToManageFlowState: Equatable, Sendable {
+    public static let enterManagementButtonTitle = "进入俱乐部管理 / Enter Club Management"
+
+    public var gate: ClubCreationGate
+    public var receiptAccountId: Int?
+    public var receiptClubId: Int?
+    public var currentAccountId: Int?
+    public var readbackAccountId: Int?
+    public var readbackOwnedClubIds: [Int]
+    public var readbackSucceeded: Bool
+    public var readbackUnavailable: Bool
+    public var requestedTab: String?
+    public private(set) var enteredDestination: ClubCreateToManageDestination?
+
+    public init(
+        gate: ClubCreationGate = .productionDefault,
+        receiptAccountId: Int? = nil,
+        receiptClubId: Int? = nil,
+        currentAccountId: Int? = nil,
+        readbackAccountId: Int? = nil,
+        readbackOwnedClubIds: [Int] = [],
+        readbackSucceeded: Bool = false,
+        readbackUnavailable: Bool = false,
+        requestedTab: String? = ClubWorkspaceTab.manage.rawValue,
+        enteredDestination: ClubCreateToManageDestination? = nil
+    ) {
+        self.gate = gate
+        self.receiptAccountId = receiptAccountId
+        self.receiptClubId = receiptClubId
+        self.currentAccountId = currentAccountId
+        self.readbackAccountId = readbackAccountId
+        self.readbackOwnedClubIds = readbackOwnedClubIds
+        self.readbackSucceeded = readbackSucceeded
+        self.readbackUnavailable = readbackUnavailable
+        self.requestedTab = requestedTab
+        self.enteredDestination = enteredDestination
+    }
+
+    public var hasConfirmedReceipt: Bool {
+        guard !gate.isBlocked,
+              let receiptAccountId, receiptAccountId > 0,
+              let receiptClubId, receiptClubId > 0 else {
+            return false
+        }
+        return true
+    }
+
+    public var isSameAccountVerified: Bool {
+        guard let receiptAccountId, receiptAccountId > 0,
+              let currentAccountId, currentAccountId == receiptAccountId,
+              let readbackAccountId, readbackAccountId == receiptAccountId else {
+            return false
+        }
+        return true
+    }
+
+    public var isClubIdVerified: Bool {
+        guard readbackSucceeded,
+              !readbackUnavailable,
+              let receiptClubId, receiptClubId > 0 else {
+            return false
+        }
+        return readbackOwnedClubIds.contains(receiptClubId)
+    }
+
+    public var isSameAccountReadbackVerified: Bool {
+        hasConfirmedReceipt && isSameAccountVerified && isClubIdVerified
+    }
+
+    public var canEnterManagement: Bool {
+        isSameAccountReadbackVerified
+    }
+
+    public var blockReason: ClubCreateToManageBlockReason? {
+        if gate.isBlocked {
+            return .gateBlocked
+        }
+        guard let receiptAccountId, receiptAccountId > 0,
+              let receiptClubId, receiptClubId > 0 else {
+            return .awaitingConfirmedReceipt
+        }
+        if currentAccountId != receiptAccountId || (readbackAccountId != nil && readbackAccountId != receiptAccountId) {
+            return .accountMismatch
+        }
+        if readbackUnavailable || !readbackSucceeded || readbackAccountId == nil {
+            return .readbackFailed
+        }
+        if !readbackOwnedClubIds.contains(receiptClubId) {
+            return .clubIdMismatch
+        }
+        return nil
+    }
+
+    public var validatedTab: ClubWorkspaceTab {
+        ClubWorkspaceTab.resolve(requestedTab: requestedTab, canEnterManagement: canEnterManagement)
+    }
+
+    public var actionButtonTitle: String {
+        if !canEnterManagement || validatedTab == .manage {
+            return Self.enterManagementButtonTitle
+        }
+        return "进入俱乐部详情（分栏：\(validatedTab.rawValue)）/ Enter Club Detail (Tab: \(validatedTab.rawValue))"
+    }
+
+    public var bilingualStatusCopy: String {
+        switch blockReason {
+        case .gateBlocked:
+            return "俱乐部创建门控未开启，暂不可进入俱乐部管理 / Club creation gate is closed; entering Club Management is blocked."
+        case .awaitingConfirmedReceipt:
+            return "等待俱乐部创建确认回执 / Awaiting confirmed club creation receipt."
+        case .accountMismatch:
+            return "账号已变更或不匹配，已拦截进入俱乐部管理 / Account mismatch detected; entering Club Management is blocked."
+        case .readbackFailed:
+            return "同账号回读校验未通过，暂不可进入俱乐部管理 / Same-account readback verification failed; entering Club Management is blocked."
+        case .clubIdMismatch:
+            return "俱乐部 ID 回读不匹配，已拦截进入俱乐部管理 / Club ID readback mismatch; entering Club Management is blocked."
+        case nil:
+            let clubId = receiptClubId ?? 0
+            return "同账号回读已确认（俱乐部 #\(clubId)），可进入俱乐部管理 / Same-account readback verified (Club #\(clubId)); ready to enter Club Management."
+        }
+    }
+
+    /// True when an acknowledged write or post-create flow still needs owner-readback recovery
+    /// (`readBack()` + `acceptReadback()`) rather than an unverified initial `load()`.
+    public func requiresReadbackRecovery(state: ClubOperationsState, hasSnapshot: Bool) -> Bool {
+        if case .outcomeUnknown = state { return true }
+        if case .acknowledged = state {
+            return readbackUnavailable || !hasSnapshot || !readbackSucceeded || readbackAccountId == nil || blockReason == .readbackFailed || blockReason == .clubIdMismatch
+        }
+        if receiptClubId != nil {
+            return readbackUnavailable || !hasSnapshot || !readbackSucceeded || readbackAccountId == nil || blockReason == .readbackFailed || blockReason == .clubIdMismatch
+        }
+        return readbackUnavailable
+    }
+
+    @MainActor
+    public mutating func applyConfirmedReceipt(
+        state: ClubOperationsState,
+        pendingIdentity: ClubReadIdentity?,
+        currentIdentity: ClubReadIdentity?,
+        access: any ClubOperationsAccess
+    ) {
+        gate = ClubCreationGate(access: access)
+        currentAccountId = currentIdentity?.accountID
+        readbackAccountId = nil
+        readbackOwnedClubIds = []
+        readbackSucceeded = false
+        readbackUnavailable = false
+        enteredDestination = nil
+        if case .acknowledged(let receipt) = state {
+            receiptAccountId = pendingIdentity?.accountID ?? currentIdentity?.accountID
+            receiptClubId = receipt.clubID
+        }
+    }
+
+    @MainActor
+    @discardableResult
+    public mutating func acceptReadback(
+        from coordinator: ClubOperationsCoordinator,
+        access: any ClubOperationsAccess,
+        currentIdentity: ClubReadIdentity?,
+        target: ClubOperationsTarget = .create
+    ) -> ClubOperationsSnapshot? {
+        gate = ClubCreationGate(access: access)
+        currentAccountId = currentIdentity?.accountID ?? access.identity?.accountID
+        switch coordinator.readback(target: target) {
+        case .received(let value):
+            var ownedIDs = value.ownedClubIDs
+            if let profileID = value.profile?.club.id, !ownedIDs.contains(profileID) {
+                ownedIDs.append(profileID)
+            }
+            readbackUnavailable = false
+            readbackAccountId = access.identity?.accountID
+            readbackOwnedClubIds = ownedIDs
+            readbackSucceeded = access.identity != nil
+            if case .acknowledged(let receipt) = coordinator.state(target: target) {
+                if receiptAccountId == nil {
+                    receiptAccountId = access.identity?.accountID ?? currentIdentity?.accountID
+                }
+                if let clubID = receipt.clubID {
+                    receiptClubId = clubID
+                }
+            }
+            return value
+        case .unavailable:
+            readbackUnavailable = true
+            readbackAccountId = nil
+            readbackOwnedClubIds = []
+            readbackSucceeded = false
+            enteredDestination = nil
+            return nil
+        default:
+            return nil
+        }
+    }
+
+    @MainActor
+    @discardableResult
+    public mutating func retryReadback(
+        using coordinator: ClubOperationsCoordinator,
+        access: any ClubOperationsAccess,
+        currentIdentity: ClubReadIdentity?,
+        ownerID: UUID,
+        target: ClubOperationsTarget = .create
+    ) async -> ClubOperationsSnapshot? {
+        await coordinator.readBack(target: target, ownerID: ownerID)
+        guard access.identity == currentIdentity, !Task.isCancelled else { return nil }
+        return acceptReadback(from: coordinator, access: access, currentIdentity: currentIdentity, target: target)
+    }
+
+    @discardableResult
+    public mutating func enterClubManagement(requestedTab overrideTab: String? = nil) -> ClubCreateToManageDestination? {
+        guard canEnterManagement,
+              let accountId = receiptAccountId,
+              let clubId = receiptClubId else {
+            enteredDestination = nil
+            return nil
+        }
+        let resolvedTab = ClubWorkspaceTab.resolve(
+            requestedTab: overrideTab ?? requestedTab,
+            canEnterManagement: true
+        )
+        let destination = ClubCreateToManageDestination(accountId: accountId, clubId: clubId, tab: resolvedTab)
+        enteredDestination = destination
+        return destination
+    }
+}
