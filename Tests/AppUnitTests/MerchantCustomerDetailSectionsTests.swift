@@ -18,20 +18,25 @@ import XCTest
         let view = MerchantCustomerDetailSections(detail: try detail(), access: try access(["merchant:crm:read"])) { _ in EmptyView() }
         XCTAssertTrue(view.canRead)
         XCTAssertNil(view.paidAmount)
+        XCTAssertEqual(view.paidCardState, .permissionHidden)
     }
     func testSensitivePermissionAloneDoesNotExposeCustomerOrAmount() throws {
         let view = MerchantCustomerDetailSections(detail: try detail(), access: try access(["merchant:crm:sensitive:read"])) { _ in EmptyView() }
         XCTAssertFalse(view.canRead)
         XCTAssertNil(view.paidAmount)
+        XCTAssertEqual(view.paidCardState, .permissionHidden)
     }
     func testBothPermissionsExposeOnlyExactNonNullAmount() throws {
         let grant = try access(["merchant:crm:read", "merchant:crm:sensitive:read"])
         let populated = MerchantCustomerDetailSections(detail: try detail(), access: grant) { _ in EmptyView() }
         XCTAssertEqual(populated.paidAmount, "CNY 42.00")
+        XCTAssertEqual(populated.paidCardState, .amount("CNY 42.00"))
         let absent = MerchantCustomerDetailSections(detail: try detail(amount: .null), access: grant) { _ in EmptyView() }
         XCTAssertNil(absent.paidAmount)
+        XCTAssertEqual(absent.paidCardState, .unknown)
         let zero = MerchantCustomerDetailSections(detail: try detail(amount: .string("0.00")), access: grant) { _ in EmptyView() }
         XCTAssertEqual(zero.paidAmount, "CNY 0.00")
+        XCTAssertEqual(zero.paidCardState, .amount("CNY 0.00"))
     }
 
     @MainActor private final class Reader: MerchantBusinessReading {

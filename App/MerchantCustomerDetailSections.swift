@@ -18,6 +18,13 @@ import SwiftUI
               let amount = try? MerchantBusinessMoney(detail.customer.fields["paidAmount"]), amount.raw != nil else { return nil }
         return amount.display
     }
+    /// Cumulative-paid card state. Missing/null is `.unknown` (never 0); refunds never feed this value.
+    enum PaidCardState: Equatable { case permissionHidden, unknown, amount(String) }
+    var paidCardState: PaidCardState {
+        guard canRead, access.allows("merchant:crm:sensitive:read") else { return .permissionHidden }
+        if let paidAmount { return .amount(paidAmount) }
+        return .unknown
+    }
 
     var body: some View {
         Group {
@@ -27,14 +34,23 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                     MerchantCustomerIdentityLine(lastInteraction: detail.lastInteractionAt)
                     LabeledContent("merchant.customerDetail.lastInteraction") { timestamp(detail.lastInteractionAt) }
-                    LabeledContent("merchant.business.field.paidAmount") {
-                        if let paidAmount { Text(verbatim: paidAmount).monospacedDigit() }
-                        else { Text("merchant.business.sensitiveUnavailable").foregroundStyle(.secondary) }
-                    }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
                     ForEach(["arrivedCount", "pendingCount", "refundedCount"], id: \.self) { key in
                         if let value = detail.customer.fields[key] { MerchantBusinessField(key: key, value: value) }
                     }
                 }
+                Section {
+                    LabeledContent("merchant.business.field.paidAmount") {
+                        switch paidCardState {
+                        case .amount(let text):
+                            Text(verbatim: text).monospacedDigit()
+                        case .unknown:
+                            Text(verbatim: "未记录").foregroundStyle(.secondary)
+                        case .permissionHidden:
+                            Text("merchant.business.sensitiveUnavailable").foregroundStyle(.secondary)
+                        }
+                    }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
+                    Text(verbatim: "累计已付不含退款记录").font(.footnote).foregroundStyle(.secondary)
+                }.accessibilityIdentifier("merchant.customerDetail.paidCard")
                 Section("merchant.customerDetail.participation") {
                     Text("merchant.customerDetail.recentScope").font(.footnote).foregroundStyle(.secondary)
                     if detail.participation.isEmpty {
