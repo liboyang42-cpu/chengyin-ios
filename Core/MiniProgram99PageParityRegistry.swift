@@ -444,28 +444,28 @@ public struct MiniProgram99PageParityRegistry: Sendable, Equatable {
             wave2ScopeID: "w2-08",
             nativeSymbol: "RoamMonthlyRecapView",
             sourceFile: "App/RoamPassportToolsViews.swift",
-            hostSymbol: "RoamPassportView"
+            hostSymbol: "RoamPassportToolsSection"
         ),
         "subpackageTools/anniversary/index": VerifiedBaselineRouteTarget(
             domain: .domainD,
             wave2ScopeID: "w2-08",
             nativeSymbol: "RoamAnniversaryView",
             sourceFile: "App/RoamPassportToolsViews.swift",
-            hostSymbol: "RoamPassportView"
+            hostSymbol: "RoamPassportToolsSection"
         ),
         "pages/merchant/index/index": VerifiedBaselineRouteTarget(
             domain: .domainE,
             wave2ScopeID: "w2-12",
             nativeSymbol: "SessionMerchantOverviewView",
             sourceFile: "App/MerchantReading.swift",
-            hostSymbol: "MerchantContentHomeView"
+            hostSymbol: "AccountView"
         ),
         "pages/shezhi/shezhi": VerifiedBaselineRouteTarget(
             domain: .domainB,
             wave2ScopeID: "w2-05",
             nativeSymbol: "SettingsView",
             sourceFile: "App/SettingsView.swift",
-            hostSymbol: "AppCompositionRoot"
+            hostSymbol: "AccountView"
         )
     ]
 

@@ -137,11 +137,9 @@ public struct MiniProgramPageByPage99DecisionLedgerContract: Sendable, Equatable
         }
 
         let trimmedExpected = expectedCommitSHA.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if !trimmedExpected.isEmpty {
-            guard ReleaseCertificatePillar.isValidFormalCommitSHA(trimmedExpected),
-                  singleSHA == trimmedExpected else {
-                return false
-            }
+        guard ReleaseCertificatePillar.isValidFormalCommitSHA(trimmedExpected),
+              singleSHA == trimmedExpected else {
+            return false
         }
         return true
     }

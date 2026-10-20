@@ -138,6 +138,12 @@ final class ThreeDocumentMasterCrosswalkContractTests: XCTestCase {
                 expectedCommitSHA: validFormalSHA
             )
         )
+        XCTAssertFalse(
+            ThreeDocumentMasterCrosswalkContract.evaluateEndToEndDeploymentVerified(
+                ledger: verifiedLedger,
+                expectedCommitSHA: ""
+            )
+        )
 
         // Copying the same passed record 176 times must be rejected
         let repeated176 = Array(repeating: verifiedLedger[0], count: 176)

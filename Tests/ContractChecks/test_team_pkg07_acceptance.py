@@ -26,10 +26,12 @@ class TeamPkg07AcceptanceContract(unittest.TestCase):
             self.assertNotIn('universal', text.lower().replace('universal-link handlers', '')) if f.startswith('Core/Team') else None
             self.assertNotIn('47.103.124.64', text)
 
-    def test_invite_code_copy_not_reimplemented_here(self):
-        # b5f63a07 (dot's copy commit) is pending integration; the base has no pasteboard use in team views.
-        for f in ['App/TeamHomeView.swift', 'App/TeamComponents.swift']:
-            self.assertNotIn('UIPasteboard', (ROOT / f).read_text())
+    def test_invite_code_copy_uses_scoped_preview_pasteboard_only(self):
+        # b5f63a07 (dot's copy commit) integrates scoped pasteboard copy in TeamInvitePreview only.
+        self.assertNotIn('UIPasteboard', (ROOT / 'App/TeamHomeView.swift').read_text())
+        components = (ROOT / 'App/TeamComponents.swift').read_text()
+        self.assertIn('UIPasteboard.general.setItems', components)
+        self.assertIn('team.invite.copy', components)
 
 if __name__ == '__main__':
     unittest.main()

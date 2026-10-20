@@ -103,6 +103,12 @@ final class MiniProgramPageByPage99DecisionLedgerContractTests: XCTestCase {
                 expectedCommitSHA: validFormalSHA
             )
         )
+        XCTAssertFalse(
+            MiniProgramPageByPage99DecisionLedgerContract.evaluateEndToEndVerification(
+                rows: verifiedRows,
+                expectedCommitSHA: ""
+            )
+        )
 
         // Copying the same passed record 99 times must be rejected
         let repeated99 = Array(repeating: verifiedRows[0], count: 99)
