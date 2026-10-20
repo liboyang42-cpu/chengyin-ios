@@ -482,3 +482,18 @@ Added 21 authored core methods, nine synthetic UI methods, eight aggregate Pytho
   - native (core) fails only in the 3 owner test files written against APIs that don't exist: MyProjectListPresentationTests, PlayGameSessionCompositionTests and RoamEntryNearbyTests.
 - 1bfb4ce6 (owner, #61): the release certificate now fails closed by default, and evidence is bound to a target SHA. Imports are guarded, and no secrets or live hosts were found. It was committed without a ledger refresh; Z's next merge records it.
 - da625216 merges origin/migration/native-ios (4a9b4cd9) cleanly. The -m scan re-observes the same 5 reviewed lines under the merge SHA, so their exact fingerprints are added.
+
+### 2026-10-20 20:30 UTC — integrator Z (wave-2)
+
+- The owner pushed 22 `[skip ci]` commits between 16:25 and 16:56 UTC. Z paused pushes while the owner was active.
+- Run 39447762549 (381726d5):
+  - native (core) fails only in 2 owner test files written against APIs that don't exist: MyProjectListPresentationTests and PlayGameSessionCompositionTests.
+  - App and AppUnit compile and run.
+  - ui-build passes; UI shards fail as on the base.
+- a5376d0a merges origin/migration/native-ios (76ce1b31). Conflicts:
+  - CooperationFlowWorkbench: took the base's guard.
+  - MessagingHomeView: integration's IMInboxRow plus the base's mutation callback.
+  - TeamHomeView: both sides.
+  - The pbxproj was regenerated, and the xcstrings files were merged as a key-wise union.
+- `check_scaffold` fails identically on migration/native-ios itself: base commit 706d1530 has wallet.earnings.* keys missing from the default catalog.
+- The -m scan re-observes the same 5 reviewed lines under a5376d0a, so their exact fingerprints are added.
