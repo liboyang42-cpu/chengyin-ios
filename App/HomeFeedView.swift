@@ -8,16 +8,20 @@ import SwiftUI
     var sourceTimeZone: TimeZone? = nil
     let onDestination: (HomeFeedDestination) -> Void
     @StateObject private var model = HomeFeedModel()
+    @State private var ownedTask: Task<Void, Never>?
     @State private var kind: HomeFeedKind = .topics
     @State private var keyword = ""
     @State private var categoryID: Int?
     @State private var submittedKeyword = ""
     private var query: HomeFeedQuery { HomeFeedQuery(kind: kind, keyword: submittedKeyword, categoryID: categoryID) }
     var body: some View {
+        let binding = model.bind(reader, available: unavailableMessageKey == nil)
         ZStack {
             if !reader.isConfigured || unavailableMessageKey != nil {
                 ContentUnavailableView("homeFeed.unavailable", systemImage: "network.slash", description: Text(LocalizedStringKey(unavailableMessageKey ?? "auth.notConfigured")))
                     .accessibilityIdentifier("homeFeed.configurationUnavailable")
+            } else if !model.matches(reader) {
+                ProgressView("homeFeed.loading")
             } else {
                 List {
                     if reader.isOfflineExample { Text("homeFeed.example").font(.caption) }
@@ -44,7 +48,7 @@ import SwiftUI
                                 .accessibilityIdentifier("homeFeed.empty")
                         }
                         if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
-                            Button("homeFeed.loadMore") { Task { await model.loadMore(reader: reader) } }
+                            Button("homeFeed.loadMore") { schedule { await model.loadMore(reader: reader) } }
                                 .frame(minHeight: 44)
                                 .accessibilityIdentifier("homeFeed.loadMore")
                         }
@@ -55,13 +59,18 @@ import SwiftUI
                 .searchable(text: $keyword, prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
-                .onChange(of: query) { _, value in Task { await model.resetPage(reader: reader, query: value) } }
+                .onChange(of: query) { _, value in schedule { await model.resetPage(reader: reader, query: value) } }
                 .refreshable { await model.reload(reader: reader, query: query) }
             }
         }
         .appNavigationTitle("homeFeed.title")
-        .task(id: reader.scope) { model.invalidate(); if reader.isConfigured && unavailableMessageKey == nil { await model.reload(reader: reader, query: query) } }
-        .onDisappear { model.invalidate() }
+        .task(id: binding) { await model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding) }
+        .onChange(of: binding) { _, _ in ownedTask?.cancel(); ownedTask = nil }
+        .onDisappear { ownedTask?.cancel(); ownedTask = nil; model.suspend() }
+    }
+    private func schedule(_ action: @escaping @MainActor () async -> Void) {
+        ownedTask?.cancel()
+        ownedTask = Task { await action() }
     }
     @ViewBuilder private var bannerSection: some View {
         if model.bannerFailed { retry("homeFeed.bannersError", id: "banners") { await model.loadBanners(reader: reader) } }
@@ -70,6 +79,7 @@ import SwiftUI
                 ForEach(Array(model.banners.enumerated()), id: \.offset) { _, banner in
                     if let destination = banner.destination {
                         Button {
+                            guard model.canOpen(reader) else { return }
                             switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
                         } label: {
                             VStack(alignment: .leading, spacing: 12) {
@@ -105,7 +115,7 @@ import SwiftUI
         }
     }
     private func row(_ item: HomeFeedItem, section: String) -> some View {
-        Button { onDestination(item.id) } label: { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone) }
+        Button { if model.canOpen(reader) { onDestination(item.id) } } label: { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone) }
             .buttonStyle(QuestifyCardButtonStyle())
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
             .questifyCardListRow()
@@ -113,7 +123,7 @@ import SwiftUI
     private func retry(_ message: LocalizedStringKey, id: String, action: @escaping () async -> Void) -> some View {
         VStack(alignment: .leading) {
             Text(message)
-            Button("homeFeed.retry") { Task { await action() } }
+            Button("homeFeed.retry") { schedule(action) }
                 .buttonStyle(.bordered).controlSize(.large)
                 .accessibilityIdentifier("homeFeed.retry.\(id)")
         }

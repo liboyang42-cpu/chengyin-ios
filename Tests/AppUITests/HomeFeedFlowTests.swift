@@ -47,6 +47,18 @@ final class HomeFeedFlowTests: XCTestCase {
         let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: more)
         XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed)
     }
+    func testExhaustedStreamSurvivesDetailAndBack() {
+        launch()
+        let more = app.buttons["homeFeed.loadMore"]; reveal(more); more.tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: more)
+        XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed)
+        let row = app.buttons["homeFeed.stream.topic.7"]; reveal(row); row.tap()
+        XCTAssertTrue(app.staticTexts["homeFeed.destination.topic"].waitForExistence(timeout: 15))
+        app.navigationBars.buttons.firstMatch.tap()
+        reveal(row)
+        XCTAssertEqual(app.buttons.matching(identifier: "homeFeed.stream.topic.7").count, 1)
+        XCTAssertFalse(more.exists, "Back must not reset the exhausted stream to page one")
+    }
     func testEmptyStateIsNotAnError() {
         launch("empty")
         let empty = app.descendants(matching: .any)["homeFeed.empty"].firstMatch
