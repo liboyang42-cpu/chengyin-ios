@@ -1970,21 +1970,53 @@ final class AppSession: ObservableObject {
         return NonCashRewardService(configuration: configuration, transport: runtimeHTTPTransport)
     }
     func makeRewardPledgeClient() -> RewardPledgeClient? {
-        guard runtimeDependencies.nonCashRewardApproved, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        guard rewardCaller().anyOpen, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
         return RewardPledgeClient(configuration: configuration, transport: runtimeHTTPTransport)
     }
     func makeRewardPledgeEntry() -> RewardPledgeEntry? {
-        guard makeNonCashRewardService() != nil, let client = makeRewardPledgeClient(), account != nil, token != nil else { return nil }
+        guard let client = makeRewardPledgeClient(), account != nil, token != nil else { return nil }
         let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/reward-pledge-unknown.json")
-        return RewardPledgeEntry(client: client, journalURL: url, current: { [weak self] in
-            guard let self, let account = self.account, let token = self.token, let region = self.operationalMarket?.rawValue else { return nil }
-            return RewardPledgeCaller(accountID: String(account.id), epoch: self.gate.currentStamp, region: region, token: token,
-                                      read: self.runtimeDependencies.nonCashRewardApproved,
-                                      claim: self.runtimeDependencies.nonCashRewardClaimApproved,
-                                      preview: self.runtimeDependencies.nonCashRewardPreviewApproved,
-                                      redeem: self.runtimeDependencies.nonCashRewardRedeemApproved)
-        })
+        return RewardPledgeEntry(client: client, journalURL: url, current: { [weak self] in self?.rewardCaller() },
+                                  coupons: { [weak self] in
+                                      guard let self else { return .failure(.closed("not open")) }
+                                      return await self.publishedStoreCoupons()
+                                  })
+    }
+    private func rewardCaller() -> RewardPledgeCaller {
+        let deps = runtimeDependencies
+        return RewardPledgeCaller(accountID: account.map { String($0.id) } ?? "", epoch: gate.currentStamp,
+                                  region: operationalMarket?.rawValue ?? "", token: token ?? "",
+                                  read: deps.nonCashRewardApproved, claim: deps.nonCashRewardClaimApproved,
+                                  preview: deps.nonCashRewardPreviewApproved, redeem: deps.nonCashRewardRedeemApproved,
+                                  draft: deps.nonCashRewardDraftApproved, freeze: deps.nonCashRewardFreezeApproved,
+                                  hold: deps.nonCashRewardHoldApproved, withdrawVersion: deps.nonCashRewardWithdrawApproved,
+                                  expire: deps.nonCashRewardExpireApproved, returnPool: deps.nonCashRewardReturnApproved,
+                                  support: deps.nonCashRewardCaseApproved, stats: deps.nonCashRewardStatsApproved)
+    }
+    func publishedStoreCoupons() async -> Result<[CouponDefinition], RewardPledgeFailure> {
+        let coordinator = makeCouponManagementCoordinator()
+        await coordinator.load()
+        guard coordinator.issue == nil else { return .failure(.closed("not open")) }
+        return .success(coordinator.rows)
+    }
+    private func rewardPledgePermits(_ operation: String) -> Bool {
+        let caller = rewardCaller()
+        switch operation {
+        case "read", "detail", "offer": return caller.read
+        case "claim", "recover": return caller.claim
+        case "preview", "store", "resolve": return caller.preview
+        case "redeem": return caller.redeem
+        case "draft", "submit", "confirm", "readPledge": return caller.draft
+        case "freeze": return caller.freeze
+        case "hold": return caller.hold
+        case "withdraw": return caller.withdrawVersion
+        case "expire": return caller.expire
+        case "return": return caller.returnPool
+        case "case": return caller.support
+        case "stats": return caller.stats
+        default: return false
+        }
     }
     private var currentNonCashRewardSession: NonCashRewardReadSession? {
         guard let account, let token else { return nil }
@@ -3554,6 +3586,9 @@ final class AppSession: ObservableObject {
         compositionTransport.activityEditingApproval = { [weak self] context in
             guard let self, self.currentRuntimeDependencyContext == context else { return .init() }
             return self.activityEditingApproval(context)
+        }
+        compositionTransport.rewardPledgePermit = { [weak self] operation in
+            self?.rewardPledgePermits(operation) == true
         }
         compositionTransport.current = { [weak self] in
             guard let self, !self.committingAuthenticatedSession else { return nil }

@@ -291,6 +291,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     var publisherIdentityRegistrationApproval: @MainActor (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() }
     var activityCoverApproval: @MainActor (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil }
     var activityEditingApproval: @MainActor (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() }
+    /// Per-operation reward gate. Default closed, so a constructed client still cannot leave.
+    var rewardPledgePermit: @MainActor (String) -> Bool = { _ in false }
     var workshopPaidInstallBeforeForward: (() async -> Void)?
     struct SessionIdentity: Equatable {
         let epoch: UInt64
@@ -1075,7 +1077,8 @@ extension KeychainTokenStore: AppTokenStorage {}
             let expectedMethod = (path == RoamPrivateToolsRoute.exportPrepare || path == RoamPrivateToolsRoute.exportPage) ? "POST" : "GET"
             return request.httpMethod == expectedMethod
         })
-        guard ownMedia || nearbyEvents != nil || entryNearby != nil || passportToolPath != nil || privateToolReadPath != nil || url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
+        guard ownMedia || nearbyEvents != nil || entryNearby != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -1086,6 +1089,10 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        } else if let rewardPledgeOperation {
+            guard captured.isSignedInContentViewer, rewardPledgePermit(rewardPledgeOperation) else { throw APIError.notConfigured }
+            let permit = rewardPledgePermit
+            readApprovalStillValid = { permit(rewardPledgeOperation) }
         } else if merchantOverviewOnly {
             guard merchantOverview, let scope = merchantOverviewScope,
                   scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }

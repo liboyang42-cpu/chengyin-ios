@@ -171,6 +171,26 @@ final class RewardPledgeTests: XCTestCase {
         XCTAssertTrue(item.pledgePresentable(capabilities()))
         var guaranteed = capabilities(); guaranteed.guaranteed = true
         XCTAssertFalse(item.pledgePresentable(guaranteed))
+        let coupon = try JSONDecoder().decode(CouponDefinition.self, from: Data(#"{"id":3,"name":"hat","startTime":"2026-10-21 00:00:00","endTime":"2026-10-22 00:00:00"}"#.utf8))
+        let supply = try RewardPledgeRequests.Supply(coupon: coupon, supplyRef: "in store", terms: "bring the card", quantity: 2)
+        let drafted = try RewardPledgeRequests.draft(supply, baseURL: base, token: "fixture-token")
+        XCTAssertEqual(drafted.url?.path.hasSuffix("api/reward-pledge/drafts"), true)
+        let draftBody = try JSONSerialization.jsonObject(with: XCTUnwrap(drafted.httpBody)) as? [String: Any]
+        XCTAssertEqual(draftBody?["rewardKind"] as? String, "NON_CASH")
+        XCTAssertEqual((draftBody?["couponId"] as? NSNumber)?.intValue, 3)
+        XCTAssertEqual((draftBody?["serviceStart"] as? NSNumber)?.int64Value, (draftBody?["redeemStart"] as? NSNumber)?.int64Value)
+        XCTAssertNil(draftBody?["storeId"])
+        XCTAssertNil(draftBody?["merchantMemberId"])
+        XCTAssertEqual(RewardPledgeRoutes.operation(drafted, baseURL: base), "draft")
+        let pledge = "11111111-1111-1111-1111-111111111111"
+        let submit = try RewardPledgeRequests.submit(pledgeID: pledge, baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(submit, baseURL: base), "submit")
+        XCTAssertThrowsError(try RewardPledgeRequests.openCase(awardID: "award-1", versionID: "version-1", reason: "CASH_REFUND", baseURL: base, token: "fixture-token"))
+        var compensation = URLRequest(url: base.appendingPathComponent("api/reward-pledge/compensations"))
+        compensation.httpMethod = "POST"
+        XCTAssertNil(RewardPledgeRoutes.operation(compensation, baseURL: base))
+        let stats = try RewardPledgeRequests.stats(pledgeID: pledge, baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(stats, baseURL: base), "stats")
     }
 
     func testAwardArrayDecodesThemeSubjectAndReadDoesNotClaim() async throws {

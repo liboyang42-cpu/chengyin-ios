@@ -99,7 +99,7 @@ import SwiftUI
                 AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{
                     guard let selected = session.profileFavoritesReader.selectTopic($0, renderedScope: session.profileFavoritesReader.scope) else { return }
                     _ = savedTopicOwner.open(selected, scope: session.profileFavoritesReader.scope)
-                },rewards:session.nonCashRewardReader,pledge:session.makeNonCashRewardService() == nil ? nil : session.makeRewardPledgeEntry(),onOpenPost:{
+                },rewards:session.nonCashRewardReader,pledge:session.makeRewardPledgeEntry(),onOpenPost:{
                     guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
                     _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
                 }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext, communityGate: session.squareReader).id(session.accountCollectionReader.scope)

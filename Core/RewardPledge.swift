@@ -52,8 +52,61 @@ public enum RewardPledgeRoutes {
     public static let redeem = "api/reward-pledge/fulfilment/redeem"
     public static let storeAwards = "api/reward-pledge/fulfilment/awards"
     public static let resolve = "api/reward-pledge/fulfilment/resolve"
-    public static let plannedDraft = "api/rewards/pledge/draft"
-    public static let plannedSubmit = "api/rewards/pledge/submit"
+    public static let expire = "api/reward-pledge/fulfilment/expire"
+    public static let drafts = "api/reward-pledge/drafts"
+    public static let cases = "api/rewards/noncash/cases"
+    /// Names the one operation `CompositionHTTPTransport` may forward. Unknown URLs stay nil.
+    public static func operation(_ request: URLRequest, baseURL: URL) -> String? {
+        guard let url = request.url, url.fragment == nil, let method = request.httpMethod?.uppercased(),
+              var parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              parts.user == nil, parts.password == nil else { return nil }
+        let query = parts.queryItems ?? []
+        parts.query = nil
+        guard let bare = parts.url else { return nil }
+        func exact(_ path: String) -> Bool { bare == baseURL.appendingPathComponent(path) }
+        func one(_ prefix: String) -> String? {
+            let root = baseURL.appendingPathComponent(prefix).absoluteString
+            guard bare.absoluteString.hasPrefix(root + "/") else { return nil }
+            let rest = String(bare.absoluteString.dropFirst(root.count + 1))
+            guard id(rest) else { return nil }
+            return rest
+        }
+        func action(_ prefix: String, _ name: String) -> Bool {
+            let root = baseURL.appendingPathComponent(prefix).absoluteString
+            guard bare.absoluteString.hasPrefix(root + "/") else { return false }
+            let parts = String(bare.absoluteString.dropFirst(root.count + 1)).split(separator: "/", omittingEmptySubsequences: false).map(String.init)
+            return parts.count == 2 && id(parts[0]) && parts[1] == name
+        }
+        if method == "GET", query.isEmpty, exact(plannedNonCashList) { return "read" }
+        if method == "POST", query.isEmpty, exact(plannedClaim) { return "claim" }
+        if method == "POST", query.isEmpty, exact(plannedIntentQuery) { return "recover" }
+        if method == "POST", query.isEmpty, exact(cases) { return "case" }
+        if method == "GET", query.count == 2,
+           query.contains(URLQueryItem(name: "branch", value: "THEME")),
+           let subject = query.first(where: { $0.name == "subjectId" })?.value, id(subject),
+           one(offerPrefix.trimmingCharacters(in: CharacterSet(charactersIn: "/"))) != nil { return "offer" }
+        if method == "GET", query.isEmpty, let award = one(plannedNonCashList),
+           !["versions", "claims", "cases"].contains(award) { return "detail" }
+        if method == "GET", query.isEmpty, exact(storeAwards) { return "store" }
+        if method == "POST", query.isEmpty, exact(preview) { return "preview" }
+        if method == "POST", query.isEmpty, exact(redeem) { return "redeem" }
+        if method == "POST", query.isEmpty, exact(resolve) { return "resolve" }
+        if method == "POST", query.isEmpty, exact(expire) { return "expire" }
+        if method == "POST", query.isEmpty, exact(drafts) { return "draft" }
+        if method == "POST", query.isEmpty, action("api/reward-pledge", "submit") { return "submit" }
+        if method == "POST", query.isEmpty, action("api/reward-pledge", "confirm") { return "confirm" }
+        if method == "POST", query.isEmpty, action("api/reward-pledge", "freeze") { return "freeze" }
+        if method == "GET", query.isEmpty, action("api/reward-pledge", "stats") { return "stats" }
+        if method == "GET", query.isEmpty, let pledge = one("api/reward-pledge"),
+           !["drafts", "fulfilment", "versions", "awards", "compensations"].contains(pledge) { return "readPledge" }
+        if method == "POST", query.isEmpty, action("api/reward-pledge/versions", "withdraw") { return "withdraw" }
+        if method == "POST", query.isEmpty, action("api/reward-pledge/versions", "hold") { return "hold" }
+        if method == "POST", query.isEmpty, action("api/reward-pledge/awards", "return-to-pool") { return "return" }
+        return nil
+    }
+    static func id(_ value: String) -> Bool {
+        value.count <= 64 && value.range(of: #"^[A-Za-z0-9_-]+$"#, options: .regularExpression) != nil
+    }
     public static let couponQRToken = "api/coupon/qr-token"
     public static let couponStatus = "api/coupon/status"
     public static let couponVerification = "api/coupon/verification"
@@ -262,13 +315,77 @@ public enum RewardPledgeRequests {
         guard !trimmed.isEmpty, trimmed.count <= 512, !trimmed.contains("\n") else { throw RewardPledgeFailure.closed("award") }
         return try json(RewardPledgeRoutes.resolve, ["code": trimmed], baseURL, token)
     }
-    public static func draft(pledgeID: String, version: Int, baseURL: URL, token: String) throws -> URLRequest {
-        guard version > 0, !pledgeID.isEmpty else { throw RewardPledgeFailure.closed("merchantEvidence") }
-        return try form(RewardPledgeRoutes.plannedDraft, ["pledgeId": pledgeID, "version": String(version)], baseURL, token, "pledge-draft")
+    /// Supply copied from one published coupon. The server assigns the pledge id and the store.
+    public struct Supply: Equatable, Sendable {
+        public let couponID: Int
+        public let supplyRef: String
+        public let terms: String
+        public let quantity: Int
+        public let windowStart: Int64
+        public let windowEnd: Int64
+        public init(coupon: CouponDefinition, supplyRef: String, terms: String, quantity: Int) throws {
+            let ref = supplyRef.trimmingCharacters(in: .whitespacesAndNewlines)
+            let text = terms.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard coupon.id.value > 0, quantity > 0, !ref.isEmpty, ref.count <= 128, !text.isEmpty, text.count <= 128,
+                  !ref.contains("\n"), !text.contains("\n"),
+                  let startRaw = coupon.startTime, let endRaw = coupon.endTime,
+                  let start = CouponValidityTime.parse(startRaw), let end = CouponValidityTime.parse(endRaw), end > start else {
+                throw RewardPledgeFailure.closed("validity")
+            }
+            let startMs = Int64((start.timeIntervalSince1970 * 1000).rounded())
+            let endMs = Int64((end.timeIntervalSince1970 * 1000).rounded())
+            guard startMs > 0, endMs > startMs else { throw RewardPledgeFailure.closed("validity") }
+            couponID = coupon.id.value
+            self.supplyRef = ref
+            self.terms = text
+            self.quantity = quantity
+            windowStart = startMs
+            windowEnd = endMs
+        }
     }
-    public static func submit(pledgeID: String, version: Int, baseURL: URL, token: String) throws -> URLRequest {
-        guard version > 0 else { throw RewardPledgeFailure.closed("ruleVersion") }
-        return try form(RewardPledgeRoutes.plannedSubmit, ["pledgeId": pledgeID, "version": String(version)], baseURL, token, "pledge-submit")
+    public static func draft(_ supply: Supply, baseURL: URL, token: String) throws -> URLRequest {
+        // ponytail: service window copies the coupon redeem window until a pledge must outlive the coupon
+        return try jsonAny(RewardPledgeRoutes.drafts, [
+            "couponId": supply.couponID, "supplyRef": supply.supplyRef, "terms": supply.terms, "quantity": supply.quantity,
+            "serviceStart": NSNumber(value: supply.windowStart), "serviceEnd": NSNumber(value: supply.windowEnd),
+            "redeemStart": NSNumber(value: supply.windowStart), "redeemEnd": NSNumber(value: supply.windowEnd),
+            "rewardKind": "NON_CASH"
+        ], baseURL, token)
+    }
+    public static func submit(pledgeID: String, baseURL: URL, token: String) throws -> URLRequest {
+        return try post("api/reward-pledge/" + (try pathID(pledgeID)) + "/submit", baseURL, token)
+    }
+    public static func confirm(pledgeID: String, baseURL: URL, token: String) throws -> URLRequest {
+        return try post("api/reward-pledge/" + (try pathID(pledgeID)) + "/confirm", baseURL, token)
+    }
+    public static func readPledge(pledgeID: String, baseURL: URL, token: String) throws -> URLRequest {
+        return try get("api/reward-pledge/" + (try pathID(pledgeID)), baseURL, token)
+    }
+    public static func freeze(pledgeID: String, ruleVersion: String, baseURL: URL, token: String) throws -> URLRequest {
+        let rule = ruleVersion.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !rule.isEmpty, rule.count <= 128, !rule.contains("\n") else { throw RewardPledgeFailure.closed("ruleVersion") }
+        return try json("api/reward-pledge/" + (try pathID(pledgeID)) + "/freeze", ["ruleVersion": rule], baseURL, token)
+    }
+    public static func hold(versionID: String, baseURL: URL, token: String) throws -> URLRequest {
+        return try post("api/reward-pledge/versions/" + (try pathID(versionID)) + "/hold", baseURL, token)
+    }
+    public static func withdraw(versionID: String, baseURL: URL, token: String) throws -> URLRequest {
+        return try post("api/reward-pledge/versions/" + (try pathID(versionID)) + "/withdraw", baseURL, token)
+    }
+    public static func expire(awardID: String, baseURL: URL, token: String) throws -> URLRequest {
+        return try json(RewardPledgeRoutes.expire, ["awardId": try pathID(awardID)], baseURL, token)
+    }
+    public static func returnToPool(awardID: String, baseURL: URL, token: String) throws -> URLRequest {
+        return try post("api/reward-pledge/awards/" + (try pathID(awardID)) + "/return-to-pool", baseURL, token)
+    }
+    public static func openCase(awardID: String, versionID: String, reason: String, baseURL: URL, token: String) throws -> URLRequest {
+        let text = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text != "CASH_REFUND" else { throw RewardPledgeFailure.closed("CASH_CLOSED") }
+        guard !text.isEmpty, text.count <= 128, !text.contains("\n") else { throw RewardPledgeFailure.closed("validity") }
+        return try json(RewardPledgeRoutes.cases, ["awardId": try pathID(awardID), "versionId": try pathID(versionID), "reason": text], baseURL, token)
+    }
+    public static func stats(pledgeID: String, baseURL: URL, token: String) throws -> URLRequest {
+        return try get("api/reward-pledge/" + (try pathID(pledgeID)) + "/stats", baseURL, token)
     }
     /// Existing coupon routes, in order. City-node redeem is not one of them.
     public static func staff(historyID: Int, verificationCode: String, baseURL: URL, token: String) throws -> [URLRequest] {
@@ -293,8 +410,15 @@ public enum RewardPledgeRequests {
     private static func segment(_ value: String) -> Bool {
         !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && value.count <= 128 && !value.contains("\n") && !value.contains("\r")
     }
+    private static func pathID(_ value: String) throws -> String {
+        guard RewardPledgeRoutes.id(value) else { throw RewardPledgeFailure.closed("route") }
+        return value
+    }
     private static func json(_ path: String, _ fields: [String: String], _ baseURL: URL, _ token: String) throws -> URLRequest {
-        guard AuthRequestBuilder.isValidToken(token),
+        return try jsonAny(path, fields, baseURL, token)
+    }
+    private static func jsonAny(_ path: String, _ fields: [String: Any], _ baseURL: URL, _ token: String) throws -> URLRequest {
+        guard AuthRequestBuilder.isValidToken(token), JSONSerialization.isValidJSONObject(fields),
               let body = try? JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys]) else { throw APIError.invalidRequest }
         var request = URLRequest(url: baseURL.appendingPathComponent(path))
         request.httpMethod = "POST"
@@ -303,6 +427,28 @@ public enum RewardPledgeRequests {
         request.httpBody = body
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        return request
+    }
+    private static func get(_ path: String, _ baseURL: URL, _ token: String) throws -> URLRequest {
+        guard AuthRequestBuilder.isValidToken(token) else { throw RewardPledgeFailure.closed("permission") }
+        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+        request.httpMethod = "GET"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        return request
+    }
+    private static func post(_ path: String, _ baseURL: URL, _ token: String) throws -> URLRequest {
+        guard AuthRequestBuilder.isValidToken(token) else { throw RewardPledgeFailure.closed("permission") }
+        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
         request.setValue(token, forHTTPHeaderField: "Authorization")
         return request
@@ -667,18 +813,34 @@ public struct RewardPledgeCaller: Equatable, Sendable {
     public let claim: Bool
     public let preview: Bool
     public let redeem: Bool
-    public init(accountID: String, epoch: UInt64, region: String, token: String, read: Bool, claim: Bool, preview: Bool, redeem: Bool) {
+    public let draft: Bool
+    public let freeze: Bool
+    public let hold: Bool
+    public let withdrawVersion: Bool
+    public let expire: Bool
+    public let returnPool: Bool
+    public let support: Bool
+    public let stats: Bool
+    public init(accountID: String, epoch: UInt64, region: String, token: String, read: Bool, claim: Bool, preview: Bool, redeem: Bool,
+                draft: Bool = false, freeze: Bool = false, hold: Bool = false, withdrawVersion: Bool = false,
+                expire: Bool = false, returnPool: Bool = false, support: Bool = false, stats: Bool = false) {
         self.accountID = accountID; self.epoch = epoch; self.region = region; self.token = token
         self.read = read; self.claim = claim; self.preview = preview; self.redeem = redeem
+        self.draft = draft; self.freeze = freeze; self.hold = hold; self.withdrawVersion = withdrawVersion
+        self.expire = expire; self.returnPool = returnPool; self.support = support; self.stats = stats
     }
+    public var anyOpen: Bool { read || claim || preview || redeem || draft || freeze || hold || withdrawVersion || expire || returnPool || support || stats }
 }
 
 public struct RewardPledgeEntry {
     public let client: RewardPledgeClient
     public let journalURL: URL
     public let current: @MainActor () -> RewardPledgeCaller?
-    public init(client: RewardPledgeClient, journalURL: URL, current: @escaping @MainActor () -> RewardPledgeCaller?) {
-        self.client = client; self.journalURL = journalURL; self.current = current
+    /// Existing published-coupon read. Closed when that approval is absent.
+    public let coupons: @MainActor () async -> Result<[CouponDefinition], RewardPledgeFailure>
+    public init(client: RewardPledgeClient, journalURL: URL, current: @escaping @MainActor () -> RewardPledgeCaller?,
+                coupons: @escaping @MainActor () async -> Result<[CouponDefinition], RewardPledgeFailure> = { .failure(.closed("not open")) }) {
+        self.client = client; self.journalURL = journalURL; self.current = current; self.coupons = coupons
     }
     public var accountID: String { current()?.accountID ?? "" }
 }
@@ -726,6 +888,39 @@ public struct RewardPledgeClient {
     }
     public func redeem(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.redeem(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func draft(_ supply: RewardPledgeRequests.Supply, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.draft(supply, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func submit(pledgeID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.submit(pledgeID: pledgeID, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func confirm(pledgeID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.confirm(pledgeID: pledgeID, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func readPledge(pledgeID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.readPledge(pledgeID: pledgeID, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func freeze(pledgeID: String, ruleVersion: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.freeze(pledgeID: pledgeID, ruleVersion: ruleVersion, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func hold(versionID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.hold(versionID: versionID, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func withdraw(versionID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.withdraw(versionID: versionID, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func expire(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.expire(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func returnToPool(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.returnToPool(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func openCase(awardID: String, versionID: String, reason: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.openCase(awardID: awardID, versionID: versionID, reason: reason, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func stats(pledgeID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.stats(pledgeID: pledgeID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
     /// Preview must name the same request id and a coupon history before redeem is sent.
     public static func acceptedVoucher(preview: RewardPledgeServerBody, originalRequestID: String) -> Result<String, RewardPledgeFailure> {

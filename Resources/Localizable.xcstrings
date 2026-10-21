@@ -125146,6 +125146,146 @@
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "核销凭证" } }
       }
     },
+    "rewards.pledge.draft": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Save supply draft" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "保存供给草稿" } }
+      }
+    },
+    "rewards.pledge.submit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Submit supply" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提交供给" } }
+      }
+    },
+    "rewards.pledge.ownerConfirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Confirm supply" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "确认供给" } }
+      }
+    },
+    "rewards.pledge.readback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Read supply back" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "回读供给" } }
+      }
+    },
+    "rewards.pledge.coupons": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Published coupons" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已发布券" } }
+      }
+    },
+    "rewards.pledge.supply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "What you are supplying" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "供给说明" } }
+      }
+    },
+    "rewards.pledge.terms": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Terms" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "条款" } }
+      }
+    },
+    "rewards.pledge.quantity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Quantity" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "数量" } }
+      }
+    },
+    "rewards.pledge.freeze": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Ask to freeze" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "申请冻结" } }
+      }
+    },
+    "rewards.pledge.ruleVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Rule version" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "规则版本" } }
+      }
+    },
+    "rewards.pledge.hold": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Stop new grants" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "停止新授予" } }
+      }
+    },
+    "rewards.pledge.withdraw": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Withdraw version" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "撤回版本" } }
+      }
+    },
+    "rewards.pledge.expire": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Expire unused voucher" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "过期未使用凭证" } }
+      }
+    },
+    "rewards.pledge.return": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Return expired voucher" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "过期券退回" } }
+      }
+    },
+    "rewards.pledge.case": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Open a case" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "发起争议" } }
+      }
+    },
+    "rewards.pledge.caseReason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "What happened" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "发生了什么" } }
+      }
+    },
+    "rewards.pledge.stats": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Reconciliation" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "核对" } }
+      }
+    },
+    "rewards.pledge.asOf": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "As of" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "截至" } }
+      }
+    },
+    "rewards.pledge.awardCount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Awards" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "授予数" } }
+      }
+    },
+    "rewards.pledge.stock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Stock available" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "剩余库存" } }
+      }
+    },
     "rewards.present": {
       "extractionState": "manual",
       "localizations": {

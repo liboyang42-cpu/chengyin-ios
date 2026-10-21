@@ -39,12 +39,22 @@ import Foundation
     let nonCashRewardClaimApproved: Bool
     let nonCashRewardPreviewApproved: Bool
     let nonCashRewardRedeemApproved: Bool
+    let nonCashRewardDraftApproved: Bool
+    let nonCashRewardFreezeApproved: Bool
+    let nonCashRewardHoldApproved: Bool
+    let nonCashRewardWithdrawApproved: Bool
+    let nonCashRewardExpireApproved: Bool
+    let nonCashRewardReturnApproved: Bool
+    let nonCashRewardCaseApproved: Bool
+    let nonCashRewardStatsApproved: Bool
     init(officialActionApproval: OfficialActionProductionApproval? = nil, socialMemberActionApprovals: [SocialMemberActionApproval] = [], configuration: RuntimeDependencyConfiguration? = nil, walkingNavigation: NativeWalkingNavigationDependencies? = nil, businessConfiguration: BusinessRuntimeConfiguration? = nil, bankDocument: (any BankWithdrawalCurrentDocumentProviding)? = nil, signupDocument: (any TopicSelfPlayDocumentProviding)? = nil, selfPlayPayment: (any TopicSelfPlayPaymentProviding)? = nil, weChatPaymentConfiguration: WeChatSDKPaymentConfiguration? = nil, transport: (any HTTPTransport)? = nil,
          location: (any RoamDeviceLocationProviding)? = nil, shopNPCGrants: ShopNPCGrants = .init(), motion: (any PlayMotionSampleProviding)? = nil,
          verificationCodeApproval: VerificationCodeApproval? = nil, couponCodeApproval: CouponCodeApproval? = nil, socialReaderApproval: SocialReaderProductionApproval? = nil,
          clubOpsTimeApproval: ClubOpsTimeApproval? = nil, contextualReviewApproval: ContextualReviewApproval? = nil,
          ownerRefundApproval: ClubOwnerRefundApproval? = nil, nativePlatform: NativePlatformAcceptance? = nil, clubGovernanceApproval: ClubGovernanceProductionApproval? = nil, merchantBusinessApproval: MerchantBusinessProductionApproval? = nil, merchantEngagementApproval: MerchantEngagementProductionApproval? = nil, orderLifecycleConfiguration: OrderLifecycleProductionConfiguration? = nil, journeyNarrativeImageReader: (any RetainedPublicImageReading)? = nil, merchantPublicApproval: MerchantPublicProductionApproval? = nil, merchantNPCGrants: MerchantNPCGrants = .init(), merchantProjectBrowseApproval: MerchantProjectBrowseApproval? = nil, merchantPredictionReadApproval: MerchantPredictionReadApproval? = nil, merchantOverviewReadApproval: MerchantOverviewReadApproval? = nil, merchantProjectWorkspaceReadApproval: MerchantProjectWorkspaceReadApproval? = nil, merchantProjectParticipantsReadApproval: MerchantProjectParticipantsReadApproval? = nil,
-         nonCashRewardApproved: Bool = false, nonCashRewardClaimApproved: Bool = false, nonCashRewardPreviewApproved: Bool = false, nonCashRewardRedeemApproved: Bool = false) {
+         nonCashRewardApproved: Bool = false, nonCashRewardClaimApproved: Bool = false, nonCashRewardPreviewApproved: Bool = false, nonCashRewardRedeemApproved: Bool = false,
+         nonCashRewardDraftApproved: Bool = false, nonCashRewardFreezeApproved: Bool = false, nonCashRewardHoldApproved: Bool = false, nonCashRewardWithdrawApproved: Bool = false,
+         nonCashRewardExpireApproved: Bool = false, nonCashRewardReturnApproved: Bool = false, nonCashRewardCaseApproved: Bool = false, nonCashRewardStatsApproved: Bool = false) {
         self.clubOpsTimeApproval = clubOpsTimeApproval; self.contextualReviewApproval = contextualReviewApproval
         self.walkingNavigation = walkingNavigation
         self.officialActionApproval = officialActionApproval
@@ -71,6 +81,14 @@ import Foundation
         self.nonCashRewardClaimApproved = nonCashRewardClaimApproved
         self.nonCashRewardPreviewApproved = nonCashRewardPreviewApproved
         self.nonCashRewardRedeemApproved = nonCashRewardRedeemApproved
+        self.nonCashRewardDraftApproved = nonCashRewardDraftApproved
+        self.nonCashRewardFreezeApproved = nonCashRewardFreezeApproved
+        self.nonCashRewardHoldApproved = nonCashRewardHoldApproved
+        self.nonCashRewardWithdrawApproved = nonCashRewardWithdrawApproved
+        self.nonCashRewardExpireApproved = nonCashRewardExpireApproved
+        self.nonCashRewardReturnApproved = nonCashRewardReturnApproved
+        self.nonCashRewardCaseApproved = nonCashRewardCaseApproved
+        self.nonCashRewardStatsApproved = nonCashRewardStatsApproved
     }
     func makeMerchantPublicFactory(api: APIConfiguration, journal: any OperationPendingJournal,
                                    transportOverride: (any HTTPTransport)? = nil,

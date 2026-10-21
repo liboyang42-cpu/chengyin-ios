@@ -15,7 +15,7 @@ extension EnvironmentValues {
         NativeVerificationView(flow: session.nativeVerificationFlow, cameraEnabled: session.verificationCameraEnabled,
             records: { AnyView(MerchantBusinessPage(reader: session.merchantBusinessReader,
                 journal: session.merchantBusinessJournal, query: .redemptions(filter: "all", page: 1))) },
-            pledge: session.makeNonCashRewardService() == nil ? nil : session.makeRewardPledgeEntry())
+            pledge: session.makeRewardPledgeEntry())
             .id(session.sessionRevision)
     }
 }
@@ -71,8 +71,12 @@ extension EnvironmentValues {
                 if let pledge, pledge.current()?.preview == true, flow.access?.allows("merchant:verify") == true {
                     NavigationLink { RewardPledgeStaffHost(entry: pledge) } label: { Text("rewards.pledge.redeem") }
                         .accessibilityIdentifier("rewards.pledge.merchant")
-                } else {
+                } else if pledge?.current()?.draft != true {
                     Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.merchantClosed")
+                }
+                if let pledge, pledge.current()?.draft == true, flow.access?.allows("merchant:coupon:manage") == true {
+                    NavigationLink { RewardPledgeMerchantHost(entry: pledge) } label: { Text("rewards.pledge.draft") }
+                        .accessibilityIdentifier("rewards.pledge.supplyEntry")
                 }
                 if !flow.current { Button("verification.refreshAccess") { Task { await flow.activate() } }.disabled(flow.phase == .loading) }
                 NavigationLink { records() } label: { Label("verification.records", systemImage: "list.bullet.rectangle") }

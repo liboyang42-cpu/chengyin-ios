@@ -24,6 +24,11 @@ public extension EnvironmentValues {
     @Published public private(set) var awardsLoaded = false
     @Published public private(set) var listFailed = false
     @Published public private(set) var selected: RewardPledgeAwardRow?
+    @Published public private(set) var pledgeID = ""
+    @Published public private(set) var versionID = ""
+    @Published public private(set) var coupons: [CouponDefinition] = []
+    @Published public private(set) var couponsLoaded = false
+    @Published public private(set) var statsBody: RewardPledgeServerBody?
     private var offerVersionID = ""
     private var offerSubjectID = ""
     private let journal: RewardPledgeFileJournal?
@@ -47,6 +52,26 @@ public extension EnvironmentValues {
         journalBlocked = blocked
         machine = .restored(accountID: accountID, storeID: store, policy: policy, journal: loaded)
         notice = blocked ? "journal" : (machine.unknowns.isEmpty ? nil : "unknown")
+        if let memory = Self.loadSupply(journalURL), memory.accountID == accountID {
+            pledgeID = memory.pledgeID
+            versionID = memory.versionID
+        }
+    }
+
+    private struct SupplyMemory: Codable { var accountID, pledgeID, versionID: String }
+    private static func supplyURL(_ journalURL: URL?) -> URL? {
+        journalURL?.deletingLastPathComponent().appendingPathComponent("reward-pledge-supply.json")
+    }
+    private static func loadSupply(_ journalURL: URL?) -> SupplyMemory? {
+        guard let url = supplyURL(journalURL), let data = try? Data(contentsOf: url) else { return nil }
+        return try? JSONDecoder().decode(SupplyMemory.self, from: data)
+    }
+    private func rememberSupply() {
+        guard let url = Self.supplyURL(journal?.url), RewardPledgeRoutes.id(pledgeID) else { return }
+        let memory = SupplyMemory(accountID: machine.scope.accountID, pledgeID: pledgeID, versionID: versionID)
+        guard let data = try? JSONEncoder().encode(memory) else { return }
+        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try? data.write(to: url, options: .atomic)
     }
 
     /// An empty requested store restores the one store recorded for this account. Two stores stay closed.
@@ -391,17 +416,153 @@ public extension EnvironmentValues {
         if let journal {
             do { existing = try journal.load() } catch {
                 machine.replaceAccount(accountID, store: "", journal: [])
+                adoptSupply(for: accountID)
                 clearSelection(notice: "journal")
                 return
             }
         } else { existing = [] }
         guard let store = Self.restoredStore(requested: storeID, accountID: accountID, rows: existing) else {
             machine.replaceAccount(accountID, store: "", journal: [])
+            adoptSupply(for: accountID)
             clearSelection(notice: "journal")
             return
         }
         machine.replaceAccount(accountID, store: store, journal: existing)
+        adoptSupply(for: accountID)
         clearSelection(notice: machine.unknowns.isEmpty ? "stale" : "unknown")
+    }
+
+    private func adoptSupply(for accountID: String) {
+        coupons = []; couponsLoaded = false; statsBody = nil
+        guard let memory = Self.loadSupply(journal?.url), memory.accountID == accountID, RewardPledgeRoutes.id(memory.pledgeID) else {
+            pledgeID = ""; versionID = ""
+            if let url = Self.supplyURL(journal?.url) { try? FileManager.default.removeItem(at: url) }
+            return
+        }
+        pledgeID = memory.pledgeID
+        versionID = memory.versionID
+    }
+
+    public func loadCoupons(entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.draft }) else { coupons = []; return }
+        switch await entry.coupons() {
+        case .success(let rows):
+            guard entry.current() == caller else { coupons = []; couponsLoaded = false; notice = "stale"; return }
+            coupons = rows
+            couponsLoaded = true
+        case .failure(let error):
+            coupons = []
+            couponsLoaded = false
+            fail(error)
+        }
+    }
+
+    public func draftSupply(coupon: CouponDefinition, supplyRef: String, terms: String, quantity: String, entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.draft }), !busy else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            let supply = try RewardPledgeRequests.Supply(coupon: coupon, supplyRef: supplyRef, terms: terms, quantity: Int(quantity) ?? 0)
+            try keepPledge(try await entry.client.draft(supply, token: caller.token, open: caller.draft, still: { entry.current() == caller }))
+        } catch { note(error) }
+    }
+
+    public func submitSupply(entry: RewardPledgeEntry) async {
+        await pledgeCall(entry, { $0.draft }) { caller in
+            try await entry.client.submit(pledgeID: pledgeID, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+        }
+    }
+
+    public func confirmSupply(entry: RewardPledgeEntry) async {
+        await pledgeCall(entry, { $0.draft }) { caller in
+            try await entry.client.confirm(pledgeID: pledgeID, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+        }
+    }
+
+    public func readSupply(entry: RewardPledgeEntry) async {
+        await pledgeCall(entry, { $0.draft }) { caller in
+            try await entry.client.readPledge(pledgeID: pledgeID, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+        }
+    }
+
+    public func freezeSupply(ruleVersion: String, entry: RewardPledgeEntry) async {
+        await pledgeCall(entry, { $0.freeze }) { caller in
+            try await entry.client.freeze(pledgeID: pledgeID, ruleVersion: ruleVersion, token: caller.token, open: caller.freeze, still: { entry.current() == caller })
+        }
+    }
+
+    public func holdSupply(entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.hold }), !busy, RewardPledgeRoutes.id(versionID) else { return }
+        busy = true
+        defer { busy = false }
+        do { try keepPledge(try await entry.client.hold(versionID: versionID, token: caller.token, open: caller.hold, still: { entry.current() == caller })) }
+        catch { note(error) }
+    }
+
+    public func withdrawSupply(entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.withdrawVersion }), !busy, RewardPledgeRoutes.id(versionID) else { return }
+        busy = true
+        defer { busy = false }
+        do { try keepPledge(try await entry.client.withdraw(versionID: versionID, token: caller.token, open: caller.withdrawVersion, still: { entry.current() == caller })) }
+        catch { note(error) }
+    }
+
+    public func loadStats(entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.stats }), !busy, RewardPledgeRoutes.id(pledgeID) else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            let body = try await entry.client.stats(pledgeID: pledgeID, token: caller.token, open: caller.stats, still: { entry.current() == caller })
+            guard body.fields["asOf"] != nil, body.fields["awardCount"] != nil else { throw APIError.malformedResponse }
+            statsBody = body
+            notice = body.fields["asOf"]
+        } catch { statsBody = nil; note(error) }
+    }
+
+    public func expireAward(entry: RewardPledgeEntry) async {
+        guard let award = selected?.awardId, let caller = admitted(entry, { $0.expire }), !busy else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            merchantResult = try await entry.client.expire(awardID: award, token: caller.token, open: caller.expire, still: { entry.current() == caller })
+            notice = merchantResult?.fields["useStatus"] ?? merchantResult?.message
+        } catch { note(error) }
+    }
+
+    public func returnAward(entry: RewardPledgeEntry) async {
+        guard let award = selected?.awardId, let caller = admitted(entry, { $0.returnPool }), !busy else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            merchantResult = try await entry.client.returnToPool(awardID: award, token: caller.token, open: caller.returnPool, still: { entry.current() == caller })
+            notice = merchantResult?.fields["state"] ?? merchantResult?.message
+        } catch { note(error) }
+    }
+
+    public func openSupport(reason: String, entry: RewardPledgeEntry) async {
+        guard let row = selected, let caller = admitted(entry, { $0.support }), !busy else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            playerResult = try await entry.client.openCase(awardID: row.awardId, versionID: row.versionId, reason: reason, token: caller.token, open: caller.support, still: { entry.current() == caller })
+            notice = playerResult?.fields["caseId"]
+        } catch { note(error) }
+    }
+
+    private func pledgeCall(_ entry: RewardPledgeEntry, _ allows: (RewardPledgeCaller) -> Bool, _ send: (RewardPledgeCaller) async throws -> RewardPledgeServerBody) async {
+        guard let caller = admitted(entry, allows), !busy, RewardPledgeRoutes.id(pledgeID) else { return }
+        busy = true
+        defer { busy = false }
+        do { try keepPledge(try await send(caller)) } catch { note(error) }
+    }
+
+    private func keepPledge(_ body: RewardPledgeServerBody) throws {
+        guard let id = body.fields["pledge.pledgeId"], RewardPledgeRoutes.id(id) else { throw APIError.malformedResponse }
+        pledgeID = id
+        if let version = body.fields["version.versionId"], RewardPledgeRoutes.id(version) { versionID = version }
+        merchantResult = body
+        rememberSupply()
+        notice = body.fields["version.state"] ?? body.message
     }
 
     private func admitted(_ entry: RewardPledgeEntry, _ allows: (RewardPledgeCaller) -> Bool) -> RewardPledgeCaller? {
@@ -473,6 +634,7 @@ public extension EnvironmentValues {
 @MainActor public struct RewardPledgeClaimView: View {
     @ObservedObject var model: RewardPledgeModel
     var entry: RewardPledgeEntry?
+    @State private var caseReason = ""
 
     public init(model: RewardPledgeModel, entry: RewardPledgeEntry? = nil) {
         self.model = model
@@ -517,6 +679,11 @@ public extension EnvironmentValues {
                     Button("rewards.pledge.recover") { Task { await model.recover(entry: entry) } }
                         .disabled(model.busy).accessibilityIdentifier("rewards.pledge.recover")
                 }
+                if entry.current()?.support == true, model.selected != nil {
+                    TextField("rewards.pledge.caseReason", text: $caseReason)
+                    Button("rewards.pledge.case") { Task { await model.openSupport(reason: caseReason, entry: entry) } }
+                        .disabled(model.busy).accessibilityIdentifier("rewards.pledge.case")
+                }
                 Button("rewards.pledge.refresh") { Task { await model.loadDetail(entry: entry) } }
                     .disabled(model.busy).accessibilityIdentifier("rewards.pledge.refresh")
             }
@@ -547,30 +714,79 @@ public extension EnvironmentValues {
 
 @MainActor public struct RewardPledgeMerchantView: View {
     @ObservedObject var model: RewardPledgeModel
-    @State private var pledgeID = ""
-    @State private var quantity = ""
+    var entry: RewardPledgeEntry?
+    @State private var supplyRef = ""
     @State private var terms = ""
-    @State private var reserve = ""
-    @State private var serverVersion = ""
+    @State private var quantity = ""
+    @State private var ruleVersion = ""
+    @State private var picked: CouponDefinition?
 
-    public init(model: RewardPledgeModel) { self.model = model }
+    public init(model: RewardPledgeModel, entry: RewardPledgeEntry? = nil) {
+        self.model = model
+        self.entry = entry
+    }
 
     public var body: some View {
         Form {
-            TextField("rewards.pledge.pledgeID", text: $pledgeID)
-            TextField("rewards.pledge.quantity", text: $quantity)
-            TextField("rewards.pledge.reserve", text: $reserve)
-            TextField("rewards.pledge.terms", text: $terms)
-            Button("rewards.pledge.draft") { model.saveDraft(pledgeID: pledgeID, quantityText: quantity, termsText: terms, serverReserve: Int(reserve)) }
-                .accessibilityIdentifier("rewards.pledge.draft")
-            Button("rewards.pledge.submit") { model.submitDraft() }.accessibilityIdentifier("rewards.pledge.submit")
-            TextField("rewards.pledge.serverVersion", text: $serverVersion)
-            Button("rewards.pledge.freeze") { model.freeze(serverVersionText: serverVersion) }
-                .accessibilityIdentifier("rewards.pledge.frozen")
-            Button("rewards.pledge.withdraw") { model.withdraw() }.accessibilityIdentifier("rewards.pledge.withdraw")
-            if let frozen = model.machine.frozen { Text(frozen.status + " " + String(frozen.version)).accessibilityIdentifier("rewards.pledge.version") }
+            if entry?.current()?.draft != true && entry?.current()?.freeze != true && entry?.current()?.hold != true
+                && entry?.current()?.withdrawVersion != true && entry?.current()?.stats != true {
+                Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.draftClosed")
+            }
+            if let entry, entry.current()?.draft == true {
+                Button("rewards.pledge.coupons") { Task { await model.loadCoupons(entry: entry) } }
+                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.coupons")
+                if model.couponsLoaded, model.coupons.isEmpty { Text("rewards.empty").accessibilityIdentifier("rewards.pledge.couponEmpty") }
+                ForEach(model.coupons) { coupon in
+                    Button {
+                        picked = coupon
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(verbatim: coupon.name ?? "")
+                            Text(verbatim: (coupon.startTime ?? "") + " – " + (coupon.endTime ?? ""))
+                        }
+                    }
+                    .accessibilityIdentifier("rewards.pledge.coupon." + String(coupon.id.value))
+                }
+                TextField("rewards.pledge.supply", text: $supplyRef)
+                TextField("rewards.pledge.terms", text: $terms)
+                TextField("rewards.pledge.quantity", text: $quantity)
+                Button("rewards.pledge.draft") {
+                    guard let picked else { return }
+                    Task { await model.draftSupply(coupon: picked, supplyRef: supplyRef, terms: terms, quantity: quantity, entry: entry) }
+                }
+                .disabled(model.busy || picked == nil).accessibilityIdentifier("rewards.pledge.draft")
+                Button("rewards.pledge.submit") { Task { await model.submitSupply(entry: entry) } }
+                    .disabled(model.busy || !RewardPledgeRoutes.id(model.pledgeID)).accessibilityIdentifier("rewards.pledge.submit")
+                Button("rewards.pledge.ownerConfirm") { Task { await model.confirmSupply(entry: entry) } }
+                    .disabled(model.busy || !RewardPledgeRoutes.id(model.pledgeID)).accessibilityIdentifier("rewards.pledge.ownerConfirm")
+                Button("rewards.pledge.readback") { Task { await model.readSupply(entry: entry) } }
+                    .disabled(model.busy || !RewardPledgeRoutes.id(model.pledgeID)).accessibilityIdentifier("rewards.pledge.readback")
+            }
+            if let entry, entry.current()?.freeze == true {
+                TextField("rewards.pledge.ruleVersion", text: $ruleVersion)
+                Button("rewards.pledge.freeze") { Task { await model.freezeSupply(ruleVersion: ruleVersion, entry: entry) } }
+                    .disabled(model.busy || !RewardPledgeRoutes.id(model.pledgeID)).accessibilityIdentifier("rewards.pledge.frozen")
+            }
+            if let entry, entry.current()?.hold == true {
+                Button("rewards.pledge.hold") { Task { await model.holdSupply(entry: entry) } }
+                    .disabled(model.busy || !RewardPledgeRoutes.id(model.versionID)).accessibilityIdentifier("rewards.pledge.hold")
+            }
+            if let entry, entry.current()?.withdrawVersion == true {
+                Button("rewards.pledge.withdraw") { Task { await model.withdrawSupply(entry: entry) } }
+                    .disabled(model.busy || !RewardPledgeRoutes.id(model.versionID)).accessibilityIdentifier("rewards.pledge.withdraw")
+            }
+            if let entry, entry.current()?.stats == true {
+                Button("rewards.pledge.stats") { Task { await model.loadStats(entry: entry) } }
+                    .disabled(model.busy || !RewardPledgeRoutes.id(model.pledgeID)).accessibilityIdentifier("rewards.pledge.stats")
+                if let stats = model.statsBody {
+                    LabeledContent("rewards.pledge.asOf") { Text(verbatim: stats.fields["asOf"] ?? "") }
+                    LabeledContent("rewards.pledge.awardCount") { Text(verbatim: stats.fields["awardCount"] ?? "") }
+                    LabeledContent("rewards.pledge.stock") { Text(verbatim: stats.fields["stock.available"] ?? "") }
+                }
+            }
+            if !model.pledgeID.isEmpty { Text(verbatim: model.pledgeID).accessibilityIdentifier("rewards.pledge.pledge") }
+            if let state = model.merchantResult?.fields["version.state"] { Text(verbatim: state).accessibilityIdentifier("rewards.pledge.version") }
             if let notice = model.notice { Text(notice).accessibilityIdentifier("rewards.pledge.notice") }
-            if let item = model.machine.serviceCase { Text(item.readable).accessibilityIdentifier("rewards.pledge.case") }
         }
     }
 }
@@ -617,6 +833,14 @@ public extension EnvironmentValues {
                 } else {
                     Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.redeemClosed")
                 }
+                if entry.current()?.expire == true {
+                    Button("rewards.pledge.expire") { Task { await model.expireAward(entry: entry) } }
+                        .disabled(model.busy || model.selected == nil).accessibilityIdentifier("rewards.pledge.expire")
+                }
+                if entry.current()?.returnPool == true {
+                    Button("rewards.pledge.return") { Task { await model.returnAward(entry: entry) } }
+                        .disabled(model.busy || model.selected == nil).accessibilityIdentifier("rewards.pledge.return")
+                }
                 Button("rewards.pledge.cancel") { model.cancelPending() }.accessibilityIdentifier("rewards.pledge.merchantCancel")
             }
             if let merchant = model.merchantResult {
@@ -658,6 +882,19 @@ public extension EnvironmentValues {
                 model.replaceAccount(accountID, store: "")
                 Task { await model.loadAwards(entry: entry) }
             }
+    }
+}
+
+@MainActor struct RewardPledgeMerchantHost: View {
+    let entry: RewardPledgeEntry
+    @StateObject private var model: RewardPledgeModel
+    init(entry: RewardPledgeEntry) {
+        self.entry = entry
+        _model = StateObject(wrappedValue: RewardPledgeModel(accountID: entry.accountID, storeID: "", policy: .unset, journalURL: entry.journalURL))
+    }
+    var body: some View {
+        RewardPledgeMerchantView(model: model, entry: entry)
+            .onChange(of: entry.accountID) { _, accountID in model.replaceAccount(accountID, store: "") }
     }
 }
 
