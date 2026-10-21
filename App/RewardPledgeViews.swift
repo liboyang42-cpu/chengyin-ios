@@ -741,6 +741,13 @@ public extension EnvironmentValues {
     }
     private static func withdrawn(_ body: RewardPledgeServerBody) -> Bool { body.fields["version.state"] == "WITHDRAWN" }
 
+    /// True only when the pledge's own service window is longer than the coupon. This client never invents that window.
+    var serviceOutlivesCoupon: Bool {
+        guard let service = Int64(merchantResult?.fields["serviceEnd"] ?? ""),
+              let redeem = Int64(merchantResult?.fields["redeemEnd"] ?? "") else { return false }
+        return service > redeem
+    }
+
     private func keepPledge(_ body: RewardPledgeServerBody) throws {
         guard let id = body.fields["pledge.pledgeId"], RewardPledgeRoutes.id(id) else { throw APIError.malformedResponse }
         pledgeID = id
@@ -907,7 +914,6 @@ public extension EnvironmentValues {
     @State private var supplyRef = ""
     @State private var terms = ""
     @State private var quantity = ""
-    @State private var ruleVersion = ""
     @State private var picked: CouponDefinition?
 
     public init(model: RewardPledgeModel, entry: RewardPledgeEntry? = nil) {
@@ -917,7 +923,7 @@ public extension EnvironmentValues {
 
     public var body: some View {
         Form {
-            if entry?.current()?.draft != true && entry?.current()?.freeze != true && entry?.current()?.hold != true
+            if entry?.current()?.draft != true && entry?.current()?.hold != true
                 && entry?.current()?.withdrawVersion != true && entry?.current()?.stats != true {
                 Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.draftClosed")
             }
@@ -951,11 +957,6 @@ public extension EnvironmentValues {
                 Button("rewards.pledge.readback") { Task { await model.readSupply(entry: entry) } }
                     .disabled(model.busy || !RewardPledgeRoutes.id(model.pledgeID)).accessibilityIdentifier("rewards.pledge.readback")
             }
-            if let entry, entry.current()?.freeze == true {
-                TextField("rewards.pledge.ruleVersion", text: $ruleVersion)
-                Button("rewards.pledge.freeze") { Task { await model.freezeSupply(ruleVersion: ruleVersion, entry: entry) } }
-                    .disabled(model.busy || !RewardPledgeRoutes.id(model.pledgeID)).accessibilityIdentifier("rewards.pledge.frozen")
-            }
             if let entry, entry.current()?.hold == true {
                 Button("rewards.pledge.hold") { Task { await model.holdSupply(entry: entry) } }
                     .disabled(model.busy || !RewardPledgeRoutes.id(model.versionID)).accessibilityIdentifier("rewards.pledge.hold")
@@ -971,6 +972,8 @@ public extension EnvironmentValues {
                     LabeledContent("rewards.pledge.asOf") { Text(verbatim: stats.fields["asOf"] ?? "") }
                     LabeledContent("rewards.pledge.awardCount") { Text(verbatim: stats.fields["awardCount"] ?? "") }
                     LabeledContent("rewards.pledge.stock") { Text(verbatim: stats.fields["stock.available"] ?? "") }
+                    Text(verbatim: stats.fields["pledgeId"] ?? "").accessibilityIdentifier("rewards.pledge.original")
+                    Text(verbatim: stats.fields["versionId"] ?? "").accessibilityIdentifier("rewards.pledge.originalVersion")
                 }
             }
             if !model.pledgeID.isEmpty { Text(verbatim: model.pledgeID).accessibilityIdentifier("rewards.pledge.pledge") }
@@ -1026,9 +1029,11 @@ public extension EnvironmentValues {
                     Button("rewards.pledge.expire") { Task { await model.expireAward(entry: entry) } }
                         .disabled(model.busy || model.selected == nil).accessibilityIdentifier("rewards.pledge.expire")
                 }
-                if entry.current()?.returnPool == true {
+                if entry.current()?.returnPool == true, model.serviceOutlivesCoupon {
                     Button("rewards.pledge.return") { Task { await model.returnAward(entry: entry) } }
                         .disabled(model.busy || model.selected == nil).accessibilityIdentifier("rewards.pledge.return")
+                } else if entry.current()?.returnPool == true {
+                    Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.returnClosed")
                 }
                 Button("rewards.pledge.cancel") { model.cancelPending() }.accessibilityIdentifier("rewards.pledge.merchantCancel")
             }
@@ -1071,6 +1076,19 @@ public extension EnvironmentValues {
                 model.replaceAccount(accountID, store: "")
                 Task { await model.loadAwards(entry: entry) }
             }
+    }
+}
+
+/// Review stays off this merchant's own draft. There is no list of pledges waiting for a reviewer.
+@MainActor struct RewardPledgeReviewHost: View {
+    let entry: RewardPledgeEntry
+    var body: some View {
+        Form {
+            if entry.current()?.freeze == true {
+                Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.reviewQueue")
+            }
+        }
+        .navigationTitle("rewards.pledge.freeze")
     }
 }
 

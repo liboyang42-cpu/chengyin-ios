@@ -269,6 +269,13 @@ class RewardPledgeContractChecks(unittest.TestCase):
         self.assertIn("nonCashRewardCaseApproved", session)
         self.assertIn("nonCashRewardStatsApproved", session)
         self.assertIn('allows("merchant:coupon:manage")', (ROOT / "App/NativeVerificationView.swift").read_text())
+        verify = (ROOT / "App/NativeVerificationView.swift").read_text()
+        self.assertIn("rewards.pledge.manageEntry", verify)
+        self.assertIn("rewards.pledge.reviewEntry", verify)
+        self.assertLess(verify.index("rewards.pledge.supplyEntry"), verify.index("rewards.pledge.manageEntry"))
+        self.assertIn("serviceOutlivesCoupon", (ROOT / "App/RewardPledgeViews.swift").read_text())
+        self.assertIn("rewards.pledge.returnClosed", (ROOT / "App/RewardPledgeViews.swift").read_text())
+        self.assertIn("rewards.pledge.reviewQueue", (ROOT / "App/RewardPledgeViews.swift").read_text())
 
     def test_unknown_record_persists_only_the_minimal_fields(self):
         body = (ROOT / "Core/RewardPledge.swift").read_text()

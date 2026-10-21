@@ -78,6 +78,15 @@ extension EnvironmentValues {
                     NavigationLink { RewardPledgeMerchantHost(entry: pledge) } label: { Text("rewards.pledge.draft") }
                         .accessibilityIdentifier("rewards.pledge.supplyEntry")
                 }
+                if let pledge, flow.access?.allows("merchant:coupon:manage") == true,
+                   pledge.current()?.hold == true || pledge.current()?.withdrawVersion == true || pledge.current()?.stats == true {
+                    NavigationLink { RewardPledgeMerchantHost(entry: pledge) } label: { Text("rewards.pledge.stats") }
+                        .accessibilityIdentifier("rewards.pledge.manageEntry")
+                }
+                if let pledge, pledge.current()?.freeze == true {
+                    NavigationLink { RewardPledgeReviewHost(entry: pledge) } label: { Text("rewards.pledge.freeze") }
+                        .accessibilityIdentifier("rewards.pledge.reviewEntry")
+                }
                 if !flow.current { Button("verification.refreshAccess") { Task { await flow.activate() } }.disabled(flow.phase == .loading) }
                 NavigationLink { records() } label: { Label("verification.records", systemImage: "list.bullet.rectangle") }
                 if !flow.canDispatch { Text("verification.dispatchDisabled").font(.footnote).foregroundStyle(.secondary) }
