@@ -205,17 +205,16 @@ struct FreeExplorationVisitSteps: View {
             LabeledContent("playx.merchant.onsite") {
                 Text(LocalizedStringKey(node.crowded == true ? "playx.merchant.crowd.queue" : (node.crowded == false ? "playx.merchant.crowd.go" : "playx.merchant.crowd.unknown")))
             }
-            LabeledContent("playx.merchant.stat.load") { Text(verbatim: node.inStoreLoad.map(String.init) ?? "—") }
+            LabeledContent("playx.merchant.stat.load") { Text(verbatim: PlayNode.formatQueueCount(node.inStoreLoad)) }
             LabeledContent("playx.merchant.stat.perHour") { Text(verbatim: Self.formatStat(node.servicePerHour)) }
-            LabeledContent("playx.merchant.stat.wait") { Text(verbatim: node.expectedWaitMinutes.map(String.init) ?? "—") }
+            LabeledContent("playx.merchant.stat.wait") { Text(verbatim: PlayNode.formatQueueCount(node.expectedWaitMinutes)) }
             if node.quantityUnavailable == true {
                 Text("playx.merchant.degraded.quantity").font(.footnote).foregroundStyle(.secondary)
             }
         }
     }
-    private static func formatStat(_ value: Double?) -> String {
-        guard let value, value.isFinite else { return "—" }
-        return value.rounded() == value ? String(Int(value)) : String(value)
+    static func formatStat(_ value: Double?) -> String {
+        PlayNode.formatQueueRate(value)
     }
 }
 

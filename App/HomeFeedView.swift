@@ -11,7 +11,9 @@ import SwiftUI
     var showsHeroBanners: Bool = false
     var continuationCards: [HomeIndexParityPresentation.ContinuationCard] = []
     var onActionBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
+    var onContinuation: ((HomeIndexParityPresentation.ContinuationCard) -> Void)? = nil
     let onDestination: (HomeFeedDestination) -> Void
+    @Environment(\.locale) private var locale
     @StateObject private var model = HomeFeedModel()
     @State private var kind: HomeFeedKind = .topics
     @State private var keyword = ""
@@ -40,9 +42,16 @@ import SwiftUI
                     bannerSection
                     feedSection(.recommended)
                     if !continuationCards.isEmpty {
-                        PlayContinuationBannerView(cards: continuationCards) { destination in
+                        PlayContinuationBannerView(cards: continuationCards, onSelectCard: { card in
+                            guard model.canOpen(reader) else { return }
+                            if let onContinuation {
+                                onContinuation(card)
+                            } else {
+                                onDestination(card.destination)
+                            }
+                        }, onOpen: { destination in
                             if model.canOpen(reader) { onDestination(destination) }
-                        }
+                        })
                     }
                     feedSection(.nearby)
                     feedSection(.upcoming)
@@ -68,7 +77,7 @@ import SwiftUI
                                 .frame(minHeight: 44)
                                 .accessibilityIdentifier("homeFeed.loadMore")
                         } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
-                            Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy)
+                            Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .center)
@@ -231,22 +240,24 @@ struct HomeFeedCard: View {
     }
 }
 
-/// One initial entry and, only if needed, the source start boundary. No per-card 1 Hz timer.
+/// One initial entry, display-granularity minute/hour boundaries, and the source start boundary. No per-card 1 Hz timer.
 private struct HomeFeedStartSchedule: TimelineSchedule {
     let start: Date
     func entries(from date: Date, mode: Mode) -> [Date] {
-        start > date ? [date, start] : [date]
+        let base = start > date ? [date, start] : [date]
+        return HomeIndexParityPresentation.countdownScheduleDates(from: date, start: start, base: base)
     }
 }
 
 private struct HomeFeedLiveBadge: View {
+    @Environment(\.locale) private var locale
     let start: Date
     var body: some View {
         TimelineView(HomeFeedStartSchedule(start: start)) { context in
             // Preserves the source's start <= now rule. No timezone or end-state is inferred.
             if start <= context.date {
                 QuestifyStatusBadge(title: "homeFeed.live", systemImage: "clock")
-            } else if let countdown = HomeIndexParityPresentation.upcomingCountdownText(start: start, now: context.date) {
+            } else if let countdown = HomeIndexParityPresentation.upcomingCountdownText(start: start, now: context.date, locale: locale) {
                 Text(verbatim: countdown)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)

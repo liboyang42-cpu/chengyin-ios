@@ -35,7 +35,7 @@ All use POST, raw Authorization token (no Bearer prefix), JSON Accept, 20-second
 | --- | --- | --- | --- |
 | `/api/merchant/access/me` | none | access object | signed-in token |
 | `/api/merchant/dashboard` | none | dashboard object | active owner AND merchant:finance:read |
-| `/api/merchant/todo-summary` | none | todo object | active owner |
+| `/api/merchant/todo-summary` | none | todo object (scoped to `refundCount` only for non-owner `merchant:aftercare:read`) | active owner OR `merchant:aftercare:read` |
 | `/api/merchant/events` | `{}` JSON | bare array | active owner |
 | `/api/merchant/orders` | JSON with optional `status` and `aftersaleStatus` only | bare array or `{rows:[…]}` | merchant:order:read |
 | `/api/project/my` | multipart: type=all, state=all, ownerType=all, scope=MERCHANT, pageNum=1, pageSize=200 | `{rows:[…], total:…}` | merchant:project:manage |

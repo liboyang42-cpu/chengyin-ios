@@ -3,6 +3,7 @@ import SwiftUI
 /// Hero greeting, city badge, and 3 fixed action banners (`成为俱乐部`, `成为商家`, `和朋友报名活动`) for Home (`pages/index/index`).
 @MainActor
 struct HomeHeroHeaderSectionView: View {
+    @Environment(\.locale) private var locale
     var nickname: String? = nil
     var selectedCity: String? = nil
     var isNationwide: Bool = false
@@ -12,12 +13,12 @@ struct HomeHeroHeaderSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname))
+                    Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
                         .font(.title3.weight(.semibold))
                         .accessibilityIdentifier("homeIndex.hero.greeting")
                     Spacer()
                     Label {
-                        Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide))
+                        Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale))
                     } icon: {
                         Image(systemName: "location.fill")
                     }
@@ -32,7 +33,7 @@ struct HomeHeroHeaderSectionView: View {
                                 onSelectBanner?(banner)
                             } label: {
                                 HStack(spacing: 6) {
-                                    Text(verbatim: banner.title)
+                                    Text(verbatim: banner.title(locale: locale))
                                         .font(.subheadline.weight(.semibold))
                                     Image(systemName: "arrow.up.right")
                                         .font(.caption)
@@ -54,24 +55,30 @@ struct HomeHeroHeaderSectionView: View {
 /// Home continuation banner (`继续游戏` / `继续探索`) backed by `HomeIndexParityPresentation.ContinuationCard`.
 @MainActor
 struct PlayContinuationBannerView: View {
+    @Environment(\.locale) private var locale
     let cards: [HomeIndexParityPresentation.ContinuationCard]
+    var onSelectCard: ((HomeIndexParityPresentation.ContinuationCard) -> Void)? = nil
     var onOpen: ((HomeFeedDestination) -> Void)? = nil
 
     var body: some View {
         Section {
             ForEach(cards) { card in
                 Button {
-                    onOpen?(card.destination)
+                    if let onSelectCard {
+                        onSelectCard(card)
+                    } else {
+                        onOpen?(card.destination)
+                    }
                 } label: {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(verbatim: card.kind.badgeTitle)
+                            Text(verbatim: card.kind.badgeTitle(locale: locale))
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(QuestifyPalette.accent)
-                            Text(verbatim: card.title)
+                            Text(verbatim: card.localizedTitle(locale: locale))
                                 .font(.headline)
                                 .foregroundStyle(.primary)
-                            if let subtitle = card.subtitle {
+                            if let subtitle = card.localizedSubtitle(locale: locale) {
                                 Text(verbatim: subtitle)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
@@ -89,7 +96,7 @@ struct PlayContinuationBannerView: View {
                 .questifyCardListRow()
             }
         } header: {
-            Text(verbatim: "继续游戏 / 继续探索")
+            Text(verbatim: HomeIndexParityPresentation.continuationSectionTitle(locale: locale))
         }
     }
 }
@@ -97,19 +104,20 @@ struct PlayContinuationBannerView: View {
 /// Shelf header view for Home (`pages/index`) sections (`精选路线`, `近期活动`, `热门主题`, `现成玩法`).
 @MainActor
 struct HomeIndexShelfHeaderView: View {
+    @Environment(\.locale) private var locale
     let shelf: HomeIndexParityPresentation.ShelfKind
     var onAction: (() -> Void)? = nil
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(verbatim: shelf.title)
+            Text(verbatim: shelf.title(locale: locale))
                 .font(.headline)
                 .accessibilityIdentifier("homeIndex.shelfHeader.\(shelf.rawValue)")
             Spacer()
             if let onAction {
                 Button(action: onAction) {
                     HStack(spacing: 4) {
-                        Text(verbatim: shelf.actionHint)
+                        Text(verbatim: shelf.actionHint(locale: locale))
                         Image(systemName: "chevron.right")
                     }
                     .font(.subheadline)
@@ -167,6 +175,7 @@ struct HomeIndexEmptyStateView: View {
         case error
     }
 
+    @Environment(\.locale) private var locale
     let phase: Phase
     var onRetry: (() -> Void)? = nil
 
@@ -175,7 +184,7 @@ struct HomeIndexEmptyStateView: View {
             switch phase {
             case .loading:
                 ProgressView()
-                Text(verbatim: HomeIndexParityPresentation.loadingCopy)
+                Text(verbatim: HomeIndexParityPresentation.loadingCopy(locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("homeIndex.state.loading")
@@ -183,9 +192,9 @@ struct HomeIndexEmptyStateView: View {
                 Image(systemName: "tray")
                     .font(.title2)
                     .foregroundStyle(.secondary)
-                Text(verbatim: HomeIndexParityPresentation.emptyStateTitle)
+                Text(verbatim: HomeIndexParityPresentation.emptyStateTitle(locale: locale))
                     .font(.headline)
-                Text(verbatim: HomeIndexParityPresentation.emptyStateHint)
+                Text(verbatim: HomeIndexParityPresentation.emptyStateHint(locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 .accessibilityIdentifier("homeIndex.state.empty")
@@ -193,13 +202,13 @@ struct HomeIndexEmptyStateView: View {
                 Image(systemName: "exclamationmark.triangle")
                     .font(.title2)
                     .foregroundStyle(.secondary)
-                Text(verbatim: HomeIndexParityPresentation.errorCopy)
+                Text(verbatim: HomeIndexParityPresentation.errorCopy(locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 .accessibilityIdentifier("homeIndex.state.error")
                 if let onRetry {
                     Button(action: onRetry) {
-                        Text(verbatim: HomeIndexParityPresentation.retryButtonTitle)
+                        Text(verbatim: HomeIndexParityPresentation.retryButtonTitle(locale: locale))
                     }
                     .buttonStyle(.bordered)
                     .frame(minHeight: 44)

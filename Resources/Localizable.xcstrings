@@ -39753,13 +39753,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing the first 200 results. Narrow the filters to find more content."
+            "value": "Reached the 200-item load limit. Use filters to narrow results."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅显示最近 200 条"
+            "value": "已达到200条加载上限，请筛选查找"
           }
         }
       }

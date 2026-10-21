@@ -69,12 +69,52 @@ final class HomeSearchTabParityTests: XCTestCase {
         let now = Date(timeIntervalSince1970: 1_700_000_000)
         let futureDays = now.addingTimeInterval(2 * 86_400 + 3 * 3_600)
         let futureHours = now.addingTimeInterval(3 * 3_600 + 15 * 60)
+        let exactOneHour = now.addingTimeInterval(3_600)
         let futureMinutes = now.addingTimeInterval(25 * 60)
+        let subSecond = now.addingTimeInterval(0.2)
         XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: futureDays, now: now), "距上线 2天3小时")
         XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: futureHours, now: now), "距上线 3小时15分")
+        XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: exactOneHour, now: now), "距上线 1小时0分")
         XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: futureMinutes, now: now), "距上线 25分钟")
+        XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: subSecond, now: now), "距上线 1分钟")
         XCTAssertNil(HomeIndexParityPresentation.upcomingCountdownText(start: now, now: now))
         XCTAssertNil(HomeIndexParityPresentation.upcomingCountdownText(start: now.addingTimeInterval(-60), now: now))
+
+        let enLocale = Locale(identifier: "en_US")
+        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: nil, locale: enLocale), "Hi, Traveler!")
+        XCTAssertEqual(HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, locale: enLocale), "Select City")
+        XCTAssertEqual(HomeIndexParityPresentation.citySelectorLabel(selectedCity: "上海", isNationwide: true, locale: enLocale), "Nationwide")
+        XCTAssertEqual(
+            HomeIndexParityPresentation.fixedActionBanners.map { $0.title(locale: enLocale) },
+            ["Become a Club", "Become a Merchant", "Join Activities with Friends"]
+        )
+        XCTAssertEqual(HomeIndexParityPresentation.noMoreFooterCopy(locale: enLocale), "· No more items ·")
+        XCTAssertEqual(HomeIndexParityPresentation.continuationSectionTitle(locale: enLocale), "Continue Game / Continue Exploration")
+        XCTAssertEqual(cards[0].kind.badgeTitle(locale: enLocale), "Continue Game")
+        XCTAssertEqual(cards[0].localizedSubtitle(locale: enLocale), "5 min elapsed")
+        XCTAssertEqual(cards[1].localizedTitle(locale: enLocale), "Route in progress #55")
+        XCTAssertEqual(cards[2].kind.badgeTitle(locale: enLocale), "Continue Exploration")
+        XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: futureDays, now: now, locale: enLocale), "Starts in 2d 3h")
+        XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: exactOneHour, now: now, locale: enLocale), "Starts in 1h 0m")
+        XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: subSecond, now: now, locale: enLocale), "Starts in 1m")
+
+        let scheduleStart = now.addingTimeInterval(185)
+        let ticks = HomeIndexParityPresentation.countdownScheduleDates(from: now, start: scheduleStart, base: [now, scheduleStart])
+        XCTAssertEqual(
+            ticks,
+            [
+                now,
+                scheduleStart.addingTimeInterval(-180),
+                scheduleStart.addingTimeInterval(-120),
+                scheduleStart.addingTimeInterval(-60),
+                scheduleStart
+            ]
+        )
+        XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: scheduleStart, now: ticks[0]), "距上线 3分钟")
+        XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: scheduleStart, now: ticks[1]), "距上线 3分钟")
+        XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: scheduleStart, now: ticks[2]), "距上线 2分钟")
+        XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: scheduleStart, now: ticks[3]), "距上线 1分钟")
+        XCTAssertNil(HomeIndexParityPresentation.upcomingCountdownText(start: scheduleStart, now: ticks[4]))
     }
 
     // MARK: - GlobalSearchParityPresentation

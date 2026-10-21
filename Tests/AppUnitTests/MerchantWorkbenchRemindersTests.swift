@@ -33,4 +33,42 @@ import XCTest
         XCTAssertNil(MerchantWorkbenchReminders.aftercareCount(zero, access: both, isLoading: false))
         XCTAssertNil(MerchantWorkbenchReminders.predictCount(zero, access: both, isLoading: false))
     }
+    func testOverviewReaderAllowsAftercareScopedTodoWithoutOpeningDashboardOrEvents() async throws {
+        final class OverviewTransport: HTTPTransport {
+            var requests: [URLRequest] = []
+            func send(_ request: URLRequest) async throws -> (Data, Int) {
+                requests.append(request)
+                switch request.url?.lastPathComponent {
+                case "me":
+                    return (Data(#"{"code":200,"data":{"active":true,"merchant":{"id":31,"name":"Store"},"roleCode":"MERCHANT_MANAGER","permissions":["merchant:basic:read","merchant:aftercare:read","merchant:project:manage"]}}"#.utf8), 200)
+                case "todo-summary":
+                    return (Data(#"{"code":200,"data":{"pendingVerify":2,"verifiedCount":8,"pendingScanConfirm":3,"pendingOrders":4,"refundCount":5,"pendingPredict":6,"biddingTopics":7,"byProject":[{"ownerType":"topic","ownerId":"01","pendingVerify":1,"pendingScanConfirm":2}]}}"#.utf8), 200)
+                default:
+                    return (Data(#"{"code":200,"data":{}}"#.utf8), 200)
+                }
+            }
+        }
+        let wire = OverviewTransport()
+        let config = try APIConfiguration(baseURL: URL(string: "https://overview.example/native")!)
+        let reader = MerchantOverviewReader(configuration: config, transport: wire, token: "fixture-token", revision: 1, current: { true }, unauthorized: {})
+        let granted = try await reader.merchantAccess()
+        XCTAssertFalse(granted.isOwner)
+        XCTAssertTrue(granted.canReadAftercare)
+        wire.requests = []
+        do { _ = try await reader.merchantDashboard(access: granted); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
+        do { _ = try await reader.merchantEvents(access: granted); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
+        XCTAssertTrue(wire.requests.isEmpty)
+        let scoped = try await reader.merchantTodo(access: granted)
+        XCTAssertEqual(wire.requests.map { $0.url?.lastPathComponent }, ["todo-summary"])
+        XCTAssertEqual(scoped.refundCount, 5)
+        XCTAssertEqual(scoped.pendingVerify, 0)
+        XCTAssertEqual(scoped.verifiedCount, 0)
+        XCTAssertEqual(scoped.pendingScanConfirm, 0)
+        XCTAssertEqual(scoped.pendingOrders, 0)
+        XCTAssertEqual(scoped.pendingPredict, 0)
+        XCTAssertEqual(scoped.biddingTopics, 0)
+        XCTAssertNil(scoped.byProject)
+        XCTAssertEqual(MerchantWorkbenchReminders.aftercareCount(scoped, access: granted, isLoading: false), 5)
+        XCTAssertNil(MerchantWorkbenchReminders.predictCount(scoped, access: granted, isLoading: false))
+    }
 }

@@ -24,8 +24,8 @@
     "zh-Hans": "暂无发布内容"
   },
   "creatorContent.truncated": {
-    "en": "Showing the first 200 results. Narrow the filters to find more content.",
-    "zh-Hans": "仅显示最近 200 条"
+    "en": "Reached the 200-item load limit. Use filters to narrow results.",
+    "zh-Hans": "已达到200条加载上限，请筛选查找"
   },
   "creatorContent.readOnly": {
     "en": "Editing, publishing, deleting, cancellation and refunds are not available here yet.",

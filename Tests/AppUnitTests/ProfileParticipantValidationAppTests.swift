@@ -112,12 +112,24 @@ import SwiftUI
         XCTAssertEqual(selectedBanner?.id, "club_apply")
 
         var openedDestination: HomeFeedDestination?
-        let continuationBanner = PlayContinuationBannerView(cards: cards) {
+        var selectedCard: HomeIndexParityPresentation.ContinuationCard?
+        let continuationBanner = PlayContinuationBannerView(cards: cards, onSelectCard: {
+            selectedCard = $0
+        }) {
             openedDestination = $0
         }
         _ = continuationBanner.body
         continuationBanner.onOpen?(cards[1].destination)
         XCTAssertEqual(openedDestination, .topic(91))
+        continuationBanner.onSelectCard?(cards[0])
+        XCTAssertEqual(selectedCard?.playScope, .activity(12))
+
+        XCTAssertEqual(FreeExplorationVisitSteps.formatStat(0), "0")
+        XCTAssertEqual(FreeExplorationVisitSteps.formatStat(15), "15")
+        XCTAssertEqual(FreeExplorationVisitSteps.formatStat(1e100), "—")
+        XCTAssertEqual(FreeExplorationVisitSteps.formatStat(-5), "—")
+        XCTAssertEqual(FreeExplorationVisitSteps.formatStat(.nan), "—")
+        XCTAssertEqual(FreeExplorationVisitSteps.formatStat(.infinity), "—")
     }
 }
 

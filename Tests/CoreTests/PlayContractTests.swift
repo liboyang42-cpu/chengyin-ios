@@ -103,11 +103,14 @@ final class PlayContractTests: XCTestCase {
         let raw = """
         {"mode":2,"nodes":[
           {"nodeId":11,"name":"茶馆","crowded":true,"inStoreLoad":4,"serviceCapacity":{"perHour":12},"expectedWaitMinutes":20,"quantityUnavailable":true,"rule":"先扫码再到吧台","photoDesc":"拍门头"},
-          {"nodeId":12,"name":"书店"}
+          {"nodeId":12,"name":"书店"},
+          {"nodeId":13,"name":"零排队","crowded":false,"inStoreLoad":0,"serviceCapacity":{"perHour":0},"expectedWaitMinutes":0,"quantityUnavailable":false},
+          {"nodeId":14,"name":"异常指标","inStoreLoad":-3,"serviceCapacity":{"perHour":1e100},"expectedWaitMinutes":9999999},
+          {"nodeId":15,"name":"负数产能","inStoreLoad":100001,"serviceCapacity":{"perHour":"-0.5"},"expectedWaitMinutes":-1}
         ]}
         """
         let result = try decodeResult(raw)
-        XCTAssertEqual(result.nodes.count, 2)
+        XCTAssertEqual(result.nodes.count, 5)
         XCTAssertEqual(result.nodes[0].crowded, true)
         XCTAssertEqual(result.nodes[0].inStoreLoad, 4)
         XCTAssertEqual(result.nodes[0].servicePerHour, 12)
@@ -115,10 +118,34 @@ final class PlayContractTests: XCTestCase {
         XCTAssertEqual(result.nodes[0].quantityUnavailable, true)
         XCTAssertEqual(result.nodes[0].ruleInstructions, "先扫码再到吧台")
         XCTAssertEqual(result.nodes[0].photoRequirement, "拍门头")
+        XCTAssertEqual(PlayNode.formatQueueCount(result.nodes[0].inStoreLoad), "4")
+        XCTAssertEqual(PlayNode.formatQueueRate(result.nodes[0].servicePerHour), "12")
+        XCTAssertEqual(PlayNode.formatQueueCount(result.nodes[0].expectedWaitMinutes), "20")
         XCTAssertNil(result.nodes[1].crowded)
         XCTAssertNil(result.nodes[1].inStoreLoad)
         XCTAssertNil(result.nodes[1].servicePerHour)
         XCTAssertNil(result.nodes[1].expectedWaitMinutes)
         XCTAssertNil(result.nodes[1].quantityUnavailable)
+        XCTAssertEqual(result.nodes[2].crowded, false)
+        XCTAssertEqual(result.nodes[2].inStoreLoad, 0)
+        XCTAssertEqual(result.nodes[2].servicePerHour, 0)
+        XCTAssertEqual(result.nodes[2].expectedWaitMinutes, 0)
+        XCTAssertEqual(result.nodes[2].quantityUnavailable, false)
+        XCTAssertEqual(PlayNode.formatQueueCount(result.nodes[2].inStoreLoad), "0")
+        XCTAssertEqual(PlayNode.formatQueueRate(result.nodes[2].servicePerHour), "0")
+        XCTAssertEqual(PlayNode.formatQueueCount(result.nodes[2].expectedWaitMinutes), "0")
+        XCTAssertNil(result.nodes[3].inStoreLoad)
+        XCTAssertNil(result.nodes[3].servicePerHour)
+        XCTAssertNil(result.nodes[3].expectedWaitMinutes)
+        XCTAssertNil(result.nodes[4].inStoreLoad)
+        XCTAssertNil(result.nodes[4].servicePerHour)
+        XCTAssertNil(result.nodes[4].expectedWaitMinutes)
+        XCTAssertEqual(PlayNode.formatQueueRate(1e100), "—")
+        XCTAssertEqual(PlayNode.formatQueueRate(-0.5), "—")
+        XCTAssertEqual(PlayNode.formatQueueRate(.nan), "—")
+        XCTAssertEqual(PlayNode.formatQueueRate(.infinity), "—")
+        XCTAssertEqual(PlayNode.formatQueueRate(12.5), "12.5")
+        XCTAssertEqual(PlayNode.formatQueueCount(-1), "—")
+        XCTAssertEqual(PlayNode.formatQueueCount(100_001), "—")
     }
 }

@@ -53,7 +53,7 @@ entries = {
 # English values are untouched so existing English UI assertions keep their meaning.
 overrides = {
 'Resources/Localizable.xcstrings': {
-    'creatorContent.truncated': '仅显示最近 200 条',
+    'creatorContent.truncated': '已达到200条加载上限，请筛选查找',
     'templateAuthor.begin': '开始创建',
     'templateAuthor.nameStep': '给节点玩法起一个名字',
     'templateAuthor.validation.title': '请输入模板名称',

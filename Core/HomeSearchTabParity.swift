@@ -4,6 +4,11 @@ import Foundation
 
 /// Presentation rules for the mini-program Home screen (`pages/index/index`).
 public enum HomeIndexParityPresentation {
+    public static func isEnglish(_ locale: Locale) -> Bool {
+        let code = (locale.language.languageCode?.identifier ?? locale.identifier).lowercased()
+        return code.hasPrefix("en")
+    }
+
     /// Shelf identifiers matching the mini-program home page sections.
     public enum ShelfKind: String, CaseIterable, Hashable, Sendable {
         case featuredRoutes
@@ -13,6 +18,18 @@ public enum HomeIndexParityPresentation {
 
         /// Mini-program section header title.
         public var title: String {
+            title(locale: Locale(identifier: "zh-Hans"))
+        }
+
+        public func title(locale: Locale) -> String {
+            if HomeIndexParityPresentation.isEnglish(locale) {
+                switch self {
+                case .featuredRoutes: return "Featured Routes"
+                case .upcomingActivities: return "Upcoming Activities"
+                case .popularTopics: return "Popular Topics"
+                case .readyMadeTemplates: return "Ready-Made Templates"
+                }
+            }
             switch self {
             case .featuredRoutes: return "精选路线"
             case .upcomingActivities: return "近期活动"
@@ -23,6 +40,18 @@ public enum HomeIndexParityPresentation {
 
         /// Optional subtitle or action hint shown alongside the shelf header.
         public var actionHint: String {
+            actionHint(locale: Locale(identifier: "zh-Hans"))
+        }
+
+        public func actionHint(locale: Locale) -> String {
+            if HomeIndexParityPresentation.isEnglish(locale) {
+                switch self {
+                case .featuredRoutes: return "View All"
+                case .upcomingActivities: return "More"
+                case .popularTopics: return "All Topics"
+                case .readyMadeTemplates: return "Explore"
+                }
+            }
             switch self {
             case .featuredRoutes: return "查看全部"
             case .upcomingActivities: return "更多活动"
@@ -43,6 +72,16 @@ public enum HomeIndexParityPresentation {
             self.title = title
             self.routePath = routePath
         }
+
+        public func title(locale: Locale) -> String {
+            guard HomeIndexParityPresentation.isEnglish(locale) else { return title }
+            switch id {
+            case "club_apply": return "Become a Club"
+            case "merchant_apply": return "Become a Merchant"
+            case "activity_list": return "Join Activities with Friends"
+            default: return title
+            }
+        }
     }
 
     public static let defaultCityFallback = "选择城市"
@@ -62,6 +101,34 @@ public enum HomeIndexParityPresentation {
     public static let retryButtonTitle = "重试"
     public static let noMoreFooterCopy = "· 没有更多了 ·"
 
+    public static func emptyStateTitle(locale: Locale) -> String {
+        isEnglish(locale) ? "No content yet" : emptyStateTitle
+    }
+
+    public static func emptyStateHint(locale: Locale) -> String {
+        isEnglish(locale) ? "Switch city or check back later" : emptyStateHint
+    }
+
+    public static func loadingCopy(locale: Locale) -> String {
+        isEnglish(locale) ? "Loading..." : loadingCopy
+    }
+
+    public static func errorCopy(locale: Locale) -> String {
+        isEnglish(locale) ? "Failed to load. Tap to retry" : errorCopy
+    }
+
+    public static func retryButtonTitle(locale: Locale) -> String {
+        isEnglish(locale) ? "Retry" : retryButtonTitle
+    }
+
+    public static func noMoreFooterCopy(locale: Locale) -> String {
+        isEnglish(locale) ? "· No more items ·" : noMoreFooterCopy
+    }
+
+    public static func continuationSectionTitle(locale: Locale = Locale(identifier: "zh-Hans")) -> String {
+        isEnglish(locale) ? "Continue Game / Continue Exploration" : "继续游戏 / 继续探索"
+    }
+
     public static let fixedActionBanners: [ActionBanner] = [
         ActionBanner(id: "club_apply", title: "成为俱乐部", routePath: "pages/club/apply"),
         ActionBanner(id: "merchant_apply", title: "成为商家", routePath: "pages/merchant/apply"),
@@ -74,6 +141,16 @@ public enum HomeIndexParityPresentation {
         case continueExploration
 
         public var badgeTitle: String {
+            badgeTitle(locale: Locale(identifier: "zh-Hans"))
+        }
+
+        public func badgeTitle(locale: Locale) -> String {
+            if HomeIndexParityPresentation.isEnglish(locale) {
+                switch self {
+                case .continueGame: return "Continue Game"
+                case .continueExploration: return "Continue Exploration"
+                }
+            }
             switch self {
             case .continueGame: return "继续游戏"
             case .continueExploration: return "继续探索"
@@ -88,19 +165,52 @@ public enum HomeIndexParityPresentation {
         public let destination: HomeFeedDestination
         public let title: String
         public let subtitle: String?
+        public let elapsedMinutes: Int?
+        public let isFallbackTitle: Bool
+
+        public var playScope: PlaySessionScope {
+            switch destination {
+            case .activity(let id): return .activity(id)
+            case .topic(let id): return .topic(id)
+            }
+        }
 
         public init(
             id: String,
             kind: ContinuationKind,
             destination: HomeFeedDestination,
             title: String,
-            subtitle: String? = nil
+            subtitle: String? = nil,
+            elapsedMinutes: Int? = nil,
+            isFallbackTitle: Bool = false
         ) {
             self.id = id
             self.kind = kind
             self.destination = destination
             self.title = title
             self.subtitle = subtitle
+            self.elapsedMinutes = elapsedMinutes
+            self.isFallbackTitle = isFallbackTitle
+        }
+
+        public func localizedTitle(locale: Locale) -> String {
+            guard isFallbackTitle, HomeIndexParityPresentation.isEnglish(locale) else { return title }
+            let scopeID = playScope.id
+            switch kind {
+            case .continueGame:
+                return "Route in progress #\(scopeID)"
+            case .continueExploration:
+                return "Joined #\(scopeID)"
+            }
+        }
+
+        public func localizedSubtitle(locale: Locale) -> String? {
+            if let elapsedMinutes, elapsedMinutes > 0 {
+                return HomeIndexParityPresentation.isEnglish(locale)
+                    ? "\(elapsedMinutes) min elapsed"
+                    : "已进行 \(elapsedMinutes) 分钟"
+            }
+            return subtitle
         }
     }
 
@@ -108,10 +218,12 @@ public enum HomeIndexParityPresentation {
     /// into deduplicated Home continuation cards (`继续游戏` prioritized ahead of `继续探索`).
     public static func continuationCards(
         pausedRuns: [PlayContinueRun] = [],
-        participations: [ParticipationRecord] = []
+        participations: [ParticipationRecord] = [],
+        locale: Locale = Locale(identifier: "zh-Hans")
     ) -> [ContinuationCard] {
         var cards: [ContinuationCard] = []
         var seenDestinations = Set<HomeFeedDestination>()
+        let english = isEnglish(locale)
 
         for run in pausedRuns {
             let destination: HomeFeedDestination
@@ -121,12 +233,18 @@ public enum HomeIndexParityPresentation {
             }
             guard seenDestinations.insert(destination).inserted else { continue }
             let trimmedTitle = run.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            let resolvedTitle = trimmedTitle.isEmpty ? "进行中的路线 #\(run.scope.id)" : trimmedTitle
+            let isFallback = trimmedTitle.isEmpty
+            let resolvedTitle = isFallback
+                ? (english ? "Route in progress #\(run.scope.id)" : "进行中的路线 #\(run.scope.id)")
+                : trimmedTitle
+            let elapsedMinutes: Int?
             let subtitle: String?
             if let elapsed = run.elapsedSeconds, elapsed > 0 {
                 let minutes = max(1, elapsed / 60)
-                subtitle = "已进行 \(minutes) 分钟"
+                elapsedMinutes = minutes
+                subtitle = english ? "\(minutes) min elapsed" : "已进行 \(minutes) 分钟"
             } else {
+                elapsedMinutes = nil
                 subtitle = nil
             }
             cards.append(
@@ -135,7 +253,9 @@ public enum HomeIndexParityPresentation {
                     kind: .continueGame,
                     destination: destination,
                     title: resolvedTitle,
-                    subtitle: subtitle
+                    subtitle: subtitle,
+                    elapsedMinutes: elapsedMinutes,
+                    isFallbackTitle: isFallback
                 )
             )
         }
@@ -149,7 +269,10 @@ public enum HomeIndexParityPresentation {
             }
             guard seenDestinations.insert(destination).inserted else { continue }
             let trimmedTitle = record.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            let resolvedTitle = trimmedTitle.isEmpty ? "已报名 #\(scope.id)" : trimmedTitle
+            let isFallback = trimmedTitle.isEmpty
+            let resolvedTitle = isFallback
+                ? (english ? "Joined #\(scope.id)" : "已报名 #\(scope.id)")
+                : trimmedTitle
             let trimmedAddress = record.address?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             cards.append(
                 ContinuationCard(
@@ -157,7 +280,9 @@ public enum HomeIndexParityPresentation {
                     kind: .continueExploration,
                     destination: destination,
                     title: resolvedTitle,
-                    subtitle: trimmedAddress.isEmpty ? nil : trimmedAddress
+                    subtitle: trimmedAddress.isEmpty ? nil : trimmedAddress,
+                    elapsedMinutes: nil,
+                    isFallbackTitle: isFallback
                 )
             )
         }
@@ -166,12 +291,27 @@ public enum HomeIndexParityPresentation {
     }
 
     /// Formats a deterministic countdown label for an upcoming activity (`即将上线`) when `start > now`.
-    public static func upcomingCountdownText(start: Date, now: Date) -> String? {
-        let remaining = Int(start.timeIntervalSince(now))
-        guard remaining > 0 else { return nil }
+    public static func upcomingCountdownText(
+        start: Date,
+        now: Date,
+        locale: Locale = Locale(identifier: "zh-Hans")
+    ) -> String? {
+        let interval = start.timeIntervalSince(now)
+        guard interval > 0 else { return nil }
+        let remaining = Int((interval + 1e-6).rounded(.down))
         let days = remaining / 86_400
         let hours = (remaining % 86_400) / 3_600
-        let minutes = max(1, (remaining % 3_600) / 60)
+        let rawMinutes = (remaining % 3_600) / 60
+        let minutes = (days == 0 && hours == 0) ? max(1, rawMinutes) : rawMinutes
+        if isEnglish(locale) {
+            if days > 0 {
+                return "Starts in \(days)d \(hours)h"
+            } else if hours > 0 {
+                return "Starts in \(hours)h \(minutes)m"
+            } else {
+                return "Starts in \(minutes)m"
+            }
+        }
         if days > 0 {
             return "距上线 \(days)天\(hours)小时"
         } else if hours > 0 {
@@ -185,32 +325,81 @@ public enum HomeIndexParityPresentation {
     public static func upcomingCountdownText(
         startDate: String?,
         now: Date,
-        sourceTimeZone: TimeZone? = nil
+        sourceTimeZone: TimeZone? = nil,
+        locale: Locale = Locale(identifier: "zh-Hans")
     ) -> String? {
         guard let start = HomeFeedDate.parse(startDate, sourceTimeZone: sourceTimeZone) else { return nil }
-        return upcomingCountdownText(start: start, now: now)
+        return upcomingCountdownText(start: start, now: now, locale: locale)
     }
 
-    /// Resolves the city selector label: returns trimmed city name, `"全国"` when nationwide is selected,
-    /// or `"选择城市"` when no city is resolved.
-    public static func citySelectorLabel(selectedCity: String?, isNationwide: Bool = false) -> String {
+    /// Generates display-granularity boundary dates (hour boundaries when >24h, minute boundaries when <=24h)
+    /// from `date` up to `start` so countdown labels advance without a 1 Hz timer.
+    public static func countdownScheduleDates(
+        from date: Date,
+        start: Date,
+        base: [Date] = []
+    ) -> [Date] {
+        guard start > date else { return base.isEmpty ? [date] : base }
+        var dates: [Date] = [date]
+        var cursor = date
+        let maxEntries = 256
+        while cursor < start && dates.count < maxEntries - 1 {
+            let remaining = start.timeIntervalSince(cursor)
+            guard remaining > 0 else { break }
+            let step: TimeInterval = remaining > 86_400 ? 3_600 : 60
+            let nextRemaining = floor((remaining - 1e-6) / step) * step
+            if nextRemaining <= 0 {
+                break
+            }
+            let tick = start.addingTimeInterval(-nextRemaining)
+            if tick > cursor && tick < start {
+                dates.append(tick)
+                cursor = tick
+            } else {
+                break
+            }
+        }
+        if dates.last != start {
+            dates.append(start)
+        }
+        return dates
+    }
+
+    /// Resolves the city selector label: returns trimmed city name, `"全国"` / `"Nationwide"` when nationwide is selected,
+    /// or `"选择城市"` / `"Select City"` when no city is resolved.
+    public static func citySelectorLabel(
+        selectedCity: String?,
+        isNationwide: Bool = false,
+        locale: Locale = Locale(identifier: "zh-Hans")
+    ) -> String {
         if isNationwide {
-            return nationwideCityLabel
+            return isEnglish(locale) ? "Nationwide" : nationwideCityLabel
         }
         let trimmed = selectedCity?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return trimmed.isEmpty ? defaultCityFallback : trimmed
+        if !trimmed.isEmpty {
+            return trimmed
+        }
+        return isEnglish(locale) ? "Select City" : defaultCityFallback
     }
 
-    /// Formats the mini-program hero greeting (`"Hi, {昵称‖旅人}!"`).
-    public static func greetingText(nickname: String?) -> String {
+    /// Formats the mini-program hero greeting (`"Hi, {昵称‖旅人}!"` / `"Hi, {Nickname‖Traveler}!"`).
+    public static func greetingText(
+        nickname: String?,
+        locale: Locale = Locale(identifier: "zh-Hans")
+    ) -> String {
         let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let resolved = trimmed.isEmpty ? defaultTravelerNickname : trimmed
+        let fallback = isEnglish(locale) ? "Traveler" : defaultTravelerNickname
+        let resolved = trimmed.isEmpty ? fallback : trimmed
         return "Hi, \(resolved)!"
     }
 
     /// Returns all shelf headers in display order.
     public static var shelfHeaders: [String] {
         ShelfKind.allCases.map(\.title)
+    }
+
+    public static func shelfHeaders(locale: Locale) -> [String] {
+        ShelfKind.allCases.map { $0.title(locale: locale) }
     }
 }
 

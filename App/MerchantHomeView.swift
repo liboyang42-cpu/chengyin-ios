@@ -250,7 +250,19 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     }
     private func loadTodo() async {
         guard access.isOwner || access.canReadAftercare else { return }
-        await todo.load(reader: reader) { try await reader.merchantTodo(access: access) }
+        if !access.isOwner, let businessReader, businessReader.isConfigured, businessReader.scope != nil {
+            let revision = reader.sessionRevision
+            await todo.load(reader: reader) {
+                let snapshot = try await businessReader.snapshot(.aftercare(.pending, page: 1), isCurrent: {
+                    reader.isConfigured && reader.isSignedIn && reader.sessionRevision == revision
+                })
+                guard snapshot.access.merchantID == access.merchantID,
+                      let total = snapshot.document.total else { throw APIError.malformedResponse }
+                return MerchantTodo(aftercareRefundCount: total)
+            }
+            return
+        }
+        await todo.load(reader: reader) { try await reader.merchantTodo(access: access).scoped(for: access) }
     }
     private func loadEvents() async {
         guard access.isOwner else { return }

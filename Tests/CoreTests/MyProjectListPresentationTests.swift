@@ -162,5 +162,14 @@ final class MyProjectListPresentationTests: XCTestCase {
         XCTAssertTrue(fullPage.isTruncated)
         let underCap = CreatorContentProjectPage(rows: [row], total: 1)
         XCTAssertFalse(underCap.isTruncated)
+
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let data = try Data(contentsOf: root.appendingPathComponent("docs/creator-content-localizations.json"))
+        let catalog = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: [String: String]])
+        XCTAssertEqual(catalog["creatorContent.truncated"]?["zh-Hans"], "已达到200条加载上限，请筛选查找")
+        XCTAssertEqual(catalog["creatorContent.truncated"]?["en"], "Reached the 200-item load limit. Use filters to narrow results.")
     }
 }

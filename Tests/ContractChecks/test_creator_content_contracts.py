@@ -30,6 +30,10 @@ class CreatorContentContracts(unittest.TestCase):
             if key not in ['creatorContent.issue','creatorContent.status','creatorContent.filter.','creatorContent.status.']:
                 self.assertIn(key,strings)
         for value in strings.values(): self.assertEqual(set(value),{'en','zh-Hans'})
+        self.assertEqual(strings['creatorContent.truncated'], {
+            'en': 'Reached the 200-item load limit. Use filters to narrow results.',
+            'zh-Hans': '已达到200条加载上限，请筛选查找',
+        })
     def test_identity_and_unknown_state(self):
         contracts=(ROOT/'Core/CreatorContentContracts.swift').read_text()
         self.assertIn('"\\(bizType):\\(sourceID)"',contracts)

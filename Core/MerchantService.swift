@@ -65,7 +65,8 @@ public struct MerchantService {
     }
     public func todo(access: MerchantAccess, token: String) async throws -> MerchantTodo {
         guard access.isOwner || access.canReadAftercare else { throw MerchantReadError.accessDenied }
-        return try await post("api/merchant/todo-summary", token: token)
+        let decoded: MerchantTodo = try await post("api/merchant/todo-summary", token: token)
+        return decoded.scoped(for: access)
     }
     public func events(access: MerchantAccess, token: String) async throws -> [MerchantEvent] {
         guard access.isOwner else { throw MerchantReadError.accessDenied }

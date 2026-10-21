@@ -39,4 +39,19 @@ final class MerchantWorkbenchTodoContractTests: XCTestCase {
         XCTAssertFalse(inactive.allows(.aftercareRead))
         XCTAssertFalse(inactive.canReadAftercare)
     }
+    func testNonOwnerAftercareProjectionZeroesNonAftercareFields() throws {
+        let full = try decode(MerchantTodo.self, #"{"pendingVerify":2,"verifiedCount":8,"pendingScanConfirm":3,"pendingOrders":4,"refundCount":5,"pendingPredict":6,"biddingTopics":7,"byProject":[{"ownerType":"topic","ownerId":"01","pendingVerify":1,"pendingScanConfirm":2}]}"#)
+        let manager = try decode(MerchantAccess.self, #"{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_MANAGER","permissions":["merchant:aftercare:read","merchant:project:manage"]}"#)
+        let scoped = full.scoped(for: manager)
+        XCTAssertEqual(scoped.refundCount, 5)
+        XCTAssertEqual(scoped.pendingVerify, 0)
+        XCTAssertEqual(scoped.verifiedCount, 0)
+        XCTAssertEqual(scoped.pendingScanConfirm, 0)
+        XCTAssertEqual(scoped.pendingOrders, 0)
+        XCTAssertEqual(scoped.pendingPredict, 0)
+        XCTAssertEqual(scoped.biddingTopics, 0)
+        XCTAssertNil(scoped.byProject)
+        let owner = try decode(MerchantAccess.self, #"{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":["merchant:aftercare:read"]}"#)
+        XCTAssertEqual(full.scoped(for: owner), full)
+    }
 }
