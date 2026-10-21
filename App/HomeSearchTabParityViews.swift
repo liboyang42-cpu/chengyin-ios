@@ -57,11 +57,32 @@ struct HomeHeroHeaderSectionView: View {
 struct PlayContinuationBannerView: View {
     @Environment(\.locale) private var locale
     let cards: [HomeIndexParityPresentation.ContinuationCard]
+    var readAvailability: HomeContinuationReadAvailability = .available
     var onSelectCard: ((HomeIndexParityPresentation.ContinuationCard) -> Void)? = nil
     var onOpen: ((HomeFeedDestination) -> Void)? = nil
+    var onRetry: (() -> Void)? = nil
 
     var body: some View {
         Section {
+            if let messageKey = readAvailability.messageKey, readAvailability != .unauthenticated {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Image(systemName: readAvailability == .failed ? "exclamationmark.triangle" : "info.circle")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(LocalizedStringKey(messageKey))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("homeIndex.continuation.availability.\(readAvailability.rawValue)")
+                    Spacer()
+                    if readAvailability == .failed, let onRetry {
+                        Button("homeFeed.retry", action: onRetry)
+                            .font(.caption.weight(.semibold))
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                            .accessibilityIdentifier("homeIndex.continuation.retry")
+                    }
+                }
+            }
             ForEach(cards) { card in
                 Button {
                     if let onSelectCard {

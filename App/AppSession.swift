@@ -3907,11 +3907,24 @@ extension AppSession {
         )
     }
 
-    private func playContinuationDefaultsKeys() -> (scopesKey: String, titlesKey: String)? {
-        guard let storageScope, let account,
-              let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole) else { return nil }
-        let prefix = "play.continuation.\(storageScope.service).\(account.id).\(role.rawValue)"
+    private static func playContinuationDefaultsKeys(
+        namespace: String,
+        accountID: Int,
+        role: String
+    ) -> (scopesKey: String, titlesKey: String)? {
+        guard !namespace.isEmpty, accountID > 0,
+              let parsedRole = PlayRecoveryAccountRole(rawValue: role) else { return nil }
+        let prefix = "play.continuation.\(namespace).\(accountID).\(parsedRole.rawValue)"
         return ("\(prefix).scopes", "\(prefix).titles")
+    }
+
+    private func playContinuationDefaultsKeys() -> (scopesKey: String, titlesKey: String)? {
+        guard let storageScope, let account else { return nil }
+        return Self.playContinuationDefaultsKeys(
+            namespace: storageScope.service,
+            accountID: account.id,
+            role: account.effectiveRole
+        )
     }
 
     private static func encodeContinuationScopeToken(_ scope: PlaySessionScope) -> String {
@@ -3931,8 +3944,36 @@ extension AppSession {
         }
     }
 
-    func registerPlayContinuationScope(_ scope: PlaySessionScope, title: String? = nil) {
-        guard scope.isValid, let keys = playContinuationDefaultsKeys() else { return }
+    private func matchesContinuationSession(_ expected: PlayExperienceSession, viewerRevision: UInt64) -> Bool {
+        guard !committingAuthenticatedSession,
+              isSignedIn,
+              let currentStorage = storageScope,
+              let currentAccount = account,
+              let currentToken = token,
+              currentStorage.service == expected.namespace,
+              currentAccount.id == expected.accountID,
+              gate.currentStamp == expected.epoch,
+              currentToken == expected.token,
+              currentAccount.effectiveRole == expected.role,
+              compositionViewerRevision == viewerRevision else {
+            return false
+        }
+        return true
+    }
+
+    private func persistPlayContinuationScope(
+        _ scope: PlaySessionScope,
+        title: String? = nil,
+        expectedSession: PlayExperienceSession,
+        expectedViewerRevision: UInt64
+    ) {
+        guard scope.isValid,
+              matchesContinuationSession(expectedSession, viewerRevision: expectedViewerRevision),
+              let keys = Self.playContinuationDefaultsKeys(
+                  namespace: expectedSession.namespace,
+                  accountID: expectedSession.accountID,
+                  role: expectedSession.role
+              ) else { return }
         let token = Self.encodeContinuationScopeToken(scope)
         var existing = sessionDefaults.stringArray(forKey: keys.scopesKey) ?? []
         if !existing.contains(token) {
@@ -3946,12 +3987,8 @@ extension AppSession {
         }
     }
 
-    func loadPausedContinueRuns(
-        participations: [ParticipationRecord] = [],
-        additionalScopes: [PlaySessionScope] = []
-    ) async -> [PlayContinueRun] {
+    func registerPlayContinuationScope(_ scope: PlaySessionScope, title: String? = nil) {
         guard !committingAuthenticatedSession,
-              let regional = regionalConfiguration,
               let storageScope,
               let account,
               let token,
@@ -3962,11 +3999,42 @@ extension AppSession {
                   namespace: storageScope.service,
                   token: token,
                   role: role.rawValue
+              ) else { return }
+        persistPlayContinuationScope(
+            scope,
+            title: title,
+            expectedSession: playSession,
+            expectedViewerRevision: compositionViewerRevision
+        )
+    }
+
+    func loadPausedContinueRuns(
+        participations: [ParticipationRecord] = [],
+        additionalScopes: [PlaySessionScope] = []
+    ) async -> [PlayContinueRun] {
+        guard !committingAuthenticatedSession,
+              let regional = regionalConfiguration,
+              let capturedStorageScope = storageScope,
+              let capturedAccount = account,
+              let capturedToken = token,
+              let role = PlayRecoveryAccountRole(rawValue: capturedAccount.effectiveRole),
+              let playSession = try? PlayExperienceSession(
+                  accountID: capturedAccount.id,
+                  epoch: gate.currentStamp,
+                  namespace: capturedStorageScope.service,
+                  token: capturedToken,
+                  role: role.rawValue
               ) else {
             return []
         }
+        let capturedViewerRevision = compositionViewerRevision
+        let capturedApprovalKey = currentPlayReadApprovalKey
 
-        let keys = playContinuationDefaultsKeys()
+        let keys = Self.playContinuationDefaultsKeys(
+            namespace: playSession.namespace,
+            accountID: playSession.accountID,
+            role: playSession.role
+        )
         let persistedTokens = keys.flatMap { sessionDefaults.stringArray(forKey: $0.scopesKey) } ?? []
         let persistedTitles = keys.flatMap { sessionDefaults.dictionary(forKey: $0.titlesKey) as? [String: String] } ?? [:]
 
@@ -3981,7 +4049,12 @@ extension AppSession {
                let name = record.name?.trimmingCharacters(in: .whitespacesAndNewlines),
                !name.isEmpty {
                 titlesByScope[scope] = name
-                registerPlayContinuationScope(scope, title: name)
+                persistPlayContinuationScope(
+                    scope,
+                    title: name,
+                    expectedSession: playSession,
+                    expectedViewerRevision: capturedViewerRevision
+                )
             }
         }
 
@@ -4004,18 +4077,22 @@ extension AppSession {
             }
         }
         for (key, _) in playExperienceCoordinators
-        where key.accountID == account.id && key.epoch == gate.currentStamp && key.role == account.effectiveRole && key.viewerRevision == compositionViewerRevision {
+        where key.accountID == playSession.accountID && key.epoch == playSession.epoch && key.role == playSession.role && key.viewerRevision == capturedViewerRevision {
             appendScope(key.scope)
         }
 
         var runs: [PlayContinueRun] = []
         for scope in candidateScopes {
+            guard !Task.isCancelled,
+                  matchesContinuationSession(playSession, viewerRevision: capturedViewerRevision) else {
+                return []
+            }
             let readerKey = PlayReaderKey(
-                accountID: account.id,
-                epoch: gate.currentStamp,
-                role: account.effectiveRole,
-                viewerRevision: compositionViewerRevision,
-                approval: currentPlayReadApprovalKey,
+                accountID: playSession.accountID,
+                epoch: playSession.epoch,
+                role: playSession.role,
+                viewerRevision: capturedViewerRevision,
+                approval: capturedApprovalKey,
                 scope: scope
             )
             let retained = playExperienceCoordinators[readerKey]
@@ -4037,16 +4114,26 @@ extension AppSession {
                 session: playSession,
                 scope: scope,
                 regionalConfiguration: regional,
-                storageScope: storageScope
+                storageScope: capturedStorageScope
             ) else {
                 continue
             }
             let storageKey = PlayRunStorageKey.make(session: playSession, scope: scope)
-            if let paused = try? await recovery.read(key: storageKey),
+            let paused = try? await recovery.read(key: storageKey)
+            guard !Task.isCancelled,
+                  matchesContinuationSession(playSession, viewerRevision: capturedViewerRevision) else {
+                return []
+            }
+            if let paused,
                let snapshot = paused.value,
                snapshot.owner.matches(playSession),
                let record = snapshot.record {
-                registerPlayContinuationScope(scope, title: titlesByScope[scope])
+                persistPlayContinuationScope(
+                    scope,
+                    title: titlesByScope[scope],
+                    expectedSession: playSession,
+                    expectedViewerRevision: capturedViewerRevision
+                )
                 runs.append(
                     PlayContinueRun(
                         scope: scope,

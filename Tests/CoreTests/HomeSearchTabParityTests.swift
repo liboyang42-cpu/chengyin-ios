@@ -223,6 +223,13 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertEqual(ticks[ticks.count - 2], start.addingTimeInterval(-60))
         XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: start, now: ticks[ticks.count - 2]), "距上线 1分钟")
         XCTAssertNil(HomeIndexParityPresentation.upcomingCountdownText(start: start, now: ticks[ticks.count - 1]))
+
+        // Arbitrary far-future start (e.g., 365 days ahead) stays bounded by maxScheduleHorizon (default 7 days = <= 1_586 ticks):
+        let farFuture = now.addingTimeInterval(365 * 86_400)
+        let boundedTicks = HomeIndexParityPresentation.countdownScheduleDates(from: now, start: farFuture)
+        XCTAssertLessThanOrEqual(boundedTicks.count, 1_600)
+        XCTAssertEqual(boundedTicks.first, now)
+        XCTAssertEqual(boundedTicks.last, now.addingTimeInterval(7 * 86_400))
     }
 
     @MainActor
@@ -308,9 +315,66 @@ final class HomeSearchTabParityTests: XCTestCase {
         )
         XCTAssertEqual(decision1, .enterRuntime(.activity(12)))
 
+        // 4. Counter-example: verifyNavigation in-flight while a new reload occurs must reject the old navigation lease
+        // even if scopeGeneration would otherwise have collided with g+1:
+        var releasePauseCheck: CheckedContinuation<Bool, Never>?
+        let racingVerifyTask = Task { @MainActor in
+            await coordinator.verifyNavigation(
+                for: card12,
+                currentOwnerScope: { liveOwner },
+                canEnterRuntime: { $0 == .activity(12) },
+                hasDurableOrLivePause: { _ in
+                    await withCheckedContinuation { cont in
+                        releasePauseCheck = cont
+                    }
+                }
+            )
+        }
+        await Task.yield()
+        _ = await coordinator.reload(
+            ownerScope: scopeA,
+            isAuthenticated: true,
+            isJourneyReadConfigured: true,
+            currentOwnerScope: { liveOwner },
+            loadParticipations: { [joinedRecord] },
+            loadPausedRuns: { _ in
+                [PlayContinueRun(scope: .activity(12), elapsedSeconds: 540, title: "外滩迷雾")]
+            }
+        )
+        releasePauseCheck?.resume(returning: true)
+        let racingDecision = await racingVerifyTask.value
+        XCTAssertEqual(racingDecision, .staleRejected)
+
+        // 5. Counter-example: duplicate taps on the same card invalidate the earlier tap's navigation lease:
+        var releaseFirstTap: CheckedContinuation<Bool, Never>?
+        let refreshedCard12 = try XCTUnwrap(coordinator.cards.first)
+        let firstTapTask = Task { @MainActor in
+            await coordinator.verifyNavigation(
+                for: refreshedCard12,
+                currentOwnerScope: { liveOwner },
+                canEnterRuntime: { $0 == .activity(12) },
+                hasDurableOrLivePause: { _ in
+                    await withCheckedContinuation { cont in
+                        releaseFirstTap = cont
+                    }
+                }
+            )
+        }
+        await Task.yield()
+        let secondTapDecision = await coordinator.verifyNavigation(
+            for: refreshedCard12,
+            currentOwnerScope: { liveOwner },
+            canEnterRuntime: { $0 == .activity(12) },
+            hasDurableOrLivePause: { _ in true }
+        )
+        XCTAssertEqual(secondTapDecision, .enterRuntime(.activity(12)))
+        releaseFirstTap?.resume(returning: true)
+        let firstTapDecision = await firstTapTask.value
+        XCTAssertEqual(firstTapDecision, .staleRejected)
+
         // If the paused run was ended/cleared before tap, pre-tap re-verification rejects and removes the stale card:
         let decision2 = await coordinator.verifyNavigation(
-            for: card12,
+            for: refreshedCard12,
             currentOwnerScope: { liveOwner },
             canEnterRuntime: { $0 == .activity(12) },
             hasDurableOrLivePause: { _ in false }
@@ -318,7 +382,7 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertEqual(decision2, .staleRejected)
         XCTAssertEqual(coordinator.cards.map(\.playScope), [.topic(91)])
 
-        // 4. Account / revision switch invalidates continuation state on pre-tap verification:
+        // 6. Account / revision switch invalidates continuation state on pre-tap verification:
         let card91 = try XCTUnwrap(coordinator.cards.first)
         liveOwner = HomeContinuationOwnerScope(accountID: 702, sessionRevision: 2, journeyScope: UUID())
         let decision3 = await coordinator.verifyNavigation(

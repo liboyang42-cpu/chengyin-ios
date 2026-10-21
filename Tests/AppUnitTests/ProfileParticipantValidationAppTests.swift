@@ -139,12 +139,14 @@ import SwiftUI
             func clear() throws { token = nil }
         }
         final class ContinuationAuthWire: HTTPTransport {
+            var currentAccountID = 7
             func send(_ request: URLRequest) async throws -> (Data, Int) {
+                let id = currentAccountID
                 switch request.url?.lastPathComponent {
                 case "phone":
-                    return (Data(#"{"code":200,"token":"synthetic-7","data":{"id":7}}"#.utf8), 200)
+                    return (Data(#"{"code":200,"token":"synthetic-\#(id)","data":{"id":\#(id)}}"#.utf8), 200)
                 case "userInfo":
-                    return (Data(#"{"code":200,"appUser":{"id":7,"role":"player"}}"#.utf8), 200)
+                    return (Data(#"{"code":200,"appUser":{"id":\#(id),"role":"player"}}"#.utf8), 200)
                 default:
                     throw APIError.invalidRequest
                 }
@@ -267,12 +269,81 @@ import SwiftUI
             loadPausedRuns: { records in await session2.loadPausedContinueRuns(participations: records) }
         )
         XCTAssertTrue(refreshedCards.isEmpty)
+
+        // Counter-example: When loadPausedContinueRuns is suspended in recovery.read and the user switches account
+        // (or signs out and logs into account 8), the stale account 7 read returns [] and writes 0 keys into account 8's UserDefaults:
+        session1.registerPlayContinuationScope(.activity(42), title: "静安秘境")
+        let recovery42 = try construction.make(
+            session: playSession1,
+            scope: .activity(42),
+            regionalConfiguration: deployment.regional,
+            storageScope: deployment.storageScope
+        )
+        let storageKey42 = PlayRunStorageKey.make(session: playSession1, scope: .activity(42))
+        let initialPaused42 = try await recovery42.read(key: storageKey42)
+        let activeSnapshot42 = try PlayPausedSnapshot(
+            owner: .init(session: playSession1),
+            record: try PlayPausedRecord(elapsedSeconds: 600, savedAt: 1_700_000_300)
+        )
+        _ = try await recovery42.write(activeSnapshot42, replacing: initialPaused42, key: storageKey42)
+
+        await anchors.setReadGate(enabled: true)
+        let inFlightLoad = Task { @MainActor in
+            await session2.loadPausedContinueRuns()
+        }
+        await anchors.waitForBlockedRead()
+
+        // Switch session2 to account 8 (logout first, then login as account 8) while account 7's recovery.read is suspended:
+        await session2.logout()
+        wire.currentAccountID = 8
+        await session2.authChannels.loginWithPhone(phone: "10000000001", code: "123456")
+        XCTAssertEqual(session2.account?.id, 8)
+
+        await anchors.releaseBlockedRead()
+        let staleRuns = await inFlightLoad.value
+        XCTAssertTrue(staleRuns.isEmpty)
+
+        let account8ScopesKey = "play.continuation.\(deployment.storageScope.service).8.player.scopes"
+        let account8TitlesKey = "play.continuation.\(deployment.storageScope.service).8.player.titles"
+        XCTAssertNil(defaults.stringArray(forKey: account8ScopesKey))
+        XCTAssertNil(defaults.dictionary(forKey: account8TitlesKey))
     }
 }
 
 private actor ContinuationAnchors: ContentDraftAnchorStore {
     private var values: [String: ContentDraftAnchorItem] = [:]
-    func read(slot: String) throws -> ContentDraftAnchorItem? { values[slot] }
+    private var shouldGateRead = false
+    private var readEnteredContinuation: CheckedContinuation<Void, Never>?
+    private var readReleaseContinuation: CheckedContinuation<Void, Never>?
+
+    func setReadGate(enabled: Bool) {
+        shouldGateRead = enabled
+    }
+
+    func waitForBlockedRead() async {
+        if readReleaseContinuation != nil { return }
+        await withCheckedContinuation { cont in
+            readEnteredContinuation = cont
+        }
+    }
+
+    func releaseBlockedRead() {
+        shouldGateRead = false
+        readReleaseContinuation?.resume()
+        readReleaseContinuation = nil
+    }
+
+    func read(slot: String) async throws -> ContentDraftAnchorItem? {
+        if shouldGateRead {
+            shouldGateRead = false
+            await withCheckedContinuation { cont in
+                readReleaseContinuation = cont
+                readEnteredContinuation?.resume()
+                readEnteredContinuation = nil
+            }
+        }
+        return values[slot]
+    }
     func insert(slot: String, item: ContentDraftAnchorItem) throws -> Bool {
         guard values[slot] == nil else { return false }; values[slot] = item; return true
     }

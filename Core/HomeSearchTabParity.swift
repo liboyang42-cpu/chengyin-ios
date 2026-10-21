@@ -333,16 +333,19 @@ public enum HomeIndexParityPresentation {
     }
 
     /// Generates display-granularity boundary dates (hour boundaries when >24h, minute boundaries when <=24h)
-    /// from `date` up to `start` so countdown labels advance without a 1 Hz timer and without artificial truncation.
+    /// from `date` up to `start` within a bounded horizon (default 7 days = 1_586 ticks max) so countdown labels
+    /// advance without a 1 Hz timer, without premature 256-entry truncation, and without unbounded far-future arrays.
     public static func countdownScheduleDates(
         from date: Date,
         start: Date,
-        base: [Date] = []
+        base: [Date] = [],
+        maxScheduleHorizon: TimeInterval = 7 * 86_400
     ) -> [Date] {
         guard start > date else { return base.isEmpty ? [date] : base }
+        let horizonLimit = min(start, date.addingTimeInterval(max(60, maxScheduleHorizon)))
         var dates: [Date] = [date]
         var cursor = date
-        while cursor < start {
+        while cursor < horizonLimit {
             let remaining = start.timeIntervalSince(cursor)
             guard remaining > 0 else { break }
             let step: TimeInterval = remaining > 86_400 ? 3_600 : 60
@@ -351,15 +354,16 @@ public enum HomeIndexParityPresentation {
                 break
             }
             let tick = start.addingTimeInterval(-nextRemaining)
-            if tick > cursor && tick < start {
+            if tick > cursor && tick <= horizonLimit && tick < start {
                 dates.append(tick)
                 cursor = tick
             } else {
                 break
             }
         }
-        if dates.last != start {
-            dates.append(start)
+        let terminalDate = horizonLimit < start ? horizonLimit : start
+        if dates.last != terminalDate {
+            dates.append(terminalDate)
         }
         return dates
     }
@@ -857,7 +861,7 @@ public enum PublishTabFloatingSheetParity {
             actions: [
                 ActionDescriptor(kind: .quickTopic, isEnabled: quickEnabled, disabledReason: quickReason),
                 ActionDescriptor(kind: .proTopic, isEnabled: proEnabled, disabledReason: proReason),
-                ActionDescriptor(kind: .singleActivity, isEnabled: activityEnabled, disabledReason: activityEnabled ? nil : clubOnlyActivityReason)
+                ActionDescriptor(kind: .singleActivity, isEnabled: activityEnabled, disabledReason: activityReason)
             ]
         )
     }
@@ -909,7 +913,7 @@ public enum HomeContinuationNavigationDecision: Equatable {
 
 /// Coordinates Home continuation cards (`玩家“退出后继续玩”完整组`) with:
 /// - `(accountID, sessionRevision, journeyScope)` binding,
-/// - monotonic `generation` isolation across concurrent reloads and per-scope refreshes,
+/// - independent load leases (`activeLoadTicket`) and per-scope navigation leases (`scopeNavigationTickets`),
 /// - explicit `journeyReadNotApproved` reporting when remote `PlayerJourneyService` reads remain default-off (`readsEnabled == false`),
 /// - durable post-restart paused-run recovery and pre-tap re-verification before navigation.
 @MainActor
@@ -918,7 +922,9 @@ public final class HomeContinuationCoordinator {
     public private(set) var cards: [HomeIndexParityPresentation.ContinuationCard] = []
     public private(set) var readAvailability: HomeContinuationReadAvailability = .unauthenticated
     public private(set) var activeGeneration: UInt64 = 0
+    public private(set) var activeLoadTicket = UUID()
     private var scopeGenerations: [PlaySessionScope: UInt64] = [:]
+    private var scopeNavigationTickets: [PlaySessionScope: UUID] = [:]
 
     public init() {}
 
@@ -926,17 +932,23 @@ public final class HomeContinuationCoordinator {
         scopeGenerations[scope] ?? 0
     }
 
-    /// Resets all continuation cards and advances the monotonic generation so any in-flight work is discarded.
+    public func navigationTicket(for scope: PlaySessionScope) -> UUID? {
+        scopeNavigationTickets[scope]
+    }
+
+    /// Resets all continuation cards and invalidates both load and navigation leases so any in-flight work is discarded.
     public func reset(readAvailability: HomeContinuationReadAvailability = .unauthenticated) {
         activeGeneration &+= 1
+        activeLoadTicket = UUID()
         ownerScope = nil
         cards = []
         self.readAvailability = readAvailability
         scopeGenerations.removeAll()
+        scopeNavigationTickets.removeAll()
     }
 
-    /// Reloads continuation cards for `ownerScope` with monotonic generation isolation.
-    /// Older completions, failures, or cancellations never overwrite newer state.
+    /// Reloads continuation cards for `ownerScope` with an independent load lease (`activeLoadTicket`) and monotonic generation isolation.
+    /// Older completions, failures, or cancellations never overwrite newer state, and any in-flight navigation verification is invalidated.
     @discardableResult
     public func reload(
         ownerScope: HomeContinuationOwnerScope?,
@@ -949,13 +961,17 @@ public final class HomeContinuationCoordinator {
     ) async -> [HomeIndexParityPresentation.ContinuationCard] {
         activeGeneration &+= 1
         let generation = activeGeneration
+        let loadTicket = UUID()
+        activeLoadTicket = loadTicket
+        scopeNavigationTickets.removeAll()
 
         guard isAuthenticated, let ownerScope, ownerScope.accountID > 0 else {
-            if generation == activeGeneration {
+            if generation == activeGeneration && activeLoadTicket == loadTicket {
                 self.ownerScope = nil
                 self.cards = []
                 self.readAvailability = .unauthenticated
                 self.scopeGenerations.removeAll()
+                self.scopeNavigationTickets.removeAll()
             }
             return []
         }
@@ -964,6 +980,7 @@ public final class HomeContinuationCoordinator {
             self.ownerScope = ownerScope
             self.cards = []
             self.scopeGenerations.removeAll()
+            self.scopeNavigationTickets.removeAll()
         }
 
         var remoteRecords: [ParticipationRecord] = []
@@ -973,7 +990,9 @@ public final class HomeContinuationCoordinator {
             do {
                 let fetched = try await loadParticipations()
                 try Task.checkCancellation()
-                guard generation == activeGeneration, currentOwnerScope() == ownerScope else {
+                guard generation == activeGeneration,
+                      activeLoadTicket == loadTicket,
+                      currentOwnerScope() == ownerScope else {
                     return self.cards
                 }
                 remoteRecords = fetched
@@ -981,7 +1000,9 @@ public final class HomeContinuationCoordinator {
             } catch is CancellationError {
                 return self.cards
             } catch {
-                guard generation == activeGeneration, currentOwnerScope() == ownerScope else {
+                guard generation == activeGeneration,
+                      activeLoadTicket == loadTicket,
+                      currentOwnerScope() == ownerScope else {
                     return self.cards
                 }
                 remoteRecords = []
@@ -996,6 +1017,7 @@ public final class HomeContinuationCoordinator {
         let pausedRuns = await loadPausedRuns(remoteRecords)
         guard !Task.isCancelled,
               generation == activeGeneration,
+              activeLoadTicket == loadTicket,
               currentOwnerScope() == ownerScope else {
             return self.cards
         }
@@ -1026,7 +1048,9 @@ public final class HomeContinuationCoordinator {
         return nextCards
     }
 
-    /// Re-verifies owner scope, card freshness, and runtime/durable eligibility right before navigating on tap.
+    /// Re-verifies owner scope, load lease (`activeLoadTicket`), per-scope navigation lease (`scopeNavigationTickets`),
+    /// card freshness, and runtime/durable eligibility right before navigating on tap.
+    /// Any concurrent reload, account/revision change, cancellation, or duplicate tap invalidates the prior lease.
     public func verifyNavigation(
         for card: HomeIndexParityPresentation.ContinuationCard,
         currentOwnerScope: () -> HomeContinuationOwnerScope?,
@@ -1034,6 +1058,7 @@ public final class HomeContinuationCoordinator {
         hasDurableOrLivePause: (PlaySessionScope) async -> Bool
     ) async -> HomeContinuationNavigationDecision {
         let capturedGeneration = activeGeneration
+        let capturedLoadTicket = activeLoadTicket
         guard let expectedScope = ownerScope,
               currentOwnerScope() == expectedScope,
               cards.contains(card) else {
@@ -1044,20 +1069,26 @@ public final class HomeContinuationCoordinator {
         }
 
         let playScope = card.playScope
+        let navTicket = UUID()
+        scopeNavigationTickets[playScope] = navTicket
         scopeGenerations[playScope] = (scopeGenerations[playScope] ?? capturedGeneration) &+ 1
-        let scopeGen = scopeGenerations[playScope]
+        let capturedScopeGen = scopeGenerations[playScope]
 
         let hasPause = await hasDurableOrLivePause(playScope)
         guard !Task.isCancelled,
+              activeGeneration == capturedGeneration,
+              activeLoadTicket == capturedLoadTicket,
               currentOwnerScope() == expectedScope,
               ownerScope == expectedScope,
-              scopeGenerations[playScope] == scopeGen,
+              scopeNavigationTickets[playScope] == navTicket,
+              scopeGenerations[playScope] == capturedScopeGen,
               cards.contains(card) else {
             if currentOwnerScope() != ownerScope {
                 reset()
             }
             return .staleRejected
         }
+        scopeNavigationTickets[playScope] = nil
 
         switch card.kind {
         case .continueGame:

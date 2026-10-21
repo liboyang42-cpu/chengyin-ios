@@ -64,8 +64,10 @@ import SwiftUI
                 selectedCity: session.roamArea?.label,
                 showsHeroBanners: true,
                 continuationCards: continuationCards,
+                continuationReadAvailability: continuationReadAvailability,
                 onActionBanner: handleActionBanner,
-                onContinuation: handleContinuation
+                onContinuation: handleContinuation,
+                onRetryContinuation: { Task { await reloadContinuationCards() } }
             ) { path.append($0) }
                 .toolbar {
                     ToolbarItem(placement:.topBarLeading) {

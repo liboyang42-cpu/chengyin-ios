@@ -10,8 +10,10 @@ import SwiftUI
     var selectedCity: String? = nil
     var showsHeroBanners: Bool = false
     var continuationCards: [HomeIndexParityPresentation.ContinuationCard] = []
+    var continuationReadAvailability: HomeContinuationReadAvailability = .available
     var onActionBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
     var onContinuation: ((HomeIndexParityPresentation.ContinuationCard) -> Void)? = nil
+    var onRetryContinuation: (() -> Void)? = nil
     let onDestination: (HomeFeedDestination) -> Void
     @Environment(\.locale) private var locale
     @StateObject private var model = HomeFeedModel()
@@ -41,17 +43,23 @@ import SwiftUI
                     }
                     bannerSection
                     feedSection(.recommended)
-                    if !continuationCards.isEmpty {
-                        PlayContinuationBannerView(cards: continuationCards, onSelectCard: { card in
-                            guard model.canOpen(reader) else { return }
-                            if let onContinuation {
-                                onContinuation(card)
-                            } else {
-                                onDestination(card.destination)
-                            }
-                        }, onOpen: { destination in
-                            if model.canOpen(reader) { onDestination(destination) }
-                        })
+                    if !continuationCards.isEmpty || (continuationReadAvailability != .available && continuationReadAvailability != .unauthenticated) {
+                        PlayContinuationBannerView(
+                            cards: continuationCards,
+                            readAvailability: continuationReadAvailability,
+                            onSelectCard: { card in
+                                guard model.canOpen(reader) else { return }
+                                if let onContinuation {
+                                    onContinuation(card)
+                                } else {
+                                    onDestination(card.destination)
+                                }
+                            },
+                            onOpen: { destination in
+                                if model.canOpen(reader) { onDestination(destination) }
+                            },
+                            onRetry: onRetryContinuation
+                        )
                     }
                     feedSection(.nearby)
                     feedSection(.upcoming)
