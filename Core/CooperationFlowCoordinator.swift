@@ -80,13 +80,18 @@ public struct CoopFlowReview: Equatable {
     private let now: () -> Date
     private var review: CoopFlowReview?
     private var busy = false
-    /// Closed by default. Tests may inject fake adapters and opt in. Shipping composition must keep false.
-    private let enabled: Bool
+    /// Closed by default. Read again at confirm so a revoked approval stops the POST.
+    private let enabled: () -> Bool
     public init(current: @escaping () -> CoopFlowSession?, evidence: any CoopFlowEvidenceReading,
-                executor: any CoopFlowExecuting, locks: any CoopFlowLockStore, enabled: Bool = false,
+                executor: any CoopFlowExecuting, locks: any CoopFlowLockStore, enabled: @escaping () -> Bool = { false },
                 now: @escaping () -> Date = Date.init) {
         self.current = current; self.evidence = evidence; self.executor = executor; self.locks = locks
         self.enabled = enabled; self.now = now
+    }
+    public convenience init(current: @escaping () -> CoopFlowSession?, evidence: any CoopFlowEvidenceReading,
+                            executor: any CoopFlowExecuting, locks: any CoopFlowLockStore, enabled: Bool,
+                            now: @escaping () -> Date = Date.init) {
+        self.init(current: current, evidence: evidence, executor: executor, locks: locks, enabled: { enabled }, now: now)
     }
     public func invalidate() { review = nil }
     public func prepare(_ operation: CoopFlowMutation) async throws -> CoopFlowReview {
@@ -104,7 +109,7 @@ public struct CoopFlowReview: Equatable {
         review = value; return value
     }
     public func confirm(_ accepted: CoopFlowReview) async throws -> CoopFlowJSON {
-        guard enabled, executor.permitsDispatch(accepted.operation) else { throw CoopFlowFailure.disabled }
+        guard enabled(), executor.permitsDispatch(accepted.operation) else { throw CoopFlowFailure.disabled }
         guard !accepted.operation.requiresSeparateEnablement || accepted.dispatchScope != nil else { throw CoopFlowFailure.disabled }
         guard !busy else { throw CoopFlowFailure.conflict }; busy = true; defer { busy = false }
         guard executor.dispatchScope == accepted.dispatchScope, review == accepted, let session = current(), session == accepted.capturedSession, session.accountID == accepted.accountID,

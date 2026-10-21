@@ -100,14 +100,12 @@ struct MerchantOfferWithdrawalTopicFacts: Sendable {
         self.coordinator = coordinator; self.reader = reader; self.coopSession = coopSession; self.permits = permits
     }
     /// Shipping gate: `CoopFlowDormantExecutor.permitsDispatch(.withdrawOffer)`.
-    /// The coordinator's `enabled` flag is that same value, captured once.
-    /// Production `CoopFlowService` keeps `dormantWritesEnabled` false and
-    /// `protectedDispatch` nil, and a real transport is not
-    /// `CoopFlowOfflineHTTPTransport`, so this stays false.
+    /// Asked again at confirm. Production `CoopFlowService` keeps
+    /// `dormantWritesEnabled` false and `protectedDispatch` nil, and a real
+    /// transport is not `CoopFlowOfflineHTTPTransport`, so this stays false.
     static func gated(service: CoopFlowService, reader: any CoopFlowReading, coopSession: @escaping () -> CoopFlowSession?,
                              locks: any CoopFlowLockStore, topic: @escaping (Int) async throws -> MerchantOfferWithdrawalTopicFacts?) -> MerchantOfferWithdrawalProtectedExecutor {
         let transport = CoopFlowDormantExecutor(service: service)
-        let open = transport.permitsDispatch(.withdrawOffer(id: 1, reason: "gate"))
         let coordinator = CoopFlowCoordinator(current: coopSession, evidence: CoopFlowSourceEvidenceReader(reader: reader, additional: { operation, captured in
             guard case .withdrawOffer(let id, _) = operation, reader.session == captured else {
                 return CoopFlowEvidence(baseline: .null, permitted: false)
@@ -123,7 +121,7 @@ struct MerchantOfferWithdrawalTopicFacts: Sendable {
             var topicFields: [String: CoopFlowJSON] = ["productType": .id(facts.productType), "lifecycle": .id(facts.lifecycle)]
             if let circle = facts.circleThemeCode, !circle.isEmpty { topicFields["circleThemeCode"] = .string(circle) }
             return CoopFlowEvidence(baseline: .object(["rows": mine, "topic": .object(topicFields)]), permitted: true)
-        }), executor: transport, locks: locks, enabled: open)
+        }), executor: transport, locks: locks, enabled: { transport.permitsDispatch(.withdrawOffer(id: 1, reason: "gate")) })
         return MerchantOfferWithdrawalProtectedExecutor(coordinator: coordinator, reader: reader, coopSession: coopSession,
             permits: { transport.permitsDispatch(.withdrawOffer(id: 1, reason: "gate")) })
     }

@@ -78,6 +78,8 @@ public struct MerchantContentReceipt: Equatable {
     func retryStation(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
 }
 extension MerchantContentServing {
+    /// Readers that are not the real service cannot confirm a write.
+    public func permits(_ command: MerchantContentCommand) -> Bool { false }
     /// Only the real service overrides this; other readers keep the intent lock untouched.
     public func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback {
         throw MerchantContentFailure.locked
