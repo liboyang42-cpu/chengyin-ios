@@ -46,4 +46,15 @@ class CreatorCropExportContracts(unittest.TestCase):
         self.assertNotIn('MiniCrop', merchant)
         self.assertNotIn('CreatorCrop', merchant)
 
+    def test_story_host_reuses_export_without_new_picker_or_upload_contract(self):
+        s = read('App/ProjectStoryImageAuthorView.swift')
+        for t in ['let crop: CreatorCropExportSession', 'self.crop.stage([image])',
+                  'CreatorCropExportView(draft: draft', 'model.confirmCrop($0, $1)',
+                  'flow.finishPicking(image, original: pickerID)',
+                  'self.flow.isCurrent && self.flow.matchesCapturedDraft && self.original.opening.source.permitsPicker(session: self.original.opening.lease.session)',
+                  'flow.claimUpload(review)', 'projectStoryImage.localPreview']:
+            self.assertIn(t, s)
+        for t in ['requestAuthorization', 'PHPhotoLibrary', 'URLSession', 'TemplateImageCropView']:
+            self.assertNotIn(t, s)
+
 if __name__ == '__main__': unittest.main()
