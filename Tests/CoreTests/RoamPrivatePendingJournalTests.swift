@@ -114,6 +114,12 @@ private actor C6PendingWire: HTTPTransport {
         let second = try reader(wire: secondWire, storage: storage, context: owner)
         XCTAssertNil(second.pendingCapsule, "The draft body is never restored from the journal")
         XCTAssertEqual(second.unresolvedCapsuleRequestID, requestID)
+        let surfaced: any RoamPrivateToolsServing = second
+        XCTAssertEqual(surfaced.unresolvedCapsuleRequestID, requestID, "The protocol witness surfaces the restored id, not only the in-memory draft")
+        let model = RoamCapsuleCoordinator(tools: surfaced)
+        XCTAssertNil(model.pending)
+        XCTAssertEqual(model.pendingRequestID, requestID)
+        XCTAssertFalse(await model.retryPending(), "A restored id never rebuilds or resends a body")
         let other = RoamCapsuleDraft(requestID: "ios_fedcba9876543210", body: "另一枚", unlockDate: "2030-01-01")
         do { _ = try await second.createCapsule(other); XCTFail() }
         catch { XCTAssertEqual(error as? RoamPrivateWriteError, .pendingMismatch) }

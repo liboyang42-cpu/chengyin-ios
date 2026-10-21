@@ -360,11 +360,12 @@ public enum RoamPrivateToolIssue: Equatable {
     /// Backgrounding or leaving the page revokes delivery for good; the temporary
     /// share copy is the view's to remove, and a fresh lease is needed to deliver again.
     public func revokeDelivery() { deliveryLease?.revoke() }
-    /// Re-issue delivery permission after a return to the page, revalidating identity
-    /// and expiry at that moment rather than trusting the earlier render.
+    /// Re-check identity and expiry after a return to the page. A revoked lease stays
+    /// revoked: foreground return does not make that file deliverable again.
     public func renewDelivery() {
         guard live(), phase == .complete, let file, !file.isExpired(now: tools.now) else { return }
-        if deliveryLease == nil || deliveryLease?.isRevoked == true {
+        guard deliveryLease?.isRevoked != true else { return }
+        if deliveryLease == nil {
             deliveryLease = RoamExportDeliveryLease(file: file, identity: owner)
         }
     }

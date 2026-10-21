@@ -33,6 +33,8 @@ import XCTest
 
     func testCoordinatorIssuesLeaseOnlyAfterFinalChunkAndRevocationHidesFile() async {
         let model = RoamExportCoordinator(tools: RoamPrivateToolsFixture(), pageSize: RoamPrivateToolsFixture.fixturePageSize)
+        model.renewDelivery()
+        XCTAssertNil(model.deliveryLease, "Cold start does not restore a deliverable lease")
         let range = model.presets[0]
         await model.prepare(startDate: range.startDate, endDateExclusive: range.endDateExclusive)
         await model.readNext()
@@ -46,9 +48,10 @@ import XCTest
         model.revokeDelivery()
         XCTAssertNil(model.shareableFile, "A revoked lease offers nothing to save or share")
         XCTAssertNil(model.fileForDelivery(foreground: true))
-        // Return to the page is a fresh validation, not a revival of the revoked lease.
+        // Returning to the foreground rechecks the file and does not make it deliverable again.
         model.renewDelivery()
-        XCTAssertEqual(model.fileForDelivery(foreground: true)?.rows, 3)
+        XCTAssertTrue(model.deliveryLease?.isRevoked == true)
+        XCTAssertNil(model.fileForDelivery(foreground: true), "A revoked file stays revoked across foreground return")
         model.restart()
         XCTAssertNil(model.deliveryLease)
         XCTAssertNil(model.file)
@@ -63,6 +66,9 @@ import XCTest
         XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "The lease identity is not the current identity")
         context.update(now: now, identity: identity, foreground: true)
         XCTAssertEqual(RoamExportHandoff.contents(file: file(), lease: lease, context: context), Data(file().content.utf8))
+        context.update(now: Date(timeIntervalSince1970: 1_792_468_800), identity: identity, foreground: true)
+        XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "Expiry is read from the live clock at the write")
+        context.update(now: now, identity: identity, foreground: true)
         lease.revoke()
         XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "Revocation is seen at the actual write")
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("c6-handoff-\(UUID().uuidString).jsonl")
@@ -71,5 +77,44 @@ import XCTest
         context.cleanupTemporary()
         XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
         context.cleanupTemporary()
+    }
+
+    func testCancelIsNotSaveAndOlderCallbackKeepsTheNewerLease() throws {
+        XCTAssertFalse(RoamExportHandoff.recordsSave(completed: false, errorIsSet: false))
+        XCTAssertFalse(RoamExportHandoff.recordsSave(completed: false, errorIsSet: true))
+        XCTAssertFalse(RoamExportHandoff.recordsSave(completed: true, errorIsSet: true), "An error is not a successful save")
+        XCTAssertTrue(RoamExportHandoff.recordsSave(completed: true, errorIsSet: false))
+
+        let older = try XCTUnwrap(RoamExportDeliveryLease(file: file(), identity: identity))
+        let newer = try XCTUnwrap(RoamExportDeliveryLease(file: file(), identity: identity))
+        XCTAssertFalse(RoamExportHandoff.callbackMatches(older, current: newer))
+        XCTAssertTrue(RoamExportHandoff.callbackMatches(newer, current: newer))
+        if RoamExportHandoff.callbackMatches(older, current: newer), !RoamExportHandoff.recordsSave(completed: false, errorIsSet: true) {
+            newer.revoke()
+        }
+        XCTAssertFalse(newer.isRevoked, "An older share callback must not revoke the newer lease")
+
+        let context = RoamExportDeliveryContext()
+        let oldURL = FileManager.default.temporaryDirectory.appendingPathComponent("roam-export-\(UUID().uuidString)/a.jsonl")
+        let newURL = FileManager.default.temporaryDirectory.appendingPathComponent("roam-export-\(UUID().uuidString)/b.jsonl")
+        defer {
+            context.cleanupTemporary()
+            try? FileManager.default.removeItem(at: oldURL.deletingLastPathComponent())
+            try? FileManager.default.removeItem(at: newURL.deletingLastPathComponent())
+        }
+        try FileManager.default.createDirectory(at: oldURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: newURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data("a".utf8).write(to: oldURL)
+        try Data("b".utf8).write(to: newURL)
+        let oldToken = UUID(), newToken = UUID()
+        context.rememberTemporary(oldURL, token: oldToken)
+        context.rememberTemporary(newURL, token: newToken)
+        context.releaseTemporary(token: oldToken)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: oldURL.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: newURL.path), "Releasing the older hand-off leaves the newer file")
+        context.releaseTemporary(token: oldToken)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: newURL.path))
+        context.cleanupTemporary()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: newURL.path))
     }
 }

@@ -17,6 +17,9 @@ import FoundationNetworking
     var pendingGoal: RoamGoalDraft? { get set }
     var unresolvedCapsuleRequestID: String? { get }
     var unresolvedGoalRequestID: String? { get }
+    /// Durable request id from the pending journal. Nil when this conformer has no journal.
+    var journalCapsuleRequestID: String? { get }
+    var journalGoalRequestID: String? { get }
     var pendingJournalBlocked: Bool { get }
     var confirmedCancelledGoals: Set<String> { get set }
     func capsules(beforeID: String?) async throws -> RoamCapsulePage
@@ -34,10 +37,12 @@ import FoundationNetworking
 }
 
 public extension RoamPrivateToolsServing {
-    /// Request ID of an unconfirmed create, including one restored from the pending
-    /// journal after a restart (where the original draft itself is gone for good).
-    var unresolvedCapsuleRequestID: String? { pendingCapsule?.requestID }
-    var unresolvedGoalRequestID: String? { pendingGoal?.requestID }
+    /// Request ID of an unconfirmed create. After a restart the draft is gone, so this
+    /// is the journal id alone: enough to check the original receipt, never a body to resend.
+    var unresolvedCapsuleRequestID: String? { pendingCapsule?.requestID ?? journalCapsuleRequestID }
+    var unresolvedGoalRequestID: String? { pendingGoal?.requestID ?? journalGoalRequestID }
+    var journalCapsuleRequestID: String? { nil }
+    var journalGoalRequestID: String? { nil }
     /// True when durable pending state could not be read, so writes must fail closed.
     var pendingJournalBlocked: Bool { false }
 }
@@ -258,13 +263,13 @@ public struct RoamPrivateToolsService {
             restoredCapsuleRequestID = nil; restoredGoalRequestID = nil; pendingJournalBlocked = true
         }
     }
-    public var unresolvedCapsuleRequestID: String? {
+    public var journalCapsuleRequestID: String? {
         _ = synchronize()
-        return storedCapsule?.requestID ?? restoredCapsuleRequestID
+        return restoredCapsuleRequestID
     }
-    public var unresolvedGoalRequestID: String? {
+    public var journalGoalRequestID: String? {
         _ = synchronize()
-        return storedGoal?.requestID ?? restoredGoalRequestID
+        return restoredGoalRequestID
     }
     /// Make the minimal identity durable before dispatch. A save failure, a corrupt
     /// journal or a slot held by a different request all stop the write here, so no

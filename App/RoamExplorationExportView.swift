@@ -26,13 +26,19 @@ struct RoamExportShareItem: Transferable {
     let file: RoamExportFile
     let lease: RoamExportDeliveryLease
     let context: RoamExportDeliveryContext
-    static func temporaryURL(_ name: String) -> URL { FileManager.default.temporaryDirectory.appendingPathComponent(name) }
+    /// A unique folder per hand-off so two exports never share one temporary path.
+    static func temporaryURL(_ name: String) -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("roam-export-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent(name)
+    }
     static var transferRepresentation: some TransferRepresentation {
         FileRepresentation(exportedContentType: .roamJSONL) { item in
             guard let data = RoamExportHandoff.contents(file: item.file, lease: item.lease, context: item.context) else {
                 throw CancellationError()
             }
             let url = temporaryURL(item.file.fileName)
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             try data.write(to: url, options: [.atomic, .completeFileProtection])
             item.context.rememberTemporary(url)
             return SentTransferredFile(url)
@@ -57,24 +63,29 @@ struct RoamExportDocument: FileDocument {
     }
 }
 
-/// System share with a real completion. Cancel and success both clean the temp file.
+/// System share with a real completion. Cancel deletes the temp file and is not a save.
 @MainActor private struct RoamExportActivityShare: UIViewControllerRepresentable {
     let file: RoamExportFile
     let lease: RoamExportDeliveryLease
+    let token: UUID
     let context: RoamExportDeliveryContext
     let isCurrent: @MainActor () -> Bool
-    let finish: @MainActor () -> Void
+    let finish: @MainActor (Bool) -> Void
     func makeUIViewController(context controllerContext: Context) -> UIActivityViewController {
-        let url: URL?
+        let target = RoamExportShareItem.temporaryURL(file.fileName)
+        var items: [URL] = []
         if isCurrent(), let data = RoamExportHandoff.contents(file: file, lease: lease, context: context) {
-            let target = RoamExportShareItem.temporaryURL(file.fileName)
-            try? data.write(to: target, options: [.atomic, .completeFileProtection])
-            self.context.rememberTemporary(target)
-            url = target
-        } else { url = nil }
-        let controller = UIActivityViewController(activityItems: url.map { [$0] } ?? [], applicationActivities: nil)
-        controller.completionWithItemsHandler = { _, _, _, _ in
-            Task { @MainActor in finish() }
+            try? FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+            if (try? data.write(to: target, options: [.atomic, .completeFileProtection])) != nil {
+                self.context.rememberTemporary(target, token: token)
+                items = [target]
+            }
+        }
+        let wrote = !items.isEmpty
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        controller.completionWithItemsHandler = { _, completed, _, error in
+            let saved = wrote && RoamExportHandoff.recordsSave(completed: completed, errorIsSet: error != nil)
+            Task { @MainActor in finish(saved) }
         }
         return controller
     }
@@ -87,6 +98,7 @@ private struct RoamExportShareOffer: Identifiable {
     let id = UUID()
     let file: RoamExportFile
     let lease: RoamExportDeliveryLease
+    let token: UUID
 }
 
 @MainActor private struct RoamExportContent: View {
@@ -99,6 +111,8 @@ private struct RoamExportShareOffer: Identifiable {
     @State private var saveResult: LocalizedStringKey?
     @State private var deliveryContext = RoamExportDeliveryContext()
     @State private var shareOffer: RoamExportShareOffer?
+    /// Leases captured when Save was tapped, oldest first, so a late result stays on its own export.
+    @State private var saveLeases: [RoamExportDeliveryLease] = []
     @Environment(\.scenePhase) private var scenePhase
     init(tools: any RoamPrivateToolsServing) {
         self.tools = tools
@@ -131,8 +145,7 @@ private struct RoamExportShareOffer: Identifiable {
         .onChange(of: scenePhase) { _, phase in
             refreshDeliveryContext()
             if phase == .active {
-                // Return is not a revival: the coordinator revalidates identity and
-                // expiry before any fresh delivery lease exists.
+                // Foreground return rechecks identity and expiry. It does not make a revoked file deliverable.
                 model.renewDelivery()
             } else {
                 model.revokeDelivery(); deliveryContext.cleanupTemporary(); saving = false; shareOffer = nil
@@ -140,17 +153,31 @@ private struct RoamExportShareOffer: Identifiable {
         }
         .onChange(of: tools.identity) { _, _ in refreshDeliveryContext() }
         .fileExporter(isPresented: $saving, document: exportDocument,
-                      contentType: .roamJSONL, defaultFilename: model.fileForDelivery(foreground: scenePhase == .active)?.fileName) { result in
-            deliveryContext.cleanupTemporary()
+                      contentType: .roamJSONL, defaultFilename: model.file?.fileName) { result in
+            guard !saveLeases.isEmpty else { return }
+            let lease = saveLeases.removeFirst()
+            // A late result from an older save must not record success or revoke a newer lease.
+            guard RoamExportHandoff.callbackMatches(lease, current: model.deliveryLease) else { return }
             switch result {
             case .success: saveResult = "roam.export.saved"
-            case .failure(let error): saveResult = (error as? CocoaError)?.code == .userCancelled ? "roam.export.cancelled" : "roam.export.saveFailed"
+            case .failure(let error):
+                let cancelled = (error as? CocoaError)?.code == .userCancelled
+                saveResult = cancelled ? "roam.export.cancelled" : "roam.export.saveFailed"
+                if cancelled { model.revokeDelivery() }
             }
         }
-        .sheet(item: $shareOffer, onDismiss: { deliveryContext.cleanupTemporary() }) { offer in
-            RoamExportActivityShare(file: offer.file, lease: offer.lease, context: deliveryContext,
-                                    isCurrent: { model.fileForDelivery(foreground: scenePhase == .active)?.fileName == offer.file.fileName },
-                                    finish: { deliveryContext.cleanupTemporary(); shareOffer = nil })
+        .sheet(item: $shareOffer) { offer in
+            RoamExportActivityShare(file: offer.file, lease: offer.lease, token: offer.token, context: deliveryContext,
+                                    isCurrent: { model.deliveryLease === offer.lease && model.fileForDelivery(foreground: scenePhase == .active) != nil },
+                                    finish: { saved in
+                                        deliveryContext.releaseTemporary(token: offer.token)
+                                        guard shareOffer?.id == offer.id else { return }
+                                        if RoamExportHandoff.callbackMatches(offer.lease, current: model.deliveryLease) {
+                                            if saved { saveResult = "roam.export.saved" }
+                                            else { model.revokeDelivery() }
+                                        }
+                                        shareOffer = nil
+                                    })
         }
         .accessibilityIdentifier("roam.export.screen")
     }
@@ -159,7 +186,7 @@ private struct RoamExportShareOffer: Identifiable {
         preset = kind; startDate = value.startDate; endDate = value.endDateExclusive
     }
     private var exportDocument: RoamExportDocument? {
-        guard let file = model.fileForDelivery(foreground: scenePhase == .active), let lease = model.deliveryLease else { return nil }
+        guard saving, let lease = saveLeases.last, let file = model.file, file.rows > 0 else { return nil }
         refreshDeliveryContext()
         return RoamExportDocument(file: file, lease: lease, context: deliveryContext)
     }
@@ -203,14 +230,16 @@ private struct RoamExportShareOffer: Identifiable {
                 Button("roam.export.share") {
                     refreshDeliveryContext()
                     if let lease = model.deliveryLease, model.fileForDelivery(foreground: scenePhase == .active) != nil {
-                        shareOffer = RoamExportShareOffer(file: file, lease: lease)
+                        shareOffer = RoamExportShareOffer(file: file, lease: lease, token: UUID())
                     } else if model.isFileExpired { model.discardExpired() }
                 }.accessibilityIdentifier("roam.export.share")
                 Button("roam.export.save") {
                     saveResult = nil
+                    refreshDeliveryContext()
                     // Revalidated at tap time; an expired or revoked file opens no exporter.
-                    if model.fileForDelivery(foreground: scenePhase == .active) != nil { saving = true }
-                    else if model.isFileExpired { model.discardExpired() }
+                    if let lease = model.deliveryLease, model.fileForDelivery(foreground: scenePhase == .active) != nil {
+                        saveLeases.append(lease); saving = true
+                    } else if model.isFileExpired { model.discardExpired() }
                 }.accessibilityIdentifier("roam.export.save")
             }
         } else if model.phase == .complete && model.isFileExpired {

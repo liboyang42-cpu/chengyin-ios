@@ -5,9 +5,8 @@ import Foundation
 /// The coordinator issues a lease only for a fully read, non-empty file. The view checks
 /// the lease again at the actual hand-off moment, and revokes it when the scene leaves the
 /// foreground or the page goes away; an expired, revoked, foreign-identity or backgrounded
-/// lease delivers nothing. Revocation is one-way for the lease instance: returning to the
-/// foreground never revives it, so a revoked file must be re-validated by the coordinator
-/// issuing a fresh lease.
+/// lease delivers nothing. Revocation is one-way: returning to the foreground never revives
+/// this lease or the file it covered. A later completed read gets a new lease.
 public final class RoamExportDeliveryLease: @unchecked Sendable {
     public let fileName: String
     public let rows: Int
@@ -58,6 +57,7 @@ public final class RoamExportDeliveryContext: @unchecked Sendable {
     private var identity: RoamExperienceIdentity?
     private var foreground = false
     private var temporaryURL: URL?
+    private var tokens: [UUID: URL] = [:]
 
     public init() {}
 
@@ -75,10 +75,47 @@ public final class RoamExportDeliveryContext: @unchecked Sendable {
         lock.lock(); temporaryURL = url; lock.unlock()
     }
 
-    /// Cancel and completion both drop the temporary copy. A second call is a no-op.
+    /// One hand-off, one file. A later hand-off keeps its own token, so releasing the
+    /// earlier one cannot delete the file a newer lease is about to deliver.
+    public func rememberTemporary(_ url: URL, token: UUID) {
+        lock.lock()
+        let previous = tokens.updateValue(url, forKey: token)
+        temporaryURL = url
+        lock.unlock()
+        if let previous, previous != url { Self.removeExportedCopy(previous) }
+    }
+
+    public func releaseTemporary(token: UUID) {
+        lock.lock()
+        let url = tokens.removeValue(forKey: token)
+        if let url, temporaryURL == url { temporaryURL = nil }
+        lock.unlock()
+        if let url { Self.removeExportedCopy(url) }
+    }
+
+    /// Cancel, completion, background and leaving the page all drop temporary copies.
+    /// A second call is a no-op. This removes every hand-off still remembered.
     public func cleanupTemporary() {
-        lock.lock(); let url = temporaryURL; temporaryURL = nil; lock.unlock()
-        if let url { try? FileManager.default.removeItem(at: url) }
+        lock.lock()
+        let urls = Array(tokens.values)
+        let latest = temporaryURL
+        tokens.removeAll()
+        temporaryURL = nil
+        lock.unlock()
+        var removed: [URL] = []
+        for url in urls where !removed.contains(url) {
+            removed.append(url)
+            Self.removeExportedCopy(url)
+        }
+        if let latest, !removed.contains(latest) { Self.removeExportedCopy(latest) }
+    }
+
+    /// Deletes the copy and its unique parent folder when this hand-off created one.
+    private static func removeExportedCopy(_ url: URL) {
+        try? FileManager.default.removeItem(at: url)
+        let parent = url.deletingLastPathComponent()
+        guard parent.lastPathComponent.hasPrefix("roam-export-") else { return }
+        try? FileManager.default.removeItem(at: parent)
     }
 }
 
@@ -89,5 +126,15 @@ public enum RoamExportHandoff {
         let shot = context.snapshot()
         guard lease.validatedFile(file, now: shot.now, currentIdentity: shot.identity, foreground: shot.foreground) != nil else { return nil }
         return Data(file.content.utf8)
+    }
+
+    /// System share success is only a finished activity with no error. Cancel is not a save.
+    public static func recordsSave(completed: Bool, errorIsSet: Bool) -> Bool {
+        completed && !errorIsSet
+    }
+
+    /// An older share's callback may change delivery only while its lease is still current.
+    public static func callbackMatches(_ callback: RoamExportDeliveryLease, current: RoamExportDeliveryLease?) -> Bool {
+        callback === current
     }
 }
