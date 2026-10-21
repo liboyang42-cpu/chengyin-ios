@@ -10,12 +10,12 @@ final class MerchantOfferWithdrawalTests: XCTestCase {
     }
     private func subject(state: String = "ACTIVE", offerActive: String = "true",
                          circle: String = "null", product: String = "2", lifecycle: String = "3",
-                         reason: String = "null", offerID: String = "77") throws -> MerchantOfferWithdrawalSubject {
+                         reason: String = "null", offerID: String = "77", chapterRequired: Bool? = true) throws -> MerchantOfferWithdrawalSubject {
         let mine = try value("{\"id\":10,\"chapterId\":33,\"topicId\":10,\"offerId\":\(offerID),"
             + "\"offerState\":\"\(state)\",\"offerActive\":\(offerActive),\"circleThemeCode\":\(circle),"
             + "\"offerWithdrawReason\":\(reason)}")
         let topic = try value("{\"productType\":\(product),\"lifecycle\":\(lifecycle),\"circleThemeCode\":\(circle)}")
-        return MerchantOfferWithdrawalSubject(mineRow: mine, topic: topic, chapterRequired: true)
+        return MerchantOfferWithdrawalSubject(mineRow: mine, topic: topic, chapterRequired: chapterRequired)
     }
 
     // MARK: Reason and wire shape
@@ -54,6 +54,7 @@ final class MerchantOfferWithdrawalTests: XCTestCase {
         XCTAssertTrue(value.isEligible); XCTAssertNil(value.ineligibility)
         let impact = MerchantOfferWithdrawalImpact(subject: value)
         XCTAssertTrue(impact.mayPauseNewEnrolment); XCTAssertTrue(impact.retainsOrdersFulfilmentAndRedemption)
+        XCTAssertTrue(MerchantOfferWithdrawalImpact(subject: try subject(chapterRequired: false)).mayPauseNewEnrolment, "chapterRequired false does not exclude a pause")
         XCTAssertFalse(impact.automaticRefundOrDissolution)
     }
 

@@ -101,7 +101,14 @@ public struct MerchantContentSnapshot: Equatable {
     public let access: MerchantAccess
     public let value: MerchantContentValue
     public let observedAt: Date
-    public static func == (lhs: Self, rhs: Self) -> Bool { lhs.query == rhs.query && lhs.scope == rhs.scope && lhs.access == rhs.access && lhs.value == rhs.value }
+    /// Signed-in member id. Not the merchant archive id in `access.merchantID`.
+    public let ownerMemberID: Int?
+    public init(query: MerchantContentQuery, scope: UUID, access: MerchantAccess, value: MerchantContentValue, observedAt: Date, ownerMemberID: Int? = nil) {
+        self.query = query; self.scope = scope; self.access = access; self.value = value; self.observedAt = observedAt; self.ownerMemberID = ownerMemberID
+    }
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.query == rhs.query && lhs.scope == rhs.scope && lhs.access == rhs.access && lhs.value == rhs.value && lhs.ownerMemberID == rhs.ownerMemberID
+    }
     public var rows: [MerchantContentValue] { value.array ?? value["rows"].array ?? [] }
 }
 public enum MerchantRecruitMode: String {

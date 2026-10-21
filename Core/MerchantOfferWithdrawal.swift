@@ -167,8 +167,8 @@ public struct MerchantOfferWithdrawalSubject: Equatable, Sendable {
 }
 
 /// Impact facts the confirmation screen must not omit. Retention facts are
-/// unconditional; the enrolment pause depends on chapter requiredness and is
-/// phrased as a possibility until the response hint and readback are known.
+/// unconditional. Enrolment may still pause when the chapter is not required,
+/// so the disclosure stays until a fact excludes both causes.
 public struct MerchantOfferWithdrawalImpact: Equatable, Sendable {
     public let mayPauseNewEnrolment: Bool
     public let retainsOrdersFulfilmentAndRedemption = true
@@ -176,7 +176,11 @@ public struct MerchantOfferWithdrawalImpact: Equatable, Sendable {
     public let mayInvalidateSupplyReviewAndPublication = true
     public let mayNotifyParticipantsAndOwner = true
     public init(subject: MerchantOfferWithdrawalSubject) {
-        mayPauseNewEnrolment = subject.chapterRequired != false
+        // Backend pauses when the chapter is required OR its review was invalidated.
+        // `chapterRequired == false` does not exclude that, so the disclosure stays
+        // until an authoritative fact says both are clear. No such fact is on this row.
+        mayPauseNewEnrolment = true
+        _ = subject
     }
 }
 

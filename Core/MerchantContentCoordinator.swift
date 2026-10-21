@@ -79,6 +79,8 @@ public struct MerchantContentReview: Identifiable, Equatable {
                 let record = try? service.pending().first(where: { MerchantChapterInvitationIntent(record: $0) != nil && $0.merchantID == frozen.baseline.access.merchantID })
                 var verdict: MerchantChapterInvitationReadback? = nil
                 if let record { verdict = try? await service.reconcileChapterInvitation(record) }
+                // Same guard as the manual readback: a late result must not write after leave.
+                guard generation == operation, service.scope == frozen.scope else { return }
                 if let verdict {
                     switch verdict {
                     case .confirmedCurrentFact(let reason, let row):

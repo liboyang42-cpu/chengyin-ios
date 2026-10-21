@@ -5,7 +5,7 @@ import XCTest
 import FoundationNetworking
 #endif
 
-private let inviteRow = #"{"id":12,"topicId":70,"chapterId":7,"topicName":"Route","chapterName":"Market chapter","status":0,"source":1,"merchantId":31}"#
+private let inviteRow = #"{"id":12,"topicId":70,"chapterId":7,"topicName":"Route","chapterName":"Market chapter","status":0,"source":1,"merchantId":1}"#
 private func accessJSON(role: String = "MERCHANT_OWNER", permissions: [String]) -> String {
     #"{"active":true,"merchant":{"id":31,"name":"Shop"},"roleCode":""# + role + #"","permissions":["# + permissions.joined(separator: "\",\"") + #"]}"#
 }
@@ -13,8 +13,8 @@ private let coopAccess = accessJSON(permissions: ["merchant:coop:manage"])
 
 final class MerchantChapterInvitationDomainTests: XCTestCase {
     private func access(_ json: String) throws -> MerchantAccess { try JSONDecoder().decode(MerchantAccess.self, from: Data(json.utf8)) }
-    private func snapshot(_ access: MerchantAccess, _ raw: String) throws -> MerchantContentSnapshot {
-        .init(query: .chapterInvitations, scope: UUID(), access: access, value: try MerchantContentFixtureData.value(raw), observedAt: Date())
+    private func snapshot(_ access: MerchantAccess, _ raw: String, ownerMemberID: Int = 1) throws -> MerchantContentSnapshot {
+        .init(query: .chapterInvitations, scope: UUID(), access: access, value: try MerchantContentFixtureData.value(raw), observedAt: Date(), ownerMemberID: ownerMemberID)
     }
     func testCoopOwnerGateNeverSubstitutesProjects() throws {
         XCTAssertTrue(MerchantChapterInvitation.accessAllows(try access(coopAccess)))
@@ -43,7 +43,7 @@ final class MerchantChapterInvitationDomainTests: XCTestCase {
         for raw in [inviteRow.replacingOccurrences(of: #""source":1"#, with: #""source":0"#),
                     inviteRow.replacingOccurrences(of: #""status":0"#, with: #""status":1"#),
                     inviteRow.replacingOccurrences(of: #""status":0"#, with: #""status":2"#),
-                    inviteRow.replacingOccurrences(of: #""merchantId":31"#, with: #""merchantId":32"#)] {
+                    inviteRow.replacingOccurrences(of: #""merchantId":1"#, with: #""merchantId":31"#)] {
             XCTAssertThrowsError(try MerchantContentCommand.respondChapterInvitation(applicationID: 12, accepted: true, chapterID: 7, topicID: 70)
                 .validate(against: snapshot(try access(coopAccess), "[" + raw + "]")))
         }
@@ -63,7 +63,7 @@ final class MerchantChapterInvitationDomainTests: XCTestCase {
     func testReadbackVerdicts() throws {
         let intent = try MerchantChapterInvitationIntent(storageScope: "realm", accountID: 1, merchantID: 31, applicationID: 12, chapterID: 7, topicID: 70, accepted: true)
         func verdict(_ raw: String?) -> MerchantChapterInvitationReadback {
-            MerchantChapterInvitationReadback.evaluate(intent: intent, row: raw.map { try! MerchantContentFixtureData.value($0) }, currentMerchantID: 31)
+            MerchantChapterInvitationReadback.evaluate(intent: intent, row: raw.map { try! MerchantContentFixtureData.value($0) }, currentOwnerMemberID: 1)
         }
         guard case .confirmedCurrentFact = verdict(inviteRow.replacingOccurrences(of: #""status":0"#, with: #""status":1"#)) else { return XCTFail("accept terminal") }
         guard case .oppositeTerminal = verdict(inviteRow.replacingOccurrences(of: #""status":0"#, with: #""status":2"#)) else { return XCTFail("opposite") }
@@ -71,7 +71,8 @@ final class MerchantChapterInvitationDomainTests: XCTestCase {
         XCTAssertEqual(verdict(nil), .missing)
         XCTAssertEqual(verdict(inviteRow.replacingOccurrences(of: #""topicId":70"#, with: #""topicId":71"#)), .conflict)
         XCTAssertEqual(verdict(inviteRow.replacingOccurrences(of: #""source":1"#, with: #""source":0"#)), .conflict)
-        XCTAssertEqual(MerchantChapterInvitationReadback.evaluate(intent: intent, row: try MerchantContentFixtureData.value(inviteRow), currentMerchantID: 32), .conflict)
+        XCTAssertEqual(MerchantChapterInvitationReadback.evaluate(intent: intent, row: try MerchantContentFixtureData.value(inviteRow), currentOwnerMemberID: 2), .conflict)
+        XCTAssertEqual(verdict(inviteRow.replacingOccurrences(of: #""merchantId":1"#, with: #""merchantId":31"#)), .conflict, "Archive id is not the member id")
         XCTAssertTrue(MerchantChapterInvitationReadback.confirmedCurrentFact(reason: nil, row: .null).clearsIntentLock)
         XCTAssertFalse(MerchantChapterInvitationReadback.stillPending(row: .null).clearsIntentLock)
     }
@@ -118,9 +119,11 @@ private final class InvitationScriptTransport: MerchantContentOfflineTransport {
         let t = InvitationScriptTransport(), box = SessionBox(), journal = MerchantContentMemoryPendingStorage()
         let s = try service(t, box: box, journal: journal); let base = try await baseline(t, s)
         t.append(coopAccess); t.append("[" + inviteRow + "]"); t.append("{}")
+        t.append(coopAccess); t.append("[" + inviteRow.replacingOccurrences(of: #""status":0"#, with: #""status":1"#) + "]")
         _ = try await s.perform(.respondChapterInvitation(applicationID: 12, accepted: true, chapterID: 7, topicID: 70), baseline: base)
         XCTAssertEqual(t.respondCount, 1); XCTAssertTrue(try journal.records().isEmpty)
-        let body = try JSONDecoder().decode([String: MerchantContentValue].self, from: t.requests.last!.httpBody!)
+        let respond = try XCTUnwrap(t.requests.first { $0.url?.path == "/api/merchant/chapter-application/invite/respond" })
+        let body = try JSONDecoder().decode([String: MerchantContentValue].self, from: respond.httpBody!)
         XCTAssertEqual(body, ["applicationId": .integer(12), "accepted": .bool(true)])
     }
     func testCapacityRejectionClearsLockAndKeepsServerMessage() async throws {

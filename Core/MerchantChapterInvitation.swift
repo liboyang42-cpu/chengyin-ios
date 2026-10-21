@@ -23,7 +23,9 @@ public struct MerchantChapterInvitation: Equatable, Identifiable {
     public let topicID: Int
     public let chapterName: String?
     public let topicName: String?
-    public let merchantID: Int?
+    /// Wire field `merchantId` on mine/owner-list/owner-mine. That value is the member id
+    /// (`m.member_id = a.merchant_id`), not the merchant archive id.
+    public let ownerMemberID: Int?
     public let status: Status
     public let isInvite: Bool
     public let serverReason: String?
@@ -39,7 +41,7 @@ public struct MerchantChapterInvitation: Equatable, Identifiable {
         applicationID = id; chapterID = chapter; topicID = topic
         chapterName = row["chapterName"].text.flatMap { $0.isEmpty ? nil : $0 }
         topicName = row["topicName"].text.flatMap { $0.isEmpty ? nil : $0 }
-        merchantID = row["merchantId"].integer.flatMap { $0 > 0 ? $0 : nil }
+        ownerMemberID = row["merchantId"].integer.flatMap { $0 > 0 ? $0 : nil }
         status = Status(code: statusCode)
         isInvite = row["source"].integer == 1 || row["source"].text == "INVITE" || row["source"].text == "1"
         serverReason = [row["auditRemark"].text, row["auditReason"].text, row["reason"].text, row["message"].text]
@@ -75,6 +77,8 @@ public struct MerchantChapterInvitationIntent: Codable, Equatable {
         self.storageScope = storageScope; self.accountID = accountID; self.merchantID = merchantID
         self.applicationID = applicationID; self.chapterID = chapterID; self.topicID = topicID; self.accepted = accepted
     }
+    /// Member-domain identity of the signed-in owner. The archive id stays in `merchantID`.
+    public var ownerMemberID: Int { accountID }
     public var intendedStatus: MerchantChapterInvitation.Status { accepted ? .approved : .rejected }
     public var oppositeStatus: MerchantChapterInvitation.Status { accepted ? .rejected : .approved }
     /// Shared journal encoding (`MerchantContentPendingRecord.target/action`); no new store.
@@ -105,13 +109,13 @@ public enum MerchantChapterInvitationReadback: Equatable {
     case stillPending(row: MerchantContentValue)
     case missing, conflict
 
-    public static func evaluate(intent: MerchantChapterInvitationIntent, row: MerchantContentValue?, currentMerchantID: Int?) -> MerchantChapterInvitationReadback {
-        guard currentMerchantID == intent.merchantID else { return .conflict }
+    public static func evaluate(intent: MerchantChapterInvitationIntent, row: MerchantContentValue?, currentOwnerMemberID: Int?) -> MerchantChapterInvitationReadback {
+        guard currentOwnerMemberID == intent.ownerMemberID else { return .conflict }
         guard let row else { return .missing }
         guard let invitation = try? MerchantChapterInvitation(row: row),
               invitation.applicationID == intent.applicationID, invitation.chapterID == intent.chapterID,
               invitation.topicID == intent.topicID, invitation.isInvite,
-              invitation.merchantID == nil || invitation.merchantID == intent.merchantID else { return .conflict }
+              invitation.ownerMemberID == intent.ownerMemberID else { return .conflict }
         switch invitation.status {
         case intent.intendedStatus: return .confirmedCurrentFact(reason: invitation.serverReason, row: row)
         case intent.oppositeStatus: return .oppositeTerminal(reason: invitation.serverReason, row: row)

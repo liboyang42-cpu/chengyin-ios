@@ -156,7 +156,7 @@ extension MerchantContentServing {
         let access = try await access(session, query: query)
         let value = try await document(query, session: session)
         try ensure(session)
-        return .init(query: query, scope: capturedScope, access: access, value: value, observedAt: Date())
+        return .init(query: query, scope: capturedScope, access: access, value: value, observedAt: Date(), ownerMemberID: session.accountID)
     }
     /// Cooperation-center plaza: same fresh `.recruiting` access gate, but keeps the whole
     /// marketing-home document so counts and truncation can be disclosed. Read-only.
@@ -326,6 +326,17 @@ extension MerchantContentServing {
             var receipt = MerchantContentReceipt(message: e.msg, data: e.data ?? .null, station: nil)
             if let station { receipt = try await stationReceipt(station, session: session) }
             if case .place = command { guard MerchantCityPlacementReceipt.applicationID(receipt.data) != nil else { throw MerchantContentFailure.unknown } }
+            if case .respondChapterInvitation = command {
+                // An ACK is not the fact. Read the original application back before clearing the lock.
+                try ensure(session)
+                let verdict = try await reconcileChapterInvitation(record)
+                switch verdict {
+                case .confirmedCurrentFact(let reason, let row), .oppositeTerminal(let reason, let row):
+                    return MerchantContentReceipt(message: reason ?? e.msg, data: row, station: nil)
+                case .stillPending, .missing, .conflict:
+                    throw MerchantContentFailure.unknown
+                }
+            }
             try ensure(session); try journal.remove(key: record.key)
             return receipt
         } catch {
@@ -347,10 +358,11 @@ extension MerchantContentServing {
         guard let session = currentSession(), record.storageScope == session.storageScope, record.accountID == session.accountID,
               let journal, try journal.records().contains(record), let intent = MerchantChapterInvitationIntent(record: record) else { throw MerchantContentFailure.locked }
         let access = try await access(session, query: .chapterInvitations)
-        guard access.merchantID == record.merchantID, intent.merchantID == record.merchantID else { throw MerchantContentFailure.denied }
+        guard access.merchantID == record.merchantID, intent.merchantID == record.merchantID,
+              intent.ownerMemberID == session.accountID else { throw MerchantContentFailure.denied }
         let value = try await read("api/merchant/chapter-application/mine", session: session)
         guard let rows = value.array ?? value["rows"].array else { throw MerchantContentFailure.malformed }
-        let verdict = MerchantChapterInvitationReadback.evaluate(intent: intent, row: rows.first { $0["id"].integer == intent.applicationID }, currentMerchantID: access.merchantID)
+        let verdict = MerchantChapterInvitationReadback.evaluate(intent: intent, row: rows.first { $0["id"].integer == intent.applicationID }, currentOwnerMemberID: session.accountID)
         if verdict.clearsIntentLock { try ensure(session); try journal.remove(key: record.key) }
         return verdict
     }

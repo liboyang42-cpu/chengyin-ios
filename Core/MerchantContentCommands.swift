@@ -141,7 +141,7 @@ public enum MerchantContentCommand: Codable, Equatable {
             try need(MerchantChapterInvitation.accessAllows(snapshot.access))
             guard let raw = row(id), let invitation = try? MerchantChapterInvitation(row: raw) else { throw MerchantContentFailure.denied }
             try need(invitation.canRespond && invitation.chapterID == chapter && invitation.topicID == topic
-                     && (invitation.merchantID == nil || invitation.merchantID == snapshot.access.merchantID))
+                     && invitation.ownerMemberID == snapshot.ownerMemberID)
         case .auditApplication(let id, _, _):
             guard case .ownerApplications = snapshot.query else { throw MerchantContentFailure.invalid }
             try need(row(id)?["status"].integer == 0)

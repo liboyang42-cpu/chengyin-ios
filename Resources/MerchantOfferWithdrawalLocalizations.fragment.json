@@ -311,13 +311,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "必选章节退出可能暂停该主题新增报名，直到补位。"
+          "value": "可能暂停新增报名"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Exiting a required chapter may pause new enrolment until a replacement is found."
+          "value": "New enrolment may be paused."
         }
       }
     }
