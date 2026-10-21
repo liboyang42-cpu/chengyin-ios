@@ -18,7 +18,7 @@ import Core
     }
 
     private func makeConfig() throws -> APIConfiguration {
-        try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.invalid")))
+        try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.com/fixture/")))
     }
 
     func testReaderReturnsNilWhenReadsDisabledOrSessionMissing() throws {

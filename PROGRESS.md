@@ -497,3 +497,16 @@ Added 21 authored core methods, nine synthetic UI methods, eight aggregate Pytho
   - The pbxproj was regenerated, and the xcstrings files were merged as a key-wise union.
 - `check_scaffold` fails identically on migration/native-ios itself: base commit 706d1530 has wallet.earnings.* keys missing from the default catalog.
 - The -m scan re-observes the same 5 reviewed lines under a5376d0a, so their exact fingerprints are added.
+
+### 2026-10-21 01:45 UTC — integrator Z (wave-2)
+
+- ab2ae70c copies the 13 `wallet.earnings.*` entries into the default catalog, so `check_scaffold` passes on the integration branch.
+- Compile fixes for pkg01 (9c8da3de) against the current Play API:
+  - 602de58f: `themeState(scope:topicID:token:)` call shape.
+  - 1776c25a: guarded `QuestifyCore` import.
+  - f2bc2564: `PlayExperienceSession` now needs `namespace:`; `APIConfiguration` no longer takes `region:`.
+- Run 39513558542 (f2bc2564):
+  - AppUnit compiles and runs.
+  - The 3 PlayThemeAuxiliaryAdapterTests threw `invalidConfiguration` because `APIConfiguration` rejects `.invalid` hosts by design. This commit switches the fixture to the same `https://example.com/fixture/` stub base the sibling tests use; no assertion changed.
+  - native (core) still fails only in the 2 owner test files: MyProjectListPresentationTests and PlayGameSessionCompositionTests.
+- The base has not moved since 76ce1b31, which is already merged.
