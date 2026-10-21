@@ -394,12 +394,33 @@ struct MerchantRootModeSwitch {
     }
 }
 
+/// Token captured at the moment a child merchant surface begins an access reload.
+/// Ensures late/out-of-order observations cannot resurrect a revoked or exited merchant grant.
+struct MerchantAccessObservationToken: Equatable, Sendable {
+    let verificationGeneration: UInt64
+    let containerGeneration: UUID
+    let accountID: Int
+    let sessionRevision: UInt64
+}
+
+/// Environment hook allowing child merchant surfaces (such as `MerchantHomeView`) to capture an observation token
+/// before `await reader.merchantAccess()` and report the result back only if the token still matches.
+struct MerchantAccessObservationHook {
+    var begin: @MainActor () -> MerchantAccessObservationToken?
+    var complete: @MainActor (MerchantAccessObservationToken, MerchantAccess?, String?) -> Void
+
+    static let noop = MerchantAccessObservationHook(
+        begin: { nil },
+        complete: { _, _, _ in }
+    )
+}
+
 private struct MerchantRootModeSwitchKey: EnvironmentKey {
     static let defaultValue = MerchantRootModeSwitch.unavailable
 }
 
 private struct MerchantAccessObserverKey: EnvironmentKey {
-    static let defaultValue: (@MainActor (MerchantAccess?, String?, UInt64) -> Void)? = nil
+    static let defaultValue = MerchantAccessObservationHook.noop
 }
 
 extension EnvironmentValues {
@@ -407,7 +428,7 @@ extension EnvironmentValues {
         get { self[MerchantRootModeSwitchKey.self] }
         set { self[MerchantRootModeSwitchKey.self] = newValue }
     }
-    var merchantAccessObserver: (@MainActor (MerchantAccess?, String?, UInt64) -> Void)? {
+    var merchantAccessObserver: MerchantAccessObservationHook {
         get { self[MerchantAccessObserverKey.self] }
         set { self[MerchantAccessObserverKey.self] = newValue }
     }
@@ -630,27 +651,57 @@ final class MerchantRootModeCoordinator: ObservableObject {
         return await requestMerchantMode(reader: reader, accountID: accountID, initialTab: preservedTab)
     }
 
-    /// Applies an authoritative merchant access snapshot observed by a child merchant surface (e.g., workbench reload).
-    /// Immediately invalidates any in-flight stale requests and updates or revokes the root merchant grant in the same session.
+    /// Captures a strict observation lease at the moment a child merchant surface initiates an access reload.
+    /// Returns `nil` when Merchant Root Mode is not currently active for `(accountID, revision)`.
+    func beginAccessObservation(accountID: Int?, revision: UInt64) -> MerchantAccessObservationToken? {
+        guard requestedMode == .merchant,
+              !isVerifying,
+              let verifiedAccess,
+              verifiedAccess.active,
+              (verifiedAccess.merchantID ?? 0) > 0,
+              let verifiedAccountID,
+              let verifiedSessionRevision,
+              let accountID,
+              accountID > 0,
+              verifiedAccountID == accountID,
+              verifiedSessionRevision == revision else {
+            return nil
+        }
+        verificationGeneration &+= 1
+        return MerchantAccessObservationToken(
+            verificationGeneration: verificationGeneration,
+            containerGeneration: merchantContainerGeneration,
+            accountID: verifiedAccountID,
+            sessionRevision: verifiedSessionRevision
+        )
+    }
+
+    /// Applies an authoritative merchant access snapshot observed by a child merchant surface (e.g., workbench reload)
+    /// using the `token` captured when that reload started.
+    /// Rejects late/out-of-order observations and never restores merchant mode after a switch to `.consumer` or revocation.
     func applyObservedMerchantAccess(
+        token: MerchantAccessObservationToken,
         access: MerchantAccess?,
         errorKey: String?,
-        accountID: Int?,
-        revision: UInt64
+        currentAccountID: Int?,
+        currentRevision: UInt64
     ) {
+        guard requestedMode == .merchant,
+              !isVerifying,
+              verifiedAccess != nil,
+              let verifiedAccountID,
+              let verifiedSessionRevision,
+              let currentAccountID,
+              currentAccountID > 0,
+              verifiedAccountID == currentAccountID,
+              verifiedSessionRevision == currentRevision,
+              token.accountID == verifiedAccountID,
+              token.sessionRevision == verifiedSessionRevision,
+              token.containerGeneration == merchantContainerGeneration,
+              token.verificationGeneration == verificationGeneration else {
+            return
+        }
         verificationGeneration &+= 1
-        guard let accountID, accountID > 0 else {
-            clearMerchantGrant(errorKey: errorKey ?? "merchant.signIn")
-            return
-        }
-        if let verifiedAccountID, verifiedAccountID != accountID {
-            clearMerchantGrant(errorKey: errorKey)
-            return
-        }
-        if let verifiedSessionRevision, verifiedSessionRevision != revision {
-            clearMerchantGrant(errorKey: errorKey)
-            return
-        }
         guard errorKey == nil,
               let access,
               access.active,
@@ -662,8 +713,8 @@ final class MerchantRootModeCoordinator: ObservableObject {
         }
         let previousAccess = verifiedAccess
         verifiedAccess = access
-        verifiedAccountID = accountID
-        verifiedSessionRevision = revision
+        self.verifiedAccountID = currentAccountID
+        self.verifiedSessionRevision = currentRevision
         requestedMode = .merchant
         isVerifying = false
         statusErrorKey = nil
@@ -845,14 +896,23 @@ struct SessionMerchantRootContainerView: View {
                     predictionReader: session.merchantPredictionReader
                 )
                 .environment(\.merchantPredictionWorkbenchEntry, { AnyView(SessionMerchantPredictionEntry(session: session)) })
-                .environment(\.merchantAccessObserver, { observedAccess, errorKey, revision in
-                    coordinator.applyObservedMerchantAccess(
-                        access: observedAccess,
-                        errorKey: errorKey,
-                        accountID: session.account?.id,
-                        revision: revision
-                    )
-                })
+                .environment(\.merchantAccessObserver, MerchantAccessObservationHook(
+                    begin: {
+                        coordinator.beginAccessObservation(
+                            accountID: session.account?.id,
+                            revision: session.sessionRevision
+                        )
+                    },
+                    complete: { token, observedAccess, errorKey in
+                        coordinator.applyObservedMerchantAccess(
+                            token: token,
+                            access: observedAccess,
+                            errorKey: errorKey,
+                            currentAccountID: session.account?.id,
+                            currentRevision: session.sessionRevision
+                        )
+                    }
+                ))
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         switchToConsumerToolbarButton

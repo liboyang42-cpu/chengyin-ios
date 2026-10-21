@@ -242,7 +242,8 @@ import XCTest
         XCTAssertTrue(enteredManager)
         coordinator.selectBusinessTab(.cooperation)
         let beforeDowngradeGeneration = coordinator.merchantContainerGeneration
-        coordinator.applyObservedMerchantAccess(access: clerkAccess, errorKey: nil, accountID: 501, revision: 10)
+        let downgradeToken = try XCTUnwrap(coordinator.beginAccessObservation(accountID: 501, revision: 10))
+        coordinator.applyObservedMerchantAccess(token: downgradeToken, access: clerkAccess, errorKey: nil, currentAccountID: 501, currentRevision: 10)
         XCTAssertEqual(coordinator.requestedMode, .merchant)
         XCTAssertEqual(coordinator.verifiedAccess, clerkAccess)
         XCTAssertEqual(coordinator.selectedMerchantTab, .workbench)
@@ -252,7 +253,8 @@ import XCTest
 
         // 6. Same-account, same-sessionRevision transition active -> inactive tears down merchant mode immediately:
         let beforeRevokeGeneration = coordinator.merchantContainerGeneration
-        coordinator.applyObservedMerchantAccess(access: inactiveAccess, errorKey: nil, accountID: 501, revision: 10)
+        let revokeToken = try XCTUnwrap(coordinator.beginAccessObservation(accountID: 501, revision: 10))
+        coordinator.applyObservedMerchantAccess(token: revokeToken, access: inactiveAccess, errorKey: nil, currentAccountID: 501, currentRevision: 10)
         XCTAssertEqual(coordinator.requestedMode, .consumer)
         XCTAssertNil(coordinator.verifiedAccess)
         XCTAssertEqual(coordinator.selectedMerchantTab, .workbench)
@@ -260,20 +262,54 @@ import XCTest
         XCTAssertFalse(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
         XCTAssertNotEqual(coordinator.merchantContainerGeneration, beforeRevokeGeneration)
 
-        // 7. Late old response counter-example: an in-flight revalidation carrying the old active grant
-        // that completes AFTER a same-session revocation must be discarded and cannot restore the old grant:
+        // 7. Out-of-order observer counter-example:
+        // Observer 1 begins while active -> Observer 2 begins and completes with inactive/denied (clearing merchant mode)
+        // -> Observer 1 arrives late with old active access -> must be rejected and NEVER resurrect merchant mode:
         activeReader.result = .success(managerAccess)
-        let enteredBeforeRace = await coordinator.requestMerchantMode(reader: activeReader, accountID: 501)
-        XCTAssertTrue(enteredBeforeRace)
-        activeReader.onAccessRequested = { [weak coordinator] in
-            coordinator?.applyObservedMerchantAccess(access: nil, errorKey: "merchant.access.denied", accountID: 501, revision: 10)
-        }
-        let staleRevalidated = await coordinator.revalidateMerchantMode(reader: activeReader, accountID: 501)
-        XCTAssertFalse(staleRevalidated)
+        let enteredForObserverRace = await coordinator.requestMerchantMode(reader: activeReader, accountID: 501)
+        XCTAssertTrue(enteredForObserverRace)
+        let earlierObserverToken = try XCTUnwrap(coordinator.beginAccessObservation(accountID: 501, revision: 10))
+        let newerObserverToken = try XCTUnwrap(coordinator.beginAccessObservation(accountID: 501, revision: 10))
+        coordinator.applyObservedMerchantAccess(
+            token: newerObserverToken,
+            access: nil,
+            errorKey: "merchant.access.denied",
+            currentAccountID: 501,
+            currentRevision: 10
+        )
         XCTAssertEqual(coordinator.requestedMode, .consumer)
         XCTAssertNil(coordinator.verifiedAccess)
-        XCTAssertEqual(coordinator.selectedMerchantTab, .workbench)
         XCTAssertEqual(coordinator.statusErrorKey, "merchant.access.denied")
+
+        // Now the earlier observer completes late with active managerAccess; it must NOT restore merchant mode:
+        coordinator.applyObservedMerchantAccess(
+            token: earlierObserverToken,
+            access: managerAccess,
+            errorKey: nil,
+            currentAccountID: 501,
+            currentRevision: 10
+        )
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        XCTAssertNil(coordinator.verifiedAccess)
+        XCTAssertFalse(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
+
+        // 8. Switch-to-consumer late observer counter-example:
+        // Observer begins while active -> user switches to consumer mode -> observer arrives late with active access -> rejected:
+        let enteredBeforeSwitch = await coordinator.requestMerchantMode(reader: activeReader, accountID: 501)
+        XCTAssertTrue(enteredBeforeSwitch)
+        let tokenBeforeConsumerSwitch = try XCTUnwrap(coordinator.beginAccessObservation(accountID: 501, revision: 10))
+        coordinator.switchToConsumerMode()
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        XCTAssertNil(coordinator.beginAccessObservation(accountID: 501, revision: 10))
+        coordinator.applyObservedMerchantAccess(
+            token: tokenBeforeConsumerSwitch,
+            access: managerAccess,
+            errorKey: nil,
+            currentAccountID: 501,
+            currentRevision: 10
+        )
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        XCTAssertNil(coordinator.verifiedAccess)
         XCTAssertFalse(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
     }
 }

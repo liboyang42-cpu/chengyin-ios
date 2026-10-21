@@ -58,9 +58,10 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     }
     private func reload() async {
         // The old grant is not usable while access is being checked again.
+        let observationToken = merchantAccessObserver.begin()
         await access.load(reader: reader, discardOldValue: true) { try await reader.merchantAccess() }
-        if !access.isLoading {
-            merchantAccessObserver?(access.value, access.errorKey, reader.sessionRevision)
+        if !access.isLoading, let observationToken {
+            merchantAccessObserver.complete(observationToken, access.value, access.errorKey)
         }
     }
 }
