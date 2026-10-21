@@ -227,22 +227,70 @@ public extension AccountCollectionReading {
     }
 }
 
+/// Identity captured with a community-gate attempt. Generation is not part of equality:
+/// A→B→A keeps the same fields and still must not revive the earlier attempt.
+public struct AccountCollectionCommunityGateIdentity: Equatable {
+    public let readerID: ObjectIdentifier?
+    public let readerScope: UUID?
+    public let gateID: ObjectIdentifier?
+    public let gateScope: UUID?
+    public let authenticated: Bool
+    public let configured: Bool
+    public init(readerID: ObjectIdentifier?, readerScope: UUID?, gateID: ObjectIdentifier?, gateScope: UUID?,
+                authenticated: Bool, configured: Bool) {
+        self.readerID = readerID; self.readerScope = readerScope; self.gateID = gateID; self.gateScope = gateScope
+        self.authenticated = authenticated; self.configured = configured
+    }
+}
+
+/// One in-flight or applied read. Object identity matters: a replacement with the same UUID is a new request.
+public struct AccountCollectionCommunityGateBinding: Equatable {
+    public let readerID: ObjectIdentifier?
+    public let readerScope: UUID?
+    public let gateID: ObjectIdentifier
+    public let gateScope: UUID
+    public let authenticated: Bool
+    public let configured: Bool
+    public let generation: UInt64
+    public var identity: AccountCollectionCommunityGateIdentity {
+        .init(readerID: readerID, readerScope: readerScope, gateID: gateID, gateScope: gateScope,
+              authenticated: authenticated, configured: configured)
+    }
+    public init(readerID: ObjectIdentifier?, readerScope: UUID?, gateID: ObjectIdentifier, gateScope: UUID,
+                authenticated: Bool, configured: Bool, generation: UInt64) {
+        self.readerID = readerID; self.readerScope = readerScope; self.gateID = gateID; self.gateScope = gateScope
+        self.authenticated = authenticated; self.configured = configured; self.generation = generation
+    }
+}
+
 /// Scoped community-feature gate state for Account Favorites (`我的收藏`).
-/// Keeps `postsAllowed == false` while pending, denied (`read == false`), or failed,
-/// leaves `gateScope == nil` on error so same-scope retries can recover, and clears
-/// state when the reader or gate scope changes.
+/// Nil, signed-out, unconfigured, pending, denied, and failed all keep posts closed.
+/// A failed attempt leaves `resolvedScope == nil` so the same scope can retry.
+/// Auto-load and manual retry share `perform`; an older completion cannot overwrite a newer one.
 @MainActor @Observable public final class AccountCollectionCommunityGateModel {
     public private(set) var features: SquareCommunityFeatures?
     public private(set) var resolvedScope: UUID?
     public private(set) var failed = false
+    public private(set) var isLoading = false
+    public private(set) var attempt: AccountCollectionCommunityGateBinding?
+    public private(set) var applied: AccountCollectionCommunityGateBinding?
     private var generation: UInt64 = 0
 
     public init() {}
 
     /// Missing gate, pending, denial, and failure all stay closed. A nil gate does not pass.
     public func postsAllowed(hasGate: Bool, currentScope: UUID?) -> Bool {
-        guard hasGate, let currentScope else { return false }
-        return resolvedScope == currentScope && features?.read == true && !failed
+        guard hasGate, let currentScope, !isLoading, !failed else { return false }
+        return resolvedScope == currentScope && features?.read == true
+    }
+
+    /// Posts open only for the current reader and gate objects, scopes, and auth configuration.
+    public func postsAllowed(reader: any AccountCollectionReading, gate: (any SquareCommunityFeatureReading)?) -> Bool {
+        guard let gate, reader.isAuthenticated, reader.isConfigured else { return false }
+        guard postsAllowed(hasGate: true, currentScope: gate.scope), let applied else { return false }
+        return applied.identity == AccountCollectionCommunityGateIdentity(
+            readerID: ObjectIdentifier(reader), readerScope: reader.scope,
+            gateID: ObjectIdentifier(gate), gateScope: gate.scope, authenticated: true, configured: true)
     }
 
     public func invalidate() {
@@ -250,6 +298,19 @@ public extension AccountCollectionReading {
         features = nil
         resolvedScope = nil
         failed = false
+        isLoading = false
+        attempt = nil
+        applied = nil
+    }
+
+    /// Drops a stored or in-flight result when the live reader, gate, scope, or auth no longer matches.
+    public func invalidateIfIdentityChanged(
+        reader: @escaping @MainActor () -> (any AccountCollectionReading)?,
+        gate: @escaping @MainActor () -> (any SquareCommunityFeatureReading)?
+    ) {
+        let live = Self.identity(reader: reader(), gate: gate(), authenticated: reader()?.isAuthenticated == true,
+                                 configured: reader()?.isConfigured == true)
+        if let stored = attempt?.identity ?? applied?.identity, stored != live { invalidate() }
     }
 
     public func load(
@@ -258,31 +319,89 @@ public extension AccountCollectionReading {
         isConfigured: Bool,
         forceRetry: Bool = false
     ) async {
-        guard let gate, isAuthenticated, isConfigured else {
+        let pinned = gate
+        let auth = isAuthenticated
+        let config = isConfigured
+        await perform(reader: { nil }, gate: { pinned }, authenticated: { auth }, configured: { config },
+                      forceRetry: forceRetry, requireReader: false)
+    }
+
+    public func load(
+        reader: @escaping @MainActor () -> (any AccountCollectionReading)?,
+        gate: @escaping @MainActor () -> (any SquareCommunityFeatureReading)?,
+        forceRetry: Bool = false
+    ) async {
+        await perform(reader: reader, gate: gate, authenticated: { reader()?.isAuthenticated == true },
+                      configured: { reader()?.isConfigured == true }, forceRetry: forceRetry, requireReader: true)
+    }
+
+    private static func identity(reader: (any AccountCollectionReading)?, gate: (any SquareCommunityFeatureReading)?,
+                                 authenticated: Bool, configured: Bool) -> AccountCollectionCommunityGateIdentity {
+        .init(readerID: reader.map { ObjectIdentifier($0) }, readerScope: reader?.scope,
+              gateID: gate.map { ObjectIdentifier($0) }, gateScope: gate?.scope,
+              authenticated: authenticated, configured: configured)
+    }
+
+    private func perform(
+        reader: @escaping @MainActor () -> (any AccountCollectionReading)?,
+        gate: @escaping @MainActor () -> (any SquareCommunityFeatureReading)?,
+        authenticated: @escaping @MainActor () -> Bool,
+        configured: @escaping @MainActor () -> Bool,
+        forceRetry: Bool,
+        requireReader: Bool
+    ) async {
+        if requireReader, reader() == nil { invalidate(); return }
+        let auth = authenticated()
+        let config = configured()
+        guard let gateNow = gate(), auth, config else { invalidate(); return }
+        let identity = Self.identity(reader: reader(), gate: gateNow, authenticated: auth, configured: config)
+        if let applied, applied.identity != identity || (resolvedScope != nil && resolvedScope != identity.gateScope) {
             invalidate()
-            return
         }
-        let scope = gate.scope
-        if resolvedScope != nil && resolvedScope != scope {
-            invalidate()
-        }
-        if resolvedScope == scope && !forceRetry {
-            return
-        }
+        if !forceRetry, !failed, !isLoading, resolvedScope == identity.gateScope, applied?.identity == identity { return }
+        if isLoading, !forceRetry, attempt?.identity == identity { return }
+        guard let gateID = identity.gateID, let gateScope = identity.gateScope else { invalidate(); return }
         generation &+= 1
         let captured = generation
+        let binding = AccountCollectionCommunityGateBinding(
+            readerID: identity.readerID, readerScope: identity.readerScope, gateID: gateID, gateScope: gateScope,
+            authenticated: auth, configured: config, generation: captured)
+        attempt = binding
         failed = false
+        features = nil
+        resolvedScope = nil
+        applied = nil
+        isLoading = true
+        defer { if captured == generation { isLoading = false; if attempt?.generation == captured { attempt = nil } } }
         do {
-            let value = try await gate.communityFeatures()
-            guard !Task.isCancelled, captured == generation, gate.scope == scope else { return }
+            let value = try await gateNow.communityFeatures()
+            guard accept(captured, binding, reader: reader, gate: gate, authenticated: authenticated, configured: configured) else { return }
             features = value
-            resolvedScope = scope
+            resolvedScope = gateScope
             failed = false
+            applied = binding
         } catch {
-            guard !Task.isCancelled, !(error is CancellationError), captured == generation, gate.scope == scope else { return }
+            guard accept(captured, binding, reader: reader, gate: gate, authenticated: authenticated, configured: configured),
+                  !(error is CancellationError) else { return }
             features = nil
             resolvedScope = nil
             failed = true
+            applied = binding
         }
+    }
+
+    private func accept(
+        _ captured: UInt64,
+        _ binding: AccountCollectionCommunityGateBinding,
+        reader: @MainActor () -> (any AccountCollectionReading)?,
+        gate: @MainActor () -> (any SquareCommunityFeatureReading)?,
+        authenticated: @MainActor () -> Bool,
+        configured: @MainActor () -> Bool
+    ) -> Bool {
+        guard !Task.isCancelled, captured == generation else { return false }
+        let auth = authenticated()
+        let config = configured()
+        guard let gateNow = gate(), auth, config else { return false }
+        return Self.identity(reader: reader(), gate: gateNow, authenticated: auth, configured: config) == binding.identity
     }
 }

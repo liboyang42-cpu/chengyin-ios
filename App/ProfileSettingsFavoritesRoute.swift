@@ -10,6 +10,8 @@ import Observation
         let scope: UUID
         let configured: Bool
         let removal: ObjectIdentifier?
+        let gate: ObjectIdentifier?
+        let gateScope: UUID?
     }
     let key: Key
     let reader: ProfileFavoritesReader
@@ -21,7 +23,8 @@ import Observation
           communityGate: (any SquareCommunityFeatureReading)? = nil) {
         guard accountID > 0, identity.accountID == accountID, reader.isAuthenticated else { return nil }
         key = .init(identity: identity, viewerRevision: viewerRevision,
-            dependency: ObjectIdentifier(reader), scope: reader.scope, configured: reader.isConfigured, removal: removal.map(ObjectIdentifier.init))
+            dependency: ObjectIdentifier(reader), scope: reader.scope, configured: reader.isConfigured, removal: removal.map(ObjectIdentifier.init),
+            gate: communityGate.map { ObjectIdentifier($0) }, gateScope: communityGate?.scope)
         self.reader = reader; self.removal = removal; self.communityGate = communityGate
     }
     static func current(_ session: AppSession) -> Self? {

@@ -106,6 +106,41 @@ import UIKit
             XCTAssertFalse(owner.openPost(.init(id: 101, generation: .legacySquare), from: route, current: changed), mutation)
             XCTAssertFalse(owner.openTopic(201, from: route, current: changed), mutation)
         }
+        let accountID = try XCTUnwrap(original.key.identity.accountID)
+        let gateA = SettingsFavoritesGateStub()
+        let gateB = SettingsFavoritesGateStub(scope: gateA.scope)
+        func access(_ gate: SettingsFavoritesGateStub) -> ProfileSettingsFavoritesAccess? {
+            ProfileSettingsFavoritesAccess(accountID: accountID, identity: original.key.identity,
+                viewerRevision: original.key.viewerRevision, reader: original.reader, removal: original.removal, communityGate: gate)
+        }
+        let accessA = try XCTUnwrap(access(gateA))
+        let accessB = try XCTUnwrap(access(gateB))
+        XCTAssertEqual(accessA.key.gate, ObjectIdentifier(gateA))
+        XCTAssertEqual(accessA.key.gateScope, gateA.scope)
+        XCTAssertEqual(accessB.key.gateScope, gateA.scope)
+        XCTAssertNotEqual(accessA.key, accessB.key)
+        let gated = ProfileSettingsFavoritesOwner()
+        gated.appear(current: accessA, foreground: true)
+        XCTAssertTrue(gated.open(accessA))
+        let gatedRoute = try XCTUnwrap(gated.route)
+        XCTAssertTrue(gated.openPost(.init(id: 101, generation: .legacySquare), from: gatedRoute, current: accessA))
+        XCTAssertTrue(gated.posts.close(id: try XCTUnwrap(gated.posts.selection?.id)))
+        gated.setForeground(false)
+        XCTAssertFalse(gated.openTopic(201, from: gatedRoute, current: accessA))
+        gated.setForeground(true)
+        gated.synchronize(accessB)
+        XCTAssertNil(gated.route)
+        XCTAssertFalse(gated.accepts(gatedRoute, current: accessB))
+        XCTAssertFalse(gated.openPost(.init(id: 101, generation: .legacySquare), from: gatedRoute, current: accessB))
+        XCTAssertFalse(gated.openTopic(201, from: gatedRoute, current: accessB))
+        let gateA2 = SettingsFavoritesGateStub(scope: gateA.scope)
+        let accessA2 = try XCTUnwrap(access(gateA2))
+        XCTAssertNotEqual(accessA.key, accessA2.key)
+        gated.synchronize(accessA2)
+        XCTAssertTrue(gated.open(accessA2))
+        XCTAssertNotEqual(gated.route?.id, gatedRoute.id)
+        XCTAssertFalse(gated.openTopic(201, from: gatedRoute, current: accessA2))
+        XCTAssertFalse(gated.openPost(.init(id: 101, generation: .legacySquare), from: gatedRoute, current: accessA2))
     }
     func testApprovalRevocationRetiresCollectionAndSelection() async throws {
         let h = try ProfileFavoritesHarness(); await h.login(); try await loadBoth(h)
@@ -197,5 +232,13 @@ import UIKit
         owner.binding(for: route).wrappedValue = nil
         XCTAssertNil(owner.route); XCTAssertFalse(selection.isCurrent)
         XCTAssertTrue(owner.open(.current(h.session)))
+    }
+}
+
+@MainActor private final class SettingsFavoritesGateStub: SquareCommunityFeatureReading {
+    var scope: UUID
+    init(scope: UUID = UUID()) { self.scope = scope }
+    func communityFeatures() async throws -> SquareCommunityFeatures {
+        SquareCommunityFeatures(read: true, write: false)
     }
 }

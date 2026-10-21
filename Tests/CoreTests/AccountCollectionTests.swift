@@ -431,3 +431,248 @@ extension AccountCollectionTests {
         XCTAssertNil(gateModel.resolvedScope)
     }
 }
+
+@MainActor private final class AccountCollectionGateScriptReader: AccountCollectionReading {
+    var scope: UUID
+    var isConfigured: Bool
+    var isAuthenticated: Bool
+    var isOfflineExample: Bool { false }
+    private(set) var topicCalls = 0
+    private(set) var postCalls = 0
+    init(scope: UUID = UUID(), configured: Bool = true, authenticated: Bool = true) {
+        self.scope = scope
+        isConfigured = configured
+        isAuthenticated = authenticated
+    }
+    func favoriteTopics(pageNumber: Int, pageSize: Int) async throws -> TopicPage {
+        topicCalls += 1
+        let row = try JSONDecoder().decode(TopicSummary.self, from: Data("{\"id\":301,\"name\":\"Synthetic topic 301\"}".utf8))
+        return TopicPage(rows: [row], pageNumber: pageNumber, pageSize: pageSize)
+    }
+    func favoritePosts(pageNumber: Int, pageSize: Int) async throws -> AccountCollectionPostPage {
+        postCalls += 1
+        return AccountCollectionPostPage(rows: [], pageNumber: pageNumber, pageSize: pageSize)
+    }
+    func ownedCoupons(keyword: String?) async throws -> [AccountCollectionCoupon] { [] }
+    func ownedCoupon(id: Int) async throws -> AccountCollectionCoupon { throw APIError.notConfigured }
+}
+
+@MainActor private final class AccountCollectionScriptGate: SquareCommunityFeatureReading {
+    var scope: UUID
+    let latch: AccountCollectionGateLatch
+    init(scope: UUID = UUID(), latch: AccountCollectionGateLatch = AccountCollectionGateLatch()) {
+        self.scope = scope
+        self.latch = latch
+    }
+    func communityFeatures() async throws -> SquareCommunityFeatures { try await latch.wait() }
+}
+
+private actor AccountCollectionGateLatch {
+    private var pending: [Int: CheckedContinuation<SquareCommunityFeatures, Error>] = [:]
+    private(set) var calls = 0
+    func wait() async throws -> SquareCommunityFeatures {
+        let index = calls
+        calls += 1
+        return try await withCheckedThrowingContinuation { pending[index] = $0 }
+    }
+    func finish(index: Int, read: Bool) {
+        pending.removeValue(forKey: index)?.resume(returning: SquareCommunityFeatures(read: read, write: false))
+    }
+    func fail(index: Int, error: Error) {
+        pending.removeValue(forKey: index)?.resume(throwing: error)
+    }
+    func until(_ count: Int) async {
+        while calls < count { await Task.yield() }
+    }
+}
+
+extension AccountCollectionTests {
+    @MainActor func testNilUnauthenticatedUnconfiguredAndPendingGateStayClosedWhileTopicsLoad() async throws {
+        let reader = AccountCollectionGateScriptReader()
+        let gate = AccountCollectionScriptGate()
+        let model = AccountCollectionCommunityGateModel()
+        await model.load(reader: { reader }, gate: { nil })
+        XCTAssertEqual(await gate.latch.calls, 0)
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: nil))
+        XCTAssertFalse(model.postsAllowed(hasGate: false, currentScope: gate.scope))
+        if model.postsAllowed(reader: reader, gate: nil) {
+            _ = try await reader.favoritePosts(pageNumber: 1, pageSize: 10)
+        }
+        let topics = AccountCollectionFavoritesModel()
+        await topics.refresh(scope: reader.scope, currentScope: { reader.scope }) {
+            try await reader.favoriteTopics(pageNumber: 1, pageSize: 10)
+        }
+        XCTAssertEqual(topics.visibleRows(scope: reader.scope).map(\.id), [301])
+        XCTAssertEqual(reader.topicCalls, 1)
+        XCTAssertEqual(reader.postCalls, 0)
+
+        reader.isAuthenticated = false
+        await model.load(reader: { reader }, gate: { gate })
+        XCTAssertEqual(await gate.latch.calls, 0)
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: gate))
+        reader.isAuthenticated = true
+        reader.isConfigured = false
+        await model.load(reader: { reader }, gate: { gate })
+        XCTAssertEqual(await gate.latch.calls, 0)
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: gate))
+
+        reader.isConfigured = true
+        let pending = Task { await model.load(reader: { reader }, gate: { gate }) }
+        await gate.latch.until(1)
+        let attempt = try XCTUnwrap(model.attempt)
+        XCTAssertEqual(attempt.readerID, ObjectIdentifier(reader))
+        XCTAssertEqual(attempt.readerScope, reader.scope)
+        XCTAssertEqual(attempt.gateID, ObjectIdentifier(gate))
+        XCTAssertEqual(attempt.gateScope, gate.scope)
+        XCTAssertTrue(attempt.authenticated)
+        XCTAssertTrue(attempt.configured)
+        XCTAssertTrue(model.isLoading)
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: gate))
+        XCTAssertFalse(model.postsAllowed(hasGate: true, currentScope: gate.scope))
+        await topics.refresh(scope: reader.scope, currentScope: { reader.scope }) {
+            try await reader.favoriteTopics(pageNumber: 1, pageSize: 10)
+        }
+        XCTAssertEqual(reader.topicCalls, 2)
+        XCTAssertEqual(reader.postCalls, 0)
+        XCTAssertTrue(model.isLoading)
+        await gate.latch.fail(index: 0, error: APIError.malformedResponse)
+        await pending.value
+        XCTAssertTrue(model.failed)
+        XCTAssertNil(model.resolvedScope)
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: gate))
+
+        let denied = Task { await model.load(reader: { reader }, gate: { gate }) }
+        await gate.latch.until(2)
+        await gate.latch.finish(index: 1, read: false)
+        await denied.value
+        XCTAssertFalse(model.failed)
+        XCTAssertEqual(model.resolvedScope, gate.scope)
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: gate))
+        XCTAssertEqual(reader.postCalls, 0)
+    }
+
+    @MainActor func testGateFailureRetriesAndOutOfOrderResultsStayWithTheNewerAttempt() async throws {
+        let reader = AccountCollectionGateScriptReader()
+        let gate = AccountCollectionScriptGate()
+        let model = AccountCollectionCommunityGateModel()
+        let failed = Task { await model.load(reader: { reader }, gate: { gate }) }
+        await gate.latch.until(1)
+        await gate.latch.fail(index: 0, error: APIError.malformedResponse)
+        await failed.value
+        XCTAssertTrue(model.failed)
+        XCTAssertNil(model.resolvedScope)
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: gate))
+
+        let recovered = Task { await model.load(reader: { reader }, gate: { gate }, forceRetry: true) }
+        await gate.latch.until(2)
+        await gate.latch.finish(index: 1, read: true)
+        await recovered.value
+        XCTAssertFalse(model.failed)
+        XCTAssertTrue(model.postsAllowed(reader: reader, gate: gate))
+        let openGeneration = try XCTUnwrap(model.applied?.generation)
+
+        let older = Task { await model.load(reader: { reader }, gate: { gate }, forceRetry: true) }
+        await gate.latch.until(3)
+        let newer = Task { await model.load(reader: { reader }, gate: { gate }, forceRetry: true) }
+        await gate.latch.until(4)
+        XCTAssertGreaterThan(try XCTUnwrap(model.attempt?.generation), openGeneration)
+        await gate.latch.finish(index: 3, read: false)
+        await newer.value
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: gate))
+        XCTAssertEqual(model.features?.read, false)
+        await gate.latch.finish(index: 2, read: true)
+        await older.value
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: gate))
+        XCTAssertEqual(model.features?.read, false)
+        XCTAssertEqual(model.applied?.gateID, ObjectIdentifier(gate))
+
+        let staleFailure = Task { await model.load(reader: { reader }, gate: { gate }, forceRetry: true) }
+        await gate.latch.until(5)
+        let freshSuccess = Task { await model.load(reader: { reader }, gate: { gate }, forceRetry: true) }
+        await gate.latch.until(6)
+        await gate.latch.finish(index: 5, read: true)
+        await freshSuccess.value
+        XCTAssertTrue(model.postsAllowed(reader: reader, gate: gate))
+        await gate.latch.fail(index: 4, error: APIError.malformedResponse)
+        await staleFailure.value
+        XCTAssertTrue(model.postsAllowed(reader: reader, gate: gate))
+        XCTAssertFalse(model.failed)
+        XCTAssertEqual(model.applied?.readerID, ObjectIdentifier(reader))
+        XCTAssertEqual(model.applied?.readerScope, reader.scope)
+        XCTAssertEqual(model.applied?.gateScope, gate.scope)
+        XCTAssertEqual(model.applied?.authenticated, true)
+        XCTAssertEqual(model.applied?.configured, true)
+    }
+
+    @MainActor func testReplacedReaderOrGateAndABACannotReviveACancelledGateAttempt() async throws {
+        let scope = UUID()
+        let readerA = AccountCollectionGateScriptReader(scope: scope)
+        let readerB = AccountCollectionGateScriptReader(scope: scope)
+        let gateA = AccountCollectionScriptGate(scope: scope)
+        let gateB = AccountCollectionScriptGate(scope: scope)
+        var currentReader: AccountCollectionGateScriptReader? = readerA
+        var currentGate: AccountCollectionScriptGate? = gateA
+        let model = AccountCollectionCommunityGateModel()
+
+        let firstGate = Task { await model.load(reader: { currentReader }, gate: { currentGate }) }
+        await gateA.latch.until(1)
+        currentGate = gateB
+        await gateA.latch.finish(index: 0, read: true)
+        await firstGate.value
+        XCTAssertFalse(model.postsAllowed(reader: readerA, gate: gateB))
+        XCTAssertNil(model.features)
+        XCTAssertEqual(readerA.postCalls, 0)
+
+        currentGate = gateA
+        let firstReader = Task { await model.load(reader: { currentReader }, gate: { currentGate }) }
+        await gateA.latch.until(2)
+        currentReader = readerB
+        await gateA.latch.finish(index: 1, read: true)
+        await firstReader.value
+        XCTAssertFalse(model.postsAllowed(reader: readerB, gate: gateA))
+        XCTAssertNil(model.features)
+
+        let accountA = UUID()
+        let accountB = UUID()
+        currentReader = AccountCollectionGateScriptReader(scope: accountA)
+        currentGate = gateB
+        let oldA = Task { await model.load(reader: { currentReader }, gate: { currentGate }) }
+        await gateB.latch.until(1)
+        let started = try XCTUnwrap(model.attempt?.generation)
+        currentReader = AccountCollectionGateScriptReader(scope: accountB)
+        model.invalidateIfIdentityChanged(reader: { currentReader }, gate: { currentGate })
+        currentReader = AccountCollectionGateScriptReader(scope: accountA)
+        model.invalidateIfIdentityChanged(reader: { currentReader }, gate: { currentGate })
+        let newA = Task { await model.load(reader: { currentReader }, gate: { currentGate }, forceRetry: true) }
+        await gateB.latch.until(2)
+        XCTAssertNotEqual(model.attempt?.generation, started)
+        await gateB.latch.finish(index: 0, read: true)
+        await oldA.value
+        XCTAssertFalse(model.postsAllowed(reader: try XCTUnwrap(currentReader), gate: gateB))
+        await gateB.latch.finish(index: 1, read: false)
+        await newA.value
+        XCTAssertFalse(model.postsAllowed(reader: try XCTUnwrap(currentReader), gate: gateB))
+        XCTAssertEqual(model.applied?.readerID, currentReader.map(ObjectIdentifier.init))
+        XCTAssertNotEqual(model.applied?.generation, started)
+
+        let reader = try XCTUnwrap(currentReader)
+        reader.isAuthenticated = false
+        let signedOut = Task { await model.load(reader: { currentReader }, gate: { currentGate }) }
+        await signedOut.value
+        XCTAssertEqual(await gateB.latch.calls, 2)
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: gateB))
+        reader.isAuthenticated = true
+        let reopen = Task { await model.load(reader: { reader }, gate: { gateB }) }
+        await gateB.latch.until(3)
+        reopen.cancel()
+        await gateB.latch.finish(index: 2, read: true)
+        await reopen.value
+        XCTAssertFalse(model.postsAllowed(reader: reader, gate: gateB))
+        XCTAssertNil(model.features)
+        let again = Task { await model.load(reader: { reader }, gate: { gateB }) }
+        await gateB.latch.until(4)
+        await gateB.latch.finish(index: 3, read: true)
+        await again.value
+        XCTAssertTrue(model.postsAllowed(reader: reader, gate: gateB))
+    }
+}
