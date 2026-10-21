@@ -22114,6 +22114,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "C499DCFA3BE39AF18EB38A7C";
 		};
+		"E5FE29BE542AA0DE0E659D1D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.json.xcstrings";
+			"path" = "Resources/MerchantReviewAndCustomerDetail.xcstrings";
+			"sourceTree" = "<group>";
+		};
+		"60BC4A651C2ADD8B1C704CE4" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E5FE29BE542AA0DE0E659D1D";
+		};
 		"6B0E4267F3DF36A2CCA58EA6" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "text.json.xcstrings";
@@ -24968,6 +24978,7 @@
 				"78FD4983909DA547EA39C206",
 				"7F4DF28849E3D7F2F95E56D1",
 				"C499DCFA3BE39AF18EB38A7C",
+				"E5FE29BE542AA0DE0E659D1D",
 				"6B0E4267F3DF36A2CCA58EA6",
 				"B41C5C369C9CA4839CF7B3E0",
 				"9B8FB2A2037C0E9F5FCFED41",
@@ -28051,6 +28062,7 @@
 				"4CBF1E01D52DF4DD0C5A3170",
 				"8622392AC22051FE24A8880A",
 				"F11B6D65675953770370F987",
+				"60BC4A651C2ADD8B1C704CE4",
 				"5D7E7CED2A22148B446F86D1",
 				"9E6F9909D155AFA90CB08856",
 				"C15482E274E542A1830C3793",
