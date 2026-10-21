@@ -26,7 +26,7 @@ class TemplateMediaReviewUIContracts(unittest.TestCase):
         self.assertIn('controller.cancel(originalID: originalID)', panel)
         self.assertIn('controller.cancel(originalID: original.id)', panel)
         self.assertNotIn('onDismiss:', panel)
-        self.assertIn('controller.confirmCrop(value.review, id: id, rect: rect)', panel)
+        self.assertIn('controller.confirmCreatorCrop(value.review, id: id, results: results)', panel)
         controller = read('App/TemplateMediaReviewController.swift')
         self.assertIn('value.id == originalID, isCurrent(value)', controller)
         self.assertIn('let next = Review(id: value.id, selection: selection', controller)
