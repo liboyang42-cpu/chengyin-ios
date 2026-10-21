@@ -68,7 +68,7 @@ extension EnvironmentValues {
                 }
             }
             Section {
-                if let pledge, pledge.current()?.redeem == true, flow.access?.allows("merchant:verify") == true {
+                if let pledge, pledge.current()?.preview == true, flow.access?.allows("merchant:verify") == true {
                     NavigationLink { RewardPledgeStaffHost(entry: pledge) } label: { Text("rewards.pledge.redeem") }
                         .accessibilityIdentifier("rewards.pledge.merchant")
                 } else {

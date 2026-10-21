@@ -93,6 +93,39 @@ public extension EnvironmentValues {
 
     public func showClosed() { notice = "not open" }
 
+    public func loadStoreAwards(entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.preview }) else { awards = []; awardsLoaded = true; listFailed = true; return }
+        guard !busy else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            awards = try await entry.client.storeAwards(token: caller.token, open: caller.preview, still: { entry.current() == caller })
+            awardsLoaded = true
+            listFailed = false
+        } catch { note(error); awards = []; awardsLoaded = true; listFailed = true }
+    }
+
+    public func previewAward(_ row: RewardPledgeAwardRow, entry: RewardPledgeEntry) async {
+        selected = row
+        guard let caller = admitted(entry, { $0.preview }) else { return }
+        do {
+            merchantResult = try await entry.client.preview(awardID: row.awardId, token: caller.token, open: caller.preview, still: { entry.current() == caller })
+            notice = merchantResult?.fields["state"]
+        } catch { note(error) }
+    }
+
+    public func resolveCode(_ code: String, entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.preview }) else { return }
+        guard !busy else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            let body = try await entry.client.resolve(code: code, token: caller.token, open: caller.preview, still: { entry.current() == caller })
+            merchantResult = body
+            notice = body.fields["state"]
+        } catch { note(error) }
+    }
+
     public func loadAwards(entry: RewardPledgeEntry) async {
         guard let caller = admitted(entry, { $0.read }) else { awards = []; awardsLoaded = true; listFailed = true; return }
         guard !busy else { return }
@@ -203,12 +236,12 @@ public extension EnvironmentValues {
     }
 
     public func redeemOriginal(awardID: String, requestID: String, entry: RewardPledgeEntry) async {
-        guard let caller = admitted(entry, { $0.redeem }) else { return }
+        guard let caller = admitted(entry, { $0.preview }) else { return }
         guard !busy else { return }
         busy = true
         defer { busy = false }
         do {
-            let preview = try await entry.client.preview(awardID: awardID, token: caller.token, open: caller.redeem, still: { entry.current() == caller })
+            let preview = try await entry.client.preview(awardID: awardID, token: caller.token, open: caller.preview, still: { entry.current() == caller })
             switch RewardPledgeClient.acceptedVoucher(preview: preview, originalRequestID: requestID) {
             case .failure(.terminal("ALREADY_USED")):
                 merchantResult = preview
@@ -216,8 +249,12 @@ public extension EnvironmentValues {
                 notice = "ALREADY_USED"
             case .failure(let error): fail(error)
             case .success(let award):
-                guard entry.current() == caller else { fail(.stale); return }
-                let merchant = try await entry.client.redeem(awardID: award, token: caller.token, open: caller.redeem, still: { entry.current() == caller })
+                guard let now = entry.current(), now.redeem, now.accountID == caller.accountID, now.epoch == caller.epoch, now.region == caller.region, now.preview else {
+                    merchantResult = preview
+                    notice = entry.current()?.redeem == true ? "stale" : "not open"
+                    return
+                }
+                let merchant = try await entry.client.redeem(awardID: award, token: now.token, open: now.redeem, still: { entry.current() == now })
                 merchantResult = merchant
                 let playerKeys: Set<String> = ["awardId", "requestId", "state", "historyId", "useStatus", "ruleVersion", "terms", "factRef"]
                 var playerFields: [String: String] = [:]
@@ -541,8 +578,7 @@ public extension EnvironmentValues {
 @MainActor public struct RewardPledgeStaffView: View {
     @ObservedObject var model: RewardPledgeModel
     var entry: RewardPledgeEntry?
-    @State private var awardID = ""
-    @State private var requestID = ""
+    @State private var scanning = false
 
     public init(model: RewardPledgeModel, entry: RewardPledgeEntry? = nil) {
         self.model = model
@@ -551,13 +587,36 @@ public extension EnvironmentValues {
 
     public var body: some View {
         Form {
-            if entry?.current()?.redeem != true {
+            if entry?.current()?.preview != true {
                 Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.merchantClosed")
             } else if let entry {
-                TextField("rewards.pledge.award", text: $awardID)
-                TextField("rewards.pledge.request", text: $requestID)
-                Button("rewards.pledge.redeem") { Task { await model.redeemOriginal(awardID: awardID, requestID: requestID, entry: entry) } }
+                if !model.awardsLoaded { ProgressView("accountCollection.loading") }
+                else if model.listFailed {
+                    Button("accountCollection.refresh") { Task { await model.loadStoreAwards(entry: entry) } }
+                        .accessibilityIdentifier("rewards.pledge.retry")
+                } else if model.awards.isEmpty {
+                    ContentUnavailableView("rewards.empty", systemImage: "gift")
+                }
+                ForEach(model.awards) { row in
+                    Button { Task { await model.previewAward(row, entry: entry) } } label: {
+                        VStack(alignment: .leading) {
+                            Text(LocalizedStringKey("rewards.state." + row.state))
+                            Text(verbatim: row.ruleVersion)
+                        }
+                    }
+                    .accessibilityIdentifier("rewards.pledge.store." + row.awardId)
+                }
+                Button("verification.scan") { scanning = true }.accessibilityIdentifier("rewards.pledge.scan")
+                if entry.current()?.redeem == true {
+                    Button("rewards.pledge.redeem") {
+                        let award = model.merchantResult?.fields["awardId"] ?? model.selected?.awardId ?? ""
+                        let request = model.merchantResult?.fields["requestId"] ?? model.selected?.requestId ?? ""
+                        Task { await model.redeemOriginal(awardID: award, requestID: request, entry: entry) }
+                    }
                     .disabled(model.busy).accessibilityIdentifier("rewards.pledge.redeem")
+                } else {
+                    Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.redeemClosed")
+                }
                 Button("rewards.pledge.cancel") { model.cancelPending() }.accessibilityIdentifier("rewards.pledge.merchantCancel")
             }
             if let merchant = model.merchantResult {
@@ -572,6 +631,17 @@ public extension EnvironmentValues {
             if let notice = model.notice { Text(notice).accessibilityIdentifier("rewards.pledge.notice") }
             if let item = model.machine.serviceCase { Text(item.readable).accessibilityIdentifier("rewards.pledge.case") }
         }
+        .task {
+            guard let entry, entry.current()?.preview == true, !model.awardsLoaded else { return }
+            await model.loadStoreAwards(entry: entry)
+        }
+        .sheet(isPresented: $scanning) {
+            NativeQRScanner { value in
+                scanning = false
+                guard let entry else { return }
+                Task { await model.resolveCode(value, entry: entry) }
+            }
+        }
     }
 }
 
@@ -584,7 +654,10 @@ public extension EnvironmentValues {
     }
     var body: some View {
         RewardPledgeClaimView(model: model, entry: entry)
-            .onChange(of: entry.accountID) { _, accountID in model.replaceAccount(accountID, store: "") }
+            .onChange(of: entry.accountID) { _, accountID in
+                model.replaceAccount(accountID, store: "")
+                Task { await model.loadAwards(entry: entry) }
+            }
     }
 }
 
@@ -597,6 +670,9 @@ public extension EnvironmentValues {
     }
     var body: some View {
         RewardPledgeStaffView(model: model, entry: entry)
-            .onChange(of: entry.accountID) { _, accountID in model.replaceAccount(accountID, store: "") }
+            .onChange(of: entry.accountID) { _, accountID in
+                model.replaceAccount(accountID, store: "")
+                Task { await model.loadStoreAwards(entry: entry) }
+            }
     }
 }

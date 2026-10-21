@@ -50,6 +50,8 @@ public enum RewardPledgeRoutes {
     public static let offerPrefix = "api/rewards/noncash/versions/"
     public static let preview = "api/reward-pledge/fulfilment/preview"
     public static let redeem = "api/reward-pledge/fulfilment/redeem"
+    public static let storeAwards = "api/reward-pledge/fulfilment/awards"
+    public static let resolve = "api/reward-pledge/fulfilment/resolve"
     public static let plannedDraft = "api/rewards/pledge/draft"
     public static let plannedSubmit = "api/rewards/pledge/submit"
     public static let couponQRToken = "api/coupon/qr-token"
@@ -241,6 +243,24 @@ public enum RewardPledgeRequests {
         request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
         request.setValue(token, forHTTPHeaderField: "Authorization")
         return request
+    }
+    /// This store's awards. The server binds the store from the staff session.
+    public static func storeAwards(baseURL: URL, token: String) throws -> URLRequest {
+        guard AuthRequestBuilder.isValidToken(token) else { throw RewardPledgeFailure.closed("permission") }
+        var request = URLRequest(url: baseURL.appendingPathComponent(RewardPledgeRoutes.storeAwards))
+        request.httpMethod = "GET"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        return request
+    }
+    /// Existing coupon dynamic code. The server resolves it to this store's award.
+    public static func resolve(code: String, baseURL: URL, token: String) throws -> URLRequest {
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed.count <= 512, !trimmed.contains("\n") else { throw RewardPledgeFailure.closed("award") }
+        return try json(RewardPledgeRoutes.resolve, ["code": trimmed], baseURL, token)
     }
     public static func draft(pledgeID: String, version: Int, baseURL: URL, token: String) throws -> URLRequest {
         guard version > 0, !pledgeID.isEmpty else { throw RewardPledgeFailure.closed("merchantEvidence") }
@@ -645,10 +665,11 @@ public struct RewardPledgeCaller: Equatable, Sendable {
     public let token: String
     public let read: Bool
     public let claim: Bool
+    public let preview: Bool
     public let redeem: Bool
-    public init(accountID: String, epoch: UInt64, region: String, token: String, read: Bool, claim: Bool, redeem: Bool) {
+    public init(accountID: String, epoch: UInt64, region: String, token: String, read: Bool, claim: Bool, preview: Bool, redeem: Bool) {
         self.accountID = accountID; self.epoch = epoch; self.region = region; self.token = token
-        self.read = read; self.claim = claim; self.redeem = redeem
+        self.read = read; self.claim = claim; self.preview = preview; self.redeem = redeem
     }
 }
 
@@ -681,6 +702,12 @@ public struct RewardPledgeClient {
     }
     public func awards(token: String, open: Bool, still: @MainActor () -> Bool) async throws -> [RewardPledgeAwardRow] {
         try RewardPledgeAwardRow.decodeList(try await fetch(try RewardPledgeRequests.list(baseURL: configuration.baseURL, token: token), open: open, still: still))
+    }
+    public func storeAwards(token: String, open: Bool, still: @MainActor () -> Bool) async throws -> [RewardPledgeAwardRow] {
+        try RewardPledgeAwardRow.decodeList(try await fetch(try RewardPledgeRequests.storeAwards(baseURL: configuration.baseURL, token: token), open: open, still: still))
+    }
+    public func resolve(code: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.resolve(code: code, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
     public func offer(versionID: String, subjectID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.offer(versionID: versionID, subjectID: subjectID, baseURL: configuration.baseURL, token: token), open: open, still: still)

@@ -1982,6 +1982,7 @@ final class AppSession: ObservableObject {
             return RewardPledgeCaller(accountID: String(account.id), epoch: self.gate.currentStamp, region: region, token: token,
                                       read: self.runtimeDependencies.nonCashRewardApproved,
                                       claim: self.runtimeDependencies.nonCashRewardClaimApproved,
+                                      preview: self.runtimeDependencies.nonCashRewardPreviewApproved,
                                       redeem: self.runtimeDependencies.nonCashRewardRedeemApproved)
         })
     }

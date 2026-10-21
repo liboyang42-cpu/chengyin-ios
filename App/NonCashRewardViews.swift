@@ -20,6 +20,28 @@ import SwiftUI
         reader = rewards ?? UnconfiguredNonCashRewardReader(identity: identity)
     }
     var body: some View {
+        if !reader.isOfflineExample {
+            liveRewardList
+        } else {
+            offlinePage
+        }
+    }
+    @ViewBuilder private var liveRewardList: some View {
+        if !reader.isAuthenticated {
+            List { AccountCollectionIssueView(issue: .login) }
+                .listStyle(.insetGrouped).appNavigationTitle("rewards.title")
+        } else if let pledge, pledge.current()?.read == true {
+            RewardPledgeClaimHost(entry: pledge)
+        } else {
+            List {
+                ContentUnavailableView("rewards.unavailable", systemImage: "gift", description: Text("rewards.unavailableHint"))
+                    .accessibilityIdentifier("rewards.unavailable")
+                Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
+            }
+            .listStyle(.insetGrouped).appNavigationTitle("rewards.title")
+        }
+    }
+    private var offlinePage: some View {
         List {
             if reader.isOfflineExample { Text("rewards.demo").font(.footnote).accessibilityIdentifier("rewards.demo") }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
@@ -28,16 +50,13 @@ import SwiftUI
                     .accessibilityIdentifier("rewards.unavailable")
                 Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
             } else if model.state.isLoading || model.state.loadedScope != key.scope {
-                pledgeEntry
                 ProgressView("accountCollection.loading")
             } else if let issue = model.state.issue {
-                pledgeEntry
                 AccountCollectionIssueView(issue: issue)
                 if issue != .login {
                     Button("accountCollection.refresh") { Task { await refresh() } }.accessibilityIdentifier("rewards.retry")
                 }
             } else {
-                pledgeEntry
                 if let asOf = model.state.asOf { LabeledContent("rewards.asOf") { Text(asOf, format: .dateTime) } }
                 if model.state.visibleRows(scope: key.scope).isEmpty {
                     ContentUnavailableView("rewards.empty", systemImage: "gift")
@@ -61,14 +80,6 @@ import SwiftUI
         }
         .listStyle(.insetGrouped).appNavigationTitle("rewards.title")
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
-    }
-    @ViewBuilder private var pledgeEntry: some View {
-        if let pledge, pledge.current()?.read == true {
-            NavigationLink { RewardPledgeClaimHost(entry: pledge) } label: { Text("rewards.pledge.list") }
-                .accessibilityIdentifier("rewards.pledge.open")
-        } else {
-            Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
-        }
     }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
