@@ -11,7 +11,7 @@ import SwiftUI
     let predictionReader: MerchantPredictionReader?
 
     static func aftercareCount(_ todo: MerchantTodo?, access: MerchantAccess, isLoading: Bool) -> Int? {
-        guard !isLoading, let todo, access.allows(.aftercareRead), todo.refundCount > 0 else { return nil }
+        guard !isLoading, let todo, access.canReadAftercare, todo.refundCount > 0 else { return nil }
         return todo.refundCount
     }
     static func predictCount(_ todo: MerchantTodo?, access: MerchantAccess, isLoading: Bool) -> Int? {

@@ -49,6 +49,12 @@ public enum HomeIndexParityPresentation {
     public static let nationwideCityLabel = "全国"
     public static let defaultTravelerNickname = "旅人"
 
+    public static let recommendedTopicsTitle = "推荐主题"
+    public static let nearbyActivitiesTitle = "附近活动"
+    public static let upcomingActivitiesTitle = "即将上线"
+    public static let topicsFeedTabTitle = "主题"
+    public static let activitiesFeedTabTitle = "活动"
+
     public static let emptyStateTitle = "暂无内容"
     public static let emptyStateHint = "切换城市或稍后再来看看"
     public static let loadingCopy = "加载中..."
@@ -61,6 +67,129 @@ public enum HomeIndexParityPresentation {
         ActionBanner(id: "merchant_apply", title: "成为商家", routePath: "pages/merchant/apply"),
         ActionBanner(id: "activity_list", title: "和朋友报名活动", routePath: "pages/activity/list")
     ]
+
+    /// Continuation card kind for Home (`play/run-session/list` vs `registration/my-joined`).
+    public enum ContinuationKind: String, Equatable, Hashable, Sendable {
+        case continueGame
+        case continueExploration
+
+        public var badgeTitle: String {
+            switch self {
+            case .continueGame: return "继续游戏"
+            case .continueExploration: return "继续探索"
+            }
+        }
+    }
+
+    /// Home continuation card model combining paused run sessions and joined registrations.
+    public struct ContinuationCard: Equatable, Hashable, Identifiable {
+        public let id: String
+        public let kind: ContinuationKind
+        public let destination: HomeFeedDestination
+        public let title: String
+        public let subtitle: String?
+
+        public init(
+            id: String,
+            kind: ContinuationKind,
+            destination: HomeFeedDestination,
+            title: String,
+            subtitle: String? = nil
+        ) {
+            self.id = id
+            self.kind = kind
+            self.destination = destination
+            self.title = title
+            self.subtitle = subtitle
+        }
+    }
+
+    /// Reconciles paused run sessions (`play/run-session/list`) and joined registrations (`registration/my-joined`)
+    /// into deduplicated Home continuation cards (`继续游戏` prioritized ahead of `继续探索`).
+    public static func continuationCards(
+        pausedRuns: [PlayContinueRun] = [],
+        participations: [ParticipationRecord] = []
+    ) -> [ContinuationCard] {
+        var cards: [ContinuationCard] = []
+        var seenDestinations = Set<HomeFeedDestination>()
+
+        for run in pausedRuns {
+            let destination: HomeFeedDestination
+            switch run.scope {
+            case .activity(let id): destination = .activity(id)
+            case .topic(let id): destination = .topic(id)
+            }
+            guard seenDestinations.insert(destination).inserted else { continue }
+            let trimmedTitle = run.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let resolvedTitle = trimmedTitle.isEmpty ? "进行中的路线 #\(run.scope.id)" : trimmedTitle
+            let subtitle: String?
+            if let elapsed = run.elapsedSeconds, elapsed > 0 {
+                let minutes = max(1, elapsed / 60)
+                subtitle = "已进行 \(minutes) 分钟"
+            } else {
+                subtitle = nil
+            }
+            cards.append(
+                ContinuationCard(
+                    id: "run_\(run.id)",
+                    kind: .continueGame,
+                    destination: destination,
+                    title: resolvedTitle,
+                    subtitle: subtitle
+                )
+            )
+        }
+
+        for record in participations {
+            guard let scope = record.destination else { continue }
+            let destination: HomeFeedDestination
+            switch scope {
+            case .activity(let id): destination = .activity(id)
+            case .topic(let id): destination = .topic(id)
+            }
+            guard seenDestinations.insert(destination).inserted else { continue }
+            let trimmedTitle = record.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let resolvedTitle = trimmedTitle.isEmpty ? "已报名 #\(scope.id)" : trimmedTitle
+            let trimmedAddress = record.address?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            cards.append(
+                ContinuationCard(
+                    id: "joined_\(record.id)",
+                    kind: .continueExploration,
+                    destination: destination,
+                    title: resolvedTitle,
+                    subtitle: trimmedAddress.isEmpty ? nil : trimmedAddress
+                )
+            )
+        }
+
+        return cards
+    }
+
+    /// Formats a deterministic countdown label for an upcoming activity (`即将上线`) when `start > now`.
+    public static func upcomingCountdownText(start: Date, now: Date) -> String? {
+        let remaining = Int(start.timeIntervalSince(now))
+        guard remaining > 0 else { return nil }
+        let days = remaining / 86_400
+        let hours = (remaining % 86_400) / 3_600
+        let minutes = max(1, (remaining % 3_600) / 60)
+        if days > 0 {
+            return "距上线 \(days)天\(hours)小时"
+        } else if hours > 0 {
+            return "距上线 \(hours)小时\(minutes)分"
+        } else {
+            return "距上线 \(minutes)分钟"
+        }
+    }
+
+    /// Parses `startDate` via `HomeFeedDate.parse` and formats the `即将上线` countdown when `start > now`.
+    public static func upcomingCountdownText(
+        startDate: String?,
+        now: Date,
+        sourceTimeZone: TimeZone? = nil
+    ) -> String? {
+        guard let start = HomeFeedDate.parse(startDate, sourceTimeZone: sourceTimeZone) else { return nil }
+        return upcomingCountdownText(start: start, now: now)
+    }
 
     /// Resolves the city selector label: returns trimmed city name, `"全国"` when nationwide is selected,
     /// or `"选择城市"` when no city is resolved.

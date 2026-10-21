@@ -6,6 +6,11 @@ import SwiftUI
     var unavailableMessageKey: String? = nil
     /// Supply only from verified backend configuration, never language/device locale.
     var sourceTimeZone: TimeZone? = nil
+    var viewerNickname: String? = nil
+    var selectedCity: String? = nil
+    var showsHeroBanners: Bool = false
+    var continuationCards: [HomeIndexParityPresentation.ContinuationCard] = []
+    var onActionBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
     let onDestination: (HomeFeedDestination) -> Void
     @StateObject private var model = HomeFeedModel()
     @State private var kind: HomeFeedKind = .topics
@@ -26,8 +31,19 @@ import SwiftUI
                 List {
                     if reader.isOfflineExample { Text("homeFeed.example").font(.caption) }
                     if model.loading { ProgressView("homeFeed.loading") }
+                    if showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil {
+                        HomeHeroHeaderSectionView(nickname: viewerNickname, selectedCity: selectedCity) { banner in
+                            if banner.id == "activity_list" { kind = .activities }
+                            onActionBanner?(banner)
+                        }
+                    }
                     bannerSection
                     feedSection(.recommended)
+                    if !continuationCards.isEmpty {
+                        PlayContinuationBannerView(cards: continuationCards) { destination in
+                            if model.canOpen(reader) { onDestination(destination) }
+                        }
+                    }
                     feedSection(.nearby)
                     feedSection(.upcoming)
                     Section {
@@ -51,6 +67,12 @@ import SwiftUI
                             Button("homeFeed.loadMore") { model.schedule(.page, reader: reader, permit: permit) }
                                 .frame(minHeight: 44)
                                 .accessibilityIdentifier("homeFeed.loadMore")
+                        } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
+                            Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
                     } header: { Text("homeFeed.explore") }
                 }
@@ -222,7 +244,13 @@ private struct HomeFeedLiveBadge: View {
     var body: some View {
         TimelineView(HomeFeedStartSchedule(start: start)) { context in
             // Preserves the source's start <= now rule. No timezone or end-state is inferred.
-            if start <= context.date { QuestifyStatusBadge(title: "homeFeed.live", systemImage: "clock") }
+            if start <= context.date {
+                QuestifyStatusBadge(title: "homeFeed.live", systemImage: "clock")
+            } else if let countdown = HomeIndexParityPresentation.upcomingCountdownText(start: start, now: context.date) {
+                Text(verbatim: countdown)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }

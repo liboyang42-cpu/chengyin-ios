@@ -99,4 +99,26 @@ final class PlayContractTests: XCTestCase {
         let legacy = try JSONDecoder().decode(PlayAnswerReceipt.self, from: Data(#"{"nodeId":7,"score":"0"}"#.utf8))
         XCTAssertEqual(legacy.xp, 0)
     }
+    func testMerchantQueueAndStepFieldsDecodeOptionallyWithoutBreakingSparseNodes() throws {
+        let raw = """
+        {"mode":2,"nodes":[
+          {"nodeId":11,"name":"茶馆","crowded":true,"inStoreLoad":4,"serviceCapacity":{"perHour":12},"expectedWaitMinutes":20,"quantityUnavailable":true,"rule":"先扫码再到吧台","photoDesc":"拍门头"},
+          {"nodeId":12,"name":"书店"}
+        ]}
+        """
+        let result = try decodeResult(raw)
+        XCTAssertEqual(result.nodes.count, 2)
+        XCTAssertEqual(result.nodes[0].crowded, true)
+        XCTAssertEqual(result.nodes[0].inStoreLoad, 4)
+        XCTAssertEqual(result.nodes[0].servicePerHour, 12)
+        XCTAssertEqual(result.nodes[0].expectedWaitMinutes, 20)
+        XCTAssertEqual(result.nodes[0].quantityUnavailable, true)
+        XCTAssertEqual(result.nodes[0].ruleInstructions, "先扫码再到吧台")
+        XCTAssertEqual(result.nodes[0].photoRequirement, "拍门头")
+        XCTAssertNil(result.nodes[1].crowded)
+        XCTAssertNil(result.nodes[1].inStoreLoad)
+        XCTAssertNil(result.nodes[1].servicePerHour)
+        XCTAssertNil(result.nodes[1].expectedWaitMinutes)
+        XCTAssertNil(result.nodes[1].quantityUnavailable)
+    }
 }

@@ -7,18 +7,22 @@ import XCTest
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {
         try JSONDecoder().decode(type, from: Data(json.utf8))
     }
-    private func access(_ permissions: [String]) throws -> MerchantAccess {
+    private func access(_ permissions: [String], role: String = "MERCHANT_OWNER") throws -> MerchantAccess {
         let names = permissions.map { "\"\($0)\"" }.joined(separator: ",")
-        return try decode(MerchantAccess.self, #"{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":["# + names + "]}")
+        return try decode(MerchantAccess.self, #"{"active":true,"merchant":{"id":31},"roleCode":""# + role + #"","permissions":["# + names + "]}")
     }
     func testRemindersFollowMiniProgramPermissionGates() throws {
         let todo = try decode(MerchantTodo.self, #"{"refundCount":2,"pendingPredict":3}"#)
-        let both = try access(["merchant:aftercare:read", "merchant:project:manage"])
+        let both = try access(["merchant:aftercare:read", "merchant:project:manage"], role: "MERCHANT_MANAGER")
+        XCTAssertFalse(both.isOwner)
+        XCTAssertTrue(both.canReadAftercare)
         XCTAssertEqual(MerchantWorkbenchReminders.aftercareCount(todo, access: both, isLoading: false), 2)
         XCTAssertEqual(MerchantWorkbenchReminders.predictCount(todo, access: both, isLoading: false), 3)
-        let neither = try access(["merchant:finance:read"])
-        XCTAssertNil(MerchantWorkbenchReminders.aftercareCount(todo, access: neither, isLoading: false))
-        XCTAssertNil(MerchantWorkbenchReminders.predictCount(todo, access: neither, isLoading: false))
+        let ownerWithoutAftercare = try access(["merchant:finance:read"], role: "MERCHANT_OWNER")
+        XCTAssertTrue(ownerWithoutAftercare.isOwner)
+        XCTAssertFalse(ownerWithoutAftercare.canReadAftercare)
+        XCTAssertNil(MerchantWorkbenchReminders.aftercareCount(todo, access: ownerWithoutAftercare, isLoading: false))
+        XCTAssertNil(MerchantWorkbenchReminders.predictCount(todo, access: ownerWithoutAftercare, isLoading: false))
     }
     func testRemindersHideWhileLoadingUnknownOrZero() throws {
         let both = try access(["merchant:aftercare:read", "merchant:project:manage"])

@@ -181,12 +181,41 @@ struct FreeExplorationVisitSteps: View {
     let node: PlayNode
     var body: some View {
         Section("playx.merchant.steps") {
-            Label("playx.merchant.scan", systemImage: node.arrived == true ? "checkmark.circle" : "circle")
-            Label("playx.merchant.photo", systemImage: node.selfReported == true ? "checkmark.circle" : "circle")
-            Label("playx.merchant.verify", systemImage: node.done == true ? "checkmark.circle" : "circle")
+            VStack(alignment: .leading, spacing: 2) {
+                Label("playx.merchant.scan", systemImage: node.arrived == true ? "checkmark.circle" : "circle")
+                Text("playx.merchant.scan.detail").font(.caption).foregroundStyle(.secondary)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Label("playx.merchant.photo", systemImage: node.selfReported == true ? "checkmark.circle" : "circle")
+                if node.arrived == true {
+                    if let requirement = node.photoRequirement, !requirement.isEmpty { Text(verbatim: requirement).font(.caption).foregroundStyle(.secondary) }
+                    else { Text("playx.merchant.photo.default").font(.caption).foregroundStyle(.secondary) }
+                } else {
+                    Text("playx.merchant.photo.locked").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Label("playx.merchant.verify", systemImage: node.done == true ? "checkmark.circle" : "circle")
+                Text("playx.merchant.verify.detail").font(.caption).foregroundStyle(.secondary)
+            }
             Text("playx.merchant.notice").font(.footnote)
-            if node.arrived == true, let requirement = node.photoRequirement { Text(verbatim: requirement) }
+            if node.arrived == true, let rule = node.ruleInstructions, !rule.isEmpty { Text(verbatim: rule).font(.footnote) }
         }
+        Section("playx.merchant.reference") {
+            LabeledContent("playx.merchant.onsite") {
+                Text(LocalizedStringKey(node.crowded == true ? "playx.merchant.crowd.queue" : (node.crowded == false ? "playx.merchant.crowd.go" : "playx.merchant.crowd.unknown")))
+            }
+            LabeledContent("playx.merchant.stat.load") { Text(verbatim: node.inStoreLoad.map(String.init) ?? "—") }
+            LabeledContent("playx.merchant.stat.perHour") { Text(verbatim: Self.formatStat(node.servicePerHour)) }
+            LabeledContent("playx.merchant.stat.wait") { Text(verbatim: node.expectedWaitMinutes.map(String.init) ?? "—") }
+            if node.quantityUnavailable == true {
+                Text("playx.merchant.degraded.quantity").font(.footnote).foregroundStyle(.secondary)
+            }
+        }
+    }
+    private static func formatStat(_ value: Double?) -> String {
+        guard let value, value.isFinite else { return "—" }
+        return value.rounded() == value ? String(Int(value)) : String(value)
     }
 }
 

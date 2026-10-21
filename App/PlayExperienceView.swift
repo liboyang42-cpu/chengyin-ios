@@ -331,13 +331,7 @@ import SwiftUI
                     }
                 }
                 if model.snapshot?.result.mode == 2 {
-                    Section("playx.merchant.steps") {
-                        stateRow("playx.merchant.scan", done: node.arrived == true)
-                        stateRow("playx.merchant.photo", done: node.selfReported == true)
-                        stateRow("playx.merchant.verify", done: node.done == true)
-                        Text("playx.merchant.notice").font(.footnote)
-                        if node.arrived == true, let requirement = node.photoRequirement { Text(verbatim: requirement) }
-                    }
+                    FreeExplorationVisitSteps(node: node)
                 }
                 if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) == .answer {
                     Section("playx.answer") {

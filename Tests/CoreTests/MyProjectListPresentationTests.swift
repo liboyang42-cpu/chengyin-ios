@@ -152,4 +152,15 @@ final class MyProjectListPresentationTests: XCTestCase {
         XCTAssertTrue(threeConfirmed.allPOIsConfirmed)
         XCTAssertTrue(threeConfirmed.isValid)
     }
+
+    func testProjectPageTruncatesAtTwoHundredLoadCapEvenWithoutHigherTotal() throws {
+        let row = try project(#"{"id":1,"bizType":"topic","state":"running"}"#)
+        let fullPage = CreatorContentProjectPage(
+            rows: Array(repeating: row, count: MyProjectListPresentation.loadCap),
+            total: MyProjectListPresentation.loadCap
+        )
+        XCTAssertTrue(fullPage.isTruncated)
+        let underCap = CreatorContentProjectPage(rows: [row], total: 1)
+        XCTAssertFalse(underCap.isTruncated)
+    }
 }

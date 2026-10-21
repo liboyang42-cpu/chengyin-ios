@@ -34,7 +34,9 @@ final class MerchantWorkbenchTodoContractTests: XCTestCase {
             XCTAssertTrue(active.allows(permission), permission.rawValue)
         }
         XCTAssertFalse(active.isOwner)
+        XCTAssertTrue(active.canReadAftercare)
         let inactive = try decode(MerchantAccess.self, #"{"active":false,"roleCode":"MERCHANT_OWNER","permissions":["merchant:aftercare:read"]}"#)
         XCTAssertFalse(inactive.allows(.aftercareRead))
+        XCTAssertFalse(inactive.canReadAftercare)
     }
 }

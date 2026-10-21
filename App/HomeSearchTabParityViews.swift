@@ -1,5 +1,99 @@
 import SwiftUI
 
+/// Hero greeting, city badge, and 3 fixed action banners (`成为俱乐部`, `成为商家`, `和朋友报名活动`) for Home (`pages/index/index`).
+@MainActor
+struct HomeHeroHeaderSectionView: View {
+    var nickname: String? = nil
+    var selectedCity: String? = nil
+    var isNationwide: Bool = false
+    var onSelectBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
+
+    var body: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname))
+                        .font(.title3.weight(.semibold))
+                        .accessibilityIdentifier("homeIndex.hero.greeting")
+                    Spacer()
+                    Label {
+                        Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide))
+                    } icon: {
+                        Image(systemName: "location.fill")
+                    }
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("homeIndex.hero.city")
+                }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(HomeIndexParityPresentation.fixedActionBanners) { banner in
+                            Button {
+                                onSelectBanner?(banner)
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Text(verbatim: banner.title)
+                                        .font(.subheadline.weight(.semibold))
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.caption)
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
+                        }
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+}
+
+/// Home continuation banner (`继续游戏` / `继续探索`) backed by `HomeIndexParityPresentation.ContinuationCard`.
+@MainActor
+struct PlayContinuationBannerView: View {
+    let cards: [HomeIndexParityPresentation.ContinuationCard]
+    var onOpen: ((HomeFeedDestination) -> Void)? = nil
+
+    var body: some View {
+        Section {
+            ForEach(cards) { card in
+                Button {
+                    onOpen?(card.destination)
+                } label: {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(verbatim: card.kind.badgeTitle)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(QuestifyPalette.accent)
+                            Text(verbatim: card.title)
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                            if let subtitle = card.subtitle {
+                                Text(verbatim: subtitle)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                        Image(systemName: "play.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(QuestifyPalette.accent)
+                    }
+                    .questifyCardSurface()
+                }
+                .buttonStyle(QuestifyCardButtonStyle())
+                .accessibilityIdentifier("homeIndex.continuation.\(card.id)")
+                .questifyCardListRow()
+            }
+        } header: {
+            Text(verbatim: "继续游戏 / 继续探索")
+        }
+    }
+}
+
 /// Shelf header view for Home (`pages/index`) sections (`精选路线`, `近期活动`, `热门主题`, `现成玩法`).
 @MainActor
 struct HomeIndexShelfHeaderView: View {

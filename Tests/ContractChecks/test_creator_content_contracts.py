@@ -34,6 +34,7 @@ class CreatorContentContracts(unittest.TestCase):
         contracts=(ROOT/'Core/CreatorContentContracts.swift').read_text()
         self.assertIn('"\\(bizType):\\(sourceID)"',contracts)
         self.assertIn('?? .unknown',contracts)
+        self.assertIn('rows.count >= MyProjectListPresentation.loadCap',contracts)
     def test_dynamic_localization_uses_concatenated_string(self):
         self.assertIn('LocalizedStringKey("creatorContent.filter." + value)', self.ui)
         self.assertIn('LocalizedStringKey("creatorContent.status." + center.status.rawValue)', self.ui)
@@ -45,5 +46,5 @@ class CreatorContentContracts(unittest.TestCase):
         self.assertNotIn('case "topicTemplate"', contracts)
     def test_authoring_inventory(self):
         tests=(ROOT/'Tests/CoreTests/CreatorContentTests.swift').read_text()
-        self.assertEqual(len(re.findall(r'func test\w+',tests)),21)
+        self.assertEqual(len(re.findall(r'func test\w+',tests)),27)
 if __name__=='__main__': unittest.main()

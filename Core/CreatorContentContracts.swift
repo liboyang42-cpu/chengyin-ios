@@ -67,7 +67,7 @@ public enum CreatorContentDestination: Equatable { case topic(Int), activity(Int
 public struct CreatorContentProjectPage: Decodable, Equatable {
     public let rows: [CreatorContentProject]
     public let total: Int
-    public var isTruncated: Bool { total > rows.count }
+    public var isTruncated: Bool { total > rows.count || rows.count >= MyProjectListPresentation.loadCap }
     public init(rows: [CreatorContentProject], total: Int) { self.rows = rows; self.total = total }
     private enum CodingKeys: String, CodingKey { case rows, total }
     public init(from decoder: Decoder) throws {

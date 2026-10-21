@@ -39759,7 +39759,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅显示前 200 条，请筛选以查找更多内容。"
+            "value": "仅显示最近 200 条"
           }
         }
       }
@@ -105162,6 +105162,214 @@
           "stringUnit": {
             "state": "translated",
             "value": "出示商家核销码需要当前门店的精确授权及已验收的码服务"
+          }
+        }
+      }
+    },
+    "playx.merchant.crowd.go": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to visit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可前往"
+          }
+        }
+      }
+    },
+    "playx.merchant.crowd.queue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queuing now, consider visiting another store first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排队中，建议先去别家"
+          }
+        }
+      }
+    },
+    "playx.merchant.crowd.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status pending sync"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态待同步"
+          }
+        }
+      }
+    },
+    "playx.merchant.degraded.quantity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live headcount is temporarily unavailable; please follow staff arrangements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场人数暂时取不到，请以店员安排为准"
+          }
+        }
+      }
+    },
+    "playx.merchant.onsite": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On-site status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场"
+          }
+        }
+      }
+    },
+    "playx.merchant.photo.default": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take a photo showing you have arrived at the store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍一张能证明已到店的照片"
+          }
+        }
+      }
+    },
+    "playx.merchant.photo.locked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo instructions appear after arrival"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到店后显示拍摄要求"
+          }
+        }
+      }
+    },
+    "playx.merchant.reference": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On-site reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场参考"
+          }
+        }
+      }
+    },
+    "playx.merchant.scan.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records arrival time; does not mean verified"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录到店时间，不代表已核销"
+          }
+        }
+      }
+    },
+    "playx.merchant.stat.load": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrived & waiting for verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到店待核销"
+          }
+        }
+      }
+    },
+    "playx.merchant.stat.perHour": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Served per hour"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每小时接待"
+          }
+        }
+      }
+    },
+    "playx.merchant.stat.wait": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimated wait (min)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预计等待(分)"
+          }
+        }
+      }
+    },
+    "playx.merchant.verify.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service starts when the merchant verifies"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家核销的时刻才算服务开始"
           }
         }
       }

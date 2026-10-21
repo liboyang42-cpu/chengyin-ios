@@ -64,7 +64,7 @@ public struct MerchantService {
         return try await post("api/merchant/dashboard", token: token)
     }
     public func todo(access: MerchantAccess, token: String) async throws -> MerchantTodo {
-        guard access.isOwner else { throw MerchantReadError.accessDenied }
+        guard access.isOwner || access.canReadAftercare else { throw MerchantReadError.accessDenied }
         return try await post("api/merchant/todo-summary", token: token)
     }
     public func events(access: MerchantAccess, token: String) async throws -> [MerchantEvent] {

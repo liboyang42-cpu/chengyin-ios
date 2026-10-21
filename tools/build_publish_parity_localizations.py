@@ -53,6 +53,7 @@ entries = {
 # English values are untouched so existing English UI assertions keep their meaning.
 overrides = {
 'Resources/Localizable.xcstrings': {
+    'creatorContent.truncated': '仅显示最近 200 条',
     'templateAuthor.begin': '开始创建',
     'templateAuthor.nameStep': '给节点玩法起一个名字',
     'templateAuthor.validation.title': '请输入模板名称',
@@ -63,7 +64,10 @@ overrides = {
     'creatorIntro.empty': '暂时没有精选示例，你仍可直接创建自己的节点玩法。',
 },
 }
-mirrors = {'docs/template-authoring-localizations.json': 'Resources/Localizable.xcstrings'}
+mirrors = {
+    'docs/template-authoring-localizations.json': 'Resources/Localizable.xcstrings',
+    'docs/creator-content-localizations.json': 'Resources/Localizable.xcstrings',
+}
 fragment = {'sourceLanguage': 'en', 'strings': {key: {'localizations': {language: {'stringUnit': {'state': 'translated', 'value': value}} for language, value in zip(['en', 'zh-Hans'], values)}} for key, values in entries.items()}, 'version': '1.0'}
 (root / 'Resources/PublishParityLocalizations.fragment.json').write_text(json.dumps(fragment, ensure_ascii=False, indent=2) + '\n')
 path = root / 'Resources/Localizable.xcstrings'

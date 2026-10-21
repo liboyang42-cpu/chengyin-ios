@@ -41,6 +41,7 @@ public struct MerchantAccess: Decodable, Equatable {
     public var isOwner: Bool { active && role == .owner }
     public func allows(_ permission: Permission) -> Bool { active && permissions.contains(permission) }
     public var canReadDashboard: Bool { isOwner && allows(.finance) }
+    public var canReadAftercare: Bool { allows(.aftercareRead) }
 
     enum CodingKeys: String, CodingKey { case active, merchant, roleCode, permissions, applicationState }
     private struct Store: Decodable {

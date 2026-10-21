@@ -188,7 +188,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         if value.pendingVerify > 0 { MerchantCountRow("merchant.todo.verify", value: value.pendingVerify) }
                         if value.pendingScanConfirm > 0 { MerchantCountRow("merchant.todo.scan", value: value.pendingScanConfirm) }
                         if value.pendingOrders > 0 { MerchantCountRow("merchant.todo.orders", value: value.pendingOrders) }
-                        if value.refundCount > 0 { MerchantCountRow("merchant.todo.refunds", value: value.refundCount) }
+                        if access.canReadAftercare, value.refundCount > 0 { MerchantCountRow("merchant.todo.refunds", value: value.refundCount) }
                         if access.allows(.projects), value.pendingPredict > 0 { MerchantPredictionWorkbenchAlert(pending: value.pendingPredict) }
                         if value.verifiedCount > 0 { MerchantCountRow("merchant.todo.verified", value: value.verifiedCount) }
                     }
@@ -249,7 +249,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         await dashboard.load(reader: reader) { try await reader.merchantDashboard(access: access) }
     }
     private func loadTodo() async {
-        guard access.isOwner else { return }
+        guard access.isOwner || access.canReadAftercare else { return }
         await todo.load(reader: reader) { try await reader.merchantTodo(access: access) }
     }
     private func loadEvents() async {

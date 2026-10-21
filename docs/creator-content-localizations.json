@@ -25,7 +25,7 @@
   },
   "creatorContent.truncated": {
     "en": "Showing the first 200 results. Narrow the filters to find more content.",
-    "zh-Hans": "仅显示前 200 条，请筛选以查找更多内容。"
+    "zh-Hans": "仅显示最近 200 条"
   },
   "creatorContent.readOnly": {
     "en": "Editing, publishing, deleting, cancellation and refunds are not available here yet.",
