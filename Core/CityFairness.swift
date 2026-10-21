@@ -29,6 +29,7 @@ public struct CityFairnessMember: Equatable, Identifiable, Sendable {
 }
 
 public struct CityFairnessPage: Equatable, Sendable {
+    public let queryID: String
     public let matureCount, denominator: Int
     public let asOf: Int64
     public let metricVersion, formulaId: String
@@ -38,20 +39,60 @@ public struct CityFairnessPage: Equatable, Sendable {
     public var ratioText: String { "\(matureCount)/\(denominator)" }
 }
 
+public enum CityFairnessOutingReason: Equatable, Sendable {
+    case firstOuting, secondOuting, insideDelta, afterHorizon, beforeT0, notEffective, unknown
+    public init(_ raw: String) {
+        switch raw {
+        case "first-outing": self = .firstOuting
+        case "second-outing": self = .secondOuting
+        case "inside-delta": self = .insideDelta
+        case "after-horizon": self = .afterHorizon
+        case "before-t0": self = .beforeT0
+        case "not-effective": self = .notEffective
+        default: self = .unknown
+        }
+    }
+}
+
+public struct CityFairnessOwnOuting: Equatable, Identifiable, Sendable {
+    public let outingId: String
+    public let t0: Int64?
+    public let valid, inWindow: Bool
+    public let reason: CityFairnessOutingReason
+    public let maturity: String
+    public let metricVersion: String?
+    public let factRevision: Int64?
+    public var id: String { outingId }
+}
+
+public struct CityFairnessOutingPage: Equatable, Sendable {
+    public let queryID: String
+    public let asOf: Int64
+    public let metricVersion: String?
+    public let factRevision: Int64?
+    public let maturity: String
+    public let t0: Int64?
+    public let outings: [CityFairnessOwnOuting]
+    public let nextCursor: String?
+    /// Cohort N/D stays on the report. This page never carries a ratio; immature members still keep their rows.
+    public var showsRatio: Bool { maturity == "MATURE" }
+}
+
+public enum CityFairnessReportRead: Equatable, Sendable {
+    case screen(CityFairnessScreen)
+    case discard
+}
+
+public enum CityFairnessOutingRead: Equatable, Sendable {
+    case page(CityFairnessOutingPage)
+    case discard
+}
+
 public struct CityFairnessGap: Equatable, Sendable {
     public let asOf: Int64
     public let metricVersion: String?
     public let formulaId: String
     public let factRevision: Int64?
-}
-
-/// Detail fields that already exist on an outing class. The outing route itself is not in B4-1 yet.
-public struct CityFairnessEvidence: Equatable, Sendable {
-    public let outingId: String
-    public let actorId: Int64
-    public let maturity, reason: String
-    public let t0: Int64?
-    public let newbieQueue, secondOutingId: String?
 }
 
 public enum CityFairnessScreen: Equatable, Sendable {
@@ -103,18 +144,17 @@ public struct CityFairnessRoute: Equatable {
     public let queryID: String?
     public let asOf: Int64?
     public let cursor: String?
-    public let outingID: String?
     public var boardID: String { scope.boardID }
     public var regionID: String { scope.regionID }
     public var seasonID: String { scope.seasonID }
     public var rulesVersion: String { scope.rulesVersion }
     public init(report scope: CityFairnessScope, queryID: String, asOf: Int64, cursor: String? = nil) throws {
         guard Self.validQuery(queryID), Self.validStamp(asOf), cursor.map(Self.validCursor) != false else { throw APIError.invalidRequest }
-        kind = .report; self.scope = scope; self.queryID = queryID; self.asOf = asOf; self.cursor = cursor; outingID = nil
+        kind = .report; self.scope = scope; self.queryID = queryID; self.asOf = asOf; self.cursor = cursor
     }
-    public init(outing scope: CityFairnessScope, outingID: String) throws {
-        guard Self.validID(outingID) else { throw APIError.invalidRequest }
-        kind = .outing; self.scope = scope; queryID = nil; asOf = nil; cursor = nil; self.outingID = outingID
+    public init(outing scope: CityFairnessScope, queryID: String, asOf: Int64, cursor: String? = nil) throws {
+        guard Self.validQuery(queryID), Self.validStamp(asOf), cursor.map(Self.validCursor) != false else { throw APIError.invalidRequest }
+        kind = .outing; self.scope = scope; self.queryID = queryID; self.asOf = asOf; self.cursor = cursor
     }
     public func request(baseURL: URL, token: String) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
@@ -126,7 +166,6 @@ public struct CityFairnessRoute: Equatable {
         if let queryID { fields["queryId"] = queryID }
         if let asOf { fields["asOf"] = String(asOf) }
         if let cursor { fields["cursor"] = cursor }
-        if let outingID { fields["outingId"] = outingID }
         components.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
         guard let requestURL = components.url else { throw APIError.invalidRequest }
         var request = URLRequest(url: requestURL)
@@ -150,18 +189,16 @@ public struct CityFairnessRoute: Equatable {
         let root = configuration?.baseURL ?? baseURL
         let report = ["api", "city-game", "fairness", "report"].reduce(root) { $0.appendingPathComponent($1) }.path
         let outing = ["api", "city-game", "fairness", "outing"].reduce(root) { $0.appendingPathComponent($1) }.path
-        if url.path == report {
-            let keys = Set(values.keys)
-            let allowed: Set<String> = ["asOf", "boardId", "queryId", "regionId", "rulesVersion", "seasonId"]
-            guard keys == allowed || keys == allowed.union(["cursor"]),
-                  let query = values["queryId"], Self.validQuery(query),
-                  let asOf = values["asOf"].flatMap(Int64.init), Self.validStamp(asOf),
-                  values["cursor"].map(Self.validCursor) != false else { return nil }
-            kind = .report; self.scope = scope; queryID = query; self.asOf = asOf; cursor = values["cursor"]; outingID = nil
-        } else if url.path == outing {
-            guard Set(values.keys) == ["boardId", "outingId", "regionId", "rulesVersion", "seasonId"], Self.validID(values["outingId"] ?? "") else { return nil }
-            kind = .outing; self.scope = scope; queryID = nil; asOf = nil; cursor = nil; outingID = values["outingId"]
-        } else { return nil }
+        let keys = Set(values.keys)
+        let allowed: Set<String> = ["asOf", "boardId", "queryId", "regionId", "rulesVersion", "seasonId"]
+        guard values["outingId"] == nil, keys == allowed || keys == allowed.union(["cursor"]),
+              let query = values["queryId"], Self.validQuery(query),
+              let asOf = values["asOf"].flatMap(Int64.init), Self.validStamp(asOf),
+              values["cursor"].map(Self.validCursor) != false else { return nil }
+        queryID = query; self.asOf = asOf; cursor = values["cursor"]
+        if url.path == report { kind = .report; self.scope = scope }
+        else if url.path == outing { kind = .outing; self.scope = scope }
+        else { return nil }
         guard let canonical = try? self.request(baseURL: baseURL, token: "synthetic-token"),
               canonical.url?.absoluteString.utf8.elementsEqual(url.absoluteString.utf8) == true else { return nil }
     }
@@ -176,43 +213,46 @@ public struct CityFairnessRoute: Equatable {
 
 public enum CityFairnessWire {
     public static let formulaId = "city-fairness-cohort-v1"
-    public static func page(data: Data, status: Int, scope: CityFairnessScope) throws -> CityFairnessScreen {
-        if status == 401 { throw CityFairnessFailure.unauthorized }
-        if status == 403 { throw CityFairnessFailure.forbidden }
-        if status == 422 { return .notComputable(missing(data)) }
-        if status == 503 { throw CityFairnessFailure.unavailable }
-        if status == 400 || status == 409 { throw CityFairnessFailure.malformed }
-        guard (200..<300).contains(status), !data.isEmpty else { throw CityFairnessFailure.malformed }
-        let envelope = try decoded(data)
-        if envelope.code == 401 { throw CityFairnessFailure.unauthorized }
-        if envelope.code == 403 { throw CityFairnessFailure.forbidden }
-        if envelope.code == 422 { return .notComputable(clean(envelope.data?.missing)) }
-        if envelope.code == 503 { throw CityFairnessFailure.unavailable }
-        guard envelope.code == 200, let payload = envelope.data else { throw CityFairnessFailure.malformed }
-        return try screen(payload, scope: scope)
+    /// HTTPTransport.send returns (Data, Int), so this response header is not readable there.
+    public static let candidateHeader = "X-Chengyin-Candidate"
+    public static let candidateValue = "city-fairness"
+    public static func report(data: Data, status: Int, scope: CityFairnessScope, accountID: Int, queryID: String, asOf: Int64) throws -> CityFairnessReportRead {
+        switch try open(data, status: status) {
+        case .notComputable(let missing): return .screen(.notComputable(missing))
+        case .envelope(let envelope):
+            guard let payload = envelope.data else { throw CityFairnessFailure.malformed }
+            guard owned(payload, accountID: accountID, queryID: queryID, asOf: asOf, scope: scope) else { return .discard }
+            return .screen(try screen(payload, scope: scope, queryID: queryID))
+        }
     }
-    public static func evidence(data: Data, status: Int, outingID: String) throws -> CityFairnessEvidence {
-        if status == 401 { throw CityFairnessFailure.unauthorized }
-        if status == 403 { throw CityFairnessFailure.forbidden }
-        if status == 422 { throw CityFairnessFailure.notComputable }
-        if status == 503 { throw CityFairnessFailure.unavailable }
-        guard (200..<300).contains(status), !data.isEmpty else { throw CityFairnessFailure.malformed }
-        let envelope = try decoded(data)
-        if envelope.code == 401 { throw CityFairnessFailure.unauthorized }
-        if envelope.code == 403 { throw CityFairnessFailure.forbidden }
-        if envelope.code == 422 { throw CityFairnessFailure.notComputable }
-        if envelope.code == 503 { throw CityFairnessFailure.unavailable }
-        guard envelope.code == 200, let payload = envelope.data, let row = detail(payload, outingID: outingID),
-              let member = member(row) else { throw CityFairnessFailure.malformed }
-        return CityFairnessEvidence(outingId: member.outingId, actorId: member.actorId, maturity: member.maturity, reason: member.reason, t0: member.t0, newbieQueue: member.newbieQueue, secondOutingId: member.secondOutingId)
+    public static func ownOutings(data: Data, status: Int, scope: CityFairnessScope, accountID: Int, queryID: String, asOf: Int64) throws -> CityFairnessOutingRead {
+        switch try open(data, status: status) {
+        case .notComputable: throw CityFairnessFailure.notComputable
+        case .envelope(let envelope):
+            guard let payload = envelope.data else { throw CityFairnessFailure.malformed }
+            guard owned(payload, accountID: accountID, queryID: queryID, asOf: asOf, scope: scope) else { return .discard }
+            return .page(try outingPage(payload, queryID: queryID))
+        }
     }
 
-    private static func screen(_ payload: Payload, scope: CityFairnessScope) throws -> CityFairnessScreen {
-        guard payload.formulaId == formulaId, payload.boardId == scope.boardID, payload.regionId == scope.regionID,
-              payload.seasonId == scope.seasonID, payload.rulesVersion == scope.rulesVersion else { throw CityFairnessFailure.malformed }
+    private static let unavailableTables: Set<String> = ["city_fairness_parameter", "city_fairness_event", "city_fairness_read"]
+    private static func open(_ data: Data, status: Int) throws -> Opened {
+        if status == 401 { if let code = errorCode(data), code != "UNAUTHORIZED" { throw CityFairnessFailure.malformed }; throw CityFairnessFailure.unauthorized }
+        if status == 403 { if let code = errorCode(data), code != "scope-rejected" { throw CityFairnessFailure.malformed }; throw CityFairnessFailure.forbidden }
+        if status == 422 { return .notComputable(missing(data)) }
+        if status == 503 { guard let code = errorCode(data), unavailableTables.contains(code) else { throw CityFairnessFailure.malformed }; throw CityFairnessFailure.unavailable }
+        if status == 400 { if let code = errorCode(data), !["queryId", "cursor", "asOf"].contains(code) { throw CityFairnessFailure.malformed }; throw CityFairnessFailure.malformed }
+        if status == 409 { if let code = errorCode(data), code != "query-conflict" { throw CityFairnessFailure.malformed }; throw CityFairnessFailure.malformed }
+        guard status == 200, !data.isEmpty else { throw CityFairnessFailure.malformed }
+        let envelope = try decoded(data)
+        guard envelope.code == status, envelope.candidate, envelope.msg == "操作成功" else { throw CityFairnessFailure.malformed }
+        return .envelope(envelope)
+    }
+    private static func screen(_ payload: Payload, scope: CityFairnessScope, queryID: String) throws -> CityFairnessScreen {
+        guard payload.formulaId == formulaId else { throw CityFairnessFailure.malformed }
         if payload.status == "NOT_COMPUTABLE" { return .notComputable(clean(payload.missing)) }
         guard payload.status == "COMPUTABLE" else { throw CityFairnessFailure.unknown }
-        if payload.status == "COMPUTABLE", payload.matureCount == nil, payload.denominator == nil {
+        if payload.matureCount == nil, payload.denominator == nil {
             guard payload.maturity == "NO_MATURE_SAMPLE", let asOf = stamp(payload.asOf) else { throw CityFairnessFailure.malformed }
             return .noMatureSample(CityFairnessGap(asOf: asOf, metricVersion: try version(payload.metricVersion), formulaId: formulaId, factRevision: try revision(payload.factRevision)))
         }
@@ -226,13 +266,27 @@ public enum CityFairnessWire {
             return member
         }
         guard Set(members.map(\.actorId)).count == members.count else { throw CityFairnessFailure.malformed }
-        let cursor = try cursor(payload.nextCursor)
-        return .mature(CityFairnessPage(matureCount: matureCount, denominator: denominator, asOf: asOf, metricVersion: metricVersion, formulaId: formulaId, factRevision: factRevision, members: members, nextCursor: cursor))
+        return .mature(CityFairnessPage(queryID: queryID, matureCount: matureCount, denominator: denominator, asOf: asOf, metricVersion: metricVersion, formulaId: formulaId, factRevision: factRevision, members: members, nextCursor: try cursor(payload.nextCursor)))
     }
-    private static func detail(_ payload: Payload, outingID: String) -> MemberRow? {
-        if let rows = payload.outingClasses, let match = rows.first(where: { $0.outingId == outingID }) { return match }
-        guard payload.outingId == outingID, let actorId = payload.actorId, let maturity = payload.maturity, let reason = payload.reason else { return nil }
-        return MemberRow(outingId: outingID, actorId: actorId, maturity: maturity, reason: reason, t0: payload.t0, newbieQueue: payload.newbieQueue, secondOutingId: payload.secondOutingId)
+    private static func outingPage(_ payload: Payload, queryID: String) throws -> CityFairnessOutingPage {
+        if payload.status == "NOT_COMPUTABLE" { throw CityFairnessFailure.notComputable }
+        guard payload.status == "COMPUTABLE", let asOf = stamp(payload.asOf), let maturity = payload.maturity, CityFairnessRoute.validText(maturity, limit: 64),
+              let rows = payload.outings, rows.count <= 10_000, Set(rows.map(\.outingId)).count == rows.count else { throw CityFairnessFailure.malformed }
+        if let formula = payload.formulaId, formula != formulaId { throw CityFairnessFailure.malformed }
+        let factRevision = try revision(payload.factRevision)
+        let metricVersion = try version(payload.metricVersion)
+        let outings = try rows.map { row -> CityFairnessOwnOuting in
+            guard CityFairnessRoute.validID(row.outingId), stamp(row.t0) != nil || row.t0 == nil,
+                  CityFairnessRoute.validText(row.maturity, limit: 64),
+                  row.metricVersion == payload.metricVersion, row.factRevision == payload.factRevision else { throw CityFairnessFailure.malformed }
+            return CityFairnessOwnOuting(outingId: row.outingId, t0: row.t0, valid: row.valid, inWindow: row.inWindow, reason: CityFairnessOutingReason(row.reason), maturity: row.maturity, metricVersion: metricVersion, factRevision: factRevision)
+        }
+        return CityFairnessOutingPage(queryID: queryID, asOf: asOf, metricVersion: metricVersion, factRevision: factRevision, maturity: maturity, t0: stamp(payload.t0), outings: outings, nextCursor: try cursor(payload.nextCursor))
+    }
+    private static func owned(_ payload: Payload, accountID: Int, queryID: String, asOf: Int64, scope: CityFairnessScope) -> Bool {
+        payload.accountId == accountID && payload.queryId == queryID && payload.asOf == asOf
+            && payload.boardId == scope.boardID && payload.regionId == scope.regionID
+            && payload.seasonId == scope.seasonID && payload.rulesVersion == scope.rulesVersion
     }
     private static func member(_ row: MemberRow) -> CityFairnessMember? {
         guard CityFairnessRoute.validID(row.outingId), row.actorId > 0, CityFairnessRoute.validText(row.maturity, limit: 64),
@@ -241,10 +295,8 @@ public enum CityFairnessWire {
               row.secondOutingId.map(CityFairnessRoute.validID) != false else { return nil }
         return CityFairnessMember(outingId: row.outingId, actorId: row.actorId, maturity: row.maturity, reason: row.reason, t0: row.t0, newbieQueue: row.newbieQueue, secondOutingId: row.secondOutingId)
     }
-    private static func missing(_ data: Data) -> [String] {
-        guard let envelope = try? decoded(data) else { return [] }
-        return clean(envelope.data?.missing)
-    }
+    private static func missing(_ data: Data) -> [String] { clean((try? decoded(data))?.data?.missing) }
+    private static func errorCode(_ data: Data) -> String? { (try? decoded(data))?.data?.errorCode }
     private static func clean(_ values: [String]?) -> [String] {
         guard let values, values.count <= 32, values.allSatisfy({ CityFairnessRoute.validText($0, limit: 160) }) else { return [] }
         return values
@@ -269,7 +321,8 @@ public enum CityFairnessWire {
         do { return try JSONDecoder().decode(Envelope.self, from: data) } catch { throw CityFairnessFailure.malformed }
     }
 
-    private struct Envelope: Decodable { let code: Int; let data: Payload? }
+    private enum Opened { case envelope(Envelope), notComputable([String]) }
+    private struct Envelope: Decodable { let code: Int; let msg: String; let data: Payload?; let candidate: Bool }
     private struct MemberRow: Decodable {
         let outingId: String
         let actorId: Int64
@@ -277,14 +330,24 @@ public enum CityFairnessWire {
         let t0: Int64?
         let newbieQueue, secondOutingId: String?
     }
+    private struct OwnRow: Decodable {
+        let outingId: String
+        let t0: Int64?
+        let valid, inWindow: Bool
+        let reason, maturity: String
+        let metricVersion: String?
+        let factRevision: Int64?
+    }
     private struct Payload: Decodable {
-        let status, maturity, formulaId: String?
+        let accountId: Int?
+        let queryId, status, maturity, formulaId, metricVersion, nextCursor, errorCode: String?
         let boardId, regionId, seasonId, rulesVersion: String?
         let matureCount, denominator: Int?
-        let asOf, factRevision, actorId, t0: Int64?
-        let metricVersion, nextCursor, outingId, reason, newbieQueue, secondOutingId: String?
+        let asOf, factRevision, t0: Int64?
         let missing: [String]?
         let outingClasses: [MemberRow]?
+        let outings: [OwnRow]?
+        let readBack: Bool?
     }
 }
 
@@ -292,8 +355,10 @@ public enum CityFairnessWire {
 @MainActor @Observable public final class CityFairnessReader {
     public private(set) var screen: CityFairnessScreen = .blocked
     public private(set) var refreshing = false
-    public private(set) var evidence: CityFairnessEvidence?
-    public private(set) var evidenceFailure: CityFairnessFailure?
+    public private(set) var outingPage: CityFairnessOutingPage?
+    public private(set) var outingFailure: CityFairnessFailure?
+    public private(set) var outingBlocked = false
+    public private(set) var outingRefreshing = false
     public private(set) var refreshFailure: CityFairnessFailure?
     private let approval: CityFairnessReadApproval?
     private let transport: any HTTPTransport
@@ -319,24 +384,12 @@ public enum CityFairnessWire {
         guard let page, let cursor = page.nextCursor else { return }
         await reload(cursor: cursor, preserve: true)
     }
-    public func loadEvidence(_ outingID: String) async {
-        guard CityFairnessRoute.validID(outingID) else { evidence = nil; evidenceFailure = .malformed; return }
-        let stamp = UUID(); evidenceGeneration = stamp
-        evidence = nil; evidenceFailure = nil
-        guard let approval, approval.matches(approval.context), isCurrent() else { evidenceFailure = .malformed; return }
-        do {
-            let route = try CityFairnessRoute(outing: approval.scope, outingID: outingID)
-            let request = try route.request(baseURL: approval.context.baseURL, token: approval.context.session.token)
-            let (data, status) = try await transport.send(request)
-            guard evidenceGeneration == stamp, approval.matches(approval.context), isCurrent() else { return }
-            evidence = try CityFairnessWire.evidence(data: data, status: status, outingID: outingID)
-        } catch {
-            guard evidenceGeneration == stamp else { return }
-            evidenceFailure = Self.failure(error)
-            if evidenceFailure == .unauthorized, isCurrent() { onUnauthorized() }
-        }
+    public func loadOutings() async { await reloadOutings(cursor: nil) }
+    public func nextOutings() async {
+        guard let outingPage, let cursor = outingPage.nextCursor else { return }
+        await reloadOutings(cursor: cursor)
     }
-    public func clearEvidence() { evidenceGeneration = UUID(); evidence = nil; evidenceFailure = nil }
+    public func clearOutings() { evidenceGeneration = UUID(); outingPage = nil; outingFailure = nil; outingBlocked = false; outingRefreshing = false }
 
     private func reload(cursor: String?, preserve: Bool) async {
         guard !Task.isCancelled else { return }
@@ -355,23 +408,28 @@ public enum CityFairnessWire {
     private func fetch(stamp: UUID, cursor: String?) async {
         guard let approval else { return }
         do {
-            let route = try CityFairnessRoute(report: approval.scope, queryID: queryID, asOf: pinnedStamp(), cursor: cursor)
+            let asOf = pinnedStamp()
+            let route = try CityFairnessRoute(report: approval.scope, queryID: queryID, asOf: asOf, cursor: cursor)
             let request = try route.request(baseURL: approval.context.baseURL, token: approval.context.session.token)
             let (data, status) = try await transport.send(request)
             guard generation == stamp, approval.matches(approval.context), isCurrent(), !Task.isCancelled else { return }
-            let decoded = try CityFairnessWire.page(data: data, status: status, scope: approval.scope)
-            if let cursor {
-                guard case .mature(let incoming) = decoded, let current = page,
-                      incoming.matureCount == current.matureCount, incoming.denominator == current.denominator,
-                      incoming.metricVersion == current.metricVersion, incoming.formulaId == current.formulaId else { throw CityFairnessFailure.malformed }
-                var seen = Set(current.members.map(\.id))
-                let added = incoming.members.filter { seen.insert($0.id).inserted }
-                let merged = CityFairnessPage(matureCount: current.matureCount, denominator: current.denominator, asOf: incoming.asOf, metricVersion: current.metricVersion, formulaId: current.formulaId, factRevision: current.factRevision, members: current.members + added, nextCursor: incoming.nextCursor)
-                page = merged
-                screen = .mature(merged)
-            } else {
-                if case .mature(let incoming) = decoded { page = incoming } else { page = nil }
-                screen = decoded
+            switch try CityFairnessWire.report(data: data, status: status, scope: approval.scope, accountID: approval.context.session.accountID, queryID: queryID, asOf: asOf) {
+            case .discard:
+                if page == nil { screen = .blocked }
+            case .screen(let decoded):
+                if let cursor {
+                    guard case .mature(let incoming) = decoded, let current = page,
+                          sameSnapshot(incoming.queryID, incoming.asOf, incoming.metricVersion, incoming.factRevision, current),
+                          incoming.matureCount == current.matureCount, incoming.denominator == current.denominator else { refreshing = false; return }
+                    var seen = Set(current.members.map(\.id))
+                    let added = incoming.members.filter { seen.insert($0.id).inserted }
+                    let merged = CityFairnessPage(queryID: current.queryID, matureCount: current.matureCount, denominator: current.denominator, asOf: current.asOf, metricVersion: current.metricVersion, formulaId: current.formulaId, factRevision: current.factRevision, members: current.members + added, nextCursor: incoming.nextCursor)
+                    page = merged
+                    screen = .mature(merged)
+                } else {
+                    if case .mature(let incoming) = decoded { page = incoming } else { page = nil }
+                    screen = decoded
+                }
             }
             refreshing = false
         } catch {
@@ -384,6 +442,49 @@ public enum CityFairnessWire {
             else { refreshFailure = failure }
             refreshing = false
         }
+    }
+    private func reloadOutings(cursor: String?) async {
+        let stamp = UUID(); evidenceGeneration = stamp
+        guard let approval, approval.matches(approval.context), isCurrent() else {
+            outingPage = nil; outingFailure = nil; outingBlocked = true; outingRefreshing = false; return
+        }
+        outingFailure = nil
+        outingRefreshing = outingPage != nil
+        let asOf = pinnedStamp()
+        do {
+            let route = try CityFairnessRoute(outing: approval.scope, queryID: queryID, asOf: asOf, cursor: cursor)
+            let request = try route.request(baseURL: approval.context.baseURL, token: approval.context.session.token)
+            let (data, status) = try await transport.send(request)
+            guard evidenceGeneration == stamp, approval.matches(approval.context), isCurrent() else { return }
+            switch try CityFairnessWire.ownOutings(data: data, status: status, scope: approval.scope, accountID: approval.context.session.accountID, queryID: queryID, asOf: asOf) {
+            case .discard:
+                if outingPage == nil { outingBlocked = true }
+            case .page(let incoming):
+                if let cursor, let current = outingPage {
+                    guard sameSnapshot(incoming.queryID, incoming.asOf, incoming.metricVersion, incoming.factRevision, current) else { outingRefreshing = false; return }
+                    var seen = Set(current.outings.map(\.id))
+                    let added = incoming.outings.filter { seen.insert($0.id).inserted }
+                    outingPage = CityFairnessOutingPage(queryID: current.queryID, asOf: current.asOf, metricVersion: current.metricVersion, factRevision: current.factRevision, maturity: current.maturity, t0: current.t0, outings: current.outings + added, nextCursor: incoming.nextCursor)
+                } else if cursor == nil {
+                    outingPage = incoming
+                }
+                outingBlocked = false
+            }
+            outingRefreshing = false
+        } catch {
+            guard evidenceGeneration == stamp else { return }
+            let failure = Self.failure(error)
+            if failure == .unauthorized { outingPage = nil; if isCurrent() { onUnauthorized() } }
+            outingFailure = failure
+            outingBlocked = false
+            outingRefreshing = false
+        }
+    }
+    private func sameSnapshot(_ queryID: String, _ asOf: Int64, _ metricVersion: String?, _ factRevision: Int64?, _ current: CityFairnessPage) -> Bool {
+        queryID == current.queryID && asOf == current.asOf && metricVersion == current.metricVersion && factRevision == current.factRevision
+    }
+    private func sameSnapshot(_ queryID: String, _ asOf: Int64, _ metricVersion: String?, _ factRevision: Int64?, _ current: CityFairnessOutingPage) -> Bool {
+        queryID == current.queryID && asOf == current.asOf && metricVersion == current.metricVersion && factRevision == current.factRevision
     }
     /// ponytail: first client clock is reused as asOf so refresh reads that snapshot back. A new cutoff needs a new reader.
     private func pinnedStamp() -> Int64 {
