@@ -57,6 +57,13 @@ public final class RoamExportDeliveryContext: @unchecked Sendable {
     private var clock: @MainActor () -> Date
     private var identity: @MainActor () -> RoamExperienceIdentity?
     private var foreground: @MainActor () -> Bool
+    /// Highest instant this page has read. A later smaller clock does not reopen the file.
+    /// ponytail: in-memory for this context; a new page starts from its next reading
+    private var highWaterMs: Int64 = 0
+    /// Last identity and foreground published on the main actor. An off-main write reads
+    /// these under the lock and does not hop to the main thread.
+    private var publishedIdentity: RoamExperienceIdentity?
+    private var publishedForeground = false
     private var temporaryURL: URL?
     private var tokens: [UUID: URL] = [:]
 
@@ -70,18 +77,55 @@ public final class RoamExportDeliveryContext: @unchecked Sendable {
     public func bind(clock: @escaping @MainActor () -> Date,
                      identity: @escaping @MainActor () -> RoamExperienceIdentity?,
                      foreground: @escaping @MainActor () -> Bool) {
-        lock.lock(); defer { lock.unlock() }
+        lock.lock()
         self.clock = clock; self.identity = identity; self.foreground = foreground
+        highWaterMs = 0
+        publishedIdentity = nil
+        publishedForeground = false
+        lock.unlock()
+        publish()
     }
 
-    public func snapshot() -> (now: Date, identity: RoamExperienceIdentity?, foreground: Bool) {
+    /// Copy the current readers into the lock. The view calls this on scene and account changes
+    /// so a background write sees them without waiting on the main thread.
+    public func publish() {
+        guard Thread.isMainThread else { return }
         lock.lock()
         let clock = self.clock, identity = self.identity, foreground = self.foreground
         lock.unlock()
-        let read = { MainActor.assumeIsolated { (clock(), identity(), foreground()) } }
-        if Thread.isMainThread { return read() }
-        // ponytail: main.sync, hangs if the main thread is already waiting on this write
-        return DispatchQueue.main.sync(execute: read)
+        let read = MainActor.assumeIsolated { (clock(), identity(), foreground()) }
+        lock.lock()
+        _ = noted(read.0)
+        publishedIdentity = read.1
+        publishedForeground = read.2
+        lock.unlock()
+    }
+
+    public func snapshot() -> (now: Date, identity: RoamExperienceIdentity?, foreground: Bool) {
+        if Thread.isMainThread {
+            lock.lock()
+            let clock = self.clock, identity = self.identity, foreground = self.foreground
+            lock.unlock()
+            let read = MainActor.assumeIsolated { (clock(), identity(), foreground()) }
+            lock.lock()
+            let now = noted(read.0)
+            publishedIdentity = read.1
+            publishedForeground = read.2
+            lock.unlock()
+            return (now, read.1, read.2)
+        }
+        lock.lock()
+        let now = noted(Date())
+        let identity = publishedIdentity, foreground = publishedForeground
+        lock.unlock()
+        return (now, identity, foreground)
+    }
+
+    /// Lock held. Delivery time never moves backward.
+    private func noted(_ date: Date) -> Date {
+        let ms = Int64((date.timeIntervalSince1970 * 1000).rounded(.down))
+        if ms > highWaterMs { highWaterMs = ms }
+        return Date(timeIntervalSince1970: TimeInterval(highWaterMs) / 1000)
     }
 
     public func rememberTemporary(_ url: URL) {

@@ -166,7 +166,12 @@ private struct RoamExportFileSaveLink: View {
         .task { if startDate.isEmpty { use(.last30Days) } }
         .onAppear { bindDeliveryFacts() }
         .onDisappear { model.revokeDelivery(); deliveryContext.cleanupTemporary(); model.restart() }
+        .onChange(of: tools.identity) { _, _ in
+            deliveryContext.publish()
+            model.revokeDelivery(); deliveryContext.cleanupTemporary(); saveTicket = nil; shareOffer = nil
+        }
         .onChange(of: scenePhase) { _, phase in
+            deliveryContext.publish()
             if phase == .active {
                 // Foreground return rechecks identity and expiry. It does not make a revoked file deliverable.
                 model.renewDelivery()

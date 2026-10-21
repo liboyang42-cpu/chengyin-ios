@@ -74,6 +74,7 @@ import XCTest
         moment = Date(timeIntervalSince1970: 1_792_468_800)
         XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "Expiry is the clock at the write, not the last refresh")
         moment = now
+        XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "A rolled-back clock does not extend the original lifetime")
         front = false
         XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "Foreground is read again at the write")
         front = true
@@ -85,6 +86,23 @@ import XCTest
         context.cleanupTemporary()
         XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
         context.cleanupTemporary()
+    }
+
+    /// The main thread waits for this write. The write must not wait for the main thread.
+    func testOffMainWriteReadsPublishedFactsWithoutWaiting() {
+        let lease = RoamExportDeliveryLease(file: file(), identity: identity)!
+        let context = RoamExportDeliveryContext()
+        let payload = file()
+        var who: RoamExperienceIdentity? = identity
+        context.bind(clock: { self.now }, identity: { who }, foreground: { true })
+        who = RoamExperienceIdentity(scope: scope, epoch: 2)
+        context.publish()
+        let done = expectation(description: "off-main snapshot")
+        DispatchQueue.global(qos: .userInitiated).async {
+            XCTAssertNil(RoamExportHandoff.contents(file: payload, lease: lease, context: context), "A published account change rejects the write")
+            done.fulfill()
+        }
+        wait(for: [done], timeout: 2)
     }
 
     func testCancelIsNotSaveAndOlderCallbackKeepsTheNewerLease() throws {
