@@ -49,26 +49,39 @@ public final class RoamExportDeliveryLease: @unchecked Sendable {
     }
 }
 
-/// Live hand-off facts written by the page. Delivery reads them at the moment
-/// of the write, instead of reusing the lease's own identity or a fixed foreground.
+/// Live hand-off readers. Delivery calls them at the write. It does not keep the
+/// time, identity, or foreground from the last view refresh, and it does not
+/// substitute the lease's own identity or a constant foreground.
 public final class RoamExportDeliveryContext: @unchecked Sendable {
     private let lock = NSLock()
-    private var now = Date(timeIntervalSince1970: 0)
-    private var identity: RoamExperienceIdentity?
-    private var foreground = false
+    private var clock: @MainActor () -> Date
+    private var identity: @MainActor () -> RoamExperienceIdentity?
+    private var foreground: @MainActor () -> Bool
     private var temporaryURL: URL?
     private var tokens: [UUID: URL] = [:]
 
-    public init() {}
+    public init() {
+        clock = { @MainActor in Date() }
+        identity = { @MainActor in nil }
+        foreground = { @MainActor in false }
+    }
 
-    public func update(now: Date, identity: RoamExperienceIdentity?, foreground: Bool) {
+    /// Install the readers. Their results at this moment are not the delivery decision.
+    public func bind(clock: @escaping @MainActor () -> Date,
+                     identity: @escaping @MainActor () -> RoamExperienceIdentity?,
+                     foreground: @escaping @MainActor () -> Bool) {
         lock.lock(); defer { lock.unlock() }
-        self.now = now; self.identity = identity; self.foreground = foreground
+        self.clock = clock; self.identity = identity; self.foreground = foreground
     }
 
     public func snapshot() -> (now: Date, identity: RoamExperienceIdentity?, foreground: Bool) {
-        lock.lock(); defer { lock.unlock() }
-        return (now, identity, foreground)
+        lock.lock()
+        let clock = self.clock, identity = self.identity, foreground = self.foreground
+        lock.unlock()
+        let read = { MainActor.assumeIsolated { (clock(), identity(), foreground()) } }
+        if Thread.isMainThread { return read() }
+        // ponytail: main.sync, hangs if the main thread is already waiting on this write
+        return DispatchQueue.main.sync(execute: read)
     }
 
     public func rememberTemporary(_ url: URL) {
@@ -120,7 +133,7 @@ public final class RoamExportDeliveryContext: @unchecked Sendable {
 }
 
 public enum RoamExportHandoff {
-    /// Bytes to write only while the lease still matches the live context.
+    /// Bytes to write only while the lease still matches the readers at this call.
     /// Nil means deliver nothing: revoked, expired, backgrounded, or a different identity.
     public static func contents(file: RoamExportFile, lease: RoamExportDeliveryLease, context: RoamExportDeliveryContext) -> Data? {
         let shot = context.snapshot()

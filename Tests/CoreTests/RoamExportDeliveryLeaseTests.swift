@@ -60,15 +60,23 @@ import XCTest
     func testHandoffUsesLiveContextNotTheLeaseIdentity() {
         let lease = RoamExportDeliveryLease(file: file(), identity: identity)!
         let context = RoamExportDeliveryContext()
-        context.update(now: now, identity: identity, foreground: false)
+        XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "An unbound context writes nothing")
+        var moment = now
+        var who: RoamExperienceIdentity? = identity
+        var front = false
+        context.bind(clock: { moment }, identity: { who }, foreground: { front })
         XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "A backgrounded page writes nothing")
-        context.update(now: now, identity: RoamExperienceIdentity(scope: scope, epoch: 2), foreground: true)
+        who = RoamExperienceIdentity(scope: scope, epoch: 2)
+        front = true
         XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "The lease identity is not the current identity")
-        context.update(now: now, identity: identity, foreground: true)
+        who = identity
         XCTAssertEqual(RoamExportHandoff.contents(file: file(), lease: lease, context: context), Data(file().content.utf8))
-        context.update(now: Date(timeIntervalSince1970: 1_792_468_800), identity: identity, foreground: true)
-        XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "Expiry is read from the live clock at the write")
-        context.update(now: now, identity: identity, foreground: true)
+        moment = Date(timeIntervalSince1970: 1_792_468_800)
+        XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "Expiry is the clock at the write, not the last refresh")
+        moment = now
+        front = false
+        XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "Foreground is read again at the write")
+        front = true
         lease.revoke()
         XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "Revocation is seen at the actual write")
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("c6-handoff-\(UUID().uuidString).jsonl")
