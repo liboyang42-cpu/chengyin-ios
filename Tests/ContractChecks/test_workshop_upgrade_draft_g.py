@@ -74,7 +74,18 @@ class UpgradeDraftSourceContract(unittest.TestCase):
             body = code(path)
             for bad in ["URLSession", "http://", "https://", "URLRequest", "/api/", "CompareModVersions", "UpgradeInstallDraft"]:
                 self.assertNotIn(bad, body)
+        self.assertNotIn("WorkshopUpgradeProductionBoundary", flow)
         self.assertNotIn("token", code("Core/WorkshopUpgradeDraftStore.swift").lower())
+
+    def test_production_ports_stay_disabled_and_unwired(self):
+        boundary = text("Core/WorkshopUpgradeFlowBoundary.swift")
+        self.assertIn("public static let callsNetwork = false", boundary)
+        self.assertIn("public static let portsEnabled = false", boundary)
+        self.assertIn('case compareModVersions = "CompareModVersions"', boundary)
+        self.assertIn('case upgradeInstallDraft = "UpgradeInstallDraft"', boundary)
+        body = code("Core/WorkshopUpgradeFlowBoundary.swift")
+        for bad in ["URLSession", "http://", "https://", "URLRequest", "/api/", "makeUpgrade"]:
+            self.assertNotIn(bad, body)
 
     def test_acceptance_tests_exist(self):
         core = text("Tests/CoreTests/WorkshopUpgradeDraftTests.swift")
