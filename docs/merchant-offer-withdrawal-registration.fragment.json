@@ -1,0 +1,30 @@
+{
+  "feature": "C8 exit one's own ordinary chapter supply (POST /api/coop/offer/withdraw)",
+  "base_commit": "cf971f039304810b6e815944556375f352d55adf",
+  "backend_contract_commit": "f4299a6445438e3e0e253fd4451c44bdaf491eb7",
+  "prior_batch_dependencies": [],
+  "already_in_baseline": [],
+  "app_sources": [
+    "Core/MerchantOfferWithdrawal.swift",
+    "Core/MerchantOfferWithdrawalCoordinator.swift",
+    "App/MerchantOfferWithdrawalView.swift"
+  ],
+  "modified_sources": [],
+  "swift_package_tests": ["Tests/CoreTests/MerchantOfferWithdrawalTests.swift"],
+  "app_unit_tests": [],
+  "localization_fragment": "Resources/MerchantOfferWithdrawalLocalizations.fragment.json",
+  "pending_native_tests": [
+    "swift test --filter MerchantOfferWithdrawalTests",
+    "swift test --filter MerchantOfferWithdrawalCoordinatorTests",
+    "Questify AppUnitTests / UI acceptance for the mounted withdrawal entry after C7 wiring"
+  ],
+  "pending_ui_checks": [
+    "own chapter supply detail entry reaches eligibility/impact/reason",
+    "confirmation shows pause/retention/no-auto-refund/notification impact",
+    "confirmed readback returns and reloads mine by original offerId",
+    "unknown outcome offers readback only, never resend",
+    "cross-account old responses are discarded",
+    "VoiceOver and large text on reason counter and impact list"
+  ],
+  "registration_policy": "C7 integration owner alone registers sources, merges localization, regenerates the project and applies the narrow shared MerchantContent*/CoopFlowMutation hunk supplied in the C8 hand-off. No PBX, total catalog, CI, shared fixture or production executor was modified or enabled by this line."
+}
