@@ -16,14 +16,17 @@ import UIKit
     let key: CooperationInviteKey
     let reader: any CooperationReading
     var peerReader: (any CoopFlowReading)? = nil
+    @Environment(\.cooperationProjectDestination) private var topicDestination
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var phoneCopy: CooperationPhoneCopyOwner
+    @State private var openedTopic: Int?
+    @State private var topicReturn: UInt64 = 0
     init(key: CooperationInviteKey, reader: any CooperationReading, peerReader: (any CoopFlowReading)? = nil) {
         self.key = key; self.reader = reader; self.peerReader = peerReader
         _phoneCopy = StateObject(wrappedValue: CooperationPhoneCopyOwner(reader: reader, key: key))
     }
     var body: some View {
-        CooperationReadScreen(reader: reader, resource: "invite.\(key.direction.rawValue).\(key.id)", operation: {
+        CooperationReadScreen(reader: reader, resource: "invite.\(key.direction.rawValue).\(key.id).return.\(topicReturn)", operation: {
             guard key.id > 0 else { throw CooperationReadFailure.unavailable }
             return try await phoneCopy.load(reader: reader, key: key)
         }) { detail in
@@ -37,7 +40,10 @@ import UIKit
                 }.font(.title3.weight(.semibold)).accessibilityElement(children: .combine)
                     .accessibilityIdentifier("cooperation.detail.partner")
                 if let name = row.topicName { Text(verbatim: name).font(.headline) }
-                if let topic = row.topicId { CooperationTopicReference(id: topic) }
+                if let topic = row.topicId {
+                    CooperationTopicReference(id: topic)
+                    CooperationProjectNavigationLink(topicID: topic, invite: key, destination: topicDestination, openedTopic: $openedTopic)
+                }
                 if let party = row.viewerPartyName {
                     LabeledContent { Text(verbatim: party) } label: { Text(LocalizedStringKey(key.direction == .received ? "cooperation.detail.receivingClub" : "cooperation.detail.sendingClub")) }
                         .accessibilityIdentifier("cooperation.detail.viewerParty")
@@ -118,9 +124,17 @@ import UIKit
         .onAppear { phoneCopy.appear(active: scenePhase == .active) }
         .onDisappear { phoneCopy.disappear() }
         .onChange(of: scenePhase) { _, phase in phoneCopy.sceneChanged(active: phase == .active) }
-        .onChange(of: reader.scope) { _, _ in phoneCopy.retire() }
-        .onChange(of: ObjectIdentifier(reader)) { _, _ in phoneCopy.retire() }
-        .onChange(of: key) { _, _ in phoneCopy.retire() }
+        .onChange(of: reader.scope) { _, _ in phoneCopy.retire(); openedTopic = nil }
+        .onChange(of: ObjectIdentifier(reader)) { _, _ in phoneCopy.retire(); openedTopic = nil }
+        .onChange(of: reader.isAuthenticated) { _, _ in openedTopic = nil }
+        .onChange(of: key) { _, _ in phoneCopy.retire(); openedTopic = nil }
+        .onChange(of: openedTopic) { previous, next in
+            guard previous != nil, next == nil else { return }
+            topicReturn &+= 1
+        }
+        .navigationDestination(item: $openedTopic) { topicID in
+            CooperationProjectNavigationDestination(topicID: topicID, invite: key, destination: topicDestination)
+        }
     }
 }
 
