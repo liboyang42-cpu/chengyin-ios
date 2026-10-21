@@ -276,6 +276,16 @@ class RewardPledgeContractChecks(unittest.TestCase):
         self.assertIn("serviceOutlivesCoupon", (ROOT / "App/RewardPledgeViews.swift").read_text())
         self.assertIn("rewards.pledge.returnClosed", (ROOT / "App/RewardPledgeViews.swift").read_text())
         self.assertIn("rewards.pledge.reviewQueue", (ROOT / "App/RewardPledgeViews.swift").read_text())
+        views = (ROOT / "App/RewardPledgeViews.swift").read_text()
+        self.assertIn("receipt.state", views)
+        self.assertIn("receipt.payloadHash", views)
+        self.assertIn("supplyBlocked", views)
+        self.assertIn("restoredDraft", views)
+        self.assertIn("readOp", views)
+        self.assertIn("RewardPledgeAccessBind", views)
+        self.assertNotIn('case .closed("NOT_FOUND")', views)
+        self.assertNotIn('frozen != "0"', views)
+        self.assertNotIn('["SUBMITTED", "CONFIRMED", "FROZEN", "WITHDRAWN"]', views)
 
     def test_unknown_record_persists_only_the_minimal_fields(self):
         body = (ROOT / "Core/RewardPledge.swift").read_text()

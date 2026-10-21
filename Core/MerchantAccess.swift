@@ -37,12 +37,16 @@ public struct MerchantAccess: Decodable, Equatable {
     public let role: Role?
     public let permissions: Set<Permission>
     public let application: MerchantApplicationSummary?
+    /// mms_merchant.member_id from access/me. Nil when the payload does not carry it.
+    public let ownerMemberID: Int?
+    /// Logged-in operator from access/me. Nil when the payload does not carry it.
+    public let principalMemberID: Int?
 
     public var isOwner: Bool { active && role == .owner }
     public func allows(_ permission: Permission) -> Bool { active && permissions.contains(permission) }
     public var canReadDashboard: Bool { isOwner && allows(.finance) }
 
-    enum CodingKeys: String, CodingKey { case active, merchant, roleCode, permissions, applicationState }
+    enum CodingKeys: String, CodingKey { case active, merchant, roleCode, permissions, applicationState, ownerMemberId, principalMemberId }
     private struct Store: Decodable {
         let id: Int?
         let name: String?
@@ -64,6 +68,8 @@ public struct MerchantAccess: Decodable, Equatable {
         if !active {
             // Inactive access never inherits any granted permissions.
             permissions = []
+            ownerMemberID = nil
+            principalMemberID = nil
             let store = try? c.decode(Store.self, forKey: .merchant)
             let state = try? c.decode(String.self, forKey: .applicationState)
             if ["PENDING", "REJECTED", "DISABLED"].contains(state ?? ""), roleText == Role.owner.rawValue,
@@ -82,6 +88,8 @@ public struct MerchantAccess: Decodable, Equatable {
             throw DecodingError.dataCorruptedError(forKey: .merchant, in: c, debugDescription: "Invalid merchant identity")
         }
         merchantID = id; merchantName = store.name; self.role = role; application = nil
+        ownerMemberID = c.merchantInteger(.ownerMemberId)
+        principalMemberID = c.merchantInteger(.principalMemberId)
         let permissionNames = try c.decodeIfPresent([String].self, forKey: .permissions) ?? []
         permissions = Set(permissionNames.compactMap(Permission.init(rawValue:)))
     }

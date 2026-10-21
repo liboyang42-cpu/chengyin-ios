@@ -1981,6 +1981,16 @@ final class AppSession: ObservableObject {
                                   coupons: { [weak self] in
                                       guard let self else { return .failure(.closed("not open")) }
                                       return await self.publishedStoreCoupons()
+                                  },
+                                  access: { [weak self] in
+                                      guard let self, let revision = self.storageScope?.service, !revision.isEmpty,
+                                            let account = self.account else { return nil }
+                                      guard let access = try? await self.merchantAccess(), access.active,
+                                            let store = access.merchantID, store > 0,
+                                            let owner = access.ownerMemberID, owner > 0,
+                                            let principal = access.principalMemberID, principal == account.id else { return nil }
+                                      return RewardPledgeAccessBind(storeID: String(store), ownerID: String(owner),
+                                                                     principalID: String(principal), revision: revision)
                                   })
     }
     private func rewardCaller() -> RewardPledgeCaller {

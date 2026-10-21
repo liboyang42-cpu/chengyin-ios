@@ -29,10 +29,12 @@ public extension EnvironmentValues {
     @Published public private(set) var coupons: [CouponDefinition] = []
     @Published public private(set) var couponsLoaded = false
     @Published public private(set) var statsBody: RewardPledgeServerBody?
+    @Published public private(set) var restoredDraft: RewardPledgeRestoredDraft?
     private var offerVersionID = ""
     private var offerSubjectID = ""
     private let journal: RewardPledgeFileJournal?
     private let journalBlocked: Bool
+    private var supplyBlocked = false
 
     public init(accountID: String, storeID: String, policy: RewardPledgePolicy, journalURL: URL?) {
         let stored = journalURL.map { RewardPledgeFileJournal(url: $0) }
@@ -52,22 +54,42 @@ public extension EnvironmentValues {
         journalBlocked = blocked
         machine = .restored(accountID: accountID, storeID: store, policy: policy, journal: loaded)
         notice = blocked ? "journal" : (machine.unknowns.isEmpty ? nil : "unknown")
-        if let memory = Self.loadSupply(journalURL, accountID: accountID) {
+        switch Self.readSupply(journalURL, accountID: accountID) {
+        case .blocked:
+            supplyBlocked = true
+            notice = "journal"
+        case .ready(let memory):
             if RewardPledgeRoutes.id(memory.pledgeID) {
                 pledgeID = memory.pledgeID
                 versionID = memory.versionID
             }
+            restoredDraft = Self.restored(memory)
             if !blocked, memory.pendingDraft != nil || !(memory.locks ?? []).isEmpty { notice = "unknown" }
+        case .absent:
+            break
         }
     }
 
-    private struct SupplyLock: Codable, Equatable { var op, key: String }
+    public struct RewardPledgeRestoredDraft: Equatable {
+        public let key: String
+        public let couponID: Int
+        public let supplyRef, terms: String
+        public let quantity: Int
+    }
+
+    private struct SupplyLock: Codable, Equatable {
+        var op, key: String
+        var digest: String?
+        var bind: RewardPledgeAccessBind?
+    }
     private struct PendingDraft: Codable, Equatable {
         var key: String
         var couponID: Int
         var supplyRef, terms: String
         var quantity: Int
         var windowStart, windowEnd: Int64
+        var digest: String?
+        var bind: RewardPledgeAccessBind?
         func matches(_ supply: RewardPledgeRequests.Supply) -> Bool {
             couponID == supply.couponID && supplyRef == supply.supplyRef && terms == supply.terms
                 && quantity == supply.quantity && windowStart == supply.windowStart && windowEnd == supply.windowEnd
@@ -82,16 +104,50 @@ public extension EnvironmentValues {
         guard let journalURL, RewardPledgeRoutes.id(accountID) else { return nil }
         return journalURL.deletingLastPathComponent().appendingPathComponent("reward-pledge-supply-" + accountID + ".json")
     }
-    private static func loadSupply(_ journalURL: URL?, accountID: String) -> SupplyMemory? {
-        let urls = [supplyURL(journalURL, accountID: accountID), journalURL?.deletingLastPathComponent().appendingPathComponent("reward-pledge-supply.json")]
-        for url in urls {
-            guard let url, let data = try? Data(contentsOf: url),
-                  let memory = try? JSONDecoder().decode(SupplyMemory.self, from: data), memory.accountID == accountID else { continue }
-            return memory
+    private enum SupplyRead { case absent, blocked, ready(SupplyMemory) }
+    private enum SupplyBytes { case missing, unreadable, data(Data) }
+    /// A missing account file may still read the legacy file. An unreadable file blocks; it is not treated as missing.
+    private static func readSupply(_ journalURL: URL?, accountID: String) -> SupplyRead {
+        guard RewardPledgeRoutes.id(accountID), let accountURL = supplyURL(journalURL, accountID: accountID) else { return .blocked }
+        switch bytes(accountURL) {
+        case .unreadable: return .blocked
+        case .data(let data):
+            guard let memory = try? JSONDecoder().decode(SupplyMemory.self, from: data), memory.accountID == accountID else { return .blocked }
+            return .ready(memory)
+        case .missing:
+            guard let legacy = journalURL?.deletingLastPathComponent().appendingPathComponent("reward-pledge-supply.json") else { return .absent }
+            switch bytes(legacy) {
+            case .missing: return .absent
+            case .unreadable: return .blocked
+            case .data(let data):
+                guard let memory = try? JSONDecoder().decode(SupplyMemory.self, from: data) else { return .blocked }
+                return memory.accountID == accountID ? .ready(memory) : .absent
+            }
         }
-        return nil
     }
-    private func loadMemory() -> SupplyMemory? { Self.loadSupply(journal?.url, accountID: machine.scope.accountID) }
+    private static func bytes(_ url: URL) -> SupplyBytes {
+        do { return .data(try Data(contentsOf: url)) } catch let error as NSError {
+            let missing = (error.domain == NSCocoaErrorDomain && error.code == 260) || (error.domain == NSPOSIXErrorDomain && error.code == 2)
+            return missing ? .missing : .unreadable
+        }
+    }
+    private static func restored(_ memory: SupplyMemory) -> RewardPledgeRestoredDraft? {
+        guard let pending = memory.pendingDraft else { return nil }
+        return RewardPledgeRestoredDraft(key: pending.key, couponID: pending.couponID, supplyRef: pending.supplyRef,
+                                          terms: pending.terms, quantity: pending.quantity)
+    }
+    private func loadMemory() throws -> SupplyMemory {
+        switch Self.readSupply(journal?.url, accountID: machine.scope.accountID) {
+        case .ready(let memory):
+            guard memory.accountID == machine.scope.accountID else { throw RewardPledgeFailure.stale }
+            return memory
+        case .blocked:
+            supplyBlocked = true
+            throw RewardPledgeFailure.closed("journal")
+        case .absent:
+            return blankMemory()
+        }
+    }
     private func blankMemory() -> SupplyMemory {
         SupplyMemory(accountID: machine.scope.accountID, pledgeID: pledgeID, versionID: versionID, pendingDraft: nil, locks: [])
     }
@@ -464,14 +520,22 @@ public extension EnvironmentValues {
     }
 
     private func adoptSupply(for accountID: String) {
-        coupons = []; couponsLoaded = false; statsBody = nil
-        guard let memory = Self.loadSupply(journal?.url, accountID: accountID) else {
+        coupons = []; couponsLoaded = false; statsBody = nil; restoredDraft = nil
+        switch Self.readSupply(journal?.url, accountID: accountID) {
+        case .blocked:
+            supplyBlocked = true
             pledgeID = ""; versionID = ""
-            return
+            notice = "journal"
+        case .absent:
+            supplyBlocked = false
+            pledgeID = ""; versionID = ""
+        case .ready(let memory):
+            supplyBlocked = false
+            pledgeID = RewardPledgeRoutes.id(memory.pledgeID) ? memory.pledgeID : ""
+            versionID = RewardPledgeRoutes.id(memory.versionID) ? memory.versionID : ""
+            restoredDraft = Self.restored(memory)
+            if memory.pendingDraft != nil || !(memory.locks ?? []).isEmpty { notice = "unknown" }
         }
-        pledgeID = RewardPledgeRoutes.id(memory.pledgeID) ? memory.pledgeID : ""
-        versionID = RewardPledgeRoutes.id(memory.versionID) ? memory.versionID : ""
-        if memory.pendingDraft != nil || !(memory.locks ?? []).isEmpty { notice = "unknown" }
     }
 
     public func loadCoupons(entry: RewardPledgeEntry) async {
@@ -489,33 +553,38 @@ public extension EnvironmentValues {
     }
 
     public func draftSupply(coupon: CouponDefinition, supplyRef: String, terms: String, quantity: String, entry: RewardPledgeEntry) async {
+        guard !supplyBlocked else { notice = "journal"; return }
         guard let caller = admitted(entry, { $0.draft }), !busy else { return }
         busy = true
         defer { busy = false }
         let probed: RewardPledgeRequests.Supply
         do { probed = try RewardPledgeRequests.Supply(coupon: coupon, supplyRef: supplyRef, terms: terms, quantity: Int(quantity) ?? 0, requestID: "pending") }
         catch { note(error); return }
+        let digest = RewardPledgeRequests.digest(op: "draft", pledgeID: "", versionID: "", awardID: "", supply: probed)
+        let bind: RewardPledgeAccessBind
+        do { bind = try await requireAccess(entry) } catch { note(error); return }
         let key: String
-        do { key = try beginDraft(probed) } catch { note(error); return }
+        do { key = try beginDraft(probed, digest: digest, bind: bind) } catch { note(error); return }
         do {
+            guard try await requireAccess(entry) == bind else { notice = "unknown"; return }
             let supply = try RewardPledgeRequests.Supply(coupon: coupon, supplyRef: supplyRef, terms: terms, quantity: Int(quantity) ?? 0, requestID: key)
             let body = try await entry.client.draft(supply, token: caller.token, open: caller.draft, still: { entry.current() == caller })
-            guard body.fields["pledge.pledgeId"] == key else { notice = "unknown"; return }
+            guard receipt(body, "draft", key, digest, pledgeID: key, awardID: "") else { merchantResult = body; notice = "unknown"; return }
             try finish("draft", key, body)
         } catch {
-            await reconcileDraft(key, error, entry, caller)
+            await reconcileDraft(key, digest, error, entry, caller)
         }
     }
 
     public func submitSupply(entry: RewardPledgeEntry) async {
-        await pledged(entry, "submit", Self.submitted) { caller, key in
-            try await entry.client.submit(pledgeID: key, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+        await pledged(entry, "submit") { caller, pledge, version in
+            try await entry.client.submit(pledgeID: pledge, token: caller.token, open: caller.draft, still: { entry.current() == caller })
         }
     }
 
     public func confirmSupply(entry: RewardPledgeEntry) async {
-        await pledged(entry, "confirm", Self.confirmed) { caller, key in
-            try await entry.client.confirm(pledgeID: key, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+        await pledged(entry, "confirm") { caller, pledge, version in
+            try await entry.client.confirm(pledgeID: pledge, token: caller.token, open: caller.draft, still: { entry.current() == caller })
         }
     }
 
@@ -536,10 +605,11 @@ public extension EnvironmentValues {
         busy = true
         defer { busy = false }
         let version = versionID, pledge = pledgeID
-        await guarded(op: "hold", key: version, applied: Self.held, send: {
+        let digest = RewardPledgeRequests.digest(op: "hold", pledgeID: pledge, versionID: version, awardID: "", supply: nil)
+        await guarded(entry, op: "hold", key: version, digest: digest, pledgeID: pledge, awardID: "", send: {
             try await entry.client.hold(versionID: version, token: caller.token, open: caller.hold, still: { entry.current() == caller })
         }, read: {
-            try await entry.client.readPledge(pledgeID: pledge, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+            try await entry.client.readOp(op: "hold", key: version, token: caller.token, open: caller.hold, still: { entry.current() == caller })
         })
     }
 
@@ -548,10 +618,11 @@ public extension EnvironmentValues {
         busy = true
         defer { busy = false }
         let version = versionID, pledge = pledgeID
-        await guarded(op: "withdraw", key: version, applied: Self.withdrawn, send: {
+        let digest = RewardPledgeRequests.digest(op: "withdraw", pledgeID: pledge, versionID: version, awardID: "", supply: nil)
+        await guarded(entry, op: "withdraw", key: version, digest: digest, pledgeID: pledge, awardID: "", send: {
             try await entry.client.withdraw(versionID: version, token: caller.token, open: caller.withdrawVersion, still: { entry.current() == caller })
         }, read: {
-            try await entry.client.readPledge(pledgeID: pledge, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+            try await entry.client.readOp(op: "withdraw", key: version, token: caller.token, open: caller.withdrawVersion, still: { entry.current() == caller })
         })
     }
 
@@ -571,10 +642,11 @@ public extension EnvironmentValues {
         guard let award = selected?.awardId, RewardPledgeRoutes.id(award), let caller = admitted(entry, { $0.expire }), !busy else { return }
         busy = true
         defer { busy = false }
-        await guarded(op: "expire", key: award, applied: { $0.fields["useStatus"] == "2" }, send: {
+        let digest = RewardPledgeRequests.digest(op: "expire", pledgeID: "", versionID: "", awardID: award, supply: nil)
+        await guarded(entry, op: "expire", key: award, digest: digest, pledgeID: "", awardID: award, send: {
             try await entry.client.expire(awardID: award, token: caller.token, open: caller.expire, still: { entry.current() == caller })
         }, read: {
-            try await entry.client.preview(awardID: award, token: caller.token, open: caller.preview, still: { entry.current() == caller })
+            try await entry.client.readOp(op: "expire", key: award, token: caller.token, open: caller.expire, still: { entry.current() == caller })
         })
     }
 
@@ -582,10 +654,11 @@ public extension EnvironmentValues {
         guard let award = selected?.awardId, RewardPledgeRoutes.id(award), let caller = admitted(entry, { $0.returnPool }), !busy else { return }
         busy = true
         defer { busy = false }
-        await guarded(op: "return", key: award, applied: { $0.fields["state"] == "RETURNED" }, send: {
+        let digest = RewardPledgeRequests.digest(op: "return", pledgeID: "", versionID: "", awardID: award, supply: nil)
+        await guarded(entry, op: "return", key: award, digest: digest, pledgeID: "", awardID: award, send: {
             try await entry.client.returnToPool(awardID: award, token: caller.token, open: caller.returnPool, still: { entry.current() == caller })
         }, read: {
-            try await entry.client.preview(awardID: award, token: caller.token, open: caller.preview, still: { entry.current() == caller })
+            try await entry.client.readOp(op: "return", key: award, token: caller.token, open: caller.returnPool, still: { entry.current() == caller })
         })
     }
 
@@ -597,7 +670,9 @@ public extension EnvironmentValues {
         busy = true
         defer { busy = false }
         let award = row.awardId
-        do { try lock("case", award) } catch { note(error); return }
+        let fresh: Bool
+        do { fresh = try lock("case", award, digest: "case|" + award, bind: nil) } catch { note(error); return }
+        guard fresh else { notice = "unknown"; return }
         do {
             let opened = try await entry.client.openCase(awardID: award, versionID: row.versionId, reason: text, token: caller.token, open: caller.support, still: { entry.current() == caller })
             guard let caseID = opened.fields["caseId"], RewardPledgeRoutes.id(caseID) else { notice = "unknown"; return }
@@ -620,51 +695,72 @@ public extension EnvironmentValues {
         do { try keepPledge(try await send(caller)) } catch { note(error) }
     }
 
-    private func pledged(_ entry: RewardPledgeEntry, _ op: String, _ applied: @escaping (RewardPledgeServerBody) -> Bool, _ send: @escaping (RewardPledgeCaller, String) async throws -> RewardPledgeServerBody) async {
-        guard let caller = admitted(entry, { $0.draft }), !busy, RewardPledgeRoutes.id(pledgeID) else { return }
+    private func pledged(_ entry: RewardPledgeEntry, _ op: String, _ send: @escaping (RewardPledgeCaller, String, String) async throws -> RewardPledgeServerBody) async {
+        guard let caller = admitted(entry, { $0.draft }), !busy, RewardPledgeRoutes.id(pledgeID), RewardPledgeRoutes.id(versionID) else { return }
         busy = true
         defer { busy = false }
-        let key = pledgeID
-        await guarded(op: op, key: key, applied: applied, send: { try await send(caller, key) }, read: {
-            try await entry.client.readPledge(pledgeID: key, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+        let pledge = pledgeID, version = versionID
+        let digest = RewardPledgeRequests.digest(op: op, pledgeID: pledge, versionID: version, awardID: "", supply: nil)
+        await guarded(entry, op: op, key: version, digest: digest, pledgeID: pledge, awardID: "", send: {
+            try await send(caller, pledge, version)
+        }, read: {
+            try await entry.client.readOp(op: op, key: version, token: caller.token, open: caller.draft, still: { entry.current() == caller })
         })
     }
 
-    private func beginDraft(_ supply: RewardPledgeRequests.Supply) throws -> String {
-        var memory = loadMemory() ?? blankMemory()
+    private func beginDraft(_ supply: RewardPledgeRequests.Supply, digest: String, bind: RewardPledgeAccessBind) throws -> String {
+        guard !supplyBlocked else { throw RewardPledgeFailure.closed("journal") }
+        var memory = try loadMemory()
         guard memory.accountID == machine.scope.accountID else { throw RewardPledgeFailure.stale }
-        if let pending = memory.pendingDraft {
+        if var pending = memory.pendingDraft {
             guard pending.matches(supply) else { throw RewardPledgeFailure.closed("unknown") }
+            if let stored = pending.digest, stored != digest { throw RewardPledgeFailure.closed("unknown") }
+            if let stored = pending.bind, stored != bind { throw RewardPledgeFailure.closed("unknown") }
+            pending.digest = digest
+            pending.bind = bind
+            memory.pendingDraft = pending
+            restoredDraft = Self.restored(memory)
+            try store(memory)
             return pending.key
         }
         let key = UUID().uuidString
         guard RewardPledgeRoutes.id(key) else { throw RewardPledgeFailure.closed("journal") }
         memory.pendingDraft = PendingDraft(key: key, couponID: supply.couponID, supplyRef: supply.supplyRef, terms: supply.terms,
-                                            quantity: supply.quantity, windowStart: supply.windowStart, windowEnd: supply.windowEnd)
+                                            quantity: supply.quantity, windowStart: supply.windowStart, windowEnd: supply.windowEnd,
+                                            digest: digest, bind: bind)
+        restoredDraft = Self.restored(memory)
         try store(memory)
         return key
     }
 
-    private func lock(_ op: String, _ key: String) throws {
+    /// False means this op and key are already pending: the caller must not send another write.
+    private func lock(_ op: String, _ key: String, digest: String, bind: RewardPledgeAccessBind?) throws -> Bool {
+        guard !supplyBlocked else { throw RewardPledgeFailure.closed("journal") }
         guard RewardPledgeRoutes.id(key) else { throw RewardPledgeFailure.closed("route") }
-        var memory = loadMemory() ?? blankMemory()
+        var memory = try loadMemory()
         guard memory.accountID == machine.scope.accountID else { throw RewardPledgeFailure.stale }
-        if memory.locks?.contains(where: { $0.op == op && $0.key == key }) == true { return }
-        memory.locks = (memory.locks ?? []) + [SupplyLock(op: op, key: key)]
+        if let existing = memory.locks?.first(where: { $0.op == op && $0.key == key }) {
+            guard existing.digest == nil || existing.digest == digest, existing.bind == nil || existing.bind == bind else {
+                throw RewardPledgeFailure.closed("unknown")
+            }
+            return false
+        }
+        memory.locks = (memory.locks ?? []) + [SupplyLock(op: op, key: key, digest: digest, bind: bind)]
         try store(memory)
+        return true
     }
 
     private func unlock(_ op: String, _ key: String) throws {
-        var memory = loadMemory() ?? blankMemory()
+        var memory = try loadMemory()
         guard memory.accountID == machine.scope.accountID else { throw RewardPledgeFailure.stale }
         memory.locks = (memory.locks ?? []).filter { !($0.op == op && $0.key == key) }
         try store(memory)
     }
 
     private func finish(_ op: String, _ key: String, _ body: RewardPledgeServerBody) throws {
-        var memory = loadMemory() ?? blankMemory()
+        var memory = try loadMemory()
         guard memory.accountID == machine.scope.accountID else { throw RewardPledgeFailure.stale }
-        if op == "draft" { memory.pendingDraft = nil }
+        if op == "draft" { memory.pendingDraft = nil; restoredDraft = nil }
         memory.locks = (memory.locks ?? []).filter { !($0.op == op && $0.key == key) }
         if let id = body.fields["pledge.pledgeId"], RewardPledgeRoutes.id(id) {
             pledgeID = id
@@ -676,49 +772,84 @@ public extension EnvironmentValues {
         }
         try store(memory)
         merchantResult = body
-        notice = body.fields["version.state"] ?? body.fields["state"] ?? body.fields["useStatus"] ?? body.message
+        notice = body.fields["receipt.state"] ?? body.fields["version.state"] ?? body.fields["state"] ?? body.fields["useStatus"] ?? body.message
     }
 
-    private func guarded(op: String, key: String, applied: @escaping (RewardPledgeServerBody) -> Bool,
+    private func guarded(_ entry: RewardPledgeEntry, op: String, key: String, digest: String, pledgeID: String, awardID: String,
                          send: () async throws -> RewardPledgeServerBody, read: () async throws -> RewardPledgeServerBody) async {
-        do { try lock(op, key) } catch { note(error); return }
+        let bind: RewardPledgeAccessBind
+        do { bind = try await requireAccess(entry) } catch { note(error); return }
+        let fresh: Bool
+        do { fresh = try lock(op, key, digest: digest, bind: bind) } catch { note(error); return }
+        let matches: (RewardPledgeServerBody) -> Bool = { self.receipt($0, op, key, digest, pledgeID: pledgeID, awardID: awardID) }
+        if !fresh { await readReceipt(op, key, digest, applied: matches, read: read); return }
         do {
+            guard try await requireAccess(entry) == bind else { notice = "unknown"; return }
             let body = try await send()
-            if applied(body) { try finish(op, key, body); return }
-            try unlock(op, key)
+            if matches(body) { try finish(op, key, body); return }
             merchantResult = body
-            notice = body.fields["useStatus"] ?? body.fields["version.state"] ?? body.fields["state"] ?? body.message
+            notice = "unknown"
         } catch {
-            await reconcile(op, key, error, applied: applied, read: read)
+            await reconcile(op, key, digest, error, applied: matches, read: read)
         }
     }
 
-    private func reconcile(_ op: String, _ key: String, _ error: Error, applied: (RewardPledgeServerBody) -> Bool, read: () async throws -> RewardPledgeServerBody) async {
+    private func reconcile(_ op: String, _ key: String, _ digest: String, _ error: Error, applied: @escaping (RewardPledgeServerBody) -> Bool, read: () async throws -> RewardPledgeServerBody) async {
         guard businessRejection(error) != nil else { note(error); return }
+        await readReceipt(op, key, digest, applied: applied, read: read)
+    }
+
+    /// 404 and the object's old state are not a receipt. Only the stored operation row unlocks.
+    private func readReceipt(_ op: String, _ key: String, _ digest: String, applied: @escaping (RewardPledgeServerBody) -> Bool, read: () async throws -> RewardPledgeServerBody) async {
         do {
             let body = try await read()
             if applied(body) { try finish(op, key, body); return }
-            try unlock(op, key)
-            note(error)
+            if let code = storedRejection(body, op, key, digest) {
+                try unlock(op, key)
+                if op == "draft" {
+                    var memory = try loadMemory()
+                    memory.pendingDraft = nil
+                    restoredDraft = nil
+                    try store(memory)
+                }
+                notice = code
+                return
+            }
+            merchantResult = body
+            notice = "unknown"
         } catch { notice = "unknown" }
     }
 
-    private func reconcileDraft(_ key: String, _ error: Error, _ entry: RewardPledgeEntry, _ caller: RewardPledgeCaller) async {
+    private func reconcileDraft(_ key: String, _ digest: String, _ error: Error, _ entry: RewardPledgeEntry, _ caller: RewardPledgeCaller) async {
         guard businessRejection(error) != nil else { note(error); return }
-        do {
-            let body = try await entry.client.readPledge(pledgeID: key, token: caller.token, open: caller.draft, still: { entry.current() == caller })
-            guard body.fields["pledge.pledgeId"] == key else { notice = "unknown"; return }
-            try finish("draft", key, body)
-        } catch let read {
-            guard let failure = read as? RewardPledgeFailure, case .closed("NOT_FOUND") = failure else { notice = "unknown"; return }
-            do {
-                var memory = loadMemory() ?? blankMemory()
-                guard memory.pendingDraft?.key == key else { note(error); return }
-                memory.pendingDraft = nil
-                try store(memory)
-                note(error)
-            } catch { notice = "unknown" }
+        await readReceipt("draft", key, digest, applied: { receipt($0, "draft", key, digest, pledgeID: key, awardID: "") }, read: {
+            try await entry.client.readOp(op: "draft", key: key, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+        })
+    }
+
+    private func receipt(_ body: RewardPledgeServerBody, _ op: String, _ key: String, _ digest: String, pledgeID: String, awardID: String) -> Bool {
+        guard body.fields["receipt.state"] == "APPLIED", body.fields["receipt.op"] == op, body.fields["receipt.key"] == key,
+              body.fields["receipt.payloadHash"] == digest else { return false }
+        switch op {
+        case "hold", "withdraw": return body.fields["receipt.versionId"] == key
+        case "expire", "return": return body.fields["receipt.awardId"] == awardID
+        case "submit", "confirm": return body.fields["receipt.pledgeId"] == pledgeID && body.fields["receipt.versionId"] == key
+        default: return body.fields["receipt.pledgeId"] == key
         }
+    }
+
+    private func storedRejection(_ body: RewardPledgeServerBody, _ op: String, _ key: String, _ digest: String) -> String? {
+        guard body.fields["receipt.state"] == "REJECTED", body.fields["receipt.op"] == op, body.fields["receipt.key"] == key,
+              body.fields["receipt.payloadHash"] == digest, let code = body.fields["receipt.errorCode"], !code.isEmpty else { return nil }
+        return code
+    }
+
+    private func requireAccess(_ entry: RewardPledgeEntry) async throws -> RewardPledgeAccessBind {
+        guard let bind = await entry.access(), !bind.storeID.isEmpty, !bind.ownerID.isEmpty,
+              !bind.principalID.isEmpty, !bind.revision.isEmpty, bind.principalID == machine.scope.accountID else {
+            throw RewardPledgeFailure.closed("permission")
+        }
+        return bind
     }
 
     private func businessRejection(_ error: Error) -> String? {
@@ -728,18 +859,6 @@ public extension EnvironmentValues {
         default: return name
         }
     }
-
-    private static func submitted(_ body: RewardPledgeServerBody) -> Bool {
-        ["SUBMITTED", "CONFIRMED", "FROZEN", "WITHDRAWN"].contains(body.fields["version.state"] ?? "")
-    }
-    private static func confirmed(_ body: RewardPledgeServerBody) -> Bool {
-        ["CONFIRMED", "FROZEN", "WITHDRAWN"].contains(body.fields["version.state"] ?? "")
-    }
-    private static func held(_ body: RewardPledgeServerBody) -> Bool {
-        guard let frozen = body.fields["stock.frozenUnits"] else { return false }
-        return frozen != "0"
-    }
-    private static func withdrawn(_ body: RewardPledgeServerBody) -> Bool { body.fields["version.state"] == "WITHDRAWN" }
 
     /// True only when the pledge's own service window is longer than the coupon. This client never invents that window.
     var serviceOutlivesCoupon: Bool {
@@ -753,7 +872,7 @@ public extension EnvironmentValues {
         pledgeID = id
         if let version = body.fields["version.versionId"], RewardPledgeRoutes.id(version) { versionID = version }
         merchantResult = body
-        var memory = loadMemory() ?? blankMemory()
+        var memory = try loadMemory()
         memory.pledgeID = pledgeID
         memory.versionID = versionID
         try store(memory)
@@ -921,6 +1040,13 @@ public extension EnvironmentValues {
         self.entry = entry
     }
 
+    private func restoreDraft() {
+        guard let draft = model.restoredDraft else { return }
+        if supplyRef.isEmpty { supplyRef = draft.supplyRef }
+        if terms.isEmpty { terms = draft.terms }
+        if quantity.isEmpty { quantity = String(draft.quantity) }
+    }
+
     public var body: some View {
         Form {
             if entry?.current()?.draft != true && entry?.current()?.hold != true
@@ -945,6 +1071,13 @@ public extension EnvironmentValues {
                 TextField("rewards.pledge.supply", text: $supplyRef)
                 TextField("rewards.pledge.terms", text: $terms)
                 TextField("rewards.pledge.quantity", text: $quantity)
+                .onAppear { restoreDraft() }
+                .onChange(of: model.restoredDraft) { _, _ in restoreDraft() }
+                .onChange(of: model.coupons) { _, rows in
+                    guard picked == nil, let couponID = model.restoredDraft?.couponID,
+                          let match = rows.first(where: { $0.id.value == couponID }) else { return }
+                    picked = match
+                }
                 Button("rewards.pledge.draft") {
                     guard let picked else { return }
                     Task { await model.draftSupply(coupon: picked, supplyRef: supplyRef, terms: terms, quantity: quantity, entry: entry) }
@@ -979,6 +1112,11 @@ public extension EnvironmentValues {
             if !model.pledgeID.isEmpty { Text(verbatim: model.pledgeID).accessibilityIdentifier("rewards.pledge.pledge") }
             if let state = model.merchantResult?.fields["version.state"] { Text(verbatim: state).accessibilityIdentifier("rewards.pledge.version") }
             if let notice = model.notice { Text(notice).accessibilityIdentifier("rewards.pledge.notice") }
+        }
+        .onAppear { restoreDraft() }
+        .task {
+            guard let entry, model.restoredDraft != nil, !model.couponsLoaded, entry.current()?.draft == true else { return }
+            await model.loadCoupons(entry: entry)
         }
     }
 }
