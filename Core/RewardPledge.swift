@@ -93,8 +93,9 @@ public enum RewardPledgeRoutes {
            query.contains(URLQueryItem(name: "branch", value: "THEME")),
            let subject = query.first(where: { $0.name == "subjectId" })?.value, id(subject),
            one(offerPrefix.trimmingCharacters(in: CharacterSet(charactersIn: "/"))) != nil { return "offer" }
+        if method == "GET", query.isEmpty, one("api/rewards/noncash/subjects") != nil { return "catalog" }
         if method == "GET", query.isEmpty, let award = one(plannedNonCashList),
-           !["versions", "claims", "cases"].contains(award) { return "detail" }
+           !["versions", "claims", "cases", "subjects"].contains(award) { return "detail" }
         if method == "GET", query.isEmpty, exact(storeAwards) { return "store" }
         if method == "POST", query.isEmpty, exact(preview) { return "preview" }
         if method == "POST", query.isEmpty, exact(redeem) { return "redeem" }
@@ -109,11 +110,14 @@ public enum RewardPledgeRoutes {
            ["draft", "submit", "confirm", "hold", "withdraw", "expire", "return"].contains(pair.0), id(pair.1) {
             switch pair.0 {
             case "hold", "withdraw", "expire", "return": return pair.0
-            default: return "readPledge"
+            default: return "manage"
             }
         }
+        if method == "GET", query.isEmpty, exact("api/reward-pledge/pledges") { return "manage" }
+        if method == "GET", query.isEmpty, exact("api/reward-pledge/review") { return "review" }
+        if method == "GET", query.isEmpty, one("api/reward-pledge/review") != nil { return "review" }
         if method == "GET", query.isEmpty, let pledge = one("api/reward-pledge"),
-           !["drafts", "fulfilment", "versions", "awards", "compensations"].contains(pledge) { return "readPledge" }
+           !["drafts", "fulfilment", "versions", "awards", "compensations", "pledges", "review"].contains(pledge) { return "readPledge" }
         if method == "POST", query.isEmpty, action("api/reward-pledge/versions", "withdraw") { return "withdraw" }
         if method == "POST", query.isEmpty, action("api/reward-pledge/versions", "hold") { return "hold" }
         if method == "POST", query.isEmpty, action("api/reward-pledge/awards", "return-to-pool") { return "return" }
@@ -263,6 +267,20 @@ public enum RewardPledgeRequests {
             throw RewardPledgeFailure.closed("requestID")
         }
         return try json(RewardPledgeRoutes.plannedIntentQuery, ["requestId": original.requestID], baseURL, token)
+    }
+    /// One subject. No complete flag and no store or owner field.
+    public static func catalog(subjectID: String, baseURL: URL, token: String) throws -> URLRequest {
+        guard RewardPledgeRoutes.id(subjectID) else { throw RewardPledgeFailure.closed("subject") }
+        return try get("api/rewards/noncash/subjects/" + subjectID, baseURL, token)
+    }
+    public static func ownedPledges(baseURL: URL, token: String) throws -> URLRequest {
+        return try get("api/reward-pledge/pledges", baseURL, token)
+    }
+    public static func reviewQueue(baseURL: URL, token: String) throws -> URLRequest {
+        return try get("api/reward-pledge/review", baseURL, token)
+    }
+    public static func reviewVersion(versionID: String, baseURL: URL, token: String) throws -> URLRequest {
+        return try get("api/reward-pledge/review/" + (try pathID(versionID)), baseURL, token)
     }
     public static func offer(versionID: String, subjectID: String, baseURL: URL, token: String) throws -> URLRequest {
         guard segment(versionID), segment(subjectID), !versionID.contains("/"),
@@ -862,15 +880,21 @@ public struct RewardPledgeCaller: Equatable, Sendable {
     public let returnPool: Bool
     public let support: Bool
     public let stats: Bool
+    /// Subject catalog and the existing offer. Default closed, separate from the award list.
+    public let catalog: Bool
+    /// Owner pledge reads. Default closed, separate from draft writes.
+    public let manage: Bool
     public init(accountID: String, epoch: UInt64, region: String, token: String, read: Bool, claim: Bool, preview: Bool, redeem: Bool,
                 draft: Bool = false, freeze: Bool = false, hold: Bool = false, withdrawVersion: Bool = false,
-                expire: Bool = false, returnPool: Bool = false, support: Bool = false, stats: Bool = false) {
+                expire: Bool = false, returnPool: Bool = false, support: Bool = false, stats: Bool = false,
+                catalog: Bool = false, manage: Bool = false) {
         self.accountID = accountID; self.epoch = epoch; self.region = region; self.token = token
         self.read = read; self.claim = claim; self.preview = preview; self.redeem = redeem
         self.draft = draft; self.freeze = freeze; self.hold = hold; self.withdrawVersion = withdrawVersion
         self.expire = expire; self.returnPool = returnPool; self.support = support; self.stats = stats
+        self.catalog = catalog; self.manage = manage
     }
-    public var anyOpen: Bool { read || claim || preview || redeem || draft || freeze || hold || withdrawVersion || expire || returnPool || support || stats }
+    public var anyOpen: Bool { read || claim || preview || redeem || draft || freeze || hold || withdrawVersion || expire || returnPool || support || stats || catalog || manage }
 }
 
 /// Store, owner, principal and storage-scope identity taken from the current access context.
@@ -928,6 +952,18 @@ public struct RewardPledgeClient {
     }
     public func resolve(code: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.resolve(code: code, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func catalog(subjectID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.catalog(subjectID: subjectID, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func ownedPledges(token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.ownedPledges(baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func reviewQueue(token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.reviewQueue(baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func reviewVersion(versionID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.reviewVersion(versionID: versionID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
     public func offer(versionID: String, subjectID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.offer(versionID: versionID, subjectID: subjectID, baseURL: configuration.baseURL, token: token), open: open, still: still)
@@ -1039,6 +1075,15 @@ private extension RewardPledgeServerBody {
         for (key, value) in object {
             let name = prefix.isEmpty ? key : prefix + "." + key
             if let child = value as? [String: Any] { flatten(child, into: &fields, prefix: name); continue }
+            if let list = value as? [Any] {
+                fields[name + ".count"] = String(list.count)
+                for (index, item) in list.enumerated() {
+                    let itemName = name + "." + String(index)
+                    if let child = item as? [String: Any] { flatten(child, into: &fields, prefix: itemName) }
+                    else if let text = text(item) { fields[itemName] = text }
+                }
+                continue
+            }
             if let text = text(value) { fields[name] = text }
         }
     }

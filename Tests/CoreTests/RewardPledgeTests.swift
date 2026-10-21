@@ -194,6 +194,15 @@ final class RewardPledgeTests: XCTestCase {
         XCTAssertNil(RewardPledgeRoutes.operation(compensation, baseURL: base))
         let stats = try RewardPledgeRequests.stats(pledgeID: pledge, baseURL: base, token: "fixture-token")
         XCTAssertEqual(RewardPledgeRoutes.operation(stats, baseURL: base), "stats")
+        let catalog = try RewardPledgeRequests.catalog(subjectID: "100", baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(catalog, baseURL: base), "catalog")
+        XCTAssertNil(catalog.url?.query)
+        let owned = try RewardPledgeRequests.ownedPledges(baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(owned, baseURL: base), "manage")
+        let review = try RewardPledgeRequests.reviewQueue(baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(review, baseURL: base), "review")
+        let readBack = try RewardPledgeRequests.reviewVersion(versionID: "version-1", baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(readBack, baseURL: base), "review")
     }
 
     func testAwardArrayDecodesThemeSubjectAndReadDoesNotClaim() async throws {

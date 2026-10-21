@@ -286,6 +286,19 @@ class RewardPledgeContractChecks(unittest.TestCase):
         self.assertNotIn('case .closed("NOT_FOUND")', views)
         self.assertNotIn('frozen != "0"', views)
         self.assertNotIn('["SUBMITTED", "CONFIRMED", "FROZEN", "WITHDRAWN"]', views)
+        self.assertIn("nonCashRewardCatalogApproved", session)
+        self.assertIn("nonCashRewardManageApproved", session)
+        self.assertIn('case "catalog", "offer": return caller.catalog', session)
+        self.assertIn("caller.manage || caller.draft", session)
+        catalog = source.split("public static func catalog(", 1)[1].split("public static func ownedPledges(", 1)[0]
+        self.assertNotIn("complete", catalog)
+        self.assertIn("api/rewards/noncash/subjects/", source)
+        self.assertIn("api/reward-pledge/pledges", source)
+        self.assertIn("api/reward-pledge/review", source)
+        self.assertIn("rewards.pledge.catalog", views)
+        self.assertIn("rewards.pledge.pledges", views)
+        self.assertIn("entry.access()", views)
+        self.assertIn('allows("merchant:basic:read")', verify)
 
     def test_unknown_record_persists_only_the_minimal_fields(self):
         body = (ROOT / "Core/RewardPledge.swift").read_text()

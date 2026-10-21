@@ -79,11 +79,11 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("rewards.pledge.supplyEntry")
                 }
                 if let pledge, flow.access?.allows("merchant:coupon:manage") == true,
-                   pledge.current()?.hold == true || pledge.current()?.withdrawVersion == true || pledge.current()?.stats == true {
+                   pledge.current()?.manage == true || pledge.current()?.hold == true || pledge.current()?.withdrawVersion == true || pledge.current()?.stats == true {
                     NavigationLink { RewardPledgeMerchantHost(entry: pledge) } label: { Text("rewards.pledge.stats") }
                         .accessibilityIdentifier("rewards.pledge.manageEntry")
                 }
-                if let pledge, pledge.current()?.freeze == true {
+                if let pledge, pledge.current()?.freeze == true, flow.access?.allows("merchant:basic:read") == true {
                     NavigationLink { RewardPledgeReviewHost(entry: pledge) } label: { Text("rewards.pledge.freeze") }
                         .accessibilityIdentifier("rewards.pledge.reviewEntry")
                 }

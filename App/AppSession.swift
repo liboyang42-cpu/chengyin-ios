@@ -2002,7 +2002,8 @@ final class AppSession: ObservableObject {
                                   draft: deps.nonCashRewardDraftApproved, freeze: deps.nonCashRewardFreezeApproved,
                                   hold: deps.nonCashRewardHoldApproved, withdrawVersion: deps.nonCashRewardWithdrawApproved,
                                   expire: deps.nonCashRewardExpireApproved, returnPool: deps.nonCashRewardReturnApproved,
-                                  support: deps.nonCashRewardCaseApproved, stats: deps.nonCashRewardStatsApproved)
+                                  support: deps.nonCashRewardCaseApproved, stats: deps.nonCashRewardStatsApproved,
+                                  catalog: deps.nonCashRewardCatalogApproved, manage: deps.nonCashRewardManageApproved)
     }
     func publishedStoreCoupons() async -> Result<[CouponDefinition], RewardPledgeFailure> {
         let coordinator = makeCouponManagementCoordinator()
@@ -2013,12 +2014,14 @@ final class AppSession: ObservableObject {
     private func rewardPledgePermits(_ operation: String) -> Bool {
         let caller = rewardCaller()
         switch operation {
-        case "read", "detail", "offer": return caller.read
+        case "read", "detail": return caller.read
+        case "catalog", "offer": return caller.catalog
         case "claim", "recover": return caller.claim
         case "preview", "store", "resolve": return caller.preview
         case "redeem": return caller.redeem
-        case "draft", "submit", "confirm", "readPledge": return caller.draft
-        case "freeze": return caller.freeze
+        case "draft", "submit", "confirm": return caller.draft
+        case "manage", "readPledge": return caller.manage || caller.draft
+        case "freeze", "review": return caller.freeze
         case "hold": return caller.hold
         case "withdraw": return caller.withdrawVersion
         case "expire": return caller.expire

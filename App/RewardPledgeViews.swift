@@ -11,6 +11,23 @@ public extension EnvironmentValues {
     }
 }
 
+public struct RewardPledgeOwnedRow: Identifiable, Equatable {
+    public let pledgeID: String
+    public let state: String
+    public let versionID: String
+    public let versionState: String
+    public let termsHash: String
+    public let frozenAt: String
+    public var id: String { pledgeID + ":" + versionID }
+}
+
+public struct RewardPledgeReviewItem: Identifiable, Equatable {
+    public let pledgeID: String
+    public let versionID: String
+    public let payloadHash: String
+    public var id: String { versionID }
+}
+
 /// Screen state for claim, pledge and staff redeem. The entry client calls the controllers.
 @MainActor public final class RewardPledgeModel: ObservableObject {
     @Published public private(set) var machine: RewardPledgeMachine
@@ -26,6 +43,10 @@ public extension EnvironmentValues {
     @Published public private(set) var selected: RewardPledgeAwardRow?
     @Published public private(set) var pledgeID = ""
     @Published public private(set) var versionID = ""
+    @Published public private(set) var catalogBody: RewardPledgeServerBody?
+    @Published public private(set) var ownedRows: [RewardPledgeOwnedRow] = []
+    @Published public private(set) var reviewItems: [RewardPledgeReviewItem] = []
+    @Published public private(set) var reviewRead: RewardPledgeServerBody?
     @Published public private(set) var coupons: [CouponDefinition] = []
     @Published public private(set) var couponsLoaded = false
     @Published public private(set) var statsBody: RewardPledgeServerBody?
@@ -130,6 +151,37 @@ public extension EnvironmentValues {
             let missing = (error.domain == NSCocoaErrorDomain && error.code == 260) || (error.domain == NSPOSIXErrorDomain && error.code == 2)
             return missing ? .missing : .unreadable
         }
+    }
+    // ponytail: walk the flattened list until a hole, cap 200 pledges / 40 versions. Page when a store exceeds that.
+    private static func owned(_ body: RewardPledgeServerBody) -> [RewardPledgeOwnedRow] {
+        var rows: [RewardPledgeOwnedRow] = []
+        for index in 0..<200 {
+            guard let pledgeID = body.fields["pledges.\(index).pledge.pledgeId"], RewardPledgeRoutes.id(pledgeID) else { break }
+            let state = body.fields["pledges.\(index).pledge.state"] ?? ""
+            var versions = 0
+            for version in 0..<40 {
+                guard let versionID = body.fields["pledges.\(index).versions.\(version).versionId"], RewardPledgeRoutes.id(versionID) else { break }
+                versions += 1
+                rows.append(RewardPledgeOwnedRow(pledgeID: pledgeID, state: state, versionID: versionID,
+                                                  versionState: body.fields["pledges.\(index).versions.\(version).state"] ?? "",
+                                                  termsHash: body.fields["pledges.\(index).versions.\(version).payloadHash"] ?? "",
+                                                  frozenAt: body.fields["pledges.\(index).versions.\(version).frozenAt"] ?? ""))
+            }
+            if versions == 0 {
+                rows.append(RewardPledgeOwnedRow(pledgeID: pledgeID, state: state, versionID: "", versionState: "", termsHash: "", frozenAt: ""))
+            }
+        }
+        return rows
+    }
+    private static func review(_ body: RewardPledgeServerBody) -> [RewardPledgeReviewItem] {
+        var rows: [RewardPledgeReviewItem] = []
+        for index in 0..<200 {
+            guard let versionID = body.fields["items.\(index).versionId"], RewardPledgeRoutes.id(versionID),
+                  let pledgeID = body.fields["items.\(index).pledgeId"], RewardPledgeRoutes.id(pledgeID),
+                  let hash = body.fields["items.\(index).payloadHash"], !hash.isEmpty else { break }
+            rows.append(RewardPledgeReviewItem(pledgeID: pledgeID, versionID: versionID, payloadHash: hash))
+        }
+        return rows
     }
     private static func restored(_ memory: SupplyMemory) -> RewardPledgeRestoredDraft? {
         guard let pending = memory.pendingDraft else { return nil }
@@ -257,20 +309,37 @@ public extension EnvironmentValues {
         offerSubjectID = ""
         terms = nil
         await loadDetail(awardID: row.awardId, entry: entry)
-        guard selected?.awardId == row.awardId, entry.current()?.accountID == machine.scope.accountID else { return }
-        if let subject = row.themeSubjectID {
-            await readOffer(versionID: row.versionId, subjectID: subject, entry: entry)
-        } else { notice = "noSubject" }
+    }
+
+    public func loadCatalog(subjectID: String, entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.catalog }), !busy, RewardPledgeRoutes.id(subjectID) else { return }
+        busy = true
+        defer { busy = false }
+        catalogBody = nil
+        offerVersionID = ""
+        offerSubjectID = ""
+        terms = nil
+        do {
+            let body = try await entry.client.catalog(subjectID: subjectID, token: caller.token, open: caller.catalog, still: { entry.current() == caller })
+            guard body.fields["versionId"] != nil, body.fields["ruleVersion"] != nil, body.fields["termsHash"] != nil,
+                  body.fields["subject"] == subjectID, body.fields["coupon"] != nil, body.fields["store"] != nil,
+                  body.fields["guaranteed"] != "true", body.fields["blocked"] == "W06_RESERVATION_ABSENT" else {
+                notice = "unknown"
+                return
+            }
+            catalogBody = body
+            notice = body.fields["errorCode"]
+        } catch { note(error) }
     }
 
     public func readOffer(versionID: String, subjectID: String, entry: RewardPledgeEntry) async {
-        guard let caller = admitted(entry, { $0.read }) else { return }
+        guard let caller = admitted(entry, { $0.catalog }) else { return }
         guard !busy else { return }
         terms = nil
         busy = true
         defer { busy = false }
         do {
-            let body = try await entry.client.offer(versionID: versionID, subjectID: subjectID, token: caller.token, open: caller.read, still: { entry.current() == caller })
+            let body = try await entry.client.offer(versionID: versionID, subjectID: subjectID, token: caller.token, open: caller.catalog, still: { entry.current() == caller })
             guard body.fields["errorCode"] != "POLICY_CLOSED", !(body.fields["ruleVersion"] ?? "").isEmpty else { showClosed(); return }
             guard body.fields["guaranteed"] != "true" else { notice = "switches"; return }
             if let code = body.fields["errorCode"], !code.isEmpty { notice = code; return }
@@ -295,7 +364,9 @@ public extension EnvironmentValues {
     public func claim(entry: RewardPledgeEntry) async {
         guard let caller = admitted(entry, { $0.claim }) else { return }
         guard !busy else { return }
-        guard let terms, !offerVersionID.isEmpty, !offerSubjectID.isEmpty, selected?.themeSubjectID == offerSubjectID else { notice = "confirm"; return }
+        guard let terms, !offerVersionID.isEmpty, !offerSubjectID.isEmpty,
+              catalogBody?.fields["subject"] == offerSubjectID, catalogBody?.fields["versionId"] == offerVersionID,
+              (catalogBody?.fields["errorCode"] ?? "").isEmpty else { notice = "confirm"; return }
         switch machine.confirmClaim(terms, seen: machine.scope) {
         case .failure(let error): fail(error)
         case .success(let value):
@@ -309,6 +380,9 @@ public extension EnvironmentValues {
                 do {
                     let body = try await entry.client.claim(requestID: value.requestID, versionID: offerVersionID, subjectID: offerSubjectID, token: caller.token, open: caller.claim, still: { entry.current() == caller })
                     adopt(body, intent: value)
+                    if entry.current()?.read == true, let award = body.fields["awardId"], !award.isEmpty {
+                        await loadDetail(awardID: award, entry: entry)
+                    }
                 } catch { note(error) }
             }
         }
@@ -521,6 +595,7 @@ public extension EnvironmentValues {
 
     private func adoptSupply(for accountID: String) {
         coupons = []; couponsLoaded = false; statsBody = nil; restoredDraft = nil
+        catalogBody = nil; ownedRows = []; reviewItems = []; reviewRead = nil
         switch Self.readSupply(journal?.url, accountID: accountID) {
         case .blocked:
             supplyBlocked = true
@@ -589,9 +664,77 @@ public extension EnvironmentValues {
     }
 
     public func readSupply(entry: RewardPledgeEntry) async {
-        await pledgeCall(entry, { $0.draft }) { caller in
-            try await entry.client.readPledge(pledgeID: pledgeID, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+        await pledgeCall(entry, { $0.manage || $0.draft }) { caller in
+            try await entry.client.readPledge(pledgeID: pledgeID, token: caller.token, open: caller.manage || caller.draft, still: { entry.current() == caller })
         }
+    }
+
+    public func loadOwned(entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.manage }), !busy else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            let body = try await entry.client.ownedPledges(token: caller.token, open: caller.manage, still: { entry.current() == caller })
+            ownedRows = Self.owned(body)
+            notice = String(ownedRows.count)
+        } catch { ownedRows = []; note(error) }
+    }
+
+    public func openOwned(_ row: RewardPledgeOwnedRow, entry: RewardPledgeEntry) async {
+        pledgeID = row.pledgeID
+        versionID = row.versionID
+        await readSupply(entry: entry)
+    }
+
+    /// Receipt reads for a draft that is no longer switch-on. Does not send a write.
+    public func resumeReceipts(entry: RewardPledgeEntry) async {
+        guard !supplyBlocked, let caller = admitted(entry, { $0.manage || $0.draft }), !busy else { return }
+        let memory: SupplyMemory
+        do { memory = try loadMemory() } catch { note(error); return }
+        guard memory.accountID == machine.scope.accountID else { return }
+        let open = caller.manage || caller.draft
+        if let pending = memory.pendingDraft, let digest = pending.digest {
+            await readReceipt("draft", pending.key, digest, applied: { self.receipt($0, "draft", pending.key, digest, pledgeID: pending.key, awardID: "") }, read: {
+                try await entry.client.readOp(op: "draft", key: pending.key, token: caller.token, open: open, still: { entry.current() == caller })
+            })
+        }
+        for item in memory.locks ?? [] where item.op == "submit" || item.op == "confirm" {
+            guard let digest = item.digest else { continue }
+            await readReceipt(item.op, item.key, digest, applied: { self.receipt($0, item.op, item.key, digest, pledgeID: self.pledgeID, awardID: "") }, read: {
+                try await entry.client.readOp(op: item.op, key: item.key, token: caller.token, open: open, still: { entry.current() == caller })
+            })
+        }
+    }
+
+    public func loadReview(entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.freeze }), !busy else { return }
+        guard await entry.access() != nil else { reviewItems = []; notice = "permission"; return }
+        busy = true
+        defer { busy = false }
+        do {
+            let body = try await entry.client.reviewQueue(token: caller.token, open: caller.freeze, still: { entry.current() == caller })
+            guard body.fields["store"] != nil else { reviewItems = []; notice = "unknown"; return }
+            reviewItems = Self.review(body)
+            notice = reviewItems.isEmpty ? "empty" : String(reviewItems.count)
+        } catch { reviewItems = []; note(error) }
+    }
+
+    public func freezeReview(_ item: RewardPledgeReviewItem, ruleVersion: String, entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.freeze }), !busy, RewardPledgeRoutes.id(item.pledgeID) else { return }
+        guard await entry.access() != nil else { notice = "permission"; return }
+        busy = true
+        defer { busy = false }
+        do {
+            _ = try await entry.client.freeze(pledgeID: item.pledgeID, ruleVersion: ruleVersion, token: caller.token, open: caller.freeze, still: { entry.current() == caller })
+            let read = try await entry.client.reviewVersion(versionID: item.versionID, token: caller.token, open: caller.freeze, still: { entry.current() == caller })
+            guard read.fields["payloadHash"] == item.payloadHash, read.fields["state"] == "FROZEN", read.fields["versionId"] == item.versionID else {
+                reviewRead = nil
+                notice = "unknown"
+                return
+            }
+            reviewRead = read
+            notice = "FROZEN"
+        } catch { reviewRead = nil; note(error) }
     }
 
     public func freezeSupply(ruleVersion: String, entry: RewardPledgeEntry) async {
@@ -704,7 +847,7 @@ public extension EnvironmentValues {
         await guarded(entry, op: op, key: version, digest: digest, pledgeID: pledge, awardID: "", send: {
             try await send(caller, pledge, version)
         }, read: {
-            try await entry.client.readOp(op: op, key: version, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+            try await entry.client.readOp(op: op, key: version, token: caller.token, open: caller.manage || caller.draft, still: { entry.current() == caller })
         })
     }
 
@@ -823,7 +966,7 @@ public extension EnvironmentValues {
     private func reconcileDraft(_ key: String, _ digest: String, _ error: Error, _ entry: RewardPledgeEntry, _ caller: RewardPledgeCaller) async {
         guard businessRejection(error) != nil else { note(error); return }
         await readReceipt("draft", key, digest, applied: { receipt($0, "draft", key, digest, pledgeID: key, awardID: "") }, read: {
-            try await entry.client.readOp(op: "draft", key: key, token: caller.token, open: caller.draft, still: { entry.current() == caller })
+            try await entry.client.readOp(op: "draft", key: key, token: caller.token, open: caller.manage || caller.draft, still: { entry.current() == caller })
         })
     }
 
@@ -892,6 +1035,7 @@ public extension EnvironmentValues {
     private func clearSelection(notice: String) {
         terms = nil; intent = nil; awards = []; selected = nil
         playerResult = nil; merchantResult = nil; awardsLoaded = false
+        catalogBody = nil; ownedRows = []; reviewItems = []; reviewRead = nil
         self.notice = notice
     }
 
@@ -949,6 +1093,7 @@ public extension EnvironmentValues {
     @ObservedObject var model: RewardPledgeModel
     var entry: RewardPledgeEntry?
     @State private var caseReason = ""
+    @State private var subject = ""
 
     public init(model: RewardPledgeModel, entry: RewardPledgeEntry? = nil) {
         self.model = model
@@ -957,27 +1102,51 @@ public extension EnvironmentValues {
 
     public var body: some View {
         Form {
-            if entry?.current()?.read != true {
+            if entry?.current()?.read != true && entry?.current()?.catalog != true {
                 Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
             } else if let entry {
-                if !model.awardsLoaded { ProgressView("accountCollection.loading") }
-                else if model.listFailed {
-                    Button("accountCollection.refresh") { Task { await model.loadAwards(entry: entry) } }
-                        .accessibilityIdentifier("rewards.pledge.retry")
-                } else if model.awards.isEmpty {
-                    ContentUnavailableView("rewards.empty", systemImage: "gift")
-                }
-                ForEach(model.awards) { row in
-                    Button { Task { await model.selectAward(row, entry: entry) } } label: {
-                        VStack(alignment: .leading) {
-                            Text(LocalizedStringKey("rewards.state." + row.state))
-                            Text(verbatim: row.ruleVersion)
-                        }
+                if entry.current()?.read == true {
+                    if !model.awardsLoaded { ProgressView("accountCollection.loading") }
+                    else if model.listFailed {
+                        Button("accountCollection.refresh") { Task { await model.loadAwards(entry: entry) } }
+                            .accessibilityIdentifier("rewards.pledge.retry")
+                    } else if model.awards.isEmpty {
+                        ContentUnavailableView("rewards.empty", systemImage: "gift")
                     }
-                    .accessibilityIdentifier("rewards.pledge.row." + row.awardId)
+                    ForEach(model.awards) { row in
+                        Button { Task { await model.selectAward(row, entry: entry) } } label: {
+                            VStack(alignment: .leading) {
+                                Text(LocalizedStringKey("rewards.state." + row.state))
+                                Text(verbatim: row.ruleVersion)
+                            }
+                        }
+                        .accessibilityIdentifier("rewards.pledge.row." + row.awardId)
+                    }
+                    Button("rewards.pledge.read") { Task { await model.loadAwards(entry: entry) } }
+                        .disabled(model.busy).accessibilityIdentifier("rewards.pledge.read")
                 }
-                Button("rewards.pledge.read") { Task { await model.loadAwards(entry: entry) } }
-                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.read")
+                if entry.current()?.catalog == true {
+                    TextField("rewards.pledge.subject", text: $subject)
+                        .accessibilityIdentifier("rewards.pledge.subject")
+                    Button("rewards.pledge.catalog") { Task { await model.loadCatalog(subjectID: subject, entry: entry) } }
+                        .disabled(model.busy || !RewardPledgeRoutes.id(subject))
+                        .accessibilityIdentifier("rewards.pledge.catalog")
+                    if let item = model.catalogBody {
+                        Text(verbatim: item.fields["versionId"] ?? "").accessibilityIdentifier("rewards.pledge.catalogVersion")
+                        Text(verbatim: item.fields["ruleVersion"] ?? "").accessibilityIdentifier("rewards.pledge.catalogRule")
+                        Text(verbatim: item.fields["termsHash"] ?? "").accessibilityIdentifier("rewards.pledge.catalogHash")
+                        Text(verbatim: item.fields["coupon"] ?? "").accessibilityIdentifier("rewards.pledge.catalogCoupon")
+                        Text(verbatim: item.fields["store"] ?? "").accessibilityIdentifier("rewards.pledge.catalogStore")
+                        Button("rewards.pledge.offer") {
+                            guard let version = item.fields["versionId"], let subject = item.fields["subject"] else { return }
+                            Task { await model.readOffer(versionID: version, subjectID: subject, entry: entry) }
+                        }
+                        .disabled(model.busy || !(item.fields["errorCode"] ?? "").isEmpty)
+                        .accessibilityIdentifier("rewards.pledge.offer")
+                    }
+                } else {
+                    Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.catalogClosed")
+                }
                 if model.selected != nil, model.selected?.themeSubjectID == nil {
                     Text("rewards.pledge.noSubject").accessibilityIdentifier("rewards.pledge.noSubject")
                 }
@@ -1050,8 +1219,26 @@ public extension EnvironmentValues {
     public var body: some View {
         Form {
             if entry?.current()?.draft != true && entry?.current()?.hold != true
-                && entry?.current()?.withdrawVersion != true && entry?.current()?.stats != true {
+                && entry?.current()?.withdrawVersion != true && entry?.current()?.stats != true
+                && entry?.current()?.manage != true {
                 Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.draftClosed")
+            }
+            if let entry, entry.current()?.manage == true {
+                Button("rewards.pledge.pledges") { Task { await model.loadOwned(entry: entry) } }
+                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.pledges")
+                ForEach(model.ownedRows) { row in
+                    Button { Task { await model.openOwned(row, entry: entry) } } label: {
+                        VStack(alignment: .leading) {
+                            Text(verbatim: row.pledgeID)
+                            Text(verbatim: row.versionState)
+                            Text(verbatim: row.termsHash)
+                        }
+                    }
+                    .accessibilityIdentifier("rewards.pledge.owned." + row.pledgeID)
+                }
+                Button("rewards.pledge.readback") { Task { await model.readSupply(entry: entry) } }
+                    .disabled(model.busy || !RewardPledgeRoutes.id(model.pledgeID))
+                    .accessibilityIdentifier("rewards.pledge.manageRead")
             }
             if let entry, entry.current()?.draft == true {
                 Button("rewards.pledge.coupons") { Task { await model.loadCoupons(entry: entry) } }
@@ -1117,6 +1304,10 @@ public extension EnvironmentValues {
         .task {
             guard let entry, model.restoredDraft != nil, !model.couponsLoaded, entry.current()?.draft == true else { return }
             await model.loadCoupons(entry: entry)
+        }
+        .task {
+            guard let entry, entry.current()?.manage == true || entry.current()?.draft == true else { return }
+            await model.resumeReceipts(entry: entry)
         }
     }
 }
@@ -1217,16 +1408,44 @@ public extension EnvironmentValues {
     }
 }
 
-/// Review stays off this merchant's own draft. There is no list of pledges waiting for a reviewer.
+/// Opens only when the freeze approval and a same-store access bind are both present.
 @MainActor struct RewardPledgeReviewHost: View {
     let entry: RewardPledgeEntry
+    @StateObject private var model: RewardPledgeModel
+    @State private var rule = ""
+    @State private var scoped = false
+    init(entry: RewardPledgeEntry) {
+        self.entry = entry
+        _model = StateObject(wrappedValue: RewardPledgeModel(accountID: entry.accountID, storeID: "", policy: .unset, journalURL: entry.journalURL))
+    }
     var body: some View {
         Form {
-            if entry.current()?.freeze == true {
+            if entry.current()?.freeze != true || !scoped {
                 Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.reviewQueue")
+            } else {
+                Button("rewards.pledge.reviewQueue") { Task { await model.loadReview(entry: entry) } }
+                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.reviewQueue")
+                ForEach(model.reviewItems) { item in
+                    VStack(alignment: .leading) {
+                        Text(verbatim: item.pledgeID)
+                        Text(verbatim: item.payloadHash).accessibilityIdentifier("rewards.pledge.reviewHash." + item.versionID)
+                        TextField("rewards.pledge.ruleVersion", text: $rule)
+                        Button("rewards.pledge.freeze") { Task { await model.freezeReview(item, ruleVersion: rule, entry: entry) } }
+                            .disabled(model.busy || rule.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
+                if let read = model.reviewRead {
+                    Text(verbatim: read.fields["state"] ?? "").accessibilityIdentifier("rewards.pledge.reviewState")
+                    Text(verbatim: read.fields["payloadHash"] ?? "").accessibilityIdentifier("rewards.pledge.reviewReadHash")
+                }
             }
         }
         .navigationTitle("rewards.pledge.freeze")
+        .task {
+            scoped = await entry.access() != nil
+            guard scoped, entry.current()?.freeze == true else { return }
+            await model.loadReview(entry: entry)
+        }
     }
 }
 
