@@ -81,7 +81,7 @@ def outing_payload(**overrides):
     return payload
 
 
-def classify_outing(status, body, account_id=7, query_id="q1", as_of=1_700_000_000_000):
+def classify_outing(status, body, account_id=7, query_id="q1", as_of=1_700_000_000_000, requested_cursor=None):
     """Own-outing decision. Rows never become a ratio. Unknown reasons stay unknown."""
     if status == 401:
         return "unauthorized", None, None, False
@@ -116,6 +116,8 @@ def classify_outing(status, body, account_id=7, query_id="q1", as_of=1_700_000_0
         return "discard", None, None, False
     if any(data.get(key) != value for key, value in SCOPE.items()):
         return "discard", None, None, False
+    if data.get("cursor") != requested_cursor:
+        return "malformed", None, None, False
     if data.get("status") != "COMPUTABLE" or data.get("formulaId") not in (None, FORMULA):
         return "malformed", None, None, False
     rows = data.get("outings")
@@ -189,6 +191,7 @@ class CityFairnessContracts(unittest.TestCase):
             "city_fairness_parameter", "city_fairness_event", "city_fairness_read",
             "X-Chengyin-Candidate", "city-fairness", "envelope.code == status", "envelope.candidate", "操作成功",
             "payload.accountId == accountID", "payload.queryId == queryID", "payload.asOf == asOf",
+            "try cursor(payload.cursor) == requestedCursor",
             "first-outing", "second-outing", "inside-delta", "after-horizon", "before-t0", "not-effective",
             "default: self = .unknown", "showsRatio", "sameSnapshot",
             "payload.matureCount == nil, payload.denominator == nil",
@@ -235,6 +238,8 @@ class CityFairnessContracts(unittest.TestCase):
         self.assertEqual(classify_outing(200, outing_envelope(outing_payload(asOf=2)))[0], "discard")
         self.assertIsNone(classify_outing(200, outing_envelope(outing_payload(accountId=8)))[1])
         self.assertEqual(classify_outing(200, outing_envelope(outing_payload(outings=[outing_row("o1"), outing_row("o1")])))[0], "malformed")
+        self.assertEqual(classify_outing(200, outing_envelope(outing_payload(cursor="9")))[0], "malformed")
+        self.assertEqual(classify_outing(200, outing_envelope(outing_payload(cursor="2")), requested_cursor="2")[0], "rows")
         self.assertIsNone(classify_outing(422, outing_envelope(outing_payload(matureCount=0, denominator=1)))[1])
         current = outing_payload(outings=[outing_row("o1")])
         changed = outing_payload(factRevision=9, outings=[outing_row("o2")])

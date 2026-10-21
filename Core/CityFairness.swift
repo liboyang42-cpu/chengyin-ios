@@ -225,13 +225,13 @@ public enum CityFairnessWire {
             return .screen(try screen(payload, scope: scope, queryID: queryID))
         }
     }
-    public static func ownOutings(data: Data, status: Int, scope: CityFairnessScope, accountID: Int, queryID: String, asOf: Int64) throws -> CityFairnessOutingRead {
+    public static func ownOutings(data: Data, status: Int, scope: CityFairnessScope, accountID: Int, queryID: String, asOf: Int64, cursor requestedCursor: String?) throws -> CityFairnessOutingRead {
         switch try open(data, status: status) {
         case .notComputable: throw CityFairnessFailure.notComputable
         case .envelope(let envelope):
             guard let payload = envelope.data else { throw CityFairnessFailure.malformed }
             guard owned(payload, accountID: accountID, queryID: queryID, asOf: asOf, scope: scope) else { return .discard }
-            return .page(try outingPage(payload, queryID: queryID))
+            return .page(try outingPage(payload, queryID: queryID, requestedCursor: requestedCursor))
         }
     }
 
@@ -268,8 +268,9 @@ public enum CityFairnessWire {
         guard Set(members.map(\.actorId)).count == members.count else { throw CityFairnessFailure.malformed }
         return .mature(CityFairnessPage(queryID: queryID, matureCount: matureCount, denominator: denominator, asOf: asOf, metricVersion: metricVersion, formulaId: formulaId, factRevision: factRevision, members: members, nextCursor: try cursor(payload.nextCursor)))
     }
-    private static func outingPage(_ payload: Payload, queryID: String) throws -> CityFairnessOutingPage {
+    private static func outingPage(_ payload: Payload, queryID: String, requestedCursor: String?) throws -> CityFairnessOutingPage {
         if payload.status == "NOT_COMPUTABLE" { throw CityFairnessFailure.notComputable }
+        guard try cursor(payload.cursor) == requestedCursor else { throw CityFairnessFailure.malformed }
         guard payload.status == "COMPUTABLE", let asOf = stamp(payload.asOf), let maturity = payload.maturity, CityFairnessRoute.validText(maturity, limit: 64),
               let rows = payload.outings, rows.count <= 10_000, Set(rows.map(\.outingId)).count == rows.count else { throw CityFairnessFailure.malformed }
         if let formula = payload.formulaId, formula != formulaId { throw CityFairnessFailure.malformed }
@@ -343,6 +344,7 @@ public enum CityFairnessWire {
         let queryId, status, maturity, formulaId, metricVersion, nextCursor, errorCode: String?
         let boardId, regionId, seasonId, rulesVersion: String?
         let matureCount, denominator: Int?
+        let cursor: String?
         let asOf, factRevision, t0: Int64?
         let missing: [String]?
         let outingClasses: [MemberRow]?
@@ -456,7 +458,7 @@ public enum CityFairnessWire {
             let request = try route.request(baseURL: approval.context.baseURL, token: approval.context.session.token)
             let (data, status) = try await transport.send(request)
             guard evidenceGeneration == stamp, approval.matches(approval.context), isCurrent() else { return }
-            switch try CityFairnessWire.ownOutings(data: data, status: status, scope: approval.scope, accountID: approval.context.session.accountID, queryID: queryID, asOf: asOf) {
+            switch try CityFairnessWire.ownOutings(data: data, status: status, scope: approval.scope, accountID: approval.context.session.accountID, queryID: queryID, asOf: asOf, cursor: cursor) {
             case .discard:
                 if outingPage == nil { outingBlocked = true }
             case .page(let incoming):
