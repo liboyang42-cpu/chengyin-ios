@@ -161,6 +161,18 @@ import SwiftUI
                     destination(.activity(sourceID))
                 case .roamPOI(let sourceID, _, let origin):
                     SearchMapCityDetailView(id: sourceID, reader: reader, origin: origin ?? area?.coordinate, destination: destination)
+                case .theme(let target):
+                    destination(.topic(target.topicID))
+                case .storyNode(let target):
+                    if let topicReader = reader.topicReader {
+                        MapPublicStoryNodeDetailView(
+                            destination: target,
+                            reader: topicReader,
+                            topicDestination: { AnyView(destination(.topic($0))) }
+                        )
+                    } else {
+                        SearchMapIssue(key: "searchMap.notConfigured")
+                    }
                 }
             } else {
                 ContentUnavailableView("mapLayers.changed", systemImage: "arrow.clockwise")

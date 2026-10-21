@@ -270,13 +270,75 @@ public struct MapPublicLayerService: MapPublicLayerServing {
     }
 }
 
+/// Validated theme entity destination for `theme` (`MapSourceType.themeNode`).
+/// `topicID` belongs to the `cms_topic` ID domain (`> 0`); `anchorNodeID` is the optional first coordinate node (`cms_topic_node.id > 0`).
+public struct MapPublicThemeDestination: Equatable, Hashable {
+    public let topicID: Int
+    public let anchorNodeID: Int?
+    public let themeName: String
+    public let address: String?
+    public let summary: String?
+
+    public init?(topicID: Int, anchorNodeID: Int? = nil, themeName: String, address: String? = nil, summary: String? = nil) {
+        let trimmed = themeName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard topicID > 0, !trimmed.isEmpty else { return nil }
+        if let anchorNodeID, anchorNodeID <= 0 { return nil }
+        self.topicID = topicID
+        self.anchorNodeID = anchorNodeID
+        self.themeName = trimmed
+        self.address = address
+        self.summary = summary
+    }
+}
+
+/// Validated story-node destination for `story_node` (`MapSourceType.storyNode`).
+/// `nodeID` (`cms_topic_node.id`), `topicID` (`cms_topic.id`), and `chapterID` (`cms_topic_chapter.id`) belong to separate ID domains.
+/// Never falls back to `topicID = nodeID` or `activityID = nodeID`.
+public struct MapPublicStoryNodeDestination: Equatable, Hashable {
+    public let nodeID: Int
+    public let topicID: Int
+    public let chapterID: Int
+    public let nodeName: String
+    public let topicName: String?
+    public let chapterTitle: String?
+    public let address: String?
+    public let summary: String?
+    public let coordinate: RoamCoordinate?
+
+    public init?(
+        nodeID: Int,
+        topicID: Int,
+        chapterID: Int,
+        nodeName: String,
+        topicName: String? = nil,
+        chapterTitle: String? = nil,
+        address: String? = nil,
+        summary: String? = nil,
+        coordinate: RoamCoordinate? = nil
+    ) {
+        let trimmed = nodeName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard nodeID > 0, topicID > 0, chapterID > 0, !trimmed.isEmpty else { return nil }
+        self.nodeID = nodeID
+        self.topicID = topicID
+        self.chapterID = chapterID
+        self.nodeName = trimmed
+        self.topicName = topicName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.chapterTitle = chapterTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.address = address?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.summary = summary?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.coordinate = coordinate
+    }
+}
+
 /// Real detail route for a validated `MapLayerItem`.
-/// Only `store`, `registrableActivity`, and `roamPOI` with positive IDs can navigate.
+/// Routes `store`, `registrableActivity`, `roamPOI`, `themeNode` (`TopicDetailView`), and `storyNode` (`MapPublicStoryNodeDetailView`).
 public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
     public enum Target: Equatable, Hashable {
         case store(sourceID: Int, title: String, coordinate: RoamCoordinate?, canNavigate: Bool)
         case activity(sourceID: Int, title: String)
         case roamPOI(sourceID: Int, title: String, origin: RoamCoordinate?)
+        case theme(MapPublicThemeDestination)
+        case storyNode(MapPublicStoryNodeDestination)
     }
 
     public let id: MapSourceKey
@@ -673,6 +735,20 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
         }
     }
 
+    /// Returns the authoritative wire item for a ready `MapSourceKey` so parent theme/chapter metadata can be inspected without guessing IDs.
+    public func wireItem(for key: MapSourceKey) -> MapPublicWireItem? {
+        guard let currentSession = session,
+              let sourceID = Int(key.id),
+              sourceID > 0 else { return nil }
+        for page in currentSession.pages where page.status == .ok || page.status == .failed {
+            guard MapPublicLayerAdapter.clientType(wire: page.source) == key.type else { continue }
+            if let match = page.items.first(where: { $0.sourceID == sourceID }) {
+                return match
+            }
+        }
+        return nil
+    }
+
     /// Selects or clears an item from the active ready items without resetting the query or viewport.
     public func selectItem(_ key: MapSourceKey?) {
         synchronizeContext()
@@ -685,8 +761,9 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
         returnScrollAnchorID = Self.scrollAnchorID(for: key)
     }
 
-    /// Validates and opens the real detail route for a ready item (`store`, `registrableActivity`, `roamPOI`).
-    /// Never routes unsupported types (`themeNode`, `sideQuest`) or items absent from `visibleReadyItems`.
+    /// Validates and opens the real detail route for a ready item (`store`, `registrableActivity`, `roamPOI`, `themeNode`, `storyNode`).
+    /// Never routes unsupported types (`sideQuest`, `cityBoardPoint`), never routes `themeNode`/`storyNode` to `ActivityDetailView`,
+    /// and never guesses `topicID = sourceID` for `storyNode`.
     @discardableResult
     public func openDetail(for key: MapSourceKey) -> MapPublicLayerDetailRoute? {
         guard synchronizeContext(),
@@ -697,6 +774,7 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
             return nil
         }
         let coordinate = RoamCoordinate(latitude: item.coordinate.latitude, longitude: item.coordinate.longitude)
+        let wire = wireItem(for: item.key)
         let target: MapPublicLayerDetailRoute.Target
         switch item.key.type {
         case .store:
@@ -706,7 +784,35 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
             target = .activity(sourceID: sourceID, title: item.title)
         case .roamPOI:
             target = .roamPOI(sourceID: sourceID, title: item.title, origin: viewportSource?.originCoordinate)
-        case .themeNode, .sideQuest, .cityBoardPoint:
+        case .themeNode:
+            if let explicitTopicID = wire?.topicID, explicitTopicID != sourceID { return nil }
+            guard let destination = MapPublicThemeDestination(
+                topicID: sourceID,
+                anchorNodeID: wire?.nodeID,
+                themeName: item.title,
+                address: wire?.address,
+                summary: wire?.summary
+            ) else { return nil }
+            target = .theme(destination)
+        case .storyNode:
+            guard let wire,
+                  wire.source == "story_node",
+                  wire.sourceID == sourceID,
+                  let topicID = wire.topicID,
+                  let chapterID = wire.chapterID,
+                  let destination = MapPublicStoryNodeDestination(
+                      nodeID: sourceID,
+                      topicID: topicID,
+                      chapterID: chapterID,
+                      nodeName: item.title,
+                      topicName: wire.topicName,
+                      chapterTitle: wire.chapterTitle,
+                      address: wire.address,
+                      summary: wire.summary,
+                      coordinate: coordinate
+                  ) else { return nil }
+            target = .storyNode(destination)
+        case .sideQuest, .cityBoardPoint:
             return nil
         }
         let route = MapPublicLayerDetailRoute(

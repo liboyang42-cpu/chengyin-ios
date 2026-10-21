@@ -60,7 +60,7 @@ public enum MapVisualHostBridge {
     /// Maps a business layer item source type to its MV03 layer slot.
     public static func layerOrder(for sourceType: MapSourceType) -> MapLayerOrder {
         switch sourceType {
-        case .themeNode, .roamPOI, .store, .registrableActivity, .sideQuest, .cityBoardPoint:
+        case .themeNode, .storyNode, .roamPOI, .store, .registrableActivity, .sideQuest, .cityBoardPoint:
             return .gameMarkers
         }
     }

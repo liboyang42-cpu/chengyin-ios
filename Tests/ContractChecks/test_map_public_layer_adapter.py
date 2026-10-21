@@ -18,6 +18,8 @@ WIRE_STATES = {
     "roam_poi": {"unfound", "found", "pending_redeem"},
     "store": {"open", "closed"},
     "activity": {"notStarted", "running", "completed"},
+    "theme": {"recruiting", "selfPlay", "sessions", "open", "closed"},
+    "story_node": {"open", "unlocked", "completed"},
 }
 
 
@@ -153,9 +155,33 @@ def prefer(current, incoming):
 def version_allowed(version, source):
     if source == "roam_poi":
         return DIGIT.fullmatch(version or "") is not None
-    if source in ("store", "activity"):
+    if source in ("store", "activity", "theme", "story_node"):
         return STAMP.fullmatch(version or "") is not None
     return False
+
+
+def parent_domain_allowed(item):
+    source = item["source"]
+    if source == "theme":
+        topic_id = item.get("topicID")
+        node_id = item.get("nodeID")
+        if topic_id is not None and topic_id != item["sourceID"]:
+            return False
+        if node_id is not None and node_id <= 0:
+            return False
+        return True
+    if source == "story_node":
+        topic_id = item.get("topicID")
+        chapter_id = item.get("chapterID")
+        node_id = item.get("nodeID")
+        if not isinstance(topic_id, int) or topic_id <= 0:
+            return False
+        if not isinstance(chapter_id, int) or chapter_id <= 0:
+            return False
+        if node_id is not None and node_id != item["sourceID"]:
+            return False
+        return True
+    return True
 
 
 def state_allowed(state, source):
@@ -189,8 +215,6 @@ def accept(session, issued, payload, mapping):
         if not isinstance(raw_items, list):
             return "rejected", session
         status = layer["status"]
-        if session["layers"][index] in ("story_node", "theme") and status != "UNAVAILABLE":
-            return "rejected", session
         if status in ("FAILED", "UNAVAILABLE"):
             if raw_items:
                 return "rejected", session
@@ -212,6 +236,15 @@ def accept(session, issued, payload, mapping):
                 return "rejected", session
             if not isinstance(raw.get("name"), str):
                 return "rejected", session
+            topic_id = raw.get("topicId")
+            if topic_id is not None and (not isinstance(topic_id, int) or isinstance(topic_id, bool) or topic_id <= 0):
+                return "rejected", session
+            chapter_id = raw.get("chapterId")
+            if chapter_id is not None and (not isinstance(chapter_id, int) or isinstance(chapter_id, bool) or chapter_id <= 0):
+                return "rejected", session
+            node_id = raw.get("nodeId")
+            if node_id is not None and (not isinstance(node_id, int) or isinstance(node_id, bool) or node_id <= 0):
+                return "rejected", session
             version = raw["visibilityVersion"] if "visibilityVersion" in raw else None
             if isinstance(version, str):
                 version = version.strip() or None
@@ -221,14 +254,7 @@ def accept(session, issued, payload, mapping):
                 version = None
             state = raw.get("visualState")
             actions = raw["actions"] if "actions" in raw else None
-            if blocked is None:
-                if not version_allowed(version, session["layers"][index]):
-                    blocked = "VISIBILITY_VERSION_ABSENT"
-                elif not state_allowed(state, session["layers"][index]):
-                    blocked = "VISUAL_STATE_ABSENT"
-                elif actions is not None and "register" in actions:
-                    blocked = "ACTION_REJECTED"
-            parsed.append({
+            item_row = {
                 "source": session["layers"][index],
                 "sourceID": source_id,
                 "name": raw["name"],
@@ -237,7 +263,22 @@ def accept(session, issued, payload, mapping):
                 "visibilityVersion": version,
                 "visualState": state,
                 "actions": actions,
-            })
+                "topicID": topic_id,
+                "chapterID": chapter_id,
+                "nodeID": node_id,
+                "topicName": raw.get("topicName"),
+                "chapterTitle": raw.get("chapterTitle"),
+            }
+            if blocked is None:
+                if not version_allowed(version, session["layers"][index]):
+                    blocked = "VISIBILITY_VERSION_ABSENT"
+                elif not state_allowed(state, session["layers"][index]):
+                    blocked = "VISUAL_STATE_ABSENT"
+                elif actions is not None and "register" in actions:
+                    blocked = "ACTION_REJECTED"
+                elif not parent_domain_allowed(item_row):
+                    blocked = "STORY_NODE_PARENT_ABSENT" if session["layers"][index] == "story_node" else "THEME_TOPIC_ID_MISMATCH"
+            parsed.append(item_row)
         if blocked:
             failed = True
             pages[index]["status"] = "failed"
@@ -296,6 +337,8 @@ def ready(session, markers):
                 continue
             if not state_allowed(item.get("visualState"), item["source"]):
                 continue
+            if not parent_domain_allowed(item):
+                continue
             rows.append({
                 "type": client,
                 "id": str(item["sourceID"]),
@@ -324,7 +367,7 @@ class MapPublicLayerAdapterContracts(unittest.TestCase):
         cls.contracts = CONTRACTS.read_text(encoding="utf-8")
 
     def test_source_table_comes_from_the_adapter_and_keeps_story_node(self):
-        self.assertEqual(self.mapping["story_node"], None)
+        self.assertEqual(self.mapping["story_node"], "storyNode")
         self.assertEqual(self.mapping["roam_poi"], "roamPOI")
         self.assertEqual(self.mapping["store"], "store")
         self.assertEqual(self.mapping["activity"], "registrableActivity")
@@ -338,6 +381,8 @@ class MapPublicLayerAdapterContracts(unittest.TestCase):
             "unfound": "locked", "found": "completed", "pending_redeem": "active",
             "open": "interactive", "closed": "unavailable",
             "notStarted": "locked", "running": "active", "completed": "completed",
+            "recruiting": "active", "selfPlay": "interactive", "sessions": "interactive",
+            "unlocked": "active",
         })
         self.assertNotIn("standard", self.markers.values())
         self.assertNotIn("visibilityVersion = 1", self.text)
@@ -346,6 +391,8 @@ class MapPublicLayerAdapterContracts(unittest.TestCase):
         self.assertIn("VISIBILITY_VERSION_ABSENT", self.text)
         self.assertIn("VISUAL_STATE_ABSENT", self.text)
         self.assertIn("ACTION_REJECTED", self.text)
+        self.assertIn("STORY_NODE_PARENT_ABSENT", self.text)
+        self.assertIn("THEME_TOPIC_ID_MISMATCH", self.text)
         self.assertNotIn("URLSession", self.text)
         self.assertNotIn("CLLocation", self.text)
         self.assertNotIn("AppSession", self.text)
@@ -615,24 +662,68 @@ class MapPublicLayerAdapterContracts(unittest.TestCase):
         south, north, west, east = sample_box()
         with self.assertRaises(ValueError):
             open_query(7, "GCJ-02", south, north, west, east, ["sideQuest"], 10, self.sources)
-        session = open_query(7, "GCJ-02", south, north, west, east, ["story_node"], 10, self.sources)
+        session = open_query(7, "GCJ-02", south, north, west, east, ["story_node", "theme"], 10, self.sources)
         session, issued = request(session)
-        ok = {"datum": "GCJ-02", "layers": [{"sourceType": "story_node", "status": "OK", "items": [
-            {"sourceType": "story_node", "sourceId": 8, "name": "节点", "latitude": "31.23", "longitude": "121.47",
-             "visibilityVersion": "1", "visualState": "found", "actions": ["navigate"]}
-        ]}]}
-        kind, kept = accept(session, issued, ok, self.mapping)
-        self.assertEqual(kind, "rejected")
-        self.assertEqual(kept["pages"][0]["status"], "idle")
+        bad_version = {"datum": "GCJ-02", "nextCursor": "c2", "layers": [
+            {"sourceType": "story_node", "status": "OK", "items": [
+                {"sourceType": "story_node", "sourceId": 8, "topicId": 100, "chapterId": 200, "name": "节点", "latitude": "31.23", "longitude": "121.47",
+                 "visibilityVersion": "1", "visualState": "open", "actions": []}
+            ]},
+            {"sourceType": "theme", "status": "UNAVAILABLE", "reason": "NO_AUTHORITATIVE_PUBLIC_QUERY", "items": []},
+        ]}
+        kind, failed_ver = accept(session, issued, bad_version, self.mapping)
+        self.assertEqual(kind, "applied")
+        self.assertEqual(failed_ver["pages"][0]["status"], "failed")
+        self.assertEqual(failed_ver["pages"][0]["reason"], "VISIBILITY_VERSION_ABSENT")
+        self.assertIsNone(failed_ver["cursor"])
+
+        missing_parent = {"datum": "GCJ-02", "nextCursor": "c2", "layers": [
+            {"sourceType": "story_node", "status": "OK", "items": [
+                {"sourceType": "story_node", "sourceId": 8, "name": "孤立节点", "latitude": "31.23", "longitude": "121.47",
+                 "visibilityVersion": "2026-05-01T10:00:00", "visualState": "open", "actions": []}
+            ]},
+            {"sourceType": "theme", "status": "OK", "items": [
+                {"sourceType": "theme", "sourceId": 100, "topicId": 100, "nodeId": 8, "name": "外滩暗线", "latitude": "31.23", "longitude": "121.47",
+                 "visibilityVersion": "2026-05-01T09:00:00", "visualState": "selfPlay", "actions": []}
+            ]},
+        ]}
+        kind, failed_parent = accept(session, issued, missing_parent, self.mapping)
+        self.assertEqual(kind, "applied")
+        self.assertEqual(failed_parent["pages"][0]["status"], "failed")
+        self.assertEqual(failed_parent["pages"][0]["reason"], "STORY_NODE_PARENT_ABSENT")
+        self.assertEqual(failed_parent["pages"][1]["status"], "ok")
+        self.assertEqual([r["type"] for r in ready(failed_parent, self.markers)], ["themeNode"])
+
+        valid_both = {"datum": "GCJ-02", "nextCursor": "c3", "layers": [
+            {"sourceType": "story_node", "status": "OK", "capabilities": {"read": True}, "items": [
+                {"sourceType": "story_node", "sourceId": 8, "topicId": 100, "chapterId": 200, "nodeId": 8,
+                 "topicName": "外滩暗线", "chapterTitle": "第一章", "name": "海关钟楼", "latitude": "31.23", "longitude": "121.47",
+                 "visibilityVersion": "2026-05-01T10:00:00", "visualState": "unlocked", "actions": []}
+            ]},
+            {"sourceType": "theme", "status": "OK", "capabilities": {"read": True}, "items": [
+                {"sourceType": "theme", "sourceId": 100, "topicId": 100, "nodeId": 8, "name": "外滩暗线", "latitude": "31.23", "longitude": "121.47",
+                 "visibilityVersion": "2026-05-01T09:00:00", "visualState": "selfPlay", "actions": []}
+            ]},
+        ]}
+        kind, applied_ok = accept(session, issued, valid_both, self.mapping)
+        self.assertEqual(kind, "applied")
+        self.assertEqual(applied_ok["cursor"], "c3")
+        mapped = ready(applied_ok, self.markers)
+        self.assertEqual([(r["type"], r["id"], r["state"], r["actions"]) for r in mapped], [
+            ("storyNode", "8", "active", set()),
+            ("themeNode", "100", "interactive", set()),
+        ])
+        self.assertNotIn("sideQuest", [row["type"] for row in mapped])
+
         unavailable = {"datum": "GCJ-02", "aggregatedQueryEnabled": False, "layers": [
-            {"sourceType": "story_node", "status": "UNAVAILABLE", "reason": "STORY_NODE_NOT_PROVEN_PUBLIC", "capabilities": {"read": False}, "items": []}
+            {"sourceType": "story_node", "status": "UNAVAILABLE", "reason": "STORY_NODE_NOT_PROVEN_PUBLIC", "capabilities": {"read": False}, "items": []},
+            {"sourceType": "theme", "status": "UNAVAILABLE", "reason": "NO_AUTHORITATIVE_PUBLIC_QUERY", "capabilities": {"read": False}, "items": []},
         ]}
         kind, applied = accept(session, issued, unavailable, self.mapping)
         self.assertEqual(kind, "applied")
         self.assertEqual(applied["pages"][0]["status"], "unavailable")
         self.assertFalse(applied["pages"][0]["status"] == "ok")
         self.assertEqual(ready(applied, self.markers), [])
-        self.assertNotIn("sideQuest", [row["type"] for row in ready(applied, self.markers)])
         turned_on = {"datum": "GCJ-02", "aggregatedQueryEnabled": True, "layers": unavailable["layers"]}
         self.assertEqual(accept(session, issued, turned_on, self.mapping)[0], "rejected")
 

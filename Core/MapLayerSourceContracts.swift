@@ -8,8 +8,9 @@ public enum MapLayerFeature {
 }
 
 /// Typed source identity. Numeric IDs from different sources are never the same object.
+/// `storyNode` (`story_node`) is a distinct story-node entity domain, never `sideQuest` or `themeNode`.
 public enum MapSourceType: String, CaseIterable, Codable {
-    case themeNode, roamPOI, store, registrableActivity, sideQuest, cityBoardPoint
+    case themeNode, storyNode, roamPOI, store, registrableActivity, sideQuest, cityBoardPoint
 }
 
 public struct MapSourceKey: Hashable, Codable, Comparable {

@@ -383,4 +383,198 @@ final class MapPublicLayerServiceTests: XCTestCase {
         XCTAssertTrue(coordinator.visibleReadyItems.isEmpty)
         XCTAssertNil(coordinator.selectedItemKey)
     }
+
+    func testThemeAndStoryNodeDomainSeparationParentGateAndReturnToMap() async throws {
+        let transport = MockTransport()
+        let config = try APIConfiguration(baseURL: URL(string: "https://api.example.com")!)
+        let service = MapPublicLayerService(configuration: config, transport: transport)
+        let currentCtx = try makeContext(accountID: 7, epoch: 1, token: "token-user-7")
+        let coordinator = MapPublicLayerCoordinator(
+            service: service,
+            currentContext: { currentCtx },
+            isApproved: { true }
+        )
+
+        let coord = try XCTUnwrap(RoamCoordinate(latitude: 31.23, longitude: 121.47))
+        let area = RoamSearchArea(coordinate: coord, label: "外滩")
+
+        // 1. Both theme and story_node succeed with identical numeric sourceId=42 in distinct domains.
+        transport.handler = { _ in
+            let response: [String: Any] = [
+                "code": 200,
+                "data": [
+                    "datum": "GCJ-02",
+                    "nextCursor": "cursor-theme-story-2",
+                    "layers": [
+                        ["sourceType": "roam_poi", "status": "OK", "items": []],
+                        ["sourceType": "store", "status": "OK", "items": []],
+                        ["sourceType": "activity", "status": "OK", "items": []],
+                        [
+                            "sourceType": "theme",
+                            "status": "OK",
+                            "capabilities": ["read": true],
+                            "items": [
+                                [
+                                    "sourceType": "theme",
+                                    "sourceId": 42,
+                                    "topicId": 42,
+                                    "chapterId": 300,
+                                    "nodeId": 9001,
+                                    "name": "外滩暗影追踪",
+                                    "topicName": "外滩暗影追踪",
+                                    "chapterTitle": "第一章：序幕",
+                                    "address": "中山东一路 18 号",
+                                    "summary": "在百年钟楼下寻找失落的密电码",
+                                    "latitude": "31.238",
+                                    "longitude": "121.490",
+                                    "visibilityVersion": "2026-04-05T10:05:00",
+                                    "visualState": "selfPlay",
+                                    "actions": []
+                                ]
+                            ]
+                        ],
+                        [
+                            "sourceType": "story_node",
+                            "status": "OK",
+                            "capabilities": ["read": true],
+                            "items": [
+                                [
+                                    "sourceType": "story_node",
+                                    "sourceId": 42,
+                                    "topicId": 42,
+                                    "chapterId": 300,
+                                    "nodeId": 42,
+                                    "name": "钟楼暗格",
+                                    "topicName": "外滩暗影追踪",
+                                    "chapterTitle": "第一章：序幕",
+                                    "address": "中山东一路 18 号二楼",
+                                    "summary": "调查旧式铜钟背后的铭文",
+                                    "latitude": "31.2385",
+                                    "longitude": "121.4905",
+                                    "visibilityVersion": "2026-04-05T10:05:00",
+                                    "visualState": "unlocked",
+                                    "actions": []
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+            return (try JSONSerialization.data(withJSONObject: response), 200)
+        }
+
+        coordinator.loadManualArea(area)
+        while coordinator.isLoading { await Task.yield() }
+
+        XCTAssertEqual(
+            coordinator.visibleReadyItems.map { "\($0.key.type.rawValue):\($0.key.id)" },
+            ["themeNode:42", "storyNode:42"]
+        )
+
+        let themeKey = try MapSourceKey(type: .themeNode, id: "42")
+        let storyKey = try MapSourceKey(type: .storyNode, id: "42")
+        XCTAssertNotEqual(themeKey, storyKey)
+
+        let themeRoute = try XCTUnwrap(coordinator.openDetail(for: themeKey))
+        let expectedThemeDest = try XCTUnwrap(
+            MapPublicThemeDestination(
+                topicID: 42,
+                anchorNodeID: 9001,
+                themeName: "外滩暗影追踪",
+                address: "中山东一路 18 号",
+                summary: "在百年钟楼下寻找失落的密电码"
+            )
+        )
+        XCTAssertEqual(themeRoute.target, .theme(expectedThemeDest))
+        coordinator.returnFromDetail()
+        XCTAssertEqual(coordinator.selectedItemKey, themeKey)
+        XCTAssertEqual(coordinator.session?.cursor, "cursor-theme-story-2")
+
+        let storyRoute = try XCTUnwrap(coordinator.openDetail(for: storyKey))
+        let expectedStoryDest = try XCTUnwrap(
+            MapPublicStoryNodeDestination(
+                nodeID: 42,
+                topicID: 42,
+                chapterID: 300,
+                nodeName: "钟楼暗格",
+                topicName: "外滩暗影追踪",
+                chapterTitle: "第一章：序幕",
+                address: "中山东一路 18 号二楼",
+                summary: "调查旧式铜钟背后的铭文",
+                coordinate: RoamCoordinate(latitude: 31.2385, longitude: 121.4905)
+            )
+        )
+        XCTAssertEqual(storyRoute.target, .storyNode(expectedStoryDest))
+        coordinator.returnFromDetail()
+        XCTAssertEqual(coordinator.selectedItemKey, storyKey)
+        XCTAssertEqual(coordinator.session?.cursor, "cursor-theme-story-2")
+
+        // 2. If next page returns a story_node missing parent topicId/chapterId, the layer fails closed with STORY_NODE_PARENT_ABSENT
+        //    and retains "cursor-theme-story-2" for same-cursor retry while keeping already-loaded items.
+        transport.handler = { _ in
+            let response: [String: Any] = [
+                "code": 200,
+                "data": [
+                    "datum": "GCJ-02",
+                    "nextCursor": "cursor-should-not-advance",
+                    "layers": [
+                        ["sourceType": "roam_poi", "status": "OK", "items": []],
+                        ["sourceType": "store", "status": "OK", "items": []],
+                        ["sourceType": "activity", "status": "OK", "items": []],
+                        ["sourceType": "theme", "status": "OK", "items": []],
+                        [
+                            "sourceType": "story_node",
+                            "status": "OK",
+                            "capabilities": ["read": true],
+                            "items": [
+                                [
+                                    "sourceType": "story_node",
+                                    "sourceId": 99,
+                                    "name": "缺失父主题节点",
+                                    "latitude": "31.239",
+                                    "longitude": "121.491",
+                                    "visibilityVersion": "2026-04-05T10:10:00",
+                                    "visualState": "unlocked",
+                                    "actions": []
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+            return (try JSONSerialization.data(withJSONObject: response), 200)
+        }
+
+        coordinator.loadNextPage()
+        while coordinator.isLoading { await Task.yield() }
+
+        XCTAssertEqual(coordinator.pages.first(where: { $0.source == "story_node" })?.status, .failed)
+        XCTAssertEqual(coordinator.pages.first(where: { $0.source == "story_node" })?.reason, "STORY_NODE_PARENT_ABSENT")
+        XCTAssertEqual(coordinator.session?.cursor, "cursor-theme-story-2")
+        XCTAssertTrue(coordinator.canRetry)
+        XCTAssertTrue(coordinator.withheldItems.isEmpty)
+        let missingParentItem = MapPublicWireItem(
+            source: "story_node",
+            sourceID: 99,
+            name: "缺失父主题节点",
+            latitude: "31.239",
+            longitude: "121.491",
+            visibilityVersion: "2026-04-05T10:10:00",
+            visualState: "unlocked",
+            actions: [],
+            found: nil,
+            pendingRedeem: nil,
+            businessStatus: nil
+        )
+        var probeSession = try XCTUnwrap(coordinator.session)
+        probeSession.pages = [MapPublicLayerPage(source: "story_node", status: .ok, reason: nil, read: true, items: [missingParentItem])]
+        XCTAssertEqual(
+            MapPublicLayerAdapter.withheld(in: probeSession),
+            [MapPublicWithheldItem(source: "story_node", sourceID: 99, missing: [.parentTopic])]
+        )
+        XCTAssertEqual(
+            coordinator.visibleReadyItems.map { "\($0.key.type.rawValue):\($0.key.id)" },
+            ["themeNode:42", "storyNode:42"]
+        )
+    }
 }

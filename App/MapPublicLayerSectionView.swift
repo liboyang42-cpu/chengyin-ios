@@ -162,6 +162,7 @@ import SwiftUI
     private func readyItemRow(_ item: MapLayerItem) -> some View {
         let pinID = MapPublicLayerCoordinator.pinID(for: item.key)
         let isSelected = selectedPin == pinID || coordinator.selectedItemKey == item.key
+        let wireItem = coordinator.wireItem(for: item.key)
         VStack(alignment: .leading, spacing: 8) {
             Button {
                 openDetail(item)
@@ -173,6 +174,21 @@ import SwiftUI
                         Text(verbatim: item.title)
                             .font(.subheadline.weight(.semibold))
                             .multilineTextAlignment(.leading)
+                        if let wireItem,
+                           let parentLabel = Self.parentContextSummary(for: wireItem) {
+                            Text(verbatim: parentLabel)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.leading)
+                                .accessibilityIdentifier("mapPublicLayers.parent.\(item.key.type.rawValue).\(item.key.id)")
+                        }
+                        if let summary = wireItem?.summary, !summary.isEmpty {
+                            Text(verbatim: summary)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                        }
                         HStack(spacing: 8) {
                             Text(LocalizedStringKey(Self.clientTypeTitleKey(for: item.key.type)))
                                 .font(.caption)
@@ -275,9 +291,18 @@ import SwiftUI
         case .registrableActivity: return "calendar"
         case .roamPOI: return "mappin.and.ellipse"
         case .themeNode: return "sparkles"
+        case .storyNode: return "book.pages"
         case .sideQuest: return "flag"
         case .cityBoardPoint: return "building.2"
         }
+    }
+
+    static func parentContextSummary(for item: MapPublicWireItem) -> String? {
+        let parts = [item.topicName, item.chapterTitle]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard !parts.isEmpty else { return nil }
+        return parts.joined(separator: " · ")
     }
 
     static func layerTitleKey(for source: String) -> String {
@@ -297,6 +322,7 @@ import SwiftUI
         case .store: return "mapPublicLayers.source.store"
         case .registrableActivity: return "mapPublicLayers.source.activity"
         case .themeNode: return "mapPublicLayers.source.theme"
+        case .storyNode: return "mapPublicLayers.source.story_node"
         case .sideQuest: return "mapPublicLayers.source.sideQuest"
         case .cityBoardPoint: return "mapPublicLayers.source.cityBoardPoint"
         }

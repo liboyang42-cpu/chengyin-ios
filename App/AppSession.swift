@@ -338,7 +338,7 @@ final class AppSession: ObservableObject {
     }, onUnauthorized: { [weak self] captured in
         guard let self, self.currentSearchMapContext == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
-    }, manualAreaSelection: searchMapSelection, publicLayerCoordinator: mapPublicLayerCoordinator)
+    }, manualAreaSelection: searchMapSelection, publicLayerCoordinator: mapPublicLayerCoordinator, topicReader: topicReader)
     private let registrationApproval: RegistrationProductionApproval?
     private let registrationStorefront: () -> String?
     private var registrationJournal: any OperationPendingJournal { composition.storage.operationJournal() }

@@ -23,6 +23,7 @@ public struct SearchMapContext: Equatable {
     var scope: UUID { get }
     var manualAreaRevision: UInt64 { get }
     var publicLayerCoordinator: MapPublicLayerCoordinator? { get }
+    var topicReader: (any TopicReading)? { get }
     func selectManualArea(_ area: RoamSearchArea?)
     func categories() async throws -> [DiscoveryCategory]
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow]
@@ -39,6 +40,7 @@ public extension SearchMapReading {
     func cityNodes(_ query: CityNodeSearchQuery) async throws -> [SearchMapCityNode] { throw APIError.notConfigured }
     var manualAreaRevision: UInt64 { 0 }
     var publicLayerCoordinator: MapPublicLayerCoordinator? { nil }
+    var topicReader: (any TopicReading)? { nil }
     func selectManualArea(_ area: RoamSearchArea?) {}
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] { throw APIError.notConfigured }
     func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage { throw APIError.notConfigured }
@@ -49,6 +51,7 @@ public extension SearchMapReading {
     private let onUnauthorized: (SearchMapContext) -> Void
     private let manualAreaSelection: ManualMapAreaSelection?
     public let publicLayerCoordinator: MapPublicLayerCoordinator?
+    public let topicReader: (any TopicReading)?
     public var manualAreaRevision: UInt64 { manualAreaSelection?.revision ?? 0 }
     public func selectManualArea(_ area: RoamSearchArea?) { manualAreaSelection?.select(area) }
     private var snapshot: SearchMapContext
@@ -64,10 +67,12 @@ public extension SearchMapReading {
     public init(service: SearchMapService?, currentContext: @escaping () -> SearchMapContext,
                 onUnauthorized: @escaping (SearchMapContext) -> Void = { _ in },
                 manualAreaSelection: ManualMapAreaSelection? = nil,
-                publicLayerCoordinator: MapPublicLayerCoordinator? = nil) {
+                publicLayerCoordinator: MapPublicLayerCoordinator? = nil,
+                topicReader: (any TopicReading)? = nil) {
         self.service = service; self.currentContext = currentContext; self.onUnauthorized = onUnauthorized
         self.manualAreaSelection = manualAreaSelection
         self.publicLayerCoordinator = publicLayerCoordinator
+        self.topicReader = topicReader
         snapshot = currentContext()
     }
     public func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] {

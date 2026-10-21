@@ -12,14 +12,14 @@ public enum MapPublicLayerAdapter {
     public static let maxAreaSquareDegrees = Decimal(1)
     public static let knownSources = ["roam_poi", "store", "activity", "theme", "story_node"]
 
-    /// `story_node` is absent on purpose. It is not `sideQuest`.
+    /// `story_node` maps to dedicated `.storyNode`. It is never `sideQuest` or `themeNode`.
     public static func clientType(wire: String) -> MapSourceType? {
         switch wire {
         case "roam_poi": return .roamPOI
         case "store": return .store
         case "activity": return .registrableActivity
         case "theme": return .themeNode
-        case "story_node": return nil
+        case "story_node": return .storyNode
         default: return nil
         }
     }
@@ -82,10 +82,6 @@ public enum MapPublicLayerAdapter {
         for (index, raw) in rawLayers.enumerated() {
             guard let layer = raw as? [String: Any], (layer["sourceType"] as? String) == session.layers[index],
                   let status = layer["status"] as? String else { return .rejected(.payloadRejected) }
-            let source = session.layers[index]
-            if (source == "story_node" || source == "theme") && status != "UNAVAILABLE" {
-                return .rejected(.payloadRejected)
-            }
             let reason = layer["reason"] as? String
             let read = bool((layer["capabilities"] as? [String: Any])?["read"])
             guard let rawItems = layer["items"] as? [Any] else { return .rejected(.payloadRejected) }
@@ -164,6 +160,7 @@ public enum MapPublicLayerAdapter {
         guard let type = clientType(wire: item.source), let version = item.visibilityVersion, let ordering = orderingInt(version),
               let stateName = item.visualState, let state = markerState(wire: stateName),
               versionAllowed(version, source: item.source), stateAllowed(stateName, source: item.source),
+              parentDomainAllowed(item),
               let key = try? MapSourceKey(type: type, id: String(item.sourceID)),
               let south = try? coordinate(item.latitude, latitude: true),
               let west = try? coordinate(item.longitude, latitude: false),
@@ -183,6 +180,7 @@ public enum MapPublicLayerAdapter {
         if item.visibilityVersion == nil || !versionAllowed(item.visibilityVersion ?? "", source: item.source) { missing.insert(.visibilityVersion) }
         if item.visualState == nil || !stateAllowed(item.visualState ?? "", source: item.source) { missing.insert(.visualState) }
         if item.actions == nil { missing.insert(.actions) }
+        if !parentDomainAllowed(item) { missing.insert(.parentTopic) }
         if (try? coordinate(item.latitude, latitude: true)) == nil || (try? coordinate(item.longitude, latitude: false)) == nil {
             missing.insert(.coordinate)
         }
@@ -204,8 +202,29 @@ public enum MapPublicLayerAdapter {
             guard let version = item.visibilityVersion, versionAllowed(version, source: source) else { return "VISIBILITY_VERSION_ABSENT" }
             guard let state = item.visualState, stateAllowed(state, source: source), state != "available" else { return "VISUAL_STATE_ABSENT" }
             if item.actions?.contains("register") == true { return "ACTION_REJECTED" }
+            if !parentDomainAllowed(item) {
+                return source == "story_node" ? "STORY_NODE_PARENT_ABSENT" : "THEME_TOPIC_ID_MISMATCH"
+            }
         }
         return nil
+    }
+
+    /// Enforces strict ID domain separation between `sourceID`, `topicID`, and `chapterID`/`nodeID`.
+    /// `story_node` must carry explicit positive `topicID` and `chapterID`; it never guesses `topicID = sourceID`.
+    private static func parentDomainAllowed(_ item: MapPublicWireItem) -> Bool {
+        switch item.source {
+        case "theme":
+            if let topicID = item.topicID, topicID != item.sourceID { return false }
+            if let nodeID = item.nodeID, nodeID <= 0 { return false }
+            return true
+        case "story_node":
+            guard let topicID = item.topicID, topicID > 0,
+                  let chapterID = item.chapterID, chapterID > 0 else { return false }
+            if let nodeID = item.nodeID, nodeID != item.sourceID { return false }
+            return true
+        default:
+            return true
+        }
     }
 
     /// Wire visual state. There is no fallback to a generic available marker.
@@ -219,6 +238,10 @@ public enum MapPublicLayerAdapter {
         case "notStarted": return .locked
         case "running": return .active
         case "completed": return .completed
+        case "recruiting": return .active
+        case "selfPlay": return .interactive
+        case "sessions": return .interactive
+        case "unlocked": return .active
         default: return nil
         }
     }
@@ -228,6 +251,8 @@ public enum MapPublicLayerAdapter {
         case "roam_poi": return state == "unfound" || state == "found" || state == "pending_redeem"
         case "store": return state == "open" || state == "closed"
         case "activity": return state == "notStarted" || state == "running" || state == "completed"
+        case "theme": return state == "recruiting" || state == "selfPlay" || state == "sessions" || state == "open" || state == "closed"
+        case "story_node": return state == "open" || state == "unlocked" || state == "completed"
         default: return false
         }
     }
@@ -235,7 +260,8 @@ public enum MapPublicLayerAdapter {
     private static func versionAllowed(_ version: String, source: String) -> Bool {
         switch source {
         case "roam_poi": return version.range(of: "^[1-9][0-9]*$", options: .regularExpression) != nil
-        case "store", "activity": return version.range(of: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$", options: .regularExpression) != nil
+        case "store", "activity", "theme", "story_node":
+            return version.range(of: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$", options: .regularExpression) != nil
         default: return false
         }
     }
@@ -253,13 +279,41 @@ public enum MapPublicLayerAdapter {
             guard let object = raw as? [String: Any], (object["sourceType"] as? String) == source,
                   let sourceID = positiveID(object["sourceId"]), let name = object["name"] as? String,
                   let latitude = decimalText(object["latitude"]), let longitude = decimalText(object["longitude"]) else { return nil }
+            let rawTopicID: Int?
+            if object.keys.contains("topicId") && !(object["topicId"] is NSNull) {
+                guard let parsedTopicID = positiveID(object["topicId"]) else { return nil }
+                rawTopicID = parsedTopicID
+            } else {
+                rawTopicID = nil
+            }
+            let rawChapterID: Int?
+            if object.keys.contains("chapterId") && !(object["chapterId"] is NSNull) {
+                guard let parsedChapterID = positiveID(object["chapterId"]) else { return nil }
+                rawChapterID = parsedChapterID
+            } else {
+                rawChapterID = nil
+            }
+            let rawNodeID: Int?
+            if object.keys.contains("nodeId") && !(object["nodeId"] is NSNull) {
+                guard let parsedNodeID = positiveID(object["nodeId"]) else { return nil }
+                rawNodeID = parsedNodeID
+            } else {
+                rawNodeID = nil
+            }
             parsed.append(MapPublicWireItem(source: source, sourceID: sourceID, name: name, latitude: latitude, longitude: longitude,
                                              visibilityVersion: object.keys.contains("visibilityVersion") ? versionText(object["visibilityVersion"]) : nil,
                                              visualState: object["visualState"] as? String,
                                              actions: object.keys.contains("actions") ? stringList(object["actions"]) : nil,
                                              found: object.keys.contains("found") ? bool(object["found"]) : nil,
                                              pendingRedeem: object.keys.contains("pendingRedeem") ? bool(object["pendingRedeem"]) : nil,
-                                             businessStatus: object.keys.contains("businessStatus") ? integer(object["businessStatus"]) : nil))
+                                             businessStatus: object.keys.contains("businessStatus") ? integer(object["businessStatus"]) : nil,
+                                             topicID: rawTopicID,
+                                             chapterID: rawChapterID,
+                                             nodeID: rawNodeID,
+                                             topicName: trimmedText(object["topicName"]),
+                                             chapterTitle: trimmedText(object["chapterTitle"] ?? object["chapterName"]),
+                                             address: trimmedText(object["address"]),
+                                             summary: trimmedText(object["summary"] ?? object["description"] ?? object["hookText"])))
         }
         return parsed
     }
@@ -402,6 +456,12 @@ public enum MapPublicLayerAdapter {
         }
         return names
     }
+
+    private static func trimmedText(_ value: Any?) -> String? {
+        guard let text = value as? String else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
 }
 
 public enum MapPublicAdapterFailure: Error, Equatable {
@@ -413,7 +473,7 @@ public enum MapPublicLayerStatus: String, Equatable {
 }
 
 public enum MapPublicMissingField: String, Hashable, Equatable {
-    case clientType, visibilityVersion, visualState, actions, coordinate, title
+    case clientType, visibilityVersion, visualState, actions, coordinate, title, parentTopic
 }
 
 public struct MapPublicWireItem: Equatable {
@@ -422,7 +482,7 @@ public struct MapPublicWireItem: Equatable {
     public let name: String
     public let latitude: String
     public let longitude: String
-    /// Server string. `roam_poi` is `visibility_version`; store and activity are `update_time`. Nil is not 1.
+    /// Server string. `roam_poi` is `visibility_version`; store/activity/theme/story_node are `update_time`. Nil is not 1.
     public let visibilityVersion: String?
     /// Nil when the key is absent. Never filled with a local state.
     public let visualState: String?
@@ -431,6 +491,54 @@ public struct MapPublicWireItem: Equatable {
     public let found: Bool?
     public let pendingRedeem: Bool?
     public let businessStatus: Int?
+    /// Separate ID domains: `topicID` (`cms_topic.id`), `chapterID` (`cms_topic_chapter.id`), `nodeID` (`cms_topic_node.id`).
+    public let topicID: Int?
+    public let chapterID: Int?
+    public let nodeID: Int?
+    public let topicName: String?
+    public let chapterTitle: String?
+    public let address: String?
+    public let summary: String?
+
+    public init(
+        source: String,
+        sourceID: Int,
+        name: String,
+        latitude: String,
+        longitude: String,
+        visibilityVersion: String?,
+        visualState: String?,
+        actions: [String]?,
+        found: Bool?,
+        pendingRedeem: Bool?,
+        businessStatus: Int?,
+        topicID: Int? = nil,
+        chapterID: Int? = nil,
+        nodeID: Int? = nil,
+        topicName: String? = nil,
+        chapterTitle: String? = nil,
+        address: String? = nil,
+        summary: String? = nil
+    ) {
+        self.source = source
+        self.sourceID = sourceID
+        self.name = name
+        self.latitude = latitude
+        self.longitude = longitude
+        self.visibilityVersion = visibilityVersion
+        self.visualState = visualState
+        self.actions = actions
+        self.found = found
+        self.pendingRedeem = pendingRedeem
+        self.businessStatus = businessStatus
+        self.topicID = topicID
+        self.chapterID = chapterID
+        self.nodeID = nodeID
+        self.topicName = topicName
+        self.chapterTitle = chapterTitle
+        self.address = address
+        self.summary = summary
+    }
 }
 
 public struct MapPublicLayerPage: Equatable {

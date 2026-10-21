@@ -15,7 +15,8 @@ final class MapPublicLayerAppIntegrationTests: XCTestCase {
             verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.map-public-layers",
             realm: "fixture",
-            reads: grants
+            reads: grants,
+            contentDetails: .activityAndTopic
         )
     }
 
@@ -214,6 +215,123 @@ final class MapPublicLayerAppIntegrationTests: XCTestCase {
         XCTAssertEqual(wire.deviceLocationCalls, 0)
     }
 
+    func testThemeAndStoryNodeFullFlowDetailReadbackAndReturnToMap() async throws {
+        let wire = PublicLayerWire()
+        let approvals = PublicLayerApprovals()
+        let session = try makeSession(wire, approvals: approvals)
+        await signIn(session)
+        wire.requests = []
+
+        let coordinator = try XCTUnwrap(session.searchMapReader.publicLayerCoordinator)
+        let topicReader = try XCTUnwrap(session.searchMapReader.topicReader)
+
+        wire.publicLayerResponse = [
+            "code": 200,
+            "data": [
+                "datum": "GCJ-02",
+                "nextCursor": "cursor-next",
+                "layers": [
+                    ["sourceType": "roam_poi", "status": "OK", "items": []],
+                    ["sourceType": "store", "status": "OK", "items": []],
+                    ["sourceType": "activity", "status": "OK", "items": []],
+                    [
+                        "sourceType": "theme",
+                        "status": "OK",
+                        "capabilities": ["read": true],
+                        "items": [
+                            [
+                                "sourceType": "theme",
+                                "sourceId": 108,
+                                "topicId": 108,
+                                "chapterId": 501,
+                                "nodeId": 7001,
+                                "name": "弄堂回声",
+                                "topicName": "弄堂回声",
+                                "chapterTitle": "第一章：石库门",
+                                "address": "太仓路 181 号",
+                                "summary": "探索老弄堂的声音记忆",
+                                "latitude": "31.222",
+                                "longitude": "121.475",
+                                "visibilityVersion": "2026-04-06T09:05:00",
+                                "visualState": "selfPlay",
+                                "actions": []
+                            ]
+                        ]
+                    ],
+                    [
+                        "sourceType": "story_node",
+                        "status": "OK",
+                        "capabilities": ["read": true],
+                        "items": [
+                            [
+                                "sourceType": "story_node",
+                                "sourceId": 7001,
+                                "topicId": 108,
+                                "chapterId": 501,
+                                "nodeId": 7001,
+                                "name": "旧留声机亭",
+                                "topicName": "弄堂回声",
+                                "chapterTitle": "第一章：石库门",
+                                "address": "太仓路 181 号后院",
+                                "summary": "聆听黑胶唱片中的线索",
+                                "latitude": "31.2225",
+                                "longitude": "121.4755",
+                                "visibilityVersion": "2026-04-06T09:05:00",
+                                "visualState": "unlocked",
+                                "actions": []
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        coordinator.loadManualArea(areaA)
+        while coordinator.isLoading { await Task.yield() }
+
+        XCTAssertEqual(
+            coordinator.visibleReadyItems.map { "\($0.key.type.rawValue):\($0.key.id)" },
+            ["themeNode:108", "storyNode:7001"]
+        )
+
+        // 1. Open theme detail, verify route to TopicDetailView(id: 108), and return to map.
+        let themeKey = try MapSourceKey(type: .themeNode, id: "108")
+        let themeRoute = try XCTUnwrap(coordinator.openDetail(for: themeKey))
+        guard case .theme(let themeDest) = themeRoute.target else {
+            return XCTFail("Expected .theme route target")
+        }
+        XCTAssertEqual(themeDest.topicID, 108)
+        XCTAssertEqual(themeDest.anchorNodeID, 7001)
+        coordinator.returnFromDetail()
+        XCTAssertNil(coordinator.activeDetailRoute)
+        XCTAssertEqual(coordinator.selectedItemKey, themeKey)
+
+        // 2. Open story_node detail, verify TopicReading.topicDetail(id: 108) resolves chapter 501 & node 7001.
+        let storyKey = try MapSourceKey(type: .storyNode, id: "7001")
+        let storyRoute = try XCTUnwrap(coordinator.openDetail(for: storyKey))
+        guard case .storyNode(let storyDest) = storyRoute.target else {
+            return XCTFail("Expected .storyNode route target")
+        }
+        XCTAssertEqual(storyDest.nodeID, 7001)
+        XCTAssertEqual(storyDest.topicID, 108)
+        XCTAssertEqual(storyDest.chapterID, 501)
+
+        let loadedTopic = try await topicReader.topicDetail(id: storyDest.topicID)
+        XCTAssertEqual(loadedTopic.id, 108)
+        let chapter = try XCTUnwrap(loadedTopic.chapters.first(where: { $0.id == storyDest.chapterID }))
+        let node = try XCTUnwrap(chapter.nodes.first(where: { $0.id == storyDest.nodeID }))
+        XCTAssertEqual(node.name, "旧留声机亭")
+
+        // Return from detail preserves active layer filter, cursor, viewport, and selected item.
+        coordinator.returnFromDetail()
+        XCTAssertNil(coordinator.activeDetailRoute)
+        XCTAssertEqual(coordinator.selectedItemKey, storyKey)
+        XCTAssertEqual(coordinator.selectedLayers, MapPublicLayerAdapter.knownSources)
+        XCTAssertEqual(coordinator.session?.cursor, "cursor-next")
+        XCTAssertEqual(coordinator.viewportSource?.manualArea, areaA)
+        XCTAssertEqual(wire.deviceLocationCalls, 0)
+    }
+
     @MainActor
     private final class PublicLayerApprovals {
         var manualEnabled = true
@@ -275,6 +393,11 @@ final class MapPublicLayerAppIntegrationTests: XCTestCase {
                 return (Data("{\"code\":200}".utf8), 200)
             } else if path.hasSuffix("/api/map/public-layers") {
                 return (try JSONSerialization.data(withJSONObject: publicLayerResponse), 200)
+            } else if path.hasSuffix("/api/topic/info-to-user") {
+                let topicJSON = """
+                {"code":200,"data":{"id":108,"name":"弄堂回声","chaptersList":[{"id":501,"title":"第一章：石库门","nodes":[{"id":7001,"name":"旧留声机亭","address":"太仓路 181 号后院","description":"聆听黑胶唱片中的线索"}]}]}}
+                """
+                return (Data(topicJSON.utf8), 200)
             }
             return (Data("{\"code\":200}".utf8), 200)
         }
