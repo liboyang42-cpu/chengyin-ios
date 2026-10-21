@@ -165,6 +165,9 @@ public struct WorkshopModUpgradeSheetView: View {
             try onConfirmDraft(request)
             errorNotice = nil
             confirmedRequestId = request.requestId
+        } catch WorkshopUpgradeDraftIssue.unavailable {
+            confirmedRequestId = nil
+            errorNotice = "本机保存未接通，未保存升级草稿。"
         } catch {
             confirmedRequestId = nil
             errorNotice = "升级草稿未能保存，现有版本与场次保持不变。"
