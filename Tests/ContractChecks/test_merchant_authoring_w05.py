@@ -84,6 +84,7 @@ class MerchantAuthoringW05(unittest.TestCase):
         self.assertNotIn(".published", cancel)
         self.assertIn('for key in stripped { clean.removeValue(forKey: key) }', service)
         self.assertIn('"approved"', service)
+        self.assertIn("func environment(", service)
         self.assertIn("EnvironmentBranchSelector.decide", service)
         self.assertIn("snapshot: nil", service)
         self.assertIn("NEW_ROUTE", service)

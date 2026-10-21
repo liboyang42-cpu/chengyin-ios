@@ -301,6 +301,21 @@ public enum MerchantAuthoringEnvironment {
         } catch { return .refused(.malformed) }
     }
 
+    /// Server environment row. No local weather is invented; an unapproved route is not called.
+    public func environment(releaseID: String, owner: MerchantAuthoringOwner) async -> MerchantAuthoringOutcome {
+        guard authorized(owner), Int(releaseID) != nil else { return .refused(.notSent) }
+        guard policy.environmentConfigured else { return .refused(.policyUnset) }
+        guard allows(MerchantAuthoringRoute.environment.rawValue) else { return .refused(.endpointNotApproved(MerchantAuthoringRoute.environment.rawValue)) }
+        do {
+            let (data, status) = try await send("GET", path: MerchantAuthoringRoute.environment.rawValue, query: ["releaseId": releaseID], fields: nil, owner: owner)
+            guard (200..<300).contains(status), session()?.owner == owner else { return .stale }
+            let row = try Self.object(data)
+            let provider = row["provider"]?.text ?? ""
+            guard !provider.isEmpty else { return .refused(.policyUnset) }
+            return .job(outcome: row["action"]?.text ?? "NONE", draftID: releaseID, errorCode: row["branch"]?.text)
+        } catch { return .refused(.malformed) }
+    }
+
     public func noteReadback(requestID: UUID, owner: MerchantAuthoringOwner) -> Bool {
         guard session()?.owner == owner else { return false }
         return (try? journal.acknowledge(ownerKey: owner.key, requestID: requestID.uuidString)) != nil

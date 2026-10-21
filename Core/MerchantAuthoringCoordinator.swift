@@ -262,8 +262,15 @@ import Observation
         let snap = mark()
         let outcome = await service.readPublic(merchantID: owner.merchantID, themeID: themeID.nilIfEmpty, releaseID: releaseID, runID: nil, binding: binding, owner: owner)
         guard live(snap) else { return }
-        if case .release(let read) = outcome { publicRead = read; phase = .preview; refusal = nil }
-        else { publicRead = nil; if case .refused(let reason) = outcome { refusal = reason } }
+        if case .release(let read) = outcome {
+            publicRead = read
+            phase = .preview
+            refusal = nil
+            let environment = await service.environment(releaseID: read.releaseID, owner: owner)
+            guard live(snap) else { return }
+            if case .job(_, _, let branch) = environment { statusNote = branch }
+            else if case .refused(let reason) = environment { refusal = reason }
+        } else { publicRead = nil; if case .refused(let reason) = outcome { refusal = reason } }
     }
 
     public func openMainLine() async {
