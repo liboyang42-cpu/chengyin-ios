@@ -549,7 +549,7 @@ struct MerchantContentCodeView: View {
                     }
                     Text("merchant.content.reviewWarning").font(.footnote)
                     Button("merchant.content.confirm") { Task { await model.confirm(review); dismiss() } }
-                        .buttonStyle(.borderedProminent).disabled(model.coordinator.busy || !model.coordinator.service.permitsWrites)
+                        .buttonStyle(.borderedProminent).disabled(model.coordinator.busy || !model.coordinator.service.permits(review.command))
                         .accessibilityIdentifier("merchant.content.confirm")
                     Button("action.cancel") { model.cancel(); dismiss() }.accessibilityIdentifier("merchant.content.review.cancel")
                 }.padding()

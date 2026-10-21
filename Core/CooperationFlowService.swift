@@ -69,11 +69,14 @@ public struct CoopFlowService {
     /// Not enabled by any shipped UI or configuration. Protected effects have no production execution route.
     private let dormantWritesEnabled: Bool
     private let protectedDispatch: CoopFlowProtectedDispatch?
+    /// Real-transport approval. Nil stays on the dormant path. Offline transports ignore it.
+    private let executionApproval: () -> CoopFlowExecutionApproval?
     var dispatchScope: String { configuration.baseURL.absoluteString }
     public init(configuration: APIConfiguration, transport: any HTTPTransport, dormantWritesEnabled: Bool = false,
-                protectedDispatch: CoopFlowProtectedDispatch? = nil) {
+                protectedDispatch: CoopFlowProtectedDispatch? = nil,
+                executionApproval: @escaping () -> CoopFlowExecutionApproval? = { nil }) {
         self.configuration = configuration; self.transport = transport; self.dormantWritesEnabled = dormantWritesEnabled
-        self.protectedDispatch = protectedDispatch
+        self.protectedDispatch = protectedDispatch; self.executionApproval = executionApproval
     }
     public func read(_ resource: CoopFlowRead, session: CoopFlowSession) async throws -> CoopFlowJSON {
         let body = try resource.body()
@@ -120,6 +123,10 @@ public struct CoopFlowService {
         return CoopFlowSettlement(source: source, record: matches[0])
     }
     func permitsDispatch(_ operation: CoopFlowMutation) -> Bool {
+        if !(transport is any CoopFlowOfflineHTTPTransport),
+           executionApproval()?.permits(operation, endpoint: configuration.baseURL) == true {
+            return true
+        }
         guard dormantWritesEnabled else { return false }
         guard operation.requiresSeparateEnablement else { return true }
         return transport is any CoopFlowOfflineHTTPTransport &&

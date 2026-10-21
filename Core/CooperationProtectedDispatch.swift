@@ -32,3 +32,23 @@ public struct CoopFlowProtectedDispatch {
         return operations.contains(kind)
     }
 }
+
+/// Host approval for a real HTTP transport. Empty or a different endpoint stays closed.
+/// This is not the offline harness grant.
+public struct CoopFlowExecutionApproval: Equatable {
+    public let operations: Set<CoopFlowProtectedOperation>
+    public let endpoint: URL
+    public init(operations: Set<CoopFlowProtectedOperation> = [], endpoint: URL) {
+        self.operations = operations; self.endpoint = endpoint
+    }
+    public func permits(_ operation: CoopFlowMutation, endpoint: URL) -> Bool {
+        guard self.endpoint == endpoint, let kind = CoopFlowProtectedOperation(operation) else { return false }
+        return operations.contains(kind)
+    }
+}
+
+/// Filled after `AppSession` init. The service reads it at the write.
+public final class CoopFlowExecutionSlot {
+    public var current: () -> CoopFlowExecutionApproval? = { nil }
+    public init() {}
+}

@@ -1524,6 +1524,11 @@ final class AppSession: ObservableObject {
             }, journal: composition.storage.operationJournal())
     }
     private let activityEditingApproval: (RuntimeDependencyContext) -> ActivityEditingGrants
+    /// Nil approval keeps coop writes on the dormant path. The slot is read at the POST.
+    private let coopFlowExecutionApproval: (RuntimeDependencyContext) -> CoopFlowExecutionApproval?
+    private let coopFlowExecutionSlot: CoopFlowExecutionSlot
+    /// Closed write approval: chapter invite and accept/reject do not POST.
+    private let merchantContentWriteApproval: (RuntimeDependencyContext) -> MerchantContentWriteApproval
     func activityEditingController(id: Int) -> ActivityEditingController? {
         guard let captured = publishingSession, let context = currentRuntimeDependencyContext,
               let configuration = regionalConfiguration?.apiConfiguration else { return nil }
@@ -2715,6 +2720,10 @@ final class AppSession: ObservableObject {
         onUnauthorized: { [weak self] captured in
             guard let self, self.currentMerchantContentSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+        },
+        writeApproval: { [weak self] in
+            guard let self, let context = self.currentRuntimeDependencyContext else { return .init() }
+            return self.merchantContentWriteApproval(context)
         })
     private var retainedNearbyMerchants: (context: RuntimeDependencyContext, revision: UInt64, coordinator: NearbyMerchantCoordinator)?
     var nearbyMerchantCoordinator: NearbyMerchantCoordinator? {
@@ -3451,11 +3460,17 @@ final class AppSession: ObservableObject {
          registrationApproval: RegistrationProductionApproval? = nil,
          activityCoverApproval: @escaping (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil },
          activityEditingApproval: @escaping (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() },
+         coopFlowExecutionApproval: @escaping (RuntimeDependencyContext) -> CoopFlowExecutionApproval? = { _ in nil },
+         merchantContentWriteApproval: @escaping (RuntimeDependencyContext) -> MerchantContentWriteApproval = { _ in .init() },
          publisherIdentityRegistrationApproval: @escaping (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() },
          registrationStorefront: @escaping () -> String? = { nil }) {
         let composition = composition ?? RegionalLaunchConfiguration.composition
         self.activityCoverApproval = activityCoverApproval
         self.activityEditingApproval = activityEditingApproval
+        self.coopFlowExecutionApproval = coopFlowExecutionApproval
+        self.merchantContentWriteApproval = merchantContentWriteApproval
+        let coopSlot = CoopFlowExecutionSlot()
+        self.coopFlowExecutionSlot = coopSlot
         self.publisherIdentityRegistrationApproval = publisherIdentityRegistrationApproval
         self.registrationApproval = registrationApproval; self.registrationStorefront = registrationStorefront
         self.roamLiveDependencies = roamLiveDependencies ?? .dormant
@@ -3497,7 +3512,8 @@ final class AppSession: ObservableObject {
             merchantService=MerchantService(configuration:configuration,transport:transport)
             merchantEngagementService=MerchantEngagementService(configuration:configuration,readTransport:transport)
             merchantBusinessService=MerchantBusinessService(configuration:configuration,readTransport:transport)
-            cooperationFlowService=CoopFlowService(configuration:configuration,transport:transport)
+            cooperationFlowService=CoopFlowService(configuration:configuration,transport:transport,
+                executionApproval: { coopSlot.current() })
             merchantOperationsService=MerchantOperationsService(configuration:configuration,transport:transport)
             merchantOnboardingService=MerchantOnboardingService(configuration:configuration,transport:transport)
             clubService=ClubService(configuration:configuration,transport:transport)
@@ -3511,6 +3527,10 @@ final class AppSession: ObservableObject {
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
         } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
+        coopFlowExecutionSlot.current = { [weak self] in
+            guard let self, let context = self.currentRuntimeDependencyContext else { return nil }
+            return self.coopFlowExecutionApproval(context)
+        }
         compositionTransport.projectEditConfigurationRevision = { [weak self] in
             guard let self, !self.projectConfigurationChanging else { return nil }; return self.projectConfigurationRevision
         }

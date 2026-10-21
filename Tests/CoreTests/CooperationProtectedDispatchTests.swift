@@ -101,6 +101,30 @@ private final class UnmarkedProtectedWire: HTTPTransport {
         for op in try operations() { await assertFailure(.disabled) { _ = try await self.service(unmarked).perform(op, session: captured) } }
         XCTAssertEqual(unmarked.calls, 0); XCTAssertTrue(wire.requests.isEmpty)
     }
+    func testRealTransportApprovalPostsOnlyTheGrantedOperation() async throws {
+        let wire = UnmarkedProtectedWire(), captured = try session()
+        let op = CoopFlowMutation.withdrawOffer(id: 4, reason: "Synthetic withdraw")
+        let closed = CoopFlowService(configuration: try APIConfiguration(baseURL: endpoint), transport: wire)
+        XCTAssertFalse(closed.permitsDispatch(op))
+        let mismatch = CoopFlowService(configuration: try APIConfiguration(baseURL: endpoint), transport: wire, executionApproval: {
+            CoopFlowExecutionApproval(operations: [.withdrawOffer], endpoint: URL(string: "https://example.com/other")!)
+        })
+        XCTAssertFalse(mismatch.permitsDispatch(op))
+        let offline = ProtectedWire()
+        let ignored = CoopFlowService(configuration: try APIConfiguration(baseURL: endpoint), transport: offline, executionApproval: {
+            CoopFlowExecutionApproval(operations: [.withdrawOffer], endpoint: endpoint)
+        })
+        XCTAssertFalse(ignored.permitsDispatch(op), "An offline transport does not become the approved host")
+        let open = CoopFlowService(configuration: try APIConfiguration(baseURL: endpoint), transport: wire, executionApproval: {
+            CoopFlowExecutionApproval(operations: [.withdrawOffer], endpoint: endpoint)
+        })
+        XCTAssertTrue(open.permitsDispatch(op))
+        XCTAssertFalse(open.permitsDispatch(.contact(inviteID: 8)))
+        do { _ = try await open.perform(op, session: captured) } catch {}
+        XCTAssertEqual(wire.calls, 1, "The granted withdraw reaches the real transport")
+        do { _ = try await open.perform(.contact(inviteID: 8), session: captured) } catch {}
+        XCTAssertEqual(wire.calls, 1, "A different operation stays closed")
+    }
     func testEveryOperationServerUnauthorizedAndMalformedErrors() async throws {
         for op in try operations() {
             let wire = ProtectedWire(), config = try service(wire), captured = try session()

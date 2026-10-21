@@ -86,6 +86,14 @@ extension MerchantContentServing {
     /// No topic-publisher read on this reader. Fail closed: a nil proof cannot invite.
     public func chapterReplacementPublisherProof(topicID: Int, actorAccountID: Int, access: MerchantAccess?) async -> ChapterReplacementInvitationPublisherProof? { nil }
 }
+/// Real-transport gate for chapter invite and accept/reject. Both default closed.
+public struct MerchantContentWriteApproval: Equatable {
+    public let chapterInvite: Bool
+    public let chapterRespond: Bool
+    public init(chapterInvite: Bool = false, chapterRespond: Bool = false) {
+        self.chapterInvite = chapterInvite; self.chapterRespond = chapterRespond
+    }
+}
 @MainActor public final class MerchantContentService: MerchantContentServing {
     /// This is a test-injection switch, never a production capability approval.
     public enum Execution: Equatable { case disabled, injectedOfflineHarness }
@@ -95,6 +103,7 @@ extension MerchantContentServing {
     private let onUnauthorized: (MerchantContentSession) -> Void
     private let journal: (any MerchantContentPendingStorage)?
     private let execution: Execution
+    private let writeApproval: () -> MerchantContentWriteApproval
     private let requiredMerchantID: Int?
     private var previous: MerchantContentSession?
     private var stamp = UUID()
@@ -102,9 +111,21 @@ extension MerchantContentServing {
     public var isConfigured: Bool { configuration != nil }
     public var isAuthenticated: Bool { currentSession() != nil }
     public var permitsWrites: Bool { execution == .injectedOfflineHarness && transport is any MerchantContentOfflineTransport && journal != nil }
-    public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, requiredMerchantID: Int? = nil, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }) {
+    /// Chapter invite / accept / reject on the real transport when this approval says so.
+    /// Every other command stays on `permitsWrites`. The offline harness is not this path.
+    public func permits(_ command: MerchantContentCommand) -> Bool {
+        if execution == .injectedOfflineHarness { return permitsWrites }
+        guard journal != nil, !(transport is any MerchantContentOfflineTransport) else { return false }
+        switch command {
+        case .invite: return writeApproval().chapterInvite
+        case .respondChapterInvitation: return writeApproval().chapterRespond
+        default: return false
+        }
+    }
+    public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, requiredMerchantID: Int? = nil, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }, writeApproval: @escaping () -> MerchantContentWriteApproval = { .init() }) {
         self.configuration = configuration; self.transport = transport; self.currentSession = currentSession
-        self.journal = journal; self.execution = execution; self.requiredMerchantID = requiredMerchantID; self.onUnauthorized = onUnauthorized; previous = currentSession()
+        self.journal = journal; self.execution = execution; self.writeApproval = writeApproval
+        self.requiredMerchantID = requiredMerchantID; self.onUnauthorized = onUnauthorized; previous = currentSession()
     }
     private enum Body { case none, json([String: MerchantContentValue]), form([String: String]) }
     private struct Envelope: Decodable { let code: Int; let msg: String?; let data: MerchantContentValue? }
@@ -307,7 +328,7 @@ extension MerchantContentServing {
         return try journal?.records().filter { $0.storageScope == session.storageScope && $0.accountID == session.accountID } ?? []
     }
     public func perform(_ command: MerchantContentCommand, baseline: MerchantContentSnapshot) async throws -> MerchantContentReceipt {
-        guard permitsWrites, let journal else { throw MerchantContentFailure.disabled }
+        guard permits(command), let journal else { throw MerchantContentFailure.disabled }
         guard let session = currentSession() else { throw APIError.unauthorized }
         let latest = try await load(baseline.query); try ensure(session)
         guard latest == baseline else { throw MerchantContentFailure.conflict }
@@ -409,7 +430,7 @@ extension MerchantContentService {
     /// caller-supplied publisher proof to verify this plan's topic and actor. This
     /// method does not fetch or invent that proof. It re-loads the `.invitable`
     /// baseline, then performs the invite exactly once through the existing
-    /// journal/`perform` path. `permitsWrites` is unchanged and nothing here retries.
+    /// journal/`perform` path. `permits` is the chapter-invite gate. Nothing here retries.
     public func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, publisherProof: ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects? {
         return ChapterReplacementInvitationEffects(
             loadVacancyRows: { [weak self] topic in
@@ -433,7 +454,10 @@ extension MerchantContentService {
                 }
                 // Closed execution never reaches the invite POST. This is a definitive
                 // local refusal, not an unknown outcome, so the intent lock is released.
-                guard self.permitsWrites else { throw ChapterReplacementInvitationFailure.denied }
+                guard self.permits(.invite(chapterID: plan.candidate.chapterID, merchantMemberID: plan.candidate.merchantMemberID,
+                                           replacementOfOfferID: plan.candidate.replacementOfOfferID, scope: plan.scope.wireValue, message: plan.message)) else {
+                    throw ChapterReplacementInvitationFailure.denied
+                }
                 let baseline = try await self.load(.invitable(topicID: plan.topicID))
                 do {
                     _ = try await self.perform(.invite(chapterID: plan.candidate.chapterID, merchantMemberID: plan.candidate.merchantMemberID,
