@@ -10,6 +10,7 @@ import SwiftUI
         /// Captured once at open; closing only clears the selection and never rewrites
         /// the row, so a return lets the list re-read instead of mutating local state.
         let decision: MyProjectStateNavigationDecision
+        let merchantScopeAccess: MyProjectMerchantScopeAccess
         static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
         func hash(into hasher: inout Hasher) { hasher.combine(id) }
     }
@@ -19,7 +20,7 @@ import SwiftUI
         guard reader.scope == scope, reader.isAuthenticated else { return }
         let decision = MyProjectStateNavigation.decision(project: project, readerScope: scope,
             canEditActivity: canEditActivity, merchantScopeAccess: merchantScopeAccess)
-        selection = .init(project: project, scope: scope, decision: decision)
+        selection = .init(project: project, scope: scope, decision: decision, merchantScopeAccess: merchantScopeAccess)
     }
     func close(_ original: Selection) {
         guard selection?.id == original.id, selection?.scope == original.scope else { return }
@@ -44,14 +45,16 @@ import SwiftUI
     var makeActivityEditor: ((Int) -> ActivityEditingController?)? = nil
     var makeActivityCover: (() -> ActivityCoverService?)? = nil
     var publishingEpoch: UUID? = nil
+    var activityGrants: ActivityEditingGrants = .init()
     @StateObject private var navigation = ProjectOwnedContentNavigation()
     @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
     @State private var listRefreshGeneration: UInt64 = 0
     @State private var listRefresh: MyProjectListRefreshRequest?
     var body: some View {
         let presented = navigation.selection
-        CreatorContentProjectsView(reader: reader, onOpenProject: { project, scope in
-            navigation.open(project, scope: scope, reader: reader, merchantScopeAccess: merchantScopeAccess)
+        CreatorContentProjectsView(reader: reader, onOpenProject: { project, scope, serverScope in
+            navigation.open(project, scope: scope, reader: reader,
+                merchantScopeAccess: MyProjectMerchantScopeExclusiveAdapter.access(responseScope: serverScope))
         }, onOpen: { _ in }, listRefresh: listRefresh)
         .navigationDestination(item: navigation.presentation(presented)) { value in
             if reader.scope == value.scope, reader.isAuthenticated {
@@ -62,15 +65,17 @@ import SwiftUI
                         .accessibilityIdentifier("myProject.state.topicEditor")
                 case .activityEditor(let request):
                     MyProjectActivityEditorDestination(request: request, authenticated: reader.isAuthenticated,
-                        currentScope: reader.scope, publishingEpoch: publishingEpoch, makeEditor: makeActivityEditor,
-                        makeCover: makeActivityCover, onAcknowledged: acceptSave, onRevoke: { revoke(request) })
+                        currentScope: reader.scope, publishingEpoch: publishingEpoch,
+                        browseOnly: value.merchantScopeAccess.isBrowseOnly, grants: activityGrants,
+                        makeEditor: makeActivityEditor, makeCover: makeActivityCover,
+                        onAcknowledged: acceptSave, onRevoke: { revoke(request) })
                 case .detail(let destination):
                     detail(destination)
                         .accessibilityIdentifier("myProject.state.detail")
                         .toolbar {
                             // Browse-only merchant scope never gets an edit entry; other
                             // detail rows keep the existing owner-bound edit link.
-                            if !merchantScopeAccess.isBrowseOnly,
+                            if !value.merchantScopeAccess.isBrowseOnly,
                                let target = ProjectEditRemoteTarget(project: value.project, readerScope: value.scope) {
                                 NavigationLink {
                                     ProjectRemoteEditorDestination(target: target, reader: reader, revision: revision,
@@ -131,11 +136,10 @@ import SwiftUI
             publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) },
             makeActivityEditor: { session.activityEditingController(id: $0) },
             makeActivityCover: { session.makeActivityCoverService() },
-            publishingEpoch: session.publishingSession?.epoch)
+            publishingEpoch: session.publishingSession?.epoch,
+            activityGrants: session.activityEditingGrants())
             .environment(\.myProjectTemplateShelf, MyProjectTemplateShelfHost { session.myProjectTemplateShelf() })
             .environment(\.myProjectPublishEntry, session.myProjectPublishEntry())
-            // No approved creator-content MERCHANT identity read exists. Leave this empty so personal projects stay editable.
-            .environment(\.myProjectMerchantScopeAccess, MyProjectMerchantScopeAccess())
             .id(session.creatorContentReader.scope)
     }
 }

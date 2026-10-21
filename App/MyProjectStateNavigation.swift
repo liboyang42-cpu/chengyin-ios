@@ -37,6 +37,16 @@ struct MyProjectListRefreshRequest: Equatable {
     let generation: UInt64
 }
 
+/// `POST api/project/my` has no `data.scope` today. Absent stays editable.
+/// A real `MERCHANT` string is browse-only until a project-manage access object exists.
+/// Role names are not consulted.
+enum MyProjectMerchantScopeExclusiveAdapter {
+    static func access(responseScope: String?) -> MyProjectMerchantScopeAccess {
+        guard let responseScope else { return .init() }
+        return MyProjectMerchantScopeAccess(scope: responseScope, merchantAccess: nil)
+    }
+}
+
 enum MyProjectActivityEditorPolicy {
     /// `ActivityEditingController.confirm` sets this only for `PublishingWriteOutcome.acknowledged`.
     /// Local save, review cancel, rejection, and unknown outcomes are not receipts.

@@ -40,12 +40,13 @@ class MyProjectStateNavigationContracts(unittest.TestCase):
     def test_browser_routes_editor_directly_and_details_otherwise(self):
         host = self.read('App/ProjectOwnedContentViews.swift')
         for token in ['let decision: MyProjectStateNavigationDecision',
-                      'navigation.open(project, scope: scope, reader: reader, merchantScopeAccess: merchantScopeAccess)',
+                      'navigation.open(project, scope: scope, reader: reader,',
+                      'MyProjectMerchantScopeExclusiveAdapter.access(responseScope: serverScope)',
                       'case .ownerTopicEditor(let target):',
                       'case .activityEditor(let request):',
                       'case .detail(let destination):',
                       'ProjectRemoteEditorDestination(target: target, reader: reader, revision: revision,',
-                      'if !merchantScopeAccess.isBrowseOnly,',
+                      'if !value.merchantScopeAccess.isBrowseOnly,',
                       'ProjectEditRemoteTarget(project: value.project, readerScope: value.scope)',
                       'navigation.presentation(presented)', 'navigation.retire(scope: original)',
                       'listRefresh: listRefresh']:
@@ -67,7 +68,8 @@ class MyProjectStateNavigationContracts(unittest.TestCase):
     def test_browse_only_hides_list_and_detail_writes_without_inferring_a_role(self):
         host = self.read('App/ProjectOwnedContentViews.swift')
         tabs = self.read('App/MyProjectTabViews.swift')
-        self.assertIn('.environment(\\.myProjectMerchantScopeAccess, MyProjectMerchantScopeAccess())', host)
+        self.assertIn('MyProjectMerchantScopeExclusiveAdapter.access(responseScope:', host)
+        self.assertNotIn('.environment(\\.myProjectMerchantScopeAccess, MyProjectMerchantScopeAccess())', host)
         self.assertNotIn('merchantAccessRecord', host)
         self.assertNotIn('MERCHANT_OWNER', host)
         self.assertIn('!merchantScopeAccess.isBrowseOnly', tabs)

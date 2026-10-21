@@ -1539,6 +1539,11 @@ final class AppSession: ObservableObject {
             })
         return ActivityEditingController(activityID: id, session: captured, service: service)
     }
+    /// Pass-through of `activityEditingApproval`. Nil read/update stay closed; this does not approve `api/activity/info` or `api/activity/update`.
+    func activityEditingGrants() -> ActivityEditingGrants {
+        guard let context = currentRuntimeDependencyContext else { return .init() }
+        return activityEditingApproval(context)
+    }
     private var retainedPublishingService: (context: RuntimeDependencyContext, service: PublishingService)?
     var publishingService: PublishingService? {
         guard let factory = businessRuntimeFactory, factory.permits(.publishingRead),

@@ -11,6 +11,8 @@ import SwiftUI
     let authenticated: Bool
     let currentScope: UUID
     let publishingEpoch: UUID?
+    let browseOnly: Bool
+    let grants: ActivityEditingGrants
     var makeEditor: ((Int) -> ActivityEditingController?)?
     var makeCover: (() -> ActivityCoverService?)?
     let onAcknowledged: (MyProjectActivityEditorReturnToken) -> Void
@@ -20,6 +22,7 @@ import SwiftUI
     @State private var revoked = false
     @State private var deliveredReceipt = false
     @State private var openedEpoch: UUID?
+    @State private var openedGrants: ActivityEditingGrants?
 
     var body: some View {
         Group {
@@ -44,10 +47,13 @@ import SwiftUI
         .onChange(of: currentScope) { _, _ in revokeIfNeeded() }
         .onChange(of: authenticated) { _, _ in revokeIfNeeded() }
         .onChange(of: publishingEpoch) { _, _ in revokeIfNeeded() }
+        .onChange(of: browseOnly) { _, _ in revokeIfNeeded() }
+        .onChange(of: grants) { _, _ in revokeIfNeeded() }
     }
 
     private var editorIdentity: String { "\(request.activityID):\(openedEpoch?.uuidString ?? "")" }
     private var epochLost: Bool { openedEpoch != nil && openedEpoch != publishingEpoch }
+    private var grantsLost: Bool { openedGrants != nil && openedGrants != grants }
     private var sameAccount: Bool {
         MyProjectActivityEditorPolicy.mayResolveFactory(requestScope: request.readerScope, currentScope: currentScope, authenticated: authenticated)
     }
@@ -56,14 +62,15 @@ import SwiftUI
         guard !resolved, !revoked else { return }
         resolved = true
         openedEpoch = publishingEpoch
-        guard sameAccount, publishingEpoch != nil else { return }
+        openedGrants = grants
+        guard sameAccount, publishingEpoch != nil, !browseOnly else { return }
         controller = makeEditor?(request.activityID)
     }
 
     /// Account change or a new publishing epoch drops the controller that was built for the old session.
     /// The next open calls the factory again, so a persisted draft can return without the old grants.
     private func revokeIfNeeded() {
-        guard !revoked, controller != nil, epochLost || !sameAccount else { return }
+        guard !revoked, controller != nil, epochLost || !sameAccount || browseOnly || grantsLost else { return }
         revoked = true
         controller = nil
         onRevoke()

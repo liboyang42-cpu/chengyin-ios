@@ -40,7 +40,8 @@ private struct CreatorContentIssueView: View {
 /// Host must observe account/market revisions and reset this destination with .id(reader.scope).
 @MainActor struct CreatorContentProjectsView: View {
     let reader: any CreatorContentReading
-    var onOpenProject: ((CreatorContentProject, UUID) -> Void)? = nil
+    /// Third value is `api/project/my` `data.scope` when the loaded page carried it.
+    var onOpenProject: ((CreatorContentProject, UUID, String?) -> Void)? = nil
     let onOpen: (CreatorContentDestination) -> Void
     /// Set only after a server save receipt for this reader scope. Another account's token does not match.
     var listRefresh: MyProjectListRefreshRequest? = nil
@@ -49,9 +50,10 @@ private struct CreatorContentIssueView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.myProjectTemplateShelf) private var templateShelf
-    @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
     private var key: CreatorContentLoadKey { .init(reader, query: query) }
     var body: some View {
+        let serverScope = model.state.visibleValue(scope: key.scope)?.serverScope
+        let loadedAccess = MyProjectMerchantScopeExclusiveAdapter.access(responseScope: serverScope)
         List {
             if reader.isOfflineExample { Text("creatorContent.offlineExample") }
             if !reader.isAuthenticated { issue(.login) }
@@ -71,7 +73,7 @@ private struct CreatorContentIssueView: View {
                     if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
                     let rowScope = key.scope
                     MyProjectCreateActivityRow(type: query.type, rowCount: page.rows.count)
-                    if MyProjectRowOperationsMenu.hasOperations(page.rows, merchantScopeAccess: merchantScopeAccess) {
+                    if MyProjectRowOperationsMenu.hasOperations(page.rows, merchantScopeAccess: loadedAccess) {
                         Text("myProject.longPressHint").font(.caption).foregroundStyle(.secondary)
                     }
                     ForEach(MyProjectListPresentation.sorted(page.rows)) { project in
@@ -79,7 +81,8 @@ private struct CreatorContentIssueView: View {
                             Button {
                                 guard model.state.loadedScope == rowScope, reader.scope == rowScope, reader.isAuthenticated,
                                       model.state.visibleValue(scope: rowScope)?.rows.contains(project) == true else { return }
-                                if let onOpenProject { onOpenProject(project, rowScope) } else { onOpen(destination) }
+                                let openedScope = model.state.visibleValue(scope: rowScope)?.serverScope
+                                if let onOpenProject { onOpenProject(project, rowScope, openedScope) } else { onOpen(destination) }
                             } label: { card(project) }
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .accessibilityIdentifier("creatorContent.project.\(project.id)")
@@ -95,6 +98,7 @@ private struct CreatorContentIssueView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .environment(\.myProjectMerchantScopeAccess, loadedAccess)
         .appNavigationTitle("creatorContent.projects")
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
         .onChange(of: listRefresh) { _, request in

@@ -41,6 +41,13 @@ import XCTest
         }
         XCTAssertEqual(try decision(#"{"id":9,"bizType":"activity","state":"rejected","ownerType":"merchant"}"#), .detail(.activity(9)))
         XCTAssertEqual(try decision(#"{"id":9,"bizType":"activity","state":"running","ownerType":"club"}"#), .detail(.activity(9)))
+        XCTAssertFalse(MyProjectMerchantScopeExclusiveAdapter.access(responseScope: nil).isBrowseOnly)
+        XCTAssertFalse(MyProjectMerchantScopeExclusiveAdapter.access(responseScope: "member").isBrowseOnly)
+        XCTAssertTrue(MyProjectMerchantScopeExclusiveAdapter.access(responseScope: "MERCHANT").isBrowseOnly)
+        let page = try JSONDecoder().decode(CreatorContentProjectPage.self, from: Data(#"{"rows":[],"total":0}"#.utf8))
+        XCTAssertNil(page.serverScope)
+        let scoped = try JSONDecoder().decode(CreatorContentProjectPage.self, from: Data(#"{"rows":[],"total":0,"scope":"MERCHANT"}"#.utf8))
+        XCTAssertEqual(scoped.serverScope, "MERCHANT")
     }
 
     func testSaveReceiptRefreshesOnlyTheOpeningAccount() {
