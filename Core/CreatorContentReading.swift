@@ -38,7 +38,11 @@ public struct CreatorContentReadSession: Equatable {
         snapshot = currentSession()
     }
     public func projects(query: CreatorContentQuery) async throws -> CreatorContentProjectPage {
-        try await read { try await $0.projects(query: query, token: $1) }
+        try await projects(query: query, operationScope: nil)
+    }
+    /// `operationScope` is the page entry, not `data.scope`. Nil stays the personal list.
+    public func projects(query: CreatorContentQuery, operationScope: String?) async throws -> CreatorContentProjectPage {
+        try await read { try await $0.projects(query: query, operationScope: operationScope, token: $1) }
     }
     public func center() async throws -> CreatorContentCenter {
         try await read { try await $0.center(token: $1) }

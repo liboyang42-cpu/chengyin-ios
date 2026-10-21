@@ -17,8 +17,11 @@ struct CreatorContentLoadKey: Hashable {
     let configured: Bool
     let authenticated: Bool
     let query: CreatorContentQuery
-    @MainActor init(_ reader: any CreatorContentReading, query: CreatorContentQuery = .init()) {
+    /// Page entry. Empty is the personal list. A merchant entry reloads instead of reusing those rows.
+    let entryScope: String
+    @MainActor init(_ reader: any CreatorContentReading, query: CreatorContentQuery = .init(), entryScope: String? = nil) {
         scope = reader.scope; configured = reader.isConfigured; authenticated = reader.isAuthenticated; self.query = query
+        self.entryScope = entryScope ?? ""
     }
 }
 private struct CreatorContentIssueView: View {
@@ -40,7 +43,11 @@ private struct CreatorContentIssueView: View {
 /// Host must observe account/market revisions and reset this destination with .id(reader.scope).
 @MainActor struct CreatorContentProjectsView: View {
     let reader: any CreatorContentReading
-    /// Third value is `api/project/my` `data.scope` when the loaded page carried it.
+    /// Nil is the personal entry and does not send `scope`. `MERCHANT` is the merchant entry.
+    var entryScope: String? = nil
+    /// True only after access/me reported `merchant:project:manage` for this entry. Default closed.
+    var canManageProjects: Bool = false
+    /// Third value is the entry scope, never `data.scope`.
     var onOpenProject: ((CreatorContentProject, UUID, String?) -> Void)? = nil
     let onOpen: (CreatorContentDestination) -> Void
     /// Set only after a server save receipt for this reader scope. Another account's token does not match.
@@ -50,10 +57,11 @@ private struct CreatorContentIssueView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.myProjectTemplateShelf) private var templateShelf
-    private var key: CreatorContentLoadKey { .init(reader, query: query) }
+    private var key: CreatorContentLoadKey { .init(reader, query: query, entryScope: entryScope) }
+    private var loadedAccess: MyProjectMerchantScopeAccess {
+        MyProjectMerchantScopeExclusiveAdapter.access(entryScope: entryScope, canManageProjects: canManageProjects)
+    }
     var body: some View {
-        let serverScope = model.state.visibleValue(scope: key.scope)?.serverScope
-        let loadedAccess = MyProjectMerchantScopeExclusiveAdapter.access(responseScope: serverScope)
         List {
             if reader.isOfflineExample { Text("creatorContent.offlineExample") }
             if !reader.isAuthenticated { issue(.login) }
@@ -81,8 +89,7 @@ private struct CreatorContentIssueView: View {
                             Button {
                                 guard model.state.loadedScope == rowScope, reader.scope == rowScope, reader.isAuthenticated,
                                       model.state.visibleValue(scope: rowScope)?.rows.contains(project) == true else { return }
-                                let openedScope = model.state.visibleValue(scope: rowScope)?.serverScope
-                                if let onOpenProject { onOpenProject(project, rowScope, openedScope) } else { onOpen(destination) }
+                                if let onOpenProject { onOpenProject(project, rowScope, entryScope) } else { onOpen(destination) }
                             } label: { card(project) }
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .accessibilityIdentifier("creatorContent.project.\(project.id)")
@@ -135,7 +142,12 @@ private struct CreatorContentIssueView: View {
         guard reader.isAuthenticated, reader.isConfigured else { model.clear(); return }
         let captured = query
         guard captured.type != "template" else { model.clear(); return }
-        await model.load(reader: reader) { try await reader.projects(query: captured) }
+        await model.load(reader: reader) {
+            if let live = reader as? CreatorContentSessionReader {
+                return try await live.projects(query: captured, operationScope: entryScope)
+            }
+            return try await reader.projects(query: captured)
+        }
     }
 }
 

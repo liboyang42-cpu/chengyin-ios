@@ -35,6 +35,15 @@ final class CreatorContentTests: XCTestCase {
             XCTAssertTrue(body.contains("name=\"\(key)\"\r\n\r\n\(value)\r\n"))
         }
         XCTAssertFalse(body.contains("scope")); XCTAssertFalse(body.contains("memberId"))
+        let merchant = CreatorContentTransport(CreatorContentSyntheticFixtures.projectsJSON)
+        _ = try await service(merchant).projects(operationScope: " merchant ", token: "synthetic-token")
+        let merchantBody = String(data: await merchant.requests.first?.httpBody ?? Data(), encoding: .utf8) ?? ""
+        XCTAssertTrue(merchantBody.contains("name=\"scope\"\r\n\r\nMERCHANT\r\n"))
+        let rejected = CreatorContentTransport("{}")
+        do { _ = try await service(rejected).projects(operationScope: "CLUB", token: "synthetic-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+        let rejectedCount = await rejected.requests.count
+        XCTAssertEqual(rejectedCount, 0)
     }
     func testCenterExactContract() async throws {
         let transport = CreatorContentTransport(CreatorContentSyntheticFixtures.centerJSON)

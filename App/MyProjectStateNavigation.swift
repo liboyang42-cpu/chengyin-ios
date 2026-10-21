@@ -37,13 +37,12 @@ struct MyProjectListRefreshRequest: Equatable {
     let generation: UInt64
 }
 
-/// `POST api/project/my` has no `data.scope` today. Absent stays editable.
-/// A real `MERCHANT` string is browse-only until a project-manage access object exists.
-/// Role names are not consulted.
+/// `POST api/project/my` does not return `data.scope`. The entry that opened the list is the scope.
+/// Merchant entry without `access/me` `merchant:project:manage` is browse-only. Role names are not read.
 enum MyProjectMerchantScopeExclusiveAdapter {
-    static func access(responseScope: String?) -> MyProjectMerchantScopeAccess {
-        guard let responseScope else { return .init() }
-        return MyProjectMerchantScopeAccess(scope: responseScope, merchantAccess: nil)
+    static func access(entryScope: String?, canManageProjects: Bool) -> MyProjectMerchantScopeAccess {
+        guard (try? CreatorContentService.merchantWireScope(entryScope)) == "MERCHANT" else { return .init() }
+        return .init(isMerchantScope: true, canManageProjects: canManageProjects)
     }
 }
 

@@ -67,7 +67,8 @@ public enum CreatorContentDestination: Equatable { case topic(Int), activity(Int
 public struct CreatorContentProjectPage: Decodable, Equatable {
     public let rows: [CreatorContentProject]
     public let total: Int
-    /// `POST api/project/my` `data.scope`, when the server sends it. Absent is not merchant scope.
+    /// Decoded if a response ever carries `data.scope`. `api/project/my` does not send it.
+    /// Browse-only is the entry scope plus access/me, not this field.
     public let serverScope: String?
     public var isTruncated: Bool { total > rows.count }
     public init(rows: [CreatorContentProject], total: Int, serverScope: String? = nil) {

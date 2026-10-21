@@ -46,15 +46,19 @@ import SwiftUI
     var makeActivityCover: (() -> ActivityCoverService?)? = nil
     var publishingEpoch: UUID? = nil
     var activityGrants: ActivityEditingGrants = .init()
+    /// Nil omits `scope` on `api/project/my`. `MERCHANT` is the store entry.
+    var entryScope: String? = nil
+    /// From access/me `merchant:project:manage`. False keeps the merchant entry browse-only.
+    var canManageProjects: Bool = false
     @StateObject private var navigation = ProjectOwnedContentNavigation()
     @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
     @State private var listRefreshGeneration: UInt64 = 0
     @State private var listRefresh: MyProjectListRefreshRequest?
     var body: some View {
         let presented = navigation.selection
-        CreatorContentProjectsView(reader: reader, onOpenProject: { project, scope, serverScope in
+        CreatorContentProjectsView(reader: reader, entryScope: entryScope, canManageProjects: canManageProjects, onOpenProject: { project, scope, _ in
             navigation.open(project, scope: scope, reader: reader,
-                merchantScopeAccess: MyProjectMerchantScopeExclusiveAdapter.access(responseScope: serverScope))
+                merchantScopeAccess: MyProjectMerchantScopeExclusiveAdapter.access(entryScope: entryScope, canManageProjects: canManageProjects))
         }, onOpen: { _ in }, listRefresh: listRefresh)
         .navigationDestination(item: navigation.presentation(presented)) { value in
             if reader.scope == value.scope, reader.isAuthenticated {
@@ -66,7 +70,7 @@ import SwiftUI
                 case .activityEditor(let request):
                     MyProjectActivityEditorDestination(request: request, authenticated: reader.isAuthenticated,
                         currentScope: reader.scope, publishingEpoch: publishingEpoch,
-                        browseOnly: value.merchantScopeAccess.isBrowseOnly, grants: activityGrants,
+                        browseOnly: value.merchantScopeAccess.isBrowseOnly || liveAccess.isBrowseOnly, grants: activityGrants,
                         makeEditor: makeActivityEditor, makeCover: makeActivityCover,
                         onAcknowledged: acceptSave, onRevoke: { revoke(request) })
                 case .detail(let destination):
@@ -75,7 +79,7 @@ import SwiftUI
                         .toolbar {
                             // Browse-only merchant scope never gets an edit entry; other
                             // detail rows keep the existing owner-bound edit link.
-                            if !value.merchantScopeAccess.isBrowseOnly,
+                            if !value.merchantScopeAccess.isBrowseOnly, !liveAccess.isBrowseOnly,
                                let target = ProjectEditRemoteTarget(project: value.project, readerScope: value.scope) {
                                 NavigationLink {
                                     ProjectRemoteEditorDestination(target: target, reader: reader, revision: revision,
@@ -90,6 +94,10 @@ import SwiftUI
             } else { Text("projectRemote.stale") }
         }
         .onChange(of: reader.scope) { original, _ in navigation.retire(scope: original) }
+        .onChange(of: liveAccess) { _, access in if access.isBrowseOnly { navigation.retire(scope: reader.scope) } }
+    }
+    private var liveAccess: MyProjectMerchantScopeAccess {
+        MyProjectMerchantScopeExclusiveAdapter.access(entryScope: entryScope, canManageProjects: canManageProjects)
     }
     private func acceptSave(_ token: MyProjectActivityEditorReturnToken) {
         let generation = listRefreshGeneration &+ 1
@@ -122,6 +130,9 @@ import SwiftUI
 }
 @MainActor struct SessionCreatorProjectsView: View {
     @ObservedObject var session: AppSession
+    /// Personal account entry leaves this nil. The merchant entry passes `MERCHANT`.
+    var entryScope: String? = nil
+    @State private var canManageProjects = false
     var body: some View {
         ProjectOwnedContentBrowser(reader: session.creatorContentReader, revision: session.sessionRevision,
             makeEditor: { session.projectEditor(target: $0) }, detail: { destination in
@@ -137,9 +148,24 @@ import SwiftUI
             makeActivityEditor: { session.activityEditingController(id: $0) },
             makeActivityCover: { session.makeActivityCoverService() },
             publishingEpoch: session.publishingSession?.epoch,
-            activityGrants: session.activityEditingGrants())
+            activityGrants: session.activityEditingGrants(),
+            entryScope: entryScope, canManageProjects: canManageProjects)
             .environment(\.myProjectTemplateShelf, MyProjectTemplateShelfHost { session.myProjectTemplateShelf() })
             .environment(\.myProjectPublishEntry, session.myProjectPublishEntry())
             .id(session.creatorContentReader.scope)
+            .task(id: "\(session.creatorContentReader.scope.uuidString)|\(entryScope ?? "")") { await loadManage() }
+    }
+    /// Merchant entry reads access/me. Failure or a missing project-manage grant stays browse-only.
+    /// The personal entry does not call access/me and does not send `scope`.
+    private func loadManage() async {
+        guard (try? CreatorContentService.merchantWireScope(entryScope)) == "MERCHANT" else {
+            canManageProjects = false
+            return
+        }
+        let scope = session.creatorContentReader.scope
+        canManageProjects = false
+        let allowed = (try? await session.merchantAccess())?.allows(.projects) == true
+        guard session.creatorContentReader.scope == scope else { return }
+        canManageProjects = allowed
     }
 }
