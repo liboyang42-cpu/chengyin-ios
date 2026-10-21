@@ -107,6 +107,18 @@ public struct TeamFirstMeeting: Equatable, Sendable {
         pendingRequestId = nil; phase = verified ? .met : .handshaking
     }
 
+    /// Restores a request that was persisted before this process. Does not invent a nonce.
+    public mutating func restorePending(requestId: String) throws {
+        guard !phase.isTerminal, phase != .realNameRequired, ReformWire.requestID(requestId) else { throw TeamMeetingIssue.illegalTransition }
+        pendingRequestId = requestId; phase = .confirmationPending
+    }
+
+    /// Drops a scan that never became the stored request, so a late body cannot confirm it.
+    public mutating func abandonUnsent(requestId: String, nonce: String) throws {
+        guard phase == .confirmationPending, pendingRequestId == requestId, submittedNonces.contains(nonce) else { throw TeamMeetingIssue.illegalTransition }
+        submittedNonces.remove(nonce); pendingRequestId = nil; phase = .handshaking
+    }
+
     /// U04: cancel/revoke by either side, block or report ends the meeting permanently.
     /// A late "verified" for the old request is then refused by `serverDecision`.
     public mutating func cancel() { guard !phase.isTerminal else { return }; phase = .cancelled; pendingRequestId = nil }
