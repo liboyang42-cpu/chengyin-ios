@@ -37,12 +37,62 @@ final class RoamAnniversaryNavigationTests: XCTestCase {
         let me = try owner(); let item = memory(); let target = try XCTUnwrap(RoamAnniversaryRouteTarget(memory: item))
         var state = RoamAnniversaryNavigationState(); state.bind(to: me)
         XCTAssertTrue(state.open(target, memory: item, currentRows: [item], owner: me))
-        XCTAssertTrue(state.mayRemainOpen(target, owner: me))
-        XCTAssertFalse(state.consumeReturnRefresh(owner: me), "No refresh before returning")
-        state.markReturned(owner: me)
-        XCTAssertFalse(state.mayRemainOpen(target, owner: me))
-        XCTAssertTrue(state.consumeReturnRefresh(owner: me))
-        XCTAssertFalse(state.consumeReturnRefresh(owner: me), "Return refresh must not loop")
+        let lease = try XCTUnwrap(state.openedPresentation)
+        XCTAssertEqual(lease.target, target)
+        XCTAssertTrue(state.mayRemainOpen(lease, owner: me))
+        XCTAssertFalse(state.completeReturn(presentation: nil, owner: me), "A return without the lease is nothing")
+        XCTAssertTrue(state.mayRemainOpen(lease, owner: me), "Rejected return must not close the route")
+        XCTAssertTrue(state.completeReturn(presentation: lease, owner: me))
+        XCTAssertFalse(state.mayRemainOpen(lease, owner: me))
+        XCTAssertFalse(state.completeReturn(presentation: lease, owner: me), "Return refresh must not loop")
+    }
+
+    func testLateReturnFromRouteACannotClearOrConsumeRouteB() throws {
+        let me = try owner()
+        let a = memory(id: "31", topic: "7001"), b = memory(id: "12", topic: "7002")
+        let targetA = try XCTUnwrap(RoamAnniversaryRouteTarget(memory: a))
+        let targetB = try XCTUnwrap(RoamAnniversaryRouteTarget(memory: b))
+        var state = RoamAnniversaryNavigationState(); state.bind(to: me)
+        XCTAssertTrue(state.open(targetA, memory: a, currentRows: [a, b], owner: me))
+        let leaseA = try XCTUnwrap(state.openedPresentation)
+        XCTAssertTrue(state.completeReturn(presentation: leaseA, owner: me), "A really closed")
+        XCTAssertTrue(state.open(targetB, memory: b, currentRows: [a, b], owner: me))
+        let leaseB = try XCTUnwrap(state.openedPresentation)
+        XCTAssertNotEqual(leaseA.generation, leaseB.generation)
+        // A's late disappearance/return arrives after B opened, same owner.
+        state.noteCovered(leaseA, owner: me)
+        XCTAssertFalse(state.completeReturn(presentation: leaseA, owner: me))
+        XCTAssertTrue(state.mayRemainOpen(leaseB, owner: me), "Late A must not clear B")
+        XCTAssertEqual(state.openedTarget, targetB)
+        XCTAssertTrue(state.completeReturn(presentation: leaseB, owner: me), "Only B's own return consumes")
+        XCTAssertFalse(state.completeReturn(presentation: leaseA, owner: me))
+    }
+
+    func testReopenedSameTargetMintsANewLeaseAndOldLeaseIsStale() throws {
+        let me = try owner(); let item = memory(); let target = try XCTUnwrap(RoamAnniversaryRouteTarget(memory: item))
+        var state = RoamAnniversaryNavigationState(); state.bind(to: me)
+        XCTAssertTrue(state.open(target, memory: item, currentRows: [item], owner: me))
+        let first = try XCTUnwrap(state.openedPresentation)
+        XCTAssertTrue(state.completeReturn(presentation: first, owner: me))
+        XCTAssertTrue(state.open(target, memory: item, currentRows: [item], owner: me))
+        let second = try XCTUnwrap(state.openedPresentation)
+        XCTAssertEqual(first.target, second.target); XCTAssertNotEqual(first.generation, second.generation)
+        XCTAssertFalse(state.completeReturn(presentation: first, owner: me), "Same target is not the same presentation")
+        XCTAssertTrue(state.mayRemainOpen(second, owner: me))
+    }
+
+    func testCoveredByChildDrillDownIsNotAReturn() throws {
+        let me = try owner(); let item = memory(); let target = try XCTUnwrap(RoamAnniversaryRouteTarget(memory: item))
+        var state = RoamAnniversaryNavigationState(); state.bind(to: me)
+        XCTAssertTrue(state.open(target, memory: item, currentRows: [item], owner: me))
+        let lease = try XCTUnwrap(state.openedPresentation)
+        // The detail disappears because it pushed a child page, then reappears.
+        state.noteCovered(lease, owner: me)
+        XCTAssertTrue(state.mayRemainOpen(lease, owner: me), "Covered detail keeps its route")
+        XCTAssertEqual(state.openedPresentation, lease)
+        // Only the later true pop completes, and only once.
+        XCTAssertTrue(state.completeReturn(presentation: lease, owner: me))
+        XCTAssertFalse(state.completeReturn(presentation: lease, owner: me))
     }
 
     func testOpenRequiresTheExactRenderedCardStillInCurrentRows() throws {
@@ -51,7 +101,7 @@ final class RoamAnniversaryNavigationTests: XCTestCase {
         XCTAssertFalse(state.open(target, memory: item, currentRows: [], owner: me), "Paginated/refreshed away")
         XCTAssertFalse(state.open(target, memory: item, currentRows: [memory(topic: "7002")], owner: me), "Same id, replaced topic")
         XCTAssertFalse(state.open(target, memory: memory(topic: "7002"), currentRows: [memory(topic: "7002")], owner: me))
-        XCTAssertNil(state.openedTarget)
+        XCTAssertNil(state.openedTarget); XCTAssertNil(state.openedPresentation)
     }
 
     func testAccountOrEpochChangeClearsNavigationAndRejectsLateCallbacks() throws {
@@ -60,38 +110,44 @@ final class RoamAnniversaryNavigationTests: XCTestCase {
         for foreign in [other, nextEpoch] {
             var state = RoamAnniversaryNavigationState(); state.bind(to: me)
             XCTAssertTrue(state.open(target, memory: item, currentRows: [item], owner: me))
+            let lease = try XCTUnwrap(state.openedPresentation)
             state.bind(to: foreign)
-            XCTAssertNil(state.openedTarget); XCTAssertFalse(state.returnRefreshPending)
-            XCTAssertFalse(state.mayRemainOpen(target, owner: foreign))
-            // Late callbacks captured under the old owner change nothing.
-            state.markReturned(owner: me)
-            XCTAssertFalse(state.consumeReturnRefresh(owner: me))
+            XCTAssertNil(state.openedTarget); XCTAssertNil(state.openedPresentation)
+            XCTAssertFalse(state.mayRemainOpen(lease, owner: foreign))
+            // Late callbacks carrying the old lease and old owner change nothing.
+            state.noteCovered(lease, owner: me)
+            XCTAssertFalse(state.completeReturn(presentation: lease, owner: me))
             XCTAssertFalse(state.open(target, memory: item, currentRows: [item], owner: me))
-            XCTAssertFalse(state.consumeReturnRefresh(owner: foreign))
+            XCTAssertFalse(state.completeReturn(presentation: lease, owner: foreign))
         }
         var signedOut = RoamAnniversaryNavigationState(); signedOut.bind(to: me)
         XCTAssertTrue(signedOut.open(target, memory: item, currentRows: [item], owner: me))
+        let lease = try XCTUnwrap(signedOut.openedPresentation)
         signedOut.bind(to: nil)
-        XCTAssertFalse(signedOut.mayRemainOpen(target, owner: nil))
-        XCTAssertFalse(signedOut.consumeReturnRefresh(owner: nil))
+        XCTAssertFalse(signedOut.mayRemainOpen(lease, owner: nil))
+        XCTAssertFalse(signedOut.completeReturn(presentation: lease, owner: nil))
     }
 
     func testDateChangeAndCancellationInvalidatePendingWork() throws {
         let me = try owner(); let item = memory(); let target = try XCTUnwrap(RoamAnniversaryRouteTarget(memory: item))
         var state = RoamAnniversaryNavigationState(); state.bind(to: me)
         XCTAssertTrue(state.open(target, memory: item, currentRows: [item], owner: me))
-        state.markReturned(owner: me); XCTAssertTrue(state.returnRefreshPending)
+        let lease = try XCTUnwrap(state.openedPresentation)
         let before = state.generation
         state.invalidate() // date switch or cancelled presentation retires it
         XCTAssertGreaterThan(state.generation, before)
-        XCTAssertNil(state.openedTarget); XCTAssertFalse(state.consumeReturnRefresh(owner: me))
+        XCTAssertNil(state.openedTarget)
+        XCTAssertFalse(state.completeReturn(presentation: lease, owner: me))
+        state.noteCovered(lease, owner: me)
+        XCTAssertNil(state.openedPresentation)
     }
 
     func testRebindingSameOwnerKeepsAnOpenRoute() throws {
         let me = try owner(); let item = memory(); let target = try XCTUnwrap(RoamAnniversaryRouteTarget(memory: item))
         var state = RoamAnniversaryNavigationState(); state.bind(to: me)
         XCTAssertTrue(state.open(target, memory: item, currentRows: [item], owner: me))
+        let lease = try XCTUnwrap(state.openedPresentation)
         state.bind(to: me)
-        XCTAssertTrue(state.mayRemainOpen(target, owner: me))
+        XCTAssertTrue(state.mayRemainOpen(lease, owner: me))
     }
 }

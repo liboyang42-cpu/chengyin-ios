@@ -86,8 +86,8 @@ import SwiftUI
                     case .available(let target):
                         if let routeDestination {
                             NavigationLink {
-                                RoamAnniversaryRouteHost(target: target, owner: reader?.identity,
-                                                         destination: routeDestination, navigation: $navigation) { Task { await load(cursor: nil) } }
+                                RoamAnniversaryRouteHost(presentation: navigation.openedPresentation, owner: reader?.identity,
+                                                         destination: routeDestination, navigation: $navigation)
                             } label: { Text("roam.tools.anniversary.openRoute") }
                                 .accessibilityIdentifier("roam.tools.anniversary.openRoute")
                                 .simultaneousGesture(TapGesture().onEnded {
@@ -113,9 +113,11 @@ import SwiftUI
         .task { navigation.bind(to: reader?.identity); await load(cursor: nil) }
         .onAppear {
             navigation.bind(to: reader?.identity)
-            // Returning from a route refreshes the same selected date once;
-            // the date and any rows stay until the fresh first page lands.
-            if navigation.consumeReturnRefresh(owner: reader?.identity) { Task { await load(cursor: nil) } }
+            // Only this screen becoming visible again is a true pop/close of
+            // the route. It must carry the original lease, and refreshes the
+            // same selected date exactly once; a stale lease changes nothing.
+            if let lease = navigation.openedPresentation,
+               navigation.completeReturn(presentation: lease, owner: reader?.identity) { Task { await load(cursor: nil) } }
         }
         .onChange(of: reader?.identity) { _, newOwner in
             navigation.bind(to: newOwner)
@@ -157,29 +159,27 @@ import SwiftUI
     }
 }
 
-/// Pushes the host's existing topic detail for one validated card. The detail
-/// is shown only while the exact card remains in the current owner's rows;
-/// popping it arms the one return refresh on the anniversary screen.
+/// Pushes the host's existing topic detail for one validated card, under the
+/// lease minted when the card was tapped. Disappearing is NOT a return: the
+/// detail may only be covered (e.g. it drilled into a child page), so it just
+/// notes the cover and keeps the lease. Only the anniversary screen becoming
+/// visible again completes the return, carrying this same lease.
 @MainActor private struct RoamAnniversaryRouteHost: View {
-    let target: RoamAnniversaryRouteTarget
+    let presentation: RoamAnniversaryRoutePresentation?
     let owner: RoamExperienceIdentity?
     let destination: (String) -> AnyView
     @Binding var navigation: RoamAnniversaryNavigationState
-    let onReturn: () -> Void
     var body: some View {
         Group {
-            if navigation.mayRemainOpen(target, owner: owner) {
-                destination(target.topicID)
+            if let presentation, navigation.mayRemainOpen(presentation, owner: owner) {
+                destination(presentation.target.topicID)
             } else {
                 Label("topic.unavailable", systemImage: "exclamationmark.circle")
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("roam.tools.anniversary.routeUnavailable")
             }
         }
-        .onDisappear {
-            navigation.markReturned(owner: owner)
-            if navigation.consumeReturnRefresh(owner: owner) { onReturn() }
-        }
+        .onDisappear { navigation.noteCovered(presentation, owner: owner) }
     }
 }
 

@@ -31,9 +31,9 @@ class RoamAnniversaryNavigationContracts(unittest.TestCase):
 
     def test_cards_resolve_real_topic_id_and_report_unavailable(self):
         self.assertIn('RoamAnniversaryRouteAvailability.resolve(memory: item, hasDestination: routeDestination != nil)', self.views)
-        self.assertIn('RoamAnniversaryRouteHost(target: target, owner: reader?.identity', self.views)
+        self.assertIn('RoamAnniversaryRouteHost(presentation: navigation.openedPresentation, owner: reader?.identity', self.views)
         self.assertIn('navigation.open(target, memory: item, currentRows: rows, owner: reader?.identity)', self.views)
-        self.assertIn('destination(target.topicID)', self.views)
+        self.assertIn('destination(presentation.target.topicID)', self.views)
         self.assertIn('"topic.unavailable"', self.views)
         self.assertIn('roam.tools.anniversary.routeUnavailable', self.views)
         # Invalid ids are value-checked in Core, never derived from the memory id.
@@ -42,14 +42,29 @@ class RoamAnniversaryNavigationContracts(unittest.TestCase):
         self.assertIn('case noDestination', self.core)
 
     def test_return_keeps_date_and_refreshes_once_and_identity_clears(self):
-        self.assertIn('navigation.consumeReturnRefresh(owner: reader?.identity)', self.views)
-        self.assertIn('if navigation.consumeReturnRefresh(owner: reader?.identity) { Task { await load(cursor: nil) } }', self.views)
+        # The true pop is the anniversary screen reappearing, carrying the lease.
+        self.assertIn('navigation.completeReturn(presentation: lease, owner: reader?.identity)', self.views)
+        self.assertIn('if let lease = navigation.openedPresentation,', self.views)
         self.assertIn('navigation.bind(to: newOwner)', self.views)
         self.assertIn('rows = []; page = nil; error = nil; selected = nil', self.views)
         self.assertIn('navigation.invalidate()', self.views)
-        self.assertIn('navigation.markReturned(owner: owner)', self.views)
         # Existing late-result fencing stays: generation ticket + owner equality.
         self.assertIn('guard ticket == generation, owner == reader.identity else { return }', self.views)
+
+    def test_return_callbacks_carry_the_lease_and_disappear_is_not_return(self):
+        # Every completion path is lease-checked in Core; owner-only callbacks are gone.
+        self.assertIn('public struct RoamAnniversaryRoutePresentation', self.core)
+        self.assertIn('openedPresentation == presentation', self.core)
+        self.assertIn('func completeReturn(presentation: RoamAnniversaryRoutePresentation?,', self.core)
+        self.assertIn('func noteCovered(_ presentation: RoamAnniversaryRoutePresentation?,', self.core)
+        for gone in ('markReturned', 'consumeReturnRefresh', 'returnRefreshPending'):
+            self.assertNotIn(gone, self.core)
+            self.assertNotIn(gone, self.views)
+        # RouteHost disappearance only notes a cover (child drill-down), never returns.
+        host = self.views.split('struct RoamAnniversaryRouteHost', 1)[1]
+        self.assertIn('.onDisappear { navigation.noteCovered(presentation, owner: owner) }', host)
+        self.assertNotIn('completeReturn', host)
+        self.assertNotIn('onReturn', host)
 
     def test_no_play_start_or_new_api_or_permission(self):
         for source in (self.core, self.views, self.home, self.hub):

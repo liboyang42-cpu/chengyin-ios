@@ -37,6 +37,14 @@ public enum RoamAnniversaryRouteAvailability: Equatable {
     }
 }
 
+/// Lease for one presented route. Every return/cover callback must carry
+/// this exact value back; owner alone, or the same target re-opened later,
+/// is never enough to complete a different presentation.
+public struct RoamAnniversaryRoutePresentation: Equatable, Hashable {
+    public let target: RoamAnniversaryRouteTarget
+    public let generation: UInt64
+}
+
 /// Owner-fenced navigation state for anniversary -> route -> back.
 /// The selected date and rows stay in the view; this state only remembers
 /// that a route was opened under one account/epoch so the return can ask
@@ -44,29 +52,27 @@ public enum RoamAnniversaryRouteAvailability: Equatable {
 /// return can never refresh or reopen another owner's private records.
 public struct RoamAnniversaryNavigationState: Equatable {
     public private(set) var owner: RoamExperienceIdentity?
-    public private(set) var openedTarget: RoamAnniversaryRouteTarget?
-    public private(set) var returnRefreshPending = false
-    /// Bumped on every owner/date invalidation; callbacks captured before a
-    /// bump belong to a retired presentation and are rejected by owner checks.
+    public private(set) var openedPresentation: RoamAnniversaryRoutePresentation?
+    public var openedTarget: RoamAnniversaryRouteTarget? { openedPresentation?.target }
+    /// Bumped on every open, owner/date invalidation and completed return;
+    /// a lease minted before a bump can never match a later presentation.
     public private(set) var generation: UInt64 = 0
 
     public init() {}
 
-    /// Account, epoch or signed-out changes clear the opened route, any
-    /// pending return refresh and (via the caller observing the same change)
-    /// the private rows. Rebinding the same owner is a no-op.
+    /// Account, epoch or signed-out changes clear the opened route and
+    /// (via the caller observing the same change) the private rows.
+    /// Rebinding the same owner is a no-op.
     public mutating func bind(to newOwner: RoamExperienceIdentity?) {
         guard newOwner != owner else { return }
         owner = newOwner
-        openedTarget = nil
-        returnRefreshPending = false
+        openedPresentation = nil
         generation += 1
     }
 
     /// Date changes retire any route opened for the previous date.
     public mutating func invalidate() {
-        openedTarget = nil
-        returnRefreshPending = false
+        openedPresentation = nil
         generation += 1
     }
 
@@ -82,32 +88,39 @@ public struct RoamAnniversaryNavigationState: Equatable {
         guard let currentOwner, currentOwner == owner,
               currentRows.contains(memory),
               RoamAnniversaryRouteTarget(memory: memory) == target else { return false }
-        openedTarget = target
-        returnRefreshPending = false
+        generation += 1
+        openedPresentation = RoamAnniversaryRoutePresentation(target: target, generation: generation)
         return true
     }
 
-    /// The opened route may stay on screen only for the owner that opened it.
-    public func mayRemainOpen(_ target: RoamAnniversaryRouteTarget,
+    /// The opened route may stay on screen only for the exact lease that
+    /// opened it, under the owner that opened it.
+    public func mayRemainOpen(_ presentation: RoamAnniversaryRoutePresentation?,
                               owner currentOwner: RoamExperienceIdentity?) -> Bool {
-        guard let currentOwner, currentOwner == owner else { return false }
-        return openedTarget == target
+        guard let currentOwner, currentOwner == owner, let presentation else { return false }
+        return openedPresentation == presentation
     }
 
-    /// Returning from the route arms one refresh; failure or cancellation of
-    /// the detail load does not change this, the back action is the same.
-    public mutating func markReturned(owner currentOwner: RoamExperienceIdentity?) {
-        guard let currentOwner, currentOwner == owner, openedTarget != nil else { return }
-        openedTarget = nil
-        returnRefreshPending = true
+    /// A disappearance that is not a return: the detail was covered (for
+    /// example it pushed a child page) or otherwise temporarily hidden.
+    /// The lease survives untouched, so drilling down and coming back to
+    /// the same detail neither closes the route nor earns a refresh.
+    public mutating func noteCovered(_ presentation: RoamAnniversaryRoutePresentation?,
+                                     owner currentOwner: RoamExperienceIdentity?) {
+        guard mayRemainOpen(presentation, owner: currentOwner) else { return }
     }
 
-    /// Consumed exactly once, so an unrelated re-appear does not reload and
-    /// a late return for a previous owner/date never reloads private rows.
+    /// The one true pop/close of the presented route. Only the anniversary
+    /// screen becoming visible again may deliver this, and only with the
+    /// original lease: a late callback from route A (same owner, possibly
+    /// even the same target) cannot clear or consume route B's return.
+    /// Succeeds exactly once; replaying the same event is rejected.
     @discardableResult
-    public mutating func consumeReturnRefresh(owner currentOwner: RoamExperienceIdentity?) -> Bool {
-        guard let currentOwner, currentOwner == owner, returnRefreshPending else { return false }
-        returnRefreshPending = false
+    public mutating func completeReturn(presentation: RoamAnniversaryRoutePresentation?,
+                                        owner currentOwner: RoamExperienceIdentity?) -> Bool {
+        guard mayRemainOpen(presentation, owner: currentOwner) else { return false }
+        openedPresentation = nil
+        generation += 1
         return true
     }
 }
