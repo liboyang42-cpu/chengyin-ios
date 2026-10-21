@@ -33,6 +33,10 @@ public struct NonCashReward: Identifiable, Equatable, Sendable {
         state == .awarded && quantity > 0 && validFrom < validUntil && now >= validFrom && now < validUntil
             && !redemptionConditions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
+    /// Awarded stock that has not been redeemed. A local clock still cannot redeem it.
+    public var isGrantedUnredeemed: Bool { state == .awarded && fulfillmentStatus == .unverified }
+    /// List and detail refresh stay on this award after a pledge grant.
+    public func matchesPledgeRefresh(awardID: String) -> Bool { awardId == awardID && isGrantedUnredeemed }
     public init(awardId: String, contextType: Context, contextId: String, releaseId: String, instanceId: String,
                 rulesVersion: String, merchantId: String, storeId: String, rewardTitle: String,
                 quantity: Int, validFrom: Date, validUntil: Date, redemptionConditions: String,
