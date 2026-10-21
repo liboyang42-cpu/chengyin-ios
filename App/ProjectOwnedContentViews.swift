@@ -7,13 +7,19 @@ import SwiftUI
         let id = UUID()
         let project: CreatorContentProject
         let scope: UUID
+        /// Captured once at open; closing only clears the selection and never rewrites
+        /// the row, so a return lets the list re-read instead of mutating local state.
+        let decision: MyProjectStateNavigationDecision
         static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
         func hash(into hasher: inout Hasher) { hasher.combine(id) }
     }
     @Published private(set) var selection: Selection?
-    func open(_ project: CreatorContentProject, scope: UUID, reader: any CreatorContentReading) {
+    func open(_ project: CreatorContentProject, scope: UUID, reader: any CreatorContentReading,
+              merchantScopeAccess: MyProjectMerchantScopeAccess = .init(), canEditActivity: Bool = true) {
         guard reader.scope == scope, reader.isAuthenticated else { return }
-        selection = .init(project: project, scope: scope)
+        let decision = MyProjectStateNavigation.decision(project: project, readerScope: scope,
+            canEditActivity: canEditActivity, merchantScopeAccess: merchantScopeAccess)
+        selection = .init(project: project, scope: scope, decision: decision)
     }
     func close(_ original: Selection) {
         guard selection?.id == original.id, selection?.scope == original.scope else { return }
@@ -35,23 +41,38 @@ import SwiftUI
     var publisherClient: PublisherLifecycleHTTP? = nil
     var publisherHost: ((PublishedResource) -> AnyView)? = nil
     @StateObject private var navigation = ProjectOwnedContentNavigation()
+    @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
     var body: some View {
         let presented = navigation.selection
         CreatorContentProjectsView(reader: reader, onOpenProject: { project, scope in
-            navigation.open(project, scope: scope, reader: reader)
+            navigation.open(project, scope: scope, reader: reader, merchantScopeAccess: merchantScopeAccess)
         }, onOpen: { _ in })
         .navigationDestination(item: navigation.presentation(presented)) { value in
-            if reader.scope == value.scope, reader.isAuthenticated, let destination = value.project.destination {
-                detail(destination)
-                    .toolbar {
-                        if let target = ProjectEditRemoteTarget(project: value.project, readerScope: value.scope) {
-                            NavigationLink {
-                                ProjectRemoteEditorDestination(target: target, reader: reader, revision: revision,
-                                    makeEditor: makeEditor, editorContextID: editorContextID, publisherClient: publisherClient, publisherHost: publisherHost)
-                            } label: { Text("projectRemote.edit") }
-                                .accessibilityIdentifier("projectRemote.edit")
+            if reader.scope == value.scope, reader.isAuthenticated {
+                switch value.decision {
+                case .ownerTopicEditor(let target):
+                    ProjectRemoteEditorDestination(target: target, reader: reader, revision: revision,
+                        makeEditor: makeEditor, editorContextID: editorContextID, publisherClient: publisherClient, publisherHost: publisherHost)
+                        .accessibilityIdentifier("myProject.state.topicEditor")
+                case .detail(let destination), .activityEditorUnavailableDetail(let destination):
+                    detail(destination)
+                        .accessibilityIdentifier(value.decision == .detail(destination)
+                            ? "myProject.state.detail" : "myProject.state.activityEditorUnavailable")
+                        .toolbar {
+                            // Browse-only merchant scope never gets an edit entry; other
+                            // detail rows keep the existing owner-bound edit link.
+                            if !merchantScopeAccess.isBrowseOnly,
+                               let target = ProjectEditRemoteTarget(project: value.project, readerScope: value.scope) {
+                                NavigationLink {
+                                    ProjectRemoteEditorDestination(target: target, reader: reader, revision: revision,
+                                        makeEditor: makeEditor, editorContextID: editorContextID, publisherClient: publisherClient, publisherHost: publisherHost)
+                                } label: { Text("projectRemote.edit") }
+                                    .accessibilityIdentifier("projectRemote.edit")
+                            }
                         }
-                    }
+                case .unavailable:
+                    Text("projectRemote.stale")
+                }
             } else { Text("projectRemote.stale") }
         }
         .onChange(of: reader.scope) { original, _ in navigation.retire(scope: original) }

@@ -6738,6 +6738,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "638E1A016DF384219E1760AC";
 		};
+		"C50000000000000000000001" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MyProjectStateNavigation.swift";
+			"sourceTree" = "<group>";
+		};
+		"C50000000000000000000002" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C50000000000000000000001";
+		};
 		"CBC34D9A6DA72F76DEAF942D" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -26518,6 +26528,7 @@
 				"5386B94B40C27439B6BAB656",
 				"9A92399B1E643AFEBEDF4DDC",
 				"6C483187BEBAFC6C77F6829D",
+				"C50000000000000000000002",
 				"BE82049937DE41402F4FC214",
 				"A3FB286AD609E5097370A136",
 				"B9962DA16DE46A526CD28022",
@@ -34629,6 +34640,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "BE2939A2A653160FDC06BA5E";
 		};
+		"C50000000000000000000003" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/MyProjectStateNavigationTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"C50000000000000000000004" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C50000000000000000000003";
+		};
 		"0B4A0C7866522AD08631E029" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -36899,6 +36920,7 @@
 				"23345C7C715074098E5AF5A8",
 				"B64F69DEDA6672F85FDB6CC2",
 				"2B7DB26A47F9B8DC8A01BE2E",
+				"C50000000000000000000004",
 				"BC8A7DE1287471A38D241FA5",
 				"C0D95D647357A147B61893BE",
 				"B41E0F3AB59BECAA47ECFF8F",
