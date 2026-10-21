@@ -142,16 +142,24 @@ final class AppSession: ObservableObject {
             register: { [weak self] in self?.merchantNPCSessionOwner.register($0) })
         return context
     }
-    private let communityService = ClubCommunityService(dormantBaseURL: URL(string: "https://disabled.invalid")!, transport: CommunityDormantHTTPTransport())
+    private let dormantCommunityService = ClubCommunityService(dormantBaseURL: URL(string: "https://disabled.invalid")!, transport: CommunityDormantHTTPTransport())
+    var clubCommunityReadApprovalSelector: (RuntimeDependencyContext) -> ClubCommunityReadApproval? = { _ in nil }
+    var clubCommunityTransportOverride: (any HTTPTransport)?
+    private var communityService: ClubCommunityService {
+        resolvedClubCommunityService(fallback: dormantCommunityService)
+    }
+    var clubCommunityRuntimeContext: RuntimeDependencyContext? { currentRuntimeDependencyContext }
+    var clubCommunityRuntimeTransport: any HTTPTransport { scopedTransport(clubCommunityTransportOverride) }
+    func currentClubCommunitySession() throws -> ClubCommunitySession { try currentCommunitySession() }
     private func currentCommunitySession() throws -> ClubCommunitySession {
         try ClubCommunitySession(identity: clubIdentity, token: token)
     }
-    private lazy var communityCoordinator = ClubCommunityCoordinator(service: communityService, currentSession: { [weak self] in
+    private lazy var communityCoordinator = ClubCommunityCoordinator(service: dormantCommunityService, currentSession: { [weak self] in
         guard let self else { throw ClubCommunityFailure.unavailable }; return try self.currentCommunitySession()
     }, refreshEvidence: { [weak self] old in
         guard let self else { throw ClubCommunityFailure.unavailable }
         return try await self.communityEvidence(clubID: old.clubID, post: old.post, comment: old.comment)
-    })
+    }, journal: ClubCommunityStoredPendingJournal(defaults: sessionDefaults))
     var clubCommunityContext: ClubCommunityContext {
         ClubCommunityContext(service: communityService, currentSession: { [weak self] in
             guard let self else { throw ClubCommunityFailure.unavailable }; return try self.currentCommunitySession()
