@@ -35,20 +35,23 @@ final class MerchantReviewCardPresentationTests: XCTestCase {
     }
 
     func testUnknownPendingAndHiddenStatusesAndReplyStatesUseLocalizationKeys() throws {
-        let unknownRow = try reviewRow {
-            $0["status"] = .string("UNEXPECTED_SERVER_STATE")
+        let repliedRow = try reviewRow {
+            $0["status"] = .string("VISIBLE")
             $0["merchantReply"] = .string("感谢光临")
+            $0["canReply"] = .bool(false)
+            $0["canReport"] = .bool(false)
         }
-        let unknownCard = try XCTUnwrap(MerchantReviewCardPresentation(row: unknownRow))
-        XCTAssertEqual(unknownCard.visibility, .unknown)
-        XCTAssertEqual(unknownCard.visibilityTitleKey, "merchant.review.visibility.unknown")
-        XCTAssertEqual(unknownCard.replyState, .replied)
-        XCTAssertEqual(unknownCard.replyTitleKey, "merchant.review.reply.replied")
+        let repliedCard = try XCTUnwrap(MerchantReviewCardPresentation(row: repliedRow))
+        XCTAssertEqual(repliedCard.visibility, .publicVisible)
+        XCTAssertEqual(repliedCard.replyState, .replied)
+        XCTAssertEqual(repliedCard.replyTitleKey, "merchant.review.reply.replied")
+        XCTAssertEqual(MerchantReviewCardPresentation.Visibility.unknown.titleKey, "merchant.review.visibility.unknown")
 
         let pendingRow = try reviewRow {
             $0["status"] = .string("PENDING_REVIEW")
             $0["merchantReply"] = .null
             $0["canReply"] = .bool(false)
+            $0["canReport"] = .bool(false)
         }
         let pendingCard = try XCTUnwrap(MerchantReviewCardPresentation(row: pendingRow))
         XCTAssertEqual(pendingCard.visibility, .pendingReview)
@@ -58,6 +61,9 @@ final class MerchantReviewCardPresentationTests: XCTestCase {
 
         let hiddenRow = try reviewRow {
             $0["status"] = .string("HIDDEN")
+            $0["merchantReply"] = .null
+            $0["canReply"] = .bool(false)
+            $0["canReport"] = .bool(false)
         }
         let hiddenCard = try XCTUnwrap(MerchantReviewCardPresentation(row: hiddenRow))
         XCTAssertEqual(hiddenCard.visibility, .hidden)

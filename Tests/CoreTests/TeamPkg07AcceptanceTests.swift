@@ -50,6 +50,7 @@ import XCTest
 
     func testUnknownOutcomeIsNotRetryAndNotSuccess() async throws {
         let (c, service, _, _) = try setup(.unknownOutcome)
+        service.currentDetail = try TeamSyntheticService(scenario: .invitation).currentDetail
         await c.loadDetail(.invitation("SYNTHETIC-TEAM"))
         c.prepare(.join(teamID: 4101, inviteCode: "SYNTHETIC-TEAM"))
         await c.confirm(try XCTUnwrap(c.review))
