@@ -160,6 +160,23 @@ def write_fixtures(directory: Path):
     (directory / "swap-b.zip").write_bytes(package(swap_b))
 
 
+def bounded_read(kind, chunks, cap):
+    """Counterexample for check-size-then-read-all. A link is not followed, and a file that grows past cap is not returned as bytes."""
+    if kind == "link":
+        return ("symlink", 0)
+    if kind != "file":
+        return ("not-regular", 0)
+    kept = 0
+    for chunk in chunks:
+        room = cap + 1 - kept
+        if room <= 0:
+            return ("exceeded", cap)
+        kept += min(len(chunk), room)
+        if kept > cap:
+            return ("exceeded", cap)
+    return ("bytes", kept)
+
+
 def names(blob):
     with zipfile.ZipFile(io.BytesIO(blob)) as archive:
         return archive.namelist()
@@ -192,6 +209,55 @@ class QmodArchiveInspectionContracts(unittest.TestCase):
         self.assertIn("不是正式业务规则", self.app)
         self.assertNotIn("UploadModDraft(", self.core + self.app)
         self.assertNotIn("ValidateModPackage(", self.core + self.app)
+
+    def test_lease_precedes_checks_and_the_read_is_bounded(self):
+        start = self.core.index("static func open")
+        body = self.core[start:self.core.index("private static func pathIsSymlink")]
+        self.assertLess(body.index("startAccessingSecurityScopedResource"), body.index("budget.isUsable"))
+        self.assertLess(body.index("budget.isUsable"), body.index("Darwin.open"))
+        self.assertLess(body.index("O_NOFOLLOW"), body.index("Darwin.fstat"))
+        self.assertLess(body.index("Darwin.fstat"), body.index("Darwin.read"))
+        self.assertIn("S_IFREG", body)
+        self.assertIn("S_IFLNK", body)
+        self.assertIn("st_size > cap", body)
+        self.assertIn("collected.count) > cap", body)
+        self.assertIn("st_ino", body)
+        self.assertIn("st_mtimespec", body)
+        for absent in ("Data(contentsOf:", "resourceValues", "maxArchiveBytes", "reviewProposalV1", "fileSizeKey"):
+            self.assertNotIn(absent, body)
+        for absent in ("Data(contentsOf:", "resourceValues", "maxArchiveBytes", "fileSizeKey"):
+            self.assertNotIn(absent, self.app)
+        budget = self.core[self.core.index("struct QmodLocalReadBudget"):self.core.index("public struct QmodLocalFileFacts")]
+        self.assertIn("maxBytes: 32 << 20, isProposal: false, isBusinessRule: false", budget)
+        self.assertNotIn("25 << 20", budget)
+        self.assertIn("maxArchiveBytes: 25 << 20", self.contract)
+        importer = self.app[self.app.index("func importFile"):self.app.index("func recheck")]
+        self.assertLess(importer.index("Task.detached"), importer.index("QmodSecurityScopedPackage.open"))
+        self.assertNotIn("QmodArchiveInspection.inspect", importer)
+        checker = self.app[self.app.index("enum QmodAuthorImportCheck"):self.app.index("struct QmodAuthorImportView")]
+        self.assertLess(checker.index("switch opened"), checker.index("QmodArchiveInspection.inspect"))
+        recheck = self.app[self.app.index("func recheck"):self.app.index("func cancel")]
+        self.assertLess(recheck.index("Task.detached"), recheck.index("QmodArchiveInspection.inspect"))
+        self.assertIn("work?.cancel()", self.app)
+        self.assertIn("complete(generation:", self.app)
+        self.assertIn("readBudget: QmodLocalReadBudget = .localProcessStop", self.app)
+        self.assertIn("Task.isCancelled", self.core)
+        self.assertLess(self.core.index("case .cancelled:"), self.core.index("QmodCRC32.checksum"))
+
+    def test_growing_read_and_stale_generation_stop(self):
+        self.assertEqual(bounded_read("file", [b"abcd", b"0123456789"], 8), ("exceeded", 8))
+        self.assertEqual(bounded_read("file", [b"abcd"], 8), ("bytes", 4))
+        self.assertEqual(bounded_read("file", [b"12345678"], 8), ("bytes", 8))
+        self.assertEqual(bounded_read("link", [b"target-bytes-that-must-not-be-kept"], 8), ("symlink", 0))
+        self.assertEqual(bounded_read("dir", [b"x"], 8), ("not-regular", 0))
+
+        def deliver(current, report_generation, phase, cancelled):
+            return (not cancelled) and current == report_generation and phase == "inspecting"
+
+        self.assertFalse(deliver(2, 1, "inspecting", False))
+        self.assertFalse(deliver(2, 2, "cancelled", False))
+        self.assertFalse(deliver(2, 2, "inspecting", True))
+        self.assertTrue(deliver(2, 2, "inspecting", False))
 
     def test_fixtures_encode_the_acceptance_cases(self):
         self.assertTrue(FIXTURES.is_dir(), FIXTURES)

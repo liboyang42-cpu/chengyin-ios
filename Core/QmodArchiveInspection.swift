@@ -1,4 +1,5 @@
 import CryptoKit
+import Darwin
 import Foundation
 import zlib
 
@@ -8,7 +9,8 @@ import zlib
 ///
 /// UploadModDraft and ValidateModPackage are not approved. This type has no
 /// upload result and does not execute package bytes. `QmodLimitProfile` numbers
-/// and the expansion stop are caller-supplied local ceilings, not business rules.
+/// are a labelled proposal, not a business rule and not the pre-read stop.
+/// `QmodLocalReadBudget` is the only byte cap used while opening a file.
 public enum QmodArchiveIssueCode: Equatable, Sendable {
     case pathTraversal(String)
     case duplicatePath(String)
@@ -31,6 +33,12 @@ public enum QmodArchiveIssueCode: Equatable, Sendable {
     case unsupportedZip64(String)
     case encrypted(String)
     case localFileUnreadable(String)
+    /// The read ceiling was labelled as a proposal or a business rule, so the file was not opened.
+    case readBudgetPosedAsRule
+    /// The opened file passed the process read ceiling. Bytes past the ceiling were not kept.
+    case readBudgetExceeded(actual: Int64, limit: Int64)
+    /// The background check was cancelled. Callers drop this report instead of showing it.
+    case checkCancelled
 }
 
 public struct QmodArchiveIssue: Equatable, Sendable {
@@ -84,6 +92,23 @@ public struct QmodExpansionGuard: Equatable, Sendable {
     public static let localProcessStop = QmodExpansionGuard(numerator: 100, denominator: 1, isBusinessRule: false)
 }
 
+/// Byte cap for opening one selected file. Independent of `QmodLimitProfile`.
+/// `reviewProposalV1.maxArchiveBytes` (25 MiB) is not this ceiling.
+public struct QmodLocalReadBudget: Equatable, Sendable {
+    public let maxBytes: Int64
+    public let isProposal: Bool
+    public let isBusinessRule: Bool
+    public init(maxBytes: Int64, isProposal: Bool, isBusinessRule: Bool) {
+        self.maxBytes = maxBytes
+        self.isProposal = isProposal
+        self.isBusinessRule = isBusinessRule
+    }
+    /// 32 MiB process allocation stop. Not a proposal profile and not a business rule.
+    public static let localProcessStop = QmodLocalReadBudget(maxBytes: 32 << 20, isProposal: false, isBusinessRule: false)
+
+    public var isUsable: Bool { !isProposal && !isBusinessRule && maxBytes > 0 && maxBytes <= Int64(Int.max) }
+}
+
 public struct QmodLocalFileFacts: Equatable, Sendable {
     public let isSymbolicLink: Bool
     public let isRegularFile: Bool
@@ -109,6 +134,9 @@ public struct QmodLocalInspectionReport: Equatable, Sendable {
     public let expansionDenominator: Int64
     public let duplicateJSONKeys: QmodDuplicateJSONKeyPolicy
     public let limitsAreBusinessRules: Bool
+    public let localReadBudgetBytes: Int64
+    public let localReadBudgetIsProposal: Bool
+    public let localReadBudgetIsBusinessRule: Bool
     public let serverSubmission: QmodServerSubmission
     public let executedPackageCode: Bool
     public let acceptedH5: Bool
@@ -118,10 +146,13 @@ public struct QmodLocalInspectionReport: Equatable, Sendable {
     public static let fixedExecutionDenialText = "本检查不执行包内代码，不接受 H5，不上传包。"
     public var serverDenialText: String { Self.fixedServerDenialText }
     public var proposalDenialText: String {
-        "体积与条数上限来自调用方给出的限制档 \(limitProfileVersion)，不是正式业务规则。"
+        "体积与条数上限来自调用方给出的限制档 \(limitProfileVersion)，不是正式业务规则，也不是打开文件前的读入停止线。"
     }
     public var expansionDenialText: String {
         "压缩倍数止损 \(expansionNumerator):\(expansionDenominator) 只是本进程安全停止，不是正式业务规则。"
+    }
+    public var readBudgetDenialText: String {
+        "读入停止线 \(localReadBudgetBytes) 字节只属于本进程，不是限制档 \(limitProfileVersion)，也不是正式业务规则。"
     }
     public var executionDenialText: String { Self.fixedExecutionDenialText }
     public var outcomeText: String {
@@ -131,7 +162,7 @@ public struct QmodLocalInspectionReport: Equatable, Sendable {
         }
     }
 
-    public init(generation: UInt64, packageLabel: String, issues: [QmodArchiveIssue], fileSummaries: [QmodFileDigestSummary], manifestPackageId: String?, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard) {
+    public init(generation: UInt64, packageLabel: String, issues: [QmodArchiveIssue], fileSummaries: [QmodFileDigestSummary], manifestPackageId: String?, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard, readBudget: QmodLocalReadBudget = .localProcessStop) {
         self.generation = generation
         self.packageLabel = packageLabel
         self.outcome = issues.isEmpty ? .passedLocalChecks : .failedLocalChecks
@@ -144,6 +175,9 @@ public struct QmodLocalInspectionReport: Equatable, Sendable {
         self.expansionDenominator = expansionGuard.denominator
         self.duplicateJSONKeys = .notDetectedServerCheck
         self.limitsAreBusinessRules = false
+        self.localReadBudgetBytes = readBudget.maxBytes
+        self.localReadBudgetIsProposal = readBudget.isProposal
+        self.localReadBudgetIsBusinessRule = readBudget.isBusinessRule
         self.serverSubmission = .notAttempted
         self.executedPackageCode = false
         self.acceptedH5 = false
@@ -152,14 +186,21 @@ public struct QmodLocalInspectionReport: Equatable, Sendable {
 }
 
 public enum QmodArchiveInspection {
-    public static func inspect(package: Data, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard, generation: UInt64 = 0, packageLabel: String) -> QmodLocalInspectionReport {
+    public static func inspect(package: Data, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard, generation: UInt64 = 0, packageLabel: String, readBudget: QmodLocalReadBudget = .localProcessStop) -> QmodLocalInspectionReport {
         let label = QmodArchiveLabels.sanitize(packageLabel)
         func finish(_ issues: [QmodArchiveIssue], _ summaries: [QmodFileDigestSummary] = [], _ packageId: String? = nil) -> QmodLocalInspectionReport {
-            QmodLocalInspectionReport(generation: generation, packageLabel: label, issues: issues, fileSummaries: summaries, manifestPackageId: packageId, limits: limits, expansionGuard: expansionGuard)
+            QmodLocalInspectionReport(generation: generation, packageLabel: label, issues: issues, fileSummaries: summaries, manifestPackageId: packageId, limits: limits, expansionGuard: expansionGuard, readBudget: readBudget)
         }
         if expansionGuard.isBusinessRule || expansionGuard.numerator <= 0 || expansionGuard.denominator <= 0 {
             return finish([QmodArchiveIssue(code: .proposalPresentedAsBusinessRule, entryIndex: nil, headerOffset: nil, path: nil)])
         }
+        if !readBudget.isUsable {
+            return finish([QmodArchiveIssue(code: .readBudgetPosedAsRule, entryIndex: nil, headerOffset: nil, path: nil)])
+        }
+        if Int64(package.count) > readBudget.maxBytes {
+            return finish([QmodArchiveIssue(code: .readBudgetExceeded(actual: Int64(package.count), limit: readBudget.maxBytes), entryIndex: nil, headerOffset: nil, path: nil)])
+        }
+        if Task.isCancelled { return finish([QmodArchiveIssue(code: .checkCancelled, entryIndex: nil, headerOffset: nil, path: nil)]) }
         var issues: [QmodArchiveIssue] = []
         if !limits.isProposal {
             issues.append(QmodArchiveIssue(code: .limitProfileNotApproved(limits.profileVersion), entryIndex: nil, headerOffset: nil, path: nil))
@@ -186,6 +227,7 @@ public enum QmodArchiveInspection {
         var spans: [(start: Int, end: Int, index: Int)] = []
         var candidates: [QmodZipCandidate] = []
         for record in directory.records {
+            if Task.isCancelled { return finish([QmodArchiveIssue(code: .checkCancelled, entryIndex: nil, headerOffset: nil, path: nil)]) }
             func add(_ code: QmodArchiveIssueCode, offset: Int? = nil) {
                 issues.append(QmodArchiveIssue(code: code, entryIndex: record.index, headerOffset: offset ?? record.localOffset, path: record.name))
             }
@@ -270,6 +312,7 @@ public enum QmodArchiveInspection {
         var manifestOffset: Int?
         var summaries: [QmodFileDigestSummary] = []
         for candidate in chosen {
+            if Task.isCancelled { return finish([QmodArchiveIssue(code: .checkCancelled, entryIndex: nil, headerOffset: nil, path: nil)]) }
             let record = candidate.record
             let decoded: QmodZipBytes
             switch record.method {
@@ -295,6 +338,8 @@ public enum QmodArchiveInspection {
             case .exceeded:
                 issues.append(QmodArchiveIssue(code: .abnormalCompression(path: record.name, compressed: record.compressedSize, uncompressed: record.uncompressedSize), entryIndex: record.index, headerOffset: record.localOffset, path: record.name))
                 continue
+            case .cancelled:
+                return finish([QmodArchiveIssue(code: .checkCancelled, entryIndex: nil, headerOffset: nil, path: nil)])
             case .corrupt:
                 issues.append(QmodArchiveIssue(code: .corrupt(detail: "inflate"), entryIndex: record.index, headerOffset: record.localOffset, path: record.name))
                 continue
@@ -303,11 +348,16 @@ public enum QmodArchiveInspection {
                 issues.append(QmodArchiveIssue(code: .corrupt(detail: "size"), entryIndex: record.index, headerOffset: record.localOffset, path: record.name))
                 continue
             }
-            guard QmodCRC32.checksum(payload) == record.crc else {
+            guard let crc = QmodCRC32.checksum(payload) else {
+                return finish([QmodArchiveIssue(code: .checkCancelled, entryIndex: nil, headerOffset: nil, path: nil)])
+            }
+            guard crc == record.crc else {
                 issues.append(QmodArchiveIssue(code: .corrupt(detail: "crc32"), entryIndex: record.index, headerOffset: record.localOffset, path: record.name))
                 continue
             }
-            let digest = QmodZip.sha256Hex(payload)
+            guard let digest = QmodZip.sha256Hex(payload) else {
+                return finish([QmodArchiveIssue(code: .checkCancelled, entryIndex: nil, headerOffset: nil, path: nil)])
+            }
             if record.name == "manifest.json" {
                 manifestBytes = payload
                 manifestIndex = record.index
@@ -378,31 +428,47 @@ public struct QmodArchiveInspectionSession: Equatable {
         lhs.generation == rhs.generation && lhs.phase == rhs.phase && lhs.packageLabel == rhs.packageLabel && lhs.report == rhs.report && lhs.retained == rhs.retained && lhs.limits == rhs.limits && lhs.expansionGuard == rhs.expansionGuard
     }
 
-    public mutating func select(bytes: Data, label: String, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard) {
-        selectLocalFile(facts: QmodLocalFileFacts(isSymbolicLink: false, isRegularFile: true, byteCount: Int64(bytes.count)), bytes: bytes, label: label, limits: limits, expansionGuard: expansionGuard)
+    public mutating func select(bytes: Data, label: String, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard, readBudget: QmodLocalReadBudget = .localProcessStop) {
+        selectLocalFile(facts: QmodLocalFileFacts(isSymbolicLink: false, isRegularFile: true, byteCount: Int64(bytes.count)), bytes: bytes, label: label, limits: limits, expansionGuard: expansionGuard, readBudget: readBudget)
     }
 
-    public mutating func replace(bytes: Data, label: String, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard) {
-        select(bytes: bytes, label: label, limits: limits, expansionGuard: expansionGuard)
+    public mutating func replace(bytes: Data, label: String, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard, readBudget: QmodLocalReadBudget = .localProcessStop) {
+        select(bytes: bytes, label: label, limits: limits, expansionGuard: expansionGuard, readBudget: readBudget)
     }
 
-    public mutating func selectLocalFile(facts: QmodLocalFileFacts, bytes: Data?, label: String, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard) {
+    /// Bumps the generation and clears the visible report before a background check starts.
+    public mutating func beginSelection(label: String) -> UInt64 { begin(label) }
+
+    public func packageForRecheck() -> (bytes: Data, label: String, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard)? {
+        guard let retained, let limits, let expansionGuard, let packageLabel else { return nil }
+        return (retained, packageLabel, limits, expansionGuard)
+    }
+
+    /// Keeps bytes only after `complete` has accepted the matching generation.
+    public mutating func noteRetainedPackage(_ bytes: Data, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard) {
+        guard phase == .reported else { return }
+        retained = bytes
+        self.limits = limits
+        self.expansionGuard = expansionGuard
+    }
+
+    public mutating func selectLocalFile(facts: QmodLocalFileFacts, bytes: Data?, label: String, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard, readBudget: QmodLocalReadBudget = .localProcessStop) {
         let generation = begin(label)
         let safeLabel = packageLabel ?? "package"
         let report: QmodLocalInspectionReport
         if facts.isSymbolicLink {
-            report = QmodLocalInspectionReport(generation: generation, packageLabel: safeLabel, issues: [QmodArchiveIssue(code: .symlink(safeLabel), entryIndex: nil, headerOffset: nil, path: safeLabel)], fileSummaries: [], manifestPackageId: nil, limits: limits, expansionGuard: expansionGuard)
+            report = QmodLocalInspectionReport(generation: generation, packageLabel: safeLabel, issues: [QmodArchiveIssue(code: .symlink(safeLabel), entryIndex: nil, headerOffset: nil, path: safeLabel)], fileSummaries: [], manifestPackageId: nil, limits: limits, expansionGuard: expansionGuard, readBudget: readBudget)
         } else if !facts.isRegularFile {
-            report = QmodLocalInspectionReport(generation: generation, packageLabel: safeLabel, issues: [QmodArchiveIssue(code: .notARegularFile(safeLabel), entryIndex: nil, headerOffset: nil, path: safeLabel)], fileSummaries: [], manifestPackageId: nil, limits: limits, expansionGuard: expansionGuard)
-        } else if let count = facts.byteCount, count > limits.maxArchiveBytes {
-            report = QmodLocalInspectionReport(generation: generation, packageLabel: safeLabel, issues: [QmodArchiveIssue(code: .archiveTooLarge(actual: count, limit: limits.maxArchiveBytes), entryIndex: nil, headerOffset: nil, path: safeLabel)], fileSummaries: [], manifestPackageId: nil, limits: limits, expansionGuard: expansionGuard)
+            report = QmodLocalInspectionReport(generation: generation, packageLabel: safeLabel, issues: [QmodArchiveIssue(code: .notARegularFile(safeLabel), entryIndex: nil, headerOffset: nil, path: safeLabel)], fileSummaries: [], manifestPackageId: nil, limits: limits, expansionGuard: expansionGuard, readBudget: readBudget)
         } else if let count = facts.byteCount, let bytes, Int64(bytes.count) == count {
-            retained = bytes
-            self.limits = limits
-            self.expansionGuard = expansionGuard
-            report = QmodArchiveInspection.inspect(package: bytes, limits: limits, expansionGuard: expansionGuard, generation: generation, packageLabel: safeLabel)
+            report = QmodArchiveInspection.inspect(package: bytes, limits: limits, expansionGuard: expansionGuard, generation: generation, packageLabel: safeLabel, readBudget: readBudget)
+            if readBudget.isUsable, Int64(bytes.count) <= readBudget.maxBytes, !report.issues.contains(where: { if case .checkCancelled = $0.code { return true }; return false }) {
+                retained = bytes
+                self.limits = limits
+                self.expansionGuard = expansionGuard
+            }
         } else {
-            report = QmodLocalInspectionReport(generation: generation, packageLabel: safeLabel, issues: [QmodArchiveIssue(code: .localFileUnreadable(safeLabel), entryIndex: nil, headerOffset: nil, path: safeLabel)], fileSummaries: [], manifestPackageId: nil, limits: limits, expansionGuard: expansionGuard)
+            report = QmodLocalInspectionReport(generation: generation, packageLabel: safeLabel, issues: [QmodArchiveIssue(code: .localFileUnreadable(safeLabel), entryIndex: nil, headerOffset: nil, path: safeLabel)], fileSummaries: [], manifestPackageId: nil, limits: limits, expansionGuard: expansionGuard, readBudget: readBudget)
         }
         _ = complete(generation: generation, report: report)
     }
@@ -424,7 +490,7 @@ public struct QmodArchiveInspectionSession: Equatable {
 
     /// Applies a report only when it belongs to the inspection that is still current.
     @discardableResult
-    mutating func complete(generation: UInt64, report: QmodLocalInspectionReport) -> Bool {
+    public mutating func complete(generation: UInt64, report: QmodLocalInspectionReport) -> Bool {
         guard generation == self.generation, report.generation == generation, phase == .inspecting else { return false }
         self.report = report
         phase = .reported
@@ -443,8 +509,84 @@ public struct QmodArchiveInspectionSession: Equatable {
     }
 }
 
-enum QmodArchiveLabels {
-    static func sanitize(_ label: String) -> String {
+public enum QmodOpenedPackage: Equatable, Sendable {
+    case bytes(Data)
+    case symlink
+    case notRegularFile
+    case readBudgetExceeded(actual: Int64, limit: Int64)
+    case readBudgetPosedAsRule
+    case unreadable
+    case cancelled
+}
+
+/// Opens one security-scoped URL. The access lease is acquired before any stat, open, or read.
+public enum QmodSecurityScopedPackage {
+    public static func open(url: URL, budget: QmodLocalReadBudget) -> QmodOpenedPackage {
+        let lease = url.startAccessingSecurityScopedResource()
+        defer { if lease { url.stopAccessingSecurityScopedResource() } }
+        if Task.isCancelled { return .cancelled }
+        guard budget.isUsable else { return .readBudgetPosedAsRule }
+        guard url.isFileURL else { return .unreadable }
+        let fd = url.withUnsafeFileSystemRepresentation { path -> Int32 in
+            guard let path else { return -1 }
+            return Darwin.open(path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK)
+        }
+        if fd < 0 {
+            if pathIsSymlink(url) { return .symlink }
+            return .unreadable
+        }
+        defer { Darwin.close(fd) }
+        var info = stat()
+        guard Darwin.fstat(fd, &info) == 0 else { return .unreadable }
+        let kind = info.st_mode & mode_t(S_IFMT)
+        if kind == mode_t(S_IFLNK) { return .symlink }
+        if kind != mode_t(S_IFREG) { return .notRegularFile }
+        let cap = budget.maxBytes
+        if info.st_size < 0 { return .unreadable }
+        if info.st_size > cap { return .readBudgetExceeded(actual: info.st_size, limit: cap) }
+        var collected = Data()
+        if info.st_size > 0 { collected.reserveCapacity(Int(info.st_size)) }
+        let chunkSize = 64 * 1024
+        var buffer = [UInt8](repeating: 0, count: chunkSize)
+        while Int64(collected.count) <= cap {
+            if Task.isCancelled { return .cancelled }
+            let count = buffer.withUnsafeMutableBytes { raw -> Int in
+                guard let base = raw.baseAddress else { return -1 }
+                return Darwin.read(fd, base, chunkSize)
+            }
+            if count == 0 { break }
+            if count < 0 {
+                if errno == EINTR { continue }
+                return .unreadable
+            }
+            let room = cap + 1 - Int64(collected.count)
+            let take = min(Int64(count), max(room, 0))
+            if take > 0 { collected.append(contentsOf: buffer.prefix(Int(take))) }
+            if Int64(collected.count) > cap { return .readBudgetExceeded(actual: Int64(collected.count), limit: cap) }
+        }
+        var after = stat()
+        guard Darwin.fstat(fd, &after) == 0, (after.st_mode & mode_t(S_IFMT)) == mode_t(S_IFREG) else { return .unreadable }
+        let sameFile = after.st_dev == info.st_dev && after.st_ino == info.st_ino && after.st_size == info.st_size && after.st_mtimespec.tv_sec == info.st_mtimespec.tv_sec && after.st_mtimespec.tv_nsec == info.st_mtimespec.tv_nsec
+        if !sameFile || Int64(collected.count) != info.st_size {
+            if after.st_size > cap || Int64(collected.count) > cap {
+                return .readBudgetExceeded(actual: max(after.st_size, Int64(collected.count)), limit: cap)
+            }
+            return .unreadable
+        }
+        return .bytes(collected)
+    }
+
+    private static func pathIsSymlink(_ url: URL) -> Bool {
+        url.withUnsafeFileSystemRepresentation { path in
+            guard let path else { return false }
+            var info = stat()
+            return Darwin.lstat(path, &info) == 0 && (info.st_mode & mode_t(S_IFMT)) == mode_t(S_IFLNK)
+        }
+    }
+}
+
+public enum QmodArchiveLabels {
+    public static func sanitize(_ label: String) -> String {
         let scalars = label.unicodeScalars.filter { !CharacterSet.controlCharacters.contains($0) && $0.value != 0x7F }
         let text = String(String.UnicodeScalarView(scalars)).trimmingCharacters(in: .whitespacesAndNewlines)
         if text.isEmpty { return "package" }
@@ -453,11 +595,15 @@ enum QmodArchiveLabels {
 }
 
 enum QmodCRC32 {
-    static func checksum(_ data: Data) -> UInt32 {
+    static func checksum(_ data: Data) -> UInt32? {
         var crc: UInt32 = 0xFFFF_FFFF
+        var steps = 0
         for byte in data {
+            if steps & 0xFFFF == 0, Task.isCancelled { return nil }
             crc = table[Int((crc ^ UInt32(byte)) & 0xFF)] ^ (crc >> 8)
+            steps += 1
         }
+        if Task.isCancelled { return nil }
         return crc ^ 0xFFFF_FFFF
     }
 
@@ -468,10 +614,11 @@ enum QmodCRC32 {
     }
 }
 
-private enum QmodZipBytes { case exact(Data), exceeded, corrupt }
+private enum QmodZipBytes { case exact(Data), exceeded, corrupt, cancelled }
 
 private enum QmodRawDeflate {
     static func inflate(_ input: Data, exact: Int) -> QmodZipBytes {
+        if Task.isCancelled { return .cancelled }
         guard exact >= 0, input.count <= Int(UInt32.max), exact <= Int(UInt32.max) else { return .corrupt }
         if input.isEmpty { return exact == 0 ? .exact(Data()) : .corrupt }
         var stream = z_stream()
@@ -493,20 +640,30 @@ private enum QmodRawDeflate {
             return status == Z_STREAM_END ? .exact(Data()) : .corrupt
         }
         var output = [UInt8](repeating: 0, count: exact)
-        var status = Z_DATA_ERROR
-        input.withUnsafeBytes { raw in
-            guard let base = raw.bindMemory(to: UInt8.self).baseAddress else { return }
+        var produced = 0
+        var status: Int32 = Z_OK
+        let cancelled: Bool = input.withUnsafeBytes { raw in
+            guard let base = raw.bindMemory(to: UInt8.self).baseAddress else { status = Z_DATA_ERROR; return false }
             stream.next_in = UnsafeMutablePointer(mutating: base)
             stream.avail_in = UInt32(input.count)
-            output.withUnsafeMutableBytes { out in
-                stream.next_out = out.bindMemory(to: UInt8.self).baseAddress
-                stream.avail_out = UInt32(exact)
-                status = inflate(&stream, Z_FINISH)
+            while produced < exact && status != Z_STREAM_END {
+                if Task.isCancelled { return true }
+                let want = min(65_536, exact - produced)
+                status = output.withUnsafeMutableBytes { out -> Int32 in
+                    guard let outBase = out.bindMemory(to: UInt8.self).baseAddress else { return Z_DATA_ERROR }
+                    stream.next_out = outBase.advanced(by: produced)
+                    stream.avail_out = UInt32(want)
+                    return inflate(&stream, produced + want == exact ? Z_FINISH : Z_NO_FLUSH)
+                }
+                let wrote = want - Int(stream.avail_out)
+                if wrote <= 0 { break }
+                produced += wrote
             }
+            return false
         }
-        let produced = exact - Int(stream.avail_out)
+        if cancelled { return .cancelled }
         if status == Z_STREAM_END && produced == exact && stream.avail_in == 0 { return .exact(Data(output)) }
-        if stream.avail_out == 0 && status != Z_STREAM_END { return .exceeded }
+        if produced == exact && status != Z_STREAM_END { return .exceeded }
         return .corrupt
     }
 }
@@ -650,7 +807,21 @@ private enum QmodZip {
         return overlapped
     }
 
-    static func sha256Hex(_ data: Data) -> String { SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() }
+    static func sha256Hex(_ data: Data) -> String? {
+        var hasher = SHA256()
+        var offset = 0
+        while offset < data.count {
+            if Task.isCancelled { return nil }
+            let end = min(offset + 65_536, data.count)
+            data.withUnsafeBytes { raw in
+                guard let base = raw.bindMemory(to: UInt8.self).baseAddress else { return }
+                hasher.update(bufferPointer: UnsafeRawBufferPointer(start: base.advanced(by: offset), count: end - offset))
+            }
+            offset = end
+        }
+        if Task.isCancelled { return nil }
+        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+    }
 
     static func slice(_ data: Data, _ start: Int, _ count: Int) -> Data? {
         guard start >= 0, count >= 0, start <= data.count, count <= data.count - start else { return nil }

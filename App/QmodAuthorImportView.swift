@@ -8,28 +8,96 @@ final class QmodAuthorImportModel: ObservableObject {
     @Published private(set) var session = QmodArchiveInspectionSession()
     let limits: QmodLimitProfile
     let expansionGuard: QmodExpansionGuard
+    /// Process read ceiling. Not `limits` and not a business rule.
+    let readBudget: QmodLocalReadBudget
+    private var work: Task<Void, Never>?
 
-    init(limits: QmodLimitProfile = .reviewProposalV1, expansionGuard: QmodExpansionGuard = .localProcessStop) {
+    init(limits: QmodLimitProfile = .reviewProposalV1, expansionGuard: QmodExpansionGuard = .localProcessStop, readBudget: QmodLocalReadBudget = .localProcessStop) {
         self.limits = limits
         self.expansionGuard = expansionGuard
+        self.readBudget = readBudget
     }
 
-    func importLocal(facts: QmodLocalFileFacts, bytes: Data?, label: String) {
-        var next = session
-        next.selectLocalFile(facts: facts, bytes: bytes, label: label, limits: limits, expansionGuard: expansionGuard)
-        session = next
+    func importFile(at url: URL) {
+        let generation = begin(url.lastPathComponent)
+        let limits = self.limits
+        let expansionGuard = self.expansionGuard
+        let readBudget = self.readBudget
+        let label = url.lastPathComponent
+        work = Task.detached(priority: .utility) { [weak self] in
+            let opened = QmodSecurityScopedPackage.open(url: url, budget: readBudget)
+            if Task.isCancelled { return }
+            let outcome = QmodAuthorImportCheck.inspect(opened: opened, generation: generation, label: label, limits: limits, expansionGuard: expansionGuard, readBudget: readBudget)
+            if Task.isCancelled || outcome.report.issues.contains(where: { if case .checkCancelled = $0.code { return true }; return false }) { return }
+            await self?.accept(generation: generation, report: outcome.report, retain: outcome.retain, limits: limits, expansionGuard: expansionGuard)
+        }
     }
 
     func recheck() {
-        var next = session
-        next.recheck()
-        session = next
+        guard let package = session.packageForRecheck() else { return }
+        let generation = begin(package.label)
+        let limits = package.limits
+        let expansionGuard = package.expansionGuard
+        let readBudget = self.readBudget
+        let bytes = package.bytes
+        let label = package.label
+        work = Task.detached(priority: .utility) { [weak self] in
+            if Task.isCancelled { return }
+            let report = QmodArchiveInspection.inspect(package: bytes, limits: limits, expansionGuard: expansionGuard, generation: generation, packageLabel: label, readBudget: readBudget)
+            if Task.isCancelled || report.issues.contains(where: { if case .checkCancelled = $0.code { return true }; return false }) { return }
+            let retain = readBudget.isUsable && Int64(bytes.count) <= readBudget.maxBytes ? bytes : nil
+            await self?.accept(generation: generation, report: report, retain: retain, limits: limits, expansionGuard: expansionGuard)
+        }
     }
 
     func cancel() {
+        work?.cancel()
+        work = nil
         var next = session
         next.cancel()
         session = next
+    }
+
+    private func begin(_ label: String) -> UInt64 {
+        work?.cancel()
+        var next = session
+        let generation = next.beginSelection(label: label)
+        session = next
+        return generation
+    }
+
+    private func accept(generation: UInt64, report: QmodLocalInspectionReport, retain: Data?, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard) {
+        var next = session
+        guard next.complete(generation: generation, report: report) else { return }
+        if let retain { next.noteRetainedPackage(retain, limits: limits, expansionGuard: expansionGuard) }
+        session = next
+    }
+}
+
+private enum QmodAuthorImportCheck {
+    static func inspect(opened: QmodOpenedPackage, generation: UInt64, label: String, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard, readBudget: QmodLocalReadBudget) -> (report: QmodLocalInspectionReport, retain: Data?) {
+        let safe = QmodArchiveLabels.sanitize(label)
+        func failed(_ code: QmodArchiveIssueCode) -> (report: QmodLocalInspectionReport, retain: Data?) {
+            (QmodLocalInspectionReport(generation: generation, packageLabel: safe, issues: [QmodArchiveIssue(code: code, entryIndex: nil, headerOffset: nil, path: safe)], fileSummaries: [], manifestPackageId: nil, limits: limits, expansionGuard: expansionGuard, readBudget: readBudget), nil)
+        }
+        switch opened {
+        case .bytes(let data):
+            let report = QmodArchiveInspection.inspect(package: data, limits: limits, expansionGuard: expansionGuard, generation: generation, packageLabel: safe, readBudget: readBudget)
+            let retain = readBudget.isUsable && Int64(data.count) <= readBudget.maxBytes ? data : nil
+            return (report, retain)
+        case .symlink:
+            return failed(.symlink(safe))
+        case .notRegularFile:
+            return failed(.notARegularFile(safe))
+        case .readBudgetExceeded(let actual, let limit):
+            return failed(.readBudgetExceeded(actual: actual, limit: limit))
+        case .readBudgetPosedAsRule:
+            return failed(.readBudgetPosedAsRule)
+        case .unreadable:
+            return failed(.localFileUnreadable(safe))
+        case .cancelled:
+            return failed(.checkCancelled)
+        }
     }
 }
 
@@ -38,8 +106,8 @@ struct QmodAuthorImportView: View {
     @StateObject private var model: QmodAuthorImportModel
     @State private var picking = false
 
-    init(limits: QmodLimitProfile = .reviewProposalV1, expansionGuard: QmodExpansionGuard = .localProcessStop) {
-        _model = StateObject(wrappedValue: QmodAuthorImportModel(limits: limits, expansionGuard: expansionGuard))
+    init(limits: QmodLimitProfile = .reviewProposalV1, expansionGuard: QmodExpansionGuard = .localProcessStop, readBudget: QmodLocalReadBudget = .localProcessStop) {
+        _model = StateObject(wrappedValue: QmodAuthorImportModel(limits: limits, expansionGuard: expansionGuard, readBudget: readBudget))
     }
 
     var body: some View {
@@ -47,7 +115,9 @@ struct QmodAuthorImportView: View {
             Section(header: Text(verbatim: "本机边界")) {
                 Text(verbatim: QmodLocalInspectionReport.fixedServerDenialText)
                     .accessibilityIdentifier("qmod.authorImport.serverStatus")
-                Text(verbatim: "体积与条数上限来自调用方给出的限制档 \(model.limits.profileVersion)，不是正式业务规则。")
+                Text(verbatim: "体积与条数上限来自调用方给出的限制档 \(model.limits.profileVersion)，不是正式业务规则，也不是打开文件前的读入停止线。")
+                Text(verbatim: "读入停止线 \(model.readBudget.maxBytes) 字节只属于本进程，不是限制档 \(model.limits.profileVersion)，也不是正式业务规则。")
+                    .accessibilityIdentifier("qmod.authorImport.readBudget")
                 Text(verbatim: "压缩倍数止损 \(model.expansionGuard.numerator):\(model.expansionGuard.denominator) 只是本进程安全停止，不是正式业务规则。")
                 Text(verbatim: QmodLocalInspectionReport.fixedExecutionDenialText)
             }
@@ -64,6 +134,12 @@ struct QmodAuthorImportView: View {
                     .disabled(model.session.phase == .idle || model.session.phase == .cancelled)
                     .accessibilityIdentifier("qmod.authorImport.cancel")
             }
+            if model.session.phase == .inspecting {
+                Section {
+                    Text(verbatim: "正在检查。取消或换包会丢弃这一次的结果。")
+                        .accessibilityIdentifier("qmod.authorImport.inspecting")
+                }
+            }
             if model.session.phase == .cancelled {
                 Section {
                     Text(verbatim: "已取消。上一份报告已丢弃，不会再套用。")
@@ -78,7 +154,7 @@ struct QmodAuthorImportView: View {
         .accessibilityIdentifier("qmod.authorImport.root")
         .privacySensitive()
         .fileImporter(isPresented: $picking, allowedContentTypes: packageTypes) { result in
-            if case .success(let url) = result { importPackage(at: url) }
+            if case .success(let url) = result { model.importFile(at: url) }
         }
     }
 
@@ -93,6 +169,7 @@ struct QmodAuthorImportView: View {
                 .accessibilityIdentifier("qmod.authorImport.outcome")
             Text(verbatim: report.serverDenialText)
             Text(verbatim: report.proposalDenialText)
+            Text(verbatim: report.readBudgetDenialText)
             Text(verbatim: report.expansionDenialText)
             Text(verbatim: "检查序号 \(report.generation) · \(report.packageLabel)")
                 .font(.footnote.monospaced())
@@ -135,21 +212,6 @@ struct QmodAuthorImportView: View {
         }
     }
 
-    private func importPackage(at url: URL) {
-        let values = try? url.resourceValues(forKeys: [.isSymbolicLinkKey, .isRegularFileKey, .fileSizeKey])
-        let facts = QmodLocalFileFacts(
-            isSymbolicLink: values?.isSymbolicLink == true,
-            isRegularFile: values?.isRegularFile == true,
-            byteCount: values?.fileSize.map(Int64.init)
-        )
-        var bytes: Data?
-        if facts.isRegularFile, !facts.isSymbolicLink, let count = facts.byteCount, count >= 0, count <= model.limits.maxArchiveBytes {
-            let access = url.startAccessingSecurityScopedResource()
-            defer { if access { url.stopAccessingSecurityScopedResource() } }
-            bytes = try? Data(contentsOf: url)
-        }
-        model.importLocal(facts: facts, bytes: bytes, label: url.lastPathComponent)
-    }
 }
 
 private func qmodArchiveIssueLocation(_ issue: QmodArchiveIssue) -> String {
@@ -183,6 +245,9 @@ private func qmodArchiveIssueTitle(_ issue: QmodArchiveIssue) -> String {
     case .unsupportedZip64: return "不支持 ZIP64"
     case .encrypted: return "加密条目"
     case .localFileUnreadable: return "无法读取本地文件"
+    case .readBudgetPosedAsRule: return "读入停止线被当成提案或正式规则"
+    case .readBudgetExceeded: return "超过本进程读入停止线"
+    case .checkCancelled: return "检查已取消"
     }
 }
 
@@ -210,5 +275,8 @@ private func qmodArchiveIssueDetail(_ issue: QmodArchiveIssue) -> String {
     case .unsupportedZip64: return "ZIP64 不在本机检查范围内。"
     case .encrypted(let path): return "\(path) 带加密标记。本机不解密。"
     case .localFileUnreadable(let path): return "没有读到完整的普通文件 \(path)。"
+    case .readBudgetPosedAsRule: return "读入停止线被标成了提案档或正式业务规则。文件没有打开。"
+    case .readBudgetExceeded(_, let limit): return "打开的文件超过本进程读入停止线 \(limit) 字节。超出的字节没有读入。这不是提案档，也不是正式业务规则。"
+    case .checkCancelled: return "这次检查已取消。结果不会被采用。"
     }
 }

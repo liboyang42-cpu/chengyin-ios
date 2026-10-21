@@ -31,11 +31,16 @@ final class QmodArchiveInspectionTests: XCTestCase {
         XCTAssertTrue(report.outcomeText.contains("不是服务器提交成功"), file: file, line: line)
         XCTAssertTrue(report.executionDenialText.contains("不执行"), file: file, line: line)
         XCTAssertTrue(report.proposalDenialText.contains("不是正式业务规则"), file: file, line: line)
+        XCTAssertTrue(report.proposalDenialText.contains("不是打开文件前的读入停止线"), file: file, line: line)
         XCTAssertTrue(report.expansionDenialText.contains("不是正式业务规则"), file: file, line: line)
+        XCTAssertFalse(report.localReadBudgetIsProposal, file: file, line: line)
+        XCTAssertFalse(report.localReadBudgetIsBusinessRule, file: file, line: line)
+        XCTAssertTrue(report.readBudgetDenialText.contains("不是限制档"), file: file, line: line)
+        XCTAssertTrue(report.readBudgetDenialText.contains("不是正式业务规则"), file: file, line: line)
     }
 
     func testCRC32KnownVector() {
-        XCTAssertEqual(QmodCRC32.checksum(Data("123456789".utf8)), 0xCBF43926)
+        XCTAssertEqual(QmodCRC32.checksum(Data("123456789".utf8)), Optional(UInt32(0xCBF43926)))
     }
 
     func testStoredPackageMatchesManifestDigests() throws {
@@ -238,5 +243,43 @@ final class QmodArchiveInspectionTests: XCTestCase {
         session.selectLocalFile(facts: QmodLocalFileFacts(isSymbolicLink: false, isRegularFile: true, byteCount: Int64(bytes.count)), bytes: Data(bytes.dropLast()), label: "short.zip", limits: limits, expansionGuard: expansion)
         XCTAssertTrue(session.report?.issues.contains { if case .localFileUnreadable("short.zip") = $0.code { return true }; return false } ?? false)
         XCTAssertTrue(session.report?.fileSummaries.isEmpty ?? false)
+    }
+
+    func testReadBudgetIsNotTheProposalCeiling() throws {
+        let package = try fixture("ok-stored.zip")
+        let tiny = QmodLocalReadBudget(maxBytes: 8, isProposal: false, isBusinessRule: false)
+        let report = QmodArchiveInspection.inspect(package: package, limits: limits, expansionGuard: expansion, packageLabel: "ok-stored.zip", readBudget: tiny)
+        assertLocalOnly(report)
+        XCTAssertEqual(report.issues.map(\.code), [.readBudgetExceeded(actual: Int64(package.count), limit: 8)])
+        XCTAssertTrue(report.fileSummaries.isEmpty)
+        XCTAssertNotEqual(report.localReadBudgetBytes, limits.maxArchiveBytes)
+        let posed = QmodLocalReadBudget(maxBytes: limits.maxArchiveBytes, isProposal: true, isBusinessRule: false)
+        let posedReport = QmodArchiveInspection.inspect(package: package, limits: limits, expansionGuard: expansion, packageLabel: "ok-stored.zip", readBudget: posed)
+        XCTAssertEqual(posedReport.issues.map(\.code), [.readBudgetPosedAsRule])
+        XCTAssertTrue(posedReport.fileSummaries.isEmpty)
+        XCTAssertTrue(posedReport.localReadBudgetIsProposal)
+        let ruled = QmodLocalReadBudget(maxBytes: 32 << 20, isProposal: false, isBusinessRule: true)
+        XCTAssertEqual(QmodArchiveInspection.inspect(package: package, limits: limits, expansionGuard: expansion, packageLabel: "ok-stored.zip", readBudget: ruled).issues.map(\.code), [.readBudgetPosedAsRule])
+    }
+
+    func testOpenedFileIsBoundedAndALinkIsNotFollowed() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("qmod-e2-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let payload = Data(repeating: 0x61, count: 64)
+        let file = root.appendingPathComponent("pkg.zip")
+        try payload.write(to: file)
+        let opened = QmodSecurityScopedPackage.open(url: file, budget: QmodLocalReadBudget(maxBytes: 16, isProposal: false, isBusinessRule: false))
+        guard case .readBudgetExceeded(let actual, let limit) = opened else { return XCTFail("\(opened)") }
+        XCTAssertGreaterThan(actual, limit)
+        XCTAssertEqual(limit, 16)
+        let link = root.appendingPathComponent("link.zip")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: file)
+        guard case .symlink = QmodSecurityScopedPackage.open(url: link, budget: .localProcessStop) else { return XCTFail("link was followed") }
+        guard case .notRegularFile = QmodSecurityScopedPackage.open(url: root, budget: .localProcessStop) else { return XCTFail("directory was read") }
+        let posed = QmodLocalReadBudget(maxBytes: 32, isProposal: true, isBusinessRule: false)
+        guard case .readBudgetPosedAsRule = QmodSecurityScopedPackage.open(url: link, budget: posed) else { return XCTFail("posed budget reached the link") }
+        guard case .bytes(let data) = QmodSecurityScopedPackage.open(url: file, budget: .localProcessStop) else { return XCTFail("regular file") }
+        XCTAssertEqual(data, payload)
     }
 }
