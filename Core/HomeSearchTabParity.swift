@@ -384,6 +384,19 @@ public enum RootTabBarParity {
         }
     }
 
+    /// Root container destination resolved from `(RoleMode, RootTab)`.
+    public enum RootContainerRoute: String, CaseIterable, Equatable, Hashable, Sendable {
+        case consumerHome
+        case consumerRoam
+        case consumerTemplateLibrary
+        case consumerClub
+        case merchantWorkbench
+        case merchantMarketing
+        case merchantTemplates
+        case merchantCooperation
+        case mine
+    }
+
     public struct TabBarState: Equatable, Hashable, Sendable {
         public let mode: RoleMode
         public let selectedTab: RootTab
@@ -399,6 +412,42 @@ public enum RootTabBarParity {
 
         public func requiresAuthenticationPrompt(for tab: RootTab) -> Bool {
             false
+        }
+
+        /// Active root container route for the current `mode` and `selectedTab`.
+        public var activeContainerRoute: RootContainerRoute {
+            RootTabBarParity.containerRoute(for: selectedTab, mode: mode)
+        }
+
+        /// Returns a new state switched to `newMode`, resetting the selected tab to `defaultTab`.
+        public func switchingMode(to newMode: RoleMode, resettingTabTo defaultTab: RootTab = .home) -> TabBarState {
+            TabBarState(mode: newMode, selectedTab: defaultTab, isAuthenticated: isAuthenticated)
+        }
+    }
+
+    public static let consumerModeTitle = "玩家视角"
+    public static let merchantModeTitle = "商家工作台"
+
+    /// Resolves the active root container mode. Fails closed to `.consumer` unless `prefersMerchantContainer`
+    /// is true and `accountRole` is `"merchant"`.
+    public static func resolvedMode(accountRole: String?, prefersMerchantContainer: Bool = false) -> RoleMode {
+        guard prefersMerchantContainer else { return .consumer }
+        let normalized = accountRole?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+        return normalized == "merchant" ? .merchant : .consumer
+    }
+
+    /// Maps a `(RootTab, RoleMode)` pair to its dedicated root container route.
+    public static func containerRoute(for tab: RootTab, mode: RoleMode) -> RootContainerRoute {
+        switch (mode, tab) {
+        case (.consumer, .home): return .consumerHome
+        case (.consumer, .roam): return .consumerRoam
+        case (.consumer, .publish): return .consumerTemplateLibrary
+        case (.consumer, .club): return .consumerClub
+        case (.merchant, .home): return .merchantWorkbench
+        case (.merchant, .roam): return .merchantMarketing
+        case (.merchant, .publish): return .merchantTemplates
+        case (.merchant, .club): return .merchantCooperation
+        case (_, .mine): return .mine
         }
     }
 
@@ -495,5 +544,133 @@ public enum RootTabBarParity {
         case .consumer: return consumerTabs
         case .merchant: return merchantTabs
         }
+    }
+}
+
+// MARK: - Publish Tab Floating Sheet Parity (`pages/template` + `/api/publish/home`)
+
+/// Presentation model for the floating publish button and action sheet on the Publish/Template tab (`pages/template`).
+public enum PublishTabFloatingSheetParity {
+    public enum ActionKind: String, CaseIterable, Hashable, Sendable {
+        case quickTopic
+        case proTopic
+        case singleActivity
+
+        public var title: String {
+            switch self {
+            case .quickTopic: return "快速发布主题"
+            case .proTopic: return "专业版主题创编"
+            case .singleActivity: return "发布单场活动"
+            }
+        }
+
+        public var subtitle: String {
+            switch self {
+            case .quickTopic: return "3步轻量创建城市探索主题"
+            case .proTopic: return "完整章节、节点与道具配置"
+            case .singleActivity: return "面向俱乐部主理人发起定时活动"
+            }
+        }
+
+        public var systemImage: String {
+            switch self {
+            case .quickTopic: return "bolt.fill"
+            case .proTopic: return "slider.horizontal.3"
+            case .singleActivity: return "calendar.badge.plus"
+            }
+        }
+    }
+
+    public struct ActionDescriptor: Equatable, Hashable, Sendable, Identifiable {
+        public let kind: ActionKind
+        public let title: String
+        public let subtitle: String
+        public let systemImage: String
+        public let isEnabled: Bool
+        public let disabledReason: String?
+
+        public var id: String { kind.rawValue }
+
+        public init(
+            kind: ActionKind,
+            isEnabled: Bool,
+            disabledReason: String? = nil
+        ) {
+            self.kind = kind
+            self.title = kind.title
+            self.subtitle = kind.subtitle
+            self.systemImage = kind.systemImage
+            self.isEnabled = isEnabled
+            self.disabledReason = disabledReason
+        }
+    }
+
+    public struct SheetPresentation: Equatable, Hashable, Sendable {
+        public let fabTitle: String
+        public let sheetTitle: String
+        public let quotaBadgeText: String?
+        public let actions: [ActionDescriptor]
+
+        public init(
+            fabTitle: String = PublishTabFloatingSheetParity.fabButtonTitle,
+            sheetTitle: String = PublishTabFloatingSheetParity.sheetHeaderTitle,
+            quotaBadgeText: String?,
+            actions: [ActionDescriptor]
+        ) {
+            self.fabTitle = fabTitle
+            self.sheetTitle = sheetTitle
+            self.quotaBadgeText = quotaBadgeText
+            self.actions = actions
+        }
+    }
+
+    public static let fabButtonTitle = "发布"
+    public static let sheetHeaderTitle = "选择发布方式"
+    public static let signInRequiredReason = "请先登录并获取发布权限"
+    public static let quotaExhaustedReason = "主题发布额度已用完"
+    public static let clubOnlyActivityReason = "仅认证俱乐部主理人可发布单场活动"
+
+    /// Builds the floating publish sheet presentation from `/api/publish/home` capability.
+    /// Fails closed when `capability` is nil.
+    public static func presentation(capability: PublishingCapability?) -> SheetPresentation {
+        guard let capability else {
+            return SheetPresentation(
+                quotaBadgeText: nil,
+                actions: ActionKind.allCases.map {
+                    ActionDescriptor(kind: $0, isEnabled: false, disabledReason: signInRequiredReason)
+                }
+            )
+        }
+
+        let quotaText: String?
+        if capability.quotaExhausted {
+            quotaText = "今日发布额度已用完"
+        } else if let remaining = capability.remaining {
+            quotaText = "剩余可发布 \(remaining) 个主题"
+        } else {
+            quotaText = nil
+        }
+
+        let quickEnabled = capability.simple && !capability.quotaExhausted
+        let quickReason: String? = quickEnabled
+            ? nil
+            : (capability.quotaExhausted ? quotaExhaustedReason : "当前账号暂无快速发布权限")
+
+        let proEnabled = capability.pro && !capability.quotaExhausted
+        let proReason: String? = proEnabled
+            ? nil
+            : (capability.quotaExhausted ? quotaExhaustedReason : "当前账号暂无专业创编权限")
+
+        let activityEnabled = capability.activity
+        let activityReason: String? = activityEnabled ? nil : clubOnlyActivityReason
+
+        return SheetPresentation(
+            quotaBadgeText: quotaText,
+            actions: [
+                ActionDescriptor(kind: .quickTopic, isEnabled: quickEnabled, disabledReason: quickReason),
+                ActionDescriptor(kind: .proTopic, isEnabled: proEnabled, disabledReason: proReason),
+                ActionDescriptor(kind: .singleActivity, isEnabled: activityEnabled, disabledReason: activityReason)
+            ]
+        )
     }
 }

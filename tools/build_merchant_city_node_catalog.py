@@ -100,7 +100,7 @@ ROWS = {
  'create.accessLoading': ('Checking team permissions…', '正在核对经营团队权限…'),
  'create.login': ('Sign in to set up a node', '登录后配置据点'),
  'create.accessFailed': ('Merchant permissions failed to load', '商家权限加载失败'),
- 'create.accessFallback': ('Merchant permissions could not be read', '商家权限没能读取'),
+ 'create.accessFallback': ('Store information could not be loaded, please try again', '门店信息加载失败，请重试'),
  'station.template': ('Set up game', '配置玩法'),
  'station.address': ('Confirm address', '确认店址'),
  'station.submit': ('Submit', '提交申请'),

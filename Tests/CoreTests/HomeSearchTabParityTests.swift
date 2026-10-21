@@ -126,9 +126,48 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertTrue(consumerState.tabs[2].matchesLabel("玩法"))
         XCTAssertTrue(consumerState.tabs[3].matchesLabel("俱乐部"))
         XCTAssertTrue(consumerState.tabs[4].matchesLabel("我的"))
+        XCTAssertEqual(consumerState.activeContainerRoute, .consumerHome)
 
-        let merchantState = RootTabBarParity.TabBarState(mode: .merchant, selectedTab: .roam, isAuthenticated: true)
+        let merchantState = consumerState.switchingMode(to: .merchant, resettingTabTo: .roam)
         XCTAssertEqual(merchantState.tabs.count, 5)
         XCTAssertEqual(merchantState.tabs.map(\.primaryTitle), ["工作台", "营销", "模板", "合作", "我的"])
+        XCTAssertEqual(merchantState.activeContainerRoute, .merchantMarketing)
+        XCTAssertEqual(RootTabBarParity.containerRoute(for: .publish, mode: .merchant), .merchantTemplates)
+        XCTAssertEqual(RootTabBarParity.containerRoute(for: .club, mode: .merchant), .merchantCooperation)
+        XCTAssertEqual(RootTabBarParity.containerRoute(for: .mine, mode: .merchant), .mine)
+
+        XCTAssertEqual(RootTabBarParity.resolvedMode(accountRole: "merchant", prefersMerchantContainer: false), .consumer)
+        XCTAssertEqual(RootTabBarParity.resolvedMode(accountRole: "player", prefersMerchantContainer: true), .consumer)
+        XCTAssertEqual(RootTabBarParity.resolvedMode(accountRole: " Merchant ", prefersMerchantContainer: true), .merchant)
+    }
+
+    // MARK: - PublishTabFloatingSheetParity
+
+    func testPublishTabFloatingSheetCapabilityPresentation() {
+        let signedOut = PublishTabFloatingSheetParity.presentation(capability: nil)
+        XCTAssertNil(signedOut.quotaBadgeText)
+        XCTAssertEqual(signedOut.actions.count, 3)
+        XCTAssertTrue(signedOut.actions.allSatisfy { !$0.isEnabled })
+        XCTAssertEqual(signedOut.actions.first?.disabledReason, "请先登录并获取发布权限")
+
+        let clubCap = PublishingCapability([
+            "role": .string("club"),
+            "quota": .object(["themesRemaining": .number(3)]),
+            "permission": .object(["canSimplePublish": .bool(true), "canProPublish": .bool(true)])
+        ])
+        let clubSheet = PublishTabFloatingSheetParity.presentation(capability: clubCap)
+        XCTAssertEqual(clubSheet.quotaBadgeText, "剩余可发布 3 个主题")
+        XCTAssertEqual(clubSheet.actions.map(\.isEnabled), [true, true, true])
+
+        let exhaustedPlayerCap = PublishingCapability([
+            "role": .string("player"),
+            "quota": .object(["themesRemaining": .number(0)]),
+            "permission": .object(["canSimplePublish": .bool(true), "canProPublish": .bool(false)])
+        ])
+        let exhaustedSheet = PublishTabFloatingSheetParity.presentation(capability: exhaustedPlayerCap)
+        XCTAssertEqual(exhaustedSheet.quotaBadgeText, "今日发布额度已用完")
+        XCTAssertEqual(exhaustedSheet.actions.map(\.isEnabled), [false, false, false])
+        XCTAssertEqual(exhaustedSheet.actions[0].disabledReason, "主题发布额度已用完")
+        XCTAssertEqual(exhaustedSheet.actions[2].disabledReason, "仅认证俱乐部主理人可发布单场活动")
     }
 }

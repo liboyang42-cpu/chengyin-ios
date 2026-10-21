@@ -211,3 +211,167 @@ struct HomeIndexEmptyStateView: View {
         .padding(.vertical, 24)
     }
 }
+
+/// Role-aware consumer (`玩家视角`) ↔ merchant (`商家工作台`) root container switch banner (`components/tabBar`).
+@MainActor
+struct MerchantRootModeSwitchBannerView: View {
+    let state: RootTabBarParity.TabBarState
+    var canSwitchToMerchant: Bool = false
+    var onSelectMode: ((RootTabBarParity.RoleMode) -> Void)? = nil
+    var onSelectTab: ((RootTab) -> Void)? = nil
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Button {
+                    onSelectMode?(.consumer)
+                } label: {
+                    Text(verbatim: RootTabBarParity.consumerModeTitle)
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.bordered)
+                .tint(state.mode == .consumer ? QuestifyPalette.accent : .secondary)
+                .accessibilityIdentifier("rootTabBar.mode.consumer")
+
+                if canSwitchToMerchant || state.mode == .merchant {
+                    Button {
+                        onSelectMode?(.merchant)
+                    } label: {
+                        Text(verbatim: RootTabBarParity.merchantModeTitle)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(state.mode == .merchant ? QuestifyPalette.accent : .secondary)
+                    .accessibilityIdentifier("rootTabBar.mode.merchant")
+                }
+                Spacer()
+            }
+
+            HStack(spacing: 6) {
+                ForEach(state.tabs) { descriptor in
+                    let isSelected = descriptor.rootTab == state.selectedTab
+                    Button {
+                        onSelectTab?(descriptor.rootTab)
+                    } label: {
+                        VStack(spacing: 4) {
+                            Image(systemName: descriptor.systemImage)
+                                .font(.subheadline)
+                            Text(verbatim: descriptor.primaryTitle)
+                                .font(.caption2.weight(isSelected ? .semibold : .regular))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(isSelected ? QuestifyPalette.accent : .secondary)
+                    .accessibilityIdentifier("rootTabBar.tab.\(state.mode.rawValue).\(descriptor.index)")
+                }
+            }
+        }
+        .padding(.vertical, 4)
+        .accessibilityIdentifier("rootTabBar.containerSwitch")
+    }
+}
+
+/// Floating publish button (`+ 发布`) for the Publish/Template tab (`pages/template`).
+@MainActor
+struct PublishTabFloatingButton: View {
+    var title: String = PublishTabFloatingSheetParity.fabButtonTitle
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label {
+                Text(verbatim: title)
+                    .font(.subheadline.weight(.semibold))
+            } icon: {
+                Image(systemName: "plus.circle.fill")
+                    .font(.title3)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(QuestifyPalette.accent, in: Capsule())
+            .foregroundStyle(.white)
+            .shadow(radius: 4, y: 2)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("publishTab.floatingButton")
+    }
+}
+
+/// Floating publish capability sheet (`pages/template` + `/api/publish/home`).
+@MainActor
+struct PublishTabFloatingSheetView: View {
+    let presentation: PublishTabFloatingSheetParity.SheetPresentation
+    var onSelectAction: ((PublishTabFloatingSheetParity.ActionKind) -> Void)? = nil
+    var onClose: (() -> Void)? = nil
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if let quotaBadgeText = presentation.quotaBadgeText {
+                    Section {
+                        Label {
+                            Text(verbatim: quotaBadgeText)
+                                .font(.subheadline.weight(.medium))
+                        } icon: {
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(QuestifyPalette.accent)
+                        }
+                        .accessibilityIdentifier("publishTab.sheet.quotaBadge")
+                    }
+                }
+
+                Section {
+                    ForEach(presentation.actions) { item in
+                        Button {
+                            guard item.isEnabled else { return }
+                            onSelectAction?(item.kind)
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: item.systemImage)
+                                    .font(.title3)
+                                    .foregroundStyle(item.isEnabled ? QuestifyPalette.accent : .secondary)
+                                    .frame(width: 28)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(verbatim: item.title)
+                                        .font(.headline)
+                                        .foregroundStyle(item.isEnabled ? .primary : .secondary)
+                                    Text(verbatim: item.subtitle)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    if let reason = item.disabledReason, !item.isEnabled {
+                                        Text(verbatim: reason)
+                                            .font(.caption2)
+                                            .foregroundStyle(.orange)
+                                            .accessibilityIdentifier("publishTab.sheet.disabledReason.\(item.id)")
+                                    }
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .disabled(!item.isEnabled)
+                        .accessibilityIdentifier("publishTab.sheet.action.\(item.id)")
+                    }
+                }
+            }
+            .navigationTitle(Text(verbatim: presentation.sheetTitle))
+            .toolbar {
+                if let onClose {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("关闭", action: onClose)
+                            .accessibilityIdentifier("publishTab.sheet.close")
+                    }
+                }
+            }
+        }
+    }
+}

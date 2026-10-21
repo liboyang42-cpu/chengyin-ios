@@ -550,13 +550,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Merchant permissions could not be read"
+            "value": "Store information could not be loaded, please try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "商家权限没能读取"
+            "value": "门店信息加载失败，请重试"
           }
         }
       }
