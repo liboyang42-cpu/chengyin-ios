@@ -40,11 +40,11 @@ final class WalletEarningsOverviewUITests: XCTestCase {
         XCTAssertTrue(settlement.waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["coopflow.summary.credited"].waitForExistence(timeout: 5))
         waitForLabel(reads, "1")
-        XCTAssertTrue(app.staticTexts["Awaiting credit"].exists || settlement.label.contains("Awaiting credit"))
+        XCTAssertTrue(app.staticTexts["Awaiting transfer"].exists)
         XCTAssertFalse(app.staticTexts["Credited"].exists)
         XCTAssertTrue(app.staticTexts["wallet.earnings.finance.separate"].exists)
         settlement.tap()
-        XCTAssertTrue(app.staticTexts["Awaiting credit"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Awaiting transfer"].waitForExistence(timeout: 5))
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(settlement.waitForExistence(timeout: 5))
         // The shared reader may refresh when navigation returns. Verify content, not a fixed read count.

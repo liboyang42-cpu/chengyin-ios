@@ -88,7 +88,6 @@ enum WalletFundsStagePhase: Equatable {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
-        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("wallet.earnings.stages")
     }
     @ViewBuilder private func amounts(_ value: WalletFundsStages, phase: WalletFundsStagePhase) -> some View {
@@ -111,13 +110,11 @@ enum WalletFundsStagePhase: Equatable {
                     .accessibilityIdentifier("wallet.earnings.stages.disputed")
             }
         }
-        LabeledContent {
-            Text(format.amount(value.withdrawable, currency: value.currency))
-                .accessibilityIdentifier("wallet.earnings.stages.available")
-                .privacySensitive()
-        } label: {
-            Text("wallet.available")
-        }
+        LabeledContent("wallet.available", value: format.amount(value.withdrawable, currency: value.currency))
+            .accessibilityIdentifier("wallet.earnings.stages.available")
+            .accessibilityLabel(Text("wallet.available"))
+            .accessibilityValue(Text(verbatim: format.amount(value.withdrawable, currency: value.currency)))
+            .privacySensitive()
         Text("wallet.notPayout")
         separate
     }
@@ -153,7 +150,6 @@ struct WalletEarningsTabHold: Equatable {
             VStack(alignment: .leading, spacing: 8) { buttons }
         }
         .padding(.horizontal).padding(.vertical, 8)
-        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("wallet.earnings.tabs")
     }
     private var buttons: some View {
@@ -234,8 +230,7 @@ enum WalletOrganizerFinanceIdentity {
         onFinanceRead()
         return .object(["topics": .array([.object([
             "topicId": .id(8), "topicName": .string("Synthetic organizer route"),
-            "myIncome": .number(Decimal(string: "12.50")!), "settled": .bool(true), "myIncomeArrived": .bool(false),
-            "totalSales": .number(0), "verifiedSales": .number(0), "platformAmount": .number(0), "merchantTotal": .number(20)
+            "myIncome": .number(Decimal(string: "12.50")!), "settled": .bool(true), "myIncomeArrived": .bool(false)
         ])])])
     }
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement {

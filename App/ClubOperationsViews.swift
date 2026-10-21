@@ -281,9 +281,17 @@ struct ClubOperationsWorkspaceView: View {
             .foregroundStyle(flow.canEnterManagement ? .primary : .secondary)
             .accessibilityIdentifier("clubCreateManage.status")
         Button {
-            var nextFlow = createToManageFlow
-            if let destination = nextFlow.enterClubManagement(requestedTab: requestedTab) {
-                enteredManageDestination = destination
+            if let destination = Self.performEnterClubManagement(
+                access: access,
+                snapshot: snapshot,
+                readbackUnavailable: readbackUnavailable,
+                createReceiptIdentity: createReceiptIdentity,
+                createReceiptClubID: createReceiptClubID,
+                currentIdentity: identity,
+                readbackIdentity: readbackIdentity,
+                requestedTab: requestedTab,
+                enteredManageDestination: &enteredManageDestination
+            ) {
                 onEnterClubManagement?(destination)
             }
         } label: {
@@ -349,25 +357,155 @@ struct ClubOperationsWorkspaceView: View {
     }
     @MainActor private func confirm(_ pending: ClubOperationsReview) async {
         generation &+= 1; let run = generation
-        snapshot = nil; readbackUnavailable = false; readbackIdentity = nil; enteredManageDestination = nil
-        if target == .create { createReceiptIdentity = pending.identity; createReceiptClubID = nil }
+        Self.performBeginConfirm(
+            pending,
+            target: target,
+            snapshot: &snapshot,
+            readbackUnavailable: &readbackUnavailable,
+            createReceiptIdentity: &createReceiptIdentity,
+            createReceiptClubID: &createReceiptClubID,
+            readbackIdentity: &readbackIdentity,
+            enteredManageDestination: &enteredManageDestination
+        )
         await coordinator.confirm(pending)
-        guard run == generation, access.identity == pending.identity, !Task.isCancelled else { return }
-        state = coordinator.state(target: target)
-        if target == .create, case .acknowledged(let receipt) = state {
-            createReceiptIdentity = pending.identity
-            createReceiptClubID = receipt.clubID
-        }
-        acceptReadback()
+        guard run == generation, !Task.isCancelled else { return }
+        Self.performFinishConfirm(
+            pending,
+            target: target,
+            identity: identity,
+            access: access,
+            coordinator: coordinator,
+            snapshot: &snapshot,
+            draft: &draft,
+            baseline: &baseline,
+            state: &state,
+            readbackUnavailable: &readbackUnavailable,
+            artworkRevision: &artworkRevision,
+            createReceiptIdentity: &createReceiptIdentity,
+            createReceiptClubID: &createReceiptClubID,
+            readbackIdentity: &readbackIdentity
+        )
     }
     @MainActor private func readBack() async {
         guard let identity, !loading else { return }
         generation &+= 1; let run = generation; loading = true
         await coordinator.readBack(target: target, ownerID: ownerID)
-        guard run == generation, access.identity == identity, !Task.isCancelled else { return }
-        loading = false; acceptReadback(); state = coordinator.state(target: target)
+        guard run == generation, !Task.isCancelled else { return }
+        Self.performFinishReadBack(
+            target: target,
+            identity: identity,
+            access: access,
+            coordinator: coordinator,
+            loading: &loading,
+            snapshot: &snapshot,
+            draft: &draft,
+            baseline: &baseline,
+            state: &state,
+            readbackUnavailable: &readbackUnavailable,
+            artworkRevision: &artworkRevision,
+            createReceiptIdentity: &createReceiptIdentity,
+            createReceiptClubID: &createReceiptClubID,
+            readbackIdentity: &readbackIdentity
+        )
     }
-    private func acceptReadback() {
+    @MainActor static func performBeginConfirm(
+        _ pending: ClubOperationsReview,
+        target: ClubOperationsTarget,
+        snapshot: inout ClubOperationsSnapshot?,
+        readbackUnavailable: inout Bool,
+        createReceiptIdentity: inout ClubReadIdentity?,
+        createReceiptClubID: inout Int?,
+        readbackIdentity: inout ClubReadIdentity?,
+        enteredManageDestination: inout ClubCreateToManageDestination?
+    ) {
+        snapshot = nil; readbackUnavailable = false; readbackIdentity = nil; enteredManageDestination = nil
+        if target == .create { createReceiptIdentity = pending.identity; createReceiptClubID = nil }
+    }
+    @MainActor static func performFinishConfirm(
+        _ pending: ClubOperationsReview,
+        target: ClubOperationsTarget,
+        identity: ClubReadIdentity?,
+        access: any ClubOperationsAccess,
+        coordinator: ClubOperationsCoordinator,
+        snapshot: inout ClubOperationsSnapshot?,
+        draft: inout ClubOperationsDraft,
+        baseline: inout ClubOperationsDraft,
+        state: inout ClubOperationsState,
+        readbackUnavailable: inout Bool,
+        artworkRevision: inout UUID,
+        createReceiptIdentity: inout ClubReadIdentity?,
+        createReceiptClubID: inout Int?,
+        readbackIdentity: inout ClubReadIdentity?
+    ) {
+        guard access.identity == pending.identity else { return }
+        state = coordinator.state(target: target)
+        if target == .create, case .acknowledged(let receipt) = state {
+            createReceiptIdentity = pending.identity
+            createReceiptClubID = receipt.clubID
+        }
+        performAcceptReadback(
+            target: target,
+            identity: identity,
+            access: access,
+            coordinator: coordinator,
+            snapshot: &snapshot,
+            draft: &draft,
+            baseline: &baseline,
+            readbackUnavailable: &readbackUnavailable,
+            artworkRevision: &artworkRevision,
+            createReceiptIdentity: &createReceiptIdentity,
+            createReceiptClubID: &createReceiptClubID,
+            readbackIdentity: &readbackIdentity
+        )
+    }
+    @MainActor static func performFinishReadBack(
+        target: ClubOperationsTarget,
+        identity: ClubReadIdentity,
+        access: any ClubOperationsAccess,
+        coordinator: ClubOperationsCoordinator,
+        loading: inout Bool,
+        snapshot: inout ClubOperationsSnapshot?,
+        draft: inout ClubOperationsDraft,
+        baseline: inout ClubOperationsDraft,
+        state: inout ClubOperationsState,
+        readbackUnavailable: inout Bool,
+        artworkRevision: inout UUID,
+        createReceiptIdentity: inout ClubReadIdentity?,
+        createReceiptClubID: inout Int?,
+        readbackIdentity: inout ClubReadIdentity?
+    ) {
+        guard access.identity == identity else { return }
+        loading = false
+        performAcceptReadback(
+            target: target,
+            identity: identity,
+            access: access,
+            coordinator: coordinator,
+            snapshot: &snapshot,
+            draft: &draft,
+            baseline: &baseline,
+            readbackUnavailable: &readbackUnavailable,
+            artworkRevision: &artworkRevision,
+            createReceiptIdentity: &createReceiptIdentity,
+            createReceiptClubID: &createReceiptClubID,
+            readbackIdentity: &readbackIdentity
+        )
+        state = coordinator.state(target: target)
+    }
+    @MainActor static func performAcceptReadback(
+        target: ClubOperationsTarget,
+        identity: ClubReadIdentity?,
+        access: any ClubOperationsAccess,
+        coordinator: ClubOperationsCoordinator,
+        snapshot: inout ClubOperationsSnapshot?,
+        draft: inout ClubOperationsDraft,
+        baseline: inout ClubOperationsDraft,
+        readbackUnavailable: inout Bool,
+        artworkRevision: inout UUID,
+        createReceiptIdentity: inout ClubReadIdentity?,
+        createReceiptClubID: inout Int?,
+        readbackIdentity: inout ClubReadIdentity?
+    ) {
         switch coordinator.readback(target: target) {
         case .received(let value):
             artworkRevision = UUID(); snapshot = value; readbackUnavailable = false
@@ -384,6 +522,32 @@ struct ClubOperationsWorkspaceView: View {
             readbackIdentity = nil
         default: break
         }
+    }
+    @MainActor static func performEnterClubManagement(
+        access: any ClubOperationsAccess,
+        snapshot: ClubOperationsSnapshot?,
+        readbackUnavailable: Bool,
+        createReceiptIdentity: ClubReadIdentity?,
+        createReceiptClubID: Int?,
+        currentIdentity: ClubReadIdentity?,
+        readbackIdentity: ClubReadIdentity?,
+        requestedTab: String?,
+        enteredManageDestination: inout ClubCreateToManageDestination?
+    ) -> ClubCreateToManageDestination? {
+        var nextFlow = makeCreateToManageFlow(
+            access: access,
+            snapshot: snapshot,
+            readbackUnavailable: readbackUnavailable,
+            createReceiptIdentity: createReceiptIdentity,
+            createReceiptClubID: createReceiptClubID,
+            currentIdentity: currentIdentity,
+            readbackIdentity: readbackIdentity,
+            requestedTab: requestedTab,
+            enteredManageDestination: enteredManageDestination
+        )
+        guard let destination = nextFlow.enterClubManagement(requestedTab: requestedTab) else { return nil }
+        enteredManageDestination = destination
+        return destination
     }
     private func show(_ error: Error) {
         serverMessage = (error as? ClubReadFailure)?.message
@@ -484,8 +648,12 @@ private struct ClubOperationsProfileForm: View {
     var identity: ClubReadIdentity?
     var requestedTab: String?
     private(set) var snapshot: ClubOperationsSnapshot?
+    private(set) var draft = ClubOperationsDraft()
+    private(set) var baseline = ClubOperationsDraft()
     private(set) var state: ClubOperationsState = .idle
+    private(set) var loading = false
     private(set) var readbackUnavailable = false
+    private(set) var artworkRevision = UUID()
     private(set) var createReceiptIdentity: ClubReadIdentity?
     private(set) var createReceiptClubID: Int?
     private(set) var readbackIdentity: ClubReadIdentity?
@@ -536,49 +704,88 @@ private struct ClubOperationsProfileForm: View {
     }
 
     func confirm(_ pending: ClubOperationsReview) async {
-        snapshot = nil; readbackUnavailable = false; readbackIdentity = nil; enteredManageDestination = nil
-        if target == .create { createReceiptIdentity = pending.identity; createReceiptClubID = nil }
+        ClubOperationsWorkspaceView.performBeginConfirm(
+            pending,
+            target: target,
+            snapshot: &snapshot,
+            readbackUnavailable: &readbackUnavailable,
+            createReceiptIdentity: &createReceiptIdentity,
+            createReceiptClubID: &createReceiptClubID,
+            readbackIdentity: &readbackIdentity,
+            enteredManageDestination: &enteredManageDestination
+        )
         await coordinator.confirm(pending)
-        guard access.identity == pending.identity else { return }
-        state = coordinator.state(target: target)
-        if target == .create, case .acknowledged(let receipt) = state {
-            createReceiptIdentity = pending.identity
-            createReceiptClubID = receipt.clubID
-        }
-        acceptReadback()
+        guard !Task.isCancelled else { return }
+        ClubOperationsWorkspaceView.performFinishConfirm(
+            pending,
+            target: target,
+            identity: identity,
+            access: access,
+            coordinator: coordinator,
+            snapshot: &snapshot,
+            draft: &draft,
+            baseline: &baseline,
+            state: &state,
+            readbackUnavailable: &readbackUnavailable,
+            artworkRevision: &artworkRevision,
+            createReceiptIdentity: &createReceiptIdentity,
+            createReceiptClubID: &createReceiptClubID,
+            readbackIdentity: &readbackIdentity
+        )
     }
 
     func readBack() async {
         guard let identity else { return }
+        loading = true
         await coordinator.readBack(target: target, ownerID: ownerID)
-        guard access.identity == identity else { return }
-        acceptReadback()
-        state = coordinator.state(target: target)
+        guard !Task.isCancelled else { return }
+        ClubOperationsWorkspaceView.performFinishReadBack(
+            target: target,
+            identity: identity,
+            access: access,
+            coordinator: coordinator,
+            loading: &loading,
+            snapshot: &snapshot,
+            draft: &draft,
+            baseline: &baseline,
+            state: &state,
+            readbackUnavailable: &readbackUnavailable,
+            artworkRevision: &artworkRevision,
+            createReceiptIdentity: &createReceiptIdentity,
+            createReceiptClubID: &createReceiptClubID,
+            readbackIdentity: &readbackIdentity
+        )
     }
 
     func acceptReadback() {
-        switch coordinator.readback(target: target) {
-        case .received(let value):
-            snapshot = value; readbackUnavailable = false
-            readbackIdentity = access.identity
-            if case .acknowledged(let receipt) = coordinator.state(target: target), target == .create {
-                if createReceiptIdentity == nil { createReceiptIdentity = identity }
-                createReceiptClubID = receipt.clubID
-            }
-        case .unavailable:
-            readbackUnavailable = true
-            readbackIdentity = nil
-        default: break
-        }
+        ClubOperationsWorkspaceView.performAcceptReadback(
+            target: target,
+            identity: identity,
+            access: access,
+            coordinator: coordinator,
+            snapshot: &snapshot,
+            draft: &draft,
+            baseline: &baseline,
+            readbackUnavailable: &readbackUnavailable,
+            artworkRevision: &artworkRevision,
+            createReceiptIdentity: &createReceiptIdentity,
+            createReceiptClubID: &createReceiptClubID,
+            readbackIdentity: &readbackIdentity
+        )
     }
 
     @discardableResult
     func enterClubManagement(requestedTab overrideTab: String? = nil) -> ClubCreateToManageDestination? {
-        var nextFlow = createToManageFlow
-        guard let destination = nextFlow.enterClubManagement(requestedTab: overrideTab ?? requestedTab) else {
-            return nil
-        }
-        enteredManageDestination = destination
-        return destination
+        ClubOperationsWorkspaceView.performEnterClubManagement(
+            access: access,
+            snapshot: snapshot,
+            readbackUnavailable: readbackUnavailable,
+            createReceiptIdentity: createReceiptIdentity,
+            createReceiptClubID: createReceiptClubID,
+            currentIdentity: identity,
+            readbackIdentity: readbackIdentity,
+            requestedTab: overrideTab ?? requestedTab,
+            enteredManageDestination: &enteredManageDestination
+        )
     }
 }
