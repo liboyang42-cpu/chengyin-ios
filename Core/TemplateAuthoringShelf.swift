@@ -134,6 +134,7 @@ public struct TemplateOwnShelfPage {
     public let rows: [DiscoveryPlayTemplate]
     public let total: Int?
     public let rowStates: [Int: TemplateOwnShelfStateProjection]
+    public let cardFacts: [Int: TemplateOwnShelfCardFacts]
     public static func request(page: Int, keyword: String) throws -> TemplateAuthoringRequest {
         guard (1...maximumPages).contains(page) else { throw TemplateAuthoringError.invalidContract }
         return .init(path: "/api/template/my-list", body: .form([
@@ -157,7 +158,11 @@ public struct TemplateOwnShelfPage {
         let states = try JSONDecoder().decode(TemplateOwnShelfStateEnvelope.self, from: data).data.rows
         guard states.count == rows.count else { throw TemplateAuthoringError.invalidContract }
         let rowStates = Dictionary(uniqueKeysWithValues: zip(rows.map(\.id), states))
-        return .init(rows: rows, total: total.flatMap { $0 >= 0 ? $0 : nil }, rowStates: rowStates)
+        // Same response bytes as the state sidecar. No second read and no new path.
+        let facts = try JSONDecoder().decode(TemplateOwnShelfCardFactsEnvelope.self, from: data).data.rows
+        guard facts.count == rows.count else { throw TemplateAuthoringError.invalidContract }
+        let cardFacts = Dictionary(uniqueKeysWithValues: zip(rows.map(\.id), facts))
+        return .init(rows: rows, total: total.flatMap { $0 >= 0 ? $0 : nil }, rowStates: rowStates, cardFacts: cardFacts)
     }
 }
 
@@ -168,6 +173,7 @@ public struct TemplateOwnShelfPage {
     private var generation = 0
     public private(set) var rows: [DiscoveryPlayTemplate] = []
     public private(set) var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]
+    public private(set) var cardFacts: [Int: TemplateOwnShelfCardFacts] = [:]
     public private(set) var keyword = ""
     public private(set) var page = 0
     public private(set) var hasMore = false
@@ -181,7 +187,7 @@ public struct TemplateOwnShelfPage {
         guard owner != currentSession() || !adapter.canRead else { return }
         leave(); owner = currentSession()
     }
-    public func leave() { generation += 1; busy = false; rows = []; page = 0; hasMore = false; messageKey = nil; isShowingRefreshSnapshot = false; rowStates = [:] }
+    public func leave() { generation += 1; busy = false; rows = []; page = 0; hasMore = false; messageKey = nil; isShowingRefreshSnapshot = false; rowStates = [:]; cardFacts = [:] }
     /// A same-scope display snapshot only. It cannot authorize a shelf mutation.
     public func refreshSnapshot(keyword: String) -> [DiscoveryPlayTemplate] {
         synchronizeSession()
@@ -191,9 +197,11 @@ public struct TemplateOwnShelfPage {
     public func refresh(keyword: String = "") async {
         let snapshot = refreshSnapshot(keyword: keyword)
         let stateSnapshot = snapshot.isEmpty ? [:] : rowStates
+        let factSnapshot = snapshot.isEmpty ? [:] : cardFacts
         leave(); self.keyword = keyword; owner = currentSession()
         rows = snapshot; isShowingRefreshSnapshot = !snapshot.isEmpty
         rowStates = stateSnapshot
+        cardFacts = factSnapshot
         await fetch(page: 1)
     }
     public func loadMore() async {
@@ -225,6 +233,8 @@ public struct TemplateOwnShelfPage {
             // No suspension between committing rows and their display-only sidecars.
             if requested == 1 { rowStates = result.rowStates }
             else { rowStates.merge(result.rowStates) { _, fresh in fresh } }
+            if requested == 1 { cardFacts = result.cardFacts }
+            else { cardFacts.merge(result.cardFacts) { _, fresh in fresh } }
             page = requested
             let continuation = !result.rows.isEmpty && (result.total.map { rows.count < $0 } ?? (result.rows.count == TemplateOwnShelfPage.pageSize))
             hasMore = continuation && page < TemplateOwnShelfPage.maximumPages

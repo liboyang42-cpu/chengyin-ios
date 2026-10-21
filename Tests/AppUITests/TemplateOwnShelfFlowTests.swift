@@ -34,7 +34,10 @@ import XCTest
             XCTAssertTrue(title.waitForExistence(timeout: 5), app.debugDescription)
             XCTAssertFalse(app.buttons["templateAuthor.shelf.refresh"].isHittable)
             app.navigationBars.buttons.firstMatch.tap()
-            XCTAssertTrue(app.buttons["templateAuthor.shelf.refresh"].waitForExistence(timeout: 5))
+            let refresh = app.buttons["templateAuthor.shelf.refresh"]
+            XCTAssertTrue(refresh.waitForExistence(timeout: 5))
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: refresh)
+            XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed)
             reveal(app.buttons["templateAuthor.shelf.library.901"], in: app)
             XCTAssertTrue(app.buttons["templateAuthor.shelf.library.901"].isEnabled)
             app.buttons["templateAuthor.fixture.reopen"].tap()
@@ -54,6 +57,10 @@ import XCTest
         reveal(detail, in: app); detail.tap()
         XCTAssertTrue(app.staticTexts["Synthetic owned detail"].waitForExistence(timeout: 5))
         app.navigationBars.buttons.firstMatch.tap()
+        let refresh = app.buttons["templateAuthor.shelf.refresh"]
+        XCTAssertTrue(refresh.waitForExistence(timeout: 5))
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: refresh)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed)
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         XCTAssertEqual(field.value as? String, "Synthetic")
         let clear = app.buttons["templateAuthor.shelf.clearSearch"]
@@ -188,5 +195,30 @@ import XCTest
         XCTAssertEqual(cancel.label, "取消"); cancel.tap()
         XCTAssertFalse(app.buttons["templateAuthor.shelf.confirm"].exists)
         XCTAssertTrue(button.isEnabled)
+    }
+    func testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit() {
+        let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let button = app.buttons["templateAuthor.shelf.delete.901"]
+        reveal(button, in: app)
+        XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
+        XCTAssertTrue(app.staticTexts["Delete this exact template from your own shelf? This may not be reversible."].exists)
+        XCTAssertTrue(app.staticTexts["templateOwnShelf.delete.body"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["templateOwnShelf.delete.confirm"].exists)
+        app.buttons["templateAuthor.shelf.cancel"].tap()
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.confirm"].exists)
+        XCTAssertTrue(button.isEnabled)
+        button.tap()
+        XCTAssertTrue(app.buttons["templateAuthor.shelf.confirm"].waitForExistence(timeout: 3))
+    }
+    func testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton() {
+        let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let duration = app.staticTexts["templateOwnShelf.card.duration.901"]
+        reveal(duration, in: app)
+        XCTAssertEqual(duration.label, "0 min")
+        XCTAssertFalse(app.buttons["templateOwnShelf.market.plan.901"].exists)
+        XCTAssertFalse(app.buttons["templateOwnShelf.market.held.901"].exists)
+        let library = app.buttons["templateAuthor.shelf.library.901"]
+        reveal(library, in: app)
+        XCTAssertTrue(library.isEnabled)
     }
 }

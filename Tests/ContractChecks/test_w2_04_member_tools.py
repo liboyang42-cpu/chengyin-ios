@@ -76,10 +76,22 @@ class TemplateShelfPlanChecks(unittest.TestCase):
         self.assertIn('case .withdrawReview, .delist: return 0', self.core)
         self.assertIn('case .list: return 1', self.core)
     def test_pinned_shelf_files_are_untouched(self):
-        # The own-shelf Core and View bytes are digest-pinned by test_template_shelf_state_projection;
-        # mounting this plan there needs a reviewed pin update, so it is recorded as blocked.
-        for path in ['Core/TemplateAuthoringShelf.swift', 'App/TemplateAuthoringMineView.swift']:
-            self.assertNotIn('TemplateOwnShelfMarketPlan', read(path))
+        # Reviewed pin update mounts the plan on the host. The shelf reader still
+        # only decodes the approved my-list response and builds no market write.
+        shelf = read('Core/TemplateAuthoringShelf.swift')
+        self.assertNotIn('TemplateOwnShelfMarketPlan', shelf)
+        self.assertNotIn('/market-submit', shelf)
+        self.assertNotIn('updateLibraryStatus', shelf)
+        view = read('App/TemplateAuthoringMineView.swift')
+        self.assertIn('TemplateOwnShelfCardSection(facts: cardFacts[row.id], state: state, rowID: row.id)', view)
+        self.assertNotIn('/market-submit', view)
+        mounted = read('App/TemplateOwnShelfCardSection.swift')
+        self.assertIn('TemplateOwnShelfMarketPlan', mounted)
+        self.assertIn('plan.isDispatchable == false', mounted)
+        self.assertNotIn('Button', mounted)
+        self.assertNotIn('/market-submit', mounted)
+        self.assertNotIn('updateLibraryStatus', mounted)
+        self.assertNotIn('submit(', mounted)
     def test_every_core_key_is_localized(self):
         import re
         catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']

@@ -19,6 +19,7 @@ import SwiftUI
     @State private var viewRequest = UUID()
     @State private var rows: [DiscoveryPlayTemplate] = []
     @State private var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]
+    @State private var cardFacts: [Int: TemplateOwnShelfCardFacts] = [:]
     @State private var messageKey: String?
     @State private var review: TemplateOwnShelfReview?
     @State private var busy = false
@@ -75,6 +76,9 @@ import SwiftUI
                         LabeledContent("templateShelfState.market.feedback") { Text(verbatim: reason).textSelection(.enabled) }
                             .accessibilityIdentifier("templateShelfState.feedback.\(row.id)")
                     }
+                    TemplateOwnShelfCardSection(facts: cardFacts[row.id], state: state, rowID: row.id)
+                    Text(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.inLibrary" : "templateAuthor.shelf.outLibrary"))
+                        .accessibilityIdentifier("templateAuthor.shelf.libraryState.\(row.id)")
                     Text("templateAuthor.existingEditUnavailable").font(.caption).foregroundStyle(.secondary)
                     Button(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary" : "templateAuthor.shelf.addLibrary")) {
                         prepare(row.id, .libraryStatus)
@@ -113,8 +117,12 @@ import SwiftUI
             .onChange(of: sessionRevision) { _, _ in selectedCreatorConsent = nil }
             .onChange(of: sessionRevision) { _, _ in selectedConfiguration = nil }
             .onChange(of: sessionRevision) { _, _ in selectedMember = nil }
-            .task(id: sessionRevision) { viewRequest = UUID(); busy = false; rows = []; review = nil; rowStates = [:]; await refresh() }
-            .onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave(); coordinator.leaveShelfScreen(); rows = []; review = nil; busy = false; rowStates = [:] }
+            .onChange(of: selectedMember) { previous, next in
+                guard previous != nil, next == nil else { return }
+                Task { await refresh() }
+            }
+            .task(id: sessionRevision) { viewRequest = UUID(); busy = false; rows = []; cardFacts = [:]; review = nil; rowStates = [:]; await refresh() }
+            .onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave(); coordinator.leaveShelfScreen(); rows = []; review = nil; busy = false; rowStates = [:]; cardFacts = [:] }
             .sheet(item: $review, onDismiss: { coordinator.cancelShelfReview() }) { value in
                 NavigationStack {
                     Form {
@@ -126,6 +134,7 @@ import SwiftUI
                                 .accessibilityValue(Text(verbatim: String(value.templateID.rawValue)))
                                 .accessibilityIdentifier("templateAuthor.shelf.identity")
                             Text(LocalizedStringKey(value.action == .remove ? "templateAuthor.shelf.deleteReview" : value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addReview" : "templateAuthor.shelf.removeReview"))
+                            if value.action == .remove { TemplateOwnShelfDeleteReviewCopy(title: value.title) }
                             Text("templateAuthor.shelf.readback")
                         }
                         if coordinator.canSimulate { Text("templateAuthor.fixtureNotice") }
@@ -165,6 +174,7 @@ import SwiftUI
         coordinator.synchronizeSession(); coordinator.shelfReader.synchronizeSession()
         rows = coordinator.shelfReader.rows; hasMore = coordinator.shelfReader.hasMore
         rowStates = coordinator.shelfReader.rowStates
+        cardFacts = coordinator.shelfReader.cardFacts
         readSnapshot = coordinator.shelfReader.isShowingRefreshSnapshot
         readMessageKey = coordinator.shelfReader.messageKey; messageKey = coordinator.shelfMessageKey; locked = coordinator.shelfLocked
     }
@@ -192,13 +202,14 @@ import SwiftUI
         let stamp = UUID(); viewRequest = stamp
         defer {
             if stamp == viewRequest, Task.isCancelled {
-                rows = []; hasMore = false; readSnapshot = false; busy = false; rowStates = [:]
+                rows = []; hasMore = false; readSnapshot = false; busy = false; rowStates = [:]; cardFacts = [:]
             }
         }
         busy = true; review = nil; hasMore = false; readMessageKey = nil; messageKey = nil
         coordinator.synchronizeSession(); coordinator.cancelShelfReview()
         rows = coordinator.shelfReader.refreshSnapshot(keyword: keyword)
         rowStates = rows.isEmpty ? [:] : coordinator.shelfReader.rowStates
+        cardFacts = rows.isEmpty ? [:] : coordinator.shelfReader.cardFacts
         readSnapshot = !rows.isEmpty
         await coordinator.shelfReader.refresh(keyword: keyword)
         guard stamp == viewRequest, !Task.isCancelled else { return }

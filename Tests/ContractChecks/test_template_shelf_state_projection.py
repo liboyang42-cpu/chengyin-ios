@@ -12,7 +12,7 @@ PARAMS = {'BASE_CORE_SHA': '3d8865b315f1712f0056d1b376f0f7f2b1aa01e8417dab95f438
  'BASE_VIEW_SHA': '91d2c740529dd2970568cacfcd68409618c6e2d1d6cda007daccfdb3dc8164d7',
  'BASE_CATALOG_SHA': '6e9a854e14c29ad90a8b4ed88735e5641d15efc53ca810fb49dc366d3509910a',
  'PROJECTION_SHA': 'de84c821e29d567ad04fe6e79071a180f032fd906af0aadf292582931d898b9a',
- 'DISPLAY_SHA': '263d8da980b4a4ae136949f466c90ae11f2dd8d57f67e9a10af1ee59b265573d',
+ 'DISPLAY_SHA': '03b1d163168f8b417f4d5a26b550ce0a3a13c9f3db7432e29e12750394bc423e',
  'CATALOG_NEXT_KEY': 'templateStory.derivedSummary',
  'LABELS': {'templateShelfState.market.feedback': {'en': 'Marketplace feedback', 'zh-Hans': '广场反馈'},
             'templateShelfState.market.listed': {'en': 'Listed in marketplace', 'zh-Hans': '广场已上架'},
@@ -73,21 +73,30 @@ def assert_projection_contract(core, view, catalog):
     assert 'Dictionary(uniqueKeysWithValues: zip(rows.map(\\.id), states))' in core
     assert 'guard states.count == rows.count' in core
     assert 'let stateSnapshot = snapshot.isEmpty ? [:] : rowStates' in core
-    assert core.index('let snapshot = refreshSnapshot(') < core.index('let stateSnapshot =') < core.index('leave(); self.keyword = keyword; owner = currentSession()')
+    assert 'let factSnapshot = snapshot.isEmpty ? [:] : cardFacts' in core
+    assert core.index('let snapshot = refreshSnapshot(') < core.index('let stateSnapshot =') < core.index('let factSnapshot =') < core.index('leave(); self.keyword = keyword; owner = currentSession()')
     assert 'rowStates = stateSnapshot' in core
-    assert 'isShowingRefreshSnapshot = false; rowStates = [:] }' in core
+    assert 'cardFacts = factSnapshot' in core
+    assert 'isShowingRefreshSnapshot = false; rowStates = [:]; cardFacts = [:] }' in core
     commit = section(core, '            if requested == 1 {', '            page = requested')
     assert 'if requested == 1 { rowStates = result.rowStates }' in commit
+    assert 'if requested == 1 { cardFacts = result.cardFacts }' in commit
     assert 'rowStates.merge(result.rowStates) { _, fresh in fresh }' in commit
+    assert 'cardFacts.merge(result.cardFacts) { _, fresh in fresh }' in commit
     assert commit.index('!existing.contains($0.id)') < commit.index('rowStates.merge(')
     assert 'await ' not in commit, 'rows and sidecars must commit without suspension'
     display = section(view, '                    let state = rowStates[row.id]', '                    Text("templateAuthor.existingEditUnavailable")')
     assert digest(display) == PARAMS['DISPLAY_SHA'], 'display-only block changed'
     assert '@State private var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]' in view
     assert 'rowStates = coordinator.shelfReader.rowStates' in view
+    assert 'cardFacts = coordinator.shelfReader.cardFacts' in view
     assert 'rowStates = rows.isEmpty ? [:] : coordinator.shelfReader.rowStates' in view
-    assert 'rows = []; review = nil; rowStates = [:]; await refresh()' in view
-    assert 'busy = false; rowStates = [:] }' in view
+    assert 'cardFacts = rows.isEmpty ? [:] : coordinator.shelfReader.cardFacts' in view
+    assert 'TemplateOwnShelfCardSection(facts: cardFacts[row.id], state: state, rowID: row.id)' in display
+    assert 'templateAuthor.shelf.inLibrary' in display and 'templateAuthor.shelf.outLibrary' in display
+    assert 'row.publishStatus == 1' in display
+    assert 'rows = []; cardFacts = [:]; review = nil; rowStates = [:]; await refresh()' in view
+    assert 'busy = false; rowStates = [:]; cardFacts = [:] }' in view
     assert 'rows = []; hasMore = false; readSnapshot = false; busy = false; rowStates = [:]' in view
     assert 'Text(verbatim: reason)' in display
     assert 'row.status == 1 ? "templateAuthor.published"' not in view
@@ -102,13 +111,17 @@ def assert_projection_contract(core, view, catalog):
     for addition in [
         '    public let rowStates: [Int: TemplateOwnShelfStateProjection]\n',
         '    public private(set) var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]\n',
+        '    public let cardFacts: [Int: TemplateOwnShelfCardFacts]\n',
+        '    public private(set) var cardFacts: [Int: TemplateOwnShelfCardFacts] = [:]\n',
         '        let stateSnapshot = snapshot.isEmpty ? [:] : rowStates\n',
+        '        let factSnapshot = snapshot.isEmpty ? [:] : cardFacts\n',
         '        rowStates = stateSnapshot\n',
-        '            // No suspension between committing rows and their display-only sidecars.\n            if requested == 1 { rowStates = result.rowStates }\n            else { rowStates.merge(result.rowStates) { _, fresh in fresh } }\n',
+        '        cardFacts = factSnapshot\n',
+        '            // No suspension between committing rows and their display-only sidecars.\n            if requested == 1 { rowStates = result.rowStates }\n            else { rowStates.merge(result.rowStates) { _, fresh in fresh } }\n            if requested == 1 { cardFacts = result.cardFacts }\n            else { cardFacts.merge(result.cardFacts) { _, fresh in fresh } }\n',
     ]:
         assert restored.count(addition) == 1, addition
         restored = restored.replace(addition, '', 1)
-    restored = restored.replace('isShowingRefreshSnapshot = false; rowStates = [:] }', 'isShowingRefreshSnapshot = false }', 1)
+    restored = restored.replace('isShowingRefreshSnapshot = false; rowStates = [:]; cardFacts = [:] }', 'isShowingRefreshSnapshot = false }', 1)
     added_decode = section(restored, '        // Decode optional display columns from original bytes,', '\n    }\n}')
     restored = restored.replace(added_decode, '        return .init(rows: rows, total: total.flatMap { $0 >= 0 ? $0 : nil })', 1)
     assert digest(restored) == PARAMS['BASE_CORE_SHA'], 'existing Core bytes changed'
@@ -116,12 +129,19 @@ def assert_projection_contract(core, view, catalog):
         '                    Text(LocalizedStringKey(row.status == 1 ? "templateAuthor.published" : row.status == 2 ? "templateAuthor.underReview" : "templateAuthor.unpublished"))\n'
         '                    Text(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.inLibrary" : "templateAuthor.shelf.outLibrary"))\n', 1)
     for addition in ['    @State private var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]\n',
+                     '    @State private var cardFacts: [Int: TemplateOwnShelfCardFacts] = [:]\n',
                      '        rowStates = coordinator.shelfReader.rowStates\n',
-                     '        rowStates = rows.isEmpty ? [:] : coordinator.shelfReader.rowStates\n']:
+                     '        cardFacts = coordinator.shelfReader.cardFacts\n',
+                     '        rowStates = rows.isEmpty ? [:] : coordinator.shelfReader.rowStates\n',
+                     '        cardFacts = rows.isEmpty ? [:] : coordinator.shelfReader.cardFacts\n',
+                     '            .onChange(of: selectedMember) { previous, next in\n                guard previous != nil, next == nil else { return }\n                Task { await refresh() }\n            }\n',
+                     '                            if value.action == .remove { TemplateOwnShelfDeleteReviewCopy(title: value.title) }\n']:
         assert restored.count(addition) == 1
         restored = restored.replace(addition, '', 1)
+    restored = restored.replace('cardFacts = [:]; ', '', 1)
     restored = restored.replace('review = nil; rowStates = [:]; await refresh()', 'review = nil; await refresh()', 1)
     restored = restored.replace('busy = false; rowStates = [:]', 'busy = false')
+    restored = restored.replace('; cardFacts = [:]', '')
     assert digest(restored) == PARAMS['BASE_VIEW_SHA'], 'existing View bytes changed'
     first = '    "' + min(PARAMS['LABELS']) + '": {'
     last = '    "' + PARAMS['CATALOG_NEXT_KEY'] + '": {'
@@ -190,7 +210,11 @@ class TemplateShelfStateProjectionContracts(unittest.TestCase):
             ('core', 'zip(rows.map(\\.id), states)', 'zip(rows.reversed().map(\\.id), states)'),
             ('core', 'let stateSnapshot = snapshot.isEmpty ? [:] : rowStates', 'let stateSnapshot = rowStates'),
             ('core', 'rowStates = stateSnapshot', 'rowStates = [:]'),
-            ('core', 'isShowingRefreshSnapshot = false; rowStates = [:] }', 'isShowingRefreshSnapshot = false }'),
+            ('core', 'isShowingRefreshSnapshot = false; rowStates = [:]; cardFacts = [:] }', 'isShowingRefreshSnapshot = false }'),
+            ('core', 'let factSnapshot = snapshot.isEmpty ? [:] : cardFacts', 'let factSnapshot = cardFacts'),
+            ('core', 'cardFacts = factSnapshot', 'cardFacts = [:]'),
+            ('core', 'if requested == 1 { cardFacts = result.cardFacts }', 'if requested == 1 { cardFacts.merge(result.cardFacts) { old, _ in old } }'),
+            ('core', 'cardFacts.merge(result.cardFacts) { _, fresh in fresh }', 'cardFacts = result.cardFacts'),
             ('core', 'if requested == 1 { rowStates = result.rowStates }', 'if requested == 1 { rowStates.merge(result.rowStates) { old, _ in old } }'),
             ('core', 'rowStates.merge(result.rowStates) { _, fresh in fresh }', 'rowStates = result.rowStates'),
             ('core', '            page = requested', '            await Task.yield()\n            page = requested'),
@@ -198,6 +222,9 @@ class TemplateShelfStateProjectionContracts(unittest.TestCase):
             ('view', '@State private var rowStates:', 'private var rowStates:'),
             ('view', 'rowStates = coordinator.shelfReader.rowStates', 'rowStates = [:]'),
             ('view', 'rowStates = rows.isEmpty ? [:] : coordinator.shelfReader.rowStates', 'rowStates = coordinator.shelfReader.rowStates'),
+            ('view', 'cardFacts = rows.isEmpty ? [:] : coordinator.shelfReader.cardFacts', 'cardFacts = coordinator.shelfReader.cardFacts'),
+            ('view', 'guard previous != nil, next == nil else { return }', 'guard true else { return }'),
+            ('view', 'if value.action == .remove { TemplateOwnShelfDeleteReviewCopy(title: value.title) }', ''),
             ('view', 'review = nil; rowStates = [:]; await refresh()', 'review = nil; await refresh()'),
             ('view', 'busy = false; rowStates = [:]', 'busy = false'),
             ('view', 'Text(verbatim: reason)', 'Text(reason)'),
