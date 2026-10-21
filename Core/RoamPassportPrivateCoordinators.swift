@@ -44,6 +44,9 @@ public enum RoamPrivateToolIssue: Equatable {
     private var generation = 0
     public init(tools: any RoamPrivateToolsServing) { self.tools = tools; owner = tools.identity }
     public var pending: RoamCapsuleDraft? { tools.identity == owner ? tools.pendingCapsule : nil }
+    /// Unconfirmed request ID, including a journal-restored one whose draft no longer
+    /// exists after a restart. It locks new creates but can never rebuild a draft.
+    public var pendingRequestID: String? { tools.identity == owner ? tools.unresolvedCapsuleRequestID : nil }
     public var isBusy: Bool { phase == .loading || phase == .sending }
     public var canWrite: Bool { tools.allowsWrites && tools.identity == owner && owner != nil }
     private func live() -> Bool { owner != nil && tools.identity == owner }
@@ -88,14 +91,14 @@ public enum RoamPrivateToolIssue: Equatable {
     public func prepareCreate(body: String, unlockDate: String) {
         guard !isBusy else { return }
         guard canWrite else { issue = tools.allowsWrites ? .changedContext : .writesDisabled; return }
-        guard pending == nil else { issue = .pendingFirst; return }
+        guard pending == nil, pendingRequestID == nil else { issue = .pendingFirst; return }
         let draft = RoamCapsuleDraft(body: body, unlockDate: unlockDate)
         do { try draft.validate(now: tools.now); review = draft; issue = nil } catch { issue = .invalidDraft }
     }
     public func cancelReview() { review = nil }
     /// Explicit confirmation: the reviewed draft becomes the pending request before dispatch.
     public func confirmCreate() async -> Bool {
-        guard let review, canWrite, !isBusy, pending == nil else { return false }
+        guard let review, canWrite, !isBusy, pending == nil, pendingRequestID == nil else { return false }
         tools.pendingCapsule = review; self.review = nil
         return await dispatch(review)
     }
@@ -116,6 +119,14 @@ public enum RoamPrivateToolIssue: Equatable {
             return true
         } catch {
             guard ticket == generation, live() else { return false }
+            if error is RoamPrivatePendingJournalError {
+                // The minimal identity could not be made durable (or the journal is
+                // unreadable), so nothing was sent. The draft stays pending in memory
+                // and the same original request can be attempted again unchanged.
+                issue = .outcomeUnknown
+                phase = .ready
+                return false
+            }
             let found = RoamPrivateToolIssue.from(error)
             switch found {
             case .rejected where !uncertain.contains(draft.requestID), .writesDisabled, .invalidDraft:
@@ -134,13 +145,16 @@ public enum RoamPrivateToolIssue: Equatable {
     private var uncertain: Set<String> = []
     /// 核对上次封存: the receipt of the original request ID is the only proof of its outcome.
     public func verifyPending() async {
-        guard let pending, live(), !isBusy else { return }
+        // After a restart only the request ID survives; the receipt of that original ID
+        // is still the only proof, and no draft is ever rebuilt from the ID alone.
+        guard let requestID = pending?.requestID ?? pendingRequestID, live(), !isBusy else { return }
+        let pending = self.pending
         generation += 1; let ticket = generation
         phase = .loading; issue = nil
         do {
-            _ = try await tools.capsuleReceipt(requestID: pending.requestID)
+            _ = try await tools.capsuleReceipt(requestID: requestID)
             guard ticket == generation, live() else { return }
-            if tools.pendingCapsule == pending { tools.pendingCapsule = nil }
+            if let pending, tools.pendingCapsule == pending { tools.pendingCapsule = nil }
             phase = .ready
             await load()
         } catch {
@@ -185,6 +199,9 @@ public enum RoamPrivateToolIssue: Equatable {
     private var generation = 0
     public init(tools: any RoamPrivateToolsServing) { self.tools = tools; owner = tools.identity }
     public var pending: RoamGoalDraft? { tools.identity == owner ? tools.pendingGoal : nil }
+    /// Unconfirmed request ID, including a journal-restored one whose draft no longer
+    /// exists after a restart. It locks new creates but can never rebuild a draft.
+    public var pendingRequestID: String? { tools.identity == owner ? tools.unresolvedGoalRequestID : nil }
     public var isBusy: Bool { phase == .loading || phase == .sending }
     public var canWrite: Bool { tools.allowsWrites && tools.identity == owner && owner != nil }
     public var periods: [RoamGoalPeriod] { RoamGoalPeriod.periods(now: tools.now) }
@@ -227,13 +244,13 @@ public enum RoamPrivateToolIssue: Equatable {
     public func prepareCreate(metric: RoamGoalMetric, target: Int, startDate: String, endDateExclusive: String) {
         guard !isBusy else { return }
         guard canWrite else { issue = tools.allowsWrites ? .changedContext : .writesDisabled; return }
-        guard pending == nil else { issue = .pendingFirst; return }
+        guard pending == nil, pendingRequestID == nil else { issue = .pendingFirst; return }
         let draft = RoamGoalDraft(metric: metric, target: target, startDate: startDate, endDateExclusive: endDateExclusive)
         do { try draft.validate(now: tools.now); review = draft; issue = nil } catch { issue = .invalidDraft }
     }
     public func cancelCreateReview() { review = nil }
     public func confirmCreate() async -> Bool {
-        guard let review, canWrite, !isBusy, pending == nil else { return false }
+        guard let review, canWrite, !isBusy, pending == nil, pendingRequestID == nil else { return false }
         tools.pendingGoal = review; self.review = nil
         return await dispatch(review)
     }
@@ -254,6 +271,13 @@ public enum RoamPrivateToolIssue: Equatable {
             return true
         } catch {
             guard ticket == generation, live() else { return false }
+            if error is RoamPrivatePendingJournalError {
+                // Nothing was sent: the minimal identity could not be made durable (or
+                // the journal is unreadable). The reviewed draft stays pending as-is.
+                issue = .outcomeUnknown
+                phase = .ready
+                return false
+            }
             let found = RoamPrivateToolIssue.from(error)
             switch found {
             case .rejected where !uncertain.contains(draft.requestID), .writesDisabled, .invalidDraft:
@@ -271,13 +295,14 @@ public enum RoamPrivateToolIssue: Equatable {
     }
     /// Receipt readback for the unconfirmed request.
     public func verifyPending() async {
-        guard let pending, live(), !isBusy else { return }
+        guard let requestID = pending?.requestID ?? pendingRequestID, live(), !isBusy else { return }
+        let pending = self.pending
         generation += 1; let ticket = generation
         phase = .loading; issue = nil
         do {
-            let value = try await tools.goalReceipt(requestID: pending.requestID)
+            let value = try await tools.goalReceipt(requestID: requestID)
             guard ticket == generation, live() else { return }
-            if tools.pendingGoal == pending { tools.pendingGoal = nil }
+            if let pending, tools.pendingGoal == pending { tools.pendingGoal = nil }
             detail = value; phase = .ready
             await load()
         } catch {
@@ -315,6 +340,8 @@ public enum RoamPrivateToolIssue: Equatable {
     public private(set) var issue: RoamPrivateToolIssue?
     /// Prepared, but the server reported a source change: parts read so far are incomplete.
     public private(set) var sourceChanged = false
+    /// Delivery permission for the finished file; issued only once reading completes.
+    public private(set) var deliveryLease: RoamExportDeliveryLease?
     private var parts: [String] = []
     private let tools: any RoamPrivateToolsServing
     private let owner: RoamExperienceIdentity?
@@ -329,7 +356,24 @@ public enum RoamPrivateToolIssue: Equatable {
     public var expected: Int { checkpoint?.snapshot.expectedRows ?? 0 }
     public var percent: Int { expected > 0 ? min(100, Int((Double(read) / Double(expected) * 100).rounded())) : (file != nil ? 100 : 0) }
     private func live() -> Bool { owner != nil && tools.identity == owner }
-    private func clear() { generation += 1; parts = []; file = nil; checkpoint = nil; sourceChanged = false }
+    private func clear() { generation += 1; parts = []; file = nil; checkpoint = nil; sourceChanged = false; deliveryLease?.revoke(); deliveryLease = nil }
+    /// Backgrounding or leaving the page revokes delivery for good; the temporary
+    /// share copy is the view's to remove, and a fresh lease is needed to deliver again.
+    public func revokeDelivery() { deliveryLease?.revoke() }
+    /// Re-issue delivery permission after a return to the page, revalidating identity
+    /// and expiry at that moment rather than trusting the earlier render.
+    public func renewDelivery() {
+        guard live(), phase == .complete, let file, !file.isExpired(now: tools.now) else { return }
+        if deliveryLease == nil || deliveryLease?.isRevoked == true {
+            deliveryLease = RoamExportDeliveryLease(file: file, identity: owner)
+        }
+    }
+    /// The file at the actual hand-off moment: foreground, current identity, unexpired,
+    /// unrevoked. Anything else delivers nothing.
+    public func fileForDelivery(foreground: Bool) -> RoamExportFile? {
+        guard let file = shareableFile, let deliveryLease else { return nil }
+        return deliveryLease.validatedFile(file, now: tools.now, currentIdentity: tools.identity, foreground: foreground)
+    }
 
     public func prepare(startDate: String, endDateExclusive: String) async {
         guard live() else { clear(); issue = owner == nil ? .signInRequired : .changedContext; phase = .choosing; return }
@@ -365,6 +409,7 @@ public enum RoamPrivateToolIssue: Equatable {
             if chunk.checkpoint.complete {
                 let snapshot = chunk.checkpoint.snapshot
                 file = RoamExportFile(fileName: snapshot.fileName, content: parts.joined(), expiresAtMs: snapshot.expiresAtMs, rows: snapshot.expectedRows)
+                deliveryLease = file.flatMap { RoamExportDeliveryLease(file: $0, identity: owner) }
                 phase = .complete
             } else { phase = .prepared }
         } catch {
@@ -377,6 +422,7 @@ public enum RoamPrivateToolIssue: Equatable {
     /// The file only while complete, current, non-empty and unexpired; otherwise nothing to save or share.
     public var shareableFile: RoamExportFile? {
         guard live(), phase == .complete, let file, file.rows > 0, !file.isExpired(now: tools.now) else { return nil }
+        guard let deliveryLease, deliveryLease.canDeliver(now: tools.now, currentIdentity: tools.identity, foreground: true) else { return nil }
         return file
     }
     public var isFileExpired: Bool { file?.isExpired(now: tools.now) == true }

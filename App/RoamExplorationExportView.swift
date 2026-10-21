@@ -22,9 +22,16 @@ extension UTType {
 /// Complete JSONL handed to the system share sheet; the temporary copy is removed when the page goes away.
 struct RoamExportShareItem: Transferable {
     let file: RoamExportFile
+    let lease: RoamExportDeliveryLease?
     static func temporaryURL(_ name: String) -> URL { FileManager.default.temporaryDirectory.appendingPathComponent(name) }
     static var transferRepresentation: some TransferRepresentation {
         FileRepresentation(exportedContentType: .roamJSONL) { item in
+            // Revalidated at the actual hand-off, not at render: an expired or revoked
+            // lease (backgrounded, page gone, identity moved on) delivers nothing.
+            guard let lease = item.lease,
+                  lease.validatedFile(item.file, now: Date(), currentIdentity: lease.identity, foreground: true) != nil else {
+                throw CancellationError()
+            }
             let url = temporaryURL(item.file.fileName)
             try Data(item.file.content.utf8).write(to: url, options: [.atomic, .completeFileProtection])
             return SentTransferredFile(url)
@@ -48,6 +55,7 @@ struct RoamExportDocument: FileDocument {
     @State private var endDate = ""
     @State private var saving = false
     @State private var saveResult: LocalizedStringKey?
+    @Environment(\.scenePhase) private var scenePhase
     init(tools: any RoamPrivateToolsServing) {
         self.tools = tools
         // Offline the fixture echoes a two-row page size so chunked reading stays visible; live reads use 100.
@@ -71,9 +79,18 @@ struct RoamExportDocument: FileDocument {
             if prepared { progress } else { chooser }
         }
         .task { if startDate.isEmpty { use(.last30Days) } }
-        .onDisappear { removeTemporaryFile(); model.restart() }
-        .fileExporter(isPresented: $saving, document: model.shareableFile.map { RoamExportDocument(content: $0.content) },
-                      contentType: .roamJSONL, defaultFilename: model.shareableFile?.fileName) { result in
+        .onDisappear { model.revokeDelivery(); removeTemporaryFile(); model.restart() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                // Return is not a revival: the coordinator revalidates identity and
+                // expiry before any fresh delivery lease exists.
+                model.renewDelivery()
+            } else {
+                model.revokeDelivery(); removeTemporaryFile(); saving = false
+            }
+        }
+        .fileExporter(isPresented: $saving, document: model.fileForDelivery(foreground: scenePhase == .active).map { RoamExportDocument(content: $0.content) },
+                      contentType: .roamJSONL, defaultFilename: model.fileForDelivery(foreground: scenePhase == .active)?.fileName) { result in
             switch result {
             case .success: saveResult = "roam.export.saved"
             case .failure(let error): saveResult = (error as? CocoaError)?.code == .userCancelled ? "roam.export.cancelled" : "roam.export.saveFailed"
@@ -120,14 +137,19 @@ struct RoamExportDocument: FileDocument {
         if model.phase == .complete && model.expected == 0 {
             Section { Text("roam.export.noRecords").accessibilityIdentifier("roam.export.noRecords") }
         }
-        if let file = model.shareableFile {
+        if let file = model.fileForDelivery(foreground: scenePhase == .active) {
             Section {
                 LabeledContent { Text("roam.export.rows \(file.rows)") } label: {
                     Label { Text(verbatim: file.fileName) } icon: { Text(verbatim: "JSONL").font(.caption2.bold()) }
                 }.accessibilityIdentifier("roam.export.file")
-                ShareLink(item: RoamExportShareItem(file: file), preview: SharePreview(file.fileName)) { Text("roam.export.share") }
+                ShareLink(item: RoamExportShareItem(file: file, lease: model.deliveryLease), preview: SharePreview(file.fileName)) { Text("roam.export.share") }
                     .accessibilityIdentifier("roam.export.share")
-                Button("roam.export.save") { saveResult = nil; saving = true }.accessibilityIdentifier("roam.export.save")
+                Button("roam.export.save") {
+                    saveResult = nil
+                    // Revalidated at tap time; an expired or revoked file opens no exporter.
+                    if model.fileForDelivery(foreground: scenePhase == .active) != nil { saving = true }
+                    else if model.isFileExpired { model.discardExpired() }
+                }.accessibilityIdentifier("roam.export.save")
             }
         } else if model.phase == .complete && model.isFileExpired {
             Section { Button("roam.export.expired") { model.discardExpired() } }

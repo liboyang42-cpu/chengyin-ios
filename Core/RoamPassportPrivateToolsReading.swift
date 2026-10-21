@@ -15,6 +15,9 @@ import FoundationNetworking
     var now: Date { get }
     var pendingCapsule: RoamCapsuleDraft? { get set }
     var pendingGoal: RoamGoalDraft? { get set }
+    var unresolvedCapsuleRequestID: String? { get }
+    var unresolvedGoalRequestID: String? { get }
+    var pendingJournalBlocked: Bool { get }
     var confirmedCancelledGoals: Set<String> { get set }
     func capsules(beforeID: String?) async throws -> RoamCapsulePage
     func capsule(id: String) async throws -> RoamCapsule
@@ -28,6 +31,15 @@ import FoundationNetworking
     func cancelGoal(id: String) async throws -> RoamExplorationGoal
     func prepareExport(_ request: RoamExportRequest) async throws -> RoamExportCheckpoint
     func exportPage(_ checkpoint: RoamExportCheckpoint) async throws -> RoamExportChunk
+}
+
+public extension RoamPrivateToolsServing {
+    /// Request ID of an unconfirmed create, including one restored from the pending
+    /// journal after a restart (where the original draft itself is gone for good).
+    var unresolvedCapsuleRequestID: String? { pendingCapsule?.requestID }
+    var unresolvedGoalRequestID: String? { pendingGoal?.requestID }
+    /// True when durable pending state could not be read, so writes must fail closed.
+    var pendingJournalBlocked: Bool { false }
 }
 
 /// Exact archive paths. Reads and writes are approved separately; nothing outside these sets is ever sent.
@@ -206,17 +218,77 @@ public struct RoamPrivateToolsService {
     private var storedCapsule: RoamCapsuleDraft?
     private var storedGoal: RoamGoalDraft?
     private var storedCancelled: Set<String> = []
+    private let journal: RoamPrivatePendingJournal?
+    private var restoredCapsuleRequestID: String?
+    private var restoredGoalRequestID: String?
+    private var journalScope: RoamHistoryScope?
+    public private(set) var pendingJournalBlocked = false
     public init(service: RoamPrivateToolsService?, current: @escaping () -> RuntimeDependencyContext?,
                 access: @escaping (RuntimeDependencyContext) -> RoamPrivateToolsAccess?,
-                onUnauthorized: @escaping (RuntimeDependencyContext) -> Void = { _ in }) {
+                onUnauthorized: @escaping (RuntimeDependencyContext) -> Void = { _ in },
+                journal: RoamPrivatePendingJournal? = .live()) {
         self.service = service; self.current = current; selectAccess = access; self.onUnauthorized = onUnauthorized
+        self.journal = journal
     }
     private func synchronize() -> RuntimeDependencyContext? {
         let context = current()
         let same: Bool
         if let context, let bound { same = ContentDraftContextFence.matches(bound, context) } else { same = context == nil && bound == nil }
         if !same { bound = context; storedCapsule = nil; storedGoal = nil; storedCancelled = [] }
+        refreshJournal(for: context)
         return context
+    }
+    private func scope(for context: RuntimeDependencyContext?) -> RoamHistoryScope? {
+        guard let context else { return nil }
+        return try? RoamHistoryScope(market: context.market.rawValue, deployment: context.baseURL,
+                                     accountID: context.session.accountID, namespace: context.session.namespace)
+    }
+    /// Reload the durable locks for the bound scope. Corrupt or unreadable journal bytes
+    /// fail closed: no restored ID is trusted and every create is refused before dispatch.
+    private func refreshJournal(for context: RuntimeDependencyContext?) {
+        let currentScope = scope(for: context)
+        guard currentScope != journalScope || currentScope == nil else { return }
+        journalScope = currentScope
+        restoredCapsuleRequestID = nil; restoredGoalRequestID = nil; pendingJournalBlocked = false
+        guard let journal, let currentScope else { return }
+        do {
+            restoredCapsuleRequestID = try journal.entry(kind: .capsuleCreate, scope: currentScope)?.requestID
+            restoredGoalRequestID = try journal.entry(kind: .goalCreate, scope: currentScope)?.requestID
+        } catch {
+            restoredCapsuleRequestID = nil; restoredGoalRequestID = nil; pendingJournalBlocked = true
+        }
+    }
+    public var unresolvedCapsuleRequestID: String? {
+        _ = synchronize()
+        return storedCapsule?.requestID ?? restoredCapsuleRequestID
+    }
+    public var unresolvedGoalRequestID: String? {
+        _ = synchronize()
+        return storedGoal?.requestID ?? restoredGoalRequestID
+    }
+    /// Make the minimal identity durable before dispatch. A save failure, a corrupt
+    /// journal or a slot held by a different request all stop the write here, so no
+    /// request is ever sent without its restart-surviving lock already in place.
+    private func persistBeforeDispatch(kind: RoamPrivatePendingKind, requestID: String) throws {
+        guard let context = synchronize(), let ownerScope = scope(for: context) else { throw APIError.unauthorized }
+        guard !pendingJournalBlocked else { throw RoamPrivatePendingJournalError.corrupted }
+        let restored = kind == .capsuleCreate ? restoredCapsuleRequestID : restoredGoalRequestID
+        if let restored, restored != requestID { throw RoamPrivateWriteError.pendingMismatch }
+        guard let journal else { throw RoamPrivatePendingJournalError.unavailable }
+        do { try journal.record(kind: kind, requestID: requestID, scope: ownerScope, now: now) }
+        catch let error as RoamPrivatePendingJournalError where error == .locked { throw RoamPrivateWriteError.pendingMismatch }
+        if kind == .capsuleCreate { restoredCapsuleRequestID = requestID } else { restoredGoalRequestID = requestID }
+    }
+    /// Confirmation-only cleanup. A failed removal keeps the restored lock (fail closed);
+    /// the next successful receipt readback retries the removal.
+    private func clearAfterConfirmation(kind: RoamPrivatePendingKind, requestID: String) {
+        guard let context = synchronize(), let ownerScope = scope(for: context), let journal else { return }
+        do {
+            try journal.clear(kind: kind, requestID: requestID, scope: ownerScope)
+            if kind == .capsuleCreate { restoredCapsuleRequestID = nil } else { restoredGoalRequestID = nil }
+        } catch {
+            if kind == .capsuleCreate { restoredCapsuleRequestID = requestID } else { restoredGoalRequestID = requestID }
+        }
     }
     public var identity: RoamExperienceIdentity? {
         guard let context = synchronize(), let scope = try? RoamHistoryScope(market: context.market.rawValue, deployment: context.baseURL,
@@ -267,10 +339,36 @@ public struct RoamPrivateToolsService {
     }
     public func capsules(beforeID: String?) async throws -> RoamCapsulePage { try await run { try await $0.capsules(beforeID: beforeID, token: $1) } }
     public func capsule(id: String) async throws -> RoamCapsule { try await run { try await $0.capsule(id: id, token: $1) } }
-    public func capsuleReceipt(requestID: String) async throws -> RoamCapsule { try await run { try await $0.capsuleReceipt(requestID: requestID, token: $1) } }
+    public func capsuleReceipt(requestID: String) async throws -> RoamCapsule {
+        let value = try await run { try await $0.capsuleReceipt(requestID: requestID, token: $1) }
+        // Only a receipt that actually came back releases the durable lock.
+        if unresolvedCapsuleRequestID == requestID { clearAfterConfirmation(kind: .capsuleCreate, requestID: requestID) }
+        return value
+    }
     public func createCapsule(_ draft: RoamCapsuleDraft) async throws -> RoamCapsule {
+        guard approved() != nil else { throw APIError.notConfigured }
+        try persistBeforeDispatch(kind: .capsuleCreate, requestID: draft.requestID)
         let at = now
-        return try await run(write: true) { try await $0.createCapsule(draft, now: at, token: $1) }
+        do {
+            let value = try await run(write: true) { try await $0.createCapsule(draft, now: at, token: $1) }
+            clearAfterConfirmation(kind: .capsuleCreate, requestID: draft.requestID)
+            return value
+        } catch {
+            releaseLockIfRefused(error, kind: .capsuleCreate, requestID: draft.requestID)
+            throw error
+        }
+    }
+    /// A refusal, a disabled write surface, an invalid draft or a missing approval proves
+    /// nothing was applied, so the lock is released; every other outcome keeps it.
+    private func releaseLockIfRefused(_ error: Error, kind: RoamPrivatePendingKind, requestID: String) {
+        let releasesLock: Bool
+        if let write = error as? RoamPrivateWriteError {
+            switch write {
+            case .rejected, .writesDisabled, .invalidDraft: releasesLock = true
+            default: releasesLock = false
+            }
+        } else { releasesLock = (error as? APIError) == .notConfigured }
+        if releasesLock { clearAfterConfirmation(kind: kind, requestID: requestID) }
     }
     public func deleteCapsule(id: String) async throws -> RoamCapsule { try await run(write: true) { try await $0.deleteCapsule(id: id, token: $1) } }
     public func goals(beforeID: String?) async throws -> RoamGoalPage {
@@ -283,11 +381,22 @@ public struct RoamPrivateToolsService {
     }
     public func goalReceipt(requestID: String) async throws -> RoamExplorationGoal {
         let cancelled = confirmedCancelledGoals, draft = pendingGoal.flatMap { $0.requestID == requestID ? $0 : nil }
-        return try await run { try await $0.goalReceipt(requestID: requestID, draft: draft, confirmedCancelled: cancelled, token: $1) }
+        let value = try await run { try await $0.goalReceipt(requestID: requestID, draft: draft, confirmedCancelled: cancelled, token: $1) }
+        if unresolvedGoalRequestID == requestID { clearAfterConfirmation(kind: .goalCreate, requestID: requestID) }
+        return value
     }
     public func createGoal(_ draft: RoamGoalDraft) async throws -> RoamExplorationGoal {
+        guard approved() != nil else { throw APIError.notConfigured }
+        try persistBeforeDispatch(kind: .goalCreate, requestID: draft.requestID)
         let at = now, cancelled = confirmedCancelledGoals
-        return try await run(write: true) { try await $0.createGoal(draft, now: at, confirmedCancelled: cancelled, token: $1) }
+        do {
+            let value = try await run(write: true) { try await $0.createGoal(draft, now: at, confirmedCancelled: cancelled, token: $1) }
+            clearAfterConfirmation(kind: .goalCreate, requestID: draft.requestID)
+            return value
+        } catch {
+            releaseLockIfRefused(error, kind: .goalCreate, requestID: draft.requestID)
+            throw error
+        }
     }
     public func cancelGoal(id: String) async throws -> RoamExplorationGoal {
         let value = try await run(write: true) { try await $0.cancelGoal(id: id, token: $1) }
