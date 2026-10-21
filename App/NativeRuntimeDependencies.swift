@@ -35,11 +35,13 @@ import Foundation
     let shopNPCGrants: ShopNPCGrants
     let journeyNarrativeImageReader: (any RetainedPublicImageReading)?
     let motion: (any PlayMotionSampleProviding)?
+    let nonCashRewardApproved: Bool
     init(officialActionApproval: OfficialActionProductionApproval? = nil, socialMemberActionApprovals: [SocialMemberActionApproval] = [], configuration: RuntimeDependencyConfiguration? = nil, walkingNavigation: NativeWalkingNavigationDependencies? = nil, businessConfiguration: BusinessRuntimeConfiguration? = nil, bankDocument: (any BankWithdrawalCurrentDocumentProviding)? = nil, signupDocument: (any TopicSelfPlayDocumentProviding)? = nil, selfPlayPayment: (any TopicSelfPlayPaymentProviding)? = nil, weChatPaymentConfiguration: WeChatSDKPaymentConfiguration? = nil, transport: (any HTTPTransport)? = nil,
          location: (any RoamDeviceLocationProviding)? = nil, shopNPCGrants: ShopNPCGrants = .init(), motion: (any PlayMotionSampleProviding)? = nil,
          verificationCodeApproval: VerificationCodeApproval? = nil, couponCodeApproval: CouponCodeApproval? = nil, socialReaderApproval: SocialReaderProductionApproval? = nil,
          clubOpsTimeApproval: ClubOpsTimeApproval? = nil, contextualReviewApproval: ContextualReviewApproval? = nil,
-         ownerRefundApproval: ClubOwnerRefundApproval? = nil, nativePlatform: NativePlatformAcceptance? = nil, clubGovernanceApproval: ClubGovernanceProductionApproval? = nil, merchantBusinessApproval: MerchantBusinessProductionApproval? = nil, merchantEngagementApproval: MerchantEngagementProductionApproval? = nil, orderLifecycleConfiguration: OrderLifecycleProductionConfiguration? = nil, journeyNarrativeImageReader: (any RetainedPublicImageReading)? = nil, merchantPublicApproval: MerchantPublicProductionApproval? = nil, merchantNPCGrants: MerchantNPCGrants = .init(), merchantProjectBrowseApproval: MerchantProjectBrowseApproval? = nil, merchantPredictionReadApproval: MerchantPredictionReadApproval? = nil, merchantOverviewReadApproval: MerchantOverviewReadApproval? = nil, merchantProjectWorkspaceReadApproval: MerchantProjectWorkspaceReadApproval? = nil, merchantProjectParticipantsReadApproval: MerchantProjectParticipantsReadApproval? = nil) {
+         ownerRefundApproval: ClubOwnerRefundApproval? = nil, nativePlatform: NativePlatformAcceptance? = nil, clubGovernanceApproval: ClubGovernanceProductionApproval? = nil, merchantBusinessApproval: MerchantBusinessProductionApproval? = nil, merchantEngagementApproval: MerchantEngagementProductionApproval? = nil, orderLifecycleConfiguration: OrderLifecycleProductionConfiguration? = nil, journeyNarrativeImageReader: (any RetainedPublicImageReading)? = nil, merchantPublicApproval: MerchantPublicProductionApproval? = nil, merchantNPCGrants: MerchantNPCGrants = .init(), merchantProjectBrowseApproval: MerchantProjectBrowseApproval? = nil, merchantPredictionReadApproval: MerchantPredictionReadApproval? = nil, merchantOverviewReadApproval: MerchantOverviewReadApproval? = nil, merchantProjectWorkspaceReadApproval: MerchantProjectWorkspaceReadApproval? = nil, merchantProjectParticipantsReadApproval: MerchantProjectParticipantsReadApproval? = nil,
+         nonCashRewardApproved: Bool = false) {
         self.clubOpsTimeApproval = clubOpsTimeApproval; self.contextualReviewApproval = contextualReviewApproval
         self.walkingNavigation = walkingNavigation
         self.officialActionApproval = officialActionApproval
@@ -62,6 +64,7 @@ import Foundation
         self.businessConfiguration = businessConfiguration; self.bankDocument = bankDocument
         self.verificationCodeApproval = verificationCodeApproval; self.couponCodeApproval = couponCodeApproval; self.ownerRefundApproval = ownerRefundApproval
         self.configuration = configuration; self.transport = transport; self.location = location; self.shopNPCGrants = shopNPCGrants; self.motion = motion
+        self.nonCashRewardApproved = nonCashRewardApproved
     }
     func makeMerchantPublicFactory(api: APIConfiguration, journal: any OperationPendingJournal,
                                    transportOverride: (any HTTPTransport)? = nil,

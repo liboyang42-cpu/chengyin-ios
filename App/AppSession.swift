@@ -1965,13 +1965,25 @@ final class AppSession: ObservableObject {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: captured.token)
             })
     }
-    // No live source/deployment approval exists yet. Keep the reward read capability nil.
-    private let nonCashRewardService: NonCashRewardService? = nil
+    func makeNonCashRewardService() -> NonCashRewardService? {
+        guard runtimeDependencies.nonCashRewardApproved, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        return NonCashRewardService(configuration: configuration, transport: runtimeHTTPTransport)
+    }
+    func makeRewardPledgeClient() -> RewardPledgeClient? {
+        guard runtimeDependencies.nonCashRewardApproved, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        return RewardPledgeClient(configuration: configuration, transport: runtimeHTTPTransport, permitsWrites: true)
+    }
+    func makeRewardPledgeEntry() -> RewardPledgeEntry? {
+        guard makeNonCashRewardService() != nil, let client = makeRewardPledgeClient(), let account, let token else { return nil }
+        let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/reward-pledge-unknown.json")
+        return RewardPledgeEntry(client: client, accountID: String(account.id), token: token, journalURL: url)
+    }
     private var currentNonCashRewardSession: NonCashRewardReadSession? {
         guard let account, let token else { return nil }
         return try? NonCashRewardReadSession(accountID: account.id, epoch: gate.currentStamp, token: token)
     }
-    lazy var nonCashRewardReader = NonCashRewardSessionReader(service: nonCashRewardService,
+    lazy var nonCashRewardReader = NonCashRewardSessionReader(service: { [weak self] in self?.makeNonCashRewardService() },
         currentSession: { [weak self] in self?.currentNonCashRewardSession },
         onUnauthorized: { [weak self] captured in
             guard let self, self.currentNonCashRewardSession == captured else { return }

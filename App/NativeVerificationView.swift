@@ -14,7 +14,8 @@ extension EnvironmentValues {
     var body: some View {
         NativeVerificationView(flow: session.nativeVerificationFlow, cameraEnabled: session.verificationCameraEnabled,
             records: { AnyView(MerchantBusinessPage(reader: session.merchantBusinessReader,
-                journal: session.merchantBusinessJournal, query: .redemptions(filter: "all", page: 1))) })
+                journal: session.merchantBusinessJournal, query: .redemptions(filter: "all", page: 1))) },
+            pledge: session.makeNonCashRewardService() == nil ? nil : session.makeRewardPledgeEntry())
             .id(session.sessionRevision)
     }
 }
@@ -24,6 +25,7 @@ extension EnvironmentValues {
     @Bindable var flow: NativeVerificationWorkflow
     var cameraEnabled = false
     let records: @MainActor () -> AnyView
+    var pledge: RewardPledgeEntry? = nil
     @State private var raw = ""
     @State private var camera = false
     @Environment(\.scenePhase) private var scenePhase
@@ -66,6 +68,12 @@ extension EnvironmentValues {
                 }
             }
             Section {
+                if let pledge, pledge.permitsWrites, flow.access?.allows("merchant:verify") == true {
+                    NavigationLink { RewardPledgeStaffHost(entry: pledge) } label: { Text(verbatim: "Redeem voucher") }
+                        .accessibilityIdentifier("rewards.pledge.merchant")
+                } else {
+                    Text(verbatim: "Not open").accessibilityIdentifier("rewards.pledge.merchantClosed")
+                }
                 if !flow.current { Button("verification.refreshAccess") { Task { await flow.activate() } }.disabled(flow.phase == .loading) }
                 NavigationLink { records() } label: { Label("verification.records", systemImage: "list.bullet.rectangle") }
                 if !flow.canDispatch { Text("verification.dispatchDisabled").font(.footnote).foregroundStyle(.secondary) }

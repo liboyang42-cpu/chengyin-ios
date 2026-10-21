@@ -142,8 +142,20 @@ final class RewardPledgeTests: XCTestCase {
         XCTAssertFalse(requests.contains { $0.url?.path.contains("citynode") == true })
         XCTAssertThrowsError(try RewardPledgeRequests.query(original: redeem.asUnknown, proposedRequestID: "other", baseURL: base, token: "fixture-token"))
         let query = try RewardPledgeRequests.query(original: redeem.asUnknown, proposedRequestID: redeem.requestID, baseURL: base, token: "fixture-token")
-        XCTAssertEqual(query.httpMethod, "GET")
-        XCTAssertTrue(query.url?.query?.contains(redeem.requestID) == true)
+        XCTAssertEqual(query.httpMethod, "POST")
+        XCTAssertTrue(query.url?.path.hasSuffix(RewardPledgeRoutes.plannedIntentQuery) == true)
+        let queryFields = try JSONSerialization.jsonObject(with: XCTUnwrap(query.httpBody)) as? [String: String]
+        XCTAssertEqual(queryFields, ["requestId": redeem.requestID])
+        let claim = try RewardPledgeRequests.claim(requestID: digest, versionID: "version-1", subjectID: "100", baseURL: base, token: "fixture-token")
+        let claimFields = try JSONSerialization.jsonObject(with: XCTUnwrap(claim.httpBody)) as? [String: String]
+        XCTAssertEqual(claimFields, ["branch": "THEME", "requestId": digest, "subjectId": "100", "versionId": "version-1"])
+        XCTAssertFalse(claimFields?.keys.contains("ownerId") == true)
+        let redeemRequest = try RewardPledgeRequests.redeem(awardID: "award-1", baseURL: base, token: "fixture-token")
+        XCTAssertTrue(redeemRequest.url?.path.hasSuffix(RewardPledgeRoutes.redeem) == true)
+        let redeemFields = try JSONSerialization.jsonObject(with: XCTUnwrap(redeemRequest.httpBody)) as? [String: String]
+        XCTAssertEqual(redeemFields?["confirm"], "true")
+        XCTAssertEqual(redeemFields?["awardId"], "award-1")
+        XCTAssertNil(redeemFields?["requestId"])
         var closed = approved(); closed.readSource = nil
         staff.applyPolicy(closed)
         guard case .failure(.closed("readSource")) = staff.refreshSource() else { return XCTFail("unset source") }

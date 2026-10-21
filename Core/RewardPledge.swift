@@ -45,8 +45,11 @@ public enum RewardPledgeDependency {
 
 public enum RewardPledgeRoutes {
     public static let plannedNonCashList = "api/rewards/noncash"
-    public static let plannedClaim = "api/rewards/pledge/claim"
-    public static let plannedIntentQuery = "api/rewards/pledge/intent"
+    public static let plannedClaim = "api/rewards/noncash/claims"
+    public static let plannedIntentQuery = "api/rewards/noncash/claims/recover"
+    public static let offerPrefix = "api/rewards/noncash/versions/"
+    public static let preview = "api/reward-pledge/fulfilment/preview"
+    public static let redeem = "api/reward-pledge/fulfilment/redeem"
     public static let plannedDraft = "api/rewards/pledge/draft"
     public static let plannedSubmit = "api/rewards/pledge/submit"
     public static let couponQRToken = "api/coupon/qr-token"
@@ -177,28 +180,53 @@ public final class RewardPledgeFileJournal {
 }
 
 public enum RewardPledgeRequests {
-    public static func claim(_ intent: RewardPledgeIntent, baseURL: URL, token: String) throws -> URLRequest {
-        guard intent.kind == "claim", intent.requestID == RewardPledgeIdentity.requestID(for: intent.businessKey) else {
-            throw RewardPledgeFailure.closed("requestID")
-        }
-        return try form(RewardPledgeRoutes.plannedClaim, ["requestId": intent.requestID, "kind": intent.kind], baseURL, token, "pledge-claim")
+    public static func claim(requestID: String, versionID: String, subjectID: String, baseURL: URL, token: String) throws -> URLRequest {
+        guard segment(requestID), segment(versionID), segment(subjectID) else { throw RewardPledgeFailure.closed("requestID") }
+        return try json(RewardPledgeRoutes.plannedClaim, [
+            "requestId": requestID, "versionId": versionID, "branch": "THEME", "subjectId": subjectID
+        ], baseURL, token)
     }
-    /// Recovery reads the original request id. A different id is not sent.
+    /// Recovery posts the original request id. A different id is not sent.
     public static func query(original: RewardPledgeUnknown, proposedRequestID: String, baseURL: URL, token: String) throws -> URLRequest {
         guard proposedRequestID == original.requestID,
               original.requestID == RewardPledgeIdentity.requestID(for: original.businessKey) else {
             throw RewardPledgeFailure.closed("requestID")
         }
-        guard AuthRequestBuilder.isValidToken(token),
-              var parts = URLComponents(url: baseURL.appendingPathComponent(RewardPledgeRoutes.plannedIntentQuery), resolvingAgainstBaseURL: false)
-        else { throw APIError.invalidRequest }
-        parts.queryItems = [URLQueryItem(name: "requestId", value: original.requestID)]
+        return try json(RewardPledgeRoutes.plannedIntentQuery, ["requestId": original.requestID], baseURL, token)
+    }
+    public static func offer(versionID: String, subjectID: String, baseURL: URL, token: String) throws -> URLRequest {
+        guard segment(versionID), segment(subjectID), !versionID.contains("/"),
+              AuthRequestBuilder.isValidToken(token),
+              var parts = URLComponents(url: baseURL.appendingPathComponent(RewardPledgeRoutes.offerPrefix + versionID), resolvingAgainstBaseURL: false)
+        else { throw RewardPledgeFailure.closed("versionId") }
+        parts.queryItems = [URLQueryItem(name: "branch", value: "THEME"), URLQueryItem(name: "subjectId", value: subjectID)]
         guard let url = parts.url else { throw APIError.invalidRequest }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.timeoutInterval = 20
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        return request
+    }
+    public static func preview(awardID: String, baseURL: URL, token: String) throws -> URLRequest {
+        guard segment(awardID) else { throw RewardPledgeFailure.closed("award") }
+        return try json(RewardPledgeRoutes.preview, ["awardId": awardID], baseURL, token)
+    }
+    /// Redeem body is awardId plus explicit confirm. The server keeps the award's original request id.
+    public static func redeem(awardID: String, baseURL: URL, token: String) throws -> URLRequest {
+        guard segment(awardID) else { throw RewardPledgeFailure.closed("award") }
+        return try json(RewardPledgeRoutes.redeem, ["awardId": awardID, "confirm": "true"], baseURL, token)
+    }
+    public static func detail(awardID: String, baseURL: URL, token: String) throws -> URLRequest {
+        guard segment(awardID), !awardID.contains("/"), AuthRequestBuilder.isValidToken(token) else { throw RewardPledgeFailure.closed("award") }
+        var request = URLRequest(url: baseURL.appendingPathComponent(RewardPledgeRoutes.plannedNonCashList + "/" + awardID))
+        request.httpMethod = "GET"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
         request.setValue(token, forHTTPHeaderField: "Authorization")
         return request
     }
@@ -229,6 +257,23 @@ public enum RewardPledgeRequests {
         }
         guard suffixes == RewardPledgeRoutes.staffRedeem.map({ Optional($0) }) else { throw RewardPledgeFailure.closed("route") }
         return built
+    }
+    private static func segment(_ value: String) -> Bool {
+        !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && value.count <= 128 && !value.contains("\n") && !value.contains("\r")
+    }
+    private static func json(_ path: String, _ fields: [String: String], _ baseURL: URL, _ token: String) throws -> URLRequest {
+        guard AuthRequestBuilder.isValidToken(token),
+              let body = try? JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys]) else { throw APIError.invalidRequest }
+        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.httpBody = body
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        return request
     }
     private static func form(_ path: String, _ fields: [String: String], _ baseURL: URL, _ token: String, _ boundary: String) throws -> URLRequest {
         guard RewardPledgeRoutes.staffRedeem.contains(path) || path.hasPrefix("api/rewards/pledge/") else {
@@ -507,6 +552,13 @@ public struct RewardPledgeMachine: Equatable {
         item.pledgePresentable(capabilities)
     }
 
+    public mutating func finishUnknown(requestID: String, seen: RewardPledgeScope) -> Result<Void, RewardPledgeFailure> {
+        guard seen == scope else { return .failure(.stale) }
+        guard unknowns.contains(where: { $0.requestID == requestID && $0.ownerID == scope.accountID }) else { return .failure(.closed("intent")) }
+        unknowns.removeAll { $0.requestID == requestID && $0.ownerID == scope.accountID }
+        return .success(())
+    }
+
     public func persistedRows(existing: [RewardPledgeUnknown]) -> [RewardPledgeUnknown] {
         let kept = existing.filter { $0.ownerID != scope.accountID || $0.storeID != scope.storeID }
         return (kept + unknowns).sorted { $0.ownerID == $1.ownerID ? $0.businessKey < $1.businessKey : $0.ownerID < $1.ownerID }
@@ -515,5 +567,115 @@ public struct RewardPledgeMachine: Equatable {
     private mutating func clearPresentation() {
         grant = nil; draft = nil; frozen = nil; serviceCase = nil; confirmedKey = nil
         previewedStoreID = nil; staffRoutes = []; listRefreshed = false; detailRefreshed = false; consumedCodes = []
+    }
+}
+
+public struct RewardPledgeEntry {
+    public let client: RewardPledgeClient
+    public let accountID: String
+    public let token: String
+    public let journalURL: URL
+    public init(client: RewardPledgeClient, accountID: String, token: String, journalURL: URL) {
+        self.client = client; self.accountID = accountID; self.token = token; self.journalURL = journalURL
+    }
+    public var permitsWrites: Bool { client.permitsWrites }
+}
+
+public struct RewardPledgeServerBody: Equatable, Sendable {
+    public let code: Int
+    public let message: String
+    public let fields: [String: String]
+    public init(code: Int, message: String, fields: [String: String]) {
+        self.code = code; self.message = message; self.fields = fields
+    }
+}
+
+/// Calls ApiNonCashRewardController and ApiRewardPledgeController. Writes stay closed until permitsWrites is set.
+public struct RewardPledgeClient {
+    public let permitsWrites: Bool
+    private let configuration: APIConfiguration
+    private let transport: any HTTPTransport
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, permitsWrites: Bool = false) {
+        self.configuration = configuration; self.transport = transport; self.permitsWrites = permitsWrites
+    }
+    public func offer(versionID: String, subjectID: String, token: String) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.offer(versionID: versionID, subjectID: subjectID, baseURL: configuration.baseURL, token: token))
+    }
+    public func claim(requestID: String, versionID: String, subjectID: String, token: String) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.claim(requestID: requestID, versionID: versionID, subjectID: subjectID, baseURL: configuration.baseURL, token: token))
+    }
+    public func recover(requestID: String, token: String) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.jsonRecover(requestID: requestID, baseURL: configuration.baseURL, token: token))
+    }
+    public func detail(awardID: String, token: String) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.detail(awardID: awardID, baseURL: configuration.baseURL, token: token))
+    }
+    public func preview(awardID: String, token: String) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.preview(awardID: awardID, baseURL: configuration.baseURL, token: token))
+    }
+    public func redeem(awardID: String, token: String) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.redeem(awardID: awardID, baseURL: configuration.baseURL, token: token))
+    }
+    /// Preview must name the same request id and a coupon history before redeem is sent.
+    public static func acceptedVoucher(preview: RewardPledgeServerBody, originalRequestID: String) -> Result<String, RewardPledgeFailure> {
+        guard preview.code == 200 else { return .failure(.closed(preview.code == 403 ? "permission" : (preview.message.isEmpty ? "voucher" : preview.message))) }
+        guard preview.fields["requestId"] == originalRequestID, !originalRequestID.isEmpty else { return .failure(.closed("requestID")) }
+        guard let history = preview.fields["historyId"], !history.isEmpty else { return .failure(.closed("voucher")) }
+        guard preview.fields["guaranteed"] != "true" else { return .failure(.closed("switches")) }
+        let state = preview.fields["state"] ?? ""
+        let use = preview.fields["useStatus"] ?? ""
+        if use == "1" || state == "REDEEMED" { return .failure(.terminal("ALREADY_USED")) }
+        if use == "2" || state == "EXPIRED" { return .failure(.terminal("EXPIRED")) }
+        guard state == "AWARDED", use == "0", let award = preview.fields["awardId"], !award.isEmpty else {
+            return .failure(.terminal(state.isEmpty ? "ABSENT" : state))
+        }
+        return .success(award)
+    }
+    private func send(_ request: URLRequest) async throws -> RewardPledgeServerBody {
+        guard permitsWrites else { throw RewardPledgeFailure.closed("not open") }
+        let data: Data, status: Int
+        do { (data, status) = try await transport.send(request) }
+        catch { throw RewardPledgeFailure.closed("unknown") }
+        if status == 401 { throw APIError.unauthorized }
+        guard data.count <= 1_048_576, let body = RewardPledgeServerBody.decode(data) else { throw APIError.malformedResponse }
+        if body.code == 401 || status == 401 { throw APIError.unauthorized }
+        if body.code != 200 { throw RewardPledgeFailure.closed(body.message.isEmpty ? "http" : body.message) }
+        return body
+    }
+}
+
+private extension RewardPledgeRequests {
+    static func jsonRecover(requestID: String, baseURL: URL, token: String) throws -> URLRequest {
+        guard !requestID.isEmpty, requestID.count <= 128 else { throw RewardPledgeFailure.closed("requestID") }
+        return try json(RewardPledgeRoutes.plannedIntentQuery, ["requestId": requestID], baseURL, token)
+    }
+}
+
+private extension RewardPledgeServerBody {
+    static func decode(_ data: Data) -> RewardPledgeServerBody? {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let code = (object["code"] as? NSNumber)?.intValue ?? object["code"] as? Int else { return nil }
+        let message = object["msg"] as? String ?? ""
+        var fields: [String: String] = [:]
+        if let data = object["data"] as? [String: Any] { flatten(data, into: &fields) }
+        return RewardPledgeServerBody(code: code, message: message, fields: fields)
+    }
+    static func flatten(_ object: [String: Any], into fields: inout [String: String], prefix: String = "") {
+        for (key, value) in object {
+            let name = prefix.isEmpty ? key : prefix + "." + key
+            if let child = value as? [String: Any] { flatten(child, into: &fields, prefix: name); continue }
+            if let text = text(value) { fields[name] = text }
+        }
+    }
+    static func text(_ value: Any) -> String? {
+        if value is NSNull { return nil }
+        if let text = value as? String { return text }
+        if let number = value as? NSNumber {
+            if CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() { return number.boolValue ? "true" : "false" }
+            let double = number.doubleValue
+            if double.rounded() == double, double <= Double(Int64.max), double >= Double(Int64.min) { return String(number.int64Value) }
+            return number.stringValue
+        }
+        return nil
     }
 }

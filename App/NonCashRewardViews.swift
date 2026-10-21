@@ -1,14 +1,16 @@
 import SwiftUI
 
-/// Normal account destination; its live service remains explicitly unconfigured in AppSession.
+/// Account reward list. The pledge service stays nil until the approval flag is on.
 @MainActor struct NonCashRewardsView: View {
     let reader: any NonCashRewardReading
     let merchantHome: PublicMerchantHomeContext?
+    let pledge: RewardPledgeEntry?
     @StateObject private var model = NonCashRewardCollectionScreenModel()
     private var key: AccountCollectionLoadKey { .init(rewardReader: reader) }
     init(reader identity: any AccountCollectionReading, rewards: (any NonCashRewardReading)? = nil,
-         merchantHome: PublicMerchantHomeContext? = nil) {
+         merchantHome: PublicMerchantHomeContext? = nil, pledge: RewardPledgeEntry? = nil) {
         self.merchantHome = merchantHome
+        self.pledge = pledge
         #if DEBUG
         if let scenario = NonCashRewardDemo.scenario {
             reader = NonCashRewardFixtureReader(identity: identity, scenario: scenario)
@@ -24,6 +26,7 @@ import SwiftUI
             else if !reader.isConfigured {
                 ContentUnavailableView("rewards.unavailable", systemImage: "gift", description: Text("rewards.unavailableHint"))
                     .accessibilityIdentifier("rewards.unavailable")
+                Text(verbatim: "Not open").accessibilityIdentifier("rewards.pledge.closed")
             } else if model.state.isLoading || model.state.loadedScope != key.scope {
                 ProgressView("accountCollection.loading")
             } else if let issue = model.state.issue {
@@ -32,6 +35,12 @@ import SwiftUI
                     Button("accountCollection.refresh") { Task { await refresh() } }.accessibilityIdentifier("rewards.retry")
                 }
             } else {
+                if let pledge, pledge.permitsWrites {
+                    NavigationLink { RewardPledgeClaimHost(entry: pledge) } label: { Text(verbatim: "Claim") }
+                        .accessibilityIdentifier("rewards.pledge.open")
+                } else {
+                    Text(verbatim: "Not open").accessibilityIdentifier("rewards.pledge.closed")
+                }
                 if let asOf = model.state.asOf { LabeledContent("rewards.asOf") { Text(asOf, format: .dateTime) } }
                 if model.state.visibleRows(scope: key.scope).isEmpty {
                     ContentUnavailableView("rewards.empty", systemImage: "gift")

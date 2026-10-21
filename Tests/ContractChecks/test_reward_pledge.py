@@ -221,8 +221,16 @@ class RewardPledgeContractChecks(unittest.TestCase):
         self.assertIn("rewards.pledge.confirm", (ROOT / "App/RewardPledgeViews.swift").read_text())
         self.assertIn("rewards.pledge.recover", (ROOT / "App/RewardPledgeViews.swift").read_text())
         project = (ROOT / "Questify.xcodeproj/project.pbxproj").read_text()
-        self.assertNotIn("RewardPledge.swift", project)
-        self.assertNotIn("RewardPledgeViews.swift", project)
+        self.assertIn("Core/RewardPledge.swift", project)
+        self.assertIn("App/RewardPledgeViews.swift", project)
+        self.assertIn("api/rewards/noncash/claims", source)
+        self.assertIn("api/rewards/noncash/claims/recover", source)
+        self.assertIn("api/rewards/noncash/versions/", source)
+        self.assertIn("api/reward-pledge/fulfilment/redeem", source)
+        self.assertIn("api/reward-pledge/fulfilment/preview", source)
+        self.assertNotIn("ownerId", source)
+        self.assertIn('"confirm": "true"', source)
+        self.assertIn("Not open", (ROOT / "App/RewardPledgeViews.swift").read_text())
 
     def test_unknown_record_persists_only_the_minimal_fields(self):
         body = (ROOT / "Core/RewardPledge.swift").read_text()

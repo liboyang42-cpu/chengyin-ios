@@ -125675,13 +125675,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rewards are not connected yet"
+            "value": "Not open"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "奖励尚未接通"
+            "value": "未开放"
           }
         }
       }
@@ -125692,13 +125692,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your existing coupons remain in Coupons. Reward queries and redemption await a reviewed service."
+            "value": "Non-cash reward claim is not open. Rules and permissions are not shown."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原有优惠券仍可在优惠券中查看。奖励查询与核销需等待服务完成审核接入。"
+            "value": "非现金奖励领取未开放。不展示规则或权限。"
           }
         }
       }

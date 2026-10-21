@@ -56,7 +56,10 @@ class NonCashRewardDetailChecks(unittest.TestCase):
         source=self.read('App/NonCashRewardViews.swift')
         self.assertIn('model.state.selection.ownerScope != key.scope',source)
         self.assertIn('reader.isAuthenticated, reader.isConfigured, reader.isOfflineExample',source)
-        self.assertIn('private let nonCashRewardService: NonCashRewardService? = nil',self.read('App/AppSession.swift'))
+        session=self.read('App/AppSession.swift')
+        self.assertIn('func makeNonCashRewardService() -> NonCashRewardService?', session)
+        self.assertIn('NonCashRewardService(configuration: configuration, transport: runtimeHTTPTransport)', session)
+        self.assertNotIn('private let nonCashRewardService: NonCashRewardService? = nil', session)
         for file in ['Core/NonCashRewardDetailProjection.swift','Core/NonCashRewardDetailModel.swift','App/NonCashRewardDetailReadSupport.swift']:
             for forbidden in ['URLSession','POST','COUPON','SERVICE','CITY','redeem(', 'reserve(', 'issueReward(']:
                 self.assertNotIn(forbidden,self.read(file))

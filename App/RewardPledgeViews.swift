@@ -11,12 +11,17 @@ public extension EnvironmentValues {
     }
 }
 
-/// Screen state for claim, pledge and staff redeem. Transport stays with the caller.
+/// Screen state for claim, pledge and staff redeem. The entry client calls the controllers.
 @MainActor public final class RewardPledgeModel: ObservableObject {
     @Published public private(set) var machine: RewardPledgeMachine
     @Published public private(set) var terms: RewardPledgeTerms?
     @Published public private(set) var intent: RewardPledgeIntent?
     @Published public private(set) var notice: String?
+    @Published public private(set) var playerResult: RewardPledgeServerBody?
+    @Published public private(set) var merchantResult: RewardPledgeServerBody?
+    @Published public private(set) var busy = false
+    private var offerVersionID = ""
+    private var offerSubjectID = ""
     private let journal: RewardPledgeFileJournal?
     private let journalBlocked: Bool
 
@@ -28,9 +33,24 @@ public extension EnvironmentValues {
         if let stored {
             do { loaded = try stored.load() } catch { loaded = []; blocked = true }
         } else { loaded = [] }
+        let store: String
+        if let resolved = Self.restoredStore(requested: storeID, accountID: accountID, rows: loaded) {
+            store = resolved
+        } else {
+            store = ""
+            blocked = true
+        }
         journalBlocked = blocked
-        machine = .restored(accountID: accountID, storeID: storeID, policy: policy, journal: loaded)
-        notice = blocked ? "journal" : nil
+        machine = .restored(accountID: accountID, storeID: store, policy: policy, journal: loaded)
+        notice = blocked ? "journal" : (machine.unknowns.isEmpty ? nil : "unknown")
+    }
+
+    /// An empty requested store restores the one store recorded for this account. Two stores stay closed.
+    private static func restoredStore(requested: String, accountID: String, rows: [RewardPledgeUnknown]) -> String? {
+        if !requested.isEmpty { return requested }
+        let stores = Set(rows.filter { $0.ownerID == accountID }.map(\.storeID))
+        if stores.count <= 1 { return stores.first ?? "" }
+        return nil
     }
 
     public func readClaim(serverRule: String, serverLimit: String, serverValidity: String, eligibility: String,
@@ -65,6 +85,121 @@ public extension EnvironmentValues {
         case .success: persist()
         case .failure(let error): fail(error)
         }
+    }
+
+    public func showClosed() { notice = "not open" }
+
+    public func readOffer(versionID: String, subjectID: String, entry: RewardPledgeEntry) async {
+        guard entry.permitsWrites else { showClosed(); return }
+        guard !busy else { return }
+        terms = nil
+        busy = true
+        defer { busy = false }
+        do {
+            let body = try await entry.client.offer(versionID: versionID, subjectID: subjectID, token: entry.token)
+            guard body.fields["errorCode"] != "POLICY_CLOSED", !(body.fields["ruleVersion"] ?? "").isEmpty else { showClosed(); return }
+            guard body.fields["guaranteed"] != "true" else { notice = "switches"; return }
+            if let code = body.fields["errorCode"], !code.isEmpty { notice = code; return }
+            if body.fields["available"] == "0" { notice = "STOCK_EXHAUSTED"; return }
+            var policy = RewardPledgePolicy()
+            policy.ruleVersion = body.fields["ruleVersion"]
+            policy.validity = (body.fields["redeemStart"] ?? "") + "-" + (body.fields["redeemEnd"] ?? "")
+            policy.quota = Int(body.fields["available"] ?? "")
+            policy.nonCashEnabled = true
+            policy.readSource = .plannedController
+            if body.fields["minorRestricted"] == "1" { policy.minorEligible = true }
+            machine.applyPolicy(policy)
+            offerVersionID = versionID
+            offerSubjectID = subjectID
+            readClaim(serverRule: policy.ruleVersion ?? "", serverLimit: body.fields["terms"] ?? "",
+                      serverValidity: policy.validity ?? "", eligibility: body.fields["factRef"] ?? "",
+                      rewardScope: body.fields["rewardScope"] ?? "", storeID: body.fields["storeId"] ?? "",
+                      serverQuota: policy.quota, minorPrize: body.fields["minorRestricted"] == "1", reviewRequired: false)
+        } catch { note(error) }
+    }
+
+    public func claim(entry: RewardPledgeEntry) async {
+        guard entry.permitsWrites else { showClosed(); return }
+        guard !busy else { return }
+        guard let terms, !offerVersionID.isEmpty, !offerSubjectID.isEmpty else { notice = "confirm"; return }
+        switch machine.confirmClaim(terms, seen: machine.scope) {
+        case .failure(let error): fail(error)
+        case .success(let value):
+            intent = value
+            switch machine.recordUnknown(value, seen: machine.scope) {
+            case .failure(let error): fail(error)
+            case .success:
+                guard persistOrStop() else { return }
+                busy = true
+                defer { busy = false }
+                do {
+                    let body = try await entry.client.claim(requestID: value.requestID, versionID: offerVersionID, subjectID: offerSubjectID, token: entry.token)
+                    adopt(body, intent: value)
+                } catch { note(error) }
+            }
+        }
+    }
+
+    public func recover(entry: RewardPledgeEntry) async {
+        guard entry.permitsWrites else { showClosed(); return }
+        guard !busy, let row = machine.unknowns.last else { notice = "intent"; return }
+        switch machine.recoveryIntent(row, proposedRequestID: row.requestID, seen: machine.scope) {
+        case .failure(let error): fail(error)
+        case .success(let value):
+            intent = value
+            busy = true
+            defer { busy = false }
+            do {
+                let body = try await entry.client.recover(requestID: value.requestID, token: entry.token)
+                if body.fields["state"] == "UNKNOWN" { notice = "unknown"; return }
+                adopt(body, intent: value)
+            } catch { note(error) }
+        }
+    }
+
+    public func loadDetail(entry: RewardPledgeEntry) async {
+        guard entry.permitsWrites else { showClosed(); return }
+        guard let award = machine.grant?.awardID, !award.isEmpty else { notice = "award"; return }
+        do {
+            playerResult = try await entry.client.detail(awardID: award, token: entry.token)
+            notice = playerResult?.fields["state"]
+            if case .failure(let error) = machine.markRefreshed(seen: machine.scope) { fail(error) }
+        } catch { note(error) }
+    }
+
+    public func redeemOriginal(awardID: String, requestID: String, entry: RewardPledgeEntry) async {
+        guard entry.permitsWrites else { showClosed(); return }
+        guard !busy else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            let preview = try await entry.client.preview(awardID: awardID, token: entry.token)
+            switch RewardPledgeClient.acceptedVoucher(preview: preview, originalRequestID: requestID) {
+            case .failure(.terminal("ALREADY_USED")):
+                merchantResult = preview
+                playerResult = preview
+                notice = "ALREADY_USED"
+            case .failure(let error): fail(error)
+            case .success(let award):
+                let merchant = try await entry.client.redeem(awardID: award, token: entry.token)
+                merchantResult = merchant
+                let playerKeys: Set<String> = ["awardId", "requestId", "state", "historyId", "useStatus", "ruleVersion", "terms", "factRef"]
+                var playerFields: [String: String] = [:]
+                for (key, value) in merchant.fields where playerKeys.contains(key) { playerFields[key] = value }
+                playerResult = RewardPledgeServerBody(code: merchant.code, message: merchant.message, fields: playerFields)
+                notice = merchant.fields["redemption"] ?? "ALREADY_USED"
+            }
+        } catch { note(error) }
+    }
+
+    public func cancelPending() {
+        guard let intent, machine.unknowns.contains(where: { $0.requestID == intent.requestID }) else {
+            terms = nil
+            self.intent = nil
+            notice = "cancel"
+            return
+        }
+        notice = "unknown"
     }
 
     public func recover() {
@@ -179,9 +314,53 @@ public extension EnvironmentValues {
     }
 
     public func replaceAccount(_ accountID: String, store storeID: String) {
-        let existing = (try? journal?.load()) ?? []
-        machine.replaceAccount(accountID, store: storeID, journal: existing)
-        terms = nil; intent = nil; notice = nil
+        let existing: [RewardPledgeUnknown]
+        if let journal {
+            do { existing = try journal.load() } catch {
+                machine.replaceAccount(accountID, store: "", journal: [])
+                terms = nil; intent = nil; notice = "journal"
+                return
+            }
+        } else { existing = [] }
+        guard let store = Self.restoredStore(requested: storeID, accountID: accountID, rows: existing) else {
+            machine.replaceAccount(accountID, store: "", journal: [])
+            terms = nil; intent = nil; notice = "journal"
+            return
+        }
+        machine.replaceAccount(accountID, store: store, journal: existing)
+        terms = nil; intent = nil
+        notice = machine.unknowns.isEmpty ? nil : "unknown"
+    }
+
+    private func persistOrStop() -> Bool {
+        guard let journal else { notice = "journal"; return false }
+        do {
+            try journal.save(machine.persistedRows(existing: try journal.load()))
+            return true
+        } catch { notice = "journal"; return false }
+    }
+
+    private func adopt(_ body: RewardPledgeServerBody, intent: RewardPledgeIntent) {
+        if body.fields["state"] == "REFUSED" {
+            _ = machine.finishUnknown(requestID: intent.requestID, seen: machine.scope)
+            persist()
+            notice = body.fields["errorCode"] ?? "REFUSED"
+            return
+        }
+        guard let award = body.fields["awardId"], !award.isEmpty, body.fields["requestId"] == intent.requestID else {
+            notice = "unknown"
+            return
+        }
+        playerResult = body
+        accept(awardID: award, termsVersion: body.fields["ruleVersion"] ?? "", termsText: body.fields["terms"] ?? "")
+    }
+
+    private func note(_ error: Error) {
+        if let failure = error as? RewardPledgeFailure {
+            if case .closed("unknown") = failure { notice = "unknown" } else { fail(failure) }
+            return
+        }
+        notice = (error as? APIError) == .unauthorized ? "permission" : "unknown"
     }
 
     private func persist() {
@@ -203,44 +382,47 @@ public extension EnvironmentValues {
 
 @MainActor public struct RewardPledgeClaimView: View {
     @ObservedObject var model: RewardPledgeModel
-    @State private var rule = ""
-    @State private var limit = ""
-    @State private var validity = ""
-    @State private var eligibility = ""
-    @State private var rewardScope = ""
-    @State private var store = ""
-    @State private var quota = ""
-    @State private var awardID = ""
-    @State private var termsVersion = ""
-    @State private var termsText = ""
+    var entry: RewardPledgeEntry?
+    @State private var versionID = ""
+    @State private var subjectID = ""
 
-    public init(model: RewardPledgeModel) { self.model = model }
+    public init(model: RewardPledgeModel, entry: RewardPledgeEntry? = nil) {
+        self.model = model
+        self.entry = entry
+    }
 
     public var body: some View {
         Form {
-            TextField("rewards.pledge.rule", text: $rule)
-            TextField("rewards.pledge.limit", text: $limit)
-            TextField("rewards.pledge.validity", text: $validity)
-            TextField("rewards.pledge.eligibility", text: $eligibility)
-            TextField("rewards.pledge.scope", text: $rewardScope)
-            TextField("rewards.pledge.store", text: $store)
-            TextField("rewards.pledge.quota", text: $quota)
-            Button("rewards.pledge.read") {
-                model.readClaim(serverRule: rule, serverLimit: limit, serverValidity: validity, eligibility: eligibility,
-                                rewardScope: rewardScope, storeID: store, serverQuota: Int(quota), minorPrize: false, reviewRequired: false)
-            }.accessibilityIdentifier("rewards.pledge.read")
-            Button("rewards.pledge.confirm") { model.confirm() }.accessibilityIdentifier("rewards.pledge.confirm")
-            Button("rewards.pledge.lose") { model.loseResponse() }.accessibilityIdentifier("rewards.pledge.unknown")
-            Button("rewards.pledge.recover") { model.recover() }.accessibilityIdentifier("rewards.pledge.recover")
-            TextField("rewards.pledge.award", text: $awardID)
-            TextField("rewards.pledge.termsVersion", text: $termsVersion)
-            TextField("rewards.pledge.terms", text: $termsText)
-            Button("rewards.pledge.accept") { model.accept(awardID: awardID, termsVersion: termsVersion, termsText: termsText) }
-                .accessibilityIdentifier("rewards.pledge.granted")
-            Button("rewards.pledge.refresh") { model.refresh() }.accessibilityIdentifier("rewards.pledge.refresh")
+            if entry?.permitsWrites != true {
+                Text(verbatim: "Not open").accessibilityIdentifier("rewards.pledge.closed")
+            } else if let entry {
+                TextField("rewards.pledge.version", text: $versionID)
+                TextField("rewards.pledge.subject", text: $subjectID)
+                Button("rewards.pledge.read") { Task { await model.readOffer(versionID: versionID, subjectID: subjectID, entry: entry) } }
+                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.read")
+                Button("rewards.pledge.confirm") { Task { await model.claim(entry: entry) } }
+                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.confirm")
+                Button("rewards.pledge.cancel") { model.cancelPending() }.accessibilityIdentifier("rewards.pledge.cancel")
+                Button("rewards.pledge.lose") { model.loseResponse() }.accessibilityIdentifier("rewards.pledge.unknown")
+                Button("rewards.pledge.recover") { Task { await model.recover(entry: entry) } }
+                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.recover")
+                Button("rewards.pledge.refresh") { Task { await model.loadDetail(entry: entry) } }
+                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.refresh")
+            }
+            if let terms = model.terms {
+                Text(terms.ruleVersion).accessibilityIdentifier("rewards.pledge.rule")
+                Text(terms.eligibilityFact).accessibilityIdentifier("rewards.pledge.eligibility")
+                Text(terms.limitText).accessibilityIdentifier("rewards.pledge.inventory")
+                Text(terms.validity).accessibilityIdentifier("rewards.pledge.window")
+            }
             if let grant = model.machine.grant, grant.state == "GRANTED_UNREDEEMED" {
                 Text(grant.termsText).accessibilityIdentifier("rewards.pledge.frozenTerms")
                 Text(grant.state).accessibilityIdentifier("rewards.pledge.grantedState")
+            }
+            if let player = model.playerResult {
+                Text(player.fields["state"] ?? "").accessibilityIdentifier("rewards.pledge.playerResult")
+                Text(player.fields["historyId"] ?? "").accessibilityIdentifier("rewards.pledge.voucher")
+                Text(player.fields["useStatus"] ?? "").accessibilityIdentifier("rewards.pledge.playerUse")
             }
             if let notice = model.notice { Text(notice).accessibilityIdentifier("rewards.pledge.notice") }
             if let item = model.machine.serviceCase { Text(item.readable).accessibilityIdentifier("rewards.pledge.case") }
@@ -280,25 +462,63 @@ public extension EnvironmentValues {
 
 @MainActor public struct RewardPledgeStaffView: View {
     @ObservedObject var model: RewardPledgeModel
-    @State private var store = ""
-    @State private var historyID = ""
-    @State private var capacity = ""
+    var entry: RewardPledgeEntry?
+    @State private var awardID = ""
+    @State private var requestID = ""
 
-    public init(model: RewardPledgeModel) { self.model = model }
+    public init(model: RewardPledgeModel, entry: RewardPledgeEntry? = nil) {
+        self.model = model
+        self.entry = entry
+    }
 
     public var body: some View {
         Form {
-            TextField("rewards.pledge.permissionStore", text: $store)
-            Button("rewards.pledge.preview") { model.preview(permissionStore: store) }.accessibilityIdentifier("rewards.pledge.preview")
-            TextField("rewards.pledge.history", text: $historyID)
-            TextField("rewards.pledge.capacity", text: $capacity)
-            Button("rewards.pledge.redeem") { model.redeem(historyID: historyID, serverCapacity: Int(capacity)) }
-                .accessibilityIdentifier("rewards.pledge.redeem")
-            Button("rewards.pledge.redeemLost") { model.redeemLost() }.accessibilityIdentifier("rewards.pledge.redeemLost")
-            Button("rewards.pledge.redeemApplied") { model.redeemApplied() }.accessibilityIdentifier("rewards.pledge.redeemApplied")
+            if entry?.permitsWrites != true {
+                Text(verbatim: "Not open").accessibilityIdentifier("rewards.pledge.merchantClosed")
+            } else if let entry {
+                TextField("rewards.pledge.award", text: $awardID)
+                TextField("rewards.pledge.request", text: $requestID)
+                Button("rewards.pledge.redeem") { Task { await model.redeemOriginal(awardID: awardID, requestID: requestID, entry: entry) } }
+                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.redeem")
+                Button("rewards.pledge.cancel") { model.cancelPending() }.accessibilityIdentifier("rewards.pledge.merchantCancel")
+            }
+            if let merchant = model.merchantResult {
+                Text(merchant.fields["redemption"] ?? merchant.message).accessibilityIdentifier("rewards.pledge.merchantResult")
+                Text(merchant.fields["stock.available"] ?? merchant.fields["available"] ?? "").accessibilityIdentifier("rewards.pledge.merchantStock")
+            }
+            if let player = model.playerResult {
+                Text(player.fields["state"] ?? "").accessibilityIdentifier("rewards.pledge.playerResult")
+                Text(player.fields["requestId"] ?? "").accessibilityIdentifier("rewards.pledge.playerRequest")
+                Text(player.fields["useStatus"] ?? "").accessibilityIdentifier("rewards.pledge.playerUse")
+            }
             if let notice = model.notice { Text(notice).accessibilityIdentifier("rewards.pledge.notice") }
-            ForEach(model.machine.staffRoutes, id: \.self) { route in Text(route) }
             if let item = model.machine.serviceCase { Text(item.readable).accessibilityIdentifier("rewards.pledge.case") }
         }
+    }
+}
+
+@MainActor struct RewardPledgeClaimHost: View {
+    let entry: RewardPledgeEntry
+    @StateObject private var model: RewardPledgeModel
+    init(entry: RewardPledgeEntry) {
+        self.entry = entry
+        _model = StateObject(wrappedValue: RewardPledgeModel(accountID: entry.accountID, storeID: "", policy: .unset, journalURL: entry.journalURL))
+    }
+    var body: some View {
+        RewardPledgeClaimView(model: model, entry: entry)
+            .onChange(of: entry.accountID) { _, accountID in model.replaceAccount(accountID, store: "") }
+    }
+}
+
+@MainActor struct RewardPledgeStaffHost: View {
+    let entry: RewardPledgeEntry
+    @StateObject private var model: RewardPledgeModel
+    init(entry: RewardPledgeEntry) {
+        self.entry = entry
+        _model = StateObject(wrappedValue: RewardPledgeModel(accountID: entry.accountID, storeID: "", policy: .unset, journalURL: entry.journalURL))
+    }
+    var body: some View {
+        RewardPledgeStaffView(model: model, entry: entry)
+            .onChange(of: entry.accountID) { _, accountID in model.replaceAccount(accountID, store: "") }
     }
 }

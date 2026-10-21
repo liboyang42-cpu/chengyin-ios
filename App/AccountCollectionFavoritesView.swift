@@ -156,6 +156,7 @@ private struct AccountCollectionFavoriteCard: View {
     let reader: any AccountCollectionReading
     let onOpenTopic: (Int) -> Void
     var rewards: (any NonCashRewardReading)? = nil
+    var pledge: RewardPledgeEntry? = nil
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
     var couponReader: (any AccountCollectionReading)? = nil
@@ -168,7 +169,7 @@ private struct AccountCollectionFavoriteCard: View {
         let saved = savedReader, renderedScope = saved.scope
         Section {
             NavigationLink {
-                NonCashRewardsView(reader: reader, rewards: rewards, merchantHome: rewardMerchant).id(reader.scope)
+                NonCashRewardsView(reader: reader, rewards: rewards, merchantHome: rewardMerchant, pledge: pledge).id(reader.scope)
             } label: { Label("rewards.title", systemImage: "gift") }
             .accessibilityIdentifier("rewards.open")
             NavigationLink {
