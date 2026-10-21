@@ -218,4 +218,27 @@ import Core
         XCTAssertThrowsError(try otherFlow.commit(item: item, presentation: preview, confirmedByBuyer: true, requestId: draft.requestId, generation: replacement)) { XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .stalePresentation) }
         XCTAssertEqual(files.values.count, 1)
     }
+
+    func testSheetPresentedDoesNotInvalidateAndPopDoes() throws {
+        let item = try purchased()
+        let preview = try presentation(item)
+        let draft = try preview.makeUpgradeDraftRequest(confirmedByBuyer: true, requestId: "upgrade-0001")
+        let account = try WorkshopUpgradeAccountLease(accountID: 53, namespace: "player", realm: "local-realm", epoch: 7)
+        let flow = WorkshopUpgradeFlow(store: WorkshopUpgradeDraftStore(writer: EntryUpgradeDraftFiles(), gate: WorkshopUpgradeAccountGate(account)))
+        let token = try flow.begin(item: item)
+        var current: UUID? = token
+        var armed: WorkshopUpgradeFlow? = flow
+        WorkshopPurchasedUpgradeEntry.performDisappear(sheetPresented: true, detailPresented: false, compareToken: &current, armed: &armed, current: flow)
+        XCTAssertEqual(current, token)
+        XCTAssertTrue(flow.matches(token: token, lease: account))
+        WorkshopPurchasedUpgradeEntry.performDisappear(sheetPresented: false, detailPresented: true, compareToken: &current, armed: &armed, current: flow)
+        XCTAssertEqual(current, token)
+        XCTAssertTrue(flow.matches(token: token, lease: account))
+        WorkshopPurchasedUpgradeEntry.performDisappear(sheetPresented: true, detailPresented: true, popSignal: true, compareToken: &current, armed: &armed, current: flow)
+        XCTAssertEqual(current, token)
+        WorkshopPurchasedUpgradeEntry.performDisappear(sheetPresented: false, detailPresented: false, compareToken: &current, armed: &armed, current: flow)
+        XCTAssertNil(current)
+        XCTAssertNil(armed)
+        XCTAssertThrowsError(try flow.commit(item: item, presentation: preview, confirmedByBuyer: true, requestId: draft.requestId, generation: token)) { XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .stalePresentation) }
+    }
 }

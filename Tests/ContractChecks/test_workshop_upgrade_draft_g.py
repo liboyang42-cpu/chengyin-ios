@@ -103,6 +103,7 @@ class UpgradeDraftSourceContract(unittest.TestCase):
         self.assertIn("testVoidSaveFailureDoesNotMarkTheDraftSaved", app)
         self.assertIn("testCommitFailureStaysOnTheSheetAndSuccessRestoresWithoutChangingThePurchasedVersion", app)
         self.assertIn("testNilFlowRestoreMissAndAccountChangeDoNotKeepADraft", app)
+        self.assertIn("testSheetPresentedDoesNotInvalidateAndPopDoes", app)
 
     def test_nil_flow_is_unavailable_and_leave_cancels(self):
         entry = text("App/WorkshopPurchasedUpgradeEntry.swift")
@@ -127,9 +128,16 @@ class UpgradeDraftSourceContract(unittest.TestCase):
         ]:
             self.assertIn(marker, body)
         disappear = body.split(".onDisappear {", 1)[1].split(".onChange", 1)[0]
-        self.assertIn("performInvalidate(compareToken: &compareToken, flow: armedFlow)", disappear)
-        self.assertIn("performInvalidate(compareToken: &compareToken, flow: current)", disappear)
-        self.assertIn("armedFlow !== current", disappear)
+        self.assertIn("performDisappear(sheetPresented: showing, detailPresented: detailPresented", disappear)
+        self.assertNotIn("performInvalidate", disappear)
+        rule = entry.split("static func performDisappear", 1)[1].split("static func performCancel", 1)[0]
+        self.assertIn("if popSignal {", rule)
+        self.assertIn("guard !detailPresented else { return }", rule)
+        self.assertIn("} else if sheetPresented || detailPresented {", rule)
+        self.assertIn("return", rule)
+        self.assertIn("armed !== current", rule)
+        pop = body.split(".onChange(of: detailPresented)", 1)[1].split(".onChange(of: handlers.flow?.accountLease)", 1)[0]
+        self.assertIn("popSignal: true", pop)
         flow = text("Core/WorkshopUpgradeFlow.swift")
         self.assertIn("func matches(token: UUID, lease: WorkshopUpgradeAccountLease?) -> Bool", flow)
         self.assertIn("generation == token && accountLease == lease && accountLeaseIsCurrent", flow)
@@ -169,6 +177,26 @@ class UpgradeDraftLifecycleModel(unittest.TestCase):
         kept = restore_draft(draft_saved=False, receipt=None, flow=True, found="persisted")
         self.assertTrue(kept["draft_saved"])
         self.assertEqual(kept["receipt"], "stored")
+
+    def test_sheet_presented_does_not_invalidate(self):
+        for detail in (True, False):
+            with self.subTest(detail=detail):
+                kept = disappear("g", "t", sheet_presented=True, detail_presented=detail)
+                self.assertEqual(kept["generation"], "g")
+                self.assertEqual(kept["token"], "t")
+        cover = disappear("g", "t", sheet_presented=False, detail_presented=True)
+        self.assertEqual(cover["generation"], "g")
+        self.assertEqual(cover["token"], "t")
+        still_up = disappear("g", "t", sheet_presented=False, detail_presented=True, pop_signal=True)
+        self.assertEqual(still_up["generation"], "g")
+
+    def test_pop_invalidates(self):
+        popped = disappear("g", "t", sheet_presented=False, detail_presented=False)
+        self.assertIsNone(popped["generation"])
+        self.assertIsNone(popped["token"])
+        while_sheet = disappear("g", "t", sheet_presented=True, detail_presented=False, pop_signal=True)
+        self.assertIsNone(while_sheet["generation"])
+        self.assertIsNone(while_sheet["token"])
 
     def test_dismiss_leave_and_account_change_drop_the_generation(self):
         for name in ("dismiss", "leave", "account"):
@@ -216,6 +244,15 @@ def restore_draft(draft_saved, receipt, flow, found, error=None):
 
 def invalidate(generation, token):
     del generation, token
+    return {"generation": None, "token": None}
+
+
+def disappear(generation, token, sheet_presented, detail_presented, pop_signal=False):
+    if pop_signal:
+        if detail_presented:
+            return {"generation": generation, "token": token}
+    elif sheet_presented or detail_presented:
+        return {"generation": generation, "token": token}
     return {"generation": None, "token": None}
 
 
