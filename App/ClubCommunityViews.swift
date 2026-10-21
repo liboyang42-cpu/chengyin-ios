@@ -9,6 +9,7 @@ struct ClubCommunityContext {
     let coordinator: ClubCommunityCoordinator?
     let evidence: (Int, ClubCommunityPost?, ClubCommunityComment?) async throws -> ClubCommunityEvidence
     var images: any ClubCommunityImageUploading = ClubCommunityDisabledImages()
+    var postImagePicker: ClubPostImagePickerContext = .disabled
     var onAuthor: ((Int) -> Void)? = nil
     var onTopic: ((Int) -> Void)? = nil
 }
@@ -260,47 +261,58 @@ struct ClubCommunityComposer: View {
     @State private var content = ""
     @State private var images: [String] = []
     @State private var uploading = false
+    @StateObject private var imageBridge: ClubPostImageComposerBridge
+    init(model: ClubCommunityViewModel, clubID: Int, post: ClubCommunityPost?) {
+        self.model = model
+        self.clubID = clubID
+        self.post = post
+        _imageBridge = StateObject(
+            wrappedValue: ClubPostImageComposerBridge(
+                context: model.context.postImagePicker,
+                clubID: clubID,
+                postID: post?.id
+            )
+        )
+    }
     var body: some View {
         NavigationStack {
             Form {
                 TextEditor(text: $content).frame(minHeight: 150).accessibilityLabel(Text("club.community.content"))
                     .accessibilityIdentifier("club.community.content")
                 Text("\(content.count)/300").foregroundStyle(.secondary)
-                ForEach(Array(images.enumerated()), id: \.offset) { index, image in
-                    HStack {
-                        Text(verbatim: image).lineLimit(1)
-                        Spacer()
-                        Button { images.remove(at: index) } label: { Label("club.community.removeImage", systemImage: "xmark.circle") }.frame(minWidth: 44, minHeight: 44)
-                    }
-                }
-                if model.context.images.enabled {
-                    Button("club.community.addSyntheticImage") {
-                        uploading = true
-                        Task {
-                            do { images += try await model.context.images.uploadSynthetic([Data([1])]) }
-                            catch { model.notice = "club.community.actionUnavailable" }
-                            uploading = false
-                        }
-                    }.disabled(images.count >= 9 || uploading)
-                } else { Text("club.community.imagesOff") }
+                ClubPostImageSectionView(
+                    bridge: imageBridge,
+                    images: $images,
+                    uploading: $uploading,
+                    notice: $model.notice
+                )
                 Button("club.community.review") {
                     let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images) : .update(content: content, images: images, requestID: UUID().uuidString)
                     model.stageDraft(operation, clubID: clubID, post: post)
                     dismiss()
-                }.disabled(model.busy || uploading || content.count > 300 || (content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && images.isEmpty))
+                }.disabled(model.busy || uploading || imageBridge.isBusy || content.count > 300 || (content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && images.isEmpty))
                     .accessibilityIdentifier("club.community.reviewDraft")
             }
             .navigationTitle(Text(post == nil ? "club.community.create" : "club.community.edit"))
             .toolbar {
                 if let post {
                     ClubPostEditExitControl(post: post, clubID: clubID, source: model,
-                        content: $content, images: $images, canExit: { !model.busy && !uploading }, close: { dismiss() })
+                        content: $content, images: $images, canExit: { !model.busy && !uploading && !imageBridge.isBusy }, close: { dismiss() })
                 } else { Button("club.community.cancel") { dismiss() } }
             }
-            .onAppear { content = post?.content ?? ""; images = post?.images ?? [] }
+            .onAppear {
+                if content.isEmpty && images.isEmpty {
+                    content = post?.content ?? ""
+                    images = post?.images ?? []
+                }
+                imageBridge.bind(initialReferences: images)
+            }
+            .onDisappear {
+                imageBridge.invalidate()
+            }
         }
         .interactiveDismissDisabled(post.map {
-            model.busy || uploading || ClubPostEditDraft(content: content, images: images) !=
+            model.busy || uploading || imageBridge.isBusy || ClubPostEditDraft(content: content, images: images) !=
                 ClubPostEditDraft(content: $0.content, images: $0.images)
         } ?? false)
     }
