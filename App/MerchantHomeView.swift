@@ -84,6 +84,19 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
     @StateObject private var events = MerchantLoadModel<[MerchantEvent]>()
 
+    /// Signed-in member id, not the merchant archive id. Coordinates stay nil:
+    /// a refused location still queries candidates with topicId alone.
+    private func chapterReplacementContext(access: MerchantAccess) -> MerchantChapterReplacementHostContext? {
+        guard let contentService, let actor = (reader as? AppSession)?.account?.id, actor > 0 else { return nil }
+        let scope: ChapterReplacementInvitationScope = (access.isOwner && access.allows(.projects)) ? .merchant : .currentMember
+        return MerchantChapterReplacementHostContext(
+            makeEffects: { contentService.chapterReplacementInvitationEffects(scope: scope, publisherProof: $0) },
+            actorAccountID: actor, scope: scope, merchantAccess: access,
+            loadPublisherProof: { topic in
+                await contentService.chapterReplacementPublisherProof(topicID: topic, actorAccountID: actor, access: access)
+            },
+            coordinates: nil)
+    }
     private func customerQueryDestination(source: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore)
         -> (@MainActor (MerchantCustomerAppliedQuery) -> AnyView)? {
         guard let engagementReader, let exportRecovery else { return nil }
@@ -153,8 +166,11 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             { source in AnyView(MerchantCooperationSupplyView(source: source, reader: flowReader)) }
                         })
                         .environment(\.merchantOfferWithdrawalDestination, cooperationFlowReader.map { flowReader in
-                            { source in AnyView(MerchantOfferWithdrawalHostView(source: source, reader: flowReader, contentService: contentService)) }
-                        }).id(contentService.scope) } label: { Label("merchant.content.title", systemImage: "map") }
+                            let executor = (reader as? AppSession)?.offerWithdrawalExecutor
+                            return { source in AnyView(MerchantOfferWithdrawalHostView(source: source, reader: flowReader, contentService: contentService, executor: executor)) }
+                        })
+                        .environment(\.merchantChapterReplacementContext, chapterReplacementContext(access: access))
+                        .id(contentService.scope) } label: { Label("merchant.content.title", systemImage: "map") }
                         .accessibilityIdentifier("merchant.content.open")
                 }
             }

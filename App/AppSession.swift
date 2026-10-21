@@ -2703,8 +2703,15 @@ final class AppSession: ObservableObject {
         return try? MerchantContentSession(accountID: account.id, epoch: gate.currentStamp,
             storageScope: storageScope.service, token: token)
     }
+    lazy var merchantContentJournal = MerchantContentFilePendingStorage(
+        url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/MerchantContent/pending-v1.json"))
+    // Execution stays the init default, which is closed. The offline harness is not passed.
+    // The file journal is what a new detail, a refresh, and a process restart read.
+    // Only a matching chapter-invitation readback removes a record.
     lazy var merchantContentService = MerchantContentService(configuration: regionalConfiguration?.apiConfiguration,
         transport: runtimeHTTPTransport, currentSession: { [weak self] in self?.currentMerchantContentSession },
+        journal: merchantContentJournal,
         onUnauthorized: { [weak self] captured in
             guard let self, self.currentMerchantContentSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
@@ -2746,6 +2753,25 @@ final class AppSession: ObservableObject {
             guard let self, self.currentCooperationFlowSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
+    /// Real withdraw port behind `CoopFlowService.permitsDispatch`. The production
+    /// service is built with the closed defaults, so the POST does not leave.
+    lazy var offerWithdrawalExecutor: any MerchantOfferWithdrawalExecuting = makeOfferWithdrawalExecutor()
+    private func makeOfferWithdrawalExecutor() -> any MerchantOfferWithdrawalExecuting {
+        guard let service = cooperationFlowService else { return MerchantOfferWithdrawalDormantExecutor() }
+        let reader = cooperationFlowReader
+        return MerchantOfferWithdrawalProtectedExecutor.gated(service: service, reader: reader,
+            coopSession: { [weak self] in self?.currentCooperationFlowSession },
+            locks: CoopFlowFileLocks(url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/CoopFlow/offer-withdraw-locks-v1.json")),
+            topic: { [weak self] topicID in
+                guard let self else { return nil }
+                let snapshot = try await self.merchantContentService.load(.chapters(topicID: topicID))
+                let topic = snapshot.value["topic"]
+                guard let product = topic["productType"].integer, let life = topic["lifecycle"].integer else { return nil }
+                let circle = topic["circleThemeCode"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+                return MerchantOfferWithdrawalTopicFacts(productType: product, lifecycle: life, circleThemeCode: circle.flatMap { $0.isEmpty ? nil : $0 })
+            })
+    }
     private let merchantOperationsService: MerchantOperationsService?
     private var currentMerchantOperationsSession: MerchantOperationsSession? {
         guard let account, let token else { return nil }

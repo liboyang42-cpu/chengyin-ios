@@ -1,11 +1,12 @@
 import SwiftUI
 
-/// C8 host (integration-owned composition). Builds the withdrawal subject from the
-/// account's own `chapterApplicationsMine` readback plus the topic detail, and —
-/// after a confirmed readback — makes the host reload `.applications` before return.
-/// Shipped composition injects no approved executor, so submission stays dormant;
-/// `MerchantOfferWithdrawalProtectedExecutor` below is the approved-composition
-/// adapter and is deliberately not mounted here.
+/// C8 host. Builds the withdrawal subject from the account's own
+/// `chapterApplicationsMine` readback plus the topic detail, and — after a
+/// confirmed readback — makes the host reload `.applications` before return.
+/// The signed-in session mounts `MerchantOfferWithdrawalProtectedExecutor`.
+/// A nil executor stays the dormant one, which throws disabled and never
+/// reports success. The protected executor calls `api/coop/offer/withdraw`
+/// only when `CoopFlowService.permitsDispatch` is true.
 @MainActor struct MerchantOfferWithdrawalHostView: View {
     let source: MerchantContentSupplyContext
     let reader: any CoopFlowReading
@@ -82,19 +83,53 @@ import SwiftUI
     }
 }
 
-/// Approved-composition adapter: executes C8 only through the protected-dispatch
-/// coordinator (`CoopFlowMutation.withdrawOffer`, separate enablement + endpoint grant).
-/// Not constructed by shipped Home composition — no coordinator/evidence composition
-/// exists there — so the shipped path remains the dormant executor above.
+/// Executes C8 only through `CoopFlowMutation.withdrawOffer` (`POST api/coop/offer/withdraw`).
+/// `permits` is the existing service gate. When it is shut, `withdraw` throws
+/// `.disabled` before `prepare`, so nothing leaves the device.
+struct MerchantOfferWithdrawalTopicFacts: Sendable {
+    var productType: Int
+    var lifecycle: Int
+    var circleThemeCode: String?
+}
 @MainActor final class MerchantOfferWithdrawalProtectedExecutor: MerchantOfferWithdrawalExecuting {
     private let coordinator: CoopFlowCoordinator
     private let reader: any CoopFlowReading
     private let coopSession: () -> CoopFlowSession?
-    public init(coordinator: CoopFlowCoordinator, reader: any CoopFlowReading, coopSession: @escaping () -> CoopFlowSession?) {
-        self.coordinator = coordinator; self.reader = reader; self.coopSession = coopSession
+    private let permits: () -> Bool
+    public init(coordinator: CoopFlowCoordinator, reader: any CoopFlowReading, coopSession: @escaping () -> CoopFlowSession?, permits: @escaping () -> Bool) {
+        self.coordinator = coordinator; self.reader = reader; self.coopSession = coopSession; self.permits = permits
     }
-    public var permitsSubmission: Bool { true }
+    /// Shipping gate: `CoopFlowDormantExecutor.permitsDispatch(.withdrawOffer)`.
+    /// The coordinator's `enabled` flag is that same value, captured once.
+    /// Production `CoopFlowService` keeps `dormantWritesEnabled` false and
+    /// `protectedDispatch` nil, and a real transport is not
+    /// `CoopFlowOfflineHTTPTransport`, so this stays false.
+    static func gated(service: CoopFlowService, reader: any CoopFlowReading, coopSession: @escaping () -> CoopFlowSession?,
+                             locks: any CoopFlowLockStore, topic: @escaping (Int) async throws -> MerchantOfferWithdrawalTopicFacts?) -> MerchantOfferWithdrawalProtectedExecutor {
+        let transport = CoopFlowDormantExecutor(service: service)
+        let open = transport.permitsDispatch(.withdrawOffer(id: 1, reason: "gate"))
+        let coordinator = CoopFlowCoordinator(current: coopSession, evidence: CoopFlowSourceEvidenceReader(reader: reader, additional: { operation, captured in
+            guard case .withdrawOffer(let id, _) = operation, reader.session == captured else {
+                return CoopFlowEvidence(baseline: .null, permitted: false)
+            }
+            let mine: CoopFlowJSON
+            do { mine = try await reader.read(.chapterApplicationsMine) } catch { return CoopFlowEvidence(baseline: .null, permitted: false) }
+            guard reader.session == captured else { return CoopFlowEvidence(baseline: .null, permitted: false) }
+            let rows = mine.rows ?? mine["rows"].rows ?? []
+            guard let row = rows.first(where: { $0["offerId"].integer == id }), let topicID = row["topicId"].integer, topicID > 0,
+                  let facts = try? await topic(topicID) else {
+                return CoopFlowEvidence(baseline: .object(["rows": mine]), permitted: false)
+            }
+            var topicFields: [String: CoopFlowJSON] = ["productType": .id(facts.productType), "lifecycle": .id(facts.lifecycle)]
+            if let circle = facts.circleThemeCode, !circle.isEmpty { topicFields["circleThemeCode"] = .string(circle) }
+            return CoopFlowEvidence(baseline: .object(["rows": mine, "topic": .object(topicFields)]), permitted: true)
+        }), executor: transport, locks: locks, enabled: open)
+        return MerchantOfferWithdrawalProtectedExecutor(coordinator: coordinator, reader: reader, coopSession: coopSession,
+            permits: { transport.permitsDispatch(.withdrawOffer(id: 1, reason: "gate")) })
+    }
+    public var permitsSubmission: Bool { permits() }
     public func withdraw(_ request: MerchantOfferWithdrawalRequest, session: MerchantOfferWithdrawalSession) async throws -> MerchantOfferWithdrawalResponseHint {
+        guard permits() else { throw MerchantOfferWithdrawalFailure.disabled }
         guard let current = coopSession(), current.accountID == session.accountID, current.epoch == session.epoch else {
             throw MerchantOfferWithdrawalFailure.changedSession
         }

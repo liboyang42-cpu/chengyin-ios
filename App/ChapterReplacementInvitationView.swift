@@ -57,6 +57,36 @@ final class ChapterReplacementInvitationViewModel: ObservableObject {
     func cancelReview() { coordinator.cancelReview(); sync() }
 }
 
+/// Loads the host's fresh topic-publisher proof before showing the C9 screen.
+/// A nil proof is passed through; the coordinator then refuses the invite.
+@MainActor struct ChapterReplacementInvitationEntry: View {
+    let context: MerchantChapterReplacementHostContext
+    let topicID: Int
+    let merchantAccess: MerchantAccess?
+    @State private var model: ChapterReplacementInvitationViewModel?
+    @State private var unavailable = false
+
+    var body: some View {
+        Group {
+            if let model {
+                ChapterReplacementInvitationView(model: model, coordinates: context.coordinates)
+            } else if unavailable {
+                Text("chapterReplacement.section.failed")
+                    .accessibilityIdentifier("chapterReplacement.failed")
+            } else {
+                ProgressView().task { await resolve() }
+            }
+        }
+    }
+
+    private func resolve() async {
+        let proof = await context.loadPublisherProof(topicID)
+        guard !Task.isCancelled, let effects = context.makeEffects(proof) else { unavailable = true; return }
+        model = .init(coordinator: .init(effects: effects), topicID: topicID, actorAccountID: context.actorAccountID,
+            scope: context.scope, merchantAccess: merchantAccess ?? context.merchantAccess, publisherProof: proof)
+    }
+}
+
 struct ChapterReplacementInvitationView: View {
     @StateObject private var model: ChapterReplacementInvitationViewModel
     /// Supplied by the host shell; `nil` means location was refused and candidates

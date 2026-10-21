@@ -215,6 +215,23 @@ public struct ChapterReplacementInvitationPublisherProof: Equatable, Sendable {
     public var verified: Bool {
         topicID > 0 && actorAccountID > 0 && isFreshTopicPublisher && projectManageOwnerMapped
     }
+
+    /// Decode `ApiTopicController.topicInfoToUser` (`api/topic/info-to-user`).
+    /// That document has `id`, `memberId` (the topic publisher) and `isOwner`
+    /// (1 only when the signed-in member is that publisher). It has no
+    /// `isFreshTopicPublisher` or `projectManageOwnerMapped` field. The first
+    /// flag is those two fields agreeing with this actor; the second is the
+    /// separate access/me owner + PROJECT_MANAGE fact. Any missing or
+    /// disagreeing publisher field returns nil. Merchant-owner member id is
+    /// never substituted.
+    public static func fromFreshTopicRead(topicID: Int, actorAccountID: Int, document: MerchantContentValue, projectManageOwnerMapped: Bool) -> ChapterReplacementInvitationPublisherProof? {
+        guard topicID > 0, actorAccountID > 0, document["id"].integer == topicID else { return nil }
+        guard let publisher = document["memberId"].integer, publisher == actorAccountID else { return nil }
+        let markedOwner = document["isOwner"].integer == 1
+        guard markedOwner else { return nil }
+        return ChapterReplacementInvitationPublisherProof(topicID: topicID, actorAccountID: actorAccountID,
+            isFreshTopicPublisher: markedOwner, projectManageOwnerMapped: projectManageOwnerMapped)
+    }
 }
 
 public struct ChapterReplacementInvitationPlan: Equatable, Sendable {

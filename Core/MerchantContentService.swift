@@ -73,6 +73,7 @@ public struct MerchantContentReceipt: Equatable {
     func pending() throws -> [MerchantContentPendingRecord]
     func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback
     func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, publisherProof: ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects?
+    func chapterReplacementPublisherProof(topicID: Int, actorAccountID: Int, access: MerchantAccess?) async -> ChapterReplacementInvitationPublisherProof?
     func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
     func retryStation(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
 }
@@ -82,6 +83,8 @@ extension MerchantContentServing {
         throw MerchantContentFailure.locked
     }
     public func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, publisherProof: ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects? { nil }
+    /// No topic-publisher read on this reader. Fail closed: a nil proof cannot invite.
+    public func chapterReplacementPublisherProof(topicID: Int, actorAccountID: Int, access: MerchantAccess?) async -> ChapterReplacementInvitationPublisherProof? { nil }
 }
 @MainActor public final class MerchantContentService: MerchantContentServing {
     /// This is a test-injection switch, never a production capability approval.
@@ -428,6 +431,9 @@ extension MerchantContentService {
                       publisherProof.actorAccountID == plan.actorAccountID else {
                     throw ChapterReplacementInvitationFailure.notTopicPublisher
                 }
+                // Closed execution never reaches the invite POST. This is a definitive
+                // local refusal, not an unknown outcome, so the intent lock is released.
+                guard self.permitsWrites else { throw ChapterReplacementInvitationFailure.denied }
                 let baseline = try await self.load(.invitable(topicID: plan.topicID))
                 do {
                     _ = try await self.perform(.invite(chapterID: plan.candidate.chapterID, merchantMemberID: plan.candidate.merchantMemberID,
@@ -435,6 +441,8 @@ extension MerchantContentService {
                                                baseline: baseline)
                 } catch MerchantContentFailure.unknown {
                     throw ChapterReplacementInvitationFailure.unknown
+                } catch MerchantContentFailure.disabled {
+                    throw ChapterReplacementInvitationFailure.denied
                 } catch MerchantContentFailure.rejected {
                     throw ChapterReplacementInvitationFailure.denied
                 } catch MerchantContentFailure.denied {
@@ -449,6 +457,19 @@ extension MerchantContentService {
                 guard let self else { throw ChapterReplacementInvitationFailure.unknown }
                 return try await self.chapterReplacementRows(path: ChapterReplacementInvitationOwnerMineRequest.path, fields: request.fields(), gate: .projects)
             })
+    }
+    /// Fresh `api/topic/info-to-user` for this signed-in member only.
+    /// The merchant-visible topic document is not a publisher proof, and
+    /// access/me's owner member id is not substituted for the actor.
+    public func chapterReplacementPublisherProof(topicID: Int, actorAccountID: Int, access: MerchantAccess?) async -> ChapterReplacementInvitationPublisherProof? {
+        guard topicID > 0, actorAccountID > 0, let session = currentSession(), session.accountID == actorAccountID else { return nil }
+        let mapped = access?.active == true && access?.isOwner == true && access?.allows(.projects) == true
+        do {
+            let value = try await read("api/topic/info-to-user", .form(["id": String(topicID)]), session: session)
+            try ensure(session)
+            return ChapterReplacementInvitationPublisherProof.fromFreshTopicRead(
+                topicID: topicID, actorAccountID: actorAccountID, document: value, projectManageOwnerMapped: mapped)
+        } catch { return nil }
     }
     fileprivate func chapterReplacementRows(path: String, fields: [String: MerchantContentValue], gate: MerchantContentQuery) async throws -> [MerchantContentValue] {
         guard let session = currentSession() else { throw APIError.unauthorized }

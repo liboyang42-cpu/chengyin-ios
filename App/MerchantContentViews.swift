@@ -349,10 +349,9 @@ struct MerchantContentFields: View {
             // when a host-supplied replacement context exists; otherwise no send is offered.
             if let replacementContext {
                 NavigationLink {
-                    ChapterReplacementInvitationView(model: .init(coordinator: .init(effects: replacementContext.effects), topicID: topic,
-                        actorAccountID: replacementContext.actorAccountID, scope: replacementContext.scope,
-                        merchantAccess: model.coordinator.snapshot?.access ?? replacementContext.merchantAccess,
-                        publisherProof: replacementContext.publisherProof), coordinates: replacementContext.coordinates)
+                    ChapterReplacementInvitationEntry(context: replacementContext, topicID: topic,
+                        merchantAccess: model.coordinator.snapshot?.access)
+                        .onDisappear { Task { await model.load() } }
                 } label: { Text("merchant.content.invite") }
                 .accessibilityIdentifier("merchant.chapterReplacement.open")
             }
@@ -583,16 +582,16 @@ private struct MerchantOfferWithdrawalDestinationKey: EnvironmentKey {
 private struct MerchantChapterReplacementContextKey: EnvironmentKey {
     static let defaultValue: MerchantChapterReplacementHostContext? = nil
 }
-/// Host-supplied C9 composition context. The publisher proof, coordinates, and
-/// member identity must already exist on the caller. This module does not fetch
-/// them. Shipped composition leaves the environment value `nil`.
+/// Host-supplied C9 composition. The environment default stays nil. A mounted
+/// host passes a per-topic proof loader and builds effects only from that proof.
+/// Coordinates stay nil when location was refused; candidate lookup still runs.
 @MainActor struct MerchantChapterReplacementHostContext {
-    let effects: ChapterReplacementInvitationEffects
+    let makeEffects: (ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects?
     let actorAccountID: Int
     let scope: ChapterReplacementInvitationScope
     let merchantAccess: MerchantAccess?
-    /// Nil unless the host holds an approved fresh topic-publisher read for this actor.
-    let publisherProof: ChapterReplacementInvitationPublisherProof?
+    /// Fresh `api/topic/info-to-user` proof for one topic. Nil means fail closed.
+    let loadPublisherProof: (Int) async -> ChapterReplacementInvitationPublisherProof?
     /// Nil when location was refused. Candidate lookup still runs without coordinates.
     let coordinates: ChapterReplacementInvitationCoordinates?
 }

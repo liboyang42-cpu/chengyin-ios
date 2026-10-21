@@ -27,6 +27,20 @@ final class ChapterReplacementInvitationTests: XCTestCase {
     private var vacancyRow: String { #"{"offerId":900,"topicId":70,"chapterId":7,"status":0,"withdrawReason":"原商家退出","merchantMemberId":11}"# }
     private var candidateRow: String { #"{"merchantMemberId":42,"chapterId":7,"replacementOfOfferId":900,"merchantName":"候选商家"}"# }
 
+    func testFreshTopicReadProofFailsClosedUnlessMemberAndOwnerAgree() throws {
+        let document = try value("{\"id\":70,\"memberId\":5,\"isOwner\":1}")
+        let proof = try XCTUnwrap(ChapterReplacementInvitationPublisherProof.fromFreshTopicRead(
+            topicID: 70, actorAccountID: 5, document: document, projectManageOwnerMapped: true))
+        XCTAssertTrue(proof.verified)
+        XCTAssertFalse(try XCTUnwrap(ChapterReplacementInvitationPublisherProof.fromFreshTopicRead(
+            topicID: 70, actorAccountID: 5, document: document, projectManageOwnerMapped: false)).verified)
+        for raw in ["{\"id\":70,\"memberId\":9,\"isOwner\":1}", "{\"id\":70,\"isOwner\":1}",
+                    "{\"id\":70,\"memberId\":5,\"isOwner\":0}", "{\"memberId\":5,\"isOwner\":1}", "{\"id\":71,\"memberId\":5,\"isOwner\":1}"] {
+            XCTAssertNil(ChapterReplacementInvitationPublisherProof.fromFreshTopicRead(
+                topicID: 70, actorAccountID: 5, document: try value(raw), projectManageOwnerMapped: true))
+        }
+    }
+
     func testInvitableRequestRequiresTopicAndAllowsNoLocation() throws {
         let plain = try ChapterReplacementInvitationInvitableRequest(topicID: 70)
         XCTAssertEqual(plain.fields(), ["topicId": .integer(70)])

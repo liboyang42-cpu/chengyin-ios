@@ -146,15 +146,46 @@ class ChapterReplacementInvitationContracts(unittest.TestCase):
             "Core/MerchantContentCommands.swift",
             "Core/MerchantContentService.swift",
             "App/MerchantContentViews.swift",
+            "App/MerchantHomeView.swift",
+            "App/AppSession.swift",
+            "App/MerchantOfferWithdrawalHostView.swift",
             "Resources/Localizable.xcstrings",
             "Tests/ContractChecks/test_chapter_replacement_invitation.py",
         }
-        for forbidden in ("App/MerchantHomeView.swift", "App/AppSession.swift", "Core/MerchantContentDomain.swift", "Core/MerchantContentCoordinator.swift"):
+        for forbidden in ("Core/MerchantContentDomain.swift", "Core/MerchantContentCoordinator.swift"):
             self.assertNotIn(forbidden, out)
         for changed in out:
             self.assertTrue(
                 "ChapterReplacementInvitation" in changed or changed in allowed_shared,
                 f"C9 changed a non-exclusive file: {changed}")
+
+    def test_c10_journal_withdraw_gate_and_publisher_read(self):
+        session = read("App/AppSession.swift")
+        home = read("App/MerchantHomeView.swift")
+        host = read("App/MerchantOfferWithdrawalHostView.swift")
+        service = read("Core/MerchantContentService.swift")
+        content = session.split("lazy var merchantContentJournal")[1].split("private var retainedNearbyMerchants")[0]
+        self.assertIn("MerchantContentFilePendingStorage", content)
+        self.assertIn("journal: merchantContentJournal", content)
+        self.assertNotIn("injectedOfflineHarness", content)
+        self.assertNotIn("execution:", content)
+        self.assertIn("MerchantOfferWithdrawalProtectedExecutor.gated", session)
+        self.assertIn("api/coop/offer/withdraw", host)
+        self.assertIn("guard permits() else { throw MerchantOfferWithdrawalFailure.disabled }", host)
+        self.assertNotIn("permitsSubmission: Bool { true }", host)
+        proof = service.split("Fresh `api/topic/info-to-user`")[1].split("fileprivate func chapterReplacementRows")[0]
+        self.assertIn("chapterReplacementPublisherProof", proof)
+        self.assertIn("api/topic/info-to-user", proof)
+        self.assertNotIn("info-to-merchant", proof)
+        self.assertIn("fromFreshTopicRead", proof)
+        invite = service.split("sendInvite:")[1].split("loadOwnerListRows:")[0]
+        self.assertIn("guard self.permitsWrites else { throw ChapterReplacementInvitationFailure.denied }", invite)
+        self.assertIn("catch MerchantContentFailure.disabled", invite)
+        self.assertIn("merchantChapterReplacementContext", home)
+        self.assertIn("coordinates: nil", home)
+        self.assertNotIn("requestWhenInUse", home)
+        self.assertNotIn("isFreshTopicPublisher: true", read("Core/ChapterReplacementInvitation.swift"))
+        self.assertNotIn("isFreshTopicPublisher: true", read("App/ChapterReplacementInvitationView.swift"))
 
     def test_unit_coverage_topics_present(self):
         unit = read(UNIT)
