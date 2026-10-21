@@ -141,6 +141,33 @@ private enum QmodAuthorImportCheck {
     }
 }
 
+/// One system picker. `token` stays the value passed at init; the callback captures this object.
+final class QmodFileImporterBinding {
+    let token: UUID
+    init(token: UUID) { self.token = token }
+}
+
+private struct QmodFileImporterAdapter: View {
+    let binding: QmodFileImporterBinding
+    let types: [UTType]
+    let model: QmodAuthorImportModel
+    @State private var presented = false
+
+    var body: some View {
+        let binding = binding
+        let model = model
+        Color.clear
+            .frame(width: 0, height: 0)
+            .fileImporter(isPresented: $presented, allowedContentTypes: types) { [binding, model] result in
+                switch result {
+                case .success(let url): model.importFile(at: url, presentation: binding.token)
+                case .failure: model.pickerCancelled(presentation: binding.token)
+                }
+            }
+            .onAppear { presented = true }
+    }
+}
+
 private struct QmodAuthorImportHostLifetime: UIViewControllerRepresentable {
     var onRealLeave: () -> Void
     func makeUIViewController(context: Context) -> QmodAuthorImportHostProbe {
@@ -174,8 +201,7 @@ private final class QmodAuthorImportHostProbe: UIViewController {
 @MainActor
 struct QmodAuthorImportView: View {
     @StateObject private var model: QmodAuthorImportModel
-    @State private var picking = false
-    @State private var pickerPresentation: UUID?
+    @State private var activePicker: QmodFileImporterBinding?
 
     init(limits: QmodLimitProfile = .reviewProposalV1, expansionGuard: QmodExpansionGuard = .localProcessStop, readBudget: QmodLocalReadBudget = .localProcessStop) {
         _model = StateObject(wrappedValue: QmodAuthorImportModel(limits: limits, expansionGuard: expansionGuard, readBudget: readBudget))
@@ -193,9 +219,9 @@ struct QmodAuthorImportView: View {
                 Text(verbatim: QmodLocalInspectionReport.fixedExecutionDenialText)
             }
             Section {
-                Button(action: { pickerPresentation = model.beginPicking(); picking = true }) { Text(verbatim: "选择包") }
+                Button(action: { activePicker = QmodFileImporterBinding(token: model.beginPicking()) }) { Text(verbatim: "选择包") }
                     .accessibilityIdentifier("qmod.authorImport.pick")
-                Button(action: { pickerPresentation = model.beginPicking(); picking = true }) { Text(verbatim: "换包") }
+                Button(action: { activePicker = QmodFileImporterBinding(token: model.beginPicking()) }) { Text(verbatim: "换包") }
                     .disabled(model.session.phase == .idle)
                     .accessibilityIdentifier("qmod.authorImport.replace")
                 Button(action: { model.recheck() }) { Text(verbatim: "复检") }
@@ -230,11 +256,10 @@ struct QmodAuthorImportView: View {
         .navigationTitle(Text(verbatim: "本机 qmod 检查"))
         .accessibilityIdentifier("qmod.authorImport.root")
         .privacySensitive()
-        .fileImporter(isPresented: $picking, allowedContentTypes: packageTypes) { result in
-            let presentation = pickerPresentation
-            switch result {
-            case .success(let url): model.importFile(at: url, presentation: presentation)
-            case .failure: model.pickerCancelled(presentation: presentation)
+        .background {
+            if let activePicker {
+                QmodFileImporterAdapter(binding: activePicker, types: packageTypes, model: model)
+                    .id(activePicker.token)
             }
         }
         .background(QmodAuthorImportHostLifetime(onRealLeave: { model.hostLeft() }))

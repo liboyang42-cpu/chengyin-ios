@@ -247,6 +247,71 @@ def late_success(state, presented):
     state["reads"] += 1
 
 
+def late_cancel(state, presented):
+    if not state["host"] or presented != state["token"]:
+        return
+    if state.get("phase") != "choosing":
+        return
+    state["token"] = None
+    state["generation"] += 1
+    state["phase"] = "cancelled"
+    state["task"] = "cancelled"
+    state["report"] = None
+
+
+def importer_callback(app):
+    """Parse the real fileImporter closure. The presentation argument is whatever that closure passes."""
+    binding = app[app.index("final class QmodFileImporterBinding"):app.index("struct QmodFileImporterAdapter")]
+    adapter = app[app.index("struct QmodFileImporterAdapter"):app.index("struct QmodAuthorImportHostLifetime")]
+    view = app[app.index("struct QmodAuthorImportView"):]
+    importer = adapter[adapter.index(".fileImporter"):]
+    header = importer[importer.index("{ ["):importer.index("]")]
+    capture = [part.strip() for part in header[header.index("[") + 1:].split(",")]
+    body = importer[importer.index("switch result"):importer.index("}\n            }")]
+    success, failure = body.split("case .failure", 1)
+
+    def argument(call):
+        return call[call.index("presentation:") + len("presentation:"):].split(")")[0].strip()
+
+    return {
+        "binding": binding,
+        "closure": importer[:importer.index("}\n            }")],
+        "view": view,
+        "capture": capture,
+        "success": argument(success),
+        "cancel": argument(failure),
+    }
+
+
+def presented_token(expr, capture, launched, current):
+    if expr == "binding.token" and "binding" in capture:
+        return launched
+    return current
+
+
+def replay_a_then_b(resolve, order):
+    """A launches, closes, B launches, then A's callback runs. `resolve` is the closure's presentation expression."""
+    state = fresh_picker()
+    state["current"] = None
+
+    def launch():
+        token = begin_presentation(state)
+        state["current"] = token
+        return token
+
+    launched_a = launch()
+    state["current"] = None
+    launch()
+    held = (state["token"], state["phase"], state["reads"], state["generation"], state["task"])
+    for kind in order:
+        presented = resolve(kind, launched_a, state["current"])
+        if kind == "success":
+            late_success(state, presented)
+        else:
+            late_cancel(state, presented)
+    return state, held
+
+
 def names(blob):
     with zipfile.ZipFile(io.BytesIO(blob)) as archive:
         return archive.namelist()
@@ -338,11 +403,8 @@ class QmodArchiveInspectionContracts(unittest.TestCase):
         for ident in ("qmod.authorImport.pick", "qmod.authorImport.replace"):
             window = self.app[:self.app.index(ident)]
             action = window[window.rindex("Button(action:"):]
-            self.assertLess(action.index("beginPicking()"), action.index("picking = true"))
-        importer = self.app[self.app.index(".fileImporter"):self.app.index("private var packageTypes")]
-        self.assertIn("pickerCancelled(presentation: presentation)", importer)
-        self.assertLess(importer.index(".success"), importer.index("importFile"))
-        self.assertLess(importer.index("let presentation = pickerPresentation"), importer.index("importFile"))
+            self.assertIn("QmodFileImporterBinding(token: model.beginPicking())", action)
+            self.assertNotIn("pickerPresentation", action)
         self.assertNotIn(".onDisappear", self.app)
         disappear = self.app[self.app.index("override func viewDidDisappear"):self.app.index("static func realHostRemoval")]
         self.assertLess(disappear.index("realHostRemoval"), disappear.index("onRealLeave()"))
@@ -412,6 +474,39 @@ class QmodArchiveInspectionContracts(unittest.TestCase):
         self.assertEqual(first["reads"], 0)
         late_success(first, new)
         self.assertEqual(first["reads"], 1)
+
+    def test_adapter_callback_keeps_the_launch_token(self):
+        parsed = importer_callback(self.app)
+        self.assertIn("let token: UUID", parsed["binding"])
+        self.assertNotIn("var token", parsed["binding"])
+        self.assertEqual(parsed["capture"], ["binding", "model"])
+        self.assertEqual(parsed["success"], "binding.token")
+        self.assertEqual(parsed["cancel"], "binding.token")
+        self.assertNotIn("pickerPresentation", parsed["closure"])
+        self.assertNotIn("activePicker", parsed["closure"])
+        self.assertEqual(self.app.count(".fileImporter"), 1)
+        self.assertNotIn(".fileImporter", parsed["view"])
+        self.assertEqual(parsed["view"].count("QmodFileImporterBinding(token: model.beginPicking())"), 2)
+        self.assertIn("QmodFileImporterAdapter(binding:", parsed["view"])
+        self.assertIn(".id(activePicker.token)", parsed["view"])
+
+        def wired(kind, launched, current):
+            expr = parsed["success"] if kind == "success" else parsed["cancel"]
+            return presented_token(expr, parsed["capture"], launched, current)
+
+        state, held = replay_a_then_b(wired, ("cancel", "success"))
+        self.assertEqual((state["token"], state["phase"], state["reads"], state["generation"], state["task"]), held)
+        self.assertEqual(state["phase"], "choosing")
+        self.assertEqual(state["reads"], 0)
+
+        def read_state(_kind, _launched, current):
+            return current
+
+        stolen, _held = replay_a_then_b(read_state, ("success",))
+        self.assertEqual(stolen["reads"], 1)
+        cancelled, _held = replay_a_then_b(read_state, ("cancel",))
+        self.assertEqual(cancelled["phase"], "cancelled")
+        self.assertIsNone(cancelled["token"])
 
     def test_fixtures_encode_the_acceptance_cases(self):
         self.assertTrue(FIXTURES.is_dir(), FIXTURES)
