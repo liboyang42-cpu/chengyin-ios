@@ -49,3 +49,45 @@ public final class RoamExportDeliveryLease: @unchecked Sendable {
         return file
     }
 }
+
+/// Live hand-off facts written by the page. Delivery reads them at the moment
+/// of the write, instead of reusing the lease's own identity or a fixed foreground.
+public final class RoamExportDeliveryContext: @unchecked Sendable {
+    private let lock = NSLock()
+    private var now = Date(timeIntervalSince1970: 0)
+    private var identity: RoamExperienceIdentity?
+    private var foreground = false
+    private var temporaryURL: URL?
+
+    public init() {}
+
+    public func update(now: Date, identity: RoamExperienceIdentity?, foreground: Bool) {
+        lock.lock(); defer { lock.unlock() }
+        self.now = now; self.identity = identity; self.foreground = foreground
+    }
+
+    public func snapshot() -> (now: Date, identity: RoamExperienceIdentity?, foreground: Bool) {
+        lock.lock(); defer { lock.unlock() }
+        return (now, identity, foreground)
+    }
+
+    public func rememberTemporary(_ url: URL) {
+        lock.lock(); temporaryURL = url; lock.unlock()
+    }
+
+    /// Cancel and completion both drop the temporary copy. A second call is a no-op.
+    public func cleanupTemporary() {
+        lock.lock(); let url = temporaryURL; temporaryURL = nil; lock.unlock()
+        if let url { try? FileManager.default.removeItem(at: url) }
+    }
+}
+
+public enum RoamExportHandoff {
+    /// Bytes to write only while the lease still matches the live context.
+    /// Nil means deliver nothing: revoked, expired, backgrounded, or a different identity.
+    public static func contents(file: RoamExportFile, lease: RoamExportDeliveryLease, context: RoamExportDeliveryContext) -> Data? {
+        let shot = context.snapshot()
+        guard lease.validatedFile(file, now: shot.now, currentIdentity: shot.identity, foreground: shot.foreground) != nil else { return nil }
+        return Data(file.content.utf8)
+    }
+}

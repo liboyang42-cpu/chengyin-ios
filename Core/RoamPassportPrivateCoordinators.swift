@@ -371,7 +371,7 @@ public enum RoamPrivateToolIssue: Equatable {
     /// The file at the actual hand-off moment: foreground, current identity, unexpired,
     /// unrevoked. Anything else delivers nothing.
     public func fileForDelivery(foreground: Bool) -> RoamExportFile? {
-        guard let file = shareableFile, let deliveryLease else { return nil }
+        guard live(), phase == .complete, let file, file.rows > 0, let deliveryLease else { return nil }
         return deliveryLease.validatedFile(file, now: tools.now, currentIdentity: tools.identity, foreground: foreground)
     }
 
@@ -420,11 +420,7 @@ public enum RoamPrivateToolIssue: Equatable {
     /// 重新选择范围: discard every part and the finished file.
     public func restart() { guard !isBusy else { return }; clear(); issue = nil; phase = .choosing }
     /// The file only while complete, current, non-empty and unexpired; otherwise nothing to save or share.
-    public var shareableFile: RoamExportFile? {
-        guard live(), phase == .complete, let file, file.rows > 0, !file.isExpired(now: tools.now) else { return nil }
-        guard let deliveryLease, deliveryLease.canDeliver(now: tools.now, currentIdentity: tools.identity, foreground: true) else { return nil }
-        return file
-    }
+    public var shareableFile: RoamExportFile? { fileForDelivery(foreground: true) }
     public var isFileExpired: Bool { file?.isExpired(now: tools.now) == true }
     /// Expired content is discarded; the player prepares a new snapshot.
     public func discardExpired() { guard isFileExpired, !isBusy else { return }; clear(); issue = .expired; phase = .choosing }

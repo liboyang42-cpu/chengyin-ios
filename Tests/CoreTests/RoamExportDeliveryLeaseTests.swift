@@ -53,4 +53,23 @@ import XCTest
         XCTAssertNil(model.deliveryLease)
         XCTAssertNil(model.file)
     }
+
+    func testHandoffUsesLiveContextNotTheLeaseIdentity() {
+        let lease = RoamExportDeliveryLease(file: file(), identity: identity)!
+        let context = RoamExportDeliveryContext()
+        context.update(now: now, identity: identity, foreground: false)
+        XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "A backgrounded page writes nothing")
+        context.update(now: now, identity: RoamExperienceIdentity(scope: scope, epoch: 2), foreground: true)
+        XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "The lease identity is not the current identity")
+        context.update(now: now, identity: identity, foreground: true)
+        XCTAssertEqual(RoamExportHandoff.contents(file: file(), lease: lease, context: context), Data(file().content.utf8))
+        lease.revoke()
+        XCTAssertNil(RoamExportHandoff.contents(file: file(), lease: lease, context: context), "Revocation is seen at the actual write")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("c6-handoff-\(UUID().uuidString).jsonl")
+        try? Data("temp".utf8).write(to: url)
+        context.rememberTemporary(url)
+        context.cleanupTemporary()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
+        context.cleanupTemporary()
+    }
 }

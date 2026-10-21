@@ -19,8 +19,11 @@ public struct RoamPrivatePendingEntry: Codable, Equatable {
     public let namespace: String
     public let accountID: Int
     public let recordedAtMs: Int64
+    /// Set once an attempt's outcome was UNKNOWN. A later refusal is not an
+    /// authoritative receipt, so the slot stays until a matching receipt agrees.
+    public let receiptRequired: Bool
 
-    public init(kind: RoamPrivatePendingKind, requestID: String, scope: RoamHistoryScope, recordedAtMs: Int64) {
+    public init(kind: RoamPrivatePendingKind, requestID: String, scope: RoamHistoryScope, recordedAtMs: Int64, receiptRequired: Bool = false) {
         version = 1
         self.kind = kind
         self.requestID = requestID
@@ -29,6 +32,7 @@ public struct RoamPrivatePendingEntry: Codable, Equatable {
         self.namespace = scope.namespace
         accountID = scope.accountID
         self.recordedAtMs = recordedAtMs
+        self.receiptRequired = receiptRequired
     }
 
     func matches(scope: RoamHistoryScope) -> Bool {
@@ -120,7 +124,7 @@ public enum RoamPrivatePendingJournalError: Error, Equatable {
         return "roam-private-pending-v1-" + Data(raw.utf8).base64EncodedString()
     }
 
-    private static let allowedKeys: Set<String> = ["version", "kind", "requestId", "market", "deployment", "namespace", "accountId", "recordedAtMs"]
+    private static let allowedKeys: Set<String> = ["version", "kind", "requestId", "market", "deployment", "namespace", "accountId", "recordedAtMs", "receiptRequired"]
     private struct Wire: Codable {
         let version: Int
         let kind: RoamPrivatePendingKind
@@ -130,6 +134,8 @@ public enum RoamPrivatePendingJournalError: Error, Equatable {
         let namespace: String
         let accountId: Int
         let recordedAtMs: Int64
+        /// Omitted when false so a first, still-unsent record stays minimal.
+        let receiptRequired: Bool?
     }
 
     public func entry(kind: RoamPrivatePendingKind, scope: RoamHistoryScope) throws -> RoamPrivatePendingEntry? {
@@ -143,7 +149,7 @@ public enum RoamPrivatePendingJournalError: Error, Equatable {
               let wire = try? JSONDecoder().decode(Wire.self, from: data),
               wire.version == 1, wire.kind == kind, wire.recordedAtMs > 0,
               RoamPrivateRequestID.isValid(wire.requestId) else { throw RoamPrivatePendingJournalError.corrupted }
-        let entry = RoamPrivatePendingEntry(kind: wire.kind, requestID: wire.requestId, scope: scope, recordedAtMs: wire.recordedAtMs)
+        let entry = RoamPrivatePendingEntry(kind: wire.kind, requestID: wire.requestId, scope: scope, recordedAtMs: wire.recordedAtMs, receiptRequired: wire.receiptRequired == true)
         guard entry.market == wire.market, entry.deployment == wire.deployment,
               entry.namespace == wire.namespace, entry.accountID == wire.accountId,
               entry.matches(scope: scope) else { throw RoamPrivatePendingJournalError.corrupted }
@@ -161,16 +167,32 @@ public enum RoamPrivatePendingJournalError: Error, Equatable {
         }
         let entry = RoamPrivatePendingEntry(kind: kind, requestID: requestID, scope: scope,
                                             recordedAtMs: Int64((now.timeIntervalSince1970 * 1000).rounded(.down)))
+        try write(entry, scope: scope)
+        return entry
+    }
+
+    /// Mark a slot that has already left the device with an unknown outcome.
+    /// Idempotent for the same request; never replaces a different request's lock.
+    public func requireReceipt(kind: RoamPrivatePendingKind, requestID: String, scope: RoamHistoryScope) throws {
+        guard let existing = try entry(kind: kind, scope: scope) else { return }
+        guard existing.requestID == requestID else { throw RoamPrivatePendingJournalError.locked }
+        guard !existing.receiptRequired else { return }
+        let marked = RoamPrivatePendingEntry(kind: existing.kind, requestID: existing.requestID, scope: scope,
+                                             recordedAtMs: existing.recordedAtMs, receiptRequired: true)
+        try write(marked, scope: scope)
+    }
+
+    private func write(_ entry: RoamPrivatePendingEntry, scope: RoamHistoryScope) throws {
         let wire = Wire(version: entry.version, kind: entry.kind, requestId: entry.requestID, market: entry.market,
-                        deployment: entry.deployment, namespace: entry.namespace, accountId: entry.accountID, recordedAtMs: entry.recordedAtMs)
+                        deployment: entry.deployment, namespace: entry.namespace, accountId: entry.accountID,
+                        recordedAtMs: entry.recordedAtMs, receiptRequired: entry.receiptRequired ? true : nil)
         do {
             let data = try JSONEncoder().encode(wire)
-            try storage.store(data, key: Self.key(kind: kind, scope: scope))
+            try storage.store(data, key: Self.key(kind: entry.kind, scope: scope))
         } catch let error as RoamPrivatePendingJournalError { throw error }
         catch { throw RoamPrivatePendingJournalError.saveFailed }
         // Read back what actually landed; a store that cannot be read back has not saved.
-        guard let landed = try entry(kind: kind, scope: scope), landed == entry else { throw RoamPrivatePendingJournalError.saveFailed }
-        return entry
+        guard let landed = try self.entry(kind: entry.kind, scope: scope), landed == entry else { throw RoamPrivatePendingJournalError.saveFailed }
     }
 
     /// Confirmation-only cleanup: removes the slot only when it still names this request.

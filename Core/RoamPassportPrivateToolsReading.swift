@@ -275,9 +275,23 @@ public struct RoamPrivateToolsService {
         let restored = kind == .capsuleCreate ? restoredCapsuleRequestID : restoredGoalRequestID
         if let restored, restored != requestID { throw RoamPrivateWriteError.pendingMismatch }
         guard let journal else { throw RoamPrivatePendingJournalError.unavailable }
+        let alreadyHeld = restored == requestID
         do { try journal.record(kind: kind, requestID: requestID, scope: ownerScope, now: now) }
         catch let error as RoamPrivatePendingJournalError where error == .locked { throw RoamPrivateWriteError.pendingMismatch }
+        // A lock that already survived an earlier attempt cannot be cleared by a later refusal.
+        if alreadyHeld { try? journal.requireReceipt(kind: kind, requestID: requestID, scope: ownerScope) }
         if kind == .capsuleCreate { restoredCapsuleRequestID = requestID } else { restoredGoalRequestID = requestID }
+    }
+    /// UNKNOWN means the attempt may already have landed. Remember that on disk
+    /// before any later refusal is allowed to look like proof it did not.
+    private func noteReceiptRequired(kind: RoamPrivatePendingKind, requestID: String) {
+        guard let context = synchronize(), let ownerScope = scope(for: context), let journal else { return }
+        try? journal.requireReceipt(kind: kind, requestID: requestID, scope: ownerScope)
+    }
+    private func durableReceiptRequired(kind: RoamPrivatePendingKind, requestID: String) -> Bool {
+        guard let context = synchronize(), let ownerScope = scope(for: context), let journal,
+              let entry = try? journal.entry(kind: kind, scope: ownerScope) else { return false }
+        return entry.requestID == requestID && entry.receiptRequired
     }
     /// Confirmation-only cleanup. A failed removal keeps the restored lock (fail closed);
     /// the next successful receipt readback retries the removal.
@@ -354,12 +368,16 @@ public struct RoamPrivateToolsService {
             clearAfterConfirmation(kind: .capsuleCreate, requestID: draft.requestID)
             return value
         } catch {
+            if (error as? RoamPrivateWriteError) == .outcomeUnknown {
+                noteReceiptRequired(kind: .capsuleCreate, requestID: draft.requestID)
+            }
             releaseLockIfRefused(error, kind: .capsuleCreate, requestID: draft.requestID)
             throw error
         }
     }
-    /// A refusal, a disabled write surface, an invalid draft or a missing approval proves
-    /// nothing was applied, so the lock is released; every other outcome keeps it.
+    /// A refusal of a never-uncertain attempt proves nothing was applied, so the lock is released.
+    /// Once the same request has been UNKNOWN, only an authoritative receipt may clear it:
+    /// a later rejection of the retry does not prove the first attempt failed.
     private func releaseLockIfRefused(_ error: Error, kind: RoamPrivatePendingKind, requestID: String) {
         let releasesLock: Bool
         if let write = error as? RoamPrivateWriteError {
@@ -368,7 +386,9 @@ public struct RoamPrivateToolsService {
             default: releasesLock = false
             }
         } else { releasesLock = (error as? APIError) == .notConfigured }
-        if releasesLock { clearAfterConfirmation(kind: kind, requestID: requestID) }
+        if releasesLock, !durableReceiptRequired(kind: kind, requestID: requestID) {
+            clearAfterConfirmation(kind: kind, requestID: requestID)
+        }
     }
     public func deleteCapsule(id: String) async throws -> RoamCapsule { try await run(write: true) { try await $0.deleteCapsule(id: id, token: $1) } }
     public func goals(beforeID: String?) async throws -> RoamGoalPage {
@@ -394,6 +414,9 @@ public struct RoamPrivateToolsService {
             clearAfterConfirmation(kind: .goalCreate, requestID: draft.requestID)
             return value
         } catch {
+            if (error as? RoamPrivateWriteError) == .outcomeUnknown {
+                noteReceiptRequired(kind: .goalCreate, requestID: draft.requestID)
+            }
             releaseLockIfRefused(error, kind: .goalCreate, requestID: draft.requestID)
             throw error
         }

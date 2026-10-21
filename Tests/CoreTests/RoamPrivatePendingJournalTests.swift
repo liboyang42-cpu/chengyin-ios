@@ -168,6 +168,38 @@ private actor C6PendingWire: HTTPTransport {
         XCTAssertEqual(tools.receiptIDs, [requestID])
         XCTAssertNil(model.pendingRequestID)
     }
+
+    func testFirstRefusalClearsButRejectionAfterUnknownSurvivesRestart() async throws {
+        let storage = RoamPrivatePendingInMemoryJournalStorage()
+        let owner = try context()
+        let draft = RoamCapsuleDraft(requestID: requestID, body: "给明年的自己", unlockDate: "2030-01-01")
+        let refused = C6PendingWire([.body(#"{"code":400,"msg":"no"}"#, 200)])
+        let first = try reader(wire: refused, storage: storage, context: owner)
+        do { _ = try await first.createCapsule(draft); XCTFail() }
+        catch { XCTAssertEqual(error as? RoamPrivateWriteError, .rejected("no")) }
+        XCTAssertNil(first.unresolvedCapsuleRequestID, "A refusal of a never-uncertain attempt still clears the lock")
+        XCTAssertNil(try RoamPrivatePendingJournal(storage: storage).entry(kind: .capsuleCreate, scope: try scope()))
+
+        let unknown = C6PendingWire([.failure])
+        let second = try reader(wire: unknown, storage: storage, context: owner)
+        do { _ = try await second.createCapsule(draft); XCTFail() }
+        catch { XCTAssertEqual(error as? RoamPrivateWriteError, .outcomeUnknown) }
+        let marked = try RoamPrivatePendingJournal(storage: storage).entry(kind: .capsuleCreate, scope: try scope())
+        XCTAssertEqual(marked?.requestID, requestID)
+        XCTAssertEqual(marked?.receiptRequired, true)
+
+        let retry = C6PendingWire([.body(#"{"code":400,"msg":"again"}"#, 200)])
+        let third = try reader(wire: retry, storage: storage, context: owner)
+        do { _ = try await third.createCapsule(draft); XCTFail() }
+        catch { XCTAssertEqual(error as? RoamPrivateWriteError, .rejected("again")) }
+        XCTAssertEqual(third.unresolvedCapsuleRequestID, requestID, "A later refusal does not prove the unknown attempt failed")
+
+        let restarted = try reader(wire: C6PendingWire([]), storage: storage, context: owner)
+        XCTAssertEqual(restarted.unresolvedCapsuleRequestID, requestID)
+        let other = RoamCapsuleDraft(requestID: "ios_fedcba9876543210", body: "另一枚", unlockDate: "2030-01-01")
+        do { _ = try await restarted.createCapsule(other); XCTFail() }
+        catch { XCTAssertEqual(error as? RoamPrivateWriteError, .pendingMismatch) }
+    }
 }
 
 /// Serving fake whose only pending state is a restored request ID, as after a restart.
