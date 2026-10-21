@@ -11,18 +11,17 @@ import Foundation
 /// - Success creates only `source = INVITE` / `status = PENDING`. It never auto-accepts,
 ///   never fills the supply, and never touches payment/refund.
 ///
-/// Baseline divergence, reported not hidden: the legacy shared invitable row/fixture in
-/// `MerchantContentSyntheticFixtures` uses `memberId`, while the C9 candidate contract
-/// names `merchantMemberId`. Parsing therefore accepts `merchantMemberId` first and the
-/// already-shipped `memberId` as a legacy alias, and fails closed when both are present
-/// but disagree. No other field names are invented.
+/// Baseline divergence, reported not hidden: invitable candidate rows are
+/// `memberId` + `chapterId` + `replacementOfOfferId`. `merchantMemberId` is accepted
+/// only when it agrees with `memberId`. Owner readback uses `merchantId` as the member
+/// id and never that alias. Disagreeing ids fail closed. No other field names are invented.
 public enum ChapterReplacementInvitationFailure: Error, Equatable {
     case invalid, malformed, denied, notTopicPublisher, vacancyIneligible
     case candidateMismatch, originalMerchant, alreadyReplaced, duplicateReadback
     case stateMismatch, notFound, unknown, staleTopic, busy, noSelection
 }
 
-public enum ChapterReplacementInvitationScope: Equatable, Sendable {
+public enum ChapterReplacementInvitationScope: String, Codable, Equatable, Sendable {
     /// Requires `merchant:project:manage` mapped through a merchant owner (see plan rules).
     case merchant
     /// The signed-in member acting for themself; no merchant scope is sent.
@@ -101,13 +100,37 @@ public struct ChapterReplacementInvitationVacancy: Equatable, Identifiable, Send
         self.originalMerchantMemberID = original
     }
 
-    /// `merchantMemberId` wins; the shipped legacy alias `memberId` is honoured only
-    /// when it does not contradict it.
+    /// Identity-only vacancy for a restored UNKNOWN lock. Not a parsed offer row.
+    init(lockedOfferID: Int, topicID: Int, chapterID: Int) {
+        offerID = lockedOfferID
+        self.topicID = topicID
+        self.chapterID = chapterID
+        status = 0
+        withdrawReason = ""
+        originalMerchantMemberID = 0
+    }
+
+    /// Offer rows name the original merchant with `merchantMemberId` (alias `memberId`).
     static func memberID(in row: MerchantContentValue) -> Int? {
         let primary = row["merchantMemberId"].integer
         let legacy = row["memberId"].integer
         if let primary, let legacy, primary != legacy { return nil }
         return primary ?? legacy
+    }
+
+    /// Invitable candidates: `memberId` + `chapterId` + `replacementOfOfferId`.
+    /// `merchantMemberId` is accepted only when it agrees with `memberId`.
+    static func candidateMemberID(in row: MerchantContentValue) -> Int? {
+        let member = row["memberId"].integer
+        let alias = row["merchantMemberId"].integer
+        if let member, let alias, member != alias { return nil }
+        guard let id = member ?? alias, id > 0 else { return nil }
+        return id
+    }
+
+    /// mine / owner-list / owner-mine `merchantId` is the member id, not the archive id.
+    static func ownerMemberID(in row: MerchantContentValue) -> Int? {
+        row["merchantId"].integer.flatMap { $0 > 0 ? $0 : nil }
     }
 
     public static func vacancies(rows: [MerchantContentValue]) -> [ChapterReplacementInvitationVacancy] {
@@ -125,7 +148,7 @@ public struct ChapterReplacementInvitationCandidate: Equatable, Identifiable, Se
 
     public init(row: MerchantContentValue) throws {
         guard row.object != nil,
-              let member = ChapterReplacementInvitationVacancy.memberID(in: row), member > 0,
+              let member = ChapterReplacementInvitationVacancy.candidateMemberID(in: row), member > 0,
               let chapterID = row["chapterId"].integer, chapterID > 0,
               let replacement = row["replacementOfOfferId"].integer, replacement > 0 else {
             throw ChapterReplacementInvitationFailure.malformed
@@ -133,6 +156,13 @@ public struct ChapterReplacementInvitationCandidate: Equatable, Identifiable, Se
         merchantMemberID = member; chapterID = chapterID; replacementOfOfferID = replacement
         let name = (row["merchantName"].text ?? row["name"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         displayName = name.isEmpty ? nil : name
+    }
+
+    init(merchantMemberID: Int, chapterID: Int, replacementOfOfferID: Int) {
+        self.merchantMemberID = merchantMemberID
+        self.chapterID = chapterID
+        self.replacementOfOfferID = replacementOfOfferID
+        displayName = nil
     }
 
     public static func candidates(rows: [MerchantContentValue], vacancy: ChapterReplacementInvitationVacancy) -> [ChapterReplacementInvitationCandidate] {
@@ -154,7 +184,7 @@ public struct ChapterReplacementInvitationExisting: Equatable, Sendable {
               let status = row["status"].integer else { throw ChapterReplacementInvitationFailure.malformed }
         applicationID = id; status = status
         chapterID = row["chapterId"].integer
-        merchantMemberID = ChapterReplacementInvitationVacancy.memberID(in: row)
+        merchantMemberID = ChapterReplacementInvitationVacancy.ownerMemberID(in: row)
         replacementOfOfferID = row["replacementOfOfferId"].integer
     }
 
@@ -163,6 +193,27 @@ public struct ChapterReplacementInvitationExisting: Equatable, Sendable {
 
     public static func existing(rows: [MerchantContentValue]) -> [ChapterReplacementInvitationExisting] {
         rows.compactMap { try? ChapterReplacementInvitationExisting(row: $0) }
+    }
+}
+
+/// Proof the host must supply. This module does not fetch it.
+/// C7 composition has to pass a fresh topic-publisher read for `topicID`/`actorAccountID`
+/// plus `MerchantAccess.isOwner && allows(.projects)`. A constant `true` is not a proof.
+public struct ChapterReplacementInvitationPublisherProof: Equatable, Sendable {
+    public let topicID: Int
+    public let actorAccountID: Int
+    public let isFreshTopicPublisher: Bool
+    public let projectManageOwnerMapped: Bool
+
+    public init(topicID: Int, actorAccountID: Int, isFreshTopicPublisher: Bool, projectManageOwnerMapped: Bool) {
+        self.topicID = topicID
+        self.actorAccountID = actorAccountID
+        self.isFreshTopicPublisher = isFreshTopicPublisher
+        self.projectManageOwnerMapped = projectManageOwnerMapped
+    }
+
+    public var verified: Bool {
+        topicID > 0 && actorAccountID > 0 && isFreshTopicPublisher && projectManageOwnerMapped
     }
 }
 
@@ -185,7 +236,7 @@ public struct ChapterReplacementInvitationPlan: Equatable, Sendable {
                             scope: ChapterReplacementInvitationScope,
                             actorAccountID: Int,
                             merchantAccess: MerchantAccess?,
-                            topicPublisherVerified: Bool,
+                            publisherProof: ChapterReplacementInvitationPublisherProof,
                             vacancy: ChapterReplacementInvitationVacancy,
                             candidate: ChapterReplacementInvitationCandidate,
                             existing: [ChapterReplacementInvitationExisting],
@@ -193,7 +244,8 @@ public struct ChapterReplacementInvitationPlan: Equatable, Sendable {
         guard topicID > 0, actorAccountID > 0 else { throw ChapterReplacementInvitationFailure.invalid }
         // The server requires the real topic publisher. A `COOP_MANAGE`-style employee
         // who is not the publisher must not invite on the host's behalf, in either scope.
-        guard topicPublisherVerified else { throw ChapterReplacementInvitationFailure.notTopicPublisher }
+        guard publisherProof.topicID == topicID, publisherProof.actorAccountID == actorAccountID,
+              publisherProof.verified else { throw ChapterReplacementInvitationFailure.notTopicPublisher }
         if scope == .merchant {
             // PROJECT_MANAGE (`merchant:project:manage`) mapped to the merchant owner.
             // A manager/marketing role with the raw permission string is not enough here
@@ -292,7 +344,7 @@ public enum ChapterReplacementInvitationReadback {
         var matches: [ChapterReplacementInvitationVerified] = []
         var sawTupleWithWrongState = false
         for row in rows where row.object != nil {
-            guard ChapterReplacementInvitationVacancy.memberID(in: row) == plan.candidate.merchantMemberID,
+            guard ChapterReplacementInvitationVacancy.ownerMemberID(in: row) == plan.candidate.merchantMemberID,
                   row["chapterId"].integer == plan.candidate.chapterID,
                   row["replacementOfOfferId"].integer == plan.candidate.replacementOfOfferID,
                   row["topicId"].integer == plan.topicID,

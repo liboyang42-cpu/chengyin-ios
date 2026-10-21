@@ -17,14 +17,14 @@ final class ChapterReplacementInvitationViewModel: ObservableObject {
     private let actorAccountID: Int
     private let scope: ChapterReplacementInvitationScope
     private let merchantAccess: MerchantAccess?
-    private let topicPublisherVerified: Bool
+    private let publisherProof: ChapterReplacementInvitationPublisherProof
 
     init(coordinator: ChapterReplacementInvitationCoordinator, topicID: Int, actorAccountID: Int,
-         scope: ChapterReplacementInvitationScope, merchantAccess: MerchantAccess?, topicPublisherVerified: Bool) {
+         scope: ChapterReplacementInvitationScope, merchantAccess: MerchantAccess?, publisherProof: ChapterReplacementInvitationPublisherProof) {
         self.coordinator = coordinator
         self.topicID = topicID; self.actorAccountID = actorAccountID
         self.scope = scope; self.merchantAccess = merchantAccess
-        self.topicPublisherVerified = topicPublisherVerified
+        self.publisherProof = publisherProof
     }
 
     private func sync() {
@@ -47,7 +47,7 @@ final class ChapterReplacementInvitationViewModel: ObservableObject {
 
     func prepare(_ candidate: ChapterReplacementInvitationCandidate) async {
         await coordinator.prepare(candidate: candidate, scope: scope, merchantAccess: merchantAccess,
-                                  topicPublisherVerified: topicPublisherVerified, message: message)
+                                  publisherProof: publisherProof, message: message)
         sync()
     }
 
