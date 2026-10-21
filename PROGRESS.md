@@ -510,3 +510,14 @@ Added 21 authored core methods, nine synthetic UI methods, eight aggregate Pytho
   - The 3 PlayThemeAuxiliaryAdapterTests threw `invalidConfiguration` because `APIConfiguration` rejects `.invalid` hosts by design. This commit switches the fixture to the same `https://example.com/fixture/` stub base the sibling tests use; no assertion changed.
   - native (core) still fails only in the 2 owner test files: MyProjectListPresentationTests and PlayGameSessionCompositionTests.
 - The base has not moved since 76ce1b31, which is already merged.
+
+### 2026-10-21 07:50 UTC — integrator Z (wave-2)
+
+- Between 01:48 and 05:34 UTC the owner pushed 15 `[skip ci]` commits, up to 618c0f06. They:
+  - fix the Core test files (MyProjectListPresentationTests, PlayGameSessionCompositionTests);
+  - align several app-unit fixtures (PlayThemeAuxiliaryAdapter, MerchantReviewCardPresentation, TeamPkg07Acceptance, AccountCollection);
+  - regenerate the project and the CI manifest;
+  - close ClubCreate and ClubOperations App-flow gaps and update the page-parity registry.
+- Local review of the owner commits on each check-in (03:40, 04:35, 06:16): `current_ci check`, `check_scaffold` and gitleaks pass. The only hosts added are placeholders (`example.test`, `us.example.test`, `example.com`).
+- Run 39528970634 (b8bfcb1a) failed `controls` because a PROGRESS edit was made after the ledger refresh. The owner's manifest regeneration supersedes it; Z now refreshes the ledger after every file edit.
+- This entry is pushed so CI runs on the owner's head; it was quiet for more than 2 hours. The base has not moved since 76ce1b31, which is already merged.
