@@ -286,6 +286,612 @@ struct MerchantRootModeSwitchBannerView: View {
     }
 }
 
+/// Merchant 5-tab business entries (`工作台`, `营销`, `模板`, `合作`, `我的`) mapped 1:1 with `RootTabBarParity.merchantTabs`.
+enum MerchantRootBusinessTab: Int, CaseIterable, Hashable, Sendable, Identifiable {
+    case workbench = 0
+    case marketing = 1
+    case templates = 2
+    case cooperation = 3
+    case mine = 4
+
+    var id: Int { rawValue }
+
+    init(rootTab: RootTab) {
+        switch rootTab {
+        case .home: self = .workbench
+        case .roam: self = .marketing
+        case .publish: self = .templates
+        case .club: self = .cooperation
+        case .mine: self = .mine
+        }
+    }
+
+    var rootTab: RootTab {
+        switch self {
+        case .workbench: return .home
+        case .marketing: return .roam
+        case .templates: return .publish
+        case .cooperation: return .club
+        case .mine: return .mine
+        }
+    }
+
+    var descriptor: RootTabBarParity.TabDescriptor {
+        RootTabBarParity.merchantTabs[rawValue]
+    }
+
+    var containerRoute: RootTabBarParity.RootContainerRoute {
+        RootTabBarParity.containerRoute(for: rootTab, mode: .merchant)
+    }
+}
+
+/// Environment action for requesting a consumer ↔ merchant root container mode switch.
+struct MerchantRootModeSwitch {
+    let isAvailable: Bool
+    let activeMode: RootTabBarParity.RoleMode
+    let isVerifying: Bool
+    let errorKey: String?
+    let selectedTab: RootTab
+    private let requestMode: @MainActor (RootTabBarParity.RoleMode) -> Void
+    private let selectTab: @MainActor (RootTab) -> Void
+
+    init(
+        activeMode: RootTabBarParity.RoleMode = .consumer,
+        isVerifying: Bool = false,
+        errorKey: String? = nil,
+        selectedTab: RootTab = .home,
+        requestMode: @escaping @MainActor (RootTabBarParity.RoleMode) -> Void,
+        selectTab: @escaping @MainActor (RootTab) -> Void = { _ in }
+    ) {
+        self.isAvailable = true
+        self.activeMode = activeMode
+        self.isVerifying = isVerifying
+        self.errorKey = errorKey
+        self.selectedTab = selectedTab
+        self.requestMode = requestMode
+        self.selectTab = selectTab
+    }
+
+    private init() {
+        self.isAvailable = false
+        self.activeMode = .consumer
+        self.isVerifying = false
+        self.errorKey = nil
+        self.selectedTab = .home
+        self.requestMode = { _ in }
+        self.selectTab = { _ in }
+    }
+
+    static let unavailable = MerchantRootModeSwitch()
+
+    @MainActor func callAsFunction(_ mode: RootTabBarParity.RoleMode) {
+        requestMode(mode)
+    }
+
+    @MainActor func select(_ tab: RootTab) {
+        selectTab(tab)
+    }
+}
+
+private struct MerchantRootModeSwitchKey: EnvironmentKey {
+    static let defaultValue = MerchantRootModeSwitch.unavailable
+}
+
+extension EnvironmentValues {
+    var merchantRootModeSwitch: MerchantRootModeSwitch {
+        get { self[MerchantRootModeSwitchKey.self] }
+        set { self[MerchantRootModeSwitchKey.self] = newValue }
+    }
+}
+
+/// Authoritative coordinator for switching between Consumer Mode (`玩家视角`) and Merchant Root Mode (`商家工作台`).
+/// UI mode selection never manufactures merchant authorization: `.merchantTabs` is entered only when
+/// `reader.merchantAccess()` succeeds with `active == true && (merchantID ?? 0) > 0` for the current account and session revision.
+@MainActor
+final class MerchantRootModeCoordinator: ObservableObject {
+    enum ResolvedRoute: Equatable {
+        case consumerTabs
+        case merchantTabs(MerchantAccess)
+    }
+
+    @Published private(set) var requestedMode: RootTabBarParity.RoleMode = .consumer
+    @Published private(set) var verifiedAccess: MerchantAccess? = nil
+    @Published private(set) var verifiedAccountID: Int? = nil
+    @Published private(set) var verifiedSessionRevision: UInt64? = nil
+    @Published private(set) var isVerifying: Bool = false
+    @Published private(set) var statusErrorKey: String? = nil
+    @Published var selectedMerchantTab: MerchantRootBusinessTab = .workbench
+    @Published private(set) var merchantContainerGeneration = UUID()
+
+    private var verificationGeneration: UInt64 = 0
+
+    var selectedRootTab: RootTab {
+        get { selectedMerchantTab.rootTab }
+        set { selectedMerchantTab = MerchantRootBusinessTab(rootTab: newValue) }
+    }
+
+    /// Evaluates whether a specific merchant business tab has read/entry permission under a verified `MerchantAccess`.
+    static func allowsBusinessTab(_ tab: MerchantRootBusinessTab, access: MerchantAccess) -> Bool {
+        guard access.active, let merchantID = access.merchantID, merchantID > 0, access.role != nil else {
+            return false
+        }
+        switch tab {
+        case .workbench:
+            return true
+        case .marketing:
+            return access.isOwner || access.role == .manager || access.role == .marketing || access.allows(.couponManage) || access.allows(.basicRead)
+        case .templates:
+            return access.allows(.projects)
+        case .cooperation:
+            return access.isOwner || access.allows(.coopManage)
+        case .mine:
+            return true
+        }
+    }
+
+    func resolvedRoute(
+        accountID: Int?,
+        isSignedIn: Bool,
+        isConfigured: Bool,
+        revision: UInt64
+    ) -> ResolvedRoute {
+        guard isConfigured, isSignedIn, let accountID, accountID > 0 else {
+            return .consumerTabs
+        }
+        guard requestedMode == .merchant,
+              verifiedAccountID == accountID,
+              verifiedSessionRevision == revision,
+              let access = verifiedAccess,
+              access.active,
+              let merchantID = access.merchantID,
+              merchantID > 0,
+              access.role != nil else {
+            return .consumerTabs
+        }
+        return .merchantTabs(access)
+    }
+
+    func activeMerchantAccess(
+        accountID: Int?,
+        isSignedIn: Bool,
+        isConfigured: Bool,
+        revision: UInt64
+    ) -> MerchantAccess? {
+        if case .merchantTabs(let access) = resolvedRoute(
+            accountID: accountID,
+            isSignedIn: isSignedIn,
+            isConfigured: isConfigured,
+            revision: revision
+        ) {
+            return access
+        }
+        return nil
+    }
+
+    func isMerchantModeActive(
+        accountID: Int?,
+        isSignedIn: Bool = true,
+        isConfigured: Bool = true,
+        revision: UInt64
+    ) -> Bool {
+        activeMerchantAccess(
+            accountID: accountID,
+            isSignedIn: isSignedIn,
+            isConfigured: isConfigured,
+            revision: revision
+        ) != nil
+    }
+
+    func tabBarState(
+        accountID: Int?,
+        isSignedIn: Bool,
+        isConfigured: Bool,
+        revision: UInt64
+    ) -> RootTabBarParity.TabBarState {
+        let active = isMerchantModeActive(
+            accountID: accountID,
+            isSignedIn: isSignedIn,
+            isConfigured: isConfigured,
+            revision: revision
+        )
+        return RootTabBarParity.TabBarState(
+            mode: active ? .merchant : .consumer,
+            selectedTab: active ? selectedMerchantTab.rootTab : .mine,
+            isAuthenticated: isSignedIn
+        )
+    }
+
+    func selectBusinessTab(_ tab: MerchantRootBusinessTab) {
+        guard requestedMode == .merchant, let access = verifiedAccess, access.active, (access.merchantID ?? 0) > 0 else {
+            return
+        }
+        selectedMerchantTab = tab
+    }
+
+    func selectRootTab(_ tab: RootTab) {
+        selectBusinessTab(MerchantRootBusinessTab(rootTab: tab))
+    }
+
+    /// Requests switching into Merchant Root Mode by freshly verifying `reader.merchantAccess()`.
+    /// Never grants merchant mode from UI intent or unverified role strings.
+    @discardableResult
+    func requestMerchantMode<Reader: MerchantReading>(
+        reader: Reader,
+        accountID: Int?,
+        initialTab: MerchantRootBusinessTab = .workbench
+    ) async -> Bool {
+        verificationGeneration &+= 1
+        let generation = verificationGeneration
+
+        guard reader.isConfigured else {
+            clearMerchantGrant(errorKey: "auth.notConfigured")
+            return false
+        }
+        guard reader.isSignedIn, let accountID, accountID > 0 else {
+            clearMerchantGrant(errorKey: "merchant.signIn")
+            return false
+        }
+
+        let revision = reader.sessionRevision
+        // Previous grant is never usable while access is being verified.
+        verifiedAccess = nil
+        verifiedAccountID = nil
+        verifiedSessionRevision = nil
+        requestedMode = .consumer
+        isVerifying = true
+        statusErrorKey = nil
+
+        do {
+            let access = try await reader.merchantAccess()
+            try Task.checkCancellation()
+            guard generation == verificationGeneration,
+                  reader.isConfigured,
+                  reader.isSignedIn,
+                  reader.sessionRevision == revision else {
+                if generation == verificationGeneration { isVerifying = false }
+                return false
+            }
+            guard access.active, let merchantID = access.merchantID, merchantID > 0, access.role != nil else {
+                clearMerchantGrant(errorKey: access.application?.titleKey ?? "merchant.access.inactive")
+                return false
+            }
+            verifiedAccess = access
+            verifiedAccountID = accountID
+            verifiedSessionRevision = revision
+            requestedMode = .merchant
+            selectedMerchantTab = initialTab
+            isVerifying = false
+            statusErrorKey = nil
+            merchantContainerGeneration = UUID()
+            return true
+        } catch is CancellationError {
+            if generation == verificationGeneration {
+                isVerifying = false
+            }
+            return false
+        } catch {
+            guard generation == verificationGeneration, reader.sessionRevision == revision else {
+                if generation == verificationGeneration { isVerifying = false }
+                return false
+            }
+            let key: String
+            if error as? MerchantReadError == .accessDenied {
+                key = "merchant.access.denied"
+            } else if error as? APIError == .unauthorized {
+                key = "auth.expired"
+            } else if error as? APIError == .malformedResponse {
+                key = "merchant.invalidResponse"
+            } else {
+                key = "merchant.loadFailed"
+            }
+            clearMerchantGrant(errorKey: key)
+            return false
+        }
+    }
+
+    /// Re-verifies current merchant access and immediately tears down merchant mode if revoked or expired.
+    @discardableResult
+    func revalidateMerchantMode<Reader: MerchantReading>(
+        reader: Reader,
+        accountID: Int?
+    ) async -> Bool {
+        let preservedTab = selectedMerchantTab
+        return await requestMerchantMode(reader: reader, accountID: accountID, initialTab: preservedTab)
+    }
+
+    /// Switches back to Player/Consumer Mode and destroys all merchant container navigation state.
+    func switchToConsumerMode() {
+        verificationGeneration &+= 1
+        isVerifying = false
+        requestedMode = .consumer
+        verifiedAccess = nil
+        verifiedAccountID = nil
+        verifiedSessionRevision = nil
+        selectedMerchantTab = .workbench
+        statusErrorKey = nil
+        merchantContainerGeneration = UUID()
+    }
+
+    /// Cleans up merchant mode whenever account identity, sign-in state, or session revision changes.
+    func handleSessionChange(
+        accountID: Int?,
+        isSignedIn: Bool,
+        isConfigured: Bool,
+        revision: UInt64
+    ) {
+        if !isConfigured || !isSignedIn || accountID == nil {
+            if requestedMode != .consumer || verifiedAccess != nil || isVerifying || statusErrorKey != nil || selectedMerchantTab != .workbench {
+                switchToConsumerMode()
+            }
+            return
+        }
+        if let verifiedAccountID, verifiedAccountID != accountID {
+            switchToConsumerMode()
+            return
+        }
+        if let verifiedSessionRevision, verifiedSessionRevision != revision {
+            switchToConsumerMode()
+            return
+        }
+    }
+
+    func makeModeSwitch(session: AppSession) -> MerchantRootModeSwitch {
+        let isActive = isMerchantModeActive(
+            accountID: session.account?.id,
+            isSignedIn: session.isSignedIn,
+            isConfigured: session.isConfigured,
+            revision: session.sessionRevision
+        )
+        return MerchantRootModeSwitch(
+            activeMode: isActive ? .merchant : .consumer,
+            isVerifying: isVerifying,
+            errorKey: statusErrorKey,
+            selectedTab: isActive ? selectedMerchantTab.rootTab : .mine,
+            requestMode: { [weak self] mode in
+                guard let self else { return }
+                switch mode {
+                case .consumer:
+                    self.switchToConsumerMode()
+                case .merchant:
+                    Task {
+                        await self.requestMerchantMode(reader: session, accountID: session.account?.id)
+                    }
+                }
+            },
+            selectTab: { [weak self] tab in
+                self?.selectRootTab(tab)
+            }
+        )
+    }
+
+    private func clearMerchantGrant(errorKey: String?) {
+        isVerifying = false
+        requestedMode = .consumer
+        verifiedAccess = nil
+        verifiedAccountID = nil
+        verifiedSessionRevision = nil
+        selectedMerchantTab = .workbench
+        statusErrorKey = errorKey
+        merchantContainerGeneration = UUID()
+    }
+}
+
+/// Account row and banner for switching between Player Mode (`玩家视角`) and Merchant Root Mode (`商家工作台`).
+@MainActor
+struct MerchantAccountModeSwitchRow: View {
+    let modeSwitch: MerchantRootModeSwitch
+
+    private var bannerState: RootTabBarParity.TabBarState {
+        RootTabBarParity.TabBarState(
+            mode: modeSwitch.activeMode,
+            selectedTab: modeSwitch.selectedTab,
+            isAuthenticated: true
+        )
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if modeSwitch.activeMode == .merchant {
+                Button {
+                    modeSwitch(.consumer)
+                } label: {
+                    Label(RootTabBarParity.consumerModeTitle, systemImage: "arrow.uturn.backward.circle")
+                }
+                .accessibilityIdentifier("account.consumerRootSwitch")
+            } else {
+                Button {
+                    modeSwitch(.merchant)
+                } label: {
+                    Label(RootTabBarParity.merchantModeTitle, systemImage: "square.grid.2x2")
+                }
+                .disabled(modeSwitch.isVerifying)
+                .accessibilityIdentifier("account.merchantRootSwitch")
+            }
+
+            if modeSwitch.isVerifying {
+                ProgressView("merchant.checkingAccess")
+                    .font(.caption)
+                    .accessibilityIdentifier("merchant.rootMode.verifying")
+            }
+
+            if let errorKey = modeSwitch.errorKey {
+                Text(LocalizedStringKey(errorKey))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("merchant.rootMode.error")
+            }
+
+            MerchantRootModeSwitchBannerView(
+                state: bannerState,
+                canSwitchToMerchant: true,
+                onSelectMode: { modeSwitch($0) },
+                onSelectTab: { tab in
+                    if modeSwitch.activeMode == .merchant {
+                        modeSwitch.select(tab)
+                    }
+                }
+            )
+        }
+    }
+}
+
+/// Verified Merchant 5-tab Root Container (`工作台`, `营销`, `模板`, `合作`, `我的`) with return/revocation cleanup.
+@MainActor
+struct SessionMerchantRootContainerView: View {
+    @ObservedObject var session: AppSession
+    @ObservedObject var coordinator: MerchantRootModeCoordinator
+    let access: MerchantAccess
+    var onReturnToConsumer: (RootTab?) -> Void
+
+    @State private var selectedMarketingSuggestion: MerchantInsightDestination?
+
+    private var recommendationOrigin: MerchantInsightOrigin? {
+        .init(merchantID: access.merchantID, readerScope: session.merchantOperationsReader.scope)
+    }
+
+    var body: some View {
+        TabView(selection: $coordinator.selectedMerchantTab) {
+            NavigationStack {
+                MerchantHomeView(
+                    reader: session,
+                    marketingModel: session.merchantMarketingCoordinator,
+                    marketingDestination: { AnyView(SessionMerchantMarketingDestination(session: session, destination: $0)) },
+                    openApplication: { onReturnToConsumer(.mine) },
+                    operationsReader: session.merchantOperationsReader,
+                    operationsDestinationFactory: { session.merchantOperationsDestination($0, access: $1) },
+                    businessReader: session.merchantBusinessReader,
+                    businessJournal: session.merchantBusinessJournal,
+                    contentService: session.merchantContentService,
+                    cooperationFlowReader: session.cooperationFlowReader,
+                    engagementReader: session.merchantEngagementReader,
+                    exportRecovery: session.merchantExportRecovery,
+                    predictionReader: session.merchantPredictionReader
+                )
+                .environment(\.merchantPredictionWorkbenchEntry, { AnyView(SessionMerchantPredictionEntry(session: session)) })
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        switchToConsumerToolbarButton
+                    }
+                }
+            }
+            .tabItem { merchantTabLabel(.workbench) }
+            .tag(MerchantRootBusinessTab.workbench)
+
+            NavigationStack {
+                Group {
+                    if MerchantRootModeCoordinator.allowsBusinessTab(.marketing, access: access) {
+                        MerchantMarketingView(
+                            model: session.merchantMarketingCoordinator,
+                            recommendationOrigin: recommendationOrigin,
+                            onSuggestion: { route in selectedMarketingSuggestion = route }
+                        )
+                        .navigationDestination(item: $selectedMarketingSuggestion) { route in
+                            if case .recommendation(let target) = route, target.origin != recommendationOrigin {
+                                AnyView(Text("merchantMarketing.stale"))
+                            } else if case .cooperationSettings(let origin) = route, origin != recommendationOrigin {
+                                AnyView(Text("merchantMarketing.stale"))
+                            } else if case .cooperationCenter(let origin) = route, origin != recommendationOrigin {
+                                AnyView(Text("merchantMarketing.stale"))
+                            } else {
+                                AnyView(SessionMerchantMarketingDestination(session: session, destination: route))
+                            }
+                        }
+                    } else {
+                        MerchantFailureView(
+                            errorKey: "merchant.access.denied",
+                            identifier: "merchant.marketing",
+                            retry: { Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) } }
+                        )
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        switchToConsumerToolbarButton
+                    }
+                }
+            }
+            .tabItem { merchantTabLabel(.marketing) }
+            .tag(MerchantRootBusinessTab.marketing)
+
+            NavigationStack {
+                Group {
+                    if MerchantRootModeCoordinator.allowsBusinessTab(.templates, access: access) {
+                        MerchantProjectsView(
+                            reader: session,
+                            contentService: session.merchantContentService,
+                            workspaceReadFactory: session.merchantProjectWorkspaceReadFactory
+                        )
+                    } else {
+                        SessionMerchantProjectBrowseView(session: session)
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        switchToConsumerToolbarButton
+                    }
+                }
+            }
+            .tabItem { merchantTabLabel(.templates) }
+            .tag(MerchantRootBusinessTab.templates)
+
+            NavigationStack {
+                Group {
+                    if MerchantRootModeCoordinator.allowsBusinessTab(.cooperation, access: access) {
+                        CooperationFlowWorkbench(reader: session.cooperationFlowReader, operationScope: "MERCHANT")
+                    } else {
+                        MerchantFailureView(
+                            errorKey: "merchant.access.denied",
+                            identifier: "merchant.cooperation",
+                            retry: { Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) } }
+                        )
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        switchToConsumerToolbarButton
+                    }
+                }
+            }
+            .tabItem { merchantTabLabel(.cooperation) }
+            .tag(MerchantRootBusinessTab.cooperation)
+
+            Group {
+                if let account = session.account {
+                    AccountView(
+                        account: account,
+                        privateHomeCoordinator: session.privateHomeCoordinator,
+                        onOpenGuideDestination: { destination in
+                            onReturnToConsumer(destination == .roam ? .roam : .home)
+                        }
+                    )
+                    .id(session.sessionRevision)
+                } else {
+                    WelcomeView()
+                }
+            }
+            .tabItem { merchantTabLabel(.mine) }
+            .tag(MerchantRootBusinessTab.mine)
+        }
+        .id(coordinator.merchantContainerGeneration)
+        .onChange(of: recommendationOrigin) { _, _ in selectedMarketingSuggestion = nil }
+        .onChange(of: session.merchantMarketingCoordinator.scopeIdentity) { _, _ in selectedMarketingSuggestion = nil }
+    }
+
+    private var switchToConsumerToolbarButton: some View {
+        Button {
+            onReturnToConsumer(nil)
+        } label: {
+            Label(RootTabBarParity.consumerModeTitle, systemImage: "arrow.uturn.backward.circle")
+        }
+        .accessibilityIdentifier("merchant.rootMode.switchToConsumer")
+    }
+
+    private func merchantTabLabel(_ tab: MerchantRootBusinessTab) -> some View {
+        let descriptor = tab.descriptor
+        return Label(descriptor.primaryTitle, systemImage: descriptor.systemImage)
+    }
+}
+
 /// Floating publish button (`+ 发布`) for the Publish/Template tab (`pages/template`).
 @MainActor
 struct PublishTabFloatingButton: View {

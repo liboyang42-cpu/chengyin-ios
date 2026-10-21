@@ -129,4 +129,77 @@ import XCTest
         XCTAssertEqual(businessReader.queriedAftercarePages.count, 2)
         XCTAssertTrue(wire.requests.isEmpty)
     }
+    func testMerchantRootModeSwitchVerifiesAccessNavigatesFiveTabsAndCleansUpOnReturn() async throws {
+        @MainActor final class StubMerchantReader: MerchantReading {
+            var isConfigured = true
+            var isSignedIn = true
+            var sessionRevision: UInt64 = 10
+            var result: Result<MerchantAccess, Error>
+            init(result: Result<MerchantAccess, Error>) { self.result = result }
+            func merchantAccess() async throws -> MerchantAccess { try result.get() }
+            func merchantDashboard(access: MerchantAccess) async throws -> MerchantDashboard { throw MerchantReadError.accessDenied }
+            func merchantTodo(access: MerchantAccess) async throws -> MerchantTodo { throw MerchantReadError.accessDenied }
+            func merchantEvents(access: MerchantAccess) async throws -> [MerchantEvent] { throw MerchantReadError.accessDenied }
+            func merchantOrders(access: MerchantAccess, filter: MerchantOrderFilter) async throws -> [MerchantOrder] { throw MerchantReadError.accessDenied }
+            func merchantProjects(access: MerchantAccess) async throws -> MerchantProjectPage { throw MerchantReadError.accessDenied }
+        }
+        let coordinator = MerchantRootModeCoordinator()
+        let initialGeneration = coordinator.merchantContainerGeneration
+
+        // 1. Denied / inactive merchant access refuses to enter merchant root mode:
+        let inactiveAccess = try decode(MerchantAccess.self, #"{"active":false,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":[]}"#)
+        let deniedReader = StubMerchantReader(result: .success(inactiveAccess))
+        let denied = await coordinator.requestMerchantMode(reader: deniedReader, accountID: 501)
+        XCTAssertFalse(denied)
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        XCTAssertFalse(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
+        XCTAssertEqual(coordinator.statusErrorKey, "merchant.access.inactive")
+
+        // 2. Active merchant access enters Merchant Root Mode and unlocks the 5 business tabs according to permissions:
+        let managerAccess = try access(["merchant:basic:read", "merchant:project:manage", "merchant:coop:manage"], role: "MERCHANT_MANAGER")
+        let clerkAccess = try access(["merchant:aftercare:read"], role: "MERCHANT_FINANCE")
+        let activeReader = StubMerchantReader(result: .success(managerAccess))
+        let entered = await coordinator.requestMerchantMode(reader: activeReader, accountID: 501)
+        XCTAssertTrue(entered)
+        XCTAssertEqual(coordinator.requestedMode, .merchant)
+        XCTAssertTrue(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
+        XCTAssertNil(coordinator.statusErrorKey)
+        XCTAssertNotEqual(coordinator.merchantContainerGeneration, initialGeneration)
+        let enteredGeneration = coordinator.merchantContainerGeneration
+
+        XCTAssertEqual(MerchantRootBusinessTab.allCases.map(\.rootTab), [.home, .roam, .publish, .club, .mine])
+        XCTAssertTrue(MerchantRootModeCoordinator.allowsBusinessTab(.workbench, access: managerAccess))
+        XCTAssertTrue(MerchantRootModeCoordinator.allowsBusinessTab(.marketing, access: managerAccess))
+        XCTAssertTrue(MerchantRootModeCoordinator.allowsBusinessTab(.templates, access: managerAccess))
+        XCTAssertTrue(MerchantRootModeCoordinator.allowsBusinessTab(.cooperation, access: managerAccess))
+        XCTAssertTrue(MerchantRootModeCoordinator.allowsBusinessTab(.mine, access: managerAccess))
+
+        XCTAssertTrue(MerchantRootModeCoordinator.allowsBusinessTab(.workbench, access: clerkAccess))
+        XCTAssertFalse(MerchantRootModeCoordinator.allowsBusinessTab(.marketing, access: clerkAccess))
+        XCTAssertFalse(MerchantRootModeCoordinator.allowsBusinessTab(.templates, access: clerkAccess))
+        XCTAssertFalse(MerchantRootModeCoordinator.allowsBusinessTab(.cooperation, access: clerkAccess))
+        XCTAssertTrue(MerchantRootModeCoordinator.allowsBusinessTab(.mine, access: clerkAccess))
+
+        for tab in MerchantRootBusinessTab.allCases {
+            coordinator.selectBusinessTab(tab)
+            XCTAssertEqual(coordinator.selectedMerchantTab, tab)
+        }
+
+        // 3. Switching back to player mode resets tab, clears merchant grant, and rotates container generation:
+        coordinator.switchToConsumerMode()
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        XCTAssertNil(coordinator.verifiedAccess)
+        XCTAssertEqual(coordinator.selectedMerchantTab, .workbench)
+        XCTAssertFalse(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
+        XCTAssertNotEqual(coordinator.merchantContainerGeneration, enteredGeneration)
+
+        // 4. Re-enter and verify account/revision change immediately tears down merchant mode:
+        let reentered = await coordinator.requestMerchantMode(reader: activeReader, accountID: 501)
+        XCTAssertTrue(reentered)
+        coordinator.selectBusinessTab(.cooperation)
+        coordinator.handleSessionChange(accountID: 502, isSignedIn: true, isConfigured: true, revision: 10)
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        XCTAssertNil(coordinator.verifiedAccess)
+        XCTAssertEqual(coordinator.selectedMerchantTab, .workbench)
+    }
 }

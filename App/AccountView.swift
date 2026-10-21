@@ -5,6 +5,7 @@ import SwiftUI
     var privateHomeCoordinator: PrivateHomeCoordinator? = nil
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
     @Environment(\.locale) private var locale
+    @Environment(\.merchantRootModeSwitch) private var merchantRootModeSwitch
     @EnvironmentObject private var session: AppSession
     @State private var savedTopicOwner = ProfileFavoriteTopicNavigationOwner()
     @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
@@ -130,6 +131,9 @@ import SwiftUI
                     NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }) } label: {
                         Label("merchant.title",systemImage:"storefront")
                     }.accessibilityIdentifier("account.merchant")
+                    if merchantRootModeSwitch.isAvailable {
+                        MerchantAccountModeSwitchRow(modeSwitch: merchantRootModeSwitch)
+                    }
                     Button { showsMerchantApplication=true } label: {
                         Label("merchant.onboarding.openApplication",systemImage:"doc.text")
                     }.accessibilityIdentifier("account.merchantApplication")
