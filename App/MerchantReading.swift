@@ -46,13 +46,15 @@ final class MerchantLoadModel<Value>: ObservableObject {
         } catch is CancellationError { }
         catch {
             guard request == generation, revision == reader.sessionRevision else { return }
-            if error as? MerchantReadError == .accessDenied {
-                value = nil; errorKey = "merchant.access.denied"
+            if error as? MerchantReadError == .accessDenied || error as? MerchantBusinessFailure == .denied {
+                value = nil; loadedRevision = nil; errorKey = "merchant.access.denied"
             } else if error as? APIError == .unauthorized {
-                value = nil; errorKey = "auth.expired"
-            } else if error as? APIError == .notConfigured {
-                value = nil; errorKey = "auth.notConfigured"
-            } else if error as? APIError == .malformedResponse {
+                value = nil; loadedRevision = nil; errorKey = "auth.expired"
+            } else if error as? APIError == .notConfigured || error as? MerchantBusinessFailure == .disabled {
+                value = nil; loadedRevision = nil; errorKey = "auth.notConfigured"
+            } else if error as? MerchantBusinessFailure == .stale {
+                value = nil; loadedRevision = nil; errorKey = "merchant.business.stale"
+            } else if error as? APIError == .malformedResponse || error as? MerchantBusinessFailure == .malformed {
                 errorKey = "merchant.invalidResponse"
             } else { errorKey = "merchant.loadFailed" }
         }

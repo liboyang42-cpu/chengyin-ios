@@ -54,14 +54,22 @@ import XCTest
             var authorizationGeneration: UUID? = UUID()
             var isConfigured = true, isOfflineExample = false, canExecuteSyntheticMutation = false
             var pendingTotal = 3
+            var forcedFailure: MerchantBusinessFailure?
+            var permissions: [MerchantBusinessValue] = [.string("merchant:basic:read"), .string("merchant:aftercare:read")]
             private(set) var queriedAftercarePages: [MerchantBusinessQuery] = []
             func access() async throws -> MerchantBusinessAccess {
-                try .init(["active": .bool(true), "merchant": .object(["id": .int(31), "name": .string("Store")]),
+                if let forcedFailure {
+                    throw forcedFailure
+                }
+                return try .init(["active": .bool(true), "merchant": .object(["id": .int(31), "name": .string("Store")]),
                            "roleCode": .string("MERCHANT_MANAGER"),
-                           "permissions": .array([.string("merchant:basic:read"), .string("merchant:aftercare:read")])])
+                           "permissions": .array(permissions)])
             }
             func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
                 queriedAftercarePages.append(query)
+                if let forcedFailure {
+                    throw forcedFailure
+                }
                 let items: [MerchantBusinessValue] = (0..<pendingTotal).map { index in
                     .object([
                         "refundId": .int(62001 + index),
@@ -125,8 +133,30 @@ import XCTest
         businessReader.pendingTotal = 1
         await MerchantWorkbenchTodoLoader.load(into: model, reader: reader, access: granted, businessReader: businessReader)
         XCTAssertEqual(model.value?.refundCount, 1)
-        XCTAssertEqual(MerchantWorkbenchReminders.aftercareCount(model.value, access: granted, isLoading: false), 1)
+        XCTAssertEqual(MerchantWorkbenchReminders.aftercareCount(model.value, access: granted, isLoading: false, errorKey: model.errorKey), 1)
         XCTAssertEqual(businessReader.queriedAftercarePages.count, 2)
+        XCTAssertTrue(wire.requests.isEmpty)
+
+        // 3. Same-session revocation or stale scope during return refresh clears model.value and hides reminder:
+        businessReader.forcedFailure = .denied
+        await MerchantWorkbenchTodoLoader.load(into: model, reader: reader, access: granted, businessReader: businessReader)
+        XCTAssertNil(model.value)
+        XCTAssertEqual(model.errorKey, "merchant.access.denied")
+        XCTAssertNil(MerchantWorkbenchReminders.aftercareCount(model.value, access: granted, isLoading: model.isLoading, errorKey: model.errorKey))
+        XCTAssertTrue(wire.requests.isEmpty)
+
+        // Restore valid narrow read, then revoke merchant:aftercare:read permission inside snapshot.access:
+        businessReader.forcedFailure = nil
+        businessReader.pendingTotal = 2
+        await MerchantWorkbenchTodoLoader.load(into: model, reader: reader, access: granted, businessReader: businessReader)
+        XCTAssertEqual(model.value?.refundCount, 2)
+        XCTAssertEqual(MerchantWorkbenchReminders.aftercareCount(model.value, access: granted, isLoading: model.isLoading, errorKey: model.errorKey), 2)
+
+        businessReader.permissions = [.string("merchant:basic:read")]
+        await MerchantWorkbenchTodoLoader.load(into: model, reader: reader, access: granted, businessReader: businessReader)
+        XCTAssertNil(model.value)
+        XCTAssertEqual(model.errorKey, "merchant.access.denied")
+        XCTAssertNil(MerchantWorkbenchReminders.aftercareCount(model.value, access: granted, isLoading: model.isLoading, errorKey: model.errorKey))
         XCTAssertTrue(wire.requests.isEmpty)
     }
     func testMerchantRootModeSwitchVerifiesAccessNavigatesFiveTabsAndCleansUpOnReturn() async throws {
@@ -135,8 +165,12 @@ import XCTest
             var isSignedIn = true
             var sessionRevision: UInt64 = 10
             var result: Result<MerchantAccess, Error>
+            var onAccessRequested: (() async -> Void)?
             init(result: Result<MerchantAccess, Error>) { self.result = result }
-            func merchantAccess() async throws -> MerchantAccess { try result.get() }
+            func merchantAccess() async throws -> MerchantAccess {
+                await onAccessRequested?()
+                return try result.get()
+            }
             func merchantDashboard(access: MerchantAccess) async throws -> MerchantDashboard { throw MerchantReadError.accessDenied }
             func merchantTodo(access: MerchantAccess) async throws -> MerchantTodo { throw MerchantReadError.accessDenied }
             func merchantEvents(access: MerchantAccess) async throws -> [MerchantEvent] { throw MerchantReadError.accessDenied }
@@ -201,5 +235,45 @@ import XCTest
         XCTAssertEqual(coordinator.requestedMode, .consumer)
         XCTAssertNil(coordinator.verifiedAccess)
         XCTAssertEqual(coordinator.selectedMerchantTab, .workbench)
+
+        // 5. Same-account, same-sessionRevision permission downgrade (MERCHANT_MANAGER -> MERCHANT_FINANCE):
+        activeReader.result = .success(managerAccess)
+        let enteredManager = await coordinator.requestMerchantMode(reader: activeReader, accountID: 501)
+        XCTAssertTrue(enteredManager)
+        coordinator.selectBusinessTab(.cooperation)
+        let beforeDowngradeGeneration = coordinator.merchantContainerGeneration
+        coordinator.applyObservedMerchantAccess(access: clerkAccess, errorKey: nil, accountID: 501, revision: 10)
+        XCTAssertEqual(coordinator.requestedMode, .merchant)
+        XCTAssertEqual(coordinator.verifiedAccess, clerkAccess)
+        XCTAssertEqual(coordinator.selectedMerchantTab, .workbench)
+        XCTAssertNotEqual(coordinator.merchantContainerGeneration, beforeDowngradeGeneration)
+        let downgradedAccess = try XCTUnwrap(coordinator.verifiedAccess)
+        XCTAssertFalse(MerchantRootModeCoordinator.allowsBusinessTab(.cooperation, access: downgradedAccess))
+
+        // 6. Same-account, same-sessionRevision transition active -> inactive tears down merchant mode immediately:
+        let beforeRevokeGeneration = coordinator.merchantContainerGeneration
+        coordinator.applyObservedMerchantAccess(access: inactiveAccess, errorKey: nil, accountID: 501, revision: 10)
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        XCTAssertNil(coordinator.verifiedAccess)
+        XCTAssertEqual(coordinator.selectedMerchantTab, .workbench)
+        XCTAssertEqual(coordinator.statusErrorKey, "merchant.access.inactive")
+        XCTAssertFalse(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
+        XCTAssertNotEqual(coordinator.merchantContainerGeneration, beforeRevokeGeneration)
+
+        // 7. Late old response counter-example: an in-flight revalidation carrying the old active grant
+        // that completes AFTER a same-session revocation must be discarded and cannot restore the old grant:
+        activeReader.result = .success(managerAccess)
+        let enteredBeforeRace = await coordinator.requestMerchantMode(reader: activeReader, accountID: 501)
+        XCTAssertTrue(enteredBeforeRace)
+        activeReader.onAccessRequested = { [weak coordinator] in
+            coordinator?.applyObservedMerchantAccess(access: nil, errorKey: "merchant.access.denied", accountID: 501, revision: 10)
+        }
+        let staleRevalidated = await coordinator.revalidateMerchantMode(reader: activeReader, accountID: 501)
+        XCTAssertFalse(staleRevalidated)
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        XCTAssertNil(coordinator.verifiedAccess)
+        XCTAssertEqual(coordinator.selectedMerchantTab, .workbench)
+        XCTAssertEqual(coordinator.statusErrorKey, "merchant.access.denied")
+        XCTAssertFalse(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
     }
 }

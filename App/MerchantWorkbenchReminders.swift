@@ -10,18 +10,18 @@ import SwiftUI
     let aftercareRoute: MerchantWorkbenchBusinessRoute?
     let predictionReader: MerchantPredictionReader?
 
-    static func aftercareCount(_ todo: MerchantTodo?, access: MerchantAccess, isLoading: Bool) -> Int? {
-        guard !isLoading, let todo, access.canReadAftercare, todo.refundCount > 0 else { return nil }
+    static func aftercareCount(_ todo: MerchantTodo?, access: MerchantAccess, isLoading: Bool, errorKey: String? = nil) -> Int? {
+        guard !isLoading, errorKey == nil, let todo, access.canReadAftercare, todo.refundCount > 0 else { return nil }
         return todo.refundCount
     }
-    static func predictCount(_ todo: MerchantTodo?, access: MerchantAccess, isLoading: Bool) -> Int? {
-        guard !isLoading, let todo, access.allows(.projects), todo.pendingPredict > 0 else { return nil }
+    static func predictCount(_ todo: MerchantTodo?, access: MerchantAccess, isLoading: Bool, errorKey: String? = nil) -> Int? {
+        guard !isLoading, errorKey == nil, let todo, access.allows(.projects), todo.pendingPredict > 0 else { return nil }
         return todo.pendingPredict
     }
 
     var body: some View {
-        let aftercare = Self.aftercareCount(todo.value, access: access, isLoading: todo.isLoading)
-        let predict = Self.predictCount(todo.value, access: access, isLoading: todo.isLoading)
+        let aftercare = Self.aftercareCount(todo.value, access: access, isLoading: todo.isLoading, errorKey: todo.errorKey)
+        let predict = Self.predictCount(todo.value, access: access, isLoading: todo.isLoading, errorKey: todo.errorKey)
         if aftercare != nil || predict != nil {
             Section {
                 if let aftercare {

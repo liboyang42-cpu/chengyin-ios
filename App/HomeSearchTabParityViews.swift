@@ -377,10 +377,18 @@ private struct MerchantRootModeSwitchKey: EnvironmentKey {
     static let defaultValue = MerchantRootModeSwitch.unavailable
 }
 
+private struct MerchantAccessObserverKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (MerchantAccess?, String?, UInt64) -> Void)? = nil
+}
+
 extension EnvironmentValues {
     var merchantRootModeSwitch: MerchantRootModeSwitch {
         get { self[MerchantRootModeSwitchKey.self] }
         set { self[MerchantRootModeSwitchKey.self] = newValue }
+    }
+    var merchantAccessObserver: (@MainActor (MerchantAccess?, String?, UInt64) -> Void)? {
+        get { self[MerchantAccessObserverKey.self] }
+        set { self[MerchantAccessObserverKey.self] = newValue }
     }
 }
 
@@ -538,8 +546,10 @@ final class MerchantRootModeCoordinator: ObservableObject {
         verifiedAccountID = nil
         verifiedSessionRevision = nil
         requestedMode = .consumer
+        selectedMerchantTab = .workbench
         isVerifying = true
         statusErrorKey = nil
+        merchantContainerGeneration = UUID()
 
         do {
             let access = try await reader.merchantAccess()
@@ -559,7 +569,7 @@ final class MerchantRootModeCoordinator: ObservableObject {
             verifiedAccountID = accountID
             verifiedSessionRevision = revision
             requestedMode = .merchant
-            selectedMerchantTab = initialTab
+            selectedMerchantTab = Self.allowsBusinessTab(initialTab, access: access) ? initialTab : .workbench
             isVerifying = false
             statusErrorKey = nil
             merchantContainerGeneration = UUID()
@@ -597,6 +607,51 @@ final class MerchantRootModeCoordinator: ObservableObject {
     ) async -> Bool {
         let preservedTab = selectedMerchantTab
         return await requestMerchantMode(reader: reader, accountID: accountID, initialTab: preservedTab)
+    }
+
+    /// Applies an authoritative merchant access snapshot observed by a child merchant surface (e.g., workbench reload).
+    /// Immediately invalidates any in-flight stale requests and updates or revokes the root merchant grant in the same session.
+    func applyObservedMerchantAccess(
+        access: MerchantAccess?,
+        errorKey: String?,
+        accountID: Int?,
+        revision: UInt64
+    ) {
+        verificationGeneration &+= 1
+        guard let accountID, accountID > 0 else {
+            clearMerchantGrant(errorKey: errorKey ?? "merchant.signIn")
+            return
+        }
+        if let verifiedAccountID, verifiedAccountID != accountID {
+            clearMerchantGrant(errorKey: errorKey)
+            return
+        }
+        if let verifiedSessionRevision, verifiedSessionRevision != revision {
+            clearMerchantGrant(errorKey: errorKey)
+            return
+        }
+        guard errorKey == nil,
+              let access,
+              access.active,
+              let merchantID = access.merchantID,
+              merchantID > 0,
+              access.role != nil else {
+            clearMerchantGrant(errorKey: errorKey ?? access?.application?.titleKey ?? "merchant.access.inactive")
+            return
+        }
+        let previousAccess = verifiedAccess
+        verifiedAccess = access
+        verifiedAccountID = accountID
+        verifiedSessionRevision = revision
+        requestedMode = .merchant
+        isVerifying = false
+        statusErrorKey = nil
+        if !Self.allowsBusinessTab(selectedMerchantTab, access: access) {
+            selectedMerchantTab = .workbench
+        }
+        if previousAccess != access {
+            merchantContainerGeneration = UUID()
+        }
     }
 
     /// Switches back to Player/Consumer Mode and destroys all merchant container navigation state.
@@ -743,6 +798,7 @@ struct SessionMerchantRootContainerView: View {
     let access: MerchantAccess
     var onReturnToConsumer: (RootTab?) -> Void
 
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selectedMarketingSuggestion: MerchantInsightDestination?
 
     private var recommendationOrigin: MerchantInsightOrigin? {
@@ -768,6 +824,14 @@ struct SessionMerchantRootContainerView: View {
                     predictionReader: session.merchantPredictionReader
                 )
                 .environment(\.merchantPredictionWorkbenchEntry, { AnyView(SessionMerchantPredictionEntry(session: session)) })
+                .environment(\.merchantAccessObserver, { observedAccess, errorKey, revision in
+                    coordinator.applyObservedMerchantAccess(
+                        access: observedAccess,
+                        errorKey: errorKey,
+                        accountID: session.account?.id,
+                        revision: revision
+                    )
+                })
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         switchToConsumerToolbarButton
@@ -875,6 +939,14 @@ struct SessionMerchantRootContainerView: View {
         .id(coordinator.merchantContainerGeneration)
         .onChange(of: recommendationOrigin) { _, _ in selectedMarketingSuggestion = nil }
         .onChange(of: session.merchantMarketingCoordinator.scopeIdentity) { _, _ in selectedMarketingSuggestion = nil }
+        .onChange(of: coordinator.selectedMerchantTab) { _, _ in
+            Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) }
+            }
+        }
     }
 
     private var switchToConsumerToolbarButton: some View {

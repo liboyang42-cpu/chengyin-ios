@@ -18,6 +18,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     var exportRecovery: (any MerchantExportRecoveryStoring)? = nil
     var showsRecordLinks = true
     var predictionReader: MerchantPredictionReader? = nil
+    @Environment(\.merchantAccessObserver) private var merchantAccessObserver
     @StateObject private var access = MerchantLoadModel<MerchantAccess>()
 
     var body: some View {
@@ -58,6 +59,9 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     private func reload() async {
         // The old grant is not usable while access is being checked again.
         await access.load(reader: reader, discardOldValue: true) { try await reader.merchantAccess() }
+        if !access.isLoading {
+            merchantAccessObserver?(access.value, access.errorKey, reader.sessionRevision)
+        }
     }
 }
 
@@ -297,13 +301,15 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 return
             }
             let revision = reader.sessionRevision
-            await model.load(reader: reader) {
+            await model.load(reader: reader, discardOldValue: true) {
                 let snapshot = try await businessReader.snapshot(.aftercare(.pending, page: 1), isCurrent: {
                     reader.isConfigured && reader.isSignedIn && reader.sessionRevision == revision
                 })
                 guard snapshot.access.merchantID == access.merchantID,
-                      snapshot.access.allows("merchant:aftercare:read"),
-                      let total = snapshot.document.total else { throw APIError.malformedResponse }
+                      snapshot.access.allows("merchant:aftercare:read") else {
+                    throw MerchantBusinessFailure.denied
+                }
+                guard let total = snapshot.document.total else { throw APIError.malformedResponse }
                 return MerchantTodo(aftercareRefundCount: total)
             }
             return
