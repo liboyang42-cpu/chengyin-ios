@@ -104,10 +104,10 @@ import SwiftUI
                     } else {
                         Text(String(localized: LocalizedStringResource("templateMedia.audioUnavailable", defaultValue: "Native audio document selection is unavailable here. Inspection is not playable audio or an attachment.", locale: locale)))
                     }
-                    if let draft = value.crop {
-                        TemplateImageCropView(draft: draft, confirm: { id, rect in
-                            controller.confirmCrop(value.review, id: id, rect: rect)
-                        }, cancel: { id in controller.cancelCrop(value.review, id: id) })
+                    if let draft = value.creatorCrop {
+                        CreatorCropExportView(draft: draft, confirm: { id, results in
+                            controller.confirmCreatorCrop(value.review, id: id, results: results)
+                        }, cancel: { id in controller.cancelCreatorCrop(value.review, id: id) })
                     }
                     if let selected = value.image, let image = try? TemplateImageCropRenderer.validatedImage(selected) {
                         Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240)
