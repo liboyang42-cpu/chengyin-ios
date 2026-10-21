@@ -238,8 +238,21 @@ public struct TemplateOwnShelfPage {
             if (requested == 1 && !Self.isTransientRefreshFailure(error)) || Self.invalidatesReadScope(error) { leave() }
             // Retained refresh snapshots restart at page one; continuation retries
             // keep the same next page when their previous pages remain valid.
-            messageKey = requested == 1 ? "templateAuthor.listUnavailable" : "templateAuthor.shelf.moreFailed"
+            messageKey = requested == 1 ? Self.firstPageFailureKey(error) : "templateAuthor.shelf.moreFailed"
         }
+    }
+    /// Copy only. Login and permission stay distinct; other failures keep the list-unavailable key.
+    private static func firstPageFailureKey(_ error: Error) -> String {
+        if case APIError.unauthorized = error { return "templateAuthor.signIn" }
+        if case APIError.httpStatus(let status) = error {
+            if status == 401 { return "templateAuthor.signIn" }
+            if status == 403 { return "templateOwnShelf.read.denied" }
+        }
+        if let rejection = error as? TemplateAuthoringRejection {
+            if rejection.code == 401 { return "templateAuthor.signIn" }
+            if rejection.code == 403 { return "templateOwnShelf.read.denied" }
+        }
+        return "templateAuthor.listUnavailable"
     }
     private static func isTransientRefreshFailure(_ error: Error) -> Bool {
         if case APIError.httpStatus(let status) = error { return (500...599).contains(status) }

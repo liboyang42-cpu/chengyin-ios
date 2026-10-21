@@ -1,0 +1,261 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateOwnShelf.read.signIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看我的节点玩法"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看我的节点玩法"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.signInHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后可管理当前账号创作的节点玩法"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后可管理当前账号创作的节点玩法"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.signInAction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.denied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号无法查看节点玩法"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号无法查看节点玩法"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.deniedHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请确认当前账号的查看权限"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请确认当前账号的查看权限"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载你的节点玩法"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载你的节点玩法"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法草稿加载失败"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法草稿加载失败"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.failedKept": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新失败，请重试"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新失败，请重试"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有节点玩法"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有节点玩法"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.emptyHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布路线时可以沉淀自己的节点互动，之后在这里复用和管理。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布路线时可以沉淀自己的节点互动，之后在这里复用和管理。"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.moreFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多玩法没有加载出来"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多玩法没有加载出来"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.moreFailedHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法草稿加载失败"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法草稿加载失败"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.loadingMore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载更多…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载更多…"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.loadMore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.read.loadMoreLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多节点玩法"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多节点玩法"
+          }
+        }
+      }
+    }
+  }
+}
