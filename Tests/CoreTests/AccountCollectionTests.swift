@@ -386,9 +386,8 @@ extension AccountCollectionTests {
             var readAllowed = false
             func communityFeatures() async throws -> SquareCommunityFeatures {
                 callCount += 1
-                if shouldFail { throw APIError.network("transient") }
-                let json = #"{"communityPostRead":\#(readAllowed),"communityPostWrite":false}"#
-                return try JSONDecoder().decode(SquareCommunityFeatures.self, from: Data(json.utf8))
+                if shouldFail { throw APIError.malformedResponse }
+                return SquareCommunityFeatures(read: readAllowed, write: false)
             }
         }
 
