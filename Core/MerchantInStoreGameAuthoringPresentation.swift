@@ -70,6 +70,16 @@ public struct MerchantInStoreGameAuthoringPresentation: Equatable, Sendable {
         return "已通过双域审批与主数据校验，可生成幂等发布指令"
     }
 
+    /// Merchant fact confirmation and theme content approval are separate evidence. The client never writes either.
+    public var merchantFactsReviewStatus: String {
+        revision.merchantFactsApproval == nil ? "商家事实确认：未确认" : "商家事实确认：已有独立证据"
+    }
+    public var themeContentReviewStatus: String {
+        guard revision.touchesThemeContent else { return "主题内容审核：不涉及" }
+        return revision.themeContentApproval == nil ? "主题内容审核：未审核" : "主题内容审核：已有独立证据"
+    }
+    public var clientMaySelfApprove: Bool { false }
+
     public init(
         revision: MerchantAuthoringRevision,
         gameDraft: InStoreGameDraft,
