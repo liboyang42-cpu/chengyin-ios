@@ -33,7 +33,7 @@ import XCTest
         XCTAssertNil(MerchantWorkbenchReminders.aftercareCount(zero, access: both, isLoading: false))
         XCTAssertNil(MerchantWorkbenchReminders.predictCount(zero, access: both, isLoading: false))
     }
-    func testOverviewReaderAllowsAftercareScopedTodoWithoutOpeningDashboardOrEvents() async throws {
+    func testAftercareStaffUsesApprovedAftercareSourceAndRefreshesOnReturnWithoutOwnerTodoSummary() async throws {
         final class OverviewTransport: HTTPTransport {
             var requests: [URLRequest] = []
             func send(_ request: URLRequest) async throws -> (Data, Int) {
@@ -42,10 +42,47 @@ import XCTest
                 case "me":
                     return (Data(#"{"code":200,"data":{"active":true,"merchant":{"id":31,"name":"Store"},"roleCode":"MERCHANT_MANAGER","permissions":["merchant:basic:read","merchant:aftercare:read","merchant:project:manage"]}}"#.utf8), 200)
                 case "todo-summary":
-                    return (Data(#"{"code":200,"data":{"pendingVerify":2,"verifiedCount":8,"pendingScanConfirm":3,"pendingOrders":4,"refundCount":5,"pendingPredict":6,"biddingTopics":7,"byProject":[{"ownerType":"topic","ownerId":"01","pendingVerify":1,"pendingScanConfirm":2}]}}"#.utf8), 200)
+                    XCTFail("Non-owner aftercare staff must never request owner todo-summary")
+                    return (Data(#"{"code":403}"#.utf8), 403)
                 default:
                     return (Data(#"{"code":200,"data":{}}"#.utf8), 200)
                 }
+            }
+        }
+        @MainActor final class NarrowAftercareBusinessReader: MerchantBusinessReading {
+            var scope: MerchantBusinessScope? = .init(realm: "fixture://merchant", accountID: 9001, epoch: 1)
+            var authorizationGeneration: UUID? = UUID()
+            var isConfigured = true, isOfflineExample = false, canExecuteSyntheticMutation = false
+            var pendingTotal = 3
+            private(set) var queriedAftercarePages: [MerchantBusinessQuery] = []
+            func access() async throws -> MerchantBusinessAccess {
+                try .init(["active": .bool(true), "merchant": .object(["id": .int(31), "name": .string("Store")]),
+                           "roleCode": .string("MERCHANT_MANAGER"),
+                           "permissions": .array([.string("merchant:basic:read"), .string("merchant:aftercare:read")])])
+            }
+            func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
+                queriedAftercarePages.append(query)
+                let items: [MerchantBusinessValue] = (0..<pendingTotal).map { index in
+                    .object([
+                        "refundId": .int(62001 + index),
+                        "refundNo": .string("RF-\(62001 + index)"),
+                        "processing": .string("WAITING_PLATFORM_REVIEW"),
+                        "merchantOpinion": .string("PENDING"),
+                        "refundAmount": .string("19.90"),
+                        "canRespond": .bool(true),
+                        "bucket": .string("PENDING"),
+                        "refunded": .bool(false)
+                    ])
+                }
+                let payload: MerchantBusinessValue = .object([
+                    "bucket": .string("PENDING"),
+                    "pageNum": .int(query.page), "pageSize": .int(20),
+                    "total": .int(pendingTotal), "hasMore": .bool(false), "items": .array(items)
+                ])
+                return .init(access: try await access(), document: try .init(query: query, payload: payload))
+            }
+            func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt {
+                throw URLError(.timedOut)
             }
         }
         let wire = OverviewTransport()
@@ -57,18 +94,39 @@ import XCTest
         wire.requests = []
         do { _ = try await reader.merchantDashboard(access: granted); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
         do { _ = try await reader.merchantEvents(access: granted); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
+        do { _ = try await reader.merchantTodo(access: granted); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
         XCTAssertTrue(wire.requests.isEmpty)
-        let scoped = try await reader.merchantTodo(access: granted)
-        XCTAssertEqual(wire.requests.map { $0.url?.lastPathComponent }, ["todo-summary"])
-        XCTAssertEqual(scoped.refundCount, 5)
-        XCTAssertEqual(scoped.pendingVerify, 0)
-        XCTAssertEqual(scoped.verifiedCount, 0)
-        XCTAssertEqual(scoped.pendingScanConfirm, 0)
-        XCTAssertEqual(scoped.pendingOrders, 0)
-        XCTAssertEqual(scoped.pendingPredict, 0)
-        XCTAssertEqual(scoped.biddingTopics, 0)
-        XCTAssertNil(scoped.byProject)
-        XCTAssertEqual(MerchantWorkbenchReminders.aftercareCount(scoped, access: granted, isLoading: false), 5)
-        XCTAssertNil(MerchantWorkbenchReminders.predictCount(scoped, access: granted, isLoading: false))
+
+        // 1. When businessReader is unavailable (nil), todo stays unavailable and never falls back to owner todo-summary.
+        let model = MerchantLoadModel<MerchantTodo>()
+        await MerchantWorkbenchTodoLoader.load(into: model, reader: reader, access: granted, businessReader: nil)
+        XCTAssertNil(model.value)
+        XCTAssertEqual(model.errorKey, "auth.notConfigured")
+        XCTAssertTrue(wire.requests.isEmpty)
+
+        // 2. When approved businessReader is present, loadTodo reads narrow aftercare(.pending, page: 1) and refreshes on return.
+        let businessReader = NarrowAftercareBusinessReader()
+        let journal = MerchantBusinessMemoryIntentStore()
+        await MerchantWorkbenchTodoLoader.load(into: model, reader: reader, access: granted, businessReader: businessReader)
+        XCTAssertNil(model.errorKey)
+        XCTAssertEqual(model.value?.refundCount, 3)
+        XCTAssertEqual(model.value?.pendingVerify, 0)
+        XCTAssertEqual(model.value?.pendingOrders, 0)
+        XCTAssertEqual(MerchantWorkbenchReminders.aftercareCount(model.value, access: granted, isLoading: false), 3)
+        XCTAssertEqual(businessReader.queriedAftercarePages, [.aftercare(.pending, page: 1)])
+        XCTAssertTrue(wire.requests.isEmpty)
+
+        // Route into aftercare list/detail is current and valid for the staff member:
+        let route = try XCTUnwrap(MerchantWorkbenchBusinessRoute(shortcut: .aftercare, reader: businessReader, journal: journal))
+        XCTAssertTrue(route.isCurrent(reader: businessReader, journal: journal))
+        XCTAssertEqual(route.shortcut.query, .aftercare(.pending, page: 1))
+
+        // Simulate returning from aftercare list/detail after pending count drops to 1:
+        businessReader.pendingTotal = 1
+        await MerchantWorkbenchTodoLoader.load(into: model, reader: reader, access: granted, businessReader: businessReader)
+        XCTAssertEqual(model.value?.refundCount, 1)
+        XCTAssertEqual(MerchantWorkbenchReminders.aftercareCount(model.value, access: granted, isLoading: false), 1)
+        XCTAssertEqual(businessReader.queriedAftercarePages.count, 2)
+        XCTAssertTrue(wire.requests.isEmpty)
     }
 }

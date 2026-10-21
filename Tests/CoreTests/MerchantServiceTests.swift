@@ -145,18 +145,24 @@ final class MerchantServiceTests: XCTestCase {
         catch { XCTAssertEqual((error as? URLError)?.code, .notConnectedToInternet) }
         XCTAssertEqual(t.requests.count, 1)
     }
-    func testAftercareReaderTodoProjectsOnlyRefundCountAndZeroesOtherFields() async throws {
+    func testNonOwnerAftercareStaffDoesNotDownloadOwnerTodoSummary() async throws {
         let t = MerchantFixtureTransport()
-        t.json = #"{"code":200,"data":{"pendingVerify":2,"verifiedCount":9,"pendingScanConfirm":4,"pendingOrders":5,"refundCount":3,"pendingPredict":6,"biddingTopics":7,"byProject":[{"ownerType":"topic","ownerId":"1","pendingVerify":2,"pendingScanConfirm":1}]}}"#
         let manager = try access(role: "MERCHANT_MANAGER", permissions: ["merchant:aftercare:read", "merchant:project:manage"])
-        let todo = try await service(t).todo(access: manager, token: "fixture-token")
-        XCTAssertEqual(todo.refundCount, 3)
-        XCTAssertEqual(todo.pendingVerify, 0)
-        XCTAssertEqual(todo.verifiedCount, 0)
-        XCTAssertEqual(todo.pendingScanConfirm, 0)
-        XCTAssertEqual(todo.pendingOrders, 0)
-        XCTAssertEqual(todo.pendingPredict, 0)
-        XCTAssertEqual(todo.biddingTopics, 0)
-        XCTAssertNil(todo.byProject)
+        do {
+            _ = try await service(t).todo(access: manager, token: "fixture-token")
+            XCTFail("Expected non-owner todo-summary call to be rejected before transport")
+        } catch {
+            XCTAssertEqual(error as? MerchantReadError, .accessDenied)
+        }
+        XCTAssertTrue(t.requests.isEmpty)
+        let narrow = MerchantTodo(aftercareRefundCount: 3)
+        XCTAssertEqual(narrow.refundCount, 3)
+        XCTAssertEqual(narrow.pendingVerify, 0)
+        XCTAssertEqual(narrow.verifiedCount, 0)
+        XCTAssertEqual(narrow.pendingScanConfirm, 0)
+        XCTAssertEqual(narrow.pendingOrders, 0)
+        XCTAssertEqual(narrow.pendingPredict, 0)
+        XCTAssertEqual(narrow.biddingTopics, 0)
+        XCTAssertNil(narrow.byProject)
     }
 }

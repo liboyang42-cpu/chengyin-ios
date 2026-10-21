@@ -50,6 +50,8 @@ final class MerchantLoadModel<Value>: ObservableObject {
                 value = nil; errorKey = "merchant.access.denied"
             } else if error as? APIError == .unauthorized {
                 value = nil; errorKey = "auth.expired"
+            } else if error as? APIError == .notConfigured {
+                value = nil; errorKey = "auth.notConfigured"
             } else if error as? APIError == .malformedResponse {
                 errorKey = "merchant.invalidResponse"
             } else { errorKey = "merchant.loadFailed" }
@@ -176,24 +178,12 @@ final class MerchantLoadModel<Value>: ObservableObject {
         guard !Task.isCancelled, current(), generation == captured, proof == access else { throw CancellationError() }
         return result
     }
-    private func aftercareTodo(_ access: MerchantAccess) async throws -> MerchantTodo {
-        guard proof == access, access.allows(.basicRead), access.canReadAftercare else { throw MerchantReadError.accessDenied }
-        let captured = generation
-        let result = try await read(accepts: { generation == captured && proof == access }) {
-            try await service.todo(access: access, token: token).scoped(for: access)
-        }
-        guard !Task.isCancelled, current(), generation == captured, proof == access else { throw CancellationError() }
-        return result
-    }
     func merchantDashboard(access: MerchantAccess) async throws -> MerchantDashboard {
         guard access.canReadDashboard else { throw MerchantReadError.accessDenied }
         return try await aggregate(access) { try await service.dashboard(access: access, token: token) }
     }
     func merchantTodo(access: MerchantAccess) async throws -> MerchantTodo {
-        if access.isOwner {
-            return try await aggregate(access) { try await service.todo(access: access, token: token) }
-        }
-        return try await aftercareTodo(access)
+        try await aggregate(access) { try await service.todo(access: access, token: token) }
     }
     func merchantEvents(access: MerchantAccess) async throws -> [MerchantEvent] {
         try await aggregate(access) { try await service.events(access: access, token: token) }
