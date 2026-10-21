@@ -116,21 +116,22 @@ import Core
             storage: .init(defaults: defaults, tokenStore: { _ in vault }),
             makeTransport: { transport },
             sessionDependencies: { context in
-                guard allowReads else { return .dormant }
-                let endpoints = try? OperationEndpointApproval(
-                    baseURL: context.baseURL,
-                    namespace: context.session.namespace,
-                    accountID: context.session.accountID,
-                    paths: [
-                        "api/play/theme/history",
-                        "api/play/theme/card",
-                        "api/play/theme/state"
-                    ]
-                )
+                guard allowReads,
+                      let endpoints = try? OperationEndpointApproval(
+                          baseURL: context.baseURL,
+                          namespace: context.session.namespace,
+                          accountID: context.session.accountID,
+                          paths: [
+                              "api/play/theme/history",
+                              "api/play/theme/card",
+                              "api/play/theme/state"
+                          ]
+                      ) else { return .dormant }
                 return .init(
                     configuration: .init(
-                        play: .init(enabled: [.reads], endpoints: endpoints),
-                        endpoints: endpoints
+                        market: context.market,
+                        endpoints: endpoints,
+                        play: [.reads]
                     )
                 )
             }
