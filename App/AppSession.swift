@@ -1053,6 +1053,14 @@ final class AppSession: ObservableObject {
         let model = PlayCircleCoordinator(topicID: id, service: api, currentSession: { [weak self] in self?.currentPlayRuntimeSession })
         retainedPlayCircles[key] = model; return model
     }
+    func playThemeAuxiliary(scope: PlaySessionScope, topicID: Int?) -> PlayThemeAuxiliaryReader? {
+        guard scope.isValid, let id = topicID, id > 0, let api = dormantPlayRuntimeService() else { return nil }
+        return PlayThemeAuxiliaryReader(service: api, scope: scope, topicID: id,
+            current: { [weak self] in self?.currentPlayRuntimeSession })
+    }
+    var playThemeAuxiliaryProvider: PlayThemeAuxiliaryProvider {
+        { [weak self] scope, topicID in self?.playThemeAuxiliary(scope: scope, topicID: topicID) }
+    }
     func playDevice(scope: PlaySessionScope, nodeID: Int, lifetime: PlayInteractionLifetime? = nil) -> PlayDeviceCaptureCoordinator {
         let key = playRuntimeKey(scope, suffix: "device:\(nodeID)")
         if let retained = retainedPlayDevices[key], let lifetime, lifetime.isCurrent, retained.readLifetimeID == lifetime.identity { return retained }

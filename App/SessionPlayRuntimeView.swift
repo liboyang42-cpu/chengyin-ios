@@ -15,7 +15,8 @@ import UIKit
             switch destination {
             case .journey(let scope):
                 if let model = session.playExperience(for: scope) {
-                    let auxiliary = auxiliaryStore.models(revision: session.sessionRevision, scope: scope, topicID: model.snapshot?.result.topicID, provider: auxiliaryProvider)
+                    let auxiliary = auxiliaryStore.models(revision: session.sessionRevision, scope: scope, topicID: model.snapshot?.result.topicID,
+                        provider: auxiliaryProvider ?? session.playThemeAuxiliaryProvider)
                     PlayExperienceView(model: model,
                         deviceModel: { nodeID in session.playDevice(scope: scope, nodeID: nodeID, lifetime: model.makeInteractionLifetime()) },
                         advancedModel: { nodeID in session.playAdvanced(scope: scope, nodeID: nodeID, topicID: model.snapshot?.result.topicID, lifetime: model.makeInteractionLifetime()) },

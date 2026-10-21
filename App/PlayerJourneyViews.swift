@@ -34,6 +34,7 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
             switch route {
             case .play(let entry):
                 SessionPlayRuntimeView(session: session, destination: .journey(entry.scope))
+                    .environment(\.playThemeAuxiliaryProvider, session.playThemeAuxiliaryProvider)
                     .toolbar {
                         ToolbarItem(placement: .primaryAction) {
                             NavigationLink {

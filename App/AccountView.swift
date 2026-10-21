@@ -204,6 +204,7 @@ import SwiftUI
         TicketWalletPlayProvider(reader: session.ticketWalletReader, revision: session.sessionRevision,
             currentRevision: { session.sessionRevision }) { entry in
             AnyView(SessionPlayRuntimeView(session: session, destination: .journey(entry.scope))
+                .environment(\.playThemeAuxiliaryProvider, session.playThemeAuxiliaryProvider)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         NavigationLink {
