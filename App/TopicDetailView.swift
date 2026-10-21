@@ -13,6 +13,7 @@ struct TopicDetailView: View {
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     @State private var showingSelfPlay = false
+    @State private var showingSessionSelection = false
     @State private var detail: TopicDetail?
     @State private var loadedKey: Key?
     @State private var issue: TopicScreenIssue?
@@ -35,7 +36,7 @@ struct TopicDetailView: View {
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
         }
-        .onChange(of: key) { _, _ in showingSelfPlay = false }
+        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false }
         .sheet(isPresented: $showingSelfPlay) {
             if let detail {
                 if let selfPlayDestination { selfPlayDestination(detail) }
@@ -131,6 +132,18 @@ struct TopicDetailView: View {
             }
         }
         .refreshable { await loads.run { await load() } }
+        .safeAreaInset(edge: .bottom) {
+            Button("topic.sessionSelection.enroll") {
+                if !showingSessionSelection { showingSessionSelection = true }
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(.bar)
+            .accessibilityIdentifier("topic.sessionSelection.open")
+        }
+        .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
+            TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
+        }
         .accessibilityIdentifier("topic.detail.content")
     }
     private func load() async {
