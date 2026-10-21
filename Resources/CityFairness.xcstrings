@@ -3,134 +3,418 @@
   "strings": {
     "fairness.asOf": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "As of" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "截至" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As of"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截至"
+          }
+        }
       }
     },
     "fairness.back": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Back" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "返回" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
       }
     },
     "fairness.blocked": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Fairness read is off" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "公平性读取未开启" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fairness read is off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公平性读取未开启"
+          }
+        }
       }
     },
     "fairness.emptyEvidence": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No outing evidence" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "没有外出证据" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No outing evidence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有外出证据"
+          }
+        }
       }
     },
     "fairness.entry": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Fairness" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "公平性" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fairness"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公平性"
+          }
+        }
       }
     },
     "fairness.evidence": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Outing evidence" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "外出证据" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outing evidence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外出证据"
+          }
+        }
+      }
+    },
+    "fairness.factRevision": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fact revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "事实版本"
+          }
+        }
       }
     },
     "fairness.forbidden": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Fairness read was refused" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "公平性读取被拒绝" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fairness read was refused"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公平性读取被拒绝"
+          }
+        }
+      }
+    },
+    "fairness.formulaId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formula"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公式"
+          }
+        }
       }
     },
     "fairness.loading": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Loading fairness" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在读取公平性" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading fairness"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取公平性"
+          }
+        }
       }
     },
     "fairness.malformed": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Fairness response could not be read" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "公平性响应无法读取" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fairness response could not be read"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公平性响应无法读取"
+          }
+        }
+      }
+    },
+    "fairness.maturity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maturity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成熟度"
+          }
+        }
       }
     },
     "fairness.metricVersion": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Metric version" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "指标版本" } }
-      }
-    },
-    "fairness.missingConfig": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Fairness config is missing" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "缺少公平性配置" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metric version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指标版本"
+          }
+        }
       }
     },
     "fairness.missingReason": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Missing reason" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "缺失原因" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missing reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺失原因"
+          }
+        }
       }
     },
     "fairness.next": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Next page" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "下一页" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一页"
+          }
+        }
       }
     },
     "fairness.noMatureSample": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No mature sample" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "尚无成熟样本" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No mature sample"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无成熟样本"
+          }
+        }
+      }
+    },
+    "fairness.notComputable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fairness is not computable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公平性无法计算"
+          }
+        }
       }
     },
     "fairness.ratio": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Mature count" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "成熟计数" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mature count"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成熟计数"
+          }
+        }
       }
     },
     "fairness.readOnly": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Read only. This does not allow changes." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "只读，不能修改" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read only. This does not allow changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读，不能修改"
+          }
+        }
+      }
+    },
+    "fairness.reason": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原因"
+          }
+        }
       }
     },
     "fairness.refresh": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Refresh" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "刷新" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
+          }
+        }
       }
     },
-    "fairness.sampleCount": {
+    "fairness.t0": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Sample count" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "样本数" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First completion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首次完成"
+          }
+        }
       }
     },
     "fairness.title": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "City fairness" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "城市公平性" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City fairness"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市公平性"
+          }
+        }
       }
     },
     "fairness.unauthorized": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Sign in again to read fairness" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请重新登录后再读取公平性" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again to read fairness"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录后再读取公平性"
+          }
+        }
       }
     },
     "fairness.unavailable": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Fairness is temporarily unavailable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "公平性暂时不可用" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fairness is temporarily unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公平性暂时不可用"
+          }
+        }
       }
     },
     "fairness.unknown": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Fairness result is unknown" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "公平性结果未知" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fairness result is unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公平性结果未知"
+          }
+        }
       }
     }
   },

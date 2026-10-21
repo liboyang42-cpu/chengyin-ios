@@ -44,24 +44,12 @@ struct CityFairnessView: View {
             Text("fairness.blocked", tableName: "CityFairness")
         case .loading:
             ProgressView { Text("fairness.loading", tableName: "CityFairness") }
-        case .missingConfig(let reason):
-            Text("fairness.missingConfig", tableName: "CityFairness")
-            reasonLine(reason)
+        case .notComputable(let missing):
+            Text("fairness.notComputable", tableName: "CityFairness")
+            if !missing.isEmpty { reasonLine(missing.joined(separator: "\n")) }
         case .noMatureSample(let gap):
             Text("fairness.noMatureSample", tableName: "CityFairness")
-            reasonLine(gap.reason)
-            if let sampleCount = gap.sampleCount {
-                Text("fairness.sampleCount", tableName: "CityFairness")
-                Text(verbatim: String(sampleCount))
-            }
-            if let asOf = gap.asOf {
-                Text("fairness.asOf", tableName: "CityFairness")
-                Text(verbatim: String(asOf))
-            }
-            if let metricVersion = gap.metricVersion {
-                Text("fairness.metricVersion", tableName: "CityFairness")
-                Text(verbatim: metricVersion)
-            }
+            stamp(gap.asOf, metricVersion: gap.metricVersion, formulaId: gap.formulaId, factRevision: gap.factRevision)
         case .unknown(let reason):
             Text("fairness.unknown", tableName: "CityFairness")
             if let reason { reasonLine(reason) }
@@ -70,22 +58,18 @@ struct CityFairnessView: View {
         case .mature(let page):
             Text("fairness.ratio", tableName: "CityFairness")
             Text(verbatim: page.ratioText)
-            Text("fairness.sampleCount", tableName: "CityFairness")
-            Text(verbatim: String(page.sampleCount))
-            Text("fairness.asOf", tableName: "CityFairness")
-            Text(verbatim: String(page.asOf))
-            Text("fairness.metricVersion", tableName: "CityFairness")
-            Text(verbatim: page.metricVersion)
+            stamp(page.asOf, metricVersion: page.metricVersion, formulaId: page.formulaId, factRevision: page.factRevision)
             Text("fairness.readOnly", tableName: "CityFairness")
-            if page.outings.isEmpty { Text("fairness.emptyEvidence", tableName: "CityFairness") }
-            ForEach(page.outings) { outing in
-                NavigationLink(value: CityFairnessOutingRoute(outingID: outing.outingId)) {
+            if page.members.isEmpty { Text("fairness.emptyEvidence", tableName: "CityFairness") }
+            ForEach(page.members) { member in
+                NavigationLink(value: CityFairnessOutingRoute(outingID: member.outingId)) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("fairness.evidence", tableName: "CityFairness")
-                        Text(verbatim: outing.title)
+                        Text(verbatim: member.outingId)
+                        if let t0 = member.t0 { Text(verbatim: String(t0)) }
                     }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                 }
-                .accessibilityIdentifier("fairness.outing.\(outing.outingId)")
+                .accessibilityIdentifier("fairness.outing.\(member.outingId)")
             }
         }
     }
@@ -97,10 +81,28 @@ struct CityFairnessView: View {
         }
     }
 
+    private func stamp(_ asOf: Int64, metricVersion: String?, formulaId: String, factRevision: Int64?) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("fairness.asOf", tableName: "CityFairness")
+            Text(verbatim: String(asOf))
+            if let metricVersion {
+                Text("fairness.metricVersion", tableName: "CityFairness")
+                Text(verbatim: metricVersion)
+            }
+            Text("fairness.formulaId", tableName: "CityFairness")
+            Text(verbatim: formulaId)
+            if let factRevision {
+                Text("fairness.factRevision", tableName: "CityFairness")
+                Text(verbatim: String(factRevision))
+            }
+        }
+    }
+
     private func failureText(_ failure: CityFairnessFailure) -> some View {
         switch failure {
         case .unauthorized: Text("fairness.unauthorized", tableName: "CityFairness")
         case .forbidden: Text("fairness.forbidden", tableName: "CityFairness")
+        case .notComputable: Text("fairness.notComputable", tableName: "CityFairness")
         case .unavailable: Text("fairness.unavailable", tableName: "CityFairness")
         case .malformed: Text("fairness.malformed", tableName: "CityFairness")
         case .unknown: Text("fairness.unknown", tableName: "CityFairness")
@@ -118,14 +120,21 @@ struct CityFairnessEvidenceView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let evidence = reader.evidence {
-                Text(verbatim: evidence.text)
-                Text(verbatim: evidence.metricVersion)
-                Text(verbatim: String(evidence.asOf))
+                Text(verbatim: evidence.outingId)
+                Text("fairness.maturity", tableName: "CityFairness")
+                Text(verbatim: evidence.maturity)
+                Text("fairness.reason", tableName: "CityFairness")
+                Text(verbatim: evidence.reason)
+                if let t0 = evidence.t0 {
+                    Text("fairness.t0", tableName: "CityFairness")
+                    Text(verbatim: String(t0))
+                }
                 Text("fairness.readOnly", tableName: "CityFairness")
             } else if let failure = reader.evidenceFailure {
                 switch failure {
                 case .unauthorized: Text("fairness.unauthorized", tableName: "CityFairness")
                 case .forbidden: Text("fairness.forbidden", tableName: "CityFairness")
+                case .notComputable: Text("fairness.notComputable", tableName: "CityFairness")
                 case .unavailable: Text("fairness.unavailable", tableName: "CityFairness")
                 case .malformed: Text("fairness.malformed", tableName: "CityFairness")
                 case .unknown: Text("fairness.unknown", tableName: "CityFairness")
