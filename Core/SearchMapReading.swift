@@ -7,7 +7,7 @@ public struct SearchMapContext: Equatable {
     public let viewerRevision: UInt64
     public let manualMapApprovalRevision: UUID?
     private let credential: String?
-    fileprivate var token: String? { credential }
+    var token: String? { credential }
     public init(guestEpoch: UInt64) { accountID = nil; epoch = guestEpoch; credential = nil; role = nil; viewerRevision = 0; manualMapApprovalRevision = nil }
     public init(accountID: Int, epoch: UInt64, token: String, role: String? = nil, viewerRevision: UInt64 = 0, manualMapApprovalRevision: UUID? = nil) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
@@ -22,6 +22,7 @@ public struct SearchMapContext: Equatable {
     var isOfflineExample: Bool { get }
     var scope: UUID { get }
     var manualAreaRevision: UInt64 { get }
+    var publicLayerCoordinator: MapPublicLayerCoordinator? { get }
     func selectManualArea(_ area: RoamSearchArea?)
     func categories() async throws -> [DiscoveryCategory]
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow]
@@ -37,6 +38,7 @@ public struct SearchMapContext: Equatable {
 public extension SearchMapReading {
     func cityNodes(_ query: CityNodeSearchQuery) async throws -> [SearchMapCityNode] { throw APIError.notConfigured }
     var manualAreaRevision: UInt64 { 0 }
+    var publicLayerCoordinator: MapPublicLayerCoordinator? { nil }
     func selectManualArea(_ area: RoamSearchArea?) {}
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] { throw APIError.notConfigured }
     func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage { throw APIError.notConfigured }
@@ -46,6 +48,7 @@ public extension SearchMapReading {
     private let currentContext: () -> SearchMapContext
     private let onUnauthorized: (SearchMapContext) -> Void
     private let manualAreaSelection: ManualMapAreaSelection?
+    public let publicLayerCoordinator: MapPublicLayerCoordinator?
     public var manualAreaRevision: UInt64 { manualAreaSelection?.revision ?? 0 }
     public func selectManualArea(_ area: RoamSearchArea?) { manualAreaSelection?.select(area) }
     private var snapshot: SearchMapContext
@@ -55,14 +58,16 @@ public extension SearchMapReading {
     public var isOfflineExample: Bool { false }
     public var scope: UUID {
         let current = currentContext()
-        if snapshot != current { snapshot = current; revision = UUID() }
+        if snapshot != current { snapshot = current; revision = UUID(); publicLayerCoordinator?.synchronizeContext() }
         return revision
     }
     public init(service: SearchMapService?, currentContext: @escaping () -> SearchMapContext,
                 onUnauthorized: @escaping (SearchMapContext) -> Void = { _ in },
-                manualAreaSelection: ManualMapAreaSelection? = nil) {
+                manualAreaSelection: ManualMapAreaSelection? = nil,
+                publicLayerCoordinator: MapPublicLayerCoordinator? = nil) {
         self.service = service; self.currentContext = currentContext; self.onUnauthorized = onUnauthorized
         self.manualAreaSelection = manualAreaSelection
+        self.publicLayerCoordinator = publicLayerCoordinator
         snapshot = currentContext()
     }
     public func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] {

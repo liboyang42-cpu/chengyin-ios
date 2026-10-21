@@ -11,6 +11,7 @@ struct ReviewedAppDeployment {
     enum ReadGrant: Hashable {
         case homeAndSearch
         case manualMap
+        case publicMapLayers
         /// Only the public route-template shelf and its projected detail, not standalone games.
         case publicTopicTemplateCatalogAndDetail
         /// Authenticated progress projection only; runtime approval is independently required.
@@ -128,6 +129,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
     /// 设置 → 隐私与定位 → 我的待审媒体 (GET list only). Dormant until a reviewed lease exists.
     var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
+    /// 公共地图图层读取 (`POST /api/map/public-layers`). Dormant until a reviewed lease exists.
+    var mapPublicLayerReadApproval: @MainActor (RuntimeDependencyContext) -> MapPublicLayerReadApproval? = { _ in nil }
     /// 俱乐部动态读取 (`api/club/post/list`, `feed`, `comment/list`, `history`). Dormant until a reviewed lease exists.
     var clubCommunityReadApproval: @MainActor (RuntimeDependencyContext) -> ClubCommunityReadApproval? = { _ in nil }
     /// 俱乐部帖子图片上传 (`api/common/uploadOSS`, `bizType=club_post_image`). Dormant until a reviewed lease exists.
@@ -208,6 +211,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          workshopOwnedReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopOwnedReadApproval? = { _ in nil },
          ownerDraftReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval? = { _ in nil },
          manualMapReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval? = { _ in nil },
+         mapPublicLayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> MapPublicLayerReadApproval? = { _ in nil },
          ownedOrderReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval? = { _ in nil }) {
         self.deployment = deployment; self.storage = storage ?? .init(); self.makeTransport = makeTransport
         self.projectStoryAudioUploadApproval = projectStoryAudioUploadApproval; self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport
@@ -253,6 +257,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.workshopOwnedReadApproval = workshopOwnedReadApproval
         self.ownerDraftReadApproval = ownerDraftReadApproval
         self.manualMapReadApproval = manualMapReadApproval
+        self.mapPublicLayerReadApproval = mapPublicLayerReadApproval
         self.ownedOrderReadApproval = ownedOrderReadApproval
     }
     var reviewed: ReviewedAppDeployment? {
@@ -280,6 +285,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let transport = CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamAlbumMetadataReadAccess: roamAlbumMetadataReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
         transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
         transport.ownMediaReadApproval = ownMediaReadApproval
+        transport.mapPublicLayerReadApproval = mapPublicLayerReadApproval
         transport.clubCommunityReadApproval = clubCommunityReadApproval
         transport.clubPostImageUploadApproval = clubPostImageUploadApproval
         transport.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
@@ -557,6 +563,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     var current: () -> SessionIdentity? = { nil }
     var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
     var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
+    var mapPublicLayerReadApproval: @MainActor (RuntimeDependencyContext) -> MapPublicLayerReadApproval? = { _ in nil }
     var clubCommunityReadApproval: @MainActor (RuntimeDependencyContext) -> ClubCommunityReadApproval? = { _ in nil }
     var clubPostImageUploadApproval: @MainActor (RuntimeDependencyContext, Int) -> ClubPostImageUploadApproval? = { _, _ in nil }
     private var clubPostImageUploadClubID: Int?
@@ -804,6 +811,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.current = { self.current() }
         transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
         transport.ownMediaReadApproval = ownMediaReadApproval
+        transport.mapPublicLayerReadApproval = mapPublicLayerReadApproval
         transport.clubCommunityReadApproval = { self.clubCommunityReadApproval($0) }
         transport.clubPostImageUploadApproval = { self.clubPostImageUploadApproval($0, $1) }
         transport.clubPostImageUploadClubID = clubPostImageUploadClubID
@@ -1054,6 +1062,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard !nearbyMerchantOnly || nearbyMerchant else { throw APIError.notConfigured }
         let selectedArea = manualMapSelection?.snapshot
         let manualRead = selectedArea.flatMap { ManualMapReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
+        let publicMapLayer = MapPublicLayerReadRoute(request: request, baseURL: api.baseURL)
         let cityRead = CityReadRoute(request: request, baseURL: api.baseURL)
         let playRead = PlayReadRoute(request: request, baseURL: api.baseURL)
         let ownedCover = OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)
@@ -1093,7 +1102,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             let expectedMethod = (path == RoamPrivateToolsRoute.exportPrepare || path == RoamPrivateToolsRoute.exportPage) ? "POST" : "GET"
             return request.httpMethod == expectedMethod
         })
-        guard ownMedia || nearbyEvents != nil || entryNearby != nil || passportToolPath != nil || privateToolReadPath != nil || url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard ownMedia || nearbyEvents != nil || entryNearby != nil || passportToolPath != nil || privateToolReadPath != nil || url.query == nil || manualRead != nil || publicMapLayer != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -1651,6 +1660,21 @@ extension KeychainTokenStore: AppTokenStorage {}
                 guard let currentApproval = manualMapReadApproval(context) else { return false }
                 return manualMapSelection?.snapshot == selectedArea && currentApproval.revision == approval.revision && currentApproval.matches(context)
             }
+        } else if publicMapLayer != nil {
+            guard !deployment.reads.isDisjoint(with: [.manualMap, .publicMapLayers]),
+                  captured.isSignedInContentViewer,
+                  let account = captured.accountID, account > 0,
+                  let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
+                role: role, session: session)
+            guard let approval = mapPublicLayerReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [mapPublicLayerReadApproval, manualMapSelection] in
+                guard let currentApproval = mapPublicLayerReadApproval(context) else { return false }
+                return manualMapSelection?.snapshot == selectedArea && currentApproval.revision == approval.revision && currentApproval.matches(context)
+            }
         } else if WorkshopOwnedReadRoute(request: request, baseURL: api.baseURL) != nil {
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
@@ -1772,6 +1796,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             try nearbyEvents?.validateResponse(result)
             try nearbyPlayers?.validateResponse(result)
             try publicInfo?.validateResponse(result)
+            try publicMapLayer?.validateResponse(result)
             return result
         } catch {
             guard current() == captured, !Task.isCancelled, readApprovalStillValid?() != false else { throw CancellationError() }

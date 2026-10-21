@@ -4,7 +4,7 @@ import SwiftUI
 
 @MainActor
 final class AppSession: ObservableObject {
-    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
+    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry(); _ = searchMapReader.scope } }
     @Published private(set) var isWorking = false { didSet { synchronizeAccountMarketingEntry() } }
     @Published private(set) var errorKey: String?
     let platformConsumers = PlatformConsumerSessionOwner()
@@ -300,6 +300,7 @@ final class AppSession: ObservableObject {
     private let accountSessionService: CNAccountSessionService?
     private let activityService: ActivityService?
     private let searchMapService: SearchMapService?
+    private let mapPublicLayerService: MapPublicLayerService?
     private let searchMapSelection = ManualMapAreaSelection()
     private let roamMapSelection = ManualMapAreaSelection()
     private var currentSearchMapContext: SearchMapContext {
@@ -314,16 +315,30 @@ final class AppSession: ObservableObject {
               let approval = composition.manualMapReadApproval(context), approval.matches(context) else { return nil }
         return approval.revision
     }
+    private var isMapPublicLayerReadApproved: Bool {
+        guard composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false,
+              let context = currentRuntimeDependencyContext,
+              let approval = composition.mapPublicLayerReadApproval(context), approval.matches(context) else { return false }
+        return true
+    }
     var searchMapHistoryNamespace: String? {
         guard let storageScope else { return nil }
         return storageScope.service + ".search." + (account.map { String($0.id) } ?? "guest")
     }
+    lazy var mapPublicLayerCoordinator = MapPublicLayerCoordinator(service: mapPublicLayerService, currentContext: { [weak self] in
+        self?.currentSearchMapContext ?? SearchMapContext(guestEpoch: 0)
+    }, isApproved: { [weak self] in
+        self?.isMapPublicLayerReadApproved == true
+    }, onUnauthorized: { [weak self] captured in
+        guard let self, self.currentSearchMapContext == captured else { return }
+        self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+    }, manualAreaSelection: searchMapSelection)
     lazy var searchMapReader = SearchMapSessionReader(service: searchMapService, currentContext: { [weak self] in
         self?.currentSearchMapContext ?? SearchMapContext(guestEpoch: 0)
     }, onUnauthorized: { [weak self] captured in
         guard let self, self.currentSearchMapContext == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
-    }, manualAreaSelection: searchMapSelection)
+    }, manualAreaSelection: searchMapSelection, publicLayerCoordinator: mapPublicLayerCoordinator)
     private let registrationApproval: RegistrationProductionApproval?
     private let registrationStorefront: () -> String?
     private var registrationJournal: any OperationPendingJournal { composition.storage.operationJournal() }
@@ -3550,7 +3565,8 @@ final class AppSession: ObservableObject {
             accountSessionService=try? CNAccountSessionService(configuration:regional,storageScope:scope,transport:transport)
             service=regional.availability(of:.usernamePassword) == .available ? AuthService(configuration:configuration,transport:transport) : nil
             authChannelService=regional.canUseDomesticChinaPhone ? AuthChannelService(configuration:configuration,transport:transport) : nil
-            searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
+            searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap, .publicMapLayers]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
+            mapPublicLayerService=composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false ? MapPublicLayerService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
             activityService=ActivityService(configuration:configuration,transport:transport)
             registrationBackend=RegistrationService(configuration:configuration,transport:transport)
             homeFeedService=composition.reviewed?.reads.contains(.homeAndSearch) == true ? HomeFeedService(configuration:configuration,transport:transport) : nil
@@ -3586,7 +3602,7 @@ final class AppSession: ObservableObject {
             roamExperienceService=RoamExperienceService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;mapPublicLayerService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
         compositionTransport.projectEditConfigurationRevision = { [weak self] in
             guard let self, !self.projectConfigurationChanging else { return nil }; return self.projectConfigurationRevision
         }
