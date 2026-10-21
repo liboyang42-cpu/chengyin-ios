@@ -4,7 +4,7 @@ import Foundation
 /// no installed-release or running-session mutation. A receipt exists only after the
 /// bytes just written are read back unchanged.
 public enum WorkshopUpgradeDraftIssue: Error, Equatable {
-    case invalid, staleLease, stalePresentation, saveFailed, conflict, revoked
+    case invalid, staleLease, stalePresentation, saveFailed, conflict, revoked, unavailable
 }
 
 /// Current account scope. Holds no token and no purchase credential.
@@ -193,6 +193,8 @@ enum WorkshopUpgradeDraftWire {
         self.gate = gate
     }
     public func checkLease() throws { try gate.check() }
+    var currentLease: WorkshopUpgradeAccountLease { gate.lease }
+    var leaseIsCurrent: Bool { gate.isCurrent }
     private func key(_ licenseId: String) -> String {
         let lease = gate.lease
         let raw = "\(lease.accountID)\n\(lease.namespace)\n\(lease.realm)\n\(lease.epoch)\n\(licenseId)"

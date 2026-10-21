@@ -7,6 +7,11 @@ import Foundation
     private var generation: UUID?
     private var openLicenseId: String?
     public init(store: WorkshopUpgradeDraftStore) { self.store = store }
+    public var accountLease: WorkshopUpgradeAccountLease { store.currentLease }
+    public var accountLeaseIsCurrent: Bool { store.leaseIsCurrent }
+    public func matches(token: UUID, lease: WorkshopUpgradeAccountLease?) -> Bool {
+        generation == token && accountLease == lease && accountLeaseIsCurrent
+    }
     public func begin(item: WorkshopPurchasedItem) throws -> UUID {
         try store.checkLease()
         guard item.status != .revoked else { throw WorkshopUpgradeDraftIssue.revoked }
@@ -18,6 +23,10 @@ import Foundation
     public func cancel() {
         generation = nil
         openLicenseId = nil
+    }
+    public func cancel(ifGeneration token: UUID) {
+        guard generation == token else { return }
+        cancel()
     }
     public func commit(item: WorkshopPurchasedItem, presentation: WorkshopModUpgradePresentation, confirmedByBuyer: Bool, requestId: String, generation: UUID) throws -> WorkshopUpgradeDraftReceipt {
         guard self.generation == generation, openLicenseId == item.licenseId else { throw WorkshopUpgradeDraftIssue.stalePresentation }

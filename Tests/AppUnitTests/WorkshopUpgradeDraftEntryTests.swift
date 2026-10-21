@@ -99,4 +99,123 @@ import Core
         XCTAssertNil(active)
         XCTAssertTrue(checking)
     }
+
+    func testNilFlowRestoreMissAndAccountChangeDoNotKeepADraft() throws {
+        let item = try purchased()
+        let preview = try presentation(item)
+        let draft = try preview.makeUpgradeDraftRequest(confirmedByBuyer: true, requestId: "upgrade-0001")
+        var called = false
+        let bare = WorkshopPurchasedUpgradeHandlers(compare: { _ in nil }, saveDraft: { _ in called = true })
+        var draftSaved = true
+        var showing = true
+        var saveFailed = true
+        var receipt: WorkshopUpgradeDraftReceipt?
+        XCTAssertThrowsError(try WorkshopPurchasedUpgradeEntry.performCommitDraft(draft, handlers: bare, item: item, presentation: preview, token: UUID(), current: UUID(), draftSaved: &draftSaved, showing: &showing, saveFailed: &saveFailed, receipt: &receipt)) {
+            XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .unavailable)
+        }
+        XCTAssertFalse(called)
+        XCTAssertFalse(draftSaved)
+        XCTAssertFalse(saveFailed)
+        XCTAssertNil(receipt)
+        XCTAssertTrue(showing)
+        draftSaved = true
+        WorkshopPurchasedUpgradeEntry.performRestore(item: item, handlers: bare, draftSaved: &draftSaved, receipt: &receipt)
+        XCTAssertFalse(draftSaved)
+        XCTAssertNil(receipt)
+
+        let files = EntryUpgradeDraftFiles()
+        let account = try WorkshopUpgradeAccountLease(accountID: 53, namespace: "player", realm: "local-realm", epoch: 7)
+        let gate = WorkshopUpgradeAccountGate(account)
+        let flow = WorkshopUpgradeFlow(store: WorkshopUpgradeDraftStore(writer: files, gate: gate))
+        let handlers = WorkshopPurchasedUpgradeHandlers(compare: { _ in preview }, saveDraft: { _ in }, flow: flow)
+        let token = try flow.begin(item: item)
+        let saved = try WorkshopPurchasedUpgradeEntry.performCommitDraft(draft, handlers: handlers, item: item, presentation: preview, token: token, current: token, draftSaved: &draftSaved, showing: &showing, saveFailed: &saveFailed, receipt: &receipt)
+        XCTAssertEqual(saved?.persisted, true)
+        let empty = WorkshopPurchasedUpgradeHandlers(compare: { _ in nil }, saveDraft: { _ in }, flow: WorkshopUpgradeFlow(store: WorkshopUpgradeDraftStore(writer: EntryUpgradeDraftFiles(), gate: WorkshopUpgradeAccountGate(account))))
+        draftSaved = true
+        receipt = saved
+        WorkshopPurchasedUpgradeEntry.performRestore(item: item, handlers: empty, draftSaved: &draftSaved, receipt: &receipt)
+        XCTAssertFalse(draftSaved)
+        XCTAssertNil(receipt)
+        draftSaved = true
+        receipt = saved
+        gate.revoke()
+        WorkshopPurchasedUpgradeEntry.performRestore(item: item, handlers: handlers, draftSaved: &draftSaved, receipt: &receipt)
+        XCTAssertFalse(draftSaved)
+        XCTAssertNil(receipt)
+
+        let other = try WorkshopUpgradeAccountLease(accountID: 54, namespace: "player", realm: "local-realm", epoch: 7)
+        let otherFlow = WorkshopUpgradeFlow(store: WorkshopUpgradeDraftStore(writer: EntryUpgradeDraftFiles(), gate: WorkshopUpgradeAccountGate(other)))
+        let fresh = WorkshopUpgradeFlow(store: WorkshopUpgradeDraftStore(writer: files, gate: WorkshopUpgradeAccountGate(account)))
+        let freshToken = try fresh.begin(item: item)
+        var checking = true
+        var unavailable = false
+        var active: WorkshopModUpgradePresentation?
+        var opened = false
+        WorkshopPurchasedUpgradeEntry.performAcceptCompare(token: freshToken, current: freshToken, item: item, result: preview, checking: &checking, unavailable: &unavailable, presentation: &active, showing: &opened, flow: fresh, lease: other)
+        XCTAssertFalse(opened)
+        XCTAssertNil(active)
+        XCTAssertTrue(unavailable)
+        XCTAssertFalse(checking)
+        XCTAssertThrowsError(try fresh.commit(item: item, presentation: preview, confirmedByBuyer: true, requestId: draft.requestId, generation: freshToken)) { XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .stalePresentation) }
+
+        let kept = WorkshopUpgradeFlow(store: WorkshopUpgradeDraftStore(writer: files, gate: WorkshopUpgradeAccountGate(account)))
+        let first = try kept.begin(item: item)
+        let second = try kept.begin(item: item)
+        checking = true
+        unavailable = false
+        opened = false
+        active = nil
+        WorkshopPurchasedUpgradeEntry.performAcceptCompare(token: first, current: second, item: item, result: preview, checking: &checking, unavailable: &unavailable, presentation: &active, showing: &opened, flow: kept, lease: account)
+        XCTAssertFalse(opened)
+        XCTAssertTrue(checking)
+        XCTAssertFalse(unavailable)
+        XCTAssertEqual(try kept.commit(item: item, presentation: preview, confirmedByBuyer: true, requestId: draft.requestId, generation: second).persisted, true)
+
+        let openFlow = WorkshopUpgradeFlow(store: WorkshopUpgradeDraftStore(writer: EntryUpgradeDraftFiles(), gate: WorkshopUpgradeAccountGate(account)))
+        let openToken = try openFlow.begin(item: item)
+        checking = true
+        unavailable = true
+        opened = false
+        active = nil
+        WorkshopPurchasedUpgradeEntry.performAcceptCompare(token: openToken, current: openToken, item: item, result: preview, checking: &checking, unavailable: &unavailable, presentation: &active, showing: &opened, flow: openFlow, lease: account)
+        XCTAssertTrue(opened)
+        XCTAssertEqual(active, preview)
+        XCTAssertFalse(unavailable)
+        XCTAssertFalse(checking)
+        XCTAssertTrue(openFlow.matches(token: openToken, lease: account))
+
+        let revokeGate = WorkshopUpgradeAccountGate(account)
+        let revokeFlow = WorkshopUpgradeFlow(store: WorkshopUpgradeDraftStore(writer: EntryUpgradeDraftFiles(), gate: revokeGate))
+        let revokeToken = try revokeFlow.begin(item: item)
+        revokeGate.revoke()
+        checking = true
+        unavailable = false
+        opened = false
+        active = nil
+        WorkshopPurchasedUpgradeEntry.performAcceptCompare(token: revokeToken, current: revokeToken, item: item, result: preview, checking: &checking, unavailable: &unavailable, presentation: &active, showing: &opened, flow: revokeFlow, lease: account)
+        XCTAssertFalse(opened)
+        XCTAssertTrue(unavailable)
+        XCTAssertFalse(revokeFlow.accountLeaseIsCurrent)
+
+        var armed: WorkshopUpgradeFlow? = revokeFlow
+        var current: UUID? = revokeToken
+        draftSaved = true
+        receipt = saved
+        showing = true
+        checking = true
+        WorkshopPurchasedUpgradeEntry.performAccountChanged(item: item, handlers: WorkshopPurchasedUpgradeHandlers(compare: { _ in nil }, saveDraft: { _ in }, flow: otherFlow), armed: &armed, compareToken: &current, draftSaved: &draftSaved, receipt: &receipt, showing: &showing, checking: &checking)
+        XCTAssertNil(armed)
+        XCTAssertNil(current)
+        XCTAssertFalse(draftSaved)
+        XCTAssertNil(receipt)
+        XCTAssertFalse(showing)
+        XCTAssertFalse(checking)
+        let replacement = try otherFlow.begin(item: item)
+        var invalidated: UUID? = replacement
+        WorkshopPurchasedUpgradeEntry.performInvalidate(compareToken: &invalidated, flow: otherFlow)
+        XCTAssertNil(invalidated)
+        XCTAssertThrowsError(try otherFlow.commit(item: item, presentation: preview, confirmedByBuyer: true, requestId: draft.requestId, generation: replacement)) { XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .stalePresentation) }
+        XCTAssertEqual(files.values.count, 1)
+    }
 }

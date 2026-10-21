@@ -102,6 +102,133 @@ class UpgradeDraftSourceContract(unittest.TestCase):
             self.assertIn(name, core)
         self.assertIn("testVoidSaveFailureDoesNotMarkTheDraftSaved", app)
         self.assertIn("testCommitFailureStaysOnTheSheetAndSuccessRestoresWithoutChangingThePurchasedVersion", app)
+        self.assertIn("testNilFlowRestoreMissAndAccountChangeDoNotKeepADraft", app)
+
+    def test_nil_flow_is_unavailable_and_leave_cancels(self):
+        entry = text("App/WorkshopPurchasedUpgradeEntry.swift")
+        commit = entry.split("static func performCommitDraft", 1)[1].split("static func performRestore", 1)[0]
+        self.assertIn("guard let flow = handlers.flow else { throw WorkshopUpgradeDraftIssue.unavailable }", commit)
+        self.assertNotIn("saveDraft", commit)
+        self.assertLess(commit.index("throw WorkshopUpgradeDraftIssue.unavailable"), commit.index("draftSaved = true"))
+        self.assertIn("draftSaved = false", commit.split("catch WorkshopUpgradeDraftIssue.unavailable", 1)[1].split("catch WorkshopUpgradeDraftIssue.staleLease", 1)[0])
+        restore = entry.split("static func performRestore", 1)[1].split("static func performDismissSheet", 1)[0]
+        self.assertIn("receipt = nil; draftSaved = false; return", restore)
+        self.assertGreaterEqual(restore.count("draftSaved = false"), 2)
+        self.assertGreaterEqual(restore.count("receipt = nil"), 2)
+        body = entry.split("var body: some View", 1)[1]
+        for marker in [
+            "lease: liveAccount.lease",
+            "WorkshopUpgradeLeasePublish(live: liveAccount, flow: handlers.flow)",
+            ".onDisappear {",
+            ".onChange(of: handlers.flow?.accountLease)",
+            "onDismiss:",
+            "Self.performInvalidate(compareToken: &compareToken, flow: armedFlow)",
+            "Self.performAccountChanged(",
+        ]:
+            self.assertIn(marker, body)
+        disappear = body.split(".onDisappear {", 1)[1].split(".onChange", 1)[0]
+        self.assertIn("performInvalidate(compareToken: &compareToken, flow: armedFlow)", disappear)
+        self.assertIn("performInvalidate(compareToken: &compareToken, flow: current)", disappear)
+        self.assertIn("armedFlow !== current", disappear)
+        flow = text("Core/WorkshopUpgradeFlow.swift")
+        self.assertIn("func matches(token: UUID, lease: WorkshopUpgradeAccountLease?) -> Bool", flow)
+        self.assertIn("generation == token && accountLease == lease && accountLeaseIsCurrent", flow)
+        self.assertIn("func cancel(ifGeneration token: UUID)", flow)
+        self.assertIn("guard generation == token else { return }", flow)
+        self.assertNotIn("WorkshopUpgradeProductionBoundary", flow)
+        self.assertIn("case invalid, staleLease, stalePresentation, saveFailed, conflict, revoked, unavailable", text("Core/WorkshopUpgradeDraftStore.swift"))
+        submit = text("App/WorkshopModUpgradeSheetView.swift").split("private func submitUpgradeDraft()", 1)[1]
+        unavailable = submit.split("catch WorkshopUpgradeDraftIssue.unavailable", 1)[1].split("} catch {", 1)[0]
+        self.assertIn("本机保存未接通，未保存升级草稿。", unavailable)
+        self.assertNotIn("confirmedRequestId = request.requestId", unavailable)
+        self.assertNotIn("URLSession", code("App/WorkshopPurchasedUpgradeEntry.swift"))
+        self.assertEqual(text("App/WorkshopPurchasedLibraryView.swift").count("makeUpgrade: @escaping WorkshopPurchasedUpgradeFactory = { nil }"), 3)
+
+
+class UpgradeDraftLifecycleModel(unittest.TestCase):
+    """Counterexamples for the G2 entry rules. This is not the Swift runtime."""
+
+    def test_nil_flow_commit_does_not_save(self):
+        result = commit_draft(flow=False, save_calls=0, draft_saved=True)
+        self.assertEqual(result["error"], "unavailable")
+        self.assertFalse(result["draft_saved"])
+        self.assertIsNone(result["receipt"])
+        self.assertEqual(result["save_calls"], 0)
+        self.assertFalse(result["save_failed"])
+
+    def test_restore_clears_on_nil_flow_miss_and_error(self):
+        for name, kwargs in [
+            ("nil-flow", dict(flow=False, found="persisted")),
+            ("miss", dict(flow=True, found="missing")),
+            ("error", dict(flow=True, found="persisted", error="staleLease")),
+        ]:
+            with self.subTest(name=name):
+                result = restore_draft(draft_saved=True, receipt="old", **kwargs)
+                self.assertFalse(result["draft_saved"])
+                self.assertIsNone(result["receipt"])
+        kept = restore_draft(draft_saved=False, receipt=None, flow=True, found="persisted")
+        self.assertTrue(kept["draft_saved"])
+        self.assertEqual(kept["receipt"], "stored")
+
+    def test_dismiss_leave_and_account_change_drop_the_generation(self):
+        for name in ("dismiss", "leave", "account"):
+            with self.subTest(name=name):
+                result = invalidate(generation="g", token="g")
+                self.assertIsNone(result["generation"])
+                self.assertIsNone(result["token"])
+
+    def test_compare_return_checks_lease_and_does_not_cancel_a_replacement(self):
+        revoked = accept(token="g", current="g", generation="g", flow_lease="a", live_lease="a", lease_current=False, checking=True)
+        self.assertFalse(revoked["opened"])
+        self.assertTrue(revoked["unavailable"])
+        self.assertFalse(revoked["checking"])
+        self.assertIsNone(revoked["generation"])
+        swapped = accept(token="g", current="g", generation="g", flow_lease="a", live_lease="b", lease_current=True, checking=True)
+        self.assertFalse(swapped["opened"])
+        self.assertIsNone(swapped["generation"])
+        self.assertTrue(swapped["unavailable"])
+        replacement = accept(token="old", current="new", generation="new", flow_lease="a", live_lease="a", lease_current=True, checking=True)
+        self.assertEqual(replacement["generation"], "new")
+        self.assertTrue(replacement["checking"])
+        self.assertFalse(replacement["opened"])
+        self.assertFalse(replacement["unavailable"])
+        stale_only = accept(token="old", current=None, generation=None, flow_lease=None, live_lease=None, lease_current=False, checking=True, has_flow=False)
+        self.assertTrue(stale_only["checking"])
+        self.assertFalse(stale_only["opened"])
+        opened = accept(token="g", current="g", generation="g", flow_lease="a", live_lease="a", lease_current=True, checking=True)
+        self.assertTrue(opened["opened"])
+        self.assertEqual(opened["generation"], "g")
+        self.assertFalse(opened["checking"])
+
+
+def commit_draft(flow, save_calls, draft_saved):
+    if not flow:
+        return {"error": "unavailable", "draft_saved": False, "receipt": None, "save_calls": save_calls, "save_failed": False}
+    return {"error": None, "draft_saved": draft_saved, "receipt": "stored", "save_calls": save_calls + 1, "save_failed": False}
+
+
+def restore_draft(draft_saved, receipt, flow, found, error=None):
+    del draft_saved, receipt
+    if not flow or error or found != "persisted":
+        return {"draft_saved": False, "receipt": None}
+    return {"draft_saved": True, "receipt": "stored"}
+
+
+def invalidate(generation, token):
+    del generation, token
+    return {"generation": None, "token": None}
+
+
+def accept(token, current, generation, flow_lease, live_lease, lease_current, checking, has_flow=True):
+    matches = bool(has_flow and generation == token and flow_lease == live_lease and lease_current)
+    live = matches if has_flow else True
+    if token != current or not live:
+        if has_flow and generation == token:
+            generation = None
+        if token != current:
+            return {"generation": generation, "opened": False, "checking": checking, "unavailable": False}
+        return {"generation": generation, "opened": False, "checking": False, "unavailable": True}
+    return {"generation": generation, "opened": True, "checking": False, "unavailable": False}
 
 
 class UpgradeDraftDecisionModel(unittest.TestCase):

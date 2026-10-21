@@ -31,6 +31,8 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
     @State private var saveFailed = false
     @State private var compareToken: UUID?
     @State private var receipt: WorkshopUpgradeDraftReceipt?
+    @State private var armedFlow: WorkshopUpgradeFlow?
+    @State private var liveAccount = WorkshopUpgradeLiveAccount()
     static func performBeginCompare(checking: inout Bool, unavailable: inout Bool) -> Bool {
         guard !checking else { return false }
         checking = true; unavailable = false; return true
@@ -41,8 +43,17 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
             presentation = result; showing = true
         } else { presentation = nil; unavailable = true; showing = false }
     }
-    static func performAcceptCompare(token: UUID, current: UUID?, item: WorkshopPurchasedItem, result: WorkshopModUpgradePresentation?, checking: inout Bool, unavailable: inout Bool, presentation: inout WorkshopModUpgradePresentation?, showing: inout Bool) {
-        guard token == current else { return }
+    static func performAcceptCompare(token: UUID, current: UUID?, item: WorkshopPurchasedItem, result: WorkshopModUpgradePresentation?, checking: inout Bool, unavailable: inout Bool, presentation: inout WorkshopModUpgradePresentation?, showing: inout Bool, flow: WorkshopUpgradeFlow? = nil, lease: WorkshopUpgradeAccountLease? = nil) {
+        let live = flow?.matches(token: token, lease: lease) ?? true
+        if token != current || !live {
+            flow?.cancel(ifGeneration: token)
+            guard token == current else { return }
+            checking = false
+            unavailable = true
+            presentation = nil
+            showing = false
+            return
+        }
         performFinishCompare(item: item, result: result, checking: &checking, unavailable: &unavailable, presentation: &presentation, showing: &showing)
     }
     static func performSaveDraft(_ draft: WorkshopUpgradeDraftRequest, handlers: WorkshopPurchasedUpgradeHandlers, draftSaved: inout Bool, showing: inout Bool) {
@@ -58,56 +69,73 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
     static func performCommitDraft(_ draft: WorkshopUpgradeDraftRequest, handlers: WorkshopPurchasedUpgradeHandlers, item: WorkshopPurchasedItem, presentation: WorkshopModUpgradePresentation, token: UUID, current: UUID?, draftSaved: inout Bool, showing: inout Bool, saveFailed: inout Bool, receipt: inout WorkshopUpgradeDraftReceipt?) throws -> WorkshopUpgradeDraftReceipt? {
         do {
             guard token == current else { throw WorkshopUpgradeDraftIssue.stalePresentation }
-            if let flow = handlers.flow {
-                let saved = try flow.commit(item: item, presentation: presentation, confirmedByBuyer: true, requestId: draft.requestId, generation: token)
-                guard saved.persisted, saved.fromVersionId == item.purchasedVersionId, saved.fromContentHash == item.contentHash else { throw WorkshopUpgradeDraftIssue.saveFailed }
-                receipt = saved
-                draftSaved = true
-                showing = false
-                saveFailed = false
-                return saved
-            }
-            try handlers.saveDraft(draft)
+            guard let flow = handlers.flow else { throw WorkshopUpgradeDraftIssue.unavailable }
+            let saved = try flow.commit(item: item, presentation: presentation, confirmedByBuyer: true, requestId: draft.requestId, generation: token)
+            guard saved.persisted, saved.fromVersionId == item.purchasedVersionId, saved.fromContentHash == item.contentHash else { throw WorkshopUpgradeDraftIssue.saveFailed }
+            receipt = saved
             draftSaved = true
             showing = false
             saveFailed = false
+            return saved
+        } catch WorkshopUpgradeDraftIssue.unavailable {
             receipt = nil
-            return nil
+            draftSaved = false
+            saveFailed = false
+            throw WorkshopUpgradeDraftIssue.unavailable
+        } catch WorkshopUpgradeDraftIssue.staleLease {
+            handlers.flow?.cancel()
+            receipt = nil
+            draftSaved = false
+            saveFailed = true
+            throw WorkshopUpgradeDraftIssue.staleLease
         } catch {
             saveFailed = true
             throw error
         }
     }
     static func performRestore(item: WorkshopPurchasedItem, handlers: WorkshopPurchasedUpgradeHandlers, draftSaved: inout Bool, receipt: inout WorkshopUpgradeDraftReceipt?) {
-        guard let flow = handlers.flow else { return }
+        guard let flow = handlers.flow else { receipt = nil; draftSaved = false; return }
         do {
             if let restored = try flow.restore(item: item), restored.persisted {
                 receipt = restored
                 draftSaved = true
+                return
             }
-        } catch {
-            receipt = nil
-        }
+        } catch {}
+        receipt = nil
+        draftSaved = false
     }
     static func performDismissSheet(showing: inout Bool) { showing = false }
-    static func performCancel(showing: inout Bool, compareToken: inout UUID?, flow: WorkshopUpgradeFlow?) {
+    static func performInvalidate(compareToken: inout UUID?, flow: WorkshopUpgradeFlow?) {
         flow?.cancel()
         compareToken = nil
+    }
+    static func performCancel(showing: inout Bool, compareToken: inout UUID?, flow: WorkshopUpgradeFlow?) {
+        performInvalidate(compareToken: &compareToken, flow: flow)
         showing = false
+    }
+    static func performAccountChanged(item: WorkshopPurchasedItem, handlers: WorkshopPurchasedUpgradeHandlers, armed: inout WorkshopUpgradeFlow?, compareToken: inout UUID?, draftSaved: inout Bool, receipt: inout WorkshopUpgradeDraftReceipt?, showing: inout Bool, checking: inout Bool) {
+        performInvalidate(compareToken: &compareToken, flow: armed)
+        armed = nil
+        showing = false
+        checking = false
+        performRestore(item: item, handlers: handlers, draftSaved: &draftSaved, receipt: &receipt)
     }
     var body: some View {
         Section {
             Button {
                 guard Self.performBeginCompare(checking: &checking, unavailable: &unavailable) else { return }
+                let flow = handlers.flow
+                armedFlow = flow
                 let token: UUID
-                if let flow = handlers.flow {
+                if let flow {
                     do { token = try flow.begin(item: item) }
-                    catch { checking = false; unavailable = true; return }
+                    catch { checking = false; unavailable = true; Self.performInvalidate(compareToken: &compareToken, flow: flow); return }
                 } else { token = UUID() }
                 compareToken = token
                 Task {
                     let result = await handlers.compare(item)
-                    Self.performAcceptCompare(token: token, current: compareToken, item: item, result: result, checking: &checking, unavailable: &unavailable, presentation: &presentation, showing: &showing)
+                    Self.performAcceptCompare(token: token, current: compareToken, item: item, result: result, checking: &checking, unavailable: &unavailable, presentation: &presentation, showing: &showing, flow: flow, lease: liveAccount.lease)
                 }
             } label: { Text(verbatim: "比较版本 / 升级草稿") }
                 .disabled(checking)
@@ -115,7 +143,8 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
             if checking {
                 ProgressView()
                 Button {
-                    Self.performCancel(showing: &showing, compareToken: &compareToken, flow: handlers.flow)
+                    Self.performCancel(showing: &showing, compareToken: &compareToken, flow: armedFlow)
+                    armedFlow = nil
                     checking = false
                 } label: { Text(verbatim: "取消") }
                     .accessibilityIdentifier("workshopPurchased.upgrade.cancelCompare")
@@ -124,8 +153,22 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
             if draftSaved { Text(verbatim: receipt.map { "已保存本地升级草稿 \($0.requestId)；现有版本与场次保持不变。" } ?? "已保存本地升级草稿；现有版本与场次保持不变。").font(.footnote).accessibilityIdentifier("workshopPurchased.upgrade.draftSaved") }
             if saveFailed { Text(verbatim: "升级草稿没有保存，现有版本与场次保持不变。").font(.footnote).accessibilityIdentifier("workshopPurchased.upgrade.saveFailed") }
         }
+        .background(WorkshopUpgradeLeasePublish(live: liveAccount, flow: handlers.flow))
         .onAppear { Self.performRestore(item: item, handlers: handlers, draftSaved: &draftSaved, receipt: &receipt) }
-        .sheet(isPresented: $showing) {
+        // ponytail: onDisappear also runs if a cover removes this view. Gemini checks that opening the sheet still leaves the draft flow alive.
+        .onDisappear {
+            let current = handlers.flow
+            Self.performInvalidate(compareToken: &compareToken, flow: armedFlow)
+            if armedFlow !== current { Self.performInvalidate(compareToken: &compareToken, flow: current) }
+            armedFlow = nil
+        }
+        .onChange(of: handlers.flow?.accountLease) { _, _ in
+            Self.performAccountChanged(item: item, handlers: handlers, armed: &armedFlow, compareToken: &compareToken, draftSaved: &draftSaved, receipt: &receipt, showing: &showing, checking: &checking)
+        }
+        .sheet(isPresented: $showing, onDismiss: {
+            Self.performInvalidate(compareToken: &compareToken, flow: armedFlow)
+            armedFlow = nil
+        }) {
             if let presentation {
                 NavigationStack {
                     WorkshopModUpgradeSheetView(presentation: presentation) { draft in
@@ -133,9 +176,23 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
                         _ = try Self.performCommitDraft(draft, handlers: handlers, item: item, presentation: presentation, token: token, current: compareToken, draftSaved: &draftSaved, showing: &showing, saveFailed: &saveFailed, receipt: &receipt)
                     }
                     .navigationTitle(Text(verbatim: "版本比较"))
-                    .toolbar { ToolbarItem(placement: .topBarLeading) { Button { Self.performCancel(showing: &showing, compareToken: &compareToken, flow: handlers.flow) } label: { Text(verbatim: "返回") }.accessibilityIdentifier("workshopPurchased.upgrade.back") } }
+                    .toolbar { ToolbarItem(placement: .topBarLeading) { Button { Self.performCancel(showing: &showing, compareToken: &compareToken, flow: armedFlow); armedFlow = nil } label: { Text(verbatim: "返回") }.accessibilityIdentifier("workshopPurchased.upgrade.back") } }
                 }
             }
         }
     }
+}
+
+/// View-owned box so a comparison that resumes after a render reads the account lease now on screen.
+private final class WorkshopUpgradeLiveAccount {
+    var lease: WorkshopUpgradeAccountLease?
+}
+
+private struct WorkshopUpgradeLeasePublish: View {
+    let live: WorkshopUpgradeLiveAccount
+    init(live: WorkshopUpgradeLiveAccount, flow: WorkshopUpgradeFlow?) {
+        self.live = live
+        live.lease = flow?.accountLease
+    }
+    var body: some View { EmptyView() }
 }
