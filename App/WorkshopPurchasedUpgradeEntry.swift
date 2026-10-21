@@ -23,6 +23,7 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
 @MainActor struct WorkshopPurchasedUpgradeEntry: View {
     let item: WorkshopPurchasedItem
     let handlers: WorkshopPurchasedUpgradeHandlers
+    @Environment(\.isPresented) private var detailPresented
     @State private var presentation: WorkshopModUpgradePresentation?
     @State private var checking = false
     @State private var unavailable = false
@@ -110,6 +111,17 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
         flow?.cancel()
         compareToken = nil
     }
+    /// A disappear while the upgrade sheet is up, or while this detail is still presented, is a cover. Pop is `detailPresented == false` with the sheet down; `popSignal` is the navigation `isPresented` change and still cancels if the sheet flag has not cleared.
+    static func performDisappear(sheetPresented: Bool, detailPresented: Bool, popSignal: Bool = false, compareToken: inout UUID?, armed: inout WorkshopUpgradeFlow?, current: WorkshopUpgradeFlow?) {
+        if popSignal {
+            guard !detailPresented else { return }
+        } else if sheetPresented || detailPresented {
+            return
+        }
+        performInvalidate(compareToken: &compareToken, flow: armed)
+        if armed !== current { performInvalidate(compareToken: &compareToken, flow: current) }
+        armed = nil
+    }
     static func performCancel(showing: inout Bool, compareToken: inout UUID?, flow: WorkshopUpgradeFlow?) {
         performInvalidate(compareToken: &compareToken, flow: flow)
         showing = false
@@ -155,12 +167,11 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
         }
         .background(WorkshopUpgradeLeasePublish(live: liveAccount, flow: handlers.flow))
         .onAppear { Self.performRestore(item: item, handlers: handlers, draftSaved: &draftSaved, receipt: &receipt) }
-        // ponytail: onDisappear also runs if a cover removes this view. Gemini checks that opening the sheet still leaves the draft flow alive.
         .onDisappear {
-            let current = handlers.flow
-            Self.performInvalidate(compareToken: &compareToken, flow: armedFlow)
-            if armedFlow !== current { Self.performInvalidate(compareToken: &compareToken, flow: current) }
-            armedFlow = nil
+            Self.performDisappear(sheetPresented: showing, detailPresented: detailPresented, compareToken: &compareToken, armed: &armedFlow, current: handlers.flow)
+        }
+        .onChange(of: detailPresented) { _, presented in
+            Self.performDisappear(sheetPresented: showing, detailPresented: presented, popSignal: true, compareToken: &compareToken, armed: &armedFlow, current: handlers.flow)
         }
         .onChange(of: handlers.flow?.accountLease) { _, _ in
             Self.performAccountChanged(item: item, handlers: handlers, armed: &armedFlow, compareToken: &compareToken, draftSaved: &draftSaved, receipt: &receipt, showing: &showing, checking: &checking)
