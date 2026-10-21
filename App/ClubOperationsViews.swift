@@ -52,7 +52,17 @@ struct ClubOperationsWorkspaceView: View {
     @State private var enteredManageDestination: ClubCreateToManageDestination?
     private var dirty: Bool { draft != baseline }
     private var title: LocalizedStringKey { target == .create ? "club.ops.create" : "club.ops.manage" }
-    var createToManageFlow: ClubCreateToManageFlowState {
+    static func makeCreateToManageFlow(
+        access: any ClubOperationsAccess,
+        snapshot: ClubOperationsSnapshot?,
+        readbackUnavailable: Bool,
+        createReceiptIdentity: ClubReadIdentity?,
+        createReceiptClubID: Int?,
+        currentIdentity: ClubReadIdentity?,
+        readbackIdentity: ClubReadIdentity?,
+        requestedTab: String?,
+        enteredManageDestination: ClubCreateToManageDestination?
+    ) -> ClubCreateToManageFlowState {
         let gate = ClubCreationGate(access: access)
         var ownedIDs = snapshot?.ownedClubIDs ?? []
         if let profileID = snapshot?.profile?.club.id, !ownedIDs.contains(profileID) {
@@ -63,13 +73,26 @@ struct ClubOperationsWorkspaceView: View {
             gate: gate,
             receiptAccountId: createReceiptIdentity?.accountID,
             receiptClubId: createReceiptClubID,
-            currentAccountId: identity?.accountID,
+            currentAccountId: currentIdentity?.accountID,
             readbackAccountId: readbackIdentity?.accountID,
             readbackOwnedClubIds: ownedIDs,
             readbackSucceeded: readbackSucceeded,
             readbackUnavailable: readbackUnavailable,
             requestedTab: requestedTab,
             enteredDestination: enteredManageDestination
+        )
+    }
+    var createToManageFlow: ClubCreateToManageFlowState {
+        Self.makeCreateToManageFlow(
+            access: access,
+            snapshot: snapshot,
+            readbackUnavailable: readbackUnavailable,
+            createReceiptIdentity: createReceiptIdentity,
+            createReceiptClubID: createReceiptClubID,
+            currentIdentity: identity,
+            readbackIdentity: readbackIdentity,
+            requestedTab: requestedTab,
+            enteredManageDestination: enteredManageDestination
         )
     }
     var body: some View {
@@ -451,5 +474,111 @@ private struct ClubOperationsProfileForm: View {
         TextField(LocalizedStringKey("club.ops." + key), text: text, axis: axis)
             .accessibilityLabel(Text(LocalizedStringKey("club.ops." + key)))
             .accessibilityIdentifier("club.ops.field." + key)
+    }
+}
+
+@MainActor final class ClubCreateWorkspaceDriver {
+    let target: ClubOperationsTarget
+    let access: any ClubOperationsAccess
+    let coordinator: ClubOperationsCoordinator
+    var identity: ClubReadIdentity?
+    var requestedTab: String?
+    private(set) var snapshot: ClubOperationsSnapshot?
+    private(set) var state: ClubOperationsState = .idle
+    private(set) var readbackUnavailable = false
+    private(set) var createReceiptIdentity: ClubReadIdentity?
+    private(set) var createReceiptClubID: Int?
+    private(set) var readbackIdentity: ClubReadIdentity?
+    private(set) var enteredManageDestination: ClubCreateToManageDestination?
+    let ownerID = UUID()
+
+    init(
+        target: ClubOperationsTarget = .create,
+        identity: ClubReadIdentity?,
+        access: any ClubOperationsAccess,
+        coordinator: ClubOperationsCoordinator,
+        requestedTab: String? = ClubWorkspaceTab.manage.rawValue
+    ) {
+        self.target = target
+        self.identity = identity
+        self.access = access
+        self.coordinator = coordinator
+        self.requestedTab = requestedTab
+    }
+
+    var createToManageFlow: ClubCreateToManageFlowState {
+        ClubOperationsWorkspaceView.makeCreateToManageFlow(
+            access: access,
+            snapshot: snapshot,
+            readbackUnavailable: readbackUnavailable,
+            createReceiptIdentity: createReceiptIdentity,
+            createReceiptClubID: createReceiptClubID,
+            currentIdentity: identity,
+            readbackIdentity: readbackIdentity,
+            requestedTab: requestedTab,
+            enteredManageDestination: enteredManageDestination
+        )
+    }
+
+    func load() async throws {
+        guard let identity, access.isConfigured else { return }
+        let result = try await access.snapshot(target: target)
+        guard access.identity == identity, result.target == target else { throw ClubOperationsBlock.changed }
+        snapshot = result
+        state = coordinator.state(target: target)
+    }
+
+    func prepare(_ command: ClubOperationsCommand) async throws -> ClubOperationsReview {
+        guard let identity else { throw APIError.unauthorized }
+        let pending = try await coordinator.prepare(command, target: target, expectedIdentity: identity, ownerID: ownerID)
+        state = coordinator.state(target: target)
+        return pending
+    }
+
+    func confirm(_ pending: ClubOperationsReview) async {
+        snapshot = nil; readbackUnavailable = false; readbackIdentity = nil; enteredManageDestination = nil
+        if target == .create { createReceiptIdentity = pending.identity; createReceiptClubID = nil }
+        await coordinator.confirm(pending)
+        guard access.identity == pending.identity else { return }
+        state = coordinator.state(target: target)
+        if target == .create, case .acknowledged(let receipt) = state {
+            createReceiptIdentity = pending.identity
+            createReceiptClubID = receipt.clubID
+        }
+        acceptReadback()
+    }
+
+    func readBack() async {
+        guard let identity else { return }
+        await coordinator.readBack(target: target, ownerID: ownerID)
+        guard access.identity == identity else { return }
+        acceptReadback()
+        state = coordinator.state(target: target)
+    }
+
+    func acceptReadback() {
+        switch coordinator.readback(target: target) {
+        case .received(let value):
+            snapshot = value; readbackUnavailable = false
+            readbackIdentity = access.identity
+            if case .acknowledged(let receipt) = coordinator.state(target: target), target == .create {
+                if createReceiptIdentity == nil { createReceiptIdentity = identity }
+                createReceiptClubID = receipt.clubID
+            }
+        case .unavailable:
+            readbackUnavailable = true
+            readbackIdentity = nil
+        default: break
+        }
+    }
+
+    @discardableResult
+    func enterClubManagement(requestedTab overrideTab: String? = nil) -> ClubCreateToManageDestination? {
+        var nextFlow = createToManageFlow
+        guard let destination = nextFlow.enterClubManagement(requestedTab: overrideTab ?? requestedTab) else {
+            return nil
+        }
+        enteredManageDestination = destination
+        return destination
     }
 }

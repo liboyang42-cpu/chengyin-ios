@@ -150,3 +150,53 @@ extension ClubProfileChoiceFlowTests {
         XCTAssertEqual(m.session?.context, fresh); XCTAssertEqual(a.performs, 0)
     }
 }
+
+@MainActor final class ClubCreateWorkspaceAppFlowTests: XCTestCase {
+        func testAppCreateWorkspaceReadbackFailureThenRetryUnlocksManageAndNonManageRendersStatusTextOnly() async throws {
+            let access = ClubOperationsFixtureAccess(scenario: .readbackUnavailable)
+            let coordinator = ClubOperationsCoordinator(access: access)
+            let driver = ClubCreateWorkspaceDriver(identity: access.identity, access: access, coordinator: coordinator, requestedTab: "manage")
+
+            try await driver.load()
+            XCTAssertEqual(driver.snapshot?.ownedClubIDs, [81])
+
+            var draft = ClubOperationsDraft()
+            draft.name = "App Workspace Club"
+            draft.city = "Shanghai"
+            draft.clubType = "兴趣社群"
+            draft.activityPrefs = ["轻社交"]
+
+            let review = try await driver.prepare(.create(draft))
+            await driver.confirm(review)
+
+            guard case .acknowledged(let receipt) = driver.state else {
+                return XCTFail("Expected acknowledged create state on App workspace driver")
+            }
+            XCTAssertEqual(receipt.clubID, 82)
+            XCTAssertNil(driver.snapshot)
+            XCTAssertTrue(driver.readbackUnavailable)
+            XCTAssertTrue(driver.createToManageFlow.requiresReadbackRecovery(state: driver.state, hasSnapshot: driver.snapshot != nil))
+            XCTAssertEqual(driver.createToManageFlow.blockReason, .readbackFailed)
+            XCTAssertFalse(driver.createToManageFlow.canEnterManagement)
+            XCTAssertNil(driver.enterClubManagement())
+            XCTAssertNil(driver.enteredManageDestination)
+
+            access.readbackRecoveryEnabled = true
+            await driver.readBack()
+
+            XCTAssertFalse(driver.readbackUnavailable)
+            XCTAssertEqual(driver.snapshot?.ownedClubIDs, [81, 82])
+            XCTAssertFalse(driver.createToManageFlow.requiresReadbackRecovery(state: driver.state, hasSnapshot: driver.snapshot != nil))
+            XCTAssertTrue(driver.createToManageFlow.isSameAccountReadbackVerified)
+            XCTAssertTrue(driver.createToManageFlow.canEnterManagement)
+
+            let manageDestination = try XCTUnwrap(driver.enterClubManagement(requestedTab: "manage"))
+            XCTAssertEqual(manageDestination, ClubCreateToManageDestination(accountId: 701, clubId: 82, tab: .manage))
+            XCTAssertTrue(manageDestination.opensManagementWorkspace)
+            XCTAssertEqual(driver.enteredManageDestination, manageDestination)
+
+            let overviewDestination = try XCTUnwrap(driver.enterClubManagement(requestedTab: "events"))
+            XCTAssertEqual(overviewDestination, ClubCreateToManageDestination(accountId: 701, clubId: 82, tab: .events))
+            XCTAssertFalse(overviewDestination.opensManagementWorkspace)
+        }
+}

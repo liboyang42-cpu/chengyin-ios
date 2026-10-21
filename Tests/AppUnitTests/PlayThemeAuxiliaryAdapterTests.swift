@@ -49,6 +49,8 @@ import Core
         let enabled = PlayExperienceService(configuration: try makeConfig(), transport: transport, enabled: [.reads])
         XCTAssertNil(PlayThemeAuxiliaryReader(service: enabled, scope: scope, topicID: 71, current: { nil }))
         XCTAssertNil(PlayThemeAuxiliaryReader(service: enabled, scope: scope, topicID: 0, current: { session }))
+        XCTAssertNil(PlayThemeAuxiliaryReader(service: enabled, scope: .topic(99), topicID: 71, current: { session }))
+        XCTAssertNotNil(PlayThemeAuxiliaryReader(service: enabled, scope: .activity(15), topicID: 71, current: { session }))
     }
 
     func testReaderInvalidatesWhenSessionChangesMidFlight() async throws {
@@ -88,6 +90,10 @@ import Core
         let nextRev = store.models(revision: 2, scope: .topic(71), topicID: 71, provider: provider)
         XCTAssertFalse(first.records === nextRev.records)
         XCTAssertFalse(first.backpack === nextRev.backpack)
+
+        let mismatchedScope = store.models(revision: 2, scope: .topic(99), topicID: 71, provider: provider)
+        XCTAssertNil(mismatchedScope.records)
+        XCTAssertNil(mismatchedScope.backpack)
     }
 
     func testAppSessionRootWiringRequiresAcceptedReadGrantAndInvalidatesOnLogout() async throws {
@@ -166,6 +172,7 @@ import Core
         session.authChannels.cancel()
         await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
         let reader = try XCTUnwrap(session.playThemeAuxiliary(scope: .topic(71), topicID: 71))
+        XCTAssertNil(session.playThemeAuxiliary(scope: .topic(99), topicID: 71))
         let activeModels = store.models(
             revision: session.sessionRevision,
             scope: .topic(71),
@@ -174,6 +181,29 @@ import Core
         )
         XCTAssertNotNil(activeModels.records)
         XCTAssertNotNil(activeModels.backpack)
+
+        // CompositionTransport fail-closes theme GET routes because PlayReadRoute only permits
+        // api/play/nodes and api/play/route-state; no reviewed route/grant exists for theme GETs.
+        let reloginCount = transport.requests.count
+        do {
+            _ = try await reader.history(topicID: 71, beforeSessionID: nil)
+            XCTFail("Expected CompositionTransport to fail-close unapproved theme/history GET")
+        } catch let error as APIError {
+            XCTAssertEqual(error, .notConfigured)
+        }
+        do {
+            _ = try await reader.card(sessionID: 1)
+            XCTFail("Expected CompositionTransport to fail-close unapproved theme/card GET")
+        } catch let error as APIError {
+            XCTAssertEqual(error, .notConfigured)
+        }
+        do {
+            _ = try await reader.state()
+            XCTFail("Expected CompositionTransport to fail-close unapproved theme/state GET")
+        } catch let error as APIError {
+            XCTAssertEqual(error, .notConfigured)
+        }
+        XCTAssertEqual(transport.requests.count, reloginCount)
 
         // Logout invalidates the captured reader and clears the store on next revision.
         await session.logout()

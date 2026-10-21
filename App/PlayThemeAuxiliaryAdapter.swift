@@ -14,6 +14,7 @@ import SwiftUI
 
     init?(service: PlayExperienceService?, scope: PlaySessionScope, topicID: Int, current: @escaping () -> PlayExperienceSession?) {
         guard let service, service.enabled.contains(.reads), scope.isValid, topicID > 0, let captured = current() else { return nil }
+        if case .topic(let scopedTopicID) = scope, scopedTopicID != topicID { return nil }
         self.service = service; self.scope = scope; self.topicID = topicID; self.current = current; self.captured = captured
     }
 
@@ -69,6 +70,7 @@ extension EnvironmentValues {
     func models(revision: UInt64, scope: PlaySessionScope, topicID: Int?, provider: PlayThemeAuxiliaryProvider?)
         -> (records: PlayThemeRecordsCoordinator?, backpack: PlayThemeBackpackCoordinator?) {
         guard let topicID, topicID > 0, let provider else { key = nil; records = nil; backpack = nil; return (nil, nil) }
+        if case .topic(let scopedTopicID) = scope, scopedTopicID != topicID { key = nil; records = nil; backpack = nil; return (nil, nil) }
         let next = Key(revision: revision, scope: scope, topicID: topicID)
         if key != next {
             key = next

@@ -68,10 +68,10 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: 6) {
                     Group {
                         if signedOut { Text("member.card.signedOut", tableName: "MemberProfile") }
-                        else if reader.isConfigured { Text("member.card.failed", tableName: "MemberProfile") }
+                        else if reader.isConfigured, reader.roleInfoAvailable { Text("member.card.failed", tableName: "MemberProfile") }
                         else { Text("member.card.unavailable", tableName: "MemberProfile") }
                     }.font(.footnote).foregroundStyle(.secondary)
-                    if reader.isConfigured, !signedOut {
+                    if reader.isConfigured, reader.roleInfoAvailable, !signedOut {
                         Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile") }
                             .accessibilityIdentifier("member.card.retry")
                     }
@@ -130,7 +130,7 @@ import SwiftUI
     private func load() async {
         let scope = reader.scope
         guard reader.isSignedIn else { phase = .failed(signedOut: true); return }
-        guard reader.isConfigured else { phase = .failed(signedOut: false); return }
+        guard reader.isConfigured, reader.roleInfoAvailable else { phase = .failed(signedOut: false); return }
         if snapshot == nil { phase = .loading }
         do {
             let value = try await reader.identity()
