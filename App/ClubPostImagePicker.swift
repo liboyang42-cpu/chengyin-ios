@@ -46,9 +46,29 @@ final class ClubPostNativeImagePicker: ClubPostImagePicking {
 
 @MainActor
 struct ClubPostImagePickerContext {
-    let makePicker: () -> any ClubPostImagePicking
-    let uploader: any ClubPostImageUploading
+    let makePickerForClub: (Int, Int?) -> any ClubPostImagePicking
+    let makeUploaderForClub: (Int, Int?) -> any ClubPostImageUploading
     let currentUploadContext: (Int, Int?) -> ClubPostImageUploadContext?
+
+    init(
+        makePicker: @escaping () -> any ClubPostImagePicking,
+        uploader: any ClubPostImageUploading,
+        currentUploadContext: @escaping (Int, Int?) -> ClubPostImageUploadContext?
+    ) {
+        self.makePickerForClub = { _, _ in makePicker() }
+        self.makeUploaderForClub = { _, _ in uploader }
+        self.currentUploadContext = currentUploadContext
+    }
+
+    init(
+        makePickerForClub: @escaping (Int, Int?) -> any ClubPostImagePicking,
+        makeUploaderForClub: @escaping (Int, Int?) -> any ClubPostImageUploading,
+        currentUploadContext: @escaping (Int, Int?) -> ClubPostImageUploadContext?
+    ) {
+        self.makePickerForClub = makePickerForClub
+        self.makeUploaderForClub = makeUploaderForClub
+        self.currentUploadContext = currentUploadContext
+    }
 
     static let disabled = ClubPostImagePickerContext(
         makePicker: { ClubPostDisabledImagePicker() },
@@ -77,12 +97,12 @@ final class ClubPostImageComposerBridge: ObservableObject {
         clubID: Int,
         postID: Int?
     ) {
-        self.picker = context.makePicker()
+        self.picker = context.makePickerForClub(clubID, postID)
         self.clubID = clubID
         self.postID = postID
         self.resolveContext = context.currentUploadContext
         self.draft = ClubPostImageDraftController(
-            uploader: context.uploader,
+            uploader: context.makeUploaderForClub(clubID, postID),
             currentContext: { context.currentUploadContext(clubID, postID) }
         )
         self.cancellable = draft.objectWillChange.sink { [weak self] _ in
@@ -146,7 +166,89 @@ final class ClubPostImageComposerBridge: ObservableObject {
     }
 
     @discardableResult
+    func selectAndReplaceUploadedReference(at index: Int) async -> [String] {
+        guard !isBusy,
+              let capturedContext = resolveContext(clubID, postID),
+              picker.canSelect,
+              draft.uploadedReferences.indices.contains(index) else {
+            return draft.uploadedReferences
+        }
+        draft.bind(context: capturedContext, initialReferences: draft.uploadedReferences)
+        generation &+= 1
+        let ticket = generation
+        isSelecting = true
+        defer {
+            if ticket == generation {
+                isSelecting = false
+            }
+        }
+        do {
+            guard let selected = try await picker.select() else {
+                return draft.uploadedReferences
+            }
+            guard !Task.isCancelled,
+                  ticket == generation,
+                  resolveContext(clubID, postID) == capturedContext else {
+                if resolveContext(clubID, postID) != capturedContext {
+                    invalidate()
+                }
+                return draft.uploadedReferences
+            }
+            _ = await draft.replaceUploadedReference(at: index, with: selected)
+            return draft.uploadedReferences
+        } catch {
+            if resolveContext(clubID, postID) != capturedContext {
+                invalidate()
+            }
+            return draft.uploadedReferences
+        }
+    }
+
+    func selectAndReplaceLocalCandidate(id: UUID) async {
+        guard !isBusy,
+              let capturedContext = resolveContext(clubID, postID),
+              picker.canSelect,
+              draft.localCandidates.contains(where: { $0.id == id }) else {
+            return
+        }
+        draft.bind(context: capturedContext, initialReferences: draft.uploadedReferences)
+        generation &+= 1
+        let ticket = generation
+        isSelecting = true
+        defer {
+            if ticket == generation {
+                isSelecting = false
+            }
+        }
+        do {
+            guard let selected = try await picker.select() else { return }
+            guard !Task.isCancelled,
+                  ticket == generation,
+                  resolveContext(clubID, postID) == capturedContext else {
+                if resolveContext(clubID, postID) != capturedContext {
+                    invalidate()
+                }
+                return
+            }
+            if previewingCandidate?.id == id {
+                previewingCandidate = selected
+            }
+            _ = draft.replaceLocalCandidate(id: id, with: selected)
+        } catch {
+            if resolveContext(clubID, postID) != capturedContext {
+                invalidate()
+            }
+        }
+    }
+
+    @discardableResult
     func removeUploadedReference(at index: Int) -> [String] {
+        if draft.uploadedReferences.indices.contains(index) {
+            let removed = draft.uploadedReferences[index]
+            if let preview = draft.previewsByReference[removed], previewingCandidate?.id == preview.id {
+                previewingCandidate = nil
+            }
+        }
         draft.removeUploadedReference(at: index)
         return draft.uploadedReferences
     }
@@ -162,8 +264,21 @@ final class ClubPostImageComposerBridge: ObservableObject {
         previewingCandidate = candidate
     }
 
+    func openUploadedPreview(for reference: String) {
+        guard let candidate = draft.previewsByReference[reference] else { return }
+        previewingCandidate = candidate
+    }
+
     func closePreview() {
         previewingCandidate = nil
+    }
+
+    /// Cancels an active picker presentation or in-flight upload while preserving existing draft state.
+    func cancelActiveSelectionOrUpload() {
+        generation &+= 1
+        isSelecting = false
+        picker.cancel()
+        draft.cancelCurrentUpload()
     }
 
     func invalidate() {
@@ -188,15 +303,38 @@ struct ClubPostImageSectionView: View {
                 #if canImport(UIKit)
                 if let localPreview = bridge.draft.previewsByReference[image],
                    let uiImage = UIImage(data: localPreview.jpeg) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 40, height: 40)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                    Button {
+                        bridge.openUploadedPreview(for: image)
+                    } label: {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 40, height: 40)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("club.community.uploadedImagePreview.\(index)")
                 }
                 #endif
                 Text(verbatim: image).lineLimit(1)
                 Spacer()
+                if bridge.canSelectImage {
+                    Button {
+                        uploading = true
+                        Task {
+                            images = await bridge.selectAndReplaceUploadedReference(at: index)
+                            if let key = bridge.draft.statusKey, key == "club.community.actionUnavailable" {
+                                notice = key
+                            }
+                            uploading = bridge.isBusy
+                        }
+                    } label: {
+                        Label("club.community.replaceImage", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    .disabled(bridge.isBusy || uploading)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .accessibilityIdentifier("club.community.replaceImage.\(index)")
+                }
                 Button {
                     images = bridge.removeUploadedReference(at: index)
                 } label: {
@@ -228,6 +366,19 @@ struct ClubPostImageSectionView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
+                if bridge.canSelectImage {
+                    Button {
+                        Task {
+                            await bridge.selectAndReplaceLocalCandidate(id: candidate.id)
+                            uploading = bridge.isBusy
+                        }
+                    } label: {
+                        Label("club.community.replaceImage", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    .disabled(bridge.isBusy || uploading)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .accessibilityIdentifier("club.community.replaceLocalImage.\(candidate.id.uuidString)")
+                }
                 Button {
                     bridge.removeLocalCandidate(id: candidate.id)
                 } label: {
@@ -245,6 +396,14 @@ struct ClubPostImageSectionView: View {
                 .accessibilityIdentifier("club.community.imageStatus")
         }
 
+        if bridge.isBusy || uploading {
+            Button("club.community.cancelImageUpload", role: .cancel) {
+                bridge.cancelActiveSelectionOrUpload()
+                uploading = false
+            }
+            .accessibilityIdentifier("club.community.cancelImageUpload")
+        }
+
         if bridge.canSelectImage {
             Button("club.community.selectImage") {
                 uploading = true
@@ -260,6 +419,53 @@ struct ClubPostImageSectionView: View {
             .accessibilityIdentifier("club.community.selectImage")
         } else {
             Text("club.community.imagesOff")
+        }
+        Color.clear
+            .frame(height: 0)
+            .sheet(
+                isPresented: Binding(
+                    get: { bridge.previewingCandidate != nil },
+                    set: { if !$0 { bridge.closePreview() } }
+                )
+            ) {
+                if let candidate = bridge.previewingCandidate {
+                    ClubPostImagePreviewSheet(candidate: candidate) {
+                        bridge.closePreview()
+                    }
+                }
+            }
+    }
+}
+
+@MainActor
+private struct ClubPostImagePreviewSheet: View {
+    let candidate: RetainedSelectedImage
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                #if canImport(UIKit)
+                if let uiImage = UIImage(data: candidate.jpeg) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity, maxHeight: 360)
+                        .accessibilityIdentifier("club.community.imagePreviewSheet.image")
+                }
+                #endif
+                Text("\(candidate.width)×\(candidate.height)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .navigationTitle(Text("club.community.imagePreview"))
+            .toolbar {
+                Button("club.community.closePreview") {
+                    onClose()
+                }
+                .accessibilityIdentifier("club.community.imagePreviewSheet.close")
+            }
         }
     }
 }

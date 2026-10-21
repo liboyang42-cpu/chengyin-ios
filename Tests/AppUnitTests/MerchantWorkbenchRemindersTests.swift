@@ -351,5 +351,31 @@ import XCTest
         XCTAssertEqual(coordinator.requestedMode, .merchant)
         XCTAssertEqual(coordinator.verifiedAccess, managerAccess)
         XCTAssertTrue(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
+
+        // 10. Cancelled revalidateMerchantMode while active keeps merchant mode active, while real revocation on child return closes it:
+        let stillActiveAfterCancelledRevalidate = await coordinator.revalidateMerchantMode(reader: cancellingReader, accountID: 501)
+        XCTAssertTrue(stillActiveAfterCancelledRevalidate)
+        XCTAssertEqual(coordinator.requestedMode, .merchant)
+        XCTAssertEqual(coordinator.verifiedAccess, managerAccess)
+
+        let dashboardModel = MerchantLoadModel<MerchantDashboard>()
+        let todoModel = MerchantLoadModel<MerchantTodo>()
+        let eventsModel = MerchantLoadModel<[MerchantEvent]>()
+        let revokedReader = StubMerchantReader(result: .failure(MerchantReadError.accessDenied))
+        let returnDisposition = await MerchantHomeView<StubMerchantReader>.refreshWorkbenchOnChildReturn(
+            accessModel: accessModel,
+            dashboard: dashboardModel,
+            todo: todoModel,
+            events: eventsModel,
+            reader: revokedReader,
+            businessReader: nil,
+            observer: observer
+        )
+        XCTAssertEqual(returnDisposition, .completed)
+        XCTAssertEqual(completeCount, 1)
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        XCTAssertNil(coordinator.verifiedAccess)
+        XCTAssertEqual(coordinator.statusErrorKey, "merchant.access.denied")
+        XCTAssertFalse(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
     }
 }

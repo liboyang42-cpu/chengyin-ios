@@ -145,6 +145,11 @@ final class AppSession: ObservableObject {
     private let dormantCommunityService = ClubCommunityService(dormantBaseURL: URL(string: "https://disabled.invalid")!, transport: CommunityDormantHTTPTransport())
     var clubCommunityReadApprovalSelector: (RuntimeDependencyContext) -> ClubCommunityReadApproval? = { _ in nil }
     var clubCommunityTransportOverride: (any HTTPTransport)?
+    var clubCommunityPendingOutcomeQueryOverride: (any ClubCommunityPendingOutcomeQuerying)?
+    var clubPostImageUploadApprovalSelector: (RuntimeDependencyContext, Int) -> ClubPostImageUploadApproval? = { _, _ in nil }
+    func compositionClubCommunityReadApproval(_ context: RuntimeDependencyContext) -> ClubCommunityReadApproval? {
+        composition.clubCommunityReadApproval(context)
+    }
     private var communityService: ClubCommunityService {
         resolvedClubCommunityService(fallback: dormantCommunityService)
     }
@@ -154,19 +159,107 @@ final class AppSession: ObservableObject {
     private func currentCommunitySession() throws -> ClubCommunitySession {
         try ClubCommunitySession(identity: clubIdentity, token: token)
     }
-    private lazy var communityCoordinator = ClubCommunityCoordinator(service: dormantCommunityService, currentSession: { [weak self] in
-        guard let self else { throw ClubCommunityFailure.unavailable }; return try self.currentCommunitySession()
-    }, refreshEvidence: { [weak self] old in
-        guard let self else { throw ClubCommunityFailure.unavailable }
-        return try await self.communityEvidence(clubID: old.clubID, post: old.post, comment: old.comment)
-    }, journal: ClubCommunityStoredPendingJournal(defaults: sessionDefaults))
-    var clubCommunityContext: ClubCommunityContext {
-        ClubCommunityContext(service: communityService, currentSession: { [weak self] in
+    private struct ClubCommunityDynamicPendingOutcomeQuery: ClubCommunityPendingOutcomeQuerying {
+        let resolve: () -> any ClubCommunityPendingOutcomeQuerying
+        var allowsAuthoritativeQueries: Bool { resolve().allowsAuthoritativeQueries }
+        func queryOutcome(
+            for record: ClubCommunityPendingRecord,
+            session: ClubCommunitySession,
+            check: () throws -> Void
+        ) async throws -> ClubCommunityPendingQueryResult {
+            try await resolve().queryOutcome(for: record, session: session, check: check)
+        }
+    }
+    private lazy var communityCoordinator = ClubCommunityCoordinator(
+        service: dormantCommunityService,
+        currentSession: { [weak self] in
             guard let self else { throw ClubCommunityFailure.unavailable }; return try self.currentCommunitySession()
-        }, coordinator: communityCoordinator, evidence: { [weak self] clubID, post, comment in
+        },
+        refreshEvidence: { [weak self] old in
             guard let self else { throw ClubCommunityFailure.unavailable }
-            return try await self.communityEvidence(clubID: clubID, post: post, comment: comment)
+            return try await self.communityEvidence(clubID: old.clubID, post: old.post, comment: old.comment)
+        },
+        journal: ClubCommunityStoredPendingJournal(defaults: sessionDefaults),
+        namespace: { [weak self] in self?.storageScope?.service ?? "default" },
+        outcomeQuery: ClubCommunityDynamicPendingOutcomeQuery(resolve: { [weak self] in
+            self?.clubCommunityPendingOutcomeQueryOverride ?? ClubCommunityDormantPendingOutcomeQuery()
         })
+    )
+    func currentClubPostImageUploadContext(clubID: Int, postID: Int?) -> ClubPostImageUploadContext? {
+        guard let account, token != nil, let namespace = storageScope?.service else { return nil }
+        return try? ClubPostImageUploadContext(
+            accountID: account.id,
+            epoch: gate.currentStamp,
+            namespace: namespace,
+            clubID: clubID,
+            postID: postID
+        )
+    }
+    func selectClubPostImageUploadApproval(clubID: Int) -> ClubPostImageUploadApproval? {
+        guard let runtimeContext = currentRuntimeDependencyContext,
+              let uploadContext = currentClubPostImageUploadContext(clubID: clubID, postID: nil),
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let approval = clubPostImageUploadApprovalSelector(runtimeContext, clubID)
+                  ?? composition.clubPostImageUploadApproval(runtimeContext, clubID),
+              approval.matches(baseURL: configuration.baseURL, context: uploadContext) else {
+            return nil
+        }
+        return approval
+    }
+    func makeClubPostImagePickerContext() -> ClubPostImagePickerContext {
+        ClubPostImagePickerContext(
+            makePickerForClub: { [weak self] clubID, postID in
+                guard let self else { return ClubPostDisabledImagePicker() }
+                return ClubPostNativeImagePicker(
+                    host: self.retainedImagePickerHost,
+                    permitted: { [weak self] in
+                        guard let self,
+                              self.currentClubPostImageUploadContext(clubID: clubID, postID: postID) != nil,
+                              let approval = self.selectClubPostImageUploadApproval(clubID: clubID) else {
+                            return false
+                        }
+                        return approval.nativePicker
+                    }
+                )
+            },
+            makeUploaderForClub: { [weak self] clubID, postID in
+                guard let self,
+                      let configuration = self.regionalConfiguration?.apiConfiguration else {
+                    return ClubPostImageDisabledUploader()
+                }
+                let transport = self.compositionTransport
+                    .scopedForClubPostImageUpload(clubID: clubID)
+                    .replacingUnderlying(self.composition.makeClubPostImageUploadTransport())
+                return ClubPostImageUploadClient(
+                    configuration: configuration,
+                    transport: transport,
+                    currentContext: { [weak self] in
+                        self?.currentClubPostImageUploadContext(clubID: clubID, postID: postID)
+                    },
+                    currentToken: { [weak self] in self?.token },
+                    currentApproval: { [weak self] in
+                        self?.selectClubPostImageUploadApproval(clubID: clubID)
+                    }
+                )
+            },
+            currentUploadContext: { [weak self] clubID, postID in
+                self?.currentClubPostImageUploadContext(clubID: clubID, postID: postID)
+            }
+        )
+    }
+    var clubCommunityContext: ClubCommunityContext {
+        ClubCommunityContext(
+            service: communityService,
+            currentSession: { [weak self] in
+                guard let self else { throw ClubCommunityFailure.unavailable }; return try self.currentCommunitySession()
+            },
+            coordinator: communityCoordinator,
+            evidence: { [weak self] clubID, post, comment in
+                guard let self else { throw ClubCommunityFailure.unavailable }
+                return try await self.communityEvidence(clubID: clubID, post: post, comment: comment)
+            },
+            postImagePicker: makeClubPostImagePickerContext()
+        )
     }
     private func communityEvidence(clubID: Int, post: ClubCommunityPost?, comment: ClubCommunityComment?) async throws -> ClubCommunityEvidence {
         let captured = try currentCommunitySession()

@@ -214,6 +214,76 @@ final class ClubPostImageUploadTests: XCTestCase {
         XCTAssertTrue(controller.uploadedReferences.isEmpty)
         XCTAssertTrue(controller.localCandidates.isEmpty)
     }
+
+    func testDraftControllerReplaceCancelAndCompositionRouteAdmission() async throws {
+        let liveContext = try ClubPostImageUploadContext(
+            accountID: 7,
+            epoch: 1,
+            namespace: "cn.prod",
+            clubID: 3
+        )
+        let approval = try ClubPostImageUploadApproval(
+            baseURL: baseURL,
+            namespace: "cn.prod",
+            accountID: 7,
+            clubID: 3,
+            approvedOrigins: approvedOrigins,
+            nativePicker: true
+        )
+        var uploadCounter = 0
+        var seenRoute: ClubPostImageUploadCompositionRoute?
+        let transport = SpyUploadHTTPTransport { request in
+            seenRoute = ClubPostImageUploadCompositionRoute(request: request, baseURL: self.baseURL)
+            uploadCounter += 1
+            return (Data(#"{"code":200,"url":"https://cdn.example.com/club/replaced-\#(uploadCounter).jpg"}"#.utf8), 200)
+        }
+        let client = ClubPostImageUploadClient(
+            configuration: try APIConfiguration(baseURL: baseURL),
+            transport: transport,
+            currentContext: { liveContext },
+            currentToken: { "tok-7" },
+            currentApproval: { approval }
+        )
+        let controller = ClubPostImageDraftController(
+            uploader: client,
+            currentContext: { liveContext }
+        )
+        controller.bind(
+            context: liveContext,
+            initialReferences: ["https://cdn.example.com/club/initial.jpg"]
+        )
+
+        // 1. Replace uploaded reference in place and verify route admission
+        let replacementImage = try makeValidJPEG(seed: 11)
+        let didReplace = await controller.replaceUploadedReference(at: 0, with: replacementImage)
+        XCTAssertTrue(didReplace)
+        XCTAssertNotNil(seenRoute)
+        XCTAssertEqual(controller.uploadedReferences, ["https://cdn.example.com/club/replaced-1.jpg"])
+        XCTAssertEqual(
+            controller.previewsByReference["https://cdn.example.com/club/replaced-1.jpg"],
+            replacementImage
+        )
+        XCTAssertFalse(controller.didAutoSubmit)
+
+        // 2. Replace local candidate in place when uploader is unconfigured
+        let localController = ClubPostImageDraftController(
+            uploader: ClubPostImageDisabledUploader(),
+            currentContext: { liveContext }
+        )
+        localController.bind(context: liveContext, initialReferences: [])
+        let firstLocal = try makeValidJPEG(seed: 21)
+        let secondLocal = try makeValidJPEG(seed: 22)
+        _ = await localController.stageSelectedImage(firstLocal)
+        let replacedLocal = localController.replaceLocalCandidate(id: firstLocal.id, with: secondLocal)
+        XCTAssertTrue(replacedLocal)
+        XCTAssertEqual(localController.localCandidates, [secondLocal])
+
+        // 3. Cancel active upload clears uploading state and sets cancelled status
+        localController.cancelCurrentUpload()
+        XCTAssertFalse(localController.isUploading)
+        XCTAssertEqual(localController.statusKey, "club.community.imageUploadCancelled")
+        XCTAssertFalse(localController.didAutoSubmit)
+    }
 }
 
 @MainActor

@@ -262,6 +262,85 @@ final class ClubCommunityReadRuntimeTests: XCTestCase {
         XCTAssertNil(runtime.postsSnapshot)
         XCTAssertNil(runtime.activeFingerprint)
     }
+
+    func testFullFlowListToDetailPaginationHistoryRefreshAndReturnRefreshesList() async throws {
+        let context = try makeContext()
+        let session = try ClubCommunitySession(
+            identity: .init(accountID: 7, epoch: 1),
+            token: "tok-7"
+        )
+        let approval = try ClubCommunityReadApproval(
+            context: context,
+            expiresAt: Date().addingTimeInterval(300)
+        )
+        var listVersion = 1
+        var detailCommentPages: [Int] = []
+        let rawTransport = CommunityReadTestTransport { request in
+            let url = try XCTUnwrap(request.url)
+            let body = request.httpBody.flatMap {
+                try? JSONSerialization.jsonObject(with: $0) as? [String: Any]
+            } ?? [:]
+            switch url.path {
+            case "/api/club/post/list":
+                let row = #"{"id":101,"clubId":3,"memberId":7,"nickname":"Ada","content":"Post v\#(listVersion)","version":\#(listVersion),"likeCount":2,"commentCount":2,"liked":false}"#
+                return (Data(#"{"code":200,"data":{"rows":[\#(row)],"total":1,"clubCount":1}}"#.utf8), 200)
+            case "/api/club/post/comment/list":
+                let page = body["pageNum"] as? Int ?? 1
+                detailCommentPages.append(page)
+                let row = #"{"id":\#(page),"postId":101,"memberId":8,"nickname":"Bob","content":"Comment p\#(page)"}"#
+                return (Data(#"{"code":200,"data":{"rows":[\#(row)],"total":2,"clubCount":1}}"#.utf8), 200)
+            case "/api/club/post/history":
+                let row = #"{"id":900,"postId":101,"snapshotVersion":1,"content":"Initial post","createTime":"2026-04-19"}"#
+                return (Data(#"{"code":200,"data":[\#(row)]}"#.utf8), 200)
+            default:
+                XCTFail("Unexpected path: \(url.path)")
+                return (Data(), 500)
+            }
+        }
+
+        let runtime = ClubCommunityReadRuntime(
+            makeService: {
+                let fenced = ClubCommunityReadRuntimeTransport(
+                    transport: rawTransport,
+                    currentContext: { context },
+                    selectApproval: { _ in approval },
+                    currentSession: { session }
+                )
+                return ClubCommunityService(baseURL: self.baseURL, transport: fenced)
+            },
+            currentSession: { session },
+            currentContext: { context },
+            selectApproval: { _ in approval }
+        )
+
+        // 1. Load club post list
+        let initialPosts = await runtime.loadPosts(clubID: 3, page: 1)
+        let firstPost = try XCTUnwrap(initialPosts?.posts.first)
+        XCTAssertEqual(firstPost.content, "Post v1")
+        XCTAssertEqual(runtime.lastListOperation, .posts(clubID: 3, page: 1))
+
+        // 2. Open post detail -> loads page 1 comments and history
+        let detail = await runtime.openPostDetail(firstPost)
+        XCTAssertEqual(runtime.selectedPost?.id, 101)
+        XCTAssertEqual(detail?.comments.first?.content, "Comment p1")
+        let history = await runtime.loadHistory(postID: 101)
+        XCTAssertEqual(history?.history.first?.content, "Initial post")
+
+        // 3. Paginate comments on detail and refresh comments
+        let page2 = await runtime.loadComments(postID: 101, page: 2)
+        XCTAssertEqual(page2?.comments.first?.content, "Comment p2")
+        _ = await runtime.loadComments(postID: 101, page: 1)
+        XCTAssertEqual(detailCommentPages, [1, 2, 1])
+
+        // 4. Return from detail clears detail snapshots and refreshes the active list
+        listVersion = 2
+        let refreshedList = await runtime.returnFromDetail()
+        XCTAssertNil(runtime.selectedPost)
+        XCTAssertNil(runtime.commentsSnapshot)
+        XCTAssertNil(runtime.historySnapshot)
+        XCTAssertEqual(refreshedList?.posts.first?.content, "Post v2")
+        XCTAssertEqual(runtime.postsSnapshot?.posts.first?.version, 2)
+    }
 }
 
 @MainActor

@@ -74,6 +74,37 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
         }
         return disposition
     }
+
+    @discardableResult
+    static func refreshWorkbenchOnChildReturn(
+        accessModel: MerchantLoadModel<MerchantAccess>,
+        dashboard: MerchantLoadModel<MerchantDashboard>,
+        todo: MerchantLoadModel<MerchantTodo>,
+        events: MerchantLoadModel<[MerchantEvent]>,
+        reader: Reader,
+        businessReader: (any MerchantBusinessReading)?,
+        observer: MerchantAccessObservationHook
+    ) async -> MerchantLoadDisposition {
+        let disposition = await reloadAccess(into: accessModel, reader: reader, observer: observer)
+        guard disposition == .completed,
+              reader.isConfigured,
+              reader.isSignedIn,
+              accessModel.loadedRevision == reader.sessionRevision,
+              let identity = accessModel.value,
+              identity.active else {
+            return disposition
+        }
+        if identity.canReadDashboard {
+            await dashboard.load(reader: reader) { try await reader.merchantDashboard(access: identity) }
+        }
+        if identity.isOwner || identity.canReadAftercare {
+            await MerchantWorkbenchTodoLoader.load(into: todo, reader: reader, access: identity, businessReader: businessReader)
+        }
+        if identity.isOwner {
+            await events.load(reader: reader) { try await reader.merchantEvents(access: identity) }
+        }
+        return disposition
+    }
 }
 
 @MainActor
@@ -99,6 +130,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
     @StateObject private var events = MerchantLoadModel<[MerchantEvent]>()
     @State private var aftercareReturnRevision: UInt64 = 0
+    @State private var childReturnRevision: UInt64 = 0
 
     private var aftercareRoute: MerchantWorkbenchBusinessRoute? {
         guard access.canReadAftercare, let businessReader, let businessJournal else { return nil }
@@ -133,7 +165,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             if let operationsReader {
                 Section {
                     NavigationLink {
-                        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory).id(operationsReader.scope)
+                        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
+                            .id(operationsReader.scope)
+                            .onDisappear { childReturnRevision &+= 1 }
                     } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
                     .accessibilityIdentifier("merchant.operations.open")
                 }
@@ -145,7 +179,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: businessJournal))
                             .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: businessReader, journal: businessJournal))
                             .id(businessReader.scope)
-                            .onDisappear { aftercareReturnRevision &+= 1 }
+                            .onDisappear { aftercareReturnRevision &+= 1; childReturnRevision &+= 1 }
                     } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
                         .accessibilityIdentifier("merchant.business.open")
                     ForEach(MerchantWorkbenchBusinessShortcut.allCases) { shortcut in
@@ -163,6 +197,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         MerchantEngagementHomeView(reader: engagementReader, journal: businessJournal,
                             exportRecovery: exportRecovery, businessReader: businessReader)
                             .id(engagementReader.scope)
+                            .onDisappear { childReturnRevision &+= 1 }
                     } label: { Label("merchant.engagement.title", systemImage: "person.2.crop.square.stack") }
                     .accessibilityIdentifier("merchant.engagement.open")
                 }
@@ -172,19 +207,27 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     NavigationLink { MerchantContentHomeView(service: contentService)
                         .environment(\.merchantContentSupplyDestination, cooperationFlowReader.map { flowReader in
                             { source in AnyView(MerchantCooperationSupplyView(source: source, reader: flowReader)) }
-                        }).id(contentService.scope) } label: { Label("merchant.content.title", systemImage: "map") }
+                        }).id(contentService.scope)
+                        .onDisappear { childReturnRevision &+= 1 }
+                    } label: { Label("merchant.content.title", systemImage: "map") }
                         .accessibilityIdentifier("merchant.content.open")
                 }
             }
             if let coopCenterDestination {
                 Section {
-                    NavigationLink { coopCenterDestination(.plaza, nil) } label: { Label(mcc("merchantCoopCenter.title", locale), systemImage: "person.2.wave.2") }
+                    NavigationLink {
+                        coopCenterDestination(.plaza, nil)
+                            .onDisappear { childReturnRevision &+= 1 }
+                    } label: { Label(mcc("merchantCoopCenter.title", locale), systemImage: "person.2.wave.2") }
                         .accessibilityIdentifier("merchant.coopCenter.open")
                 }
             }
             if let cooperationFlowReader {
                 Section {
-                    NavigationLink { CooperationFlowWorkbench(reader: cooperationFlowReader, operationScope: "MERCHANT") } label: { Label("coopflow.title", systemImage: "person.2") }
+                    NavigationLink {
+                        CooperationFlowWorkbench(reader: cooperationFlowReader, operationScope: "MERCHANT")
+                            .onDisappear { childReturnRevision &+= 1 }
+                    } label: { Label("coopflow.title", systemImage: "person.2") }
                         .accessibilityIdentifier("merchant.cooperationFlows.open")
                 }
             }
@@ -239,11 +282,17 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             if showsRecordLinks && (access.allows(.orders) || access.allows(.projects)) {
                 Section("merchant.records") {
                     if access.allows(.orders) {
-                        NavigationLink { MerchantOrdersView(reader: reader) } label: { Label("merchant.orders", systemImage: "receipt") }
+                        NavigationLink {
+                            MerchantOrdersView(reader: reader)
+                                .onDisappear { childReturnRevision &+= 1 }
+                        } label: { Label("merchant.orders", systemImage: "receipt") }
                             .accessibilityIdentifier("merchant.orders.entry")
                     }
                     if access.allows(.projects) {
-                        NavigationLink { MerchantProjectsView(reader: reader, contentService: contentService) } label: { Label("merchant.projects", systemImage: "calendar") }
+                        NavigationLink {
+                            MerchantProjectsView(reader: reader, contentService: contentService)
+                                .onDisappear { childReturnRevision &+= 1 }
+                        } label: { Label("merchant.projects", systemImage: "calendar") }
                             .accessibilityIdentifier("merchant.projects.entry")
                     }
                 }
@@ -259,7 +308,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
                     .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
                     .id(route)
-                    .onDisappear { aftercareReturnRevision &+= 1 }
+                    .onDisappear { aftercareReturnRevision &+= 1; childReturnRevision &+= 1 }
             } else {
                 Text("merchant.business.stale")
             }
@@ -274,6 +323,14 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         .task(id: aftercareReturnRevision) {
             guard aftercareReturnRevision > 0 else { return }
             await loadTodo()
+        }
+        .task(id: childReturnRevision) {
+            guard childReturnRevision > 0 else { return }
+            await refreshAccess()
+            async let d: Void = loadDashboard()
+            async let t: Void = loadTodo()
+            async let e: Void = loadEvents()
+            _ = await (d, t, e)
         }
     }
     private func aftercareEvidenceDependencies(journal: any MerchantBusinessIntentStore) -> MerchantAftercareEvidenceDependencies? {

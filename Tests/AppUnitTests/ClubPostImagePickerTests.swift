@@ -133,6 +133,94 @@ final class ClubPostImagePickerTests: XCTestCase {
         XCTAssertTrue(bridge.draft.uploadedReferences.isEmpty)
         XCTAssertTrue(bridge.draft.localCandidates.isEmpty)
     }
+
+    func testComposerBridgeReplaceCancelAndHostCompositionUploadWiring() async throws {
+        let firstImage = try makeSanitizedImage(width: 64, height: 64)
+        let replacementImage = try makeSanitizedImage(width: 96, height: 72)
+        let picker = StubClubPostImagePicker(image: firstImage)
+
+        let session = try PlayExperienceSession(
+            accountID: 7,
+            epoch: 1,
+            namespace: "cn.prod",
+            token: "tok-7",
+            role: "player"
+        )
+        let runtimeContext = RuntimeDependencyContext(
+            market: .china,
+            baseURL: baseURL,
+            role: "player",
+            session: session
+        )
+        let approval = try ClubPostImageUploadApproval(
+            baseURL: baseURL,
+            namespace: "cn.prod",
+            accountID: 7,
+            clubID: 3,
+            approvedOrigins: approvedOrigins,
+            nativePicker: true
+        )
+        var uploadIndex = 0
+        let rawTransport = StubPickerHTTPTransport { _ in
+            uploadIndex += 1
+            return (Data(#"{"code":200,"url":"https://cdn.example.com/club/upload-\#(uploadIndex).jpg"}"#.utf8), 200)
+        }
+        var root = AppCompositionRoot(makeTransport: { rawTransport })
+        root.clubPostImageUploadApproval = { _, clubID in
+            clubID == 3 ? approval : nil
+        }
+        let apiConfig = try APIConfiguration(baseURL: baseURL)
+
+        let pickerContext = ClubPostImagePickerContext(
+            makePickerForClub: { _, _ in picker },
+            makeUploaderForClub: { clubID, postID in
+                ClubPostImageUploadClient(
+                    configuration: apiConfig,
+                    transport: rawTransport,
+                    currentContext: {
+                        try? ClubPostImageUploadContext(
+                            accountID: 7,
+                            epoch: 1,
+                            namespace: "cn.prod",
+                            clubID: clubID,
+                            postID: postID
+                        )
+                    },
+                    currentToken: { "tok-7" },
+                    currentApproval: { root.clubPostImageUploadApproval(runtimeContext, clubID) }
+                )
+            },
+            currentUploadContext: { clubID, postID in
+                try? ClubPostImageUploadContext(
+                    accountID: 7,
+                    epoch: 1,
+                    namespace: "cn.prod",
+                    clubID: clubID,
+                    postID: postID
+                )
+            }
+        )
+        let bridge = ClubPostImageComposerBridge(context: pickerContext, clubID: 3, postID: nil)
+        bridge.bind(initialReferences: [])
+
+        // 1. Stage first image via host AppCompositionRoot transport
+        let initialRefs = await bridge.selectAndStageImage()
+        XCTAssertEqual(initialRefs, ["https://cdn.example.com/club/upload-1.jpg"])
+
+        // 2. Replace uploaded reference in place
+        picker.image = replacementImage
+        let replacedRefs = await bridge.selectAndReplaceUploadedReference(at: 0)
+        XCTAssertEqual(replacedRefs, ["https://cdn.example.com/club/upload-2.jpg"])
+        bridge.openUploadedPreview(for: "https://cdn.example.com/club/upload-2.jpg")
+        XCTAssertEqual(bridge.previewingCandidate, replacementImage)
+        bridge.closePreview()
+
+        // 3. Cancel active selection/upload preserves already bound draft references and never auto-submits
+        bridge.cancelActiveSelectionOrUpload()
+        XCTAssertEqual(bridge.draft.uploadedReferences, ["https://cdn.example.com/club/upload-2.jpg"])
+        XCTAssertEqual(bridge.draft.statusKey, "club.community.imageUploadCancelled")
+        XCTAssertFalse(bridge.draft.didAutoSubmit)
+    }
 }
 
 @MainActor

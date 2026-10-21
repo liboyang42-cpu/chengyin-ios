@@ -276,4 +276,91 @@ final class ClubCommunityPendingJournalTests: XCTestCase {
         // Meanwhile post20's UNKNOWN lock is still intact:
         XCTAssertTrue(coordinator.isLocked(makeEvidence(clubID: 10, post: post20)))
     }
+
+    func testAuthoritativeHTTPPendingOutcomeQueryReconcilesRestartedPendingRecordWithoutUnlockingOnStillPendingOrMismatch() async throws {
+        var rawStore: [String: Data] = [:]
+        let journal = ClubCommunityStoredPendingJournal(
+            read: { rawStore[$0] },
+            write: { data, key in rawStore[key] = data }
+        )
+        let baseURL = URL(string: "https://fixture.invalid")!
+        let transport = CL3FakeTransport()
+        transport.failWithTimeout = true
+        let service = ClubCommunityService(
+            dormantBaseURL: baseURL,
+            transport: transport,
+            grant: .reviewedInjection
+        )
+        let session = try ClubCommunitySession(identity: identity5, token: "token-5")
+        let post = try makePost(id: 20, clubID: 10, authorID: 5)
+        let evidence = makeEvidence(clubID: 10, post: post)
+
+        let coordinatorBeforeRestart = ClubCommunityCoordinator(
+            service: service,
+            currentSession: { session },
+            refreshEvidence: { $0 },
+            journal: journal
+        )
+        let review = try await coordinatorBeforeRestart.prepare(
+            .update(content: "updated body", images: [], requestID: "req-cl3"),
+            evidence: evidence
+        )
+        do {
+            try await coordinatorBeforeRestart.confirm(review)
+            XCTFail("Expected timeout into unknownLocked")
+        } catch {
+            XCTAssertEqual(error as? ClubCommunityFailure, .unknown)
+        }
+
+        // Simulate app restart with authoritative HTTP pending outcome query
+        transport.failWithTimeout = false
+        let outcomeQuery = ClubCommunityHTTPPendingOutcomeQuery(
+            dormantBaseURL: baseURL,
+            transport: transport,
+            enabled: true
+        )
+        let coordinatorAfterRestart = ClubCommunityCoordinator(
+            service: service,
+            currentSession: { session },
+            refreshEvidence: { $0 },
+            journal: journal,
+            outcomeQuery: outcomeQuery
+        )
+
+        let recoveredRecord = try XCTUnwrap(coordinatorAfterRestart.pendingRecord(for: evidence))
+        XCTAssertEqual(recoveredRecord.operationID, review.id)
+        XCTAssertEqual(recoveredRecord.postVersion, 2)
+        XCTAssertEqual(coordinatorAfterRestart.outcome, .unknownLocked)
+
+        // 1. Server reports PENDING -> lock stays active
+        transport.body = Data(
+            #"{"code":200,"data":{"operationId":"\#(review.id.uuidString)","requestId":"\#(review.id.uuidString)","status":"PENDING","clubId":10,"postId":20}}"#.utf8
+        )
+        let stillPending = try await coordinatorAfterRestart.reconcilePendingOperation(for: evidence)
+        XCTAssertEqual(stillPending, .unknownLocked)
+        XCTAssertTrue(coordinatorAfterRestart.isLocked(evidence))
+        XCTAssertEqual(coordinatorAfterRestart.outcome, .unknownLocked)
+
+        // 2. Mismatched operationId in receipt -> fails closed (.invalid) and keeps lock
+        transport.body = Data(
+            #"{"code":200,"data":{"operationId":"\#(UUID().uuidString)","requestId":"\#(review.id.uuidString)","status":"ACKNOWLEDGED","clubId":10,"postId":20}}"#.utf8
+        )
+        do {
+            _ = try await coordinatorAfterRestart.reconcilePendingOperation(for: evidence)
+            XCTFail("Expected mismatched operationId receipt to fail closed")
+        } catch {
+            XCTAssertEqual(error as? ClubCommunityFailure, .invalid)
+        }
+        XCTAssertTrue(coordinatorAfterRestart.isLocked(evidence))
+
+        // 3. Authoritative ACKNOWLEDGED receipt for the exact same operationId + requestId releases lock
+        transport.body = Data(
+            #"{"code":200,"data":{"operationId":"\#(review.id.uuidString)","requestId":"\#(review.id.uuidString)","status":"ACKNOWLEDGED","clubId":10,"postId":20}}"#.utf8
+        )
+        let reconciled = try await coordinatorAfterRestart.reconcilePendingOperation(for: evidence)
+        XCTAssertEqual(reconciled, .acknowledgedRefreshRequired)
+        XCTAssertFalse(coordinatorAfterRestart.isLocked(evidence))
+        XCTAssertNil(coordinatorAfterRestart.pendingRecord(for: evidence))
+        XCTAssertEqual(coordinatorAfterRestart.outcome, .acknowledgedRefreshRequired)
+    }
 }

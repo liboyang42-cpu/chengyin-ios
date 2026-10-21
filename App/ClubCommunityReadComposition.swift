@@ -61,7 +61,7 @@ extension AppSession {
     func selectClubCommunityReadApproval(_ context: RuntimeDependencyContext) -> ClubCommunityReadApproval? {
         guard let current = clubCommunityRuntimeContext,
               ContentDraftContextFence.matches(context, current),
-              let approval = clubCommunityReadApprovalSelector(context),
+              let approval = clubCommunityReadApprovalSelector(context) ?? compositionClubCommunityReadApproval(context),
               approval.matches(context) else {
             return nil
         }

@@ -270,11 +270,13 @@ public final class ClubCommunityReadRuntime {
     public private(set) var postsSnapshot: ClubCommunitySnapshot?
     public private(set) var commentsSnapshot: ClubCommunitySnapshot?
     public private(set) var historySnapshot: ClubCommunitySnapshot?
+    public private(set) var selectedPost: ClubCommunityPost?
     public private(set) var postsPage: Int = 1
     public private(set) var commentsPage: Int = 1
     public private(set) var activeClubID: Int?
     public private(set) var activePostID: Int?
     public private(set) var lastOperation: ClubCommunityRead?
+    public private(set) var lastListOperation: ClubCommunityRead?
     public private(set) var lastFailedOperation: ClubCommunityRead?
     public private(set) var isLoading: Bool = false
     public private(set) var errorKey: String?
@@ -323,11 +325,13 @@ public final class ClubCommunityReadRuntime {
         postsSnapshot = nil
         commentsSnapshot = nil
         historySnapshot = nil
+        selectedPost = nil
         postsPage = 1
         commentsPage = 1
         activeClubID = nil
         activePostID = nil
         lastOperation = nil
+        lastListOperation = nil
         lastFailedOperation = nil
         isLoading = false
         errorKey = nil
@@ -351,9 +355,16 @@ public final class ClubCommunityReadRuntime {
             postsSnapshot = nil
             commentsSnapshot = nil
             historySnapshot = nil
+            selectedPost = nil
         }
         activeFingerprint = fingerprint
         lastOperation = operation
+        switch operation {
+        case .posts, .feed:
+            lastListOperation = operation
+        case .comments, .history:
+            break
+        }
         isLoading = true
         errorKey = nil
 
@@ -382,10 +393,16 @@ public final class ClubCommunityReadRuntime {
                 activeClubID = clubID
                 postsPage = page
                 postsSnapshot = result
+                if let currentSelected = selectedPost {
+                    selectedPost = result.posts.first(where: { $0.id == currentSelected.id })
+                }
             case let .feed(page):
                 activeClubID = nil
                 postsPage = page
                 postsSnapshot = result
+                if let currentSelected = selectedPost {
+                    selectedPost = result.posts.first(where: { $0.id == currentSelected.id })
+                }
             case let .comments(postID, page):
                 activePostID = postID
                 commentsPage = page
@@ -468,6 +485,37 @@ public final class ClubCommunityReadRuntime {
     @discardableResult
     public func loadHistory(postID: Int) async -> ClubCommunitySnapshot? {
         await load(.history(postID: postID))
+    }
+
+    /// Opens a post detail from the currently loaded posts snapshot and loads page 1 of its comments.
+    @discardableResult
+    public func openPostDetail(_ post: ClubCommunityPost) async -> ClubCommunitySnapshot? {
+        guard let fingerprint = currentScopeFingerprint(),
+              activeFingerprint == fingerprint,
+              let loadedPosts = postsSnapshot?.posts,
+              let matched = loadedPosts.first(where: { $0.id == post.id && $0.version == post.version }) else {
+            selectedPost = nil
+            commentsSnapshot = nil
+            historySnapshot = nil
+            return nil
+        }
+        selectedPost = matched
+        activePostID = matched.id
+        commentsPage = 1
+        historySnapshot = nil
+        return await load(.comments(postID: matched.id, page: 1))
+    }
+
+    /// Closes the active post detail, clears child comments/history snapshots, and refreshes the parent post list.
+    @discardableResult
+    public func returnFromDetail() async -> ClubCommunitySnapshot? {
+        selectedPost = nil
+        activePostID = nil
+        commentsPage = 1
+        commentsSnapshot = nil
+        historySnapshot = nil
+        guard let listOp = lastListOperation else { return nil }
+        return await load(listOp)
     }
 
     /// Reloads the active read operation upon returning from comments, history, or detail screens.

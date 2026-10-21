@@ -177,8 +177,8 @@ public final class ClubPostImageDisabledUploader: ClubPostImageUploading {
 /// Requires an explicit `ClubPostImageUploadApproval` matching the active account, epoch, namespace, and club.
 @MainActor
 public final class ClubPostImageUploadClient: ClubPostImageUploading {
-    public static let path = "api/common/uploadOSS"
-    public static let businessType = "club_post_image"
+    nonisolated public static let path = "api/common/uploadOSS"
+    nonisolated public static let businessType = "club_post_image"
 
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
@@ -467,10 +467,125 @@ public final class ClubPostImageDraftController: ObservableObject {
     public func removeUploadedReference(at index: Int) {
         guard uploadedReferences.indices.contains(index) else { return }
         let removed = uploadedReferences.remove(at: index)
-        previewsByReference.removeValue(forKey: removed)
+        if !uploadedReferences.contains(removed) {
+            previewsByReference.removeValue(forKey: removed)
+        }
     }
 
     public func removeLocalCandidate(id: UUID) {
         localCandidates.removeAll { $0.id == id }
+    }
+
+    /// Cancels any in-flight upload without discarding existing uploaded references or local candidates.
+    public func cancelCurrentUpload() {
+        generation &+= 1
+        isUploading = false
+        statusKey = "club.community.imageUploadCancelled"
+    }
+
+    /// Replaces a staged local candidate in place without altering other candidates or composer text.
+    @discardableResult
+    public func replaceLocalCandidate(id: UUID, with image: RetainedSelectedImage) -> Bool {
+        guard validateCurrentContext() != nil,
+              let index = localCandidates.firstIndex(where: { $0.id == id }) else {
+            statusKey = "club.community.actionUnavailable"
+            return false
+        }
+        guard !image.jpeg.isEmpty,
+              image.jpeg.starts(with: [255, 216, 255]),
+              image.jpeg.count <= RetainedSelectedImage.maximumBytes,
+              (1...RetainedSelectedImage.maximumDimension).contains(image.width),
+              (1...RetainedSelectedImage.maximumDimension).contains(image.height) else {
+            statusKey = "club.community.invalidImage"
+            return false
+        }
+        localCandidates[index] = image
+        statusKey = "club.community.imageUploadUnconfiguredLocalDraft"
+        return true
+    }
+
+    /// Replaces an uploaded reference at `index` only after the replacement upload succeeds and passes
+    /// origin/reference validation under the unchanged context. If cancelled or failed, the previous
+    /// reference at `index` remains intact.
+    @discardableResult
+    public func replaceUploadedReference(at index: Int, with image: RetainedSelectedImage) async -> Bool {
+        guard let context = validateCurrentContext(),
+              uploadedReferences.indices.contains(index),
+              uploader.isConfigured(for: context) else {
+            statusKey = "club.community.actionUnavailable"
+            return false
+        }
+        guard !image.jpeg.isEmpty,
+              image.jpeg.starts(with: [255, 216, 255]),
+              image.jpeg.count <= RetainedSelectedImage.maximumBytes,
+              (1...RetainedSelectedImage.maximumDimension).contains(image.width),
+              (1...RetainedSelectedImage.maximumDimension).contains(image.height) else {
+            statusKey = "club.community.invalidImage"
+            return false
+        }
+
+        generation &+= 1
+        let ticket = generation
+        isUploading = true
+        statusKey = nil
+
+        do {
+            let uploaded = try await uploader.upload(image, attemptID: UUID(), context: context)
+            guard !Task.isCancelled,
+                  ticket == generation,
+                  let live = validateCurrentContext(),
+                  live == context,
+                  uploadedReferences.indices.contains(index),
+                  let verified = uploader.permittedReference(uploaded, for: live) else {
+                if currentContext() != context {
+                    invalidate()
+                } else if ticket == generation {
+                    isUploading = false
+                    statusKey = "club.community.actionUnavailable"
+                }
+                return false
+            }
+            isUploading = false
+            let previous = uploadedReferences[index]
+            uploadedReferences[index] = verified
+            if !uploadedReferences.contains(previous) {
+                previewsByReference.removeValue(forKey: previous)
+            }
+            previewsByReference[verified] = image
+            statusKey = nil
+            return true
+        } catch {
+            guard ticket == generation else { return false }
+            if currentContext() != context {
+                invalidate()
+                return false
+            }
+            isUploading = false
+            statusKey = "club.community.actionUnavailable"
+            return false
+        }
+    }
+}
+
+/// Exact composition-root route recognizer for `ClubPostImageUploadClient` (`POST api/common/uploadOSS`
+/// with `ClubPostImage-` multipart boundary and `bizType=club_post_image`).
+public struct ClubPostImageUploadCompositionRoute: Equatable, Sendable {
+    public init?(request: URLRequest, baseURL: URL) {
+        guard Self.matches(request, baseURL: baseURL) else {
+            return nil
+        }
+    }
+
+    public static func matches(_ request: URLRequest, baseURL: URL) -> Bool {
+        guard request.httpMethod?.uppercased() == "POST",
+              let url = request.url,
+              url == baseURL.appendingPathComponent(ClubPostImageUploadClient.path),
+              let contentType = request.value(forHTTPHeaderField: "Content-Type"),
+              contentType.hasPrefix("multipart/form-data; boundary=ClubPostImage-"),
+              let body = request.httpBody else {
+            return false
+        }
+        let marker = Data("Content-Disposition: form-data; name=\"bizType\"\r\n\r\n\(ClubPostImageUploadClient.businessType)\r\n".utf8)
+        return body.range(of: marker) != nil
     }
 }

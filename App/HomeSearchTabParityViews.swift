@@ -642,13 +642,86 @@ final class MerchantRootModeCoordinator: ObservableObject {
     }
 
     /// Re-verifies current merchant access and immediately tears down merchant mode if revoked or expired.
+    /// When Merchant Root Mode is already active for `(accountID, reader.sessionRevision)`, a cancelled
+    /// revalidation read never revokes the active grant, whereas a completed revocation/denial closes it immediately.
     @discardableResult
     func revalidateMerchantMode<Reader: MerchantReading>(
         reader: Reader,
         accountID: Int?
     ) async -> Bool {
-        let preservedTab = selectedMerchantTab
-        return await requestMerchantMode(reader: reader, accountID: accountID, initialTab: preservedTab)
+        guard reader.isConfigured else {
+            clearMerchantGrant(errorKey: "auth.notConfigured")
+            return false
+        }
+        guard reader.isSignedIn, let accountID, accountID > 0 else {
+            clearMerchantGrant(errorKey: "merchant.signIn")
+            return false
+        }
+        if let verifiedAccountID, verifiedAccountID != accountID {
+            switchToConsumerMode()
+            return false
+        }
+        if let verifiedSessionRevision, verifiedSessionRevision != reader.sessionRevision {
+            switchToConsumerMode()
+            return false
+        }
+        guard let token = beginAccessObservation(accountID: accountID, revision: reader.sessionRevision) else {
+            let preservedTab = selectedMerchantTab
+            return await requestMerchantMode(reader: reader, accountID: accountID, initialTab: preservedTab)
+        }
+        do {
+            let access = try await reader.merchantAccess()
+            try Task.checkCancellation()
+            applyObservedMerchantAccess(
+                token: token,
+                access: access,
+                errorKey: nil,
+                currentAccountID: accountID,
+                currentRevision: reader.sessionRevision
+            )
+            return isMerchantModeActive(
+                accountID: accountID,
+                isSignedIn: reader.isSignedIn,
+                isConfigured: reader.isConfigured,
+                revision: reader.sessionRevision
+            )
+        } catch is CancellationError {
+            return isMerchantModeActive(
+                accountID: accountID,
+                isSignedIn: reader.isSignedIn,
+                isConfigured: reader.isConfigured,
+                revision: reader.sessionRevision
+            )
+        } catch {
+            guard !Task.isCancelled else {
+                return isMerchantModeActive(
+                    accountID: accountID,
+                    isSignedIn: reader.isSignedIn,
+                    isConfigured: reader.isConfigured,
+                    revision: reader.sessionRevision
+                )
+            }
+            let key: String
+            if error as? MerchantReadError == .accessDenied {
+                key = "merchant.access.denied"
+            } else if error as? APIError == .unauthorized {
+                key = "auth.expired"
+            } else if error as? APIError == .notConfigured {
+                key = "auth.notConfigured"
+            } else if error as? APIError == .malformedResponse {
+                key = "merchant.invalidResponse"
+            } else {
+                key = "merchant.loadFailed"
+            }
+            applyObservedMerchantAccess(
+                token: token,
+                access: nil,
+                errorKey: key,
+                currentAccountID: accountID,
+                currentRevision: reader.sessionRevision
+            )
+            return false
+        }
     }
 
     /// Captures a strict observation lease at the moment a child merchant surface initiates an access reload.
@@ -1020,6 +1093,11 @@ struct SessionMerchantRootContainerView: View {
         .id(coordinator.merchantContainerGeneration)
         .onChange(of: recommendationOrigin) { _, _ in selectedMarketingSuggestion = nil }
         .onChange(of: session.merchantMarketingCoordinator.scopeIdentity) { _, _ in selectedMarketingSuggestion = nil }
+        .onChange(of: selectedMarketingSuggestion) { oldValue, newValue in
+            if oldValue != nil && newValue == nil {
+                Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) }
+            }
+        }
         .onChange(of: coordinator.selectedMerchantTab) { _, _ in
             Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) }
         }

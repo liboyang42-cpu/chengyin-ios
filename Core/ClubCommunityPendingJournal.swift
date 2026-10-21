@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public enum ClubCommunityPendingJournalFailure: Error, Equatable {
     case invalidTarget
@@ -88,14 +91,33 @@ public struct ClubCommunityPendingRecord: Codable, Equatable, Sendable {
     public let operationID: UUID
     public let operationKind: String
     public let phase: Phase
+    public let requestID: String?
+    public let postVersion: Int?
 
     public init(
         version: Int = 1,
         target: ClubCommunityPendingTarget,
         operationID: UUID,
         operationKind: String,
-        phase: Phase
+        phase: Phase,
+        requestID: String? = nil,
+        postVersion: Int? = nil
     ) throws {
+        let normalizedRequestID: String?
+        if let rawRequestID = requestID {
+            let trimmed = rawRequestID.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty, trimmed.utf8.count <= 128 else {
+                throw ClubCommunityPendingJournalFailure.corrupt
+            }
+            normalizedRequestID = trimmed
+        } else {
+            normalizedRequestID = nil
+        }
+        if let postVersion {
+            guard postVersion >= 0 else {
+                throw ClubCommunityPendingJournalFailure.corrupt
+            }
+        }
         guard version == 1,
               Self.allowedOperationKinds.contains(operationKind) else {
             throw ClubCommunityPendingJournalFailure.corrupt
@@ -105,6 +127,8 @@ public struct ClubCommunityPendingRecord: Codable, Equatable, Sendable {
         self.operationID = operationID
         self.operationKind = operationKind
         self.phase = phase
+        self.requestID = normalizedRequestID
+        self.postVersion = postVersion
     }
 }
 
@@ -183,7 +207,9 @@ public final class ClubCommunityStoredPendingJournal: ClubCommunityPendingJourna
               let decoded = try? JSONDecoder().decode(ClubCommunityPendingRecord.self, from: bytes),
               decoded.version == 1,
               decoded.target == target,
-              ClubCommunityPendingRecord.allowedOperationKinds.contains(decoded.operationKind) else {
+              ClubCommunityPendingRecord.allowedOperationKinds.contains(decoded.operationKind),
+              (decoded.requestID == nil || (!decoded.requestID!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && decoded.requestID!.utf8.count <= 128)),
+              (decoded.postVersion == nil || decoded.postVersion! >= 0) else {
             throw ClubCommunityPendingJournalFailure.corrupt
         }
         return decoded
@@ -212,7 +238,9 @@ public final class ClubCommunityStoredPendingJournal: ClubCommunityPendingJourna
             target: target,
             operationID: operationID,
             operationKind: existing.operationKind,
-            phase: .unknownLocked
+            phase: .unknownLocked,
+            requestID: existing.requestID,
+            postVersion: existing.postVersion
         )
         try persist(updated)
     }
@@ -285,5 +313,141 @@ public final class ClubCommunityInMemoryPendingJournal: ClubCommunityPendingJour
         resolution: ClubCommunityAuthoritativeResolution
     ) throws {
         try backing.releaseAfterAuthoritativeOutcome(target: target, resolution: resolution)
+    }
+}
+
+/// Authoritative same-request query result for a persisted pending operation.
+/// Never guesses from list/comment snapshots, title/content matching, or count deltas.
+public enum ClubCommunityPendingQueryResult: Equatable, Sendable {
+    case stillPending
+    case resolved(ClubCommunityAuthoritativeResolution)
+}
+
+@MainActor
+public protocol ClubCommunityPendingOutcomeQuerying {
+    var allowsAuthoritativeQueries: Bool { get }
+    func queryOutcome(
+        for record: ClubCommunityPendingRecord,
+        session: ClubCommunitySession,
+        check: () throws -> Void
+    ) async throws -> ClubCommunityPendingQueryResult
+}
+
+/// Default fail-closed same-request outcome query when no authoritative receipt endpoint is enabled.
+public struct ClubCommunityDormantPendingOutcomeQuery: ClubCommunityPendingOutcomeQuerying {
+    public init() {}
+    public var allowsAuthoritativeQueries: Bool { false }
+    public func queryOutcome(
+        for record: ClubCommunityPendingRecord,
+        session: ClubCommunitySession,
+        check: () throws -> Void
+    ) async throws -> ClubCommunityPendingQueryResult {
+        throw ClubCommunityFailure.unavailable
+    }
+}
+
+/// Same-request authoritative outcome query adapter over `POST api/club/post/operation/receipt`.
+/// Verifies exact `operationID`, `requestID` (when recorded), `clubID`, `postID`, and `commentID`.
+public struct ClubCommunityHTTPPendingOutcomeQuery: ClubCommunityPendingOutcomeQuerying {
+    private let baseURL: URL
+    private let transport: any HTTPTransport
+    public let allowsAuthoritativeQueries: Bool
+
+    public init(baseURL: URL, transport: any HTTPTransport) {
+        self.baseURL = baseURL
+        self.transport = transport
+        self.allowsAuthoritativeQueries = false
+    }
+
+    public init(dormantBaseURL: URL, transport: any HTTPTransport, enabled: Bool = false) {
+        self.baseURL = dormantBaseURL
+        self.transport = transport
+        self.allowsAuthoritativeQueries = enabled
+    }
+
+    public init(offlineBaseURL: URL, transport: any ClubCommunityOfflineTransport) {
+        self.baseURL = offlineBaseURL
+        self.transport = transport
+        self.allowsAuthoritativeQueries = true
+    }
+
+    public func queryOutcome(
+        for record: ClubCommunityPendingRecord,
+        session: ClubCommunitySession,
+        check: () throws -> Void
+    ) async throws -> ClubCommunityPendingQueryResult {
+        guard allowsAuthoritativeQueries else { throw ClubCommunityFailure.unavailable }
+        guard session.identity.isSignedIn,
+              session.identity.accountID == record.target.accountID else {
+            throw ClubCommunityFailure.stale
+        }
+        guard baseURL.scheme == "https",
+              baseURL.host != nil,
+              baseURL.user == nil,
+              baseURL.password == nil else {
+            throw ClubCommunityFailure.invalid
+        }
+        let canonicalRequestID = record.requestID ?? record.operationID.uuidString
+        var fields: [String: Any] = [
+            "clubId": record.target.clubID,
+            "postId": record.target.postID,
+            "commentId": record.target.commentID,
+            "operationId": record.operationID.uuidString,
+            "operationKind": record.operationKind,
+            "requestId": canonicalRequestID
+        ]
+        if let postVersion = record.postVersion {
+            fields["version"] = postVersion
+        }
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/club/post/operation/receipt"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = session.token {
+            request.setValue(token, forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
+
+        try check()
+        let (data, status) = try await transport.send(request)
+        try check()
+
+        let rawPayload = try ClubCommunityService.decode(data, status: status)
+        guard let payload = rawPayload as? [String: Any],
+              let returnedOperationIDRaw = payload["operationId"] as? String,
+              let returnedOperationID = UUID(uuidString: returnedOperationIDRaw),
+              returnedOperationID == record.operationID else {
+            throw ClubCommunityFailure.invalid
+        }
+        let returnedClubID = (payload["clubId"] as? Int) ?? record.target.clubID
+        let returnedPostID = (payload["postId"] as? Int) ?? record.target.postID
+        let returnedCommentID = (payload["commentId"] as? Int) ?? record.target.commentID
+        guard returnedClubID == record.target.clubID,
+              returnedPostID == record.target.postID,
+              returnedCommentID == record.target.commentID else {
+            throw ClubCommunityFailure.stale
+        }
+        if let returnedRequestID = payload["requestId"] as? String {
+            guard returnedRequestID == canonicalRequestID else {
+                throw ClubCommunityFailure.stale
+            }
+        } else if record.requestID != nil {
+            throw ClubCommunityFailure.stale
+        }
+        guard let statusText = (payload["status"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() else {
+            throw ClubCommunityFailure.invalid
+        }
+        switch statusText {
+        case "PENDING":
+            return .stillPending
+        case "ACKNOWLEDGED":
+            return .resolved(.acknowledged(operationID: record.operationID))
+        case "REJECTED":
+            guard let rejectedCode = payload["rejectedCode"] as? Int, rejectedCode > 0 else {
+                throw ClubCommunityFailure.invalid
+            }
+            return .resolved(.rejected(operationID: record.operationID, code: rejectedCode))
+        default:
+            throw ClubCommunityFailure.invalid
+        }
     }
 }

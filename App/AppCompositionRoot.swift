@@ -128,6 +128,11 @@ extension KeychainTokenStore: AppTokenStorage {}
     var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
     /// 设置 → 隐私与定位 → 我的待审媒体 (GET list only). Dormant until a reviewed lease exists.
     var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
+    /// 俱乐部动态读取 (`api/club/post/list`, `feed`, `comment/list`, `history`). Dormant until a reviewed lease exists.
+    var clubCommunityReadApproval: @MainActor (RuntimeDependencyContext) -> ClubCommunityReadApproval? = { _ in nil }
+    /// 俱乐部帖子图片上传 (`api/common/uploadOSS`, `bizType=club_post_image`). Dormant until a reviewed lease exists.
+    var clubPostImageUploadApproval: @MainActor (RuntimeDependencyContext, Int) -> ClubPostImageUploadApproval? = { _, _ in nil }
+    var makeClubPostImageUploadTransport: @MainActor () -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: 64 * 1024) }
     let profileFavoriteTopicReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess?
     let profileFavoriteDetailAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?
     let profileInviteHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess?
@@ -275,6 +280,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         let transport = CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamAlbumMetadataReadAccess: roamAlbumMetadataReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
         transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
         transport.ownMediaReadApproval = ownMediaReadApproval
+        transport.clubCommunityReadApproval = clubCommunityReadApproval
+        transport.clubPostImageUploadApproval = clubPostImageUploadApproval
         transport.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
         transport.roamPassportToolsReadAccess = roamPassportToolsReadAccess
         transport.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
@@ -550,6 +557,9 @@ extension KeychainTokenStore: AppTokenStorage {}
     var current: () -> SessionIdentity? = { nil }
     var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
     var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
+    var clubCommunityReadApproval: @MainActor (RuntimeDependencyContext) -> ClubCommunityReadApproval? = { _ in nil }
+    var clubPostImageUploadApproval: @MainActor (RuntimeDependencyContext, Int) -> ClubPostImageUploadApproval? = { _, _ in nil }
+    private var clubPostImageUploadClubID: Int?
     var roamEntryNearbyReadAccess: @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess? = { _ in nil }
     var roamPassportToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? = { _ in nil }
     var roamPrivateToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil }
@@ -775,6 +785,11 @@ extension KeychainTokenStore: AppTokenStorage {}
     func scopedForManualMap(_ selection: ManualMapAreaSelection) -> CompositionHTTPTransport {
         copy(underlying: underlying, manualMapSelection: selection)
     }
+    func scopedForClubPostImageUpload(clubID: Int) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.clubPostImageUploadClubID = clubID
+        return transport
+    }
     /// Replacing only the network/recorder adapter must preserve every approval selector.
     func replacingUnderlying(_ underlying: any HTTPTransport) -> CompositionHTTPTransport {
         copy(underlying: underlying, manualMapSelection: manualMapSelection)
@@ -789,6 +804,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.current = { self.current() }
         transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
         transport.ownMediaReadApproval = ownMediaReadApproval
+        transport.clubCommunityReadApproval = { self.clubCommunityReadApproval($0) }
+        transport.clubPostImageUploadApproval = { self.clubPostImageUploadApproval($0, $1) }
+        transport.clubPostImageUploadClubID = clubPostImageUploadClubID
         transport.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
         transport.roamPassportToolsReadAccess = roamPassportToolsReadAccess
         transport.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
@@ -1544,6 +1562,33 @@ extension KeychainTokenStore: AppTokenStorage {}
             readApprovalStillValid = { [teamReadApproval] in
                 guard let currentApproval = teamReadApproval(context) else { return false }
                 return currentApproval.revision == approval.revision && currentApproval.matches(context)
+            }
+        } else if ClubCommunityReadRoute(request: request, baseURL: api.baseURL) != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = clubCommunityReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [clubCommunityReadApproval] in
+                guard let currentApproval = clubCommunityReadApproval(context) else { return false }
+                return currentApproval.revision == approval.revision && currentApproval.matches(context)
+            }
+        } else if ClubPostImageUploadCompositionRoute.matches(request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer,
+                  let clubID = clubPostImageUploadClubID, clubID > 0,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token),
+                  let uploadContext = try? ClubPostImageUploadContext(
+                    accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, clubID: clubID
+                  ) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = clubPostImageUploadApproval(context, clubID),
+                  approval.matches(baseURL: api.baseURL, context: uploadContext) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [clubPostImageUploadApproval] in
+                guard let currentApproval = clubPostImageUploadApproval(context, clubID) else { return false }
+                return currentApproval == approval && currentApproval.matches(baseURL: api.baseURL, context: uploadContext)
             }
         } else if MessagingHistoryReadRoute(request: request, baseURL: api.baseURL) != nil {
             guard captured.isSignedInContentViewer,

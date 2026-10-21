@@ -23,6 +23,7 @@ final class ClubCommunityViewModel: ObservableObject {
     @Published var notice: String?
     @Published var review: ClubCommunityReview?
     @Published private(set) var busy = false
+    @Published private(set) var pendingRecord: ClubCommunityPendingRecord?
     private var generation: UInt64 = 0
     private var identity: ClubReadIdentity?
     private var pendingDraft: (ClubCommunityOperation, Int, ClubCommunityPost?, ClubReadIdentity)?
@@ -41,7 +42,79 @@ final class ClubCommunityViewModel: ObservableObject {
         context.coordinator?.cancel()
     }
     func invalidate() {
-        suspend(); imageReadScope = UUID(); snapshot = nil; notice = nil
+        suspend(); imageReadScope = UUID(); snapshot = nil; notice = nil; pendingRecord = nil
+    }
+    private func pendingEvidenceProbe(
+        clubID: Int,
+        post: ClubCommunityPost? = nil,
+        comment: ClubCommunityComment? = nil
+    ) -> ClubCommunityEvidence? {
+        guard clubID > 0, let session = try? context.currentSession(), session.identity.isSignedIn else { return nil }
+        return ClubCommunityEvidence(
+            identity: session.identity,
+            clubID: clubID,
+            joined: false,
+            owner: false,
+            administrator: false,
+            post: post,
+            comment: comment
+        )
+    }
+    /// Recovers any durable pending record for `(clubID, post, comment)` on page entry or after restart.
+    @discardableResult
+    func recoverPendingState(
+        clubID: Int,
+        post: ClubCommunityPost? = nil,
+        comment: ClubCommunityComment? = nil
+    ) -> ClubCommunityPendingRecord? {
+        guard let coordinator = context.coordinator,
+              let probe = pendingEvidenceProbe(clubID: clubID, post: post, comment: comment) else {
+            pendingRecord = nil
+            return nil
+        }
+        let locked = coordinator.recoverPendingLock(for: probe)
+        let record = coordinator.pendingRecord(for: probe)
+        pendingRecord = record
+        if locked || record != nil {
+            notice = "club.community.unknown"
+        }
+        return record
+    }
+    /// Queries the authoritative same-request outcome for an unresolved pending operation on `(clubID, post, comment)`.
+    /// Never generates a new request ID, never re-submits the write, and never infers success from list reads.
+    func reconcilePending(
+        clubID: Int,
+        post: ClubCommunityPost? = nil,
+        comment: ClubCommunityComment? = nil,
+        refresh: ClubCommunityRead
+    ) async {
+        guard !busy,
+              let coordinator = context.coordinator,
+              let probe = pendingEvidenceProbe(clubID: clubID, post: post, comment: comment) else {
+            notice = "club.community.offline"
+            return
+        }
+        busy = true
+        defer { busy = false }
+        do {
+            let outcome = try await coordinator.reconcilePendingOperation(for: probe)
+            pendingRecord = coordinator.pendingRecord(for: probe)
+            switch outcome {
+            case .acknowledgedRefreshRequired:
+                await load(refresh)
+                notice = "club.community.refreshRequired"
+            case .moderationQueued:
+                await load(refresh)
+                notice = "club.community.queued"
+            case .rejected:
+                notice = "club.community.actionUnavailable"
+            default:
+                notice = "club.community.unknown"
+            }
+        } catch {
+            pendingRecord = coordinator.pendingRecord(for: probe)
+            notice = "club.community.unknown"
+        }
     }
     func load(_ operation: ClubCommunityRead) async {
         generation &+= 1; let ticket = generation
@@ -59,6 +132,10 @@ final class ClubCommunityViewModel: ObservableObject {
     }
     func prepare(_ operation: ClubCommunityOperation, clubID: Int, post: ClubCommunityPost? = nil, comment: ClubCommunityComment? = nil) async {
         guard !busy, let coordinator = context.coordinator else { notice = "club.community.offline"; return }
+        if recoverPendingState(clubID: clubID, post: post, comment: comment) != nil {
+            notice = "club.community.unknown"
+            return
+        }
         busy = true; defer { busy = false }
         do {
             let session = try context.currentSession(), ticket = generation
@@ -67,17 +144,29 @@ final class ClubCommunityViewModel: ObservableObject {
             let candidate = try await coordinator.prepare(operation, evidence: evidence)
             guard ticket == generation, try context.currentSession() == session else { coordinator.cancel(); throw ClubCommunityFailure.stale }
             review = candidate
-        } catch { notice = "club.community.actionUnavailable" }
+        } catch {
+            _ = recoverPendingState(clubID: clubID, post: post, comment: comment)
+            if notice != "club.community.unknown" {
+                notice = "club.community.actionUnavailable"
+            }
+        }
     }
     func confirm(refresh: ClubCommunityRead) async {
         guard !busy, let review, let coordinator = context.coordinator else { return }
+        let targetClubID = review.evidence.clubID
+        let targetPost = review.evidence.post
+        let targetComment = review.evidence.comment
         busy = true; self.review = nil
         do {
             try await coordinator.confirm(review)
+            pendingRecord = coordinator.pendingRecord(for: review.evidence)
             let queued = coordinator.outcome == .moderationQueued
             await load(refresh)
             notice = queued ? "club.community.queued" : "club.community.refreshRequired"
-        } catch { notice = coordinator.outcome == .unknownLocked ? "club.community.unknown" : "club.community.actionUnavailable" }
+        } catch {
+            _ = recoverPendingState(clubID: targetClubID, post: targetPost, comment: targetComment)
+            notice = coordinator.outcome == .unknownLocked ? "club.community.unknown" : "club.community.actionUnavailable"
+        }
         busy = false
     }
     func cancelReview() { review = nil; context.coordinator?.cancel() }
@@ -97,7 +186,7 @@ struct ClubCommunityEntry: View {
 }
 
 private struct ClubCommunityDestination: Hashable {
-    enum Screen: Hashable { case comments, history }
+    enum Screen: Hashable { case detail, comments, history }
     let post: ClubCommunityPost
     let clubID: Int?
     let screen: Screen
@@ -124,6 +213,21 @@ struct ClubCommunityFeedView: View {
         List {
             if model.loading { ProgressView().accessibilityLabel(Text("club.community.loading")) }
             if let notice = model.notice { Text(LocalizedStringKey(notice)).accessibilityIdentifier("club.community.notice") }
+            if let pending = model.pendingRecord, let clubID {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(LocalizedStringKey("club.community.pendingLocked"))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("club.community.pendingLocked.\(pending.operationKind)")
+                    if model.context.coordinator?.permitsAuthoritativeOutcomeQueries == true {
+                        Button("club.community.reconcilePending") {
+                            Task { await model.reconcilePending(clubID: clubID, refresh: operation) }
+                        }
+                        .disabled(model.busy || model.loading)
+                        .accessibilityIdentifier("club.community.reconcilePending")
+                    }
+                }
+            }
             if let snapshot = model.snapshot {
                 if snapshot.clubCount == 0 { Text("club.community.joinFirst") }
                 else if snapshot.posts.isEmpty { Text("club.community.empty") }
@@ -138,7 +242,8 @@ struct ClubCommunityFeedView: View {
                         ClubCommunityPostTile(post: post, clubID: post.clubID ?? clubID, identity: identity, model: model,
                             commentsExpanded: discussion.selection?.post.id == post.id, canOpenComments: target != nil,
                             openComments: { if let target { toggleDiscussion(target) } },
-                            openHistory: { destination = .init(post: post, clubID: post.clubID ?? clubID, screen: .history) })
+                            openHistory: { destination = .init(post: post, clubID: post.clubID ?? clubID, screen: .history) },
+                            openDetail: { destination = .init(post: post, clubID: post.clubID ?? clubID, screen: .detail) })
                         if let selected = discussion.selection, selected.post == post {
                             ClubPostDiscussionPanel(target: selected, source: model, close: { discussion.close() }).id(selected.id)
                         }
@@ -152,7 +257,8 @@ struct ClubCommunityFeedView: View {
             }
             Button("club.community.refresh") { Task { await model.load(operation) } }.disabled(model.loading || model.busy)
             if clubID != nil && identity.isSignedIn {
-                Button("club.community.create") { composing = true }.disabled(model.busy || model.context.coordinator?.permitsInjectedWrites != true)
+                Button("club.community.create") { composing = true }
+                    .disabled(model.busy || model.pendingRecord != nil || model.context.coordinator?.permitsInjectedWrites != true)
                     .accessibilityIdentifier("club.community.compose")
             }
             if model.context.coordinator?.permitsInjectedWrites != true { Text("club.community.offline").foregroundStyle(.secondary) }
@@ -161,6 +267,13 @@ struct ClubCommunityFeedView: View {
         .background(alignment: .topLeading) { ClubPostDiscussionFixtureTraceView() }
         .navigationDestination(item: $destination) { target in
             switch target.screen {
+            case .detail:
+                ClubCommunityPostDetailView(
+                    context: model.context,
+                    identity: identity,
+                    clubID: target.clubID,
+                    post: target.post
+                )
             case .comments:
                 if let clubID = target.clubID { ClubCommunityCommentsView(context: model.context, identity: identity, clubID: clubID, post: target.post) }
             case .history:
@@ -168,9 +281,22 @@ struct ClubCommunityFeedView: View {
             }
         }
         .onChange(of: identity) { _, _ in destination = nil; discussion.close() }
+        .onChange(of: destination) { oldValue, newValue in
+            if oldValue != nil, newValue == nil, (try? model.context.currentSession().identity) == identity {
+                Task {
+                    await model.load(operation)
+                    if let clubID { _ = model.recoverPendingState(clubID: clubID) }
+                }
+            }
+        }
         .onChange(of: model.imageReadScope) { _, _ in discussion.close() }
         .onChange(of: topics.viewerRevision) { _, _ in discussion.close() }
-        .task(id: identity) { model.invalidate(); page = 1; await model.load(operation) }
+        .task(id: identity) {
+            model.invalidate()
+            page = 1
+            await model.load(operation)
+            if let clubID { _ = model.recoverPendingState(clubID: clubID) }
+        }
         .task(id: page) { await model.load(operation) }
         // Pushing a row destination must not remove the NavigationLink that owns it.
         // Identity changes still clear all private snapshots in the task above.
@@ -204,6 +330,7 @@ struct ClubCommunityPostTile: View {
     var canOpenComments = true
     let openComments: () -> Void
     let openHistory: () -> Void
+    var openDetail: (() -> Void)? = nil
     @State private var editing = false
     @State private var evidence: ClubCommunityEvidence?
     private func allows(_ operation: ClubCommunityOperation) -> Bool {
@@ -238,8 +365,14 @@ struct ClubCommunityPostTile: View {
                 } label: { Label("club.community.actions", systemImage: "ellipsis") }
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
             }
-            Button(action: openHistory) { Text("club.community.history") }
-                .accessibilityIdentifier("club.community.history.\(post.id)")
+            HStack(spacing: 12) {
+                if let openDetail {
+                    Button(action: openDetail) { Text("club.community.detail") }
+                        .accessibilityIdentifier("club.community.detail.\(post.id)")
+                }
+                Button(action: openHistory) { Text("club.community.history") }
+                    .accessibilityIdentifier("club.community.history.\(post.id)")
+            }
         }
         .buttonStyle(.borderless)
         .accessibilityElement(children: .contain)
@@ -249,6 +382,120 @@ struct ClubCommunityPostTile: View {
             if let clubID, let fresh = try? await model.context.evidence(clubID, post, nil), fresh.identity == identity { evidence = fresh }
         }
         .sheet(isPresented: $editing, onDismiss: { Task { await model.reviewPendingDraft() } }) { if let clubID { ClubCommunityComposer(model: model, clubID: clubID, post: post) } }
+    }
+}
+
+@MainActor
+struct ClubCommunityPostDetailView: View {
+    let identity: ClubReadIdentity
+    let clubID: Int?
+    let post: ClubCommunityPost
+    @StateObject private var model: ClubCommunityViewModel
+    @State private var commentPage = 1
+    @State private var showingHistory = false
+
+    init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int?, post: ClubCommunityPost) {
+        self.identity = identity
+        self.clubID = clubID
+        self.post = post
+        _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
+    }
+
+    private var commentsOperation: ClubCommunityRead {
+        .comments(postID: post.id, page: commentPage)
+    }
+
+    var body: some View {
+        List {
+            Section {
+                ClubCommunityPostTile(
+                    post: post,
+                    clubID: post.clubID ?? clubID,
+                    identity: identity,
+                    model: model,
+                    commentsExpanded: true,
+                    canOpenComments: false,
+                    openComments: {},
+                    openHistory: { showingHistory = true }
+                )
+            }
+            if let pending = model.pendingRecord, let targetClubID = post.clubID ?? clubID {
+                Section {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(LocalizedStringKey("club.community.pendingLocked"))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("club.community.detail.pendingLocked.\(pending.operationKind)")
+                        if model.context.coordinator?.permitsAuthoritativeOutcomeQueries == true {
+                            Button("club.community.reconcilePending") {
+                                Task {
+                                    await model.reconcilePending(
+                                        clubID: targetClubID,
+                                        post: post,
+                                        refresh: commentsOperation
+                                    )
+                                }
+                            }
+                            .disabled(model.busy || model.loading)
+                            .accessibilityIdentifier("club.community.detail.reconcilePending")
+                        }
+                    }
+                }
+            }
+            Section("club.community.comments") {
+                if model.loading { ProgressView() }
+                if let notice = model.notice {
+                    Text(LocalizedStringKey(notice))
+                        .accessibilityIdentifier("club.community.detail.notice")
+                }
+                if model.snapshot?.comments.isEmpty == true {
+                    Text("club.community.noComments")
+                }
+                ForEach(model.snapshot?.comments ?? []) { comment in
+                    VStack(alignment: .leading, spacing: 4) {
+                        if comment.nickname.isEmpty {
+                            Text("club.community.user")
+                        } else {
+                            Text(verbatim: comment.nickname)
+                        }
+                        Text(verbatim: comment.content)
+                    }
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("club.community.detail.comment.\(comment.id)")
+                }
+                HStack {
+                    Button("club.community.previous") { commentPage = max(1, commentPage - 1) }
+                        .disabled(commentPage == 1)
+                    Spacer()
+                    Button("club.community.next") { commentPage += 1 }
+                        .disabled((model.snapshot?.comments.count ?? 0) < 50)
+                }
+                Button("club.community.refresh") {
+                    Task { await model.load(commentsOperation) }
+                }
+                .disabled(model.loading || model.busy)
+                .accessibilityIdentifier("club.community.detail.refresh")
+            }
+        }
+        .navigationTitle(Text("club.community.detail"))
+        .navigationDestination(isPresented: $showingHistory) {
+            ClubCommunityHistoryView(context: model.context, identity: identity, postID: post.id)
+        }
+        .task(id: identity) {
+            model.invalidate()
+            commentPage = 1
+            await model.load(commentsOperation)
+            if let targetClubID = post.clubID ?? clubID {
+                _ = model.recoverPendingState(clubID: targetClubID, post: post)
+            }
+        }
+        .task(id: commentPage) {
+            await model.load(commentsOperation)
+        }
+        .onDisappear { model.suspend() }
+        .sheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in
+            ClubCommunityReviewView(review: review, model: model, refresh: commentsOperation)
+        }
     }
 }
 
@@ -366,6 +613,21 @@ struct ClubCommunityCommentsView: View {
         List {
             if model.loading { ProgressView() }
             if let notice = model.notice { Text(LocalizedStringKey(notice)) }
+            if let pending = model.pendingRecord {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(LocalizedStringKey("club.community.pendingLocked"))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("club.community.comments.pendingLocked.\(pending.operationKind)")
+                    if model.context.coordinator?.permitsAuthoritativeOutcomeQueries == true {
+                        Button("club.community.reconcilePending") {
+                            Task { await model.reconcilePending(clubID: clubID, post: post, refresh: operation) }
+                        }
+                        .disabled(model.busy || model.loading)
+                        .accessibilityIdentifier("club.community.comments.reconcilePending")
+                    }
+                }
+            }
             if model.snapshot?.comments.isEmpty == true { Text("club.community.noComments") }
             ForEach(model.snapshot?.comments ?? []) { comment in
                 VStack(alignment: .leading) {
@@ -388,13 +650,14 @@ struct ClubCommunityCommentsView: View {
             }
             TextField("club.community.commentContent", text: $content, axis: .vertical).accessibilityIdentifier("club.community.commentContent")
             Button("club.community.review") { Task { await model.prepare(.comment(content), clubID: clubID, post: post) } }
-                .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
+                .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !identity.isSignedIn || model.busy || model.pendingRecord != nil || model.context.coordinator?.permitsInjectedWrites != true)
             Button("club.community.refresh") { Task { await model.load(operation) } }
         }
         .navigationTitle(Text("club.community.comments"))
         .task(id: identity) {
             model.invalidate(); content = ""; evidence = nil
             await model.load(operation)
+            _ = model.recoverPendingState(clubID: clubID, post: post)
             if let fresh = try? await model.context.evidence(clubID, post, nil), fresh.identity == identity { evidence = fresh }
         }
         .task(id: page) { await model.load(operation) }
