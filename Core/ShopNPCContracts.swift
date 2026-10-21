@@ -105,6 +105,19 @@ public struct ShopNPCReply: Equatable {
                     text: safe, asr: voice ? body.asr : nil, safetyDecision: safety, errorCode: data.errorCode)
     }
 }
+/// Public NPC read of one published release. Private order, customer and cost keys are withheld.
+public struct ShopNPCPublicRead: Equatable {
+    public static let withheldKeys: Set<String> = ["order", "orders", "customer", "customers", "cost", "costs"]
+    public let releaseID: String
+    public let facts: [String: String]
+    public init?(releaseID: String, stage: MerchantAuthoringStage, facts: [String: String]) {
+        guard stage == .published, !releaseID.isEmpty else { return nil }
+        let kept = facts.filter { !Self.withheldKeys.contains($0.key.lowercased()) }
+        guard !kept.isEmpty else { return nil }
+        self.releaseID = releaseID
+        self.facts = kept
+    }
+}
 public enum ShopNPCAudioSource: Equatable { case unavailableInSource }
 public struct ShopNPCVoiceClip: Equatable {
     public let bytes: Data

@@ -2,7 +2,8 @@ import Foundation
 
 /// Reform plan v9 §10 / W05.1–W05.4. AI output lands only in an editable draft; it never lists,
 /// prices, signs or changes published story. These types model the reviewed draft-to-release
-/// pipeline the client may render and guard. No generate/save/publish route is registered.
+/// pipeline the client may render and guard. Generate, save and publish routes are
+/// `MerchantAuthoringRoute` in MerchantAuthoringService, not registered in this file.
 public enum MerchantAuthoringStage: String, CaseIterable, Sendable {
     case factsReady = "FACTS_READY"
     case generating = "GENERATING"

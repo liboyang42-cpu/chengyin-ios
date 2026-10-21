@@ -13,8 +13,9 @@ public struct MerchantAICommerceGates: Equatable, Sendable {
     public static let disabled = MerchantAICommerceGates()
     /// Constant, not configurable: payment, cash collection and payouts stay out of this client.
     public var paymentAndCashEnabled: Bool { false }
-    /// Reviewed endpoint allowlist for these surfaces. Empty: the plan's operation names
-    /// (OpenThemeNpcSession, GenerateMerchantDraft, GetOrder, DraftRewardCampaign, …) are proposals
-    /// without an accepted backend contract, so no route is registered.
+    /// Reviewed endpoint allowlist for these surfaces. Empty until a reviewed grant exists.
+    /// Planned generate, save and publish routes are `MerchantAuthoringRoute` for
+    /// ApiMerchantAuthoringController on hengyin branch cursor/w05-j-merchant-authoring.
+    /// MerchantAuthoringService sends only when an injected OperationEndpointApproval names that exact path.
     public static let reviewedEndpoints: [String] = []
 }
