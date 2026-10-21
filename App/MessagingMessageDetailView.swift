@@ -67,9 +67,16 @@ struct MessagingMessageDetailView: View {
                     if let card = message.card {
                         if let topicID = card.topicID {
                             Section {
+                                // w2-20: source route/signup cards read their display fresh.
+                                if let topicReader = expanded?.topicReader {
+                                    IMRouteCardPreview(topicID: topicID, isSignup: card.kind == .signup, reader: topicReader)
+                                }
                                 LabeledContent("messaging.card.topicID", value: String(topicID))
                                 Text("messaging.card.routeHint").foregroundStyle(.secondary)
                             }
+                        }
+                        if card.kind == .location, let latitude = card.latitude, let longitude = card.longitude {
+                            Section { IMLocationCardMap(title: card.title, latitude: latitude, longitude: longitude) }
                         }
                         if expanded == nil, !card.buttonLabels.isEmpty {
                             Section("messaging.card.actions") {

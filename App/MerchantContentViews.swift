@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct MerchantContentHomeView: View {
     let service: any MerchantContentServing
     var topicID: Int? = nil
+    @Environment(\.merchantCityNodeHubDestination) private var cityNodeHub
     private var routes: [MerchantContentQuery] {
         var routes: [MerchantContentQuery] = [.recruiting, .projects, .applications, .registrations(filter: 0), .city, .gameEntries]
         if let topicID, topicID > 0 { routes.insert(.chapters(topicID: topicID), at: 0) }
@@ -14,7 +15,8 @@ import SwiftUI
                 MerchantContentBoundary()
                 ForEach(routes) { query in
                     NavigationLink {
-                        MerchantContentDocumentView(service: service, query: query)
+                        // Source citynode/index; without a host destination keep the generic document.
+                        if query == .city, let cityNodeHub { cityNodeHub() } else { MerchantContentDocumentView(service: service, query: query) }
                     } label: {
                         QuestifyImageEntityCard(imageSource: nil, title: "", fallbackTitle: LocalizedStringKey("merchant.content." + query.key), fallbackSymbol: "map", minimumHeight: 180) {
                             Text("merchant.content.entryHint")
@@ -139,9 +141,10 @@ struct MerchantContentBoundary: View {
                 .disabled(!quota.canPlace || c.busy || c.locked)
                 .accessibilityIdentifier("merchant.cityQuota.placement")
             NavigationLink("merchant.content.claimable") { MerchantContentClaimSearch(service: service) }
-            MerchantContentRows(service: service, model: model, rows: s.value["nodes"].array ?? [], kind: .city)
+            // Mini-program citynode lists applications before nodes.
             Text("merchant.content.cityApplications").font(.headline)
             MerchantContentRows(service: service, model: model, rows: s.value["applications"].array ?? [], kind: .cityApplication)
+            MerchantContentRows(service: service, model: model, rows: s.value["nodes"].array ?? [], kind: .city)
         case .registration(let id):
             MerchantContentFields(value: s.value, names: ["topicName", "nodeName", "chapterName", "status", "auditStatus", "reason", "addressName", "address", "activityDesc", "limitNum", "startDate", "endDate", "cooperateDate"])
             if MerchantRegistrationEditEligibility.allows(status: s.value["status"].integer, auditStatus: s.value["auditStatus"].integer) {
@@ -252,6 +255,7 @@ struct MerchantContentFields: View {
     let rows: [MerchantContentValue]
     let kind: Kind
     var focusedTopicID: Int? = nil
+    @Environment(\.merchantGameNodeDestination) private var gameNodeDestination
     private var rowNamespace: String {
         switch kind { case .city: return "city"; case .cityApplication: return "cityApplication"; case .player: return "player"; case .query(let query): return query.key }
     }
@@ -339,7 +343,12 @@ struct MerchantContentFields: View {
             }
         case .claimable:
             if let poi = row["poiId"].integer ?? row["id"].integer, poi > 0 { Button("merchant.content.claim") { model.prepare(.claim(poiID: poi)) } }
-        case .gameEntries: if let id = row["activityId"].integer, id > 0 { link(.game(activityID: id), key: "game") }
+        case .gameEntries: if let id = row["activityId"].integer, id > 0 {
+            // Source game-node page when the host registers it; the generic station document otherwise.
+            if let gameNodeDestination {
+                NavigationLink { gameNodeDestination(service, .station(activityID: id)) } label: { Text(LocalizedStringKey("merchant.content.game")) }.accessibilityIdentifier("merchant.content.open.game")
+            } else { link(.game(activityID: id), key: "game") }
+        }
         default: EmptyView()
         }
     }
@@ -393,6 +402,7 @@ struct MerchantContentFields: View {
     let value: MerchantContentValue
     let topicID: Int?
     var readOnly = false
+    @Environment(\.merchantGameNodeDestination) private var gameNodeDestination
     var participantsDestination: (() -> AnyView)? = nil
     var body: some View {
         MerchantContentFields(value: value["topic"], names: ["name", "title", "city"])
@@ -425,6 +435,13 @@ struct MerchantContentFields: View {
             Text("merchant.content.joining").font(.headline)
             MerchantContentFields(value: value["join"]["registration"], names: ["addressName", "status", "auditStatus"])
             if !readOnly { NavigationLink("merchant.content.registrations") { MerchantContentDocumentView(service: service, query: .registrations(filter: 0)) } }
+            // Source merchantinfo 更多 rows (这一站怎么接待 / 暂停接待) open game-node through the topic's sessions.
+            if !readOnly, let topicID, let gameNodeDestination {
+                NavigationLink { gameNodeDestination(service, .entries(topicID: topicID, focusPause: false)) } label: { MerchantGameNodeCopy.text("merchantGameNode.title") }
+                    .accessibilityIdentifier("merchant.content.gameNode.entries")
+                NavigationLink { gameNodeDestination(service, .entries(topicID: topicID, focusPause: true)) } label: { MerchantGameNodeCopy.text("merchantGameNode.run.pause") }
+                    .accessibilityIdentifier("merchant.content.gameNode.pause")
+            }
         }
         if value["host"].object == nil && value["join"].object == nil { Text("merchant.content.noWorkspace") }
     }

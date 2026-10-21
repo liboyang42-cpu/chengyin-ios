@@ -9,6 +9,8 @@ public struct ProfileReadFailure: Error, Equatable {
     public let code: Int?
     public let message: String?
     public var isUnauthorized: Bool { httpStatus == 401 || code == 401 }
+    /// Signed in but refused (当前账号无法查看): neither sign-in nor an empty wall.
+    public var isDenied: Bool { !isUnauthorized && (httpStatus == 403 || code == 403) }
     public init(httpStatus: Int? = nil, code: Int? = nil, message: String? = nil) {
         self.httpStatus = httpStatus; self.code = code; self.message = message
     }

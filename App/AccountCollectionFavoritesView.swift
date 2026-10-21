@@ -6,23 +6,55 @@ import SwiftUI
     var pageSize = 10
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
+    var communityGate: (any SquareCommunityFeatureReading)? = nil
     @State private var selectedTab: Tab = .posts
+    @State private var gateFeatures: SquareCommunityFeatures?
+    @State private var gateScope: UUID?
+    @State private var gateFailed = false
     private enum Tab: Hashable { case posts, topics }
+    private var postsAllowed: Bool { guard let communityGate else { return true }; return gateScope == communityGate.scope && gateFeatures?.read == true && !gateFailed }
     var body: some View {
         VStack(spacing: 0) {
-            Picker("accountCollection.favorites.title", selection: $selectedTab) {
-                Text("social.posts").tag(Tab.posts)
-                Text("searchMap.kind.topic").tag(Tab.topics)
+            if postsAllowed {
+                Picker("accountCollection.favorites.title", selection: $selectedTab) {
+                    Text("social.posts").tag(Tab.posts)
+                    Text("searchMap.kind.topic").tag(Tab.topics)
+                }
+                .pickerStyle(.segmented).padding()
+                .accessibilityIdentifier("accountCollection.favorites.tabs")
             }
-            .pickerStyle(.segmented).padding()
-            .accessibilityIdentifier("accountCollection.favorites.tabs")
-            if selectedTab == .posts {
+            if postsAllowed && selectedTab == .posts {
                 AccountCollectionFavoritePostsView(reader: reader, pageSize: pageSize, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval)
             } else {
-                AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize)
+                AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize, retryGate: {
+                    if gateFailed || gateScope != communityGate?.scope { await loadGate() }
+                })
             }
         }
         .appNavigationTitle("accountCollection.favorites.title")
+        .task(id: communityGate?.scope) { await loadGate() }
+        .onChange(of: communityGate?.scope) { _, next in
+            if gateScope != next { gateFeatures = nil; gateScope = nil; gateFailed = false }
+        }
+        .onChange(of: reader.scope) { _, _ in
+            gateFeatures = nil; gateScope = nil; gateFailed = false
+        }
+    }
+    private func loadGate() async {
+        guard let communityGate, reader.isAuthenticated, reader.isConfigured else {
+            gateFeatures = nil; gateScope = nil; gateFailed = false; return
+        }
+        guard gateScope != communityGate.scope else { return }
+        let scope = communityGate.scope
+        gateFailed = false
+        do {
+            let value = try await communityGate.communityFeatures()
+            guard !Task.isCancelled, scope == communityGate.scope else { return }
+            gateFeatures = value; gateScope = scope; gateFailed = false
+        } catch {
+            guard !Task.isCancelled, !(error is CancellationError), scope == communityGate.scope else { return }
+            gateFeatures = nil; gateScope = nil; gateFailed = true
+        }
     }
 }
 
@@ -32,7 +64,10 @@ import SwiftUI
     let reader: any AccountCollectionReading
     let onOpenTopic: (Int) -> Void
     var pageSize = 10
+    var retryGate: (() async -> Void)? = nil
     @StateObject private var model = AccountCollectionFavoritesScreenModel()
+    @Environment(\.topicUnlikeController) private var unlike
+    @State private var unliked: Set<Int> = []
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
     var body: some View {
         List {
@@ -44,15 +79,18 @@ import SwiftUI
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
-                if model.state.visibleRows(scope: key.scope).isEmpty {
+                if model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
                     ContentUnavailableView("accountCollection.favorites.empty", systemImage: "heart",
                                            description: Text("accountCollection.favorites.emptyHint"))
                         .accessibilityIdentifier("accountCollection.favorites.empty")
                 }
-                ForEach(model.state.visibleRows(scope: key.scope)) { topic in
+                ForEach(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }) { topic in
                     Button { onOpenTopic(topic.id) } label: { AccountCollectionFavoriteCard(topic: topic) }
                         .buttonStyle(QuestifyCardButtonStyle())
                         .accessibilityIdentifier("accountCollection.favorite.\(topic.id)")
+                        .overlay(alignment: .topTrailing) {
+                            if let unlike, unlike.isAvailable { TopicUnlikeButton(topicID: topic.id, controller: unlike).padding(8) }
+                        }
                         .questifyCardListRow()
                 }
                 if let issue = model.state.moreIssue {
@@ -62,6 +100,9 @@ import SwiftUI
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.favorites.loadMore")
+                } else if !model.state.visibleRows(scope: key.scope).isEmpty {
+                    Text("member.favorites.topicsEnd", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.favorites.end")
                 }
             }
         }
@@ -75,9 +116,12 @@ import SwiftUI
             }
         }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
+        .modifier(TopicUnlikeFlow(controller: unlike) { unliked.insert($0) })
     }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
+        unliked = []
+        await retryGate?()
         await model.refresh(reader: reader, pageSize: pageSize)
     }
     private func loadMore() async {
@@ -119,6 +163,7 @@ private struct AccountCollectionFavoriteCard: View {
     var favoritesReader: (any AccountCollectionReading)? = nil
     private var savedReader: any AccountCollectionReading { favoritesReader ?? reader }
     var rewardMerchant: PublicMerchantHomeContext? = nil
+    var communityGate: (any SquareCommunityFeatureReading)? = nil
     var body: some View {
         let saved = savedReader, renderedScope = saved.scope
         Section {
@@ -133,7 +178,7 @@ private struct AccountCollectionFavoriteCard: View {
                 }, onOpenPost: onOpenPost.map { open in { route in
                     guard saved.isAuthenticated, saved.isConfigured, saved.scope == renderedScope else { return }
                     open(route)
-                } }, favoriteRemoval: favoriteRemoval).id(renderedScope)
+                } }, favoriteRemoval: favoriteRemoval, communityGate: communityGate).id(renderedScope)
             } label: { Label("accountCollection.favorites.title", systemImage: "heart") }
             .accessibilityIdentifier("accountCollection.openFavorites")
             NavigationLink {
@@ -197,6 +242,9 @@ private struct AccountCollectionFavoriteCard: View {
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.posts.loadMore")
+                } else if !model.state.visibleRows(scope: key.scope).isEmpty {
+                    Text("member.favorites.postsEnd", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.posts.end")
                 }
             }
         }

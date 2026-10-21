@@ -13,12 +13,13 @@ import SwiftUI
         let permit = model.permit(reader)
         List {
             if reader.isOfflineExample { Text("social.offline").font(.caption) }
-            if reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
+            if reader.identity.accountID == nil { ProfileInviteHistoryIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
             else if !model.matches(reader) { ProgressView("social.loading") }
             else {
-                if let error = model.error { SocialIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
+                if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
                 Section {
+                    ProfileInviteHistorySummaryLine(total: model.pagination.total)
                     SocialOptionalCount(title: "social.invites.total", count: model.pagination.total)
                     LabeledContent("social.invites.loaded", value: String(model.pagination.members.count))
                     if model.scan?.isComplete != true { Text("social.invites.partial").font(.footnote).accessibilityIdentifier("social.invites.partial") }
@@ -43,7 +44,7 @@ import SwiftUI
                         }
                     }
                 }
-                if !model.loading && model.pagination.members.isEmpty && model.error == nil { Text("social.invites.empty") }
+                if !model.loading && model.pagination.members.isEmpty && model.error == nil { ProfileInviteHistoryEmptyView() }
                 if model.loading { ProgressView("social.loading") }
                 if model.pagination.continuationInvalid { Text("social.invites.continuationInvalid") }
                 if model.pagination.hasMore && !model.loading && model.error == nil {
@@ -60,7 +61,7 @@ import SwiftUI
     private func memberRow(_ member: SocialInvitedMember) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             if let nickname = member.nickname { Text(verbatim: nickname).font(.headline) }
-            else { Text("square.unknownAuthor").font(.headline) }
+            else { Text("profile.inviteHistory.nicknameUnknown").font(.headline) }
             ProfileInviteTimelineDates(invitationTime: member.createdAt,
                 reward: model.scan?.rewards[String(member.id)])
             if let reward = model.scan?.rewards[String(member.id)] {

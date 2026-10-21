@@ -5,10 +5,11 @@ struct WorkshopPurchasedAccountLink: View {
     let makeProfessional: WorkshopPaidProfessionalControllerFactory
     let makeText: WorkshopPaidInstalledTextControllerFactory
     let makeInstall: WorkshopPaidInstallControllerFactory
-    init(browser: WorkshopPurchasedBrowser?, makeInstall: @escaping WorkshopPaidInstallControllerFactory = { _ in nil }, makeText: @escaping WorkshopPaidInstalledTextControllerFactory = { _ in nil }, makeProfessional: @escaping WorkshopPaidProfessionalControllerFactory = { _ in nil }) { self.browser = browser; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional }
+    let makeUpgrade: WorkshopPurchasedUpgradeFactory
+    init(browser: WorkshopPurchasedBrowser?, makeInstall: @escaping WorkshopPaidInstallControllerFactory = { _ in nil }, makeText: @escaping WorkshopPaidInstalledTextControllerFactory = { _ in nil }, makeProfessional: @escaping WorkshopPaidProfessionalControllerFactory = { _ in nil }, makeUpgrade: @escaping WorkshopPurchasedUpgradeFactory = { nil }) { self.browser = browser; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional; self.makeUpgrade = makeUpgrade }
     var body: some View {
         NavigationLink {
-            if let browser { WorkshopPurchasedLibraryView(browser: browser, makeInstall: makeInstall, makeText: makeText, makeProfessional: makeProfessional).id(browser.identity) }
+            if let browser { WorkshopPurchasedLibraryView(browser: browser, makeInstall: makeInstall, makeText: makeText, makeProfessional: makeProfessional, makeUpgrade: makeUpgrade).id(browser.identity) }
             else { PurchasedUnavailableView().modifier(PurchasedTitle("title")) }
         } label: { Label { purchasedText("title") } icon: { Image(systemName: "checkmark.seal") } }
             .accessibilityIdentifier("account.workshopPurchased")
@@ -21,8 +22,9 @@ struct WorkshopPurchasedAccountLink: View {
     let makeProfessional: WorkshopPaidProfessionalControllerFactory
     let makeText: WorkshopPaidInstalledTextControllerFactory
     let makeInstall: WorkshopPaidInstallControllerFactory
-    init(browser: WorkshopPurchasedBrowser, navigation: WorkshopPurchasedNavigationState? = nil, makeInstall: @escaping WorkshopPaidInstallControllerFactory = { _ in nil }, makeText: @escaping WorkshopPaidInstalledTextControllerFactory = { _ in nil }, makeProfessional: @escaping WorkshopPaidProfessionalControllerFactory = { _ in nil }) {
-        self.browser = browser; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional; _navigation = State(initialValue: navigation ?? WorkshopPurchasedNavigationState(browser: browser))
+    let makeUpgrade: WorkshopPurchasedUpgradeFactory
+    init(browser: WorkshopPurchasedBrowser, navigation: WorkshopPurchasedNavigationState? = nil, makeInstall: @escaping WorkshopPaidInstallControllerFactory = { _ in nil }, makeText: @escaping WorkshopPaidInstalledTextControllerFactory = { _ in nil }, makeProfessional: @escaping WorkshopPaidProfessionalControllerFactory = { _ in nil }, makeUpgrade: @escaping WorkshopPurchasedUpgradeFactory = { nil }) {
+        self.browser = browser; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional; self.makeUpgrade = makeUpgrade; _navigation = State(initialValue: navigation ?? WorkshopPurchasedNavigationState(browser: browser))
     }
     var body: some View {
         @Bindable var navigation = navigation
@@ -70,7 +72,7 @@ struct WorkshopPurchasedAccountLink: View {
                 .disabled(browser.phase == .loading || browser.phase == .invalidated)
         } }
         .navigationDestination(item: $navigation.selection) { selection in
-            WorkshopPurchasedDetailView(browser: browser, licenseId: selection.id, navigation: navigation, makeInstall: makeInstall, makeText: makeText, makeProfessional: makeProfessional).id(selection.id)
+            WorkshopPurchasedDetailView(browser: browser, licenseId: selection.id, navigation: navigation, makeInstall: makeInstall, makeText: makeText, makeProfessional: makeProfessional, makeUpgrade: makeUpgrade).id(selection.id)
         }
     }
 }
@@ -81,8 +83,9 @@ struct WorkshopPurchasedAccountLink: View {
     let makeProfessional: WorkshopPaidProfessionalControllerFactory
     let makeText: WorkshopPaidInstalledTextControllerFactory
     let makeInstall: WorkshopPaidInstallControllerFactory
-    init(browser: WorkshopPurchasedBrowser, licenseId: String, navigation: WorkshopPurchasedNavigationState, makeInstall: @escaping WorkshopPaidInstallControllerFactory = { _ in nil }, makeText: @escaping WorkshopPaidInstalledTextControllerFactory = { _ in nil }, makeProfessional: @escaping WorkshopPaidProfessionalControllerFactory = { _ in nil }) {
-        self.browser = browser; self.licenseId = licenseId; self.navigation = navigation; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional
+    let makeUpgrade: WorkshopPurchasedUpgradeFactory
+    init(browser: WorkshopPurchasedBrowser, licenseId: String, navigation: WorkshopPurchasedNavigationState, makeInstall: @escaping WorkshopPaidInstallControllerFactory = { _ in nil }, makeText: @escaping WorkshopPaidInstalledTextControllerFactory = { _ in nil }, makeProfessional: @escaping WorkshopPaidProfessionalControllerFactory = { _ in nil }, makeUpgrade: @escaping WorkshopPurchasedUpgradeFactory = { nil }) {
+        self.browser = browser; self.licenseId = licenseId; self.navigation = navigation; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional; self.makeUpgrade = makeUpgrade
     }
     var body: some View {
         let displayed = navigation.detailAppearance
@@ -112,6 +115,7 @@ struct WorkshopPurchasedAccountLink: View {
                     purchasedText("purchaseUnavailable").fixedSize(horizontal: false, vertical: true)
                 } header: { purchasedText("currentBoundary") }
                 WorkshopPaidInstallEntry(item: item, makeController: makeInstall, makeProfessional: makeProfessional, makeText: makeText)
+                if let handlers = makeUpgrade() { WorkshopPurchasedUpgradeEntry(item: item, handlers: handlers) }
             } else if let issue = browser.detailIssue {
                 purchasedText(issue == .staleSession ? "sessionChanged" : issue == .notFound ? "notFound" : "failed")
                 if issue != .staleSession { Button { navigation.scheduleDetail(rendered, licenseId: licenseId) } label: { purchasedText("retry") } }

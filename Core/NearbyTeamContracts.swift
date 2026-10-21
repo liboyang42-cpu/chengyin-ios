@@ -48,6 +48,8 @@ public struct NearbyTeam: Decodable, Equatable, Identifiable {
     public let title: String
     public let activityName: String
     public let leaderName: String
+    /// Display-only marker/face URL; never fetched by the read model itself.
+    public let leaderAvatar: String
     public let addressName: String
     public let coordSource: String
     public let productType: Int?
@@ -61,12 +63,12 @@ public struct NearbyTeam: Decodable, Equatable, Identifiable {
     public private(set) var viewerStatus: NearbyViewerStatus
     public private(set) var viewerHasTicket: Bool
     public private(set) var applyExpireTime: NearbyServerTime?
-    enum CodingKeys: String, CodingKey { case teamId, activityId, topicId, title, activityName, leaderName, addressName, coordSource, productType, distance, latitude, longitude, memberAvatars, joinedCount, maxMembers, pendingCount, viewerStatus, viewerHasTicket, applyExpireTime }
+    enum CodingKeys: String, CodingKey { case teamId, activityId, topicId, title, activityName, leaderName, leaderAvatar, addressName, coordSource, productType, distance, latitude, longitude, memberAvatars, joinedCount, maxMembers, pendingCount, viewerStatus, viewerHasTicket, applyExpireTime }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let id = c.nearbyInt(.teamId), id > 0 else { throw NearbyTeamFailure.contract }
         teamID = .init(id); activityID = c.nearbyInt(.activityId); topicID = c.nearbyInt(.topicId)
-        title = c.nearbyText(.title); activityName = c.nearbyText(.activityName); leaderName = c.nearbyText(.leaderName); addressName = c.nearbyText(.addressName); coordSource = c.nearbyText(.coordSource)
+        title = c.nearbyText(.title); activityName = c.nearbyText(.activityName); leaderName = c.nearbyText(.leaderName); leaderAvatar = c.nearbyText(.leaderAvatar); addressName = c.nearbyText(.addressName); coordSource = c.nearbyText(.coordSource)
         productType = c.nearbyInt(.productType); distance = c.nearbyDouble(.distance); latitude = c.nearbyDouble(.latitude); longitude = c.nearbyDouble(.longitude)
         memberAvatars = Array((try c.decodeIfPresent([String].self, forKey: .memberAvatars) ?? []).filter { !$0.isEmpty }.prefix(3))
         joinedCount = max(0, c.nearbyInt(.joinedCount) ?? 0); maxMembers = max(0, c.nearbyInt(.maxMembers) ?? 0); pendingCount = max(0, c.nearbyInt(.pendingCount) ?? 0)
@@ -103,12 +105,19 @@ public struct NearbyMyApplication: Decodable, Equatable, Identifiable {
     public let leaderName: String
     public let status: NearbyViewerStatus
     public let applyExpireTime: NearbyServerTime?
-    enum CodingKeys: String, CodingKey { case teamId, title, leaderName, applyStatus, applyExpireTime }
+    /// Optional my-teams card fields; absent values stay absent (no invented counts).
+    public let activityName: String
+    public let leaderAvatar: String
+    public let joinedCount: Int?
+    public let maxMembers: Int?
+    enum CodingKeys: String, CodingKey { case teamId, title, leaderName, applyStatus, applyExpireTime, activityName, leaderAvatar, joinedCount, maxMembers }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let id = c.nearbyInt(.teamId), id > 0 else { throw NearbyTeamFailure.contract }; self.id = .init(id)
         title = c.nearbyText(.title); leaderName = c.nearbyText(.leaderName); status = NearbyViewerStatus(rawValue: c.nearbyText(.applyStatus)) ?? .unknown
         applyExpireTime = try c.decodeIfPresent(NearbyServerTime.self, forKey: .applyExpireTime)
+        activityName = c.nearbyText(.activityName); leaderAvatar = c.nearbyText(.leaderAvatar)
+        joinedCount = c.nearbyInt(.joinedCount).flatMap { $0 >= 0 ? $0 : nil }; maxMembers = c.nearbyInt(.maxMembers).flatMap { $0 > 0 ? $0 : nil }
     }
 }
 extension KeyedDecodingContainer {

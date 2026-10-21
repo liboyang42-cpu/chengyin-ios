@@ -29,9 +29,11 @@ public struct RoamPublicMerchant: Decodable, Equatable, Identifiable {
     public let businessTime: String?
     public let capacity: Int?
     public let availableTime: String?
+    /// 1 = 收费承接, 0 = 免费承接; anything else stays unknown (收费方式待确认).
+    public let chargeType: Int?
     enum CodingKeys: String, CodingKey {
         case id, name, cityRole, storyTitle, description, tags, gallery, sysCategoryList
-        case businessStatus, address, businessTime, capacity, availableTime
+        case businessStatus, address, businessTime, capacity, availableTime, chargeType
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -43,6 +45,7 @@ public struct RoamPublicMerchant: Decodable, Equatable, Identifiable {
         availableTime = try c.roamText(.availableTime)
         businessStatus = try c.decodeIfPresent(Int.self, forKey: .businessStatus)
         capacity = c.roamInteger(.capacity)
+        chargeType = c.roamInteger(.chargeType)
         if let array = try? c.decode(RoamStringArray.self, forKey: .tags) { tags = array.values }
         else if let json = try? c.decode(String.self, forKey: .tags),
                 let array = try? JSONDecoder().decode(RoamStringArray.self, from: Data(json.utf8)) { tags = array.values }
@@ -79,6 +82,46 @@ public struct RoamMerchantDetail: Decodable, Equatable {
         featured = item?.name.isEmpty == false ? item : nil
     }
 }
+
+/// Sanitizes optional merchant/POI `coverUrl` and `logoUrl` (`https` only, no credentials)
+/// for `subpackageRoam/poi-detail` and provides fallback title `"据点实景待补充"`.
+public struct RoamPOIMediaPresentation: Equatable, Sendable {
+    public static let defaultFallbackTitle = "据点实景待补充"
+
+    public let coverUrl: String?
+    public let logoUrl: String?
+    public let fallbackTitle: String
+
+    public var coverURL: String? { coverUrl }
+    public var logoURL: String? { logoUrl }
+    public var hasCover: Bool { coverUrl != nil }
+    public var hasLogo: Bool { logoUrl != nil }
+    public var placeholderTitle: String? { coverUrl == nil ? fallbackTitle : nil }
+
+    public init(coverUrl: String? = nil, logoUrl: String? = nil, fallbackTitle: String = Self.defaultFallbackTitle) {
+        self.coverUrl = Self.sanitizeHTTPSURL(coverUrl)
+        self.logoUrl = Self.sanitizeHTTPSURL(logoUrl)
+        self.fallbackTitle = fallbackTitle
+    }
+
+    public init(merchant: RoamPublicMerchant, logoUrl: String? = nil) {
+        let firstGallery = merchant.gallery.lazy.compactMap(Self.sanitizeHTTPSURL).first
+        self.init(coverUrl: firstGallery, logoUrl: logoUrl)
+    }
+
+    public static func sanitizeHTTPSURL(_ raw: String?) -> String? {
+        guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty,
+              let components = URLComponents(string: trimmed),
+              components.scheme?.lowercased() == "https",
+              let host = components.host, !host.isEmpty,
+              components.user == nil, components.password == nil,
+              components.url != nil else {
+            return nil
+        }
+        return trimmed
+    }
+}
+
 private struct RoamMerchantCategory: Decodable { let categoryName: String? }
 private struct RoamStringArray: Decodable {
     let values: [String]

@@ -1,0 +1,368 @@
+{
+  "plan": "reform plan v9 W09.6 data catalog (client side) / W01.1 exists-vs-wired",
+  "generatedBy": "tools/audit_client_ops_surfaces.py --check",
+  "note": "Facts are from source comments and code at the time of writing. Purpose/retention/deletion marked pending are open items for privacy review, not decisions. No store is uploaded by this catalog.",
+  "entries": [
+    {
+      "file": "App/AppCompositionRoot.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Injects UserDefaults into composition storage (host for scoped journals); no own keys",
+      "retention": "n/a (injection point)",
+      "deletion": "n/a"
+    },
+    {
+      "file": "App/AppSession.swift",
+      "kinds": [
+        "file",
+        "userDefaults"
+      ],
+      "purpose": "Session-scoped journals via composition defaults; Application Support 'OfficialActionSafety' dir and per-namespace MerchantBusiness export-task recovery JSON",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/AppStorePrivacyManifestSectionView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
+      "retention": "pending privacy review (session or explicit account scope)",
+      "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "App/AppStoreReviewRejectionPreventionSectionView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
+      "retention": "pending privacy review (session or explicit account scope)",
+      "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "App/ImageUploadSecureStorage.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Image upload journal metadata; device-only, non-synchronizable Keychain, namespace-scoped",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/KeychainAndBiometricSessionSecuritySectionView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
+      "retention": "pending privacy review (session or explicit account scope)",
+      "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "App/KeychainTokenStore.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Session token; deployment-scoped Keychain, no legacy migration",
+      "retention": "Until logout/expiry (code); policy 待隐私评审确定 / pending privacy review",
+      "deletion": "Cleared by session logout path; device verification NOT_RUN"
+    },
+    {
+      "file": "App/NativeEnrollmentKeychainStore.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Native enrollment journal: opaque handles and pending proof, never SDK keys or tokens",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/NativeWalkingNavigationFactory.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Walking navigation destination record (questify.walking.destination.v1)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/PrivateHomeKeychainJournal.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Private home pending journal (W19); insert-only",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/ProjectEditSecureStorage.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Professional topic editor drafts; device-only Keychain",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/QuestifyApp.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "preferences.language app language preference (non-sensitive)",
+      "retention": "Until changed",
+      "deletion": "Removed with app"
+    },
+    {
+      "file": "App/QuestifyMotion.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Local reduced-motion preference (non-sensitive)",
+      "retention": "Until changed",
+      "deletion": "Removed with app"
+    },
+    {
+      "file": "App/RoamExperienceHubView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Same reduced-motion preference read via @AppStorage",
+      "retention": "Until changed",
+      "deletion": "Removed with app"
+    },
+    {
+      "file": "App/RoamHistoryKeychainStorage.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Roam history; device-only protected storage, no tokens",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/SearchMapComponents.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Recent map search queries (source parity with mini-program secure history); nil namespace is memory-only",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/SessionCouponManagementView.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Coupon management pending-operation locks in Application Support, excluded from backup",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/SettingsView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "preferences.language (same key as QuestifyApp)",
+      "retention": "Until changed",
+      "deletion": "Removed with app"
+    },
+    {
+      "file": "App/SquarePostVideoViews.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
+      "retention": "pending privacy review (session or explicit account scope)",
+      "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "App/SquareWorkspaceSecureStorage.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Square post workspace drafts; device-only Keychain",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/TemplateAuthoringSecureStorage.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Template authoring drafts; device-only Keychain",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/UsageConsentGateView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
+      "retention": "pending privacy review (session or explicit account scope)",
+      "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "Core/AppStorePrivacyManifestAndPermissionAudit.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
+      "retention": "pending privacy review (session or explicit account scope)",
+      "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "Core/ContentDraftSystemStorage.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Versioned content draft pending journal (questify.content-draft.pending.v1); production adapter only via reviewed composition",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/FinalTwentyBatchMasterCompletionManifest.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
+      "retention": "pending privacy review (session or explicit account scope)",
+      "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "Core/KeychainAndBiometricSessionSecurityAudit.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
+      "retention": "pending privacy review (session or explicit account scope)",
+      "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "Core/NearbyTeamCoordinator.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Nearby team unresolved-operation lock (questify.nearby.unresolved.v1.*)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/NearbyTeamHTTPWriteAdapter.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Nearby team dispatch journal (questify.nearby.dispatch.v1.*)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/OperationAdapterSafety.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Operation pending record: account-scoped operation ID, target and step count only",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/PrivateHomeContracts.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Mention only: forbids UserDefaults fallback for private home",
+      "retention": "n/a (no store)",
+      "deletion": "n/a"
+    },
+    {
+      "file": "Core/ProfileLocalCoverFileStore.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Account/deployment-scoped derived profile cover JPEGs; excluded from backup",
+      "retention": "Until user removes or account cleanup; policy 待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/ProjectEditLocalStore.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Mention only: forbids UserDefaults fallback for editor envelopes",
+      "retention": "n/a (no store)",
+      "deletion": "n/a"
+    },
+    {
+      "file": "Core/RunAuthorityRecovery.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
+      "retention": "pending privacy review (session or explicit account scope)",
+      "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "Core/SettingsSoundPreferences.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Local ambient sound preferences (non-sensitive)",
+      "retention": "Until changed",
+      "deletion": "Removed with app"
+    },
+    {
+      "file": "Core/SquareGovernanceCoordinator.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Square governance dispatch journal: target/action IDs per account, never appeal text",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/SquareReportCaseStore.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Acknowledged report case number per account/deployment/target; no reasons or descriptions",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/SquareWorkspaceStore.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Mention only: host must inject protected storage, never UserDefaults",
+      "retention": "n/a (no store)",
+      "deletion": "n/a"
+    },
+    {
+      "file": "Core/TeamCoordinator.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Team pending-operation lock (questify.team.pending.v1.*)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/TopicSelfPlayContracts.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Self-play pending journal: opaque intent/order IDs only",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/USAppleCoordinator.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Mention only: no Keychain/UserDefaults writes in this coordinator",
+      "retention": "n/a (no store)",
+      "deletion": "n/a"
+    }
+  ]
+}

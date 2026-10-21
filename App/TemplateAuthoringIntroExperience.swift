@@ -105,10 +105,14 @@ import Combine
         let permit = controller.permit(), advance = controller.continueAction(onContinue)
         VStack(alignment:.leading,spacing:16) {
             Text("creatorIntro.examples", tableName:"CreatorIntroExamples").font(.headline)
-            if let rows = controller.visibleExamples?.rows, !rows.isEmpty {
-                ForEach(Array(rows.enumerated()),id:\.offset) { index, item in
+            if let examples = controller.visibleExamples, !examples.rows.isEmpty {
+                ForEach(Array(examples.rows.enumerated()),id:\.offset) { index, item in
                     VStack(alignment:.leading,spacing:6) {
                         DiscoveryArtwork(source:item.imgUrl,height:120)
+                        Text(verbatim:examples.categoryName(at:index))
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("creatorIntro.example.category.\(index)")
                         if item.title.isEmpty { Text("creatorIntro.unnamed",tableName:"CreatorIntroExamples") }
                         else { Text(verbatim:item.title).font(.subheadline.bold()) }
                     }.accessibilityElement(children:.combine).accessibilityIdentifier("creatorIntro.example.\(index)")
@@ -125,6 +129,9 @@ import Combine
                 }
             }
             Text("creatorIntro.scope",tableName:"CreatorIntroExamples").font(.caption).foregroundStyle(.secondary)
+            // Mini pages/publish/template-intro value proposition, shown above the shared exits.
+            VStack(alignment:.leading,spacing:2) { Text("publishParity.intro.lead"); Text("publishParity.intro.tail").font(.title3.bold()) }
+                .accessibilityElement(children:.combine).accessibilityIdentifier("publishParity.intro.value")
             Button(action:advance) { Text("templateAuthor.begin") }
                 .disabled(!controller.canContinue || scenePhase != .active).accessibilityIdentifier("templateAuthor.begin")
             Button(action:advance) { Text("creatorIntro.skip",tableName:"CreatorIntroExamples") }

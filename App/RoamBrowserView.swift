@@ -23,6 +23,18 @@ struct RoamBrowserView: View {
     var couponWalletDestination: (() -> AnyView)? = nil
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    /// Mini-program 开始漫游 / 漫游护照 home. All optional: hosts without them keep the plain browser.
+    var entryReader: (any RoamEntryNearbyReading)? = nil
+    var entryTeams: ((RoamSearchArea) async -> [NearbyTeam]?)? = nil
+    var myTeamsDestination: (() -> AnyView)? = nil
+    var nearbyTeamDestination: ((NearbyTeamID) -> AnyView)? = nil
+    /// Passport tools: 那年今日 / 月度回顾 and the private 探索目标 / 时光胶囊 / 导出.
+    var toolsReader: (any RoamPassportToolsReading)? = nil
+    var passportToolsReader: (any RoamPassportToolsReading)? = nil
+    var privateToolsReader: (any RoamPrivateToolsServing)? = nil
+    @State private var homeTab: RoamHomeTab = .start
+    @State private var entryCard: RoamEntryActivityCard?
+    @State private var recoveryBanner: RoamHomeRecoveryBanner?
     @State private var layer: RoamLayer = .places
     @State private var radiusM = 3000
     @State private var placeFilter: RoamPlaceFilter = .all
@@ -110,20 +122,31 @@ struct RoamBrowserView: View {
         let reader = effectiveReader
         NavigationStack {
             VStack(spacing: 0) {
-                controls
-                ZStack {
-                    if !reader.isConfigured {
-                        RoamStatusView(issue: .notConfigured)
-                    } else if reader.identity == nil {
-                        RoamStatusView(issue: .unauthorized)
-                    } else if reader.searchArea == nil {
-                        RoamStatusView(issue: .areaRequired)
-                    } else {
-                        results
+                RoamHomeTabPicker(selection: $homeTab).padding(.horizontal).padding(.top, 6)
+                if homeTab == .passport {
+                    RoamHomePassportView(reader: experienceReader, albumMetadataReader: albumMetadataReader,
+                        stampDestination: stampDestination, liveDestination: liveDestination,
+                        toolsReader: passportToolsReader ?? toolsReader, discoverDestination: nearbyTeamsDestination)
+                } else {
+                    controls
+                    ZStack {
+                        if !reader.isConfigured {
+                            statusWithStartHeader(.notConfigured)
+                        } else if reader.identity == nil {
+                            statusWithStartHeader(.unauthorized)
+                        } else if reader.searchArea == nil {
+                            statusWithStartHeader(.areaRequired)
+                        } else {
+                            results
+                        }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .sheet(item: $entryCard) { card in
+                RoamEntryActivitySheet(card: card, eventDestination: eventDestination, teamDestination: nearbyTeamDestination)
+            }
+            .task { recoveryBanner = (try? experienceReader?.localWalkStatus()).flatMap { RoamHomeRecoveryBanner(status: $0) } }
             .appNavigationTitle("roam.title")
             .searchable(text: $query, prompt: "roam.search")
             .task(id: requestKey) {
@@ -151,7 +174,7 @@ struct RoamBrowserView: View {
                 if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
                 if let experienceReader {
                     ToolbarItem(placement: .topBarLeading) {
-                        NavigationLink { RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination) } label: {
+                        NavigationLink { RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: passportToolsReader ?? toolsReader, privateToolsReader: privateToolsReader) } label: {
                             Label("roam.experience.title", systemImage: "book.closed")
                         }.accessibilityIdentifier("roam.experience.open")
                     }
@@ -174,6 +197,38 @@ struct RoamBrowserView: View {
                         .accessibilityIdentifier("roam.refresh")
                 }
             }
+        }
+    }
+    private var hasStartHeader: Bool { nearbyTeamsDestination != nil || entryReader != nil || recoveryBanner != nil }
+    /// 开始漫游 tab body above the browser: intro cards, recovery notice and the 附近活动 peek.
+    @ViewBuilder private var startHeader: some View {
+        if nearbyTeamsDestination != nil || liveDestination != nil {
+            RoamHomeIntroCards(start: startDestination, nearby: nearbyTeamsDestination, myTeams: myTeamsDestination ?? nearbyTeamsDestination)
+        }
+        if let recoveryBanner, let experienceReader {
+            RoamHomeRecoveryBannerView(banner: recoveryBanner) {
+                if let sessionFactReader { return AnyView(RoamRecoveryView(reader: sessionFactReader).id(sessionFactReader.scope)) }
+                return AnyView(RoamRecoveryView(reader: experienceReader))
+            }
+        }
+        if let entryReader {
+            RoamEntryPeekView(reader: entryReader, teams: entryTeams, onSignIn: onOpenAccount, onOpenMap: nearbyTeamsDestination) { entryCard = $0 }
+        }
+    }
+    private func startDestination() -> AnyView {
+        if let liveDestination { return liveDestination() }
+        return AnyView(RoamPreflightRulesView())
+    }
+    @ViewBuilder private func statusWithStartHeader(_ issue: RoamScreenIssue) -> some View {
+        if hasStartHeader {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    startHeader
+                    RoamStatusView(issue: issue)
+                }.padding()
+            }
+        } else {
+            RoamStatusView(issue: issue)
         }
     }
     private var controls: some View {
@@ -240,6 +295,7 @@ struct RoamBrowserView: View {
                     .listRowInsets(EdgeInsets())
                     .id(scope)
             }
+            if hasStartHeader { Section { startHeader } }
             if loading || loadedKey != requestKey {
                 ProgressView("roam.loading").accessibilityIdentifier("roam.loading")
             } else if let issue {

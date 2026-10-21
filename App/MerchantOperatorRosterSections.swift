@@ -70,7 +70,10 @@ import SwiftUI
                         }
                     }
                 }
-            } else { Text("merchant.business.denied") }
+            } else {
+                MerchantOperatorSelfRoleCard(access: access)
+                Text("merchant.business.denied")
+            }
         }
     }
 }

@@ -9,9 +9,16 @@ public struct ClubGovernanceGroupCode {
     public let expiresAt: Date
     public init(receipt: ClubGovernanceValue, receivedAt: Date) throws {
         guard let text = receipt["qrcodeUrl"].string, let parts = URLComponents(string: text), parts.scheme == "https", let host = parts.host, !host.isEmpty, parts.user == nil, parts.password == nil, let url = parts.url,
-              let code = receipt["code"].string, !code.isEmpty, let ttl = receipt["ttlMs"].int, ttl > 0 else { throw ClubGovernanceFailure.malformed }
+              let code = receipt["code"].string, !code.isEmpty else { throw ClubGovernanceFailure.malformed }
+        // Mini-program group-code uses `ttlMs || 300000`; only an absent TTL takes that
+        // default, while an explicit non-positive or non-integer TTL stays malformed.
+        let ttl: Int
+        if receipt["ttlMs"] == .null { ttl = Self.defaultTTLMilliseconds }
+        else if let explicit = receipt["ttlMs"].int, explicit > 0 { ttl = explicit }
+        else { throw ClubGovernanceFailure.malformed }
         self.imageURL = url; self.code = code; self.receivedAt = receivedAt; self.expiresAt = receivedAt.addingTimeInterval(Double(ttl) / 1000)
     }
+    public static let defaultTTLMilliseconds = 300_000
     public func isActive(at now: Date) -> Bool { now >= receivedAt && now < expiresAt }
 }
 

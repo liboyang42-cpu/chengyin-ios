@@ -5,6 +5,9 @@ import SwiftUI
 @MainActor struct OfficialActionSheet: View {
     let coordinator: OfficialActionCoordinator
     let command: OfficialActionCommand
+    /// Optional source confirmation copy (e.g. official-inbox modal title/content).
+    var noticeTitleKey: String? = nil
+    var noticeBodyKey: String? = nil
     @Environment(\.dismiss) private var dismiss
     @State private var review: OfficialActionReview?
     @State private var busy = false
@@ -18,6 +21,12 @@ import SwiftUI
                     Label("officialAction.reviewNotice", systemImage: "lock.shield")
                     Text(LocalizedStringKey(command.titleKey)).font(.headline)
                     Text("officialAction.noOutcomePromise").foregroundStyle(.secondary)
+                }
+                if noticeTitleKey != nil || noticeBodyKey != nil {
+                    Section {
+                        if let noticeTitleKey { Text(LocalizedStringKey(noticeTitleKey)).font(.headline) }
+                        if let noticeBodyKey { Text(LocalizedStringKey(noticeBodyKey)).foregroundStyle(.secondary) }
+                    }.accessibilityIdentifier("official.inbox.confirmation.\(command.scope)")
                 }
                 if let review {
                     Section("officialAction.target") {
@@ -191,27 +200,52 @@ import SwiftUI
 }
 
 /// A caller must fetch the current account's inbox and permission before exposing controls.
+/// Source official-inbox eligibility and fixed audit reasons; no free-text reason is sent.
+/// Visibility is not authority: the coordinator re-reads the server row (and publisher
+/// permission for OFFICIAL rows), and every write stays behind the dormant approval gate.
 @MainActor struct OfficialInviteResponseActions: View {
     let coordinator: OfficialActionCoordinator
     let invite: OfficialPartyInvite
+    /// Kept for callers; the source shows organizer controls without a client-side publisher check.
     let publisher: Bool
-    @State private var reason = ""
+    var window: OfficialServiceWindow? = nil
     @State private var reviewed: OfficialActionCommand?
-    private var actions: [OfficialResponseAction] {
-        if invite.partyType == "OFFICIAL" { return publisher && invite.status == "INVITED" ? [.accept, .decline] : [] }
-        guard ["MERCHANT", "CLUB"].contains(invite.partyType ?? "") else { return [] }
-        return invite.status == "INVITED" ? [.accept, .decline] : (["ACCEPTED", "ACTIVE"].contains(invite.status ?? "") ? [.withdraw] : [])
-    }
+    @State private var reviewedAction: OfficialResponseAction?
+    @State private var transferHint = false
+    private var actions: [OfficialResponseAction] { OfficialInboxPresentation.actions(for: invite) }
     var body: some View {
         Section("officialAction.respond") {
-            if !actions.isEmpty, invite.partyType != "OFFICIAL" { TextField("officialAction.reason", text: $reason, axis: .vertical) }
-            ForEach(actions, id: \.self) { action in
-                Button(LocalizedStringKey("officialAction." + action.rawValue.lowercased())) {
-                    reviewed = .respond(partyID: invite.id, type: invite.partyType ?? "", action: action, reason: reason.isEmpty ? nil : reason)
-                }.frame(minHeight: 44)
+            if let window {
+                LabeledContent("official.privateParity.inbox.window") {
+                    Text(verbatim: window.sourceText)
+                }.font(.footnote).accessibilityIdentifier("official.inbox.actionWindow.\(invite.id)")
             }
-        }.sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
-            if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
+            if OfficialInboxPresentation.showsOrganizerTransferNotice(invite) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("official.privateParity.inbox.organizerTransferHint").font(.subheadline)
+                    Text("official.privateParity.inbox.organizerTransferDetail").font(.footnote).foregroundStyle(.secondary)
+                }.fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .combine).accessibilityIdentifier("official.inbox.organizerTransfer.\(invite.id)")
+            }
+            ForEach(actions, id: \.self) { action in
+                Button(LocalizedStringKey(OfficialInboxPresentation.buttonKey(action))) {
+                    if OfficialInboxPresentation.requiresOrganizerTransfer(invite, action: action) { transferHint = true; return }
+                    transferHint = false
+                    reviewedAction = action
+                    reviewed = OfficialActionCommand.sourceInboxResponse(to: invite, action: action)
+                }.frame(minHeight: 44)
+                    .accessibilityIdentifier("official.inbox.\(action.rawValue.lowercased()).\(invite.id)")
+            }
+            if transferHint {
+                Text("official.privateParity.inbox.organizerTransferHint").font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("official.inbox.transferHint.\(invite.id)")
+            }
+        }.sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } })) {
+            if let reviewed {
+                OfficialActionSheet(coordinator: coordinator, command: reviewed,
+                                    noticeTitleKey: reviewedAction.map { OfficialInboxPresentation.confirmationTitleKey(invite, action: $0) },
+                                    noticeBodyKey: reviewedAction.map { OfficialInboxPresentation.confirmationBodyKey(invite, action: $0) })
+            }
         }
     }
 }

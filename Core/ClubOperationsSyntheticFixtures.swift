@@ -16,6 +16,8 @@ public enum ClubOperationsFixtureScenario: String, CaseIterable {
     /// so simulator scheduling cannot turn a race test into a post-completion switch.
     public var delayedWriteGate: (() async -> Void)?
     public private(set) var readCount = 0
+    /// Allows tests to simulate a post-create readback failure on confirm followed by a successful retry readback.
+    public var readbackRecoveryEnabled = false
     public let scenario: ClubOperationsFixtureScenario
     private var payload: [String: Any]
     private var memberRows: [[String: Any]] = [["memberId": 701, "nickname": "Fixture owner", "role": 1, "isOwner": true], ["memberId": 704, "nickname": "Fixture member", "role": 0, "isOwner": false]]
@@ -40,13 +42,14 @@ public enum ClubOperationsFixtureScenario: String, CaseIterable {
         try Task.checkCancellation()
         guard identity != nil else { throw APIError.unauthorized }
         readCount += 1
-        if scenario == .readbackUnavailable, writeCount > 0 { throw APIError.malformedResponse }
+        if scenario == .readbackUnavailable, writeCount > 0, !readbackRecoveryEnabled { throw APIError.malformedResponse }
         switch target {
         case .create: return .init(target: target, accountRole: scenario == .ordinary ? "player" : "club", ownedClubIDs: ownedIDs)
         case .club(let id):
-            guard id == 81 else { throw APIError.invalidRequest }
+            guard id == 81 || ownedIDs.contains(id) else { throw APIError.invalidRequest }
             guard scenario != .ordinary else { throw ClubReadFailure.forbidden(message: nil) }
             var data = payload
+            data["id"] = id
             if scenario == .changed, readCount >= 3 { data["viewerIsAdmin"] = false; data["isOwner"] = false }
             let profile = try JSONDecoder().decode(ClubOperationsProfile.self, from: JSONSerialization.data(withJSONObject: data))
             let members = try JSONDecoder().decode([ClubMember].self, from: JSONSerialization.data(withJSONObject: memberRows))

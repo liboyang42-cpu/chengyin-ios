@@ -8,9 +8,17 @@ public struct ClubManagementConfirmation: Equatable {
     public let memberName: String
     public let identity: ClubReadIdentity
     public let action: ClubManagementAction
+    /// Reject only: the trimmed optional reason frozen at confirmation, sent as `reviewReason`.
+    public private(set) var reviewReason: String? = nil
     fileprivate init(club: ClubRecord, identity: ClubReadIdentity, action: ClubManagementAction, memberID: Int, memberName: String, id: UUID) {
         self.memberID = memberID; self.memberName = memberName
         self.id = id; clubID = club.id; clubName = club.name; self.identity = identity; self.action = action
+    }
+    /// Same review (same id, target and identity) with the reviewer's reason; other actions never carry one.
+    public func reviewing(reason: String) -> ClubManagementConfirmation {
+        var copy = self
+        copy.reviewReason = action == .reject ? ClubOpsJoinReviewReason.normalized(reason) : nil
+        return copy
     }
 }
 public enum ClubManagementState: Equatable {
@@ -127,7 +135,9 @@ public final class ClubManagementCoordinator {
         records[key]?.state = .submitting
         let next: ClubManagementState
         do {
-            let receipt = try await access.perform(confirmation.action, clubID: confirmation.clubID, memberID: confirmation.memberID, expectedIdentity: confirmation.identity)
+            guard ClubOpsJoinReviewReason.isDispatchable(confirmation.reviewReason) else { throw ClubActionWriteError.notSent(.invalidRequest) }
+            let receipt = try await access.perform(confirmation.action, clubID: confirmation.clubID, memberID: confirmation.memberID,
+                                                   reviewReason: confirmation.reviewReason, expectedIdentity: confirmation.identity)
             next = Task.isCancelled ? .outcomeUnknown(.cancelled) : .acknowledged(receipt)
         } catch let error as ClubActionWriteError {
             switch error {

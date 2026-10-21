@@ -10,6 +10,7 @@ import SwiftUI
     @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
     @Environment(\.scenePhase) private var scenePhase
     @State private var showsSettings=false
+    @State private var memberRefreshToken = 0
     @State private var settingsGuideHandoff = SettingsGuideHandoff()
     @State private var showsTickets=false
     @State private var showsCooperation=false
@@ -29,6 +30,7 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
+                MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTickets = true }, refreshToken: memberRefreshToken)
                 Section {
                     NavigationLink { SessionDoorInviterView(session: session) } label: { Text("door.inviter.title") }
                         .accessibilityIdentifier("door.inviter.entry")
@@ -43,6 +45,7 @@ import SwiftUI
                         Label("profile.edit.title",systemImage:"pencil")
                     }.accessibilityIdentifier("account.editProfile")
                 }
+                MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
                 Section {
                     NavigationLink { ProfilePublicInfoHost(reader: session.makeProfilePublicInfoReader(memberID: account.id)) { profileReader in
                         SocialPublicProfileView(memberID: account.id, reader: profileReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), weeklyPointsAccess: .init(reader: session.profileWeeklyPointsReader, owner: session.socialAccountReader.identity), personalToolsAccess: .init(owner: session.socialAccountReader.identity, wallet: session.walletHistoryReader, complaint: session.cooperationFlowReader), selfCouponAccess: .init(reader: session.profileOwnedCouponReader, owner: session.socialAccountReader.identity), selfObjectCardsAccess: .init(reader: session.objectCardReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })
@@ -99,7 +102,7 @@ import SwiftUI
                 },rewards:session.nonCashRewardReader,onOpenPost:{
                     guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
                     _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
-                }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext).id(session.accountCollectionReader.scope)
+                }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext, communityGate: session.squareReader).id(session.accountCollectionReader.scope)
                 Section {
                     NavigationLink { SessionObjectCardsView() } label: {
                         Label("objects.title", systemImage: "rectangle.stack")
@@ -110,7 +113,7 @@ import SwiftUI
                 ProfileAccountLinks(reader:session.profileReader,ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
                 Section {
                     NavigationLink { MessagingHomeView(reader:session.messagingReader,mediaReader:session.socialMessageMediaReader,senderForConversation:{ session.messageSender(for:$0) },expanded:session.imExpandedNavigation,squareDestination:{ close in AnyView(SessionSquareBrowserView(session: session, onClose: close, onSignIn: close)) },predictionEntry:{ AnyView(SessionMerchantPredictionEntry(session: session)) }).id(session.messagingViewIdentity) } label: {
-                        Label("messaging.title",systemImage:"bubble.left.and.bubble.right")
+                        HStack { Label("messaging.title",systemImage:"bubble.left.and.bubble.right"); Spacer(); IMUnreadEntryBadge(reader: session.imUnreadTotalReader) }
                     }.accessibilityIdentifier("account.messages")
                     NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).id(session.sessionRevision) } label: { Label("club.title",systemImage:"person.3") }
                         .accessibilityIdentifier("account.clubs")
@@ -124,7 +127,7 @@ import SwiftUI
                     NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
                         Label("merchant.projects", systemImage: "calendar")
                     }.accessibilityIdentifier("account.merchantProjectBrowse")
-                    NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery) } label: {
+                    NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }) } label: {
                         Label("merchant.title",systemImage:"storefront")
                     }.accessibilityIdentifier("account.merchant")
                     Button { showsMerchantApplication=true } label: {
@@ -135,6 +138,7 @@ import SwiftUI
                     Button("auth.signOut",role:.destructive) { confirmsLogout=true }
                 }
             }
+            .refreshable { memberRefreshToken += 1 }
             .appNavigationTitle("account.title")
             .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
             .toolbar {
@@ -200,6 +204,7 @@ import SwiftUI
         TicketWalletPlayProvider(reader: session.ticketWalletReader, revision: session.sessionRevision,
             currentRevision: { session.sessionRevision }) { entry in
             AnyView(SessionPlayRuntimeView(session: session, destination: .journey(entry.scope))
+                .environment(\.playThemeAuxiliaryProvider, session.playThemeAuxiliaryProvider)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         NavigationLink {

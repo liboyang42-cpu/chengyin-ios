@@ -8,9 +8,16 @@ import SwiftUI
     @State private var failureKey: String?
     @State private var loading = false
     @State private var coordinator: TeamCoordinator?
+    /// Roam home entry options: 我的队伍 opens the mine tab; a recruiting team row focuses that team.
+    let initialTab: Int
+    let focusTeamID: NearbyTeamID?
+    let onSignIn: (() -> Void)?
+    init(initialTab: Int = 0, focusTeamID: NearbyTeamID? = nil, onSignIn: (() -> Void)? = nil) {
+        self.initialTab = initialTab; self.focusTeamID = focusTeamID; self.onSignIn = onSignIn
+    }
     var body: some View {
         Group {
-            if let rows { SessionNearbyTeamsView(context: session.nearbyTeamQueryContext, joinedTeams: rows) }
+            if let rows { SessionNearbyTeamsView(context: session.nearbyTeamQueryContext, joinedTeams: rows, initialTab: initialTab, focusTeamID: focusTeamID, onSignIn: onSignIn) }
             else if loading { ProgressView("team.loading") }
             else if let failureKey {
                 ContentUnavailableView {

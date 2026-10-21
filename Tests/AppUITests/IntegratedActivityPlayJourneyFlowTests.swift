@@ -231,7 +231,7 @@ import XCTest
     }
     private func orders(_ app: XCUIApplication, owner: Int) {
         assertOrderRowMayMeetButNotCrossNavigationBoundary()
-        tab("Account", app); tap("profile.open.orders", app)
+        tab("Me", app); tap("profile.open.orders", app)
         XCTAssertTrue(app.staticTexts["Owner \(owner) list snapshot"].waitForExistence(timeout: 5))
         tap("profile.order.41", app)
         XCTAssertTrue(app.staticTexts["Activity or route, Owner \(owner) fresh detail"].waitForExistence(timeout: 5))
@@ -271,7 +271,7 @@ import XCTest
         tap("homeFeed.nearby.activity.21", app)
         XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
         wait(app) { $0.ledger.count == 10 }
-        tab("Explore the map", app)
+        tab("Roam", app)
         // Select the normal list presentation before supplying a center.
         // The API ledger is not evidence about all operating-system networking.
         tap("roam.display.toggle", app); chooseManualArea(app)
@@ -300,12 +300,18 @@ import XCTest
 
     func testNormalRootOwnedShelfPaginationAndDetailWithoutMutation() throws {
         let app = launch(); signIn(app, owner: 7)
-        tab("Account", app); tap("account.templateAuthoring", app)
+        tab("Me", app); tap("account.templateAuthoring", app)
         XCTAssertTrue(app.buttons["templateAuthor.openEditor"].exists)
         tap("templateAuthor.openMine", app)
         XCTAssertTrue(app.staticTexts["Owner 7 template 1"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["templateAuthor.shelf.delete.101"].isEnabled)
-        XCTAssertFalse(app.buttons["templateAuthor.shelf.library.101"].isEnabled)
+        let libraryButton = app.buttons["templateAuthor.shelf.library.101"]
+        XCTAssertTrue(revealFixtureElement(libraryButton, in: app, requiresHittable: false))
+        XCTAssertTrue(libraryButton.exists)
+        XCTAssertFalse(libraryButton.isEnabled)
+        let deleteButton = app.buttons["templateAuthor.shelf.delete.101"]
+        XCTAssertTrue(revealFixtureElement(deleteButton, in: app, requiresHittable: false))
+        XCTAssertTrue(deleteButton.exists)
+        XCTAssertFalse(deleteButton.isEnabled)
         tap("templateAuthor.shelf.loadMore", app); tap("memberTemplate.mine.111", app)
         XCTAssertTrue(app.staticTexts["Owner 7 fresh template"].waitForExistence(timeout: 5))
         let value = try evidence(app), reads = value.ledger.filter { $0.route.hasPrefix("shelf.") }

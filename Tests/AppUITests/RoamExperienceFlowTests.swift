@@ -34,7 +34,8 @@ final class RoamExperienceFlowTests: XCTestCase {
         let app = app("empty"); open("history", in: app)
         XCTAssertTrue(app.otherElements["roam.experience.history.empty"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.otherElements["roam.experience.error"].exists)
-        XCTAssertTrue(app.staticTexts["No local roaming records"].exists)
+        // Mini-program scene-roam-history empty-state title (还没有漫游记录).
+        XCTAssertTrue(app.staticTexts["No roaming records yet"].exists)
     }
     func testRecoveryNeedsIDAndOnlyDisplaysServerResultAfterRead() {
         let app = app(); open("recovery", in: app)

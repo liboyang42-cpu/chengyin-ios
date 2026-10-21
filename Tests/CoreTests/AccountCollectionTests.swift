@@ -355,4 +355,79 @@ extension AccountCollectionTests {
         XCTAssertNil(try startDayCoupon("2025-12-31").futureStartDay(relativeTo: now))
         XCTAssertNil(try startDayCoupon("2026-01-01").futureStartDay(relativeTo: now))
     }
+    @MainActor func testCommunityGateClosureKeepsFavoriteTopicsReadableWhilePostsRequireScopedReadFlag() async throws {
+        let config = try APIConfiguration(baseURL: URL(string: "https://example.com/test/")!)
+        let closedTransport = AccountCollectionTransport([
+            "features": .init(json: #"{"code":200,"data":{"communityPostRead":false,"communityPostWrite":false}}"#),
+            "like_list": .init(json: AccountCollectionSyntheticFixtures.favoritesJSON)
+        ])
+        var squareSession: SquareReadSession? = try SquareReadSession(accountID: 1, epoch: 1, token: "synthetic-token")
+        let gate: any SquareCommunityFeatureReading = SquareSessionReader(
+            service: SquareService(configuration: config, transport: closedTransport),
+            currentSession: { squareSession }
+        )
+        let firstScope = gate.scope
+        let closedFeatures = try await gate.communityFeatures()
+        XCTAssertFalse(closedFeatures.read)
+        XCTAssertEqual(gate.scope, firstScope)
+        let collectionSession = try AccountCollectionReadSession(accountID: 1, epoch: 1, token: "synthetic-token")
+        let reader = AccountCollectionSessionReader(service: try service(closedTransport), currentSession: { collectionSession })
+        let topics = try await reader.favoriteTopics(pageNumber: 1, pageSize: 2)
+        XCTAssertEqual(topics.rows.map(\.id), [301, 302])
+        squareSession = try SquareReadSession(accountID: 1, epoch: 2, token: "synthetic-token")
+        XCTAssertNotEqual(gate.scope, firstScope)
+    }
+
+    @MainActor func testCommunityGateModelFailureRetryRecoveryAndScopeReset() async throws {
+        @MainActor final class StubGate: SquareCommunityFeatureReading {
+            var scope = UUID()
+            var callCount = 0
+            var shouldFail = true
+            var readAllowed = false
+            func communityFeatures() async throws -> SquareCommunityFeatures {
+                callCount += 1
+                if shouldFail { throw APIError.malformedResponse }
+                return SquareCommunityFeatures(read: readAllowed, write: false)
+            }
+        }
+
+        let stub = StubGate()
+        let gateModel = AccountCollectionCommunityGateModel()
+        let firstScope = stub.scope
+
+        // Pending before load: postsAllowed is false.
+        XCTAssertFalse(gateModel.postsAllowed(hasGate: true, currentScope: firstScope))
+
+        // 1. Initial load fails: resolvedScope stays nil so same-scope retry works; postsAllowed is false.
+        await gateModel.load(gate: stub, isAuthenticated: true, isConfigured: true)
+        XCTAssertTrue(gateModel.failed)
+        XCTAssertNil(gateModel.resolvedScope)
+        XCTAssertFalse(gateModel.postsAllowed(hasGate: true, currentScope: firstScope))
+        XCTAssertEqual(stub.callCount, 1)
+
+        // 2. Retry on the SAME scope when gate returns read == false: resolvedScope is set, postsAllowed stays false.
+        stub.shouldFail = false
+        stub.readAllowed = false
+        await gateModel.load(gate: stub, isAuthenticated: true, isConfigured: true)
+        XCTAssertFalse(gateModel.failed)
+        XCTAssertEqual(gateModel.resolvedScope, firstScope)
+        XCTAssertFalse(gateModel.postsAllowed(hasGate: true, currentScope: firstScope))
+        XCTAssertEqual(stub.callCount, 2)
+
+        // 3. Force retry on same scope (or after failure) when gate returns read == true: postsAllowed becomes true.
+        stub.readAllowed = true
+        await gateModel.load(gate: stub, isAuthenticated: true, isConfigured: true, forceRetry: true)
+        XCTAssertFalse(gateModel.failed)
+        XCTAssertEqual(gateModel.resolvedScope, firstScope)
+        XCTAssertTrue(gateModel.postsAllowed(hasGate: true, currentScope: firstScope))
+        XCTAssertEqual(stub.callCount, 3)
+
+        // 4. Scope change immediately invalidates postsAllowed for the new scope until reloaded.
+        let secondScope = UUID()
+        stub.scope = secondScope
+        XCTAssertFalse(gateModel.postsAllowed(hasGate: true, currentScope: secondScope))
+        gateModel.invalidate()
+        XCTAssertNil(gateModel.features)
+        XCTAssertNil(gateModel.resolvedScope)
+    }
 }

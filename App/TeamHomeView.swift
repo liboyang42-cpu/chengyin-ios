@@ -50,16 +50,31 @@ import SwiftUI
     let makeCoordinator: () -> TeamCoordinator
     let requiresMembership: Bool
     let readOnly: Bool
-    init(lookup: TeamLookup, coordinator: TeamCoordinator, makeCoordinator: @escaping () -> TeamCoordinator, requiresMembership: Bool = false, readOnly: Bool = false) {
+    var onLogin: (() -> Void)?
+    /// Source join links that still carry the retired `?teamId=` form (邀请链接已升级).
+    var legacyTeamID = false
+    @Environment(\.teamReformHooks) private var reformHooks
+    @State private var reformSheet: TeamReformSheet?
+    init(lookup: TeamLookup, coordinator: TeamCoordinator, makeCoordinator: @escaping () -> TeamCoordinator, requiresMembership: Bool = false, readOnly: Bool = false, onLogin: (() -> Void)? = nil, legacyTeamID: Bool = false) {
         self.lookup = lookup; self.makeCoordinator = makeCoordinator; self.requiresMembership = requiresMembership; self.readOnly = readOnly
+        self.onLogin = onLogin; self.legacyTeamID = legacyTeamID
         _model = StateObject(wrappedValue: TeamScreenModel(coordinator))
     }
+    private var pageKind: TeamPageKind { invitationCode == nil ? .detail : .invitation }
     private var invitationCode: String? { if case .invitation(let code) = lookup { return code.trimmingCharacters(in: .whitespacesAndNewlines) }; return nil }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 TeamNotice(coordinator: model.coordinator)
-                if model.running { ProgressView("team.loading") }
+                if model.running { ProgressView(LocalizedStringKey(TeamPagePresentation.loadingKey(pageKind, hasDetail: model.coordinator.detail != nil))) }
+                if !model.running, let state = TeamPagePresentation.blockingState(kind: pageKind, messageKey: model.coordinator.messageKey,
+                                                                                hasDetail: model.coordinator.detail != nil, legacyTeamID: legacyTeamID,
+                                                                                failure: model.coordinator.readFailure) {
+                    TeamPageStateView(state: state, signIn: onLogin, reload: stateReload)
+                }
+                if let banner = TeamPagePresentation.staleBanner(kind: pageKind, messageKey: model.coordinator.messageKey, hasDetail: model.coordinator.detail != nil) {
+                    TeamStaleBanner(title: banner.title, detail: banner.detail)
+                }
                 if model.coordinator.retiredMembershipTeamID != nil {
                     Label("team.changed", systemImage: "person.crop.circle.badge.xmark")
                         .fixedSize(horizontal: false, vertical: true)
@@ -67,11 +82,9 @@ import SwiftUI
                 }
                 if let detail = model.coordinator.detail {
                     TeamCard(team: detail.team, confirmedJoinMode: model.coordinator.confirmedJoinMode).accessibilityIdentifier("team.detail.card")
-                    LabeledContent("team.sessionStart") { Text(verbatim: detail.team.expireTime?.isEmpty == false ? detail.team.expireTime! : "—") }
-                    if detail.team.expireTime?.isEmpty != false { Text("team.timeUnknown").font(.footnote) }
+                    TeamPageHeader(detail: detail, kind: pageKind, confirmedJoinMode: model.coordinator.confirmedJoinMode)
                     Text("team.ticketSeparation").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     if let invitationCode {
-                        Text("team.join.consequence").fixedSize(horizontal: false, vertical: true)
                         if let teamID = model.coordinator.postJoinDetailID {
                             NavigationLink {
                                 TeamDetailView(lookup: .id(teamID), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true, readOnly: true)
@@ -87,25 +100,49 @@ import SwiftUI
                                 .frame(minHeight: 44).disabled(model.actionLocked)
                                 .accessibilityIdentifier("team.invitation.openDetail")
                         }
-                        else { actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail) }
+                        else if TeamPagePresentation.invitationCTA(detail) == .join {
+                            if TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) {
+                                TeamJoinRetryNotice()
+                            }
+                            actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail,
+                                         labelKey: TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) ? "team.page.retryJoin" : nil)
+                        }
+                        else { TeamClosedInvitationButton(cta: TeamPagePresentation.invitationCTA(detail)) }
+                    }
+                    if invitationCode == nil, !readOnly, let code = TeamPagePresentation.joinRouteCode(detail) {
+                        NavigationLink {
+                            TeamDetailView(lookup: .invitation(code), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, onLogin: onLogin)
+                        } label: { Text("team.page.joinTeam").frame(maxWidth: .infinity, minHeight: 44) }
+                            .buttonStyle(.bordered).disabled(model.actionLocked).accessibilityIdentifier("teamPage.joinRoute")
                     }
                     if !readOnly, detail.team.status == .recruiting, let code = detail.team.inviteCode, TeamLookup.validInvite(code) {
-                        Button("team.invitePreview") { invitationPreview = true }.frame(minHeight: 44).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
+                        Button(invitationCode == nil ? "team.page.inviteTeammates" : "team.invitePreview") { invitationPreview = true }.frame(minHeight: 44).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
                     }
                     Text("team.members.title").font(.title2.bold()).accessibilityAddTraits(.isHeader)
-                    if detail.members.isEmpty { Text("team.members.empty").foregroundStyle(.secondary) }
+                    if detail.members.isEmpty {
+                        Text("team.page.membersEmpty").foregroundStyle(.secondary)
+                        Text("team.page.membersEmpty.detail").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    }
                     ForEach(detail.members) { member in
                         let action = TeamAction.remove(teamID: detail.team.id, memberID: member.id)
                         TeamMemberRow(member: member, remove: !readOnly && action.isAllowed(detail: detail) ? { model.prepare(action) } : nil).disabled(model.actionLocked)
                         Divider()
                     }
-                    actionButton(.leave(teamID: detail.team.id), detail: detail)
+                    actionButton(.leave(teamID: detail.team.id), detail: detail, labelKey: TeamPagePresentation.leaveLabelKey(detail))
                     actionButton(.disband(teamID: detail.team.id), detail: detail)
+                    if TeamPagePresentation.showsRefundNote(detail) {
+                        Text("team.page.refundNote").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    }
+                    if !readOnly, invitationCode == nil {
+                        TeamReformEntries(detail: detail, hooks: reformHooks) { reformSheet = $0 }.disabled(model.actionLocked)
+                    }
                     if detail.leader == true, detail.team.status == .recruiting {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("team.mode.title").font(.headline)
                             Text(LocalizedStringKey((model.coordinator.confirmedJoinMode ?? detail.team.joinMode).key))
                                 .accessibilityIdentifier("team.mode.current")
+                            Text(LocalizedStringKey(TeamPagePresentation.joinModeHelpKey(model.coordinator.confirmedJoinMode ?? detail.team.joinMode)))
+                                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                             if !readOnly {
                                 ForEach([TeamJoinMode.invitation, .publicApplication], id: \.rawValue) { mode in
                                     let action = TeamAction.changeJoinMode(teamID: detail.team.id, mode: mode)
@@ -138,12 +175,20 @@ import SwiftUI
             .onDisappear { model.leave() }
             .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
             .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }
+            .sheet(item: $reformSheet) { sheet in if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }
     }
-    @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail) -> some View {
+    @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail, labelKey: String? = nil) -> some View {
         if !readOnly, action.isAllowed(detail: detail) {
-            Button { model.prepare(action) } label: { Text(LocalizedStringKey(action.key)).frame(maxWidth: .infinity, minHeight: 44) }
+            Button { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)).frame(maxWidth: .infinity, minHeight: 44) }
                 .buttonStyle(.bordered).disabled(model.actionLocked)
                 .accessibilityIdentifier(action.key)
+        }
+    }
+    private var stateReload: (() -> Void)? {
+        guard lookup.isValid else { return nil }
+        return {
+            let permit = model.captureRun()
+            Task { await reload(permit: permit) }
         }
     }
     private func reload(permit: TeamScreenModel.RunPermit? = nil) async {

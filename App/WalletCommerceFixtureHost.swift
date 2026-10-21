@@ -79,6 +79,7 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
                 NavigationLink("Cart") { WalletCartView(reader: state.reader) }.accessibilityIdentifier("wallet.fixture.cart")
                 NavigationLink("Bank withdrawal") { BankWithdrawalView(reader: state.reader) }.accessibilityIdentifier("wallet.fixture.bankWithdrawal")
                 NavigationLink("Withdrawals") { WalletWithdrawalsView(reader: state.reader) }.accessibilityIdentifier("wallet.fixture.withdrawals")
+                NavigationLink("Withdrawal parity") { WithdrawalParityFixtureHost() }.accessibilityIdentifier("wallet.fixture.withdrawalParity")
             }.toolbar {
                 Button("Sign out") { state.scope = nil }.accessibilityIdentifier("wallet.fixture.signOut")
             }

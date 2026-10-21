@@ -15,6 +15,7 @@ import Observation
     public private(set) var presentationRevision: UInt64 = 0
     public private(set) var completedRefreshRevision: UInt64 = 0
     public let clubID: Int
+    public let clubName: String?
     private let focusTopicID: Int?
     private let access: any ClubGovernanceAccess
     private let authorization: UUID?
@@ -23,9 +24,39 @@ import Observation
     private var generation: UInt64 = 0
     private var detailGenerations: [Int: UInt64] = [:]
     private var didFocus = false
-    public init(clubID: Int, focusTopicID: Int? = nil, access: any ClubGovernanceAccess) {
-        self.clubID = clubID; self.focusTopicID = focusTopicID; self.access = access
+    nonisolated public static let permissionDeniedTitle = "没有权限查看报名名册"
+    public init(clubID: Int, focusTopicID: Int? = nil, clubName: String? = nil, access: any ClubGovernanceAccess) {
+        self.clubID = clubID; self.focusTopicID = focusTopicID; self.clubName = clubName; self.access = access
         authorization = access.authorizationGeneration; namespace = access.storageNamespace; realm = access.journalRealm
+    }
+    public var headerLine: String {
+        Self.formatHeaderLine(clubName: clubName, teamCount: teams.count)
+    }
+    public var failureTitle: String? {
+        Self.failureTitle(for: failure)
+    }
+    nonisolated public static func formatHeaderLine(clubName: String?, teamCount: Int) -> String {
+        let count = max(teamCount, 0)
+        if let trimmed = clubName?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty {
+            return "\(trimmed) · \(count) 个团"
+        }
+        return "\(count) 个团"
+    }
+    nonisolated public static func formatPaymentRefundSummary(paidCount: Int, refundableCount: Int?) -> String {
+        let paid = max(paidCount, 0)
+        let refundableText = refundableCount.map { String(max($0, 0)) } ?? "待确认"
+        return "已支付 \(paid) / 可退款 \(refundableText)"
+    }
+    nonisolated public static func failureTitle(for failure: ClubGovernanceFailure?) -> String? {
+        guard let failure else { return nil }
+        switch failure {
+        case .forbidden:
+            return permissionDeniedTitle
+        case .rejected(let code, _):
+            return code == 403 ? permissionDeniedTitle : nil
+        default:
+            return nil
+        }
     }
     public var isCurrentAccess: Bool {
         access.isConfigured && access.authorizationGeneration == authorization &&
@@ -114,5 +145,11 @@ import Observation
             detailFailures[topicID] = issue
         }
         detailLoading.remove(topicID)
+    }
+}
+
+extension ClubEnrollmentRoster {
+    public var paymentRefundSummaryText: String {
+        ClubEnrollmentReader.formatPaymentRefundSummary(paidCount: paidCount, refundableCount: refundableCount)
     }
 }

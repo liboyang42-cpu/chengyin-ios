@@ -60,25 +60,25 @@ enum WalletFundsStagePhase: Equatable {
         VStack(alignment: .leading, spacing: 8) {
             switch phase {
             case .loading:
-                ProgressView { Text(WalletEarningsCopy.resource("wallet.earnings.stages.loading")) }
+                ProgressView { Text("wallet.earnings.stages.loading", tableName: "WalletEarningsOverview") }
                     .accessibilityIdentifier("wallet.earnings.stages.loading")
             case .signedOut:
-                Text(WalletEarningsCopy.resource("wallet.earnings.stages.signedOut"))
+                Text("wallet.earnings.stages.signedOut", tableName: "WalletEarningsOverview")
                     .accessibilityIdentifier("wallet.earnings.stages.signedOut")
             case .unconfigured:
-                Text(WalletEarningsCopy.resource("wallet.earnings.stages.unconfigured"))
+                Text("wallet.earnings.stages.unconfigured", tableName: "WalletEarningsOverview")
                     .accessibilityIdentifier("wallet.earnings.stages.unconfigured")
             case .failed:
-                Text(WalletEarningsCopy.resource("wallet.earnings.stages.failed"))
+                Text("wallet.earnings.stages.failed", tableName: "WalletEarningsOverview")
                     .accessibilityIdentifier("wallet.earnings.stages.failed")
-                Button(action: retry) { Text(WalletEarningsCopy.resource("wallet.earnings.stages.retry")) }
+                Button(action: retry) { Text("wallet.earnings.stages.retry", tableName: "WalletEarningsOverview") }
                     .buttonStyle(.borderless)
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("wallet.earnings.stages.retry")
             case .unknown:
-                Text(WalletEarningsCopy.resource("wallet.earnings.stages.unknown"))
+                Text("wallet.earnings.stages.unknown", tableName: "WalletEarningsOverview")
                     .accessibilityIdentifier("wallet.earnings.stages.unknown")
-                    .accessibilityLabel(Text(WalletEarningsCopy.resource("wallet.earnings.stages.unknown")))
+                    .accessibilityLabel(Text("wallet.earnings.stages.unknown", tableName: "WalletEarningsOverview"))
                 separate
             case .empty, .known:
                 if let value = funds.value, WalletFundsStageClassifier.showsAmounts(phase) {
@@ -92,7 +92,7 @@ enum WalletFundsStagePhase: Equatable {
     }
     @ViewBuilder private func amounts(_ value: WalletFundsStages, phase: WalletFundsStagePhase) -> some View {
         if phase == .empty {
-            Text(WalletEarningsCopy.resource("wallet.earnings.stages.empty"))
+            Text("wallet.earnings.stages.empty", tableName: "WalletEarningsOverview")
                 .accessibilityIdentifier("wallet.earnings.stages.empty")
         }
         if phase == .known, value.pendingSettlement.value > 0 {
@@ -119,7 +119,7 @@ enum WalletFundsStagePhase: Equatable {
         separate
     }
     private var separate: some View {
-        Text(WalletEarningsCopy.resource("wallet.earnings.stages.separate"))
+        Text("wallet.earnings.stages.separate", tableName: "WalletEarningsOverview")
             .font(.footnote).foregroundStyle(.secondary)
             .accessibilityIdentifier("wallet.earnings.stages.separate")
     }
@@ -154,16 +154,17 @@ struct WalletEarningsTabHold: Equatable {
     }
     private var buttons: some View {
         Group {
-            button(.income, "wallet.earnings.tab.income", "wallet.earnings.tab.income")
-            button(.organizer, "wallet.earnings.tab.organizer", "wallet.earnings.tab.organizer")
+            button(.income, Text("wallet.earnings.tab.income", tableName: "WalletEarningsOverview"))
+                .accessibilityIdentifier("wallet.earnings.tab.income")
+            button(.organizer, Text("wallet.earnings.tab.organizer", tableName: "WalletEarningsOverview"))
+                .accessibilityIdentifier("wallet.earnings.tab.organizer")
         }
     }
-    private func button(_ which: WalletEarningsTabHold.Tab, _ key: String, _ identifier: String) -> some View {
+    private func button(_ which: WalletEarningsTabHold.Tab, _ label: Text) -> some View {
         Button { select(which) } label: {
-            Text(WalletEarningsCopy.resource(key)).frame(maxWidth: .infinity, minHeight: 44)
+            label.frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.bordered)
-        .accessibilityIdentifier(identifier)
         .accessibilityAddTraits(tab == which ? .isSelected : AccessibilityTraits())
     }
 }
@@ -199,7 +200,7 @@ enum WalletOrganizerFinanceIdentity {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(WalletEarningsCopy.resource("wallet.earnings.finance.separate"))
+            Text("wallet.earnings.finance.separate", tableName: "WalletEarningsOverview")
                 .font(.footnote).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("wallet.earnings.finance.separate")
@@ -207,11 +208,11 @@ enum WalletOrganizerFinanceIdentity {
                 // The existing finance view renders the summary and settlement rows from one payload.
                 access.makeContent().id(identity)
             } else if !access.allowsRead() {
-                Text(WalletEarningsCopy.resource("wallet.earnings.finance.unconfigured"))
+                Text("wallet.earnings.finance.unconfigured", tableName: "WalletEarningsOverview")
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("wallet.earnings.finance.unconfigured")
             } else {
-                Text(WalletEarningsCopy.resource("wallet.earnings.finance.signedOut"))
+                Text("wallet.earnings.finance.signedOut", tableName: "WalletEarningsOverview")
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("wallet.earnings.finance.signedOut")
             }

@@ -17,6 +17,38 @@
         }
       }
     },
+    "NSLocationWhenInUseUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use your location only while the app is open and only when you choose to roam, play a location-based activity, or find nearby places. Location is never used in the background and is not shared with other people."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在应用使用期间、且你主动选择漫游、参与基于位置的玩法或查找附近地点时使用你的位置。不会在后台使用位置，也不会与其他人分享。"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the microphone only when you choose to talk to or set up an NPC voice, or to measure sound peak levels locally on this iPhone during interactive sound gameplay. Sound-challenge amplitude is measured on device without uploading audio, and microphone access stops when you finish and never runs in the background."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在你主动选择与 NPC 语音对话、设置 NPC 声音，或在声音互动玩法中于本机测量音量峰值时使用麦克风。声音互动玩法仅在本地测量振幅、不上传录音；结束后即停止使用麦克风，不会在后台运行。"
+          }
+        }
+      }
+    },
     "NSMotionUsageDescription": {
       "localizations": {
         "en": {

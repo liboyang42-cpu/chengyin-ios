@@ -139,3 +139,93 @@ c95737b4c54881a7492ca72bd31f68749304d1d1:docs/square-post-local-media.md:generic
 # Public source SHA256, verified against Tests/ContractChecks/test_merchant_business_access_lifetime.py.
 # Exact merge-history observation only; all other commits, paths, rules and lines remain scanned.
 ed6f7f91ae18a4268110a3902a91d286d277a7c4:tools/run138_editor_readiness_contract.json:generic-api-key:7149
+
+# w2-08 reviewed false positives: synthetic 32-hex share-snapshot fixture tokens (sequential hex digits)
+# and localization-key string literals ("nearby.w208.*"); no credential value is present.
+# Exact historical findings only. Other commits, paths, rules and lines remain scanned.
+e3530b44159733414c592696baa24ccbe5e691db:Core/RoamSubpagePresentation.swift:generic-api-key:163
+e3530b44159733414c592696baa24ccbe5e691db:Core/RoamSubpagePresentation.swift:generic-api-key:164
+fb4cae602b83e2a471d1aef9d427fadaeb70d200:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+fb4cae602b83e2a471d1aef9d427fadaeb70d200:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+fb4cae602b83e2a471d1aef9d427fadaeb70d200:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+fb4cae602b83e2a471d1aef9d427fadaeb70d200:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+
+# w2-08 reviewed fixture lines (repeated-hex tokens, l10n keys) re-observed in wave-2 merge/anchor commits by -m history scan.
+# Exact merge-history observation only; all other commits, paths, rules and lines remain scanned.
+04fe53a3cc01572bb10d20766ca72ac9662bfa4c:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+04fe53a3cc01572bb10d20766ca72ac9662bfa4c:Core/RoamSubpagePresentation.swift:generic-api-key:163
+04fe53a3cc01572bb10d20766ca72ac9662bfa4c:Core/RoamSubpagePresentation.swift:generic-api-key:164
+04fe53a3cc01572bb10d20766ca72ac9662bfa4c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+04fe53a3cc01572bb10d20766ca72ac9662bfa4c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+04fe53a3cc01572bb10d20766ca72ac9662bfa4c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+2a6c1d8b3402ce0b69e3ce84cbb3483c3b5e222f:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+2a6c1d8b3402ce0b69e3ce84cbb3483c3b5e222f:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+2a6c1d8b3402ce0b69e3ce84cbb3483c3b5e222f:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+2a6c1d8b3402ce0b69e3ce84cbb3483c3b5e222f:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+4e88b73bb778f1ecef86e928c024009d973e55c4:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+4e88b73bb778f1ecef86e928c024009d973e55c4:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+4e88b73bb778f1ecef86e928c024009d973e55c4:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+4e88b73bb778f1ecef86e928c024009d973e55c4:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+5fb6d2c8be34996c5a4602b93da93bb24674f687:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+5fb6d2c8be34996c5a4602b93da93bb24674f687:Core/RoamSubpagePresentation.swift:generic-api-key:163
+5fb6d2c8be34996c5a4602b93da93bb24674f687:Core/RoamSubpagePresentation.swift:generic-api-key:164
+5fb6d2c8be34996c5a4602b93da93bb24674f687:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+5fb6d2c8be34996c5a4602b93da93bb24674f687:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+5fb6d2c8be34996c5a4602b93da93bb24674f687:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+72fda48041f16e5036b2cea427054fe981a2173d:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+72fda48041f16e5036b2cea427054fe981a2173d:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+72fda48041f16e5036b2cea427054fe981a2173d:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+72fda48041f16e5036b2cea427054fe981a2173d:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+bbb958305094ba14d958daccbc6bbdbf0f9e5f34:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+bbb958305094ba14d958daccbc6bbdbf0f9e5f34:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+bbb958305094ba14d958daccbc6bbdbf0f9e5f34:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+bbb958305094ba14d958daccbc6bbdbf0f9e5f34:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+beec3e963466e39dd14006542edd416ff242d01c:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+beec3e963466e39dd14006542edd416ff242d01c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+beec3e963466e39dd14006542edd416ff242d01c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+beec3e963466e39dd14006542edd416ff242d01c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+cbdcc7e6307c662941fc3650d9ddc5a0cb5333e2:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+cbdcc7e6307c662941fc3650d9ddc5a0cb5333e2:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+cbdcc7e6307c662941fc3650d9ddc5a0cb5333e2:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+cbdcc7e6307c662941fc3650d9ddc5a0cb5333e2:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+cebb5abd28566d31baa2817de6ead80208a354c3:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+cebb5abd28566d31baa2817de6ead80208a354c3:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+cebb5abd28566d31baa2817de6ead80208a354c3:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+cebb5abd28566d31baa2817de6ead80208a354c3:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+d17f111fdfcb54661bcf7a68ee8ed7ac56f9a46f:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+d17f111fdfcb54661bcf7a68ee8ed7ac56f9a46f:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+d17f111fdfcb54661bcf7a68ee8ed7ac56f9a46f:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+d17f111fdfcb54661bcf7a68ee8ed7ac56f9a46f:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+e586c81060a41e17b90ccf6d3407fead97eb5c5c:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+e586c81060a41e17b90ccf6d3407fead97eb5c5c:Core/RoamSubpagePresentation.swift:generic-api-key:163
+e586c81060a41e17b90ccf6d3407fead97eb5c5c:Core/RoamSubpagePresentation.swift:generic-api-key:164
+e586c81060a41e17b90ccf6d3407fead97eb5c5c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+e586c81060a41e17b90ccf6d3407fead97eb5c5c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+e586c81060a41e17b90ccf6d3407fead97eb5c5c:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+
+# Synthetic voucher scan code in a Core test fixture (not a credential); exact finding only.
+57af9d4464b56da01650f6111218f65d812b4236:Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift:generic-api-key:127
+
+# Same reviewed fixture lines re-observed by the -m history scan in base merge c06ff341 (diff vs its base parent).
+# Exact merge-history observation only; all other commits, paths, rules and lines remain scanned.
+c06ff3415676dfd9a04fd936f2a838bc0ecd970d:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+c06ff3415676dfd9a04fd936f2a838bc0ecd970d:Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift:generic-api-key:127
+c06ff3415676dfd9a04fd936f2a838bc0ecd970d:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+c06ff3415676dfd9a04fd936f2a838bc0ecd970d:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+c06ff3415676dfd9a04fd936f2a838bc0ecd970d:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+
+# Same reviewed fixture lines re-observed by the -m history scan in base merge da625216.
+# Exact merge-history observation only; all other commits, paths, rules and lines remain scanned.
+da625216ba7d81d70c9e42826618ef96ed2ad6ad:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+da625216ba7d81d70c9e42826618ef96ed2ad6ad:Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift:generic-api-key:127
+da625216ba7d81d70c9e42826618ef96ed2ad6ad:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+da625216ba7d81d70c9e42826618ef96ed2ad6ad:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+da625216ba7d81d70c9e42826618ef96ed2ad6ad:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+
+# Same reviewed fixture lines re-observed by the -m history scan in base merge a5376d0a.
+# Exact merge-history observation only; all other commits, paths, rules and lines remain scanned.
+a5376d0a7a310281d617f80f2263b81c3e17778e:Core/NearbyTeamCoordinator.swift:generic-api-key:190
+a5376d0a7a310281d617f80f2263b81c3e17778e:Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift:generic-api-key:127
+a5376d0a7a310281d617f80f2263b81c3e17778e:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
+a5376d0a7a310281d617f80f2263b81c3e17778e:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
+a5376d0a7a310281d617f80f2263b81c3e17778e:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77

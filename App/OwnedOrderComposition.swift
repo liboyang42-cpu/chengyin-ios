@@ -2,12 +2,74 @@ import SwiftUI
 
 /// Normal Account destination. Reading the observable approval through reader.identity
 /// tracks revocation/expiry even when an already-loaded screen is otherwise idle.
-/// Ticket navigation uses a separately configured reader; no lifecycle writer or map provider is mounted.
+/// Ticket navigation uses a separately configured reader; only a read-only lifecycle preview (no writer) and no map provider is mounted.
 @MainActor struct SessionOwnedOrdersView: View {
     @ObservedObject var session: AppSession
     var body: some View {
-        ProfileOrdersView(reader: session.ownedOrderReader, ticketReader: session.ticketWalletReader)
+        OwnedOrdersLifecycleHost(session: session)
             .id(session.ownedOrderReader.identity)
+    }
+}
+
+/// Read-only lifecycle preview for the normal Account destination. The coordinator is built
+/// without a production dispatcher and without a fixture simulator, so cancel/refund/pay
+/// review sheets stay disabled (canDispatch/canSimulate are false) and nothing can be sent.
+@MainActor struct OwnedOrdersLifecycleHost: View {
+    @State private var coordinator: OrderLifecycleCoordinator
+    private let session: AppSession
+    init(session: AppSession) {
+        self.session = session
+        _coordinator = State(initialValue: OrderLifecycleCoordinator(
+            reader: OwnedOrderLifecycleReader(origin: session.ownedOrderReader, base: session.orderLifecycleReader)))
+    }
+    var body: some View {
+        ProfileOrdersView(reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader)
+    }
+}
+
+/// Fences the shared lifecycle reader behind the owned-order read approval: once the approval is
+/// revoked/expired or the account changes, the scope retires and the detail read throws. It
+/// exposes no writer; `isOfflineExample` is always false so a fixture simulator is unreachable.
+@MainActor final class OwnedOrderLifecycleReader: OrderLifecycleReading {
+    private let origin: any ProfileReading
+    private let base: any OrderLifecycleReading
+    private let originReaderID: ObjectIdentifier
+    private let baseReaderID: ObjectIdentifier
+    private let originIdentity: ProfileReadIdentity?
+    private let baseScope: UUID
+    private let activeScope = UUID(), retiredScope = UUID()
+    private var retired = false
+    init(origin: any ProfileReading, base: any OrderLifecycleReading) {
+        self.origin = origin; self.base = base
+        originReaderID = ObjectIdentifier(origin); baseReaderID = ObjectIdentifier(base)
+        originIdentity = origin.identity; baseScope = base.scope
+    }
+    private var current: Bool {
+        guard !retired, ObjectIdentifier(origin) == originReaderID, ObjectIdentifier(base) == baseReaderID,
+              let originIdentity, originIdentity.accountID > 0, origin.isConfigured, origin.identity == originIdentity,
+              base.isConfigured, base.accountID == originIdentity.accountID, base.scope == baseScope else {
+            retired = true
+            return false
+        }
+        return true
+    }
+    var accountID: Int? { current ? originIdentity?.accountID : nil }
+    var scope: UUID { current ? activeScope : retiredScope }
+    var isConfigured: Bool { current }
+    var isOfflineExample: Bool { false }
+    func detail(id: Int) async throws -> OrderLifecycleDetail {
+        guard let expectedAccountID = originIdentity?.accountID, current, id > 0 else { throw APIError.notConfigured }
+        try Task.checkCancellation()
+        do {
+            let value = try await base.detail(id: id)
+            try Task.checkCancellation()
+            guard current else { throw CancellationError() }
+            guard value.id == id, value.memberID == expectedAccountID else { throw APIError.malformedResponse }
+            return value
+        } catch {
+            guard !Task.isCancelled, current else { throw CancellationError() }
+            throw error
+        }
     }
 }
 

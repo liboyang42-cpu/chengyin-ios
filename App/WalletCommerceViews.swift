@@ -5,6 +5,19 @@ enum WalletReadFailurePresentation {
     static func isUnavailable(_ error: Error) -> Bool {
         (error as? APIError) == .notConfigured || (error as? WalletCommerceSafetyError) == .unavailable
     }
+    static func isForbidden(_ error: Error) -> Bool {
+        if let apiError = error as? APIError {
+            return apiError == .httpStatus(403) || apiError == .businessCode(403)
+        }
+        return false
+    }
+    static func incomeSourceBadge(for row: WalletLedgerRow) -> String? {
+        switch row.eventType {
+        case 1: return "创"
+        case 2, 5: return "品"
+        default: return nil
+        }
+    }
 }
 
 @MainActor final class WalletScreen<Value>: ObservableObject {
@@ -90,6 +103,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                         Text(verbatim: format.amount(value.balance, currency: value.currency))
                             .font(.title2.bold()).privacySensitive()
                             .accessibilityIdentifier("wallet.earnings.balance")
+                        if value.balance.value == 0 { WalletEarningsEmptyNote() }
                     } else {
                         WalletIssueView(reader: reader, requiresLogin: earnings.requiresLogin,
                             unavailable: earnings.unavailable) { Task { await loadEarnings() } }
@@ -118,7 +132,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                 if showsWithdrawalSupport {
                     NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
                 }
-                NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader, showsSupportContact: showsWithdrawalSupport) }
+                NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
             }
         }.appNavigationTitle("wallet.title")
             .task(id: reader.scope) {
@@ -216,7 +230,7 @@ extension WalletScreen where Value == WithdrawalBalance {
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
-                    Text("wallet.empty").accessibilityIdentifier("wallet.ledger.empty")
+                    Text(LocalizedStringKey(income ? "wallet.income.empty" : "wallet.empty")).accessibilityIdentifier("wallet.ledger.empty")
                 }
                 ForEach(filtered) { row in
                     if income {
@@ -269,7 +283,17 @@ extension WalletScreen where Value == WithdrawalBalance {
     }
     private func ledgerRow(_ row: WalletLedgerRow) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+            HStack(spacing: 6) {
+                if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
+                    Text(verbatim: badge)
+                        .font(.caption2.bold())
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.accentColor.opacity(0.15), in: Capsule())
+                        .accessibilityIdentifier("wallet.income.badge.\(row.id)")
+                }
+                Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+            }
             if income { Text(LocalizedStringKey(row.incomeEventKey)) }
             Text(LocalizedStringKey("wallet.direction." + (income ? row.incomeDirection : row.assetDirection).rawValue))
             HStack {
@@ -278,7 +302,8 @@ extension WalletScreen where Value == WithdrawalBalance {
                 else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
             }
             if !points, let balance = row.afterBalance { LabeledContent("wallet.balanceAfter", value: format.amount(balance, currency: row.currency)) }
-            if let date = row.createTime { Text(verbatim: date).font(.caption) }
+            if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(.caption) }
+            else if let date = row.createTime { Text(verbatim: date).font(.caption) }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.ledger.\(row.id)")
     }
 }
@@ -546,11 +571,17 @@ extension WalletScreen where Value == WithdrawalBalance {
             Text("bank.withdrawal.historyNotice")
             if model.loading { ProgressView("wallet.loading") }
             else if let page = model.value, model.loadedScope == reader.scope {
-                if page.rows.isEmpty { Text("wallet.empty").accessibilityIdentifier("wallet.withdrawals.empty") }
+                if page.rows.isEmpty { Text("wallet.withdrawals.emptyTitle").accessibilityIdentifier("wallet.withdrawals.empty") }
                 ForEach(page.rows) { item in
                     VStack(alignment: .leading, spacing: 6) {
+                        Text("wallet.withdrawal.rowTitle").font(.headline)
                         Text(format.amount(item.amount, currency: item.currency))
                         Text(LocalizedStringKey(item.statusKey))
+                        if let received = item.receivedAmount {
+                            LabeledContent { Text(verbatim: format.amount(received, currency: item.currency)) } label: {
+                                Text("member.wallet.received", tableName: "MemberProfile")
+                            }
+                        }
                         if let date = item.createTime { Text(verbatim: date) }
                         if let account = item.maskedAccount { Text(verbatim: account) }
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.withdrawal.\(item.id)")

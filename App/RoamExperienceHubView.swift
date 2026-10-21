@@ -8,8 +8,12 @@ import SwiftUI
     var sessionFactReader: RoamSessionFactReader? = nil
     var stampDestination: (() -> AnyView)? = nil
     var liveDestination: (() -> AnyView)? = nil
+    /// Mini-program passport tools (那年今日 / 月度回顾). nil keeps the entries visible with an honest not-configured state.
+    var toolsReader: (any RoamPassportToolsReading)? = nil
+    /// 探索目标 / 时光胶囊 / 导出. nil keeps the entries with an honest not-configured state.
+    var privateToolsReader: (any RoamPrivateToolsServing)? = nil
     var body: some View {
-        RoamExperienceMenu(reader: reader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination).id(reader.identity)
+        RoamExperienceMenu(reader: reader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: toolsReader, privateToolsReader: privateToolsReader).id(reader.identity)
     }
 }
 @MainActor private struct RoamExperienceMenu: View {
@@ -22,6 +26,8 @@ import SwiftUI
     }
     let stampDestination: (() -> AnyView)?
     let liveDestination: (() -> AnyView)?
+    let toolsReader: (any RoamPassportToolsReading)?
+    let privateToolsReader: (any RoamPrivateToolsServing)?
     private var effectiveTileReader: any RoamExperienceReading {
         if let tileMemoryReader { return tileMemoryReader }; return reader
     }
@@ -53,6 +59,7 @@ import SwiftUI
                 NavigationLink { if let liveDestination { liveDestination() } else { AnyView(RoamLivePreparationView(reader: reader)) } } label: { Label("roam.experience.live", systemImage: "figure.walk") }
                     .accessibilityIdentifier("roam.experience.live.open")
             }
+            RoamPassportToolsSection(reader: toolsReader, privateTools: privateToolsReader)
             Section("roam.experience.collect") {
                 NavigationLink { RoamTileMemoryView(reader: effectiveTileReader).id(tileMemoryReader?.scope) } label: { Label("roam.experience.tileMemory", systemImage: "map") }
                     .accessibilityIdentifier("roam.experience.tiles.open")
@@ -64,6 +71,7 @@ import SwiftUI
                 NavigationLink { RoamBadgeWallDestination(roamReader: reader) } label: { Label("profile.badges.title", systemImage: "medal") }
                     .disabled(reader.identity == nil)
                     .accessibilityIdentifier("roam.badgeWall.open")
+                RoamPassportPrivateLinks(tools: privateToolsReader)
                 NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("roam.experience.cityStamp", systemImage: "camera") }
                     .accessibilityIdentifier("roam.experience.cityStamp.open")
                 NavigationLink { RoamVoucherEntryView() } label: { Label("roam.experience.voucher", systemImage: "ticket") }

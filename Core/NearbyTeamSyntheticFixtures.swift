@@ -19,10 +19,17 @@ import Foundation
     public static let applications = """
     {"code":200,"data":[{"teamId":502,"title":"Pending team","leaderName":"Jun","applyStatus":"PENDING","applyExpireTime":"2099-10-02T02:00:00Z"},{"teamId":506,"title":"Rejected application","applyStatus":"REJECTED"}]}
     """
+    /// Synthetic /api/team/my rows for the 我的队伍 grouping: one led by the fixture account, one joined.
+    public static var joinedTeams: [OwnedTeam] {
+        struct Envelope: Decodable { let data: [OwnedTeam] }
+        let json = #"{"data":[{"id":503,"title":"Your demo team","status":0,"joinedCount":2,"maxMembers":4,"joinMode":2,"leaderMemberId":7001},{"id":505,"title":"Joined team","status":1,"joinedCount":3,"maxMembers":4,"joinMode":2,"leaderMemberId":8002},{"id":507,"title":"Ended team","status":3,"leaderMemberId":7001}]}"#
+        return (try? JSONDecoder().decode(Envelope.self, from: Data(json.utf8)).data) ?? []
+    }
     public static func response(_ json: String) -> NearbyTeamResponse { .init(data: Data(json.utf8)) }
-    public static func coordinator() -> NearbyTeamCoordinator {
+    /// `emptyMine` serves an empty my-applications read so the 我的 tab falls through to 附近在招募.
+    public static func coordinator(emptyMine: Bool = false) -> NearbyTeamCoordinator {
         let fake = NearbyTeamFakeTransport()
-        fake.fallbackResponses = ["/api/team/nearby": response(teams), "/api/team/my-applications": response(applications), "/api/team/applications": response(applicants), "/api/team/apply": response("{\"code\":200}"), "/api/team/withdraw": response("{\"code\":200}"), "/api/team/handle": response("{\"code\":200}")]
+        fake.fallbackResponses = ["/api/team/nearby": response(teams), "/api/team/my-applications": response(emptyMine ? #"{"code":200,"data":[]}"# : applications), "/api/team/applications": response(applicants), "/api/team/apply": response("{\"code\":200}"), "/api/team/withdraw": response("{\"code\":200}"), "/api/team/handle": response("{\"code\":200}")]
         return .init(service: .init(fake: fake), session: session, locks: .init())
     }
 }

@@ -250,3 +250,22 @@ public enum PlayLocationMeasurement {
         // Existing Roam projection policy remains unchanged.
     }
 }
+
+/// Mini-program play-accuracy.js parity (hengyin PR18): an advisory label for a
+/// measured arrival sample. It never gates capture or submission, never drops or
+/// rewrites the measurement, and is not a client copy of the BK-GPS rejection;
+/// the server decides, and its deployment remains unverified.
+public enum PlayArrivalAccuracy {
+    public static let advisoryLimitMeters = 80.0
+    /// Missing or invalid accuracy is not "low": legacy evidence stays unlabelled and
+    /// invalid metadata is rejected by PlayLocationMeasurement instead.
+    public static func isLow(_ accuracyMeters: Double?) -> Bool {
+        guard let accuracyMeters, accuracyMeters.isFinite, accuracyMeters >= 0 else { return false }
+        return accuracyMeters > advisoryLimitMeters
+    }
+    /// BK-GPS has no dedicated error code; its rejection text carries this keyword.
+    public static func isLowAccuracyRejection(_ error: PlayExperienceError?) -> Bool {
+        guard case .rejected(_, let message?) = error else { return false }
+        return message.contains("定位精度不足")
+    }
+}

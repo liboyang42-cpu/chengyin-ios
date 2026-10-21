@@ -93,24 +93,16 @@ struct MerchantOperationsEditor: View {
         case .gallery(let value):
             Section("merchant.operations.gallery") {
                 Text("merchant.operations.galleryHint").font(.footnote)
-                ForEach(Array(value.gallery.enumerated()), id: \.offset) { index, reference in
-                    MerchantOperationsMediaPreview(source: reference, title: "merchant.operations.galleryImage", isExample: isExample)
-                    HStack {
-                        Label { Text("merchant.operations.galleryImage"); Text(index + 1, format: .number) } icon: { Image(systemName: "photo") }
-                        Spacer()
-                        Button(role: .destructive) {
-                            guard case .gallery(var value) = coordinator.draft, value.gallery.indices.contains(index) else { return }
-                            value.gallery.remove(at: index); model.edit(.gallery(value))
-                        } label: { Image(systemName: "minus.circle").frame(minWidth: 44, minHeight: 44) }
-                        .accessibilityLabel("merchant.operations.removeImage")
-                        .accessibilityIdentifier("merchant.operations.gallery.remove." + String(index))
-                    }
+                MerchantGalleryGrid(gallery: value.gallery, isExample: isExample) { index in
+                    guard case .gallery(var value) = coordinator.draft,
+                          MerchantGalleryGridLayout.canRemove(index: index, in: value.gallery) else { return }
+                    value.gallery.remove(at: index); model.edit(.gallery(value))
                 }
                 if isExample {
                     Button("merchant.operations.addExampleImage") {
                         guard case .gallery(var value) = coordinator.draft, value.gallery.count < 9 else { return }
                         value.gallery.append("synthetic-gallery-" + UUID().uuidString); model.edit(.gallery(value))
-                    }.disabled(value.gallery.count >= 9).accessibilityIdentifier("merchant.operations.gallery.add")
+                    }.frame(minWidth: 44, minHeight: 44).disabled(value.gallery.count >= 9).accessibilityIdentifier("merchant.operations.gallery.add")
                 }
                 imageControls(.gallery)
             }

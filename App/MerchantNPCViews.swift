@@ -9,9 +9,29 @@ import SwiftUI
     @StateObject private var model: MerchantNPCChatModel
     @State private var text = ""
     @State private var compositionGeneration = 0
+    // W09.5/W09.6: confirmation bound to exact text + request + account scope; memory only.
+    @State private var sendGate = AIOutgoingSendGate<MerchantNPCScope, UUID?>()
+    @State private var sensitiveFindings: Set<AIOutgoingSensitiveKind> = []
+    @State private var pendingSend: (current: () -> (String, UUID?), run: () -> Void)?
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
     init(coordinator: MerchantNPCChatCoordinator) { _model = StateObject(wrappedValue: .init(coordinator)) }
+    /// Screens the final text; clean text runs `run` unchanged, otherwise asks first.
+    private func guardedSend(current: @escaping () -> (String, UUID?), request: UUID?, run: @escaping () -> Void) {
+        switch sendGate.evaluate(text: current().0, scope: model.coordinator.scope, request: request) {
+        case .proceed: run()
+        case .confirm(let found): pendingSend = (current, run); sensitiveFindings = found
+        }
+    }
+    /// Runs only if the exact text, request and account scope still match what the person was shown.
+    private func confirmedSend() {
+        let held = pendingSend; pendingSend = nil
+        guard let held else { sendGate.cancel(); return }
+        let (text, request) = held.current()
+        guard sendGate.confirm(text: text, scope: model.coordinator.scope, request: request) else { return }
+        held.run()
+    }
+    private func cancelSensitiveConfirmation() { sendGate.cancel(); pendingSend = nil; sensitiveFindings = [] }
     var body: some View {
         let draftValidation = MerchantNPCMessageDraft(text)
         VStack(spacing: 0) {
@@ -46,6 +66,7 @@ import SwiftUI
                                                     currentRevision: { model.revision }) { capturedRequestID in
                                 let capturedGeneration = compositionGeneration
                                 let submitted = text
+                                guardedSend(current: { (model.coordinator.message ?? "", capturedRequestID) }, request: capturedRequestID) {
                                 Task {
                                     guard compositionGeneration == capturedGeneration, scenePhase == .active,
                                           model.coordinator.requestID == capturedRequestID else { return }
@@ -53,6 +74,7 @@ import SwiftUI
                                     if MerchantNPCComposerRetention.shouldClear(submitted: submitted, currentDraft: text,
                                             capturedGeneration: capturedGeneration, currentGeneration: compositionGeneration,
                                             completion: completion, coordinator: model.coordinator) { text = "" }
+                                }
                                 }
                             }
                         }
@@ -92,12 +114,14 @@ import SwiftUI
                         Button("merchantNPC.send") {
                             typing = false
                             let submitted = text; let capturedGeneration = compositionGeneration
+                            guardedSend(current: { (text, nil) }, request: nil) {
                             Task {
                                 guard compositionGeneration == capturedGeneration, scenePhase == .active else { return }
                                 let completion = await model.coordinator.send(submitted)
                                 if MerchantNPCComposerRetention.shouldClear(submitted: submitted, currentDraft: text,
                                         capturedGeneration: capturedGeneration, currentGeneration: compositionGeneration,
                                         completion: completion, coordinator: model.coordinator) { text = "" }
+                            }
                             }
                         }.frame(minWidth: 44, minHeight: 44)
                             .disabled(!model.coordinator.canSend || !draftValidation.isValid)
@@ -123,7 +147,10 @@ import SwiftUI
             }
         }
         .navigationTitle("merchantNPC.chatTitle").navigationBarTitleDisplayMode(.inline).privacySensitive()
-        .onDisappear { clearComposer(); model.coordinator.invalidate() }
+        .modifier(AIOutgoingSensitiveConfirmation(findings: $sensitiveFindings, send: confirmedSend, cancel: cancelSensitiveConfirmation))
+        .onChange(of: text) { _, _ in cancelSensitiveConfirmation() }
+        .onChange(of: model.coordinator.scope) { _, _ in cancelSensitiveConfirmation() }
+        .onDisappear { cancelSensitiveConfirmation(); clearComposer(); model.coordinator.invalidate() }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { clearComposer(); model.coordinator.interrupt() }
             else { model.coordinator.revalidateInterruption() }

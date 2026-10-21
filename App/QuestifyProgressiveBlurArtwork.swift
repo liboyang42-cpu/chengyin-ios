@@ -150,6 +150,9 @@ actor ProgressiveArtworkRenderer {
         image = nil; loaded = nil
         guard !memoryPressure else { return }
         let captured = SourceKey(url: request.url, identity: request.identity)
+        // Device measurement only: fetch/decode/render latency, never the URL.
+        let interval = NativePerformanceSignposts.shared.begin(.artworkLoad)
+        defer { interval.end() }
         if source != captured { data = nil; source = nil; await renderer.clear() }
         do {
             try Task.checkCancellation()

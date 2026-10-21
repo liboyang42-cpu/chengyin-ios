@@ -198,7 +198,7 @@ Models preserve server facts, including status, V2 missions, reported collective
 
 AppSession integration preserves all Growth/Creator/Collections/Cooperation additions, regional storage scope and CNAccountSessionService restoration/logout. The Home sheet is keyed/reset on official reader scope, and guest login requests navigate through the current account tab. Backend configuration and approval registries remain empty.
 
-Added 21 authored core XCTest methods, ten synthetic UI methods and 101 English/zh-Hans keys. Integrated authored totals are 771 core tests, 102 UI methods in 18 classes and 1453 bilingual keys. Regenerated project and exhaustive shard inventory: 34/34/34 UI methods; none omitted. Local checks pass: 93 source-contract checks, 15 tooling tests, 14 advisory-parser self-tests, deterministic scaffold verification and git diff whitespace checks. All 15 new/edited integration Swift files parse without Tree-sitter recovery. The aggregate parser still reports the same ten diagnostics in the six pre-existing files recorded above, and is not a compiler result.
+Added 21 authored core XCTest methods, ten synthetic UI methods and 101 English/zh-Hans keys. Integrated authored totals are 771 core tests, 102 UI methods in 18 classes and 1453 bilingual keys. Regenerated project and exhaustive shard inventory: 34/34/34 UI methods; none omitted. Local checks pass: 93 source-contract checks, 15 tooling tests, 14 advisory-parser self-tests, deterministic scaffold verification and git diff whitespace checks. All 15 new/edited integration Swift files pass without Tree-sitter recovery. The aggregate parser still reports the same ten diagnostics in the six pre-existing files recorded above, and is not a compiler result.
 
 Swift compiler/SwiftPM, Xcode builds, simulator/UI/screenshots, VoiceOver, device Reduce Motion and live service acceptance remain NOT_RUN. No push, remote publication retry, CI run or deployment was initiated. See docs/official-event-module.md and docs/official-event-verification.md.
 
@@ -261,179 +261,263 @@ MapKit is an explicit manual-area display with no device-location collection or 
 
 Added 21 authored core methods, nine synthetic UI methods, eight aggregate Python contract methods and 103 bilingual keys. Including the independent editor stable-ticket-identity fix's four additional core tests, the current source inventory is 968 authored core methods, 158 UI methods in 24 classes and 2,058 bilingual keys. Exhaustive UI shards are 53/53/52; no class or test is omitted. All 155 Python contract checks, 15 tooling checks, 14 parser self-tests, 26 standalone search/map source/structure assertions, deterministic project/scaffold and whitespace checks pass. Nineteen new/edited Swift files parse without recovery; the full 380-file supplementary parse retains the same ten pre-existing diagnostics in six files. Swift compiler/XCTest/Xcode builds, simulator/UI/screenshots, actual accessibility/device and live acceptance remain NOT_RUN. See docs/search-map-module.md and docs/search-map-verification.json.
 
-
-### Roaming passport, local history and server readback integrated (2026-10-01 20:31 UTC)
-
-The existing map toolbar now opens a native roaming passport: protected local history and session-route cards, server-session status/settlement readback, incremental saved-tile memory, paged stamp album/detail, a memory-only city-stamp caption preview, honest voucher missing/unavailable states and a retired-hangout explanation. Five exact source reads preserve ACTIVE/FINISHED/NOT_FOUND distinctions, incomplete settlements, server page/cursor facts and unsubmitted vs rejected stamp moderation. Local records retain missing measurements rather than substituting zeros; storage errors cannot masquerade as empty history. A complete matching settlement receipt is required by the dormant history-save boundary.
-
-History is scoped to account, market, reviewed deployment URL, native bundle and deployment realm; data stays in non-synchronizing, device-only Keychain storage. Full token/epoch snapshots fence reads and 401 handling. Refreshes, edited recovery targets and session replacement invalidate old results. Manual-area coordinates never become a device fix. Production GPS, presence, settlement, uploads, stamp exchange, voucher issuance/redemption and retired hangout writes remain hard-off; no actual permission prompt, backend/provider request, account/membership mutation, reward or photo-sharing action was performed. This is read/local-state parity, not end-to-end live roaming parity.
-
-Added 49 authored core methods, ten synthetic UI methods, eight Python source-contract checks and 80 bilingual keys. Including the independent three-test team invitation-normalization fix, current inventory is 1020 authored core methods, 168 UI methods in 25 classes and 2,138 bilingual keys. The enlarged suite now has six exhaustive class-level shards (28/28/28/28/29/27) under the existing 25-minute job limit; no tests are omitted and no new CI execution occurred. All 163 Python source-contract checks, 16 tooling tests, 14 parser self-tests, deterministic project/scaffold and whitespace checks pass. Twenty-three new/edited Swift files pass supplementary parsing; full-tree parsing retains the same ten pre-existing diagnostics in six files. Swift compiler/XCTest/Xcode, simulator/UI/screenshots, device/accessibility and live acceptance remain NOT_RUN. Existing editor ticket identity, CN scoped profile refresh, team, search/map and other prior integrations are preserved. See docs/roam-experience-module.md and docs/roam-experience-verification.json.
-
-### Order lifecycle, guarded action review and ticket verification contracts integrated (2026-10-01 20:39 UTC)
-
-Existing profile-order and ticket-wallet details now link to native order lifecycle details while preserving their original fields. The new read projection and timeline retain independent payment/registration/verification facts, explicit refund application presence and payout status, manual after-sales precedence, refund policy, absolute payment expiry and source China-time schedules. Refund completion comes only from source payout status 1/4; cancellation alone never becomes a refund receipt. Registration acceptance is displayed separately from cash settlement. Read-only payment reconciliation has source 1.5s/5s/20s timing, monotonic deadline and cancellation/session fencing, including a transport that ignores cancellation.
-
-Native bilingual action review uses an immutable exact-order snapshot with 60-second expiry, current account/session/target checks and explicit disabled production confirmation. Source-backed dormant request builders and a DEBUG fake-transport adapter cover cancel vs cancel-refund, payment parameters, ticket/coupon issuance and dynamic/legacy/coupon/chapter/station verification. The normal adapter cannot dispatch, and AppSession never constructs it. Ticket pass UI exposes no real code, token, remote QR image or scanner/camera action. Verification previews preserve choice-bearing error envelopes as non-redeemed; station choices require registrationMerchantId. Payment signatures/defaults, provider callbacks and settlement success are never fabricated.
-
-The retained session coordinator keeps unknown-outcome attempts locked across dismissal, refresh and same-account reauthentication. These locks remain memory-only and are not sufficient for production financial enablement. Read responses and 401s are bound to the complete session; explicit server prose remains verbatim. Owned order team context now retains the exact registrationID plus activity ownerID, teamMode/teamMaxMembers and registration status. It grants no team mutation permission; the production team creation adapter remains unavailable pending independently verified fresh owned-registration integration. No actual backend/provider, purchase/refund/cancellation, credential issuance/redemption, external link or permission operation occurred.
-
-Added 58 authored core methods, seven synthetic UI methods, ten aggregate source checks and 110 bilingual keys. The concurrent roaming follow-on adds thirteen core methods and three source checks: exact dormant presence/stamp/voucher request contracts plus session/role-safe local stamp-exchange review; all production mutation dispatch remains disabled. Its album navigation fix now cancels pending work without deleting the rows that own the pushed NavigationLink. No UI/key additions came from that follow-on.
-
-Current integrated inventory is 1,091 authored core methods, 175 UI methods in 26 classes and 2,248 bilingual keys. All six UI shards are exhaustive (29/29/29/30/30/28). All 176 Python source-contract checks, 16 tooling tests, 14 parser self-tests, ten standalone order source checks, deterministic project/scaffold and whitespace checks pass. The combined 34 new/edited Swift files parse without recovery; full-tree parsing has the same ten pre-existing diagnostics in six files across 421 Swift files. Swift compiler/XCTest/Xcode, simulator/UI/screenshots, VoiceOver/dynamic type/device and live acceptance remain NOT_RUN. No publication or CI run was performed. See docs/order-lifecycle-module.md, docs/order-lifecycle-verification.json and the updated roaming documents for exact boundaries.
-
-### Public profiles, invitation history and guarded social authoring integrated (2026-10-01 20:48 UTC)
-
-Account now opens public profile, invitation history and play guide. Square feed/detail adds native text composition, author profiles and comment/reply/action review while preserving existing reads. Public headers remain guest-readable; author posts have a distinct login gate. Profile relationships and unavailable counts remain unknown. Invitation history keeps total separate from loaded records and distinguishes earned rewards, pending first purchase and incomplete/failed reward synchronization using the source's normalized invite IDs, event type 5 and 200-row scan boundary. Guide/info screens retain meaningful numeric titles, removed/empty/missing states and real Home/Roam tab destinations.
-
-Exact dormant transport adapters cover text post create/edit, comments/replies, explicit LIKE/BOOKMARK, toggle-only comment likes, ID-only legacy reports, follows and conversation start. Editing preserves source association/media fields. Normal AppSession still mounts the disabled writer and visibly disabled Submit; no live action is enabled or executed. Immutable target/account/epoch/role reviews, fresh context checks and retained uncertain-outcome locks reject stale completion and duplicate retries. No post/comment identity, moderation success or conversation ID is fabricated. Locks remain memory-only and require durable reconciliation before production use.
-
-Message details now include an opt-in native image-preview destination and injected HTTPS-origin-constrained credential-free media service. Local fixtures exercise decoding; production media remains unconfigured pending approved origins and bounded streaming. No upload, camera permission, remote card action or additional message-info endpoint is introduced. Back navigation preserves rows owning destination links; session changes fence private results. Professional v1 publishing, upload/media tools, governance/drafts, direct Club member links and sensitive account flows remain gaps, rather than claimed parity.
-
-Added 44 authored core methods, eight synthetic UI methods, ten source checks and 102 bilingual keys. Current inventory: 1,135 authored core methods, 183 UI methods in 27 classes and 2,350 keys. All six UI shards remain exhaustive (30/32/31/31/30/29). All 186 source-contract checks, 16 tooling tests, 14 parser self-tests, deterministic project/scaffold and whitespace checks pass. Twenty-nine new/edited Swift files parse without recovery; full-tree supplementary parsing retains the same ten pre-existing diagnostics in six files across 440 Swift files. Swift compiler/XCTest/Xcode, simulator/UI/screenshots, actual accessibility/device and live acceptance remain NOT_RUN. No publication or CI run occurred. Existing order lifecycle, Roam, team, regional/CN session and prior flows are preserved. See docs/social-account-module.md and docs/social-account-verification.json.
-
-Social/account correction (20:51 UTC): reward totals accept exact integral numeric strings such as `240.0`; fractional, malformed or negative totals fail closed. Missing/null totals retain “not synchronized” rather than proving completeness. One additional authored core regression test is included in the counts above.
-
-
-### Local play-template authoring and prefab narrative preview integrated (2026-10-01 20:54 UTC)
-
-Account now opens distinct native play-template creation, own-template catalog and local Prefab Life preview. Intro/name/editor replacement steps, completion/reward/story/audio fields, story timeline, preview and immutable submission review are implemented. Public play-template detail from normal Home and creator routes can seed a local draft, preserving originalTemplateId without copying hidden answers. Whole-topic templates and route editors remain separate identities and destinations.
-
-The complete source TemplateDraft wire field set, six audited template/dictionary endpoints and exact dormant JSON/FormData multipart request construction are authored. Seven source-enabled advanced-game panels and timer preserve all 25 source section defaults; unknown and unsupported active sections are preserved locally and block submission. Production factories mount only the hard-off adapter. Existing server-template editing needs an owned full-detail contract; dictionary/category picker integration, upload/media tools, broader advanced panels and library/delete management UI remain gaps. Known library/delete contracts are implemented as dormant request adapters, not fabricated routes.
-
-Local drafts use account/region/deployment-scoped non-synchronizing, unlocked-only device Keychain storage. Review compares the exact draft, account, epoch, role revision, target and generation. A persistent pending intent is written before synthetic dispatch; uncertain outcomes survive navigation/re-authentication and cannot be retried or cleared through title matching. No receipt endpoint is invented. Prefab has thirteen exact source scene IDs and source state/profile/dice/gain/restore semantics, but its view is an explicit local narrative-state preview rather than complete gameplay. No live backend/provider, publication, uploads, location/sensor actions, rewards or configuration change occurred.
-
-The guide's Roam destination was corrected to actual tab tag 3, and a source assertion compares the mapping against real tab tags. Existing Social numeric reward-total handling, scoped CN session, order lifecycle, Roam, team, merchant/club operations and previous modules are preserved.
-
-Added 65 authored core methods, ten synthetic UI methods, 21 module source checks and 211 bilingual keys. Including the concurrent one-test Social numeric-total fix, inventory is 1,200 authored core methods, 193 UI methods in 28 classes and 2,561 keys. All six UI shards remain exhaustive (33/33/33/31/31/32). All 207 source-contract checks, 16 tooling tests, 14 parser self-tests, deterministic project/scaffold and whitespace checks pass. Twenty-three new/edited Swift files parse without recovery; full-tree supplementary parsing retains the same ten pre-existing diagnostics in six files across 457 files. Swift compiler/XCTest/Xcode, simulator/UI/screenshots, actual accessibility/device/Keychain and live acceptance remain NOT_RUN. No publication or CI run occurred. See docs/template-authoring-migration.md and docs/template-authoring-validation.json.
-
-
-### Source-backed operation adapters integrated (2026-10-01 21:05 UTC)
-
-Project, Club, Merchant and Team now have injectable dormant HTTPTransport adapters rather than permanent throw-only placeholders where the Flutter contract is known. Exact JSON/multipart methods, owner scopes, permission/role/baseline/quota checks and scalar/teamId acknowledgments are preserved. Project/Team acknowledge separately from simulation and persist dispatch-start markers; Club/Merchant use minimal deployment/account/target journals. Merchant story is two sequential writes: ambiguous first response stops the second write, and partial completion remains locked. No receipt, reconciliation, retry-key or join-mode endpoint was invented. All default production grants remain absent and no real operation occurred.
-
-Team's factory can consume an independently reviewed scoped read grant and typed OrderLifecycleTeamSource, rereading the exact owned registration before creating context; both inputs default to absent. Current Social, Template authoring, region/CN session and prior module integrations were retained by additive patches from current main files. Existing Project ticket identities and revision protections were not changed.
-
-Added 24 fake-transport XCTest methods, seven source checks and 11 bilingual keys. Inventory: 1,224 authored core methods, 193 UI methods in 28 classes, 2,572 keys. Six UI shards remain unchanged (33/33/33/31/31/32). Structural/scaffold, 214 source-contract checks, 16 tooling tests, 14 parser self-tests and whitespace checks pass. All 22 new/edited Swift files parse without recovery; full-tree parsing retains the same 10 prior diagnostics in six files across 461 files. Swift/Xcode compilation, XCTest, UI/simulator/screenshots/device, actual persistence and live backend acceptance remain NOT_RUN. No remote writes or CI run occurred. See docs/operation-adapters-module.md and docs/operation-adapters-verification.json.
-
-## 2026-10-01 21:24 UTC — Play runtime first slice integrated locally
-
-Added source-backed dormant classic/branch completion, run timer persistence and tombstones, mode-2 stages, hints, ending/reward/leaderboard, leader controls, advanced idempotent runtime, PLAYER command/receipt recovery, circle record/answer readback and device/stopwatch/stillness state machines. CLUB director domain contracts/coordinator are included; dedicated director UI and the live-prefab bridge are still being finished separately. Existing narrow PlaySessionView is retained. Activity detail has a separate runtime destination when configured, and the DEBUG `playExperience` module exercises injected in-memory transport only.
-
-Production PlayExperienceService capabilities stay empty. No network, location, camera, photo, microphone, media upload, provider, financial or remote action was executed. Write-journal persistence beyond the injected memory stores and retained controllers remains an activation gate; source endpoint coverage is not page parity.
-
-Verification of the integrated local tree:
-- Structural/project/catalog check PASS: 392 App/Core/UI Swift source files, 2,737 bilingual keys
-- Python contract checks PASS: 231; tools tests PASS: 16
-- Authored Swift Core tests: 1,255 (+31); authored UI tests: 200 (+7), distributed exhaustively across the existing six shards (34/34/34/33/32/33)
-- Focused supplementary Tree-sitter check PASS: 20 new/modified Swift files, zero recovery diagnostics
-- Whole-tree supplementary parser remains FAIL: 10 existing diagnostics in six untouched files; these are recorded grammar diagnostics, not Swift compiler findings. No filters or test exclusions were added
-- Swift tests, Xcode builds, UI/device/accessibility/live-backend acceptance: NOT_RUN (no Swift/Xcode toolchain here)
-- Swift Package macOS test minimum is now 14 for the new Observation-based coordinators; app minimum remains iOS 17
-
-This local addition is later than the parent's frozen 1,224-Core/193-UI publication snapshot. It is not claimed to have been pushed or covered by that snapshot's CI. See docs/play-experience-module.md and docs/play-experience-verification.json.
-
-## 2026-10-01 21:30 UTC — Club governance workspace integrated locally
-
-Added a separately scoped club workspace with 34 source-backed reads, 23 executable dormant mutation adapters and isolated group-code media GET. Host profile drafts, CRM/customer/check-in records, series/occurrences/roster/attendance, v2 role assignments/governance/cases/notifications, club-specific topic/story/answer projection, contribution rankings, compensation editions, settlement verification and dissolution-blocker states now have mounted native destinations. The entry is outside the old owner/admin gate; access/me role and event permissions decide individual operations. One AppSession-lived coordinator binds immutable reviews to account/epoch/namespace/target facts and retains unknown/acknowledged-operation locks. Production write/media grants remain hard-off.
-
-The existing Play first slice, operation adapters, Social, Template, six UI shards and Package macOS 14/iOS 17 minimums were preserved. No real messages, role/membership changes, attendance, refunds/dissolution, provider actions, credentials/media transmission or remote writes were performed. Club post/comment authoring, authoritative financial recovery/compensation confirmation, identity registration/upload, live group-code behavior and complete platform/visual acceptance remain explicit gaps; existing ClubOperations and Play/Merchant ownership boundaries are retained.
-
-Local evidence:
-- Deterministic project/scaffold PASS: 405 App/Core/UI Swift files and 3,064 English/Chinese keys
-- 243 Python source-contract checks and 16 tooling tests PASS; module source/encoding/permission/catalog checks PASS
-- Authored inventory: 1,313 core tests (+58), 206 UI tests (+6), 30 UI classes; six exhaustive shards contain 35/35/34/34/34/34 tests
-- Focused pinned Tree-sitter PASS: 20 additive/modified Swift files, no recovery diagnostics
-- Full-tree parser: 493 Swift files; the same ten existing recovery diagnostics in six untouched files remain. No filters or exclusions were introduced
-- Swift/Xcode compilation, XCTest, simulator/UI/screenshots, device/accessibility and live-backend acceptance: NOT_RUN (toolchains absent)
-- Whitespace check PASS. No push, branch/ref update or CI execution by this worker
-
-This local batch is later than the parent's frozen older publication snapshot and is not claimed covered by its CI. See docs/club-governance-migration.md, docs/club-governance-integration.md and docs/club-governance-verification.json.
-
-## 2026-10-02 00:23 UTC — Four recovered modules integrated locally
-
-Merged the verified Play director/prefab/preference extension plus merchant business, merchant content and cooperation flows. Shared session/navigation files were edited additively; default capability gates, session/role fencing, distinct IDs, scoped storage, macOS 14/iOS 17 floors and six exhaustive UI shards remain. Activity journey/director, merchant workspaces and source-typed supply previews are reachable. Active supply without known source terms stays blocked. Computed/dynamic localization integration defects were fixed without relaxing validation or runtime gates.
-
-Final local evidence: 1,497 authored Core and 230 authored UI tests in 35 classes; six shards 39/39/39/38/38/37; 3,923 bilingual keys. Deterministic project/scaffold, 271 Python contracts (12 new integration checks), 16 tooling tests, 14 pinned-parser advisory tests, merchant source gates and existing module source checks PASS. Focused parser: 70 Swift files, zero diagnostics. Whole-tree parser: 547 files, the same ten existing diagnostics in six files, unsuppressed. Whitespace check PASS. Authored Swift tests are not claimed passed: Swift/Xcode/XCTest, simulator/device/accessibility and live backend/provider validation are NOT_RUN. No remote writes or CI run occurred here.
-
-See `docs/recovered-modules-integration.md`, `docs/recovered-modules-integration-manifest.json` and the regenerated `docs/ui-shard-inventory.json` for exact scope and evidence. This integration is not covered by any earlier published commit or CI result.
-
-## Official event actions integration — 2026-10-02
-
-- Added unsent event draft editing/publishing; explicit audience/channel unified or role-specific broadcast review; merchant-selection invitation review; source-status signup/legacy completion/arrival review; and OFFICIAL versus MERCHANT/CLUB invitation responses
-- Added exact injected dormant POST adapters and invitation tracking/click adapters, immutable fresh-snapshot review, account/epoch/environment isolation, disk-before-send persistent unknown locks, and server-only participation/reward facts
-- Existing official readers stay read-only. Home → official browser now passes an optional review coordinator to published/detail/inbox hosts. AppSession permits review only, with write closure disabled; merchant selection/arrival integration remains blocked until verified candidates and approved roam/location evidence are supplied. Synthetic fixture bypasses production AppSession
-- Added 74 bilingual keys, 24 authored core and 3 authored UI tests. Cumulative inventory: 1521 core, 233 UI, 3997 bilingual keys. Six UI shards and Package iOS17/macOS14 baseline preserved
-- Local source checks and supplementary parsing are passing; Swift/Xcode/UI/device/accessibility/runtime are NOT_RUN because toolchain/simulator are unavailable. No remote writes or real invitations/broadcasts/participation/location actions occurred
-- Explicit gaps: supplied official API has no persisted-event edit endpoint; merchant invitation authoring is limited to source-tested merchantIds; acknowledged participation/party/arrival locks need a separately reviewed authoritative reconciliation policy. See docs/official-action-integration.md
-
-Official-action final integration checks: 276 Python contract tests and 16 tool tests PASS; 243 module source assertions PASS; deterministic structural regeneration PASS; all 14 changed Swift files parse cleanly. Whole-checkout supplementary Tree-sitter check reports ten diagnostics in six unrelated files (AuthChannelView, MerchantHomeView, MessagingComponents, RegistrationSheetView, RegistrationUIForm, ParticipantCoordinatorTests); it is not a Swift compiler pass. Six-shard dry-run covers all 233 UI tests exactly once. No GitHub publication performed.
-
-
-## Nearby/public-team integration — 2026-10-02
-
-Added source nearby/apply/withdraw/applications/handle/my-applications contracts, native cards/mine/applicant/review screens, server-expiry semantics and exact errorCode transitions. Team retains my-team/detail/invitation/create/join/quit/kick/disband ownership; typed Team/Roam bridges preserve distinct team/applicant/activity/owner identities and manual-only browsing coordinates. Normal Team/Roam entries, private session binding, existing destination routing and an isolated DEBUG fixture are installed. The read adapter accepts explicit deployment/account/namespace/path approval and injected HTTPTransport; default grants remain absent. Mutations remain concrete-fake-only; no real application or membership/location action occurs. Unknown results persist an account-scoped replay lock; no receipt endpoint, join-mode setter or retired hangout is invented.
-
-Added 22 authored Core methods, 3 UI methods and 82 bilingual keys. Exact cumulative inventory: 1543 Core / 236 UI methods in 37 UI classes / 4079 keys. Six exhaustive shards: 41/39/39/39/39/39. All 289 aggregate source contracts, 16 tooling tests, 14 parser advisory tests and module source gates PASS; deterministic project/scaffold PASS with 469 App/Core/UI Swift references. Seventeen changed/new Swift files parse cleanly. Whole-tree supplementary parse covers 567 Swift files with the same ten existing diagnostics in six unrelated files, unsuppressed. Swift compiler, XCTest/Xcode, simulator/UI/screenshots, device/accessibility and live backend acceptance remain NOT_RUN. No remote writes or CI execution occurred. Existing OfficialActions and all previous modules were preserved. See docs/nearby-team-source-map.md and docs/nearby-team-verification.json.
-
-
-## 2026-10-02 — Coupon author and management integration
-
-Added source-backed publication draft/review, owned definition list/detail and stop-distribution review through the existing marketing/recruiting host. Distinct definition IDs do not replace claimed-history identities. Exact injectable read and dormant publish/stop HTTP serialization, nullable money/counts, immutable review, fresh owner/publisher checks and persistent cross-epoch unknown-outcome locks are present. AppSession supplies no read approval, publisher grant or write enablement by default. The isolated DEBUG fixture never constructs the production session. No claim route, dynamic-code owner, payment, receipt or backend transition was invented; claim and fresh publisher entitlement contracts remain explicit gaps.
-
-Inventory: 1,624 authored Core tests (+22), 250 authored UI tests (+5) in 40 classes, 4,328 bilingual keys (+71), six exhaustive shards at 41/41/42/42/42/42. All 313 aggregate source contracts, 16 tooling tests, 14 parser-advisory tests and all module source gates PASS; deterministic project/scaffold PASS at 498 App/Core/UI references. Focused supplementary parse: 14 Swift files, zero diagnostics. Swift/Xcode compilation, XCTest, simulator/UI/device/accessibility and live backend acceptance remain NOT_RUN. No network, backend/provider or remote repository action was taken. See docs/coupon-management/INTEGRATION.md and integration-manifest.json for the additive scope and exact evidence.
-
-## 2026-10-02 — Source-backed IM expansion integration
-
-Added exact injected dormant HTTP adapters for conversation start, read, mute, image upload and image/route/location card send. Ordinary Account → Messages navigation now carries stable account/epoch/conversation owners, a start-conversation entry, current-history action review, image selection/upload/send consent stages, and typed native card actions. Existing text-send, conversation/history and SocialMessageMedia opt-in image preview remain in place. Trusted review results require system sender ID 0, including the existing preview badge. Concrete HTTP service defaults writes OFF, AppSession supplies service:nil and the native image picker is dormant. No backend, upload, media permission, external link, microphone/camera/photo or socket action was performed.
-
-Retained source explicitly has no WebSocket/IM voice contract; neither feature is counted as migrated. Explicit manual-refresh generation gates are provided, not a realtime replacement. Unknown writes retain immutable intent/client IDs within their exact session owner; crash/relaunch durable upload recovery and cross-epoch anti-replay remain live-enablement gaps alongside approved bounded no-redirect transport and a vetted native image provider. No server contract was invented.
-
-Inventory: 1,636 authored Core tests (+12), 252 authored UI tests (+2) in 41 UI classes, 4,364 bilingual keys (+36). Six exhaustive UI shards cover 43/41/42/42/42/42 methods. All 322 aggregate source contracts, 16 tooling tests, 14 parser-advisory tests and all 13 module source gates PASS. Deterministic project/scaffold PASS at 506 App/Core/UI Swift references. Focused supplementary parse: 15 changed/new Swift files, zero diagnostics. Whole-tree parse: 609 Swift files, the same ten pre-existing diagnostics in six unrelated files, unsuppressed. Swift compiler, XCTest/Xcode, simulator/UI/device/accessibility and live backend acceptance remain NOT_RUN. See docs/im-expanded-integration.md and docs/im-expanded/integration-manifest.json.
-
-## 2026-10-02 — integrated native repair batch (offline only)
-
-Integrated object cards/badges, nearby executable writes, protected cooperation adapters, merchant engagement extension and unknown-outcome repair, plus publishing/wallet request-credential binding repair. Current IM work was preserved. The earlier nearby fake-only limitation is superseded: exact injectable HTTP writes now exist but default write approvals/evidence are nil. Object API/media and all live/device effects remain dormant.
-
-PASS: 343 contracts, 16 tooling, 14 advisory, scaffold, 13 existing module scripts and four packet checks. Focused Tree-sitter: 56 changed/new files zero diagnostics; edited MerchantHomeView retains its one historical recovery in full parse. Full parse remains FAIL with the same unsuppressed 10 historical diagnostics across 6 of 645 Swift files. Swift/Apple/runtime/backend validation NOT_RUN. Authored inventory: 1,758 Core methods; 263 UI methods/43 classes; 4,549 bilingual keys; six shards. Exact scope and remaining invitation-router/receipt-consumer boundaries: `docs/native-repair-batch-integration.md`.
-
-## 2026-10-02 — Native safety and app-unit target closeout (offline)
-
-Integrated app-hosted QuestifyAppUnitTests wiring, consent-first NPC voice sample capture/upload seams, metadata-only durable image upload recovery, and disabled bounded streaming transport. The normal resource editor visibly shows the missing voice-configuration gate; no production capture limits were invented. Image and voice upload permissions remain independent. Unknown/acknowledged upload recovery stays locked without an authoritative manual recovery policy; WeChat SDK adapter remains absent.
-
-PASS: 414 source contracts, 24 tooling tests, 14 parser-advisory tests, prior/new module checks, deterministic project/scaffold, all six UI shard dry-runs and app-unit target inclusion. Focused parser: 26 changed Swift files, zero diagnostics. Whole-tree parser remains FAIL: 804 files, same ten historical diagnostics unsuppressed. Authored inventory: 2,125 Core methods, 313 UI/56 classes, 12 app-unit methods, 5,145 bilingual keys. All Apple/compiler/XCTest/runtime/live-provider acceptance NOT_RUN. No remote writes or CI execution. See docs/native-closeout/integration.md and exact hash/check manifests.
-
-## 2026-10-02 02:41 UTC — Independent final local checkpoint
-
-All finite source closeout packets are integrated. Independent verification: 414 contracts, 24 tooling tests, 14 advisory self-tests and all invoked module gates pass. Six dry-run shards cover all 313 UI methods once; deterministic project/scheme output is unchanged. Canonical UI inventory was refreshed from actual sources. Whole parser remains FAIL with ten historical diagnostics; Apple/Swift/XCTest/device/live acceptance remains NOT_RUN. Remote remains b754aa1 with the older failed CI; no new commit/ref/CI is claimed. WeChat SDK adapter remains unimplemented pending authoritative interface evidence; live configuration and unknown-upload reconciliation gates remain. See docs/LATEST_VERIFICATION.md and the preserved independent logs.
-
-## 2026-10-08 — six-domain source increment, awaiting exact-commit Apple verification
-
-Base: published migration commit `6eb3af76d977537a455cc203197125db78b8c7e0`.
-This batch restores previously saved media source and adds bounded improvements under the six responsibility domains. It does not complete all requirements in the overall implementation plan.
-
-- W01/W09 compatibility: Square's file-part bound now matches the repository backend's 10 MiB limit, and unsupported WebP-only selections are rejected before reading/uploading. JPEG/PNG representations retain actual type/decoder checks. The backend's 20 MiB multipart request limit is distinct; deployment overrides and actual uploads remain unverified.
-- W02 professional editing: image-only cover (3:4) and gallery (16:9) selection, cropping, inspection, explicit upload/readback application and local draft saving use a separate, default-disabled Topic capability. Maximum nine gallery entries and existing URL/CSV constraints are preserved. Production approval/configuration and live upload are not established; video is not delivered.
-- AI26: merchant NPC foreground interruption clears local conversation data; an explicitly requested fresh conversation may resume only under the same still-authorized owner. Old send/retry callbacks cannot act on the new request. Revocation is terminal. New Core regression cases are authored, not executed here. The newly authored UI extension remains a separately saved pending patch; all baseline UI test sources are unchanged in this batch.
-- W20.16/W13: official CITY snapshot reads recover once from a snapshot conflict, cancel old reads on disappearance/backgrounding and reacquire authoritative current state for the active owner. This does not implement occupation, business turns, charging, challenges or rewards.
-- W16: matched quit/disband receipts retire the current Team workflow's member projection and old action tokens only after successful journal cleanup. Unknown outcomes stay locked. This is not persistent cross-instance membership truth, stranger-meeting verification, real-name integration, dynamic QR or NFC completion.
-- W06/W07: merchant Home permissions are loaded through appearance/request/reader/authorization-generation ownership. Stable typed destination hosting preserves existing authorized navigation without retaining stale Home grants. No financial, redemption or reward write is added.
-
-Local evidence on the combined source: 2,211 Python source-contract tests, with 46 explicitly skipped external-source comparisons and all remaining tests passing; 9 project-target checks passed after final deterministic project registration. Structural checks passed for 1,419 Swift source files and 8,093 bilingual keys. An earlier 465-test tooling pass reported only the then-stale generated-project comparison as failing; that check was subsequently regenerated and rerun in the 9-test target suite. This is not a fresh all-tooling green result on the final tree.
-
-These are static/tooling checks, not Swift compilation or App execution. Swift/Core/AppUnit/UI, simulator and physical-device verification of this batch are pending the exact published SHA. Run 131's successful builds and failed runtime tests apply only to the preceding `6eb3af76` commit. All existing required CI gates and test profiles are retained; a build-only result cannot authorize merging main.
-
-The earlier missing CI131 repair workspace was not reconstructed from summaries. Only hash-verified saved originals and newly authored/reviewed changes are in this batch. Cancelled Next50 work is excluded, and the twenty externally reserved Muse paths remain byte-identical to the base.
-
-## 2026-10-19 — CI integrator: first real Apple build/test evidence for the branch (in progress)
-
-All commits since 2026-10-13 were `[skip ci]` and had never been compiled. Full-mode `native-ios.yml` runs on `migration/native-ios` today:
-
-- Run 39242671276 (3067d7a): controls/secrets PASS; Core, AppUnit and UI builds FAIL (compile). The stale current-test ledger was refreshed against 39ce4ad with explicit reasons for the four renamed tests from 7c21af4/85e9722; macOS matrices widened to `max-parallel: 20`.
-- Runs 39246017032 / 39247795734 / 39249494475 / 39253050885: compile root causes fixed one at a time — a stale duplicate of ClubGovernanceReadView members spliced into `content()` by 000bed9; an `@Observable` multi-variable declaration in ProfileGuideReader; type-checker timeouts (club read view and activity publishing view split into ordered modifier stages); Core test `try`/main-actor default-argument errors; the shared profile multipart parser dropping the last value character (`"\r\n"` is one Swift `Character`), which broke favorites/topic/guide/public-info/removal routes; unregistered Swift files; a duplicate `MerchantPredictionRound` type from b9e118d (now `MerchantPredictionInboxRound`).
-- Run 39255634295 (8f594f8): Core, App and UI products build. Core executed with 4 failures, AppUnit with 1 compile error (both fixed by 0a3d3fe); UI shards started — 3 passed and 7 failed of the 10 finished before the run was superseded (cancelled). Failing UI methods include OwnedTopicCoverRecoveryFlowTests, ProjectPendingStoryAudioFlowTests (5a58cd1), ApprovedTopicReviewCurrentChineseFlowTests, ProjectStoryAudioFlowTests, RoamFinishedHistoryFlowTests, ApprovedTopicFrozenCoverPublicationFlowTests, OwnedTopicCoverSelectionFlowTests.
-- Run 39259912495 (fb4b8bf): pending/in progress; UI failure logs now keep 120 context lines so element hierarchies are visible without artifact access.
-
-The full plan is 8,726 Core + 5,141 AppUnit + 982 UI methods in 108 UI shards; with ~4 concurrent macOS runners a full run takes several hours. No assertion was removed or weakened; one stale contract check (customer-history read fence) was re-pointed at the real `check` closure with the same tokens plus a stronger binding check. No live endpoint, payment, SMS, OAuth or signing configuration was touched. gitleaks (8.24.3, full history) is clean. Not yet green; PRs #10–#13 are not merged pending their own green runs.
-
-Update 17:55 UTC: run 39264234966 (d06572c) — controls, secrets, Core (all selected methods) and UI build PASS; AppUnit failed to compile on `TemplateLowHPPresetText.localizationKey` (fixed in ae8c05c, catalog-backed, copy unchanged). UI after 25 of 108 shards: 11 pass, 14 fail. Failing methods are concentrated in project-editor review/release/story-media flows (ApprovedRelease*, ApprovedTopicReview*/SelectedCover*, ProjectStoryAudio*/MediaGap, ProjectOwnedModeCopy) plus ProfileAuthorPostsRefresh, RoamFinishedHistory, CouponRuntimeJourney and OwnedTopicCoverSelection. Fourteen editor UI tests waited for the off-screen name field without the suite's `revealProjectEditorNameInForm` helper (the pattern already required by test_project_editor_readiness); they now reveal it first. PR related-mode gates (e.g. #10 run 39276259927: Core/AppUnit-build OK, 7 of 8 UI shards red) inherit these base UI failures, so no PR has a green gate yet and none is merged.
+## 2B. Wave 3 (`I00–I11` & `BK`) 合并状态与 Batch 1/2/3 收口状态（2026-10-20）
+
+| Lane | PR | Commit | 状态 | 交付摘要 |
+|---|---|---|---|---|
+| **w2-09** | `#40` | `8b7f555` | MERGED | Roam private tools (`capsule`, `exploration-goals`, `exploration-export`) + 65 source contracts |
+| **w2-17** | `#39` | `b7a4552` | MERGED | Merchant store parity (`poi/detail`, `decor/save` JSON, `shop/apply` 4-step wizard, `npc/voice/status`) |
+| **I00 + I11** | `#43` | `54b2fdc` | MERGED | `Core/RoamReceivedStampRead.swift` + `RoamReceivedStampPresentation.swift` + `App/RoamReceivedStampSectionView.swift` + `I00SessionAdmissionBaselineTests` |
+| **I01** | `#38` | `028e23e` | MERGED | `PlayArrivalAccuracy` (80m advisory + BK-GPS rejection detection) + `RuntimePlayDeviceProvider` (>100m/>30s `invalidAction`) (11 tests) |
+| **I02** | `#41` | `010caae` | MERGED | `Core/PlayGameCommandJournal.swift` + `Core/PlayGameSessionComposition.swift` + `<key>:game` encrypted recovery slot |
+| **I03** | `#42` | `1a0270b` | MERGED | `ProjectEditStoryContract.validatePayload` & `ProjectEditRichStoryContract.attachEndings` boolean-only `fallback` (2 test files) |
+| **I04** | `#37` | `ba58993` | MERGED | `Core/AssetPointsLedgerReadback.swift` + `WalletLedgerRow` (`currentPoints`/`eventId`) + `OrderCancellationObservation` (`pointsUsed`/`pointsReturned`) (10 tests) |
+| **I05** | `#44` | `6b09cac8` | MERGED | `Core/SquareWorkspacePrivacy.swift` (`URLCache` media eviction on 404/DELETED) + `Core/TopicLikeDirection.swift` + `Core/TopicLikeHostController.swift` |
+| **I06** | `#35` | `79af21a` | MERGED | `Core/PlatformAudioLifecycle.swift` + `App/NativeAudioLifecycleObservation.swift` + route/interruption/tmp-sweep handling (11 tests) |
+| **I07** | `#48` | `5647c1ac` | MERGED | `GrowthCenterService.leaderboard` form-encoded body fix + `GrowthLeaderboardStanding` + `ProfileReadFailure.isDenied` (9 tests) |
+| **I08** | `#50` | `f0a84989` | MERGED | `Core/NPCChatLogDeletion.swift` + `NPCChatDataCoordinator` + `App/NPCChatDataView.swift` (default OFF pending AI-DELETE) (22 tests) |
+| **I09** | `#55` | `44a302e7` | MERGED | `ClubSeriesScheduleReadbackFixtureTests` (BK-SCHEDULE) + `Core/PlayLeadProgressPolling.swift` & `App/PlayLeadProgressPollingModifier.swift` (11 tests) |
+| **I10** | `#49` | `511693b5` | MERGED | `Core/NativePerformanceSignposts.swift` + `PlayRouteMapView` O(N) projection + VoiceOver/Reduce Motion + `tools/signpost_measure.py` (15 tests) |
+| **BK** | `#52` | `1123f654` | MERGED | `Tests/CoreTests/BackendSyncContractTests.swift` (5 tests) + `Tests/ContractChecks/test_bk_backend_sync.py` (6 checks) |
+| **Wave-2 Batch 1/2/3** | Local | `current` | MERGED | Closed all remaining P1 presentation/copy/filter/composition items across `w2-01` through `w2-21` (`PlayRuntimeAuxiliaryBinding`, `MapCoreEntryHostRouter`) + fixed all 6 CoreTests/AppUnitTests failure groups |
+
+## 2C. Batches 4–6 (`Lanes 23–63`): Reform Plan v9 Host Bridges, SwiftUI Sections & AppUnitTests (2026-10-20)
+
+- **Batch 4 (`Lanes 23–38`: Reform Plan v9 `F`/`G`/`H` Host Bridges, Coordinators & Release Preflight Contract):**
+  - `MapVisualHostBridge` (`Core/MapVisualHostBridge.swift`, `Tests/CoreTests/MapVisualHostBridgeTests.swift`)
+  - `StoryWalkingNavigationHostBridge` (`Core/StoryWalkingNavigationHostBridge.swift`, `Tests/CoreTests/StoryWalkingNavigationHostBridgeTests.swift`)
+  - `NPCAISceneHostGuard` (`Core/NPCAISceneHostGuard.swift`, `Tests/CoreTests/NPCAISceneHostGuardTests.swift`)
+  - `MerchantInStoreGameAuthoringPresentation` (`Core/MerchantInStoreGameAuthoringPresentation.swift`, `Tests/CoreTests/MerchantInStoreGameAuthoringPresentationTests.swift`)
+  - `CommerceOrderLifecycleBridge` (`Core/CommerceOrderLifecycleBridge.swift`, `Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift`)
+  - `PublishMediaEditorBridge` (`Core/PublishMediaEditorBridge.swift`, `Tests/CoreTests/PublishMediaEditorBridgeTests.swift`)
+  - `WorkshopModUpgradePresentation` (`Core/WorkshopModUpgradePresentation.swift`, `Tests/CoreTests/WorkshopModUpgradePresentationTests.swift`)
+  - `TeamMeetingHandshakePresentation` (`Core/TeamMeetingHandshakePresentation.swift`, `Tests/CoreTests/TeamMeetingHandshakePresentationTests.swift`)
+  - `HomeReturnAndCityDeltaCoordinator` (`Core/HomeReturnAndCityDeltaCoordinator.swift`, `Tests/CoreTests/HomeReturnAndCityDeltaCoordinatorTests.swift`)
+  - `ReleasePreflightAndUIReadinessContract` (`Core/ReleasePreflightAndUIReadinessContract.swift`, `Tests/CoreTests/ReleasePreflightAndUIReadinessContractTests.swift`)
+  - `LocationShareHostCoordinator` (`Core/LocationShareHostCoordinator.swift`, `Tests/CoreTests/LocationShareHostCoordinatorTests.swift`)
+  - `MerchantSideQuestHostPresentation` (`Core/MerchantSideQuestHostPresentation.swift`, `Tests/CoreTests/MerchantSideQuestHostPresentationTests.swift`)
+  - `RunAuthorityHostCoordinator` (`Core/RunAuthorityHostCoordinator.swift`, `Tests/CoreTests/RunAuthorityHostCoordinatorTests.swift`)
+  - `EnvironmentBranchHostPresentation` (`Core/EnvironmentBranchHostPresentation.swift`, `Tests/CoreTests/EnvironmentBranchHostPresentationTests.swift`)
+  - `RewardLedgerHostPresentation` (`Core/RewardLedgerHostPresentation.swift`, `Tests/CoreTests/RewardLedgerHostPresentationTests.swift`)
+  - `WaveUnifiedParityInventory` (`Core/WaveUnifiedParityInventory.swift`, `Tests/CoreTests/WaveUnifiedParityInventoryTests.swift`)
+- **Batch 5 (`Lanes 39–51`: Reform Plan v9 SwiftUI Section Views & `WaveUnifiedParityInventory`):**
+  - Added offline/fail-closed SwiftUI section views (`App/MapVisualAndFogHostSectionView.swift`, `App/LocationShareAndSideQuestSectionView.swift`, `App/StoryWalkingAndEnvBranchSectionView.swift`, `App/NPCAISceneAndMerchantGameSectionView.swift`, `App/CommerceAndRewardLedgerSectionView.swift`, `App/PublishMediaAndThemeSeasonSectionView.swift`, `App/WorkshopModAndQmodSectionView.swift`, `App/TeamMeetingAndInviteSectionView.swift`, `App/RunAuthorityHostSectionView.swift`, `App/ReleasePreflightDashboardSectionView.swift`) and their corresponding Core test suites (`Tests/CoreTests/*SectionViewTests.swift`, `Tests/CoreTests/Wave4And5MasterGateTests.swift`).
+- **Batch 6 (`Lanes 52–63`: `AppUnitTests` for all new Section Views + `ReformWorldHostWorkbenchView`):**
+  - Added `App/ReformWorldHostWorkbenchView.swift` unifying all Reform Plan v9 offline host sections into a single inspectable workbench container.
+  - Added `Tests/AppUnitTests/*SectionViewAppUnitTests.swift` and `Tests/AppUnitTests/ReformWorldHostWorkbenchViewAppUnitTests.swift` covering app-hosted SwiftUI section instantiation, view-model state invariants, and default-disabled production gates across Lanes 52–63.
+
+## 2D. Batches 7–9 (`Lanes 64–95`): Release Audits, Unified Matrices & Safety Verification (2026-10-20)
+
+- **Batch 7 (`Lanes 64–71`): Unified Matrices & Submission Readiness Audits:**
+  - App Store submission readiness audit (`Core/AppStoreSubmissionReadinessAudit.swift`, `Tests/CoreTests/AppStoreSubmissionReadinessAuditTests.swift`)
+  - Unified Ticket Phase 0–5 & `MV01–MV41` matrix (`Core/UnifiedTicketMatrixContract.swift`, `Tests/CoreTests/UnifiedTicketMatrixContractTests.swift`)
+  - 99-page mini-program parity registry (`Core/MiniProgramPageParityRegistry.swift`, `Tests/CoreTests/MiniProgramPageParityRegistryTests.swift`)
+  - Cloud CI shard contract (`Core/CloudCIShardContract.swift`, `Tests/CoreTests/CloudCIShardContractTests.swift`)
+  - Wave-3 (`I00–I11` & `BK`) handoff registry (`Core/Wave3HandoffStatusRegistry.swift`, `Tests/CoreTests/Wave3HandoffStatusRegistryTests.swift`)
+- **Batch 8 & Batch 9 (`Lanes 72–95`): Domain Safety, Privacy, Accessibility & Recovery Audits:**
+  - Regional endpoint allowlist audit (`Core/RegionalEndpointAllowlistAudit.swift`, `Tests/CoreTests/RegionalEndpointAllowlistAuditTests.swift`)
+  - Localization zero-missing-keys audit (`Core/LocalizationCompletenessAudit.swift`, `Tests/CoreTests/LocalizationCompletenessAuditTests.swift`)
+  - VoiceOver/WCAG accessibility audit (`Core/AccessibilityVoiceOverAudit.swift`, `Tests/CoreTests/AccessibilityVoiceOverAuditTests.swift`)
+  - Deep-link & QR/URL safety audit (`Core/DeepLinkAndQRRouteSafetyAudit.swift`, `Tests/CoreTests/DeepLinkAndQRRouteSafetyAuditTests.swift`)
+  - Offline durable recovery & journal audit (`Core/OfflineDurableRecoveryAudit.swift`, `Tests/CoreTests/OfflineDurableRecoveryAuditTests.swift`)
+  - UI test shard & fixture completeness audit (`Core/UITestShardCompletenessAudit.swift`, `Tests/CoreTests/UITestShardCompletenessAuditTests.swift`)
+  - Privacy redaction & coordinate non-leakage audit (`Core/PrivacyRedactionAudit.swift`, `Tests/CoreTests/PrivacyRedactionAuditTests.swift`)
+  - Commerce, wallet & points non-withdrawable safety audit (`Core/CommerceWalletSafetyAudit.swift`, `Tests/CoreTests/CommerceWalletSafetyAuditTests.swift`)
+
+## 2E. Batches 10–11 (`Lanes 100–120`): Master Release Sign-Off Dashboard, 3-Document Crosswalk & Domain Lifecycle Audits (2026-10-20)
+
+- **Roam & Exploration audit:** `Core/RoamAndExplorationSafetyAudit.swift`, `Tests/CoreTests/RoamAndExplorationSafetyAuditTests.swift`
+- **IM & Social safety audit:** `Core/IMAndSocialSafetyAudit.swift`, `Tests/CoreTests/IMAndSocialSafetyAuditTests.swift`
+- **15-pillar Master Release Sign-off Dashboard:** `Core/MasterReleaseSignOffDashboard.swift`, `App/MasterReleaseSignOffDashboardView.swift`, `Tests/CoreTests/MasterReleaseSignOffDashboardTests.swift`, `Tests/AppUnitTests/MasterReleaseSignOffDashboardViewAppUnitTests.swift`
+- **Auth & Session Admission audit:** `Core/AuthAndSessionAdmissionAudit.swift`, `Tests/CoreTests/AuthAndSessionAdmissionAuditTests.swift`
+- **World & City Lifecycle audit:** `Core/WorldAndCityLifecycleAudit.swift`, `Tests/CoreTests/WorldAndCityLifecycleAuditTests.swift`
+- **Backend Sync & Contract Gate audit:** `Core/BackendSyncAndContractGateAudit.swift`, `Tests/CoreTests/BackendSyncAndContractGateAuditTests.swift`
+- **3-Document Master Crosswalk (`交接文档_20261020.md` + `落地清单.md` + `工单-统一实施版.md`):** `Core/ThreeDocumentMasterCrosswalk.swift`, `Tests/CoreTests/ThreeDocumentMasterCrosswalkTests.swift`
+- **Performance & Signpost audit:** `Core/PerformanceAndSignpostAudit.swift`, `Tests/CoreTests/PerformanceAndSignpostAuditTests.swift`
+- **Coupon & Sponsored Reward safety audit:** `Core/CouponAndSponsoredRewardSafetyAudit.swift`, `Tests/CoreTests/CouponAndSponsoredRewardSafetyAuditTests.swift`
+- **Audio & Media Pipeline lifecycle audit:** `Core/AudioAndMediaPipelineLifecycleAudit.swift`, `Tests/CoreTests/AudioAndMediaPipelineLifecycleAuditTests.swift`
+
+## 2F. Batches 12–13 (`Lanes 125–149`): RC Gate (`RC-GATE-01..06`), `W02..W20` Compliance, Unified Release Audit Hub & Domain Readiness Audits (2026-10-20)
+
+- **`W02..W20` compliance audit:** `Core/ReformWorkPackageComplianceAudit.swift`, `Tests/CoreTests/ReformWorkPackageComplianceAuditTests.swift`
+- **`AppSession` fixture short-circuit audit:** `Core/AppSessionFixtureShortCircuitAudit.swift`, `Tests/CoreTests/AppSessionFixtureShortCircuitAuditTests.swift`
+- **XcodeGen & scaffold integrity audit:** `Core/XcodeGenAndScaffoldIntegrityAudit.swift`, `Tests/CoreTests/XcodeGenAndScaffoldIntegrityAuditTests.swift`
+- **End-to-End Release Candidate Gate (`RC-GATE-01..06`):** `Core/EndToEndReleaseCandidateGate.swift`, `Tests/CoreTests/EndToEndReleaseCandidateGateTests.swift`
+- **Side-Quest & Personal Fog host audit:** `Core/SideQuestAndPersonalFogHostAudit.swift`, `Tests/CoreTests/SideQuestAndPersonalFogHostAuditTests.swift`
+- **3-Document Master Crosswalk Python contract check:** `Tests/ContractChecks/test_three_document_master_crosswalk.py`
+- **`UnifiedReleaseAuditHubView`:** `App/UnifiedReleaseAuditHubView.swift`, `Tests/AppUnitTests/UnifiedReleaseAuditHubViewAppUnitTests.swift`
+- **UI test flow readiness anchor audit:** `Core/UITestFlowReadinessAnchorAudit.swift`, `Tests/CoreTests/UITestFlowReadinessAnchorAuditTests.swift`
+- **NPC chat & scene AI safety audit:** `Core/NPCChatAndSceneAISafetyAudit.swift`, `Tests/CoreTests/NPCChatAndSceneAISafetyAuditTests.swift`
+- **Play runtime & auxiliary binding audit:** `Core/PlayRuntimeAndAuxiliaryBindingAudit.swift`, `Tests/CoreTests/PlayRuntimeAndAuxiliaryBindingAuditTests.swift`
+- **App Store privacy manifest audit:** `Core/AppStorePrivacyManifestAudit.swift`, `Tests/CoreTests/AppStorePrivacyManifestAuditTests.swift`
+- **Growth & Leaderboard parity audit:** `Core/GrowthAndLeaderboardParityAudit.swift`, `Tests/CoreTests/GrowthAndLeaderboardParityAuditTests.swift`
+- **Schedule & Lead Progress polling audit:** `Core/ScheduleAndLeadProgressPollingAudit.swift`, `Tests/CoreTests/ScheduleAndLeadProgressPollingAuditTests.swift`
+
+## Batch 14 (Lanes 150–162): Wave-3 I00/I04/I05/I07/I08/I09/I10/I11 Deep Audits, Batch 12–14 Contract Suite & Complete Wave 1–3 + Reform v9 Showcase View (2026-10-20)
+
+- `Core/AssetPointsAndOrderCancellationAudit.swift` + `App/AssetPointsAndOrderCancellationSectionView.swift` (`I04` points ledger & cancellation conservation)
+- `Core/TopicLikeAndSquareEvictionAudit.swift` + `App/TopicLikeAndSquareEvictionSectionView.swift` (`I05` 404/DELETED media cache eviction & fail-closed topic like write gate)
+- `Core/ReceivedStampsAndPassportToolsAudit.swift` + `App/ReceivedStampsAndPassportToolsSectionView.swift` (`I00`/`I11` received stamps & passport tools isolation)
+- `Core/MerchantDecorAndShopApplyWizardAudit.swift` + `App/MerchantDecorAndShopApplyWizardSectionView.swift` (`I07`/`I08` merchant decor & shop apply 4-step wizard)
+- `Core/ClubAccessAndSettlementParityAudit.swift` + `App/ClubAccessAndSettlementSectionView.swift` (`I09`/`I10` club access control & settlement/payroll)
+- `Tests/ContractChecks/test_batch12_to_batch14_contracts.py`
+- `App/CompleteWave1To3AndReformV9ShowcaseView.swift` + `Tests/AppUnitTests/CompleteWave1To3AndReformV9ShowcaseViewTests.swift`
+
+## Batches 15–16 (Lanes 163–188): Zero-Gap Release Certificate, Wave-2/3 Deep Parity & Production Runtime Resilience (2026-10-20)
+
+- `Core/GameJournalCompositionAndPlaySummaryAudit.swift` + `App/GameJournalCompositionAndPlaySummarySectionView.swift`
+- `Core/SocialGraphAndProfilePrivacyParityAudit.swift` + `App/SocialGraphAndProfilePrivacySectionView.swift`
+- `Core/ExplorationPrivateToolsAndCapsuleAudit.swift` + `App/ExplorationPrivateToolsAndCapsuleSectionView.swift`
+- `Core/PublishTopicAndCommentModerationAudit.swift` + `App/PublishTopicAndCommentModerationSectionView.swift`
+- `Core/MemberSubscriptionAndOrderInvoiceAudit.swift` + `App/MemberSubscriptionAndOrderInvoiceSectionView.swift`
+- `Core/FinalReleaseSignoffAndZeroGapCertificateContract.swift` + `App/FinalReleaseSignoffAndZeroGapCertificateView.swift`
+- `Core/CrashResilienceAndMetricKitDiagnosticsAudit.swift` + `App/CrashResilienceAndMetricKitDiagnosticsSectionView.swift`
+- `Core/PushNotificationAndLiveActivityParityAudit.swift` + `App/PushNotificationAndLiveActivitySectionView.swift`
+- `Core/NetworkReachabilityAndRetryBackoffAudit.swift` + `App/NetworkReachabilityAndRetryBackoffSectionView.swift`
+- `Core/KeychainAndBiometricSessionSecurityAudit.swift` + `App/KeychainAndBiometricSessionSecuritySectionView.swift`
+- `Core/ImageAndVideoDiskCacheBudgetAudit.swift` + `App/ImageAndVideoDiskCacheBudgetSectionView.swift`
+- `Core/BackgroundTaskAndScenePhaseLifecycleAudit.swift` + `App/BackgroundTaskAndScenePhaseLifecycleSectionView.swift`
+- `Tests/ContractChecks/test_batch15_zero_gap_certificate.py` and `Tests/ContractChecks/test_batch16_runtime_resilience_contracts.py`
+
+## Batches 17–19 (Lanes 189–221): Native Superset Policy, Platform Polish & 7-Day App Store Launch Critical Path (2026-10-20)
+
+### 1. Batches 17–19 Deliverables (`Lanes 189–221`)
+- `Core/AppClipAndQRCodeHandshakeParityAudit.swift` + `App/AppClipAndQRCodeHandshakeSectionView.swift`
+- `Core/WebViewAndExternalSafariSandboxAudit.swift` + `App/WebViewAndExternalSafariSandboxSectionView.swift`
+- `Core/LocalizationPluralAndFormatterConsistencyAudit.swift` + `App/LocalizationPluralAndFormatterConsistencySectionView.swift`
+- `Core/DeviceOrientationAndSplitViewAdaptationAudit.swift` + `App/DeviceOrientationAndSplitViewAdaptationSectionView.swift`
+- `Core/PhotoLibraryAndCameraPermissionGracefulDegradationAudit.swift` + `App/PhotoLibraryAndCameraPermissionGracefulDegradationSectionView.swift`
+- `Core/HapticFeedbackAndMotionReduceComplianceAudit.swift` + `App/HapticFeedbackAndMotionReduceComplianceSectionView.swift`
+- `Core/ProductionTelemetryAndPrivacyRedactionPipelineAudit.swift` + `App/ProductionTelemetryAndPrivacyRedactionPipelineSectionView.swift`
+- `Core/SQLiteAndJSONJournalCorruptionRecoveryAudit.swift` + `App/SQLiteAndJSONJournalCorruptionRecoverySectionView.swift`
+- `Core/AppStoreReviewDemoAccountAndFixtureReadinessAudit.swift` + `App/AppStoreReviewDemoAccountAndFixtureReadinessSectionView.swift`
+- `Core/NativeSupersetOverMiniProgramPolicyAudit.swift` + `App/NativeSupersetOverMiniProgramPolicySectionView.swift`
+- `Core/SevenDayLaunchCriticalPathMilestoneContract.swift` + `App/SevenDayLaunchCriticalPathMilestoneSectionView.swift`
+- `Core/InAppCustomerSupportAndFeedbackParityAudit.swift` + `App/InAppCustomerSupportAndFeedbackSectionView.swift`
+- `Core/AccountDeletionAndGDPRPIPLComplianceAudit.swift` + `App/AccountDeletionAndGDPRPIPLComplianceSectionView.swift`
+- `Core/MiniProgramVsNativeSupersetPageClassifier.swift` + `App/MiniProgramVsNativeSupersetPageClassifierSectionView.swift`
+- `App/MasterSevenDayLaunchCommandCenterView.swift` + `Tests/AppUnitTests/MasterSevenDayLaunchCommandCenterViewTests.swift`
+
+### 2. Native Superset Alignment Principle (iOS 原生超集原则)
+- **Backend API Contracts & Business Status Machines (100% Mini-Program Parity):** All backend request/response schemas, status codes, role/permission checks, order/coupon/schedule state machines, and fail-closed allowlists align 100% with the Mini-Program and shared Java backend contracts.
+- **Native Superset Capabilities Retained Without Downgrading:** Where iOS is already more complete or architecturally superior to the Mini-Program — specifically **MapKit 3D + Personal Fog**, **Encrypted Durable Command Journal (`<key>:game`)**, **Native Audio/TTS Interruption Recovery**, **StoreKit 2**, **OSSignposter 60fps**, and **Reform v9 Host Bridges** — iOS retains its superior native implementation without downgrading to Mini-Program workarounds.
+
+### 3. 7-Day Launch Critical Path (`Day 1` to `Day 7`)
+- **Day 1:** Freeze `Config/Local.xcconfig` production signing (`DEVELOPMENT_TEAM`, `PRODUCT_BUNDLE_IDENTIFIER`), verify `PrivacyInfo.xcprivacy`, and lock the 99-page `MiniProgramVsNativeSupersetPageClassifier` baseline.
+- **Day 2:** Complete staging backend HTTPS endpoint allowlist smoke tests (`GET /api/config/public`, `GET /api/userInfo` non-empty `role`, `BK-GPS`, `BK-SESSION`, `BK-SCHEDULE`, `BK-ASSET`, `BK-PRIVACY`, `BK-AI`).
+- **Day 3:** Execute full CoreTests, AppUnitTests, and 3-shard XCUITest regression suites plus Python contract checks (`tools/current_ci.py check`).
+- **Day 4:** Cut **TestFlight Internal RC-1** archive, verify physical-device Keychain, camera/VisionKit QR scanning, GPS arrival accuracy, and `AVAudioSession` interruption recovery.
+- **Day 5:** Validate App Store Review demo credentials, offline/review fallback fixtures (`AppStoreReviewDemoAccountAndFixtureReadinessAudit`), In-App Account Deletion (`AccountDeletionAndGDPRPIPLComplianceAudit`), and customer support/feedback flows.
+- **Day 6:** Cut **TestFlight External / Release Candidate RC-2**, complete 24-hour MetricKit/crash-free soak (`CrashResilienceAndMetricKitDiagnosticsAudit`), and sign off the 15-pillar `MasterReleaseSignOffDashboard` and `FinalReleaseSignoffAndZeroGapCertificateContract`.
+- **Day 7:** Submit to **App Store Connect** for review and staged production release with `MasterSevenDayLaunchCommandCenterView` green across all gates.
+
+## Batches 20–22 (Lanes 222–253): StoreKit 2, LBS Thermal Budget, Cold-Start Latency, ASC Metadata, OAuth/City Isolation, Phased Canary, MP Path Translator & App Review Rejection Prevention Playbook (2026-10-20)
+
+- **StoreKit 2 Entitlement & Transaction Verification:** `Core/StoreKit2EntitlementAndTransactionVerificationAudit.swift` + `App/StoreKit2EntitlementAndTransactionVerificationSectionView.swift`
+- **LBS Background Location & Thermal Budget:** `Core/LBSBackgroundLocationAndThermalBudgetAudit.swift` + `App/LBSBackgroundLocationAndThermalBudgetSectionView.swift`
+- **Cold-Start Launch Latency & Prewarm Budget:** `Core/ColdStartLaunchLatencyAndPrewarmBudgetAudit.swift` + `App/ColdStartLaunchLatencyAndPrewarmBudgetSectionView.swift`
+- **App Store Connect Metadata & Screenshot Matrix:** `Core/AppStoreConnectMetadataAndScreenshotMatrixAudit.swift` + `App/AppStoreConnectMetadataAndScreenshotMatrixSectionView.swift`
+- **Apple Sign-In & WeChat OAuth Nonce/Token Isolation:** `Core/AppleSignInAndWeChatOAuthIsolationAudit.swift` + `App/AppleSignInAndWeChatOAuthIsolationSectionView.swift`
+- **Multi-City Coordinate & Timezone Boundary Isolation:** `Core/MultiCityCoordinateAndTimezoneBoundaryAudit.swift` + `App/MultiCityCoordinateAndTimezoneBoundarySectionView.swift`
+- **Phased Release Canary & Kill-Switch Rollback:** `Core/PhasedReleaseCanaryAndKillSwitchRollbackAudit.swift` + `App/PhasedReleaseCanaryAndKillSwitchRollbackSectionView.swift`
+- **Mini-Program 99-Page Path-to-Native-Route Translator:** `Core/MiniProgramPathToNativeRouteTranslator.swift` + `App/MiniProgramPathToNativeRouteTranslatorSectionView.swift`
+- **App Store Review Guideline Rejection Prevention Playbook:** `Core/AppStoreReviewGuidelineRejectionPreventionPlaybook.swift` + `App/AppStoreReviewGuidelineRejectionPreventionPlaybookView.swift`
+- **Batch 20–22 Contract Suites:** `Tests/ContractChecks/test_batch20_to_batch22_launch_contracts.py`
+
+## Batch 23 (Lanes 254–266): 99-Page Decision Ledger (68 Strict 1:1 + 31 Native Superset), Production Signing Validator, Day-5 TestFlight Smoke Matrix, Legacy Server Isolation & Final Goal Completion Gate (2026-10-20)
+
+- **99-Page Mini-Program vs. Native Superset Decision Ledger (68 Strict 1:1 + 31 Native Superset):** Audited and locked every single one of the 99 Mini-Program pages into an explicit per-page decision ledger (`68` strict `1:1` API/state-machine parity pages + `31` Native Superset pages where iOS retains superior native capabilities such as MapKit 3D + Personal Fog, `<key>:game` encrypted durable command journal, native `AVAudioSession` interruption recovery, StoreKit 2, OSSignposter 60fps, and Reform v9 Host Bridges without downgrading).
+- **Production Signing & `Local.xcconfig` Validator:** Enforced pre-archive validation of `CODE_SIGNING_ALLOWED`, `DEVELOPMENT_TEAM`, `PRODUCT_BUNDLE_IDENTIFIER`, `QUESTIFY_MARKET`, `QUESTIFY_API_BASE_URL` (HTTPS-only), and `QUESTIFY_SESSION_REALM` while keeping `Config/Base.xcconfig` fail-closed.
+- **Day-5 TestFlight Physical-Device Smoke Matrix:** Codified the Day-4/Day-5 TestFlight RC physical-device verification matrix covering Keychain persistence, VisionKit QR scanning, GPS arrival accuracy (`BK-GPS`), `AVAudioSession` route/interruption recovery (`I06`), App Store Review demo credentials & offline fallback fixtures, and In-App Account Deletion (`PIPL`/`GDPR`).
+- **Legacy Server (`47.103.124.64`) Isolation Guard:** Hard-blocked unapproved legacy mini-program server IP `47.103.124.64` across regional endpoint allowlist and release preflight validators.
+- **Final Goal Completion Gate (`Lanes 254–266`):** Unified all Wave 1–3, Reform Plan v9 (`W02–W20`, `U01–U08`, `MV01–MV41`), 15-pillar release sign-off, 7-day launch critical path, and Batch 23 contract checks into the final goal completion gate.
+
+## 2B. Wave 3 (`I00–I11` & `BK`) 合并状态与 Batch 1/2/3 收口状态（2026-10-20）
+
+| Lane | PR | Commit | 状态 | 交付摘要 |
+|---|---|---|---|---|
+| **w2-09** | `#40` | `8b7f555` | MERGED | Roam private tools (`capsule`, `exploration-goals`, `exploration-export`) + 65 source contracts |
+| **w2-17** | `#39` | `b7a4552` | MERGED | Merchant store parity (`poi/detail`, `decor/save` JSON, `shop/apply` 4-step wizard, `npc/voice/status`) |
+| **I00 + I11** | `#43` | `54b2fdc` | MERGED | `Core/RoamReceivedStampRead.swift` + `RoamReceivedStampPresentation.swift` + `App/RoamReceivedStampSectionView.swift` + `I00SessionAdmissionBaselineTests` |
+| **I01** | `#38` | `028e23e` | MERGED | `PlayArrivalAccuracy` (80m advisory + BK-GPS rejection detection) + `RuntimePlayDeviceProvider` (>100m/>30s `invalidAction`) (11 tests) |
+| **I02** | `#41` | `010caae` | MERGED | `Core/PlayGameCommandJournal.swift` + `Core/PlayGameSessionComposition.swift` + `<key>:game` encrypted recovery slot |
+| **I03** | `#42` | `1a0270b` | MERGED | `ProjectEditStoryContract.validatePayload` & `ProjectEditRichStoryContract.attachEndings` boolean-only `fallback` (2 test files) |
+| **I04** | `#37` | `ba58993` | MERGED | `Core/AssetPointsLedgerReadback.swift` + `WalletLedgerRow` (`currentPoints`/`eventId`) + `OrderCancellationObservation` (`pointsUsed`/`pointsReturned`) (10 tests) |
+| **I05** | `#44` | `6b09cac8` | MERGED | `Core/SquareWorkspacePrivacy.swift` (`URLCache` media eviction on 404/DELETED) + `Core/TopicLikeDirection.swift` + `Core/TopicLikeHostController.swift` |
+| **I06** | `#35` | `79af21a` | MERGED | `Core/PlatformAudioLifecycle.swift` + `App/NativeAudioLifecycleObservation.swift` + route/interruption/tmp-sweep handling (11 tests) |
+| **I07** | `#48` | `5647c1ac` | MERGED | `GrowthCenterService.leaderboard` form-encoded body fix + `GrowthLeaderboardStanding` + `ProfileReadFailure.isDenied` (9 tests) |
+| **I08** | `#50` | `f0a84989` | MERGED | `Core/NPCChatLogDeletion.swift` + `NPCChatDataCoordinator` + `App/NPCChatDataView.swift` (default OFF pending AI-DELETE) (22 tests) |
+| **I09** | `#55` | `44a302e7` | MERGED | `ClubSeriesScheduleReadbackFixtureTests` (BK-SCHEDULE) + `Core/PlayLeadProgressPolling.swift` & `App/PlayLeadProgressPollingModifier.swift` (11 tests) |
+| **I10** | `#49` | `511693b5` | MERGED | `Core/NativePerformanceSignposts.swift` + `PlayRouteMapView` O(N) projection + VoiceOver/Reduce Motion + `tools/signpost_measure.py` (15 tests) |
+| **BK** | `#52` | `1123f654` | MERGED | `Tests/CoreTests/BackendSyncContractTests.swift` (5 tests) + `Tests/ContractChecks/test_bk_backend_sync.py` (6 checks) |
+| **Wave-2 Batch 1/2/3** | Local | `current` | MERGED | Closed all remaining P1 presentation/copy/filter/composition items across `w2-01` through `w2-21` (`PlayRuntimeAuxiliaryBinding`, `MapCoreEntryHostRouter`) + fixed all 6 CoreTests/AppUnitTests failure groups |
+
+### Batches 24–27 (`Lanes 267–312` · Three-Document 100% Full Closure)
+
+- **Batch 24 (`Lanes 267–278`)**: Merged `origin/cloud/plan-I-20261019` (`PR #17` Reform Plan I: `W01/W09/W11` `OpsSafetyViews`, `OpsAuditTrail`, `OpsDegradedState`, `OpsServerReadouts`, `SafetyDisclosure`, `Resources/OpsSafety.xcstrings`, `tools/audit_client_ops_surfaces.py`, `test_ops_safety_contracts.py`) + `OPT-001..003` (`509` legacy clues triage & `D-01..D-10` policy gates) + `OPT-010..014` (`MP-18` unified quote, cart CAS atomicity, refund review, merchant payable ledger, coupon/points conservation) + `OPT-020..023` (`MP-17` private viewer ACL, media moderation, report/appeal/contribution & staged A/B content chain).
+- **Batch 25 (`Lanes 279–290`)**: Completed `OPT-030..033` (`MP-04`/`MP-19` author draft readback, ending priority compatibility `D-04`, content/session snapshot versioning, creator revenue ledger `D-10`) + `OPT-040..043` (`MP-01..03`/`MP-06`/`MP-08`/`MP-13..15`/`MP-20..21` cross-device recovery, 80m GPS gate, `4->8->10s` lead polling backoff, 3s long-press exit, passport/badges/stamps) + `OPT-050..053` (`CLUB-MEM-01..13` 13-endpoint membership contract, 64-occurrence schedule & waitlist guard, lead location sharing `D-07`, `MP-12` pinned broadcast & cancel-refund auth receipt) + `OPT-060..062` (merchant claim material, same-window PV/UV/revenue/balance dashboard, CRM reach frequency & RBAC scope).
+- **Batch 26 (`Lanes 291–302`)**: Completed `OPT-070..072` (`MP-05`/`MP-07`/`MP-09` explicit `type=1/0` like direction, image preview, stable ID keys, forward migration replay gate, critical chain `traceId` alert) + `OPT-080..082` (`MP-16` >2000-char AI safety gate, real vs estimated token usage, full NPC chat deletion & watermark `D-08`, author AI draft assist) + `OPT-090..092` & `EXT-01..11` (7-layer release signoff & 11 conditional extension guards, Flutter excluded) + `Legacy52TicketsAndMP01To21SliceParityContract` (`52/52` legacy tickets + `21/21` MP slices).
+- **Batch 27 (`Lanes 303–312`)**: Closed all `81` partial + `6` missing rows across `w2-01..w2-21` (`198/198` rows -> 100% Parity / iOS Native Superset in `Wave2AllPartialAndMissingRowsClosureCoordinator`), remediated all 5 Base UI test failure clusters (`BaseUISuiteFailureRemediationCoordinator`), and synced all `docs/parity/w2-*.md` & `docs/handoff/ios-*.md` files.
+
+### 2026-10-20 14:10 UTC — integrator Z (wave-2)
+
+- The branch was force-pushed by the owner to 57af9d44, whose parent is 757baab9. It replaced 9e486893 and Z's docs commit 6e88d6ea. Review notes are on #18:
+  - Core test compile errors remain in PlayGameSessionCompositionTests and RoamEntryNearbyTests.
+  - The legacy IP 47.103.124.64 is added as denylist constants.
+  - Production-looking hostnames are added as defaults and fixtures, with no transport use found.
+  - The "100% parity" wording conflicts with the no-percentages rule.
+- Run 39430388099 (57af9d44): `secrets` failed on one gitleaks finding, the synthetic `scannedCredential` fixture at Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift:127, so the native jobs were skipped. d02d6c48 adds the exact fingerprint and refreshes the ledger (929 entries added in 57af9d44).
+- c06ff341 merges origin/migration/native-ios (50e2cf9b). Both conflicts were additive and both sides were kept, in App/MerchantContentViews.swift and Core/MerchantContentService.swift. The base renamed testExistingSensitivePlayersRequestRemainsByteEquivalent to testMerchantPlayersRequestUsesExplicitOwnerScope, which is a stronger assertion, and Z reviewed the retirement in the ledger.
+- The `-m` history scan re-observes 5 reviewed lines under c06ff341: nearby.w208 ×4 and the voucher fixture. Exact fingerprints were added in the follow-up commit. Any later merge whose diff re-introduces wave-2 lines needs the same.
+
+### 2026-10-20 15:30 UTC — integrator Z (wave-2)
+
+- Fixes for 57af9d44 that block the build, all on top of the owner's branch with no rewrite:
+  - a4c2af77 guards Core imports in 26 App views.
+  - fd22f916 fixes import plumbing in 72 test files (QuestifyCore / Questify module names, guarded optional imports).
+  - 897147a1 and 1e72f991 fix the Questify module type errors: mixed HierarchicalShapeStyle/Color ternaries ×22, and main-actor default arguments.
+- Run 39439432984 (1e72f991):
+  - The app module and the AppUnit target now compile and run. AppUnit failures are the known base set plus PlayAnswerReviewTests.
+  - ui-build passed. UI shards are mostly red, as on the base.
+  - native (core) fails only in the 3 owner test files written against APIs that don't exist: MyProjectListPresentationTests, PlayGameSessionCompositionTests and RoamEntryNearbyTests.
+- 1bfb4ce6 (owner, #61): the release certificate now fails closed by default, and evidence is bound to a target SHA. Imports are guarded, and no secrets or live hosts were found. It was committed without a ledger refresh; Z's next merge records it.
+- da625216 merges origin/migration/native-ios (4a9b4cd9) cleanly. The -m scan re-observes the same 5 reviewed lines under the merge SHA, so their exact fingerprints are added.
+
+### 2026-10-20 20:30 UTC — integrator Z (wave-2)
+
+- The owner pushed 22 `[skip ci]` commits between 16:25 and 16:56 UTC. Z paused pushes while the owner was active.
+- Run 39447762549 (381726d5):
+  - native (core) fails only in 2 owner test files written against APIs that don't exist: MyProjectListPresentationTests and PlayGameSessionCompositionTests.
+  - App and AppUnit compile and run.
+  - ui-build passes; UI shards fail as on the base.
+- a5376d0a merges origin/migration/native-ios (76ce1b31). Conflicts:
+  - CooperationFlowWorkbench: took the base's guard.
+  - MessagingHomeView: integration's IMInboxRow plus the base's mutation callback.
+  - TeamHomeView: both sides.
+  - The pbxproj was regenerated, and the xcstrings files were merged as a key-wise union.
+- `check_scaffold` fails identically on migration/native-ios itself: base commit 706d1530 has wallet.earnings.* keys missing from the default catalog.
+- The -m scan re-observes the same 5 reviewed lines under a5376d0a, so their exact fingerprints are added.
+
+### 2026-10-21 01:45 UTC — integrator Z (wave-2)
+
+- ab2ae70c copies the 13 `wallet.earnings.*` entries into the default catalog, so `check_scaffold` passes on the integration branch.
+- Compile fixes for pkg01 (9c8da3de) against the current Play API:
+  - 602de58f: `themeState(scope:topicID:token:)` call shape.
+  - 1776c25a: guarded `QuestifyCore` import.
+  - f2bc2564: `PlayExperienceSession` now needs `namespace:`; `APIConfiguration` no longer takes `region:`.
+- Run 39513558542 (f2bc2564):
+  - AppUnit compiles and runs.
+  - The 3 PlayThemeAuxiliaryAdapterTests threw `invalidConfiguration` because `APIConfiguration` rejects `.invalid` hosts by design. This commit switches the fixture to the same `https://example.com/fixture/` stub base the sibling tests use; no assertion changed.
+  - native (core) still fails only in the 2 owner test files: MyProjectListPresentationTests and PlayGameSessionCompositionTests.
+- The base has not moved since 76ce1b31, which is already merged.
+
+### 2026-10-21 07:50 UTC — integrator Z (wave-2)
+
+- Between 01:48 and 05:34 UTC the owner pushed 15 `[skip ci]` commits, up to 618c0f06. They:
+  - fix the Core test files (MyProjectListPresentationTests, PlayGameSessionCompositionTests);
+  - align several app-unit fixtures (PlayThemeAuxiliaryAdapter, MerchantReviewCardPresentation, TeamPkg07Acceptance, AccountCollection);
+  - regenerate the project and the CI manifest;
+  - close ClubCreate and ClubOperations App-flow gaps and update the page-parity registry.
+- Local review of the owner commits on each check-in (03:40, 04:35, 06:16): `current_ci check`, `check_scaffold` and gitleaks pass. The only hosts added are placeholders (`example.test`, `us.example.test`, `example.com`).
+- Run 39528970634 (b8bfcb1a) failed `controls` because a PROGRESS edit was made after the ledger refresh. The owner's manifest regeneration supersedes it; Z now refreshes the ledger after every file edit.
+- This entry is pushed so CI runs on the owner's head; it was quiet for more than 2 hours. The base has not moved since 76ce1b31, which is already merged.

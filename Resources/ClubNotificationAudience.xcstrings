@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open notifications from an event to choose this audience."
+            "value": "Open this from a specific event to choose it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "从具体场次进入通知后，才可选择这类受众。"
+            "value": "从具体活动进入后才可选"
           }
         }
       }

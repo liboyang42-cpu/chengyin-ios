@@ -21,6 +21,7 @@ import SwiftUI
                 link("coopflow.clubs", resource: .clubs(name: nil))
                 NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("coopflow.nearby") }
                     .accessibilityIdentifier("coopflow.route.coopflow.nearby")
+                CoopWithdrawEntryLinks(isSignedIn: reader.session != nil)
             }
             Section("coopflow.supply") {
                 link("coopflow.templates", resource: .templates)
@@ -42,6 +43,7 @@ import SwiftUI
     private func link(_ key: String, resource: CoopFlowRead) -> some View {
         NavigationLink {
             if resource == .relations { CoopRelationDiscoveryEntry(reader: reader) }
+            else if resource == .finance { CoopFinanceProfitView(reader: reader) }
             else { CoopFlowReadView(reader: reader, resource: resource, title: key) }
         } label: { Text(LocalizedStringKey(key)) }.accessibilityIdentifier("coopflow.route.\(key)")
     }
@@ -167,7 +169,7 @@ struct CoopFlowSafetyNotice: View {
                 let settlement = CoopFlowSettlement(source: source, record: row)
                 if let id = settlement.id, id > 0 {
                     NavigationLink {
-                        CoopFlowSettlementDetail(reader: reader, source: source, id: id)
+                        CoopSettlementDetailView(reader: reader, source: source, id: id)
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(row["topicName"].text ?? appLocalized("cooperation.unnamedTopic", locale: locale)).font(.headline)

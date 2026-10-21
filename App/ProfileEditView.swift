@@ -279,7 +279,9 @@ final class ProfileEditModel: ObservableObject {
         draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures, casePictureSubset: draft.casePictureSubset)
     }
     func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }
-    func retireAvatar() { retireTextEdit(); retireAvatarResources() }
+    func retireAvatar() {
+        if avatarActive { suspendForBackground() } else { retireTextEdit(); retireAvatarResources() }
+    }
     /// App suspension is not an explicit cancellation of same-owner text scratch.
     /// Removal/media editors retain the stricter retirement behavior.
     func suspendForBackground() {

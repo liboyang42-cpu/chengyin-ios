@@ -456,3 +456,103 @@ private final class PlayExperienceTestTransport: HTTPTransport {
     }
     func cancel() {}
 }
+
+/// I01 / BK-GPS arrive-accuracy matrix through the real service send path. The
+/// recording transport stands in for the server; the 80 m verdict below is the
+/// frozen PR12 contract text, not a deployed response.
+@available(macOS 14.0, *)
+@MainActor final class PlayArriveAccuracyContractTests: XCTestCase {
+    private let lowAccuracyMessage = "定位精度不足，请到开阔处或扫码完成"
+    private func service(_ transport: PlayRecoveryRecordingTransport) throws -> PlayExperienceService {
+        .init(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.com/fixture/"))),
+              transport: transport, enabled: [.classicCompletion])
+    }
+    private func location(_ accuracy: Double?, time: Date?, system: String = "GCJ02") -> PlayCompletionEvidence {
+        .location(longitude: 116.4, latitude: 39.9, coordinateSystem: system, accuracyMeters: accuracy, measuredAt: time)
+    }
+    private func body(_ request: URLRequest?) throws -> String {
+        String(decoding: try XCTUnwrap(request?.httpBody), as: UTF8.self)
+    }
+    func testMissingAccuracyStaysLegacyAndInsideThresholdIsSentExactly() async throws {
+        for accuracy in [nil, 0.0, 30.0, 80.0] as [Double?] {
+            let transport = PlayRecoveryRecordingTransport()
+            transport.responses["/fixture/api/play/arrive"] = .reply(Data(#"{"code":200,"data":{"nodeId":701}}"#.utf8), 200)
+            let receipt = try await service(transport).complete(scope: .topic(71), nodeID: 701,
+                evidence: location(accuracy, time: accuracy == nil ? nil : Date()), advance: nil, token: "synthetic")
+            XCTAssertEqual(receipt["nodeId"].tolerantInteger, 701)
+            XCTAssertEqual(transport.requests.count, 1)
+            XCTAssertEqual(transport.requests.first?.url?.path, "/fixture/api/play/arrive")
+            let text = try body(transport.requests.first)
+            if let accuracy { XCTAssertTrue(text.contains("name=\"accuracy\"\r\n\r\n\(accuracy)\r\n"), text) }
+            else { XCTAssertFalse(text.contains("accuracy")) }
+            XCTAssertFalse(text.contains("measuredAt")); XCTAssertFalse(text.contains("timestamp"))
+        }
+    }
+    func testOutsideThresholdIsStillSentAndServerVerdictIsARejectionNotUnknown() async throws {
+        for accuracy in [80.5, 81.0, 500.0] {
+            let transport = PlayRecoveryRecordingTransport()
+            let envelope = try JSONSerialization.data(withJSONObject: ["code": 500, "msg": lowAccuracyMessage])
+            transport.responses["/fixture/api/play/arrive"] = .reply(envelope, 200)
+            do {
+                _ = try await service(transport).complete(scope: .topic(71), nodeID: 701, evidence: location(accuracy, time: Date()), advance: nil, token: "synthetic")
+                XCTFail("Poor accuracy must reach the server and come back rejected")
+            } catch let error as PlayExperienceError {
+                XCTAssertEqual(error, .rejected(500, lowAccuracyMessage))
+                XCTAssertTrue(PlayArrivalAccuracy.isLowAccuracyRejection(error))
+            }
+            XCTAssertEqual(transport.requests.count, 1, "No silent retry without accuracy")
+            XCTAssertTrue(try body(transport.requests.first).contains("name=\"accuracy\"\r\n\r\n\(accuracy)\r\n"))
+        }
+    }
+    func testInvalidIncompleteStaleAndWGS84EvidenceNeverReachesTransport() async throws {
+        let now = Date()
+        let rejected: [PlayCompletionEvidence] = [
+            location(-1, time: now), location(-0.001, time: now), location(.nan, time: now),
+            location(.infinity, time: now), location(-.infinity, time: now),
+            location(nil, time: now), location(5, time: nil),
+            location(5, time: now.addingTimeInterval(-31)), location(5, time: now.addingTimeInterval(5)),
+            location(5, time: now, system: "WGS84")
+        ]
+        for evidence in rejected {
+            let transport = PlayRecoveryRecordingTransport()
+            do {
+                _ = try await service(transport).complete(scope: .topic(71), nodeID: 701, evidence: evidence, advance: nil, token: "synthetic")
+                XCTFail("\(evidence) must fail before dispatch")
+            } catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+            XCTAssertTrue(transport.requests.isEmpty)
+        }
+    }
+    func testScanCompletionCarriesNoLocationMetadata() async throws {
+        let transport = PlayRecoveryRecordingTransport()
+        transport.responses["/fixture/api/play/checkin"] = .reply(Data(#"{"code":200,"data":{"nodeId":701}}"#.utf8), 200)
+        _ = try await service(transport).complete(scope: .topic(71), nodeID: 701, evidence: .scan("synthetic-qr"), advance: nil, token: "synthetic")
+        let text = try body(transport.requests.first)
+        XCTAssertEqual(transport.requests.first?.url?.path, "/fixture/api/play/checkin")
+        for field in ["accuracy", "latitude", "longitude", "measuredAt", "nodeId"] { XCTAssertFalse(text.contains(field), field) }
+    }
+    func testProjectionBoundaryKeepsMeasurementOrStaysUnavailable() throws {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let point = try XCTUnwrap(RoamCoordinate(latitude: 39.916527, longitude: 116.397128))
+        for (accuracy, age) in [(0.0, 0.0), (81.0, 0.0), (100.0, 30.0)] {
+            let raw = try RoamDeviceFix(coordinate: point, accuracyMeters: accuracy, measuredAt: now.addingTimeInterval(-age), datum: .wgs84)
+            let projected = try RuntimeLocationProjection.gcj02(raw, now: now)
+            XCTAssertEqual(projected.datum, .gcj02); XCTAssertNotEqual(projected.coordinate, point)
+            XCTAssertEqual(projected.accuracyMeters, accuracy); XCTAssertEqual(projected.measuredAt, raw.measuredAt)
+        }
+        for (accuracy, age) in [(100.001, 0.0), (5.0, 30.001), (5.0, -30.001)] {
+            let raw = try RoamDeviceFix(coordinate: point, accuracyMeters: accuracy, measuredAt: now.addingTimeInterval(-age), datum: .wgs84)
+            XCTAssertThrowsError(try RuntimeLocationProjection.gcj02(raw, now: now))
+        }
+        for accuracy in [-1.0, .nan, .infinity] {
+            XCTAssertThrowsError(try RoamDeviceFix(coordinate: point, accuracyMeters: accuracy, measuredAt: now, datum: .wgs84))
+        }
+    }
+    func testAdvisoryLabelNeverTreatsMissingOrInvalidAsLow() {
+        for accuracy in [nil, -1, .nan, .infinity, 0, 30, 80] as [Double?] { XCTAssertFalse(PlayArrivalAccuracy.isLow(accuracy), "\(String(describing: accuracy))") }
+        for accuracy in [80.001, 81, 500] as [Double] { XCTAssertTrue(PlayArrivalAccuracy.isLow(accuracy)) }
+        XCTAssertFalse(PlayArrivalAccuracy.isLowAccuracyRejection(.rejected(500, "还没到这一站附近")))
+        XCTAssertFalse(PlayArrivalAccuracy.isLowAccuracyRejection(.rejected(500, nil)))
+        XCTAssertFalse(PlayArrivalAccuracy.isLowAccuracyRejection(.unknownResult))
+        XCTAssertFalse(PlayArrivalAccuracy.isLowAccuracyRejection(nil))
+    }
+}

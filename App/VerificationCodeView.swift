@@ -16,6 +16,10 @@ extension EnvironmentValues {
 /// decorative QR, remote URL encoded as a token, or persistent credential/image cache.
 @MainActor struct VerificationCodeView: View {
     @State var model: VerificationCodeCoordinator
+    /// City voucher only: the node name shown as the title (mini-program `citynode-code`, default 据点).
+    var title: String? = nil
+    /// City voucher opened from a known node requests its code on appear. The approval gate is unchanged.
+    var autoIssue = false
     @Environment(\.scenePhase) private var scenePhase
     @State private var operation: Task<Void, Never>?
     var body: some View {
@@ -23,7 +27,11 @@ extension EnvironmentValues {
             VStack(spacing: 20) {
                 Image(systemName: model.target.kind == .ticket ? "ticket" : "mappin.circle")
                     .font(.largeTitle).accessibilityHidden(true)
-                Text(model.target.kind == .ticket ? "verificationCode.ticket.title" : "verificationCode.city.title").font(.title2.bold())
+                if model.target.kind == .cityVoucher, autoIssue {
+                    RoamCityVoucherHeading(title: title)
+                } else {
+                    Text(model.target.kind == .ticket ? "verificationCode.ticket.title" : "verificationCode.city.title").font(.title2.bold())
+                }
                 content
                 if model.target.kind == .ticket, model.readback != nil {
                     Button("verificationCode.checkOrder") { run { await model.checkOrder() } }
@@ -50,6 +58,11 @@ extension EnvironmentValues {
             }
         }
         .onChange(of: scenePhase) { _, value in if value != .active { cancel() } }
+        .task {
+            // Mirrors citynode-code onLoad -> issue(). Only from review: a paused or failed code waits for the player.
+            guard autoIssue, model.target.kind == .cityVoucher, model.phase == .review else { return }
+            run { await model.present() }
+        }
         .onDisappear { operation?.cancel(); operation = nil; model.invalidate() }
         .accessibilityIdentifier("verificationCode.view")
     }
@@ -58,17 +71,26 @@ extension EnvironmentValues {
             VerificationLocalQRCode(code: code)
             Button("verificationCode.retry") { run { await model.present() } }
                 .accessibilityIdentifier("verificationCode.refresh")
-            LabeledContent("verificationCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
+            if model.target.kind == .cityVoucher, autoIssue {
+                Text("roamSub.w208.voucher.countdown \(model.remainingSeconds)").monospacedDigit()
+                    .accessibilityIdentifier("roamSub.w208.voucher.countdown")
+            } else {
+                LabeledContent("verificationCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
+            }
         } else if model.phase == .loading {
             ProgressView("verificationCode.loading")
         } else {
-            Text(LocalizedStringKey("verificationCode.phase." + model.phase.rawValue))
+            Text(LocalizedStringKey(phaseKey))
                 .multilineTextAlignment(.center).accessibilityIdentifier("verificationCode.phase")
             if [.review, .expired, .paused, .failed, .invalid].contains(model.phase) {
                 Button(model.phase == .review ? "verificationCode.show" : "verificationCode.retry") { run { await model.present() } }
                     .buttonStyle(.borderedProminent).accessibilityIdentifier("verificationCode.show")
             }
         }
+    }
+    private var phaseKey: String {
+        if model.target.kind == .cityVoucher, autoIssue, let key = RoamCityVoucherCopy.phaseKey(model.phase) { return key }
+        return "verificationCode.phase." + model.phase.rawValue
     }
     private func run(_ work: @escaping @MainActor () async -> Void) {
         operation?.cancel(); operation = Task { await work() }
