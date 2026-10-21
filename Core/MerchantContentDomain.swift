@@ -64,14 +64,14 @@ public enum MerchantContentFailure: Error, Equatable {
 }
 public enum MerchantContentQuery: Codable, Hashable, Identifiable {
     case recruiting, projects, nodeAuthoring(chapterID: Int)
-    case chapters(topicID: Int), applications, chapterNodes(topicID: Int?), upcoming(topicID: Int)
+    case chapters(topicID: Int), applications, chapterInvitations, chapterNodes(topicID: Int?), upcoming(topicID: Int)
     case ownerApplications(topicID: Int), invitable(topicID: Int), pendingNodes(topicID: Int)
     case registrations(filter: Int), registration(id: Int), project(topicID: Int?), players(topicID: Int?)
     case city, claimable(keyword: String), cityPlacement, npc(nodeID: Int), voice(nodeID: Int)
     case gameEntries, game(activityID: Int), poster(nodeID: Int), liveCode(activityID: Int, nodeID: Int)
     public var id: String { String(describing: self) }
     public var key: String {
-        switch self { case .recruiting: return "recruiting"; case .projects: return "projects"; case .nodeAuthoring: return "submitNode"; case .chapters: return "chapters"; case .applications: return "applications"; case .chapterNodes: return "nodes"
+        switch self { case .recruiting: return "recruiting"; case .projects: return "projects"; case .nodeAuthoring: return "submitNode"; case .chapters: return "chapters"; case .applications: return "applications"; case .chapterInvitations: return "chapterInvitations"; case .chapterNodes: return "nodes"
         case .upcoming: return "upcoming"; case .ownerApplications: return "reviews"; case .invitable: return "invitable"
         case .pendingNodes: return "nodeReviews"; case .registrations: return "registrations"; case .registration: return "registration"
         case .project: return "project"; case .players: return "players"; case .city: return "city"; case .claimable: return "claimable"
@@ -79,8 +79,11 @@ public enum MerchantContentQuery: Codable, Hashable, Identifiable {
         case .gameEntries: return "games"; case .game: return "game"; case .poster: return "poster"; case .liveCode: return "liveCode" }
     }
     public var requiresProjects: Bool {
-        switch self { case .gameEntries, .game, .npc, .voice, .poster, .liveCode: return false; default: return true }
+        switch self { case .gameEntries, .game, .npc, .voice, .poster, .liveCode, .chapterInvitations: return false; default: return true }
     }
+    /// C7 narrow gate: only the chapter-invitation `mine` leg uses owner + COOP_MANAGE
+    /// instead of PROJECT_MANAGE. No other query is widened or re-gated by this flag.
+    public var requiresCoopOwner: Bool { self == .chapterInvitations }
     public func validate() throws {
         switch self {
         case .nodeAuthoring(let id), .chapters(let id), .upcoming(let id), .ownerApplications(let id), .invitable(let id), .pendingNodes(let id),

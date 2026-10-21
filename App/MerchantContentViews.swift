@@ -5,7 +5,7 @@ import SwiftUI
     var topicID: Int? = nil
     @Environment(\.merchantCityNodeHubDestination) private var cityNodeHub
     private var routes: [MerchantContentQuery] {
-        var routes: [MerchantContentQuery] = [.recruiting, .projects, .applications, .registrations(filter: 0), .city, .gameEntries]
+        var routes: [MerchantContentQuery] = [.recruiting, .projects, .applications, .chapterInvitations, .registrations(filter: 0), .city, .gameEntries]
         if let topicID, topicID > 0 { routes.insert(.chapters(topicID: topicID), at: 0) }
         return routes
     }
@@ -66,6 +66,7 @@ import SwiftUI
     func cancel() { coordinator.cancelReview(); revision += 1 }
     func confirm(_ r: MerchantContentReview) async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.confirm(r); revision += 1 }
     func reconcile() async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.reconcile(); revision += 1 }
+    func reconcileChapterInvitation() async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.reconcileChapterInvitation(); revision += 1 }
     func retryStation() async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.retryStation(); revision += 1 }
     func suspend() { coordinator.suspend(); revision += 1 }
     func invalidate() { coordinator.invalidate(); revision += 1 }
@@ -288,7 +289,7 @@ struct MerchantContentFields: View {
         case .query(let query):
             switch query { case .recruiting: return ["merchantSignUpEndDate"]
             case .upcoming: return ["startTime", "clubName", "paidCount", "teamStatus", "arrivalStart", "arrivalEnd"]
-            case .applications, .ownerApplications: return ["chapterName", "status", "source", "message", "auditRemark", "circleSupplyCheckedAt"]
+            case .applications, .chapterInvitations, .ownerApplications: return ["chapterName", "status", "source", "message", "auditRemark", "circleSupplyCheckedAt"]
             case .pendingNodes, .chapterNodes: return ["address", "nodeAuditStatus", "nodeAuditReason"]
             default: return ["chapterName", "stateText", "status", "reason", "address", "startAt", "endAt", "stationCount"] }
         }
@@ -320,12 +321,18 @@ struct MerchantContentFields: View {
         case .recruiting: if let id = row["id"].integer, id > 0 { link(.chapters(topicID: id), key: "chapters") }
         case .projects:
             if row["bizType"].text == "topic", let id = row["id"].integer, id > 0 { link(.project(topicID: id), key: "project") }
-        case .applications:
-            if let topic = row["topicId"].integer, topic > 0 { link(.chapters(topicID: topic), key: "chapters") }
-            if let id = row["id"].integer, row["status"].integer == 0, row["source"].integer == 0 { Button("merchant.content.withdraw") { model.prepare(.withdraw(applicationID: id)) }.accessibilityIdentifier("merchant.content.withdraw") }
-            if let chapter = row["chapterId"].integer, [0, 1].contains(row["status"].integer ?? -1) {
-                NavigationLink("merchant.content.submitNode") { MerchantContentEditView(service: service, query: .nodeAuthoring(chapterID: chapter), kind: .chapterNode(chapter)) }
-                Text("merchant.content.supplyBoundary").font(.footnote)
+        case .chapterInvitations, .applications:
+            if case .applications = query, let topic = row["topicId"].integer, topic > 0 { link(.chapters(topicID: topic), key: "chapters") }
+            if let id = row["id"].integer, id > 0, let invitation = try? MerchantChapterInvitation(row: row), invitation.canRespond {
+                NavigationLink { MerchantChapterInvitationDetailView(service: service, applicationID: id) { Task { await model.load() } } } label: { Text("merchantChapterInvitation.openDetail") }
+                    .accessibilityIdentifier("merchantChapterInvitation.open." + String(id))
+            }
+            if case .applications = query {
+                if let id = row["id"].integer, row["status"].integer == 0, row["source"].integer == 0 { Button("merchant.content.withdraw") { model.prepare(.withdraw(applicationID: id)) }.accessibilityIdentifier("merchant.content.withdraw") }
+                if let chapter = row["chapterId"].integer, [0, 1].contains(row["status"].integer ?? -1) {
+                    NavigationLink("merchant.content.submitNode") { MerchantContentEditView(service: service, query: .nodeAuthoring(chapterID: chapter), kind: .chapterNode(chapter)) }
+                    Text("merchant.content.supplyBoundary").font(.footnote)
+                }
             }
         case .registrations: if let id = row["id"].integer, id > 0 { link(.registration(id: id), key: "registration") }
         case .chapterNodes:
@@ -519,6 +526,11 @@ struct MerchantContentCodeView: View {
                         Text("merchant.cityClaim.withdrawConsequence")
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("merchant.cityClaim.reviewNotice")
+                    }
+                    if case .respondChapterInvitation(_, let accepted, _, _) = review.command {
+                        ForEach(MerchantChapterInvitation.impactKeys(accepted: accepted), id: \.self) { key in
+                            Text(LocalizedStringKey(key)).fixedSize(horizontal: false, vertical: true)
+                        }.accessibilityIdentifier("merchantChapterInvitation.reviewNotice")
                     }
                     if case .station(let command) = review.command, command.pausesWithoutFallback {
                         Label("merchant.stationPause.reviewTitle", systemImage: "exclamationmark.triangle")

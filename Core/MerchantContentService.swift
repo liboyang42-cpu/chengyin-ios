@@ -71,8 +71,15 @@ public struct MerchantContentReceipt: Equatable {
     func load(_ query: MerchantContentQuery) async throws -> MerchantContentSnapshot
     func perform(_ command: MerchantContentCommand, baseline: MerchantContentSnapshot) async throws -> MerchantContentReceipt
     func pending() throws -> [MerchantContentPendingRecord]
+    func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback
     func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
     func retryStation(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
+}
+extension MerchantContentServing {
+    /// Only the real service overrides this; other readers keep the intent lock untouched.
+    public func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback {
+        throw MerchantContentFailure.locked
+    }
 }
 @MainActor public final class MerchantContentService: MerchantContentServing {
     /// This is a test-injection switch, never a production capability approval.
@@ -131,7 +138,11 @@ public struct MerchantContentReceipt: Equatable {
             let permissions = Set((raw["permissions"].array ?? []).compactMap { $0.text })
             guard permissions.contains("merchant:marketing:read") else { throw MerchantContentFailure.denied }
         }
-        guard access.active, access.merchantID != nil, !query.requiresProjects || access.allows(.projects) else { throw MerchantContentFailure.denied }
+        if query.requiresCoopOwner {
+            guard MerchantChapterInvitation.accessAllows(access) else { throw MerchantContentFailure.denied }
+        } else {
+            guard access.active, access.merchantID != nil, !query.requiresProjects || access.allows(.projects) else { throw MerchantContentFailure.denied }
+        }
         if let requiredMerchantID {
             guard requiredMerchantID > 0, access.merchantID == requiredMerchantID else { throw MerchantContentFailure.denied }
         }
@@ -221,7 +232,7 @@ public struct MerchantContentReceipt: Equatable {
             }
             let chapters = try accepted(e, session: s); guard chapters.array != nil else { throw MerchantContentFailure.malformed }
             return .object(["mode": .string("chapters"), "topic": topic, "chapters": chapters])
-        case .applications: value = try await read("api/merchant/chapter-application/mine", session: s)
+        case .applications, .chapterInvitations: value = try await read("api/merchant/chapter-application/mine", session: s)
         case .chapterNodes(let id): value = try await read("api/merchant/chapter-node/mine", .form(id.map { ["topicId": String($0)] } ?? [:]), session: s)
         case .upcoming(let id): value = try await read("api/merchant/upcoming-runs", .json(["topicId": .integer(id)]), session: s)
         case .ownerApplications(let id): value = try await read("api/merchant/chapter-application/owner-list", .json(["topicId": .integer(id)]), session: s)
@@ -268,7 +279,7 @@ public struct MerchantContentReceipt: Equatable {
             guard try MerchantStationProjection(value).activityID == id else { throw MerchantContentFailure.malformed }
         }
         switch q {
-        case .recruiting, .applications, .chapterNodes, .upcoming, .ownerApplications, .invitable, .pendingNodes, .claimable, .gameEntries:
+        case .recruiting, .applications, .chapterInvitations, .chapterNodes, .upcoming, .ownerApplications, .invitable, .pendingNodes, .claimable, .gameEntries:
             guard let rows = value.array, rows.allSatisfy({ $0.object != nil }) else { throw MerchantContentFailure.malformed }
             if q == .gameEntries {
                 guard rows.allSatisfy({ ($0["activityId"].safeInteger ?? 0) > 0 && ($0["topicId"].safeInteger ?? 0) > 0 && ($0["stationCount"].safeInteger ?? 0) > 0 && !($0["activityName"].text ?? "").isEmpty }) else { throw MerchantContentFailure.malformed }
@@ -325,6 +336,21 @@ public struct MerchantContentReceipt: Equatable {
         let data = try await read("api/game/session/receipt", query: ["activityId": String(command.activityID), "requestId": command.requestID], get: true, session: session)
         let receipt = try MerchantStationReceipt(data, command: command)
         return .init(message: receipt.reason, data: data, station: receipt)
+    }
+    /// Exact C7 readback after a lost respond response. Reads `mine` once, never resends the
+    /// respond, and removes the intent lock only when the exact row is in a terminal state.
+    /// Missing / conflicting / unreadable rows keep the lock (the thrown or returned verdict
+    /// is surfaced by the caller without claiming this submission caused the server fact).
+    public func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback {
+        guard let session = currentSession(), record.storageScope == session.storageScope, record.accountID == session.accountID,
+              let journal, try journal.records().contains(record), let intent = MerchantChapterInvitationIntent(record: record) else { throw MerchantContentFailure.locked }
+        let access = try await access(session, query: .chapterInvitations)
+        guard access.merchantID == record.merchantID, intent.merchantID == record.merchantID else { throw MerchantContentFailure.denied }
+        let value = try await read("api/merchant/chapter-application/mine", session: session)
+        guard let rows = value.array ?? value["rows"].array else { throw MerchantContentFailure.malformed }
+        let verdict = MerchantChapterInvitationReadback.evaluate(intent: intent, row: rows.first { $0["id"].integer == intent.applicationID }, currentMerchantID: access.merchantID)
+        if verdict.clearsIntentLock { try ensure(session); try journal.remove(key: record.key) }
+        return verdict
     }
     public func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt {
         guard let session = currentSession(), record.storageScope == session.storageScope, record.accountID == session.accountID,
