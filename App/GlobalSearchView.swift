@@ -7,6 +7,7 @@ import SwiftUI
     var publicMerchant = PublicMerchantHomeContext()
     var onSignIn: (() -> Void)? = nil
     var recommendedKeywords: [String] = []
+    var publicLayers: MapPublicLayerCaller? = nil
     let destination: (SearchMapDestination) -> Destination
     @State private var filter = GlobalSearchQuery()
     @State private var categoryRecovery = SearchMapCategoryRecovery()
@@ -57,6 +58,10 @@ import SwiftUI
                     NavigationLink { SearchMapExplorerView(reader: reader, mode: .city, initialFilter: filter, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.citySearch", systemImage: "mappin.and.ellipse") }
                     NavigationLink { SearchMapExplorerView(reader: reader, mode: .nearby, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.nearby", systemImage: "map") }
                 }.buttonStyle(.bordered).frame(minHeight: 44)
+                if let publicLayers {
+                    NavigationLink { MapPublicLayerCallerView(caller: publicLayers) } label: { Text(verbatim: "Public layers").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading) }
+                        .accessibilityIdentifier("mapPublic.entry")
+                }
                 NavigationLink {
                     MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)
                 } label: { Label("merchant.discover.title", systemImage: "storefront") }

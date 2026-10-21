@@ -32,6 +32,7 @@ public struct SearchMapContext: Equatable {
     func nearby(area: RoamSearchArea) async throws -> SearchMapNearbyResults
     func cityNode(id: Int) async throws -> SearchMapCityNode
     func merchant(id: Int) async throws -> RoamMerchantDetail
+    func publicLayers(area: RoamSearchArea, body: Data) async throws -> Data
 }
 /// Older fixture readers have no discovery data; do not invent empty successful results.
 public extension SearchMapReading {
@@ -40,6 +41,7 @@ public extension SearchMapReading {
     func selectManualArea(_ area: RoamSearchArea?) {}
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] { throw APIError.notConfigured }
     func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage { throw APIError.notConfigured }
+    func publicLayers(area: RoamSearchArea, body: Data) async throws -> Data { throw APIError.notConfigured }
 }
 @MainActor public final class SearchMapSessionReader: SearchMapReading {
     private let service: SearchMapService?
@@ -100,6 +102,11 @@ public extension SearchMapReading {
     }
     public func cityNode(id: Int) async throws -> SearchMapCityNode { try await read { try await $0.cityNode(id: id, token: $1) } }
     public func merchant(id: Int) async throws -> RoamMerchantDetail { try await read { try await $0.merchant(id: id, token: $1) } }
+    public func publicLayers(area: RoamSearchArea, body: Data) async throws -> Data {
+        guard currentContext().manualMapApprovalRevision != nil else { throw APIError.notConfigured }
+        manualAreaSelection?.ensureSelected(area)
+        return try await read { try await $0.publicLayers(body: body, token: $1) }
+    }
     private func read<T>(_ operation: (SearchMapService, String?) async throws -> T) async throws -> T {
         guard let service else { throw APIError.notConfigured }
         let context = currentContext(), capturedScope = scope, areaRevision = manualAreaRevision

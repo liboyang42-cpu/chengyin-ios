@@ -180,4 +180,14 @@ public enum MapVisualHostBridge {
     ) throws -> Double {
         try MapCoordinateObservation.distanceMeters(origin, destination)
     }
+
+    /// Projects items `MapPublicLayerAdapter` has already accepted.
+    /// `readyItems` merges through `MapLayerMerge`. `aggregatedQueryEnabled` is not read or set here.
+    public static func projectAcceptedPublicLayers(
+        _ session: MapPublicLayerSession,
+        visibleLayers: Set<MapSourceType>,
+        theme: MapVisualHostThemeSnapshot
+    ) throws -> [MapAnnotationVisualProjection] {
+        try projectAnnotations(items: MapPublicLayerAdapter.readyItems(in: session), visibleLayers: visibleLayers, theme: theme)
+    }
 }

@@ -1019,6 +1019,37 @@ extension KeychainTokenStore: AppTokenStorage {}
         return reply
     }
 
+    /// Existing manual-map grant only. The body is the adapter's POST JSON, not a new auth scheme.
+    /// `aggregatedQueryEnabled` stays false. The selected manual center has to sit inside the box.
+    private static func acceptsPublicLayers(_ request: URLRequest, baseURL: URL, area: RoamSearchArea) -> Bool {
+        guard MapLayerFeature.aggregatedQueryEnabled == false,
+              request.httpMethod == "POST", request.httpBodyStream == nil,
+              let url = request.url, url.query == nil, url.fragment == nil,
+              url.absoluteString == baseURL.appendingPathComponent("api/map/public-layers").absoluteString,
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let body = request.httpBody, (1...8192).contains(body.count),
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              Set(object.keys).isSubset(of: ["datum", "minLat", "maxLat", "minLng", "maxLng", "limit", "layers", "cursor", "aggregatedQueryEnabled"]),
+              (object["datum"] as? String) == MapPublicLayerAdapter.datum else { return false }
+        if object.keys.contains("aggregatedQueryEnabled"), (object["aggregatedQueryEnabled"] as? Bool) != false { return false }
+        guard let limit = object["limit"] as? NSNumber, CFGetTypeID(limit) != CFBooleanGetTypeID(),
+              let limitValue = Int(exactly: limit.doubleValue), MapPublicLayerAdapter.pageLimit.contains(limitValue),
+              let layers = object["layers"] as? [String], MapPublicLayerAdapter.layerCount.contains(layers.count),
+              Set(layers).count == layers.count, Set(layers).isSubset(of: Set(MapPublicLayerAdapter.knownSources)) else { return false }
+        if let cursor = object["cursor"] {
+            guard let text = cursor as? String, !text.isEmpty, text.count <= 2048 else { return false }
+        }
+        func edge(_ key: String) -> Double? {
+            guard let number = object[key] as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+            return number.doubleValue
+        }
+        guard let south = edge("minLat"), let north = edge("maxLat"), let west = edge("minLng"), let east = edge("maxLng"),
+              south <= north, west <= east,
+              south <= area.coordinate.latitude, area.coordinate.latitude <= north,
+              west <= area.coordinate.longitude, area.coordinate.longitude <= east else { return false }
+        return true
+    }
+
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         guard let deployment, let api = deployment.regional.apiConfiguration,
               let url = request.url, url.fragment == nil else { throw APIError.notConfigured }
@@ -1036,6 +1067,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard !nearbyMerchantOnly || nearbyMerchant else { throw APIError.notConfigured }
         let selectedArea = manualMapSelection?.snapshot
         let manualRead = selectedArea.flatMap { ManualMapReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
+        let publicLayers = selectedArea.map { Self.acceptsPublicLayers(request, baseURL: api.baseURL, area: $0.area) } ?? false
         let cityRead = CityReadRoute(request: request, baseURL: api.baseURL)
         let playRead = PlayReadRoute(request: request, baseURL: api.baseURL)
         let ownedCover = OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)
@@ -1592,7 +1624,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   grant.matches(storageScope: deployment.storageScope, accountID: captured.accountID, role: captured.role),
                   let token = captured.token, AuthRequestBuilder.isValidToken(token),
                   ["GET", "PUT", "DELETE"].contains(request.httpMethod ?? "") else { throw APIError.notConfigured }
-        } else if manualRead != nil {
+        } else if manualRead != nil || publicLayers {
             guard deployment.reads.contains(.manualMap), let selectedArea,
                   let account = captured.accountID, account > 0,
                   let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,

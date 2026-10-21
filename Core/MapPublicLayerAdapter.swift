@@ -422,7 +422,9 @@ public struct MapPublicWireItem: Equatable {
     public let name: String
     public let latitude: String
     public let longitude: String
-    /// Server string. `roam_poi` is `visibility_version`; store and activity are `update_time`. Nil is not 1.
+    /// Server string. `roam_poi` depends on the unexecuted candidate column `visibility_version`
+    /// (`docs/w13/map-public-visibility-version.sql`). Until that column exists the roam select fails
+    /// as `SOURCE_FAILED` and this stays nil, not 1. Store and activity use `update_time`.
     public let visibilityVersion: String?
     /// Nil when the key is absent. Never filled with a local state.
     public let visualState: String?

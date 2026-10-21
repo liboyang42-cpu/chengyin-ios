@@ -120,6 +120,23 @@ public struct SearchMapService {
         // Existing public-detail uses merchant ID, never owner/member ID or the merchant console.
         try await RoamService(configuration: configuration, transport: transport).merchantDetail(id: id, token: token)
     }
+    /// Same POST JSON path and raw `Authorization` token as the other search-map reads. No new auth header.
+    /// `aggregatedQueryEnabled: true` is refused. The envelope `data` object is what the adapter accepts.
+    public func publicLayers(body: Data, token: String?) async throws -> Data {
+        guard (1...8192).contains(body.count),
+              let object = try JSONSerialization.jsonObject(with: body) as? [String: Any] else { throw APIError.invalidRequest }
+        if object.keys.contains("aggregatedQueryEnabled"), (object["aggregatedQueryEnabled"] as? Bool) != false {
+            throw APIError.invalidRequest
+        }
+        var request = try baseRequest("api/map/public-layers", token: token)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+        let envelope = try await execute(request)
+        guard let root = try JSONSerialization.jsonObject(with: envelope) as? [String: Any],
+              let data = root["data"], !(data is NSNull) else { throw APIError.malformedResponse }
+        return try JSONSerialization.data(withJSONObject: data)
+    }
     private func topicRows(_ query: GlobalSearchQuery, token: String?) async throws -> [TopicSummary] {
         let data = try await form("api/topic/list", fields: listFields(query, pageSize: 12), token: token)
         return try decode(SearchMapPaged<TopicSummary>.self, data).rows
