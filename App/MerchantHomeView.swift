@@ -57,12 +57,22 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
         .task(id: reader.sessionRevision) { await reload() }
     }
     private func reload() async {
+        await Self.reloadAccess(into: access, reader: reader, observer: merchantAccessObserver)
+    }
+
+    @discardableResult
+    static func reloadAccess(
+        into access: MerchantLoadModel<MerchantAccess>,
+        reader: Reader,
+        observer: MerchantAccessObservationHook
+    ) async -> MerchantLoadDisposition {
         // The old grant is not usable while access is being checked again.
-        let observationToken = merchantAccessObserver.begin()
-        await access.load(reader: reader, discardOldValue: true) { try await reader.merchantAccess() }
-        if !access.isLoading, let observationToken {
-            merchantAccessObserver.complete(observationToken, access.value, access.errorKey)
+        let observationToken = observer.begin()
+        let disposition = await access.load(reader: reader, discardOldValue: true) { try await reader.merchantAccess() }
+        if disposition == .completed, !access.isLoading, let observationToken {
+            observer.complete(observationToken, access.value, access.errorKey)
         }
+        return disposition
     }
 }
 

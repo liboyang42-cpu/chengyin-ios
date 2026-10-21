@@ -311,5 +311,45 @@ import XCTest
         XCTAssertEqual(coordinator.requestedMode, .consumer)
         XCTAssertNil(coordinator.verifiedAccess)
         XCTAssertFalse(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
+
+        // 9. Cancelled child access reload while active does NOT invoke observer.complete(nil, nil) or tear down merchant mode:
+        activeReader.result = .success(managerAccess)
+        let enteredBeforeCancel = await coordinator.requestMerchantMode(reader: activeReader, accountID: 501)
+        XCTAssertTrue(enteredBeforeCancel)
+        XCTAssertTrue(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
+        let accessModel = MerchantLoadModel<MerchantAccess>()
+        _ = await accessModel.load(reader: activeReader, discardOldValue: true) { try await activeReader.merchantAccess() }
+        XCTAssertEqual(accessModel.value, managerAccess)
+
+        var completeCount = 0
+        let observer = MerchantAccessObservationHook(
+            begin: {
+                coordinator.beginAccessObservation(accountID: 501, revision: 10)
+            },
+            complete: { token, observedAccess, errorKey in
+                completeCount += 1
+                coordinator.applyObservedMerchantAccess(
+                    token: token,
+                    access: observedAccess,
+                    errorKey: errorKey,
+                    currentAccountID: 501,
+                    currentRevision: 10
+                )
+            }
+        )
+        let cancellingReader = StubMerchantReader(result: .failure(CancellationError()))
+        let disposition = await MerchantHomeView<StubMerchantReader>.reloadAccess(
+            into: accessModel,
+            reader: cancellingReader,
+            observer: observer
+        )
+        XCTAssertEqual(disposition, .cancelled)
+        XCTAssertFalse(accessModel.isLoading)
+        XCTAssertNil(accessModel.value)
+        XCTAssertNil(accessModel.errorKey)
+        XCTAssertEqual(completeCount, 0)
+        XCTAssertEqual(coordinator.requestedMode, .merchant)
+        XCTAssertEqual(coordinator.verifiedAccess, managerAccess)
+        XCTAssertTrue(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
     }
 }

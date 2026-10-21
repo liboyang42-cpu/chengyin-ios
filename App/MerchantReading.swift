@@ -17,6 +17,11 @@ protocol MerchantReading: ObservableObject {
     func merchantProjects(access: MerchantAccess) async throws -> MerchantProjectPage
 }
 
+enum MerchantLoadDisposition: Equatable {
+    case completed
+    case cancelled
+}
+
 @MainActor
 final class MerchantLoadModel<Value>: ObservableObject {
     @Published private(set) var value: Value?
@@ -29,23 +34,26 @@ final class MerchantLoadModel<Value>: ObservableObject {
         generation += 1; value = nil; loadedRevision = nil; isLoading = false; errorKey = nil
     }
 
+    @discardableResult
     func load<Reader: MerchantReading>(reader: Reader, discardOldValue: Bool = false,
-                                      operation: () async throws -> Value) async {
+                                      operation: () async throws -> Value) async -> MerchantLoadDisposition {
         generation += 1
         let request = generation, revision = reader.sessionRevision
         if discardOldValue || loadedRevision != revision { value = nil; loadedRevision = nil }
-        guard reader.isConfigured else { value = nil; isLoading = false; errorKey = "auth.notConfigured"; return }
-        guard reader.isSignedIn else { value = nil; isLoading = false; errorKey = "merchant.signIn"; return }
+        guard reader.isConfigured else { value = nil; isLoading = false; errorKey = "auth.notConfigured"; return .completed }
+        guard reader.isSignedIn else { value = nil; isLoading = false; errorKey = "merchant.signIn"; return .completed }
         isLoading = true; errorKey = nil
         defer { if request == generation { isLoading = false } }
         do {
             let result = try await operation()
             try Task.checkCancellation()
-            guard request == generation, revision == reader.sessionRevision, reader.isSignedIn else { return }
+            guard request == generation, revision == reader.sessionRevision, reader.isSignedIn else { return .cancelled }
             value = result; loadedRevision = revision
-        } catch is CancellationError { }
-        catch {
-            guard request == generation, revision == reader.sessionRevision else { return }
+            return .completed
+        } catch is CancellationError {
+            return .cancelled
+        } catch {
+            guard !Task.isCancelled, request == generation, revision == reader.sessionRevision else { return .cancelled }
             if error as? MerchantReadError == .accessDenied || error as? MerchantBusinessFailure == .denied {
                 value = nil; loadedRevision = nil; errorKey = "merchant.access.denied"
             } else if error as? APIError == .unauthorized {
@@ -57,6 +65,7 @@ final class MerchantLoadModel<Value>: ObservableObject {
             } else if error as? APIError == .malformedResponse || error as? MerchantBusinessFailure == .malformed {
                 errorKey = "merchant.invalidResponse"
             } else { errorKey = "merchant.loadFailed" }
+            return .completed
         }
     }
 }
