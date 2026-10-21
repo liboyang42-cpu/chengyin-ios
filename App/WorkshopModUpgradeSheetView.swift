@@ -7,7 +7,7 @@ import SwiftUI
 @MainActor
 public struct WorkshopModUpgradeSheetView: View {
     public let presentation: WorkshopModUpgradePresentation
-    public var onConfirmDraft: ((WorkshopUpgradeDraftRequest) -> Void)?
+    public var onConfirmDraft: ((WorkshopUpgradeDraftRequest) throws -> Void)?
 
     @State private var confirmedByBuyer = false
     @State private var errorNotice: String?
@@ -15,7 +15,7 @@ public struct WorkshopModUpgradeSheetView: View {
 
     public init(
         presentation: WorkshopModUpgradePresentation,
-        onConfirmDraft: ((WorkshopUpgradeDraftRequest) -> Void)? = nil
+        onConfirmDraft: ((WorkshopUpgradeDraftRequest) throws -> Void)? = nil
     ) {
         self.presentation = presentation
         self.onConfirmDraft = onConfirmDraft
@@ -147,14 +147,27 @@ public struct WorkshopModUpgradeSheetView: View {
     }
 
     private func submitUpgradeDraft() {
+        guard confirmedRequestId == nil else { return }
+        let request: WorkshopUpgradeDraftRequest
         do {
-            let request = try presentation.makeUpgradeDraftRequest(confirmedByBuyer: confirmedByBuyer)
-            errorNotice = nil
-            confirmedRequestId = request.requestId
-            onConfirmDraft?(request)
+            request = try presentation.makeUpgradeDraftRequest(confirmedByBuyer: confirmedByBuyer)
         } catch {
             confirmedRequestId = nil
             errorNotice = "升级草稿请求未通过校验，请核对授权与确认状态。"
+            return
+        }
+        guard let onConfirmDraft else {
+            confirmedRequestId = nil
+            errorNotice = "本机保存未接通，未保存升级草稿。"
+            return
+        }
+        do {
+            try onConfirmDraft(request)
+            errorNotice = nil
+            confirmedRequestId = request.requestId
+        } catch {
+            confirmedRequestId = nil
+            errorNotice = "升级草稿未能保存，现有版本与场次保持不变。"
         }
     }
 }
