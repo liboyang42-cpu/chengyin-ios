@@ -198,7 +198,62 @@ final class StoryWalkingFogAndWorkshopUpgradeViewTests: XCTestCase {
         let compared = await handlers.compare(item)
         XCTAssertEqual(compared, presentation)
         XCTAssertNil(saved)
-        handlers.saveDraft(try presentation.makeUpgradeDraftRequest(confirmedByBuyer: true))
+
+        var checking = false
+        var unavailable = true
+        var activePresentation: WorkshopModUpgradePresentation?
+        var showing = false
+        var draftSaved = false
+
+        XCTAssertTrue(WorkshopPurchasedUpgradeEntry.performBeginCompare(checking: &checking, unavailable: &unavailable))
+        XCTAssertTrue(checking)
+        XCTAssertFalse(unavailable)
+        XCTAssertFalse(WorkshopPurchasedUpgradeEntry.performBeginCompare(checking: &checking, unavailable: &unavailable))
+
+        WorkshopPurchasedUpgradeEntry.performFinishCompare(
+            item: item,
+            result: compared,
+            checking: &checking,
+            unavailable: &unavailable,
+            presentation: &activePresentation,
+            showing: &showing
+        )
+        XCTAssertFalse(checking)
+        XCTAssertFalse(unavailable)
+        XCTAssertEqual(activePresentation, presentation)
+        XCTAssertTrue(showing)
+
+        WorkshopPurchasedUpgradeEntry.performDismissSheet(showing: &showing)
+        XCTAssertFalse(showing)
+
+        let mismatchedInstalled = try makeVersion(versionId: "v0-9-0", semver: "0.9.0", hashChar: "d", capabilities: ["choice"])
+        let mismatchedPresentation = WorkshopModUpgradePresentation(
+            term: term,
+            preview: try WorkshopUpgradePreview(installed: mismatchedInstalled, candidate: candidate, coverage: .covered)
+        )
+        showing = true
+        WorkshopPurchasedUpgradeEntry.performFinishCompare(
+            item: item,
+            result: mismatchedPresentation,
+            checking: &checking,
+            unavailable: &unavailable,
+            presentation: &activePresentation,
+            showing: &showing
+        )
+        XCTAssertNil(activePresentation)
+        XCTAssertTrue(unavailable)
+        XCTAssertFalse(showing)
+
+        let draftRequest = try presentation.makeUpgradeDraftRequest(confirmedByBuyer: true)
+        showing = true
+        WorkshopPurchasedUpgradeEntry.performSaveDraft(
+            draftRequest,
+            handlers: handlers,
+            draftSaved: &draftSaved,
+            showing: &showing
+        )
+        XCTAssertTrue(draftSaved)
+        XCTAssertFalse(showing)
         XCTAssertEqual(saved?.toVersionId, "v1-1-0")
         XCTAssertEqual(saved?.fromVersionId, item.purchasedVersionId)
     }

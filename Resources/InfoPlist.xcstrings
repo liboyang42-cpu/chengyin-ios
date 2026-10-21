@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use the microphone to record your voice only when you choose to talk to or set up an NPC voice. Recording stops when you finish and never runs in the background."
+            "value": "Use the microphone only when you choose to talk to or set up an NPC voice, or to measure sound peak levels locally on this iPhone during interactive sound gameplay. Sound-challenge amplitude is measured on device without uploading audio, and microphone access stops when you finish and never runs in the background."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅在你主动与 NPC 语音对话或设置 NPC 声音时使用麦克风录音。结束后即停止录音，不会在后台录音。"
+            "value": "仅在你主动选择与 NPC 语音对话、设置 NPC 声音，或在声音互动玩法中于本机测量音量峰值时使用麦克风。声音互动玩法仅在本地测量振幅、不上传录音；结束后即停止使用麦克风，不会在后台运行。"
           }
         }
       }

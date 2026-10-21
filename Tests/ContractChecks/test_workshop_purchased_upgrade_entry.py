@@ -11,7 +11,8 @@ class PurchasedUpgradeEntryChecks(unittest.TestCase):
     def test_symbols_and_default_closed(self):
         e = self.read('App/WorkshopPurchasedUpgradeEntry.swift')
         for x in ['WorkshopPurchasedUpgradeHandlers', 'WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandlers?',
-                  'WorkshopPurchasedUpgradeEntry', 'WorkshopModUpgradeSheetView(presentation: presentation)', 'saveDraft', 'showing = false']:
+                  'WorkshopPurchasedUpgradeEntry', 'WorkshopModUpgradeSheetView(presentation: presentation)', 'saveDraft', 'showing = false',
+                  'performBeginCompare', 'performFinishCompare', 'performSaveDraft', 'performDismissSheet']:
             self.assertIn(x, e)
         v = self.read('App/WorkshopPurchasedLibraryView.swift')
         self.assertEqual(v.count('makeUpgrade: @escaping WorkshopPurchasedUpgradeFactory = { nil }'), 3)

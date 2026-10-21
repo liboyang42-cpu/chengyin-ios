@@ -35,5 +35,5 @@ INFOPLIST_KEY_NSMotionUsageDescription = Read step counts from this iPhone when 
 // Declares when-in-use location purpose only; no background location and no Always-authorization keys.
 INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = Use your location only while the app is open and only when you choose to roam, play a location-based activity, or find nearby places. Location is never used in the background and is not shared with other people.
 
-// Declares the explicit NPC voice recording purpose; does not grant or enable access.
-INFOPLIST_KEY_NSMicrophoneUsageDescription = Use the microphone to record your voice only when you choose to talk to or set up an NPC voice. Recording stops when you finish and never runs in the background.
+// Declares the explicit NPC voice recording and local sound-peak gameplay amplitude measurement purposes; does not grant or enable access.
+INFOPLIST_KEY_NSMicrophoneUsageDescription = Use the microphone only when you choose to talk to or set up an NPC voice, or to measure sound peak levels locally on this iPhone during interactive sound gameplay. Sound-challenge amplitude is measured on device without uploading audio, and microphone access stops when you finish and never runs in the background.

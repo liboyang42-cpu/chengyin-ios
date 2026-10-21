@@ -22,6 +22,12 @@ class AppStorePrivacyLaunchContracts(unittest.TestCase):
             self.assertEqual(localizations['en']['stringUnit']['value'], keys['INFOPLIST_KEY_' + name])
             self.assertRegex(localizations['zh-Hans']['stringUnit']['value'], r'[\u4e00-\u9fff]')
         self.assertIn('background', keys['INFOPLIST_KEY_NSLocationWhenInUseUsageDescription'])
+        mic_en = catalog['NSMicrophoneUsageDescription']['localizations']['en']['stringUnit']['value']
+        mic_zh = catalog['NSMicrophoneUsageDescription']['localizations']['zh-Hans']['stringUnit']['value']
+        for snippet in ('NPC voice', 'sound peak', 'amplitude is measured on device without uploading audio'):
+            self.assertIn(snippet, mic_en)
+        for snippet in ('NPC', '声音互动玩法', '本地测量振幅', '不上传录音'):
+            self.assertIn(snippet, mic_zh)
 
     def test_no_background_or_always_location_declarations(self):
         blob = '\n'.join((ROOT / p).read_text() for p in (

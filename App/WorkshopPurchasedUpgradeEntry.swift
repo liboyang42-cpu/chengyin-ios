@@ -24,17 +24,27 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
     @State private var unavailable = false
     @State private var showing = false
     @State private var draftSaved = false
+    static func performBeginCompare(checking: inout Bool, unavailable: inout Bool) -> Bool {
+        guard !checking else { return false }
+        checking = true; unavailable = false; return true
+    }
+    static func performFinishCompare(item: WorkshopPurchasedItem, result: WorkshopModUpgradePresentation?, checking: inout Bool, unavailable: inout Bool, presentation: inout WorkshopModUpgradePresentation?, showing: inout Bool) {
+        checking = false
+        if let result, result.preview.installed.versionId == item.purchasedVersionId, result.preview.installed.moduleId == item.moduleId {
+            presentation = result; showing = true
+        } else { presentation = nil; unavailable = true; showing = false }
+    }
+    static func performSaveDraft(_ draft: WorkshopUpgradeDraftRequest, handlers: WorkshopPurchasedUpgradeHandlers, draftSaved: inout Bool, showing: inout Bool) {
+        handlers.saveDraft(draft); draftSaved = true; showing = false
+    }
+    static func performDismissSheet(showing: inout Bool) { showing = false }
     var body: some View {
         Section {
             Button {
-                guard !checking else { return }
-                checking = true; unavailable = false
+                guard Self.performBeginCompare(checking: &checking, unavailable: &unavailable) else { return }
                 Task {
                     let result = await handlers.compare(item)
-                    checking = false
-                    if let result, result.preview.installed.versionId == item.purchasedVersionId, result.preview.installed.moduleId == item.moduleId {
-                        presentation = result; showing = true
-                    } else { presentation = nil; unavailable = true }
+                    Self.performFinishCompare(item: item, result: result, checking: &checking, unavailable: &unavailable, presentation: &presentation, showing: &showing)
                 }
             } label: { Text(verbatim: "比较版本 / 升级草稿") }
                 .disabled(checking)
@@ -47,10 +57,10 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
             if let presentation {
                 NavigationStack {
                     WorkshopModUpgradeSheetView(presentation: presentation) { draft in
-                        handlers.saveDraft(draft); draftSaved = true; showing = false
+                        Self.performSaveDraft(draft, handlers: handlers, draftSaved: &draftSaved, showing: &showing)
                     }
                     .navigationTitle(Text(verbatim: "版本比较"))
-                    .toolbar { ToolbarItem(placement: .topBarLeading) { Button { showing = false } label: { Text(verbatim: "返回") }.accessibilityIdentifier("workshopPurchased.upgrade.back") } }
+                    .toolbar { ToolbarItem(placement: .topBarLeading) { Button { Self.performDismissSheet(showing: &showing) } label: { Text(verbatim: "返回") }.accessibilityIdentifier("workshopPurchased.upgrade.back") } }
                 }
             }
         }

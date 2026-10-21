@@ -13,6 +13,8 @@ class Pkg13MerchantGalleryGridContracts(unittest.TestCase):
         self.assertIn("struct MerchantGalleryGridLayout: Equatable", grid)
         self.assertIn("static let columns = 3", grid)
         self.assertIn("static let capacity = 9", grid)
+        self.assertIn("static let cellAspectRatio: CGFloat = 1", grid)
+        self.assertIn(".aspectRatio(MerchantGalleryGridLayout.cellAspectRatio, contentMode: .fit)", grid)
         self.assertIn("static func canRemove(index: Int, in gallery: [String]) -> Bool", grid)
         self.assertIn('.accessibilityIdentifier("merchant.operations.gallery.grid")', grid)
         self.assertIn('.accessibilityIdentifier("merchant.operations.gallery.slot." + String(index))', grid)

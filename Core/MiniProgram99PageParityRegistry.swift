@@ -423,7 +423,7 @@ public struct MiniProgram99PageParityRegistry: Sendable, Equatable {
             wave2ScopeID: "w2-11",
             nativeSymbol: "SearchMapExplorerView",
             sourceFile: "App/SearchMapExplorerView.swift",
-            hostSymbol: "MainTabView"
+            hostSymbol: "GlobalSearchView"
         ),
         "subpackageTools/capsule/index": VerifiedBaselineRouteTarget(
             domain: .domainD,

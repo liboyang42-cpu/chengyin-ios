@@ -81,6 +81,12 @@ final class MiniProgram99PageParityRegistryTests: XCTestCase {
         }
 
         // Verified routes must carry concrete file, symbol, and host container
+        let verifiedSearchMap = MiniProgram99PageParityRegistry.entry(forPagePath: "pages/searchmap/index")
+        XCTAssertEqual(verifiedSearchMap?.nativeReaderOrPresentationContract, "SearchMapExplorerView")
+        XCTAssertEqual(verifiedSearchMap?.verifiedSourceFile, "App/SearchMapExplorerView.swift")
+        XCTAssertEqual(verifiedSearchMap?.verifiedHostSymbol, "GlobalSearchView")
+        XCTAssertTrue(verifiedSearchMap?.isSourceMappingVerified ?? false)
+
         let verifiedCapsule = MiniProgram99PageParityRegistry.entry(forPagePath: "subpackageTools/capsule/index")
         XCTAssertEqual(verifiedCapsule?.nativeReaderOrPresentationContract, "RoamCapsuleView")
         XCTAssertEqual(verifiedCapsule?.verifiedSourceFile, "App/RoamPassportPrivateToolsViews.swift")

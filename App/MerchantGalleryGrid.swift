@@ -5,6 +5,7 @@ import SwiftUI
 struct MerchantGalleryGridLayout: Equatable {
     static let columns = 3
     static let capacity = 9
+    static let cellAspectRatio: CGFloat = 1
     enum Slot: Equatable { case image(index: Int, reference: String), empty(index: Int) }
     let slots: [Slot]
     init(gallery: [String]) {
@@ -47,10 +48,12 @@ struct MerchantGalleryGrid: View {
                 .accessibilityLabel("merchant.operations.removeImage")
                 .accessibilityIdentifier("merchant.operations.gallery.remove." + String(index))
             }
+            .aspectRatio(MerchantGalleryGridLayout.cellAspectRatio, contentMode: .fit)
             .accessibilityIdentifier("merchant.operations.gallery.slot." + String(index))
         case .empty(let index):
             RoundedRectangle(cornerRadius: 8).strokeBorder(.secondary.opacity(0.4))
                 .frame(maxWidth: .infinity, minHeight: 96)
+                .aspectRatio(MerchantGalleryGridLayout.cellAspectRatio, contentMode: .fit)
                 .accessibilityHidden(true)
                 .accessibilityIdentifier("merchant.operations.gallery.empty." + String(index))
         }
