@@ -1775,6 +1775,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "23E28CF720EEE4E53B95041C";
 		};
+		"1243C0ADD1A0C88B8B728DA8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CooperationProjectNavigation.swift";
+			"sourceTree" = "<group>";
+		};
+		"F370D492ABEB55EFEEBFA69C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "1243C0ADD1A0C88B8B728DA8";
+		};
 		"C363DE3B74B7CCB37F87D3D3" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -21794,6 +21804,36 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "9BA4B2B4DA9F4E903CC14A87";
 		};
+		"4C8710312D5D181017B52A28" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/WorkshopUpgradeDraftStore.swift";
+			"sourceTree" = "<group>";
+		};
+		"44991F4F9953587EB62C1998" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4C8710312D5D181017B52A28";
+		};
+		"32D11EDC31E47446795200F7" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/WorkshopUpgradeFlow.swift";
+			"sourceTree" = "<group>";
+		};
+		"78AC472F497EC9F85AC5A265" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "32D11EDC31E47446795200F7";
+		};
+		"5DFD22B198A49C7B307EFE4D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/WorkshopUpgradeFlowBoundary.swift";
+			"sourceTree" = "<group>";
+		};
+		"C5B893998131FAC1920949CA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "5DFD22B198A49C7B307EFE4D";
+		};
 		"7121A27D73010C7538713512" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -22945,6 +22985,7 @@
 				"97AC72B5C40C3239148AA66F",
 				"D382391665A6BB955909D4D3",
 				"23E28CF720EEE4E53B95041C",
+				"1243C0ADD1A0C88B8B728DA8",
 				"C363DE3B74B7CCB37F87D3D3",
 				"639F7B48A0F7AF15BDD504AE",
 				"01110ADD572894DABC205274",
@@ -24946,6 +24987,9 @@
 				"BFF7E0CF0BDBC97D974EC2AE",
 				"03E0D820E9312EC41927741E",
 				"9BA4B2B4DA9F4E903CC14A87",
+				"4C8710312D5D181017B52A28",
+				"32D11EDC31E47446795200F7",
+				"5DFD22B198A49C7B307EFE4D",
 				"7121A27D73010C7538713512",
 				"C401F46D023A66BACB3E3DC4",
 				"9AA8659FD719F8124E0585AB",
@@ -25835,6 +25879,7 @@
 				"249AE2E4AEB3A071E24A0CA8",
 				"FE1DE6A6171EE7F875D5B2DF",
 				"02E0CC25F6A369B3A10EAEC6",
+				"3B88B6C9F31B547DC7895C8A",
 				"0D7EF6210E9CB6F5504981F8",
 				"EEDDD3B6FBD7B8F3536B2059",
 				"7244D40C54DF6EB1782E933F",
@@ -26022,6 +26067,7 @@
 				"437F85319A0B393A6A2E0906",
 				"93820D154C8C806457F3F839",
 				"C7C110143C1E3783C51E0787",
+				"F370D492ABEB55EFEEBFA69C",
 				"62BCA3DFCD3A36E113C091DD",
 				"967D37A208758BDD48D54F46",
 				"A5CB6FA0532E2AD560FD7246",
@@ -28023,6 +28069,9 @@
 				"5EA3443AAC9E573C7F73B3CA",
 				"C9B1BE3F8FD1F6BEC6119DDC",
 				"DB62867E7140390FD6160B22",
+				"44991F4F9953587EB62C1998",
+				"78AC472F497EC9F85AC5A265",
+				"C5B893998131FAC1920949CA",
 				"96588ACDD107AAF800D2C736",
 				"AA7D34029AA2642FE7869F61",
 				"0CC3CD3EB7947B4EF4E8DCC6",
@@ -36499,6 +36548,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "02E0CC25F6A369B3A10EAEC6";
 		};
+		"3B88B6C9F31B547DC7895C8A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/WorkshopUpgradeDraftEntryTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"7BF85ADA22286E16105391AF" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3B88B6C9F31B547DC7895C8A";
+		};
 		"0D7EF6210E9CB6F5504981F8" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -37086,6 +37145,7 @@
 				"09CD4C5789DC98F2695EB81A",
 				"83A3D3C1F2237AD239CDFF92",
 				"76164B128AC3313E0B934C19",
+				"7BF85ADA22286E16105391AF",
 				"B09AE2C15946CC9D276069CB",
 				"F1113E8122EDB570BBCD585B",
 				"DF1BDF12CFEDF8466F2BE517",
