@@ -42,11 +42,14 @@ private struct CreatorContentIssueView: View {
     let reader: any CreatorContentReading
     var onOpenProject: ((CreatorContentProject, UUID) -> Void)? = nil
     let onOpen: (CreatorContentDestination) -> Void
+    /// Set only after a server save receipt for this reader scope. Another account's token does not match.
+    var listRefresh: MyProjectListRefreshRequest? = nil
     @StateObject private var model = CreatorContentScreenModel<CreatorContentProjectPage>()
     @State private var query = CreatorContentQuery()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.myProjectTemplateShelf) private var templateShelf
+    @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
     private var key: CreatorContentLoadKey { .init(reader, query: query) }
     var body: some View {
         List {
@@ -68,7 +71,7 @@ private struct CreatorContentIssueView: View {
                     if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
                     let rowScope = key.scope
                     MyProjectCreateActivityRow(type: query.type, rowCount: page.rows.count)
-                    if MyProjectRowOperationsMenu.hasOperations(page.rows) {
+                    if MyProjectRowOperationsMenu.hasOperations(page.rows, merchantScopeAccess: merchantScopeAccess) {
                         Text("myProject.longPressHint").font(.caption).foregroundStyle(.secondary)
                     }
                     ForEach(MyProjectListPresentation.sorted(page.rows)) { project in
@@ -94,6 +97,10 @@ private struct CreatorContentIssueView: View {
         .listStyle(.insetGrouped)
         .appNavigationTitle("creatorContent.projects")
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
+        .onChange(of: listRefresh) { _, request in
+            guard let request, request.readerScope == reader.scope, reader.isAuthenticated else { return }
+            Task { await refresh() }
+        }
     }
     private func picker(_ title: LocalizedStringKey, selection: Binding<String>, values: [String]) -> some View {
         Picker(title, selection: selection) {

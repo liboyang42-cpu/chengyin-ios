@@ -41,8 +41,9 @@ extension EnvironmentValues {
     let type: String
     let rowCount: Int
     @Environment(\.myProjectPublishEntry) private var entry
+    @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
     var body: some View {
-        if type == MyProjectTab.activity.rawValue, rowCount > 0, let entry, entry.canPublishActivity {
+        if type == MyProjectTab.activity.rawValue, rowCount > 0, let entry, entry.canPublishActivity, !merchantScopeAccess.isBrowseOnly {
             NavigationLink { entry.make() } label: { Label("myProject.cta.activity", systemImage: "plus") }
                 .accessibilityIdentifier("myProject.createActivity")
         }
@@ -68,16 +69,17 @@ extension EnvironmentValues {
 @MainActor struct MyProjectEmptyView: View {
     let type: String
     @Environment(\.myProjectPublishEntry) private var entry
+    @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
     var body: some View {
         if let tab = MyProjectTab(rawValue: type) {
-            let canPublishActivity = entry?.canPublishActivity == true
+            let canPublishActivity = entry?.canPublishActivity == true && !merchantScopeAccess.isBrowseOnly
             let keys = MyProjectListPresentation.emptyKeys(for: tab, canPublishActivity: canPublishActivity)
             ContentUnavailableView {
                 Label(LocalizedStringKey(keys.title), systemImage: "square.stack")
             } description: {
                 if let detail = keys.detail { Text(LocalizedStringKey(detail)) }
             } actions: {
-                if let entry, let cta = MyProjectListPresentation.emptyCTAKey(for: tab, canPublishActivity: canPublishActivity) {
+                if !merchantScopeAccess.isBrowseOnly, let entry, let cta = MyProjectListPresentation.emptyCTAKey(for: tab, canPublishActivity: canPublishActivity) {
                     NavigationLink { entry.make() } label: { Text(LocalizedStringKey(cta)) }
                         .accessibilityIdentifier("myProject.emptyCTA." + type)
                 }
@@ -147,11 +149,12 @@ extension EnvironmentValues {
 /// endpoint allowlist entry yet, so the menu only explains which actions the mini-program offers here.
 @MainActor struct MyProjectRowOperationsMenu: View {
     let project: CreatorContentProject
-    static func hasOperations(_ rows: [CreatorContentProject]) -> Bool {
-        rows.contains { !MyProjectListPresentation.card($0).operations.isEmpty }
+    @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
+    static func hasOperations(_ rows: [CreatorContentProject], merchantScopeAccess: MyProjectMerchantScopeAccess = .init()) -> Bool {
+        rows.contains { !MyProjectListPresentation.card($0, merchantScopeAccess: merchantScopeAccess).operations.isEmpty }
     }
     var body: some View {
-        let card = MyProjectListPresentation.card(project)
+        let card = MyProjectListPresentation.card(project, merchantScopeAccess: merchantScopeAccess)
         ForEach(card.operations, id: \.self) { op in
             Button(role: op == .delete ? .destructive : nil) {} label: {
                 Text(LocalizedStringKey(op == .toggle ? card.toggleKey : op.localizationKey))

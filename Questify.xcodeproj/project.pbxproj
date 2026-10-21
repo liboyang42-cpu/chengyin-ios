@@ -6748,6 +6748,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "C50000000000000000000001";
 		};
+		"C50000000000000000000005" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MyProjectActivityEditorAdapter.swift";
+			"sourceTree" = "<group>";
+		};
+		"C50000000000000000000006" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C50000000000000000000005";
+		};
+		"C50000000000000000000007" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.json.xcstrings";
+			"path" = "Resources/MyProjectActivityEditor.xcstrings";
+			"sourceTree" = "<group>";
+		};
+		"C50000000000000000000008" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C50000000000000000000007";
+		};
 		"CBC34D9A6DA72F76DEAF942D" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -26529,6 +26549,7 @@
 				"9A92399B1E643AFEBEDF4DDC",
 				"6C483187BEBAFC6C77F6829D",
 				"C50000000000000000000002",
+				"C50000000000000000000006",
 				"BE82049937DE41402F4FC214",
 				"A3FB286AD609E5097370A136",
 				"B9962DA16DE46A526CD28022",
@@ -28047,6 +28068,7 @@
 				"1D6AF50ED2553F36AB69AD34",
 				"CCD192FEF62DB00E75C821FE",
 				"0CCFB92ADB905D6D9DF89428",
+				"C50000000000000000000008",
 				"D2311AE62A7D54F69494E9A7",
 				"AF9A68A843F0ECE1D525E936",
 				"5CC1BA05C8FA6DED54A75B3F",

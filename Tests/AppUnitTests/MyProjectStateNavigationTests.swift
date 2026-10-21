@@ -32,11 +32,56 @@ import XCTest
         XCTAssertEqual(try decision(#"{"id":9,"bizType":"activity","state":"rejected","ownerType":"club"}"#, merchantScopeAccess: browseOnly), .detail(.activity(9)))
     }
 
-    func testActivityEditorRouteFallsBackToDetailUntilLoadContractExists() throws {
-        XCTAssertEqual(try decision(#"{"id":9,"bizType":"activity","state":"pending","ownerType":"club"}"#), .activityEditorUnavailableDetail(.activity(9)))
-        XCTAssertEqual(try decision(#"{"id":9,"bizType":"activity","state":"rejected","ownerType":"club"}"#), .activityEditorUnavailableDetail(.activity(9)))
+    func testActivityEditorRouteUsesExistingEditorForTheSameScope() throws {
+        for state in ["pending", "rejected"] {
+            let route = try decision(#"{"id":9,"bizType":"activity","state":"\#(state)","ownerType":"club"}"#)
+            guard case .activityEditor(let request) = route else { return XCTFail("\(state) must open the activity editor") }
+            XCTAssertEqual(request.activityID, 9)
+            XCTAssertEqual(request.readerScope, scope)
+        }
         XCTAssertEqual(try decision(#"{"id":9,"bizType":"activity","state":"rejected","ownerType":"merchant"}"#), .detail(.activity(9)))
         XCTAssertEqual(try decision(#"{"id":9,"bizType":"activity","state":"running","ownerType":"club"}"#), .detail(.activity(9)))
+    }
+
+    func testSaveReceiptRefreshesOnlyTheOpeningAccount() {
+        let token = MyProjectActivityEditorReturnToken(readerScope: scope, activityID: 9)
+        let refresh = MyProjectActivityEditorPolicy.refreshRequest(token: token, status: "acknowledged",
+            currentScope: scope, authenticated: true, generation: 3)
+        XCTAssertEqual(refresh, .init(readerScope: scope, activityID: 9, generation: 3))
+        XCTAssertNil(MyProjectActivityEditorPolicy.refreshRequest(token: token, status: "acknowledged",
+            currentScope: UUID(), authenticated: true, generation: 4))
+        XCTAssertNil(MyProjectActivityEditorPolicy.refreshRequest(token: token, status: "acknowledged",
+            currentScope: scope, authenticated: false, generation: 4))
+    }
+
+    func testCancelAndLocalDraftAreNotSaveReceipts() {
+        for status in ["editing", "localSaved", "review", "notSent", "rejected", "unknown", "ready"] {
+            XCTAssertFalse(MyProjectActivityEditorPolicy.isServerSaveReceipt(status))
+            XCTAssertNil(MyProjectActivityEditorPolicy.refreshRequest(
+                token: .init(readerScope: scope, activityID: 9), status: status,
+                currentScope: scope, authenticated: true, generation: 1))
+        }
+        XCTAssertTrue(MyProjectActivityEditorPolicy.isServerSaveReceipt("acknowledged"))
+    }
+
+    func testFactoryResolvesOnlyForTheCurrentAuthenticatedScope() {
+        XCTAssertTrue(MyProjectActivityEditorPolicy.mayResolveFactory(requestScope: scope, currentScope: scope, authenticated: true))
+        XCTAssertFalse(MyProjectActivityEditorPolicy.mayResolveFactory(requestScope: scope, currentScope: UUID(), authenticated: true))
+        XCTAssertFalse(MyProjectActivityEditorPolicy.mayResolveFactory(requestScope: scope, currentScope: scope, authenticated: false))
+    }
+
+    func testBrowseOnlyOmitsActivityWriteOperationsAndKeepsTopicApplies() throws {
+        let browseOnly = MyProjectMerchantScopeAccess(isMerchantScope: true, canManageProjects: false)
+        let activity = try project(#"{"id":9,"bizType":"activity","state":"running","ownerType":"club","signupCount":3}"#)
+        XCTAssertTrue(MyProjectRowOperationsMenu.hasOperations([activity]))
+        XCTAssertFalse(MyProjectRowOperationsMenu.hasOperations([activity], merchantScopeAccess: browseOnly))
+        let writes = MyProjectListPresentation.card(activity, merchantScopeAccess: browseOnly).operations
+        XCTAssertFalse(writes.contains(.edit))
+        XCTAssertFalse(writes.contains(.toggle))
+        XCTAssertFalse(writes.contains(.cancel))
+        XCTAssertFalse(writes.contains(.delete))
+        let topic = try project(#"{"id":7,"bizType":"topic","state":"running","ownerType":"member","acceptStatus":"clubOpen"}"#)
+        XCTAssertEqual(MyProjectListPresentation.card(topic, merchantScopeAccess: browseOnly).operations, [.viewApplies])
     }
 
     func testOtherAndUnknownStatesDegradeWithoutInventingEditors() throws {
