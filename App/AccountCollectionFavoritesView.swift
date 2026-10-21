@@ -8,11 +8,12 @@ import SwiftUI
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
     var communityGate: (any SquareCommunityFeatureReading)? = nil
     @State private var selectedTab: Tab = .posts
-    @State private var gateFeatures: SquareCommunityFeatures?
-    @State private var gateScope: UUID?
-    @State private var gateFailed = false
+    @State private var gateModel = AccountCollectionCommunityGateModel()
     private enum Tab: Hashable { case posts, topics }
-    private var postsAllowed: Bool { guard let communityGate else { return true }; return gateScope == communityGate.scope && gateFeatures?.read == true && !gateFailed }
+    /// Nil gate fails closed. Only the single gate model may open posts.
+    private var postsAllowed: Bool {
+        gateModel.postsAllowed(hasGate: communityGate != nil, currentScope: communityGate?.scope)
+    }
     var body: some View {
         VStack(spacing: 0) {
             if postsAllowed {
@@ -27,34 +28,21 @@ import SwiftUI
                 AccountCollectionFavoritePostsView(reader: reader, pageSize: pageSize, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval)
             } else {
                 AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize, retryGate: {
-                    if gateFailed || gateScope != communityGate?.scope { await loadGate() }
+                    if gateModel.failed || gateModel.resolvedScope != communityGate?.scope { await loadGate() }
                 })
             }
         }
         .appNavigationTitle("accountCollection.favorites.title")
         .task(id: communityGate?.scope) { await loadGate() }
         .onChange(of: communityGate?.scope) { _, next in
-            if gateScope != next { gateFeatures = nil; gateScope = nil; gateFailed = false }
+            if gateModel.resolvedScope != next { gateModel.invalidate() }
         }
         .onChange(of: reader.scope) { _, _ in
-            gateFeatures = nil; gateScope = nil; gateFailed = false
+            gateModel.invalidate()
         }
     }
     private func loadGate() async {
-        guard let communityGate, reader.isAuthenticated, reader.isConfigured else {
-            gateFeatures = nil; gateScope = nil; gateFailed = false; return
-        }
-        guard gateScope != communityGate.scope else { return }
-        let scope = communityGate.scope
-        gateFailed = false
-        do {
-            let value = try await communityGate.communityFeatures()
-            guard !Task.isCancelled, scope == communityGate.scope else { return }
-            gateFeatures = value; gateScope = scope; gateFailed = false
-        } catch {
-            guard !Task.isCancelled, !(error is CancellationError), scope == communityGate.scope else { return }
-            gateFeatures = nil; gateScope = nil; gateFailed = true
-        }
+        await gateModel.load(gate: communityGate, isAuthenticated: reader.isAuthenticated, isConfigured: reader.isConfigured)
     }
 }
 

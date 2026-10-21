@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 /// Memory-only credentials; the UI sees only a random credential-free scope.
 public struct AccountCollectionReadSession: Equatable {
@@ -230,7 +231,7 @@ public extension AccountCollectionReading {
 /// Keeps `postsAllowed == false` while pending, denied (`read == false`), or failed,
 /// leaves `gateScope == nil` on error so same-scope retries can recover, and clears
 /// state when the reader or gate scope changes.
-@MainActor public final class AccountCollectionCommunityGateModel {
+@MainActor @Observable public final class AccountCollectionCommunityGateModel {
     public private(set) var features: SquareCommunityFeatures?
     public private(set) var resolvedScope: UUID?
     public private(set) var failed = false
@@ -238,9 +239,9 @@ public extension AccountCollectionReading {
 
     public init() {}
 
+    /// Missing gate, pending, denial, and failure all stay closed. A nil gate does not pass.
     public func postsAllowed(hasGate: Bool, currentScope: UUID?) -> Bool {
-        guard hasGate else { return true }
-        guard let currentScope else { return false }
+        guard hasGate, let currentScope else { return false }
         return resolvedScope == currentScope && features?.read == true && !failed
     }
 
