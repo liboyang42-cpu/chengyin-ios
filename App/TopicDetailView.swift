@@ -21,6 +21,7 @@ struct TopicDetailView: View {
     @State private var loads = SignedInContentDetailLoadOwner()
     @Environment(\.topicPricingDestination) private var pricingDestination
     @State private var showsPricing = false
+    @State private var showingSessionSelection = false
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
@@ -37,7 +38,7 @@ struct TopicDetailView: View {
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
         }
-        .onChange(of: key) { _, _ in showingSelfPlay = false }
+        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false }
         .sheet(isPresented: $showingSelfPlay) {
             if let detail {
                 if let selfPlayDestination { selfPlayDestination(detail) }
@@ -189,9 +190,12 @@ struct TopicDetailView: View {
         }
         .refreshable { await loads.run { await load() } }
         .safeAreaInset(edge: .bottom) {
-            TopicXcxActionBar(topic: value, openSessions: { withAnimation { proxy.scrollTo("topicXcx.anchor.sessions", anchor: .top) } },
+            TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
                               openSelfPlay: { showingSelfPlay = true },
                               openPricing: pricingDestination == nil ? nil : { showsPricing = true })
+        }
+        .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
+            TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
         }
         .sheet(isPresented: $showsPricing) { if let pricingDestination { NavigationStack { pricingDestination(value.id) } } }
         .accessibilityIdentifier("topic.detail.content")
