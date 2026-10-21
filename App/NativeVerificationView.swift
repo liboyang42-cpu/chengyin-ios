@@ -68,11 +68,11 @@ extension EnvironmentValues {
                 }
             }
             Section {
-                if let pledge, pledge.permitsWrites, flow.access?.allows("merchant:verify") == true {
-                    NavigationLink { RewardPledgeStaffHost(entry: pledge) } label: { Text(verbatim: "Redeem voucher") }
+                if let pledge, pledge.current()?.redeem == true, flow.access?.allows("merchant:verify") == true {
+                    NavigationLink { RewardPledgeStaffHost(entry: pledge) } label: { Text("rewards.pledge.redeem") }
                         .accessibilityIdentifier("rewards.pledge.merchant")
                 } else {
-                    Text(verbatim: "Not open").accessibilityIdentifier("rewards.pledge.merchantClosed")
+                    Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.merchantClosed")
                 }
                 if !flow.current { Button("verification.refreshAccess") { Task { await flow.activate() } }.disabled(flow.phase == .loading) }
                 NavigationLink { records() } label: { Label("verification.records", systemImage: "list.bullet.rectangle") }

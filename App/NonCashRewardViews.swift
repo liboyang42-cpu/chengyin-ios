@@ -26,21 +26,18 @@ import SwiftUI
             else if !reader.isConfigured {
                 ContentUnavailableView("rewards.unavailable", systemImage: "gift", description: Text("rewards.unavailableHint"))
                     .accessibilityIdentifier("rewards.unavailable")
-                Text(verbatim: "Not open").accessibilityIdentifier("rewards.pledge.closed")
+                Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
             } else if model.state.isLoading || model.state.loadedScope != key.scope {
+                pledgeEntry
                 ProgressView("accountCollection.loading")
             } else if let issue = model.state.issue {
+                pledgeEntry
                 AccountCollectionIssueView(issue: issue)
                 if issue != .login {
                     Button("accountCollection.refresh") { Task { await refresh() } }.accessibilityIdentifier("rewards.retry")
                 }
             } else {
-                if let pledge, pledge.permitsWrites {
-                    NavigationLink { RewardPledgeClaimHost(entry: pledge) } label: { Text(verbatim: "Claim") }
-                        .accessibilityIdentifier("rewards.pledge.open")
-                } else {
-                    Text(verbatim: "Not open").accessibilityIdentifier("rewards.pledge.closed")
-                }
+                pledgeEntry
                 if let asOf = model.state.asOf { LabeledContent("rewards.asOf") { Text(asOf, format: .dateTime) } }
                 if model.state.visibleRows(scope: key.scope).isEmpty {
                     ContentUnavailableView("rewards.empty", systemImage: "gift")
@@ -64,6 +61,14 @@ import SwiftUI
         }
         .listStyle(.insetGrouped).appNavigationTitle("rewards.title")
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
+    }
+    @ViewBuilder private var pledgeEntry: some View {
+        if let pledge, pledge.current()?.read == true {
+            NavigationLink { RewardPledgeClaimHost(entry: pledge) } label: { Text("rewards.pledge.list") }
+                .accessibilityIdentifier("rewards.pledge.open")
+        } else {
+            Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
+        }
     }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }

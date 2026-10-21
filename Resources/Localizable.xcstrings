@@ -125125,6 +125125,27 @@
         }
       }
     },
+    "rewards.pledge.list": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Award list" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "奖励列表" } }
+      }
+    },
+    "rewards.pledge.noSubject": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This award has no theme subject, so it cannot be claimed." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "该奖励没有主题对象，不能领取。" } }
+      }
+    },
+    "rewards.pledge.redeem": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Redeem voucher" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "核销凭证" } }
+      }
+    },
     "rewards.present": {
       "extractionState": "manual",
       "localizations": {

@@ -230,6 +230,18 @@ public enum RewardPledgeRequests {
         request.setValue(token, forHTTPHeaderField: "Authorization")
         return request
     }
+    /// `listMine` returns the owner's awards in one response. There is no cursor contract.
+    public static func list(baseURL: URL, token: String) throws -> URLRequest {
+        guard AuthRequestBuilder.isValidToken(token) else { throw RewardPledgeFailure.closed("permission") }
+        var request = URLRequest(url: baseURL.appendingPathComponent(RewardPledgeRoutes.plannedNonCashList))
+        request.httpMethod = "GET"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        return request
+    }
     public static func draft(pledgeID: String, version: Int, baseURL: URL, token: String) throws -> URLRequest {
         guard version > 0, !pledgeID.isEmpty else { throw RewardPledgeFailure.closed("merchantEvidence") }
         return try form(RewardPledgeRoutes.plannedDraft, ["pledgeId": pledgeID, "version": String(version)], baseURL, token, "pledge-draft")
@@ -570,15 +582,84 @@ public struct RewardPledgeMachine: Equatable {
     }
 }
 
+/// One row of `GET /api/rewards/noncash`. Subject exists only as `THEME:{id}:session:{sessionId}`.
+public struct RewardPledgeAwardRow: Equatable, Identifiable, Sendable {
+    public let awardId: String
+    public let versionId: String
+    public let ruleVersion: String
+    public let rewardScope: String
+    public let factRef: String
+    public let state: String
+    public let requestId: String
+    public let historyId: String?
+    public var id: String { awardId }
+    public var themeSubjectID: String? {
+        let parts = factRef.split(separator: ":", omittingEmptySubsequences: false).map(String.init)
+        guard parts.count == 4, parts[0] == "THEME", parts[2] == "session", !parts[1].isEmpty, !parts[3].isEmpty else { return nil }
+        return parts[1]
+    }
+    public static func decodeList(_ data: Data) throws -> [RewardPledgeAwardRow] {
+        guard data.count <= 1_048_576 else { throw APIError.malformedResponse }
+        struct Envelope: Decodable { let code: Int; let data: [Wire] }
+        let envelope: Envelope
+        do { envelope = try JSONDecoder().decode(Envelope.self, from: data) } catch { throw APIError.malformedResponse }
+        if envelope.code == 401 { throw APIError.unauthorized }
+        guard envelope.code == 200 else { throw RewardPledgeFailure.closed("http") }
+        let rows = try envelope.data.map { try $0.row() }
+        guard Set(rows.map(\.awardId)).count == rows.count else { throw APIError.malformedResponse }
+        return rows
+    }
+    private struct Wire: Decodable {
+        let awardId, versionId, ruleVersion, rewardScope, factRef, state, requestId: String
+        let historyId: String?
+        private enum CodingKeys: String, CodingKey {
+            case awardId, versionId, ruleVersion, rewardScope, factRef, state, requestId, historyId
+        }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            awardId = try c.decode(String.self, forKey: .awardId)
+            versionId = try c.decode(String.self, forKey: .versionId)
+            ruleVersion = try c.decode(String.self, forKey: .ruleVersion)
+            rewardScope = try c.decode(String.self, forKey: .rewardScope)
+            factRef = try c.decode(String.self, forKey: .factRef)
+            state = try c.decode(String.self, forKey: .state)
+            requestId = try c.decode(String.self, forKey: .requestId)
+            if c.contains(.historyId), (try? c.decodeNil(forKey: .historyId)) == false {
+                if let text = try? c.decode(String.self, forKey: .historyId) { historyId = text }
+                else if let number = try? c.decode(Int64.self, forKey: .historyId) { historyId = String(number) }
+                else { throw APIError.malformedResponse }
+            } else { historyId = nil }
+        }
+        func row() throws -> RewardPledgeAwardRow {
+            guard !awardId.isEmpty, !versionId.isEmpty, !requestId.isEmpty else { throw APIError.malformedResponse }
+            return RewardPledgeAwardRow(awardId: awardId, versionId: versionId, ruleVersion: ruleVersion, rewardScope: rewardScope,
+                                        factRef: factRef, state: state, requestId: requestId, historyId: historyId)
+        }
+    }
+}
+
+public struct RewardPledgeCaller: Equatable, Sendable {
+    public let accountID: String
+    public let epoch: UInt64
+    public let region: String
+    public let token: String
+    public let read: Bool
+    public let claim: Bool
+    public let redeem: Bool
+    public init(accountID: String, epoch: UInt64, region: String, token: String, read: Bool, claim: Bool, redeem: Bool) {
+        self.accountID = accountID; self.epoch = epoch; self.region = region; self.token = token
+        self.read = read; self.claim = claim; self.redeem = redeem
+    }
+}
+
 public struct RewardPledgeEntry {
     public let client: RewardPledgeClient
-    public let accountID: String
-    public let token: String
     public let journalURL: URL
-    public init(client: RewardPledgeClient, accountID: String, token: String, journalURL: URL) {
-        self.client = client; self.accountID = accountID; self.token = token; self.journalURL = journalURL
+    public let current: @MainActor () -> RewardPledgeCaller?
+    public init(client: RewardPledgeClient, journalURL: URL, current: @escaping @MainActor () -> RewardPledgeCaller?) {
+        self.client = client; self.journalURL = journalURL; self.current = current
     }
-    public var permitsWrites: Bool { client.permitsWrites }
+    public var accountID: String { current()?.accountID ?? "" }
 }
 
 public struct RewardPledgeServerBody: Equatable, Sendable {
@@ -590,31 +671,34 @@ public struct RewardPledgeServerBody: Equatable, Sendable {
     }
 }
 
-/// Calls ApiNonCashRewardController and ApiRewardPledgeController. Writes stay closed until permitsWrites is set.
+/// Calls ApiNonCashRewardController and ApiRewardPledgeController.
+/// `open` is the grant for that call. A read grant does not open claim or redeem.
 public struct RewardPledgeClient {
-    public let permitsWrites: Bool
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
-    public init(configuration: APIConfiguration, transport: any HTTPTransport, permitsWrites: Bool = false) {
-        self.configuration = configuration; self.transport = transport; self.permitsWrites = permitsWrites
+    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
+        self.configuration = configuration; self.transport = transport
     }
-    public func offer(versionID: String, subjectID: String, token: String) async throws -> RewardPledgeServerBody {
-        try await send(try RewardPledgeRequests.offer(versionID: versionID, subjectID: subjectID, baseURL: configuration.baseURL, token: token))
+    public func awards(token: String, open: Bool, still: @MainActor () -> Bool) async throws -> [RewardPledgeAwardRow] {
+        try RewardPledgeAwardRow.decodeList(try await fetch(try RewardPledgeRequests.list(baseURL: configuration.baseURL, token: token), open: open, still: still))
     }
-    public func claim(requestID: String, versionID: String, subjectID: String, token: String) async throws -> RewardPledgeServerBody {
-        try await send(try RewardPledgeRequests.claim(requestID: requestID, versionID: versionID, subjectID: subjectID, baseURL: configuration.baseURL, token: token))
+    public func offer(versionID: String, subjectID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.offer(versionID: versionID, subjectID: subjectID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func recover(requestID: String, token: String) async throws -> RewardPledgeServerBody {
-        try await send(try RewardPledgeRequests.jsonRecover(requestID: requestID, baseURL: configuration.baseURL, token: token))
+    public func claim(requestID: String, versionID: String, subjectID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.claim(requestID: requestID, versionID: versionID, subjectID: subjectID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func detail(awardID: String, token: String) async throws -> RewardPledgeServerBody {
-        try await send(try RewardPledgeRequests.detail(awardID: awardID, baseURL: configuration.baseURL, token: token))
+    public func recover(requestID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.jsonRecover(requestID: requestID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func preview(awardID: String, token: String) async throws -> RewardPledgeServerBody {
-        try await send(try RewardPledgeRequests.preview(awardID: awardID, baseURL: configuration.baseURL, token: token))
+    public func detail(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.detail(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func redeem(awardID: String, token: String) async throws -> RewardPledgeServerBody {
-        try await send(try RewardPledgeRequests.redeem(awardID: awardID, baseURL: configuration.baseURL, token: token))
+    public func preview(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.preview(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func redeem(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.redeem(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
     /// Preview must name the same request id and a coupon history before redeem is sent.
     public static func acceptedVoucher(preview: RewardPledgeServerBody, originalRequestID: String) -> Result<String, RewardPledgeFailure> {
@@ -631,14 +715,19 @@ public struct RewardPledgeClient {
         }
         return .success(award)
     }
-    private func send(_ request: URLRequest) async throws -> RewardPledgeServerBody {
-        guard permitsWrites else { throw RewardPledgeFailure.closed("not open") }
+    private func fetch(_ request: URLRequest, open: Bool, still: @MainActor () -> Bool) async throws -> Data {
+        guard open else { throw RewardPledgeFailure.closed("not open") }
         let data: Data, status: Int
         do { (data, status) = try await transport.send(request) }
         catch { throw RewardPledgeFailure.closed("unknown") }
+        guard await MainActor.run(body: still) else { throw RewardPledgeFailure.stale }
         if status == 401 { throw APIError.unauthorized }
+        return data
+    }
+    private func send(_ request: URLRequest, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        let data = try await fetch(request, open: open, still: still)
         guard data.count <= 1_048_576, let body = RewardPledgeServerBody.decode(data) else { throw APIError.malformedResponse }
-        if body.code == 401 || status == 401 { throw APIError.unauthorized }
+        if body.code == 401 { throw APIError.unauthorized }
         if body.code != 200 { throw RewardPledgeFailure.closed(body.message.isEmpty ? "http" : body.message) }
         return body
     }

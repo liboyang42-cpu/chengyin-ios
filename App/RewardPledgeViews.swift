@@ -20,6 +20,10 @@ public extension EnvironmentValues {
     @Published public private(set) var playerResult: RewardPledgeServerBody?
     @Published public private(set) var merchantResult: RewardPledgeServerBody?
     @Published public private(set) var busy = false
+    @Published public private(set) var awards: [RewardPledgeAwardRow] = []
+    @Published public private(set) var awardsLoaded = false
+    @Published public private(set) var listFailed = false
+    @Published public private(set) var selected: RewardPledgeAwardRow?
     private var offerVersionID = ""
     private var offerSubjectID = ""
     private let journal: RewardPledgeFileJournal?
@@ -89,14 +93,39 @@ public extension EnvironmentValues {
 
     public func showClosed() { notice = "not open" }
 
+    public func loadAwards(entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.read }) else { awards = []; awardsLoaded = true; listFailed = true; return }
+        guard !busy else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            let rows = try await entry.client.awards(token: caller.token, open: caller.read, still: { entry.current() == caller })
+            awards = rows
+            awardsLoaded = true
+            listFailed = false
+        } catch { note(error); awards = []; awardsLoaded = true; listFailed = true }
+    }
+
+    public func selectAward(_ row: RewardPledgeAwardRow, entry: RewardPledgeEntry) async {
+        selected = row
+        offerVersionID = ""
+        offerSubjectID = ""
+        terms = nil
+        await loadDetail(awardID: row.awardId, entry: entry)
+        guard selected?.awardId == row.awardId, entry.current()?.accountID == machine.scope.accountID else { return }
+        if let subject = row.themeSubjectID {
+            await readOffer(versionID: row.versionId, subjectID: subject, entry: entry)
+        } else { notice = "noSubject" }
+    }
+
     public func readOffer(versionID: String, subjectID: String, entry: RewardPledgeEntry) async {
-        guard entry.permitsWrites else { showClosed(); return }
+        guard let caller = admitted(entry, { $0.read }) else { return }
         guard !busy else { return }
         terms = nil
         busy = true
         defer { busy = false }
         do {
-            let body = try await entry.client.offer(versionID: versionID, subjectID: subjectID, token: entry.token)
+            let body = try await entry.client.offer(versionID: versionID, subjectID: subjectID, token: caller.token, open: caller.read, still: { entry.current() == caller })
             guard body.fields["errorCode"] != "POLICY_CLOSED", !(body.fields["ruleVersion"] ?? "").isEmpty else { showClosed(); return }
             guard body.fields["guaranteed"] != "true" else { notice = "switches"; return }
             if let code = body.fields["errorCode"], !code.isEmpty { notice = code; return }
@@ -119,9 +148,9 @@ public extension EnvironmentValues {
     }
 
     public func claim(entry: RewardPledgeEntry) async {
-        guard entry.permitsWrites else { showClosed(); return }
+        guard let caller = admitted(entry, { $0.claim }) else { return }
         guard !busy else { return }
-        guard let terms, !offerVersionID.isEmpty, !offerSubjectID.isEmpty else { notice = "confirm"; return }
+        guard let terms, !offerVersionID.isEmpty, !offerSubjectID.isEmpty, selected?.themeSubjectID == offerSubjectID else { notice = "confirm"; return }
         switch machine.confirmClaim(terms, seen: machine.scope) {
         case .failure(let error): fail(error)
         case .success(let value):
@@ -133,7 +162,7 @@ public extension EnvironmentValues {
                 busy = true
                 defer { busy = false }
                 do {
-                    let body = try await entry.client.claim(requestID: value.requestID, versionID: offerVersionID, subjectID: offerSubjectID, token: entry.token)
+                    let body = try await entry.client.claim(requestID: value.requestID, versionID: offerVersionID, subjectID: offerSubjectID, token: caller.token, open: caller.claim, still: { entry.current() == caller })
                     adopt(body, intent: value)
                 } catch { note(error) }
             }
@@ -141,7 +170,7 @@ public extension EnvironmentValues {
     }
 
     public func recover(entry: RewardPledgeEntry) async {
-        guard entry.permitsWrites else { showClosed(); return }
+        guard let caller = admitted(entry, { $0.claim }) else { return }
         guard !busy, let row = machine.unknowns.last else { notice = "intent"; return }
         switch machine.recoveryIntent(row, proposedRequestID: row.requestID, seen: machine.scope) {
         case .failure(let error): fail(error)
@@ -150,7 +179,7 @@ public extension EnvironmentValues {
             busy = true
             defer { busy = false }
             do {
-                let body = try await entry.client.recover(requestID: value.requestID, token: entry.token)
+                let body = try await entry.client.recover(requestID: value.requestID, token: caller.token, open: caller.claim, still: { entry.current() == caller })
                 if body.fields["state"] == "UNKNOWN" { notice = "unknown"; return }
                 adopt(body, intent: value)
             } catch { note(error) }
@@ -158,22 +187,28 @@ public extension EnvironmentValues {
     }
 
     public func loadDetail(entry: RewardPledgeEntry) async {
-        guard entry.permitsWrites else { showClosed(); return }
-        guard let award = machine.grant?.awardID, !award.isEmpty else { notice = "award"; return }
+        let award = selected?.awardId ?? machine.grant?.awardID ?? ""
+        await loadDetail(awardID: award, entry: entry)
+    }
+
+    private func loadDetail(awardID: String, entry: RewardPledgeEntry) async {
+        guard let caller = admitted(entry, { $0.read }) else { return }
+        guard !awardID.isEmpty else { notice = "award"; return }
         do {
-            playerResult = try await entry.client.detail(awardID: award, token: entry.token)
-            notice = playerResult?.fields["state"]
-            if case .failure(let error) = machine.markRefreshed(seen: machine.scope) { fail(error) }
+            let body = try await entry.client.detail(awardID: awardID, token: caller.token, open: caller.read, still: { entry.current() == caller })
+            playerResult = body
+            notice = body.fields["state"]
+            if machine.grant?.state == "GRANTED_UNREDEEMED", case .failure(let error) = machine.markRefreshed(seen: machine.scope) { fail(error) }
         } catch { note(error) }
     }
 
     public func redeemOriginal(awardID: String, requestID: String, entry: RewardPledgeEntry) async {
-        guard entry.permitsWrites else { showClosed(); return }
+        guard let caller = admitted(entry, { $0.redeem }) else { return }
         guard !busy else { return }
         busy = true
         defer { busy = false }
         do {
-            let preview = try await entry.client.preview(awardID: awardID, token: entry.token)
+            let preview = try await entry.client.preview(awardID: awardID, token: caller.token, open: caller.redeem, still: { entry.current() == caller })
             switch RewardPledgeClient.acceptedVoucher(preview: preview, originalRequestID: requestID) {
             case .failure(.terminal("ALREADY_USED")):
                 merchantResult = preview
@@ -181,7 +216,8 @@ public extension EnvironmentValues {
                 notice = "ALREADY_USED"
             case .failure(let error): fail(error)
             case .success(let award):
-                let merchant = try await entry.client.redeem(awardID: award, token: entry.token)
+                guard entry.current() == caller else { fail(.stale); return }
+                let merchant = try await entry.client.redeem(awardID: award, token: caller.token, open: caller.redeem, still: { entry.current() == caller })
                 merchantResult = merchant
                 let playerKeys: Set<String> = ["awardId", "requestId", "state", "historyId", "useStatus", "ruleVersion", "terms", "factRef"]
                 var playerFields: [String: String] = [:]
@@ -318,18 +354,33 @@ public extension EnvironmentValues {
         if let journal {
             do { existing = try journal.load() } catch {
                 machine.replaceAccount(accountID, store: "", journal: [])
-                terms = nil; intent = nil; notice = "journal"
+                clearSelection(notice: "journal")
                 return
             }
         } else { existing = [] }
         guard let store = Self.restoredStore(requested: storeID, accountID: accountID, rows: existing) else {
             machine.replaceAccount(accountID, store: "", journal: [])
-            terms = nil; intent = nil; notice = "journal"
+            clearSelection(notice: "journal")
             return
         }
         machine.replaceAccount(accountID, store: store, journal: existing)
-        terms = nil; intent = nil
-        notice = machine.unknowns.isEmpty ? nil : "unknown"
+        clearSelection(notice: machine.unknowns.isEmpty ? "stale" : "unknown")
+    }
+
+    private func admitted(_ entry: RewardPledgeEntry, _ allows: (RewardPledgeCaller) -> Bool) -> RewardPledgeCaller? {
+        guard let caller = entry.current(), !caller.region.isEmpty, AuthRequestBuilder.isValidToken(caller.token) else { showClosed(); return nil }
+        guard caller.accountID == machine.scope.accountID else {
+            replaceAccount(caller.accountID, store: "")
+            return nil
+        }
+        guard allows(caller) else { showClosed(); return nil }
+        return caller
+    }
+
+    private func clearSelection(notice: String) {
+        terms = nil; intent = nil; awards = []; selected = nil
+        playerResult = nil; merchantResult = nil; awardsLoaded = false
+        self.notice = notice
     }
 
     private func persistOrStop() -> Bool {
@@ -374,7 +425,9 @@ public extension EnvironmentValues {
     private func fail(_ error: RewardPledgeFailure) {
         switch error {
         case .closed(let name): notice = name
-        case .stale: notice = "stale"
+        case .stale:
+            playerResult = nil; merchantResult = nil; terms = nil; awards = []; selected = nil; listFailed = true; awardsLoaded = true
+            notice = "stale"
         case .terminal(let name): notice = name
         }
     }
@@ -383,8 +436,6 @@ public extension EnvironmentValues {
 @MainActor public struct RewardPledgeClaimView: View {
     @ObservedObject var model: RewardPledgeModel
     var entry: RewardPledgeEntry?
-    @State private var versionID = ""
-    @State private var subjectID = ""
 
     public init(model: RewardPledgeModel, entry: RewardPledgeEntry? = nil) {
         self.model = model
@@ -393,19 +444,42 @@ public extension EnvironmentValues {
 
     public var body: some View {
         Form {
-            if entry?.permitsWrites != true {
-                Text(verbatim: "Not open").accessibilityIdentifier("rewards.pledge.closed")
+            if entry?.current()?.read != true {
+                Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
             } else if let entry {
-                TextField("rewards.pledge.version", text: $versionID)
-                TextField("rewards.pledge.subject", text: $subjectID)
-                Button("rewards.pledge.read") { Task { await model.readOffer(versionID: versionID, subjectID: subjectID, entry: entry) } }
+                if !model.awardsLoaded { ProgressView("accountCollection.loading") }
+                else if model.listFailed {
+                    Button("accountCollection.refresh") { Task { await model.loadAwards(entry: entry) } }
+                        .accessibilityIdentifier("rewards.pledge.retry")
+                } else if model.awards.isEmpty {
+                    ContentUnavailableView("rewards.empty", systemImage: "gift")
+                }
+                ForEach(model.awards) { row in
+                    Button { Task { await model.selectAward(row, entry: entry) } } label: {
+                        VStack(alignment: .leading) {
+                            Text(LocalizedStringKey("rewards.state." + row.state))
+                            Text(verbatim: row.ruleVersion)
+                        }
+                    }
+                    .accessibilityIdentifier("rewards.pledge.row." + row.awardId)
+                }
+                Button("rewards.pledge.read") { Task { await model.loadAwards(entry: entry) } }
                     .disabled(model.busy).accessibilityIdentifier("rewards.pledge.read")
-                Button("rewards.pledge.confirm") { Task { await model.claim(entry: entry) } }
-                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.confirm")
+                if model.selected != nil, model.selected?.themeSubjectID == nil {
+                    Text("rewards.pledge.noSubject").accessibilityIdentifier("rewards.pledge.noSubject")
+                }
+                if entry.current()?.claim == true, model.selected?.themeSubjectID != nil {
+                    Button("rewards.pledge.confirm") { Task { await model.claim(entry: entry) } }
+                        .disabled(model.busy).accessibilityIdentifier("rewards.pledge.confirm")
+                } else {
+                    Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.claimClosed")
+                }
                 Button("rewards.pledge.cancel") { model.cancelPending() }.accessibilityIdentifier("rewards.pledge.cancel")
                 Button("rewards.pledge.lose") { model.loseResponse() }.accessibilityIdentifier("rewards.pledge.unknown")
-                Button("rewards.pledge.recover") { Task { await model.recover(entry: entry) } }
-                    .disabled(model.busy).accessibilityIdentifier("rewards.pledge.recover")
+                if entry.current()?.claim == true {
+                    Button("rewards.pledge.recover") { Task { await model.recover(entry: entry) } }
+                        .disabled(model.busy).accessibilityIdentifier("rewards.pledge.recover")
+                }
                 Button("rewards.pledge.refresh") { Task { await model.loadDetail(entry: entry) } }
                     .disabled(model.busy).accessibilityIdentifier("rewards.pledge.refresh")
             }
@@ -426,6 +500,10 @@ public extension EnvironmentValues {
             }
             if let notice = model.notice { Text(notice).accessibilityIdentifier("rewards.pledge.notice") }
             if let item = model.machine.serviceCase { Text(item.readable).accessibilityIdentifier("rewards.pledge.case") }
+        }
+        .task {
+            guard let entry, entry.current()?.read == true, !model.awardsLoaded else { return }
+            await model.loadAwards(entry: entry)
         }
     }
 }
@@ -473,8 +551,8 @@ public extension EnvironmentValues {
 
     public var body: some View {
         Form {
-            if entry?.permitsWrites != true {
-                Text(verbatim: "Not open").accessibilityIdentifier("rewards.pledge.merchantClosed")
+            if entry?.current()?.redeem != true {
+                Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.merchantClosed")
             } else if let entry {
                 TextField("rewards.pledge.award", text: $awardID)
                 TextField("rewards.pledge.request", text: $requestID)

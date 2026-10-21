@@ -1971,13 +1971,19 @@ final class AppSession: ObservableObject {
     }
     func makeRewardPledgeClient() -> RewardPledgeClient? {
         guard runtimeDependencies.nonCashRewardApproved, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
-        return RewardPledgeClient(configuration: configuration, transport: runtimeHTTPTransport, permitsWrites: true)
+        return RewardPledgeClient(configuration: configuration, transport: runtimeHTTPTransport)
     }
     func makeRewardPledgeEntry() -> RewardPledgeEntry? {
-        guard makeNonCashRewardService() != nil, let client = makeRewardPledgeClient(), let account, let token else { return nil }
+        guard makeNonCashRewardService() != nil, let client = makeRewardPledgeClient(), account != nil, token != nil else { return nil }
         let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/reward-pledge-unknown.json")
-        return RewardPledgeEntry(client: client, accountID: String(account.id), token: token, journalURL: url)
+        return RewardPledgeEntry(client: client, journalURL: url, current: { [weak self] in
+            guard let self, let account = self.account, let token = self.token, let region = self.operationalMarket?.rawValue else { return nil }
+            return RewardPledgeCaller(accountID: String(account.id), epoch: self.gate.currentStamp, region: region, token: token,
+                                      read: self.runtimeDependencies.nonCashRewardApproved,
+                                      claim: self.runtimeDependencies.nonCashRewardClaimApproved,
+                                      redeem: self.runtimeDependencies.nonCashRewardRedeemApproved)
+        })
     }
     private var currentNonCashRewardSession: NonCashRewardReadSession? {
         guard let account, let token else { return nil }

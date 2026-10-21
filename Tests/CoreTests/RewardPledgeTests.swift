@@ -173,6 +173,37 @@ final class RewardPledgeTests: XCTestCase {
         XCTAssertFalse(item.pledgePresentable(guaranteed))
     }
 
+    func testAwardArrayDecodesThemeSubjectAndReadDoesNotClaim() async throws {
+        let listed = """
+        {"code":200,"data":[
+          {"awardId":"a1","versionId":"v1","ruleVersion":"r","rewardScope":"THEME","factRef":"THEME:100:session:210","state":"AWARDED","requestId":"req-1","beneficiaryId":1,"createdAt":1,"historyId":9},
+          {"awardId":"a2","versionId":"v2","ruleVersion":"r","rewardScope":"X","factRef":"COMPENSATION:3","state":"AWARDED","requestId":"req-2","beneficiaryId":1,"createdAt":1,"historyId":null}
+        ]}
+        """
+        let rows = try RewardPledgeAwardRow.decodeList(Data(listed.utf8))
+        XCTAssertEqual(rows.map(\.themeSubjectID), ["100", nil])
+        XCTAssertEqual(rows[0].historyId, "9")
+        XCTAssertThrowsError(try RewardPledgeAwardRow.decodeList(Data(#"{"code":200,"data":{"items":[],"nextCursor":null,"asOf":1}}"#.utf8)))
+        let transport = RewardPledgeScriptTransport()
+        let configuration = try APIConfiguration(baseURL: URL(string: "https://example.test")!)
+        let client = RewardPledgeClient(configuration: configuration, transport: transport)
+        do {
+            _ = try await client.claim(requestID: digest, versionID: "v1", subjectID: "100", token: "fixture-token", open: false, still: { true })
+            XCTFail("read grant sent a claim")
+        } catch RewardPledgeFailure.closed("not open") {}
+        XCTAssertTrue(transport.requests.isEmpty)
+        transport.body = listed
+        var moved = false
+        let loaded = try await client.awards(token: "fixture-token", open: true, still: { !moved })
+        XCTAssertEqual(loaded.map(\.awardId), ["a1", "a2"])
+        moved = true
+        transport.body = #"{"code":200,"msg":"ok","data":{"awardId":"a1","requestId":"req-1","state":"AWARDED","historyId":"9","useStatus":"0"}}"#
+        do {
+            _ = try await client.claim(requestID: digest, versionID: "v1", subjectID: "100", token: "fixture-token", open: true, still: { !moved })
+            XCTFail("stale claim was kept")
+        } catch RewardPledgeFailure.stale {}
+    }
+
     private func staffPreviewWrongStore(_ machine: inout RewardPledgeMachine) throws -> RewardPledgeGrant {
         let preview = machine.preview(permissionStore: "8", seen: machine.scope)
         guard case .success(let value) = preview else { throw RewardPledgeFailure.stale }
@@ -180,6 +211,15 @@ final class RewardPledgeTests: XCTestCase {
     }
 
     private func oldScope(_ machine: RewardPledgeMachine) -> RewardPledgeScope { machine.scope }
+}
+
+private final class RewardPledgeScriptTransport: HTTPTransport {
+    var requests: [URLRequest] = []
+    var body = ""
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        return (Data(body.utf8), 200)
+    }
 }
 
 private extension RewardPledgeIntent {
