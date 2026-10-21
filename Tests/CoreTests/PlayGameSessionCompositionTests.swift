@@ -16,27 +16,31 @@ import FoundationNetworking
         }
     }
 
+    private static let approvedTestEndpoints: [RegionalMarket: Set<String>] = [
+        .china: ["https://example.test"],
+        .unitedStates: ["https://us.example.test"],
+    ]
+
     private func makeRegional(
-        market: String = "cn",
-        baseURL: String = "https://example.test",
-        realm: String = "cn-prod"
+        market: RegionalMarket = .china,
+        baseURL: String = "https://example.test"
     ) throws -> RegionalConfiguration {
         try RegionalConfiguration(
-            environment: [
-                RegionalConfiguration.apiBaseURLKey: baseURL,
-                RegionalConfiguration.authRealmKey: realm,
-            ],
-            infoDictionary: ["CYMarket": market]
+            market: market,
+            baseURL: baseURL,
+            approvedBaseURLs: Self.approvedTestEndpoints
         )
     }
 
     private func makeStorageScope(
         regional: RegionalConfiguration,
-        bundleIdentifier: String = "com.questify.synthetic"
+        bundleIdentifier: String = "com.questify.synthetic",
+        realm: String = "cn-prod"
     ) throws -> RegionalSessionStorageScope {
         try RegionalSessionStorageScope(
             configuration: regional,
-            bundleIdentifier: bundleIdentifier
+            bundleIdentifier: bundleIdentifier,
+            realm: realm
         )
     }
 
@@ -190,7 +194,7 @@ import FoundationNetworking
             PlayGameSessionJournalFactory.makeCoordinator(
                 scope: .activity(41),
                 service: service,
-                regionalConfiguration: .failClosed,
+                regionalConfiguration: try RegionalConfiguration(market: .china),
                 storageScope: storageScope,
                 currentSession: { box.session },
                 anchors: anchors,
@@ -199,8 +203,8 @@ import FoundationNetworking
         )
 
         // Mismatched storageScope or session namespace fails closed.
-        let otherRegional = try makeRegional(market: "sea", baseURL: "https://sea.example.test", realm: "sea-prod")
-        let otherStorageScope = try makeStorageScope(regional: otherRegional)
+        let otherRegional = try makeRegional(market: .unitedStates, baseURL: "https://us.example.test")
+        let otherStorageScope = try makeStorageScope(regional: otherRegional, realm: "us-prod")
         XCTAssertNil(
             PlayGameSessionJournalFactory.makeCoordinator(
                 scope: .activity(41),
@@ -410,7 +414,7 @@ import FoundationNetworking
         )
         await merchantCoordinator.load()
         XCTAssertEqual(merchantCoordinator.phase, "failed")
-        XCTAssertEqual(merchantCoordinator.failure, .persistenceUnavailable)
+        XCTAssertEqual(merchantCoordinator.issue, .persistenceUnavailable)
     }
 }
 

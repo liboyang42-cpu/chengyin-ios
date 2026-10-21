@@ -304,8 +304,14 @@ import XCTest
         XCTAssertTrue(app.buttons["templateAuthor.openEditor"].exists)
         tap("templateAuthor.openMine", app)
         XCTAssertTrue(app.staticTexts["Owner 7 template 1"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["templateAuthor.shelf.delete.101"].isEnabled)
-        XCTAssertFalse(app.buttons["templateAuthor.shelf.library.101"].isEnabled)
+        let libraryButton = app.buttons["templateAuthor.shelf.library.101"]
+        XCTAssertTrue(revealFixtureElement(libraryButton, in: app, requiresHittable: false))
+        XCTAssertTrue(libraryButton.exists)
+        XCTAssertFalse(libraryButton.isEnabled)
+        let deleteButton = app.buttons["templateAuthor.shelf.delete.101"]
+        XCTAssertTrue(revealFixtureElement(deleteButton, in: app, requiresHittable: false))
+        XCTAssertTrue(deleteButton.exists)
+        XCTAssertFalse(deleteButton.isEnabled)
         tap("templateAuthor.shelf.loadMore", app); tap("memberTemplate.mine.111", app)
         XCTAssertTrue(app.staticTexts["Owner 7 fresh template"].waitForExistence(timeout: 5))
         let value = try evidence(app), reads = value.ledger.filter { $0.route.hasPrefix("shelf.") }

@@ -99,8 +99,16 @@ final class MyProjectListPresentationTests: XCTestCase {
     }
 
     func testMerchantScopeAccessAndCardRouteResolution() throws {
-        let activeManage = try JSONDecoder().decode(MerchantMarketingAccess.self, from: Data(#"{"merchantId":1,"active":true,"permissions":["merchant:project:manage"]}"#.utf8))
-        let activeReadOnly = try JSONDecoder().decode(MerchantMarketingAccess.self, from: Data(#"{"merchantId":1,"active":true,"permissions":["merchant:project:view"]}"#.utf8))
+        let activeManageValue = try JSONDecoder().decode(
+            MerchantMarketingValue.self,
+            from: Data(#"{"active":true,"merchant":{"id":1},"roleCode":"MERCHANT_MANAGER","permissions":["merchant:project:manage"]}"#.utf8)
+        )
+        let activeReadOnlyValue = try JSONDecoder().decode(
+            MerchantMarketingValue.self,
+            from: Data(#"{"active":true,"merchant":{"id":1},"roleCode":"MERCHANT_MANAGER","permissions":["merchant:project:view"]}"#.utf8)
+        )
+        let activeManage = try MerchantMarketingAccess(activeManageValue)
+        let activeReadOnly = try MerchantMarketingAccess(activeReadOnlyValue)
         let allowed = MyProjectMerchantScopeAccess(scope: "MERCHANT", merchantAccess: activeManage)
         XCTAssertTrue(allowed.isMerchantScope)
         XCTAssertFalse(allowed.isBrowseOnly)
@@ -113,19 +121,33 @@ final class MyProjectListPresentationTests: XCTestCase {
         XCTAssertEqual(MyProjectListPresentation.resolveRoute(draftTopic, merchantScopeAccess: browseOnly), .projectHome(19))
     }
 
-    func testQuickPublishPointValidationMaxThreeAndPOIConfirmation() {
-        let place = PublishingPlace(name: "西湖文化广场", address: "杭州市", latitude: 30.27, longitude: 120.16)
-        let confirmedNode = QuickPublishNode(name: "第一站", description: "签到", confirmedPlace: place)
-        let unconfirmedNode = QuickPublishNode(name: "第二站", description: "打卡", confirmedPlace: nil)
+    func testQuickPublishPointValidationMaxThreeAndPOIConfirmation() throws {
+        let place = try PublishingPlace(id: "poi-1", name: "西湖文化广场", address: "杭州市", latitude: 30.27, longitude: 120.16)
+        var confirmedNode = QuickPublishNode()
+        confirmedNode.name = "第一站"
+        confirmedNode.description = "签到"
+        confirmedNode.confirmedPlace = place
+        var unconfirmedNode = QuickPublishNode()
+        unconfirmedNode.name = "第二站"
+        unconfirmedNode.description = "打卡"
+        unconfirmedNode.confirmedPlace = nil
         let partial = QuickPublishPointValidation(nodes: [confirmedNode, unconfirmedNode])
         XCTAssertEqual(partial.count, 2)
         XCTAssertTrue(partial.canAddPoint)
         XCTAssertFalse(partial.allPOIsConfirmed)
         XCTAssertFalse(partial.isValid)
+        var secondConfirmedNode = QuickPublishNode()
+        secondConfirmedNode.name = "第二站"
+        secondConfirmedNode.description = ""
+        secondConfirmedNode.confirmedPlace = place
+        var thirdConfirmedNode = QuickPublishNode()
+        thirdConfirmedNode.name = "第三站"
+        thirdConfirmedNode.description = ""
+        thirdConfirmedNode.confirmedPlace = place
         let threeConfirmed = QuickPublishPointValidation(nodes: [
             confirmedNode,
-            QuickPublishNode(name: "第二站", description: "", confirmedPlace: place),
-            QuickPublishNode(name: "第三站", description: "", confirmedPlace: place)
+            secondConfirmedNode,
+            thirdConfirmedNode
         ])
         XCTAssertTrue(threeConfirmed.allPOIsConfirmed)
         XCTAssertTrue(threeConfirmed.isValid)
