@@ -132,9 +132,10 @@ public enum MerchantContentCommand: Codable, Equatable {
             try need([0, 1, 2].contains(snapshot.value["status"].integer ?? -1) && snapshot.value["auditStatus"].integer.map { $0 != 1 } == true)
         case .invite(let chapter, let member, let replacement, _, _):
             guard case .invitable = snapshot.query else { throw MerchantContentFailure.invalid }
-            // Exact candidate tuple only; memberId is never derived from merchantId.
+            // Candidate rows use the candidate decoder, not the offer-row merchant decoder.
+            // memberId is never derived from the owner-list merchantId.
             try need(snapshot.rows.contains {
-                ChapterReplacementInvitationVacancy.memberID(in: $0) == member && $0["chapterId"].integer == chapter && $0["replacementOfOfferId"].integer == replacement
+                ChapterReplacementInvitationVacancy.candidateMemberID(in: $0) == member && $0["chapterId"].integer == chapter && $0["replacementOfOfferId"].integer == replacement
             })
         case .respondChapterInvitation(let id, _, let chapter, let topic):
             try need(snapshot.query == .chapterInvitations)

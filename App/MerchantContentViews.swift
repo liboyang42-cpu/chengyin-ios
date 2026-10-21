@@ -352,7 +352,7 @@ struct MerchantContentFields: View {
                     ChapterReplacementInvitationView(model: .init(coordinator: .init(effects: replacementContext.effects), topicID: topic,
                         actorAccountID: replacementContext.actorAccountID, scope: replacementContext.scope,
                         merchantAccess: model.coordinator.snapshot?.access ?? replacementContext.merchantAccess,
-                        topicPublisherVerified: replacementContext.topicPublisherVerified), coordinates: replacementContext.coordinates)
+                        publisherProof: replacementContext.publisherProof), coordinates: replacementContext.coordinates)
                 } label: { Text("merchant.content.invite") }
                 .accessibilityIdentifier("merchant.chapterReplacement.open")
             }
@@ -583,15 +583,17 @@ private struct MerchantOfferWithdrawalDestinationKey: EnvironmentKey {
 private struct MerchantChapterReplacementContextKey: EnvironmentKey {
     static let defaultValue: MerchantChapterReplacementHostContext? = nil
 }
-/// Host-supplied C9 composition context. Every field must come from a real host
-/// projection (session account, fresh merchant access, verified topic publisher,
-/// granted coordinates); shipped composition supplies none, so it stays `nil`.
+/// Host-supplied C9 composition context. The publisher proof, coordinates, and
+/// member identity must already exist on the caller. This module does not fetch
+/// them. Shipped composition leaves the environment value `nil`.
 @MainActor struct MerchantChapterReplacementHostContext {
     let effects: ChapterReplacementInvitationEffects
     let actorAccountID: Int
     let scope: ChapterReplacementInvitationScope
     let merchantAccess: MerchantAccess?
-    let topicPublisherVerified: Bool
+    /// Nil unless the host holds an approved fresh topic-publisher read for this actor.
+    let publisherProof: ChapterReplacementInvitationPublisherProof?
+    /// Nil when location was refused. Candidate lookup still runs without coordinates.
     let coordinates: ChapterReplacementInvitationCoordinates?
 }
 @MainActor private struct MerchantContentRecruitSupplyView: View {

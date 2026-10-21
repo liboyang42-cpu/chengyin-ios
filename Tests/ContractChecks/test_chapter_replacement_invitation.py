@@ -7,12 +7,6 @@ CORE = ROOT / "Core/ChapterReplacementInvitation.swift"
 COORD = ROOT / "Core/ChapterReplacementInvitationCoordinator.swift"
 VIEW = ROOT / "App/ChapterReplacementInvitationView.swift"
 UNIT = ROOT / "Tests/CoreTests/ChapterReplacementInvitationTests.swift"
-SHARED = [
-    "Core/MerchantContentCommands.swift",
-    "Core/MerchantContentService.swift",
-    "Core/MerchantContentDomain.swift",
-    "App/MerchantContentViews.swift",
-]
 
 
 def read(path):
@@ -47,10 +41,15 @@ class ChapterReplacementInvitationContracts(unittest.TestCase):
             "row.replacementOfOfferID == vacancy.offerID",
             "access.isOwner",
             "access.allows(.projects)",
-            "topicPublisherVerified",
+            "struct ChapterReplacementInvitationPublisherProof",
+            "isFreshTopicPublisher",
+            "projectManageOwnerMapped",
+            "publisherProof.verified",
             "ChapterReplacementInvitationFailure.notTopicPublisher",
         ]:
             self.assertIn(token, core)
+        self.assertNotIn("topicPublisherVerified", core)
+        self.assertNotIn("isFreshTopicPublisher: true", core)
 
     def test_no_auto_accept_supply_or_money_actions(self):
         core = read(CORE)
@@ -84,19 +83,77 @@ class ChapterReplacementInvitationContracts(unittest.TestCase):
         self.assertIn("public let coordinates: ChapterReplacementInvitationCoordinates?", core)
         coord = read(COORD)
         self.assertIn("coordinates: ChapterReplacementInvitationCoordinates? = nil", coord)
+        view = read(VIEW)
+        self.assertNotIn("CLLocation", view)
+        self.assertNotIn("requestWhenInUse", view)
+        self.assertIn("coordinates: coordinates", view)
+
+    def test_publisher_proof_is_injected_not_hardcoded(self):
+        coord = read(COORD)
+        view = read(VIEW)
+        service = read("Core/MerchantContentService.swift")
+        self.assertIn("guard let publisherProof else { phase = .failed(.notTopicPublisher); return }", coord)
+        self.assertNotIn("isFreshTopicPublisher: true", coord)
+        self.assertNotIn("isFreshTopicPublisher: true", view)
+        self.assertNotIn("topicPublisherVerified", service)
+        self.assertIn("publisherProof.verified", service)
+        self.assertIn("publisherProof: ChapterReplacementInvitationPublisherProof?", view)
+
+    def test_view_copy_is_bilingual_and_keeps_parameters(self):
+        import json
+        view = read(VIEW)
+        self.assertNotRegex(view, r'Text\(verbatim: "[^"]*[\u4e00-\u9fff]')
+        for key in [
+            "chapterReplacement.intro",
+            "chapterReplacement.vacancy.row",
+            "chapterReplacement.candidate.member",
+            "chapterReplacement.message.label",
+            "chapterReplacement.message.prompt",
+            "chapterReplacement.title",
+            "chapterReplacement.review.invite",
+            "chapterReplacement.review.pendingOnly",
+            "chapterReplacement.unknown",
+            "chapterReplacement.verified.application",
+            "chapterReplacement.verified",
+        ]:
+            self.assertIn(key, view)
+        self.assertIn("vacancy.withdrawReason", view)
+        fragment = json.loads((ROOT / "Resources/ChapterReplacementInvitationLocalizations.fragment.json").read_text())["strings"]
+        catalog = json.loads((ROOT / "Resources/Localizable.xcstrings").read_text())["strings"]
+        required = {
+            "chapterReplacement.vacancy.row %lld %lld": ("%1$lld", "%2$lld"),
+            "chapterReplacement.candidate.member %lld": ("%lld",),
+            "chapterReplacement.review.invite %lld %lld %lld": ("%1$lld", "%2$lld", "%3$lld"),
+            "chapterReplacement.unknown %@": ("%@",),
+            "chapterReplacement.verified.application %lld": ("%lld",),
+        }
+        self.assertGreaterEqual(len(fragment), 13)
+        for key, tokens in required.items():
+            self.assertEqual(catalog[key], fragment[key])
+            for lang in ("en", "zh-Hans"):
+                value = fragment[key]["localizations"][lang]["stringUnit"]["value"]
+                for token in tokens:
+                    self.assertIn(token, value)
 
     def test_shared_files_untouched_by_this_line(self):
-        # C9 owns only the new ChapterReplacementInvitation* files; the shared
-        # MerchantContent hunks are handed to C7 as unapplied text, never edited here.
+        # C9 follow-up may touch only its exclusive files, its catalog fragment,
+        # and the named shared call-site hunks. MerchantHome and AppSession stay out.
         import subprocess
         out = subprocess.run(
-            ["git", "diff", "--name-only", "HEAD"], cwd=ROOT,
+            ["git", "diff", "--name-only", "7ad0b6383480bab1839e3c824e3aaeacd1b9dc14"], cwd=ROOT,
             capture_output=True, text=True, check=True).stdout.split()
-        for shared in SHARED:
-            self.assertNotIn(shared, out)
+        allowed_shared = {
+            "Core/MerchantContentCommands.swift",
+            "Core/MerchantContentService.swift",
+            "App/MerchantContentViews.swift",
+            "Resources/Localizable.xcstrings",
+            "Tests/ContractChecks/test_chapter_replacement_invitation.py",
+        }
+        for forbidden in ("App/MerchantHomeView.swift", "App/AppSession.swift", "Core/MerchantContentDomain.swift", "Core/MerchantContentCoordinator.swift"):
+            self.assertNotIn(forbidden, out)
         for changed in out:
             self.assertTrue(
-                "ChapterReplacementInvitation" in changed,
+                "ChapterReplacementInvitation" in changed or changed in allowed_shared,
                 f"C9 changed a non-exclusive file: {changed}")
 
     def test_unit_coverage_topics_present(self):

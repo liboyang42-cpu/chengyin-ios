@@ -17,14 +17,15 @@ final class ChapterReplacementInvitationViewModel: ObservableObject {
     private let actorAccountID: Int
     private let scope: ChapterReplacementInvitationScope
     private let merchantAccess: MerchantAccess?
-    private let topicPublisherVerified: Bool
+    /// Nil when the caller has no approved fresh topic-publisher read. Never synthesized here.
+    private let publisherProof: ChapterReplacementInvitationPublisherProof?
 
     init(coordinator: ChapterReplacementInvitationCoordinator, topicID: Int, actorAccountID: Int,
-         scope: ChapterReplacementInvitationScope, merchantAccess: MerchantAccess?, topicPublisherVerified: Bool) {
+         scope: ChapterReplacementInvitationScope, merchantAccess: MerchantAccess?, publisherProof: ChapterReplacementInvitationPublisherProof?) {
         self.coordinator = coordinator
         self.topicID = topicID; self.actorAccountID = actorAccountID
         self.scope = scope; self.merchantAccess = merchantAccess
-        self.topicPublisherVerified = topicPublisherVerified
+        self.publisherProof = publisherProof
     }
 
     private func sync() {
@@ -47,7 +48,7 @@ final class ChapterReplacementInvitationViewModel: ObservableObject {
 
     func prepare(_ candidate: ChapterReplacementInvitationCandidate) async {
         await coordinator.prepare(candidate: candidate, scope: scope, merchantAccess: merchantAccess,
-                                  topicPublisherVerified: topicPublisherVerified, message: message)
+                                  publisherProof: publisherProof, message: message)
         sync()
     }
 
@@ -70,19 +71,19 @@ struct ChapterReplacementInvitationView: View {
     var body: some View {
         List {
             Section {
-                Text(verbatim: "为已退出供给的章节补位。邀请成功仅生成待处理邀请，不会自动接受、补位上架或涉及付款退款。")
+                Text("chapterReplacement.intro")
                     .font(.footnote).foregroundStyle(.secondary)
             }
-            Section("已退出供给 / 缺位") {
+            Section("chapterReplacement.section.vacancies") {
                 if model.vacancies.isEmpty {
-                    Text(verbatim: "暂无可补位缺位").foregroundStyle(.secondary)
+                    Text("chapterReplacement.vacancies.empty").foregroundStyle(.secondary)
                 }
                 ForEach(model.vacancies) { vacancy in
                     Button {
                         Task { await model.select(vacancy, coordinates: coordinates) }
                     } label: {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(verbatim: "章节 \(vacancy.chapterID) · 原供给 \(vacancy.offerID)")
+                            Text("chapterReplacement.vacancy.row \(vacancy.chapterID) \(vacancy.offerID)")
                             Text(verbatim: vacancy.withdrawReason).font(.footnote).foregroundStyle(.secondary)
                         }
                     }
@@ -90,27 +91,33 @@ struct ChapterReplacementInvitationView: View {
                 }
             }
             if model.selectedVacancy != nil {
-                Section("可补位候选") {
+                Section("chapterReplacement.section.candidates") {
                     if model.candidates.isEmpty {
-                        Text(verbatim: "暂无可邀请候选").foregroundStyle(.secondary)
+                        Text("chapterReplacement.candidates.empty").foregroundStyle(.secondary)
                     }
                     ForEach(model.candidates) { candidate in
                         Button {
                             Task { await model.prepare(candidate) }
                         } label: {
-                            Text(verbatim: candidate.displayName ?? "商家成员 \(candidate.merchantMemberID)")
+                            if let name = candidate.displayName {
+                                Text(verbatim: name)
+                            } else {
+                                Text("chapterReplacement.candidate.member \(candidate.merchantMemberID)")
+                            }
                         }
                         .accessibilityIdentifier("chapterReplacement.candidate.\(candidate.id)")
                     }
                 }
-                Section("邀请留言（可选）") {
-                    TextField(text: $model.message, prompt: Text(verbatim: "留言")) { Text(verbatim: "留言") }
-                        .accessibilityIdentifier("chapterReplacement.message")
+                Section("chapterReplacement.section.message") {
+                    TextField(text: $model.message, prompt: Text("chapterReplacement.message.prompt")) {
+                        Text("chapterReplacement.message.label")
+                    }
+                    .accessibilityIdentifier("chapterReplacement.message")
                 }
             }
             statusSection
         }
-        .navigationTitle(Text(verbatim: "章节补位邀约"))
+        .appNavigationTitle("chapterReplacement.title")
         .task { await model.load() }
     }
 
@@ -118,29 +125,35 @@ struct ChapterReplacementInvitationView: View {
     private var statusSection: some View {
         switch model.phase {
         case .reviewing(let plan):
-            Section("影响复核") {
-                Text(verbatim: "将邀请成员 \(plan.candidate.merchantMemberID) 补位章节 \(plan.candidate.chapterID)，原供给 \(plan.candidate.replacementOfOfferID)。")
-                Text(verbatim: "发送后仅生成待处理邀请（PENDING），不会自动接受或填补供给。").font(.footnote).foregroundStyle(.secondary)
-                Button("发送补位邀请") { Task { await model.confirm() } }
+            Section("chapterReplacement.section.review") {
+                Text("chapterReplacement.review.invite \(plan.candidate.merchantMemberID) \(plan.candidate.chapterID) \(plan.candidate.replacementOfOfferID)")
+                Text("chapterReplacement.review.pendingOnly").font(.footnote).foregroundStyle(.secondary)
+                Button("chapterReplacement.send") { Task { await model.confirm() } }
                     .accessibilityIdentifier("chapterReplacement.send")
-                Button("取消", role: .cancel) { model.cancelReview() }
+                Button("action.cancel", role: .cancel) { model.cancelReview() }
             }
         case .sending:
             Section { ProgressView().accessibilityIdentifier("chapterReplacement.sending") }
         case .unknown(let plan):
-            Section("结果待核实") {
-                Text(verbatim: "已发送请求但未取得确切结果（\(plan.targetTuple)）。请勿重复发送，只能按完整目标回读核实。")
+            Section("chapterReplacement.section.unknown") {
+                Text("chapterReplacement.unknown \(plan.targetTuple)")
                     .font(.footnote)
-                Button("按完整目标回读核实") { Task { await model.verifyUnknown() } }
+                Button("chapterReplacement.verify") { Task { await model.verifyUnknown() } }
                     .accessibilityIdentifier("chapterReplacement.verifyUnknown")
             }
         case .verified(let verified):
-            Section("已核实") {
-                Text(verbatim: "补位邀请已回读确认（状态 PENDING\(verified.applicationID.map { "，申请 \($0)" } ?? "")）。")
-                    .accessibilityIdentifier("chapterReplacement.verified")
+            Section("chapterReplacement.section.verified") {
+                Group {
+                    if let applicationID = verified.applicationID {
+                        Text("chapterReplacement.verified.application \(applicationID)")
+                    } else {
+                        Text("chapterReplacement.verified")
+                    }
+                }
+                .accessibilityIdentifier("chapterReplacement.verified")
             }
         case .failed(let failure):
-            Section("无法继续") {
+            Section("chapterReplacement.section.failed") {
                 Text(verbatim: String(describing: failure)).foregroundStyle(.secondary)
                     .accessibilityIdentifier("chapterReplacement.failed")
             }

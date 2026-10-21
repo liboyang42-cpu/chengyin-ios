@@ -72,7 +72,7 @@ public struct MerchantContentReceipt: Equatable {
     func perform(_ command: MerchantContentCommand, baseline: MerchantContentSnapshot) async throws -> MerchantContentReceipt
     func pending() throws -> [MerchantContentPendingRecord]
     func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback
-    func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, topicPublisherVerified: Bool) -> ChapterReplacementInvitationEffects?
+    func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, publisherProof: ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects?
     func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
     func retryStation(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
 }
@@ -81,7 +81,7 @@ extension MerchantContentServing {
     public func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback {
         throw MerchantContentFailure.locked
     }
-    public func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, topicPublisherVerified: Bool) -> ChapterReplacementInvitationEffects? { nil }
+    public func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, publisherProof: ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects? { nil }
 }
 @MainActor public final class MerchantContentService: MerchantContentServing {
     /// This is a test-injection switch, never a production capability approval.
@@ -402,11 +402,12 @@ extension MerchantContentServing {
 }
 
 extension MerchantContentService {
-    /// C9 adapter over this service's real endpoints. `sendInvite` checks the verified
-    /// topic-publisher flag first, re-loads the `.invitable` baseline, then performs the
-    /// five-field invite exactly once through the existing journal/`perform` path; the
-    /// `permitsWrites` gate is unchanged and no path here retries automatically.
-    public func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, topicPublisherVerified: Bool) -> ChapterReplacementInvitationEffects? {
+    /// C9 adapter over this service's real endpoints. `sendInvite` requires the
+    /// caller-supplied publisher proof to verify this plan's topic and actor. This
+    /// method does not fetch or invent that proof. It re-loads the `.invitable`
+    /// baseline, then performs the invite exactly once through the existing
+    /// journal/`perform` path. `permitsWrites` is unchanged and nothing here retries.
+    public func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, publisherProof: ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects? {
         return ChapterReplacementInvitationEffects(
             loadVacancyRows: { [weak self] topic in
                 guard let self else { throw ChapterReplacementInvitationFailure.unknown }
@@ -422,7 +423,11 @@ extension MerchantContentService {
             },
             sendInvite: { [weak self] plan in
                 guard let self else { throw ChapterReplacementInvitationFailure.unknown }
-                guard topicPublisherVerified else { throw ChapterReplacementInvitationFailure.notTopicPublisher }
+                guard let publisherProof, publisherProof.verified,
+                      publisherProof.topicID == plan.topicID,
+                      publisherProof.actorAccountID == plan.actorAccountID else {
+                    throw ChapterReplacementInvitationFailure.notTopicPublisher
+                }
                 let baseline = try await self.load(.invitable(topicID: plan.topicID))
                 do {
                     _ = try await self.perform(.invite(chapterID: plan.candidate.chapterID, merchantMemberID: plan.candidate.merchantMemberID,
