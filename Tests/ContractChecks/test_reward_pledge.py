@@ -256,6 +256,10 @@ class RewardPledgeContractChecks(unittest.TestCase):
         draft = source.split("func draft(", 1)[1].split("func submit(", 1)[0]
         self.assertNotIn("storeId", draft)
         self.assertNotIn("merchantMemberId", draft)
+        self.assertIn('"requestId": supply.requestID', draft)
+        views_draft = (ROOT / "App/RewardPledgeViews.swift").read_text().split("func draftSupply", 1)[1].split("func submitSupply", 1)[0]
+        self.assertLess(views_draft.index("beginDraft"), views_draft.index("client.draft"))
+        self.assertNotIn("try? data.write", (ROOT / "App/RewardPledgeViews.swift").read_text())
         self.assertIn('"rewardKind": "NON_CASH"', draft)
         self.assertIn("loadStoreAwards", staff)
         self.assertNotIn('TextField("rewards.pledge.award"', staff)

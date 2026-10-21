@@ -81,6 +81,7 @@ public enum RewardPledgeRoutes {
         if method == "POST", query.isEmpty, exact(plannedClaim) { return "claim" }
         if method == "POST", query.isEmpty, exact(plannedIntentQuery) { return "recover" }
         if method == "POST", query.isEmpty, exact(cases) { return "case" }
+        if method == "GET", query.isEmpty, one(cases) != nil { return "case" }
         if method == "GET", query.count == 2,
            query.contains(URLQueryItem(name: "branch", value: "THEME")),
            let subject = query.first(where: { $0.name == "subjectId" })?.value, id(subject),
@@ -315,19 +316,20 @@ public enum RewardPledgeRequests {
         guard !trimmed.isEmpty, trimmed.count <= 512, !trimmed.contains("\n") else { throw RewardPledgeFailure.closed("award") }
         return try json(RewardPledgeRoutes.resolve, ["code": trimmed], baseURL, token)
     }
-    /// Supply copied from one published coupon. The server assigns the pledge id and the store.
+    /// Supply copied from one published coupon. `requestID` is the pledge id. The server assigns the store.
     public struct Supply: Equatable, Sendable {
+        public let requestID: String
         public let couponID: Int
         public let supplyRef: String
         public let terms: String
         public let quantity: Int
         public let windowStart: Int64
         public let windowEnd: Int64
-        public init(coupon: CouponDefinition, supplyRef: String, terms: String, quantity: Int) throws {
+        public init(coupon: CouponDefinition, supplyRef: String, terms: String, quantity: Int, requestID: String) throws {
             let ref = supplyRef.trimmingCharacters(in: .whitespacesAndNewlines)
             let text = terms.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard coupon.id.value > 0, quantity > 0, !ref.isEmpty, ref.count <= 128, !text.isEmpty, text.count <= 128,
-                  !ref.contains("\n"), !text.contains("\n"),
+            guard RewardPledgeRoutes.id(requestID), coupon.id.value > 0, quantity > 0, !ref.isEmpty, ref.count <= 128,
+                  !text.isEmpty, text.count <= 128, !ref.contains("\n"), !text.contains("\n"),
                   let startRaw = coupon.startTime, let endRaw = coupon.endTime,
                   let start = CouponValidityTime.parse(startRaw), let end = CouponValidityTime.parse(endRaw), end > start else {
                 throw RewardPledgeFailure.closed("validity")
@@ -335,6 +337,7 @@ public enum RewardPledgeRequests {
             let startMs = Int64((start.timeIntervalSince1970 * 1000).rounded())
             let endMs = Int64((end.timeIntervalSince1970 * 1000).rounded())
             guard startMs > 0, endMs > startMs else { throw RewardPledgeFailure.closed("validity") }
+            self.requestID = requestID
             couponID = coupon.id.value
             self.supplyRef = ref
             self.terms = text
@@ -346,6 +349,7 @@ public enum RewardPledgeRequests {
     public static func draft(_ supply: Supply, baseURL: URL, token: String) throws -> URLRequest {
         // ponytail: service window copies the coupon redeem window until a pledge must outlive the coupon
         return try jsonAny(RewardPledgeRoutes.drafts, [
+            "requestId": supply.requestID,
             "couponId": supply.couponID, "supplyRef": supply.supplyRef, "terms": supply.terms, "quantity": supply.quantity,
             "serviceStart": NSNumber(value: supply.windowStart), "serviceEnd": NSNumber(value: supply.windowEnd),
             "redeemStart": NSNumber(value: supply.windowStart), "redeemEnd": NSNumber(value: supply.windowEnd),
@@ -377,6 +381,9 @@ public enum RewardPledgeRequests {
     }
     public static func returnToPool(awardID: String, baseURL: URL, token: String) throws -> URLRequest {
         return try post("api/reward-pledge/awards/" + (try pathID(awardID)) + "/return-to-pool", baseURL, token)
+    }
+    public static func readCase(caseID: String, baseURL: URL, token: String) throws -> URLRequest {
+        return try get(RewardPledgeRoutes.cases + "/" + (try pathID(caseID)), baseURL, token)
     }
     public static func openCase(awardID: String, versionID: String, reason: String, baseURL: URL, token: String) throws -> URLRequest {
         let text = reason.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -918,6 +925,9 @@ public struct RewardPledgeClient {
     }
     public func openCase(awardID: String, versionID: String, reason: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.openCase(awardID: awardID, versionID: versionID, reason: reason, baseURL: configuration.baseURL, token: token), open: open, still: still)
+    }
+    public func readCase(caseID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+        try await send(try RewardPledgeRequests.readCase(caseID: caseID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
     public func stats(pledgeID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.stats(pledgeID: pledgeID, baseURL: configuration.baseURL, token: token), open: open, still: still)
