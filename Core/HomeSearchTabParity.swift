@@ -332,17 +332,27 @@ public enum HomeIndexParityPresentation {
         return upcomingCountdownText(start: start, now: now, locale: locale)
     }
 
+    /// Maximum allowed schedule horizon (7 days = 604_800s, at most ~1_586 ticks) so even `.infinity`, `.nan`,
+    /// or extreme caller values cannot allocate unbounded schedule arrays.
+    public static let maxAllowedScheduleHorizon: TimeInterval = 7 * 86_400
+
     /// Generates display-granularity boundary dates (hour boundaries when >24h, minute boundaries when <=24h)
-    /// from `date` up to `start` within a bounded horizon (default 7 days = 1_586 ticks max) so countdown labels
+    /// from `date` up to `start` within a bounded horizon (default & hard ceiling 7 days = 1_586 ticks max) so countdown labels
     /// advance without a 1 Hz timer, without premature 256-entry truncation, and without unbounded far-future arrays.
     public static func countdownScheduleDates(
         from date: Date,
         start: Date,
         base: [Date] = [],
-        maxScheduleHorizon: TimeInterval = 7 * 86_400
+        maxScheduleHorizon: TimeInterval = maxAllowedScheduleHorizon
     ) -> [Date] {
         guard start > date else { return base.isEmpty ? [date] : base }
-        let horizonLimit = min(start, date.addingTimeInterval(max(60, maxScheduleHorizon)))
+        let clampedHorizon: TimeInterval
+        if maxScheduleHorizon.isFinite && maxScheduleHorizon > 0 {
+            clampedHorizon = min(max(60, maxScheduleHorizon), maxAllowedScheduleHorizon)
+        } else {
+            clampedHorizon = maxAllowedScheduleHorizon
+        }
+        let horizonLimit = min(start, date.addingTimeInterval(clampedHorizon))
         var dates: [Date] = [date]
         var cursor = date
         while cursor < horizonLimit {

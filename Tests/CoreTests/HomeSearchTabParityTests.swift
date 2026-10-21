@@ -230,6 +230,27 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertLessThanOrEqual(boundedTicks.count, 1_600)
         XCTAssertEqual(boundedTicks.first, now)
         XCTAssertEqual(boundedTicks.last, now.addingTimeInterval(7 * 86_400))
+
+        // Counter-examples for extreme/non-finite maxScheduleHorizon inputs (.infinity, .nan, negative, 0, 365 days):
+        // All must be clamped to maxAllowedScheduleHorizon (7 days) without unbounded allocation:
+        let invalidHorizons: [TimeInterval] = [.infinity, -.infinity, .nan, -100, 0, 365 * 86_400]
+        for invalidHorizon in invalidHorizons {
+            let clampedTicks = HomeIndexParityPresentation.countdownScheduleDates(
+                from: now,
+                start: farFuture,
+                maxScheduleHorizon: invalidHorizon
+            )
+            XCTAssertLessThanOrEqual(clampedTicks.count, 1_600)
+            XCTAssertEqual(clampedTicks.first, now)
+            XCTAssertEqual(clampedTicks.last, now.addingTimeInterval(HomeIndexParityPresentation.maxAllowedScheduleHorizon))
+        }
+        // Small positive finite value < 60 is clamped to minimum 60s:
+        let minClampedTicks = HomeIndexParityPresentation.countdownScheduleDates(
+            from: now,
+            start: farFuture,
+            maxScheduleHorizon: 10
+        )
+        XCTAssertEqual(minClampedTicks, [now, now.addingTimeInterval(60)])
     }
 
     @MainActor
