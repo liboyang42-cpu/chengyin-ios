@@ -207,12 +207,44 @@ def start_pick(state):
 
 
 def host_left(state):
-    if state["phase"] == "idle":
+    state["host"] = False
+    state["token"] = None
+    if state.get("phase") == "idle":
         return
     state["task"] = "cancelled"
     state["generation"] += 1
     state["phase"] = "cancelled"
     state["report"] = None
+
+
+def fresh_picker():
+    return {"host": True, "token": None, "next": 0, "reads": 0, "phase": "idle", "task": None, "generation": 0, "report": None}
+
+
+def begin_presentation(state):
+    state["next"] += 1
+    state["token"] = state["next"]
+    state["phase"] = "choosing"
+    state["task"] = "cancelled"
+    return state["token"]
+
+
+def cancel_presentation(state):
+    state["token"] = None
+    state["phase"] = "cancelled"
+    state["task"] = "cancelled"
+
+
+def picker_cover_disappear(state):
+    """System picker presentation is not a real host removal."""
+    return state["host"], state["token"]
+
+
+def late_success(state, presented):
+    if not state["host"] or presented != state["token"]:
+        return
+    state["token"] = None
+    state["reads"] += 1
 
 
 def names(blob):
@@ -308,11 +340,17 @@ class QmodArchiveInspectionContracts(unittest.TestCase):
             action = window[window.rindex("Button(action:"):]
             self.assertLess(action.index("beginPicking()"), action.index("picking = true"))
         importer = self.app[self.app.index(".fileImporter"):self.app.index("private var packageTypes")]
-        self.assertIn("pickerCancelled()", importer)
+        self.assertIn("pickerCancelled(presentation: presentation)", importer)
         self.assertLess(importer.index(".success"), importer.index("importFile"))
-        leave = self.app[self.app.index(".onDisappear"):self.app.index(".onDisappear") + 120]
-        self.assertIn("picking", leave)
-        self.assertIn("hostLeft()", leave)
+        self.assertLess(importer.index("let presentation = pickerPresentation"), importer.index("importFile"))
+        self.assertNotIn(".onDisappear", self.app)
+        disappear = self.app[self.app.index("override func viewDidDisappear"):self.app.index("static func realHostRemoval")]
+        self.assertLess(disappear.index("realHostRemoval"), disappear.index("onRealLeave()"))
+        self.assertNotIn("picking", disappear)
+        left = self.app[self.app.index("func hostLeft"):self.app.index("private func begin")]
+        self.assertLess(left.index("hostActive = false"), left.index("session.phase"))
+        self.assertLess(left.index("pickerToken = nil"), left.index("session.phase"))
+        self.assertNotIn("picking", left)
         retired = self.core[self.core.index("func invalidateSelection"):self.core.index("public func packageForRecheck")]
         self.assertIn("generation &+= 1", retired)
         self.assertIn("phase = .choosing", retired)
@@ -343,6 +381,37 @@ class QmodArchiveInspectionContracts(unittest.TestCase):
         self.assertEqual(probe_room(8, 0, ceiling), 9)
         self.assertEqual(bounded_read("file", [b"abcdefghi"], 8), ("exceeded", 8))
         self.assertEqual(bounded_read("file", [b"abcd", b"0123456789"], INT64_MAX), ("unsafe", 0))
+
+    def test_late_picker_success_reads_nothing(self):
+        opened = self.app[self.app.index("func importFile"):self.app.index("func recheck")]
+        self.assertLess(opened.index("presentation == pickerToken"), opened.index("begin("))
+        self.assertLess(opened.index("hostActive"), opened.index("begin("))
+        self.assertLess(self.app.index("presentation == pickerToken"), self.app.index("deinit { task?.cancel() }"))
+        covered = fresh_picker()
+        token = begin_presentation(covered)
+        self.assertEqual(picker_cover_disappear(covered), (True, token))
+        late_success(covered, token)
+        self.assertEqual(covered["reads"], 1)
+
+        left = fresh_picker()
+        token = begin_presentation(left)
+        host_left(left)
+        late_success(left, token)
+        self.assertEqual(left["reads"], 0)
+
+        cancelled = fresh_picker()
+        token = begin_presentation(cancelled)
+        cancel_presentation(cancelled)
+        late_success(cancelled, token)
+        self.assertEqual(cancelled["reads"], 0)
+
+        first = fresh_picker()
+        old = begin_presentation(first)
+        new = begin_presentation(first)
+        late_success(first, old)
+        self.assertEqual(first["reads"], 0)
+        late_success(first, new)
+        self.assertEqual(first["reads"], 1)
 
     def test_fixtures_encode_the_acceptance_cases(self):
         self.assertTrue(FIXTURES.is_dir(), FIXTURES)

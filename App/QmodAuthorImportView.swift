@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 
 /// Local qmod import. The author picks a package, reads a local inspection
@@ -11,6 +12,10 @@ final class QmodAuthorImportModel: ObservableObject {
     /// Process read ceiling. Not `limits` and not a business rule.
     let readBudget: QmodLocalReadBudget
     private let work = QmodImportWork()
+    /// False only after the real screen leaves. Presenting the system picker does not clear it.
+    private var hostActive = true
+    /// Lease for the picker that is allowed to call back. Cleared on cancel, leave, or a consumed success.
+    private var pickerToken: UUID?
 
     init(limits: QmodLimitProfile = .reviewProposalV1, expansionGuard: QmodExpansionGuard = .localProcessStop, readBudget: QmodLocalReadBudget = .localProcessStop) {
         self.limits = limits
@@ -18,7 +23,9 @@ final class QmodAuthorImportModel: ObservableObject {
         self.readBudget = readBudget
     }
 
-    func importFile(at url: URL) {
+    func importFile(at url: URL, presentation: UUID?) {
+        guard let presentation, hostActive, presentation == pickerToken else { return }
+        pickerToken = nil
         let generation = begin(url.lastPathComponent)
         let limits = self.limits
         let expansionGuard = self.expansionGuard
@@ -51,6 +58,7 @@ final class QmodAuthorImportModel: ObservableObject {
     }
 
     func cancel() {
+        pickerToken = nil
         work.cancel()
         var next = session
         next.cancel()
@@ -58,19 +66,25 @@ final class QmodAuthorImportModel: ObservableObject {
     }
 
     /// Picker opened. The previous task is cancelled and its generation can no longer accept a result.
-    func beginPicking() {
+    func beginPicking() -> UUID {
         work.cancel()
         var next = session
         next.invalidateSelection()
         session = next
+        let token = UUID()
+        pickerToken = token
+        return token
     }
 
-    func pickerCancelled() {
+    func pickerCancelled(presentation: UUID?) {
+        guard let presentation, hostActive, presentation == pickerToken else { return }
         guard session.phase == .choosing else { return }
         cancel()
     }
 
     func hostLeft() {
+        hostActive = false
+        pickerToken = nil
         guard session.phase != .idle else { return }
         cancel()
     }
@@ -127,10 +141,41 @@ private enum QmodAuthorImportCheck {
     }
 }
 
+private struct QmodAuthorImportHostLifetime: UIViewControllerRepresentable {
+    var onRealLeave: () -> Void
+    func makeUIViewController(context: Context) -> QmodAuthorImportHostProbe {
+        let probe = QmodAuthorImportHostProbe()
+        probe.onRealLeave = onRealLeave
+        return probe
+    }
+    func updateUIViewController(_ probe: QmodAuthorImportHostProbe, context: Context) {
+        probe.onRealLeave = onRealLeave
+    }
+}
+
+private final class QmodAuthorImportHostProbe: UIViewController {
+    var onRealLeave: () -> Void = {}
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        guard Self.realHostRemoval(self) else { return }
+        onRealLeave()
+    }
+    /// A system file picker covers this screen without removing it from its parent.
+    static func realHostRemoval(_ controller: UIViewController) -> Bool {
+        var cursor: UIViewController? = controller
+        while let current = cursor {
+            if current.isMovingFromParent || current.isBeingDismissed { return true }
+            cursor = current.parent
+        }
+        return false
+    }
+}
+
 @MainActor
 struct QmodAuthorImportView: View {
     @StateObject private var model: QmodAuthorImportModel
     @State private var picking = false
+    @State private var pickerPresentation: UUID?
 
     init(limits: QmodLimitProfile = .reviewProposalV1, expansionGuard: QmodExpansionGuard = .localProcessStop, readBudget: QmodLocalReadBudget = .localProcessStop) {
         _model = StateObject(wrappedValue: QmodAuthorImportModel(limits: limits, expansionGuard: expansionGuard, readBudget: readBudget))
@@ -148,9 +193,9 @@ struct QmodAuthorImportView: View {
                 Text(verbatim: QmodLocalInspectionReport.fixedExecutionDenialText)
             }
             Section {
-                Button(action: { model.beginPicking(); picking = true }) { Text(verbatim: "选择包") }
+                Button(action: { pickerPresentation = model.beginPicking(); picking = true }) { Text(verbatim: "选择包") }
                     .accessibilityIdentifier("qmod.authorImport.pick")
-                Button(action: { model.beginPicking(); picking = true }) { Text(verbatim: "换包") }
+                Button(action: { pickerPresentation = model.beginPicking(); picking = true }) { Text(verbatim: "换包") }
                     .disabled(model.session.phase == .idle)
                     .accessibilityIdentifier("qmod.authorImport.replace")
                 Button(action: { model.recheck() }) { Text(verbatim: "复检") }
@@ -186,14 +231,13 @@ struct QmodAuthorImportView: View {
         .accessibilityIdentifier("qmod.authorImport.root")
         .privacySensitive()
         .fileImporter(isPresented: $picking, allowedContentTypes: packageTypes) { result in
+            let presentation = pickerPresentation
             switch result {
-            case .success(let url): model.importFile(at: url)
-            case .failure: model.pickerCancelled()
+            case .success(let url): model.importFile(at: url, presentation: presentation)
+            case .failure: model.pickerCancelled(presentation: presentation)
             }
         }
-        .onDisappear {
-            if !picking { model.hostLeft() }
-        }
+        .background(QmodAuthorImportHostLifetime(onRealLeave: { model.hostLeft() }))
     }
 
     private var packageTypes: [UTType] {
