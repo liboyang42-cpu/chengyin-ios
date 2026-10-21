@@ -5,7 +5,9 @@ import SwiftUI
     var onSignIn:(()->Void)? = nil
     @State private var path:[HomeFeedDestination]=[]
     @State private var activeContinuationScope:PlaySessionScope?=nil
+    @State private var continuationCoordinator = HomeContinuationCoordinator()
     @State private var continuationCards:[HomeIndexParityPresentation.ContinuationCard]=[]
+    @State private var continuationReadAvailability:HomeContinuationReadAvailability = .unauthenticated
     @State private var showsGlobalSearch=false
     @State private var showsTemplates=false
     @State private var showsSquare=false
@@ -143,7 +145,9 @@ import SwiftUI
     private func resetForHomeScopeChange() {
         path=[]
         activeContinuationScope=nil
+        continuationCoordinator.reset()
         continuationCards=[]
+        continuationReadAvailability = .unauthenticated
         showsGlobalSearch=false
         showsTemplates=false
         showsSquare=false
@@ -154,7 +158,9 @@ import SwiftUI
     }
     private func resetForSessionRevisionChange() {
         activeContinuationScope=nil
+        continuationCoordinator.reset()
         continuationCards=[]
+        continuationReadAvailability = .unauthenticated
         showsProjectEditor=false
         showsClubApplication=false
         showsMerchantApplication=false
@@ -170,45 +176,36 @@ import SwiftUI
         }
     }
     private func handleContinuation(_ card: HomeIndexParityPresentation.ContinuationCard) {
-        let scope = card.playScope
-        if session.playExperience(for: scope) != nil {
-            activeContinuationScope = scope
-        } else {
-            path.append(card.destination)
+        Task {
+            let decision = await continuationCoordinator.verifyNavigation(
+                for: card,
+                currentOwnerScope: { session.currentHomeContinuationOwnerScope },
+                canEnterRuntime: { session.playExperience(for: $0) != nil },
+                hasDurableOrLivePause: { await session.hasResumablePlayState(for: $0) }
+            )
+            continuationCards = continuationCoordinator.cards
+            continuationReadAvailability = continuationCoordinator.readAvailability
+            switch decision {
+            case .enterRuntime(let scope):
+                activeContinuationScope = scope
+            case .openDetail(let destination):
+                path.append(destination)
+            case .staleRejected:
+                await reloadContinuationCards()
+            }
         }
     }
     private func reloadContinuationCards() async {
         let reader = session.playerJourneyReader
-        let capturedScope = reader.scope
-        let capturedRevision = session.sessionRevision
-        guard reader.isConfigured, reader.isAuthenticated, session.account != nil else {
-            continuationCards = []
-            return
-        }
-        do {
-            let records = try await reader.participations()
-            guard reader.scope == capturedScope,
-                  session.sessionRevision == capturedRevision,
-                  reader.isAuthenticated,
-                  session.account != nil else {
-                continuationCards = []
-                return
-            }
-            var pausedRuns: [PlayContinueRun] = []
-            for record in records {
-                guard let scope = record.destination,
-                      let experience = session.playExperience(for: scope),
-                      experience.clock.phase == .paused || experience.clock.phase == .running else { continue }
-                pausedRuns.append(PlayContinueRun(scope: scope, elapsedSeconds: experience.clock.elapsedSeconds, title: record.name))
-            }
-            continuationCards = HomeIndexParityPresentation.continuationCards(
-                pausedRuns: pausedRuns,
-                participations: records
-            )
-        } catch {
-            if reader.scope == capturedScope {
-                continuationCards = []
-            }
-        }
+        let cards = await continuationCoordinator.reload(
+            ownerScope: session.currentHomeContinuationOwnerScope,
+            isAuthenticated: session.isSignedIn && session.account != nil && reader.isAuthenticated,
+            isJourneyReadConfigured: reader.isConfigured,
+            currentOwnerScope: { session.currentHomeContinuationOwnerScope },
+            loadParticipations: { try await reader.participations() },
+            loadPausedRuns: { records in await session.loadPausedContinueRuns(participations: records) }
+        )
+        continuationCards = cards
+        continuationReadAvailability = continuationCoordinator.readAvailability
     }
 }

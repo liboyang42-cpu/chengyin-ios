@@ -131,6 +131,167 @@ import SwiftUI
         XCTAssertEqual(FreeExplorationVisitSteps.formatStat(.nan), "—")
         XCTAssertEqual(FreeExplorationVisitSteps.formatStat(.infinity), "—")
     }
+    func testAppSessionDurablePausedRunRecoveryAcrossRestartAndReturnRefresh() async throws {
+        @MainActor final class MemoryVault: AppTokenStorage {
+            var token: String?
+            func read() throws -> String? { token }
+            func write(_ token: String) throws { self.token = token }
+            func clear() throws { token = nil }
+        }
+        final class ContinuationAuthWire: HTTPTransport {
+            func send(_ request: URLRequest) async throws -> (Data, Int) {
+                switch request.url?.lastPathComponent {
+                case "phone":
+                    return (Data(#"{"code":200,"token":"synthetic-7","data":{"id":7}}"#.utf8), 200)
+                case "userInfo":
+                    return (Data(#"{"code":200,"appUser":{"id":7,"role":"player"}}"#.utf8), 200)
+                default:
+                    throw APIError.invalidRequest
+                }
+            }
+        }
+        let base = URL(string: "https://continuation.example/native")!
+        let deployment = try ReviewedAppDeployment(
+            market: .china,
+            baseURL: base.absoluteString,
+            approvedBaseURLs: [.china: [base.absoluteString]],
+            verifiedCapabilities: [.domesticChinaPhone],
+            bundleIdentifier: "test.questify.continuation",
+            realm: "synthetic",
+            reads: [.playNodesAndRouteState]
+        )
+        let endpoints = try OperationEndpointApproval(
+            baseURL: base,
+            namespace: deployment.storageScope.service,
+            accountID: 7,
+            paths: ["api/play/nodes", "api/play/route-state"]
+        )
+        let issuance = UUID()
+        let suite = "continuation-test-" + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+
+        let anchors = ContinuationAnchors()
+        let ciphertexts = ContinuationCiphertexts()
+        let construction = PlayRecoveryConstruction.synthetic(anchors: anchors, ciphertexts: ciphertexts)
+        let vault = MemoryVault()
+        let wire = ContinuationAuthWire()
+
+        func makeSession() -> AppSession {
+            let root = AppCompositionRoot(
+                deployment: .reviewed(deployment),
+                storage: .init(defaults: defaults, tokenStore: { _ in vault }, playRecovery: construction),
+                makeTransport: { wire },
+                sessionDependencies: { _ in
+                    .init(configuration: .init(market: .china, endpoints: endpoints, play: [.reads], playReadApprovalID: issuance))
+                }
+            )
+            return AppSession(composition: root)
+        }
+
+        // Process 1: Sign in, register scope .activity(41), and write a durable paused snapshot to PlayDurableRecovery.
+        let session1 = makeSession()
+        await session1.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
+        XCTAssertEqual(session1.account?.id, 7)
+        // PlayerJourneyService default readsEnabled == false stays unchanged:
+        XCTAssertFalse(session1.playerJourneyReader.isConfigured)
+
+        session1.registerPlayContinuationScope(.activity(41), title: "外滩暗影")
+        let playSession1 = try PlayExperienceSession(
+            accountID: 7,
+            epoch: 1,
+            namespace: deployment.storageScope.service,
+            token: "synthetic-7",
+            role: "player"
+        )
+        let recovery1 = try construction.make(
+            session: playSession1,
+            scope: .activity(41),
+            regionalConfiguration: deployment.regional,
+            storageScope: deployment.storageScope
+        )
+        let storageKey = PlayRunStorageKey.make(session: playSession1, scope: .activity(41))
+        let initialPaused = try await recovery1.read(key: storageKey)
+        let pausedSnapshot = try PlayPausedSnapshot(
+            owner: .init(session: playSession1),
+            record: try PlayPausedRecord(elapsedSeconds: 540, savedAt: 1_700_000_100)
+        )
+        _ = try await recovery1.write(pausedSnapshot, replacing: initialPaused, key: storageKey)
+
+        // Process 2 (simulated app restart): New AppSession with no in-memory PlayExperienceCoordinator loaded yet.
+        let session2 = makeSession()
+        await session2.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
+        XCTAssertEqual(session2.account?.id, 7)
+        XCTAssertFalse(session2.playerJourneyReader.isConfigured)
+
+        let coordinator = HomeContinuationCoordinator()
+        let recoveredCards = await coordinator.reload(
+            ownerScope: session2.currentHomeContinuationOwnerScope,
+            isAuthenticated: session2.isSignedIn,
+            isJourneyReadConfigured: session2.playerJourneyReader.isConfigured,
+            currentOwnerScope: { session2.currentHomeContinuationOwnerScope },
+            loadParticipations: { try await session2.playerJourneyReader.participations() },
+            loadPausedRuns: { records in await session2.loadPausedContinueRuns(participations: records) }
+        )
+        XCTAssertEqual(coordinator.readAvailability, .journeyReadNotApproved)
+        XCTAssertEqual(recoveredCards.count, 1)
+        XCTAssertEqual(recoveredCards.first?.playScope, .activity(41))
+        XCTAssertEqual(recoveredCards.first?.title, "外滩暗影")
+        XCTAssertEqual(recoveredCards.first?.subtitle, "已进行 9 分钟")
+
+        // Pre-tap verification enters runtime (.activity(41)) when durable pause and playExperience are valid:
+        let card41 = try XCTUnwrap(recoveredCards.first)
+        let navDecision = await coordinator.verifyNavigation(
+            for: card41,
+            currentOwnerScope: { session2.currentHomeContinuationOwnerScope },
+            canEnterRuntime: { session2.playExperience(for: $0) != nil },
+            hasDurableOrLivePause: { await session2.hasResumablePlayState(for: $0) }
+        )
+        XCTAssertEqual(navDecision, .enterRuntime(.activity(41)))
+
+        // Simulate completing/ending the run inside runtime (tombstoning the durable paused record) and returning to Home:
+        let currentPaused = try await recovery1.read(key: storageKey)
+        let endedSnapshot = try PlayPausedSnapshot(
+            owner: .init(session: playSession1),
+            record: nil,
+            tombstone: 1_700_000_200
+        )
+        _ = try await recovery1.write(endedSnapshot, replacing: currentPaused, key: storageKey)
+
+        let refreshedCards = await coordinator.reload(
+            ownerScope: session2.currentHomeContinuationOwnerScope,
+            isAuthenticated: session2.isSignedIn,
+            isJourneyReadConfigured: session2.playerJourneyReader.isConfigured,
+            currentOwnerScope: { session2.currentHomeContinuationOwnerScope },
+            loadParticipations: { try await session2.playerJourneyReader.participations() },
+            loadPausedRuns: { records in await session2.loadPausedContinueRuns(participations: records) }
+        )
+        XCTAssertTrue(refreshedCards.isEmpty)
+    }
+}
+
+private actor ContinuationAnchors: ContentDraftAnchorStore {
+    private var values: [String: ContentDraftAnchorItem] = [:]
+    func read(slot: String) throws -> ContentDraftAnchorItem? { values[slot] }
+    func insert(slot: String, item: ContentDraftAnchorItem) throws -> Bool {
+        guard values[slot] == nil else { return false }; values[slot] = item; return true
+    }
+    func exchange(slot: String, matchingTag: Data, item: ContentDraftAnchorItem) throws -> Bool {
+        guard values[slot]?.tag == matchingTag else { return false }; values[slot] = item; return true
+    }
+}
+private actor ContinuationCiphertexts: ContentDraftCiphertextStore {
+    private var values: [String: Data] = [:]
+    private var presence: Set<String> = []
+    func createPresence(slot: String) -> Bool { presence.insert(slot).inserted }
+    func hasPresence(slot: String) -> Bool { presence.contains(slot) }
+    func insert(name: String, bytes: Data) throws {
+        guard values[name] == nil else { throw ContentDraftIssue.storageUnavailable }; values[name] = bytes
+    }
+    func readDurably(name: String, limit: Int) throws -> Data {
+        guard let value = values[name], value.count <= limit else { throw ContentDraftIssue.storageUnavailable }; return value
+    }
+    func removeDurably(name: String) { values[name] = nil }
 }
 
 @MainActor private final class ValidationStore: ProfileReading, ParticipantWriting {

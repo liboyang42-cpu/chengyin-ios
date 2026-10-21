@@ -333,7 +333,7 @@ public enum HomeIndexParityPresentation {
     }
 
     /// Generates display-granularity boundary dates (hour boundaries when >24h, minute boundaries when <=24h)
-    /// from `date` up to `start` so countdown labels advance without a 1 Hz timer.
+    /// from `date` up to `start` so countdown labels advance without a 1 Hz timer and without artificial truncation.
     public static func countdownScheduleDates(
         from date: Date,
         start: Date,
@@ -342,8 +342,7 @@ public enum HomeIndexParityPresentation {
         guard start > date else { return base.isEmpty ? [date] : base }
         var dates: [Date] = [date]
         var cursor = date
-        let maxEntries = 256
-        while cursor < start && dates.count < maxEntries - 1 {
+        while cursor < start {
             let remaining = start.timeIntervalSince(cursor)
             guard remaining > 0 else { break }
             let step: TimeInterval = remaining > 86_400 ? 3_600 : 60
@@ -858,8 +857,220 @@ public enum PublishTabFloatingSheetParity {
             actions: [
                 ActionDescriptor(kind: .quickTopic, isEnabled: quickEnabled, disabledReason: quickReason),
                 ActionDescriptor(kind: .proTopic, isEnabled: proEnabled, disabledReason: proReason),
-                ActionDescriptor(kind: .singleActivity, isEnabled: activityEnabled, disabledReason: activityReason)
+                ActionDescriptor(kind: .singleActivity, isEnabled: activityEnabled, disabledReason: activityEnabled ? nil : clubOnlyActivityReason)
             ]
         )
+    }
+}
+
+// MARK: - Home Continuation Coordinator (P1 End-to-End Business Flow)
+
+/// Account + session-revision + journey-scope identity binding for Home continuation cards.
+public struct HomeContinuationOwnerScope: Equatable, Hashable, Sendable {
+    public let accountID: Int
+    public let sessionRevision: UInt64
+    public let journeyScope: UUID
+
+    public init(accountID: Int, sessionRevision: UInt64, journeyScope: UUID) {
+        self.accountID = accountID
+        self.sessionRevision = sessionRevision
+        self.journeyScope = journeyScope
+    }
+}
+
+/// Explicit read-availability state for Home continuation cards.
+/// Keeps `PlayerJourneyService` default `readsEnabled = false` fail-closed while surfacing the approval gap.
+public enum HomeContinuationReadAvailability: String, Equatable, Sendable {
+    case available
+    case journeyReadNotApproved
+    case unauthenticated
+    case failed
+
+    public var messageKey: String? {
+        switch self {
+        case .available:
+            return nil
+        case .journeyReadNotApproved:
+            return "homeContinuation.journeyReadNotApproved"
+        case .unauthenticated:
+            return "homeContinuation.signInRequired"
+        case .failed:
+            return "homeContinuation.loadFailed"
+        }
+    }
+}
+
+/// Result of pre-tap re-verification before entering a continuation card's runtime or detail destination.
+public enum HomeContinuationNavigationDecision: Equatable {
+    case enterRuntime(PlaySessionScope)
+    case openDetail(HomeFeedDestination)
+    case staleRejected
+}
+
+/// Coordinates Home continuation cards (`玩家“退出后继续玩”完整组`) with:
+/// - `(accountID, sessionRevision, journeyScope)` binding,
+/// - monotonic `generation` isolation across concurrent reloads and per-scope refreshes,
+/// - explicit `journeyReadNotApproved` reporting when remote `PlayerJourneyService` reads remain default-off (`readsEnabled == false`),
+/// - durable post-restart paused-run recovery and pre-tap re-verification before navigation.
+@MainActor
+public final class HomeContinuationCoordinator {
+    public private(set) var ownerScope: HomeContinuationOwnerScope?
+    public private(set) var cards: [HomeIndexParityPresentation.ContinuationCard] = []
+    public private(set) var readAvailability: HomeContinuationReadAvailability = .unauthenticated
+    public private(set) var activeGeneration: UInt64 = 0
+    private var scopeGenerations: [PlaySessionScope: UInt64] = [:]
+
+    public init() {}
+
+    public func generation(for scope: PlaySessionScope) -> UInt64 {
+        scopeGenerations[scope] ?? 0
+    }
+
+    /// Resets all continuation cards and advances the monotonic generation so any in-flight work is discarded.
+    public func reset(readAvailability: HomeContinuationReadAvailability = .unauthenticated) {
+        activeGeneration &+= 1
+        ownerScope = nil
+        cards = []
+        self.readAvailability = readAvailability
+        scopeGenerations.removeAll()
+    }
+
+    /// Reloads continuation cards for `ownerScope` with monotonic generation isolation.
+    /// Older completions, failures, or cancellations never overwrite newer state.
+    @discardableResult
+    public func reload(
+        ownerScope: HomeContinuationOwnerScope?,
+        isAuthenticated: Bool,
+        isJourneyReadConfigured: Bool,
+        locale: Locale = Locale(identifier: "zh-Hans"),
+        currentOwnerScope: () -> HomeContinuationOwnerScope?,
+        loadParticipations: () async throws -> [ParticipationRecord],
+        loadPausedRuns: ([ParticipationRecord]) async -> [PlayContinueRun]
+    ) async -> [HomeIndexParityPresentation.ContinuationCard] {
+        activeGeneration &+= 1
+        let generation = activeGeneration
+
+        guard isAuthenticated, let ownerScope, ownerScope.accountID > 0 else {
+            if generation == activeGeneration {
+                self.ownerScope = nil
+                self.cards = []
+                self.readAvailability = .unauthenticated
+                self.scopeGenerations.removeAll()
+            }
+            return []
+        }
+
+        if self.ownerScope != ownerScope {
+            self.ownerScope = ownerScope
+            self.cards = []
+            self.scopeGenerations.removeAll()
+        }
+
+        var remoteRecords: [ParticipationRecord] = []
+        let resolvedAvailability: HomeContinuationReadAvailability
+
+        if isJourneyReadConfigured {
+            do {
+                let fetched = try await loadParticipations()
+                try Task.checkCancellation()
+                guard generation == activeGeneration, currentOwnerScope() == ownerScope else {
+                    return self.cards
+                }
+                remoteRecords = fetched
+                resolvedAvailability = .available
+            } catch is CancellationError {
+                return self.cards
+            } catch {
+                guard generation == activeGeneration, currentOwnerScope() == ownerScope else {
+                    return self.cards
+                }
+                remoteRecords = []
+                resolvedAvailability = .failed
+            }
+        } else {
+            // Remote PlayerJourneyService reads remain default-off (`readsEnabled == false`);
+            // expose the approval gap explicitly while still recovering local durable paused runs.
+            resolvedAvailability = .journeyReadNotApproved
+        }
+
+        let pausedRuns = await loadPausedRuns(remoteRecords)
+        guard !Task.isCancelled,
+              generation == activeGeneration,
+              currentOwnerScope() == ownerScope else {
+            return self.cards
+        }
+
+        for run in pausedRuns {
+            let previous = scopeGenerations[run.scope] ?? 0
+            if generation >= previous {
+                scopeGenerations[run.scope] = generation
+            }
+        }
+        for record in remoteRecords {
+            if let scope = record.destination {
+                let previous = scopeGenerations[scope] ?? 0
+                if generation >= previous {
+                    scopeGenerations[scope] = generation
+                }
+            }
+        }
+
+        let nextCards = HomeIndexParityPresentation.continuationCards(
+            pausedRuns: pausedRuns,
+            participations: remoteRecords,
+            locale: locale
+        )
+        self.ownerScope = ownerScope
+        self.cards = nextCards
+        self.readAvailability = resolvedAvailability
+        return nextCards
+    }
+
+    /// Re-verifies owner scope, card freshness, and runtime/durable eligibility right before navigating on tap.
+    public func verifyNavigation(
+        for card: HomeIndexParityPresentation.ContinuationCard,
+        currentOwnerScope: () -> HomeContinuationOwnerScope?,
+        canEnterRuntime: (PlaySessionScope) -> Bool,
+        hasDurableOrLivePause: (PlaySessionScope) async -> Bool
+    ) async -> HomeContinuationNavigationDecision {
+        let capturedGeneration = activeGeneration
+        guard let expectedScope = ownerScope,
+              currentOwnerScope() == expectedScope,
+              cards.contains(card) else {
+            if currentOwnerScope() != ownerScope {
+                reset()
+            }
+            return .staleRejected
+        }
+
+        let playScope = card.playScope
+        scopeGenerations[playScope] = (scopeGenerations[playScope] ?? capturedGeneration) &+ 1
+        let scopeGen = scopeGenerations[playScope]
+
+        let hasPause = await hasDurableOrLivePause(playScope)
+        guard !Task.isCancelled,
+              currentOwnerScope() == expectedScope,
+              ownerScope == expectedScope,
+              scopeGenerations[playScope] == scopeGen,
+              cards.contains(card) else {
+            if currentOwnerScope() != ownerScope {
+                reset()
+            }
+            return .staleRejected
+        }
+
+        switch card.kind {
+        case .continueGame:
+            guard hasPause, canEnterRuntime(playScope) else {
+                cards.removeAll { $0.id == card.id }
+                return .staleRejected
+            }
+            return .enterRuntime(playScope)
+        case .continueExploration:
+            if hasPause && canEnterRuntime(playScope) {
+                return .enterRuntime(playScope)
+            }
+            return .openDetail(card.destination)
+        }
     }
 }

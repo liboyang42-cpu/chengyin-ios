@@ -210,4 +210,125 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertEqual(exhaustedSheet.actions[0].disabledReason, "主题发布额度已用完")
         XCTAssertEqual(exhaustedSheet.actions[2].disabledReason, "仅认证俱乐部主理人可发布单场活动")
     }
+
+    func testCountdownScheduleDatesContinuesPast256EntriesUntilStart() {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        // 26 hours ahead => 2 hourly boundaries (>24h) + 1440 minute boundaries (<=24h) + start (> 1440 ticks, well above 256).
+        let start = now.addingTimeInterval(26 * 3_600 + 30)
+        let ticks = HomeIndexParityPresentation.countdownScheduleDates(from: now, start: start)
+        XCTAssertGreaterThan(ticks.count, 1_400)
+        XCTAssertEqual(ticks.first, now)
+        XCTAssertEqual(ticks.last, start)
+        // Penultimate tick is exactly 1 minute before start:
+        XCTAssertEqual(ticks[ticks.count - 2], start.addingTimeInterval(-60))
+        XCTAssertEqual(HomeIndexParityPresentation.upcomingCountdownText(start: start, now: ticks[ticks.count - 2]), "距上线 1分钟")
+        XCTAssertNil(HomeIndexParityPresentation.upcomingCountdownText(start: start, now: ticks[ticks.count - 1]))
+    }
+
+    @MainActor
+    func testHomeContinuationCoordinatorScopeBindingGenerationIsolationAndPreTapVerification() async throws {
+        let coordinator = HomeContinuationCoordinator()
+        let scopeA = HomeContinuationOwnerScope(accountID: 701, sessionRevision: 1, journeyScope: UUID())
+        var liveOwner: HomeContinuationOwnerScope? = scopeA
+
+        // 1. Default PlayerJourneyService readsEnabled == false (isJourneyReadConfigured == false):
+        // Remote participation reads are never called, readAvailability reports .journeyReadNotApproved,
+        // and local durable paused runs still recover across restarts.
+        var remoteCallCount = 0
+        let durableCards = await coordinator.reload(
+            ownerScope: scopeA,
+            isAuthenticated: true,
+            isJourneyReadConfigured: false,
+            currentOwnerScope: { liveOwner },
+            loadParticipations: {
+                remoteCallCount += 1
+                return []
+            },
+            loadPausedRuns: { _ in
+                [PlayContinueRun(scope: .activity(12), elapsedSeconds: 360, title: "外滩迷雾")]
+            }
+        )
+        XCTAssertEqual(remoteCallCount, 0)
+        XCTAssertEqual(coordinator.readAvailability, .journeyReadNotApproved)
+        XCTAssertEqual(durableCards.count, 1)
+        XCTAssertEqual(durableCards.first?.playScope, .activity(12))
+        XCTAssertEqual(durableCards.first?.subtitle, "已进行 6 分钟")
+
+        // 2. Monotonic generation isolation: an older reload's completion or cancellation cannot overwrite a newer reload.
+        var releaseStaleReload: CheckedContinuation<[ParticipationRecord], Error>?
+        let staleTask = Task { @MainActor in
+            await coordinator.reload(
+                ownerScope: scopeA,
+                isAuthenticated: true,
+                isJourneyReadConfigured: true,
+                currentOwnerScope: { liveOwner },
+                loadParticipations: {
+                    try await withCheckedThrowingContinuation { cont in
+                        releaseStaleReload = cont
+                    }
+                },
+                loadPausedRuns: { _ in
+                    [PlayContinueRun(scope: .activity(99), elapsedSeconds: 60, title: "旧数据")]
+                }
+            )
+        }
+        await Task.yield()
+
+        let joinedRecord = try JSONDecoder().decode(
+            ParticipationRecord.self,
+            from: Data(#"{"id":88,"ownerType":1,"activityTitle":"愚园路漫步","cmsTopic":{"id":91,"address":"静安寺"}}"#.utf8)
+        )
+        let freshCards = await coordinator.reload(
+            ownerScope: scopeA,
+            isAuthenticated: true,
+            isJourneyReadConfigured: true,
+            currentOwnerScope: { liveOwner },
+            loadParticipations: { [joinedRecord] },
+            loadPausedRuns: { _ in
+                [PlayContinueRun(scope: .activity(12), elapsedSeconds: 480, title: "外滩迷雾")]
+            }
+        )
+        XCTAssertEqual(coordinator.readAvailability, .available)
+        XCTAssertEqual(freshCards.map(\.playScope), [.activity(12), .topic(91)])
+        XCTAssertEqual(freshCards.first?.subtitle, "已进行 8 分钟")
+
+        // Let the older reload complete now; it must be ignored because its generation was superseded:
+        releaseStaleReload?.resume(returning: [])
+        _ = await staleTask.value
+        XCTAssertEqual(coordinator.cards.map(\.playScope), [.activity(12), .topic(91)])
+        XCTAssertEqual(coordinator.cards.first?.subtitle, "已进行 8 分钟")
+
+        // 3. Pre-tap re-verification succeeds when pause & runtime are valid, then rejects when pause is cleared on return:
+        let card12 = try XCTUnwrap(coordinator.cards.first)
+        let decision1 = await coordinator.verifyNavigation(
+            for: card12,
+            currentOwnerScope: { liveOwner },
+            canEnterRuntime: { $0 == .activity(12) },
+            hasDurableOrLivePause: { $0 == .activity(12) }
+        )
+        XCTAssertEqual(decision1, .enterRuntime(.activity(12)))
+
+        // If the paused run was ended/cleared before tap, pre-tap re-verification rejects and removes the stale card:
+        let decision2 = await coordinator.verifyNavigation(
+            for: card12,
+            currentOwnerScope: { liveOwner },
+            canEnterRuntime: { $0 == .activity(12) },
+            hasDurableOrLivePause: { _ in false }
+        )
+        XCTAssertEqual(decision2, .staleRejected)
+        XCTAssertEqual(coordinator.cards.map(\.playScope), [.topic(91)])
+
+        // 4. Account / revision switch invalidates continuation state on pre-tap verification:
+        let card91 = try XCTUnwrap(coordinator.cards.first)
+        liveOwner = HomeContinuationOwnerScope(accountID: 702, sessionRevision: 2, journeyScope: UUID())
+        let decision3 = await coordinator.verifyNavigation(
+            for: card91,
+            currentOwnerScope: { liveOwner },
+            canEnterRuntime: { _ in true },
+            hasDurableOrLivePause: { _ in true }
+        )
+        XCTAssertEqual(decision3, .staleRejected)
+        XCTAssertTrue(coordinator.cards.isEmpty)
+        XCTAssertNil(coordinator.ownerScope)
+    }
 }
