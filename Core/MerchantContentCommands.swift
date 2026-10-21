@@ -7,7 +7,7 @@ public enum MerchantContentCommand: Codable, Equatable {
     case register(topicID: Int, nodeID: Int, draft: MerchantRegistrationContentDraft, cooperateDate: String)
     case updateRegistration(id: Int, topicID: Int, draft: MerchantRegistrationContentDraft)
     case cancelRegistration(id: Int)
-    case invite(chapterID: Int, merchantMemberID: Int)
+    case invite(chapterID: Int, merchantMemberID: Int, replacementOfOfferID: Int, scope: String?, message: String?)
     case respondChapterInvitation(applicationID: Int, accepted: Bool, chapterID: Int, topicID: Int)
     case auditApplication(id: Int, approve: Bool, reason: String)
     case submitNode(chapterID: Int, draft: MerchantChapterContentDraft)
@@ -30,7 +30,10 @@ public enum MerchantContentCommand: Codable, Equatable {
     public var scopeKey: String {
         switch self {
         case .reviewCircle(let id, _): return "topic:\(id)"
-        case .apply(let id, _), .submitNode(let id, _), .invite(let id, _): return "chapter:\(id)"
+        case .apply(let id, _), .submitNode(let id, _): return "chapter:\(id)"
+        // Five-field invite tuple identity; message content itself is never persisted in a lock key.
+        case .invite(let chapter, let member, let replacement, let scope, let message):
+            return "invite:\(chapter):\(member):\(replacement):\(scope ?? "SELF"):\((message?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true) ? 0 : 1)"
         case .withdraw(let id), .auditApplication(let id, _, _): return "application:\(id)"
         case .respondChapterInvitation(let id, let accepted, let chapter, let topic): return "chapter-invitation:\(id):\(chapter):\(topic):\(accepted ? 1 : 0)"
         case .register(let id, _, _, _): return "registration-topic:\(id)"
@@ -71,9 +74,13 @@ public enum MerchantContentCommand: Codable, Equatable {
             try positive(id); try positive(topic); var f = try draft.fieldsIncludingAvailability(); f["id"] = .integer(id); f["topicId"] = .integer(topic)
             return json("api/registration/merchant/update", f)
         case .cancelRegistration(let id): try positive(id); return form("api/registration/merchant/cancel", ["id": String(id)])
-        case .invite(let chapter, let member):
-            try positive(chapter); try positive(member)
-            return json("api/merchant/chapter-application/invite", ["chapterId": .integer(chapter), "merchantMemberId": .integer(member)])
+        case .invite(let chapter, let member, let replacement, let scope, let message):
+            try positive(chapter); try positive(member); try positive(replacement)
+            guard scope == nil || scope == "MERCHANT" else { throw MerchantContentFailure.invalid }
+            var fields: [String: MerchantContentValue] = ["chapterId": .integer(chapter), "merchantMemberId": .integer(member), "replacementOfOfferId": .integer(replacement)]
+            if let scope { fields["scope"] = .string(scope) }
+            if let message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { fields["message"] = .string(message.trimmingCharacters(in: .whitespacesAndNewlines)) }
+            return json("api/merchant/chapter-application/invite", fields)
         case .respondChapterInvitation(let id, let accepted, let chapter, let topic):
             try positive(id); try positive(chapter); try positive(topic)
             return json("api/merchant/chapter-application/invite/respond", ["applicationId": .integer(id), "accepted": .bool(accepted)])
@@ -123,10 +130,12 @@ public enum MerchantContentCommand: Codable, Equatable {
             try need(snapshot.query == .registration(id: id) && snapshot.value["id"].integer == id)
             // An absent award state is unknown, not proof that cancellation is allowed.
             try need([0, 1, 2].contains(snapshot.value["status"].integer ?? -1) && snapshot.value["auditStatus"].integer.map { $0 != 1 } == true)
-        case .invite(let chapter, let member):
+        case .invite(let chapter, let member, let replacement, _, _):
             guard case .invitable = snapshot.query else { throw MerchantContentFailure.invalid }
-            // The wrapper has no chapter/merchant ownership join; never derive memberId from merchantId.
-            try need(snapshot.rows.contains { $0["chapterId"].integer == chapter && $0["memberId"].integer == member })
+            // Exact candidate tuple only; memberId is never derived from merchantId.
+            try need(snapshot.rows.contains {
+                ChapterReplacementInvitationVacancy.memberID(in: $0) == member && $0["chapterId"].integer == chapter && $0["replacementOfOfferId"].integer == replacement
+            })
         case .respondChapterInvitation(let id, _, let chapter, let topic):
             try need(snapshot.query == .chapterInvitations)
             try need(MerchantChapterInvitation.accessAllows(snapshot.access))

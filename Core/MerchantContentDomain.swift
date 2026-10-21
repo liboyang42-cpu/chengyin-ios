@@ -169,6 +169,7 @@ public struct MerchantCityPlacementDraft: Codable, Equatable {
 public struct MerchantContentSupplyContext: Equatable {
     public let applicationID: Int, chapterID: Int
     public let termsMode: String?, offerID: Int?, circleThemeCode: String?
+    public let offerStateRaw: String?, offerWithdrawReason: String?
     public let offerActive: Bool, offerStateKnown: Bool, canEnroll: Bool, canReconfirmOrPause: Bool
     public init(application: MerchantContentValue, recruitmentChapters: [MerchantContentValue]) throws {
         guard let id = application["id"].integer, id > 0, let chapter = application["chapterId"].integer, chapter > 0 else { throw MerchantContentFailure.invalid }
@@ -177,6 +178,8 @@ public struct MerchantContentSupplyContext: Equatable {
         let term = matches.count == 1 ? matches[0]["recruitStatus"]["termsMode"].text : nil
         termsMode = ["TRAFFIC", "PERK", "REVSHARE"].contains(term ?? "") ? term : nil
         offerID = application["offerId"].integer.flatMap { $0 > 0 ? $0 : nil }
+        offerStateRaw = application["offerState"].text?.trimmingCharacters(in: .whitespacesAndNewlines).flatMap { $0.isEmpty ? nil : $0 }
+        offerWithdrawReason = application["offerWithdrawReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines).flatMap { $0.isEmpty ? nil : $0 }
         circleThemeCode = application["circleThemeCode"].text
         offerActive = application["offerActive"].flag == true || application["offerActive"].integer == 1
         offerStateKnown = application["offerActive"].flag != nil || [0, 1].contains(application["offerActive"].integer ?? -1)

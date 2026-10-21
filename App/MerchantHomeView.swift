@@ -151,6 +151,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     NavigationLink { MerchantContentHomeView(service: contentService)
                         .environment(\.merchantContentSupplyDestination, cooperationFlowReader.map { flowReader in
                             { source in AnyView(MerchantCooperationSupplyView(source: source, reader: flowReader)) }
+                        })
+                        .environment(\.merchantOfferWithdrawalDestination, cooperationFlowReader.map { flowReader in
+                            { source in AnyView(MerchantOfferWithdrawalHostView(source: source, reader: flowReader, contentService: contentService)) }
                         }).id(contentService.scope) } label: { Label("merchant.content.title", systemImage: "map") }
                         .accessibilityIdentifier("merchant.content.open")
                 }

@@ -144,7 +144,30 @@ public struct CoopFlowReview: Equatable {
                   state.actions(direction: direction).contains(action) else { throw CoopFlowFailure.permission }
             if action == .cancel, row["status"].integer == 1,
                reason?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false { throw CoopFlowFailure.invalid("reason") }
+        case .withdrawOffer(let id, _):
+            // Fresh evidence must carry the account's own rows; the topic's
+            // productType/lifecycle are merged into the evidence row, never inferred.
+            let rows = fresh.baseline.rows ?? fresh.baseline["rows"].rows ?? fresh.baseline["mine"].rows ?? []
+            guard let row = rows.first(where: { $0["offerId"].integer == id }) else { throw CoopFlowFailure.permission }
+            var topic: CoopFlowJSON? = nil
+            if case .object = fresh.baseline["topic"] { topic = fresh.baseline["topic"] }
+            let subject = MerchantOfferWithdrawalSubject(mineRow: Self.merchantValue(row), topic: topic.map(Self.merchantValue))
+            guard subject.isEligible else { throw CoopFlowFailure.permission }
         default: break
+        }
+    }
+    /// Lossless-enough bridge for eligibility only: identifiers/states stay exact,
+    /// money and contact fields from evidence rows are not carried anywhere else.
+    static func merchantValue(_ value: CoopFlowJSON) -> MerchantContentValue {
+        switch value {
+        case .null: return .null
+        case .bool(let v): return .bool(v)
+        case .string(let v): return .string(v)
+        case .number(let v):
+            if let exact = Int(exactly: NSDecimalNumber(decimal: v)) { return .integer(exact) }
+            return .decimal(v)
+        case .array(let rows): return .array(rows.map(merchantValue))
+        case .object(let fields): return .object(fields.mapValues(merchantValue))
         }
     }
     private func scopedLockKey(_ op: CoopFlowMutation, account: Int, scope: String?) -> String {
@@ -169,7 +192,7 @@ public struct CoopFlowReview: Equatable {
         case .createTemplate: resource = "template-create"
         case .deleteTemplate(let id): resource = "template-\(id)"
         case .enrollOffer(let fields): resource = "offer-chapter-\(fields["chapterId"]?.integer ?? 0)"
-        case .reconfirmOffer(let id), .pauseOffer(let id): resource = "offer-\(id)"
+        case .reconfirmOffer(let id), .pauseOffer(let id), .withdrawOffer(let id, _): resource = "offer-\(id)"
         case .review(let topic, let member, _, _): resource = "review-\(topic)-\(member)"
         case .complaint(let id, _): resource = "complaint-\(id)"
         }

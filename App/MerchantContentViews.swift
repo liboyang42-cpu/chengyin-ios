@@ -257,6 +257,7 @@ struct MerchantContentFields: View {
     let kind: Kind
     var focusedTopicID: Int? = nil
     @Environment(\.merchantGameNodeDestination) private var gameNodeDestination
+    @Environment(\.merchantChapterReplacementContext) private var replacementContext
     private var rowNamespace: String {
         switch kind { case .city: return "city"; case .cityApplication: return "cityApplication"; case .player: return "player"; case .query(let query): return query.key }
     }
@@ -343,11 +344,19 @@ struct MerchantContentFields: View {
             }
         case .pendingNodes:
             if let id = row["id"].integer, id > 0 { NavigationLink("merchant.content.auditNode") { MerchantContentEditView(service: service, query: query, kind: .auditNode(id)) } }
-        case .invitable:
-            if let chapter = row["chapterId"].integer, let member = row["memberId"].integer, chapter > 0, member > 0 {
-                Button("merchant.content.invite") { model.prepare(.invite(chapterID: chapter, merchantMemberID: member)) }
-                Text("merchant.content.inviteWarning").font(.footnote)
+        case .invitable(let topic):
+            // No bare ordinary invite: replacement invites go through the C9 flow only
+            // when a host-supplied replacement context exists; otherwise no send is offered.
+            if let replacementContext {
+                NavigationLink {
+                    ChapterReplacementInvitationView(model: .init(coordinator: .init(effects: replacementContext.effects), topicID: topic,
+                        actorAccountID: replacementContext.actorAccountID, scope: replacementContext.scope,
+                        merchantAccess: model.coordinator.snapshot?.access ?? replacementContext.merchantAccess,
+                        topicPublisherVerified: replacementContext.topicPublisherVerified), coordinates: replacementContext.coordinates)
+                } label: { Text("merchant.content.invite") }
+                .accessibilityIdentifier("merchant.chapterReplacement.open")
             }
+            Text("merchant.content.inviteWarning").font(.footnote)
         case .claimable:
             if let poi = row["poiId"].integer ?? row["id"].integer, poi > 0 { Button("merchant.content.claim") { model.prepare(.claim(poiID: poi)) } }
         case .gameEntries: if let id = row["activityId"].integer, id > 0 {
@@ -559,12 +568,38 @@ extension EnvironmentValues {
         get { self[MerchantContentSupplyDestinationKey.self] }
         set { self[MerchantContentSupplyDestinationKey.self] = newValue }
     }
+    var merchantOfferWithdrawalDestination: (@MainActor (MerchantContentSupplyContext) -> AnyView)? {
+        get { self[MerchantOfferWithdrawalDestinationKey.self] }
+        set { self[MerchantOfferWithdrawalDestinationKey.self] = newValue }
+    }
+    var merchantChapterReplacementContext: MerchantChapterReplacementHostContext? {
+        get { self[MerchantChapterReplacementContextKey.self] }
+        set { self[MerchantChapterReplacementContextKey.self] = newValue }
+    }
+}
+private struct MerchantOfferWithdrawalDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (MerchantContentSupplyContext) -> AnyView)? = nil
+}
+private struct MerchantChapterReplacementContextKey: EnvironmentKey {
+    static let defaultValue: MerchantChapterReplacementHostContext? = nil
+}
+/// Host-supplied C9 composition context. Every field must come from a real host
+/// projection (session account, fresh merchant access, verified topic publisher,
+/// granted coordinates); shipped composition supplies none, so it stays `nil`.
+@MainActor struct MerchantChapterReplacementHostContext {
+    let effects: ChapterReplacementInvitationEffects
+    let actorAccountID: Int
+    let scope: ChapterReplacementInvitationScope
+    let merchantAccess: MerchantAccess?
+    let topicPublisherVerified: Bool
+    let coordinates: ChapterReplacementInvitationCoordinates?
 }
 @MainActor private struct MerchantContentRecruitSupplyView: View {
     let service: any MerchantContentServing
     let topicID: Int
     let chapters: [MerchantContentValue]
     @Environment(\.merchantContentSupplyDestination) private var destination
+    @Environment(\.merchantOfferWithdrawalDestination) private var withdrawalDestination
     @State private var snapshot: MerchantContentSnapshot?
     @State private var error = false
     var body: some View {
@@ -581,6 +616,10 @@ extension EnvironmentValues {
                             if (context.canEnroll || context.canReconfirmOrPause), let destination {
                                 NavigationLink { destination(context) } label: { Text("merchant.content.manageSupply") }
                             } else if !context.offerActive && context.termsMode == nil { Text("merchant.content.supplyTermsUnknown").font(.footnote) }
+                            if context.offerActive, context.offerID != nil, let withdrawalDestination {
+                                NavigationLink { withdrawalDestination(context) } label: { Text("merchant.offerWithdrawal.title") }
+                                    .accessibilityIdentifier("merchant.offerWithdrawal.open")
+                            }
                         }
                     }
                 }

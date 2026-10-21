@@ -276,6 +276,7 @@ public enum CoopFlowMutation: Equatable {
     case attachPerks(inviteID: Int, templateIDs: [Int])
     case enrollOffer(fields: [String: CoopFlowJSON])
     case reconfirmOffer(id: Int), pauseOffer(id: Int)
+    case withdrawOffer(id: Int, reason: String)
     case review(topicID: Int, memberID: Int, rating: Int, comment: String?)
     case complaint(topicID: Int, reason: String)
     case contact(inviteID: Int)
@@ -288,11 +289,12 @@ public enum CoopFlowMutation: Equatable {
         case .createTemplate: suffix = "perk-template/save"; case .deleteTemplate: suffix = "perk-template/delete"
         case .attachPerks: suffix = "perks/attach"; case .enrollOffer: suffix = "offer/enroll"
         case .reconfirmOffer: suffix = "offer/circle-supply/reconfirm-current"; case .pauseOffer: suffix = "offer/circle-supply/pause"
+        case .withdrawOffer: suffix = "offer/withdraw"
         case .review: suffix = "review/save"; case .complaint: suffix = "complaint/report"; case .contact: suffix = "contact"
         }; return "api/coop/" + suffix
     }
     public var requiresSeparateEnablement: Bool {
-        switch self { case .invite, .handle, .contact, .complaint, .enrollOffer: return true; default: return false }
+        switch self { case .invite, .handle, .contact, .complaint, .enrollOffer, .withdrawOffer: return true; default: return false }
     }
     public func body(now: Date = Date()) throws -> CoopFlowJSON {
         var b: [String: CoopFlowJSON] = [:]
@@ -336,6 +338,9 @@ public enum CoopFlowMutation: Equatable {
                 guard b["perkTemplateId"] == nil, b["quotaTotal"] == nil, b["perHeadFee"] == nil else { throw CoopFlowFailure.invalid("traffic") }
             }
         case .reconfirmOffer(let id), .pauseOffer(let id): b = ["offerId": try positive(id)]
+        case .withdrawOffer(let id, let reason):
+            guard let validated = try? MerchantOfferWithdrawalReason(raw: reason) else { throw CoopFlowFailure.invalid("reason") }
+            b = ["offerId": try positive(id), "reason": .string(validated.value)]
         case .review(let topic, let member, let rating, let comment):
             guard (1...5).contains(rating) else { throw CoopFlowFailure.invalid("rating") }
             b = ["topicId": try positive(topic), "toId": try positive(member), "rating": .id(rating)]

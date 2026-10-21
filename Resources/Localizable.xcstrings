@@ -199928,6 +199928,618 @@
           }
         }
       }
+    },
+    "merchant.offerWithdrawal.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出章节供给"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit chapter supply"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给详情"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply detail"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.field.offerId": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给编号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offer ID"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.field.chapter": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.field.topic": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.field.serverReason": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器记录的退出原因"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server-recorded exit reason"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.eligibility": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出资格"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit eligibility"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.state.withdrawn": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已退出供给"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply exited"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.state.eligible": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前供给可退出"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This active supply can be exited"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.state.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未确认，请先核对"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome unconfirmed — read back first"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.state.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出被拒绝"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit rejected"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.ineligible.deactivated": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份供给只是已停用、并未经退出流程退出，请联系主办核对。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This supply was only deactivated, not exited. Contact the organiser to verify."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.ineligible.circle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圈层供给不能用本入口退出，请使用圈层供给管理。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Circle supply cannot be exited here; use circle supply management."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.ineligible.notOrdinary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有普通自由探索章节的供给可用本入口退出。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only ordinary free-exploration chapter supply can be exited here."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.ineligible.terminal": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题已结束，不能退出历史供给。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The topic has ended; historical supply cannot be exited."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.ineligible.missingOffer": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到可核对的供给编号。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No verifiable offer ID was found."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.ineligible.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给状态、产品类型或主题阶段无法核实，暂不能退出。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply state, product type or topic stage could not be verified."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.impact": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出影响"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impact of exiting"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.impact.mayPauseEnrolment": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必选章节退出可能暂停该主题新增报名，直到补位。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exiting a required chapter may pause new enrolment until a replacement is found."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.impact.retainsOrders": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有订单、履约应收与核销记录保留不变。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing orders, fulfilment receivables and redemption records are retained."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.impact.noAutoRefund": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会自动退款，也不会自动解散主题或订单。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No automatic refund, and no automatic dissolution of the topic or orders."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.impact.mayInvalidateReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给复核与已发布的供给快照可能失效。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply review and published supply snapshots may be invalidated."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.impact.mayNotify": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主办与受影响的参与者可能收到通知，请提前沟通履约安排。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The organiser and affected participants may be notified; arrange fulfilment in advance."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.reason": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出原因（1–500字）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit reason (1–500 characters)"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.reason.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写退出原因"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the exit reason"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.confirm.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认退出这份章节供给？"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit this chapter supply?"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.confirm.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出后供给将失效。已有订单与核销保留，不会自动退款；必选章节可能暂停新增报名，参与者可能收到通知。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After exiting, the supply becomes inactive. Orders and redemptions are retained with no automatic refund; a required chapter may pause new enrolment and participants may be notified."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.confirm.action": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认退出"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm exit"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.action.review": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对并退出"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review and exit"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.action.readbackOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅回读核对（不重发）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read back only (do not resend)"
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.unknown.noResend": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为避免重复提交，本页不会自动重发；请先回读核对，原因以服务器记录为准。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To avoid a duplicate submission this page never resends automatically. Read back first; the server-recorded reason is authoritative."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出提交尚未启用，仅可预览资格与影响。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit submission is not enabled yet; eligibility and impact preview only."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.result.reasonDiffers": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器记录的原因与本次填写不同，以下以服务器记录为准，本次填写未被声称为已保存。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server-recorded reason differs from what you entered; the server record below is authoritative and your entry is not claimed as saved."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.result.enrollmentPausedHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器提示：新增报名已暂停。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server hint: new enrolment is paused."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.result.enrollmentNotPausedHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器提示：新增报名未因本次退出暂停。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server hint: new enrolment was not paused by this exit."
+          }
+        }
+      }
+    },
+    "merchant.offerWithdrawal.result.hintBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名暂停仅为提示信息，退出以回读到的已退出状态与服务器原因为准。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The pause flag is only a hint; the exit is confirmed by the read-back withdrawn state and server reason."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

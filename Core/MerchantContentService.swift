@@ -72,6 +72,7 @@ public struct MerchantContentReceipt: Equatable {
     func perform(_ command: MerchantContentCommand, baseline: MerchantContentSnapshot) async throws -> MerchantContentReceipt
     func pending() throws -> [MerchantContentPendingRecord]
     func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback
+    func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, topicPublisherVerified: Bool) -> ChapterReplacementInvitationEffects?
     func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
     func retryStation(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
 }
@@ -80,6 +81,7 @@ extension MerchantContentServing {
     public func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback {
         throw MerchantContentFailure.locked
     }
+    public func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, topicPublisherVerified: Bool) -> ChapterReplacementInvitationEffects? { nil }
 }
 @MainActor public final class MerchantContentService: MerchantContentServing {
     /// This is a test-injection switch, never a production capability approval.
@@ -236,7 +238,7 @@ extension MerchantContentServing {
         case .chapterNodes(let id): value = try await read("api/merchant/chapter-node/mine", .form(id.map { ["topicId": String($0)] } ?? [:]), session: s)
         case .upcoming(let id): value = try await read("api/merchant/upcoming-runs", .json(["topicId": .integer(id)]), session: s)
         case .ownerApplications(let id): value = try await read("api/merchant/chapter-application/owner-list", .json(["topicId": .integer(id)]), session: s)
-        case .invitable(let id): value = try await read("api/merchant/chapter-application/invitable", .json(["topicId": .integer(id)]), session: s)
+        case .invitable(let id): value = try await read("api/merchant/chapter-application/invitable", .json(ChapterReplacementInvitationInvitableRequest(topicID: id).fields()), session: s)
         case .pendingNodes(let id): value = try await read("api/merchant/chapter-node/pending", .form(["topicId": String(id)]), session: s)
         case .registrations(let filter): value = try await read("api/registration/merchant/list", .form(["status": String(filter)]), session: s)
         case .registration(let id):
@@ -386,3 +388,57 @@ extension MerchantContentServing {
     }
 
 }
+
+extension MerchantContentService {
+    /// C9 adapter over this service's real endpoints. `sendInvite` checks the verified
+    /// topic-publisher flag first, re-loads the `.invitable` baseline, then performs the
+    /// five-field invite exactly once through the existing journal/`perform` path; the
+    /// `permitsWrites` gate is unchanged and no path here retries automatically.
+    public func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, topicPublisherVerified: Bool) -> ChapterReplacementInvitationEffects? {
+        return ChapterReplacementInvitationEffects(
+            loadVacancyRows: { [weak self] topic in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                return try await self.load(.ownerApplications(topicID: topic)).rows
+            },
+            loadCandidateRows: { [weak self] request in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                return try await self.chapterReplacementRows(path: ChapterReplacementInvitationInvitableRequest.path, fields: request.fields(), gate: .invitable(topicID: request.topicID))
+            },
+            loadExistingRows: { [weak self] topic, _ in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                return try await self.load(.ownerApplications(topicID: topic)).rows
+            },
+            sendInvite: { [weak self] plan in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                guard topicPublisherVerified else { throw ChapterReplacementInvitationFailure.notTopicPublisher }
+                let baseline = try await self.load(.invitable(topicID: plan.topicID))
+                do {
+                    _ = try await self.perform(.invite(chapterID: plan.candidate.chapterID, merchantMemberID: plan.candidate.merchantMemberID,
+                                                       replacementOfOfferID: plan.candidate.replacementOfOfferID, scope: plan.scope.wireValue, message: plan.message),
+                                               baseline: baseline)
+                } catch MerchantContentFailure.unknown {
+                    throw ChapterReplacementInvitationFailure.unknown
+                } catch MerchantContentFailure.rejected {
+                    throw ChapterReplacementInvitationFailure.denied
+                } catch MerchantContentFailure.denied {
+                    throw ChapterReplacementInvitationFailure.denied
+                }
+            },
+            loadOwnerListRows: { [weak self] request in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                return try await self.chapterReplacementRows(path: ChapterReplacementInvitationOwnerListRequest.path, fields: request.fields(), gate: .ownerApplications(topicID: request.topicID))
+            },
+            loadOwnerMineRows: { [weak self] request in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                return try await self.chapterReplacementRows(path: ChapterReplacementInvitationOwnerMineRequest.path, fields: request.fields(), gate: .projects)
+            })
+    }
+    fileprivate func chapterReplacementRows(path: String, fields: [String: MerchantContentValue], gate: MerchantContentQuery) async throws -> [MerchantContentValue] {
+        guard let session = currentSession() else { throw APIError.unauthorized }
+        _ = try await access(session, query: gate)
+        let value = try await read(path, .json(fields), session: session)
+        guard let rows = value.array ?? value["rows"].array else { throw MerchantContentFailure.malformed }
+        try ensure(session); return rows
+    }
+}
+

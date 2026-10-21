@@ -5,7 +5,7 @@ import Foundation
 public protocol CoopFlowOfflineHTTPTransport: HTTPTransport {}
 
 public enum CoopFlowProtectedOperation: String, Hashable, CaseIterable {
-    case invite, handle, contact, complaint, enrollOffer
+    case invite, handle, contact, complaint, enrollOffer, withdrawOffer
     public init?(_ operation: CoopFlowMutation) {
         switch operation {
         case .invite: self = .invite
@@ -13,6 +13,7 @@ public enum CoopFlowProtectedOperation: String, Hashable, CaseIterable {
         case .contact: self = .contact
         case .complaint: self = .complaint
         case .enrollOffer: self = .enrollOffer
+        case .withdrawOffer: self = .withdrawOffer
         default: return nil
         }
     }

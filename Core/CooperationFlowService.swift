@@ -133,6 +133,7 @@ public struct CoopFlowService {
         case .complaint, .enrollOffer: guard case .object = result else { throw CoopFlowFailure.ambiguous }
         case .createTemplate: guard (result["id"].integer ?? 0) > 0 else { throw CoopFlowFailure.ambiguous }
         case .attachPerks: guard let count = result["count"].integer, count >= 0 else { throw CoopFlowFailure.ambiguous }
+        case .withdrawOffer: guard case .object = result, result["enrollmentPaused"] != .null else { throw CoopFlowFailure.ambiguous }
         default: break
         }
         return result
