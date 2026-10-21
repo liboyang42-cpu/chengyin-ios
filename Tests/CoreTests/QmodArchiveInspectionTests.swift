@@ -282,4 +282,37 @@ final class QmodArchiveInspectionTests: XCTestCase {
         guard case .bytes(let data) = QmodSecurityScopedPackage.open(url: file, budget: .localProcessStop) else { return XCTFail("regular file") }
         XCTAssertEqual(data, payload)
     }
+
+    func testInjectedReadBudgetCannotOverflow() throws {
+        XCTAssertTrue(QmodLocalReadBudget.localProcessStop.isUsable)
+        XCTAssertLessThan(QmodLocalReadBudget.localProcessStop.maxBytes, QmodLocalReadBudget.memorySafetyCeiling)
+        XCTAssertTrue(QmodLocalReadBudget.admits(QmodLocalReadBudget.memorySafetyCeiling))
+        XCTAssertFalse(QmodLocalReadBudget.admits(Int64.max))
+        XCTAssertFalse(QmodLocalReadBudget.admits(0))
+        XCTAssertNil(QmodLocalReadBudget.probeRoom(cap: Int64.max, collected: 0))
+        XCTAssertEqual(QmodLocalReadBudget.probeRoom(cap: 8, collected: 0), 9)
+        let unsafe = QmodLocalReadBudget(maxBytes: Int64.max, isProposal: false, isBusinessRule: false)
+        XCTAssertFalse(unsafe.isUsable)
+        let report = QmodArchiveInspection.inspect(package: Data([0, 1, 2, 3]), limits: limits, expansionGuard: expansion, packageLabel: "overflow.zip", readBudget: unsafe)
+        XCTAssertEqual(report.issues.map(\.code), [.readBudgetUnsafe])
+        XCTAssertTrue(report.fileSummaries.isEmpty)
+        let posed = QmodLocalReadBudget(maxBytes: Int64.max, isProposal: true, isBusinessRule: false)
+        XCTAssertEqual(QmodArchiveInspection.inspect(package: Data([0]), limits: limits, expansionGuard: expansion, packageLabel: "posed.zip", readBudget: posed).issues.map(\.code), [.readBudgetPosedAsRule])
+    }
+
+    func testStartingANewPickDropsTheInFlightResult() throws {
+        let bytes = try fixture("swap-a.zip")
+        var session = QmodArchiveInspectionSession()
+        session.select(bytes: bytes, label: "swap-a.zip", limits: limits, expansionGuard: expansion)
+        let finished = try XCTUnwrap(session.report)
+        let generation = session.generation
+        session.invalidateSelection()
+        XCTAssertEqual(session.phase, .choosing)
+        XCTAssertNil(session.report)
+        XCTAssertFalse(session.canRecheck)
+        XCTAssertNotEqual(session.generation, generation)
+        XCTAssertFalse(session.complete(generation: generation, report: finished))
+        XCTAssertNil(session.report)
+        XCTAssertNotEqual(session.phase, .reported)
+    }
 }

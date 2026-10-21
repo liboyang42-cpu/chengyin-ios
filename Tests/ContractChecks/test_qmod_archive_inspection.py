@@ -160,21 +160,59 @@ def write_fixtures(directory: Path):
     (directory / "swap-b.zip").write_bytes(package(swap_b))
 
 
-def bounded_read(kind, chunks, cap):
+INT64_MAX = (1 << 63) - 1
+
+
+def admits(max_bytes, ceiling):
+    return isinstance(max_bytes, int) and 0 < max_bytes <= ceiling
+
+
+def probe_room(cap, collected, ceiling):
+    if not admits(cap, ceiling) or collected < 0 or collected > cap:
+        return None
+    room = cap - collected + 1
+    if room > INT64_MAX:
+        return None
+    return room
+
+
+def wrapped_i64_add_one(value):
+    return ((value + 1 + (1 << 63)) % (1 << 64)) - (1 << 63)
+
+
+def bounded_read(kind, chunks, cap, ceiling=INT64_MAX - 1):
     """Counterexample for check-size-then-read-all. A link is not followed, and a file that grows past cap is not returned as bytes."""
     if kind == "link":
         return ("symlink", 0)
     if kind != "file":
         return ("not-regular", 0)
+    if not admits(cap, ceiling):
+        return ("unsafe", 0)
     kept = 0
     for chunk in chunks:
-        room = cap + 1 - kept
-        if room <= 0:
+        room = probe_room(cap, kept, ceiling)
+        if room is None:
             return ("exceeded", cap)
         kept += min(len(chunk), room)
         if kept > cap:
             return ("exceeded", cap)
     return ("bytes", kept)
+
+
+def start_pick(state):
+    state["task"] = "cancelled"
+    state["generation"] += 1
+    state["phase"] = "choosing"
+    state["report"] = None
+
+
+def host_left(state):
+    if state["phase"] == "idle":
+        return
+    state["task"] = "cancelled"
+    state["generation"] += 1
+    state["phase"] = "cancelled"
+    state["report"] = None
 
 
 def names(blob):
@@ -230,6 +268,10 @@ class QmodArchiveInspectionContracts(unittest.TestCase):
         budget = self.core[self.core.index("struct QmodLocalReadBudget"):self.core.index("public struct QmodLocalFileFacts")]
         self.assertIn("maxBytes: 32 << 20, isProposal: false, isBusinessRule: false", budget)
         self.assertNotIn("25 << 20", budget)
+        self.assertIn("Int64(Int.max) - 1", budget)
+        self.assertIn("addingReportingOverflow", budget)
+        self.assertNotIn("cap + 1", body)
+        self.assertIn("probeRoom", body)
         self.assertIn("maxArchiveBytes: 25 << 20", self.contract)
         importer = self.app[self.app.index("func importFile"):self.app.index("func recheck")]
         self.assertLess(importer.index("Task.detached"), importer.index("QmodSecurityScopedPackage.open"))
@@ -238,7 +280,8 @@ class QmodArchiveInspectionContracts(unittest.TestCase):
         self.assertLess(checker.index("switch opened"), checker.index("QmodArchiveInspection.inspect"))
         recheck = self.app[self.app.index("func recheck"):self.app.index("func cancel")]
         self.assertLess(recheck.index("Task.detached"), recheck.index("QmodArchiveInspection.inspect"))
-        self.assertIn("work?.cancel()", self.app)
+        self.assertIn("work.cancel()", self.app)
+        self.assertIn("deinit { task?.cancel() }", self.app)
         self.assertIn("complete(generation:", self.app)
         self.assertIn("readBudget: QmodLocalReadBudget = .localProcessStop", self.app)
         self.assertIn("Task.isCancelled", self.core)
@@ -258,6 +301,48 @@ class QmodArchiveInspectionContracts(unittest.TestCase):
         self.assertFalse(deliver(2, 2, "cancelled", False))
         self.assertFalse(deliver(2, 2, "inspecting", True))
         self.assertTrue(deliver(2, 2, "inspecting", False))
+
+    def test_new_pick_retires_the_previous_selection(self):
+        for ident in ("qmod.authorImport.pick", "qmod.authorImport.replace"):
+            window = self.app[:self.app.index(ident)]
+            action = window[window.rindex("Button(action:"):]
+            self.assertLess(action.index("beginPicking()"), action.index("picking = true"))
+        importer = self.app[self.app.index(".fileImporter"):self.app.index("private var packageTypes")]
+        self.assertIn("pickerCancelled()", importer)
+        self.assertLess(importer.index(".success"), importer.index("importFile"))
+        leave = self.app[self.app.index(".onDisappear"):self.app.index(".onDisappear") + 120]
+        self.assertIn("picking", leave)
+        self.assertIn("hostLeft()", leave)
+        retired = self.core[self.core.index("func invalidateSelection"):self.core.index("public func packageForRecheck")]
+        self.assertIn("generation &+= 1", retired)
+        self.assertIn("phase = .choosing", retired)
+        self.assertIn("report = nil", retired)
+        self.assertIn("phase == .inspecting", self.core)
+
+        state = {"generation": 4, "phase": "inspecting", "report": "live", "task": "running"}
+        start_pick(state)
+        self.assertEqual(state["generation"], 5)
+        self.assertEqual(state["phase"], "choosing")
+        self.assertIsNone(state["report"])
+        self.assertEqual(state["task"], "cancelled")
+        self.assertFalse(state["phase"] == "inspecting" and state["generation"] == 4)
+        host_left(state)
+        self.assertEqual(state["phase"], "cancelled")
+        self.assertIsNone(state["report"])
+
+    def test_injected_read_budget_cannot_overflow(self):
+        ceiling = INT64_MAX - 1
+        self.assertTrue(admits(32 << 20, ceiling))
+        self.assertTrue(admits(ceiling, ceiling))
+        self.assertFalse(admits(INT64_MAX, ceiling))
+        self.assertFalse(admits(0, ceiling))
+        self.assertFalse(admits(-1, ceiling))
+        self.assertEqual(wrapped_i64_add_one(INT64_MAX), -INT64_MAX - 1)
+        self.assertIsNone(probe_room(INT64_MAX, 0, ceiling))
+        self.assertEqual(probe_room(ceiling, 0, ceiling), INT64_MAX)
+        self.assertEqual(probe_room(8, 0, ceiling), 9)
+        self.assertEqual(bounded_read("file", [b"abcdefghi"], 8), ("exceeded", 8))
+        self.assertEqual(bounded_read("file", [b"abcd", b"0123456789"], INT64_MAX), ("unsafe", 0))
 
     def test_fixtures_encode_the_acceptance_cases(self):
         self.assertTrue(FIXTURES.is_dir(), FIXTURES)

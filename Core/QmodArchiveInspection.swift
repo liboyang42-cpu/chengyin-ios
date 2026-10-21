@@ -35,6 +35,8 @@ public enum QmodArchiveIssueCode: Equatable, Sendable {
     case localFileUnreadable(String)
     /// The read ceiling was labelled as a proposal or a business rule, so the file was not opened.
     case readBudgetPosedAsRule
+    /// `maxBytes` cannot be probed without signed overflow. The file was not opened.
+    case readBudgetUnsafe
     /// The opened file passed the process read ceiling. Bytes past the ceiling were not kept.
     case readBudgetExceeded(actual: Int64, limit: Int64)
     /// The background check was cancelled. Callers drop this report instead of showing it.
@@ -105,8 +107,26 @@ public struct QmodLocalReadBudget: Equatable, Sendable {
     }
     /// 32 MiB process allocation stop. Not a proposal profile and not a business rule.
     public static let localProcessStop = QmodLocalReadBudget(maxBytes: 32 << 20, isProposal: false, isBusinessRule: false)
+    /// Largest injectable byte count whose `+ 1` probe fits in both `Int64` and `Int`. Technical allocation ceiling, not a package quota.
+    public static let memorySafetyCeiling: Int64 = Int64(Int.max) - 1
 
-    public var isUsable: Bool { !isProposal && !isBusinessRule && maxBytes > 0 && maxBytes <= Int64(Int.max) }
+    public var isUsable: Bool { !isProposal && !isBusinessRule && Self.admits(maxBytes) }
+
+    public static func admits(_ maxBytes: Int64) -> Bool {
+        maxBytes > 0 && maxBytes <= memorySafetyCeiling
+    }
+
+    /// Room for one more byte past `collected`, so a growing file can be rejected without wrapping `cap + 1`.
+    public static func probeRoom(cap: Int64, collected: Int) -> Int? {
+        guard admits(cap), collected >= 0 else { return nil }
+        let count = Int64(collected)
+        guard count <= cap else { return nil }
+        let (rest, restOverflow) = cap.subtractingReportingOverflow(count)
+        if restOverflow { return nil }
+        let (room, roomOverflow) = rest.addingReportingOverflow(1)
+        if roomOverflow || room > Int64(Int.max) { return nil }
+        return Int(room)
+    }
 }
 
 public struct QmodLocalFileFacts: Equatable, Sendable {
@@ -194,8 +214,11 @@ public enum QmodArchiveInspection {
         if expansionGuard.isBusinessRule || expansionGuard.numerator <= 0 || expansionGuard.denominator <= 0 {
             return finish([QmodArchiveIssue(code: .proposalPresentedAsBusinessRule, entryIndex: nil, headerOffset: nil, path: nil)])
         }
-        if !readBudget.isUsable {
+        if readBudget.isProposal || readBudget.isBusinessRule {
             return finish([QmodArchiveIssue(code: .readBudgetPosedAsRule, entryIndex: nil, headerOffset: nil, path: nil)])
+        }
+        if !QmodLocalReadBudget.admits(readBudget.maxBytes) {
+            return finish([QmodArchiveIssue(code: .readBudgetUnsafe, entryIndex: nil, headerOffset: nil, path: nil)])
         }
         if Int64(package.count) > readBudget.maxBytes {
             return finish([QmodArchiveIssue(code: .readBudgetExceeded(actual: Int64(package.count), limit: readBudget.maxBytes), entryIndex: nil, headerOffset: nil, path: nil)])
@@ -404,7 +427,7 @@ public enum QmodArchiveInspection {
 }
 
 public struct QmodArchiveInspectionSession: Equatable {
-    public enum Phase: Equatable { case idle, inspecting, reported, cancelled }
+    public enum Phase: Equatable { case idle, choosing, inspecting, reported, cancelled }
     public private(set) var generation: UInt64
     public private(set) var phase: Phase
     public private(set) var packageLabel: String?
@@ -438,6 +461,18 @@ public struct QmodArchiveInspectionSession: Equatable {
 
     /// Bumps the generation and clears the visible report before a background check starts.
     public mutating func beginSelection(label: String) -> UInt64 { begin(label) }
+
+    /// Retires the current selection before a new file picker opens. An in-flight result can no longer complete.
+    /// A finished report is dropped here; keeping one would require an explicit stale mark, which this screen does not show.
+    public mutating func invalidateSelection() {
+        generation &+= 1
+        phase = .choosing
+        report = nil
+        packageLabel = nil
+        retained = nil
+        limits = nil
+        expansionGuard = nil
+    }
 
     public func packageForRecheck() -> (bytes: Data, label: String, limits: QmodLimitProfile, expansionGuard: QmodExpansionGuard)? {
         guard let retained, let limits, let expansionGuard, let packageLabel else { return nil }
@@ -515,6 +550,7 @@ public enum QmodOpenedPackage: Equatable, Sendable {
     case notRegularFile
     case readBudgetExceeded(actual: Int64, limit: Int64)
     case readBudgetPosedAsRule
+    case readBudgetUnsafe
     case unreadable
     case cancelled
 }
@@ -525,7 +561,9 @@ public enum QmodSecurityScopedPackage {
         let lease = url.startAccessingSecurityScopedResource()
         defer { if lease { url.stopAccessingSecurityScopedResource() } }
         if Task.isCancelled { return .cancelled }
-        guard budget.isUsable else { return .readBudgetPosedAsRule }
+        guard budget.isUsable else {
+            return (budget.isProposal || budget.isBusinessRule) ? .readBudgetPosedAsRule : .readBudgetUnsafe
+        }
         guard url.isFileURL else { return .unreadable }
         let fd = url.withUnsafeFileSystemRepresentation { path -> Int32 in
             guard let path else { return -1 }
@@ -559,8 +597,10 @@ public enum QmodSecurityScopedPackage {
                 if errno == EINTR { continue }
                 return .unreadable
             }
-            let room = cap + 1 - Int64(collected.count)
-            let take = min(Int64(count), max(room, 0))
+            guard let room = QmodLocalReadBudget.probeRoom(cap: cap, collected: collected.count) else {
+                return .readBudgetExceeded(actual: Int64(collected.count), limit: cap)
+            }
+            let take = min(Int64(count), Int64(room))
             if take > 0 { collected.append(contentsOf: buffer.prefix(Int(take))) }
             if Int64(collected.count) > cap { return .readBudgetExceeded(actual: Int64(collected.count), limit: cap) }
         }

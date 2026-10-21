@@ -10,7 +10,7 @@ final class QmodAuthorImportModel: ObservableObject {
     let expansionGuard: QmodExpansionGuard
     /// Process read ceiling. Not `limits` and not a business rule.
     let readBudget: QmodLocalReadBudget
-    private var work: Task<Void, Never>?
+    private let work = QmodImportWork()
 
     init(limits: QmodLimitProfile = .reviewProposalV1, expansionGuard: QmodExpansionGuard = .localProcessStop, readBudget: QmodLocalReadBudget = .localProcessStop) {
         self.limits = limits
@@ -24,13 +24,13 @@ final class QmodAuthorImportModel: ObservableObject {
         let expansionGuard = self.expansionGuard
         let readBudget = self.readBudget
         let label = url.lastPathComponent
-        work = Task.detached(priority: .utility) { [weak self] in
+        work.start(Task.detached(priority: .utility) { [weak self] in
             let opened = QmodSecurityScopedPackage.open(url: url, budget: readBudget)
             if Task.isCancelled { return }
             let outcome = QmodAuthorImportCheck.inspect(opened: opened, generation: generation, label: label, limits: limits, expansionGuard: expansionGuard, readBudget: readBudget)
             if Task.isCancelled || outcome.report.issues.contains(where: { if case .checkCancelled = $0.code { return true }; return false }) { return }
             await self?.accept(generation: generation, report: outcome.report, retain: outcome.retain, limits: limits, expansionGuard: expansionGuard)
-        }
+        })
     }
 
     func recheck() {
@@ -41,25 +41,42 @@ final class QmodAuthorImportModel: ObservableObject {
         let readBudget = self.readBudget
         let bytes = package.bytes
         let label = package.label
-        work = Task.detached(priority: .utility) { [weak self] in
+        work.start(Task.detached(priority: .utility) { [weak self] in
             if Task.isCancelled { return }
             let report = QmodArchiveInspection.inspect(package: bytes, limits: limits, expansionGuard: expansionGuard, generation: generation, packageLabel: label, readBudget: readBudget)
             if Task.isCancelled || report.issues.contains(where: { if case .checkCancelled = $0.code { return true }; return false }) { return }
             let retain = readBudget.isUsable && Int64(bytes.count) <= readBudget.maxBytes ? bytes : nil
             await self?.accept(generation: generation, report: report, retain: retain, limits: limits, expansionGuard: expansionGuard)
-        }
+        })
     }
 
     func cancel() {
-        work?.cancel()
-        work = nil
+        work.cancel()
         var next = session
         next.cancel()
         session = next
     }
 
+    /// Picker opened. The previous task is cancelled and its generation can no longer accept a result.
+    func beginPicking() {
+        work.cancel()
+        var next = session
+        next.invalidateSelection()
+        session = next
+    }
+
+    func pickerCancelled() {
+        guard session.phase == .choosing else { return }
+        cancel()
+    }
+
+    func hostLeft() {
+        guard session.phase != .idle else { return }
+        cancel()
+    }
+
     private func begin(_ label: String) -> UInt64 {
-        work?.cancel()
+        work.cancel()
         var next = session
         let generation = next.beginSelection(label: label)
         session = next
@@ -72,6 +89,13 @@ final class QmodAuthorImportModel: ObservableObject {
         if let retain { next.noteRetainedPackage(retain, limits: limits, expansionGuard: expansionGuard) }
         session = next
     }
+}
+
+private final class QmodImportWork {
+    private var task: Task<Void, Never>?
+    func cancel() { task?.cancel(); task = nil }
+    func start(_ task: Task<Void, Never>) { cancel(); self.task = task }
+    deinit { task?.cancel() }
 }
 
 private enum QmodAuthorImportCheck {
@@ -93,6 +117,8 @@ private enum QmodAuthorImportCheck {
             return failed(.readBudgetExceeded(actual: actual, limit: limit))
         case .readBudgetPosedAsRule:
             return failed(.readBudgetPosedAsRule)
+        case .readBudgetUnsafe:
+            return failed(.readBudgetUnsafe)
         case .unreadable:
             return failed(.localFileUnreadable(safe))
         case .cancelled:
@@ -122,9 +148,9 @@ struct QmodAuthorImportView: View {
                 Text(verbatim: QmodLocalInspectionReport.fixedExecutionDenialText)
             }
             Section {
-                Button(action: { picking = true }) { Text(verbatim: "选择包") }
+                Button(action: { model.beginPicking(); picking = true }) { Text(verbatim: "选择包") }
                     .accessibilityIdentifier("qmod.authorImport.pick")
-                Button(action: { picking = true }) { Text(verbatim: "换包") }
+                Button(action: { model.beginPicking(); picking = true }) { Text(verbatim: "换包") }
                     .disabled(model.session.phase == .idle)
                     .accessibilityIdentifier("qmod.authorImport.replace")
                 Button(action: { model.recheck() }) { Text(verbatim: "复检") }
@@ -133,6 +159,12 @@ struct QmodAuthorImportView: View {
                 Button(action: { model.cancel() }) { Text(verbatim: "取消") }
                     .disabled(model.session.phase == .idle || model.session.phase == .cancelled)
                     .accessibilityIdentifier("qmod.authorImport.cancel")
+            }
+            if model.session.phase == .choosing {
+                Section {
+                    Text(verbatim: "正在选择新的包。上一份检查已停止，它的结果不会当成这次选择。")
+                        .accessibilityIdentifier("qmod.authorImport.choosing")
+                }
             }
             if model.session.phase == .inspecting {
                 Section {
@@ -154,7 +186,13 @@ struct QmodAuthorImportView: View {
         .accessibilityIdentifier("qmod.authorImport.root")
         .privacySensitive()
         .fileImporter(isPresented: $picking, allowedContentTypes: packageTypes) { result in
-            if case .success(let url) = result { model.importFile(at: url) }
+            switch result {
+            case .success(let url): model.importFile(at: url)
+            case .failure: model.pickerCancelled()
+            }
+        }
+        .onDisappear {
+            if !picking { model.hostLeft() }
         }
     }
 
@@ -246,6 +284,7 @@ private func qmodArchiveIssueTitle(_ issue: QmodArchiveIssue) -> String {
     case .encrypted: return "加密条目"
     case .localFileUnreadable: return "无法读取本地文件"
     case .readBudgetPosedAsRule: return "读入停止线被当成提案或正式规则"
+    case .readBudgetUnsafe: return "读入停止线超过内存安全上限"
     case .readBudgetExceeded: return "超过本进程读入停止线"
     case .checkCancelled: return "检查已取消"
     }
@@ -276,6 +315,7 @@ private func qmodArchiveIssueDetail(_ issue: QmodArchiveIssue) -> String {
     case .encrypted(let path): return "\(path) 带加密标记。本机不解密。"
     case .localFileUnreadable(let path): return "没有读到完整的普通文件 \(path)。"
     case .readBudgetPosedAsRule: return "读入停止线被标成了提案档或正式业务规则。文件没有打开。"
+    case .readBudgetUnsafe: return "这个读入停止线不能安全地加一而不溢出。文件没有打开。这是本进程的技术上限，不是业务包限额。"
     case .readBudgetExceeded(_, let limit): return "打开的文件超过本进程读入停止线 \(limit) 字节。超出的字节没有读入。这不是提案档，也不是正式业务规则。"
     case .checkCancelled: return "这次检查已取消。结果不会被采用。"
     }
