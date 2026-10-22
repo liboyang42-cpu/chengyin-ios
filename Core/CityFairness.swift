@@ -38,7 +38,8 @@ public struct CityFairnessPage: Equatable, Sendable {
     public let nextCursor: String?
     public let showsRatio: Bool
     public let missing: [String]
-    public let coverage: CityFairnessCoverageReport?
+    public let coverageGaps: [String]
+    public let facts: [CityFairnessFact]
     public var ratioText: String { "\(matureCount)/\(denominator)" }
 }
 
@@ -78,79 +79,19 @@ public struct CityFairnessOutingPage: Equatable, Sendable {
     public let outings: [CityFairnessOwnOuting]
     public let nextCursor: String?
     public let missing: [String]
-    public let coverage: CityFairnessCoverageReport?
+    public let coverageGaps: [String]
+    public let facts: [CityFairnessFact]
     /// Cohort N/D stays on the report. This page never carries a ratio; immature members still keep their rows.
     public var showsRatio: Bool { maturity == "MATURE" }
 }
 
-public struct CityFairnessCoverageItem: Equatable, Identifiable, Sendable {
-    public enum State: Equatable, Sendable { case unknown, missing, count(Int) }
-    public let source: String
-    public let state: State
-    public var id: String { source }
-}
-
-/// Provisional until hengyin publishes docs/contracts/w20-fairness-samples. Absent coverage is unknown, not zero.
-public struct CityFairnessCoverageReport: Equatable, Sendable, Decodable {
-    public let items: [CityFairnessCoverageItem]
-    public init(items: [CityFairnessCoverageItem]) { self.items = items }
-    public init(from decoder: Decoder) throws {
-        let items: [CityFairnessCoverageItem]
-        if var list = try? decoder.unkeyedContainer() {
-            var decoded: [CityFairnessCoverageItem] = []
-            while !list.isAtEnd {
-                if let name = try? list.decode(String.self) {
-                    guard CityFairnessRoute.validText(name, limit: 160) else { throw CityFairnessFailure.malformed }
-                    decoded.append(CityFairnessCoverageItem(source: name, state: .unknown))
-                } else {
-                    decoded.append(try list.decode(Row.self).item())
-                }
-            }
-            items = decoded
-        } else {
-            let map = try decoder.container(keyedBy: DynamicKey.self)
-            var decoded: [CityFairnessCoverageItem] = []
-            for key in map.allKeys.sorted(by: { $0.stringValue < $1.stringValue }) {
-                guard CityFairnessRoute.validText(key.stringValue, limit: 160) else { throw CityFairnessFailure.malformed }
-                if try map.decodeNil(forKey: key) {
-                    decoded.append(CityFairnessCoverageItem(source: key.stringValue, state: .unknown))
-                } else if let count = try? map.decode(Int.self, forKey: key) {
-                    guard (0...1_000_000).contains(count) else { throw CityFairnessFailure.malformed }
-                    decoded.append(CityFairnessCoverageItem(source: key.stringValue, state: .count(count)))
-                } else if let text = try? map.decode(String.self, forKey: key) {
-                    switch text {
-                    case "UNKNOWN": decoded.append(CityFairnessCoverageItem(source: key.stringValue, state: .unknown))
-                    case "MISSING": decoded.append(CityFairnessCoverageItem(source: key.stringValue, state: .missing))
-                    default: throw CityFairnessFailure.malformed
-                    }
-                } else { throw CityFairnessFailure.malformed }
-            }
-            items = decoded
-        }
-        guard Set(items.map(\.source)).count == items.count else { throw CityFairnessFailure.malformed }
-        self.items = items
-    }
-    private struct DynamicKey: CodingKey {
-        var stringValue: String
-        init?(stringValue: String) { self.stringValue = stringValue }
-        var intValue: Int? { nil }
-        init?(intValue: Int) { return nil }
-    }
-    private struct Row: Decodable {
-        let source, name, state, status: String?
-        let count: Int?
-        func item() throws -> CityFairnessCoverageItem {
-            guard let source = source ?? name, CityFairnessRoute.validText(source, limit: 160) else { throw CityFairnessFailure.malformed }
-            let label = state ?? status
-            if label == "UNKNOWN" || (label == nil && count == nil) { return CityFairnessCoverageItem(source: source, state: .unknown) }
-            if label == "MISSING" { return CityFairnessCoverageItem(source: source, state: .missing) }
-            if let count, label == nil || label == "PRESENT" {
-                guard (0...1_000_000).contains(count) else { throw CityFairnessFailure.malformed }
-                return CityFairnessCoverageItem(source: source, state: .count(count))
-            }
-            throw CityFairnessFailure.malformed
-        }
-    }
+/// A null count is missing. Zero is a real count and is not a percent.
+public struct CityFairnessFact: Equatable, Identifiable, Sendable {
+    public let id: String
+    public let name: String
+    public let count: Int?
+    public let text: String?
+    public var missing: Bool { count == nil && text == nil }
 }
 
 public enum CityFairnessReportRead: Equatable, Sendable {
@@ -169,14 +110,15 @@ public struct CityFairnessGap: Equatable, Sendable {
     public let formulaId: String
     public let factRevision: Int64?
     public let missing: [String]
-    public let coverage: CityFairnessCoverageReport?
+    public let coverageGaps: [String]
+    public let facts: [CityFairnessFact]
 }
 
 public enum CityFairnessScreen: Equatable, Sendable {
     case blocked, loading
-    case notComputable([String], CityFairnessCoverageReport?)
+    case notComputable([String], [String])
     case noMatureSample(CityFairnessGap)
-    case unknown(String?, CityFairnessCoverageReport?)
+    case unknown(String?, [String])
     case mature(CityFairnessPage)
     case failed(CityFairnessFailure)
 }
@@ -242,7 +184,7 @@ public struct CityFairnessRoute: Equatable {
         var fields = ["boardId": scope.boardID, "regionId": scope.regionID, "seasonId": scope.seasonID, "rulesVersion": scope.rulesVersion]
         if let queryID { fields["queryId"] = queryID }
         if let asOf { fields["asOf"] = String(asOf) }
-        if let cursor { fields["cursor"] = cursor }
+        if let cursor, cursor != "0" { fields["cursor"] = cursor }
         components.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
         guard let requestURL = components.url else { throw APIError.invalidRequest }
         var request = URLRequest(url: requestURL)
@@ -295,7 +237,7 @@ public enum CityFairnessWire {
     public static let candidateValue = "city-fairness"
     public static func report(data: Data, status: Int, scope: CityFairnessScope, accountID: Int, queryID: String, asOf: Int64, cursor requestedCursor: String?) throws -> CityFairnessReportRead {
         switch try open(data, status: status) {
-        case .notComputable(let missing): return .screen(.notComputable(missing, coverage(from: data)))
+        case .notComputable(let missing): return .screen(.notComputable(missing, gapNames(from: data)))
         case .envelope(let envelope):
             guard let payload = envelope.data else { throw CityFairnessFailure.malformed }
             guard owned(payload, accountID: accountID, queryID: queryID, asOf: asOf, scope: scope) else { return .discard }
@@ -312,12 +254,16 @@ public enum CityFairnessWire {
         }
     }
 
-    private static let unavailableTables: Set<String> = ["city_fairness_parameter", "city_fairness_event", "city_fairness_read"]
+    private static let unavailableTables: Set<String> = ["city_fairness_parameter", "city_fairness_event", "unavailable"]
     private static func open(_ data: Data, status: Int) throws -> Opened {
         if status == 401 { if let code = errorCode(data), code != "UNAUTHORIZED" { throw CityFairnessFailure.malformed }; throw CityFairnessFailure.unauthorized }
         if status == 403 { if let code = errorCode(data), code != "scope-rejected" { throw CityFairnessFailure.malformed }; throw CityFairnessFailure.forbidden }
         if status == 422 { return .notComputable(missing(data)) }
-        if status == 503 { guard let code = errorCode(data), unavailableTables.contains(code) else { throw CityFairnessFailure.malformed }; throw CityFairnessFailure.unavailable }
+        if status == 503 {
+            guard let code = errorCode(data), unavailableTables.contains(code) else { throw CityFairnessFailure.malformed }
+            if code == "unavailable", missing(data) != ["city_fairness_read"] { throw CityFairnessFailure.malformed }
+            throw CityFairnessFailure.unavailable
+        }
         if status == 400 { if let code = errorCode(data), !["queryId", "cursor", "asOf"].contains(code) { throw CityFairnessFailure.malformed }; throw CityFairnessFailure.malformed }
         if status == 409 { if let code = errorCode(data), code != "query-conflict" { throw CityFairnessFailure.malformed }; throw CityFairnessFailure.malformed }
         guard status == 200, !data.isEmpty else { throw CityFairnessFailure.malformed }
@@ -327,14 +273,15 @@ public enum CityFairnessWire {
     }
     private static func screen(_ payload: Payload, accountID: Int, queryID: String, requestedCursor: String?) throws -> CityFairnessScreen {
         guard try sameCursor(requestedCursor, payload.cursor) else { throw CityFairnessFailure.malformed }
-        if payload.maturity == "UNKNOWN" || payload.status == "UNKNOWN" { return .unknown(nil, payload.coverage) }
+        if payload.maturity == "UNKNOWN" || payload.status == "UNKNOWN" { return .unknown(nil, clean(payload.coverageGaps)) }
         guard payload.formulaId == formulaId else { throw CityFairnessFailure.malformed }
-        if payload.status == "NOT_COMPUTABLE" { return .notComputable(clean(payload.missing), payload.coverage) }
+        if payload.status == "NOT_COMPUTABLE" { return .notComputable(clean(payload.missing), clean(payload.coverageGaps)) }
         guard payload.status == "COMPUTABLE" else { throw CityFairnessFailure.unknown }
         let gaps = clean(payload.missing)
+        let shown = try presented(payload)
         if payload.matureCount == nil, payload.denominator == nil {
             guard payload.maturity == "NO_MATURE_SAMPLE", let asOf = stamp(payload.asOf) else { throw CityFairnessFailure.malformed }
-            return .noMatureSample(CityFairnessGap(asOf: asOf, metricVersion: try version(payload.metricVersion), formulaId: formulaId, factRevision: try revision(payload.factRevision), missing: gaps, coverage: payload.coverage))
+            return .noMatureSample(CityFairnessGap(asOf: asOf, metricVersion: try version(payload.metricVersion), formulaId: formulaId, factRevision: try revision(payload.factRevision), missing: gaps, coverageGaps: shown.gaps, facts: shown.facts))
         }
         guard payload.maturity == "COUNTED", let matureCount = payload.matureCount, let denominator = payload.denominator,
               denominator > 0, matureCount >= 0, matureCount <= denominator, matureCount <= 1_000_000, denominator <= 1_000_000,
@@ -349,7 +296,7 @@ public enum CityFairnessWire {
         let own = Int64(accountID)
         let showsRatio = members.allSatisfy { $0.actorId == own }
         let visible = showsRatio ? members : members.filter { $0.actorId == own }
-        return .mature(CityFairnessPage(queryID: queryID, matureCount: matureCount, denominator: denominator, asOf: asOf, metricVersion: metricVersion, formulaId: formulaId, factRevision: factRevision, members: visible, nextCursor: try cursor(payload.nextCursor), showsRatio: showsRatio, missing: gaps, coverage: payload.coverage))
+        return .mature(CityFairnessPage(queryID: queryID, matureCount: matureCount, denominator: denominator, asOf: asOf, metricVersion: metricVersion, formulaId: formulaId, factRevision: factRevision, members: visible, nextCursor: try cursor(payload.nextCursor), showsRatio: showsRatio, missing: gaps, coverageGaps: shown.gaps, facts: shown.facts))
     }
     private static func outingPage(_ payload: Payload, queryID: String, requestedCursor: String?) throws -> CityFairnessOutingPage {
         if payload.status == "NOT_COMPUTABLE" { throw CityFairnessFailure.notComputable }
@@ -357,6 +304,7 @@ public enum CityFairnessWire {
         guard payload.status == "COMPUTABLE", let asOf = stamp(payload.asOf), let maturity = payload.maturity, CityFairnessRoute.validText(maturity, limit: 64),
               let rows = payload.outings, rows.count <= 10_000, Set(rows.map(\.outingId)).count == rows.count else { throw CityFairnessFailure.malformed }
         if let formula = payload.formulaId, formula != formulaId { throw CityFairnessFailure.malformed }
+        let shown = try presented(payload)
         let factRevision = try revision(payload.factRevision)
         let metricVersion = try version(payload.metricVersion)
         let outings = try rows.map { row -> CityFairnessOwnOuting in
@@ -365,7 +313,7 @@ public enum CityFairnessWire {
                   row.metricVersion == payload.metricVersion, row.factRevision == payload.factRevision else { throw CityFairnessFailure.malformed }
             return CityFairnessOwnOuting(outingId: row.outingId, t0: row.t0, valid: row.valid, inWindow: row.inWindow, reason: CityFairnessOutingReason(row.reason), maturity: row.maturity, metricVersion: metricVersion, factRevision: factRevision)
         }
-        return CityFairnessOutingPage(queryID: queryID, asOf: asOf, metricVersion: metricVersion, factRevision: factRevision, maturity: maturity, t0: stamp(payload.t0), outings: outings, nextCursor: try cursor(payload.nextCursor), missing: clean(payload.missing), coverage: payload.coverage)
+        return CityFairnessOutingPage(queryID: queryID, asOf: asOf, metricVersion: metricVersion, factRevision: factRevision, maturity: maturity, t0: stamp(payload.t0), outings: outings, nextCursor: try cursor(payload.nextCursor), missing: clean(payload.missing), coverageGaps: shown.gaps, facts: shown.facts)
     }
     private static func owned(_ payload: Payload, accountID: Int, queryID: String, asOf: Int64, scope: CityFairnessScope) -> Bool {
         payload.accountId == accountID && payload.queryId == queryID && payload.asOf == asOf
@@ -380,7 +328,7 @@ public enum CityFairnessWire {
         return CityFairnessMember(outingId: row.outingId, actorId: row.actorId, maturity: row.maturity, reason: row.reason, t0: row.t0, newbieQueue: row.newbieQueue, secondOutingId: row.secondOutingId)
     }
     private static func missing(_ data: Data) -> [String] { clean((try? decoded(data))?.data?.missing) }
-    private static func coverage(from data: Data) -> CityFairnessCoverageReport? { (try? decoded(data))?.data?.coverage }
+    private static func gapNames(from data: Data) -> [String] { clean((try? decoded(data))?.data?.coverageGaps) }
     private static func errorCode(_ data: Data) -> String? { (try? decoded(data))?.data?.errorCode }
     private static func clean(_ values: [String]?) -> [String] {
         guard let values, values.count <= 32, values.allSatisfy({ CityFairnessRoute.validText($0, limit: 160) }) else { return [] }
@@ -402,12 +350,48 @@ public enum CityFairnessWire {
         guard let value, CityFairnessRoute.validCursor(value) else { throw CityFairnessFailure.malformed }
         return value
     }
-    /// First page only: a nil request and a "0" echo are the same offset. Later cursors stay exact.
+    /// Null is the canonical first-page cursor. A request of nil or "0" matches an echo of nil or "0". Later offsets stay exact.
     private static func sameCursor(_ requested: String?, _ echoed: String?) throws -> Bool {
         let left = try cursor(requested)
         let right = try cursor(echoed)
         if left == right { return true }
         return (left == nil || left == "0") && (right == nil || right == "0")
+    }
+    private static func presented(_ payload: Payload) throws -> (gaps: [String], facts: [CityFairnessFact]) {
+        guard let raw = payload.coverageGaps, raw.count <= 32, Set(raw).count == raw.count,
+              raw.allSatisfy({ CityFairnessRoute.validText($0, limit: 160) }) else { throw CityFairnessFailure.malformed }
+        return (raw, try facts(payload.groups))
+    }
+    private static func facts(_ groups: [GroupRow]?) throws -> [CityFairnessFact] {
+        guard let groups else { return [] }
+        guard groups.count <= 100 else { throw CityFairnessFailure.malformed }
+        var facts: [CityFairnessFact] = []
+        for (index, group) in groups.enumerated() {
+            func count(_ name: String, _ value: Int?) throws {
+                if let value, !(0...1_000_000).contains(value) { throw CityFairnessFailure.malformed }
+                facts.append(CityFairnessFact(id: "\(index).\(name)", name: name, count: value, text: nil))
+            }
+            try count("joinTime", group.joinTime)
+            try count("teamSize", group.teamSize)
+            try count("actionCost", group.actionCost)
+            if let text = group.newcomer {
+                guard CityFairnessRoute.validText(text, limit: 64) else { throw CityFairnessFailure.malformed }
+                facts.append(CityFairnessFact(id: "\(index).newcomer", name: "newcomer", count: nil, text: text))
+            } else {
+                facts.append(CityFairnessFact(id: "\(index).newcomer", name: "newcomer", count: nil, text: nil))
+            }
+            try count("goalCompletions", group.goalCompletions)
+            try count("effectiveGain", group.effectiveGain)
+            try count("topActorGain", group.topActorGain)
+            try count("totalGain", group.totalGain)
+            try count("zeroPointBlocks", group.zeroPointBlocks)
+            try count("challengeCompensationExits", group.challengeCompensationExits)
+            try count("gpsFalseRejections", group.gpsFalseRejections)
+            try count("safetyTickets", group.safetyTickets)
+            try count("merchantVerifications", group.merchantVerifications)
+            try count("merchantVerificationMillis", group.merchantVerificationMillis)
+        }
+        return facts
     }
     private static func decoded(_ data: Data) throws -> Envelope {
         do { return try JSONDecoder().decode(Envelope.self, from: data) } catch { throw CityFairnessFailure.malformed }
@@ -441,7 +425,49 @@ public enum CityFairnessWire {
         let outingClasses: [MemberRow]?
         let outings: [OwnRow]?
         let readBack: Bool?
-        let coverage: CityFairnessCoverageReport?
+        let coverageGaps: [String]?
+        let groups: [GroupRow]?
+    }
+    private struct GroupRow: Decodable {
+        let joinTime, teamSize, actionCost, goalCompletions, effectiveGain, topActorGain, totalGain: Int?
+        let zeroPointBlocks, challengeCompensationExits, gpsFalseRejections, safetyTickets, merchantVerifications, merchantVerificationMillis: Int?
+        let newcomer: String?
+    }
+}
+
+struct CityFairnessQueryIdentity: Codable, Equatable {
+    let queryID: String
+    let asOf: Int64
+    let boardID, regionID, seasonID, rulesVersion: String
+    let accountID: Int
+}
+
+enum CityFairnessQueryStore {
+    private static func key(_ accountID: Int) -> String { "cityFairness.query.\(accountID)" }
+    static func load(accountID: Int, scope: CityFairnessScope) -> CityFairnessQueryIdentity? {
+        guard let data = UserDefaults.standard.data(forKey: key(accountID)),
+              let identity = try? JSONDecoder().decode(CityFairnessQueryIdentity.self, from: data),
+              identity.accountID == accountID,
+              identity.boardID == scope.boardID, identity.regionID == scope.regionID,
+              identity.seasonID == scope.seasonID, identity.rulesVersion == scope.rulesVersion,
+              CityFairnessRoute.validQuery(identity.queryID), CityFairnessRoute.validStamp(identity.asOf) else { return nil }
+        return identity
+    }
+    static func save(_ identity: CityFairnessQueryIdentity) {
+        guard CityFairnessRoute.validQuery(identity.queryID), CityFairnessRoute.validStamp(identity.asOf),
+              let data = try? JSONEncoder().encode(identity) else { return }
+        UserDefaults.standard.set(data, forKey: key(identity.accountID))
+    }
+    static func clearOtherAccounts(_ accountID: Int) {
+        let keep = key(accountID)
+        for name in UserDefaults.standard.dictionaryRepresentation().keys where name.hasPrefix("cityFairness.query.") && name != keep {
+            UserDefaults.standard.removeObject(forKey: name)
+        }
+    }
+    static func clearAll() {
+        for name in UserDefaults.standard.dictionaryRepresentation().keys where name.hasPrefix("cityFairness.query.") {
+            UserDefaults.standard.removeObject(forKey: name)
+        }
     }
 }
 
@@ -458,9 +484,9 @@ public enum CityFairnessWire {
     private let transport: any HTTPTransport
     private let isCurrent: () -> Bool
     private let onUnauthorized: () -> Void
-    /// ponytail: queryId and asOf live on this reader. Restart restore is unsupported.
-    public static let restartRestoreSupported = false
-    private let queryID = UUID().uuidString
+    /// The original queryId and asOf are stored per account and reissued after a restart.
+    public static let restartRestoreSupported = true
+    private let queryID: String
     private var pinnedAsOf: Int64?
     private var foreground = true
     private var generation = UUID()
@@ -473,6 +499,19 @@ public enum CityFairnessWire {
     }
     public init(approval: CityFairnessReadApproval?, transport: any HTTPTransport, isCurrent: @escaping () -> Bool, onUnauthorized: @escaping () -> Void = {}) {
         self.approval = approval; self.transport = transport; self.isCurrent = isCurrent; self.onUnauthorized = onUnauthorized
+        if let approval {
+            let accountID = approval.context.session.accountID
+            CityFairnessQueryStore.clearOtherAccounts(accountID)
+            if let stored = CityFairnessQueryStore.load(accountID: accountID, scope: approval.scope) {
+                queryID = stored.queryID
+                pinnedAsOf = stored.asOf
+            } else {
+                queryID = UUID().uuidString
+            }
+        } else {
+            CityFairnessQueryStore.clearAll()
+            queryID = UUID().uuidString
+        }
     }
     deinit { task?.cancel() }
     public func setForeground(_ active: Bool) {
@@ -528,7 +567,7 @@ public enum CityFairnessWire {
                           incoming.showsRatio == current.showsRatio else { refreshing = false; return }
                     var seen = Set(current.members.map(\.id))
                     let added = incoming.members.filter { seen.insert($0.id).inserted }
-                    let merged = CityFairnessPage(queryID: current.queryID, matureCount: current.matureCount, denominator: current.denominator, asOf: current.asOf, metricVersion: current.metricVersion, formulaId: current.formulaId, factRevision: current.factRevision, members: current.members + added, nextCursor: incoming.nextCursor, showsRatio: current.showsRatio, missing: current.missing, coverage: current.coverage)
+                    let merged = CityFairnessPage(queryID: current.queryID, matureCount: current.matureCount, denominator: current.denominator, asOf: current.asOf, metricVersion: current.metricVersion, formulaId: current.formulaId, factRevision: current.factRevision, members: current.members + added, nextCursor: incoming.nextCursor, showsRatio: current.showsRatio, missing: current.missing, coverageGaps: current.coverageGaps, facts: current.facts)
                     page = merged
                     screen = .mature(merged)
                 } else {
@@ -569,7 +608,7 @@ public enum CityFairnessWire {
                     guard sameSnapshot(incoming.queryID, incoming.asOf, incoming.metricVersion, incoming.factRevision, current) else { outingRefreshing = false; return }
                     var seen = Set(current.outings.map(\.id))
                     let added = incoming.outings.filter { seen.insert($0.id).inserted }
-                    outingPage = CityFairnessOutingPage(queryID: current.queryID, asOf: current.asOf, metricVersion: current.metricVersion, factRevision: current.factRevision, maturity: current.maturity, t0: current.t0, outings: current.outings + added, nextCursor: incoming.nextCursor, missing: current.missing, coverage: current.coverage)
+                    outingPage = CityFairnessOutingPage(queryID: current.queryID, asOf: current.asOf, metricVersion: current.metricVersion, factRevision: current.factRevision, maturity: current.maturity, t0: current.t0, outings: current.outings + added, nextCursor: incoming.nextCursor, missing: current.missing, coverageGaps: current.coverageGaps, facts: current.facts)
                 } else if cursor == nil {
                     outingPage = incoming
                 }
@@ -597,7 +636,12 @@ public enum CityFairnessWire {
         let now = Int64((Date().timeIntervalSince1970 * 1000).rounded())
         let pinned = CityFairnessRoute.validStamp(now) ? now : 0
         pinnedAsOf = pinned
+        saveIdentity(asOf: pinned)
         return pinned
+    }
+    private func saveIdentity(asOf: Int64) {
+        guard let approval else { return }
+        CityFairnessQueryStore.save(CityFairnessQueryIdentity(queryID: queryID, asOf: asOf, boardID: approval.scope.boardID, regionID: approval.scope.regionID, seasonID: approval.scope.seasonID, rulesVersion: approval.scope.rulesVersion, accountID: approval.context.session.accountID))
     }
     private static func failure(_ error: Error) -> CityFairnessFailure {
         if let failure = error as? CityFairnessFailure { return failure }

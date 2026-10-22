@@ -1,0 +1,68 @@
+{
+  "code": 200,
+  "msg": "操作成功",
+  "data": {
+    "accountId": 7,
+    "queryId": "q-empty",
+    "asOf": 7000,
+    "metricVersion": "metric-1",
+    "formulaId": "city-fairness-cohort-v1",
+    "factRevision": 6200,
+    "matureCount": null,
+    "denominator": null,
+    "boardId": "board-1",
+    "regionId": "region-1",
+    "seasonId": "season-1",
+    "rulesVersion": "rules-1",
+    "status": "COMPUTABLE",
+    "maturity": "NO_MATURE_SAMPLE",
+    "missing": [],
+    "coverageGaps": ["revenue", "gps-false-rejections", "safety-tickets", "verification-latency"],
+    "groups": [
+      {
+        "joinTime": 1000,
+        "teamSize": 2,
+        "actionCost": 3,
+        "newcomer": "NEWCOMER",
+        "goalCompletions": 0,
+        "effectiveGain": null,
+        "topActorGain": null,
+        "totalGain": null,
+        "zeroPointBlocks": 0,
+        "challengeCompensationExits": 0,
+        "gpsFalseRejections": null,
+        "safetyTickets": null,
+        "merchantVerifications": null,
+        "merchantVerificationMillis": null
+      }
+    ],
+    "members": [
+      {
+        "outingId": "o1",
+        "actorId": 7,
+        "maturity": "IMMATURE",
+        "reason": "awaiting-maturity",
+        "t0": 6000,
+        "newbieQueue": "NEWCOMER",
+        "secondOutingId": null
+      }
+    ],
+    "outingClasses": [
+      {
+        "outingId": "o1",
+        "actorId": 7,
+        "maturity": "IMMATURE",
+        "reason": "awaiting-maturity",
+        "t0": 6000,
+        "newbieQueue": "NEWCOMER",
+        "secondOutingId": null
+      }
+    ],
+    "secondOutings": [],
+    "lateEvents": [],
+    "cursor": null,
+    "nextCursor": null,
+    "readBack": false
+  },
+  "candidate": true
+}

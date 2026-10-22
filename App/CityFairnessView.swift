@@ -49,19 +49,19 @@ struct CityFairnessView: View {
             Text("fairness.blocked", tableName: "CityFairness")
         case .loading:
             ProgressView { Text("fairness.loading", tableName: "CityFairness") }
-        case .notComputable(let missing, let coverage):
+        case .notComputable(let missing, let gaps):
             Text("fairness.notComputable", tableName: "CityFairness")
             if !missing.isEmpty { reasonLine(missing.joined(separator: "\n")) }
-            cityFairnessCoverage(coverage)
+            cityFairnessFacts(gaps, [])
         case .noMatureSample(let gap):
             Text("fairness.noMatureSample", tableName: "CityFairness")
             stamp(gap.asOf, metricVersion: gap.metricVersion, formulaId: gap.formulaId, factRevision: gap.factRevision)
             if !gap.missing.isEmpty { reasonLine(gap.missing.joined(separator: "\n")) }
-            cityFairnessCoverage(gap.coverage)
-        case .unknown(let reason, let coverage):
+            cityFairnessFacts(gap.coverageGaps, gap.facts)
+        case .unknown(let reason, let gaps):
             Text("fairness.unknown", tableName: "CityFairness")
             if let reason { reasonLine(reason) }
-            cityFairnessCoverage(coverage)
+            cityFairnessFacts(gaps, [])
         case .failed(let failure):
             failureText(failure)
         case .mature(let page):
@@ -73,7 +73,7 @@ struct CityFairnessView: View {
             }
             stamp(page.asOf, metricVersion: page.metricVersion, formulaId: page.formulaId, factRevision: page.factRevision)
             if !page.missing.isEmpty { reasonLine(page.missing.joined(separator: "\n")) }
-            cityFairnessCoverage(page.coverage)
+            cityFairnessFacts(page.coverageGaps, page.facts)
             Text("fairness.readOnly", tableName: "CityFairness")
             if page.members.isEmpty { Text("fairness.emptyEvidence", tableName: "CityFairness") }
             ForEach(page.members) { member in
@@ -134,7 +134,7 @@ struct CityFairnessEvidenceView: View {
                     Text("fairness.readOnly", tableName: "CityFairness")
                     if page.maturity == "UNKNOWN" { Text("fairness.unknown", tableName: "CityFairness") }
                     if !page.missing.isEmpty { reasonLine(page.missing.joined(separator: "\n")) }
-                    cityFairnessCoverage(page.coverage)
+                    cityFairnessFacts(page.coverageGaps, page.facts)
                     if page.outings.isEmpty { Text("fairness.emptyEvidence", tableName: "CityFairness") }
                     ForEach(page.outings) { outing in
                         VStack(alignment: .leading, spacing: 4) {
@@ -205,19 +205,16 @@ struct CityFairnessEvidenceView: View {
     }
 }
 
-@ViewBuilder func cityFairnessCoverage(_ coverage: CityFairnessCoverageReport?) -> some View {
+@ViewBuilder func cityFairnessFacts(_ gaps: [String], _ facts: [CityFairnessFact]) -> some View {
     Text("fairness.coverage", tableName: "CityFairness")
-    if let coverage {
-        ForEach(coverage.items) { item in
-            Text(verbatim: item.source)
-            switch item.state {
-            case .unknown, .missing:
-                Text("fairness.unknown", tableName: "CityFairness")
-            case .count(let count):
-                Text(verbatim: String(count))
-            }
-        }
-    } else {
+    ForEach(Array(gaps.enumerated()), id: \.offset) { _, gap in
+        Text(verbatim: gap)
         Text("fairness.unknown", tableName: "CityFairness")
+    }
+    ForEach(facts) { fact in
+        Text(verbatim: fact.name)
+        if fact.missing { Text("fairness.unknown", tableName: "CityFairness") }
+        else if let count = fact.count { Text(verbatim: String(count)) }
+        else if let text = fact.text { Text(verbatim: text) }
     }
 }
