@@ -213,6 +213,7 @@ final class ChapterReplacementInvitationCoordinatorTests: XCTestCase {
         var ownerListRows: [MerchantContentValue] = []
         var ownerMineRows: [MerchantContentValue] = []
         var sendError: Error?
+        var releaseError: Error?
         var sends = 0
         var candidateRequests: [ChapterReplacementInvitationInvitableRequest] = []
         var vacancyLoads = 0
@@ -225,7 +226,8 @@ final class ChapterReplacementInvitationCoordinatorTests: XCTestCase {
             loadExistingRows: { _, _ in fake.existingRows },
             sendInvite: { _ in fake.sends += 1; if let error = fake.sendError { throw error } },
             loadOwnerListRows: { _ in fake.ownerListRows },
-            loadOwnerMineRows: { _ in fake.ownerMineRows }), intents: intents)
+            loadOwnerMineRows: { _ in fake.ownerMineRows },
+            releaseInviteLock: { _ in if let error = fake.releaseError { throw error } }), intents: intents)
     }
 
     private var vacancyJSON: String { #"{"offerId":900,"topicId":70,"chapterId":7,"status":0,"withdrawReason":"原商家退出","merchantMemberId":11}"# }
@@ -335,5 +337,77 @@ final class ChapterReplacementInvitationCoordinatorTests: XCTestCase {
         await blocked.confirmSend()
         XCTAssertEqual(fake.sends, 1)
         XCTAssertEqual(blocked.phase, .failed(.unknown))
+    }
+
+    func testReleaseFailureStaysUnknownAndDoesNotResend() async throws {
+        let fake = Fake()
+        let intents = ChapterReplacementInvitationMemoryIntents()
+        let coordinator = try await readyCoordinator(fake, intents: intents)
+        fake.sendError = ChapterReplacementInvitationFailure.unknown
+        await coordinator.prepare(candidate: coordinator.candidates[0], scope: .currentMember,
+                                  merchantAccess: nil, publisherProof: proof())
+        await coordinator.confirmSend()
+        fake.ownerMineRows = [try value(landedJSON)]
+        fake.releaseError = ChapterReplacementInvitationFailure.unknown
+        await coordinator.verifyUnknown()
+        XCTAssertEqual(fake.sends, 1)
+        guard case .unknown = coordinator.phase else { return XCTFail("expected unknown, got \(coordinator.phase)") }
+        XCTAssertNotNil(try intents.load())
+    }
+}
+
+@MainActor
+final class ChapterInviteLockReleaseTests: XCTestCase {
+    private struct DeadTransport: HTTPTransport {
+        func send(_ request: URLRequest) async throws -> (Data, Int) { throw APIError.notConfigured }
+    }
+
+    private func plan(actor: Int = 5, scope: ChapterReplacementInvitationScope = .currentMember) -> ChapterReplacementInvitationPlan {
+        let vacancy = ChapterReplacementInvitationVacancy(lockedOfferID: 900, topicID: 70, chapterID: 7)
+        let candidate = ChapterReplacementInvitationCandidate(merchantMemberID: 42, chapterID: 7, replacementOfOfferID: 900)
+        return ChapterReplacementInvitationPlan(topicID: 70, vacancy: vacancy, candidate: candidate,
+                                                scope: scope, actorAccountID: actor, message: nil)
+    }
+
+    private func row(scope: String = "cn", account: Int = 5, merchant: Int = 31, target: String) -> MerchantContentPendingRecord {
+        MerchantContentPendingRecord(storageScope: scope, accountID: account, merchantID: merchant, target: target, action: "invite", station: nil)
+    }
+
+    private func service(session: MerchantContentSession?, journal: MerchantContentMemoryPendingStorage) -> MerchantContentService {
+        MerchantContentService(configuration: nil, transport: DeadTransport(), currentSession: { session }, journal: journal)
+    }
+
+    func testReadbackClearsOnlyTheMatchingInviteRow() async throws {
+        let session = try MerchantContentSession(accountID: 5, epoch: 1, storageScope: "cn", token: "token")
+        let journal = MerchantContentMemoryPendingStorage()
+        let match = row(target: "invite:7:42:900:SELF:1")
+        let otherTuple = row(target: "invite:8:42:900:SELF:0")
+        try journal.insert(match); try journal.insert(otherTuple)
+        let content = service(session: session, journal: journal)
+        try content.releaseChapterReplacementInviteLock(plan())
+        let left = try journal.records()
+        XCTAssertFalse(left.contains(match))
+        XCTAssertTrue(left.contains(otherTuple))
+        try content.releaseChapterReplacementInviteLock(plan())
+        let otherAccountJournal = MerchantContentMemoryPendingStorage()
+        let otherAccount = row(account: 6, target: "invite:7:42:900:SELF:0")
+        try otherAccountJournal.insert(otherAccount)
+        XCTAssertThrowsError(try service(session: session, journal: otherAccountJournal).releaseChapterReplacementInviteLock(plan()))
+        XCTAssertEqual(try otherAccountJournal.records(), [otherAccount])
+
+        let ambiguous = MerchantContentMemoryPendingStorage()
+        try ambiguous.insert(row(target: "invite:7:42:900:SELF:0"))
+        try ambiguous.insert(row(merchant: 32, target: "invite:7:42:900:SELF:1"))
+        XCTAssertThrowsError(try service(session: session, journal: ambiguous).releaseChapterReplacementInviteLock(plan()))
+        XCTAssertEqual(try ambiguous.records().count, 2)
+
+        let kept = MerchantContentMemoryPendingStorage()
+        let foreign = row(scope: "us", target: "invite:7:42:900:SELF:0")
+        try kept.insert(foreign)
+        XCTAssertThrowsError(try service(session: session, journal: kept).releaseChapterReplacementInviteLock(plan()))
+        XCTAssertThrowsError(try service(session: nil, journal: kept).releaseChapterReplacementInviteLock(plan()))
+        let other = try MerchantContentSession(accountID: 6, epoch: 1, storageScope: "cn", token: "token")
+        XCTAssertThrowsError(try service(session: other, journal: kept).releaseChapterReplacementInviteLock(plan()))
+        XCTAssertEqual(try kept.records(), [foreign])
     }
 }

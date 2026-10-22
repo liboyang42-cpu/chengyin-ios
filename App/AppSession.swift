@@ -3582,6 +3582,19 @@ final class AppSession: ObservableObject {
             guard let self, self.currentRuntimeDependencyContext == context else { return .init() }
             return self.activityEditingApproval(context)
         }
+        compositionTransport.chapterInviteExecution = { [weak self] context in
+            guard let self, self.currentRuntimeDependencyContext == context else { return false }
+            return self.merchantContentWriteApproval(context).chapterInvite
+        }
+        compositionTransport.chapterRespondExecution = { [weak self] context in
+            guard let self, self.currentRuntimeDependencyContext == context else { return false }
+            return self.merchantContentWriteApproval(context).chapterRespond
+        }
+        compositionTransport.offerWithdrawExecution = { [weak self] context, id, reason in
+            guard let self, self.currentRuntimeDependencyContext == context,
+                  let approval = self.coopFlowExecutionApproval(context) else { return false }
+            return approval.permits(.withdrawOffer(id: id, reason: reason), endpoint: context.baseURL)
+        }
         compositionTransport.current = { [weak self] in
             guard let self, !self.committingAuthenticatedSession else { return nil }
             return .init(epoch: self.gate.currentStamp, accountID: self.account?.id,

@@ -90,19 +90,23 @@ public struct ChapterReplacementInvitationEffects {
     public var sendInvite: (ChapterReplacementInvitationPlan) async throws -> Void
     public var loadOwnerListRows: (ChapterReplacementInvitationOwnerListRequest) async throws -> [MerchantContentValue]
     public var loadOwnerMineRows: (ChapterReplacementInvitationOwnerMineRequest) async throws -> [MerchantContentValue]
+    /// Drops the one content-journal invite row for this tuple. Does not send.
+    public var releaseInviteLock: (ChapterReplacementInvitationPlan) async throws -> Void
 
     public init(loadVacancyRows: @escaping (Int) async throws -> [MerchantContentValue],
                 loadCandidateRows: @escaping (ChapterReplacementInvitationInvitableRequest) async throws -> [MerchantContentValue],
                 loadExistingRows: @escaping (Int, ChapterReplacementInvitationScope) async throws -> [MerchantContentValue],
                 sendInvite: @escaping (ChapterReplacementInvitationPlan) async throws -> Void,
                 loadOwnerListRows: @escaping (ChapterReplacementInvitationOwnerListRequest) async throws -> [MerchantContentValue],
-                loadOwnerMineRows: @escaping (ChapterReplacementInvitationOwnerMineRequest) async throws -> [MerchantContentValue]) {
+                loadOwnerMineRows: @escaping (ChapterReplacementInvitationOwnerMineRequest) async throws -> [MerchantContentValue],
+                releaseInviteLock: @escaping (ChapterReplacementInvitationPlan) async throws -> Void) {
         self.loadVacancyRows = loadVacancyRows
         self.loadCandidateRows = loadCandidateRows
         self.loadExistingRows = loadExistingRows
         self.sendInvite = sendInvite
         self.loadOwnerListRows = loadOwnerListRows
         self.loadOwnerMineRows = loadOwnerMineRows
+        self.releaseInviteLock = releaseInviteLock
     }
 }
 
@@ -292,7 +296,10 @@ public final class ChapterReplacementInvitationCoordinator {
                 ChapterReplacementInvitationOwnerMineRequest(scope: plan.scope))
             guard ticket == generation, topicID == plan.topicID, actorAccountID == plan.actorAccountID else { return }
             let verified = try ChapterReplacementInvitationReadback.verify(ownerList: list, ownerMine: mine, plan: plan)
-            do { try intents.clear(ChapterReplacementInvitationIntent(plan: plan)) } catch {
+            do {
+                try await effects.releaseInviteLock(plan)
+                try intents.clear(ChapterReplacementInvitationIntent(plan: plan))
+            } catch {
                 guard ticket == generation else { return }
                 phase = .unknown(plan)
                 return

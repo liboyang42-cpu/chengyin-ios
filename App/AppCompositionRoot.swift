@@ -291,6 +291,11 @@ extension KeychainTokenStore: AppTokenStorage {}
     var publisherIdentityRegistrationApproval: @MainActor (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() }
     var activityCoverApproval: @MainActor (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil }
     var activityEditingApproval: @MainActor (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() }
+    /// Chapter invite, invite response, and offer withdraw. Each stays closed until AppSession
+    /// wires the existing approval. A true flag still cannot admit a different path or body.
+    var chapterInviteExecution: @MainActor (RuntimeDependencyContext) -> Bool = { _ in false }
+    var chapterRespondExecution: @MainActor (RuntimeDependencyContext) -> Bool = { _ in false }
+    var offerWithdrawExecution: @MainActor (RuntimeDependencyContext, Int, String) -> Bool = { _, _, _ in false }
     var workshopPaidInstallBeforeForward: (() async -> Void)?
     struct SessionIdentity: Equatable {
         let epoch: UInt64
@@ -1701,6 +1706,24 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if let route = PublicTopicTemplateReadRoute(url: url, baseURL: api.baseURL) {
             guard deployment.reads.contains(.publicTopicTemplateCatalogAndDetail),
                   route.accepts(request), captured.isPublicTemplateViewer else { throw APIError.notConfigured }
+        } else if let exit = ChapterWriteExit.match(request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            let allowed: Bool
+            switch exit {
+            case .invite: allowed = chapterInviteExecution(context)
+            case .respond: allowed = chapterRespondExecution(context)
+            case .withdraw(let id, let reason): allowed = offerWithdrawExecution(context, id, reason)
+            }
+            guard allowed else { throw APIError.notConfigured }
+            readApprovalStillValid = {
+                switch exit {
+                case .invite: return self.chapterInviteExecution(context)
+                case .respond: return self.chapterRespondExecution(context)
+                case .withdraw(let id, let reason): return self.offerWithdrawExecution(context, id, reason)
+                }
+            }
         } else {
             guard request.httpMethod == "POST", deployment.reads.contains(.homeAndSearch),
                   captured.isPublicTemplateViewer,
@@ -1732,6 +1755,59 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard current() == captured, !Task.isCancelled, readApprovalStillValid?() != false else { throw CancellationError() }
             throw error
         }
+    }
+}
+
+/// Exact invite, invite-respond, and offer-withdraw bodies. Anything else, including a
+/// prefix of the path or an extra JSON key, is not a match and stays on the default deny.
+private enum ChapterWriteExit {
+    case invite, respond, withdraw(id: Int, reason: String)
+    static func match(_ request: URLRequest, baseURL: URL) -> Self? {
+        guard request.httpMethod == "POST", request.url?.query == nil, request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              request.value(forHTTPHeaderField: "Cookie") == nil,
+              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+              let url = request.url, let body = request.httpBody else { return nil }
+        let respond = baseURL.appendingPathComponent("api/merchant/chapter-application/invite/respond").absoluteString
+        let invite = baseURL.appendingPathComponent("api/merchant/chapter-application/invite").absoluteString
+        let withdraw = baseURL.appendingPathComponent(MerchantOfferWithdrawalRequest.path).absoluteString
+        if url.absoluteString == respond { return respondBody(body) ? .respond : nil }
+        if url.absoluteString == invite { return inviteBody(body) ? .invite : nil }
+        if url.absoluteString == withdraw, let parsed = withdrawBody(body) { return .withdraw(id: parsed.0, reason: parsed.1) }
+        return nil
+    }
+    private static func sameJSON(_ fields: [String: MerchantContentValue], _ body: Data) -> Bool {
+        (try? JSONEncoder().encode(fields)) == body
+    }
+    private static func inviteBody(_ body: Data) -> Bool {
+        guard let object = (try? JSONDecoder().decode(MerchantContentValue.self, from: body))?.object,
+              Set(object.keys).isSubset(of: ["chapterId", "merchantMemberId", "replacementOfOfferId", "scope", "message"]),
+              let chapter = object["chapterId"]?.safeInteger, chapter > 0,
+              let member = object["merchantMemberId"]?.safeInteger, member > 0,
+              let replacement = object["replacementOfOfferId"]?.safeInteger, replacement > 0 else { return false }
+        var fields: [String: MerchantContentValue] = ["chapterId": .integer(chapter), "merchantMemberId": .integer(member), "replacementOfOfferId": .integer(replacement)]
+        if object["scope"] != nil { guard object["scope"]?.text == "MERCHANT" else { return false }; fields["scope"] = .string("MERCHANT") }
+        if object["message"] != nil {
+            guard let message = object["message"]?.text, !message.isEmpty, message == message.trimmingCharacters(in: .whitespacesAndNewlines) else { return false }
+            fields["message"] = .string(message)
+        }
+        return Set(object.keys) == Set(fields.keys) && sameJSON(fields, body)
+    }
+    private static func respondBody(_ body: Data) -> Bool {
+        guard let object = (try? JSONDecoder().decode(MerchantContentValue.self, from: body))?.object,
+              Set(object.keys) == ["applicationId", "accepted"],
+              let id = object["applicationId"]?.safeInteger, id > 0, let accepted = object["accepted"]?.flag else { return false }
+        return sameJSON(["applicationId": .integer(id), "accepted": .bool(accepted)], body)
+    }
+    private static func withdrawBody(_ body: Data) -> (Int, String)? {
+        guard case .object(let object) = try? JSONDecoder().decode(CoopFlowJSON.self, from: body),
+              Set(object.keys) == ["offerId", "reason"],
+              case .number(let offer) = object["offerId"], case .string(let reason) = object["reason"],
+              let id = Int(NSDecimalNumber(decimal: offer).stringValue), id > 0, Decimal(id) == offer,
+              (try? MerchantOfferWithdrawalReason(raw: reason))?.value == reason,
+              let canonical = try? CoopFlowMutation.withdrawOffer(id: id, reason: reason).body().canonical(),
+              canonical == body else { return nil }
+        return (id, reason)
     }
 }
 

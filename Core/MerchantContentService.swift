@@ -392,6 +392,24 @@ public struct MerchantContentWriteApproval: Equatable {
         if verdict.clearsIntentLock { try ensure(session); try journal.remove(key: record.key) }
         return verdict
     }
+    /// After a successful C9 readback, remove the one invite row for this account,
+    /// namespace, and chapter/member/replacement/scope. The message bit is ignored.
+    /// Another account, another namespace, or two matching rows leaves every row in place.
+    public func releaseChapterReplacementInviteLock(_ plan: ChapterReplacementInvitationPlan) throws {
+        guard let session = currentSession(), session.accountID == plan.actorAccountID, let journal else {
+            throw ChapterReplacementInvitationFailure.unknown
+        }
+        let scope = plan.scope.wireValue ?? "SELF"
+        let prefix = "invite:\(plan.candidate.chapterID):\(plan.candidate.merchantMemberID):\(plan.candidate.replacementOfOfferID):\(scope):"
+        let tuple = try journal.records().filter { row in
+            guard row.action == "invite", row.station == nil, row.target.hasPrefix(prefix) else { return false }
+            let bit = row.target.dropFirst(prefix.count)
+            return bit == "0" || bit == "1"
+        }
+        let mine = tuple.filter { $0.accountID == session.accountID && $0.storageScope == session.storageScope }
+        if tuple.count != mine.count || mine.count > 1 { throw ChapterReplacementInvitationFailure.unknown }
+        if let row = mine.first { try journal.remove(key: row.key) }
+    }
     public func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt {
         guard let session = currentSession(), record.storageScope == session.storageScope, record.accountID == session.accountID,
               let journal, try journal.records().contains(record), let command = record.station else { throw MerchantContentFailure.locked }
@@ -482,6 +500,10 @@ extension MerchantContentService {
             loadOwnerMineRows: { [weak self] request in
                 guard let self else { throw ChapterReplacementInvitationFailure.unknown }
                 return try await self.chapterReplacementRows(path: ChapterReplacementInvitationOwnerMineRequest.path, fields: request.fields(), gate: .projects)
+            },
+            releaseInviteLock: { [weak self] plan in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                try self.releaseChapterReplacementInviteLock(plan)
             })
     }
     /// Fresh `api/topic/info-to-user` for this signed-in member only.

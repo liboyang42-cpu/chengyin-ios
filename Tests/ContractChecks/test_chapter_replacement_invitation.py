@@ -145,12 +145,18 @@ class ChapterReplacementInvitationContracts(unittest.TestCase):
         allowed_shared = {
             "Core/MerchantContentCommands.swift",
             "Core/MerchantContentService.swift",
+            "Core/CooperationFlowCoordinator.swift",
+            "Core/CooperationFlowService.swift",
+            "Core/CooperationProtectedDispatch.swift",
             "App/MerchantContentViews.swift",
             "App/MerchantHomeView.swift",
             "App/AppSession.swift",
+            "App/AppCompositionRoot.swift",
             "App/MerchantOfferWithdrawalHostView.swift",
             "Resources/Localizable.xcstrings",
+            "Tests/ContractChecks/test_chapter_execution_approval.py",
             "Tests/ContractChecks/test_chapter_replacement_invitation.py",
+            "Tests/CoreTests/CooperationProtectedDispatchTests.swift",
         }
         for forbidden in ("Core/MerchantContentDomain.swift", "Core/MerchantContentCoordinator.swift"):
             self.assertNotIn(forbidden, out)
@@ -179,7 +185,8 @@ class ChapterReplacementInvitationContracts(unittest.TestCase):
         self.assertNotIn("info-to-merchant", proof)
         self.assertIn("fromFreshTopicRead", proof)
         invite = service.split("sendInvite:")[1].split("loadOwnerListRows:")[0]
-        self.assertIn("guard self.permitsWrites else { throw ChapterReplacementInvitationFailure.denied }", invite)
+        self.assertIn("guard self.permits(.invite(", invite)
+        self.assertNotIn("permitsWrites", invite)
         self.assertIn("catch MerchantContentFailure.disabled", invite)
         self.assertIn("merchantChapterReplacementContext", home)
         self.assertIn("coordinates: nil", home)
