@@ -35,11 +35,12 @@ struct CityFairnessView: View {
             guard visible, scenePhase == .active, !Task.isCancelled else { return }
             await reader.restoreSameQuery()
         }
-        .onAppear { visible = true; readRequest = UUID() }
+        .onAppear { visible = true; reader.setForeground(scenePhase == .active); readRequest = UUID() }
         .onChange(of: scenePhase) { _, phase in
+            reader.setForeground(phase == .active)
             if phase == .active { readRequest = UUID() }
         }
-        .onDisappear { visible = false }
+        .onDisappear { visible = false; reader.setForeground(false) }
     }
 
     @ViewBuilder private var screenBody: some View {
@@ -48,21 +49,31 @@ struct CityFairnessView: View {
             Text("fairness.blocked", tableName: "CityFairness")
         case .loading:
             ProgressView { Text("fairness.loading", tableName: "CityFairness") }
-        case .notComputable(let missing):
+        case .notComputable(let missing, let coverage):
             Text("fairness.notComputable", tableName: "CityFairness")
             if !missing.isEmpty { reasonLine(missing.joined(separator: "\n")) }
+            cityFairnessCoverage(coverage)
         case .noMatureSample(let gap):
             Text("fairness.noMatureSample", tableName: "CityFairness")
             stamp(gap.asOf, metricVersion: gap.metricVersion, formulaId: gap.formulaId, factRevision: gap.factRevision)
-        case .unknown(let reason):
+            if !gap.missing.isEmpty { reasonLine(gap.missing.joined(separator: "\n")) }
+            cityFairnessCoverage(gap.coverage)
+        case .unknown(let reason, let coverage):
             Text("fairness.unknown", tableName: "CityFairness")
             if let reason { reasonLine(reason) }
+            cityFairnessCoverage(coverage)
         case .failed(let failure):
             failureText(failure)
         case .mature(let page):
-            Text("fairness.ratio", tableName: "CityFairness")
-            Text(verbatim: page.ratioText)
+            if page.showsRatio {
+                Text("fairness.ratio", tableName: "CityFairness")
+                Text(verbatim: page.ratioText)
+            } else {
+                Text("fairness.unknown", tableName: "CityFairness")
+            }
             stamp(page.asOf, metricVersion: page.metricVersion, formulaId: page.formulaId, factRevision: page.factRevision)
+            if !page.missing.isEmpty { reasonLine(page.missing.joined(separator: "\n")) }
+            cityFairnessCoverage(page.coverage)
             Text("fairness.readOnly", tableName: "CityFairness")
             if page.members.isEmpty { Text("fairness.emptyEvidence", tableName: "CityFairness") }
             ForEach(page.members) { member in
@@ -121,6 +132,9 @@ struct CityFairnessEvidenceView: View {
             VStack(alignment: .leading, spacing: 12) {
                 if let page = reader.outingPage {
                     Text("fairness.readOnly", tableName: "CityFairness")
+                    if page.maturity == "UNKNOWN" { Text("fairness.unknown", tableName: "CityFairness") }
+                    if !page.missing.isEmpty { reasonLine(page.missing.joined(separator: "\n")) }
+                    cityFairnessCoverage(page.coverage)
                     if page.outings.isEmpty { Text("fairness.emptyEvidence", tableName: "CityFairness") }
                     ForEach(page.outings) { outing in
                         VStack(alignment: .leading, spacing: 4) {
@@ -141,6 +155,8 @@ struct CityFairnessEvidenceView: View {
                         Button { Task { await reader.nextOutings() } } label: { Text("fairness.next", tableName: "CityFairness") }
                             .disabled(reader.outingRefreshing)
                     }
+                    Button { Task { await reader.loadOutings() } } label: { Text("fairness.refresh", tableName: "CityFairness") }
+                        .disabled(reader.outingRefreshing)
                 } else if reader.outingBlocked {
                     Text("fairness.blocked", tableName: "CityFairness")
                 } else if let failure = reader.outingFailure {
@@ -179,5 +195,29 @@ struct CityFairnessEvidenceView: View {
         case .malformed: Text("fairness.malformed", tableName: "CityFairness")
         case .unknown: Text("fairness.unknown", tableName: "CityFairness")
         }
+    }
+
+    private func reasonLine(_ reason: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("fairness.missingReason", tableName: "CityFairness")
+            Text(verbatim: reason)
+        }
+    }
+}
+
+@ViewBuilder func cityFairnessCoverage(_ coverage: CityFairnessCoverageReport?) -> some View {
+    Text("fairness.coverage", tableName: "CityFairness")
+    if let coverage {
+        ForEach(coverage.items) { item in
+            Text(verbatim: item.source)
+            switch item.state {
+            case .unknown, .missing:
+                Text("fairness.unknown", tableName: "CityFairness")
+            case .count(let count):
+                Text(verbatim: String(count))
+            }
+        }
+    } else {
+        Text("fairness.unknown", tableName: "CityFairness")
     }
 }

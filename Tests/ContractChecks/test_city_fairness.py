@@ -1,4 +1,4 @@
-"""CITY fairness read aligned to hengyin B4-1 5af8ba54. Swift compile and XCTest are NOT_RUN."""
+"""CITY fairness read. Group A samples were absent at hengyin 9ff759d2. Swift compile and XCTest are NOT_RUN."""
 from pathlib import Path
 import json
 import re
@@ -116,7 +116,7 @@ def classify_outing(status, body, account_id=7, query_id="q1", as_of=1_700_000_0
         return "discard", None, None, False
     if any(data.get(key) != value for key, value in SCOPE.items()):
         return "discard", None, None, False
-    if data.get("cursor") != requested_cursor:
+    if not same_cursor(requested_cursor, data.get("cursor")):
         return "malformed", None, None, False
     if data.get("status") != "COMPUTABLE" or data.get("formulaId") not in (None, FORMULA):
         return "malformed", None, None, False
@@ -134,6 +134,32 @@ def classify_outing(status, body, account_id=7, query_id="q1", as_of=1_700_000_0
     if len(ids) != len(set(ids)):
         return "malformed", None, None, False
     return "rows", None, reasons, data.get("maturity") == "MATURE"
+
+
+def same_cursor(requested, echoed):
+    """Nil and "0" are the first page. Any later cursor must match exactly."""
+    if requested == echoed:
+        return True
+    return requested in (None, "0") and echoed in (None, "0")
+
+
+def coverage_leaf(value):
+    """UNKNOWN and null stay unknown. A real integer, including 0, stays a count. Never a percent."""
+    if value is None or value == "UNKNOWN":
+        return "unknown"
+    if value == "MISSING":
+        return "missing"
+    if isinstance(value, bool) or not isinstance(value, int):
+        return "malformed"
+    if value < 0:
+        return "malformed"
+    return ("count", value)
+
+
+def own_report_ratio(members, account_id, mature, denominator):
+    if any(row.get("actorId") != account_id for row in members):
+        return None
+    return f"{mature}/{denominator}"
 
 
 def keep_outing_page(old, new):
@@ -191,7 +217,9 @@ class CityFairnessContracts(unittest.TestCase):
             "city_fairness_parameter", "city_fairness_event", "city_fairness_read",
             "X-Chengyin-Candidate", "city-fairness", "envelope.code == status", "envelope.candidate", "操作成功",
             "payload.accountId == accountID", "payload.queryId == queryID", "payload.asOf == asOf",
-            "try cursor(payload.cursor) == requestedCursor",
+            "sameCursor(requestedCursor, payload.cursor)",
+            "left == nil || left == \"0\"", "restartRestoreSupported = false", "func setForeground",
+            "failure == .forbidden", '"UNKNOWN"', "payload.coverage",
             "first-outing", "second-outing", "inside-delta", "after-horizon", "before-t0", "not-effective",
             "default: self = .unknown", "showsRatio", "sameSnapshot",
             "payload.matureCount == nil, payload.denominator == nil",
@@ -207,7 +235,7 @@ class CityFairnessContracts(unittest.TestCase):
         for denied in ["fatalError", "httpMethod = \"POST\"", "\"POST\"", "memberId", "UserDefaults", "CLLocation", "rendezvous", "randomMatch", "autoJoin", "%"]:
             self.assertNotIn(denied, source)
             self.assertNotIn(denied, view)
-        for marker in ['tableName: "CityFairness"', "restoreSameQuery()", "loadOutings()", "nextOutings()", "page.ratioText", "page.outings", "fairness.back", "fairness.notComputable", "fairness.noMatureSample", "fairness.unknown"]:
+        for marker in ['tableName: "CityFairness"', "restoreSameQuery()", "loadOutings()", "nextOutings()", "setForeground", "page.showsRatio", "page.ratioText", "page.outings", "fairness.back", "fairness.notComputable", "fairness.noMatureSample", "fairness.unknown", "fairness.coverage"]:
             self.assertIn(marker, view)
         evidence = view.split("struct CityFairnessEvidenceView", 1)[1]
         self.assertNotIn("ratioText", evidence)
@@ -248,6 +276,26 @@ class CityFairnessContracts(unittest.TestCase):
         self.assertEqual(keep_outing_page(current, outing_payload(queryId="other"))["queryId"], "q1")
         self.assertEqual(keep_outing_page(current, outing_payload(asOf=2))["asOf"], 1_700_000_000_000)
         self.assertEqual(keep_outing_page(current, outing_payload(nextCursor="2"))["nextCursor"], "2")
+        self.assertTrue(same_cursor(None, "0"))
+        self.assertFalse(same_cursor("2", "0"))
+        self.assertFalse(same_cursor(None, "00"))
+        self.assertEqual(coverage_leaf(None), "unknown")
+        self.assertEqual(coverage_leaf("UNKNOWN"), "unknown")
+        self.assertEqual(coverage_leaf("MISSING"), "missing")
+        self.assertEqual(coverage_leaf(0), ("count", 0))
+        self.assertNotIn("%", "0")
+        self.assertIsNone(own_report_ratio([{"actorId": 7}, {"actorId": 8}], 7, 0, 4))
+        self.assertEqual(own_report_ratio([{"actorId": 7}], 7, 0, 4), "0/4")
+        fixture = json.loads((ROOT / "Tests/ContractChecks/fixtures/w20-fairness-first-page.json").read_text())
+        self.assertEqual(fixture["provisional"], True)
+        self.assertEqual(fixture["backendHead"], "9ff759d208ea1bd9bacd7766f8a2b6f29d1ec49e")
+        body = outing_envelope(fixture["outing"])
+        self.assertEqual(classify_outing(200, body, account_id=7, query_id="q-own", as_of=1_700_000_000_000)[0], "rows")
+        self.assertIsNone(classify_outing(200, body, account_id=7, query_id="q-own", as_of=1_700_000_000_000)[1])
+        self.assertTrue(same_cursor(None, fixture["outing"]["cursor"]))
+        self.assertEqual(coverage_leaf(fixture["outing"]["coverage"]["city-task"]), "unknown")
+        self.assertEqual(coverage_leaf(fixture["outing"]["coverage"]["merchant"]), ("count", 0))
+        self.assertIsNone(own_report_ratio(fixture["report"]["members"], 7, 0, 4))
 
     def test_committed_host_files_are_untouched(self):
         for relative in [

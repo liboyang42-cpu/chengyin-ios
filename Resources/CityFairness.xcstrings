@@ -49,6 +49,22 @@
         }
       }
     },
+    "fairness.coverage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coverage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "覆盖"
+          }
+        }
+      }
+    },
     "fairness.emptyEvidence": {
       "localizations": {
         "en": {

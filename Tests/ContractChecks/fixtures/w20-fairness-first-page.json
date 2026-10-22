@@ -1,0 +1,54 @@
+{
+  "provisional": true,
+  "backendHead": "9ff759d208ea1bd9bacd7766f8a2b6f29d1ec49e",
+  "samplesPublished": false,
+  "note": "Synthetic first page. cursor 0 matches CityFairnessReportService.slice at that head. coverage is not in the published contract.",
+  "report": {
+    "accountId": 7,
+    "queryId": "q-own",
+    "asOf": 1700000000000,
+    "status": "COMPUTABLE",
+    "maturity": "COUNTED",
+    "formulaId": "city-fairness-cohort-v1",
+    "matureCount": 0,
+    "denominator": 4,
+    "cursor": "0",
+    "nextCursor": null,
+    "members": [
+      {"outingId": "own-1", "actorId": 7, "maturity": "IMMATURE", "reason": "no-second-outing"},
+      {"outingId": "other-1", "actorId": 8, "maturity": "MATURE", "reason": "second-outing"}
+    ]
+  },
+  "outing": {
+    "accountId": 7,
+    "queryId": "q-own",
+    "asOf": 1700000000000,
+    "metricVersion": "fairness.v1",
+    "formulaId": "city-fairness-cohort-v1",
+    "factRevision": 4,
+    "boardId": "board1",
+    "regionId": "region1",
+    "seasonId": "season1",
+    "rulesVersion": "rules1",
+    "status": "COMPUTABLE",
+    "maturity": "IMMATURE",
+    "t0": 1700000000000,
+    "missing": ["stream:city-task"],
+    "outings": [
+      {
+        "outingId": "own-1",
+        "t0": 1700000000000,
+        "valid": true,
+        "reason": "first-outing",
+        "inWindow": false,
+        "maturity": "IMMATURE",
+        "metricVersion": "fairness.v1",
+        "factRevision": 4
+      }
+    ],
+    "cursor": "0",
+    "nextCursor": null,
+    "readBack": false,
+    "coverage": {"city-task": null, "gps": "UNKNOWN", "merchant": 0}
+  }
+}
