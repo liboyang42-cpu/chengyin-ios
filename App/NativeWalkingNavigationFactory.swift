@@ -36,6 +36,12 @@ import CryptoKit
             location: dependencies.makeLocation(), planner: planner,
             current: { [weak self] in self?.available == true && self?.context() == owner })
     }
+    /// Story stops are navigable only while the bridge holds an authority-allowed stop AND a reviewed
+    /// entrance. A missing entrance yields nil (explicit missing state); the pin is never a door.
+    func makeStory(bridge: StoryWalkingNavigationHostBridge) -> WalkingNavigationCoordinator? {
+        guard let stop = bridge.activeWalkingStop, bridge.walkingDestination != nil else { return nil }
+        return make(reference: stop)
+    }
     func makePreviewPlanner(reference: WalkingTargetReference) -> (any SearchRoutePlanning)? {
         guard reference.isValid, available, let dependencies else { return nil }
         let owner = dependencies.owner

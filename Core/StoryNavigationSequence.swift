@@ -4,20 +4,40 @@ import Foundation
 /// backend route-state authority. The client keeps only the single stop it is currently
 /// allowed to navigate to, never a list of future stops, and never advances on its own.
 /// Arrival radius, route progress or ETA reaching zero only opens the existing verification entry.
+/// Account + real run fence. Navigation state from another account or run is never applied.
+public struct StoryNavigationRunScope: Codable, Equatable {
+    public let account: String
+    public let runID: Int
+    public init(account: String, runID: Int) throws {
+        guard !account.isEmpty, account.count <= 200, runID > 0 else { throw StoryNavigationFailure.wrongRun }
+        self.account = account; self.runID = runID
+    }
+}
+
+/// Minimal exit/restart record: scope, mission and the stop last navigated. Restoring it is only
+/// a hint; it can never complete or advance a node and always waits for a fresh authority readback.
+public struct StoryNavigationResumeRecord: Codable, Equatable {
+    public let scope: StoryNavigationRunScope
+    public let missionID: Int
+    public let stop: WalkingTargetReference?
+}
+
 public struct StoryRouteStateReadback: Equatable {
     public let missionID: Int
+    public let scope: StoryNavigationRunScope?
     public let revision: Int
     /// The one stop the authority currently allows; nil when none is navigable right now.
     public let currentStop: WalkingTargetReference?
     public let finished: Bool
-    public init(missionID: Int, revision: Int, currentStop: WalkingTargetReference?, finished: Bool) throws {
+    public init(missionID: Int, revision: Int, currentStop: WalkingTargetReference?, finished: Bool,
+                scope: StoryNavigationRunScope? = nil) throws {
         guard missionID > 0, revision >= 0 else { throw StoryNavigationFailure.invalidReadback }
         if let currentStop { guard currentStop.kind == .storyNode, currentStop.missionID == missionID, !finished else { throw StoryNavigationFailure.invalidReadback } }
-        self.missionID = missionID; self.revision = revision; self.currentStop = currentStop; self.finished = finished
+        self.missionID = missionID; self.scope = scope; self.revision = revision; self.currentStop = currentStop; self.finished = finished
     }
 }
 
-public enum StoryNavigationFailure: Error, Equatable { case invalidReadback, staleReadback, wrongMission }
+public enum StoryNavigationFailure: Error, Equatable { case invalidReadback, staleReadback, wrongMission, wrongRun }
 
 public struct StoryNavigationSequence: Equatable {
     public enum Phase: Equatable {
@@ -31,14 +51,35 @@ public struct StoryNavigationSequence: Equatable {
     public let missionID: Int
     public private(set) var phase: Phase = .awaitingAuthority
     public private(set) var revision = -1
-    public init(missionID: Int) throws {
+    /// When set, only readbacks carrying exactly this account/run scope are accepted.
+    public let scope: StoryNavigationRunScope?
+    public init(missionID: Int, scope: StoryNavigationRunScope? = nil) throws {
         guard missionID > 0 else { throw StoryNavigationFailure.wrongMission }
-        self.missionID = missionID
+        self.missionID = missionID; self.scope = scope
+    }
+
+    /// Exit/restart recovery. Always returns to `.awaitingAuthority` with no revision, so the node
+    /// is never auto-completed or advanced; a foreign account/run/mission record is rejected.
+    public static func restore(_ record: StoryNavigationResumeRecord, expected: StoryNavigationRunScope,
+                               missionID: Int) throws -> StoryNavigationSequence {
+        guard record.scope == expected else { throw StoryNavigationFailure.wrongRun }
+        guard record.missionID == missionID else { throw StoryNavigationFailure.wrongMission }
+        return try StoryNavigationSequence(missionID: missionID, scope: expected)
+    }
+    public var resumeRecord: StoryNavigationResumeRecord? {
+        guard let scope else { return nil }
+        let stop: WalkingTargetReference?
+        switch phase {
+        case .navigating(let s), .verificationAvailable(let s), .verificationSubmitted(let s): stop = s
+        default: stop = nil
+        }
+        return .init(scope: scope, missionID: missionID, stop: stop)
     }
 
     /// Only a newer authority revision can change the stop. Older or equal revisions are ignored.
     public mutating func apply(_ readback: StoryRouteStateReadback) throws {
         guard readback.missionID == missionID else { throw StoryNavigationFailure.wrongMission }
+        if let scope { guard readback.scope == scope else { throw StoryNavigationFailure.wrongRun } }
         guard readback.revision > revision else { throw StoryNavigationFailure.staleReadback }
         revision = readback.revision
         if readback.finished { phase = .finished; return }
