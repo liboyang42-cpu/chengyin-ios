@@ -34,9 +34,11 @@ public enum PersonalFogFailure: Error, Equatable { case invalidCell, ownerMismat
 public struct PersonalFogSamplePolicy: Equatable {
     public let maxAccuracyMeters: Double
     public let maxAge: TimeInterval
+    /// ApiRoamController.splitTiles(tiles, 500): the server silently truncates beyond 500 cells per /reveal.
+    public static let serverRevealBatchCap = 500
     public let maxBatch: Int
     public init(maxAccuracyMeters: Double, maxAge: TimeInterval, maxBatch: Int) throws {
-        guard maxAccuracyMeters.isFinite, maxAccuracyMeters > 0, maxAge.isFinite, maxAge > 0, (1...2000).contains(maxBatch) else {
+        guard maxAccuracyMeters.isFinite, maxAccuracyMeters > 0, maxAge.isFinite, maxAge > 0, (1...PersonalFogSamplePolicy.serverRevealBatchCap).contains(maxBatch) else {
             throw PersonalFogFailure.unqualifiedSample
         }
         self.maxAccuracyMeters = maxAccuracyMeters; self.maxAge = maxAge; self.maxBatch = maxBatch
@@ -100,4 +102,10 @@ public struct PersonalFogLedger: Equatable {
         confirmed.contains(cell) ? .confirmed : pending.contains(cell) ? .pendingSync : .hidden
     }
     public var pendingCount: Int { pending.count }
+
+    /// Sign-out purge: drops every local cell, prediction, in-flight batch and cursor so the
+    /// next account (or a reinstall) rebuilds only from its own server pages.
+    public mutating func purgeForSignOut() {
+        confirmed = []; pending = []; inFlight = nil; readCursor = 0; lastRejected = []
+    }
 }
