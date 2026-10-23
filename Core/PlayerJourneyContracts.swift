@@ -113,3 +113,21 @@ public struct CompletedPlayRecord: Decodable, Equatable {
         completed = raw["completed"].bool
     }
 }
+
+/// Source mycanyu formatDateRange: "MM.DD - MM.DD", one side alone, or nil (时间待定).
+public enum ParticipationDateText {
+    public static func monthDay(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+        let pattern = #"(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})"#
+        guard let match = raw.range(of: pattern, options: .regularExpression) else { return nil }
+        let parts = raw[match].split(whereSeparator: { "-/.".contains($0) }).map(String.init)
+        guard parts.count == 3 else { return nil }
+        func pad(_ value: String) -> String { value.count == 1 ? "0" + value : value }
+        return pad(parts[1]) + "." + pad(parts[2])
+    }
+    public static func range(start: String?, end: String?) -> String? {
+        let first = monthDay(start), last = monthDay(end)
+        if let first, let last { return first + " - " + last }
+        return first ?? last
+    }
+}
