@@ -224,6 +224,14 @@ class C10WorkshopH5Contracts(unittest.TestCase):
         self.assertIn(
             "testOtherRequestIdCannotMutateFrozenOriginal",
             self.sources["Tests/CoreTests/WorkshopPackageVersionPublishTests.swift"])
+        answers = self.sources["Core/H5AnswerProtection.swift"]
+        self.assertIn("case requestMismatch", answers)
+        self.assertIn("guard existing == originalRequestID, matchedHash == serverFrozenHash else", answers)
+        self.assertIn("req-a-other", self.sources["Tests/CoreTests/H5AnswerProtectionTests.swift"])
+        session = self.sources["Core/H5SessionCapabilityGate.swift"]
+        self.assertIn("case requestMismatch", session)
+        self.assertIn("guard existingHost == host, admittedCapability == capability else", session)
+        self.assertIn("location.once", self.sources["Tests/CoreTests/H5SessionCapabilityGateTests.swift"])
 
     def test_linux_xctest_app_ci_are_explicitly_not_run(self):
         self.assertIn("XCTest / App / CI = NOT_RUN", Path(__file__).read_text())

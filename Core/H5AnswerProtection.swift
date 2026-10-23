@@ -10,6 +10,7 @@ public enum H5AnswerProtectionFailure: Error, Equatable {
     case clientClockCannotSucceed
     case hashMismatch
     case invalidCompare
+    case requestMismatch
     public var isWaitingSource: Bool {
         if case .waitingSource = self { return true }
         return false
@@ -50,6 +51,12 @@ public struct H5AnswerProtection: Equatable {
             throw fail(.invalidCompare)
         }
         guard serverFrozenHash == expectedHash else { throw fail(.hashMismatch) }
+        if let existing = self.originalRequestID {
+            guard existing == originalRequestID, matchedHash == serverFrozenHash else {
+                throw fail(.requestMismatch)
+            }
+            return
+        }
         self.originalRequestID = originalRequestID
         matchedHash = serverFrozenHash
         phase = .matched

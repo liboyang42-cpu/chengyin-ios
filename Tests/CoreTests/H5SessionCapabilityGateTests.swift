@@ -17,6 +17,17 @@ final class H5SessionCapabilityGateTests: XCTestCase {
         XCTAssertEqual(waiting { try gate.openH5Session() },
                        .waitingSource(capability: WorkshopModuleSourceInventory.h5SdkOriginal))
         XCTAssertEqual(gate.phase, .waitingSource)
+        XCTAssertEqual(gate.admittedHost, "play.chengyin.example")
+        try gate.admitDeclaredSurface(host: "play.chengyin.example", capability: "camera.scan",
+                                      sdkVersion: "1.0.0", frozen: try frozen())
+        XCTAssertEqual(gate.admittedHost, "play.chengyin.example")
+        XCTAssertThrowsError(try gate.admitDeclaredSurface(host: "play.chengyin.example",
+                                                           capability: "location.once",
+                                                           sdkVersion: "1.0.0", frozen: try frozen())) { error in
+            XCTAssertEqual(error as? H5SessionFailure, .requestMismatch)
+        }
+        XCTAssertEqual(gate.admittedHost, "play.chengyin.example")
+        XCTAssertEqual(gate.admittedCapability, "camera.scan")
     }
     func testArbitraryH5UnsignedDomainAndVersionMismatchReject() throws {
         var gate = H5SessionCapabilityGate()

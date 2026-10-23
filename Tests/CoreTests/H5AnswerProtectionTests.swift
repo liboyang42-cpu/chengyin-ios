@@ -30,6 +30,15 @@ final class H5AnswerProtectionTests: XCTestCase {
                                                         originalRequestID: "req-a1")
         XCTAssertEqual(protection.phase, .matched)
         XCTAssertEqual(protection.matchedHash, hash)
+        XCTAssertEqual(protection.originalRequestID, "req-a1")
+        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: hash, expectedHash: hash,
+                                                        originalRequestID: "req-a1")
+        XCTAssertEqual(protection.originalRequestID, "req-a1")
+        XCTAssertThrowsError(try protection.compareServerFrozenAuthorVersion(
+            serverFrozenHash: hash, expectedHash: hash, originalRequestID: "req-a-other")) { error in
+            XCTAssertEqual(error as? H5AnswerProtectionFailure, .requestMismatch)
+        }
+        XCTAssertEqual(protection.originalRequestID, "req-a1")
         XCTAssertEqual(waiting { try protection.consumeH5SDKOriginal() },
                        .waitingSource(capability: WorkshopModuleSourceInventory.h5SdkOriginal))
     }

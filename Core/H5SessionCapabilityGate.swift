@@ -12,6 +12,7 @@ public enum H5SessionFailure: Error, Equatable {
     case arbitraryH5Forbidden
     case notAdmitted
     case invalidSurface
+    case requestMismatch
     public var isWaitingSource: Bool {
         if case .waitingSource = self { return true }
         return false
@@ -56,6 +57,10 @@ public struct H5SessionCapabilityGate: Equatable {
                                               sdkVersion: String, frozen: H5FrozenCapability) throws {
         guard WorkshopModuleImportGate.idOK(host), WorkshopModuleImportGate.idOK(capability),
               WorkshopModuleImportGate.versionOK(sdkVersion) else { throw fail(.invalidSurface) }
+        if let existingHost = admittedHost {
+            guard existingHost == host, admittedCapability == capability else { throw fail(.requestMismatch) }
+            return
+        }
         guard frozen.signedDomains.contains(host) else { throw fail(.unsignedDomain) }
         guard frozen.sdkCapabilities.contains(capability) else { throw fail(.capabilityNotGranted) }
         guard sdkVersion == frozen.packageVersion else { throw fail(.versionIncompatible) }
