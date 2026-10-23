@@ -185,6 +185,27 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(original.grant?.identity.accountID, 7)
     }
 
+    func testCatalogedGrantDoesNotOccupyThenUniqueAuthorizeApplies() throws {
+        var journey = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
+        XCTAssertEqual(journey.phase, .cataloged)
+        XCTAssertNil(journey.grant)
+        try journey.requireRulesConsent()
+        XCTAssertNil(journey.grant)
+        try journey.consentToPublishedRules(try admission(try identity()))
+        XCTAssertNil(journey.grant)
+        try journey.submitInviteOrApply()
+        XCTAssertNil(journey.grant)
+        try journey.assignMemberRole(.member)
+        XCTAssertEqual(journey.phase, .memberRoleAssigned)
+        XCTAssertNil(journey.grant)
+        let grant = try journey.authorizeReadWrite()
+        XCTAssertEqual(grant.identity.accountID, 7)
+        XCTAssertEqual(grant.role, .member)
+        XCTAssertEqual(grant.consentedRulesVersion, 3)
+        XCTAssertEqual(journey.grant?.identity.accountID, 7)
+        XCTAssertEqual(journey.phase, .authorizedReadWrite)
+    }
+
     func testMissingACCOUNT4StaysMismatchNeverEmptyIdentity() {
         XCTAssertThrowsError(try ChannelAccount4Identity(accountID: 0, epoch: 1)) {
             XCTAssertEqual($0 as? ChannelAuthorizationError, .account4Mismatch)
