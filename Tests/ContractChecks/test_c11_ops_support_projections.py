@@ -1,0 +1,255 @@
+"""Linux source contracts for exclusive C11 ops-support Core projections.
+
+These checks do not compile or execute Swift. XCTest on Linux is NOT_RUN.
+App / XCTest / CI = NOT_RUN. This is not 100%.
+"""
+from pathlib import Path
+import hashlib
+import subprocess
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+CORE_FILES = [
+    "Core/SupportEventLocator.swift",
+    "Core/CompensationEntryProjection.swift",
+    "Core/DataDeletionEvidenceTable.swift",
+    "Core/ReviewResultVisibilityAdapter.swift",
+    "Core/VersionedLocaleDisplay.swift",
+]
+TEST_FILES = [
+    "Tests/CoreTests/SupportEventLocatorTests.swift",
+    "Tests/CoreTests/CompensationEntryProjectionTests.swift",
+    "Tests/CoreTests/DataDeletionEvidenceTableTests.swift",
+    "Tests/CoreTests/ReviewResultVisibilityAdapterTests.swift",
+    "Tests/CoreTests/VersionedLocaleDisplayTests.swift",
+]
+CONTRACT = "Tests/ContractChecks/test_c11_ops_support_projections.py"
+HUNK = "docs/issue5-hunks/C11-ios-dot-hunk.md"
+WHITELIST = CORE_FILES + TEST_FILES + [CONTRACT, HUNK]
+FORBIDDEN_TOUCH = [
+    "App/AppSession.swift",
+    "App/AppCompositionRoot.swift",
+    "Questify.xcodeproj/project.pbxproj",
+]
+BASE = "origin/migration/native-ios"
+PINNED = "76ce1b313af2595f9b7d7ace49040866209c7974"
+
+
+def git_changed_names():
+    names = set()
+    commands = [
+        ["git", "diff", "--name-only", BASE],
+        ["git", "diff", "--name-only", "--cached", BASE],
+        ["git", "diff", "--name-only", BASE, "HEAD"],
+        ["git", "diff", "--name-only", PINNED],
+        ["git", "diff", "--name-only", PINNED, "HEAD"],
+        ["git", "ls-files", "--others", "--exclude-standard"],
+    ]
+    for command in commands:
+        output = subprocess.check_output(command, cwd=str(ROOT), text=True)
+        names.update(line for line in output.splitlines() if line.strip())
+    return names
+
+
+def ident(name):
+    return hashlib.sha256(name.encode()).hexdigest()[:24].upper()
+
+
+class C11OpsSupportProjectionContracts(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.sources = {path: (ROOT / path).read_text() for path in CORE_FILES + TEST_FILES}
+        cls.joined = "\n".join(cls.sources.values())
+        cls.hunk = (ROOT / HUNK).read_text()
+
+    def test_exclusive_whitelist_files_exist(self):
+        for path in WHITELIST:
+            self.assertTrue((ROOT / path).is_file(), path)
+
+    def test_git_diff_against_native_ios_equals_whitelist(self):
+        self.assertEqual(git_changed_names(), set(WHITELIST), git_changed_names().symmetric_difference(set(WHITELIST)))
+
+    def test_forbidden_files_untouched(self):
+        changed = git_changed_names()
+        for path in FORBIDDEN_TOUCH:
+            self.assertTrue((ROOT / path).is_file(), path)
+            self.assertNotIn(path, changed)
+            current = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+            original = subprocess.check_output(["git", "show", f"{PINNED}:{path}"], cwd=str(ROOT))
+            self.assertEqual(current, hashlib.sha256(original).hexdigest(), path)
+
+    def test_first_journey_markers_present(self):
+        for path in TEST_FILES:
+            text = self.sources[path]
+            self.assertIn("testFirstJourney", text, path)
+            self.assertIn("RecoverOriginal", text, path)
+            self.assertIn("@testable import QuestifyCore", text, path)
+        journey = self.sources["Tests/CoreTests/SupportEventLocatorTests.swift"]
+        self.assertIn("c11-journey-req", journey)
+        self.assertIn("UNKNOWN", journey)
+        self.assertIn("APPLIED+SUCCESS", journey)
+        self.assertIn("200.00", journey)
+        self.assertIn("999.00", journey)
+        self.assertIn("member_identity", journey)
+        self.assertIn("oms_order", journey)
+        self.assertIn("business_audit_event", journey)
+        self.assertIn("NOT_RUN", journey)
+        self.assertIn("recoverOriginal", journey)
+
+    def test_locate_original_unknown_not_projection_success(self):
+        locator = self.sources["Core/SupportEventLocator.swift"]
+        self.assertTrue(locator.startswith("import Foundation"))
+        self.assertIn("APPLIED+SUCCESS", locator)
+        self.assertIn("Optional.none", locator)
+        self.assertIn("NSNull()", locator)
+        self.assertIn("func locateByRequestId(", locator)
+        self.assertIn("func requery(", locator)
+        self.assertIn("func recoverOriginal(", locator)
+        self.assertIn("func locateByRunId(", locator)
+        self.assertIn("func locateByOrderId(", locator)
+        self.assertIn("originalIsNotProjectionSuccess", locator)
+        self.assertNotIn('return ""', locator)
+
+    def test_missing_request_id_is_optional_none_never_empty_string(self):
+        self.assertIn("Optional.none", self.joined)
+        self.assertIn("never \"\"", self.joined)
+        self.assertIn("NSNull()", self.sources["Core/SupportEventLocator.swift"])
+        tests = self.sources["Tests/CoreTests/SupportEventLocatorTests.swift"]
+        self.assertIn("testMissingRequestIdStaysOptionalNoneNeverEmptyString", tests)
+        self.assertIn('requestID("")', tests)
+        self.assertIn("NSNull", tests)
+
+    def test_compensation_pass_in_grant_frozen_not_final(self):
+        compensation = self.sources["Core/CompensationEntryProjection.swift"]
+        self.assertTrue(compensation.startswith("import Foundation"))
+        self.assertIn("business:clubextra:approve", compensation)
+        self.assertIn("COMPENSATION_VIEW_DENIED", compensation)
+        self.assertIn("pass-in grant", compensation)
+        self.assertIn("does not look up tokens", compensation)
+        self.assertIn("originalEntryNotReplacedByCurrentFinal", compensation)
+        self.assertIn("func requery(", compensation)
+        self.assertIn("func recoverOriginal(", compensation)
+        tests = self.sources["Tests/CoreTests/CompensationEntryProjectionTests.swift"]
+        self.assertIn("200.00", tests)
+        self.assertIn("999.00", tests)
+        self.assertIn("denied viewer must not read audit", tests)
+
+    def test_deletion_evidence_is_table_not_cleaner(self):
+        table = self.sources["Core/DataDeletionEvidenceTable.swift"]
+        self.assertTrue(table.startswith("import Foundation"))
+        self.assertIn("Not a cleaner and not DDL", table)
+        self.assertIn("emptyCurrentProjectionIsNeverExisted", table)
+        self.assertIn("ACCOUNT_DEREGISTER", table)
+        self.assertIn("member_identity", table)
+        self.assertIn("REMOVED", table)
+        self.assertIn("oms_order", table)
+        self.assertIn("ANONYMIZED_RETAINED", table)
+        self.assertIn("business_audit_event", table)
+        self.assertIn("RETAINED_LEGAL", table)
+        self.assertIn("browseDays = 180", table)
+        self.assertIn("eventDays = 365", table)
+        self.assertIn("npcChatDays = 90", table)
+        self.assertIn("npcChatRequestHours = 48", table)
+        self.assertIn("roamLocationDays = 30", table)
+        self.assertIn("executesCleanup = false", table)
+        self.assertIn("writesDDL = false", table)
+
+    def test_review_submit_reject_revise_approve_and_status_ints(self):
+        review = self.sources["Core/ReviewResultVisibilityAdapter.swift"]
+        self.assertTrue(review.startswith("import Foundation"))
+        self.assertIn("PENDING=0 APPROVED=1 REJECTED=2 CANCELLED=3 ESCALATED=4", review)
+        self.assertIn("pending = 0", review)
+        self.assertIn("approved = 1", review)
+        self.assertIn("rejected = 2", review)
+        self.assertIn("cancelled = 3", review)
+        self.assertIn("escalated = 4", review)
+        self.assertIn("flowSubmitRejectReviseApprove", review)
+        self.assertIn("currentContentProjectionPublished", review)
+        self.assertIn("REJECTED", review)
+        tests = self.sources["Tests/CoreTests/ReviewResultVisibilityAdapterTests.swift"]
+        self.assertIn("approvedResultVisible", tests)
+        self.assertIn("currentContentProjectionPublished: true", tests)
+
+    def test_versioned_locale_cn_us_and_legal_not_run(self):
+        locale = self.sources["Core/VersionedLocaleDisplay.swift"]
+        self.assertTrue(locale.startswith("import Foundation"))
+        self.assertIn("profileVersion = 1", locale)
+        self.assertIn("zh-CN", locale)
+        self.assertIn("Asia/Shanghai", locale)
+        self.assertIn("yyyy-MM-dd HH:mm:ss", locale)
+        self.assertIn("en-US", locale)
+        self.assertIn("America/New_York", locale)
+        self.assertIn("MMM d, yyyy h:mm a", locale)
+        self.assertIn("NOT_RUN", locale)
+        self.assertIn("ICP_FILING", locale)
+        self.assertIn("PRIVACY_AGREEMENT", locale)
+        self.assertIn("USER_AGREEMENT", locale)
+        self.assertIn("WECHAT_MINIPROGRAM_REVIEW", locale)
+        self.assertIn("APP_STORE_REVIEW", locale)
+        self.assertIn("PLAY_STORE_REVIEW", locale)
+        self.assertIn("PRODUCTION_CAPACITY", locale)
+        self.assertIn("PRODUCTION_DDL", locale)
+        self.assertIn("微信支付", locale)
+        self.assertIn("Apple IAP", locale)
+        self.assertIn("线下核销仍不走 IAP", locale)
+        tests = self.sources["Tests/CoreTests/VersionedLocaleDisplayTests.swift"]
+        self.assertIn("2026-10-23 20:00:00", tests)
+        self.assertIn("2026-10-23T12:00:00Z", tests)
+
+    def test_waiting_source_unsigned_originals(self):
+        locator = self.sources["Core/SupportEventLocator.swift"]
+        self.assertIn("WAITING_SOURCE", locator)
+        self.assertIn("v12.docx", locator)
+        self.assertIn("232.pack", locator)
+        self.assertIn("e2d86c4", locator)
+        self.assertIn("v12DocxPresent: Bool { false }", locator)
+        self.assertIn("pack232Present: Bool { false }", locator)
+        self.assertIn("unpushedIosSHAPresent: Bool { false }", locator)
+
+    def test_no_shared_forbidden_owners(self):
+        for forbidden in [
+            "AppSession", "AppCompositionRoot", "project.pbxproj",
+            "PlayExperienceCoordinator", "PlayExperienceService(",
+            "PlayNode", "RouteEffects", "TopicRouteRuntime",
+            "CmsTopic", "DynamicAttributeAuthoring",
+            "Localizable.xcstrings", "URLSession", "HTTPTransport",
+            "CLLocation", "fake GPS", "NSLocalizedString",
+            "import SwiftUI", "@MainActor",
+        ]:
+            self.assertNotIn(forbidden, self.joined, forbidden)
+        for token in ["JWT", "RBAC"]:
+            self.assertNotIn(token, self.joined, token)
+        for path in CORE_FILES:
+            text = self.sources[path]
+            self.assertTrue(text.startswith("import Foundation"), path)
+            self.assertNotIn("import SwiftUI", text)
+            self.assertNotIn("@MainActor", text)
+
+    def test_hunk_lists_exact_pbx_file_refs(self):
+        self.assertIn(ident("Core/SupportEventLocator.swift"), self.hunk)
+        self.assertIn(ident("build:Core/SupportEventLocator.swift"), self.hunk)
+        self.assertIn("D579A9832347C0C626BE58BE", self.hunk)
+        self.assertIn("0FD49EE8EC846933EEC26AC1", self.hunk)
+        self.assertIn("Core/SupportEventLocator.swift", self.hunk)
+        self.assertIn("Tests/CoreTests/VersionedLocaleDisplayTests.swift", self.hunk)
+        self.assertIn("Do not edit pbxproj", self.hunk)
+        self.assertIn("WAITING_SOURCE", self.hunk)
+        self.assertIn("NOT_RUN", self.hunk)
+        self.assertIn("not 100%", self.hunk.lower())
+        self.assertNotIn("IPHONEOS_DEPLOYMENT_TARGET = 1", self.hunk)
+
+    def test_linux_xctest_is_explicitly_not_run(self):
+        self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
+        self.assertIn("not 100%", Path(__file__).read_text())
+        self.assertIn("App / XCTest / CI = NOT_RUN", Path(__file__).read_text())
+
+    def test_sha256_payload_covers_whitelist(self):
+        digest = hashlib.sha256()
+        for path in WHITELIST:
+            digest.update(path.encode())
+            digest.update((ROOT / path).read_bytes())
+        self.assertEqual(len(digest.hexdigest()), 64)
+
+
+if __name__ == "__main__":
+    unittest.main()
