@@ -204,6 +204,27 @@ final class SupportEventLocatorTests: XCTestCase {
         XCTAssertNil(try restarted.locateByRequestId("", currentProjection: projection))
     }
 
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueWriteApplies() throws {
+        let source = InMemoryOriginalEventSource()
+        let locator = SupportEventLocator(originalEvents: source)
+        XCTAssertNil(try locator.recoverOriginal(originalRequestID: nil, currentProjection: nil))
+        XCTAssertNil(try locator.recoverOriginal(originalRequestID: "  ", currentProjection: nil))
+        XCTAssertThrowsError(try locator.recoverOriginal(
+            originalRequestID: "c11-never-seen", currentProjection: nil)) { error in
+            XCTAssertEqual(error as? SupportLocateFailure, .originalMissing(requestId: "c11-never-seen"))
+        }
+        XCTAssertTrue(source.findByRequestId("c11-never-seen").isEmpty)
+        source.add(OriginalAuditEvent(
+            requestId: "c11-never-seen", targetType: "RUN", targetId: 11,
+            action: "SUBMIT", afterJson: "UNKNOWN"))
+        let recovered = try XCTUnwrap(
+            locator.recoverOriginal(originalRequestID: "c11-never-seen", currentProjection: nil))
+        XCTAssertEqual(recovered.requestId, "c11-never-seen")
+        XCTAssertEqual(recovered.originalOutcome, "UNKNOWN")
+        XCTAssertEqual(source.findByRequestId("c11-never-seen").count, 1)
+        XCTAssertNotEqual(recovered.originalOutcome, SupportEventLocator.projectionAppliedSuccess)
+    }
+
     func testMissingOriginalIsNotInferredFromProjection() {
         let locator = SupportEventLocator(originalEvents: InMemoryOriginalEventSource())
         let projection = SupportCurrentProjection(

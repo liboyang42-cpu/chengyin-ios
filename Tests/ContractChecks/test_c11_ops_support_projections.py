@@ -200,6 +200,8 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         tests = self.sources["Tests/CoreTests/SupportEventLocatorTests.swift"]
         self.assertIn("testOtherRequestIdDoesNotRewriteOriginalEvents", tests)
         self.assertIn("testInProcessRecoverKeepsOriginalUnknownNotProjectionSuccess", tests)
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueWriteApplies", tests)
+        self.assertIn("c11-never-seen", tests)
         self.assertIn('locateByRequestId("req-other"', tests)
         self.assertIn("originalMissing(requestId: \"req-other\")", tests)
         compensation = self.sources["Tests/CoreTests/CompensationEntryProjectionTests.swift"]
