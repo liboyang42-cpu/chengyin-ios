@@ -143,6 +143,32 @@ import XCTest
         XCTAssertEqual(restarted.draft.products.count, 0)
     }
 
+    func testUnpublishedCachedPublicDoesNotOccupyThenUniquePublishApplies() async throws {
+        let publisher = RecordingPublisher()
+        let qualification = MerchantNPCQualificationRevoke()
+        let isolation = MerchantNPCPublicPrivateIsolation()
+        let flow = MerchantNPCDraftApprovalGate(
+            scope: scope, publisher: publisher, isolation: isolation, qualification: qualification,
+            currentScope: { self.scope }
+        )
+        XCTAssertNil(flow.published)
+        XCTAssertNil(qualification.cachedPublic(scope))
+        XCTAssertThrowsError(try isolation.playerProjection(scope: scope, qualification: qualification)) {
+            XCTAssertEqual($0 as? MerchantNPCDraftGateFailure, .unpublished)
+        }
+        try flow.ingestAIDraft(draft())
+        try flow.verifyByAuthorizer(try authorizer())
+        XCTAssertNil(flow.published)
+        XCTAssertNil(qualification.cachedPublic(scope))
+        _ = try await flow.submitOriginalReview(requestID: UUID())
+        XCTAssertNil(flow.published, "审核票不得占 published")
+        XCTAssertNil(qualification.cachedPublic(scope))
+        let revision = try await flow.publishApproved()
+        XCTAssertEqual(flow.published?.facts, revision.facts)
+        XCTAssertEqual(qualification.cachedPublic(scope)?.facts, revision.facts)
+        XCTAssertEqual(try isolation.playerProjection(scope: scope, qualification: qualification), revision.facts)
+    }
+
     func testWrongAuthorizerCannotPromoteDraft() throws {
         let flow = gate(); try flow.ingestAIDraft(draft())
         let other = try XCTUnwrap(MerchantNPCAuthorizer(accountID: 8, merchantRowID: scope.merchantRowID))
