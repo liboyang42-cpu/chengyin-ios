@@ -50,4 +50,25 @@ final class DevicePushRegistrationLifecycleTests: XCTestCase {
             deviceId: nil, environment: nil, silent: false, fixtureToken: nil, status: nil)
             .jsonObject()["deviceId"] is NSNull)
     }
+    func testOtherDeviceDoesNotRewriteOriginalRegistration() throws {
+        var lifecycle = DevicePushRegistrationLifecycle()
+        let original = try lifecycle.register(
+            deviceId: "dev-c09", environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: true, fixtureToken: "fixture-token-c09")
+        let other = try lifecycle.register(
+            deviceId: "dev-other", environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: true, fixtureToken: "fixture-token-other")
+        XCTAssertEqual(other.deviceId, "dev-other")
+        XCTAssertNotEqual(other.deviceId, original.deviceId)
+        XCTAssertEqual(lifecycle.recoverOriginal(
+            originalRequestID: "dev-c09", appliedProjection: ImmutableReceiptProducer.projectionApplied).deviceId,
+                       "dev-c09")
+        XCTAssertEqual(lifecycle.recoverOriginal(
+            originalRequestID: "dev-c09", appliedProjection: ImmutableReceiptProducer.projectionApplied).status,
+                       DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(lifecycle.recoverUnknown(
+            originalRequestID: "  ", appliedProjection: ImmutableReceiptProducer.projectionApplied).deviceId, nil)
+        XCTAssertEqual(lifecycle.recoverUnknown(
+            originalRequestID: "  ", appliedProjection: ImmutableReceiptProducer.projectionApplied).status, "UNKNOWN")
+    }
 }

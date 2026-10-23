@@ -65,6 +65,31 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         }
     }
 
+    func testOtherRequestDoesNotRewriteOriginalPin() throws {
+        var producer = ImmutableReceiptProducer()
+        let first = try producer.accept(ImmutableReceiptProducer.OriginalRequest(
+            requestId: "evt-E", kind: .pin, body: "{\"op\":\"pin\"}", outcome: ImmutableReceiptProducer.outcomeUnknown))
+        XCTAssertThrowsError(try producer.accept(ImmutableReceiptProducer.OriginalRequest(
+            requestId: "evt-E", kind: .pin, body: "tampered", outcome: ImmutableReceiptProducer.outcomeUnknown))) { error in
+            XCTAssertEqual(error as? NotifyFailure, .fingerprintConflict(requestId: "evt-E"))
+        }
+        let independent = try producer.accept(ImmutableReceiptProducer.OriginalRequest(
+            requestId: "evt-other", kind: .pin, body: "{\"op\":\"pin\"}", outcome: ImmutableReceiptProducer.outcomeUnknown))
+        XCTAssertEqual(independent.requestId, "evt-other")
+        XCTAssertNotEqual(independent.requestId, first.requestId)
+        let recovered = producer.recoverOriginal(
+            originalRequestID: "evt-E",
+            projection: ImmutableReceiptProducer.AppliedProjection(
+                requestId: "evt-other", appliedState: ImmutableReceiptProducer.projectionApplied))
+        XCTAssertEqual(recovered.requestId, "evt-E")
+        XCTAssertEqual(recovered.payloadHash, first.payloadHash)
+        XCTAssertEqual(recovered.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertFalse(producer.treatsAppliedProjectionAsOriginalProof(
+            ImmutableReceiptProducer.AppliedProjection(
+                requestId: "evt-E", appliedState: ImmutableReceiptProducer.projectionApplied)))
+    }
+
     func testWaitingSourceUnsignedOriginalsAreNotRewritten() {
         var producer = ImmutableReceiptProducer()
         XCTAssertFalse(NotifySourceInventory.v12DocxPresent)

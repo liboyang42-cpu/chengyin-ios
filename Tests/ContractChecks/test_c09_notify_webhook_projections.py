@@ -99,6 +99,14 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         ]:
             self.assertIn(expected, journey)
 
+    def test_account_switch_isolation_markers_present(self):
+        receipt = self.sources["Tests/CoreTests/ImmutableReceiptProducerTests.swift"]
+        devices = self.sources["Tests/CoreTests/DevicePushRegistrationLifecycleTests.swift"]
+        self.assertIn("testOtherRequestDoesNotRewriteOriginalPin", receipt)
+        self.assertIn("testOtherDeviceDoesNotRewriteOriginalRegistration", devices)
+        self.assertIn("fingerprintConflict(requestId: \"evt-E\")", receipt)
+        self.assertIn("dev-other", devices)
+
     def test_core_isolation_contracts(self):
         kernel = self.sources["Core/ImmutableReceiptProducer.swift"]
         self.assertTrue(kernel.startswith("import Foundation"))
