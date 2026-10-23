@@ -92,6 +92,16 @@ class ChannelNotFriendPermissionContracts(unittest.TestCase):
         self.assertIn('testChannelGrantCannotSatisfyFriendRemarksOrDM', distinct)
         self.assertIn('testP44ProgressPrivacyIsNotRemarksOrDM', distinct)
 
+    def test_account_switch_isolation_markers_present(self):
+        tests = self.read('Tests/CoreTests/ChannelGovernanceProjectionTests.swift')
+        self.assertIn('testOtherACCOUNT4DoesNotRewriteOriginalGrant', tests)
+        self.assertIn('testInProcessRecoverKeepsOriginalGrantAndUnsignedOriginalWaitingSource', tests)
+        self.assertIn('testMissingACCOUNT4StaysMismatchNeverEmptyIdentity', tests)
+        self.assertIn('account4Mismatch', tests)
+        governance = self.read('Core/ChannelGovernanceProjection.swift')
+        self.assertIn('commitUnsignedOriginal', governance)
+        self.assertIn('waitingSource', governance)
+
     def test_does_not_touch_forbidden_shared_owners(self):
         for path in FORBIDDEN_TOUCH:
             self.assertTrue((ROOT / path).is_file(), path)

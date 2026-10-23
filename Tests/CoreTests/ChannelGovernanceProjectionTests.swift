@@ -145,4 +145,54 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(lease.conversationID, 12)
         XCTAssertTrue(lease.capabilities.contains(.write))
     }
+
+    func testOtherACCOUNT4DoesNotRewriteOriginalGrant() throws {
+        var (journey, grant, lease) = try joined()
+        XCTAssertEqual(grant.identity.accountID, 7)
+        XCTAssertEqual(grant.identity.epoch, 1)
+        let other = try identity(9)
+        let otherEpoch = try identity(7, epoch: 2)
+        XCTAssertThrowsError(try admission(try identity()).admit(identity: other, catalog: try catalog())) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .account4Mismatch)
+        }
+        XCTAssertThrowsError(try admission(try identity()).admit(identity: otherEpoch, catalog: try catalog())) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .account4Mismatch)
+        }
+        let foreignLease = ChannelPageLease(channelID: 21, conversationID: 12, generation: grant.generation,
+                                            identity: other, capabilities: [.write], consentedRulesVersion: 3)
+        XCTAssertThrowsError(try journey.admit(ChannelIsolatedRequest(lease: foreignLease, action: .channelWrite))) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .account4Mismatch)
+        }
+        XCTAssertEqual(journey.grant?.identity.accountID, 7)
+        XCTAssertEqual(journey.grant?.identity.epoch, 1)
+        XCTAssertNotEqual(journey.grant?.identity, other)
+        XCTAssertEqual(lease.identity.accountID, 7)
+    }
+
+    func testInProcessRecoverKeepsOriginalGrantAndUnsignedOriginalWaitingSource() throws {
+        let (original, grant, _) = try joined()
+        XCTAssertEqual(grant.identity.accountID, 7)
+        XCTAssertEqual(original.phase, .authorizedReadWrite)
+        let restarted = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
+        XCTAssertEqual(restarted.phase, .cataloged)
+        XCTAssertNil(restarted.grant)
+        XCTAssertEqual(original.grant?.identity.accountID, 7)
+        XCTAssertEqual(original.grant?.role, .member)
+        XCTAssertEqual(original.grant?.consentedRulesVersion, 3)
+        XCTAssertThrowsError(try original.commitUnsignedOriginal(capability: "D5-native-43")) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingSource)
+        }
+        XCTAssertEqual(original.grant?.identity.accountID, 7)
+    }
+
+    func testMissingACCOUNT4StaysMismatchNeverEmptyIdentity() {
+        XCTAssertThrowsError(try ChannelAccount4Identity(accountID: 0, epoch: 1)) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .account4Mismatch)
+        }
+        XCTAssertThrowsError(try ChannelAccount4Identity(accountID: -1, epoch: 1)) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .account4Mismatch)
+        }
+        XCTAssertEqual(ChannelAccount4Identity.realm, "ACCOUNT4")
+        XCTAssertNotEqual(ChannelAccount4Identity.realm, "")
+    }
 }

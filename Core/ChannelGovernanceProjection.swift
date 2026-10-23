@@ -79,6 +79,7 @@ public enum ChannelAuthorizationError: Error, Equatable, Sendable {
     case historicalVoteWriteDenied
     case invalidCatalog
     case roleRequired
+    case waitingSource
 }
 
 public enum ChannelRevokeReason: String, Equatable, Sendable { case leave, ban, membershipRevoked }
@@ -220,6 +221,11 @@ public struct ChannelGovernanceProjection: Equatable, Sendable {
         self.phase = .isolated
         bump()
         self.phase = phase
+    }
+
+    public func commitUnsignedOriginal(capability: String) throws -> Never {
+        _ = capability
+        throw ChannelAuthorizationError.waitingSource
     }
 
     private mutating func bump() { generation &+= 1 }
