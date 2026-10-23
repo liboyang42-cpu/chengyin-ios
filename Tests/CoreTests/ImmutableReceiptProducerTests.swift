@@ -90,6 +90,31 @@ final class ImmutableReceiptProducerTests: XCTestCase {
                 requestId: "evt-E", appliedState: ImmutableReceiptProducer.projectionApplied)))
     }
 
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyLedgerThenAcceptApplies() throws {
+        var producer = ImmutableReceiptProducer()
+        let blank = producer.recoverOriginal(originalRequestID: "  ", projection: nil)
+        XCTAssertNil(blank.requestId)
+        XCTAssertEqual(blank.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        let recovered = producer.recoverOriginal(originalRequestID: "evt-recover-never-c09", projection: nil)
+        XCTAssertEqual(recovered.requestId, "evt-recover-never-c09")
+        XCTAssertEqual(recovered.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertNil(producer.originalByRequestID["evt-recover-never-c09"])
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        let first = try producer.accept(ImmutableReceiptProducer.OriginalRequest(
+            requestId: "evt-recover-never-c09", kind: .pin, body: "{\"op\":\"pin\"}",
+            outcome: ImmutableReceiptProducer.outcomeAccepted))
+        XCTAssertEqual(first.outcome, ImmutableReceiptProducer.outcomeAccepted)
+        XCTAssertEqual(first.requestId, "evt-recover-never-c09")
+        XCTAssertEqual(producer.originalByRequestID.count, 1)
+        let replay = producer.recoverOriginal(originalRequestID: "evt-recover-never-c09", projection: nil)
+        XCTAssertEqual(replay.outcome, ImmutableReceiptProducer.outcomeAccepted)
+        XCTAssertEqual(replay.requestId, "evt-recover-never-c09")
+        XCTAssertEqual(replay.mintedNewRequest, false)
+        XCTAssertEqual(producer.originalByRequestID.count, 1)
+    }
+
     func testWaitingSourceUnsignedOriginalsAreNotRewritten() {
         var producer = ImmutableReceiptProducer()
         XCTAssertFalse(NotifySourceInventory.v12DocxPresent)

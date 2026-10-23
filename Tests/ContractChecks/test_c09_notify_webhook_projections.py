@@ -103,6 +103,8 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         receipt = self.sources["Tests/CoreTests/ImmutableReceiptProducerTests.swift"]
         devices = self.sources["Tests/CoreTests/DevicePushRegistrationLifecycleTests.swift"]
         self.assertIn("testOtherRequestDoesNotRewriteOriginalPin", receipt)
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyLedgerThenAcceptApplies", receipt)
+        self.assertIn("evt-recover-never-c09", receipt)
         self.assertIn("testOtherDeviceDoesNotRewriteOriginalRegistration", devices)
         self.assertIn("fingerprintConflict(requestId: \"evt-E\")", receipt)
         self.assertIn("dev-other", devices)
