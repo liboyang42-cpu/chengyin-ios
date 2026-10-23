@@ -196,6 +196,16 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn("2026-10-23 20:00:00", tests)
         self.assertIn("2026-10-23T12:00:00Z", tests)
 
+    def test_account_switch_isolation_markers_present(self):
+        tests = self.sources["Tests/CoreTests/SupportEventLocatorTests.swift"]
+        self.assertIn("testOtherRequestIdDoesNotRewriteOriginalEvents", tests)
+        self.assertIn("testInProcessRecoverKeepsOriginalUnknownNotProjectionSuccess", tests)
+        self.assertIn('locateByRequestId("req-other"', tests)
+        self.assertIn("originalMissing(requestId: \"req-other\")", tests)
+        compensation = self.sources["Tests/CoreTests/CompensationEntryProjectionTests.swift"]
+        self.assertIn("testOtherViewerDoesNotRewriteFrozenOriginal", compensation)
+        self.assertIn("viewerId: 3", compensation)
+
     def test_waiting_source_unsigned_originals(self):
         locator = self.sources["Core/SupportEventLocator.swift"]
         self.assertIn("WAITING_SOURCE", locator)

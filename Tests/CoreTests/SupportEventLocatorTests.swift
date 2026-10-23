@@ -161,6 +161,49 @@ final class SupportEventLocatorTests: XCTestCase {
         XCTAssertFalse(SupportUntrusted.jsonValue(nil) is String)
     }
 
+    func testOtherRequestIdDoesNotRewriteOriginalEvents() throws {
+        let original = OriginalAuditEvent(
+            requestId: "req-unknown-1", targetType: "RUN", targetId: 11,
+            action: "SUBMIT", afterJson: "UNKNOWN")
+        let source = InMemoryOriginalEventSource().add(original)
+        let locator = SupportEventLocator(originalEvents: source)
+        let projection = SupportCurrentProjection(
+            requestId: "req-unknown-1", appliedState: SupportEventLocator.projectionAppliedSuccess)
+        let located = try XCTUnwrap(locator.locateByRequestId("req-unknown-1", currentProjection: projection))
+        XCTAssertThrowsError(try locator.locateByRequestId("req-other", currentProjection: projection)) { error in
+            XCTAssertEqual(error as? SupportLocateFailure, .originalMissing(requestId: "req-other"))
+        }
+        let recovered = try XCTUnwrap(
+            locator.recoverOriginal(originalRequestID: "req-unknown-1", currentProjection: projection))
+        XCTAssertEqual(recovered.originalOutcome, "UNKNOWN")
+        XCTAssertEqual(recovered.requestId, located.requestId)
+        XCTAssertEqual(recovered.originalEvents.count, 1)
+        XCTAssertNotEqual(recovered.originalOutcome, SupportEventLocator.projectionAppliedSuccess)
+        XCTAssertEqual(source.findByRequestId("req-unknown-1").count, 1)
+        XCTAssertTrue(source.findByRequestId("req-other").isEmpty)
+    }
+
+    func testInProcessRecoverKeepsOriginalUnknownNotProjectionSuccess() throws {
+        let original = OriginalAuditEvent(
+            requestId: "req-fail-1", targetType: "ORDER", targetId: 88,
+            action: "PAY", afterJson: "FAILED")
+        let source = InMemoryOriginalEventSource().add(original)
+        let first = SupportEventLocator(originalEvents: source)
+        let projection = SupportCurrentProjection(
+            requestId: "req-fail-1", appliedState: SupportEventLocator.projectionAppliedSuccess)
+        XCTAssertEqual(try first.locateByRequestId("req-fail-1", currentProjection: projection)?.originalOutcome,
+                       "FAILED")
+        let restarted = SupportEventLocator(originalEvents: source)
+        let recovered = try XCTUnwrap(
+            restarted.recoverOriginal(originalRequestID: "req-fail-1", currentProjection: projection))
+        XCTAssertEqual(recovered.originalOutcome, "FAILED")
+        XCTAssertEqual(recovered.requestId, "req-fail-1")
+        XCTAssertTrue(recovered.currentProjectionClaimsSuccess)
+        XCTAssertTrue(recovered.originalIsNotProjectionSuccess)
+        XCTAssertNil(try restarted.locateByRequestId(nil, currentProjection: projection))
+        XCTAssertNil(try restarted.locateByRequestId("", currentProjection: projection))
+    }
+
     func testMissingOriginalIsNotInferredFromProjection() {
         let locator = SupportEventLocator(originalEvents: InMemoryOriginalEventSource())
         let projection = SupportCurrentProjection(

@@ -58,6 +58,37 @@ final class CompensationEntryProjectionTests: XCTestCase {
             try projection.project(requestId: "comp-req-1", topicId: 10, viewer: forged, currentFinal: nil))
     }
 
+    func testOtherViewerDoesNotRewriteFrozenOriginal() throws {
+        let frozen = frozenTerms()
+        let original = OriginalAuditEvent(
+            requestId: "comp-req-1", action: "COMPENSATION_FREEZE", afterJson: "FROZEN")
+        let trail = AuditTrailEntry(
+            source: AuditTrailEntry.sourceBusinessAuditEvent, action: "COMPENSATION_FREEZE")
+        let projection = CompensationEntryProjection(
+            termsSource: FixedFrozenTerms(terms: frozen),
+            auditSource: RecordingAuditSource(events: [original], trail: [trail]))
+        let current = FinalCompensationFacts.settled(
+            clubId: 7, fixedCompensation: Decimal(string: "999.00")!)
+        let viewer = CompensationViewerGrant(
+            viewerId: 88, existingPermissionCodes: [ExtraApproverGrant.approvePermission])
+        let other = CompensationViewerGrant(
+            viewerId: 3, existingPermissionCodes: [])
+        let view = try XCTUnwrap(projection.project(
+            requestId: "comp-req-1", topicId: 10, viewer: viewer, currentFinal: current))
+        XCTAssertThrowsError(
+            try projection.project(requestId: "comp-req-1", topicId: 10, viewer: other, currentFinal: current)
+        ) { error in
+            XCTAssertEqual((error as? CompensationEntryFailure)?.code, CompensationEntryProjection.denied)
+        }
+        XCTAssertEqual(
+            try projection.recoverOriginal(
+                originalRequestID: "comp-req-1", topicId: 10, viewer: viewer, currentFinal: current
+            )?.originalTerms.fixedCompensation,
+            Decimal(string: "200.00"))
+        XCTAssertEqual(view.originalTerms.fixedCompensation, Decimal(string: "200.00"))
+        XCTAssertNotEqual(view.originalTerms.fixedCompensation, Decimal(string: "999.00"))
+    }
+
     func testMissingRequestIdStaysOptionalNone() throws {
         let projection = CompensationEntryProjection(
             termsSource: FixedFrozenTerms(terms: frozenTerms()),
