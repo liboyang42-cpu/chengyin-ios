@@ -561,20 +561,28 @@ public struct MechanismRequestIdProjection: Equatable {
         if let action = play.originalAction, action.actionId != id {
             throw MechanismFailure.mintedNewRequest
         }
-        var entry = originalActions[id] ?? MechanismLedgerEntry(
-            requestId: id, mechanism: nil, choice: nil, status: MechanismStatus.unknown.rawValue)
-        if originalActions[id] == nil {
-            entry.status = MechanismStatus.unknown.rawValue
-            originalActions[id] = entry
+        if var entry = originalActions[id] {
+            if let restored = restoreFromOriginalAction(&play, &entry) {
+                originalActions[id] = entry
+                return restored
+            }
+            if entry.status == MechanismStatus.applied.rawValue, let result = entry.result {
+                return replay(result, requestId: id)
+            }
+            var occupiedUnknown = MechanismResult(requestId: id, status: MechanismStatus.unknown.rawValue)
+            occupiedUnknown.replay = false
+            occupiedUnknown.mintedNewRequest = false
+            return occupiedUnknown
         }
-        if let restored = restoreFromOriginalAction(&play, &entry) {
-            originalActions[id] = entry
-            return restored
+        if play.originalAction != nil {
+            var restoredEntry = MechanismLedgerEntry(
+                requestId: id, mechanism: nil, choice: nil, status: MechanismStatus.unknown.rawValue)
+            if let restored = restoreFromOriginalAction(&play, &restoredEntry) {
+                originalActions[id] = restoredEntry
+                return restored
+            }
         }
-        if entry.status == MechanismStatus.applied.rawValue, let result = entry.result {
-            return replay(result, requestId: id)
-        }
-        // UNKNOWN must not treat the current live projection as original success.
+        // Never-seen id: do not occupy the ledger, or a later unique writer becomes recover of minted UNKNOWN.
         var unknown = MechanismResult(requestId: id, status: MechanismStatus.unknown.rawValue)
         unknown.replay = false
         unknown.mintedNewRequest = false

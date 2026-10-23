@@ -77,8 +77,12 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         self.assertIn("testOtherRequestDoesNotRewriteOriginalClock", text)
         self.assertIn("testInProcessRecoverKeepsOriginalAppliedAndUnknown", text)
         self.assertIn("testMissingRequestIDIsRefusedNeverStoredAsEmptyString", text)
+        self.assertIn("testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenOneShotApplies", text)
+        self.assertIn("c03-never-seen", text)
         self.assertIn("missingOriginalRequestID", text)
         self.assertNotIn('requestId = ""', text)
+        kernel = self.sources["Core/MechanismRequestIdProjection.swift"]
+        self.assertIn("do not occupy the ledger", kernel)
 
     def test_original_request_id_on_apply_and_recover(self):
         for path in CORE_FILES:

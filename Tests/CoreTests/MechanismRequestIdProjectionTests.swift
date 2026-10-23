@@ -144,6 +144,27 @@ final class MechanismRequestIdProjectionTests: XCTestCase {
         XCTAssertNil(binder.existing(MechanismFirstJourney.requestID))
         XCTAssertNil(MechanismUntrusted.text(""))
     }
+    func testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenOneShotApplies() throws {
+        var clocks = ProgressClockMomentumAspectProjection()
+        var unseen = MechanismFirstJourney.seededPlay()
+        unseen.originalAction = nil
+        let recovered = try clocks.recoverOriginal(&unseen, originalRequestID: "c03-never-seen")
+        XCTAssertEqual(recovered.requestId, "c03-never-seen")
+        XCTAssertEqual(recovered.status, MechanismStatus.unknown.rawValue)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertEqual(recovered.replay, false)
+        XCTAssertNil(clocks.binder.existing("c03-never-seen"))
+        unseen.playerChoice = MechanismChoice(mechanism: "progressClock", action: "TICK_CLOCK",
+                                              varName: "counter.alarm")
+        let applied = try clocks.apply(&unseen, originalRequestID: "c03-never-seen")
+        XCTAssertEqual(applied.requestId, "c03-never-seen")
+        XCTAssertEqual(applied.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(applied.replay, false)
+        XCTAssertEqual(applied.mintedNewRequest, false)
+        XCTAssertEqual(applied.value, 1)
+        XCTAssertEqual(clocks.binder.existing("c03-never-seen")?.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(clocks.binder.existing("c03-never-seen")?.requestId, "c03-never-seen")
+    }
     func testWaitingSourceUnsignedOriginalsAreNotRewritten() {
         var binder = MechanismRequestIdProjection()
         XCTAssertFalse(MechanismSourceInventory.v12DocxPresent)

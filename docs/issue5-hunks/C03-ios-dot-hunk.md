@@ -120,6 +120,7 @@ Paste example (Core kernel only):
 - 不要改 `AppSession`、`AppCompositionRoot`、`PlayExperienceCoordinator`、`PlayExperienceService`、`PlayNode`、`RouteEffects`、`TopicRouteRuntime`、localization catalogs。
 - 不要另造骰子 / 钱包 / 角色卡 / 第二套 request 账。
 - 不要把 UNKNOWN 投影成 APPLIED，也不要为恢复 mint 新 originalRequestID。
+- 不要对未见过的 originalRequestID 做 recoverUnknown 时写入 `originalActions`；未见过只回 UNKNOWN 且 `existing==nil`，否则后续唯一写入会变成对 mint 出的 UNKNOWN 的 recover。
 - 不要用客户端时钟判定社区日成功。
 - 不要把未确认的阵营 / 领地 / 秘密目标经济值写成数字。
 
