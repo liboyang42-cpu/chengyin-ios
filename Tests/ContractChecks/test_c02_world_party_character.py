@@ -68,6 +68,15 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
         self.assertIn('testClientClockCannotMintSuccessFromExpiresAt', tests)
         self.assertIn('WAITING_SOURCE', tests)
 
+    def test_account_switch_isolation_markers_present(self):
+        tests = TESTS['card'].read_text()
+        self.assertIn('testOtherRequestDoesNotRewriteOriginalRequestID', tests)
+        self.assertIn('testInProcessRecoverKeepsOriginalAndBlankDoesNotBindEmptyString', tests)
+        self.assertIn('other-request-id', tests)
+        self.assertIn('requestID: ""', tests)
+        card = CORE['card'].read_text()
+        self.assertIn('if let originalRequestID { guard originalRequestID == command.requestID else { return } }', card)
+
     def test_first_journey_retries_the_same_original_request_id(self):
         tests = TESTS['card'].read_text()
         for name in ['testFirstJourneyProjectsCardBreakdownEnvironmentPartyEquipmentThenRetriesSameRequestId',

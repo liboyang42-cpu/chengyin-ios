@@ -124,6 +124,43 @@ import FoundationNetworking
         XCTAssertEqual(model.availability, .waitingSource); XCTAssertNil(model.card)
         XCTAssertEqual(transport.requests.first?.httpMethod, "GET")
     }
+    func testOtherRequestDoesNotRewriteOriginalRequestID() async throws {
+        let (_, transport, model) = try setup()
+        await model.load()
+        let original = try command()
+        model.bindOriginal(original)
+        XCTAssertEqual(model.originalRequestID, "synthetic-request")
+        let other = try PlayPlayerCommand(activityID: 41, nodeID: 701, requestID: "other-request-id",
+                                          expectedRevision: 2, action: .choice, payload: ["choiceId": .string("LEFT")])
+        model.bindOriginal(other)
+        XCTAssertEqual(model.originalRequestID, "synthetic-request")
+        XCTAssertNotEqual(model.originalRequestID, other.requestID)
+        await model.retryOriginal()
+        let commands = transport.requests.filter { $0.url?.path == "/api/game/session/command" }
+        XCTAssertEqual(commands.count, 1)
+        let body = try JSONDecoder().decode(PlayWireValue.self, from: try XCTUnwrap(commands.first?.httpBody))
+        XCTAssertEqual(body["requestId"].text, "synthetic-request")
+        XCTAssertEqual(model.originalRequestID, original.requestID)
+    }
+    func testInProcessRecoverKeepsOriginalAndBlankDoesNotBindEmptyString() async throws {
+        let (owner, _, model) = try setup()
+        await model.load()
+        model.bindOriginal(try command())
+        XCTAssertEqual(model.originalRequestID, "synthetic-request")
+        XCTAssertThrowsError(try PlayPlayerCommand(activityID: 41, nodeID: 701, requestID: "",
+                                                   expectedRevision: 2, action: .choice,
+                                                   payload: ["choiceId": .string("LEFT")]))
+        XCTAssertThrowsError(try PlayPlayerCommand(activityID: 41, nodeID: 701, requestID: "  ",
+                                                   expectedRevision: 2, action: .choice,
+                                                   payload: ["choiceId": .string("LEFT")]))
+        XCTAssertEqual(model.originalRequestID, "synthetic-request")
+        XCTAssertNotEqual(model.originalRequestID, "")
+        owner.value = try PlayExperienceSession(accountID: 8, epoch: 1, namespace: "synthetic", token: "synthetic-token")
+        await model.load()
+        XCTAssertEqual(model.availability, .unknown)
+        XCTAssertNil(model.card)
+        XCTAssertEqual(model.originalRequestID, "synthetic-request")
+    }
     func testMalformedCharacterPayloadIsUnknownNotATemplateSuccess() async throws {
         let (_, transport, model) = try setup(card: .object(["topicId": .int(71)]))
         await model.load()
