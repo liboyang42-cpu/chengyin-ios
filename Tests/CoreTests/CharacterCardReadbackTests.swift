@@ -168,6 +168,26 @@ import FoundationNetworking
         XCTAssertNil(model.card)
         XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/play/character"])
     }
+    func testUnknownBreakdownDoesNotOccupyOriginalThenUniqueBindApplies() async throws {
+        let (_, _, model) = try setup()
+        await model.load()
+        XCTAssertNil(model.originalRequestID)
+        XCTAssertNil(model.card?.originalRequestID)
+        model.acceptBreakdown(.string("ok"))
+        XCTAssertEqual(model.card?.breakdown.availability, .unknown)
+        XCTAssertNil(model.originalRequestID)
+        XCTAssertNil(model.card?.originalRequestID)
+        let original = try command()
+        model.bindOriginal(original)
+        XCTAssertEqual(model.originalRequestID, "synthetic-request")
+        XCTAssertEqual(model.card?.originalRequestID, "synthetic-request")
+        let other = try PlayPlayerCommand(activityID: 41, nodeID: 701, requestID: "other-request-id",
+                                          expectedRevision: 2, action: .choice, payload: ["choiceId": .string("LEFT")])
+        model.bindOriginal(other)
+        XCTAssertEqual(model.originalRequestID, original.requestID)
+        XCTAssertNotEqual(model.originalRequestID, other.requestID)
+        XCTAssertNotEqual(model.originalRequestID, "")
+    }
 }
 
 @MainActor private final class Owner {

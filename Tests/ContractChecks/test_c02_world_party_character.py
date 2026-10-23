@@ -72,6 +72,7 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
         tests = TESTS['card'].read_text()
         self.assertIn('testOtherRequestDoesNotRewriteOriginalRequestID', tests)
         self.assertIn('testInProcessRecoverKeepsOriginalAndBlankDoesNotBindEmptyString', tests)
+        self.assertIn('testUnknownBreakdownDoesNotOccupyOriginalThenUniqueBindApplies', tests)
         self.assertIn('other-request-id', tests)
         self.assertIn('requestID: ""', tests)
         card = CORE['card'].read_text()
