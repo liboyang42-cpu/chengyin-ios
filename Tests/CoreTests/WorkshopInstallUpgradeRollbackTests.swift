@@ -32,6 +32,19 @@ final class WorkshopInstallUpgradeRollbackTests: XCTestCase {
         XCTAssertEqual(waiting { try machine.consumeQmodRuntime() },
                        .waitingSource(capability: WorkshopModuleSourceInventory.qmodOriginal))
     }
+    func testOtherRequestIdCannotRewriteAuthorizedHold() throws {
+        var machine = WorkshopInstallUpgradeRollback()
+        try machine.authorizedHold(originalRequestID: "req-i1", versionLabel: "1.0.0")
+        try machine.install(originalRequestID: "req-i1")
+        XCTAssertEqual(machine.originalRequestID, "req-i1")
+        XCTAssertThrowsError(try machine.authorizedHold(originalRequestID: "req-i-other",
+                                                       versionLabel: "9.9.9")) { error in
+            XCTAssertEqual(error as? WorkshopInstallFailure, .invalidGrant)
+        }
+        XCTAssertEqual(machine.originalRequestID, "req-i1")
+        XCTAssertEqual(machine.installCount, 1)
+        XCTAssertEqual(machine.snapshot?.installedVersion, "1.0.0")
+    }
     private func waiting(_ body: () throws -> Never) -> WorkshopInstallFailure? {
         do { try body(); return nil } catch let error as WorkshopInstallFailure { return error } catch { return nil }
     }

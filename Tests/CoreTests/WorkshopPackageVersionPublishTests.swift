@@ -37,6 +37,22 @@ final class WorkshopPackageVersionPublishTests: XCTestCase {
                        .waitingSource(capability: WorkshopModuleSourceInventory.modulePackOriginal))
         XCTAssertFalse(WorkshopModuleSourceInventory.modulePackOriginalPresent)
     }
+    func testOtherRequestIdCannotMutateFrozenOriginal() throws {
+        var publish = WorkshopPackageVersionPublish()
+        try publish.freeze(contentHash: content, termsHash: terms, versionLabel: "1.0.0",
+                           originalRequestID: "req-p1", reviewed: true)
+        XCTAssertThrowsError(try publish.freeze(contentHash: content, termsHash: terms,
+                                                versionLabel: "1.0.0", originalRequestID: "req-p-other",
+                                                reviewed: true)) { error in
+            XCTAssertEqual(error as? WorkshopPackagePublishFailure, .frozenHashMutation)
+        }
+        XCTAssertEqual(publish.frozen?.originalRequestID, "req-p1")
+        XCTAssertEqual(publish.publishCount, 1)
+        XCTAssertThrowsError(try publish.republish(originalRequestID: "req-p-other")) { error in
+            XCTAssertEqual(error as? WorkshopPackagePublishFailure, .requestMismatch)
+        }
+        XCTAssertEqual(publish.frozen?.originalRequestID, "req-p1")
+    }
     private func waiting(_ body: () throws -> Never) -> WorkshopPackagePublishFailure? {
         do { try body(); return nil } catch let error as WorkshopPackagePublishFailure { return error } catch { return nil }
     }

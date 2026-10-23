@@ -14,6 +14,7 @@ public enum WorkshopModuleImportFailure: Error, Equatable {
     case notImported
     case notValidated
     case notPreviewed
+    case requestMismatch
     public var isWaitingSource: Bool {
         if case .waitingSource = self { return true }
         return false
@@ -113,13 +114,25 @@ public struct WorkshopModuleImportGate: Equatable {
         return manifest
     }
     public mutating func importFromNormalEntry(entry: String, format: WorkshopModuleFormat,
-                                               originalRequestID: String) throws {
-        guard Self.idOK(entry), Self.requestIDOK(originalRequestID) else { throw fail(.invalidManifest) }
+                                               originalRequestID: String?) throws {
+        guard Self.idOK(entry) else { throw fail(.invalidManifest) }
+        let requestID: String?
+        if let raw = originalRequestID {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            requestID = Self.requestIDOK(trimmed) ? trimmed : nil
+        } else {
+            requestID = nil
+        }
+        guard let requestID else { throw fail(.invalidManifest) }
+        if let existing = self.originalRequestID {
+            guard existing == requestID, self.entry == entry else { throw fail(.requestMismatch) }
+            return
+        }
         guard format == .metadataManifestV1 else {
             throw fail(.waitingSource(capability: WorkshopModuleSourceInventory.qmodOriginal))
         }
         self.entry = entry
-        self.originalRequestID = originalRequestID
+        self.originalRequestID = requestID
         manifest = nil
         preview = nil
         phase = .imported

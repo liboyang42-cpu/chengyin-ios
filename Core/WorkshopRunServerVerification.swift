@@ -55,8 +55,14 @@ public struct WorkshopRunServerVerification: Equatable {
     public private(set) var originalIntent: WorkshopRunIntent?
     public private(set) var failure: WorkshopRunVerifyFailure?
     public init() {}
-    public mutating func bind(originalRequestID: String, intent: WorkshopRunIntent = .run) throws {
-        guard WorkshopModuleImportGate.requestIDOK(originalRequestID) else { throw fail(.invalidReceipt) }
+    public mutating func bind(originalRequestID: String?, intent: WorkshopRunIntent = .run) throws {
+        guard let originalRequestID, WorkshopModuleImportGate.requestIDOK(originalRequestID) else {
+            throw fail(.invalidReceipt)
+        }
+        if let existing = self.originalRequestID {
+            guard existing == originalRequestID else { throw fail(.requestMismatch) }
+            return
+        }
         self.originalRequestID = originalRequestID
         originalIntent = intent
         phase = .bound

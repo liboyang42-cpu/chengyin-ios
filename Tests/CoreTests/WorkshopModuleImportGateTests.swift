@@ -96,6 +96,54 @@ final class WorkshopModuleImportGateTests: XCTestCase {
         gate = WorkshopModuleImportGate()
         XCTAssertEqual(waiting { try gate.writeRuntime() }, .runtimeWriteForbidden)
     }
+    func testOtherRequestIdDoesNotRewriteImportedOriginal() throws {
+        var importer = WorkshopModuleImportGate()
+        try importer.importFromNormalEntry(entry: "workshop.owned.library",
+                                           format: .metadataManifestV1,
+                                           originalRequestID: "req-c10-1")
+        try importer.validate(object())
+        try importer.previewMetadataOnly()
+        try importer.markReviewPending()
+        XCTAssertEqual(importer.phase, .reviewPending)
+        XCTAssertEqual(importer.originalRequestID, "req-c10-1")
+        try importer.importFromNormalEntry(entry: "workshop.owned.library",
+                                           format: .metadataManifestV1,
+                                           originalRequestID: "req-c10-1")
+        XCTAssertEqual(importer.phase, .reviewPending)
+        XCTAssertEqual(importer.originalRequestID, "req-c10-1")
+        XCTAssertEqual(importer.manifest?.contentHash, hashA)
+        XCTAssertThrowsError(try importer.importFromNormalEntry(
+            entry: "workshop.owned.library", format: .metadataManifestV1,
+            originalRequestID: "req-c10-other")) { error in
+            XCTAssertEqual(error as? WorkshopModuleImportFailure, .requestMismatch)
+        }
+        XCTAssertEqual(importer.originalRequestID, "req-c10-1")
+        XCTAssertEqual(importer.phase, .reviewPending)
+        XCTAssertNotEqual(importer.originalRequestID, "")
+    }
+    func testMissingRequestIdStaysNilNeverEmptyString() {
+        var importer = WorkshopModuleImportGate()
+        XCTAssertNil(importer.originalRequestID)
+        XCTAssertThrowsError(try importer.importFromNormalEntry(
+            entry: "workshop.owned.library", format: .metadataManifestV1,
+            originalRequestID: nil)) { error in
+            XCTAssertEqual(error as? WorkshopModuleImportFailure, .invalidManifest)
+        }
+        XCTAssertNil(importer.originalRequestID)
+        XCTAssertThrowsError(try importer.importFromNormalEntry(
+            entry: "workshop.owned.library", format: .metadataManifestV1,
+            originalRequestID: "")) { error in
+            XCTAssertEqual(error as? WorkshopModuleImportFailure, .invalidManifest)
+        }
+        XCTAssertNil(importer.originalRequestID)
+        XCTAssertThrowsError(try importer.importFromNormalEntry(
+            entry: "workshop.owned.library", format: .metadataManifestV1,
+            originalRequestID: "  ")) { error in
+            XCTAssertEqual(error as? WorkshopModuleImportFailure, .invalidManifest)
+        }
+        XCTAssertNil(importer.originalRequestID)
+        XCTAssertNotEqual(importer.originalRequestID, "")
+    }
     func testValidateRejectsAnswersHiddenCoordinatesAndBadSchema() throws {
         var gate = WorkshopModuleImportGate()
         try gate.importFromNormalEntry(entry: "workshop.owned.library", format: .metadataManifestV1,

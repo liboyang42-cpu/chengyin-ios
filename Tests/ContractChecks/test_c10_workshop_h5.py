@@ -206,6 +206,25 @@ class C10WorkshopH5Contracts(unittest.TestCase):
             self.assertNotIn("import SwiftUI", text)
             self.assertNotIn("import Observation", text)
 
+    def test_other_request_cannot_rewrite_original_import(self):
+        tests = self.sources["Tests/CoreTests/WorkshopModuleImportGateTests.swift"]
+        importer = self.sources["Core/WorkshopModuleImportGate.swift"]
+        self.assertIn("testOtherRequestIdDoesNotRewriteImportedOriginal", tests)
+        self.assertIn("testMissingRequestIdStaysNilNeverEmptyString", tests)
+        self.assertIn("case requestMismatch", importer)
+        self.assertIn("originalRequestID: String?", importer)
+        self.assertIn('throw fail(.requestMismatch)', importer)
+        self.assertIn("guard existing == requestID, self.entry == entry else", importer)
+        run_tests = self.sources["Tests/CoreTests/WorkshopRunServerVerificationTests.swift"]
+        self.assertIn("testOtherRequestIdDoesNotRewriteBoundOriginal", run_tests)
+        self.assertIn("testMissingBindRequestIdStaysNilNeverEmptyString", run_tests)
+        self.assertIn(
+            "testOtherRequestIdCannotRewriteAuthorizedHold",
+            self.sources["Tests/CoreTests/WorkshopInstallUpgradeRollbackTests.swift"])
+        self.assertIn(
+            "testOtherRequestIdCannotMutateFrozenOriginal",
+            self.sources["Tests/CoreTests/WorkshopPackageVersionPublishTests.swift"])
+
     def test_linux_xctest_app_ci_are_explicitly_not_run(self):
         self.assertIn("XCTest / App / CI = NOT_RUN", Path(__file__).read_text())
         self.assertIn("not 100%", (ROOT / HUNK).read_text())
