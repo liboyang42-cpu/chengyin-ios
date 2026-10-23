@@ -140,6 +140,13 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("testOtherRequestDoesNotRewriteOriginalJourney", evidence)
         self.assertIn("testInProcessRecoverKeepsOriginalJourneyAndMissingStaysNil", evidence)
         self.assertIn("testOtherRequestDoesNotRewriteOriginalHold", hold)
+        self.assertIn("testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenHoldApplies", hold)
+        supply_tests = self.sources["Tests/CoreTests/MerchantSupplyDryRunProjectionTests.swift"]
+        self.assertIn("testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenAcceptApplies", supply_tests)
+        hold_core = self.sources["Core/EntitlementHoldProjection.swift"]
+        self.assertIn("view.outcome != .unknown", hold_core)
+        supply_core = self.sources["Core/MerchantSupplyDryRunProjection.swift"]
+        self.assertIn("decision.outcome != .unknown", supply_core)
         core = self.sources["Core/FulfillmentEvidenceProjection.swift"]
         self.assertIn("if let requestID, let original = originalStepsByRequestID[requestID]", core)
 

@@ -80,7 +80,7 @@ public struct MerchantSupplyDryRunProjection: Equatable {
     public mutating func evaluate(_ fact: MerchantSupplyDryRunFact?, serverNow: Date?,
                                   requestedQty: Int) -> MerchantSupplyDryRunDecision {
         let decision = compute(fact, serverNow: serverNow, requestedQty: requestedQty)
-        if let requestID = decision.originalRequestID {
+        if let requestID = decision.originalRequestID, decision.outcome != .unknown {
             if originalIntentByRequestID[requestID] == nil {
                 originalIntentByRequestID[requestID] = decision
             }

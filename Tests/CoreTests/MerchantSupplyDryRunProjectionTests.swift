@@ -166,4 +166,22 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
         XCTAssertEqual(decision.reason, "outside business hours")
         XCTAssertEqual(MerchantSupplyDryRunProjection.minuteOfDay(serverNow: noon), 12 * 60)
     }
+    func testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenAcceptApplies() {
+        var supply = MerchantSupplyDryRunProjection()
+        let recovered = supply.recoverOriginal(originalRequestID: "c07-supply-never-seen")
+        XCTAssertEqual(recovered.outcome, .unknown)
+        XCTAssertEqual(recovered.originalRequestID, "c07-supply-never-seen")
+        XCTAssertEqual(supply.holdCount(originalRequestID: "c07-supply-never-seen"), 0)
+        let missing = supply.evaluate(bookable(hoursOpen: nil, hoursClose: nil,
+                                               originalRequestID: "c07-supply-never-seen"),
+                                      serverNow: noon, requestedQty: 1)
+        XCTAssertEqual(missing.outcome, .unknown)
+        XCTAssertEqual(supply.holdCount(originalRequestID: "c07-supply-never-seen"), 0)
+        XCTAssertEqual(supply.recoverOriginal(originalRequestID: "c07-supply-never-seen").outcome, .unknown)
+        let accept = supply.evaluate(bookable(originalRequestID: "c07-supply-never-seen"),
+                                     serverNow: noon, requestedQty: 1)
+        XCTAssertEqual(accept.outcome, .accept)
+        XCTAssertEqual(supply.holdCount(originalRequestID: "c07-supply-never-seen"), 1)
+        XCTAssertEqual(supply.recoverOriginal(originalRequestID: "c07-supply-never-seen").outcome, .accept)
+    }
 }

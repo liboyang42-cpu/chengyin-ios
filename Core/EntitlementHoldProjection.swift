@@ -79,7 +79,7 @@ public struct EntitlementHoldProjection: Equatable {
             return original
         }
         let view = compute(fact, serverNow: serverNow)
-        if let requestID = view.originalRequestID {
+        if let requestID = view.originalRequestID, view.outcome != .unknown {
             originalIntentByRequestID[requestID] = view
             if view.occupiesCapacity, occupyCountByRequestID[requestID] == nil {
                 occupyCountByRequestID[requestID] = 1

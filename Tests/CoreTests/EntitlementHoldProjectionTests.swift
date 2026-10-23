@@ -82,4 +82,23 @@ final class EntitlementHoldProjectionTests: XCTestCase {
         XCTAssertNotEqual(projection.recoverOriginal(originalRequestID: "c07-hold-other").originalRequestID,
                           "c07-hold-1")
     }
+    func testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenHoldApplies() {
+        var projection = EntitlementHoldProjection()
+        let recovered = projection.recoverOriginal(originalRequestID: "c07-hold-never-seen")
+        XCTAssertEqual(recovered.outcome, .unknown)
+        XCTAssertEqual(recovered.originalRequestID, "c07-hold-never-seen")
+        XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-never-seen"), 0)
+        let missing = EntitlementHoldFact(originalRequestID: "c07-hold-never-seen", registrationID: 78,
+                                          chapterID: 124, merchantID: 9, status: nil,
+                                          validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(projection.project(missing, serverNow: now).outcome, .unknown)
+        XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-never-seen"), 0)
+        XCTAssertEqual(projection.recoverOriginal(originalRequestID: "c07-hold-never-seen").outcome, .unknown)
+        let held = EntitlementHoldFact(originalRequestID: "c07-hold-never-seen", registrationID: 78,
+                                       chapterID: 124, merchantID: 9, status: EntitlementHoldStatus.held,
+                                       validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(projection.project(held, serverNow: now).outcome, .held)
+        XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-never-seen"), 1)
+        XCTAssertEqual(projection.recoverOriginal(originalRequestID: "c07-hold-never-seen").outcome, .held)
+    }
 }

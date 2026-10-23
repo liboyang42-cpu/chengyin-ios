@@ -43,6 +43,7 @@ Inventoried, not rewritten:
 - SKU + validity + hours-capacity dry-run: ACCEPT / REJECT / UNKNOWN; null hours on a bookable SKU = UNKNOWN (not 24h); Asia/Shanghai server clock
 - ACCEPT does not write stock or reservation; duplicate `originalRequestID` does not double-hold; UNKNOWN recover keeps original intent
 - Holding entitlement occupies capacity and is not issuance; no reserve / redeem / award
+- UNKNOWN recover / incomplete observation must not occupy the original ledger; later unique HELD / ACCEPT of that id is still the first write
 - Appointment / reschedule keep the original request; in-store evidence is not a GPS fake
 - Invoice file/history UNKNOWN keeps original intent and does not mint a new requestId; current projection is not original file success
 - Transfer-sold missing designated recipient or missing sold-policy source is typed WAITING_SOURCE
