@@ -85,6 +85,33 @@ final class SideQuestAcceptHoldTests: XCTestCase {
         XCTAssertNil(restarted.original)
         XCTAssertEqual(restarted.phase, .idle)
     }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyLedgerThenUniqueHoldApplies() throws {
+        var quest = SideQuestAcceptHold()
+        XCTAssertThrowsError(try quest.recoverOriginal(originalRequestID: "sq-orig-unk")) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .originalRecordUnknown)
+        }
+        XCTAssertNil(quest.original)
+        XCTAssertNil(quest.hold)
+        XCTAssertEqual(quest.phase, .idle)
+        try quest.discover(try place())
+        XCTAssertThrowsError(try quest.recoverOriginal(originalRequestID: "sq-orig-unk")) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .originalRecordUnknown)
+        }
+        XCTAssertNil(quest.original)
+        XCTAssertNil(quest.hold)
+        XCTAssertEqual(quest.phase, .discovered)
+        try quest.acceptHold(holdID: "hold-unk", originalRequestID: "sq-orig-unk", seats: 1)
+        XCTAssertEqual(quest.hold?.originalRequestID, "sq-orig-unk")
+        try quest.submitProof(try XCTUnwrap(SideQuestProof(kind: .qr, attested: true)))
+        try quest.complete()
+        let recovered = try quest.recoverOriginal(originalRequestID: "sq-orig-unk")
+        XCTAssertEqual(recovered.originalRequestID, "sq-orig-unk")
+        XCTAssertEqual(recovered.terminal, .completed)
+        XCTAssertThrowsError(try quest.discover(try place())) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .alreadyTerminal)
+        }
+        XCTAssertEqual(quest.original?.originalRequestID, "sq-orig-unk")
+    }
     func testNonCompliantHiddenCapacityAndFakeGPS() throws {
         var quest = SideQuestAcceptHold()
         XCTAssertThrowsError(try quest.discover(try place(compliant: false))) { error in

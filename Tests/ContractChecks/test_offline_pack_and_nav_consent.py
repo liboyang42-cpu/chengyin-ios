@@ -180,6 +180,8 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
         quest = self.sources["Tests/CoreTests/SideQuestAcceptHoldTests.swift"]
         self.assertIn("testOtherRequestIdDoesNotRewriteOriginalHold", quest)
         self.assertIn("testMissingRequestIdStaysNilNeverEmptyString", quest)
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyLedgerThenUniqueHoldApplies", quest)
+        self.assertIn("sq-orig-unk", quest)
         self.assertIn("alreadyTerminal", quest)
         pack = self.sources["Tests/CoreTests/OfflinePackOperationTests.swift"]
         self.assertIn("testOtherOperationIdDoesNotRewriteOriginalDownload", pack)
