@@ -98,8 +98,15 @@ class MerchantNPCDraftCannotPriceContracts(unittest.TestCase):
         self.assertNotIn('project.pbxproj', self.gate + self.isolation + self.revoke)
         self.assertNotIn('Authorization', self.http.split('refuseAiGatewayPublicAuth')[1].split('private struct Envelope')[0])
 
+    def test_account_switch_isolation_markers_present(self):
+        self.assertIn('testOtherAccountScopeCannotRewriteOriginalDraft', self.gate_tests)
+        self.assertIn('testRestartedGateDoesNotInventPublishedRevision', self.gate_tests)
+        self.assertIn('staleScope', self.gate)
+        self.assertIn('Stolen', self.gate_tests)
+        self.assertIn('restarted.published', self.gate_tests)
+
     def test_authored_xctest_count_and_linux_not_run(self):
-        self.assertEqual(self.gate_tests.count('func test'), 6)
+        self.assertEqual(self.gate_tests.count('func test'), 8)
         self.assertEqual(self.revoke_tests.count('func test'), 3)
         self.assertIn('Linux', Path(__file__).read_text())
         self.assertIn('NOT_RUN', Path(__file__).read_text())

@@ -111,6 +111,38 @@ import XCTest
         XCTAssertTrue(isolation.themeRunMayProceed(aiFailure: flow.failure))
     }
 
+    func testOtherAccountScopeCannotRewriteOriginalDraft() async throws {
+        let publisher = RecordingPublisher()
+        let otherScope = MerchantNPCScope(
+            accountID: 902, namespace: "synthetic.invalid", epoch: UUID(),
+            merchantRowID: PublicMerchantRowID(32)!, accessRevision: UUID()
+        )
+        var current = scope
+        let flow = MerchantNPCDraftApprovalGate(
+            scope: scope, publisher: publisher, isolation: .init(), qualification: .init(),
+            currentScope: { current }
+        )
+        try flow.ingestAIDraft(draft("Tea"))
+        XCTAssertEqual(flow.phase, .aiDraft)
+        XCTAssertEqual(flow.draft.products.first?.name, "Tea")
+        current = otherScope
+        XCTAssertThrowsError(try flow.ingestAIDraft(draft("Stolen"))) { error in
+            XCTAssertEqual(error as? MerchantNPCDraftGateFailure, .staleScope)
+        }
+        XCTAssertEqual(flow.draft.products.first?.name, "Tea")
+        XCTAssertEqual(flow.phase, .aiDraft)
+        XCTAssertNil(flow.published)
+    }
+
+    func testRestartedGateDoesNotInventPublishedRevision() {
+        let restarted = gate()
+        XCTAssertEqual(restarted.phase, .idle)
+        XCTAssertNil(restarted.published)
+        XCTAssertNil(restarted.reviewTicket)
+        XCTAssertNil(restarted.origin)
+        XCTAssertEqual(restarted.draft.products.count, 0)
+    }
+
     func testWrongAuthorizerCannotPromoteDraft() throws {
         let flow = gate(); try flow.ingestAIDraft(draft())
         let other = try XCTUnwrap(MerchantNPCAuthorizer(accountID: 8, merchantRowID: scope.merchantRowID))
