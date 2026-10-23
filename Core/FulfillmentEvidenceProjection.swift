@@ -100,8 +100,11 @@ public struct FulfillmentEvidenceProjection: Equatable {
     public mutating func recordJourney(originalRequestID: String?,
                                        facts: FulfillmentJourneyFacts?) -> [FulfillmentEvidenceStep] {
         let requestID = Self.parse(originalRequestID)
+        if let requestID, let original = originalStepsByRequestID[requestID] {
+            return original
+        }
         let steps = compute(requestID: requestID, facts: facts)
-        if let requestID, originalStepsByRequestID[requestID] == nil {
+        if let requestID {
             originalStepsByRequestID[requestID] = steps
         }
         return steps

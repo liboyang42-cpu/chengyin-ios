@@ -74,11 +74,13 @@ public struct EntitlementHoldProjection: Equatable {
         return trimmed
     }
     public mutating func project(_ fact: EntitlementHoldFact?, serverNow: Date?) -> EntitlementHoldView {
+        if let requestID = Self.parse(fact?.originalRequestID),
+           let original = originalIntentByRequestID[requestID] {
+            return original
+        }
         let view = compute(fact, serverNow: serverNow)
         if let requestID = view.originalRequestID {
-            if originalIntentByRequestID[requestID] == nil {
-                originalIntentByRequestID[requestID] = view
-            }
+            originalIntentByRequestID[requestID] = view
             if view.occupiesCapacity, occupyCountByRequestID[requestID] == nil {
                 occupyCountByRequestID[requestID] = 1
             }

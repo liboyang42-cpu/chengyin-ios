@@ -134,6 +134,15 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("holdingIsIssuance", tests)
         self.assertIn("occupyCount(originalRequestID: \"c07-hold-1\"), 1", tests)
 
+    def test_account_switch_isolation_markers_present(self):
+        evidence = self.sources["Tests/CoreTests/FulfillmentEvidenceProjectionTests.swift"]
+        hold = self.sources["Tests/CoreTests/EntitlementHoldProjectionTests.swift"]
+        self.assertIn("testOtherRequestDoesNotRewriteOriginalJourney", evidence)
+        self.assertIn("testInProcessRecoverKeepsOriginalJourneyAndMissingStaysNil", evidence)
+        self.assertIn("testOtherRequestDoesNotRewriteOriginalHold", hold)
+        core = self.sources["Core/FulfillmentEvidenceProjection.swift"]
+        self.assertIn("if let requestID, let original = originalStepsByRequestID[requestID]", core)
+
     def test_in_store_evidence_is_not_gps_fake(self):
         evidence = self.sources["Core/FulfillmentEvidenceProjection.swift"]
         tests = self.sources["Tests/CoreTests/FulfillmentEvidenceProjectionTests.swift"]

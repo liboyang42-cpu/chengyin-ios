@@ -62,4 +62,24 @@ final class EntitlementHoldProjectionTests: XCTestCase {
             with: try JSONSerialization.data(withJSONObject: view.jsonObject())) as! [String: Any]
         XCTAssertTrue(object["originalRequestID"] is NSNull)
     }
+    func testOtherRequestDoesNotRewriteOriginalHold() {
+        var projection = EntitlementHoldProjection()
+        let original = EntitlementHoldFact(originalRequestID: "c07-hold-1", registrationID: 78,
+                                           chapterID: 124, merchantID: 9, status: EntitlementHoldStatus.held,
+                                           validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(projection.project(original, serverNow: now).outcome, .held)
+        let steal = EntitlementHoldFact(originalRequestID: "c07-hold-1", registrationID: 99,
+                                        chapterID: 1, merchantID: 2, status: EntitlementHoldStatus.redeemed,
+                                        validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(projection.project(steal, serverNow: now).outcome, .held)
+        XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-1"), 1)
+        let other = EntitlementHoldFact(originalRequestID: "c07-hold-other", registrationID: 80,
+                                        chapterID: 125, merchantID: 10, status: EntitlementHoldStatus.held,
+                                        validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(projection.project(other, serverNow: now).originalRequestID, "c07-hold-other")
+        XCTAssertEqual(projection.recoverOriginal(originalRequestID: "c07-hold-1").outcome, .held)
+        XCTAssertEqual(projection.recoverOriginal(originalRequestID: "c07-hold-1").originalRequestID, "c07-hold-1")
+        XCTAssertNotEqual(projection.recoverOriginal(originalRequestID: "c07-hold-other").originalRequestID,
+                          "c07-hold-1")
+    }
 }
