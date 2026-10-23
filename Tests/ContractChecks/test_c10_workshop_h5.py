@@ -218,6 +218,8 @@ class C10WorkshopH5Contracts(unittest.TestCase):
         run_tests = self.sources["Tests/CoreTests/WorkshopRunServerVerificationTests.swift"]
         self.assertIn("testOtherRequestIdDoesNotRewriteBoundOriginal", run_tests)
         self.assertIn("testMissingBindRequestIdStaysNilNeverEmptyString", run_tests)
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueBindApplies", run_tests)
+        self.assertIn("c10-run-never", run_tests)
         self.assertIn(
             "testOtherRequestIdCannotRewriteAuthorizedHold",
             self.sources["Tests/CoreTests/WorkshopInstallUpgradeRollbackTests.swift"])
