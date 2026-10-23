@@ -53,6 +53,24 @@ final class OfflinePackOperationTests: XCTestCase {
             XCTAssertEqual(error as? OfflinePackFailure, .alreadyDeleted)
         }
     }
+    func testOtherOperationIdDoesNotRewriteOriginalDownload() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        XCTAssertEqual(pack.operationID, "op-1")
+        XCTAssertThrowsError(try pack.startDownload(try manifest(operationID: "op-other"))) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .invalidManifest)
+        }
+        XCTAssertEqual(pack.operationID, "op-1")
+        try pack.pause()
+        XCTAssertThrowsError(try pack.resume(operationID: "")) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .operationMismatch)
+        }
+        XCTAssertEqual(pack.operationID, "op-1")
+        XCTAssertNotEqual(pack.operationID, "")
+        let restarted = OfflinePackOperation()
+        XCTAssertNil(restarted.operationID)
+        XCTAssertEqual(restarted.phase, .idle)
+    }
     func testAnswersAndHiddenCoordinatesAreNotShipped() throws {
         XCTAssertThrowsError(try OfflinePackOperation.inspect(["answer": "42"])) { error in
             XCTAssertEqual(error as? OfflinePackFailure, .answersOrHiddenCoordinatesForbidden)

@@ -41,4 +41,21 @@ final class NavigationDestinationConsentTests: XCTestCase {
         navigation.revoke(.inAppNavigationDestination)
         XCTAssertFalse(navigation.allowsNavigationDestination)
     }
+    func testShareGrantOnCopyDoesNotRewriteOriginalNavigationConsent() throws {
+        var navigation = NavigationDestinationConsent()
+        navigation.grant(.inAppNavigationDestination)
+        var share = navigation
+        share.grant(.locationShare)
+        XCTAssertTrue(navigation.allowsNavigationDestination)
+        XCTAssertFalse(navigation.allowsLocationShare)
+        XCTAssertTrue(share.allowsLocationShare)
+        let destination = try destination()
+        XCTAssertNoThrow(try navigation.startInAppNavigation(destination))
+        XCTAssertThrowsError(try navigation.publishLocationShare(destination)) { error in
+            XCTAssertEqual(error as? NavigationConsentFailure, .locationShareConsentRequired)
+        }
+        let restarted = NavigationDestinationConsent()
+        XCTAssertFalse(restarted.allowsNavigationDestination)
+        XCTAssertFalse(restarted.allowsLocationShare)
+    }
 }

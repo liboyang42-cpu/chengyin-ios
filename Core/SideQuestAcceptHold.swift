@@ -83,6 +83,7 @@ public struct SideQuestAcceptHold: Equatable {
     public private(set) var failure: SideQuestFailure?
     public init() {}
     public mutating func discover(_ place: SideQuestPlace) throws {
+        if original != nil { throw fail(.alreadyTerminal) }
         guard place.compliant else { throw fail(.notCompliant) }
         guard !place.hiddenCoordinateShipped else { throw fail(.hiddenCoordinateShipped) }
         guard place.capacity > 0 else { throw fail(.capacityUnavailable) }
@@ -93,11 +94,20 @@ public struct SideQuestAcceptHold: Equatable {
         phase = .discovered
         failure = nil
     }
-    public mutating func acceptHold(holdID: String, originalRequestID: String, seats: Int = 1) throws {
+    public mutating func acceptHold(holdID: String, originalRequestID: String?, seats: Int = 1) throws {
+        let requestID = originalRequestID?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let existing = hold {
+            guard existing.originalRequestID == requestID, existing.holdID == holdID else {
+                throw fail(.staleHold)
+            }
+            return
+        }
         guard phase == .discovered, let place else { throw fail(.notCompliant) }
-        guard !holdID.isEmpty, holdID.count <= 64, !originalRequestID.isEmpty, originalRequestID.count <= 64,
-              seats > 0, seats <= place.capacity else { throw fail(.capacityUnavailable) }
-        hold = SideQuestCapacityHold(holdID: holdID, originalRequestID: originalRequestID,
+        guard let requestID, !requestID.isEmpty, requestID.count <= 64 else { throw fail(.capacityUnavailable) }
+        guard !holdID.isEmpty, holdID.count <= 64, seats > 0, seats <= place.capacity else {
+            throw fail(.capacityUnavailable)
+        }
+        hold = SideQuestCapacityHold(holdID: holdID, originalRequestID: requestID,
                                      placeID: place.placeID, questID: place.questID, seats: seats)
         phase = .holdAccepted
         failure = nil

@@ -47,6 +47,44 @@ final class SideQuestAcceptHoldTests: XCTestCase {
         let alternative = try XCTUnwrap(SideQuestProof(kind: .approvedAlternative, attested: false))
         XCTAssertEqual(alternative.kind, .approvedAlternative)
     }
+    func testOtherRequestIdDoesNotRewriteOriginalHold() throws {
+        var quest = SideQuestAcceptHold()
+        try quest.discover(try place())
+        try quest.acceptHold(holdID: "hold-1", originalRequestID: "req-9", seats: 1)
+        try quest.acceptHold(holdID: "hold-1", originalRequestID: "req-9", seats: 1)
+        XCTAssertEqual(quest.hold?.originalRequestID, "req-9")
+        XCTAssertThrowsError(try quest.acceptHold(holdID: "hold-other", originalRequestID: "req-other")) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .staleHold)
+        }
+        XCTAssertEqual(quest.hold?.originalRequestID, "req-9")
+        XCTAssertEqual(quest.hold?.holdID, "hold-1")
+        let proof = try XCTUnwrap(SideQuestProof(kind: .qr, attested: true))
+        try quest.submitProof(proof)
+        try quest.complete()
+        XCTAssertEqual(try quest.recoverOriginal(originalRequestID: "req-9").originalRequestID, "req-9")
+        XCTAssertThrowsError(try quest.discover(try place())) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .alreadyTerminal)
+        }
+        XCTAssertEqual(quest.original?.originalRequestID, "req-9")
+    }
+    func testMissingRequestIdStaysNilNeverEmptyString() throws {
+        var quest = SideQuestAcceptHold()
+        try quest.discover(try place())
+        XCTAssertNil(quest.hold)
+        XCTAssertThrowsError(try quest.acceptHold(holdID: "hold-1", originalRequestID: nil)) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .capacityUnavailable)
+        }
+        XCTAssertNil(quest.hold)
+        XCTAssertThrowsError(try quest.acceptHold(holdID: "hold-1", originalRequestID: "")) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .capacityUnavailable)
+        }
+        XCTAssertNil(quest.hold)
+        XCTAssertNil(quest.original)
+        XCTAssertNotEqual(quest.hold?.originalRequestID, "")
+        let restarted = SideQuestAcceptHold()
+        XCTAssertNil(restarted.original)
+        XCTAssertEqual(restarted.phase, .idle)
+    }
     func testNonCompliantHiddenCapacityAndFakeGPS() throws {
         var quest = SideQuestAcceptHold()
         XCTAssertThrowsError(try quest.discover(try place(compliant: false))) { error in

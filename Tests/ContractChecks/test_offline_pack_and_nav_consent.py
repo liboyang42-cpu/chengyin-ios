@@ -176,6 +176,20 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
             self.assertNotIn("URLSession", text)
             self.assertNotIn("HTTPTransport", text)
 
+    def test_account_switch_isolation_markers_present(self):
+        quest = self.sources["Tests/CoreTests/SideQuestAcceptHoldTests.swift"]
+        self.assertIn("testOtherRequestIdDoesNotRewriteOriginalHold", quest)
+        self.assertIn("testMissingRequestIdStaysNilNeverEmptyString", quest)
+        self.assertIn("alreadyTerminal", quest)
+        pack = self.sources["Tests/CoreTests/OfflinePackOperationTests.swift"]
+        self.assertIn("testOtherOperationIdDoesNotRewriteOriginalDownload", pack)
+        self.assertIn('resume(operationID: "")', pack)
+        consent = self.sources["Tests/CoreTests/NavigationDestinationConsentTests.swift"]
+        self.assertIn("testShareGrantOnCopyDoesNotRewriteOriginalNavigationConsent", consent)
+        hold = self.sources["Core/SideQuestAcceptHold.swift"]
+        self.assertIn("if original != nil { throw fail(.alreadyTerminal) }", hold)
+        self.assertIn("originalRequestID: String?", hold)
+
     def test_linux_xctest_is_explicitly_not_run(self):
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
         for path in TEST_FILES:
