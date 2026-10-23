@@ -67,6 +67,83 @@ final class MechanismRequestIdProjectionTests: XCTestCase {
         XCTAssertNil(MechanismOpenDecision.territory.inventedNumber)
         XCTAssertNil(MechanismOpenDecision.secretGoalEconomy.inventedNumber)
     }
+    func testOtherRequestDoesNotRewriteOriginalClock() throws {
+        var clocks = ProgressClockMomentumAspectProjection()
+        var original = MechanismFirstJourney.seededPlay()
+        original.playerChoice = MechanismChoice(mechanism: "progressClock", action: "TICK_CLOCK",
+                                                varName: "counter.alarm")
+        let applied = try clocks.apply(&original, originalRequestID: MechanismFirstJourney.requestID)
+        XCTAssertEqual(applied.requestId, MechanismFirstJourney.requestID)
+        XCTAssertEqual(applied.value, 1)
+        var steal = MechanismFirstJourney.seededPlay()
+        steal.playerChoice = original.playerChoice
+        steal.state.variables["counter.alarm"] = 1
+        let replay = try clocks.apply(&steal, originalRequestID: MechanismFirstJourney.requestID)
+        XCTAssertEqual(replay.requestId, MechanismFirstJourney.requestID)
+        XCTAssertEqual(replay.replay, true)
+        XCTAssertEqual(replay.value, 1)
+        XCTAssertEqual(steal.state.variables["counter.alarm"], 1)
+        let otherID = "check:9:other:tick"
+        var independent = MechanismFirstJourney.seededPlay()
+        independent.playerChoice = original.playerChoice
+        let other = try clocks.apply(&independent, originalRequestID: otherID)
+        XCTAssertEqual(other.requestId, otherID)
+        XCTAssertNotEqual(other.requestId, MechanismFirstJourney.requestID)
+        let originalReadback = try clocks.binder.readback(MechanismFirstJourney.requestID)
+        XCTAssertEqual(originalReadback.requestId, MechanismFirstJourney.requestID)
+        XCTAssertEqual(originalReadback.value, 1)
+        XCTAssertEqual(clocks.binder.existing(MechanismFirstJourney.requestID)?.requestId,
+                       MechanismFirstJourney.requestID)
+        XCTAssertEqual(clocks.binder.existing(MechanismFirstJourney.requestID)?.status,
+                       MechanismStatus.applied.rawValue)
+    }
+    func testInProcessRecoverKeepsOriginalAppliedAndUnknown() throws {
+        var clocks = ProgressClockMomentumAspectProjection()
+        var original = MechanismFirstJourney.seededPlay()
+        original.playerChoice = MechanismChoice(mechanism: "progressClock", action: "TICK_CLOCK",
+                                                varName: "counter.alarm")
+        _ = try clocks.apply(&original, originalRequestID: MechanismFirstJourney.requestID)
+        var recovered = MechanismRequestIdProjection()
+        _ = try recovered.completeApplied(
+            MechanismFirstJourney.requestID,
+            result: try clocks.binder.readback(MechanismFirstJourney.requestID),
+            action: try XCTUnwrap(original.originalAction))
+        let replay = try recovered.readback(MechanismFirstJourney.requestID)
+        XCTAssertEqual(replay.requestId, MechanismFirstJourney.requestID)
+        XCTAssertEqual(replay.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(replay.replay, true)
+        XCTAssertEqual(replay.mintedNewRequest, false)
+        XCTAssertEqual(replay.value, 1)
+        var unknownBinder = MechanismRequestIdProjection()
+        let unknownID = MechanismFirstJourney.requestID + "-unk"
+        _ = try unknownBinder.markUnknown(unknownID)
+        var unknownPlay = MechanismFirstJourney.seededPlay()
+        let unknown = try unknownBinder.recoverUnknown(&unknownPlay, originalRequestID: unknownID)
+        XCTAssertEqual(unknown.requestId, unknownID)
+        XCTAssertEqual(unknown.status, MechanismStatus.unknown.rawValue)
+        XCTAssertEqual(unknown.mintedNewRequest, false)
+        XCTAssertNotEqual(unknown.requestId, "retry:" + unknownID)
+        XCTAssertEqual(try recovered.readback(MechanismFirstJourney.requestID).status,
+                       MechanismStatus.applied.rawValue)
+    }
+    func testMissingRequestIDIsRefusedNeverStoredAsEmptyString() {
+        var binder = MechanismRequestIdProjection()
+        XCTAssertThrowsError(try MechanismRequestIdProjection.requireRequestID(nil)) { error in
+            XCTAssertEqual(error as? MechanismFailure, .missingOriginalRequestID)
+        }
+        XCTAssertThrowsError(try MechanismRequestIdProjection.requireRequestID("  ")) { error in
+            XCTAssertEqual(error as? MechanismFailure, .missingOriginalRequestID)
+        }
+        XCTAssertThrowsError(try binder.bind("  ", mechanism: "progressClock", choice: "TICK_CLOCK")) { error in
+            XCTAssertEqual(error as? MechanismFailure, .missingOriginalRequestID)
+        }
+        XCTAssertThrowsError(try binder.readback("")) { error in
+            XCTAssertEqual(error as? MechanismFailure, .missingOriginalRequestID)
+        }
+        XCTAssertNil(binder.existing(""))
+        XCTAssertNil(binder.existing(MechanismFirstJourney.requestID))
+        XCTAssertNil(MechanismUntrusted.text(""))
+    }
     func testWaitingSourceUnsignedOriginalsAreNotRewritten() {
         var binder = MechanismRequestIdProjection()
         XCTAssertFalse(MechanismSourceInventory.v12DocxPresent)

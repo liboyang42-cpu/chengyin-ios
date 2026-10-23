@@ -72,6 +72,14 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
             self.assertIn("simulate(", text, path)
             self.assertIn("MechanismStatus.unknown", text, path)
 
+    def test_account_switch_isolation_markers_present(self):
+        text = self.sources["Tests/CoreTests/MechanismRequestIdProjectionTests.swift"]
+        self.assertIn("testOtherRequestDoesNotRewriteOriginalClock", text)
+        self.assertIn("testInProcessRecoverKeepsOriginalAppliedAndUnknown", text)
+        self.assertIn("testMissingRequestIDIsRefusedNeverStoredAsEmptyString", text)
+        self.assertIn("missingOriginalRequestID", text)
+        self.assertNotIn('requestId = ""', text)
+
     def test_original_request_id_on_apply_and_recover(self):
         for path in CORE_FILES:
             text = self.sources[path]
