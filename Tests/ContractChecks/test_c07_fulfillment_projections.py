@@ -168,6 +168,8 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("originalUnknownNotReplacedByProjectionSuccess", ledger)
         self.assertIn("testMissingWechatBillIsUnknownAndDoesNotStartANewReconcile", tests)
         self.assertIn("testNullAmountIsUnknownNotZeroCoercion", tests)
+        self.assertIn("testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenMatchedApplies", tests)
+        self.assertIn("view.outcomes.values.contains(where: { $0 == .matched || $0 == .diverged })", ledger)
 
     def test_invoice_unknown_does_not_treat_projection_as_file_success(self):
         invoice = self.sources["Core/InvoiceHistoryUnknownProjection.swift"]
@@ -178,6 +180,8 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("MANUAL", invoice)
         self.assertIn("testSubmittedManualApplicationHasUnknownFileAndDoesNotStartNewApply", tests)
         self.assertIn("projectionClaimsFileSuccess: true", tests)
+        self.assertIn("testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenPresentApplies", tests)
+        self.assertIn("view.fileStatus == .present", invoice)
 
     def test_transfer_sold_policy_missing_source_or_recipient_is_waiting_source(self):
         transfer = self.sources["Core/TransferSoldPolicyProjection.swift"]

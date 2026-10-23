@@ -70,7 +70,8 @@ public struct FourLedgerBillRereadProjection: Equatable {
     public mutating func reread(originalRequestID: String?, facts: [FourLedgerBillFact]?) -> FourLedgerBillView {
         let requestID = Self.parse(originalRequestID)
         let view = compute(requestID: requestID, facts: facts)
-        if let requestID, originalByRequestID[requestID] == nil {
+        if let requestID, originalByRequestID[requestID] == nil,
+           view.outcomes.values.contains(where: { $0 == .matched || $0 == .diverged }) {
             originalByRequestID[requestID] = view
         }
         return view

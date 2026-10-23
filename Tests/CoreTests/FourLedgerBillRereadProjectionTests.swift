@@ -51,4 +51,21 @@ final class FourLedgerBillRereadProjectionTests: XCTestCase {
             with: try JSONSerialization.data(withJSONObject: blank.jsonObject())) as! [String: Any]
         XCTAssertTrue(object["originalRequestID"] is NSNull)
     }
+    func testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenMatchedApplies() {
+        var reread = FourLedgerBillRereadProjection()
+        XCTAssertEqual(reread.recoverOriginal(originalRequestID: "c07-bill-never-seen").outcome(.wechatTrade), .unknown)
+        let missing = FourLedgerBillFact(originalRequestID: "c07-bill-never-seen", dimension: .wechatTrade,
+                                         expectedAmount: Decimal(string: "69.00"), actualAmount: nil,
+                                         billPresent: false, sourceHash: "")
+        XCTAssertEqual(reread.reread(originalRequestID: "c07-bill-never-seen", facts: [missing])
+                        .outcome(.wechatTrade), .unknown)
+        XCTAssertEqual(reread.recoverOriginal(originalRequestID: "c07-bill-never-seen").outcome(.wechatTrade), .unknown)
+        let matched = FourLedgerBillFact(originalRequestID: "c07-bill-never-seen", dimension: .wechatTrade,
+                                         expectedAmount: Decimal(string: "69.00"),
+                                         actualAmount: Decimal(string: "69.00"),
+                                         billPresent: true, sourceHash: "hash-1")
+        XCTAssertEqual(reread.reread(originalRequestID: "c07-bill-never-seen", facts: [matched])
+                        .outcome(.wechatTrade), .matched)
+        XCTAssertEqual(reread.recoverOriginal(originalRequestID: "c07-bill-never-seen").outcome(.wechatTrade), .matched)
+    }
 }

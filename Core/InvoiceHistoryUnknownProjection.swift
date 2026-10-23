@@ -60,7 +60,8 @@ public struct InvoiceHistoryUnknownProjection: Equatable {
     }
     public mutating func reread(_ fact: InvoiceApplicationFact?) -> InvoiceHistoryView {
         let view = compute(fact)
-        if let requestID = view.originalRequestID, originalByRequestID[requestID] == nil {
+        if let requestID = view.originalRequestID, originalByRequestID[requestID] == nil,
+           view.fileStatus == .present {
             originalByRequestID[requestID] = view
         }
         return view

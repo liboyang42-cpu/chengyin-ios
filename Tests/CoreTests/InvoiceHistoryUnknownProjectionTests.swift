@@ -47,4 +47,20 @@ final class InvoiceHistoryUnknownProjectionTests: XCTestCase {
         XCTAssertEqual(history.recoverOriginal(originalRequestID: "c07-inv-missing").fileStatus, .unknown)
         XCTAssertNil(history.recoverOriginal(originalRequestID: "c07-inv-missing").originalRequestID)
     }
+    func testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenPresentApplies() {
+        var history = InvoiceHistoryUnknownProjection()
+        XCTAssertEqual(history.recoverOriginal(originalRequestID: "c07-inv-never-seen").fileStatus, .unknown)
+        let missing = InvoiceApplicationFact(originalRequestID: "c07-inv-never-seen",
+                                             status: InvoiceHistoryKnown.submitted,
+                                             invoiceNo: nil, fileLocator: nil,
+                                             provider: InvoiceHistoryKnown.manualProvider)
+        XCTAssertEqual(history.reread(missing).fileStatus, .unknown)
+        XCTAssertEqual(history.recoverOriginal(originalRequestID: "c07-inv-never-seen").fileStatus, .unknown)
+        let present = InvoiceApplicationFact(originalRequestID: "c07-inv-never-seen",
+                                             status: InvoiceHistoryKnown.issued,
+                                             invoiceNo: "INV-9", fileLocator: "file://x",
+                                             provider: "OTHER")
+        XCTAssertEqual(history.reread(present).fileStatus, .present)
+        XCTAssertEqual(history.recoverOriginal(originalRequestID: "c07-inv-never-seen").fileStatus, .present)
+    }
 }
