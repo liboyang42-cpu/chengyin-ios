@@ -1,0 +1,161 @@
+import Foundation
+
+/// Independent side-quest: discover compliant place → accept capacity hold →
+/// GPS/QR/photo/AR or approved alternative → complete/fail/exit → original record recover.
+/// Fog tiles and simulated coordinates are never presence.
+public enum SideQuestFailure: Error, Equatable {
+    case waitingSource(capability: String)
+    case notCompliant
+    case hiddenCoordinateShipped
+    case capacityUnavailable
+    case holdRequired
+    case proofRequired
+    case fakeGPSRejected
+    case fogIsNotPresence
+    case notHeld
+    case alreadyTerminal
+    case originalRecordUnknown
+    case staleHold
+    public var isWaitingSource: Bool {
+        if case .waitingSource = self { return true }
+        return false
+    }
+}
+
+public enum SideQuestPhase: String, Equatable, Sendable {
+    case idle, discovered, holdAccepted, proofPending, completed, failed, exited, recovered, waitingSource
+}
+
+public enum SideQuestProofKind: String, Equatable, Sendable {
+    case gps, qr, photo, ar, approvedAlternative
+}
+
+public enum SideQuestTerminal: String, Equatable, Sendable {
+    case completed, failed, exited
+}
+
+/// Device-attested proof only. Simulated GPS and fog tiles cannot be constructed.
+public struct SideQuestProof: Equatable, Sendable {
+    public let kind: SideQuestProofKind
+    public let attested: Bool
+    public init?(kind: SideQuestProofKind, attested: Bool, simulated: Bool = false, fogTileKey: String? = nil) {
+        guard !simulated, fogTileKey == nil else { return nil }
+        if kind == .gps { guard attested else { return nil } }
+        guard attested || kind == .approvedAlternative else { return nil }
+        self.kind = kind; self.attested = attested || kind == .approvedAlternative
+    }
+}
+
+public struct SideQuestPlace: Equatable, Sendable {
+    public let placeID: Int
+    public let questID: Int
+    public let compliant: Bool
+    public let capacity: Int
+    public let hiddenCoordinateShipped: Bool
+    public init?(placeID: Int, questID: Int, compliant: Bool, capacity: Int, hiddenCoordinateShipped: Bool) {
+        guard placeID > 0, questID > 0, capacity >= 0, capacity <= 10_000 else { return nil }
+        self.placeID = placeID; self.questID = questID; self.compliant = compliant
+        self.capacity = capacity; self.hiddenCoordinateShipped = hiddenCoordinateShipped
+    }
+}
+
+/// Capacity hold identity is the original request, not a current projection.
+public struct SideQuestCapacityHold: Equatable, Sendable {
+    public let holdID: String
+    public let originalRequestID: String
+    public let placeID: Int
+    public let questID: Int
+    public let seats: Int
+}
+
+public struct SideQuestOriginalRecord: Equatable, Sendable {
+    public let originalRequestID: String
+    public let terminal: SideQuestTerminal
+    public let proofKind: SideQuestProofKind?
+}
+
+public struct SideQuestAcceptHold: Equatable {
+    public private(set) var phase: SideQuestPhase = .idle
+    public private(set) var place: SideQuestPlace?
+    public private(set) var hold: SideQuestCapacityHold?
+    public private(set) var proof: SideQuestProof?
+    public private(set) var original: SideQuestOriginalRecord?
+    public private(set) var failure: SideQuestFailure?
+    public init() {}
+    public mutating func discover(_ place: SideQuestPlace) throws {
+        guard place.compliant else { throw fail(.notCompliant) }
+        guard !place.hiddenCoordinateShipped else { throw fail(.hiddenCoordinateShipped) }
+        guard place.capacity > 0 else { throw fail(.capacityUnavailable) }
+        self.place = place
+        hold = nil
+        proof = nil
+        original = nil
+        phase = .discovered
+        failure = nil
+    }
+    public mutating func acceptHold(holdID: String, originalRequestID: String, seats: Int = 1) throws {
+        guard phase == .discovered, let place else { throw fail(.notCompliant) }
+        guard !holdID.isEmpty, holdID.count <= 64, !originalRequestID.isEmpty, originalRequestID.count <= 64,
+              seats > 0, seats <= place.capacity else { throw fail(.capacityUnavailable) }
+        hold = SideQuestCapacityHold(holdID: holdID, originalRequestID: originalRequestID,
+                                     placeID: place.placeID, questID: place.questID, seats: seats)
+        phase = .holdAccepted
+        failure = nil
+    }
+    public mutating func submitProof(_ proof: SideQuestProof) throws {
+        guard phase == .holdAccepted || phase == .proofPending, hold != nil else { throw fail(.holdRequired) }
+        self.proof = proof
+        phase = .proofPending
+        failure = nil
+    }
+    public mutating func rejectSimulatedGPS() throws -> Never {
+        throw fail(.fakeGPSRejected)
+    }
+    public mutating func rejectFogAsPresence() throws -> Never {
+        throw fail(.fogIsNotPresence)
+    }
+    public mutating func complete() throws {
+        try finish(.completed)
+    }
+    public mutating func failQuest() throws {
+        try finish(.failed)
+    }
+    public mutating func exit() throws {
+        guard phase == .holdAccepted || phase == .proofPending || phase == .discovered else {
+            throw fail(.alreadyTerminal)
+        }
+        try finish(.exited, proofRequired: false)
+    }
+    /// Recover the original request. UNKNOWN does not invent a new request.
+    public mutating func recoverOriginal(originalRequestID: String) throws -> SideQuestOriginalRecord {
+        guard let original else { throw fail(.originalRecordUnknown) }
+        guard original.originalRequestID == originalRequestID else { throw fail(.staleHold) }
+        phase = .recovered
+        failure = nil
+        return original
+    }
+    public mutating func commitScoringWriter() throws -> Never {
+        throw fail(.waitingSource(capability: OfflinePackSourceInventory.t41ScoringWriter))
+    }
+    private mutating func finish(_ terminal: SideQuestTerminal, proofRequired: Bool = true) throws {
+        guard phase == .holdAccepted || phase == .proofPending else { throw fail(.holdRequired) }
+        guard let hold else { throw fail(.notHeld) }
+        if proofRequired {
+            guard proof != nil else { throw fail(.proofRequired) }
+        }
+        original = SideQuestOriginalRecord(originalRequestID: hold.originalRequestID,
+                                           terminal: terminal, proofKind: proof?.kind)
+        switch terminal {
+        case .completed: phase = .completed
+        case .failed: phase = .failed
+        case .exited: phase = .exited
+        }
+        failure = nil
+    }
+    @discardableResult
+    private mutating func fail(_ error: SideQuestFailure) -> SideQuestFailure {
+        failure = error
+        if error.isWaitingSource { phase = .waitingSource }
+        return error
+    }
+}
