@@ -148,6 +148,10 @@ final class MechanismRequestIdProjectionTests: XCTestCase {
         var clocks = ProgressClockMomentumAspectProjection()
         var unseen = MechanismFirstJourney.seededPlay()
         unseen.originalAction = nil
+        var binder = clocks.binder
+        XCTAssertEqual(try binder.markUnknown("c03-never-seen").status, MechanismStatus.unknown.rawValue)
+        XCTAssertNil(binder.existing("c03-never-seen"))
+        clocks.binder = binder
         let recovered = try clocks.recoverOriginal(&unseen, originalRequestID: "c03-never-seen")
         XCTAssertEqual(recovered.requestId, "c03-never-seen")
         XCTAssertEqual(recovered.status, MechanismStatus.unknown.rawValue)

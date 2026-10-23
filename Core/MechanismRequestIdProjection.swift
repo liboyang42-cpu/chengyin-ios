@@ -545,12 +545,16 @@ public struct MechanismRequestIdProjection: Equatable {
         return entry
     }
     public mutating func markUnknown(_ requestId: String) throws -> MechanismLedgerEntry {
-        var entry = try bind(requestId, mechanism: nil, choice: nil)
-        if entry.status != MechanismStatus.applied.rawValue {
-            entry.status = MechanismStatus.unknown.rawValue
+        let id = try Self.requireRequestID(requestId)
+        if var entry = originalActions[id] {
+            if entry.status != MechanismStatus.applied.rawValue {
+                entry.status = MechanismStatus.unknown.rawValue
+            }
+            originalActions[id] = entry
+            return entry
         }
-        originalActions[requestId] = entry
-        return entry
+        return MechanismLedgerEntry(requestId: id, mechanism: nil, choice: nil,
+                                    status: MechanismStatus.unknown.rawValue)
     }
     public mutating func recoverOriginal(_ play: inout MechanismPlay, originalRequestID: String) throws -> MechanismResult {
         try recoverUnknown(&play, originalRequestID: originalRequestID)
