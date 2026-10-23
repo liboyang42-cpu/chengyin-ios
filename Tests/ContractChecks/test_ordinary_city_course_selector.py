@@ -1,6 +1,7 @@
 """Linux source contracts for exclusive ordinary city-orienteering selector.
 
-These checks do not compile or execute Swift. XCTest on Linux is NOT_RUN.
+These checks do not compile or execute Swift. XCTest on Linux is NOT_RUN;
+only python source contracts run here.
 """
 from pathlib import Path
 import hashlib
@@ -101,8 +102,65 @@ class OrdinaryCityCourseSelectorContracts(unittest.TestCase):
             self.assertNotIn("URLSession", text)
             self.assertNotIn("HTTPTransport", text)
 
+    def test_account_switch_recover_and_missing_request_id(self):
+        tests = self.sources["Tests/CoreTests/OrdinaryCityCourseSelectorTests.swift"]
+        eligibility_tests = self.sources["Tests/CoreTests/TeamClubEligibilityProjectionTests.swift"]
+        score = self.sources["Core/EventScoreVersionProjection.swift"]
+        eligibility = self.sources["Core/TeamClubEligibilityProjection.swift"]
+        selector = self.sources["Core/OrdinaryCityCourseSelector.swift"]
+        self.assertIn("testOtherTeamRegisterFinishRequestDoesNotRewriteOriginalFreezeFinishRequestID", tests)
+        self.assertIn("testInProcessRecoverKeepsOriginalFinishedAndNotFoundUnknown", tests)
+        self.assertIn("testMissingBlankRequestIDStaysOptionalNoneOrTypedNotFoundNeverEmptyString", tests)
+        self.assertIn("testOtherTeamRegisterRequestDoesNotRewriteOriginalRequestID", eligibility_tests)
+        self.assertIn("originalRequestID", score)
+        self.assertIn("originalRequestID", eligibility)
+        self.assertIn("func recoverUnknown(", score)
+        self.assertIn("func recoverOriginal(", score)
+        self.assertIn("func recoverUnknown(", eligibility)
+        self.assertIn("func recoverOriginal(", eligibility)
+        self.assertIn("NOT_FOUND", score)
+        self.assertIn("FINISHED", score)
+        self.assertIn("Optional.none", score)
+        self.assertIn("EVENT_IDEMPOTENCY_CONFLICT", score)
+        self.assertIn("mintedNewRequest: false", score)
+        self.assertIn("EventScoreOriginalLedger", selector)
+        self.assertNotIn('requestId = ""', self.joined)
+        self.assertNotIn('originalRequestID = ""', self.joined)
+        self.assertIn("XCTAssertNil(EventScoreRequestIdentity.parse(nil))", tests)
+        self.assertIn('XCTAssertNil(EventScoreRequestIdentity.parse(""))', tests)
+        self.assertIn("EventScoreOriginalOutcome.notFound", tests)
+        self.assertIn(".finished", tests)
+        self.assertIn("fin-isol-02", tests)
+        self.assertIn("reg-isol-01", eligibility_tests)
+
+    def test_draft_explore_unpublished_gps_and_growth_stay_rejected(self):
+        tests = self.sources["Tests/CoreTests/OrdinaryCityCourseSelectorTests.swift"]
+        score = self.sources["Core/EventScoreVersionProjection.swift"]
+        self.assertIn('"publicationStatus":"DRAFT"', tests)
+        self.assertIn('"publicationStatus":"UNPUBLISHED"', tests)
+        self.assertIn("FREE_EXPLORATION", tests)
+        self.assertIn("GROWTH_PERSONAL_RANK", tests)
+        self.assertIn('"latitude":31.2', tests)
+        self.assertIn("rejectsGPSEvidence", score)
+        self.assertIn("growthLeaderboardSubstitutesEventScore", score)
+        self.assertIn("testGPSEvidenceAndGrowthLeaderboardStayRejected", tests)
+        self.assertIn("return false", score.split("growthLeaderboardSubstitutesEventScore", 1)[1].split("}", 1)[0])
+
+    def test_waiting_source_leftovers_named_not_invented(self):
+        selector = self.sources["Core/OrdinaryCityCourseSelector.swift"]
+        self.assertIn("WAITING_SOURCE", selector)
+        self.assertIn("vol.21", selector)
+        self.assertIn("vol.22", selector)
+        self.assertIn("vol.25-App", selector)
+        self.assertIn("vol.38", selector)
+        self.assertIn("e2d86c4", selector)
+        self.assertIn("host-session-wiring", selector)
+        self.assertIn("vol21Present: Bool { false }", selector)
+        self.assertIn("unpushedIosSHAPresent: Bool { false }", selector)
+
     def test_linux_xctest_is_explicitly_not_run(self):
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
+        self.assertIn("only python source contracts run here", Path(__file__).read_text())
         self.assertIn("@testable import QuestifyCore", self.sources["Tests/CoreTests/OrdinaryCityCourseSelectorTests.swift"])
         self.assertIn("@testable import QuestifyCore", self.sources["Tests/CoreTests/TeamClubEligibilityProjectionTests.swift"])
 

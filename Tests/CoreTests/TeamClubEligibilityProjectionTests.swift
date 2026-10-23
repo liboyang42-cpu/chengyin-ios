@@ -75,4 +75,31 @@ final class TeamClubEligibilityProjectionTests: XCTestCase {
                        "MULTI_CLUB_UNSATISFIED")
         XCTAssertFalse(TeamClubEligibilityProjection.growthRankGrantsEligibility(5))
     }
+    func testOtherTeamRegisterRequestDoesNotRewriteOriginalRequestID() {
+        let selection = selection()
+        var ledger = TeamClubEligibilityLedger()
+        let original = ledger.register(
+            selection: selection, actorMemberID: 701, actorClubs: memberships([11, 22]),
+            team: team(), originalRequestID: "reg-isol-01")
+        XCTAssertEqual(original.originalRequestID, "reg-isol-01")
+        XCTAssertEqual(original.outcome, "TEAM_ELIGIBLE")
+        let rewrite = ledger.register(
+            selection: selection, actorMemberID: 701, actorClubs: memberships([11, 22]),
+            team: team(members: [701, 702, 703]), originalRequestID: "reg-isol-01")
+        XCTAssertEqual(rewrite.outcome, EventScoreOriginalOutcome.idempotencyConflict.rawValue)
+        XCTAssertEqual(rewrite.originalRequestID, "reg-isol-01")
+        XCTAssertEqual(rewrite.registration?.memberIDs, [701, 702])
+        let switched = ledger.register(
+            selection: selection, actorMemberID: 701, actorClubs: memberships([11, 22]),
+            team: team(members: [701, 702, 703]), originalRequestID: "reg-isol-02")
+        XCTAssertEqual(switched.originalRequestID, "reg-isol-02")
+        XCTAssertNotEqual(switched.originalRequestID, original.originalRequestID)
+        XCTAssertEqual(ledger.readback("reg-isol-01").originalRequestID, "reg-isol-01")
+        XCTAssertEqual(ledger.readback("reg-isol-01").registration?.memberIDs, [701, 702])
+        XCTAssertEqual(ledger.recoverUnknown(originalRequestID: "reg-unknow").outcome,
+                       EventScoreOriginalOutcome.notFound.rawValue)
+        XCTAssertNil(ledger.recoverUnknown(originalRequestID: nil).originalRequestID)
+        XCTAssertNil(ledger.recoverUnknown(originalRequestID: "").originalRequestID)
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "reg-isol-01").originalRequestID, "reg-isol-01")
+    }
 }

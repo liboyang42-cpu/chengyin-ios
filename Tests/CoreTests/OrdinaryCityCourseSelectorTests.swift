@@ -63,6 +63,13 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
         """
         XCTAssertNil(OrdinaryCityCourseSelector.select(
             courseID: 1001, from: try OrdinaryCityCourseSelector.decodeCatalog(Data(unpublished.utf8))))
+        let notPublished = """
+        [{"courseId":1001,"topicId":2001,"productType":1,"publicationStatus":"UNPUBLISHED",\
+        "kind":"ORDINARY_CITY_ORIENTEERING","cityTimeZone":"Asia/Shanghai",\
+        "publishedRuleVersionId":"rule-v3","safetyVersionId":"safety-v2","participationMode":"TEAM"}]
+        """
+        XCTAssertNil(OrdinaryCityCourseSelector.select(
+            courseID: 1001, from: try OrdinaryCityCourseSelector.decodeCatalog(Data(notPublished.utf8))))
         let free = """
         [{"courseId":1001,"topicId":2001,"productType":2,"publicationStatus":"PUBLISHED",\
         "kind":"FREE_EXPLORATION","cityTimeZone":"Asia/Shanghai",\
@@ -128,5 +135,161 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
             courseID: 1001, catalog: catalog, actorMemberID: 701, actorClubs: clubs(), team: nil, now: now))
         XCTAssertNil(OrdinaryCityCourseSelector.prepareStart(
             courseID: 1002, catalog: catalog, actorMemberID: 701, actorClubs: clubs(), team: team(), now: now))
+    }
+    func testGPSEvidenceAndGrowthLeaderboardStayRejected() {
+        XCTAssertTrue(EventScoreVersionProjection.rejectsGPSEvidence(kind: "GPS", fingerprint: "task:31"))
+        XCTAssertTrue(EventScoreVersionProjection.rejectsGPSEvidence(
+            kind: "SCAN", fingerprint: #"{"latitude":31.2,"longitude":121.5}"#))
+        XCTAssertFalse(EventScoreVersionProjection.rejectsGPSEvidence(kind: "SCAN", fingerprint: "task:31:scan"))
+        XCTAssertFalse(EventScoreVersionProjection.growthLeaderboardSubstitutesEventScore(1))
+        XCTAssertFalse(EventScoreVersionProjection.growthLeaderboardSubstitutesEventScore(nil))
+        XCTAssertFalse(TeamClubEligibilityProjection.growthRankGrantsEligibility(99))
+        XCTAssertFalse(OrdinaryCitySourceInventory.vol21Present)
+        XCTAssertEqual(OrdinaryCitySourceInventory.leftovers.contains("WAITING_SOURCE"), true)
+    }
+    func testOtherTeamRegisterFinishRequestDoesNotRewriteOriginalFreezeFinishRequestID() throws {
+        let catalog = try catalog()
+        let selection = try XCTUnwrap(OrdinaryCityCourseSelector.select(courseID: 1001, from: catalog))
+        let safety = try XCTUnwrap(OrienteeringSafetyVersion.display(selection: selection, now: now))
+        var session = OrdinaryCityOrienteeringOriginalSession()
+        let originalTeam = try XCTUnwrap(session.registerTEAM(
+            selection: selection, actorMemberID: 701, actorClubs: clubs(), team: team(),
+            originalRequestID: "reg-isol-01"))
+        XCTAssertEqual(originalTeam.originalRequestID, "reg-isol-01")
+        XCTAssertEqual(originalTeam.outcome, "TEAM_ELIGIBLE")
+        XCTAssertEqual(originalTeam.mintedNewRequest, false)
+        let frozen = session.freezeStart(
+            selection: selection, safety: safety, originalRequestID: "start-iso1")
+        XCTAssertEqual(frozen.originalRequestID, "start-iso1")
+        XCTAssertEqual(frozen.outcome, .running)
+        let start = try XCTUnwrap(frozen.start)
+        XCTAssertEqual(start.originalRequestID, "start-iso1")
+        let finished = session.finish(
+            start: start, resultVersionID: "rule-v3", originalRequestID: "fin-isol-01")
+        XCTAssertEqual(finished.originalRequestID, "fin-isol-01")
+        XCTAssertEqual(finished.outcome, .finished)
+        XCTAssertEqual(finished.terminal?.kind, .finish)
+        let rewriteRegister = session.registerTEAM(
+            selection: selection, actorMemberID: 701, actorClubs: clubs(),
+            team: TeamRoster(teamID: 501, memberIDs: [701, 702, 703], formedBy: "INVITE",
+                             affiliatedClubIDs: [11, 22]),
+            originalRequestID: "reg-isol-01")
+        XCTAssertEqual(rewriteRegister.outcome, EventScoreOriginalOutcome.idempotencyConflict.rawValue)
+        XCTAssertEqual(rewriteRegister.originalRequestID, "reg-isol-01")
+        XCTAssertEqual(rewriteRegister.registration?.memberIDs, [701, 702])
+        let switchedTeam = session.registerTEAM(
+            selection: selection, actorMemberID: 701, actorClubs: clubs(),
+            team: TeamRoster(teamID: 502, memberIDs: [701, 702, 703], formedBy: "INVITE",
+                             affiliatedClubIDs: [11, 22]),
+            originalRequestID: "reg-isol-02")
+        XCTAssertEqual(switchedTeam.originalRequestID, "reg-isol-02")
+        XCTAssertNotEqual(switchedTeam.originalRequestID, originalTeam.originalRequestID)
+        let switchedStart = session.freezeStart(
+            selection: selection, safety: safety, originalRequestID: "start-iso2")
+        let otherFinish = session.finish(
+            start: try XCTUnwrap(switchedStart.start), resultVersionID: "rule-v3",
+            originalRequestID: "fin-isol-02")
+        XCTAssertEqual(otherFinish.originalRequestID, "fin-isol-02")
+        let steal = session.finish(
+            start: start, resultVersionID: "rule-v3", originalRequestID: "fin-isol-02")
+        XCTAssertEqual(steal.outcome, .idempotencyConflict)
+        XCTAssertEqual(steal.originalRequestID, "fin-isol-01")
+        let minted = session.finish(
+            start: start, resultVersionID: "rule-v3", originalRequestID: "fin-new-01")
+        XCTAssertEqual(minted.outcome, .idempotencyConflict)
+        XCTAssertEqual(minted.originalRequestID, "fin-isol-01")
+        let originalReadback = session.scores.readback("fin-isol-01")
+        XCTAssertEqual(originalReadback.originalRequestID, "fin-isol-01")
+        XCTAssertEqual(originalReadback.outcome, .finished)
+        XCTAssertEqual(session.teams.readback("reg-isol-01").originalRequestID, "reg-isol-01")
+        XCTAssertEqual(session.teams.readback("reg-isol-01").registration?.memberIDs, [701, 702])
+    }
+    func testInProcessRecoverKeepsOriginalFinishedAndNotFoundUnknown() throws {
+        let catalog = try catalog()
+        let selection = try XCTUnwrap(OrdinaryCityCourseSelector.select(courseID: 1001, from: catalog))
+        let safety = try XCTUnwrap(OrienteeringSafetyVersion.display(selection: selection, now: now))
+        var session = OrdinaryCityOrienteeringOriginalSession()
+        _ = session.registerTEAM(
+            selection: selection, actorMemberID: 701, actorClubs: clubs(), team: team(),
+            originalRequestID: "reg-isol-01")
+        let frozen = session.freezeStart(
+            selection: selection, safety: safety, originalRequestID: "start-iso1")
+        let start = try XCTUnwrap(frozen.start)
+        let finished = session.finish(
+            start: start, resultVersionID: "rule-v3", originalRequestID: "fin-isol-01")
+        XCTAssertEqual(finished.outcome, .finished)
+        let restarted = session.freezeStart(
+            selection: selection, safety: safety, originalRequestID: "start-iso1")
+        XCTAssertEqual(restarted.originalRequestID, "start-iso1")
+        XCTAssertEqual(restarted.outcome, .finished)
+        XCTAssertEqual(restarted.terminal?.originalRequestID, "fin-isol-01")
+        XCTAssertEqual(restarted.mintedNewRequest, false)
+        let recoveredFinish = session.recoverUnknown(originalRequestID: "fin-isol-01")
+        XCTAssertEqual(recoveredFinish.originalRequestID, "fin-isol-01")
+        XCTAssertEqual(recoveredFinish.outcome, .finished)
+        XCTAssertEqual(recoveredFinish.mintedNewRequest, false)
+        let originalRecover = session.recoverOriginal(originalRequestID: "fin-isol-01")
+        XCTAssertEqual(originalRecover.outcome, .finished)
+        let missing = session.recoverUnknown(originalRequestID: "fin-unknow")
+        XCTAssertEqual(missing.originalRequestID, "fin-unknow")
+        XCTAssertEqual(missing.outcome, .notFound)
+        XCTAssertEqual(missing.mintedNewRequest, false)
+        XCTAssertNil(missing.start)
+        XCTAssertNil(missing.terminal)
+        XCTAssertEqual(session.teams.recoverUnknown(originalRequestID: "reg-unknow").outcome,
+                       EventScoreOriginalOutcome.notFound.rawValue)
+        XCTAssertEqual(session.scores.readback("fin-isol-01").outcome, .finished)
+        XCTAssertEqual(session.teams.readback("reg-isol-01").originalRequestID, "reg-isol-01")
+    }
+    func testMissingBlankRequestIDStaysOptionalNoneOrTypedNotFoundNeverEmptyString() throws {
+        let catalog = try catalog()
+        let selection = try XCTUnwrap(OrdinaryCityCourseSelector.select(courseID: 1001, from: catalog))
+        let safety = try XCTUnwrap(OrienteeringSafetyVersion.display(selection: selection, now: now))
+        var session = OrdinaryCityOrienteeringOriginalSession()
+        XCTAssertNil(EventScoreRequestIdentity.parse(nil))
+        XCTAssertNil(EventScoreRequestIdentity.parse(""))
+        XCTAssertNil(EventScoreRequestIdentity.parse("   "))
+        let blankRegister = session.registerTEAM(
+            selection: selection, actorMemberID: 701, actorClubs: clubs(), team: team(),
+            originalRequestID: nil)
+        XCTAssertNil(blankRegister.originalRequestID)
+        XCTAssertEqual(blankRegister.outcome, EventScoreOriginalOutcome.invalidArgument.rawValue)
+        XCTAssertEqual(blankRegister.mintedNewRequest, false)
+        let emptyRegister = session.registerTEAM(
+            selection: selection, actorMemberID: 701, actorClubs: clubs(), team: team(),
+            originalRequestID: "")
+        XCTAssertNil(emptyRegister.originalRequestID)
+        XCTAssertEqual(emptyRegister.outcome, EventScoreOriginalOutcome.invalidArgument.rawValue)
+        let blankStart = session.freezeStart(
+            selection: selection, safety: safety, originalRequestID: nil)
+        XCTAssertNil(blankStart.originalRequestID)
+        XCTAssertEqual(blankStart.outcome, .invalidArgument)
+        let original = session.registerTEAM(
+            selection: selection, actorMemberID: 701, actorClubs: clubs(), team: team(),
+            originalRequestID: "reg-isol-01")
+        XCTAssertEqual(original.originalRequestID, "reg-isol-01")
+        let frozen = session.freezeStart(
+            selection: selection, safety: safety, originalRequestID: "start-iso1")
+        let start = try XCTUnwrap(frozen.start)
+        XCTAssertNil(session.finish(start: start, resultVersionID: "rule-v3", originalRequestID: nil).originalRequestID)
+        XCTAssertEqual(
+            session.finish(start: start, resultVersionID: "rule-v3", originalRequestID: "").outcome,
+            .invalidArgument)
+        let finished = session.finish(
+            start: start, resultVersionID: "rule-v3", originalRequestID: "fin-isol-01")
+        XCTAssertEqual(finished.originalRequestID, "fin-isol-01")
+        XCTAssertNotEqual(finished.originalRequestID, Optional.some(""))
+        let missingRead = session.recoverUnknown(originalRequestID: nil)
+        XCTAssertNil(missingRead.originalRequestID)
+        XCTAssertEqual(missingRead.outcome, .notFound)
+        XCTAssertEqual(missingRead.mintedNewRequest, false)
+        let blankRead = session.recoverUnknown(originalRequestID: "")
+        XCTAssertNil(blankRead.originalRequestID)
+        XCTAssertEqual(blankRead.outcome, .notFound)
+        XCTAssertNil(session.teams.readback(nil).originalRequestID)
+        XCTAssertEqual(session.teams.readback("").outcome, EventScoreOriginalOutcome.notFound.rawValue)
+        let staticFreeze = try XCTUnwrap(EventScoreVersionProjection.freeze(selection: selection, safety: safety))
+        XCTAssertNil(staticFreeze.originalRequestID)
+        XCTAssertEqual(session.scores.readback("fin-isol-01").originalRequestID, "fin-isol-01")
     }
 }

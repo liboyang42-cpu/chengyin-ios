@@ -83,3 +83,94 @@ public enum TeamClubEligibilityProjection {
         formedBy == "RANDOM_MATCH" || formedBy == "MATCHMAKING"
     }
 }
+
+public struct TeamClubRegistration: Equatable, Sendable {
+    public let originalRequestID: String
+    public let courseID: Int
+    public let actorMemberID: Int
+    public let memberIDs: [Int]
+    public let affiliatedClubIDs: [Int]
+    public let eligibility: TeamClubEligibility
+}
+
+public struct TeamClubOriginalReceipt: Equatable, Sendable {
+    public let originalRequestID: String?
+    public let outcome: String
+    public let mintedNewRequest: Bool
+    public let registration: TeamClubRegistration?
+}
+
+/// In-process TEAM/register original-request ledger. Another TEAM register cannot rewrite
+/// the original freeze/finish originalRequestID; missing ids stay Optional.none or NOT_FOUND.
+public struct TeamClubEligibilityLedger: Equatable {
+    private var byRequestID: [String: TeamClubRegistration] = [:]
+
+    public init() {}
+
+    public mutating func register(
+        selection: OrdinaryCityCourseSelection, actorMemberID: Int,
+        actorClubs: [TeamClubMembership], team: TeamRoster?, originalRequestID: String?
+    ) -> TeamClubOriginalReceipt {
+        guard let id = EventScoreRequestIdentity.parse(originalRequestID) else {
+            return TeamClubOriginalReceipt(
+                originalRequestID: nil, outcome: EventScoreOriginalOutcome.invalidArgument.rawValue,
+                mintedNewRequest: false, registration: nil)
+        }
+        guard let eligibility = TeamClubEligibilityProjection.evaluate(
+            selection: selection, actorMemberID: actorMemberID, actorClubs: actorClubs, team: team)
+        else {
+            return TeamClubOriginalReceipt(
+                originalRequestID: id, outcome: EventScoreOriginalOutcome.invalidArgument.rawValue,
+                mintedNewRequest: false, registration: nil)
+        }
+        guard eligibility.isEligible else {
+            return TeamClubOriginalReceipt(
+                originalRequestID: id, outcome: eligibility.reasonCode,
+                mintedNewRequest: false, registration: nil)
+        }
+        let registration = TeamClubRegistration(
+            originalRequestID: id, courseID: selection.courseID, actorMemberID: actorMemberID,
+            memberIDs: team?.memberIDs ?? [actorMemberID],
+            affiliatedClubIDs: team?.affiliatedClubIDs ?? selection.requiredClubIDs,
+            eligibility: eligibility)
+        if let previous = byRequestID[id] {
+            if previous != registration {
+                return TeamClubOriginalReceipt(
+                    originalRequestID: previous.originalRequestID,
+                    outcome: EventScoreOriginalOutcome.idempotencyConflict.rawValue,
+                    mintedNewRequest: false, registration: previous)
+            }
+            return TeamClubOriginalReceipt(
+                originalRequestID: previous.originalRequestID, outcome: previous.eligibility.reasonCode,
+                mintedNewRequest: false, registration: previous)
+        }
+        byRequestID[id] = registration
+        return TeamClubOriginalReceipt(
+            originalRequestID: id, outcome: eligibility.reasonCode,
+            mintedNewRequest: false, registration: registration)
+    }
+
+    public func recoverOriginal(originalRequestID: String?) -> TeamClubOriginalReceipt {
+        recoverUnknown(originalRequestID: originalRequestID)
+    }
+
+    public func recoverUnknown(originalRequestID: String?) -> TeamClubOriginalReceipt {
+        guard let id = EventScoreRequestIdentity.parse(originalRequestID) else {
+            return TeamClubOriginalReceipt(
+                originalRequestID: nil, outcome: EventScoreOriginalOutcome.notFound.rawValue,
+                mintedNewRequest: false, registration: nil)
+        }
+        if let original = byRequestID[id] {
+            return TeamClubOriginalReceipt(
+                originalRequestID: original.originalRequestID, outcome: original.eligibility.reasonCode,
+                mintedNewRequest: false, registration: original)
+        }
+        return TeamClubOriginalReceipt(
+            originalRequestID: id, outcome: EventScoreOriginalOutcome.notFound.rawValue,
+            mintedNewRequest: false, registration: nil)
+    }
+
+    public func readback(_ originalRequestID: String?) -> TeamClubOriginalReceipt {
+        recoverUnknown(originalRequestID: originalRequestID)
+    }
+}

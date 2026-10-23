@@ -112,3 +112,54 @@ public enum OrdinaryCityCourseSelector {
             selection: selection, safety: safety, eligibility: eligibility, payload: payload)
     }
 }
+
+/// WAITING_SOURCE leftovers: vols 21/22/25-App/38 packs, unpushed iOS e2d86c4,
+/// and host-session-wiring. Checkpoint, not a closed App play loop.
+public enum OrdinaryCitySourceInventory {
+    public static let waitingSource = "WAITING_SOURCE"
+    public static let vol21 = "vol.21"
+    public static let vol22 = "vol.22"
+    public static let vol25App = "vol.25-App"
+    public static let vol38 = "vol.38"
+    public static let unpushedIosSHA = "e2d86c4"
+    public static let hostSessionWiring = "host-session-wiring"
+    public static var vol21Present: Bool { false }
+    public static var vol22Present: Bool { false }
+    public static var vol25AppPresent: Bool { false }
+    public static var vol38Present: Bool { false }
+    public static var unpushedIosSHAPresent: Bool { false }
+    public static var leftovers: [String] {
+        [waitingSource, vol21, vol22, vol25App, vol38, unpushedIosSHA, hostSessionWiring]
+    }
+}
+
+/// Combined TEAM/register + freeze/finish original-request session for exclusive tests.
+public struct OrdinaryCityOrienteeringOriginalSession: Equatable {
+    public var teams = TeamClubEligibilityLedger()
+    public var scores = EventScoreOriginalLedger()
+    public init() {}
+    public mutating func registerTEAM(
+        selection: OrdinaryCityCourseSelection, actorMemberID: Int,
+        actorClubs: [TeamClubMembership], team: TeamRoster?, originalRequestID: String?
+    ) -> TeamClubOriginalReceipt {
+        teams.register(selection: selection, actorMemberID: actorMemberID,
+                       actorClubs: actorClubs, team: team, originalRequestID: originalRequestID)
+    }
+    public mutating func freezeStart(
+        selection: OrdinaryCityCourseSelection, safety: OrienteeringSafetyVersion,
+        originalRequestID: String?
+    ) -> EventScoreOriginalReceipt {
+        scores.freeze(selection: selection, safety: safety, originalRequestID: originalRequestID)
+    }
+    public mutating func finish(
+        start: EventScoreStartPayload, resultVersionID: String, originalRequestID: String?
+    ) -> EventScoreOriginalReceipt {
+        scores.finish(start: start, resultVersionID: resultVersionID, originalRequestID: originalRequestID)
+    }
+    public func recoverUnknown(originalRequestID: String?) -> EventScoreOriginalReceipt {
+        scores.recoverUnknown(originalRequestID: originalRequestID)
+    }
+    public func recoverOriginal(originalRequestID: String?) -> EventScoreOriginalReceipt {
+        scores.recoverOriginal(originalRequestID: originalRequestID)
+    }
+}
