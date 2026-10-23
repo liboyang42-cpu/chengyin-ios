@@ -105,4 +105,28 @@ final class FulfillmentEvidenceProjectionTests: XCTestCase {
         XCTAssertNil(FulfillmentEvidenceProjection.parse(""))
         XCTAssertNil(FulfillmentEvidenceProjection.parse("  "))
     }
+    func testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenRecordedApplies() {
+        var evidence = FulfillmentEvidenceProjection()
+        XCTAssertEqual(evidence.recoverOriginal(originalRequestID: "c07-ev-never-seen").first?.outcome, .unknown)
+        let missing = FulfillmentJourneyFacts(
+            orderIssued: false, holdOccupiesCapacity: false,
+            appointment: nil, inStore: nil, refundTrial: nil,
+            aftercare: FulfillmentAftercareFact(caseOpen: false, merchantResponded: false))
+        XCTAssertEqual(evidence.recordJourney(originalRequestID: "c07-ev-never-seen", facts: missing)
+                        .first { $0.stage == .orderIssue }?.outcome, .unknown)
+        XCTAssertEqual(evidence.recoverOriginal(originalRequestID: "c07-ev-never-seen").first?.outcome, .unknown)
+        XCTAssertEqual(evidence.recoverOriginal(originalRequestID: "c07-ev-never-seen").count, 1)
+        let complete = FulfillmentJourneyFacts(
+            orderIssued: true, holdOccupiesCapacity: true,
+            appointment: FulfillmentAppointmentFact(slotID: "slot-a", newSlotID: "slot-b", slotKnown: true),
+            inStore: FulfillmentInStoreEvidenceFact(attestedInStore: true, simulatedGPS: false),
+            refundTrial: FulfillmentRefundTrialFact(now: Date(timeIntervalSince1970: 1),
+                                                    snapshotDeadline: Date(timeIntervalSince1970: 2), paid: true),
+            aftercare: FulfillmentAftercareFact(caseOpen: true, merchantResponded: false))
+        XCTAssertEqual(evidence.recordJourney(originalRequestID: "c07-ev-never-seen", facts: complete)
+                        .first { $0.stage == .orderIssue }?.outcome, .recorded)
+        XCTAssertEqual(evidence.recoverOriginal(originalRequestID: "c07-ev-never-seen").count, 7)
+        XCTAssertEqual(evidence.recoverOriginal(originalRequestID: "c07-ev-never-seen")
+                        .first { $0.stage == .reschedule }?.outcome, .recorded)
+    }
 }

@@ -104,7 +104,7 @@ public struct FulfillmentEvidenceProjection: Equatable {
             return original
         }
         let steps = compute(requestID: requestID, facts: facts)
-        if let requestID {
+        if let requestID, steps.contains(where: { $0.outcome == .recorded }) {
             originalStepsByRequestID[requestID] = steps
         }
         return steps

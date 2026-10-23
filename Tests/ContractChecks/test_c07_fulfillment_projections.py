@@ -139,6 +139,7 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         hold = self.sources["Tests/CoreTests/EntitlementHoldProjectionTests.swift"]
         self.assertIn("testOtherRequestDoesNotRewriteOriginalJourney", evidence)
         self.assertIn("testInProcessRecoverKeepsOriginalJourneyAndMissingStaysNil", evidence)
+        self.assertIn("testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenRecordedApplies", evidence)
         self.assertIn("testOtherRequestDoesNotRewriteOriginalHold", hold)
         self.assertIn("testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenHoldApplies", hold)
         supply_tests = self.sources["Tests/CoreTests/MerchantSupplyDryRunProjectionTests.swift"]
@@ -149,6 +150,7 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("decision.outcome != .unknown", supply_core)
         core = self.sources["Core/FulfillmentEvidenceProjection.swift"]
         self.assertIn("if let requestID, let original = originalStepsByRequestID[requestID]", core)
+        self.assertIn("steps.contains(where: { $0.outcome == .recorded })", core)
 
     def test_in_store_evidence_is_not_gps_fake(self):
         evidence = self.sources["Core/FulfillmentEvidenceProjection.swift"]
