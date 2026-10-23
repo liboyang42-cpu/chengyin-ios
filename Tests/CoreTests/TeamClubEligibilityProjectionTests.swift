@@ -102,4 +102,24 @@ final class TeamClubEligibilityProjectionTests: XCTestCase {
         XCTAssertNil(ledger.recoverUnknown(originalRequestID: "").originalRequestID)
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "reg-isol-01").originalRequestID, "reg-isol-01")
     }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyLedgerThenUniqueRegisterApplies() {
+        let selection = selection()
+        var ledger = TeamClubEligibilityLedger()
+        let blank = ledger.recoverOriginal(originalRequestID: nil)
+        XCTAssertNil(blank.originalRequestID)
+        XCTAssertEqual(blank.outcome, EventScoreOriginalOutcome.notFound.rawValue)
+        XCTAssertEqual(blank.mintedNewRequest, false)
+        let neverReg = ledger.recoverOriginal(originalRequestID: "reg-orig-unk")
+        XCTAssertEqual(neverReg.originalRequestID, "reg-orig-unk")
+        XCTAssertEqual(neverReg.outcome, EventScoreOriginalOutcome.notFound.rawValue)
+        XCTAssertNil(neverReg.registration)
+        XCTAssertEqual(ledger.readback("reg-orig-unk").outcome, EventScoreOriginalOutcome.notFound.rawValue)
+        let first = ledger.register(
+            selection: selection, actorMemberID: 701, actorClubs: memberships([11, 22]),
+            team: team(), originalRequestID: "reg-orig-unk")
+        XCTAssertEqual(first.originalRequestID, "reg-orig-unk")
+        XCTAssertEqual(first.outcome, "TEAM_ELIGIBLE")
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "reg-orig-unk").outcome, "TEAM_ELIGIBLE")
+        XCTAssertEqual(ledger.readback("reg-orig-unk").registration?.memberIDs, [701, 702])
+    }
 }

@@ -292,4 +292,51 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
         XCTAssertNil(staticFreeze.originalRequestID)
         XCTAssertEqual(session.scores.readback("fin-isol-01").originalRequestID, "fin-isol-01")
     }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyLedgerThenUniqueWriteApplies() throws {
+        let catalog = try catalog()
+        let selection = try XCTUnwrap(OrdinaryCityCourseSelector.select(courseID: 1001, from: catalog))
+        let safety = try XCTUnwrap(OrienteeringSafetyVersion.display(selection: selection, now: now))
+        var session = OrdinaryCityOrienteeringOriginalSession()
+        _ = session.registerTEAM(
+            selection: selection, actorMemberID: 701, actorClubs: clubs(), team: team(),
+            originalRequestID: "reg-isol-01")
+        let frozen = session.freezeStart(
+            selection: selection, safety: safety, originalRequestID: "start-iso1")
+        let start = try XCTUnwrap(frozen.start)
+
+        let blank = session.recoverOriginal(originalRequestID: nil)
+        XCTAssertNil(blank.originalRequestID)
+        XCTAssertEqual(blank.outcome, .notFound)
+        XCTAssertEqual(blank.mintedNewRequest, false)
+        let neverFinish = session.recoverOriginal(originalRequestID: "fin-orig-unk")
+        XCTAssertEqual(neverFinish.originalRequestID, "fin-orig-unk")
+        XCTAssertEqual(neverFinish.outcome, .notFound)
+        XCTAssertEqual(neverFinish.mintedNewRequest, false)
+        XCTAssertNil(neverFinish.start)
+        XCTAssertNil(neverFinish.terminal)
+        XCTAssertEqual(session.scores.readback("fin-orig-unk").outcome, .notFound)
+
+        let firstFinish = session.finish(
+            start: start, resultVersionID: "rule-v3", originalRequestID: "fin-orig-unk")
+        XCTAssertEqual(firstFinish.originalRequestID, "fin-orig-unk")
+        XCTAssertEqual(firstFinish.outcome, .finished)
+        XCTAssertEqual(firstFinish.mintedNewRequest, false)
+        let recoveredFinish = session.recoverOriginal(originalRequestID: "fin-orig-unk")
+        XCTAssertEqual(recoveredFinish.originalRequestID, "fin-orig-unk")
+        XCTAssertEqual(recoveredFinish.outcome, .finished)
+        XCTAssertEqual(session.scores.readback("fin-orig-unk").outcome, .finished)
+
+        let neverReg = session.teams.recoverOriginal(originalRequestID: "reg-orig-unk")
+        XCTAssertEqual(neverReg.originalRequestID, "reg-orig-unk")
+        XCTAssertEqual(neverReg.outcome, EventScoreOriginalOutcome.notFound.rawValue)
+        XCTAssertNil(neverReg.registration)
+        XCTAssertEqual(session.teams.readback("reg-orig-unk").outcome, EventScoreOriginalOutcome.notFound.rawValue)
+        let firstUnknownReg = session.registerTEAM(
+            selection: selection, actorMemberID: 701, actorClubs: clubs(), team: team(),
+            originalRequestID: "reg-orig-unk")
+        XCTAssertEqual(firstUnknownReg.originalRequestID, "reg-orig-unk")
+        XCTAssertEqual(firstUnknownReg.outcome, "TEAM_ELIGIBLE")
+        XCTAssertEqual(session.teams.recoverOriginal(originalRequestID: "reg-orig-unk").outcome, "TEAM_ELIGIBLE")
+        XCTAssertEqual(session.teams.readback("reg-isol-01").originalRequestID, "reg-isol-01")
+    }
 }
