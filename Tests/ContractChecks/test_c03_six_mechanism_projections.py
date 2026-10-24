@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 WHITELIST = [
     "Core/MechanismRequestIdProjection.swift",
     "Core/RouteActionReadbackFlow.swift",
+    "Core/RouteActionPageRead.swift",
     "Core/ProgressClockMomentumAspectProjection.swift",
     "Core/OathFlashbackProjection.swift",
     "Core/TradeBargainProjection.swift",
@@ -20,6 +21,7 @@ WHITELIST = [
     "Core/ClueSecretGoalProjection.swift",
     "Tests/CoreTests/MechanismRequestIdProjectionTests.swift",
     "Tests/CoreTests/RouteActionReadbackFlowTests.swift",
+    "Tests/CoreTests/RouteActionPageReadTests.swift",
     "Tests/CoreTests/ProgressClockMomentumAspectProjectionTests.swift",
     "Tests/CoreTests/OathFlashbackProjectionTests.swift",
     "Tests/CoreTests/TradeBargainProjectionTests.swift",
@@ -28,6 +30,8 @@ WHITELIST = [
     "Tests/CoreTests/ClueSecretGoalProjectionTests.swift",
     "Tests/ContractChecks/test_c03_six_mechanism_projections.py",
     "docs/issue5-hunks/C03-ios-dot-hunk.md",
+    "docs/issue5-hunks/C03-route-page-readback.hunk",
+    "App/PlayRouteMapView.swift",
 ]
 CORE_FILES = [path for path in WHITELIST if path.startswith("Core/")]
 TEST_FILES = [path for path in WHITELIST if path.startswith("Tests/CoreTests/")]
@@ -46,10 +50,28 @@ def _git_names(*args):
     return {line for line in output.splitlines() if line}
 
 
+def _changed_names():
+    names = set()
+    for args in (
+        ["diff", "--name-only", BASE],
+        ["diff", "--name-only", "--cached", BASE],
+        ["diff", "--name-only", BASE, "HEAD"],
+        ["ls-files", "--others", "--exclude-standard"],
+    ):
+        names.update(_git_names(*args))
+    return names
+
+
 class C03SixMechanismProjectionContracts(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.sources = {path: (ROOT / path).read_text() for path in WHITELIST if path.endswith(".swift")}
+        # The route page stays out of the joined Core scan. It already names the
+        # play coordinator and map coordinates; those owners are not this flow.
+        cls.sources = {
+            path: (ROOT / path).read_text()
+            for path in WHITELIST
+            if path.endswith(".swift") and not path.startswith("App/")
+        }
         cls.joined = "\n".join(cls.sources.values())
         cls.hunk = (ROOT / "docs/issue5-hunks/C03-ios-dot-hunk.md").read_text()
 
@@ -58,16 +80,12 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
             self.assertTrue((ROOT / path).is_file(), path)
 
     def test_git_diff_against_native_ios_equals_whitelist(self):
-        names = _git_names("diff", "--name-only", BASE)
-        if not names:
-            names = _git_names("diff", "--name-only", BASE, "HEAD")
-        if not names:
-            names = _git_names("ls-files", "--others", "--exclude-standard")
+        names = _changed_names()
         self.assertEqual(names, set(WHITELIST), names.symmetric_difference(set(WHITELIST)))
 
     def test_first_journey_markers_present(self):
         for path in TEST_FILES:
-            if path.endswith("RouteActionReadbackFlowTests.swift"):
+            if path.endswith("RouteActionReadbackFlowTests.swift") or path.endswith("RouteActionPageReadTests.swift"):
                 continue
             text = self.sources[path]
             self.assertIn("testFirstJourney", text, path)
@@ -136,6 +154,16 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
                 self.assertIn("row.memberID", text, path)
                 self.assertNotIn("insertAction", text, path)
                 self.assertNotIn("func bind(", text, path)
+                self.assertNotIn("struct RouteActionPageRead", text, path)
+            elif path.endswith("RouteActionPageRead.swift"):
+                self.assertIn("func appear(", text, path)
+                self.assertIn("func shownRow(", text, path)
+                self.assertIn("RouteActionReadbackFlow()", text, path)
+                self.assertIn("flow.recover(", text, path)
+                self.assertIn("does not mint originalRequestID", text, path)
+                self.assertNotIn("func recover(", text, path)
+                self.assertNotIn("insertAction", text, path)
+                self.assertNotIn("func bind(", text, path)
             else:
                 self.assertIn("func apply(", text, path)
                 self.assertIn("func recoverOriginal(", text, path)
@@ -191,6 +219,53 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         self.assertIn("WAITING_SOURCE", self.hunk)
         self.assertIn("NOT_RUN", self.hunk)
         self.assertIn("not 100%", self.hunk.lower())
+
+    def test_route_page_reads_one_action_through_existing_flow(self):
+        page = (ROOT / "App/PlayRouteMapView.swift").read_text()
+        reader = self.sources["Core/RouteActionPageRead.swift"]
+        tests = self.sources["Tests/CoreTests/RouteActionPageReadTests.swift"]
+        flow = self.sources["Core/RouteActionReadbackFlow.swift"]
+        closed = (ROOT / "docs/issue5-hunks/C03-route-page-readback.hunk").read_text()
+        self.assertIn("struct PlayRouteMapView", page)
+        self.assertIn("struct RouteActionPageReadRequest", page)
+        self.assertIn("RouteActionPageRead()", page)
+        self.assertIn("page.shownRow(", page)
+        self.assertIn("playRoute.actionRead", page)
+        self.assertIn("Text(verbatim: shownActionRow.actionID)", page)
+        self.assertIn(".font(.body)", page)
+        self.assertIn("if actionRead != nil", page)
+        self.assertIn("row.actionID == trimmed", page)
+        self.assertIn("rowSession != request.sessionID", page)
+        self.assertIn("rowMember != request.memberID", page)
+        self.assertIn("shownActionRow = nil", page)
+        self.assertIn("shownActionRow = row", page)
+        self.assertNotIn("shownActionRow = request", page)
+        appear = page.split("private func appearActionRead()", 1)[1].split("private func", 1)[0]
+        self.assertNotIn("shownRow", appear)
+        self.assertNotIn("recover", appear)
+        self.assertNotIn("selectAction", appear)
+        self.assertNotIn("insert", appear)
+        self.assertNotIn("gradient", page.lower())
+        self.assertNotIn("glow", page.lower())
+        self.assertNotIn("insertAction", page)
+        self.assertNotIn("func recover(", reader)
+        self.assertIn("flow.recover(", reader)
+        self.assertIn("testAppearanceDoesNotWriteAndWrongIdsAreNotThisAction", tests)
+        self.assertIn("appearance does not write", tests)
+        self.assertIn("different action", tests)
+        self.assertIn("different session", tests)
+        self.assertIn("different member", tests)
+        self.assertIn("same ids show the same row", tests)
+        self.assertIn("func recover(", flow)
+        self.assertNotIn("struct RouteActionPageRead", flow)
+        self.assertIn("Not applied", closed)
+        self.assertIn("App/AppSession.swift", closed)
+        self.assertIn("App/AppCompositionRoot.swift", closed)
+        self.assertIn("project.pbxproj", closed)
+        self.assertIn("61AAB3CFE6D7C847E7148074", closed)
+        self.assertIn("Do not apply", closed)
+        for path in FORBIDDEN_TOUCH:
+            self.assertNotIn(path, _git_names("diff", "--name-only", BASE))
 
     def test_linux_xctest_is_explicitly_not_run(self):
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
