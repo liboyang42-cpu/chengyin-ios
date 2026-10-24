@@ -235,6 +235,26 @@ import XCTest
         XCTAssertEqual(flow.reviewTicket?.requestID, requestID)
     }
 
+    func testUnusedInvalidIngestDoesNotOccupyThenUniqueValidIngestApplies() throws {
+        let flow = gate()
+        var invalid = draft()
+        invalid.products[0].priceMinor = "-1"
+        XCTAssertFalse(invalid.validationIssues.isEmpty)
+        do { try flow.ingestAIDraft(invalid); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantNPCDraftGateFailure, .invalidDraft) }
+        XCTAssertEqual(flow.phase, .idle, "无效 ingest 观察不得占 phase")
+        XCTAssertNil(flow.origin, "无效 ingest 观察不得占 origin")
+        XCTAssertTrue(flow.draft.isEmpty, "无效 ingest 观察不得占 draft")
+        XCTAssertNil(flow.authorizer)
+        XCTAssertNil(flow.published)
+        try flow.ingestAIDraft(draft())
+        XCTAssertEqual(flow.phase, .aiDraft)
+        XCTAssertEqual(flow.origin, .ai)
+        XCTAssertFalse(flow.draft.isEmpty)
+        XCTAssertEqual(flow.draft.products[0].name, "Tea")
+        XCTAssertNil(flow.published, "合法 ingest 不得占 published 账")
+    }
+
     @MainActor private final class RecordingPublisher: MerchantNPCOriginalReviewPublishing {
         var submitted = 0, published = 0
         var facts: [UUID: Data] = [:]
