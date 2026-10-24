@@ -714,7 +714,8 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(reads, 1)
         XCTAssertEqual(writes, 0)
         XCTAssertEqual((page["list"] as? [[String: Any]])?.count, 0)
-        XCTAssertNil(entry.requestID)
+        XCTAssertNil(entry.intent)
+        XCTAssertEqual(entry.phase, .idle)
         let receipt = try entry.acknowledge(actor: actor, channelID: channel, lastMessageID: 4, channelKind: 1,
                                             lease: lease, currentLease: { lease }, isolation: openIsolation,
                                             sameScope: { _, _ in true }, writer: { _, _, _, request in
@@ -742,7 +743,14 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         })
         XCTAssertEqual(recovered.requestID, entry.intent?.requestID)
         XCTAssertEqual(recovered.outcome, "APPLIED")
+        XCTAssertEqual(entry.phase, .applied)
         XCTAssertEqual(writes, 1)
+        let body = try XCTUnwrap(entry.originalReadBody())
+        XCTAssertEqual(body["conversation_id"], String(channel))
+        XCTAssertEqual(body["last_message_id"], "4")
+        XCTAssertEqual(body["request_id"], entry.intent?.requestID)
+        XCTAssertNil(body["scope_type"])
+        XCTAssertNil(body["scope_id"])
         var rejected = MessageHistoryAckEntry()
         XCTAssertThrowsError(try rejected.acknowledge(actor: actor, channelID: channel, lastMessageID: 4, channelKind: 1,
                                                       lease: lease, currentLease: { lease }, isolation: openIsolation,

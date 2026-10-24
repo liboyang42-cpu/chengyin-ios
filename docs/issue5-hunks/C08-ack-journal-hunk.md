@@ -1,38 +1,16 @@
-# C08 ACK journal hunk for dot
+# C08 ACK command patch for dot
 
-Not applied. This exclusive tree does not contain `NativeChannelNotificationJournal.swift` or `NativeChannelNotificationContracts.swift`. Do not copy those files into this PR. Do not encode ACK as `PREFERENCE` or `MUTE`.
+Not installed. `NativeChannelNotificationJournal.swift` is not in this exclusive tree. `persist`, `restore`, and `settle` stay the original methods. ACK is not `PREFERENCE` or `MUTE`.
 
-Source read for the insertion point: e47 `Core/NativeChannelNotificationContracts.swift` operation enum and `validate()`, and `Core/NativeChannelNotificationCoordinator.swift` `retryOriginal()` around the `allows(...)` choice.
+The installable diff is `C08-ack-command.patch`, read from the e47 copies of:
 
-## Keep
+- `Core/NativeChannelNotificationAuthority.swift`
+- `Core/NativeChannelNotificationContracts.swift`
+- `Core/NativeChannelNotificationService.swift`
+- `Core/NativeChannelNotificationCoordinator.swift`
 
-- `NativeChannelNotificationJournal.persist`, `restore`, `settle`, `rememberFailure` stay the only storage. No second ledger.
-- Restart restores the same command and reads the original receipt. It does not mint a new request id.
-- Revoke does not `settle` or delete an unknown command.
-- `POST api/im/read` stays the ack write. `GET api/im/notification-requests/{requestId}` stays the receipt read.
+`POST api/im/read` uses `conversation_id`, `request_id`, and `last_message_id` (`read_to` is the same cursor). `scope_type` and `scope_id` stay on the local intent and the receipt. They are not the HTTP body.
 
-## Add, as its own operation
+`MessageHistoryAckEntry.originalReadBody()` is the caller in this tree. It does not send. A failed precheck does not rewrite a kept intent. An applied receipt sets the terminal phase and does not write again. UNKNOWN does not send again unless `resumeSameRequest`, the current write approval, and an explicit retry all hold, and then only with the same id and the same intent.
 
-In `NativeChannelNotificationCommand.Operation`:
-
-```swift
-case ack = "ACK"
-```
-
-Add an initializer that sets `operation = .ack` and rejects preference or mute fields. The body keys are only `request_id`, `scope_type`, `scope_id`, and `last_message_id`. `scope_type` is the integer 1. `scope_id` is the channel id. `last_message_id` is `>= 0`.
-
-In `validate()`, handle `.ack` before the preference branch. An ACK body that contains `level`, `minutes`, `muted_until`, or `conversation_id` is invalid.
-
-## Permission
-
-`NativeChannelNotificationCoordinator.retryOriginal()` currently does:
-
-```swift
-client.allows(original.operation == .mute ? .mute : .save, scope: original.scope)
-```
-
-ACK must not use `.save` or `.mute`. Add a distinct allow case for `.ack` and require that approval, plus `resumeSameRequest` on the original receipt, plus the explicit retry. A receipt read alone does not dispatch.
-
-## This candidate
-
-`MessageHistoryAckEntry` keeps the in-memory intent only. A failed precheck does not keep a request id. UNKNOWN does not send again. A new instance does not mint an id to bypass UNKNOWN. Durable ACK storage is the hunk above and is not installed here. Swift was not compiled.
+Swift was not compiled. This patch is not applied here.

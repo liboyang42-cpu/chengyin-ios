@@ -1,0 +1,88 @@
+--- a/Core/NativeChannelNotificationAuthority.swift
++++ b/Core/NativeChannelNotificationAuthority.swift
+@@ -1,7 +1,7 @@
+ import Foundation
+ 
+ public enum NativeChannelNotificationOperation: Hashable {
+-    case directory, preference, save, mute, receipt, unread
++    case directory, preference, save, mute, receipt, unread, ack
+ }
+ 
+ /// Implemented by the existing session/endpoint authority owner, never by a view.
+--- a/Core/NativeChannelNotificationContracts.swift
++++ b/Core/NativeChannelNotificationContracts.swift
+@@ -246,7 +246,7 @@ public struct NativeChannelNotificationDraft: Equatable {
+ /// This exact immutable body is persisted before dispatch. It is never reconstructed
+ /// from current controls or a new relative mute deadline after an unknown result.
+ public struct NativeChannelNotificationCommand: Codable, Equatable {
+-    public enum Operation: String, Codable { case preference = "PREFERENCE", mute = "MUTE" }
++    public enum Operation: String, Codable { case preference = "PREFERENCE", mute = "MUTE", ack = "ACK" }
+     public let requestID: String
+     public let scope: NativeChannelNotificationScope
+     public let operation: Operation
+@@ -289,6 +289,16 @@ public struct NativeChannelNotificationCommand: Codable, Equatable {
+         self.requestID = requestID; self.scope = scope; operation = .mute
+         body = try JSONSerialization.data(withJSONObject: ["conversation_id": scope.value, "request_id": requestID, "minutes": minutes], options: [.sortedKeys])
+     }
++    /// Original `POST api/im/read`. `conversation_id` is the channel. Scope is not an HTTP field.
++    public init(ackChannelID: Int64, lastMessageID: Int64, requestID: String) throws {
++        guard ackChannelID > 0, lastMessageID >= 0, Self.validKey(requestID) else {
++            throw NativeChannelNotificationError.invalidInput
++        }
++        self.requestID = requestID
++        scope = try NativeChannelNotificationScope(type: 1, value: String(ackChannelID))
++        operation = .ack
++        body = try JSONSerialization.data(withJSONObject: ["conversation_id": String(ackChannelID), "last_message_id": String(lastMessageID), "request_id": requestID], options: [.sortedKeys])
++    }
+     public func validate() throws {
+         guard Self.validKey(requestID), body.count <= 8192,
+               let fields = try JSONSerialization.jsonObject(with: body) as? [String: Any],
+@@ -294,7 +304,12 @@ public struct NativeChannelNotificationCommand: Codable, Equatable {
+               fields["request_id"] as? String == requestID else { throw NativeChannelNotificationError.invalidInput }
+         _ = try NativeChannelNotificationScope(type: scope.type, value: scope.value)
+         if operation == .mute {
+             guard scope.type == 1, fields["conversation_id"] as? String == scope.value,
+                   Set(fields.keys) == ["conversation_id", "request_id", "minutes"],
+                   let n = fields["minutes"] as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID(),
+                   n.doubleValue == Double(n.intValue), (-1...43200).contains(n.intValue) else { throw NativeChannelNotificationError.invalidInput }
++        } else if operation == .ack {
++            guard scope.type == 1, fields["conversation_id"] as? String == scope.value,
++                  Set(fields.keys) == ["conversation_id", "last_message_id", "request_id"],
++                  let last = fields["last_message_id"] as? String, let value = Int64(last), value >= 0 else {
++                throw NativeChannelNotificationError.invalidInput
++            }
+         } else {
+             // Decode the complete persisted shape, including nulls; unknown fields
+             // and attempts to write the read-only permanent flag are rejected.
+--- a/Core/NativeChannelNotificationService.swift
++++ b/Core/NativeChannelNotificationService.swift
+@@ -71,8 +71,14 @@ public final class NativeChannelNotificationService {
+     public func submit(_ command: NativeChannelNotificationCommand) async throws -> NativeChannelNotificationReceipt {
+         try command.validate()
+-        let result: NativeChannelNotificationReceipt = try await execute(operation: command.operation == .mute ? .mute : .save,
+-            scope: command.scope, path: command.operation == .mute ? "api/im/mute" : "api/im/notify-pref", body: command.body)
++        let operation: NativeChannelNotificationOperation
++        let path: String
++        switch command.operation {
++        case .mute: operation = .mute; path = "api/im/mute"
++        case .ack: operation = .ack; path = "api/im/read"
++        case .preference: operation = .save; path = "api/im/notify-pref"
++        }
++        let result: NativeChannelNotificationReceipt = try await execute(operation: operation, scope: command.scope, path: path, body: command.body)
+         try result.validate(for: command); return result
+     }
+--- a/Core/NativeChannelNotificationCoordinator.swift
++++ b/Core/NativeChannelNotificationCoordinator.swift
+@@ -151,7 +151,12 @@ public final class NativeChannelNotificationCoordinator {
+             storedReceipt = observed
+-            guard observed.status == "NOT_FOUND", client.allows(original.operation == .mute ? .mute : .save, scope: original.scope) else {
++            let permission: NativeChannelNotificationOperation
++            switch original.operation {
++            case .mute: permission = .mute
++            case .ack: permission = .ack
++            case .preference: permission = .save
++            }
++            guard observed.status == "NOT_FOUND", client.allows(permission, scope: original.scope) else {
+                 state = .pending; return
+             }
+             state = .saving

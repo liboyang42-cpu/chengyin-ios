@@ -42,25 +42,44 @@ public struct MessageHistoryAckEntry {
                                      isolation: ChannelRevokeIsolation, sameScope: (Int64, Int64) -> Bool,
                                      writer: (Int64, Int64, Int64, String) throws -> [String: Any]) throws -> MessageContainerOriginalAck.Receipt {
         guard phase != .applied else { throw ChannelAuthorizationError.invalidCatalog }
+        if let existing = intent {
+            guard existing.actor == actor, existing.channelID == channelID,
+                  existing.lastMessageID == lastMessageID, existing.channelKind == channelKind else {
+                throw ChannelAuthorizationError.invalidCatalog
+            }
+        }
+        guard !dispatched else { throw ChannelAuthorizationError.invalidCatalog }
         try precheck(actor: actor, channelID: channelID, lastMessageID: lastMessageID, channelKind: channelKind,
                      lease: lease, currentLease: currentLease, sameScope: sameScope)
-        if dispatched {
-            throw ChannelAuthorizationError.invalidCatalog
-        }
         let id = intent?.requestID ?? ("ack-" + UUID().uuidString.lowercased())
-        intent = Intent(actor: actor, channelID: channelID, lastMessageID: lastMessageID, requestID: id, channelKind: channelKind)
+        if intent == nil {
+            intent = Intent(actor: actor, channelID: channelID, lastMessageID: lastMessageID, requestID: id, channelKind: channelKind)
+        }
         return try dispatch(id: id, lease: lease, currentLease: currentLease, isolation: isolation,
                             sameScope: sameScope, writer: writer)
     }
 
-    /// Reads the stored intent. It does not accept a substitute actor or channel, and it does not write.
-    public func recover(originalAccount: (Int64, String) -> Bool,
+    /// The original `POST api/im/read` body. Scope stays on the intent, not in this request.
+    public func originalReadBody() -> [String: String]? {
+        guard let intent else { return nil }
+        return [
+            "conversation_id": String(intent.channelID),
+            "request_id": intent.requestID,
+            "last_message_id": String(intent.lastMessageID)
+        ]
+    }
+
+    /// Reads the stored intent. An applied receipt becomes the terminal phase and does not write.
+    public mutating func recover(originalAccount: (Int64, String) -> Bool,
                         receipt: (Int64, String) throws -> [String: Any]) throws -> MessageContainerOriginalAck.Receipt {
         guard let intent else { throw ChannelAuthorizationError.invalidCatalog }
         let recovered = try MessageContainerOriginalAck().recover(
             actor: intent.actor, channelID: intent.channelID, requestID: intent.requestID,
             channelKind: intent.channelKind, originalAccount: originalAccount, receipt: receipt)
         guard recovered.requestID == intent.requestID else { throw ChannelAuthorizationError.invalidCatalog }
+        if recovered.status == "APPLIED" || recovered.outcome == "APPLIED" {
+            phase = .applied
+        }
         return recovered
     }
 
@@ -72,12 +91,15 @@ public struct MessageHistoryAckEntry {
                                writer: (Int64, Int64, Int64, String) throws -> [String: Any]) throws -> MessageContainerOriginalAck.Receipt {
         guard phase == .unknown, let intent else { throw ChannelAuthorizationError.invalidCatalog }
         let recovered = try recover(originalAccount: originalAccount, receipt: receipt)
+        if recovered.status == "APPLIED" || recovered.outcome == "APPLIED" {
+            phase = .applied
+            return recovered
+        }
         guard recovered.resumeSameRequest, sameScope(intent.actor, intent.channelID) else {
             throw ChannelAuthorizationError.invalidCatalog
         }
         try precheck(actor: intent.actor, channelID: intent.channelID, lastMessageID: intent.lastMessageID,
                      channelKind: intent.channelKind, lease: lease, currentLease: currentLease, sameScope: sameScope)
-        dispatched = false
         return try dispatch(id: intent.requestID, lease: lease, currentLease: currentLease, isolation: isolation,
                             sameScope: sameScope, writer: writer)
     }
