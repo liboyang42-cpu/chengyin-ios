@@ -71,6 +71,30 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertNil(restarted.operationID)
         XCTAssertEqual(restarted.phase, .idle)
     }
+    func testUnusedResumeDoesNotOccupyThenUniqueStartDownloadApplies() throws {
+        var pack = OfflinePackOperation()
+        XCTAssertNil(pack.operationID)
+        XCTAssertEqual(pack.phase, .idle)
+        XCTAssertThrowsError(try pack.resume(operationID: "op-class-never")) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .notPaused)
+        }
+        XCTAssertNil(pack.operationID, "未见 resume 不得占 operationID")
+        XCTAssertEqual(pack.phase, .idle)
+        try pack.startDownload(try manifest(operationID: "op-class"))
+        XCTAssertEqual(pack.operationID, "op-class")
+        try pack.pause()
+        XCTAssertThrowsError(try pack.resume(operationID: "op-other")) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .operationMismatch)
+        }
+        XCTAssertEqual(pack.operationID, "op-class")
+        try pack.resume(operationID: "op-class")
+        try pack.finishDownload()
+        XCTAssertEqual(pack.operationID, "op-class")
+        XCTAssertEqual(pack.phase, .ready)
+        let restarted = OfflinePackOperation()
+        XCTAssertNil(restarted.operationID)
+        XCTAssertEqual(restarted.phase, .idle)
+    }
     func testAnswersAndHiddenCoordinatesAreNotShipped() throws {
         XCTAssertThrowsError(try OfflinePackOperation.inspect(["answer": "42"])) { error in
             XCTAssertEqual(error as? OfflinePackFailure, .answersOrHiddenCoordinatesForbidden)

@@ -58,4 +58,29 @@ final class NavigationDestinationConsentTests: XCTestCase {
         XCTAssertFalse(restarted.allowsNavigationDestination)
         XCTAssertFalse(restarted.allowsLocationShare)
     }
+    func testUnusedConsentDoesNotOccupyShareThenUniqueShareGrantApplies() throws {
+        var consent = NavigationDestinationConsent()
+        XCTAssertFalse(consent.allowsNavigationDestination)
+        XCTAssertFalse(consent.allowsLocationShare)
+        let destination = try destination()
+        XCTAssertThrowsError(try consent.startInAppNavigation(destination)) { error in
+            XCTAssertEqual(error as? NavigationConsentFailure, .navigationDestinationConsentRequired)
+        }
+        XCTAssertFalse(consent.allowsNavigationDestination, "未授权 start 不得占导航同意")
+        XCTAssertFalse(consent.allowsLocationShare)
+        consent.grant(.inAppNavigationDestination)
+        XCTAssertTrue(consent.allowsNavigationDestination)
+        XCTAssertFalse(consent.allowsLocationShare, "导航同意不得占位置分享")
+        XCTAssertNoThrow(try consent.startInAppNavigation(destination))
+        XCTAssertThrowsError(try consent.publishLocationShare(destination)) { error in
+            XCTAssertEqual(error as? NavigationConsentFailure, .locationShareConsentRequired)
+        }
+        XCTAssertFalse(consent.allowsLocationShare, "分享失败不得占位置分享")
+        consent.grant(.locationShare)
+        XCTAssertTrue(consent.allowsLocationShare)
+        XCTAssertNoThrow(try consent.publishLocationShare(destination))
+        let restarted = NavigationDestinationConsent()
+        XCTAssertFalse(restarted.allowsNavigationDestination)
+        XCTAssertFalse(restarted.allowsLocationShare, "新实例不得继承同意")
+    }
 }

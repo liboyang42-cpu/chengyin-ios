@@ -132,6 +132,7 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
         self.assertIn("func publishLocationShare(", consent)
         self.assertIn("testNavigationPurposeDoesNotImplyLocationShare", tests)
         self.assertIn("testLocationShareDoesNotImplyNavigationDestination", tests)
+        self.assertIn("testUnusedConsentDoesNotOccupyShareThenUniqueShareGrantApplies", tests)
         self.assertIn("navigationDestinationConsentRequired", consent)
         self.assertIn("locationShareConsentRequired", consent)
 
@@ -185,6 +186,7 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
         self.assertIn("alreadyTerminal", quest)
         pack = self.sources["Tests/CoreTests/OfflinePackOperationTests.swift"]
         self.assertIn("testOtherOperationIdDoesNotRewriteOriginalDownload", pack)
+        self.assertIn("testUnusedResumeDoesNotOccupyThenUniqueStartDownloadApplies", pack)
         self.assertIn('resume(operationID: "")', pack)
         consent = self.sources["Tests/CoreTests/NavigationDestinationConsentTests.swift"]
         self.assertIn("testShareGrantOnCopyDoesNotRewriteOriginalNavigationConsent", consent)
