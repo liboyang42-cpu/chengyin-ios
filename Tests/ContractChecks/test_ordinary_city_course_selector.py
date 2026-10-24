@@ -139,6 +139,7 @@ class OrdinaryCityCourseSelectorContracts(unittest.TestCase):
         self.assertIn("wireInt", score)
         self.assertIn("recoverFromSessionReceipt", score)
         self.assertIn("orientSession.receipt", score)
+        self.assertIn("orient-ses-other", tests)
         self.assertIn("testRecoverFromSessionReceiptReadsOriginalWithoutOccupyingFinishLedger", tests)
         self.assertIn("func recoverUnknown(", eligibility)
         self.assertIn("func recoverOriginal(", eligibility)

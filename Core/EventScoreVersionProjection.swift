@@ -321,7 +321,9 @@ public struct EventScoreOriginalLedger: Equatable {
         guard let receipt else {
             throw WireFailure.waitingSource(Self.sessionReceipt)
         }
-        return try await receipt(memberID, sessionID, key)
+        let found = try await receipt(memberID, sessionID, key)
+        if let echoed = Self.wireInt(found, "sessionId"), echoed != sessionID { return nil }
+        return found
     }
 
     private func runMatching(_ start: EventScoreStartPayload) -> Run? {

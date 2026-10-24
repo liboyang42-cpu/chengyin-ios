@@ -518,5 +518,10 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
             })
         XCTAssertEqual(recovered, .object(["replayed": .bool(true), "sessionId": .int(30), "note": .null]))
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "orient-ses-01").outcome, .notFound)
+        let otherSession = try await ledger.recoverFromSessionReceipt(
+            memberID: 7, sessionID: 30, idempotencyKey: "orient-ses-other",
+            receipt: { _, _, _ in .object(["replayed": .bool(true), "sessionId": .int(99)]) })
+        XCTAssertNil(otherSession)
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "orient-ses-other").outcome, .notFound)
     }
 }
