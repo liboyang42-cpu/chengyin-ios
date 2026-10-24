@@ -24,6 +24,12 @@ import XCTest
         XCTAssertEqual(page.kind, 1)
         XCTAssertEqual(page.spaceID, 12)
         XCTAssertFalse(transport.sent)
+        let route = ChannelAdmissionRoute(
+            configuration: configuration, transport: transport, token: "token", accountID: 7, epoch: 1,
+            catalog: current, kind: 1, spaceID: 12)
+        let routed = try route.page()
+        XCTAssertEqual(routed.catalog, current)
+        XCTAssertFalse(transport.sent)
     }
 
     private func catalog(published: Int, pending: Int?, expected: Int) throws -> ChannelCatalogEntry {

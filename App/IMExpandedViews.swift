@@ -102,6 +102,9 @@ struct IMExpandedSubmission: Equatable {
     let isConversationCurrent: () -> Bool
     /// Set only for an already loaded type-5 history. Nil keeps the original conversation-only read.
     let readCursor: Int?
+    /// Group management entry. Nil closes this open and does not invent a catalog.
+    let admission: ChannelAdmissionRoute?
+    let showsAdmissionEntry: Bool
     @State private var selectedTopic: TopicSummary?
     @State private var showingTopics = false
     @State private var name = ""
@@ -110,11 +113,14 @@ struct IMExpandedSubmission: Equatable {
     @State private var longitude = ""
     init(coordinator: IMExpandedCoordinator, identity: MessagingReadIdentity?, uploadOwner: IMImageUploadCoordinator? = nil, topicReader: (any TopicReading)? = nil, replyPolicy: IMConversationReplyPolicy? = nil,
          isConversationCurrent: @escaping () -> Bool = { true }, readCursor: Int? = nil,
+         admission: ChannelAdmissionRoute? = nil, showsAdmissionEntry: Bool = false,
          onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }, onReceipt: @escaping (IMMutationReceipt) -> Void) {
         _model = StateObject(wrappedValue: IMExpandedViewModel(coordinator)); self.identity = identity; self.uploadOwner = uploadOwner; self.topicReader = topicReader; self.onReceipt = onReceipt
         self.replyPolicy = replyPolicy ?? .init(conversationID: coordinator.scope.conversationID, conversation: nil)
         self.isConversationCurrent = isConversationCurrent
         self.readCursor = readCursor
+        self.admission = admission
+        self.showsAdmissionEntry = showsAdmissionEntry
         self.onConversationMutationAccepted = onConversationMutationAccepted
     }
     private var permitsReply: Bool { replyPolicy.permitsReply && isConversationCurrent() && identity == model.owner.scope.identity && model.owner.isCurrent }
@@ -128,6 +134,17 @@ struct IMExpandedSubmission: Equatable {
                 Button("im.full.read") { review(readMutation()) }
                 Button("im.full.mute") { review(.mute(conversationID: model.owner.scope.conversationID, muted: true)) }
                 Button("im.full.unmute") { review(.mute(conversationID: model.owner.scope.conversationID, muted: false)) }
+            }
+            if showsAdmissionEntry {
+                Section("admission.title") {
+                    if let admission, let identity, identity.accountID == admission.accountID, identity.epoch == admission.epoch,
+                       let page = try? admission.page() {
+                        NavigationLink { page } label: { Text("admission.title") }
+                            .accessibilityIdentifier("admission.entry")
+                    } else {
+                        Text("admission.unavailable").accessibilityIdentifier("admission.unavailable")
+                    }
+                }
             }
             if replyPolicy.isSystemNotice {
                 Section { Text("im.reply.systemNotice").accessibilityIdentifier("im.reply.controlsNotice") }
