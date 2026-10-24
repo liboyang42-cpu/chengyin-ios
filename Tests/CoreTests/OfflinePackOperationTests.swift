@@ -145,6 +145,24 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(pack.phase, .corrupt)
         XCTAssertEqual(pack.operationID, "op-cor")
     }
+    func testUnusedRecordFullDiskOfIdleDoesNotOccupyThenUniqueStartThenFullDiskApplies() throws {
+        var pack = OfflinePackOperation()
+        XCTAssertEqual(pack.phase, .idle)
+        XCTAssertNil(pack.operationID)
+        XCTAssertThrowsError(try pack.recordFullDisk()) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .notDownloading)
+        }
+        XCTAssertEqual(pack.phase, .idle, "未见下载 recordFullDisk 观察不得占 FULL_DISK")
+        XCTAssertNil(pack.operationID)
+        try pack.startDownload(try manifest(operationID: "op-disk"))
+        XCTAssertEqual(pack.operationID, "op-disk")
+        XCTAssertEqual(pack.phase, .downloading)
+        XCTAssertThrowsError(try pack.recordFullDisk()) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .fullDisk)
+        }
+        XCTAssertEqual(pack.phase, .fullDisk)
+        XCTAssertEqual(pack.operationID, "op-disk")
+    }
     func testAnswersAndHiddenCoordinatesAreNotShipped() throws {
         XCTAssertThrowsError(try OfflinePackOperation.inspect(["answer": "42"])) { error in
             XCTAssertEqual(error as? OfflinePackFailure, .answersOrHiddenCoordinatesForbidden)
