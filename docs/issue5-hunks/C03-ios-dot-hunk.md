@@ -131,3 +131,18 @@ python3 -m unittest Tests.ContractChecks.test_c03_six_mechanism_projections
 ```
 
 Must run from the chengyin-ios worktree cwd (not `/tmp`). Swift XCTest: authored, **NOT_RUN** on Linux. Not 100%.
+
+## 5. Parent addendum 2026-10-23 17:45 America/Los_Angeles
+
+Timer deliveryCount=31 (00:40Z). WAITING_SOURCE cat-file still ABSENT.
+
+Class-level `recoverOriginal` of never-seen ids stays UNKNOWN and does not occupy `originalActions`; later unique apply is the first APPLIED write:
+
+- TradeBargain ACCEPT `c03-bargain-never` (`85c425de`)
+- Oath SWEAR `c03-oath-never`
+- Oracle CONSULT `c03-oracle-never`
+- Route TAKE_SEGMENT `c03-route-never`
+- Clue GAIN_CLUE `c03-clue-never`
+- Clock TICK `c03-clock-never`
+
+HEAD `795f5438`. Parent python `Tests.ContractChecks.test_c03_six_mechanism_projections` **11/0**. XCTest / App / HTTP / CI = NOT_RUN. Did not invent recoverOriginal. Runtime / AppSession / PBX still unwired. Not 100%.
