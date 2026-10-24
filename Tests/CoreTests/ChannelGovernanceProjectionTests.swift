@@ -837,6 +837,36 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(leaves, 2)
     }
 
+    func testAdmissionReviewCallsTheOriginalPortOnce() throws {
+        let gate = try admission(try identity())
+        XCTAssertThrowsError(try gate.reviewOriginal(
+            applicationID: 15, approve: false, reasonCode: 1, note: nil, requestID: "c08-review-01")) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingSource)
+        }
+        var calls = 0
+        XCTAssertThrowsError(try gate.reviewOriginal(
+            applicationID: 15, approve: true, reasonCode: 1, note: nil, requestID: "c08-review-01",
+            channel: { _, _, _, _, _, _ in calls += 1; return [:] }))
+        XCTAssertThrowsError(try gate.reviewOriginal(
+            applicationID: 15, approve: false, reasonCode: 9, note: " ", requestID: "c08-review-01",
+            channel: { _, _, _, _, _, _ in calls += 1; return [:] }))
+        XCTAssertEqual(calls, 0)
+        let rejected = try gate.reviewOriginal(
+            applicationID: 15, approve: false, reasonCode: 9, note: "  not a fit  ", requestID: "c08-review-01",
+            channel: { actor, application, approve, reason, note, request in
+                calls += 1
+                XCTAssertEqual(actor, 7)
+                XCTAssertEqual(application, 15)
+                XCTAssertFalse(approve)
+                XCTAssertEqual(reason, 9)
+                XCTAssertEqual(note, "not a fit")
+                XCTAssertEqual(request, "c08-review-01")
+                return ["id": 15, "status": 2, "join_state": "REJECTED"]
+            })
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(rejected["status"] as? Int, 2)
+    }
+
     private static func historyPage(after: String?) -> [String: Any] {
         var page: [String: Any] = [
             "list": [] as [Any], "next_cursor": "9", "has_more": NSNumber(value: false), "nextCursor": "9",

@@ -92,6 +92,41 @@ public struct ChannelRulesAdmission: Equatable, Sendable {
         return sent
     }
 
+    /// Original `ChannelAdmissionService.review`. Approval carries no reject reason.
+    /// A reject uses reason 1, 2, 3, 4, 5, or 9. Reason 9 needs a note. One call, no local store.
+    public typealias OriginalAdmissionReview = (
+        _ actorID: Int64, _ applicationID: Int64, _ approve: Bool, _ reasonCode: Int?, _ note: String?, _ requestID: String
+    ) throws -> [String: Any]
+
+    public func reviewOriginal(applicationID: Int64, approve: Bool, reasonCode: Int?, note: String?, requestID: String,
+                               channel: OriginalAdmissionReview? = nil) throws -> [String: Any] {
+        let trimmed = note?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = (trimmed?.isEmpty == false) ? trimmed : nil
+        guard applicationID > 0, Self.validRequestID(requestID), (text?.count ?? 0) <= 200 else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        if approve {
+            guard reasonCode == nil else { throw ChannelAuthorizationError.invalidCatalog }
+        } else {
+            guard let reasonCode, [1, 2, 3, 4, 5, 9].contains(reasonCode) else {
+                throw ChannelAuthorizationError.invalidCatalog
+            }
+            if reasonCode == 9, text == nil { throw ChannelAuthorizationError.invalidCatalog }
+        }
+        guard let channel else { throw ChannelAuthorizationError.waitingSource }
+        let sent = try channel(Int64(identity.accountID), applicationID, approve, reasonCode, text, requestID)
+        if let echoed = sent["request_id"] as? String, echoed != requestID {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        guard Self.positiveID(sent["id"]) == applicationID, Self.exactInt(sent["status"]) == (approve ? 1 : 2) else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        if !approve, sent["join_state"] as? String != "REJECTED" {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        return sent
+    }
+
     /// Original `receipt`. It does not submit again. A missing row stays UNKNOWN on the same request id.
     public func recoverOriginal(requestID: String, receipt: (Int64, String) throws -> [String: Any]) throws -> [String: Any] {
         guard Self.validRequestID(requestID) else { throw ChannelAuthorizationError.invalidCatalog }
