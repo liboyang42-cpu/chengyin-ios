@@ -214,6 +214,27 @@ import XCTest
         XCTAssertNil(flow.published, "核实不得占 published 账")
     }
 
+    func testUnusedSubmitBeforeAuthorizerDoesNotOccupyThenUniqueSubmitApplies() async throws {
+        let publisher = RecordingPublisher()
+        let flow = gate(publisher: publisher)
+        do { _ = try await flow.submitOriginalReview(requestID: UUID()); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantNPCDraftGateFailure, .authorizerRequired) }
+        XCTAssertEqual(flow.phase, .idle, "未见授权 submit 观察不得占 phase")
+        XCTAssertNil(flow.authorizer)
+        XCTAssertNil(flow.reviewTicket, "未见授权 submit 观察不得占审核票")
+        XCTAssertEqual(publisher.submitted, 0)
+        try flow.ingestAIDraft(draft())
+        try flow.verifyByAuthorizer(authorizer())
+        XCTAssertNil(flow.reviewTicket)
+        XCTAssertEqual(publisher.submitted, 0)
+        let requestID = UUID()
+        let ticket = try await flow.submitOriginalReview(requestID: requestID)
+        XCTAssertEqual(publisher.submitted, 1)
+        XCTAssertEqual(flow.phase, .originalReviewPending)
+        XCTAssertEqual(ticket.requestID, requestID)
+        XCTAssertEqual(flow.reviewTicket?.requestID, requestID)
+    }
+
     @MainActor private final class RecordingPublisher: MerchantNPCOriginalReviewPublishing {
         var submitted = 0, published = 0
         var facts: [UUID: Data] = [:]
