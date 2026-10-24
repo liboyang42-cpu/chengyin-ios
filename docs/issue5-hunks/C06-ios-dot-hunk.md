@@ -39,3 +39,9 @@ New Core types are SwiftPM-visible (`Package.swift` `path: "Core"`). Xcode `chec
 
 Linux: Python contract `Tests/ContractChecks/test_merchant_npc_draft_cannot_price.py`.
 Swift XCTest: authored, **NOT_RUN** on Linux.
+
+## Parent addendum 2026-10-23 18:37 America/Los_Angeles
+
+Timer deliveryCount=36 (01:30Z). `MerchantNPCDraftApprovalGateTests.testUnpublishedProjectionDoesNotOccupyPrivateScopesThenUniqueRetainPrivateApplies`: unpublished `playerProjection` does not occupy `privateScopes`; unique `retainPrivate` is the first isolation occupancy. Did not invent recoverOriginal. Python `func test` count on gate tests 9→10.
+
+HEAD `966b8add`. Parent python `Tests.ContractChecks.test_merchant_npc_draft_cannot_price` **9/0**. XCTest NOT_RUN. Not 100%.
