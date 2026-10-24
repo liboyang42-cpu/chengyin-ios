@@ -395,15 +395,17 @@ final class AppSession: ObservableObject {
         playExperienceCoordinators[key] = coordinator
         return coordinator
     }
-    /// Read-only character card on the existing play session. Writes stay off.
+    /// Read-only character card. Approval is the character and rpg/status paths, captured with issuance.
     func characterCardReadback(topicID: Int, activityID: Int?, scope: PlaySessionScope) -> CharacterCardReadback? {
-        guard topicID > 0, scope.isValid, let regional = regionalConfiguration,
+        guard topicID > 0, characterCardScopeMatches(topicID: topicID, activityID: activityID, scope: scope),
+              let regional = regionalConfiguration,
               let configuration = regional.apiConfiguration, let storageScope,
               let factory = playReadDependencyFactory, factory.accepted?.play.contains(.reads) == true,
-              composition.reviewed?.reads.contains(.playNodesAndRouteState) == true,
-              currentPlayReadApprovalKey != nil else { return nil }
+              let approval = characterCardReadApproval else { return nil }
         let current: () -> PlayExperienceSession? = { [weak self] in
-            guard let self, !self.committingAuthenticatedSession, self.currentPlayReadApprovalKey != nil,
+            guard let self, !self.committingAuthenticatedSession,
+                  self.compositionViewerRevision == approval.viewerRevision,
+                  self.characterCardReadApproval == approval,
                   let account = self.account, let token = self.token,
                   let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole) else { return nil }
             return try? PlayExperienceSession(accountID: account.id, epoch: self.gate.currentStamp,
@@ -412,6 +414,21 @@ final class AppSession: ObservableObject {
         let api = PlayExperienceService(configuration: configuration, transport: factory.transport,
             enabled: factory.accepted?.play.intersection([.reads]) ?? [])
         return CharacterCardReadback(topicID: topicID, activityID: activityID, service: api, currentSession: current)
+    }
+    private struct CharacterCardReadApproval: Equatable { let issuance: UUID; let viewerRevision: UInt64 }
+    private var characterCardReadApproval: CharacterCardReadApproval? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = compositionTransport.playReadConfiguration(context),
+              let issuance = approval.playReadApprovalID,
+              approval.matches(context), approval.play.contains(.reads),
+              approval.endpoints.paths.isSuperset(of: CharacterCardReadRoute.paths) else { return nil }
+        return .init(issuance: issuance, viewerRevision: compositionViewerRevision)
+    }
+    private func characterCardScopeMatches(topicID: Int, activityID: Int?, scope: PlaySessionScope) -> Bool {
+        switch scope {
+        case .topic(let id): return activityID == nil && id == topicID
+        case .activity(let id): return activityID == id && id > 0
+        }
     }
     // Journey extras are independent of task completion, advanced games and local dice.
     private var retainedJourneyNarratives: [String: JourneyNarrativeCoordinator] = [:]

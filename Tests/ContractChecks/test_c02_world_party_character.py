@@ -125,6 +125,19 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
         factory = session[start:end]
         self.assertNotIn('playerCommands', factory)
         self.assertNotIn('URLSession', factory)
+        self.assertNotIn('playNodesAndRouteState', factory)
+        self.assertIn('compositionViewerRevision == approval.viewerRevision', factory)
+        self.assertIn('CharacterCardReadRoute.paths', factory)
+        self.assertIn('characterCardScopeMatches', factory)
+        route = (ROOT / 'Core/PlayReadRoute.swift').read_text()
+        self.assertNotIn('api/play/character', route)
+        self.assertNotIn('api/play/rpg/status', route)
+        card_route = (ROOT / 'Core/CharacterCardReadRoute.swift').read_text()
+        self.assertIn('api/play/character', card_route)
+        self.assertIn('api/play/rpg/status', card_route)
+        self.assertIn('characterCardReadback(topicID:', (ROOT / 'App/ActivityDetailView.swift').read_text())
+        self.assertIn('CharacterCardReadRoute', (ROOT / 'App/AppCompositionRoot.swift').read_text())
+        self.assertIn('model.dismiss()', (ROOT / 'App/CharacterCardReadbackView.swift').read_text())
         pbx = FORBIDDEN[1].read_text()
         self.assertNotIn('WorldEnvironmentProjection.swift', pbx)
         if 'CharacterCardReadback.swift' in pbx:
@@ -140,7 +153,9 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
                     'Tests/CoreTests/WorldEnvironmentProjectionTests.swift',
                     'Tests/CoreTests/PartyRosterProjectionTests.swift',
                     'Tests/CoreTests/CharacterCardReadbackTests.swift',
-                    'Resources/WorldEnvironment.fragment.json']:
+                    'Resources/WorldEnvironment.fragment.json',
+                    'Core/CharacterCardReadRoute.swift',
+                    'App/CharacterCardReadbackView.swift']:
             self.assertEqual(listed[rel], sha256(ROOT / rel), rel)
 
 

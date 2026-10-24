@@ -249,6 +249,15 @@ struct ActivityDetailView: View {
                     }.accessibilityIdentifier("activity.openPlay")
                 }
             }
+            if let topicID = detail.summary.linkedTopicID, topicID > 0,
+               let session = reader as? AppSession,
+               let card = session.characterCardReadback(topicID: topicID, activityID: id, scope: .activity(id)) {
+                Section {
+                    NavigationLink { CharacterCardReadbackView(model: card) } label: {
+                        Label("play.character.card", systemImage: "person.text.rectangle")
+                    }.accessibilityIdentifier("activity.openCharacterCard")
+                }
+            }
             if let session = reader as? AppSession, session.playExperience(for: .activity(id)) != nil {
                 Section {
                     NavigationLink { SessionPlayRuntimeView(session: session, destination: .journey(.activity(id))) } label: {

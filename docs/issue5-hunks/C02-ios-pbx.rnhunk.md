@@ -100,10 +100,13 @@ c051ee13c51b303ea6b6f961811db6ebb04cab054d0dede7e74401296c8d0841 Tests/CoreTests
 28cc42a977cc43bda072cfe7613bd8bb6d3bfa83214aed4f501e7f8888c4417b Tests/CoreTests/PartyRosterProjectionTests.swift
 c82609bd6cab2d31cf3656a4d8dcaf1295fffc6c10a7c4ca85ca66a80a5a3d0b Tests/CoreTests/CharacterCardReadbackTests.swift
 25dce9565d87ac3d5e7a2ce579087d1def7fca09f0da1cf79178ad4ecb0139de Resources/WorldEnvironment.fragment.json
+900066cc7a20ffdde2ba1c20b728fc499b2854fb4dbc0b1c464991ed7096cc76 Core/CharacterCardReadRoute.swift
+d4cd13d3354b6d5d673180addfd22274a77ae8ca61c5570bd21cfdd57d2003e3 App/CharacterCardReadbackView.swift
 
 ## Blockers
 
 - Linux XCTest NOT_RUN. Contract checks: `python3 -m unittest Tests.ContractChecks.test_c02_world_party_character`.
 - Xcode compile / simulator journey blocked until dot applies this pbx hunk.
 - Dedicated RPG party/equipment expiry fields are WAITING_SOURCE unless the signed character, rpg/status, or session-view payload includes them. No client weather and no device-clock success.
-- Runtime wiring (`AppSession`, composition root, routes) remains with dot.
+- Add `Core/CharacterCardReadRoute.swift` and `App/CharacterCardReadbackView.swift` to the app target. Do not add `api/play/character` or `api/play/rpg/status` to `PlayReadRoute`.
+- The activity page caller is `activity.openCharacterCard`. It stays nil until the read approval lists both character paths. `play.character.card` is not in the string catalog.
