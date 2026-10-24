@@ -11,6 +11,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 CORE_FILES = [
     "Core/SupportEventLocator.swift",
+    "Core/SupportLookupEntry.swift",
     "Core/CompensationEntryProjection.swift",
     "Core/DataDeletionEvidenceTable.swift",
     "Core/ReviewResultVisibilityAdapter.swift",
@@ -18,6 +19,7 @@ CORE_FILES = [
 ]
 TEST_FILES = [
     "Tests/CoreTests/SupportEventLocatorTests.swift",
+    "Tests/CoreTests/SupportLookupEntryTests.swift",
     "Tests/CoreTests/CompensationEntryProjectionTests.swift",
     "Tests/CoreTests/DataDeletionEvidenceTableTests.swift",
     "Tests/CoreTests/ReviewResultVisibilityAdapterTests.swift",
@@ -264,6 +266,28 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn("NOT_RUN", self.hunk)
         self.assertIn("not 100%", self.hunk.lower())
         self.assertNotIn("IPHONEOS_DEPLOYMENT_TARGET = 1", self.hunk)
+
+    def test_support_lookup_entry_wraps_locator_beside_existing_reads(self):
+        entry = self.sources["Core/SupportLookupEntry.swift"]
+        tests = self.sources["Tests/CoreTests/SupportLookupEntryTests.swift"]
+        landing = (ROOT / "App/WithdrawalSupportLandingView.swift").read_text()
+        self.assertTrue(entry.startswith("import Foundation"))
+        self.assertIn("struct SupportLookupEntry", entry)
+        self.assertIn("SupportEventLocator", entry)
+        self.assertIn("locateByRunId", entry)
+        self.assertIn("locateByOrderId", entry)
+        self.assertIn("originalMissing", entry)
+        self.assertIn("WithdrawalSupportSnapshot", entry)
+        self.assertIn("OwnedOrderReadRoute", entry)
+        self.assertIn("does not send", entry)
+        self.assertNotIn("struct WithdrawalSupportLandingView", entry)
+        self.assertIn("struct WithdrawalSupportLandingView", landing)
+        self.assertNotIn("SupportLookupEntry", landing)
+        self.assertNotIn("append(", entry)
+        self.assertIn("testFirstJourneySupportLookupBesideWithdrawalAndOrderRecoverOriginal", tests)
+        self.assertIn("originalMissing(requestId: \"ORDER:9\")", tests)
+        self.assertIn("originalMissing(requestId: \"RUN:77\")", tests)
+        self.assertNotIn("struct WithdrawalSupportLandingView", tests)
 
     def test_linux_xctest_is_explicitly_not_run(self):
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
