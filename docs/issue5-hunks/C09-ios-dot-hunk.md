@@ -180,11 +180,11 @@ Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**
 
 ## 13. Message page actions
 
-`Core/NativeChannelMessagePageActions.swift` — 现有频道消息页的四个动作调用。`entry.send` / `entry.edit` / `entry.recall` / `entry.pin` 各一次；nil 端口等待；request id 不改写；空白正文无效；结果保持 UNKNOWN；无本地回执库；`appear()` 不发送。不新增搜索。
+`Core/NativeChannelMessagePageActions.swift` — 现有频道消息页的四个动作转发到原异步命令。发送调用 `NativeChannelTextCoordinator.sendNew(_:)` 一次。编辑、撤回、置顶各调用 `NativeChannelMessageCoordinator.submit(_:)` 一次。同步字典端口不是 writer。同一请求从原 journal `restore` 读回。不同请求、空白正文、缺证明保持 UNKNOWN，且不清除 journal。`message_unavailable` 且没有完整 MessagingMessage 不因此拒绝，也不补造 MessagingMessage。request id 不改写。`appear()` 不发送。无本地回执库。不新增搜索。
 
 `Tests/CoreTests/NativeChannelMessagePageActionsTests.swift` — 同上。SwiftPM。XCTest NOT_RUN on Linux. Not 100%.
 
-页面接线在 `docs/issue5-hunks/C09-message-page-actions.hunk`，不应用到 AppSession / AppCompositionRoot / project.pbxproj。
+页面接线在 `docs/issue5-hunks/C09-message-page-actions.hunk`，不应用到 AppSession / AppCompositionRoot / project.pbxproj。History wiring 与 PBX 保持未应用。
 
 ```
 Core/NativeChannelMessagePageActions.swift
