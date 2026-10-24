@@ -299,6 +299,43 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(restarted.phase, .ready)
         XCTAssertEqual(source.reads, 1)
     }
+    func testRestoredUpdateKeepsVerifiedPriorAndDoesNotReadBytesEarly() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        try pack.finishDownload(payload: payload)
+        try pack.applyUpdate(try manifest(version: "pack-v2"), keepOld: true)
+        let saved = try XCTUnwrap(pack.operationRecord())
+        XCTAssertEqual(saved.retainedVersion, "pack-v1")
+        XCTAssertEqual(saved.retainedChecksum, checksum)
+        XCTAssertEqual(saved.retainedVerifiedChecksum, checksum)
+        XCTAssertTrue(saved.retainedFileAccepted)
+        var restarted = try XCTUnwrap(OfflinePackOperation.restored(saved))
+        XCTAssertEqual(restarted.manifest?.version, "pack-v2")
+        XCTAssertThrowsError(try restarted.finishUpdate(payload: Data([1, 2, 3])))
+        XCTAssertEqual(restarted.phase, .ready)
+        XCTAssertEqual(restarted.manifest?.version, "pack-v1")
+        XCTAssertEqual(restarted.manifest?.checksum, checksum)
+        var live = OfflinePackOperation()
+        try live.startDownload(try manifest())
+        var foreign = saved
+        foreign = OfflinePackOperationRecord(operationID: saved.operationID, phase: saved.phase,
+            packID: "pack-b", version: saved.version, byteSize: saved.byteSize, checksum: saved.checksum,
+            publicPlaceIDs: saved.publicPlaceIDs, expiresAt: saved.expiresAt, retainedPackID: saved.retainedPackID,
+            retainedVersion: saved.retainedVersion, retainedByteSize: saved.retainedByteSize,
+            retainedChecksum: saved.retainedChecksum, retainedVerifiedChecksum: saved.retainedVerifiedChecksum,
+            retainedPlaceIDs: saved.retainedPlaceIDs, retainedExpiresAt: saved.retainedExpiresAt,
+            retainedFileAccepted: saved.retainedFileAccepted)
+        XCTAssertThrowsError(try live.restoreSameOperation(foreign)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .operationMismatch)
+        }
+        XCTAssertEqual(live.manifest?.packID, "pack-a")
+        let idleSource = MatchingArtifactSource(contract: try XCTUnwrap(OfflinePackPublishedContract(
+            packID: "pack-a", version: "pack-v1", checksum: checksum, locator: "approved-handle")), bytes: payload)
+        XCTAssertThrowsError(try OfflinePackPayloadConsumer.accept(&restarted, from: idleSource)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .notDownloading)
+        }
+        XCTAssertEqual(idleSource.reads, 0)
+    }
     private func waiting(_ body: () throws -> Never) -> OfflinePackFailure? {
         do { try body(); return nil } catch let error as OfflinePackFailure { return error } catch { return nil }
     }

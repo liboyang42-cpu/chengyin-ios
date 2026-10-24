@@ -81,6 +81,8 @@ public struct OfflinePackOperation: Equatable {
     public private(set) var operationID: String?
     public private(set) var manifest: OfflinePackManifest?
     public private(set) var retainedPrior: OfflinePackManifest?
+    /// True only after a verified payload was kept as the prior file. A version string is not that file.
+    private var priorFileAccepted = false
     public private(set) var failure: OfflinePackFailure?
     public init() {}
     public var snapshot: OfflinePackSnapshot? {
@@ -184,6 +186,7 @@ public struct OfflinePackOperation: Equatable {
         try Self.inspect(["packID": next.packID, "operationID": next.operationID,
                           "version": next.version, "checksum": next.checksum])
         retainedPrior = keepOld ? current : nil
+        priorFileAccepted = keepOld
         manifest = next
         phase = .updating
         failure = nil
@@ -260,7 +263,13 @@ public struct OfflinePackOperation: Equatable {
         return OfflinePackOperationRecord(operationID: operationID, phase: phase.rawValue,
             packID: manifest.packID, version: manifest.version, byteSize: manifest.byteSize,
             checksum: manifest.checksum, publicPlaceIDs: manifest.publicPlaceIDs,
-            expiresAt: manifest.expiresAt.timeIntervalSince1970, retainedPriorVersion: retainedPrior?.version)
+            expiresAt: manifest.expiresAt.timeIntervalSince1970,
+            retainedPackID: retainedPrior?.packID, retainedVersion: retainedPrior?.version,
+            retainedByteSize: retainedPrior?.byteSize, retainedChecksum: retainedPrior?.checksum,
+            retainedVerifiedChecksum: priorFileAccepted ? retainedPrior?.checksum : nil,
+            retainedPlaceIDs: retainedPrior?.publicPlaceIDs,
+            retainedExpiresAt: retainedPrior?.expiresAt.timeIntervalSince1970,
+            retainedFileAccepted: priorFileAccepted)
     }
 
     public static func restored(_ record: OfflinePackOperationRecord) -> OfflinePackOperation? {
@@ -273,12 +282,32 @@ public struct OfflinePackOperation: Equatable {
         operation.operationID = record.operationID
         operation.phase = phase
         operation.manifest = manifest
+        if record.retainedFileAccepted {
+            guard let priorID = record.retainedPackID, let priorVersion = record.retainedVersion,
+                  let priorSize = record.retainedByteSize, let priorChecksum = record.retainedChecksum,
+                  let verified = record.retainedVerifiedChecksum,
+                  priorChecksum.caseInsensitiveCompare(verified) == .orderedSame,
+                  let places = record.retainedPlaceIDs, let expires = record.retainedExpiresAt,
+                  let prior = OfflinePackManifest(packID: priorID, operationID: record.operationID,
+                    version: priorVersion, byteSize: priorSize, checksum: priorChecksum,
+                    publicPlaceIDs: places, expiresAt: Date(timeIntervalSince1970: expires)) else { return nil }
+            operation.retainedPrior = prior
+            operation.priorFileAccepted = true
+        }
         return operation
     }
 
     public mutating func restoreSameOperation(_ record: OfflinePackOperationRecord) throws {
-        guard operationID == nil || operationID == record.operationID else { throw fail(.operationMismatch) }
-        guard let restored = Self.restored(record), restored.operationID == record.operationID else {
+        if let operationID, let manifest {
+            guard operationID == record.operationID, manifest.packID == record.packID,
+                  manifest.version == record.version,
+                  manifest.checksum.caseInsensitiveCompare(record.checksum) == .orderedSame else {
+                throw fail(.operationMismatch)
+            }
+        }
+        guard let restored = Self.restored(record), restored.operationID == record.operationID,
+              restored.manifest?.packID == record.packID,
+              restored.manifest?.version == record.version else {
             throw fail(.invalidManifest)
         }
         self = restored
@@ -314,6 +343,10 @@ public enum OfflinePackPayloadConsumer {
         guard let operationID = operation.operationID, let manifest = operation.manifest else {
             throw OfflinePackFailure.waitingSource(capability: OfflinePackSourceInventory.payloadConsumer)
         }
+        guard operation.phase == .downloading || operation.phase == .updating else {
+            throw OfflinePackFailure.notDownloading
+        }
+        let capturedPhase = operation.phase
         guard let contract = source.publishedContract(operationID: operationID),
               contract.packID == manifest.packID, contract.version == manifest.version,
               contract.checksum.caseInsensitiveCompare(manifest.checksum) == .orderedSame else {
@@ -322,12 +355,16 @@ public enum OfflinePackPayloadConsumer {
         guard let payload = source.bytes(matching: contract) else {
             throw OfflinePackFailure.waitingSource(capability: OfflinePackSourceInventory.payloadConsumer)
         }
-        if operation.phase == .downloading {
+        guard operation.phase == capturedPhase, operation.operationID == operationID,
+              operation.manifest?.packID == manifest.packID,
+              operation.manifest?.version == manifest.version,
+              operation.manifest?.checksum.caseInsensitiveCompare(manifest.checksum) == .orderedSame else {
+            throw OfflinePackFailure.operationMismatch
+        }
+        if capturedPhase == .downloading {
             try operation.finishDownload(payload: payload)
-        } else if operation.phase == .updating {
-            try operation.finishUpdate(payload: payload)
         } else {
-            throw OfflinePackFailure.notDownloading
+            try operation.finishUpdate(payload: payload)
         }
     }
 }
@@ -341,5 +378,12 @@ public struct OfflinePackOperationRecord: Codable, Equatable, Sendable {
     public let checksum: String
     public let publicPlaceIDs: [Int]
     public let expiresAt: TimeInterval
-    public let retainedPriorVersion: String?
+    public let retainedPackID: String?
+    public let retainedVersion: String?
+    public let retainedByteSize: Int?
+    public let retainedChecksum: String?
+    public let retainedVerifiedChecksum: String?
+    public let retainedPlaceIDs: [Int]?
+    public let retainedExpiresAt: TimeInterval?
+    public let retainedFileAccepted: Bool
 }
