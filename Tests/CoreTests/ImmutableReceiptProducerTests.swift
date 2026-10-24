@@ -421,6 +421,50 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         XCTAssertEqual(recalls, 1)
     }
 
+    func testSearchReadsOnceAndDoesNotStore() throws {
+        var producer = ImmutableReceiptProducer()
+        let search = ImmutableReceiptProducer.OriginalRequest(
+            requestId: nil, kind: .search, body: nil, outcome: nil)
+        XCTAssertEqual(waitingReceipt {
+            try producer.searchOriginal(search, actorID: 7, conversationID: 12, keyword: "hello")
+        }, .waitingSource(capability: ImmutableReceiptProducer.channelMessageSearch))
+        var calls = 0
+        let page = try producer.searchOriginal(
+            search, actorID: 7, conversationID: 12, keyword: "  hello  ", from: nil, to: nil,
+            authorID: nil, cursor: nil, limit: 20,
+            channel: { actor, conversation, keyword, from, to, author, cursor, limit in
+                calls += 1
+                XCTAssertEqual(actor, 7)
+                XCTAssertEqual(conversation, 12)
+                XCTAssertEqual(keyword, "hello")
+                XCTAssertNil(from)
+                XCTAssertNil(to)
+                XCTAssertNil(author)
+                XCTAssertNil(cursor)
+                XCTAssertEqual(limit, 20)
+                return ["list": [["id": 44]], "has_more": false, "next_cursor": NSNull(), "degraded": false]
+            })
+        XCTAssertEqual(calls, 1)
+        XCTAssertTrue(page["list"] is [Any])
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        XCTAssertEqual(waitingReceipt {
+            try producer.searchOriginal(search, actorID: 7, conversationID: 12, keyword: " ",
+                                        channel: { _, _, _, _, _, _, _, _ in
+                                            calls += 1
+                                            return ["list": []]
+                                        })
+        }, .waitingSource(capability: ImmutableReceiptProducer.imSendWire))
+        XCTAssertEqual(calls, 1)
+        XCTAssertThrowsError(try producer.searchOriginal(
+            search, actorID: 7, conversationID: 12, keyword: "hello",
+            channel: { _, _, _, _, _, _, _, _ in
+                calls += 1
+                return ["operation": "ACK", "list": []]
+            }))
+        XCTAssertEqual(calls, 2)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+    }
+
     private func waiting(_ body: () throws -> Never) -> NotifyFailure? {
         do { try body(); return nil } catch let error as NotifyFailure { return error } catch { return nil }
     }

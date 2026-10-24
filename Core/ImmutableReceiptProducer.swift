@@ -115,6 +115,7 @@ public struct ImmutableReceiptProducer: Equatable {
     public static let channelMessageEdit = "channelMessage.edit"
     public static let channelMessageRecall = "channelMessage.recall"
     public static let channelMessagePin = "channelMessage.pin"
+    public static let channelMessageSearch = "channelMessage.search"
     public static let notASend = "IM_OPERATION_NOT_SEND"
 
     public struct SentMessage: Equatable, Sendable {
@@ -458,6 +459,41 @@ public struct ImmutableReceiptProducer: Equatable {
         return OriginalReceipt(requestId: raw, kind: .pin, payloadHash: nil, outcome: Self.outcomeUnknown,
                                originalBody: nil, currentProjectionClaimsApplied: false, recoveryNote: nil,
                                mintedNewRequest: false)
+    }
+
+    /// Original `GET /api/im/search`. It does not take a request id and does not write a receipt.
+    public typealias ChannelOriginalSearch = (
+        _ actorID: Int64, _ conversationID: Int64?, _ keyword: String,
+        _ from: String?, _ to: String?, _ authorID: Int64?, _ cursor: Int64?, _ limit: Int
+    ) throws -> [String: Any]
+
+    public func searchOriginal(
+        _ request: OriginalRequest,
+        actorID: Int64?,
+        conversationID: Int64?,
+        keyword: String?,
+        from: String? = nil,
+        to: String? = nil,
+        authorID: Int64? = nil,
+        cursor: Int64? = nil,
+        limit: Int = 20,
+        channel: ChannelOriginalSearch? = nil
+    ) throws -> [String: Any] {
+        guard let kind = request.kind else { throw NotASend.missingKind }
+        guard kind == .search else { throw NotASend.kind(kind) }
+        let term = keyword?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let actorID, actorID > 0, !term.isEmpty, term.count <= 100,
+              conversationID == nil || conversationID! > 0,
+              authorID == nil || authorID! > 0,
+              cursor == nil || cursor! >= 0 else {
+            throw NotifyFailure.waitingSource(capability: Self.imSendWire)
+        }
+        guard let channel else { throw NotifyFailure.waitingSource(capability: Self.channelMessageSearch) }
+        let page = try channel(actorID, conversationID, term, from, to, authorID, cursor, limit)
+        guard page["list"] is [Any], page["operation"] as? String != "ACK" else {
+            throw NotifyFailure.fingerprintConflict(requestId: request.requestId ?? "")
+        }
+        return page
     }
 
     /// Read-only original SEND proof. Digest, actor, channel, request, operation, and the
