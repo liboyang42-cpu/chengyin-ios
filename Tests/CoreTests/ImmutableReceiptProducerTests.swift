@@ -185,31 +185,52 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         XCTAssertEqual(waiting { try producer.rewriteUnsignedSource() }, .unsignedSourceRewrite)
     }
 
-    func testSendOriginalDelegatesOnlyWhenRoutingFieldsArePresent() throws {
+    func testSendOriginalDoesNotSendNonMessageKindsOrFingerprintBody() throws {
         var producer = ImmutableReceiptProducer()
-        let request = ImmutableReceiptProducer.OriginalRequest(
-            requestId: "c09-send-01", kind: .reply, body: "hello",
+        var calls = 0
+        let refuse: (Int64, Int64, Int64, Int, String, String, String) -> ImmutableReceiptProducer.SentMessage? = { _, _, _, _, _, _, _ in
+            calls += 1
+            XCTFail("non-send kind must not call send")
+            return nil
+        }
+        for kind in [NotifyKind.search, .edit, .withdraw, .pin] {
+            let request = ImmutableReceiptProducer.OriginalRequest(
+                requestId: "c09-op-01", kind: kind, body: "{\"fp\":1}",
+                outcome: ImmutableReceiptProducer.outcomeAccepted)
+            XCTAssertThrowsError(try producer.sendOriginal(
+                request, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
+                content: "hello", extraJSON: "{\"mention\":8}", send: refuse)) { error in
+                XCTAssertEqual(error as? ImmutableReceiptProducer.NotASend, .kind(kind))
+            }
+        }
+        XCTAssertEqual(calls, 0)
+        let reply = ImmutableReceiptProducer.OriginalRequest(
+            requestId: "c09-send-01", kind: NotifyKind.reply, body: "{\"fp\":1}",
             outcome: ImmutableReceiptProducer.outcomeAccepted)
-        XCTAssertNil(try producer.sendOriginal(
-            request, memberID: nil, conversationID: 12, targetMemberID: 8, msgType: 1,
-            send: { _, _, _, _, _, _ in
-                XCTFail("missing member must not send")
-                return nil
-            }))
-        XCTAssertTrue(producer.originalByRequestID.isEmpty)
         XCTAssertEqual(waitingReceipt {
-            try producer.sendOriginal(request, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1, send: nil)
-        }, .waitingSource(capability: ImmutableReceiptProducer.imSend))
+            try producer.sendOriginal(reply, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
+                                     content: "{\"fp\":1}", extraJSON: "{\"mention\":8}", send: refuse)
+        }, .waitingSource(capability: ImmutableReceiptProducer.imSendCommand))
+        XCTAssertEqual(waitingReceipt {
+            try producer.sendOriginal(reply, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
+                                     content: "hello", extraJSON: nil, send: refuse)
+        }, .waitingSource(capability: ImmutableReceiptProducer.imSendCommand))
+        XCTAssertEqual(calls, 0)
         let sent = ImmutableReceiptProducer.SentMessage(
             clientMessageId: "c09-send-01", requestHash: "hash-send-01", content: "hello")
         let receipt = try producer.sendOriginal(
-            request, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
-            send: { member, _, _, _, body, clientID in
-                member == 7 && clientID == "c09-send-01" && body == "hello" ? sent : nil
+            reply, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
+            content: "hello", extraJSON: "{\"mention\":8}",
+            send: { _, _, _, _, content, extra, clientID in
+                calls += 1
+                return content == "hello" && extra == "{\"mention\":8}" && clientID == "c09-send-01" ? sent : nil
             })
-        XCTAssertEqual(receipt?.requestId, "c09-send-01")
         XCTAssertEqual(receipt?.originalBody, "hello")
-        XCTAssertNil(receipt?.kind)
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(waitingReceipt {
+            try producer.recoverFromJournal(memberId: 7, conversationId: 12, clientMessageId: "c09-send-01", journal: nil)
+        }, .waitingSource(capability: ImmutableReceiptProducer.imReadSent))
+        XCTAssertEqual(calls, 1)
         XCTAssertTrue(producer.originalByRequestID.isEmpty)
     }
 

@@ -147,6 +147,8 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         self.assertIn("im.readSentMessage", kernel)
         self.assertIn("im.send", kernel)
         self.assertIn("func sendOriginal(", kernel)
+        self.assertIn("im.send.originalCommand", kernel)
+        self.assertIn("IM_OPERATION_NOT_SEND", kernel)
         self.assertIn("treatsAppliedProjectionAsOriginalProof", kernel)
         self.assertIn("return false", kernel)
         self.assertIn("UNKNOWN_NOT_RECOVERED", kernel)

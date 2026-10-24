@@ -108,6 +108,8 @@ public struct ImmutableReceiptProducer: Equatable {
 
     public static let imReadSent = "im.readSentMessage"
     public static let imSend = "im.send"
+    public static let imSendCommand = "im.send.originalCommand"
+    public static let notASend = "IM_OPERATION_NOT_SEND"
 
     public struct SentMessage: Equatable, Sendable {
         public var clientMessageId: String?
@@ -206,23 +208,38 @@ public struct ImmutableReceiptProducer: Equatable {
         throw NotifyFailure.waitingSource(capability: Self.imSend)
     }
 
-    /// Delegate to the existing send. Routing fields come from the caller.
-    /// A missing field returns nil and does not send. Does not occupy the in-memory store.
+    public enum NotASend: Error, Equatable {
+        case kind(NotifyKind)
+    }
+
+    /// Only REPLY/MENTION with real content, msgType, extraJson, and identity may send.
+    /// SEARCH/EDIT/WITHDRAW/PIN do not send. OriginalRequest.body is fingerprint material, not content.
     public func sendOriginal(
         _ request: OriginalRequest,
         memberID: Int64?,
         conversationID: Int64?,
         targetMemberID: Int64?,
         msgType: Int?,
-        send: ((Int64, Int64, Int64, Int, String, String) -> SentMessage?)?
+        content: String?,
+        extraJSON: String?,
+        send: ((Int64, Int64, Int64, Int, String, String, String) -> SentMessage?)?
     ) throws -> OriginalReceipt? {
         _ = try Self.requireRequestID(request.requestId)
-        guard let memberID, memberID > 0, let conversationID, conversationID > 0,
-              let targetMemberID, targetMemberID > 0, let msgType else { return nil }
-        guard let send else {
-            throw NotifyFailure.waitingSource(capability: Self.imSend)
+        if request.kind != NotifyKind.reply && request.kind != NotifyKind.mention {
+            throw NotASend.kind(request.kind)
         }
-        guard let sent = send(memberID, conversationID, targetMemberID, msgType, request.body ?? "", request.requestId) else {
+        let trimmedContent = content?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let trimmedExtra = extraJSON?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let memberID, memberID > 0, let conversationID, conversationID > 0,
+              let targetMemberID, targetMemberID > 0, let msgType,
+              !trimmedContent.isEmpty, trimmedContent != request.body,
+              !trimmedExtra.isEmpty else {
+            throw NotifyFailure.waitingSource(capability: Self.imSendCommand)
+        }
+        guard let send else {
+            throw NotifyFailure.waitingSource(capability: Self.imSendCommand)
+        }
+        guard let sent = send(memberID, conversationID, targetMemberID, msgType, trimmedContent, trimmedExtra, request.requestId) else {
             return Self.unknownReceipt(requestId: request.requestId, projection: nil)
         }
         return OriginalReceipt(
