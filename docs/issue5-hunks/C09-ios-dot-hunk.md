@@ -158,3 +158,11 @@ HEAD `159c09f5` tests. Did not invent recoverOriginal.
 `WebhookDeliveryLogProducerTests.testUnusedRequireOriginalOfNeverSeenDoesNotOccupyThenUniqueDeliverApplies`：未见 `evt-req-never-c09` 的 `requireOriginal` 抛 `originalMissing` 且 `originalByEventID` 仍空；后续唯一 `deliver` 才是 DELIVERED。
 
 Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
+
+## 10. Parent addendum 2026-10-23 19:20 America/Los_Angeles
+
+HEAD `a36c6b9d` tests. Did not invent recoverOriginal.
+
+`WebhookSameEventRetryTests.testUnusedRetrySameEventOfNeverSeenDoesNotOccupyThenUniqueDeliverApplies`：未见 `evt-retry-unused-c09` 的 `retrySameEvent` 抛 `originalMissing` 且 `originalByEventID` 仍空；后续唯一 `deliver` 才是 DELIVERED。
+
+Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
