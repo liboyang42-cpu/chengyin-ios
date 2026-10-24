@@ -109,6 +109,7 @@ public struct ImmutableReceiptProducer: Equatable {
     public static let imReadSent = "im.readSentMessage"
     public static let imSend = "im.send"
     public static let imSendCommand = "im.send.originalCommand"
+    public static let imSendWire = "im.send.originalWire"
     public static let notASend = "IM_OPERATION_NOT_SEND"
 
     public struct SentMessage: Equatable, Sendable {
@@ -209,7 +210,24 @@ public struct ImmutableReceiptProducer: Equatable {
     }
 
     public enum NotASend: Error, Equatable {
+        case missingKind
         case kind(NotifyKind)
+    }
+
+    static func originalWire(_ kind: NotifyKind, _ extraJSON: String) -> Bool {
+        guard let data = extraJSON.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return false
+        }
+        switch kind {
+        case .reply:
+            return object["reply_to_id"] is NSNumber
+        case .mention:
+            if object["mention_member_ids"] is [Any] || object["mention_role_ids"] is [Any] { return true }
+            return object["mention_everyone"] is NSNumber
+        default:
+            return false
+        }
     }
 
     /// Only REPLY/MENTION with real content, msgType, extraJson, and identity may send.
@@ -225,9 +243,8 @@ public struct ImmutableReceiptProducer: Equatable {
         send: ((Int64, Int64, Int64, Int, String, String, String) -> SentMessage?)?
     ) throws -> OriginalReceipt? {
         let id = try Self.requireRequestID(request.requestId)
-        if request.kind != NotifyKind.reply && request.kind != NotifyKind.mention {
-            throw NotASend.kind(request.kind)
-        }
+        guard let kind = request.kind else { throw NotASend.missingKind }
+        guard kind == .reply || kind == .mention else { throw NotASend.kind(kind) }
         let trimmedContent = content?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let trimmedExtra = extraJSON?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard let memberID, memberID > 0, let conversationID, conversationID > 0,
@@ -235,6 +252,9 @@ public struct ImmutableReceiptProducer: Equatable {
               !trimmedContent.isEmpty, trimmedContent != request.body,
               !trimmedExtra.isEmpty else {
             throw NotifyFailure.waitingSource(capability: Self.imSendCommand)
+        }
+        guard Self.originalWire(kind, trimmedExtra) else {
+            throw NotifyFailure.waitingSource(capability: Self.imSendWire)
         }
         guard let send else {
             throw NotifyFailure.waitingSource(capability: Self.imSendCommand)
