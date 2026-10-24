@@ -513,6 +513,17 @@ public struct MessageContainerHistory: Equatable, Sendable {
         guard canReadHistory(actor, channelID) else { throw ChannelAuthorizationError.notMember }
         guard let listMessages else { throw ChannelAuthorizationError.waitingListMessages }
         let clamped = limit <= 0 ? 20 : min(limit, 50)
-        return listMessages(actor, channelID, before, clamped, after)
+        let page = listMessages(actor, channelID, before, clamped, after)
+        guard page["sync_contract"] as? String == "VISIBLE_ORDER_PLUS_MUTATIONS_V1",
+              page["legacy_cache_action"] as? String == "RELOAD_ON_RESUME",
+              page["list"] != nil, page["mutation_cursor"] != nil,
+              page["has_more"] != nil || page["hasMore"] != nil,
+              page["operation"] as? String != "ACK" else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        if after != nil, page["next_after"] == nil, page["nextAfter"] == nil {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        return page
     }
 }

@@ -497,7 +497,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
                                     canReadHistory: { actor, channel in actor == 70 && channel == 12 },
                                     listMessages: { actor, channel, before, limit, after in
             calls.append((actor, channel, before, limit, after))
-            return ["list": "page", "has_more": "false"]
+            return Self.historyPage(after: nil)
         })
         XCTAssertEqual(calls.count, 1)
         XCTAssertEqual(calls[0].0, 70)
@@ -505,7 +505,9 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(calls[0].2, 9)
         XCTAssertEqual(calls[0].3, 50)
         XCTAssertNil(calls[0].4)
-        XCTAssertEqual(page["list"] as? String, "page")
+        XCTAssertEqual(page["sync_contract"] as? String, "VISIBLE_ORDER_PLUS_MUTATIONS_V1")
+        XCTAssertEqual(page["legacy_cache_action"] as? String, "RELOAD_ON_RESUME")
+        XCTAssertNil(page["operation"])
         var resumed = 0
         _ = try history.read(actor: 70, channelID: 12, before: nil, after: 4, limit: 0,
                              conversationType: 5, channelKind: 1, canReadHistory: { _, _ in true },
@@ -514,7 +516,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
             XCTAssertNil(before)
             XCTAssertEqual(limit, 20)
             XCTAssertEqual(after, 4)
-            return [:]
+            return Self.historyPage(after: "4")
         })
         XCTAssertEqual(resumed, 1)
         XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: 9, after: 4, limit: 20,
@@ -542,6 +544,21 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
                                               canReadHistory: { _, _ in true }, listMessages: nil)) {
             XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingListMessages)
         }
+        XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: nil, after: nil, limit: 20,
+                                              conversationType: 5, channelKind: 1,
+                                              canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
+            ["list": [], "operation": "ACK"]
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+    }
+
+    private static func historyPage(after: String?) -> [String: Any] {
+        var page: [String: Any] = [
+            "list": [] as [Any], "next_cursor": "9", "has_more": false, "nextCursor": "9", "hasMore": false,
+            "mutation_cursor": "0", "sync_contract": "VISIBLE_ORDER_PLUS_MUTATIONS_V1",
+            "legacy_cache_action": "RELOAD_ON_RESUME"
+        ]
+        if let after { page["next_after"] = after; page["nextAfter"] = after }
+        return page
     }
 
     private func json(_ body: [String: Any]) throws -> [String: Any] {
