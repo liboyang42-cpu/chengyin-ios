@@ -1,0 +1,74 @@
+# C09 message page actions — unapplied attach
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Base: origin/cursor/c09-message-action-flow-e504 `17f7b4af4e6f5443707158049798022af7835afa`
+
+`NativeChannelMessagePageActions` is the caller the existing channel message page uses for send, edit, recall, and pin. Each method calls `NativeChannelMessageActionEntry` once. A nil port waits. The request id is not rewritten. Blank content is invalid. Outcome stays UNKNOWN. No local receipt store. `appear()` does not send. Search stays on `NativeChannelMessageEntry`. This file does not add a second search chain.
+
+Do not apply this hunk onto `App/AppSession.swift`, `App/AppCompositionRoot.swift`, or `Questify.xcodeproj/project.pbxproj`. Those three files are unchanged in this branch. The SwiftUI page below is also not applied: `NativeChannelMessageActionEntry.swift` and `NativeChannelMessagePageActions.swift` are not in the committed Xcode target, and this change does not edit project.pbxproj. Applying only the view patch would break that target.
+
+XCTest NOT_RUN where swiftc is absent. Not 100%.
+
+## Page patch (not applied)
+
+Existing page: `App/MessagingHistoryView.swift`. No gradient, glow, or emoji icons. The resting layout is unchanged. Appearance calls `appear()` only.
+
+```
+diff --git a/App/MessagingHistoryView.swift b/App/MessagingHistoryView.swift
+--- a/App/MessagingHistoryView.swift
++++ b/App/MessagingHistoryView.swift
+@@ -62,6 +62,7 @@ struct MessagingHistoryView: View {
+     @State private var generation: UInt64 = 0
+     @State private var visibleMessageID: Int?
+     @State private var showingPollComposer = false
++    @State private var channelActions = NativeChannelMessagePageActions()
+
+     init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil, onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }) {
+@@ -159,6 +160,7 @@ struct MessagingHistoryView: View {
+             // Only a new account epoch or an unfinished first load starts an automatic read.
+             if !currentHistoryReady { await reload() }
+         }
++        .onAppear { channelActions.appear() }
+         .onDisappear { generation &+= 1; isLoadingEarlier = false }
+     }
+@@ -247,6 +249,46 @@ struct MessagingHistoryView: View {
+             && ObjectIdentifier(reader) == source && reader.isConfigured
+             && history.conversationID == conversationID
+     }
++    func sendChannel(requestID: String?, kind: NotifyKind?, actorID: Int64?, conversationID: Int64?, msgType: Int?, content: String?, extraJSON: String?, replyToID: Int64?, mentionMemberIDs: [Int64] = [], mentionRoleIDs: [Int64] = [], mentionEveryone: Bool = false, port: ImmutableReceiptProducer.ChannelOriginalSend? = nil) throws -> ImmutableReceiptProducer.OriginalReceipt {
++        try channelActions.send(requestID: requestID, kind: kind, actorID: actorID, conversationID: conversationID, msgType: msgType, content: content, extraJSON: extraJSON, replyToID: replyToID, mentionMemberIDs: mentionMemberIDs, mentionRoleIDs: mentionRoleIDs, mentionEveryone: mentionEveryone, port: port)
++    }
++    func editChannel(requestID: String?, kind: NotifyKind?, actorID: Int64?, conversationID: Int64?, messageID: Int64?, content: String?, expectedVersion: Int64?, mentionMemberIDs: [Int64] = [], mentionRoleIDs: [Int64] = [], mentionEveryone: Bool = false, port: ImmutableReceiptProducer.ChannelOriginalEdit? = nil) throws -> ImmutableReceiptProducer.OriginalReceipt {
++        try channelActions.edit(requestID: requestID, kind: kind, actorID: actorID, conversationID: conversationID, messageID: messageID, content: content, expectedVersion: expectedVersion, mentionMemberIDs: mentionMemberIDs, mentionRoleIDs: mentionRoleIDs, mentionEveryone: mentionEveryone, port: port)
++    }
++    func recallChannel(requestID: String?, kind: NotifyKind?, actorID: Int64?, conversationID: Int64?, messageID: Int64?, reason: String?, expectedVersion: Int64?, port: ImmutableReceiptProducer.ChannelOriginalRecall? = nil) throws -> ImmutableReceiptProducer.OriginalReceipt {
++        try channelActions.recall(requestID: requestID, kind: kind, actorID: actorID, conversationID: conversationID, messageID: messageID, reason: reason, expectedVersion: expectedVersion, port: port)
++    }
++    func pinChannel(requestID: String?, kind: NotifyKind?, actorID: Int64?, conversationID: Int64?, messageID: Int64?, pinned: Bool, port: ImmutableReceiptProducer.ChannelOriginalPin? = nil) throws -> ImmutableReceiptProducer.OriginalReceipt {
++        try channelActions.pin(requestID: requestID, kind: kind, actorID: actorID, conversationID: conversationID, messageID: messageID, pinned: pinned, port: port)
++    }
+ }
+```
+
+`channelActions.send(`, `channelActions.edit(`, `channelActions.recall(`, `channelActions.pin(` each run once per page call. `channelActions.appear()` does not send.
+
+## PBX ids (D6/dot only, do not apply here)
+
+`python3 tools/generate_project.py` ident = sha256(path)[:24].upper(); build id = sha256("build:"+path)[:24].upper().
+
+```
+Core/NativeChannelMessagePageActions.swift
+  PBXFileReference 0FA89D803B5E5E9AC7B5A858
+  PBXBuildFile     312C10DEC5985439C33E12D8  fileRef = 0FA89D803B5E5E9AC7B5A858
+
+Core/NativeChannelMessageActionEntry.swift
+  PBXFileReference F4C2717817E63BEFC9A4882C
+  PBXBuildFile     5A2996E0489475E9371D4535  fileRef = F4C2717817E63BEFC9A4882C
+
+Tests/CoreTests/NativeChannelMessagePageActionsTests.swift
+  PBXFileReference 5CC3940DF2FCCB13251BCF0A
+  PBXBuildFile     534B1834E420FDCD212E27DD  fileRef = 5CC3940DF2FCCB13251BCF0A
+```
+
+Tests/CoreTests stay SwiftPM-only until D6 registers them. Do not apply this block to project.pbxproj from this branch.

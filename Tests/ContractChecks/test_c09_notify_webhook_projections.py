@@ -14,6 +14,7 @@ CORE_FILES = [
     "Core/DevicePushRegistrationLifecycle.swift",
     "Core/ImmutableReceiptProducer.swift",
     "Core/NativeChannelMessageActionEntry.swift",
+    "Core/NativeChannelMessagePageActions.swift",
     "Core/AttachmentReviewProducer.swift",
     "Core/WebhookSsrfHopGuard.swift",
     "Core/WebhookDeliveryLogProducer.swift",
@@ -23,6 +24,7 @@ TEST_FILES = [
     "Tests/CoreTests/DevicePushRegistrationLifecycleTests.swift",
     "Tests/CoreTests/ImmutableReceiptProducerTests.swift",
     "Tests/CoreTests/NativeChannelMessageActionEntryTests.swift",
+    "Tests/CoreTests/NativeChannelMessagePageActionsTests.swift",
     "Tests/CoreTests/AttachmentReviewProducerTests.swift",
     "Tests/CoreTests/WebhookSsrfHopGuardTests.swift",
     "Tests/CoreTests/WebhookDeliveryLogProducerTests.swift",
@@ -30,7 +32,8 @@ TEST_FILES = [
 ]
 CONTRACT = "Tests/ContractChecks/test_c09_notify_webhook_projections.py"
 HUNK = "docs/issue5-hunks/C09-ios-dot-hunk.md"
-WHITELIST = CORE_FILES + TEST_FILES + [CONTRACT, HUNK]
+PAGE_HUNK = "docs/issue5-hunks/C09-message-page-actions.hunk"
+WHITELIST = CORE_FILES + TEST_FILES + [CONTRACT, HUNK, PAGE_HUNK]
 FORBIDDEN_TOUCH = [
     "App/AppSession.swift",
     "App/AppCompositionRoot.swift",
@@ -47,6 +50,8 @@ PBX_IDS = [
     "3784841CCD3F826F84FE5936", "176B0A8F3147601FB8E89989",
     "B0E6F3FB552B81A64EFA45EC", "5D16B639E0B3F68C5DE081E1",
     "92A3F8A7B9336FD7154202DC", "7DEB2935B2F97D5575670E4F",
+    "0FA89D803B5E5E9AC7B5A858", "312C10DEC5985439C33E12D8",
+    "5CC3940DF2FCCB13251BCF0A", "534B1834E420FDCD212E27DD",
 ]
 
 
@@ -240,6 +245,29 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         self.assertNotIn("searchOriginal", entry)
         self.assertNotIn("channelMessageSearch", entry)
         self.assertNotIn("NativeChannelMessageSearch", entry)
+
+    def test_message_page_calls_the_four_actions_once(self):
+        page = self.sources["Core/NativeChannelMessagePageActions.swift"]
+        self.assertEqual(page.count("entry.send("), 1)
+        self.assertEqual(page.count("entry.edit("), 1)
+        self.assertEqual(page.count("entry.recall("), 1)
+        self.assertEqual(page.count("entry.pin("), 1)
+        self.assertIn("func appear()", page)
+        self.assertNotIn("func search", page)
+        self.assertNotIn("searchOriginal", page)
+        self.assertNotIn("originalByRequestID", page)
+        self.assertNotIn("trimmingCharacters", page)
+        self.assertNotIn("LinearGradient", page)
+        self.assertNotIn("shadow(", page)
+        hunk = (ROOT / PAGE_HUNK).read_text()
+        self.assertIn("MessagingHistoryView", hunk)
+        self.assertIn("channelActions.appear()", hunk)
+        self.assertIn("channelActions.send(", hunk)
+        self.assertIn("channelActions.edit(", hunk)
+        self.assertIn("channelActions.recall(", hunk)
+        self.assertIn("channelActions.pin(", hunk)
+        self.assertIn("not applied", hunk)
+        self.assertIn("Not 100%", hunk)
 
     def test_sha256_payload_covers_whitelist(self):
         digest = hashlib.sha256()
