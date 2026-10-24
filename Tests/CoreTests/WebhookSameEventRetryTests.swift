@@ -73,4 +73,46 @@ final class WebhookSameEventRetryTests: XCTestCase {
         XCTAssertEqual(transport.urls.count, 2)
         XCTAssertTrue(missing.jsonObject()["eventId"] is NSNull)
     }
+
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueDeliverApplies() throws {
+        let transport = WebhookDeliveryLogProducer.RecordingTransport(statusCode: 204, body: "ok")
+        var retry = WebhookSameEventRetry(producer: WebhookDeliveryLogProducer(
+            transport: transport, nonceSource: { _ in "nonce-retry-never" }))
+        let config = WebhookDeliveryLogProducer.fixtureConfig()
+        let hops = [WebhookSsrfHopGuard.publicHop()]
+        let blank = retry.recoverOriginal(
+            originalRequestID: "  ", appliedProjection: nil, config: config, hops: hops)
+        XCTAssertNil(blank.log)
+        XCTAssertEqual(blank.note, WebhookSameEventRetry.unknownNotRecovered)
+        XCTAssertEqual(blank.mintedNewRequest, false)
+        XCTAssertTrue(retry.producer.originalByEventID.isEmpty)
+        let recovered = retry.recoverOriginal(
+            originalRequestID: "evt-retry-never-c09",
+            appliedProjection: ImmutableReceiptProducer.projectionApplied,
+            config: config, hops: hops)
+        XCTAssertFalse(recovered.recovered())
+        XCTAssertTrue(recovered.refusedAppliedProjection)
+        XCTAssertEqual(recovered.note, WebhookSameEventRetry.unknownNotRecovered)
+        XCTAssertNil(recovered.log)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertNil(retry.producer.originalByEventID["evt-retry-never-c09"])
+        XCTAssertTrue(retry.producer.originalByEventID.isEmpty)
+        XCTAssertEqual(transport.urls.count, 0)
+        let first = try retry.producer.deliver(
+            config,
+            event: WebhookDeliveryLogProducer.OriginalEvent(
+                eventId: "evt-retry-never-c09", kind: "PIN", originalBody: "original-body"),
+            hops: hops)
+        XCTAssertEqual(first.eventId, "evt-retry-never-c09")
+        XCTAssertEqual(first.deliveryId, "dlv-evt-retry-never-c09")
+        XCTAssertEqual(first.status, WebhookDeliveryLogProducer.statusDelivered)
+        XCTAssertEqual(first.attemptCount, 1)
+        XCTAssertEqual(retry.producer.originalByEventID.count, 1)
+        XCTAssertEqual(retry.producer.originalByEventID["evt-retry-never-c09"]?.deliveryId, first.deliveryId)
+        let retried = try retry.retrySameEvent("evt-retry-never-c09", config: config, hops: hops)
+        XCTAssertTrue(retry.keepsOriginalIds(first, retried))
+        XCTAssertEqual(retried.attemptCount, 2)
+        XCTAssertEqual(retry.producer.originalByEventID.count, 1)
+        XCTAssertEqual(retried.eventId, "evt-retry-never-c09")
+    }
 }

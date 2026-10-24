@@ -120,3 +120,9 @@ python3 -m unittest Tests.ContractChecks.test_c09_notify_webhook_projections
 ```
 
 Must run from the chengyin-ios worktree cwd (not `/tmp`). Swift XCTest: authored, **NOT_RUN** on Linux. Not 100%.
+
+## 5. Parent addendum 2026-10-23 17:13 America/Los_Angeles
+
+`WebhookSameEventRetryTests.testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueDeliverApplies`：未见 `evt-retry-never-c09` 的 `recoverOriginal` 保持 `UNKNOWN_NOT_RECOVERED` 且 `originalByEventID` 仍空；后续唯一 `deliver` 才是第一笔 DELIVERED。`recoverOriginal` 对未见 id 不 mint 新 request。
+
+XCTest NOT_RUN on Linux. Not 100%.
