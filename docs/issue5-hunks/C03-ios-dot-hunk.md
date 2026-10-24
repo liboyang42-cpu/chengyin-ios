@@ -146,3 +146,19 @@ Class-level `recoverOriginal` of never-seen ids stays UNKNOWN and does not occup
 - Clock TICK `c03-clock-never`
 
 HEAD `795f5438`. Parent python `Tests.ContractChecks.test_c03_six_mechanism_projections` **11/0**. XCTest / App / HTTP / CI = NOT_RUN. Did not invent recoverOriginal. Runtime / AppSession / PBX still unwired. Not 100%.
+
+## 6. Route action readback entry (no pbx edit)
+
+`Core/RouteActionReadbackFlow.swift` reads one existing `selectActionByAction` row and returns it only when it is the same request. A different session id, member id, or action id returns nil. An absent id on the row keeps the existing check. This file does not insert an action and does not add a writer. Do not edit pbxproj from this PR.
+
+```
+Core/RouteActionReadbackFlow.swift
+  PBXFileReference CAB8BBA2C8E3E33F758B0FB1
+  PBXBuildFile     55ED2BD3B10E177CFDA630D4  fileRef = CAB8BBA2C8E3E33F758B0FB1
+
+Tests/CoreTests/RouteActionReadbackFlowTests.swift
+  PBXFileReference 02F7E00B0A40C4BA8D98204B
+  PBXBuildFile     5381C2CC0EB6FA0216583D62  fileRef = 02F7E00B0A40C4BA8D98204B
+```
+
+XCTest for this entry is authored and NOT_RUN where swiftc is absent. Not 100%.
