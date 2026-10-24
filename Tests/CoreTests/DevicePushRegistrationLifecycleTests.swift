@@ -1,0 +1,122 @@
+import XCTest
+@testable import QuestifyCore
+
+final class DevicePushRegistrationLifecycleTests: XCTestCase {
+    func testFirstJourneySandboxSilentRegisterDisableRevokeStopsSendRecoverOriginal() throws {
+        var lifecycle = DevicePushRegistrationLifecycle()
+        let registered = try lifecycle.register(
+            deviceId: "dev-c09", environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: true, fixtureToken: "fixture-token-c09")
+        XCTAssertTrue(registered.silent)
+        XCTAssertEqual(registered.status, DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(registered.environment, DevicePushRegistrationLifecycle.envSandbox)
+        XCTAssertTrue(try lifecycle.maySend(
+            deviceId: "dev-c09", appliedProjection: ImmutableReceiptProducer.projectionApplied).allowed)
+
+        _ = try lifecycle.disable(deviceId: "dev-c09")
+        XCTAssertFalse(try lifecycle.maySend(
+            deviceId: "dev-c09", appliedProjection: ImmutableReceiptProducer.projectionApplied).allowed)
+
+        _ = try lifecycle.revoke(deviceId: "dev-c09")
+        let afterRevoke = try lifecycle.maySend(
+            deviceId: "dev-c09", appliedProjection: ImmutableReceiptProducer.projectionApplied)
+        XCTAssertFalse(afterRevoke.allowed)
+        XCTAssertEqual(afterRevoke.reason, "REVOKED_OR_DISABLED")
+        XCTAssertTrue(afterRevoke.currentProjectionClaimsApplied)
+        XCTAssertFalse(lifecycle.treatsAppliedProjectionAsAuthorization(ImmutableReceiptProducer.projectionApplied))
+        XCTAssertFalse(lifecycle.treatsAppliedProjectionAsOriginalProof(ImmutableReceiptProducer.projectionApplied))
+        XCTAssertThrowsError(try lifecycle.register(
+            deviceId: "dev-c09", environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: true, fixtureToken: "fixture-token-c09")) { error in
+            XCTAssertEqual(error as? NotifyFailure, .revokedDeviceCannotReregister)
+        }
+        XCTAssertThrowsError(try lifecycle.register(
+            deviceId: "dev-new", environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: false, fixtureToken: "prod-apns-key")) { error in
+            XCTAssertEqual(error as? NotifyFailure, .invalidFixtureToken)
+        }
+        XCTAssertThrowsError(try lifecycle.register(
+            deviceId: "dev-env", environment: "LIVE", silent: false, fixtureToken: "fixture-ok")) { error in
+            XCTAssertEqual(error as? NotifyFailure, .invalidEnvironment)
+        }
+        let original = lifecycle.recoverOriginal(
+            originalRequestID: "dev-c09", appliedProjection: ImmutableReceiptProducer.projectionApplied)
+        XCTAssertEqual(original.status, DevicePushRegistrationLifecycle.statusRevoked)
+        XCTAssertEqual(lifecycle.recoverUnknown(
+            originalRequestID: "dev-missing", appliedProjection: ImmutableReceiptProducer.projectionApplied).status,
+                       "UNKNOWN")
+        XCTAssertTrue(registered.jsonObject()["deviceId"] is String)
+        XCTAssertTrue(DevicePushRegistrationLifecycle.Registration(
+            deviceId: nil, environment: nil, silent: false, fixtureToken: nil, status: nil)
+            .jsonObject()["deviceId"] is NSNull)
+    }
+    func testOtherDeviceDoesNotRewriteOriginalRegistration() throws {
+        var lifecycle = DevicePushRegistrationLifecycle()
+        let original = try lifecycle.register(
+            deviceId: "dev-c09", environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: true, fixtureToken: "fixture-token-c09")
+        let other = try lifecycle.register(
+            deviceId: "dev-other", environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: true, fixtureToken: "fixture-token-other")
+        XCTAssertEqual(other.deviceId, "dev-other")
+        XCTAssertNotEqual(other.deviceId, original.deviceId)
+        XCTAssertEqual(lifecycle.recoverOriginal(
+            originalRequestID: "dev-c09", appliedProjection: ImmutableReceiptProducer.projectionApplied).deviceId,
+                       "dev-c09")
+        XCTAssertEqual(lifecycle.recoverOriginal(
+            originalRequestID: "dev-c09", appliedProjection: ImmutableReceiptProducer.projectionApplied).status,
+                       DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(lifecycle.recoverUnknown(
+            originalRequestID: "  ", appliedProjection: ImmutableReceiptProducer.projectionApplied).deviceId, nil)
+        XCTAssertEqual(lifecycle.recoverUnknown(
+            originalRequestID: "  ", appliedProjection: ImmutableReceiptProducer.projectionApplied).status, "UNKNOWN")
+    }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueRegisterApplies() throws {
+        var lifecycle = DevicePushRegistrationLifecycle()
+        let blank = lifecycle.recoverOriginal(originalRequestID: "  ", appliedProjection: nil)
+        XCTAssertNil(blank.deviceId)
+        XCTAssertEqual(blank.status, "UNKNOWN")
+        XCTAssertTrue(lifecycle.originalByDeviceID.isEmpty)
+        let recovered = lifecycle.recoverOriginal(
+            originalRequestID: "dev-recover-never-c09", appliedProjection: nil)
+        XCTAssertEqual(recovered.deviceId, "dev-recover-never-c09")
+        XCTAssertEqual(recovered.status, "UNKNOWN")
+        XCTAssertNil(lifecycle.originalByDeviceID["dev-recover-never-c09"])
+        XCTAssertTrue(lifecycle.originalByDeviceID.isEmpty)
+        let first = try lifecycle.register(
+            deviceId: "dev-recover-never-c09",
+            environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: true, fixtureToken: "fixture-token-c09")
+        XCTAssertEqual(first.deviceId, "dev-recover-never-c09")
+        XCTAssertEqual(first.status, DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(lifecycle.originalByDeviceID.count, 1)
+        let replay = lifecycle.recoverOriginal(
+            originalRequestID: "dev-recover-never-c09", appliedProjection: nil)
+        XCTAssertEqual(replay.status, DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(replay.deviceId, "dev-recover-never-c09")
+        XCTAssertEqual(lifecycle.originalByDeviceID.count, 1)
+    }
+    func testUnusedRevokeOfNeverSeenDoesNotOccupyThenUniqueRegisterApplies() throws {
+        var lifecycle = DevicePushRegistrationLifecycle()
+        XCTAssertThrowsError(try lifecycle.revoke(deviceId: "dev-revoke-never-c09")) { error in
+            XCTAssertEqual(error as? NotifyFailure, .originalMissing("dev-revoke-never-c09"))
+        }
+        XCTAssertTrue(lifecycle.originalByDeviceID.isEmpty, "未见设备 revoke 观察不得占账")
+        XCTAssertNil(lifecycle.originalByDeviceID["dev-revoke-never-c09"])
+        let unused = lifecycle.recoverOriginal(
+            originalRequestID: "dev-revoke-never-c09", appliedProjection: nil)
+        XCTAssertEqual(unused.deviceId, "dev-revoke-never-c09")
+        XCTAssertEqual(unused.status, "UNKNOWN")
+        XCTAssertTrue(lifecycle.originalByDeviceID.isEmpty)
+        let first = try lifecycle.register(
+            deviceId: "dev-revoke-never-c09",
+            environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: true, fixtureToken: "fixture-token-c09")
+        XCTAssertEqual(first.deviceId, "dev-revoke-never-c09")
+        XCTAssertEqual(first.status, DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(lifecycle.originalByDeviceID.count, 1)
+        XCTAssertEqual(lifecycle.recoverOriginal(
+            originalRequestID: "dev-revoke-never-c09", appliedProjection: nil).status,
+                       DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(lifecycle.originalByDeviceID.count, 1)
+    }
