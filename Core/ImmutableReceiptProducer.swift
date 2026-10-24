@@ -117,10 +117,15 @@ public struct ImmutableReceiptProducer: Equatable {
         public var clientMessageId: String?
         public var requestHash: String?
         public var content: String?
-        public init(clientMessageId: String?, requestHash: String?, content: String?) {
+        public var conversationId: Int64?
+        public var senderId: Int64?
+        public init(clientMessageId: String?, requestHash: String?, content: String?,
+                    conversationId: Int64? = nil, senderId: Int64? = nil) {
             self.clientMessageId = ImmutableReceiptProducer.parse(clientMessageId)
             self.requestHash = ImmutableReceiptProducer.parse(requestHash, limit: 128)
             self.content = ImmutableReceiptProducer.parse(content, limit: 4096)
+            self.conversationId = conversationId
+            self.senderId = senderId
         }
     }
 
@@ -273,9 +278,14 @@ public struct ImmutableReceiptProducer: Equatable {
         guard let journal else {
             throw NotifyFailure.waitingSource(capability: Self.imReadSent)
         }
-        guard let original = journal(memberId ?? 0, conversationId ?? 0, id),
+        guard let memberId, memberId > 0, let conversationId, conversationId > 0 else {
+            return Self.unknownReceipt(requestId: id, projection: nil)
+        }
+        guard let original = journal(memberId, conversationId, id),
               let hash = original.requestHash, !hash.isEmpty,
-              Self.parse(original.clientMessageId) == id else {
+              Self.parse(original.clientMessageId) == id,
+              original.conversationId == conversationId,
+              original.senderId == memberId else {
             return Self.unknownReceipt(requestId: id, projection: nil)
         }
         return OriginalReceipt(

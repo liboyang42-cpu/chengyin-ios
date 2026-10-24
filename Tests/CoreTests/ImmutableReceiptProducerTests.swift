@@ -153,9 +153,11 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         let blank = try producer.recoverFromJournal(memberId: 7, conversationId: 12, clientMessageId: nil, journal: { _, _, _ in nil })
         XCTAssertNil(blank.requestId)
         let original = ImmutableReceiptProducer.SentMessage(
-            clientMessageId: "c09-im-1", requestHash: "hash-im-1", content: "{\"op\":\"pin\"}")
+            clientMessageId: "c09-im-1", requestHash: "hash-im-1", content: "{\"op\":\"pin\"}",
+            conversationId: 12, senderId: 7)
         let bare = ImmutableReceiptProducer.SentMessage(
-            clientMessageId: "c09-im-bare", requestHash: nil, content: "visible-without-digest")
+            clientMessageId: "c09-im-bare", requestHash: nil, content: "visible-without-digest",
+            conversationId: 12, senderId: 7)
         let journal: (Int64, Int64, String) -> ImmutableReceiptProducer.SentMessage? = { _, _, id in
             if id == "c09-im-bare" { return bare }
             return id == "c09-im-1" ? original : nil
@@ -176,6 +178,22 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         XCTAssertEqual(recovered.payloadHash, "hash-im-1")
         XCTAssertEqual(recovered.originalBody, "{\"op\":\"pin\"}")
         XCTAssertNil(recovered.kind)
+        let otherConversation = ImmutableReceiptProducer.SentMessage(
+            clientMessageId: "c09-im-1", requestHash: "hash-im-1", content: "other-conversation",
+            conversationId: 99, senderId: 7)
+        let wrongConversation = try producer.recoverFromJournal(
+            memberId: 7, conversationId: 12, clientMessageId: "c09-im-1",
+            journal: { _, _, _ in otherConversation })
+        XCTAssertEqual(wrongConversation.requestId, "c09-im-1")
+        XCTAssertNil(wrongConversation.originalBody)
+        let otherSender = ImmutableReceiptProducer.SentMessage(
+            clientMessageId: "c09-im-other-sender", requestHash: "hash-im-other", content: "other-sender",
+            conversationId: 12, senderId: 8)
+        let wrongSender = try producer.recoverFromJournal(
+            memberId: 7, conversationId: 12, clientMessageId: "c09-im-other-sender",
+            journal: { _, _, _ in otherSender })
+        XCTAssertEqual(wrongSender.requestId, "c09-im-other-sender")
+        XCTAssertNil(wrongSender.originalBody)
         XCTAssertTrue(producer.originalByRequestID.isEmpty)
     }
 
