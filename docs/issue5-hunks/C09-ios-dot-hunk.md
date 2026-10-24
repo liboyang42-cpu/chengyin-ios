@@ -24,6 +24,7 @@ IDs below match `tools/generate_project.py`: PBXFileReference = `sha256(path)[:2
 Core:
 
 - `Core/ImmutableReceiptProducer.swift` — 回复/mention/编辑/撤回/置顶/搜索原回执；UNKNOWN 不 mint；APPLIED+CURRENT 不是原证明
+- `Core/NativeChannelMessageActionEntry.swift` — 发送/编辑/撤回/置顶同一入口；nil 端口等待；不另开搜索链
 - `Core/AttachmentReviewProducer.swift` — 恰好 16 类附件审核原回执；可见投影不是通过
 - `Core/DevicePushRegistrationLifecycle.swift` — `fixture-` token；SANDBOX / PRODUCTION_LABEL；撤权后停止再投
 - `Core/WebhookDeliveryLogProducer.swift` — 注入 RecordingTransport（永不打开套接字）；签名体含 signature、不泄漏 raw key
@@ -31,6 +32,8 @@ Core:
 - `Core/WebhookSsrfHopGuard.swift` — 每跳 https/443/无 userinfo；缺解析 fail-closed；不 DNS、不跟随真实重定向
 
 Tests（SwiftPM `Tests/CoreTests`，隔离 `testFirstJourney…RecoverOriginal`）+ `Tests/ContractChecks/test_c09_notify_webhook_projections.py` + 本文件。
+
+- `Tests/CoreTests/NativeChannelMessageActionEntryTests.swift` — 四动作各调用一次或等待；合法 request id 不裁成另一个 id；空白正文无效；`message_unavailable` 且无消息 id 仍为 UNKNOWN
 
 ## 2. Exact pbx file-ref additions (D6/dot only)
 
@@ -170,3 +173,7 @@ Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**
 ## 11. Parent addendum 2026-10-23 20:40 America/Los_Angeles
 
 `recoverFromJournal` 只读既有 `im.readSentMessage` 合同。缺 journal WAITING_SOURCE。`persistOriginal` 缺 `im.send` WAITING_SOURCE，本组不发 IM。未见 clientMessageId 保持 UNKNOWN，不占 `originalByRequestID`。XCTest NOT_RUN on Linux. Not 100%.
+
+## 12. Message action entry
+
+`NativeChannelMessageActionEntry` 把 send / edit / recall(withdraw) / pin 收成一个入口，各自调用已有 producer 端口一次；端口为 nil 时 WAITING_SOURCE。匹配 `[A-Za-z0-9_-]{16,64}` 的 request id 不裁成另一个 id。空白正文是 `invalidMessageContent`。端口返回前结果保持 UNKNOWN，不写本地回执。`message_unavailable=true` 且没有消息 id 的重放有效。搜索仍走既有 NativeChannelMessageEntry，本入口没有第二条搜索链。未改 AppSession / AppCompositionRoot / project.pbxproj。XCTest NOT_RUN on Linux. Not 100%.

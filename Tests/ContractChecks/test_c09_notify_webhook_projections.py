@@ -13,6 +13,7 @@ BASE = "origin/migration/native-ios"
 CORE_FILES = [
     "Core/DevicePushRegistrationLifecycle.swift",
     "Core/ImmutableReceiptProducer.swift",
+    "Core/NativeChannelMessageActionEntry.swift",
     "Core/AttachmentReviewProducer.swift",
     "Core/WebhookSsrfHopGuard.swift",
     "Core/WebhookDeliveryLogProducer.swift",
@@ -21,6 +22,7 @@ CORE_FILES = [
 TEST_FILES = [
     "Tests/CoreTests/DevicePushRegistrationLifecycleTests.swift",
     "Tests/CoreTests/ImmutableReceiptProducerTests.swift",
+    "Tests/CoreTests/NativeChannelMessageActionEntryTests.swift",
     "Tests/CoreTests/AttachmentReviewProducerTests.swift",
     "Tests/CoreTests/WebhookSsrfHopGuardTests.swift",
     "Tests/CoreTests/WebhookDeliveryLogProducerTests.swift",
@@ -227,6 +229,17 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         for path in TEST_FILES:
             self.assertIn("@testable import QuestifyCore", self.sources[path])
             self.assertNotIn("@MainActor", self.sources[path])
+
+    def test_message_action_entry_does_not_add_a_second_search_chain(self):
+        entry = self.sources["Core/NativeChannelMessageActionEntry.swift"]
+        self.assertIn("func send(", entry)
+        self.assertIn("func edit(", entry)
+        self.assertIn("func recall(", entry)
+        self.assertIn("func pin(", entry)
+        self.assertNotIn("func search", entry)
+        self.assertNotIn("searchOriginal", entry)
+        self.assertNotIn("channelMessageSearch", entry)
+        self.assertNotIn("NativeChannelMessageSearch", entry)
 
     def test_sha256_payload_covers_whitelist(self):
         digest = hashlib.sha256()

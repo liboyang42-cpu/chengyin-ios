@@ -20,6 +20,7 @@ public enum NotifyFailure: Error, Equatable {
     case ssrfRejected(String)
     case unsignedSourceRewrite
     case invalidRequestID
+    case invalidMessageContent
     public var isWaitingSource: Bool {
         if case .waitingSource = self { return true }
         return false
@@ -149,6 +150,17 @@ public struct ImmutableReceiptProducer: Equatable {
         return id
     }
 
+    /// The whole string must already match. A padded key is not trimmed into another id.
+    public static func exactRequestID(_ raw: String?) throws -> String {
+        guard let raw, validSendKey(raw) else { throw NotifyFailure.invalidRequestID }
+        return raw
+    }
+
+    public static func rejectBlankMessageContent(_ raw: String?) throws {
+        let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmed.isEmpty { throw NotifyFailure.invalidMessageContent }
+    }
+
     public static func jsonValue(_ raw: String?) -> Any {
         raw.map { $0 as Any } ?? NSNull()
     }
@@ -263,7 +275,12 @@ public struct ImmutableReceiptProducer: Equatable {
         mentionEveryone: Bool,
         channel: ChannelOriginalSend? = nil
     ) throws -> OriginalReceipt? {
-        let id = try Self.requireRequestID(request.requestId)
+        let id: String
+        if let raw = request.requestId, Self.validSendKey(raw) {
+            id = raw
+        } else {
+            id = try Self.requireRequestID(request.requestId)
+        }
         guard let kind = request.kind else { throw NotASend.missingKind }
         guard kind == .reply || kind == .mention else { throw NotASend.kind(kind) }
         let trimmedContent = content?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -339,6 +356,22 @@ public struct ImmutableReceiptProducer: Equatable {
         return channelID(map, "id")
     }
 
+    /// Same request, message_unavailable, and no message id. Does not invent an id.
+    private static func replayUnavailableWithoutMessageID(_ sent: [String: Any]) -> Bool {
+        guard (sent["message_unavailable"] as? Bool) == true else { return false }
+        let message = channelID(sent, "message_id")
+        let top = channelID(sent, "id")
+        let nested = nestedMessageID(sent)
+        if message.invalid || top.invalid || nested.invalid { return false }
+        return !message.present && !top.present && !nested.present
+    }
+
+    private static func unknownChannelReceipt(requestId: String, kind: NotifyKind) -> OriginalReceipt {
+        OriginalReceipt(requestId: requestId, kind: kind, payloadHash: nil, outcome: outcomeUnknown,
+                        originalBody: nil, currentProjectionClaimsApplied: false, recoveryNote: nil,
+                        mintedNewRequest: false)
+    }
+
     /// Original `ChannelMessageService.edit`. SEARCH/WITHDRAW/PIN/SEND do not edit.
     /// Nil keeps the edit closed. One call, no local receipt store.
     public typealias ChannelOriginalEdit = (
@@ -377,11 +410,14 @@ public struct ImmutableReceiptProducer: Equatable {
         }
         let sent = try channel(actorID, conversationID, messageID, raw, trimmed, expectedVersion,
                                mentionMemberIDs, mentionRoleIDs, mentionEveryone)
-        let echoed = channelID(sent, "message_id")
-        guard echoed.present, echoed.value == messageID else {
+        if let echoedRequest = sent["request_id"] as? String, echoedRequest != raw {
             throw NotifyFailure.fingerprintConflict(requestId: raw)
         }
-        if let echoedRequest = sent["request_id"] as? String, echoedRequest != raw {
+        if Self.replayUnavailableWithoutMessageID(sent) {
+            return Self.unknownChannelReceipt(requestId: raw, kind: .edit)
+        }
+        let echoed = channelID(sent, "message_id")
+        guard echoed.present, echoed.value == messageID else {
             throw NotifyFailure.fingerprintConflict(requestId: raw)
         }
         return OriginalReceipt(requestId: raw, kind: .edit, payloadHash: nil, outcome: Self.outcomeUnknown,
@@ -416,11 +452,14 @@ public struct ImmutableReceiptProducer: Equatable {
         }
         guard let channel else { throw NotifyFailure.waitingSource(capability: Self.channelMessageRecall) }
         let sent = try channel(actorID, conversationID, messageID, raw, trimmedReason, expectedVersion)
-        let echoed = channelID(sent, "message_id")
-        guard echoed.present, echoed.value == messageID else {
+        if let echoedRequest = sent["request_id"] as? String, echoedRequest != raw {
             throw NotifyFailure.fingerprintConflict(requestId: raw)
         }
-        if let echoedRequest = sent["request_id"] as? String, echoedRequest != raw {
+        if Self.replayUnavailableWithoutMessageID(sent) {
+            return Self.unknownChannelReceipt(requestId: raw, kind: .withdraw)
+        }
+        let echoed = channelID(sent, "message_id")
+        guard echoed.present, echoed.value == messageID else {
             throw NotifyFailure.fingerprintConflict(requestId: raw)
         }
         return OriginalReceipt(requestId: raw, kind: .withdraw, payloadHash: nil, outcome: Self.outcomeUnknown,
@@ -449,11 +488,14 @@ public struct ImmutableReceiptProducer: Equatable {
         }
         guard let channel else { throw NotifyFailure.waitingSource(capability: Self.channelMessagePin) }
         let sent = try channel(actorID, conversationID, messageID, raw, pinned)
-        let echoed = channelID(sent, "message_id")
-        guard echoed.present, echoed.value == messageID, (sent["pinned"] as? Bool) == pinned else {
+        if let echoedRequest = sent["request_id"] as? String, echoedRequest != raw {
             throw NotifyFailure.fingerprintConflict(requestId: raw)
         }
-        if let echoedRequest = sent["request_id"] as? String, echoedRequest != raw {
+        if Self.replayUnavailableWithoutMessageID(sent) {
+            return Self.unknownChannelReceipt(requestId: raw, kind: .pin)
+        }
+        let echoed = channelID(sent, "message_id")
+        guard echoed.present, echoed.value == messageID, (sent["pinned"] as? Bool) == pinned else {
             throw NotifyFailure.fingerprintConflict(requestId: raw)
         }
         return OriginalReceipt(requestId: raw, kind: .pin, payloadHash: nil, outcome: Self.outcomeUnknown,
