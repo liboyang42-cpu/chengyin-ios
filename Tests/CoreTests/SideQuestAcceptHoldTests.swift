@@ -112,6 +112,39 @@ final class SideQuestAcceptHoldTests: XCTestCase {
         }
         XCTAssertEqual(quest.original?.originalRequestID, "sq-orig-unk")
     }
+    func testUnusedAcceptHoldBeforeDiscoverDoesNotOccupyThenUniqueHoldApplies() throws {
+        var quest = SideQuestAcceptHold()
+        XCTAssertThrowsError(try quest.acceptHold(holdID: "hold-idle", originalRequestID: "sq-idle-unk", seats: 1)) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .notCompliant)
+        }
+        XCTAssertNil(quest.hold, "未发现地点的 hold 观察不得占账")
+        XCTAssertNil(quest.original)
+        XCTAssertEqual(quest.phase, .idle)
+        try quest.discover(try place())
+        XCTAssertEqual(quest.phase, .discovered)
+        XCTAssertNil(quest.hold)
+        try quest.acceptHold(holdID: "hold-idle", originalRequestID: "sq-idle-unk", seats: 1)
+        XCTAssertEqual(quest.hold?.originalRequestID, "sq-idle-unk")
+        XCTAssertEqual(quest.phase, .holdAccepted)
+        XCTAssertNil(quest.original)
+    }
+    func testUnusedCompleteBeforeHoldDoesNotOccupyThenUniqueCompleteApplies() throws {
+        var quest = SideQuestAcceptHold()
+        try quest.discover(try place())
+        XCTAssertThrowsError(try quest.complete()) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .holdRequired)
+        }
+        XCTAssertNil(quest.original, "未预占完赛观察不得占原文")
+        XCTAssertNil(quest.hold)
+        XCTAssertEqual(quest.phase, .discovered)
+        try quest.acceptHold(holdID: "hold-comp", originalRequestID: "sq-comp-unk", seats: 1)
+        try quest.submitProof(try XCTUnwrap(SideQuestProof(kind: .qr, attested: true)))
+        try quest.complete()
+        XCTAssertEqual(quest.phase, .completed)
+        XCTAssertEqual(quest.original?.originalRequestID, "sq-comp-unk")
+        XCTAssertEqual(quest.original?.terminal, .completed)
+        XCTAssertEqual(try quest.recoverOriginal(originalRequestID: "sq-comp-unk").originalRequestID, "sq-comp-unk")
+    }
     func testNonCompliantHiddenCapacityAndFakeGPS() throws {
         var quest = SideQuestAcceptHold()
         XCTAssertThrowsError(try quest.discover(try place(compliant: false))) { error in
