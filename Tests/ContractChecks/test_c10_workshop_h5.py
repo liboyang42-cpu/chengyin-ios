@@ -15,6 +15,7 @@ CORE_FILES = [
     "Core/WorkshopRunServerVerification.swift",
     "Core/H5SessionCapabilityGate.swift",
     "Core/H5AnswerProtection.swift",
+    "Core/WorkshopOriginalInstallConsumer.swift",
 ]
 TEST_FILES = [
     "Tests/CoreTests/WorkshopModuleImportGateTests.swift",
@@ -23,6 +24,7 @@ TEST_FILES = [
     "Tests/CoreTests/WorkshopRunServerVerificationTests.swift",
     "Tests/CoreTests/H5SessionCapabilityGateTests.swift",
     "Tests/CoreTests/H5AnswerProtectionTests.swift",
+    "Tests/CoreTests/WorkshopOriginalInstallConsumerTests.swift",
 ]
 CONTRACT = "Tests/ContractChecks/test_c10_workshop_h5.py"
 HUNK = "docs/issue5-hunks/C10-ios-dot-hunk.md"
@@ -112,6 +114,13 @@ class C10WorkshopH5Contracts(unittest.TestCase):
         self.assertIn("kind: .unknown", tests)
         self.assertIn("recoverOriginal(originalRequestID: \"req-c10-1\")", tests)
         self.assertIn("installCount, 1", tests)
+        consumer = self.sources["Core/WorkshopOriginalInstallConsumer.swift"]
+        self.assertIn("does not keep a second", consumer)
+        self.assertNotIn("serverPass", consumer)
+        self.assertIn("testSameRequestReadsOriginalReceiptAndUnknownDoesNotInstall",
+                      self.sources["Tests/CoreTests/WorkshopOriginalInstallConsumerTests.swift"])
+        self.assertIn("testRestartRevokeAndLateFactKeepTheOriginalRequest",
+                      self.sources["Tests/CoreTests/WorkshopOriginalInstallConsumerTests.swift"])
 
     def test_javascript_self_report_is_rejected(self):
         run = self.sources["Core/WorkshopRunServerVerification.swift"]
