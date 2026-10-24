@@ -84,16 +84,24 @@ f94cdbdc52ee252f7316d767b3e3d0efb08822762d6a5d2357517af2c51cd73d Core/WorkshopPa
 2a683b9594d4563719e5dfbaf2f2609b10fd444b0b699a4ea24375ae44e0aa4c Core/WorkshopRunServerVerification.swift
 90a669ea5fca7826a66be156ddc5b528eab1ff45cd8ad02eb536b99f94b33448 Core/H5SessionCapabilityGate.swift
 d3e611a590aeac1918784ca65856ab84b690032d2bb3bfa66a81157ff9942bb1 Core/H5AnswerProtection.swift
-ba5a320db94d31421dd093c52b3cdf7b47aa6beb5405911ec128717788e1af7b Tests/CoreTests/WorkshopModuleImportGateTests.swift
+61094fb85d83125f89c0450a618895634094d574aa97899899b212e8eb53fdef Tests/CoreTests/WorkshopModuleImportGateTests.swift
 ffd1ae718c26968e3a206c168b7e768a929f414418c6cb82e7f3b4d23ea0733d Tests/CoreTests/WorkshopPackageVersionPublishTests.swift
 5559e3dab1591f6b96fc311f971078b57227489b59019b884bef9e3c297106f9 Tests/CoreTests/WorkshopInstallUpgradeRollbackTests.swift
 f97f467cc9dfa548c39d04d0aeb42a7d6ac276c7eed69b0d67174849de93786e Tests/CoreTests/WorkshopRunServerVerificationTests.swift
 80fa5edf91c9a23fcbd24ecaa725f2b3771ebdfa965b7d6b7cf56ef6a2d53d79 Tests/CoreTests/H5SessionCapabilityGateTests.swift
 a9591984d3bf44e0543c7427ef9922a7b52f3a558ad81c7b32e2af3c0c3e3f18 Tests/CoreTests/H5AnswerProtectionTests.swift
-85274c639a6ddd929b142fa582b400d461d412bdd6841393aad86ba74ac1cc9f Tests/ContractChecks/test_c10_workshop_h5.py
+fb0a2cbe245ffdcc6c8e87880e7e94cccbf86d717ad19d44476e9a9449eae1ba Tests/ContractChecks/test_c10_workshop_h5.py
 
 ## Verification note
 
 Linux: `python3 -m unittest Tests.ContractChecks.test_c10_workshop_h5` from the chengyin-ios worktree cwd (not `/tmp`).
 Swift XCTest / App / CI: authored, **NOT_RUN** on Linux. iOS 13.0 baseline is not raised by this line.
 No credentials. No real IAP.
+
+## Parent addendum 2026-10-23 17:27 America/Los_Angeles
+
+`testNotReviewedFreezeOfNeverSeenIdDoesNotOccupyThenUniqueFreezeApplies` / `testNotHeldInstallOfNeverSeenIdDoesNotOccupyThenUniqueHoldApplies`：未见 `c10-pub-never-c10` / `c10-ins-never-c10` 的失败 freeze/install 保持 idle 且不占账；后续唯一 freeze / hold 才是第一笔。未发明 recoverOriginal。XCTest NOT_RUN。Not 100%.
+
+## Parent addendum 2026-10-23 17:30 America/Los_Angeles
+
+`testUnknownQmodImportOfNeverSeenIdDoesNotOccupyThenUniqueImportApplies`：未见 `c10-import-never-c10` 的 unknownQmod import 抛 WAITING_SOURCE 且 `originalRequestID` 仍为 nil，不占账；后续唯一 metadataManifestV1 import 才是第一笔。未发明 recoverOriginal。XCTest NOT_RUN。Not 100%.

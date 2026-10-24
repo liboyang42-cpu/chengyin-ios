@@ -96,6 +96,38 @@ final class WorkshopModuleImportGateTests: XCTestCase {
         gate = WorkshopModuleImportGate()
         XCTAssertEqual(waiting { try gate.writeRuntime() }, .runtimeWriteForbidden)
     }
+    func testUnknownQmodImportOfNeverSeenIdDoesNotOccupyThenUniqueImportApplies() throws {
+        var gate = WorkshopModuleImportGate()
+        XCTAssertNil(gate.originalRequestID)
+        XCTAssertEqual(gate.phase, .idle)
+        XCTAssertThrowsError(try gate.importFromNormalEntry(
+            entry: "workshop.owned.library", format: .unknownQmod,
+            originalRequestID: "c10-import-never-c10")) { error in
+            XCTAssertEqual(
+                error as? WorkshopModuleImportFailure,
+                .waitingSource(capability: WorkshopModuleSourceInventory.qmodOriginal))
+        }
+        XCTAssertNil(gate.originalRequestID)
+        XCTAssertNotEqual(gate.phase, .imported)
+        XCTAssertNotEqual(gate.originalRequestID, "")
+        try gate.importFromNormalEntry(entry: "workshop.owned.library",
+                                       format: .metadataManifestV1,
+                                       originalRequestID: "c10-import-never-c10")
+        XCTAssertEqual(gate.originalRequestID, "c10-import-never-c10")
+        XCTAssertEqual(gate.phase, .imported)
+        try gate.importFromNormalEntry(entry: "workshop.owned.library",
+                                       format: .metadataManifestV1,
+                                       originalRequestID: "c10-import-never-c10")
+        XCTAssertEqual(gate.originalRequestID, "c10-import-never-c10")
+        XCTAssertEqual(gate.phase, .imported)
+        XCTAssertThrowsError(try gate.importFromNormalEntry(
+            entry: "workshop.owned.library", format: .metadataManifestV1,
+            originalRequestID: "c10-import-other")) { error in
+            XCTAssertEqual(error as? WorkshopModuleImportFailure, .requestMismatch)
+        }
+        XCTAssertEqual(gate.originalRequestID, "c10-import-never-c10")
+        XCTAssertEqual(gate.phase, .imported)
+    }
     func testOtherRequestIdDoesNotRewriteImportedOriginal() throws {
         var importer = WorkshopModuleImportGate()
         try importer.importFromNormalEntry(entry: "workshop.owned.library",

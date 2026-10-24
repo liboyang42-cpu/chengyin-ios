@@ -212,6 +212,8 @@ class C10WorkshopH5Contracts(unittest.TestCase):
         importer = self.sources["Core/WorkshopModuleImportGate.swift"]
         self.assertIn("testOtherRequestIdDoesNotRewriteImportedOriginal", tests)
         self.assertIn("testMissingRequestIdStaysNilNeverEmptyString", tests)
+        self.assertIn("testUnknownQmodImportOfNeverSeenIdDoesNotOccupyThenUniqueImportApplies", tests)
+        self.assertIn("c10-import-never-c10", tests)
         self.assertIn("case requestMismatch", importer)
         self.assertIn("originalRequestID: String?", importer)
         self.assertIn('throw fail(.requestMismatch)', importer)
