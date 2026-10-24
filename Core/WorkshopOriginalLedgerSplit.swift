@@ -101,14 +101,17 @@ public struct WorkshopOriginalLedgerSplit: Sendable {
         guard sessionID > 0, memberID > 0 else { throw WorkshopOriginalLedgerError.invalid }
         guard let data = try await source.advancedState(sessionID: sessionID, memberID: memberID),
               let object = jsonObject(data),
-              !mixes(object, foreign: ["outcome", "requestId", "moduleId", "contentHash"]) else {
+              !mixes(object, foreign: ["outcome", "requestId", "moduleId", "contentHash", "session", "topic", "node"]) else {
             throw WorkshopOriginalLedgerError.mixed
         }
-        guard let sourceHash = object["sourceHash"] as? String, WorkshopModuleImportGate.sha256Hex(sourceHash),
+        guard object["schema"] as? String == "mod-installation-native-runtime-v1",
+              object["status"] as? String == "SUPPORTED",
+              let sourceHash = object["sourceHash"] as? String, WorkshopModuleImportGate.sha256Hex(sourceHash),
               let runHash = object["runHash"] as? String, WorkshopModuleImportGate.sha256Hex(runHash),
-              exactLong(object["session"]) == sessionID,
-              let topicID = exactLong(object["topic"]),
-              let nodeID = exactLong(object["node"]) else {
+              exactLong(object["sessionId"]) == sessionID,
+              let topicID = exactLong(object["topicId"]),
+              let nodeID = exactLong(object["nodeId"]),
+              exactLong(object["activityId"]) != nil else {
             throw WorkshopOriginalLedgerError.unknown
         }
         let kind = object["kind"] as? String

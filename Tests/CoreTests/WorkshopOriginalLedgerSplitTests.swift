@@ -24,7 +24,7 @@ final class WorkshopOriginalLedgerSplitTests: XCTestCase {
     func testAdvancedProvenanceIsNotACommandReceipt() async throws {
         let source = LedgerRead()
         source.advanced = Data("""
-        {"sourceHash":"\(hash)","runHash":"\(runHash)","session":"8","topic":"2","node":"5","kind":"CHOICE"}
+        {"schema":"mod-installation-native-runtime-v1","status":"SUPPORTED","kind":"CHOICE","sourceHash":"\(hash)","runHash":"\(runHash)","sessionId":"8","activityId":"1","topicId":"2","nodeId":"5"}
         """.utf8)
         let fact = try await WorkshopOriginalLedgerSplit().readAdvanced(sessionID: 8, memberID: 3, source: source)
         XCTAssertFalse(fact.isCommandReceipt)
