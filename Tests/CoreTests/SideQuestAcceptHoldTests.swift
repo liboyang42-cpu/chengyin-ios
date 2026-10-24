@@ -145,6 +145,25 @@ final class SideQuestAcceptHoldTests: XCTestCase {
         XCTAssertEqual(quest.original?.terminal, .completed)
         XCTAssertEqual(try quest.recoverOriginal(originalRequestID: "sq-comp-unk").originalRequestID, "sq-comp-unk")
     }
+    func testUnusedSubmitProofBeforeHoldDoesNotOccupyThenUniqueSubmitApplies() throws {
+        var quest = SideQuestAcceptHold()
+        try quest.discover(try place())
+        XCTAssertThrowsError(try quest.submitProof(try XCTUnwrap(SideQuestProof(kind: .qr, attested: true)))) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .holdRequired)
+        }
+        XCTAssertEqual(quest.phase, .discovered, "未见预占 submitProof 观察不得占 proof")
+        XCTAssertNil(quest.proof)
+        XCTAssertNil(quest.hold)
+        XCTAssertNil(quest.original)
+        try quest.acceptHold(holdID: "hold-proof", originalRequestID: "sq-proof-unk", seats: 1)
+        XCTAssertEqual(quest.phase, .holdAccepted)
+        XCTAssertNil(quest.proof)
+        try quest.submitProof(try XCTUnwrap(SideQuestProof(kind: .qr, attested: true)))
+        XCTAssertEqual(quest.phase, .proofPending)
+        XCTAssertEqual(quest.proof?.kind, .qr)
+        XCTAssertEqual(quest.hold?.originalRequestID, "sq-proof-unk")
+        XCTAssertNil(quest.original)
+    }
     func testNonCompliantHiddenCapacityAndFakeGPS() throws {
         var quest = SideQuestAcceptHold()
         XCTAssertThrowsError(try quest.discover(try place(compliant: false))) { error in
