@@ -2,17 +2,41 @@
 
 Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
 Repo: github.com/liboyang42-cpu/chengyin-ios
-Base: origin/cursor/c09-message-action-flow-e504 `17f7b4af4e6f5443707158049798022af7835afa`
+Base: origin/cursor/c09-message-page-actions-e504 `e393b9b39ec1d1988117d9e18f69d5d1e6fa6ca6`
 
-`NativeChannelMessagePageActions` is the caller the existing channel message page uses for send, edit, recall, and pin. Each method calls `NativeChannelMessageActionEntry` once. A nil port waits. The request id is not rewritten. Blank content is invalid. Outcome stays UNKNOWN. No local receipt store. `appear()` does not send. Search stays on `NativeChannelMessageEntry`. This file does not add a second search chain.
+`NativeChannelMessagePageActions` forwards the normal channel message page.
+Send calls `NativeChannelTextCoordinator.sendNew(_:)` once.
+Edit, recall, and pin each call `NativeChannelMessageCoordinator.submit(_:)` once.
+The synchronous throws-to-dictionary port is not the writer.
+The same request is read back with the original journal `restore`.
+A different request, a blank body, or a missing proof stays UNKNOWN and does not clear the journal.
+A sparse submitted receipt with `message_unavailable` and no MessagingMessage is not rejected.
+This file does not fabricate a MessagingMessage, rewrite a request id, or add a receipt store.
+`appear()` does not send. Search stays on `NativeChannelMessageEntry`.
+Do not block `sendNew` or `submit` with a synchronous wrapper. The original methods are already async.
+Do not call `ImmutableReceiptProducer.accept` or `recoverOriginal`.
 
-Do not apply this hunk onto `App/AppSession.swift`, `App/AppCompositionRoot.swift`, or `Questify.xcodeproj/project.pbxproj`. Those three files are unchanged in this branch. The SwiftUI page below is also not applied: `NativeChannelMessageActionEntry.swift` and `NativeChannelMessagePageActions.swift` are not in the committed Xcode target, and this change does not edit project.pbxproj. Applying only the view patch would break that target.
+Do not apply this hunk onto `App/MessagingHistoryView.swift`, `App/AppSession.swift`, `App/AppCompositionRoot.swift`, or `Questify.xcodeproj/project.pbxproj`. Those files stay unchanged. Do not edit journal persist, restore, or settle. The SwiftUI page below is also not applied.
 
 XCTest NOT_RUN where swiftc is absent. Not 100%.
 
+## Original command conformance (not applied)
+
+```
+extension NativeChannelTextCoordinator: NativeChannelOriginalTextCommand {}
+extension NativeChannelMessageCoordinator: NativeChannelOriginalMessageCommand {}
+extension NativeChannelTextJournal: NativeChannelOriginalTextJournal {}
+extension NativeChannelMessageMutationJournal: NativeChannelOriginalMutationJournal {}
+extension NativeChannelMessageCommand: NativeChannelOriginalMutationIdentity {}
+```
+
+`NativeChannelTextCoordinator.sendNew(_:)` and `NativeChannelMessageCoordinator.submit(_:)` stay the original methods.
+`NativeChannelTextJournal.restore()` and `NativeChannelMessageMutationJournal.restore()` stay the original reads.
+Do not add a second journal or a second search chain.
+
 ## Page patch (not applied)
 
-Existing page: `App/MessagingHistoryView.swift`. No gradient, glow, or emoji icons. The resting layout is unchanged. Appearance calls `appear()` only.
+Existing page: `App/MessagingHistoryView.swift`. No gradient, glow, or emoji icons. The resting layout is unchanged. Appearance calls `appear()` only. `channelActions` is optional until the existing host supplies the original coordinators. A nil page does not send.
 
 ```
 diff --git a/App/MessagingHistoryView.swift b/App/MessagingHistoryView.swift
@@ -22,36 +46,48 @@ diff --git a/App/MessagingHistoryView.swift b/App/MessagingHistoryView.swift
      @State private var generation: UInt64 = 0
      @State private var visibleMessageID: Int?
      @State private var showingPollComposer = false
-+    @State private var channelActions = NativeChannelMessagePageActions()
++    @State private var channelActions: ChannelPageActions?
 
      init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil, onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }) {
 @@ -159,6 +160,7 @@ struct MessagingHistoryView: View {
              // Only a new account epoch or an unfinished first load starts an automatic read.
              if !currentHistoryReady { await reload() }
          }
-+        .onAppear { channelActions.appear() }
++        .onAppear { channelActions?.appear() }
          .onDisappear { generation &+= 1; isLoadingEarlier = false }
      }
-@@ -247,6 +249,46 @@ struct MessagingHistoryView: View {
+@@ -247,6 +249,28 @@ struct MessagingHistoryView: View {
              && ObjectIdentifier(reader) == source && reader.isConfigured
              && history.conversationID == conversationID
      }
-+    func sendChannel(requestID: String?, kind: NotifyKind?, actorID: Int64?, conversationID: Int64?, msgType: Int?, content: String?, extraJSON: String?, replyToID: Int64?, mentionMemberIDs: [Int64] = [], mentionRoleIDs: [Int64] = [], mentionEveryone: Bool = false, port: ImmutableReceiptProducer.ChannelOriginalSend? = nil) throws -> ImmutableReceiptProducer.OriginalReceipt {
-+        try channelActions.send(requestID: requestID, kind: kind, actorID: actorID, conversationID: conversationID, msgType: msgType, content: content, extraJSON: extraJSON, replyToID: replyToID, mentionMemberIDs: mentionMemberIDs, mentionRoleIDs: mentionRoleIDs, mentionEveryone: mentionEveryone, port: port)
++    func sendChannel(requestID: String?, content: String?) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NotifyFailure.waitingSource(capability: "native-channel-text.sendNew") }
++        return try await channelActions.send(requestID: requestID, content: content)
 +    }
-+    func editChannel(requestID: String?, kind: NotifyKind?, actorID: Int64?, conversationID: Int64?, messageID: Int64?, content: String?, expectedVersion: Int64?, mentionMemberIDs: [Int64] = [], mentionRoleIDs: [Int64] = [], mentionEveryone: Bool = false, port: ImmutableReceiptProducer.ChannelOriginalEdit? = nil) throws -> ImmutableReceiptProducer.OriginalReceipt {
-+        try channelActions.edit(requestID: requestID, kind: kind, actorID: actorID, conversationID: conversationID, messageID: messageID, content: content, expectedVersion: expectedVersion, mentionMemberIDs: mentionMemberIDs, mentionRoleIDs: mentionRoleIDs, mentionEveryone: mentionEveryone, port: port)
++    func editChannel(command: NativeChannelMessageCommand) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NotifyFailure.waitingSource(capability: "native-channel-message.submit") }
++        return try await channelActions.edit(command: command)
 +    }
-+    func recallChannel(requestID: String?, kind: NotifyKind?, actorID: Int64?, conversationID: Int64?, messageID: Int64?, reason: String?, expectedVersion: Int64?, port: ImmutableReceiptProducer.ChannelOriginalRecall? = nil) throws -> ImmutableReceiptProducer.OriginalReceipt {
-+        try channelActions.recall(requestID: requestID, kind: kind, actorID: actorID, conversationID: conversationID, messageID: messageID, reason: reason, expectedVersion: expectedVersion, port: port)
++    func recallChannel(command: NativeChannelMessageCommand) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NotifyFailure.waitingSource(capability: "native-channel-message.submit") }
++        return try await channelActions.recall(command: command)
 +    }
-+    func pinChannel(requestID: String?, kind: NotifyKind?, actorID: Int64?, conversationID: Int64?, messageID: Int64?, pinned: Bool, port: ImmutableReceiptProducer.ChannelOriginalPin? = nil) throws -> ImmutableReceiptProducer.OriginalReceipt {
-+        try channelActions.pin(requestID: requestID, kind: kind, actorID: actorID, conversationID: conversationID, messageID: messageID, pinned: pinned, port: port)
++    func pinChannel(command: NativeChannelMessageCommand) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NotifyFailure.waitingSource(capability: "native-channel-message.submit") }
++        return try await channelActions.pin(command: command)
 +    }
  }
++typealias ChannelPageActions = NativeChannelMessagePageActions<
++    NativeChannelTextCoordinator,
++    NativeChannelMessageCoordinator,
++    NativeChannelTextJournal,
++    NativeChannelMessageMutationJournal>
 ```
 
-`channelActions.send(`, `channelActions.edit(`, `channelActions.recall(`, `channelActions.pin(` each run once per page call. `channelActions.appear()` does not send.
+`channelActions.send(`, `channelActions.edit(`, `channelActions.recall(`, `channelActions.pin(` each run once per page call.
+Send reaches `textCoordinator.sendNew` once. Edit, recall, and pin each reach `messageCoordinator.submit` once.
+`channelActions.appear()` does not send.
+`channelActions?.appear()` does not send when the page is absent.
 
 ## PBX ids (D6/dot only, do not apply here)
 
