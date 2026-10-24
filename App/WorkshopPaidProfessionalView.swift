@@ -204,11 +204,15 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
         }
     }
     private func fact(_ key: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) { professionalText(key).font(.caption).foregroundStyle(.secondary); Text(verbatim: value) }.fixedSize(horizontal: false, vertical: true)
+        RevolutInsetRow(title: professionalLabel(key, locale: locale), value: value)
+            .fixedSize(horizontal: false, vertical: true)
     }
     private func schedule(_ action: WorkshopPaidProfessionalController.Action?) {
         guard let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
     }
+}
+private func professionalLabel(_ key: String, locale: Locale) -> String {
+    String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopPaidProfessional." + key), table: "WorkshopPaidProfessional", locale: locale))
 }
 private func professionalText(_ key: String) -> Text { Text(LocalizedStringKey("workshopPaidProfessional." + key), tableName: "WorkshopPaidProfessional") }
 

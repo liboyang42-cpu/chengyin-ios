@@ -196,7 +196,14 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
 private struct InstallFact: View {
     let key: String, value: String
     init(_ key: String, _ value: String) { self.key = key; self.value = value }
-    var body: some View { VStack(alignment: .leading, spacing: 4) { installText(key).font(.caption).foregroundStyle(.secondary); Text(verbatim: value) }.fixedSize(horizontal: false, vertical: true) }
+    @Environment(\.locale) private var locale
+    var body: some View {
+        RevolutInsetRow(title: installLabel(key, locale: locale), value: value)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+private func installLabel(_ key: String, locale: Locale) -> String {
+    String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopPaidInstall." + key), table: "WorkshopPaidInstall", locale: locale))
 }
 private func installText(_ key: String) -> Text { Text(LocalizedStringKey("workshopPaidInstall." + key), tableName: "WorkshopPaidInstall") }
 

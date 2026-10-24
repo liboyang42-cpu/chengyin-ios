@@ -1,0 +1,35 @@
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -14123,6 +14123,16 @@
+ 		"B41876628191F1C25A192003" = {
+ 			"isa" = "PBXBuildFile";
+ 			"fileRef" = "0A9090EEB612BC0145EE1675";
++		};
++		"F0B4E21184507F10C40F6470" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/RevolutContentStyle.swift";
++			"sourceTree" = "<group>";
++		};
++		"0EE10C91064CF132720C0A72" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "F0B4E21184507F10C40F6470";
+ 		};
+ 		"C9F58353CE9F4DB66E4BB9AB" = {
+ 			"isa" = "PBXFileReference";
+@@ -18769,6 +18779,7 @@
+ 				"593F4BCA510641665E667A0F",
+ 				"F2A1BAF5AB9C9B9B0FF75275",
+ 				"0A9090EEB612BC0145EE1675",
++				"F0B4E21184507F10C40F6470",
+ 				"C9F58353CE9F4DB66E4BB9AB",
+ 				"1D435AB9590352FB3DC5A150",
+ 				"C75EB74CB3241A9540AF03D8",
+@@ -21141,6 +21152,7 @@
+ 				"CEC45B67B161797B0B87D342",
+ 				"CAAC60B617CAFB87AD89F35B",
+ 				"B41876628191F1C25A192003",
++				"0EE10C91064CF132720C0A72",
+ 				"AEA994E7EE5DBE085BD83EEA",
+ 				"64C7E4D59341440475BA3B2F",
+ 				"E9A8467C7C64F22B2F755FB8",

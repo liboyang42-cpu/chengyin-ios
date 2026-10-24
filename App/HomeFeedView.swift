@@ -137,6 +137,7 @@ struct HomeFeedCard: View {
     let item: HomeFeedItem
     private let liveStart: Date?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
     init(item: HomeFeedItem, sourceTimeZone: TimeZone? = nil) {
         self.item = item
         if case .activity = item { liveStart = HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone) }
@@ -158,12 +159,7 @@ struct HomeFeedCard: View {
             if item.isBeta { Text("homeFeed.beta").font(.caption.weight(.semibold)) }
             QuestifyImageEntityMetadata(label:"homeFeed.date",value:item.startDate ?? "—",systemImage:"calendar")
             QuestifyImageEntityMetadata(label:"homeFeed.place",value:item.place ?? "—",systemImage:"mappin")
-            VStack(alignment:.leading,spacing:3) {
-                Text("homeFeed.priceFrom").font(.caption)
-                if let amount=item.amount,amount>=0 { Text(amount,format:.number.precision(.fractionLength(2))).font(.headline) }
-                else { Text("homeFeed.unknown") }
-                Text("homeFeed.currencyUnknown").font(.caption)
-            }
+            priceBlock(showCurrencyWhenUnknown: true)
         }
     }
     private var standardCard:some View {
@@ -188,14 +184,7 @@ struct HomeFeedCard: View {
             Divider()
             let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 12))
             layout {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("homeFeed.priceFrom").font(.caption).foregroundStyle(.secondary)
-                    if let amount = item.amount, amount >= 0 {
-                        Text(amount, format: .number.precision(.fractionLength(2)))
-                            .font(.headline).monospacedDigit()
-                        Text("homeFeed.currencyUnknown").font(.caption).foregroundStyle(.secondary)
-                    } else { Text("homeFeed.unknown").font(.headline) }
-                }
+                priceBlock(showCurrencyWhenUnknown: false)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 VStack(alignment: .leading, spacing: 6) {
                     if item.isBeta { QuestifyStatusBadge(title: "homeFeed.beta", systemImage: "flask") }
@@ -206,6 +195,15 @@ struct HomeFeedCard: View {
         .foregroundStyle(.primary)
         .fixedSize(horizontal: false, vertical: true)
         .questifyCardSurface()
+    }
+    private func priceBlock(showCurrencyWhenUnknown: Bool) -> some View {
+        let from = appLocalized("homeFeed.priceFrom", locale: locale)
+        let currency = appLocalized("homeFeed.currencyUnknown", locale: locale)
+        let known = item.amount.flatMap { $0 >= 0 ? $0 : nil }
+        let figure = known.map { $0.formatted(.number.precision(.fractionLength(2)).locale(locale)) }
+            ?? appLocalized("homeFeed.unknown", locale: locale)
+        let label = known != nil || showCurrencyWhenUnknown ? from + "\n" + currency : from
+        return RevolutAmountView(figure: figure, label: label)
     }
 }
 

@@ -243,8 +243,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         guard !days.isEmpty, indexes.count == days.count else { return value }
         return indexes.map { names[$0] }.joined(separator: ", ") + " " + String(parts[1])
     }
-    private func reviewRow(_ key: LocalizedStringKey, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) { Text(key).font(.caption).foregroundStyle(.secondary); Text(value.isEmpty ? "—" : value) }
+    private func reviewRow(_ key: String, _ value: String) -> some View {
+        RevolutInsetRow(title: appLocalized(String.LocalizationValue(stringLiteral: key), locale: locale), value: value.isEmpty ? "—" : value)
     }
     private var identitySection: some View {
         Section("merchant.onboarding.identity.title") {

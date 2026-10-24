@@ -196,11 +196,10 @@ private struct WorkshopOwnedScopeSection: View {
 private struct WorkshopOwnedValueRow: View {
     let key: String
     let value: String
+    @Environment(\.locale) private var locale
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            workshopText(key).font(.caption).foregroundStyle(.secondary)
-            Text(verbatim: value)
-        }.fixedSize(horizontal: false, vertical: true)
+        RevolutInsetRow(title: workshopLabel(key, locale: locale), value: value)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 private struct WorkshopOwnedFailureView: View {
@@ -216,6 +215,9 @@ private struct WorkshopOwnedFailureView: View {
         }
     }
     var body: some View { workshopText(key).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("workshopOwned.error") }
+}
+private func workshopLabel(_ key: String, locale: Locale) -> String {
+    String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopOwned." + key), table: "WorkshopOwned", locale: locale))
 }
 private func workshopText(_ key: String) -> Text { Text(LocalizedStringKey("workshopOwned." + key), tableName: "WorkshopOwned") }
 private struct WorkshopOwnedNavigationTitle: ViewModifier {

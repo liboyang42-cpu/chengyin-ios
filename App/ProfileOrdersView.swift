@@ -281,12 +281,10 @@ private struct ProfileRefundStatus: View {
 
 private struct ProfileOrderAmountLabel: View {
     let amount: Decimal?
+    @Environment(\.locale) private var locale
     var body: some View {
         if let amount {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(verbatim: OwnedOrderMoneyText.string(amount)).monospacedDigit()
-                Text("activity.currencyUnconfirmed").font(.caption)
-            }
+            RevolutAmountView(figure: OwnedOrderMoneyText.string(amount), label: appLocalized("activity.currencyUnconfirmed", locale: locale))
         } else { Text("activity.priceUnknown").foregroundStyle(.secondary) }
     }
 }
