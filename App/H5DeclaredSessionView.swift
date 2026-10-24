@@ -29,7 +29,7 @@ import SwiftUI
                 Button("h5.compare") { compare() }
                 Button("h5.rejectAnswers") { rejectAnswers() }
                 Button("h5.importMetadata") { importMetadata() }
-                Button("h5.open") { message = page.openShell(launch: nil).capabilityText }
+                Button("h5.open") { message = page.openShell(launch: launch).capabilityText }
                     .disabled(page.session.gate.phase != .admitted && page.session.gate.phase != .waitingSource)
             }
             if !message.isEmpty { Text(verbatim: message).font(.footnote) }
