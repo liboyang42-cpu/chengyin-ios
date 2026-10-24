@@ -234,6 +234,22 @@ public struct EventScoreOriginalLedger: Equatable {
     public static let scoringReceipt = "orientScoring.receipt"
     public static let sessionReceipt = "orientSession.receipt"
     public static let sessionReceiptNotFound = "ORIENT_RECEIPT_NOT_FOUND"
+
+    public indirect enum Wire: Equatable, Sendable {
+        case null
+        case bool(Bool)
+        case int(Int64)
+        case string(String)
+        case array([Wire])
+        case object([String: Wire])
+    }
+
+    public enum WireFailure: Error, Equatable {
+        case waitingSource(String)
+        case notFound(String)
+        case transport(String)
+        case forbidden(String)
+    }
     public static let receiptKinds: Set<String> = ["SETTLE", "APPEAL", "DISPUTE"]
     public struct WaitingSource: Error, Equatable {
         public let capability: String
@@ -245,13 +261,13 @@ public struct EventScoreOriginalLedger: Equatable {
     public func recoverFromOriginalRewardRead(
         memberID: Int64?,
         sessionID: Int64?,
-        read: ((Int64, Int64) -> [String: String]?)?
-    ) throws -> [String: String]? {
+        read: ((Int64, Int64) async throws -> Wire)?
+    ) async throws -> Wire? {
         guard let memberID, memberID > 0, let sessionID, sessionID > 0 else { return nil }
         guard let read else {
-            throw WaitingSource(capability: Self.originalRewardRead)
+            throw WireFailure.waitingSource(Self.originalRewardRead)
         }
-        return read(memberID, sessionID)
+        return try await read(memberID, sessionID)
     }
 
     /// Read IOrientScoringService.receipt. Kind must be SETTLE, APPEAL, or DISPUTE.
@@ -261,17 +277,15 @@ public struct EventScoreOriginalLedger: Equatable {
         kind: String?,
         sessionID: Int64?,
         idempotencyKey: String?,
-        receipt: ((Int64, String, Int64, String) -> [String: String]?)?
-    ) throws -> [String: String]? {
+        receipt: ((Int64, String, Int64, String) async throws -> Wire)?
+    ) async throws -> Wire? {
         guard let memberID, memberID > 0, let sessionID, sessionID > 0,
               let key = EventScoreRequestIdentity.parse(idempotencyKey),
               let kind, Self.receiptKinds.contains(kind) else { return nil }
         guard let receipt else {
-            throw WaitingSource(capability: Self.scoringReceipt)
+            throw WireFailure.waitingSource(Self.scoringReceipt)
         }
-        guard let found = receipt(memberID, kind, sessionID, key) else { return nil }
-        if found["state"] == "NOT_FOUND" { return nil }
-        return found
+        return try await receipt(memberID, kind, sessionID, key)
     }
 
     /// Read IOrientSessionService.receipt. ORIENT_RECEIPT_NOT_FOUND returns nil and does not

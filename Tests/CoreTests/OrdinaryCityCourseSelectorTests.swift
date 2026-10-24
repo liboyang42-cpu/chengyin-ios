@@ -416,47 +416,69 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-fin-unfrz").outcome, .finished)
         XCTAssertEqual(ledger.readback("c04-fin-unfrz").outcome, .finished)
     }
-    func testRecoverFromOriginalRewardReadDoesNotOccupyThenUniqueFactApplies() throws {
+    func testRecoverFromOriginalRewardReadDoesNotOccupyThenUniqueFactApplies() async throws {
         var ledger = EventScoreOriginalLedger()
-        XCTAssertNil(try ledger.recoverFromOriginalRewardRead(memberID: 0, sessionID: 30, read: { _, _ in ["state": "AVAILABLE"] }))
-        XCTAssertNil(try ledger.recoverFromOriginalRewardRead(memberID: 7, sessionID: 0, read: { _, _ in ["state": "AVAILABLE"] }))
+        let available = EventScoreOriginalLedger.Wire.object(["state": .string("AVAILABLE")])
+        XCTAssertNil(try await ledger.recoverFromOriginalRewardRead(memberID: 0, sessionID: 30, read: { _, _ in available }))
+        XCTAssertNil(try await ledger.recoverFromOriginalRewardRead(memberID: 7, sessionID: 0, read: { _, _ in available }))
         do {
-            _ = try ledger.recoverFromOriginalRewardRead(memberID: 7, sessionID: 30, read: nil)
+            _ = try await ledger.recoverFromOriginalRewardRead(memberID: 7, sessionID: 30, read: nil)
             XCTFail("missing original reward read must WAITING_SOURCE")
-        } catch let waiting as EventScoreOriginalLedger.WaitingSource {
-            XCTAssertEqual(waiting.capability, EventScoreOriginalLedger.originalRewardRead)
+        } catch let waiting as EventScoreOriginalLedger.WireFailure {
+            XCTAssertEqual(waiting, .waitingSource(EventScoreOriginalLedger.originalRewardRead))
         }
-        XCTAssertNil(try ledger.recoverFromOriginalRewardRead(
-            memberID: 7, sessionID: 30, read: { _, _ in nil }))
+        do {
+            _ = try await ledger.recoverFromOriginalRewardRead(memberID: 7, sessionID: 30, read: { _, _ in
+                throw EventScoreOriginalLedger.WireFailure.forbidden("ORIGINAL_REWARD_RUN_FORBIDDEN")
+            })
+            XCTFail("permission error must stay a thrown error")
+        } catch let denied as EventScoreOriginalLedger.WireFailure {
+            XCTAssertEqual(denied, .forbidden("ORIGINAL_REWARD_RUN_FORBIDDEN"))
+        }
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-reward-missing").outcome, .notFound)
-        let recovered = try ledger.recoverFromOriginalRewardRead(
+        let recovered = try await ledger.recoverFromOriginalRewardRead(
             memberID: 7, sessionID: 30,
             read: { member, session in
-                member == 7 && session == 30 ? ["state": "PARTIAL", "authority": "ORIGINAL_ISSUANCE"] : nil
+                member == 7 && session == 30
+                    ? .object(["state": .string("PARTIAL"), "xp": .object(["value": .int(12)])])
+                    : .object(["state": .string("UNAVAILABLE")])
             })
-        XCTAssertEqual(recovered?["state"], "PARTIAL")
+        XCTAssertEqual(recovered, .object(["state": .string("PARTIAL"), "xp": .object(["value": .int(12)])]))
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-reward-missing").outcome, .notFound)
     }
-    func testRecoverFromScoringReceiptReadsOriginalWithoutOccupyingFinishLedger() throws {
+    func testRecoverFromScoringReceiptReadsOriginalWithoutOccupyingFinishLedger() async throws {
         var ledger = EventScoreOriginalLedger()
-        XCTAssertNil(try ledger.recoverFromScoringReceipt(
+        XCTAssertNil(try await ledger.recoverFromScoringReceipt(
             memberID: 7, kind: "SCORE", sessionID: 30, idempotencyKey: "scr-rcpt-01",
-            receipt: { _, _, _, _ in ["state": "ACCEPTED"] }))
+            receipt: { _, _, _, _ in .object(["state": .string("ACCEPTED"), "replayed": .bool(true)]) }))
         do {
-            _ = try ledger.recoverFromScoringReceipt(
+            _ = try await ledger.recoverFromScoringReceipt(
                 memberID: 7, kind: "APPEAL", sessionID: 30, idempotencyKey: "scr-rcpt-01", receipt: nil)
             XCTFail("missing scoring receipt must WAITING_SOURCE")
-        } catch let waiting as EventScoreOriginalLedger.WaitingSource {
-            XCTAssertEqual(waiting.capability, EventScoreOriginalLedger.scoringReceipt)
+        } catch let waiting as EventScoreOriginalLedger.WireFailure {
+            XCTAssertEqual(waiting, .waitingSource(EventScoreOriginalLedger.scoringReceipt))
         }
-        XCTAssertNil(try ledger.recoverFromScoringReceipt(
+        do {
+            _ = try await ledger.recoverFromScoringReceipt(
+                memberID: 7, kind: "APPEAL", sessionID: 30, idempotencyKey: "scr-rcpt-net",
+                receipt: { _, _, _, _ in throw EventScoreOriginalLedger.WireFailure.transport("timeout") })
+            XCTFail("transport error must not become NOT_FOUND")
+        } catch let transport as EventScoreOriginalLedger.WireFailure {
+            XCTAssertEqual(transport, .transport("timeout"))
+        }
+        let missing = try await ledger.recoverFromScoringReceipt(
             memberID: 7, kind: "APPEAL", sessionID: 30, idempotencyKey: "scr-rcpt-none",
-            receipt: { _, _, _, _ in ["state": "NOT_FOUND"] }))
+            receipt: { _, _, _, _ in .object(["state": .string("NOT_FOUND")]) })
+        XCTAssertEqual(missing, .object(["state": .string("NOT_FOUND")]))
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "scr-rcpt-none").outcome, .notFound)
-        let recovered = try ledger.recoverFromScoringReceipt(
+        let recovered = try await ledger.recoverFromScoringReceipt(
             memberID: 7, kind: "APPEAL", sessionID: 30, idempotencyKey: "scr-rcpt-01",
-            receipt: { _, kind, _, key in kind == "APPEAL" && key == "scr-rcpt-01" ? ["state": "ACCEPTED"] : nil })
-        XCTAssertEqual(recovered?["state"], "ACCEPTED")
+            receipt: { _, kind, _, key in
+                kind == "APPEAL" && key == "scr-rcpt-01"
+                    ? .object(["state": .string("ACCEPTED"), "record": .object(["sessionId": .int(30)])])
+                    : .object(["state": .string("NOT_FOUND")])
+            })
+        XCTAssertEqual(recovered, .object(["state": .string("ACCEPTED"), "record": .object(["sessionId": .int(30)])]))
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "scr-rcpt-01").outcome, .notFound)
     }
     func testRecoverFromSessionReceiptReadsOriginalWithoutOccupyingFinishLedger() throws {
