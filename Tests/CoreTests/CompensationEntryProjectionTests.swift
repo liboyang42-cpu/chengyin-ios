@@ -160,6 +160,26 @@ final class CompensationEntryProjectionTests: XCTestCase {
         XCTAssertTrue(view.permissioned)
     }
 
+    func testRecoverTrailReadsExistingUnifiedTrailWithoutWritingAudit() throws {
+        let audit = ForbiddenAuditSource()
+        let projection = CompensationEntryProjection(
+            termsSource: FixedFrozenTerms(terms: frozenTerms()),
+            auditSource: audit)
+        do {
+            _ = try projection.recoverTrail(bizType: "ACTIVITY", bizId: 10, trail: nil)
+            XCTFail("missing trail must WAITING_SOURCE")
+        } catch let waiting as CompensationEntryProjection.WaitingSource {
+            XCTAssertEqual(waiting.capability, CompensationEntryProjection.auditTrail)
+        }
+        XCTAssertEqual(audit.reads, 0)
+        XCTAssertNil(try projection.recoverTrail(bizType: "  ", bizId: 10, trail: { _, _ in ["written"] }))
+        XCTAssertNil(try projection.recoverTrail(bizType: "ACTIVITY", bizId: 0, trail: { _, _ in ["written"] }))
+        let rows = try projection.recoverTrail(bizType: " ACTIVITY ", bizId: 10, trail: { type, id in
+            type == "ACTIVITY" && id == 10 ? ["COMPENSATION_FREEZE"] : []
+        })
+        XCTAssertEqual(rows, ["COMPENSATION_FREEZE"])
+    }
+
     private func frozenTerms() -> FrozenCompensationTerms {
         FrozenCompensationTerms(
             topicId: 10, executingClubId: 7,

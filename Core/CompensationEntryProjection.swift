@@ -98,6 +98,7 @@ public struct CompensationEntryProjection {
     public static let termsMissing = "EDITION_TERMS_MISSING"
     public static let frozenTerms = "clubEditionCompensation.requireFrozenTerms"
     public static let extraApprove = "extraApprover.canApproveExtraHours"
+    public static let auditTrail = "auditTrail.trail"
 
     public protocol FrozenTermsSource {
         func requireFrozenTerms(topicId: Int64) -> FrozenCompensationTerms?
@@ -234,5 +235,20 @@ public struct CompensationEntryProjection {
                 viewerId: viewerId,
                 existingPermissionCodes: [ExtraApproverGrant.approvePermission]),
             currentFinal: currentFinal)
+    }
+
+    /// Read AuditTrailProjectionService.trail. bizType is caller-supplied.
+    /// Missing reader is WAITING_SOURCE. An empty list is a real empty trail.
+    public func recoverTrail(
+        bizType: String?,
+        bizId: Int64?,
+        trail: ((String, Int64) -> [String])?
+    ) throws -> [String]? {
+        let type = bizType?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !type.isEmpty, let bizId, bizId > 0 else { return nil }
+        guard let trail else {
+            throw WaitingSource(capability: Self.auditTrail)
+        }
+        return trail(type, bizId)
     }
 }
