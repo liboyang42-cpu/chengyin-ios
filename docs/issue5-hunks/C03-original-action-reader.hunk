@@ -1,0 +1,76 @@
+# C03 original action reader — send stopped, session attach closed
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Branch: cursor/c03-original-action-reader-e504
+Base: cursor/c03-route-page-readback-e504 @ db49be679c1f88cd334bd56ee17c7bd5a78d6bdf
+
+`RouteActionReadbackFlow.swift` and `App/PlayRouteMapView.swift` are not rewritten.
+The existing page already calls `RouteActionPageRead.shownRow`. This branch adds
+`OriginalActionReader` and passes it in as that `selectAction`.
+
+The reader asks `topicRouteSessionMapper.selectActionByAction` once. The row is
+shown only when the session id, member id, and action id match. An absent id on
+the row keeps the existing check. Appearance does not ask and does not write.
+This branch does not insert a route action and does not rebuild the mapper.
+
+## Real path
+
+Looked up on hengyin, not copied into this repo:
+
+- `master` `892efe6f765a5748065569fd886ee9b00ef71d4b`
+- `cursor/c03-rpg-mechanism-consumers-5266` `eea786c064d3c1678c0dff621c9f56f9980ffa68`
+- Method: `TopicRouteSessionMapper.selectActionByAction(sessionId, memberId, actionId)`
+- XML: `TopicRouteSessionMapper.xml` `<select id="selectActionByAction">` on
+  `topic_route_action` where `session_id`, `member_id`, and `action_id`, `limit 1`
+
+No controller method calls that mapper. `GET /api/play/route-state` calls
+`TopicRouteRuntimeServiceImpl.state` and does not call `selectActionByAction`.
+POST action routes that replay through the mapper are writers. Neither is this query.
+
+No HTTP path was found. This reader does not invent a path. `httpPath` stays nil.
+`sends` stays 0. The send is stopped.
+
+## Not applied
+
+Supplying the real mapper into the running route page needs the session. That
+attach is only in the files below. Do not apply the paste from this branch.
+Do not edit those three files here.
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+```
+
+Unapplied pbx paste, for D6/dot only. `ident(name) = sha256(name)[:24].upper()`.
+
+```
+Core/OriginalActionReader.swift
+  PBXFileReference 0EB8948D75398E750CB57D14
+  PBXBuildFile     0D35F2D8B2C7B33F6F7BB736  fileRef = 0EB8948D75398E750CB57D14
+
+Tests/CoreTests/OriginalActionReaderTests.swift
+  PBXFileReference F5287F797197CA31D41612A5
+  PBXBuildFile     7F60710EA0C166E59AB42BBA  fileRef = F5287F797197CA31D41612A5
+```
+
+Unapplied call, not inserted into the route page host or the session:
+
+```
+let reader = OriginalActionReader(selectActionByAction: /* existing mapper port, not an invented path */)
+PlayRouteMapView(
+    model: model,
+    nodeDestination: { AnyView(nodeDestination($0)) },
+    actionRead: RouteActionPageReadRequest(
+        sessionID: sessionID,
+        memberID: memberID,
+        actionID: actionID,
+        selectAction: reader.selectAction))
+```
+
+`session.routeActionPageRead` does not exist. Do not add it on this branch.
+Until that attach exists, the page's `actionRead` stays nil: no extra row and
+no send. Not a second writer.
+
+XCTest / App / CI = NOT_RUN where swiftc is absent. Not 100%.
