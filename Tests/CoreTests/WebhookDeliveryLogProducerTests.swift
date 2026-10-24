@@ -61,4 +61,34 @@ final class WebhookDeliveryLogProducerTests: XCTestCase {
             originalRequestID: "evt-missing", projection: ImmutableReceiptProducer.projectionApplied)
             .jsonObject()["deliveryId"] is NSNull)
     }
+
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueDeliverApplies() throws {
+        let transport = WebhookDeliveryLogProducer.RecordingTransport(statusCode: 204, body: "ok")
+        var producer = WebhookDeliveryLogProducer(
+            transport: transport, nonceSource: { _ in "nonce-never" })
+        let blank = producer.recoverOriginal(originalRequestID: "  ", projection: nil)
+        XCTAssertNil(blank.eventId)
+        XCTAssertEqual(blank.status, WebhookDeliveryLogProducer.statusUnknown)
+        XCTAssertTrue(producer.originalByEventID.isEmpty)
+        let recovered = producer.recoverOriginal(
+            originalRequestID: "evt-dlv-never-c09",
+            projection: ImmutableReceiptProducer.projectionApplied)
+        XCTAssertEqual(recovered.eventId, "evt-dlv-never-c09")
+        XCTAssertEqual(recovered.status, WebhookDeliveryLogProducer.statusUnknown)
+        XCTAssertNil(producer.originalByEventID["evt-dlv-never-c09"])
+        XCTAssertTrue(producer.originalByEventID.isEmpty)
+        let first = try producer.deliver(
+            WebhookDeliveryLogProducer.fixtureConfig(),
+            event: WebhookDeliveryLogProducer.OriginalEvent(
+                eventId: "evt-dlv-never-c09", kind: "PIN", originalBody: "original-body"),
+            hops: [WebhookSsrfHopGuard.publicHop()])
+        XCTAssertEqual(first.eventId, "evt-dlv-never-c09")
+        XCTAssertEqual(first.deliveryId, "dlv-evt-dlv-never-c09")
+        XCTAssertEqual(first.status, WebhookDeliveryLogProducer.statusDelivered)
+        XCTAssertEqual(producer.originalByEventID.count, 1)
+        let replay = producer.recoverOriginal(originalRequestID: "evt-dlv-never-c09", projection: nil)
+        XCTAssertEqual(replay.deliveryId, first.deliveryId)
+        XCTAssertEqual(replay.eventId, "evt-dlv-never-c09")
+        XCTAssertEqual(producer.originalByEventID.count, 1)
+    }
 }

@@ -113,6 +113,12 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         ssrf = self.sources["Tests/CoreTests/WebhookSsrfHopGuardTests.swift"]
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenPublicHopAllows", ssrf)
         self.assertIn("evt-ssrf-never-c09", ssrf)
+        attachments = self.sources["Tests/CoreTests/AttachmentReviewProducerTests.swift"]
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueSubmitApplies", attachments)
+        self.assertIn("att-recover-never-c09", attachments)
+        delivery = self.sources["Tests/CoreTests/WebhookDeliveryLogProducerTests.swift"]
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueDeliverApplies", delivery)
+        self.assertIn("evt-dlv-never-c09", delivery)
 
     def test_core_isolation_contracts(self):
         kernel = self.sources["Core/ImmutableReceiptProducer.swift"]

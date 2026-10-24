@@ -49,4 +49,29 @@ final class AttachmentReviewProducerTests: XCTestCase {
         XCTAssertTrue(try producer.recover(originalRequestID: "att-dup", appliedProjectionStatus: "VISIBLE")
             .jsonObject()["requestId"] is String)
     }
+
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueSubmitApplies() throws {
+        var producer = AttachmentReviewProducer()
+        let blank = producer.recoverOriginal(originalRequestID: "  ", appliedProjectionStatus: nil)
+        XCTAssertNil(blank.requestId)
+        XCTAssertEqual(blank.status, AttachmentReviewProducer.statusUnknown)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        let recovered = producer.recoverOriginal(
+            originalRequestID: "att-recover-never-c09", appliedProjectionStatus: "VISIBLE")
+        XCTAssertEqual(recovered.requestId, "att-recover-never-c09")
+        XCTAssertEqual(recovered.status, AttachmentReviewProducer.statusUnknown)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertNil(producer.originalByRequestID["att-recover-never-c09"])
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        let first = try producer.submit(
+            originalRequestID: "att-recover-never-c09", type: .image, originalDigest: "digest-IMAGE")
+        XCTAssertEqual(first.requestId, "att-recover-never-c09")
+        XCTAssertEqual(first.status, AttachmentReviewProducer.statusPending)
+        XCTAssertEqual(producer.originalByRequestID.count, 1)
+        let replay = producer.recoverOriginal(
+            originalRequestID: "att-recover-never-c09", appliedProjectionStatus: "VISIBLE")
+        XCTAssertEqual(replay.status, AttachmentReviewProducer.statusPending)
+        XCTAssertEqual(replay.requestId, "att-recover-never-c09")
+        XCTAssertEqual(producer.originalByRequestID.count, 1)
+    }
 }
