@@ -485,6 +485,12 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
             receipt: { _, _, _, _ in .object(["state": .string("APPLIED"), "sessionId": .int(99)]) })
         XCTAssertNil(otherSession)
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "scr-rcpt-other").outcome, .notFound)
+        let otherMember = try await ledger.recoverFromScoringReceipt(
+            memberID: 7, kind: "APPEAL", sessionID: 30, idempotencyKey: "scr-rcpt-member",
+            receipt: { _, _, _, _ in
+                .object(["state": .string("ACCEPTED"), "record": .object(["sessionId": .int(30), "memberId": .int(8)])])
+            })
+        XCTAssertNil(otherMember)
     }
     func testRecoverFromSessionReceiptReadsOriginalWithoutOccupyingFinishLedger() async throws {
         var ledger = EventScoreOriginalLedger()
@@ -523,5 +529,9 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
             receipt: { _, _, _ in .object(["replayed": .bool(true), "sessionId": .int(99)]) })
         XCTAssertNil(otherSession)
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "orient-ses-other").outcome, .notFound)
+        let otherMember = try await ledger.recoverFromSessionReceipt(
+            memberID: 7, sessionID: 30, idempotencyKey: "orient-ses-member",
+            receipt: { _, _, _ in .object(["replayed": .bool(true), "sessionId": .int(30), "memberId": .int(8)]) })
+        XCTAssertNil(otherMember)
     }
 }

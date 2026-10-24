@@ -288,12 +288,14 @@ public struct EventScoreOriginalLedger: Equatable {
         }
         let found = try await receipt(memberID, kind, sessionID, key)
         if Self.wireString(found, "state") == "NOT_FOUND" { return found }
+        if let echoedMember = Self.wireInt(found, "memberId"), echoedMember != memberID { return nil }
         if kind == "SETTLE" {
             guard Self.wireInt(found, "sessionId") == sessionID else { return nil }
         }
         if kind == "APPEAL" || kind == "DISPUTE" {
             guard case .object(let fields) = found, let record = fields["record"],
                   Self.wireInt(record, "sessionId") == sessionID else { return nil }
+            if let echoedMember = Self.wireInt(record, "memberId"), echoedMember != memberID { return nil }
         }
         return found
     }
@@ -323,6 +325,7 @@ public struct EventScoreOriginalLedger: Equatable {
         }
         let found = try await receipt(memberID, sessionID, key)
         if let echoed = Self.wireInt(found, "sessionId"), echoed != sessionID { return nil }
+        if let echoedMember = Self.wireInt(found, "memberId"), echoedMember != memberID { return nil }
         return found
     }
 
