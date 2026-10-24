@@ -111,6 +111,22 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(pack.phase, .deleted)
         XCTAssertEqual(pack.operationID, "op-del")
     }
+    func testUnusedExpireOfIdleDoesNotOccupyThenUniqueStartThenExpireApplies() throws {
+        var pack = OfflinePackOperation()
+        XCTAssertEqual(pack.phase, .idle)
+        XCTAssertNil(pack.operationID)
+        XCTAssertThrowsError(try pack.expire()) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .invalidManifest)
+        }
+        XCTAssertEqual(pack.phase, .idle, "未见下载 expire 观察不得占 EXPIRED")
+        XCTAssertNil(pack.operationID)
+        try pack.startDownload(try manifest(operationID: "op-exp"))
+        XCTAssertEqual(pack.operationID, "op-exp")
+        XCTAssertEqual(pack.phase, .downloading)
+        try pack.expire()
+        XCTAssertEqual(pack.phase, .expired)
+        XCTAssertEqual(pack.operationID, "op-exp")
+    }
     func testAnswersAndHiddenCoordinatesAreNotShipped() throws {
         XCTAssertThrowsError(try OfflinePackOperation.inspect(["answer": "42"])) { error in
             XCTAssertEqual(error as? OfflinePackFailure, .answersOrHiddenCoordinatesForbidden)
