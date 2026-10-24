@@ -1,0 +1,114 @@
+# C03 route session wire — DO NOT APPLY
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Base: cursor/c03-route-action-transport-e504 @ 9220bfab0b30ecc74c8911c199efcd71461271ee
+Branch: cursor/c03-route-session-wire-e504
+
+DO NOT APPLY this hunk. Do not edit App/AppSession.swift, App/AppCompositionRoot.swift, or Questify.xcodeproj/project.pbxproj from this branch.
+
+The installed read is still one GET /api/play/route-action. This branch does not send a second request. `serviceResult` is not an argument and is not a network read.
+
+The action id and the route session id are the ones already stored on the current completion journal (`cachedCompletion.intent.advance.actionID` and `cachedCompletion.intent.routeSessionID`) or, when that journal does not have both, on the current completion receipt (`reward.routeActionId` or `reward.actionId`, and `reward.routeState.sessionId`, `reward.themeRuntime.sessionId`, or `reward.sessionId`). `PlayExperienceCoordinator.heldRouteActionIdentity` reads that pair. `App/PlayExperienceView.heldRouteActionRead` passes the pair to `PlayRouteMapView`. If either id is absent, the read stays closed. This does not mint an action id or a session id, and it does not fill a missing id from the live route snapshot.
+
+currentMemberId, AppUser.userId, and Account.id are the same member. The member id is `account.id` only. Do not invent another member id. Do not use a staff id.
+
+An unknown approval refuses the send. Do not borrow the older `.playNodesAndRouteState` grant, `playReadConfiguration`, or `PlayReadRoute` (`api/play/nodes`, `api/play/route-state`) to open `api/play/route-action`.
+
+No new file is added. No new PBX file reference is required. Do not edit pbxproj.
+
+## Not applied
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+App/MessagingHomeView.swift
+App/ProfileOrdersView.swift
+MerchantDeskSkuPage.swift
+```
+
+Unapplied closure, beside `playReadConfiguration` (App/AppCompositionRoot.swift around line 543). Default nil. Do not assign it from `playReadConfiguration`. Do not apply.
+
+```swift
+var routeActionReadApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
+```
+
+Unapplied branch inside `CompositionHTTPTransport.send`, before the `playRead` query is allowed to stand in for this GET. `PlayReadRoute` stays limited to `api/play/nodes` and `api/play/route-state`. Do not add `api/play/route-action` to that enum or to the `.playNodesAndRouteState` path set. An unknown approval throws and does not fall through. Do not apply.
+
+```swift
+let routeActionRead = routeActionReadRoute(request, baseURL: api.baseURL)
+// Add `routeActionRead != nil` to the existing query guard. Do not treat playRead as this route.
+...
+} else if routeActionRead {
+    guard captured.isSignedInContentViewer,
+          let account = captured.accountID, account > 0,
+          let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+          let token = captured.token,
+          let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+            namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+    let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
+        role: role, session: session)
+    guard let approval = routeActionReadApproval(context),
+          approval.allows(configuration: api, namespace: session.namespace, accountID: account, path: "api/play/route-action") else {
+        throw APIError.notConfigured
+    }
+    readApprovalStillValid = { [routeActionReadApproval] in
+        guard let current = routeActionReadApproval(context) else { return false }
+        return current.allows(configuration: api, namespace: session.namespace, accountID: account, path: "api/play/route-action")
+    }
+}
+```
+
+Unapplied recognizer, same file, not `PlayReadRoute`. Query is `sessionId`, `memberId`, `actionId` on GET `api/play/route-action`. Do not apply.
+
+```swift
+private func routeActionReadRoute(_ request: URLRequest, baseURL: URL) -> Bool {
+    guard request.httpMethod == "GET", request.httpBody == nil, request.httpBodyStream == nil,
+          let url = request.url, let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
+          parts.scheme == "https", parts.user == nil, parts.password == nil, parts.fragment == nil,
+          parts.path == baseURL.appendingPathComponent("api/play/route-action").path,
+          let items = parts.queryItems, items.count == 3 else { return false }
+    let values = Dictionary(items.map { ($0.name, $0.value ?? "") }, uniquingKeysWith: { _, _ in "" })
+    guard values.count == 3, let session = Int64(values["sessionId"] ?? ""), session > 0, String(session) == values["sessionId"],
+          let member = Int64(values["memberId"] ?? ""), member > 0, String(member) == values["memberId"],
+          let action = values["actionId"]?.trimmingCharacters(in: .whitespacesAndNewlines), !action.isEmpty else { return false }
+    return true
+}
+```
+
+Unapplied method, beside `playExperience(for:)` (App/AppSession.swift around line 363). Do not apply. `serviceResult` is not an argument.
+
+```swift
+func routeActionPageRead(model: PlayExperienceCoordinator) -> RouteActionPageReadRequest? {
+    guard let held = model.heldRouteActionIdentity else { return nil }
+    guard let configuration = regionalConfiguration?.apiConfiguration, configuration.baseURL.scheme == "https",
+          let account, account.id != 0, let token, AuthRequestBuilder.isValidToken(token),
+          let context = currentRuntimeDependencyContext else { return nil }
+    guard let approval = compositionTransport.routeActionReadApproval(context),
+          approval.allows(configuration: configuration, namespace: context.session.namespace,
+            accountID: account.id, path: "api/play/route-action") else { return nil }
+    return RouteActionPageReadRequest(
+        sessionID: held.routeSessionID,
+        memberID: Int64(account.id),
+        actionID: held.actionID,
+        apiBaseURL: configuration.baseURL,
+        transport: compositionTransport,
+        token: token,
+        accountID: account.id,
+        approval: approval,
+        approvalNamespace: context.session.namespace)
+}
+```
+
+`account.id` is the same member as currentMemberId and AppUser.userId. Do not read a staff id. Do not call `playReadConfiguration`. A nil approval returns nil and refuses the send.
+
+Unapplied call, not inserted into `SessionPlayRuntimeView`. Do not apply.
+
+```swift
+routeActionRead: session.routeActionPageRead(model: model)
+```
+
+`session.routeActionPageRead` does not exist. Do not add it on this branch. Until that attach exists, `PlayExperienceView.routeActionRead` stays nil and the map uses only the held ids. Those ids do not carry an approval, so the page refuses the send. Not a second writer. `AppCompositionRoot` is not edited, so this paste does not open another composition route.
+
+XCTest / App / CI = NOT_RUN. swiftc was not required to land this file. Not 100%.

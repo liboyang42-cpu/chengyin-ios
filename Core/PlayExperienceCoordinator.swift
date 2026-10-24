@@ -66,6 +66,13 @@ public struct PlayInteractionContext: Equatable {
     var lifetimeIdentity: String { "\(owner.uuidString):\(generation):\(mode.rawValue)" }
 }
 
+/// Action id and route session id already stored on one completion journal or receipt.
+/// A missing id is not filled from the live route snapshot and is not minted.
+public struct HeldRouteActionIdentity: Equatable {
+    public let actionID: String
+    public let routeSessionID: Int64
+}
+
 public struct PlayCompletionReview: Equatable {
     public let nodeID: Int
     public let evidence: PlayCompletionEvidence
@@ -146,6 +153,29 @@ public struct PlayCompletionReview: Equatable {
     public var hasModeRecoveryBlock: Bool {
         guard let mode = gameplayMode, let pending = cachedCompletion?.value else { return false }
         return pending.intent.gameplayMode != mode
+    }
+    /// Both ids from the current completion journal, or both from the current receipt.
+    /// Does not mint an action id or a session id, and does not pair an older journal with a newer receipt.
+    public var heldRouteActionIdentity: HeldRouteActionIdentity? {
+        journalRouteActionIdentity ?? receiptRouteActionIdentity
+    }
+    private var journalRouteActionIdentity: HeldRouteActionIdentity? {
+        guard let pending = cachedCompletion?.value,
+              let routeSessionID = pending.intent.routeSessionID, routeSessionID > 0,
+              let stored = pending.intent.advance?.actionID else { return nil }
+        let actionID = stored.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !actionID.isEmpty, actionID.count <= 96 else { return nil }
+        return HeldRouteActionIdentity(actionID: actionID, routeSessionID: Int64(routeSessionID))
+    }
+    private var receiptRouteActionIdentity: HeldRouteActionIdentity? {
+        guard let reward else { return nil }
+        let stored = reward["routeActionId"].text ?? reward["actionId"].text
+        let actionID = stored?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let session = reward["routeState"]["sessionId"].integer
+            ?? reward["themeRuntime"]["sessionId"].integer
+            ?? reward["sessionId"].integer
+        guard !actionID.isEmpty, actionID.count <= 96, let session, session > 0 else { return nil }
+        return HeldRouteActionIdentity(actionID: actionID, routeSessionID: Int64(session))
     }
     public var available: Bool { service.enabled.contains(.reads) }
     public var gameplayMode: PlayGameplayMode? { PlayGameplayMode(serverValue: snapshot?.result.mode) }
