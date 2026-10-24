@@ -271,7 +271,8 @@ public struct EventScoreOriginalLedger: Equatable {
     }
 
     /// Read IOrientScoringService.receipt. Kind must be SETTLE, APPEAL, or DISPUTE.
-    /// NOT_FOUND returns nil and does not occupy freeze/finish keys. Does not append.
+    /// The Wire is returned as-is, including a NOT_FOUND object. Nil is only an unusable
+    /// identity, not a NOT_FOUND receipt. Does not append.
     public func recoverFromScoringReceipt(
         memberID: Int64?,
         kind: String?,
@@ -288,24 +289,20 @@ public struct EventScoreOriginalLedger: Equatable {
         return try await receipt(memberID, kind, sessionID, key)
     }
 
-    /// Read IOrientSessionService.receipt. ORIENT_RECEIPT_NOT_FOUND returns nil and does not
-    /// occupy finish keys. Does not start or abandon the session.
+    /// Read IOrientSessionService.receipt. Numbers, null, and bool stay on the Wire.
+    /// Not-found and transport errors stay thrown. Does not start or abandon the session.
     public func recoverFromSessionReceipt(
         memberID: Int64?,
         sessionID: Int64?,
         idempotencyKey: String?,
-        receipt: ((Int64, Int64, String) throws -> [String: String]?)?
-    ) throws -> [String: String]? {
+        receipt: ((Int64, Int64, String) async throws -> Wire)?
+    ) async throws -> Wire? {
         guard let memberID, memberID > 0, let sessionID, sessionID > 0,
               let key = EventScoreRequestIdentity.parse(idempotencyKey) else { return nil }
         guard let receipt else {
-            throw WaitingSource(capability: Self.sessionReceipt)
+            throw WireFailure.waitingSource(Self.sessionReceipt)
         }
-        do {
-            return try receipt(memberID, sessionID, key)
-        } catch let missing as WaitingSource where missing.capability == Self.sessionReceiptNotFound {
-            return nil
-        }
+        return try await receipt(memberID, sessionID, key)
     }
 
     private func runMatching(_ start: EventScoreStartPayload) -> Run? {
