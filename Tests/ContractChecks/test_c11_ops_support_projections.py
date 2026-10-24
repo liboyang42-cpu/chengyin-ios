@@ -129,11 +129,15 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn("originalEntryNotReplacedByCurrentFinal", compensation)
         self.assertIn("func requery(", compensation)
         self.assertIn("func recoverOriginal(", compensation)
+        self.assertIn("projectFromReachability", compensation)
+        self.assertIn("extraApprover.canApproveExtraHours", compensation)
+        self.assertIn("clubEditionCompensation.requireFrozenTerms", compensation)
         tests = self.sources["Tests/CoreTests/CompensationEntryProjectionTests.swift"]
         self.assertIn("200.00", tests)
         self.assertIn("999.00", tests)
         self.assertIn("denied viewer must not read audit", tests)
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueAuditApplies", tests)
+        self.assertIn("testProjectFromReachabilityConsumesPublicFrozenTermsWithoutOccupyingOnDeny", tests)
         self.assertIn("c11-comp-never", tests)
 
     def test_deletion_evidence_is_table_not_cleaner(self):

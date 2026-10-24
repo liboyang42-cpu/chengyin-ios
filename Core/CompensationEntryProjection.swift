@@ -96,6 +96,8 @@ public struct CompensationRequeryView: Equatable, Sendable {
 public struct CompensationEntryProjection {
     public static let denied = "COMPENSATION_VIEW_DENIED"
     public static let termsMissing = "EDITION_TERMS_MISSING"
+    public static let frozenTerms = "clubEditionCompensation.requireFrozenTerms"
+    public static let extraApprove = "extraApprover.canApproveExtraHours"
 
     public protocol FrozenTermsSource {
         func requireFrozenTerms(topicId: Int64) -> FrozenCompensationTerms?
@@ -204,5 +206,33 @@ public struct CompensationEntryProjection {
         currentFinal: FinalCompensationFacts?
     ) throws -> CompensationEntryProjection.View? {
         try requery(requestId: requestId, topicId: topicId, viewer: viewer, currentFinal: currentFinal)
+    }
+
+    public struct WaitingSource: Error, Equatable {
+        public let capability: String
+    }
+
+    /// Existing ExtraApproverReachability.canApproveExtraHours as a pass-in port.
+    /// Missing source is WAITING_SOURCE. Denied viewers do not read frozen terms.
+    public func projectFromReachability(
+        requestId: String?,
+        topicId: Int64?,
+        viewerId: Int64?,
+        canApproveExtraHours: ((Int64) -> Bool)?,
+        currentFinal: FinalCompensationFacts?
+    ) throws -> CompensationEntryProjection.View? {
+        guard let canApproveExtraHours else {
+            throw WaitingSource(capability: Self.extraApprove)
+        }
+        guard let viewerId, viewerId > 0, canApproveExtraHours(viewerId) else {
+            throw CompensationEntryFailure.denied
+        }
+        return try project(
+            requestId: requestId,
+            topicId: topicId,
+            viewer: CompensationViewerGrant(
+                viewerId: viewerId,
+                existingPermissionCodes: [ExtraApproverGrant.approvePermission]),
+            currentFinal: currentFinal)
     }
 }

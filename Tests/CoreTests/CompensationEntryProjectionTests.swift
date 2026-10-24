@@ -130,6 +130,36 @@ final class CompensationEntryProjectionTests: XCTestCase {
         XCTAssertEqual(audit.byRequest.count, 1)
     }
 
+    func testProjectFromReachabilityConsumesPublicFrozenTermsWithoutOccupyingOnDeny() throws {
+        let audit = ForbiddenAuditSource()
+        let projection = CompensationEntryProjection(
+            termsSource: FixedFrozenTerms(terms: frozenTerms()), auditSource: audit)
+        do {
+            _ = try projection.projectFromReachability(
+                requestId: "comp-req-1", topicId: 10, viewerId: 88,
+                canApproveExtraHours: nil, currentFinal: nil)
+            XCTFail("missing extra-approver port must WAITING_SOURCE")
+        } catch let waiting as CompensationEntryProjection.WaitingSource {
+            XCTAssertEqual(waiting.capability, CompensationEntryProjection.extraApprove)
+        }
+        XCTAssertThrowsError(
+            try projection.projectFromReachability(
+                requestId: "comp-req-1", topicId: 10, viewerId: 88,
+                canApproveExtraHours: { _ in false }, currentFinal: nil)
+        ) { error in
+            XCTAssertEqual((error as? CompensationEntryFailure)?.code, CompensationEntryProjection.denied)
+        }
+        XCTAssertEqual(audit.reads, 0)
+        let allowed = CompensationEntryProjection(
+            termsSource: FixedFrozenTerms(terms: frozenTerms()),
+            auditSource: RecordingAuditSource(events: [], trail: []))
+        let view = try XCTUnwrap(allowed.projectFromReachability(
+            requestId: "comp-req-1", topicId: 10, viewerId: 88,
+            canApproveExtraHours: { $0 == 88 }, currentFinal: nil))
+        XCTAssertEqual(view.originalTerms.fixedCompensation, Decimal(string: "200.00"))
+        XCTAssertTrue(view.permissioned)
+    }
+
     private func frozenTerms() -> FrozenCompensationTerms {
         FrozenCompensationTerms(
             topicId: 10, executingClubId: 7,
