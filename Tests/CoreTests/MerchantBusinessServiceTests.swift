@@ -73,7 +73,9 @@ final class MerchantBusinessServiceTests: XCTestCase {
     func testDeskSkuSaveDispatchesOriginalPath() async throws {
         let fake = BusinessRecordingTransport(#"{"code":200,"msg":"Synthetic saved","data":{"skuId":44}}"#)
         let sent = try await service(fake, writes: true).execute(
-            .saveSku(productID: 3, skuID: 44, name: "door", price: "1", stock: 2),
+            .saveSku(productID: 3, skuID: 44, name: "door", price: "1", stock: 2,
+                    originalPrice: nil, pic: nil, bookable: false, slotMinutes: 60,
+                    capacityPerSlot: 0, ruleVersion: 4),
             requestID: "desk-req-01", token: "synthetic-token")
         XCTAssertEqual(sent.data.object?["skuId"], .int(44))
         let request = try XCTUnwrap(await fake.requests.first)
@@ -84,6 +86,8 @@ final class MerchantBusinessServiceTests: XCTestCase {
         XCTAssertTrue(body.contains("\"price\":\"1\""))
         XCTAssertFalse(body.contains("ownerMemberId"))
         XCTAssertFalse(body.contains("\"action\""))
+        XCTAssertTrue(body.contains("\"ruleVersion\":4"))
+        XCTAssertTrue(body.contains("\"slotMinutes\":60"))
     }
     func testDeskDetailAndReceiptUseOriginalPaths() async throws {
         let fake = BusinessRecordingTransport("{}")

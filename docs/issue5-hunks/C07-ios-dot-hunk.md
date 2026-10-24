@@ -66,3 +66,5 @@ WAITING_SOURCE: transfer-sold policy + designated recipient authorization + irre
 Detail readback uses nested `productId` and `skus` (`skuId`, `skuName`, `price`, `stock`). A later form price is not the saved row. Restart with the same request id reads `api/merchant/desk/receipt`. `NOT_FOUND` stays `UNKNOWN` and the payload stays nil. `APPLIED` requires `SKU_SAVE` and `pms_sku`. Entry and PBX are still not delivered. XCTest NOT_RUN. Not 100%.
 
 Frozen `88.00` matches a JSON number 88 by Decimal compare. The saved price key stays the frozen string. The two read requests are still not sent. XCTest NOT_RUN. Not 100%.
+
+Money is Java-trimmed (code points <= U+0020 only), then matched to the end. U+2028 is rejected. A trailing newline is trimmed. The frozen save also carries originalPrice, bookable, slotMinutes, capacityPerSlot, and ruleVersion. A later form does not replace ruleVersion. XCTest NOT_RUN. Not 100%.

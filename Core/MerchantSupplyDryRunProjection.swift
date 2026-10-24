@@ -178,6 +178,12 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
         public let skuName: String
         public let price: String
         public let stock: Int
+        public let originalPrice: String?
+        public let pic: String?
+        public let bookable: Bool
+        public let slotMinutes: Int
+        public let capacityPerSlot: Int
+        public let ruleVersion: Int?
     }
 
     public struct Recovery: Equatable, Sendable {
@@ -190,13 +196,23 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
     public init() {}
 
     public func freeze(access: MerchantBusinessAccess, accountID: Int64, productID: Int64,
-                       skuID: Int64, requestID: String, skuName: String, price: String, stock: Int) -> Intent? {
+                       skuID: Int64, requestID: String, skuName: String, price: String, stock: Int,
+                       originalPrice: String? = nil, pic: String? = nil, bookable: Bool = false,
+                       slotMinutes: Int = 60, capacityPerSlot: Int = 0, ruleVersion: Int? = nil) -> Intent? {
         guard access.role == "MERCHANT_OWNER", accountID > 0, accountID != Int64(access.merchantID),
               productID > 0, skuID > 0, Int(exactly: productID) != nil, Int(exactly: skuID) != nil,
               MerchantSupplyDryRunProjection.parse(requestID) != nil,
-              (1...60).contains(skuName.count), priceOK(price), (0...1_000_000).contains(stock) else { return nil }
+              (1...60).contains(skuName.count), (0...1_000_000).contains(stock),
+              (15...480).contains(slotMinutes), slotMinutes % 15 == 0,
+              (0...1000).contains(capacityPerSlot), !bookable || capacityPerSlot > 0,
+              let normalizedPrice = Self.normalizedMoney(price) else { return nil }
+        let normalizedOriginal = originalPrice.flatMap(Self.normalizedMoney)
+        if let originalPrice, Self.javaTrim(originalPrice).isEmpty == false, normalizedOriginal == nil { return nil }
+        let normalizedPic = pic.map(Self.javaTrim).flatMap { $0.isEmpty ? nil : $0 }
         return Intent(requestID: requestID, skuID: skuID, productID: productID,
-                      skuName: skuName, price: price, stock: stock)
+                      skuName: skuName, price: normalizedPrice, stock: stock,
+                      originalPrice: normalizedOriginal, pic: normalizedPic, bookable: bookable,
+                      slotMinutes: slotMinutes, capacityPerSlot: capacityPerSlot, ruleVersion: ruleVersion)
     }
 
     public func detailRequest(productID: Int64) -> MerchantBusinessRequest? {
@@ -207,22 +223,49 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
     public func saveRequest(_ intent: Intent, currentFormPrice: String) -> MerchantBusinessRequest? {
         _ = currentFormPrice
         guard let product = Int(exactly: intent.productID), let sku = Int(exactly: intent.skuID) else { return nil }
-        return .json("api/merchant/desk/products/sku/save", [
+        var fields: MerchantBusinessObject = [
             "requestId": .string(intent.requestID),
             "productId": .int(product),
             "skuId": .int(sku),
             "skuName": .string(intent.skuName),
             "price": .string(intent.price),
-            "stock": .int(intent.stock)
-        ])
+            "stock": .int(intent.stock),
+            "bookable": .bool(intent.bookable),
+            "slotMinutes": .int(intent.slotMinutes),
+            "capacityPerSlot": .int(intent.capacityPerSlot)
+        ]
+        if let originalPrice = intent.originalPrice { fields["originalPrice"] = .string(originalPrice) }
+        if let pic = intent.pic { fields["pic"] = .string(pic) }
+        if let ruleVersion = intent.ruleVersion { fields["ruleVersion"] = .int(ruleVersion) }
+        return .json("api/merchant/desk/products/sku/save", fields)
     }
 
-    private func priceOK(_ value: String) -> Bool {
-        guard !value.isEmpty, value.count <= 12, !value.contains("."), value.unicodeScalars.allSatisfy({ (48...57).contains($0.value) }) else {
-            return value.range(of: #"^[0-9]+(?:\.[0-9]{1,2})?$"#, options: .regularExpression) != nil
-                && !value.hasPrefix(".")
+    /// Java `String.trim` drops code points <= U+0020 only. The remainder must match end to end.
+    public static func normalizedMoney(_ raw: String) -> String? {
+        let text = javaTrim(raw)
+        guard whole(text, #"^[0-9]+(?:\.[0-9]{1,2})?\z"#),
+              let amount = Decimal(string: text, locale: Locale(identifier: "en_US_POSIX")),
+              let limit = Decimal(string: "10000000", locale: Locale(identifier: "en_US_POSIX")),
+              amount <= limit else { return nil }
+        return text
+    }
+
+    static func javaTrim(_ raw: String) -> String {
+        let scalars = raw.unicodeScalars
+        var start = scalars.startIndex
+        var end = scalars.endIndex
+        while start < end, scalars[start].value <= 32 { start = scalars.index(after: start) }
+        while end > start {
+            let previous = scalars.index(before: end)
+            if scalars[previous].value > 32 { break }
+            end = previous
         }
-        return true
+        return String(String.UnicodeScalarView(scalars[start..<end]))
+    }
+
+    private static func whole(_ text: String, _ pattern: String) -> Bool {
+        guard let range = text.range(of: pattern, options: .regularExpression) else { return false }
+        return range.lowerBound == text.startIndex && range.upperBound == text.endIndex
     }
 
     public func accessRequest() -> MerchantBusinessRequest {
@@ -252,7 +295,8 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
                   let skuID = row["skuId"]?.integer, Int64(skuID) == intent.skuID,
                   row["skuName"]?.string == intent.skuName,
                   row["stock"]?.integer == intent.stock,
-                  let wirePrice = row["price"], sameMoney(wirePrice, intent.price) else { continue }
+                  let wirePrice = row["price"], sameMoney(wirePrice, intent.price),
+                  ruleMatches(row, intent) else { continue }
             return SkuRow(skuID: intent.skuID, skuName: intent.skuName, price: intent.price, stock: intent.stock)
         }
         return nil
@@ -273,8 +317,19 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
     }
 
     private func money(_ text: String) -> Decimal? {
-        guard text.range(of: #"^[0-9]+(?:\.[0-9]{1,2})?$"#, options: .regularExpression) != nil else { return nil }
-        return Decimal(string: text, locale: Locale(identifier: "en_US_POSIX"))
+        guard let normalized = Self.normalizedMoney(text) else { return nil }
+        return Decimal(string: normalized, locale: Locale(identifier: "en_US_POSIX"))
+    }
+
+    private func ruleMatches(_ row: [String: MerchantBusinessValue], _ intent: Intent) -> Bool {
+        if let version = intent.ruleVersion, row["ruleVersion"]?.integer != version { return false }
+        if row["slotMinutes"] != nil, row["slotMinutes"]?.integer != intent.slotMinutes { return false }
+        if row["capacityPerSlot"] != nil, row["capacityPerSlot"]?.integer != intent.capacityPerSlot { return false }
+        if row["bookable"] != nil, row["bookable"]?.bool != intent.bookable { return false }
+        if let original = intent.originalPrice {
+            guard let wire = row["originalPrice"], sameMoney(wire, original) else { return false }
+        }
+        return true
     }
 
     public func detailMatches(_ detailSkuID: Int64, intent: Intent) -> Bool {
