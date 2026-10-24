@@ -493,3 +493,26 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
         }
     }
 }
+
+/// Original `ChannelMessageService.history(actor, channel, before, after, limit)`.
+/// The inner read is `listMessages(actor, channel, before, clampedLimit, after)`.
+/// A history read does not acknowledge and does not mark the page read.
+public struct MessageContainerHistory: Equatable, Sendable {
+    public init() {}
+
+    public func read(actor: Int64, channelID: Int64, before: Int64?, after: Int64?, limit: Int,
+                     conversationType: Int, channelKind: Int,
+                     canReadHistory: (Int64, Int64) -> Bool,
+                     listMessages: ((Int64, Int64, Int64?, Int, Int64?) -> [String: Any])?) throws -> [String: Any] {
+        guard conversationType == 5, channelKind != 0, actor > 0, channelID > 0 else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        if let before, before < 0 { throw ChannelAuthorizationError.invalidCatalog }
+        if let after, after < 0 { throw ChannelAuthorizationError.invalidCatalog }
+        if let before, before > 0, after != nil { throw ChannelAuthorizationError.invalidCatalog }
+        guard canReadHistory(actor, channelID) else { throw ChannelAuthorizationError.notMember }
+        guard let listMessages else { throw ChannelAuthorizationError.waitingListMessages }
+        let clamped = limit <= 0 ? 20 : min(limit, 50)
+        return listMessages(actor, channelID, before, clamped, after)
+    }
+}

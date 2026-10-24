@@ -489,6 +489,61 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
     }
 
+    func testType5HistoryUsesOriginalCursorOrderAndDoesNotAcknowledge() throws {
+        let history = MessageContainerHistory()
+        var calls: [(Int64, Int64, Int64?, Int, Int64?)] = []
+        let page = try history.read(actor: 70, channelID: 12, before: 9, after: nil, limit: 100,
+                                    conversationType: 5, channelKind: 1,
+                                    canReadHistory: { actor, channel in actor == 70 && channel == 12 },
+                                    listMessages: { actor, channel, before, limit, after in
+            calls.append((actor, channel, before, limit, after))
+            return ["list": "page", "has_more": "false"]
+        })
+        XCTAssertEqual(calls.count, 1)
+        XCTAssertEqual(calls[0].0, 70)
+        XCTAssertEqual(calls[0].1, 12)
+        XCTAssertEqual(calls[0].2, 9)
+        XCTAssertEqual(calls[0].3, 50)
+        XCTAssertNil(calls[0].4)
+        XCTAssertEqual(page["list"] as? String, "page")
+        var resumed = 0
+        _ = try history.read(actor: 70, channelID: 12, before: nil, after: 4, limit: 0,
+                             conversationType: 5, channelKind: 1, canReadHistory: { _, _ in true },
+                             listMessages: { _, _, before, limit, after in
+            resumed += 1
+            XCTAssertNil(before)
+            XCTAssertEqual(limit, 20)
+            XCTAssertEqual(after, 4)
+            return [:]
+        })
+        XCTAssertEqual(resumed, 1)
+        XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: 9, after: 4, limit: 20,
+                                              conversationType: 5, channelKind: 1,
+                                              canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
+            calls.append((0, 0, nil, 0, nil))
+            return [:]
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        XCTAssertEqual(calls.count, 1)
+        XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: nil, after: nil, limit: 20,
+                                              conversationType: 5, channelKind: 0,
+                                              canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
+            calls.append((0, 0, nil, 0, nil))
+            return [:]
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: nil, after: nil, limit: 20,
+                                              conversationType: 5, channelKind: 1,
+                                              canReadHistory: { _, _ in false }, listMessages: { _, _, _, _, _ in
+            calls.append((0, 0, nil, 0, nil))
+            return [:]
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .notMember) }
+        XCTAssertEqual(calls.count, 1)
+        XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: nil, after: nil, limit: 20,
+                                              conversationType: 5, channelKind: 1,
+                                              canReadHistory: { _, _ in true }, listMessages: nil)) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingListMessages)
+        }
+    }
+
     private func json(_ body: [String: Any]) throws -> [String: Any] {
         let data = try JSONSerialization.data(withJSONObject: body)
         return try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: Any])
