@@ -20,6 +20,8 @@ HTTP reused: `PlayExperienceService.request`, `playerProjection`, `playerCommand
 | Core/PartyRosterProjection.swift | 7303562FBC934B8F8085C484 | D82544EFF0A949AAB327D4DA |
 | Core/CharacterCardReadback.swift | 3E66D03105B44A40AB14FBF3 | 074DC406DE614CD0BC25509B |
 | Core/EnvironmentExpiryClock.swift | 512E9A186AE04EB6BD750F88 | 9C252AB70B154DFCAEFD6D6C |
+| Core/CharacterCardReadRoute.swift | A1C02E0A11B24C0A9D0E0001 | A1C02E0A11B24C0A9D0E0002 |
+| App/CharacterCardReadbackView.swift | B2C02E0B22C34D1B8E0F0003 | B2C02E0B22C34D1B8E0F0004 |
 
 CoreTests stay on the SPM `QuestifyCoreTests` directory target. Optional `Resources/WorldEnvironment.fragment.json` is not the shared `Localizable.xcstrings`.
 
@@ -66,6 +68,26 @@ CoreTests stay on the SPM `QuestifyCoreTests` directory target. Optional `Resour
 			"isa" = "PBXBuildFile";
 			"fileRef" = "512E9A186AE04EB6BD750F88";
 		};
+		"A1C02E0A11B24C0A9D0E0001" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/CharacterCardReadRoute.swift";
+			"sourceTree" = "<group>";
+		};
+		"A1C02E0A11B24C0A9D0E0002" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A1C02E0A11B24C0A9D0E0001";
+		};
+		"B2C02E0B22C34D1B8E0F0003" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CharacterCardReadbackView.swift";
+			"sourceTree" = "<group>";
+		};
+		"B2C02E0B22C34D1B8E0F0004" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B2C02E0B22C34D1B8E0F0003";
+		};
 ```
 
 ## Group children
@@ -77,6 +99,8 @@ In group `19F479106CE8C3BA8C106518`, after `"CD67475D43FFD2D955BEC7F5"` add:
 				"7303562FBC934B8F8085C484",
 				"3E66D03105B44A40AB14FBF3",
 				"512E9A186AE04EB6BD750F88",
+				"A1C02E0A11B24C0A9D0E0001",
+				"B2C02E0B22C34D1B8E0F0003",
 ```
 
 ## Sources build phase
@@ -88,6 +112,8 @@ In `878A52FC5FF6A57D50B7B870` PBXSourcesBuildPhase, after `"9BF7536550C8D523C539
 				"D82544EFF0A949AAB327D4DA",
 				"074DC406DE614CD0BC25509B",
 				"9C252AB70B154DFCAEFD6D6C",
+				"A1C02E0A11B24C0A9D0E0002",
+				"B2C02E0B22C34D1B8E0F0004",
 ```
 
 ## SHA256
@@ -108,5 +134,5 @@ d4cd13d3354b6d5d673180addfd22274a77ae8ca61c5570bd21cfdd57d2003e3 App/CharacterCa
 - Linux XCTest NOT_RUN. Contract checks: `python3 -m unittest Tests.ContractChecks.test_c02_world_party_character`.
 - Xcode compile / simulator journey blocked until dot applies this pbx hunk.
 - Dedicated RPG party/equipment expiry fields are WAITING_SOURCE unless the signed character, rpg/status, or session-view payload includes them. No client weather and no device-clock success.
-- Add `Core/CharacterCardReadRoute.swift` and `App/CharacterCardReadbackView.swift` to the app target. Do not add `api/play/character` or `api/play/rpg/status` to `PlayReadRoute`.
+- The two new file references and build files are in this hunk. `project.pbxproj` is still unchanged until dot applies it. Do not add `api/play/character` or `api/play/rpg/status` to `PlayReadRoute`.
 - The activity page caller is `activity.openCharacterCard`. It stays nil until the read approval lists both character paths. `play.character.card` is not in the string catalog.
