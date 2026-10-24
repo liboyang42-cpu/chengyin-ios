@@ -480,6 +480,11 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
             })
         XCTAssertEqual(recovered, .object(["state": .string("ACCEPTED"), "record": .object(["sessionId": .int(30)])]))
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "scr-rcpt-01").outcome, .notFound)
+        let otherSession = try await ledger.recoverFromScoringReceipt(
+            memberID: 7, kind: "SETTLE", sessionID: 30, idempotencyKey: "scr-rcpt-other",
+            receipt: { _, _, _, _ in .object(["state": .string("APPLIED"), "sessionId": .int(99)]) })
+        XCTAssertNil(otherSession)
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "scr-rcpt-other").outcome, .notFound)
     }
     func testRecoverFromSessionReceiptReadsOriginalWithoutOccupyingFinishLedger() async throws {
         var ledger = EventScoreOriginalLedger()

@@ -135,6 +135,8 @@ class OrdinaryCityCourseSelectorContracts(unittest.TestCase):
         self.assertIn("case int(Int64)", score)
         self.assertIn("case transport(String)", score)
         self.assertIn("testRecoverFromScoringReceiptReadsOriginalWithoutOccupyingFinishLedger", tests)
+        self.assertIn("scr-rcpt-other", tests)
+        self.assertIn("wireInt", score)
         self.assertIn("recoverFromSessionReceipt", score)
         self.assertIn("orientSession.receipt", score)
         self.assertIn("testRecoverFromSessionReceiptReadsOriginalWithoutOccupyingFinishLedger", tests)

@@ -271,8 +271,8 @@ public struct EventScoreOriginalLedger: Equatable {
     }
 
     /// Read IOrientScoringService.receipt. Kind must be SETTLE, APPEAL, or DISPUTE.
-    /// The Wire is returned as-is, including a NOT_FOUND object. Nil is only an unusable
-    /// identity, not a NOT_FOUND receipt. Does not append.
+    /// NOT_FOUND is returned as-is. A settlement or appeal for another session is nil.
+    /// Nil is only an unusable identity, not a NOT_FOUND receipt. Does not append.
     public func recoverFromScoringReceipt(
         memberID: Int64?,
         kind: String?,
@@ -286,7 +286,26 @@ public struct EventScoreOriginalLedger: Equatable {
         guard let receipt else {
             throw WireFailure.waitingSource(Self.scoringReceipt)
         }
-        return try await receipt(memberID, kind, sessionID, key)
+        let found = try await receipt(memberID, kind, sessionID, key)
+        if Self.wireString(found, "state") == "NOT_FOUND" { return found }
+        if kind == "SETTLE" {
+            guard Self.wireInt(found, "sessionId") == sessionID else { return nil }
+        }
+        if kind == "APPEAL" || kind == "DISPUTE" {
+            guard case .object(let fields) = found, let record = fields["record"],
+                  Self.wireInt(record, "sessionId") == sessionID else { return nil }
+        }
+        return found
+    }
+
+    private static func wireString(_ wire: Wire, _ key: String) -> String? {
+        guard case .object(let fields) = wire, case .string(let value) = fields[key] else { return nil }
+        return value
+    }
+
+    private static func wireInt(_ wire: Wire, _ key: String) -> Int64? {
+        guard case .object(let fields) = wire, case .int(let value) = fields[key] else { return nil }
+        return value
     }
 
     /// Read IOrientSessionService.receipt. Numbers, null, and bool stay on the Wire.
