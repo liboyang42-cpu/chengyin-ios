@@ -411,4 +411,109 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         do { _ = try await adapter.uploadSynthetic(bytes: Data([1]), filename: "example.png", mimeType: "image/png", access: access, token: "synthetic-token"); XCTFail() }
         catch { XCTAssertEqual(error as? MerchantBusinessFailure, .disabled) }
     }
+
+    func testDeskSkuConfirmSavesOnceAndReopenReadsTheReceipt() async throws {
+        let transport = DeskSkuEntryTransport()
+        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.com/test")!),
+                                                  readTransport: transport, testingMutationTransport: transport)
+        let journal = MerchantBusinessMemoryIntentStore()
+        let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
+        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9)]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope)
+        let edit = MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2)
+        await desk.load(productID: 3, skuID: 44, edit: edit, access: access, accountID: 7, token: "synthetic-token")
+        guard case .frozen(let intent) = desk.phase else {
+            XCTFail("frozen")
+            return
+        }
+        XCTAssertEqual(intent.price, "88.00")
+        XCTAssertEqual(intent.ruleVersion, 3)
+        XCTAssertFalse(intent.requestID.hasPrefix("desk-req"))
+        await desk.confirm(access: access, token: "synthetic-token")
+        guard case .applied(let requestID, let skuID) = desk.phase else {
+            XCTFail("applied")
+            return
+        }
+        XCTAssertEqual(requestID, intent.requestID)
+        XCTAssertEqual(skuID, 44)
+        let saved = await transport.paths.filter { $0.hasSuffix("/sku/save") }
+        XCTAssertEqual(saved.count, 1)
+        let body = await transport.saveBody
+        XCTAssertTrue(body.contains("\"price\":\"88.00\""))
+        XCTAssertTrue(body.contains("\"ruleVersion\":3"))
+        XCTAssertTrue(body.contains("\"requestId\":\"\(intent.requestID)\""))
+        let remaining = try journal.intents()
+        XCTAssertTrue(remaining.isEmpty)
+
+        await transport.setReceiptApplied(false)
+        let lost = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope)
+        await lost.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2),
+                        access: access, accountID: 7, token: "synthetic-token")
+        await transport.setFailSave(true)
+        await lost.confirm(access: access, token: "synthetic-token")
+        guard case .unknown(let unknownID) = lost.phase else {
+            XCTFail("unknown")
+            return
+        }
+        XCTAssertEqual(try journal.intents().count, 1)
+        let savesBeforeReopen = await transport.paths.filter { $0.hasSuffix("/sku/save") }.count
+        let readsBeforeSwitch = await transport.paths.filter { $0.hasSuffix("/receipt") }.count
+        let switched = MerchantDeskSkuDesk(service: service, journal: journal, scope: MerchantBusinessScope(realm: "desk", accountID: 8, epoch: 1))
+        await switched.reopen(skuID: 44, access: access, token: "synthetic-token")
+        XCTAssertEqual(switched.phase, .idle)
+        XCTAssertEqual(try journal.intents().count, 1)
+        XCTAssertEqual(await transport.paths.filter { $0.hasSuffix("/receipt") }.count, readsBeforeSwitch)
+        await lost.reopen(skuID: 44, access: access, token: "synthetic-token")
+        XCTAssertEqual(lost.phase, .unknown(requestID: unknownID))
+        XCTAssertEqual(await transport.paths.filter { $0.hasSuffix("/sku/save") }.count, savesBeforeReopen)
+        await transport.setReceiptApplied(true)
+        await transport.setReceiptRequestID(unknownID)
+        await lost.reopen(skuID: 44, access: access, token: "synthetic-token")
+        XCTAssertEqual(lost.phase, .applied(requestID: unknownID, skuID: 44))
+        XCTAssertTrue(try journal.intents().isEmpty)
+        XCTAssertEqual(await transport.paths.filter { $0.hasSuffix("/sku/save") }.count, savesBeforeReopen)
+    }
+}
+
+private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
+    var requests: [URLRequest] = []
+    var failSave = false
+    var receiptApplied = true
+    var receiptRequestID = ""
+    var saveBody = ""
+    var paths: [String] { requests.compactMap { $0.url?.path } }
+    func setFailSave(_ value: Bool) { failSave = value }
+    func setReceiptApplied(_ value: Bool) { receiptApplied = value }
+    func setReceiptRequestID(_ value: String) { receiptRequestID = value }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        let path = request.url?.path ?? ""
+        if path.hasSuffix("/products/detail") {
+            let json = #"{"code":200,"data":{"productId":3,"skus":[{"skuId":44,"skuName":"door","price":88,"stock":2,"bookable":false,"slotMinutes":60,"capacityPerSlot":0,"ruleVersion":3}]}}"#
+            return (Data(json.utf8), 200)
+        }
+        if path.hasSuffix("/sku/save") {
+            saveBody = String(decoding: request.httpBody ?? Data(), as: UTF8.self)
+            if failSave { throw URLError(.timedOut) }
+            let fields = try JSONDecoder().decode(MerchantBusinessObject.self, from: request.httpBody ?? Data())
+            let requestID = fields["requestId"]?.string ?? ""
+            let json = #"{"code":200,"data":{"requestId":"\#(requestID)","state":"APPLIED","action":"SKU_SAVE","targetType":"pms_sku","targetId":44}}"#
+            return (Data(json.utf8), 200)
+        }
+        if path.hasSuffix("/receipt") {
+            let fields = try JSONDecoder().decode(MerchantBusinessObject.self, from: request.httpBody ?? Data())
+            let requestID = fields["requestId"]?.string ?? receiptRequestID
+            let state = receiptApplied ? "APPLIED" : "NOT_FOUND"
+            let extra = receiptApplied ? #","action":"SKU_SAVE","targetType":"pms_sku","targetId":44"# : ""
+            let json = #"{"code":200,"data":{"requestId":"\#(requestID)","state":"\#(state)"\#(extra)}}"#
+            return (Data(json.utf8), 200)
+        }
+        return (Data(#"{"code":404,"msg":"missing","data":null}"#.utf8), 200)
+    }
 }

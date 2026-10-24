@@ -26,6 +26,8 @@ Inventoried, not rewritten:
    - `Core/FourLedgerBillRereadProjection.swift`
    - `Core/InvoiceHistoryUnknownProjection.swift`
    - `Core/TransferSoldPolicyProjection.swift`
+   - `Core/MerchantDeskSkuDesk.swift`
+   - `App/MerchantDeskSkuPage.swift`
    CoreTests are SwiftPM-only (`Tests/CoreTests`); they are not Xcode app-unit sources.
 
 2. **13 / 17 / 28 production, 13 Authority, 17 phone identity** — remain Dot. Exclusive transfer-sold policy is not D4 SMS identity. Do not wire phone-identity as sold-policy.
@@ -56,6 +58,12 @@ Swift XCTest / App / CI: authored isolation tests, **NOT_RUN** on Linux.
 No real payment / refund / redeem / award.
 
 WAITING_SOURCE: transfer-sold policy + designated recipient authorization + irrevocable-effect originals; invoice file storage; 25-App T01–20 / T43–58 not signed as Git objects on this public tree. Not 100% of T01–20.
+
+## Desk SKU page 2026-10-24 05:50 America/Los_Angeles
+
+`MerchantDeskSkuDesk` reads product detail, freezes the intent, and confirm calls original `saveSku` once. A lost response leaves the journal request id. Reopen reads `api/merchant/desk/receipt` and does not save again. `APPLIED` + `SKU_SAVE` + `pms_sku` completes that journal row. `NOT_FOUND` stays unknown. Another account does not read or clear the row.
+
+`App/MerchantDeskSkuPage.swift` is the page. `App/MerchantHomeView.swift` is not edited. Do not apply a navigation link from this candidate. Swift was not compiled. XCTest NOT_RUN. Not 100%.
 
 ## Parent addendum 2026-10-23 20:40 America/Los_Angeles
 
