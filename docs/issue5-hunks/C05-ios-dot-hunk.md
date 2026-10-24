@@ -104,3 +104,11 @@ HEAD `8886224e` tests. Did not invent recoverOriginal.
 `OfflinePackOperationTests.testUnusedRecordCorruptOfIdleDoesNotOccupyThenUniqueStartThenCorruptApplies`：idle `recordCorrupt` 抛 invalidManifest 且 phase 仍 idle、operationID 仍空；后续唯一 startDownload+recordCorrupt 才是 corrupt（抛 corrupt 发生在占账之后）。与 unused expire 的 expired、unused delete 的 deleted 占账不同。
 
 Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
+
+## Addendum 2026-10-23 19:50 America/Los_Angeles
+
+HEAD `5ac3c6d0` tests. Did not invent recoverOriginal.
+
+`OfflinePackOperationTests.testUnusedRecordFullDiskOfIdleDoesNotOccupyThenUniqueStartThenFullDiskApplies`：idle `recordFullDisk` 抛 notDownloading 且 phase 仍 idle、operationID 仍空；后续唯一 startDownload+recordFullDisk 才是 fullDisk（抛 fullDisk 发生在占账之后）。与 unused recordCorrupt 的 corrupt 占账不同。
+
+Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
