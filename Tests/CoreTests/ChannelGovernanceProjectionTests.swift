@@ -316,10 +316,15 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
                 reads += 1
                 return ["conversationId": String(conversation), "size": String(size)]
             })
-        XCTAssertEqual(page["conversationId"], "12")
+        XCTAssertEqual(page?["conversationId"], "12")
         XCTAssertEqual(reads, 1)
         XCTAssertEqual(live.phase, .cataloged)
         XCTAssertEqual(live.generation, 1)
+        let foreign = try live.readMessages(
+            memberID: 70, cursorID: nil, size: 20, afterID: nil,
+            isActiveGroupMember: { _, _ in true },
+            listMessages: { _, _, _, _, _ in ["conversationId": "99"] })
+        XCTAssertNil(foreign)
     }
 
     func testReadMessagesAfterBanOrLeaveDoesNotCallListMessagesWhenMembershipStaysTrue() throws {

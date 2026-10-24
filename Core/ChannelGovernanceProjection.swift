@@ -193,7 +193,7 @@ public struct ChannelGovernanceProjection: Equatable, Sendable {
     /// A pure read does not require WRITE. Does not send or mark read.
     public func readMessages(memberID: Int64, cursorID: Int64?, size: Int, afterID: Int64?,
                              isActiveGroupMember: ((Int64, Int64) -> Bool)?,
-                             listMessages: ((Int64, Int64, Int64?, Int, Int64?) -> [String: String])?) throws -> [String: String] {
+                             listMessages: ((Int64, Int64, Int64?, Int, Int64?) -> [String: String])?) throws -> [String: String]? {
         guard let isActiveGroupMember else { throw ChannelAuthorizationError.waitingSource }
         guard let listMessages else { throw ChannelAuthorizationError.waitingListMessages }
         guard size > 0 else { throw ChannelAuthorizationError.invalidCatalog }
@@ -201,7 +201,11 @@ public struct ChannelGovernanceProjection: Equatable, Sendable {
         guard isActiveGroupMember(memberID, Int64(catalog.conversationID)) else {
             throw ChannelAuthorizationError.notMember
         }
-        return listMessages(memberID, Int64(catalog.conversationID), cursorID, size, afterID)
+        let page = listMessages(memberID, Int64(catalog.conversationID), cursorID, size, afterID)
+        if let echoed = page["conversationId"], echoed != String(catalog.conversationID) {
+            return nil
+        }
+        return page
     }
 
     public mutating func govern() throws {
