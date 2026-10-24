@@ -115,6 +115,8 @@ class ChannelNotFriendPermissionContracts(unittest.TestCase):
         self.assertIn('conversationType == 5', governance)
         self.assertIn('readStateUnknown', governance)
         self.assertIn('grantsSend: false', governance)
+        self.assertIn('func consumeAuthorizedDetail', governance)
+        self.assertNotIn('MessagingConversationKind(rawValue: 5)', governance)
         self.assertIn('waitingListMessages', governance)
         tests = self.read('Tests/CoreTests/ChannelGovernanceProjectionTests.swift')
         self.assertIn('testAuthorizeFromMembershipRequiresImActiveGroupMemberThenLiveMemberIssuesGrant', tests)

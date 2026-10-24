@@ -287,4 +287,15 @@ public struct MessageContainerProjection: Equatable, Sendable {
                                           guildKind: String(guildKind),
                                           readState: readState ?? readStateUnknown, grantsSend: false)
     }
+
+    /// Directory detail only. A legacy group or club bizKey is not a type 5 container.
+    public static func consumeAuthorizedDetail(_ detail: [String: Any]) -> MessageContainerProjection? {
+        guard let nested = detail["message_container"] as? [String: Any],
+              let id = nested["id"] as? String,
+              let kind = Int(nested["kind"] as? String ?? ""),
+              let guildKind = Int(nested["guild_kind"] as? String ?? ""),
+              (nested["conversation_type"] as? String) == "5" else { return nil }
+        return project(id: id, conversationType: 5, kind: kind, guildKind: guildKind,
+                       readState: nested["read_state"] as? String)
+    }
 }
