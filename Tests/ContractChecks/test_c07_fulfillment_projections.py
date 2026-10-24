@@ -32,9 +32,6 @@ WHITELIST = CORE_FILES + TEST_FILES + [
     CONTRACT, HUNK, "Core/MerchantBusinessMutation.swift", "Core/MerchantBusinessProduction.swift",
     "Tests/CoreTests/MerchantBusinessServiceTests.swift",
     "Core/MerchantBusinessService.swift",
-    "Tests/ContractChecks/test_merchant_operator_invitation_receipt.py",
-    "Tests/ContractChecks/test_merchant_review_draft_return.py",
-    "Tests/ContractChecks/test_merchant_aftercare_evidence_flow.py",
 ]
 FORBIDDEN_TOUCH = [
     "Core/MerchantAftercareEvidenceAdapter.swift",
@@ -148,6 +145,11 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("sameMoney", supply)
         self.assertIn("en_US_POSIX", supply)
         self.assertIn("normalizedMoney", supply)
+        service = (ROOT / "Core/MerchantBusinessService.swift").read_text()
+        self.assertNotIn("func read(_ descriptor:", service)
+        self.assertIn("enum MerchantDeskRead", service)
+        self.assertIn("case productDetail(productID: Int)", service)
+        self.assertIn("case receipt(requestID: String)", service)
         self.assertIn("v+1", supply)
         self.assertIn("ruleVersion", supply)
         self.assertIn("\\z", supply)

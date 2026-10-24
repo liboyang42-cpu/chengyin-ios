@@ -344,6 +344,16 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
             ])])
         ])
         XCTAssertNil(journey.readBack(detail: bumpedTwice, intent: ruled, laterFormPrice: "88.00"))
+        let provenByReceipt = journey.recover(requestID: ruled.requestID, receipt: .object([
+            "requestId": .string(ruled.requestID), "state": .string("APPLIED"),
+            "action": .string("SKU_SAVE"), "targetType": .string("pms_sku"), "targetId": .int(44)
+        ]), currentForm: "ruleVersion=9")
+        XCTAssertEqual(provenByReceipt.outcome, "APPLIED")
+        XCTAssertEqual(ruled.ruleVersion, 3)
+        XCTAssertNil(provenByReceipt.payload)
+        let detailAtFrozenVersion = journey.recover(requestID: ruled.requestID, skuID: 44, currentForm: "ruleVersion=3")
+        XCTAssertEqual(detailAtFrozenVersion.outcome, "UNKNOWN")
+        XCTAssertNotNil(journey.readBack(detail: ruledDetail, intent: ruled, laterFormPrice: "99.00"))
         let missingSlot = MerchantBusinessValue.object([
             "productId": .int(3),
             "skus": .array([.object([

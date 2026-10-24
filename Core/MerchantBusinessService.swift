@@ -6,6 +6,28 @@ import FoundationNetworking
 /// General writes and verification use separate typed production transports and grants.
 /// Ordinary construction remains read-only; test transport conformance never enables production.
 public protocol MerchantBusinessTestTransport: HTTPTransport {}
+public enum MerchantDeskRead: Equatable {
+    case productDetail(productID: Int)
+    case receipt(requestID: String)
+    public var permissions: [String] {
+        switch self {
+        case .productDetail: return ["merchant:project:manage"]
+        case .receipt: return ["merchant:basic:read"]
+        }
+    }
+    public func request() throws -> MerchantBusinessRequest {
+        switch self {
+        case .productDetail(let productID):
+            guard productID > 0 else { throw MerchantBusinessFailure.invalid }
+            return .json("api/merchant/desk/products/detail", ["productId": .int(productID)])
+        case .receipt(let requestID):
+            guard requestID.range(of: #"^[A-Za-z0-9_-]{8,64}$"#, options: .regularExpression) != nil else {
+                throw MerchantBusinessFailure.invalid
+            }
+            return .json("api/merchant/desk/receipt", ["requestId": .string(requestID)])
+        }
+    }
+}
 public struct MerchantBusinessService {
     private let configuration: APIConfiguration
     private let readTransport: any HTTPTransport
@@ -62,9 +84,11 @@ public struct MerchantBusinessService {
         guard let object = try Self.unwrap(body).object else { throw MerchantBusinessFailure.malformed }
         return try .init(object)
     }
-    /// Existing read transport. Desk detail and receipt use this. It does not save a SKU.
-    public func read(_ descriptor: MerchantBusinessRequest, token: String) async throws -> MerchantBusinessValue {
-        let body = try await envelope(descriptor, token: token, transport: readTransport)
+    /// Typed desk reads only. A save descriptor cannot be passed here.
+    public func read(_ query: MerchantDeskRead, access: MerchantBusinessAccess, token: String) async throws -> MerchantBusinessValue {
+        guard access.merchantID > 0 else { throw MerchantBusinessFailure.denied }
+        try access.require(query.permissions)
+        let body = try await envelope(try query.request(), token: token, transport: readTransport)
         return try Self.unwrap(body)
     }
     public func document(_ query: MerchantBusinessQuery, access: MerchantBusinessAccess, token: String) async throws -> MerchantBusinessDocument {

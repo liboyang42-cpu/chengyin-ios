@@ -11,7 +11,9 @@ private actor DeskPathTransport: MerchantBusinessTestTransport {
         let path = request.url?.path ?? ""
         let json: String
         if path.hasSuffix("/access/me") {
-            json = "{\"code\":200,\"data\":\(MerchantBusinessSyntheticFixtures.access)}"
+            let access = MerchantBusinessSyntheticFixtures.access.replacingOccurrences(
+                of: "\"merchant:operator:manage\"", with: "\"merchant:operator:manage\",\"merchant:project:manage\"")
+            json = "{\"code\":200,\"data\":\(access)}"
         } else if path.hasSuffix("/products/detail") {
             json = #"{"code":200,"data":{"productId":3,"skus":[{"skuId":44,"skuName":"door","price":88,"stock":2,"bookable":false,"slotMinutes":60,"capacityPerSlot":0}]}}"#
         } else if path.hasSuffix("/sku/save") {
@@ -116,7 +118,7 @@ final class MerchantBusinessServiceTests: XCTestCase {
                                                   readTransport: transport, testingMutationTransport: transport)
         let access = try await service.access(token: "synthetic-token")
         let journey = MerchantSkuSaveJourney()
-        let detail = try await service.read(XCTUnwrap(journey.detailRequest(productID: 3)), token: "synthetic-token")
+        let detail = try await service.read(.productDetail(productID: 3), access: access, token: "synthetic-token")
         let frozen = try XCTUnwrap(journey.freeze(access: access, accountID: 7, productID: 3, skuID: 44,
                                                   requestID: "desk-req-01", skuName: "door", price: "88.00", stock: 2))
         XCTAssertEqual(journey.readBack(detail: detail, intent: frozen, laterFormPrice: "99.00")?.price, "88.00")
@@ -125,7 +127,7 @@ final class MerchantBusinessServiceTests: XCTestCase {
                                                bookable: frozen.bookable, slotMinutes: frozen.slotMinutes,
                                                capacityPerSlot: frozen.capacityPerSlot, ruleVersion: frozen.ruleVersion),
                                      requestID: frozen.requestID, token: "synthetic-token")
-        let receipt = try await service.read(XCTUnwrap(journey.receiptRequest(requestID: frozen.requestID)), token: "synthetic-token")
+        let receipt = try await service.read(.receipt(requestID: frozen.requestID), access: access, token: "synthetic-token")
         let recovered = journey.recover(requestID: frozen.requestID, receipt: receipt, currentForm: "price=99.00")
         XCTAssertEqual(recovered.outcome, "APPLIED")
         XCTAssertEqual(recovered.skuID, 44)
@@ -137,6 +139,52 @@ final class MerchantBusinessServiceTests: XCTestCase {
             "/test/api/merchant/desk/products/sku/save",
             "/test/api/merchant/desk/receipt"
         ])
+    }
+    func testDeskReadRejectsAWriteBeforeTransport() async throws {
+        let fake = BusinessRecordingTransport(#"{"code":200,"data":{"skuId":44}}"#)
+        let idle = try service(fake)
+        do {
+            _ = try await idle.execute(.saveSku(productID: 3, skuID: 44, name: "door", price: "1", stock: 2,
+                                                originalPrice: nil, pic: nil, bookable: false, slotMinutes: 60,
+                                                capacityPerSlot: 0, ruleVersion: nil),
+                                      requestID: "desk-req-01", token: "synthetic-token")
+            XCTFail("save stays disabled")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .disabled)
+        }
+        let denied = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9), "name": .string("synthetic-shop")]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        do {
+            _ = try await idle.read(.productDetail(productID: 3), access: denied, token: "synthetic-token")
+            XCTFail("detail needs project manage")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .denied)
+        }
+        let allowed = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9)]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        do {
+            _ = try await idle.read(.productDetail(productID: 0), access: allowed, token: "synthetic-token")
+            XCTFail("product id")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .invalid)
+        }
+        do {
+            _ = try await idle.read(.receipt(requestID: "short"), access: allowed, token: "synthetic-token")
+            XCTFail("request id")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .invalid)
+        }
+        XCTAssertTrue(await fake.requests.isEmpty)
     }
     func testDeskDetailAndReceiptUseOriginalPaths() async throws {
         let fake = BusinessRecordingTransport("{}")
