@@ -109,8 +109,12 @@ class ChannelNotFriendPermissionContracts(unittest.TestCase):
         self.assertIn('waitingSource', governance)
         self.assertIn('authorizeFromMembership', governance)
         self.assertIn('im.isActiveGroupMember', governance)
+        self.assertIn('im.listMessages', governance)
+        self.assertIn('readMessages', governance)
+        self.assertIn('waitingListMessages', governance)
         tests = self.read('Tests/CoreTests/ChannelGovernanceProjectionTests.swift')
         self.assertIn('testAuthorizeFromMembershipRequiresImActiveGroupMemberThenLiveMemberIssuesGrant', tests)
+        self.assertIn('testReadMessagesUsesListMessagesOnlyAfterActiveMembershipAndDoesNotChangePhase', tests)
 
     def test_does_not_touch_forbidden_shared_owners(self):
         for path in FORBIDDEN_TOUCH:

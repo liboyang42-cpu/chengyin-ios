@@ -290,6 +290,38 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(grant.identity.accountID, 7)
     }
 
+    func testReadMessagesUsesListMessagesOnlyAfterActiveMembershipAndDoesNotChangePhase() throws {
+        var missing = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
+        XCTAssertThrowsError(try missing.readMessages(
+            memberID: 70, cursorID: nil, size: 20, afterID: nil,
+            isActiveGroupMember: { _, _ in true }, listMessages: nil)) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingListMessages)
+        }
+        XCTAssertEqual(missing.phase, .cataloged)
+        var reads = 0
+        var denied = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
+        XCTAssertThrowsError(try denied.readMessages(
+            memberID: 70, cursorID: nil, size: 20, afterID: nil,
+            isActiveGroupMember: { _, _ in false },
+            listMessages: { _, _, _, _, _ in reads += 1; return ["ok": "1"] })) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .notMember)
+        }
+        XCTAssertEqual(reads, 0)
+        XCTAssertEqual(denied.phase, .cataloged)
+        var live = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
+        let page = try live.readMessages(
+            memberID: 70, cursorID: nil, size: 20, afterID: nil,
+            isActiveGroupMember: { member, conversation in member == 70 && conversation == 12 },
+            listMessages: { _, conversation, _, size, _ in
+                reads += 1
+                return ["conversationId": String(conversation), "size": String(size)]
+            })
+        XCTAssertEqual(page["conversationId"], "12")
+        XCTAssertEqual(reads, 1)
+        XCTAssertEqual(live.phase, .cataloged)
+        XCTAssertEqual(live.generation, 1)
+    }
+
     private func memberReady() throws -> ChannelGovernanceProjection {
         var journey = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
         try journey.consentToPublishedRules(try admission(try identity()))

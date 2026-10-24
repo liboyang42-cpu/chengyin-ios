@@ -80,6 +80,7 @@ public enum ChannelAuthorizationError: Error, Equatable, Sendable {
     case invalidCatalog
     case roleRequired
     case waitingSource
+    case waitingListMessages
 }
 
 public enum ChannelRevokeReason: String, Equatable, Sendable { case leave, ban, membershipRevoked }
@@ -105,6 +106,7 @@ public struct ChannelCatalogEntry: Equatable, Sendable {
 /// native 43/45/46/47 adapters.
 public struct ChannelGovernanceProjection: Equatable, Sendable {
     public static let imActiveGroupMember = "im.isActiveGroupMember"
+    public static let imListMessages = "im.listMessages"
     public let catalog: ChannelCatalogEntry
     public let identity: ChannelAccount4Identity
     public private(set) var phase: ChannelGovernancePhase
@@ -184,6 +186,21 @@ public struct ChannelGovernanceProjection: Equatable, Sendable {
             throw ChannelAuthorizationError.notMember
         }
         return try authorizeReadWrite()
+    }
+
+    /// Read the existing message page after the group-member gate.
+    /// A non-member does not call listMessages and does not change phase.
+    /// Does not send or mark read.
+    public func readMessages(memberID: Int64, cursorID: Int64?, size: Int, afterID: Int64?,
+                             isActiveGroupMember: ((Int64, Int64) -> Bool)?,
+                             listMessages: ((Int64, Int64, Int64?, Int, Int64?) -> [String: String])?) throws -> [String: String] {
+        guard let isActiveGroupMember else { throw ChannelAuthorizationError.waitingSource }
+        guard let listMessages else { throw ChannelAuthorizationError.waitingListMessages }
+        guard size > 0 else { throw ChannelAuthorizationError.invalidCatalog }
+        guard isActiveGroupMember(memberID, Int64(catalog.conversationID)) else {
+            throw ChannelAuthorizationError.notMember
+        }
+        return listMessages(memberID, Int64(catalog.conversationID), cursorID, size, afterID)
     }
 
     public mutating func govern() throws {
