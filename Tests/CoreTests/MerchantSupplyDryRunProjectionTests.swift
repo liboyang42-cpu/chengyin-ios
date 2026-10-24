@@ -276,6 +276,27 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
             ])])
         ])
         XCTAssertNil(journey.readBack(detail: rebuilt, intent: frozen, laterFormPrice: "99"))
+        let priced = try XCTUnwrap(journey.freeze(access: owner, accountID: 7, productID: 3, skuID: 44,
+                                                  requestID: "desk-req-01", skuName: "door", price: "88.00", stock: 2))
+        let numericEightyEight = MerchantBusinessValue.object([
+            "productId": .int(3),
+            "skus": .array([.object([
+                "skuId": .int(44), "skuName": .string("door"), "price": .int(88), "stock": .int(2)
+            ])])
+        ])
+        let sameAmount = try XCTUnwrap(journey.readBack(detail: numericEightyEight, intent: priced, laterFormPrice: "99.00"))
+        XCTAssertEqual(sameAmount.price, "88.00")
+        let pricedSave = try XCTUnwrap(journey.saveRequest(priced, currentFormPrice: "99.00"))
+        guard case .json(let pricedBody) = pricedSave.body else { return XCTFail("priced json") }
+        XCTAssertEqual(pricedBody["price"], .string("88.00"))
+        let cents = Decimal(string: "88.01", locale: Locale(identifier: "en_US_POSIX"))!
+        let offByCent = MerchantBusinessValue.object([
+            "productId": .int(3),
+            "skus": .array([.object([
+                "skuId": .int(44), "skuName": .string("door"), "price": .number(cents), "stock": .int(2)
+            ])])
+        ])
+        XCTAssertNil(journey.readBack(detail: offByCent, intent: priced, laterFormPrice: "88.00"))
         let restarted = journey.recover(requestID: "desk-req-01", skuID: 44, currentForm: "price=99")
         XCTAssertEqual(restarted.outcome, "UNKNOWN")
         XCTAssertEqual(restarted.requestID, "desk-req-01")

@@ -252,10 +252,29 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
                   let skuID = row["skuId"]?.integer, Int64(skuID) == intent.skuID,
                   row["skuName"]?.string == intent.skuName,
                   row["stock"]?.integer == intent.stock,
-                  let price = row["price"]?.numberText, price == intent.price else { continue }
-            return SkuRow(skuID: intent.skuID, skuName: intent.skuName, price: price, stock: intent.stock)
+                  let wirePrice = row["price"], sameMoney(wirePrice, intent.price) else { continue }
+            return SkuRow(skuID: intent.skuID, skuName: intent.skuName, price: intent.price, stock: intent.stock)
         }
         return nil
+    }
+
+    /// Same amount: frozen `88.00` matches JSON number 88. Decimal compare, never Double.
+    private func sameMoney(_ wire: MerchantBusinessValue, frozen: String) -> Bool {
+        guard let left = money(wire), let right = money(frozen) else { return false }
+        return left == right
+    }
+
+    private func money(_ value: MerchantBusinessValue) -> Decimal? {
+        switch value {
+        case .number(let amount): return amount
+        case .string(let text): return money(text)
+        default: return nil
+        }
+    }
+
+    private func money(_ text: String) -> Decimal? {
+        guard text.range(of: #"^[0-9]+(?:\.[0-9]{1,2})?$"#, options: .regularExpression) != nil else { return nil }
+        return Decimal(string: text, locale: Locale(identifier: "en_US_POSIX"))
     }
 
     public func detailMatches(_ detailSkuID: Int64, intent: Intent) -> Bool {
