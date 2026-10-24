@@ -142,3 +142,11 @@ HEAD `3f6583aa` tests. Did not invent recoverOriginal.
 `AttachmentReviewProducerTests.testUnusedDecideOfNeverSeenDoesNotOccupyThenUniqueSubmitApplies`：未见 `att-decide-never-c09` 的 `decide` 抛 `originalMissing` 且 `originalByRequestID` 仍空；后续唯一 `submit` 才是 PENDING。
 
 Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
+
+## 8. Parent addendum 2026-10-23 19:15 America/Los_Angeles
+
+HEAD `898390ed` tests. Did not invent recoverOriginal.
+
+`ImmutableReceiptProducerTests.testUnusedOfflineReopenOfNeverSeenDoesNotOccupyThenUniqueAcceptApplies`：未见 `c09-reopen-never` 的 `offlineReopen` 抛 `originalMissing` 且 `originalByRequestID` 仍空；后续唯一 `accept` 才是 ACCEPTED。
+
+Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
