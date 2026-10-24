@@ -39,15 +39,18 @@ import Foundation
     private let journal: any MerchantBusinessIntentStore
     private let journey = MerchantSkuSaveJourney()
     private let scope: MerchantBusinessScope
+    private let production: @MainActor (MerchantBusinessMutation, Int) -> MerchantBusinessService?
     private var generation: UInt64 = 0
     @Published public private(set) var phase: Phase = .idle
     /// Detail rule version after a successful receipt. It does not replace the receipt.
     @Published public private(set) var laterRuleVersion: Int?
 
-    public init(service: MerchantBusinessService, journal: any MerchantBusinessIntentStore, scope: MerchantBusinessScope) {
+    public init(service: MerchantBusinessService, journal: any MerchantBusinessIntentStore, scope: MerchantBusinessScope,
+                production: @escaping @MainActor (MerchantBusinessMutation, Int) -> MerchantBusinessService? = { _, _ in nil }) {
         self.service = service
         self.journal = journal
         self.scope = scope
+        self.production = production
     }
 
     /// Exit or cancel. A late result from this generation cannot clear the journal.
@@ -140,6 +143,13 @@ import Foundation
         }
         let started = generation
         guard same(started) else { return }
+        let change = mutation(intent)
+        let reviewed = production(change, access.merchantID)
+        if reviewed == nil, !service.canExecuteSyntheticMutation {
+            phase = .failed(.disabled)
+            return
+        }
+        let writer = reviewed ?? service
         let stored = storedIntent(intent, merchantID: access.merchantID)
         guard let sku = Int(exactly: intent.skuID), let product = Int(exactly: intent.productID) else {
             phase = .failed(.invalid)
@@ -162,7 +172,7 @@ import Foundation
             return
         }
         do {
-            let receipt = try await service.executeDeskSku(mutation(intent), requestID: intent.requestID, token: token,
+            let receipt = try await writer.executeDeskSku(change, requestID: intent.requestID, token: token,
                                                            access: access, scope: scope, check: { [started] in
                 guard started == self.generation else { throw MerchantBusinessFailure.stale }
             })

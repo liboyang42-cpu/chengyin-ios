@@ -611,6 +611,56 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         XCTAssertTrue(body.contains("\"price\":\"88.00\""))
         XCTAssertFalse(body.contains("ownerMemberId"))
     }
+
+    func testDeskConfirmSendsTheFrozenSkuOnTheReviewedTransport() async throws {
+        let url = URL(string: "https://example.com")!
+        let token = "test-token"
+        let reads = DeskSkuEntryTransport()
+        let readService = try MerchantBusinessService(configuration: .init(baseURL: url), readTransport: reads)
+        let context = RuntimeDependencyContext(market: .china, baseURL: url, role: "merchant",
+                                               session: try .init(accountID: 7, epoch: 1, namespace: "merchant-cn", token: token))
+        let mutation = MerchantBusinessMutation.saveSku(productID: 3, skuID: 44, name: "door", price: "88.00", stock: 2,
+                                                        originalPrice: "100.00", pic: "media-asset:1", bookable: false,
+                                                        slotMinutes: 30, capacityPerSlot: 2, ruleVersion: 3)
+        let path = try mutation.request(requestID: "grant-validation").path
+        let approval = try MerchantBusinessProductionApproval(
+            market: .china,
+            endpoints: .init(baseURL: url, namespace: "merchant-cn", accountID: 7, paths: [path]),
+            grants: [try .init(merchantID: 9, mutation: mutation)],
+            reviewedPolicyVersion: "policy-1")
+        let wire = DeskProductionWire()
+        let factory = MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: approval, transport: wire, current: { context })
+        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9)]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        let journal = MerchantBusinessMemoryIntentStore()
+        let desk = MerchantDeskSkuDesk(service: readService, journal: journal,
+                                      scope: MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1),
+                                      production: { change, merchantID in
+            factory.service(for: change, merchantID: merchantID)
+        })
+        await desk.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2),
+                        access: access, accountID: 7, token: token)
+        guard case .frozen = desk.phase else {
+            XCTFail("frozen")
+            return
+        }
+        await desk.confirm(access: access, token: token)
+        guard case .applied(_, 44) = desk.phase else {
+            XCTFail("applied")
+            return
+        }
+        let sent = await wire.requests
+        XCTAssertEqual(sent.count, 1)
+        XCTAssertEqual(sent.first?.url?.path, "/api/merchant/desk/products/sku/save")
+        let readPaths = await reads.paths
+        XCTAssertFalse(readPaths.contains { $0.hasSuffix("/sku/save") })
+        XCTAssertTrue(try journal.intents().isEmpty)
+    }
 }
 
 private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
