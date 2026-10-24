@@ -224,7 +224,7 @@ public struct ImmutableReceiptProducer: Equatable {
         extraJSON: String?,
         send: ((Int64, Int64, Int64, Int, String, String, String) -> SentMessage?)?
     ) throws -> OriginalReceipt? {
-        _ = try Self.requireRequestID(request.requestId)
+        let id = try Self.requireRequestID(request.requestId)
         if request.kind != NotifyKind.reply && request.kind != NotifyKind.mention {
             throw NotASend.kind(request.kind)
         }
@@ -239,11 +239,11 @@ public struct ImmutableReceiptProducer: Equatable {
         guard let send else {
             throw NotifyFailure.waitingSource(capability: Self.imSendCommand)
         }
-        guard let sent = send(memberID, conversationID, targetMemberID, msgType, trimmedContent, trimmedExtra, request.requestId) else {
-            return Self.unknownReceipt(requestId: request.requestId, projection: nil)
+        guard let sent = send(memberID, conversationID, targetMemberID, msgType, trimmedContent, trimmedExtra, id) else {
+            return Self.unknownReceipt(requestId: id, projection: nil)
         }
         return OriginalReceipt(
-            requestId: Self.parse(sent.clientMessageId) ?? request.requestId,
+            requestId: Self.parse(sent.clientMessageId) ?? id,
             kind: nil,
             payloadHash: sent.requestHash,
             outcome: Self.outcomeUnknown,
