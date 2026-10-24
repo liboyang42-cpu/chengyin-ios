@@ -151,14 +151,17 @@ public enum GameReceiptOriginalRecovery {
     public private(set) var issue: PlayExperienceError?
     private let service: PlayExperienceService
     private let currentSession: () -> PlayExperienceSession?
+    private let onUnauthorized: (PlayExperienceSession) -> Void
     private var owner: PlayExperienceSession?
     private var original: PlayPlayerCommand?
     private var generation: UInt64 = 0
     private var retired = false
     public init?(topicID: Int, activityID: Int? = nil, service: PlayExperienceService,
-                 currentSession: @escaping () -> PlayExperienceSession?) {
+                 currentSession: @escaping () -> PlayExperienceSession?,
+                 onUnauthorized: @escaping (PlayExperienceSession) -> Void = { _ in }) {
         guard topicID > 0, activityID.map({ $0 > 0 }) ?? true, service.enabled.contains(.reads) else { return nil }
-        self.topicID = topicID; self.activityID = activityID; self.service = service; self.currentSession = currentSession
+        self.topicID = topicID; self.activityID = activityID; self.service = service
+        self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
     }
     public var isCurrent: Bool { !retired && owner != nil && owner == currentSession() }
     public func dismiss() { retired = true; card = nil; availability = .waitingSource }
@@ -174,8 +177,24 @@ public enum GameReceiptOriginalRecovery {
         self.card = card.updating(breakdown: CharacterCheckBreakdown.read(raw["breakdown"] == .null ? raw : raw["breakdown"]),
                                   originalRequestID: originalRequestID)
     }
+    /// The page calls this without reloading. A revoked lease clears the old card.
+    public func cardIfCurrent() -> CharacterCard? {
+        guard isCurrent else {
+            card = nil
+            if owner != nil { retired = true }
+            availability = .waitingSource
+            return nil
+        }
+        return availability == .ready ? card : nil
+    }
     public func load() async {
-        guard !retired, let session = currentSession() else { availability = .waitingSource; return }
+        guard !retired else { card = nil; availability = .waitingSource; return }
+        guard let session = currentSession() else {
+            card = nil
+            if owner != nil { retired = true }
+            availability = .waitingSource
+            return
+        }
         if owner != nil && owner != session { card = nil; availability = .unknown; issue = .staleSession; return }
         owner = session; generation &+= 1; let stamp = generation; issue = nil
         do {
@@ -229,6 +248,15 @@ public enum GameReceiptOriginalRecovery {
                                  environment: environment, party: party, equipment: equipment,
                                  breakdown: .waitingSource, expiry: expiry, originalRequestID: originalRequestID)
             availability = .ready
+        } catch is CancellationError {
+            return
+        } catch PlayExperienceError.unauthorized {
+            guard generation == stamp, let session = owner, currentSession() == session else { return }
+            card = nil
+            retired = true
+            issue = .unauthorized
+            availability = .waitingSource
+            onUnauthorized(session)
         } catch {
             guard generation == stamp else { return }
             card = nil

@@ -253,7 +253,7 @@ struct ActivityDetailView: View {
                let session = reader as? AppSession,
                let card = session.characterCardReadback(topicID: topicID, activityID: id, scope: .activity(id)) {
                 Section {
-                    NavigationLink { CharacterCardReadbackView(model: card) } label: {
+                    NavigationLink { CharacterCardReadbackView(session: session, model: card) } label: {
                         Label("play.character.card", systemImage: "person.text.rectangle")
                     }.accessibilityIdentifier("activity.openCharacterCard")
                 }

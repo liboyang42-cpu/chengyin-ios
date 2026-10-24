@@ -244,6 +244,32 @@ import FoundationNetworking
             memberID: 7, activityID: 11, requestID: "game-req-01",
             receipt: { _, _, id in (id, 99, "APPLIED", true) }))
     }
+    func testRevokeClearsCardWithoutReloadOrLeavingAndBody401RetiresOwner() async throws {
+        let (owner, transport, model) = try setup(enabled: [.reads])
+        await model.load()
+        XCTAssertNotNil(model.card)
+        let reads = transport.requests.filter { $0.url?.path == "/api/play/character" }.count
+        owner.value = nil
+        XCTAssertNil(model.cardIfCurrent())
+        XCTAssertNil(model.card)
+        XCTAssertFalse(model.isCurrent)
+        XCTAssertEqual(transport.requests.filter { $0.url?.path == "/api/play/character" }.count, reads)
+
+        let owner2 = try Owner(), transport2 = Transport()
+        transport2.card = cardJSON()
+        var notified: PlayExperienceSession?
+        let service = PlayExperienceService(configuration: try .init(baseURL: URL(string: "https://example.test")!),
+                                            transport: transport2, enabled: [.reads])
+        let authed = try XCTUnwrap(CharacterCardReadback(topicID: 71, activityID: 41, service: service,
+                                                         currentSession: { owner2.value },
+                                                         onUnauthorized: { notified = $0 }))
+        await authed.load()
+        transport2.unauthorized = true
+        await authed.load()
+        XCTAssertNil(authed.card)
+        XCTAssertFalse(authed.isCurrent)
+        XCTAssertEqual(notified?.accountID, owner2.value?.accountID)
+    }
 }
 
 @MainActor private final class Owner {
@@ -257,10 +283,14 @@ private final class Transport: HTTPTransport {
     @MainActor var status: PlayWireValue = .null
     @MainActor var view: PlayWireValue = .null
     @MainActor var receipt: PlayWireValue = .null
+    @MainActor var unauthorized = false
     func send(_ request: URLRequest) async throws -> (Data, Int) { try await execute(request) }
     @MainActor private func execute(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         let path = request.url?.path ?? ""
+        if unauthorized && path == "/api/play/character" {
+            return (try JSONEncoder().encode(PlayWireValue.object(["code": .int(401), "data": .null])), 200)
+        }
         let data: PlayWireValue
         switch path {
         case "/api/play/character": data = card

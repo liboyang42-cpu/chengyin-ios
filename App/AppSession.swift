@@ -413,7 +413,13 @@ final class AppSession: ObservableObject {
         }
         let api = PlayExperienceService(configuration: configuration, transport: factory.transport,
             enabled: factory.accepted?.play.intersection([.reads]) ?? [])
-        return CharacterCardReadback(topicID: topicID, activityID: activityID, service: api, currentSession: current)
+        return CharacterCardReadback(topicID: topicID, activityID: activityID, service: api, currentSession: current,
+            onUnauthorized: { [weak self] snapshot in
+                guard let self, self.characterCardReadApproval == approval,
+                      self.compositionViewerRevision == approval.viewerRevision,
+                      current() == snapshot else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.epoch, credential: snapshot.token)
+            })
     }
     private struct CharacterCardReadApproval: Equatable { let issuance: UUID; let viewerRevision: UInt64 }
     private var characterCardReadApproval: CharacterCardReadApproval? {

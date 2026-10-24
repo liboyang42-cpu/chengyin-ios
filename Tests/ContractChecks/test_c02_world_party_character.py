@@ -137,13 +137,24 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
         self.assertIn('api/play/rpg/status', card_route)
         self.assertIn('characterCardReadback(topicID:', (ROOT / 'App/ActivityDetailView.swift').read_text())
         self.assertIn('CharacterCardReadRoute', (ROOT / 'App/AppCompositionRoot.swift').read_text())
-        self.assertIn('model.dismiss()', (ROOT / 'App/CharacterCardReadbackView.swift').read_text())
+        view = (ROOT / 'App/CharacterCardReadbackView.swift').read_text()
+        self.assertIn('model.dismiss()', view)
+        self.assertIn('model.isCurrent', view)
+        self.assertIn('cardIfCurrent()', view)
+        strings = (ROOT / 'Resources/Localizable.xcstrings').read_text()
+        self.assertIn('"play.character.card"', strings)
+        self.assertIn('"Character card"', strings)
+        self.assertIn('"角色卡"', strings)
+        self.assertIn('testRevokeClearsCardWithoutReloadOrLeavingAndBody401RetiresOwner', TESTS['card'].read_text())
+        self.assertIn('PlayExperienceError.unauthorized', CORE['card'].read_text())
         pbx = FORBIDDEN[1].read_text()
-        self.assertNotIn('WorldEnvironmentProjection.swift', pbx)
-        if 'CharacterCardReadback.swift' in pbx:
-            self.assertEqual(pbx.count('CharacterCardReadback.swift'), 1)
-        else:
-            self.assertIn('CharacterCardReadback.swift', hunk)
+        for name in ['WorldEnvironmentProjection.swift', 'PartyRosterProjection.swift',
+                     'CharacterCardReadback.swift', 'EnvironmentExpiryClock.swift',
+                     'CharacterCardReadRoute.swift', 'CharacterCardReadbackView.swift']:
+            self.assertEqual(hunk.count(name) >= 1, True, name)
+            self.assertLessEqual(pbx.count(name), 1, name)
+            if name not in pbx:
+                self.assertIn(name, hunk)
 
     def test_sha256_manifest_covers_exclusive_sources(self):
         lines = HUNK.read_text().splitlines()
