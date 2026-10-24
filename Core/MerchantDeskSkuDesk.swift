@@ -80,14 +80,16 @@ import Foundation
             return
         }
         let started = generation
+        let capturedSession = currentSession()
+        let capturedAuthorization = authorizationGeneration()
         do {
             if let pending = try matching(skuID: skuID, productID: productID, merchantID: access.merchantID) {
-                guard same(started) else { return }
+                guard identityHolds(started, capturedSession, capturedAuthorization) else { return }
                 phase = .unknown(requestID: pending.requestID)
                 return
             }
             let detail = try await service.read(.productDetail(productID: productID), access: access, token: token)
-            guard same(started) else { return }
+            guard identityHolds(started, capturedSession, capturedAuthorization) else { return }
             guard let product = detail.object, product["editable"]?.bool == true,
                   let row = skuRow(detail, productID: productID, skuID: skuID),
                   let kept = kept(row),
@@ -105,11 +107,11 @@ import Foundation
             baselineStock = stock
             baselineRuleVersion = missing(row, "ruleVersion") ? nil : strictNumber(row["ruleVersion"])
         } catch let error as APIError where error == .unauthorized {
-            if same(started) { retire() }
+            retireCapturedUnauthorized(started, capturedSession)
         } catch let error as MerchantBusinessFailure {
-            if same(started) { phase = .failed(error) }
+            if identityHolds(started, capturedSession, capturedAuthorization) { phase = .failed(error) }
         } catch {
-            if same(started) { phase = .failed(.unknown) }
+            if identityHolds(started, capturedSession, capturedAuthorization) { phase = .failed(.unknown) }
         }
     }
 
@@ -120,11 +122,13 @@ import Foundation
             return
         }
         let started = generation
+        let capturedSession = currentSession()
+        let capturedAuthorization = authorizationGeneration()
         let pendingRow: MerchantBusinessIntent?
         do { pendingRow = try matching(skuID: skuID, productID: productID, merchantID: access.merchantID) }
-        catch { if same(started) { phase = .failed(.journal) }; return }
+        catch { if identityHolds(started, capturedSession, capturedAuthorization) { phase = .failed(.journal) }; return }
         if let pendingRow {
-            guard same(started) else { return }
+            guard identityHolds(started, capturedSession, capturedAuthorization) else { return }
             phase = .unknown(requestID: pendingRow.requestID)
             return
         }
@@ -134,7 +138,7 @@ import Foundation
                 detail = sourceDetail
             } else {
                 detail = try await service.read(.productDetail(productID: productID), access: access, token: token)
-                guard same(started) else { return }
+                guard identityHolds(started, capturedSession, capturedAuthorization) else { return }
                 sourceDetail = detail
             }
             guard detail.object?["editable"]?.bool == true,
@@ -159,11 +163,11 @@ import Foundation
             }
             phase = .frozen(intent)
         } catch let error as APIError where error == .unauthorized {
-            if same(started) { retire() }
+            retireCapturedUnauthorized(started, capturedSession)
         } catch let error as MerchantBusinessFailure {
-            if same(started) { phase = .failed(error) }
+            if identityHolds(started, capturedSession, capturedAuthorization) { phase = .failed(error) }
         } catch {
-            if same(started) { phase = .failed(.unknown) }
+            if identityHolds(started, capturedSession, capturedAuthorization) { phase = .failed(.unknown) }
         }
     }
 
@@ -181,7 +185,6 @@ import Foundation
             phase = .failed(.disabled)
             return
         }
-        let writer = reviewed ?? service
         if reviewed != nil {
             guard journal.isDurable, currentSession() != nil, authorizationGeneration() != nil else {
                 phase = .failed(.disabled)
@@ -198,7 +201,7 @@ import Foundation
         }
         do {
             let fresh = try await service.read(.productDetail(productID: product), access: access, token: token)
-            guard same(started) else { return }
+            guard identityHolds(started, capturedSession, capturedAuthorization) else { return }
             guard let row = skuRow(fresh, productID: product, skuID: sku),
                   row["skuName"]?.string == baselineName,
                   row["stock"]?.integer == baselineStock,
@@ -207,36 +210,39 @@ import Foundation
                 return
             }
         } catch let error as APIError where error == .unauthorized {
-            if same(started) { retire() }
+            retireCapturedUnauthorized(started, capturedSession)
             return
         } catch {
-            if same(started) { phase = .failed(.unknown) }
+            if identityHolds(started, capturedSession, capturedAuthorization) { phase = .failed(.unknown) }
             return
         }
         do {
             if try matching(skuID: sku, productID: product, merchantID: access.merchantID) != nil {
-                guard same(started) else { return }
+                guard identityHolds(started, capturedSession, capturedAuthorization) else { return }
                 phase = .unknown(requestID: intent.requestID)
                 return
             }
         } catch {
-            if same(started) { phase = .failed(.journal) }
+            if identityHolds(started, capturedSession, capturedAuthorization) { phase = .failed(.journal) }
             return
         }
-        do {
-            try journal.reserve(stored)
-        } catch {
-            if same(started) { phase = .unknown(requestID: intent.requestID) }
-            return
+        let fence: () throws -> Void = { [started] in
+            guard started == self.generation else { throw MerchantBusinessFailure.stale }
+            if let capturedSession, self.currentSession() != capturedSession { throw MerchantBusinessFailure.stale }
+            if let capturedAuthorization, self.authorizationGeneration() != capturedAuthorization { throw MerchantBusinessFailure.stale }
         }
         do {
-            let receipt = try await writer.executeDeskSku(change, requestID: intent.requestID, token: token,
+            let receipt: MerchantBusinessReceipt
+            if let writer = reviewed {
+                receipt = try await MerchantBusinessCoordinator.reserveDeskSkuThenDispatch(
+                    journal: journal, mutation: change, intent: stored, detail: detail, access: access, scope: scope,
+                    authorizationGeneration: capturedAuthorization, service: writer, token: token, check: fence)
+            } else {
+                try journal.reserve(stored)
+                receipt = try await service.executeDeskSku(change, requestID: intent.requestID, token: token,
                                                            access: access, scope: scope, reserved: stored, detail: detail,
-                                                           authorizationGeneration: capturedAuthorization, check: { [started] in
-                guard started == self.generation else { throw MerchantBusinessFailure.stale }
-                if let capturedSession, self.currentSession() != capturedSession { throw MerchantBusinessFailure.stale }
-                if let capturedAuthorization, self.authorizationGeneration() != capturedAuthorization { throw MerchantBusinessFailure.stale }
-            })
+                                                           authorizationGeneration: capturedAuthorization, check: fence)
+            }
             guard same(started) else { return }
             if let capturedSession, currentSession() != capturedSession { return }
             if let capturedAuthorization, authorizationGeneration() != capturedAuthorization { return }
@@ -252,42 +258,57 @@ import Foundation
             guard same(started) else { return }
             phase = .applied(requestID: intent.requestID, skuID: intent.skuID)
         } catch let error as APIError where error == .unauthorized {
+            if same(started) { phase = .unknown(requestID: intent.requestID) }
             if let capturedSession, currentSession() == capturedSession {
                 onUnauthorized(capturedSession)
                 if same(started) { retire() }
             }
-            if same(started) { phase = .unknown(requestID: intent.requestID) }
         } catch {
-            if same(started) { phase = .unknown(requestID: intent.requestID) }
+            let stillReserved = (try? matching(skuID: sku, productID: product, merchantID: access.merchantID)) != nil
+            if MerchantMutationFailureDisposition.provesNoDispatch(error) {
+                if stillReserved { try? journal.complete(stored) }
+                if identityHolds(started, capturedSession, capturedAuthorization) {
+                    phase = .failed(error as? MerchantBusinessFailure ?? .disabled)
+                }
+                return
+            }
+            if identityHolds(started, capturedSession, capturedAuthorization) {
+                phase = stillReserved ? .unknown(requestID: intent.requestID) : .failed(error as? MerchantBusinessFailure ?? .unknown)
+            }
         }
     }
 
     public func reopen(productID: Int, skuID: Int, access: MerchantBusinessAccess, token: String) async {
         let started = generation
+        let capturedSession = currentSession()
+        let capturedAuthorization = authorizationGeneration()
         let pending: MerchantBusinessIntent
         do {
             guard let row = try matching(skuID: skuID, productID: productID, merchantID: access.merchantID) else { return }
             pending = row
         } catch {
-            if same(started) { phase = .failed(.journal) }
+            if identityHolds(started, capturedSession, capturedAuthorization) { phase = .failed(.journal) }
             return
         }
         do {
             let receipt = try await service.read(.receipt(requestID: pending.requestID), access: access, token: token)
-            guard same(started) else { return }
+            guard identityHolds(started, capturedSession, capturedAuthorization) else { return }
             guard appliedTarget(receipt, requestID: pending.requestID, skuID: Int64(skuID)) != nil else {
                 phase = .unknown(requestID: pending.requestID)
                 return
             }
             try journal.complete(pending)
-            guard same(started) else { return }
+            guard identityHolds(started, capturedSession, capturedAuthorization) else { return }
             phase = .applied(requestID: pending.requestID, skuID: Int64(skuID))
         } catch let error as APIError where error == .unauthorized {
-            if same(started) { retire() }
+            if identityHolds(started, capturedSession, capturedAuthorization) {
+                phase = .unknown(requestID: pending.requestID)
+            }
+            retireCapturedUnauthorized(started, capturedSession)
         } catch let error as MerchantBusinessFailure {
-            if same(started) { phase = .failed(error) }
+            if identityHolds(started, capturedSession, capturedAuthorization) { phase = .failed(error) }
         } catch {
-            if same(started) { phase = .unknown(requestID: pending.requestID) }
+            if identityHolds(started, capturedSession, capturedAuthorization) { phase = .unknown(requestID: pending.requestID) }
         }
     }
 
@@ -295,18 +316,38 @@ import Foundation
     public func noteLater(productID: Int, skuID: Int, access: MerchantBusinessAccess, token: String) async {
         guard case .applied = phase else { return }
         let started = generation
+        let capturedSession = currentSession()
+        let capturedAuthorization = authorizationGeneration()
         do {
             let detail = try await service.read(.productDetail(productID: productID), access: access, token: token)
-            guard same(started) else { return }
+            guard identityHolds(started, capturedSession, capturedAuthorization) else { return }
             laterRuleVersion = skuRow(detail, productID: productID, skuID: skuID)?["ruleVersion"]?.integer
         } catch let error as APIError where error == .unauthorized {
-            if same(started) { retire() }
+            retireCapturedUnauthorized(started, capturedSession)
         } catch {
             return
         }
     }
 
     private func same(_ started: UInt64) -> Bool { started == generation }
+
+    private func identityHolds(_ started: UInt64, _ capturedSession: MerchantBusinessSession?, _ capturedAuthorization: UUID?) -> Bool {
+        guard same(started) else { return false }
+        if let capturedSession, currentSession() != capturedSession { return false }
+        if let capturedAuthorization, authorizationGeneration() != capturedAuthorization { return false }
+        return true
+    }
+
+    /// 401 retires only the session that started the read. A replacement session is left alone.
+    private func retireCapturedUnauthorized(_ started: UInt64, _ capturedSession: MerchantBusinessSession?) {
+        if let capturedSession {
+            guard currentSession() == capturedSession else { return }
+            onUnauthorized(capturedSession)
+            if same(started) { retire() }
+            return
+        }
+        if same(started) { retire() }
+    }
 
     private func matching(skuID: Int, productID: Int, merchantID: Int) throws -> MerchantBusinessIntent? {
         guard skuID > 0, productID > 0 else { return nil }

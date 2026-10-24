@@ -189,6 +189,43 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
         // Also remove the original raw response, but never a newer/different receipt.
         if ownsReceipt { receipt = nil }
     }
+    /// Production desk save. This function writes the journal row, then mints the one-shot ticket.
+    /// A caller-supplied intent or authorization UUID is not that reservation.
+    /// The document query stays `.overview` because the desk detail is not a session snapshot.
+    @MainActor static func reserveDeskSkuThenDispatch(journal: any MerchantBusinessIntentStore,
+                                                      mutation: MerchantBusinessMutation,
+                                                      intent: MerchantBusinessIntent,
+                                                      detail: MerchantBusinessValue,
+                                                      access: MerchantBusinessAccess,
+                                                      scope: MerchantBusinessScope,
+                                                      authorizationGeneration: UUID?,
+                                                      service: MerchantBusinessService,
+                                                      token: String,
+                                                      check: @escaping () throws -> Void) async throws -> MerchantBusinessReceipt {
+        guard journal.isDurable, authorizationGeneration != nil else { throw MerchantBusinessFailure.disabled }
+        guard case .saveSku = mutation else { throw MerchantBusinessFailure.invalid }
+        let document = try MerchantBusinessDocument(query: .overview, payload: detail)
+        let review = MerchantBusinessConfirmation(id: UUID(), authorizationGeneration: authorizationGeneration, journalRealm: scope.realm,
+                                                  mutation: mutation, requestID: intent.requestID,
+                                                  request: try mutation.request(requestID: intent.requestID), scope: scope,
+                                                  baseline: MerchantBusinessSnapshot(access: access, document: document))
+        guard intent.requestID == review.requestID, intent.realm == review.journalRealm, intent.accountID == review.scope.accountID,
+              intent.merchantID == review.baseline.access.merchantID, intent.target == review.mutation.targetKey else {
+            throw MerchantBusinessFailure.invalid
+        }
+        try check()
+        try journal.reserve(intent)
+        try check()
+        let authorization = MerchantBusinessDispatchAuthorization(review, check: check)
+        do {
+            try authorization.consume(review)
+            return try await service.executeReviewed(review, latest: review.baseline, token: token, authorization: authorization, check: check)
+        } catch {
+            if MerchantMutationFailureDisposition.provesNoDispatch(error) { try journal.complete(intent) }
+            throw error
+        }
+    }
+
     private func set(_ error: Error) {
         if let failure = error as? MerchantBusinessFailure { self.failure = failure; failureKey = failure.key }
         else if error as? APIError == .notConfigured { failureKey = "auth.notConfigured" }
