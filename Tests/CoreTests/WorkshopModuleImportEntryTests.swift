@@ -17,6 +17,26 @@ final class WorkshopModuleImportEntryTests: XCTestCase {
             XCTAssertEqual(error as? WorkshopModuleImportFailure, .answersOrHiddenCoordinatesForbidden)
         }
         XCTAssertEqual(entry.importQmod(entry: "mod-q", originalRequestID: "import-req-0003"),
-                       .waitingSource(capability: WorkshopModuleSourceInventory.qmodOriginal))
+                       .waitingSource(capability: WorkshopModuleSourceInventory.qmodCandidateBinaries))
+    }
+
+    func testQmodManifestReachesReviewAndAuthorityFieldsDoNot() throws {
+        var entry = WorkshopModuleImportEntry()
+        let hash = String(repeating: "ab", count: 32)
+        var object = [
+            "formatVersion": "1.0", "kind": "questify.mod", "packageId": "mod-1",
+            "packageVersion": "1.0.0", "entrypoint": "content.json", "contentHash": hash,
+            "schemaVersion": "1", "filePath": "content.json", "fileSha256": hash, "fileBytes": "12"
+        ]
+        try entry.importQmodManifest(object, entry: "mod-1", originalRequestID: "import-req-0001")
+        XCTAssertEqual(entry.gate.phase, .reviewPending)
+        object["approved"] = "true"
+        var other = WorkshopModuleImportEntry()
+        XCTAssertThrowsError(try other.importQmodManifest(object, entry: "mod-1", originalRequestID: "import-req-0002")) {
+            XCTAssertEqual($0 as? WorkshopModuleImportFailure, .invalidManifest)
+        }
+        object["approved"] = nil
+        object["kind"] = "questify.h5"
+        XCTAssertThrowsError(try other.importQmodManifest(object, entry: "mod-1", originalRequestID: "import-req-0002"))
     }
 }
