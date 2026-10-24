@@ -31,6 +31,7 @@ WHITELIST = CORE_FILES + TEST_FILES + [
     CONTRACT,
     HUNK,
     "App/WithdrawalSupportLandingView.swift",
+    "App/ProfileOrdersView.swift",
 ]
 FORBIDDEN_TOUCH = [
     "App/AppSession.swift",
@@ -306,6 +307,41 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn("originalMissing(requestId: \"ORDER:9\")", tests)
         self.assertIn("originalMissing(requestId: \"RUN:77\")", tests)
         self.assertNotIn("struct WithdrawalSupportLandingView", tests)
+
+    def test_profile_orders_page_looks_up_the_opened_order(self):
+        page = (ROOT / "App/ProfileOrdersView.swift").read_text()
+        landing = (ROOT / "App/WithdrawalSupportLandingView.swift").read_text()
+        self.assertIn("struct ProfileOrdersView", page)
+        self.assertIn("ForEach(visible)", page)
+        self.assertIn("ProfileOrderRow(order: order", page)
+        self.assertIn("struct ProfileOrderDetailView", page)
+        self.assertIn("SupportLookupEntry", page)
+        self.assertIn("entry.appear()", page)
+        self.assertIn("entry.lookupByOrderId(", page)
+        self.assertIn("onAppear { appearOrderSupport() }", page)
+        self.assertIn("lookupOpenedOrder($0)", page)
+        self.assertIn(".task(id: id) { onOpenedOrder?(id) }", page)
+        self.assertIn("func firstOrderID(", page)
+        self.assertIn("composition.located.orderId == requested", page)
+        self.assertIn("Self.firstOrderID(composition.located.originalEvents) == requested", page)
+        self.assertIn("lookedUpOrderID = requested", page)
+        self.assertIn("lookedUpOrderID = nil", page)
+        self.assertIn("lookedUpOrderID == Int64(id)", page)
+        self.assertIn('accessibilityIdentifier("profile.orders.supportLookup")', page)
+        self.assertNotIn("lookedUpOrderID = composition", page)
+        self.assertNotIn("lookedUpOrderID = Self.firstOrderID", page)
+        self.assertNotIn("lookedUpOrderID = order", page)
+        self.assertNotIn("InMemoryOriginalEventSource", page)
+        self.assertNotIn("SupportEventLocator(", page)
+        self.assertNotIn("gradient", page.lower())
+        self.assertNotIn("glow", page.lower())
+        self.assertNotIn("audit-log", page.lower())
+        self.assertNotIn("admin/audit", page.lower())
+        appear = page.split("func appearOrderSupport()", 1)[1].split("func lookupOpenedOrder(", 1)[0]
+        self.assertNotIn("lookupByOrderId", appear)
+        self.assertNotIn("lookupOpenedOrder", appear)
+        self.assertIn("struct WithdrawalSupportLandingView", landing)
+        self.assertIn("entry.lookupByOrderId(", landing)
 
     def test_linux_xctest_is_explicitly_not_run(self):
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())

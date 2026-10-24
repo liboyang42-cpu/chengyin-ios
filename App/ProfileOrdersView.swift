@@ -1,5 +1,12 @@
 import SwiftUI
 
+/// Signed-in order support for one order opened from the existing list.
+/// The page calls SupportLookupEntry. It does not own an audit store.
+struct ProfileOrderSupportLookup {
+    var entry: SupportLookupEntry
+    var currentProjection: SupportCurrentProjection?
+}
+
 @MainActor
 struct ProfileOrdersView: View {
     let reader: any ProfileReading
@@ -7,7 +14,10 @@ struct ProfileOrdersView: View {
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var ticketReader: (any TicketWalletReading)? = nil
+    var orderSupport: ProfileOrderSupportLookup? = nil
     @State private var filterSelection = ProfileOrderFilterSelection()
+    @State private var orderEntry: SupportLookupEntry?
+    @State private var lookedUpOrderID: Int64?
     private var filterOwner: ProfileOrderFilterOwner {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
@@ -29,7 +39,7 @@ struct ProfileOrdersView: View {
                             isEmpty: visible.isEmpty)
                         Section {
                             ForEach(visible) { order in
-                                NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader) } label: {
+                                NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader, orderSupport: orderSupport, lookedUpOrderID: lookedUpOrderID, onOpenedOrder: { lookupOpenedOrder($0) }) } label: {
                                     ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date))
                                 }.accessibilityIdentifier("profile.order.\(order.id)")
                             }
@@ -39,7 +49,52 @@ struct ProfileOrdersView: View {
             }
         }
         .appNavigationTitle("profile.orders.title")
+        .onAppear { appearOrderSupport() }
         .onChange(of: filterOwner) { _, _ in filterSelection.retire() }
+    }
+    /// Appearance records the entry only. It does not look up and does not send.
+    private func appearOrderSupport() {
+        guard orderEntry == nil, var entry = orderSupport?.entry else { return }
+        entry.appear()
+        orderEntry = entry
+    }
+    /// The request's first ORDER id must equal the order the user opened.
+    /// A different id is original-missing and is not shown as this order.
+    private func lookupOpenedOrder(_ openedID: Int) {
+        appearOrderSupport()
+        guard openedID > 0, var entry = orderEntry else {
+            lookedUpOrderID = nil
+            return
+        }
+        let requested = Int64(openedID)
+        guard requested > 0 else {
+            lookedUpOrderID = nil
+            return
+        }
+        do {
+            let composition = try entry.lookupByOrderId(
+                requested,
+                currentProjection: orderSupport?.currentProjection,
+                withdrawal: nil,
+                orderRead: .detail(openedID))
+            orderEntry = entry
+            guard let composition, composition.located.orderId == requested,
+                  Self.firstOrderID(composition.located.originalEvents) == requested else {
+                lookedUpOrderID = nil
+                return
+            }
+            lookedUpOrderID = requested
+        } catch {
+            orderEntry = entry
+            lookedUpOrderID = nil
+        }
+    }
+    private static func firstOrderID(_ events: [OriginalAuditEvent]) -> Int64? {
+        for event in events {
+            guard event.targetType == "ORDER" else { continue }
+            return event.targetId
+        }
+        return nil
     }
 }
 
@@ -70,6 +125,9 @@ struct ProfileOrderDetailView: View {
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var ticketReader: (any TicketWalletReading)? = nil
+    var orderSupport: ProfileOrderSupportLookup? = nil
+    var lookedUpOrderID: Int64? = nil
+    var onOpenedOrder: ((Int) -> Void)? = nil
     @State private var ticketTarget: ProfileOrderTicketTarget?
     @State private var ticketEntryVisible = false
     @State private var ticketPresentationID = UUID()
@@ -153,12 +211,22 @@ struct ProfileOrderDetailView: View {
                     Section { ticketEntry(order: order, tickets: ticketReader) }
                 }
                 ExploreCompletionEntry(order: order, requestedID: id, origin: reader)
+                if orderSupport != nil, order.id == id {
+                    Section {
+                        LabeledContent("profile.orders.number") {
+                            if let lookedUpOrderID, lookedUpOrderID == Int64(id) {
+                                Text(verbatim: String(lookedUpOrderID))
+                            } else { Text("profile.orders.unknown") }
+                        }.accessibilityIdentifier("profile.orders.supportLookup")
+                    }
+                }
                 Section { Text("profile.readOnly").foregroundStyle(.secondary) }
             }
             }
         }
         .appNavigationTitle("profile.orders.detail")
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: id) { onOpenedOrder?(id) }
         .navigationDestination(item: $ticketTarget) { target in
             if let ticketReader, target.registrationID == id, target.matches(origin: reader, tickets: ticketReader) {
                 ProfileOrderTicketDestination(target: target, origin: reader, tickets: ticketReader)
