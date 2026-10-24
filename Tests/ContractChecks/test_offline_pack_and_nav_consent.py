@@ -120,6 +120,10 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
         self.assertIn("vol12ResumeWriterPresent: Bool { false }", pack)
         self.assertIn("t41FullLoopProven: Bool { false }", pack)
         self.assertIn("testMissingQmodAndVol12ContractsAreWaitingSource", tests)
+        self.assertIn("offlinePack.publishedArtifact", pack)
+        self.assertIn("approvedLocator", pack)
+        self.assertIn("testMissingArtifactDoesNotFinishAndRestartKeepsTheSameOperation", tests)
+        self.assertNotIn("https://", pack)
         self.assertIn("PlayExperienceCoordinator.paused", pack)
         self.assertIn("pauseOpsReserved", pack)
 

@@ -273,7 +273,53 @@ final class OfflinePackOperationTests: XCTestCase {
         pack = OfflinePackOperation()
         XCTAssertEqual(waiting { try pack.hijackOriginalPauseOps() }, .pauseOpsReserved)
     }
+    func testMissingArtifactDoesNotFinishAndRestartKeepsTheSameOperation() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        let empty = EmptyArtifactSource()
+        XCTAssertThrowsError(try OfflinePackPayloadConsumer.accept(&pack, from: empty)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .waitingSource(capability: OfflinePackPayloadConsumer.missingArtifact))
+        }
+        XCTAssertEqual(pack.phase, .downloading)
+        XCTAssertEqual(pack.operationID, "op-1")
+        let saved = try XCTUnwrap(pack.operationRecord())
+        var other = OfflinePackOperation()
+        try other.startDownload(try manifest(operationID: "op-other"))
+        XCTAssertThrowsError(try other.restoreSameOperation(saved)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .operationMismatch)
+        }
+        XCTAssertEqual(other.operationID, "op-other")
+        var restarted = OfflinePackOperation()
+        try restarted.restoreSameOperation(saved)
+        XCTAssertEqual(restarted.operationID, "op-1")
+        XCTAssertEqual(restarted.phase, .downloading)
+        let source = MatchingArtifactSource(contract: try XCTUnwrap(OfflinePackPublishedContract(
+            packID: "pack-a", version: "pack-v1", checksum: checksum, locator: "approved-handle")), bytes: payload)
+        try OfflinePackPayloadConsumer.accept(&restarted, from: source)
+        XCTAssertEqual(restarted.phase, .ready)
+        XCTAssertEqual(source.reads, 1)
+    }
     private func waiting(_ body: () throws -> Never) -> OfflinePackFailure? {
         do { try body(); return nil } catch let error as OfflinePackFailure { return error } catch { return nil }
+    }
+}
+
+private struct EmptyArtifactSource: OfflinePackArtifactSource {
+    func publishedContract(operationID: String) -> OfflinePackPublishedContract? { nil }
+    func bytes(matching contract: OfflinePackPublishedContract) -> Data? { nil }
+}
+
+private final class MatchingArtifactSource: OfflinePackArtifactSource {
+    let contract: OfflinePackPublishedContract
+    let payload: Data
+    var reads = 0
+    init(contract: OfflinePackPublishedContract, bytes: Data) {
+        self.contract = contract
+        self.payload = bytes
+    }
+    func publishedContract(operationID: String) -> OfflinePackPublishedContract? { contract }
+    func bytes(matching contract: OfflinePackPublishedContract) -> Data? {
+        reads += 1
+        return payload
     }
 }

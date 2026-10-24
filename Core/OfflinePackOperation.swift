@@ -3,6 +3,8 @@ import CryptoKit
 
 /// Exclusive offline-pack operation. Inventory first: T41 is an unproven full loop.
 /// Missing qmod / volume-12 final ops contract is WAITING_SOURCE, not a rewrite.
+/// Qmod install and in-memory keep-old are not this download. A missing published
+/// artifact blocks the bytes only.
 public enum OfflinePackFailure: Error, Equatable {
     case waitingSource(capability: String)
     case answersOrHiddenCoordinatesForbidden
@@ -252,4 +254,92 @@ public struct OfflinePackOperation: Equatable {
         if error.isWaitingSource { phase = .waitingSource }
         return error
     }
+
+    public func operationRecord() -> OfflinePackOperationRecord? {
+        guard let operationID, let manifest else { return nil }
+        return OfflinePackOperationRecord(operationID: operationID, phase: phase.rawValue,
+            packID: manifest.packID, version: manifest.version, byteSize: manifest.byteSize,
+            checksum: manifest.checksum, publicPlaceIDs: manifest.publicPlaceIDs,
+            expiresAt: manifest.expiresAt.timeIntervalSince1970, retainedPriorVersion: retainedPrior?.version)
+    }
+
+    public static func restored(_ record: OfflinePackOperationRecord) -> OfflinePackOperation? {
+        guard let phase = OfflinePackPhase(rawValue: record.phase),
+              let manifest = OfflinePackManifest(packID: record.packID, operationID: record.operationID,
+                version: record.version, byteSize: record.byteSize, checksum: record.checksum,
+                publicPlaceIDs: record.publicPlaceIDs, expiresAt: Date(timeIntervalSince1970: record.expiresAt)),
+              manifest.operationID == record.operationID else { return nil }
+        var operation = OfflinePackOperation()
+        operation.operationID = record.operationID
+        operation.phase = phase
+        operation.manifest = manifest
+        return operation
+    }
+
+    public mutating func restoreSameOperation(_ record: OfflinePackOperationRecord) throws {
+        guard operationID == nil || operationID == record.operationID else { throw fail(.operationMismatch) }
+        guard let restored = Self.restored(record), restored.operationID == record.operationID else {
+            throw fail(.invalidManifest)
+        }
+        self = restored
+    }
+}
+
+/// Fields the published artifact source must bind. No locator is invented here.
+public struct OfflinePackPublishedContract: Equatable, Sendable {
+    public static let requiredFields = ["packID", "version", "checksum", "approvedLocator"]
+    public let packID: String
+    public let version: String
+    public let checksum: String
+    public let locator: String
+    public init?(packID: String, version: String, checksum: String, locator: String) {
+        guard !OfflinePackOperation.isBlank(packID), OfflinePackOperation.versionOK(version),
+              checksum.count == 64, checksum.allSatisfy(\.isHexDigit),
+              !OfflinePackOperation.isBlank(locator) else { return nil }
+        self.packID = packID
+        self.version = version
+        self.checksum = checksum
+        self.locator = locator
+    }
+}
+
+public protocol OfflinePackArtifactSource {
+    func publishedContract(operationID: String) -> OfflinePackPublishedContract?
+    func bytes(matching contract: OfflinePackPublishedContract) -> Data?
+}
+
+public enum OfflinePackPayloadConsumer {
+    public static let missingArtifact = "offlinePack.publishedArtifact"
+    public static func accept(_ operation: inout OfflinePackOperation, from source: any OfflinePackArtifactSource) throws {
+        guard let operationID = operation.operationID, let manifest = operation.manifest else {
+            throw OfflinePackFailure.waitingSource(capability: OfflinePackSourceInventory.payloadConsumer)
+        }
+        guard let contract = source.publishedContract(operationID: operationID),
+              contract.packID == manifest.packID, contract.version == manifest.version,
+              contract.checksum.caseInsensitiveCompare(manifest.checksum) == .orderedSame else {
+            throw OfflinePackFailure.waitingSource(capability: missingArtifact)
+        }
+        guard let payload = source.bytes(matching: contract) else {
+            throw OfflinePackFailure.waitingSource(capability: OfflinePackSourceInventory.payloadConsumer)
+        }
+        if operation.phase == .downloading {
+            try operation.finishDownload(payload: payload)
+        } else if operation.phase == .updating {
+            try operation.finishUpdate(payload: payload)
+        } else {
+            throw OfflinePackFailure.notDownloading
+        }
+    }
+}
+
+public struct OfflinePackOperationRecord: Codable, Equatable, Sendable {
+    public let operationID: String
+    public let phase: String
+    public let packID: String
+    public let version: String
+    public let byteSize: Int
+    public let checksum: String
+    public let publicPlaceIDs: [Int]
+    public let expiresAt: TimeInterval
+    public let retainedPriorVersion: String?
 }
