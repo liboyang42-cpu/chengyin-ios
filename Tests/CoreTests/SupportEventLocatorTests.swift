@@ -151,6 +151,13 @@ final class SupportEventLocatorTests: XCTestCase {
         XCTAssertEqual(byOrder.orderId, 9)
     }
 
+    func testLocateByRunRejectsADifferentTarget() {
+        let locator = SupportEventLocator(originalEvents: WrongTargetSource())
+        XCTAssertThrowsError(try locator.locateByRunId(7, currentProjection: nil)) { error in
+            XCTAssertEqual(error as? SupportLocateFailure, .originalMissing(requestId: "RUN:7"))
+        }
+    }
+
     func testMissingRequestIdStaysOptionalNoneNeverEmptyString() throws {
         let locator = SupportEventLocator(originalEvents: InMemoryOriginalEventSource())
         XCTAssertNil(SupportUntrusted.requestID(nil))
@@ -235,6 +242,14 @@ final class SupportEventLocatorTests: XCTestCase {
         XCTAssertThrowsError(try locator.locateByRequestId("ghost", currentProjection: projection)) { error in
             XCTAssertEqual(error as? SupportLocateFailure, .originalMissing(requestId: "ghost"))
         }
+    }
+}
+
+final class WrongTargetSource: SupportEventLocator.OriginalEventSource {
+    func findByRequestId(_ requestId: String) -> [OriginalAuditEvent] { [] }
+    func findByTarget(targetType: String, targetId: Int64) -> OriginalAuditEvent? {
+        OriginalAuditEvent(requestId: "req-other", targetType: "ORDER", targetId: 99,
+                           action: "PAY", afterJson: "UNKNOWN")
     }
 }
 

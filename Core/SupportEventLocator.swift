@@ -147,7 +147,8 @@ public struct SupportEventLocator {
         currentProjection: SupportCurrentProjection?
     ) throws -> LocatedEvent? {
         guard let runId, runId > 0 else { return nil }
-        guard let found = originalEvents.findByTarget(targetType: "RUN", targetId: runId) else {
+        guard let found = originalEvents.findByTarget(targetType: "RUN", targetId: runId),
+              found.targetType == "RUN", found.targetId == runId else {
             throw SupportLocateFailure.originalMissing(requestId: "RUN:\(runId)")
         }
         return try locateByRequestId(found.requestId, currentProjection: currentProjection)
@@ -158,7 +159,8 @@ public struct SupportEventLocator {
         currentProjection: SupportCurrentProjection?
     ) throws -> LocatedEvent? {
         guard let orderId, orderId > 0 else { return nil }
-        guard let found = originalEvents.findByTarget(targetType: "ORDER", targetId: orderId) else {
+        guard let found = originalEvents.findByTarget(targetType: "ORDER", targetId: orderId),
+              found.targetType == "ORDER", found.targetId == orderId else {
             throw SupportLocateFailure.originalMissing(requestId: "ORDER:\(orderId)")
         }
         return try locateByRequestId(found.requestId, currentProjection: currentProjection)
