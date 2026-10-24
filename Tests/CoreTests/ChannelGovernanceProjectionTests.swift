@@ -725,7 +725,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
             ])
         })
         XCTAssertEqual(writes, 1)
-        XCTAssertEqual(receipt.requestID, entry.requestID)
+        XCTAssertEqual(receipt.requestID, entry.intent?.requestID)
         XCTAssertFalse(receipt.markedReadOnLoad)
         XCTAssertThrowsError(try entry.acknowledge(actor: actor, channelID: channel, lastMessageID: 4, channelKind: 1,
                                                    lease: lease, currentLease: { lease }, isolation: openIsolation,
@@ -734,15 +734,29 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
             return [:]
         })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
         XCTAssertEqual(writes, 1)
-        let recovered = try entry.recover(actor: actor, channelID: channel, channelKind: 1,
-                                          originalAccount: { _, _ in true }, receipt: { _, request in
+        let recovered = try entry.recover(originalAccount: { _, _ in true }, receipt: { _, request in
             try json([
                 "request_id": request, "operation": "ACK", "scope_type": 1, "scope_id": String(channel),
                 "status": "APPLIED", "replayed": true, "must_refresh_state": true, "result_redacted": true
             ])
         })
-        XCTAssertEqual(recovered.requestID, entry.requestID)
+        XCTAssertEqual(recovered.requestID, entry.intent?.requestID)
         XCTAssertEqual(recovered.outcome, "APPLIED")
+        XCTAssertEqual(writes, 1)
+        var rejected = MessageHistoryAckEntry()
+        XCTAssertThrowsError(try rejected.acknowledge(actor: actor, channelID: channel, lastMessageID: 4, channelKind: 1,
+                                                      lease: lease, currentLease: { lease }, isolation: openIsolation,
+                                                      sameScope: { _, _ in false }, writer: { _, _, _, _ in
+            writes += 1
+            return [:]
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        XCTAssertNil(rejected.intent)
+        XCTAssertEqual(writes, 1)
+        let fresh = MessageHistoryAckEntry()
+        XCTAssertThrowsError(try fresh.recover(originalAccount: { _, _ in true }, receipt: { _, _ in
+            writes += 1
+            return [:]
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
         XCTAssertEqual(writes, 1)
     }
 

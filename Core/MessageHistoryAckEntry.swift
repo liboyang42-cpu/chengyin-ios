@@ -1,10 +1,26 @@
 import Foundation
 
 /// History, then an explicit ack, then the same request receipt.
-/// Opening the page does not acknowledge. A second ack does not write again.
+/// A rejected precheck does not keep a request id. UNKNOWN does not send again.
+/// There is no ACK durable journal on this tree. PREFERENCE and MUTE are not ACK.
 public struct MessageHistoryAckEntry {
-    public private(set) var requestID: String?
-    private var attempted = false
+    public struct Intent: Equatable {
+        public let actor: Int64
+        public let channelID: Int64
+        public let lastMessageID: Int64
+        public let requestID: String
+        public let channelKind: Int
+    }
+
+    public enum Phase: Equatable {
+        case idle
+        case unknown
+        case applied
+    }
+
+    public private(set) var intent: Intent?
+    public private(set) var phase: Phase = .idle
+    private var dispatched = false
 
     public init() {}
 
@@ -24,22 +40,79 @@ public struct MessageHistoryAckEntry {
                                      lease: ChannelPageLease, currentLease: () -> ChannelPageLease,
                                      isolation: ChannelRevokeIsolation, sameScope: (Int64, Int64) -> Bool,
                                      writer: (Int64, Int64, Int64, String) throws -> [String: Any]) throws -> MessageContainerOriginalAck.Receipt {
-        guard !attempted else { throw ChannelAuthorizationError.invalidCatalog }
-        let id = "ack-" + UUID().uuidString.lowercased()
-        requestID = id
-        attempted = true
-        return try MessageContainerOriginalAck().acknowledgeExplicit(
-            actor: actor, channelID: channelID, lastMessageID: lastMessageID, requestID: id,
-            channelKind: channelKind, lease: lease, currentLease: currentLease, isolation: isolation,
-            sameScope: sameScope, writer: writer)
+        guard phase != .applied else { throw ChannelAuthorizationError.invalidCatalog }
+        try precheck(actor: actor, channelID: channelID, lastMessageID: lastMessageID, channelKind: channelKind,
+                     lease: lease, currentLease: currentLease, sameScope: sameScope)
+        if dispatched {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        let id = intent?.requestID ?? ("ack-" + UUID().uuidString.lowercased())
+        intent = Intent(actor: actor, channelID: channelID, lastMessageID: lastMessageID, requestID: id, channelKind: channelKind)
+        return try dispatch(id: id, lease: lease, currentLease: currentLease, isolation: isolation,
+                            sameScope: sameScope, writer: writer)
     }
 
-    public func recover(actor: Int64, channelID: Int64, channelKind: Int,
-                        originalAccount: (Int64, String) -> Bool,
+    /// Reads the stored intent. It does not accept a substitute actor or channel, and it does not write.
+    public func recover(originalAccount: (Int64, String) -> Bool,
                         receipt: (Int64, String) throws -> [String: Any]) throws -> MessageContainerOriginalAck.Receipt {
-        guard let requestID else { throw ChannelAuthorizationError.invalidCatalog }
-        return try MessageContainerOriginalAck().recover(
-            actor: actor, channelID: channelID, requestID: requestID, channelKind: channelKind,
-            originalAccount: originalAccount, receipt: receipt)
+        guard let intent else { throw ChannelAuthorizationError.invalidCatalog }
+        let recovered = try MessageContainerOriginalAck().recover(
+            actor: intent.actor, channelID: intent.channelID, requestID: intent.requestID,
+            channelKind: intent.channelKind, originalAccount: originalAccount, receipt: receipt)
+        guard recovered.requestID == intent.requestID else { throw ChannelAuthorizationError.invalidCatalog }
+        return recovered
+    }
+
+    /// Same id and same intent, only after the original receipt says resume, write is still approved, and the user retries.
+    public mutating func retry(lease: ChannelPageLease, currentLease: () -> ChannelPageLease,
+                               isolation: ChannelRevokeIsolation, sameScope: (Int64, Int64) -> Bool,
+                               originalAccount: (Int64, String) -> Bool,
+                               receipt: (Int64, String) throws -> [String: Any],
+                               writer: (Int64, Int64, Int64, String) throws -> [String: Any]) throws -> MessageContainerOriginalAck.Receipt {
+        guard phase == .unknown, let intent else { throw ChannelAuthorizationError.invalidCatalog }
+        let recovered = try recover(originalAccount: originalAccount, receipt: receipt)
+        guard recovered.resumeSameRequest, sameScope(intent.actor, intent.channelID) else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        try precheck(actor: intent.actor, channelID: intent.channelID, lastMessageID: intent.lastMessageID,
+                     channelKind: intent.channelKind, lease: lease, currentLease: currentLease, sameScope: sameScope)
+        dispatched = false
+        return try dispatch(id: intent.requestID, lease: lease, currentLease: currentLease, isolation: isolation,
+                            sameScope: sameScope, writer: writer)
+    }
+
+    private func precheck(actor: Int64, channelID: Int64, lastMessageID: Int64, channelKind: Int,
+                          lease: ChannelPageLease, currentLease: () -> ChannelPageLease,
+                          sameScope: (Int64, Int64) -> Bool) throws {
+        guard MessageContainerOriginalAck.samePage(lease, currentLease()),
+              Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID,
+              lastMessageID >= 0, channelKind != 0, sameScope(actor, channelID) else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+    }
+
+    private mutating func dispatch(id: String, lease: ChannelPageLease, currentLease: () -> ChannelPageLease,
+                                   isolation: ChannelRevokeIsolation, sameScope: (Int64, Int64) -> Bool,
+                                   writer: (Int64, Int64, Int64, String) throws -> [String: Any]) throws -> MessageContainerOriginalAck.Receipt {
+        guard let intent else { throw ChannelAuthorizationError.invalidCatalog }
+        var wrote = false
+        do {
+            let receipt = try MessageContainerOriginalAck().acknowledgeExplicit(
+                actor: intent.actor, channelID: intent.channelID, lastMessageID: intent.lastMessageID,
+                requestID: id, channelKind: intent.channelKind, lease: lease, currentLease: currentLease,
+                isolation: isolation, sameScope: sameScope, writer: { actor, channel, message, request in
+                    wrote = true
+                    return try writer(actor, channel, message, request)
+                })
+            dispatched = wrote
+            phase = receipt.resumeSameRequest ? .unknown : .applied
+            return receipt
+        } catch {
+            if wrote {
+                dispatched = true
+                phase = .unknown
+            }
+            throw error
+        }
     }
 }
