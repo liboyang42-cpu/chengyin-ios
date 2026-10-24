@@ -55,10 +55,37 @@ Tests/CoreTests/OriginalActionReaderTests.swift
   PBXBuildFile     7F60710EA0C166E59AB42BBA  fileRef = F5287F797197CA31D41612A5
 ```
 
+## Route page caller
+
+`PlayRouteMapView`, when `actionRead` is present, calls the existing
+`OriginalActionReader` once. That call returns `serviceResult` for the same
+session, member, and action, then `RouteActionPageRead.shownRow` shows the row.
+A mismatch shows no row. Appearance still only records that the page appeared
+and does not query or write.
+
+`OriginalActionReader` is not rewritten into a second empty port. `httpPath`
+stays nil. `sends` stays 0. The send is stopped. This page does not send.
+
+A missing or non-https `APIConfiguration` closes only this read and does not invent a domain.
+
+## Not applied — session configuration
+
+The running map host still passes no `actionRead`. Supplying the configuration
+uses the existing `session.regionalConfiguration?.apiConfiguration?.baseURL`.
+Do not apply the paste. Do not edit:
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+App/MessagingHomeView.swift
+Core/MessagingContracts.swift
+MerchantDeskSkuPage.swift
+```
+
 Unapplied call, not inserted into the route page host or the session:
 
 ```
-let reader = OriginalActionReader(selectActionByAction: /* existing mapper port, not an invented path */)
 PlayRouteMapView(
     model: model,
     nodeDestination: { AnyView(nodeDestination($0)) },
@@ -66,8 +93,13 @@ PlayRouteMapView(
         sessionID: sessionID,
         memberID: memberID,
         actionID: actionID,
-        selectAction: reader.selectAction))
+        serviceResult: serviceResult,
+        apiBaseURL: session.regionalConfiguration?.apiConfiguration?.baseURL))
 ```
+
+`serviceResult` is the row from hengyin `RouteActionReadService.read(sessionId, memberId, actionId)`.
+This repo does not copy that service. The GET `/api/play/route-action` paste stays
+unapplied on hengyin. Do not guess a production host.
 
 `session.routeActionPageRead` does not exist. Do not add it on this branch.
 Until that attach exists, the page's `actionRead` stays nil: no extra row and
