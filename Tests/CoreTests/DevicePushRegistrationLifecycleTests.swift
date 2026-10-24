@@ -96,3 +96,27 @@ final class DevicePushRegistrationLifecycleTests: XCTestCase {
         XCTAssertEqual(replay.deviceId, "dev-recover-never-c09")
         XCTAssertEqual(lifecycle.originalByDeviceID.count, 1)
     }
+    func testUnusedRevokeOfNeverSeenDoesNotOccupyThenUniqueRegisterApplies() throws {
+        var lifecycle = DevicePushRegistrationLifecycle()
+        XCTAssertThrowsError(try lifecycle.revoke(deviceId: "dev-revoke-never-c09")) { error in
+            XCTAssertEqual(error as? NotifyFailure, .originalMissing("dev-revoke-never-c09"))
+        }
+        XCTAssertTrue(lifecycle.originalByDeviceID.isEmpty, "未见设备 revoke 观察不得占账")
+        XCTAssertNil(lifecycle.originalByDeviceID["dev-revoke-never-c09"])
+        let unused = lifecycle.recoverOriginal(
+            originalRequestID: "dev-revoke-never-c09", appliedProjection: nil)
+        XCTAssertEqual(unused.deviceId, "dev-revoke-never-c09")
+        XCTAssertEqual(unused.status, "UNKNOWN")
+        XCTAssertTrue(lifecycle.originalByDeviceID.isEmpty)
+        let first = try lifecycle.register(
+            deviceId: "dev-revoke-never-c09",
+            environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: true, fixtureToken: "fixture-token-c09")
+        XCTAssertEqual(first.deviceId, "dev-revoke-never-c09")
+        XCTAssertEqual(first.status, DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(lifecycle.originalByDeviceID.count, 1)
+        XCTAssertEqual(lifecycle.recoverOriginal(
+            originalRequestID: "dev-revoke-never-c09", appliedProjection: nil).status,
+                       DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(lifecycle.originalByDeviceID.count, 1)
+    }

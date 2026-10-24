@@ -107,6 +107,7 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         self.assertIn("evt-recover-never-c09", receipt)
         self.assertIn("testOtherDeviceDoesNotRewriteOriginalRegistration", devices)
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueRegisterApplies", devices)
+        self.assertIn("testUnusedRevokeOfNeverSeenDoesNotOccupyThenUniqueRegisterApplies", devices)
         self.assertIn("dev-recover-never-c09", devices)
         self.assertIn("fingerprintConflict(requestId: \"evt-E\")", receipt)
         self.assertIn("dev-other", devices)
