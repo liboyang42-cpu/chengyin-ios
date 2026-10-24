@@ -376,4 +376,29 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(ChannelAccount4Identity.realm, "ACCOUNT4")
         XCTAssertNotEqual(ChannelAccount4Identity.realm, "")
     }
+
+    func testJSONMyStateHidesUnreadWhenIndexIsNotABoolean() throws {
+        let raw = try JSONSerialization.data(withJSONObject: [
+            "pinned": 0, "hidden": 0, "muted": 0, "permanent_muted": false, "effective_level": 1,
+            "muted_until": NSNull(), "read_state_available": 1, "indexed": false, "unread_count": 7,
+            "last_read_msg_id": "42", "last_read_visible_at": "2026-10-24T09:00:00Z"
+        ])
+        let object = try XCTUnwrap(try JSONSerialization.jsonObject(with: raw) as? [String: Any])
+        let state = try XCTUnwrap(DirectoryMyState.read(object))
+        XCTAssertNil(state.unreadCount)
+        XCTAssertEqual(state.readStateAvailable, 0)
+        XCTAssertNil(state.lastReadVisibleAt)
+        let legal = try JSONSerialization.data(withJSONObject: [
+            "pinned": 0, "hidden": 0, "muted": 0, "permanent_muted": false, "effective_level": 1,
+            "muted_until": "2026-10-24T10:00:00Z", "read_state_available": 1, "indexed": true,
+            "unread_count": 7, "last_read_msg_id": "9223372036854775807",
+            "last_read_visible_at": "2026-10-24T09:00:00Z"
+        ])
+        let shown = try XCTUnwrap(DirectoryMyState.read(try XCTUnwrap(try JSONSerialization.jsonObject(with: legal) as? [String: Any])))
+        XCTAssertEqual(shown.unreadCount, 7)
+        XCTAssertEqual(shown.lastReadMessageID, "9223372036854775807")
+        XCTAssertEqual(shown.mutedUntil, "2026-10-24T10:00:00Z")
+        XCTAssertEqual(shown.lastReadVisibleAt, "2026-10-24T09:00:00Z")
+        XCTAssertFalse(shown.grantsSend)
+    }
 }

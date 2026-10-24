@@ -308,10 +308,12 @@ public struct DirectoryMyState: Equatable, Sendable {
     public let muted: Int
     public let permanentMuted: Bool
     public let effectiveLevel: Int
+    public let mutedUntil: String?
     public let readStateAvailable: Int
     public let indexed: Bool
     public let readState: String?
     public let lastReadMessageID: String?
+    public let lastReadVisibleAt: String?
     public let unreadCount: Int?
     public let unreadMentionCount: Int?
     public let grantsSend: Bool
@@ -323,19 +325,22 @@ public struct DirectoryMyState: Equatable, Sendable {
               let muted = bit(myState["muted"]), let level = level(myState["effective_level"]),
               let permanent = jsonBool(myState["permanent_muted"]) else { return nil }
         let category = (myState["read_state"] as? String) == "NOT_APPLICABLE"
-        let available = exactInt(myState["read_state_available"]) == 1 && !category
+        let readable = exactInt(myState["read_state_available"]) == 1 && !category && jsonBool(myState["indexed"]) == true
         return DirectoryMyState(pinned: pinned, hidden: hidden, muted: muted, permanentMuted: permanent,
-            effectiveLevel: level, readStateAvailable: available ? 1 : 0, indexed: available && (myState["indexed"] as? Bool) == true,
+            effectiveLevel: level, mutedUntil: optionalText(myState["muted_until"]),
+            readStateAvailable: readable ? 1 : 0, indexed: readable,
             readState: category ? "NOT_APPLICABLE" : nil,
-            lastReadMessageID: available ? decimal(myState["last_read_msg_id"]) : nil,
-            unreadCount: available ? count(myState["unread_count"]) : nil,
-            unreadMentionCount: available ? count(myState["unread_mention_count"]) : nil,
+            lastReadMessageID: readable ? decimal(myState["last_read_msg_id"]) : nil,
+            lastReadVisibleAt: readable ? optionalText(myState["last_read_visible_at"]) : nil,
+            unreadCount: readable ? count(myState["unread_count"]) : nil,
+            unreadMentionCount: readable ? count(myState["unread_mention_count"]) : nil,
             grantsSend: false, grantsReceiptWrite: false)
     }
 
     public static let unavailable = DirectoryMyState(pinned: 0, hidden: 0, muted: 0, permanentMuted: false,
-        effectiveLevel: 0, readStateAvailable: 0, indexed: false, readState: nil, lastReadMessageID: nil,
-        unreadCount: nil, unreadMentionCount: nil, grantsSend: false, grantsReceiptWrite: false)
+        effectiveLevel: 0, mutedUntil: nil, readStateAvailable: 0, indexed: false, readState: nil,
+        lastReadMessageID: nil, lastReadVisibleAt: nil, unreadCount: nil, unreadMentionCount: nil,
+        grantsSend: false, grantsReceiptWrite: false)
 
     private static func bit(_ value: Any?) -> Int? {
         guard let number = exactInt(value), number == 0 || number == 1 else { return nil }
@@ -355,31 +360,37 @@ public struct DirectoryMyState: Equatable, Sendable {
         return number.intValue
     }
     private static func decimal(_ value: Any?) -> String? {
-        if let text = value as? String, !text.isEmpty, text.allSatisfy({ $0.isNumber }) { return text }
-        if let number = value as? Int, number >= 0 { return String(number) }
-        return nil
+        if let text = value as? String {
+            guard !text.isEmpty, text.count <= 19, text.unicodeScalars.allSatisfy({ (48...57).contains($0.value) }),
+                  let number = Int64(text), String(number) == text, number >= 0 else { return nil }
+            return text
+        }
+        guard let number = exactInt(value), number >= 0 else { return nil }
+        return String(number)
     }
     private static func count(_ value: Any?) -> Int? {
-        if value == nil { return nil }
-        if let number = value as? Int, number >= 0 { return number }
-        return nil
+        guard let number = exactInt(value), number >= 0 else { return nil }
+        return number
+    }
+    private static func optionalText(_ value: Any?) -> String? {
+        value as? String
     }
 }
 
-/// Type 5 history and ack are separate grants. Neither one grants send or receipt write.
+/// Type 5 read surface. History and ack stay on the original notification service.
+/// A caller cannot pass a bare true to invent either grant, and loading does not mark read.
 public struct MessageContainerReadHost: Equatable, Sendable {
     public let container: MessageContainerProjection
     public let state: DirectoryMyState
-    public let historyGranted: Bool
-    public let ackGranted: Bool
     public var grantsSend: Bool { false }
     public var grantsReceiptWrite: Bool { false }
-    public var unreadCount: Int? { historyGranted && state.readStateAvailable == 1 ? state.unreadCount : nil }
-    public init?(container: MessageContainerProjection, state: DirectoryMyState, historyGranted: Bool, ackGranted: Bool) {
+    public var unreadCount: Int? { state.readStateAvailable == 1 && state.indexed ? state.unreadCount : nil }
+    public init?(container: MessageContainerProjection, state: DirectoryMyState) {
         guard container.conversationType == "5", container.grantsSend == false else { return nil }
         self.container = container
         self.state = state
-        self.historyGranted = historyGranted
-        self.ackGranted = ackGranted
+    }
+    public func acknowledge() throws {
+        throw ChannelAuthorizationError.waitingSource
     }
 }
