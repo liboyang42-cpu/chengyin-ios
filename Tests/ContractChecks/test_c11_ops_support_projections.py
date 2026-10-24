@@ -17,6 +17,7 @@ CORE_FILES = [
     "Core/ReviewResultVisibilityAdapter.swift",
     "Core/VersionedLocaleDisplay.swift",
     "Core/ProfileOrderEventSourceInjection.swift",
+    "Core/ProfileOrderEventHost.swift",
 ]
 TEST_FILES = [
     "Tests/CoreTests/SupportEventLocatorTests.swift",
@@ -26,14 +27,17 @@ TEST_FILES = [
     "Tests/CoreTests/ReviewResultVisibilityAdapterTests.swift",
     "Tests/CoreTests/VersionedLocaleDisplayTests.swift",
     "Tests/CoreTests/ProfileOrderEventSourceInjectionTests.swift",
+    "Tests/CoreTests/ProfileOrderEventHostTests.swift",
 ]
 CONTRACT = "Tests/ContractChecks/test_c11_ops_support_projections.py"
 HUNK = "docs/issue5-hunks/C11-ios-dot-hunk.md"
 EVENT_SOURCE_HUNK = "docs/issue5-hunks/C11-event-source-inject.hunk"
+HOST_HUNK = "docs/issue5-hunks/C11-event-host-inject.hunk"
 WHITELIST = CORE_FILES + TEST_FILES + [
     CONTRACT,
     HUNK,
     EVENT_SOURCE_HUNK,
+    HOST_HUNK,
     "App/WithdrawalSupportLandingView.swift",
     "App/ProfileOrdersView.swift",
 ]
@@ -394,6 +398,56 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
             current = (ROOT / path).read_bytes()
             original = subprocess.check_output(["git", "show", f"{EVENT_SOURCE_PARENT}:{path}"], cwd=str(ROOT))
             self.assertEqual(current, original, path)
+
+    def test_event_host_reads_owned_order_then_original_event(self):
+        source = self.sources["Core/ProfileOrderEventHost.swift"]
+        tests = self.sources["Tests/CoreTests/ProfileOrderEventHostTests.swift"]
+        hunk = (ROOT / HOST_HUNK).read_text()
+        landing = (ROOT / "App/WithdrawalSupportLandingView.swift").read_text()
+        self.assertTrue(source.startswith("import Foundation"))
+        self.assertIn("struct ProfileOrderEventHost", source)
+        self.assertNotIn("struct ProfileOrderEventSourceInjection", source)
+        self.assertNotIn("init(events:", source)
+        self.assertIn("api/registration/info", source)
+        self.assertIn("api/registration/original-event", source)
+        self.assertLess(source.index("api/registration/info"), source.index("api/registration/original-event"))
+        self.assertIn("infoID == openedOrderID", source)
+        self.assertIn("Self.firstOrderID(rows) == Int64(openedOrderID)", source)
+        self.assertIn("lookupOpenedOrder(openedOrderID)", source)
+        self.assertIn("ProfileOrder fields are not OriginalAuditEvent", source)
+        self.assertNotIn("ProfileOrder(", source)
+        self.assertNotIn("audit-log", source.lower())
+        self.assertNotIn("locateByRunId", source)
+        self.assertNotIn("gradient", source.lower())
+        self.assertNotIn("glow", source.lower())
+        self.assertIn("testFirstJourneyOwnedOrderReadsInfoThenOriginalEventAndRecoverOriginal", tests)
+        self.assertIn("recoverOriginal", tests)
+        self.assertIn("api/registration/info", tests)
+        self.assertIn("api/registration/original-event", tests)
+        self.assertIn("DO NOT APPLY", hunk)
+        self.assertIn("AppSession", hunk)
+        self.assertIn("AppCompositionRoot", hunk)
+        self.assertIn("project.pbxproj", hunk)
+        self.assertIn("C7BA648D253BCD7E4FE8CCC4", hunk)
+        self.assertIn("CAF2E94E0388E741B99F46FD", hunk)
+        self.assertIn("ProfileOrderEventHost.open", hunk)
+        self.assertIn("api/registration/info", hunk)
+        self.assertIn("api/registration/original-event", hunk)
+        self.assertIn("withdrawal.support.balance", hunk)
+        self.assertIn("withdrawal.support.notReceived", hunk)
+        self.assertIn("NOT_RUN", hunk)
+        self.assertIn("Not 100%", hunk)
+        for path in [
+            "App/AppSession.swift",
+            "App/AppCompositionRoot.swift",
+            "App/OwnedOrderComposition.swift",
+            "App/ProfileOrdersView.swift",
+            "Questify.xcodeproj/project.pbxproj",
+        ]:
+            self.assertNotIn("ProfileOrderEventHost", (ROOT / path).read_text(), path)
+        self.assertIn('Section("withdrawal.support.balance")', landing)
+        self.assertIn('Section("withdrawal.support.notReceived")', landing)
+        self.assertNotIn("ProfileOrderEventHost", landing)
 
     def test_sha256_payload_covers_whitelist(self):
         digest = hashlib.sha256()
