@@ -175,7 +175,9 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
         public let requestID: String
         public let skuID: Int64
         public let productID: Int64
-        public let payload: String
+        public let skuName: String
+        public let price: String
+        public let stock: Int
     }
 
     public struct Recovery: Equatable, Sendable {
@@ -188,23 +190,39 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
     public init() {}
 
     public func freeze(access: MerchantBusinessAccess, accountID: Int64, productID: Int64,
-                       skuID: Int64, requestID: String, payload: String) -> Intent? {
+                       skuID: Int64, requestID: String, skuName: String, price: String, stock: Int) -> Intent? {
         guard access.role == "MERCHANT_OWNER", accountID > 0, accountID != Int64(access.merchantID),
-              productID > 0, skuID > 0, MerchantSupplyDryRunProjection.parse(requestID) != nil,
-              !payload.isEmpty else { return nil }
-        return Intent(requestID: requestID, skuID: skuID, productID: productID, payload: payload)
+              productID > 0, skuID > 0, Int(exactly: productID) != nil, Int(exactly: skuID) != nil,
+              MerchantSupplyDryRunProjection.parse(requestID) != nil,
+              (1...60).contains(skuName.count), priceOK(price), (0...1_000_000).contains(stock) else { return nil }
+        return Intent(requestID: requestID, skuID: skuID, productID: productID,
+                      skuName: skuName, price: price, stock: stock)
     }
 
-    public func saveBody(_ intent: Intent, currentForm: String) -> [String: Any] {
-        _ = currentForm
-        return [
-            "requestId": intent.requestID,
-            "action": "SKU_SAVE",
-            "targetType": "pms_sku",
-            "targetId": intent.skuID,
-            "productId": intent.productID,
-            "payload": intent.payload
-        ]
+    public func detailRequest(productID: Int64) -> MerchantBusinessRequest? {
+        guard let product = Int(exactly: productID), product > 0 else { return nil }
+        return .json("api/merchant/desk/products/detail", ["productId": .int(product)])
+    }
+
+    public func saveRequest(_ intent: Intent, currentFormPrice: String) -> MerchantBusinessRequest? {
+        _ = currentFormPrice
+        guard let product = Int(exactly: intent.productID), let sku = Int(exactly: intent.skuID) else { return nil }
+        return .json("api/merchant/desk/products/sku/save", [
+            "requestId": .string(intent.requestID),
+            "productId": .int(product),
+            "skuId": .int(sku),
+            "skuName": .string(intent.skuName),
+            "price": .string(intent.price),
+            "stock": .int(intent.stock)
+        ])
+    }
+
+    private func priceOK(_ value: String) -> Bool {
+        guard !value.isEmpty, value.count <= 12, !value.contains("."), value.unicodeScalars.allSatisfy({ (48...57).contains($0.value) }) else {
+            return value.range(of: #"^[0-9]+(?:\.[0-9]{1,2})?$"#, options: .regularExpression) != nil
+                && !value.hasPrefix(".")
+        }
+        return true
     }
 
     public func detailMatches(_ detailSkuID: Int64, intent: Intent) -> Bool {

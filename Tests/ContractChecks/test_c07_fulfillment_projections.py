@@ -132,6 +132,8 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn('targetType == "pms_sku"', supply)
         self.assertIn("skuSaveRestartPayload", supply)
         self.assertIn("struct MerchantSkuSaveJourney", supply)
+        self.assertIn("api/merchant/desk/products/sku/save", supply)
+        self.assertIn("api/merchant/desk/products/detail", supply)
         self.assertIn("MERCHANT_OWNER", supply)
         self.assertIn("currentForm", tests)
         self.assertIn("SAVE_SKU is not the original writer", tests)
