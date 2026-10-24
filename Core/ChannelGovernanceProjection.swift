@@ -1,4 +1,5 @@
 import Foundation
+import CoreFoundation
 
 /// P38 ACCOUNT4 is the existing member-authorization identity realm. Channel grants
 /// bind here and never to a friend-graph edge. WAITING_SOURCE: D5 native 43/45/46/47
@@ -295,7 +296,90 @@ public struct MessageContainerProjection: Equatable, Sendable {
               let kind = Int(nested["kind"] as? String ?? ""),
               let guildKind = Int(nested["guild_kind"] as? String ?? ""),
               (nested["conversation_type"] as? String) == "5" else { return nil }
-        return project(id: id, conversationType: 5, kind: kind, guildKind: guildKind,
-                       readState: nested["read_state"] as? String)
+        return project(id: id, conversationType: 5, kind: kind, guildKind: guildKind, readState: nil)
+    }
+}
+
+/// Original directory read facts. Counts stay nil unless `read_state_available` is 1.
+/// `perm_version` is not an authority revision. Last-read cursors are not unread counts.
+public struct DirectoryMyState: Equatable, Sendable {
+    public let pinned: Int
+    public let hidden: Int
+    public let muted: Int
+    public let permanentMuted: Bool
+    public let effectiveLevel: Int
+    public let readStateAvailable: Int
+    public let indexed: Bool
+    public let readState: String?
+    public let lastReadMessageID: String?
+    public let unreadCount: Int?
+    public let unreadMentionCount: Int?
+    public let grantsSend: Bool
+    public let grantsReceiptWrite: Bool
+
+    public static func read(_ myState: [String: Any]?) -> DirectoryMyState? {
+        guard let myState else { return unavailable }
+        guard let pinned = bit(myState["pinned"]), let hidden = bit(myState["hidden"]),
+              let muted = bit(myState["muted"]), let level = level(myState["effective_level"]),
+              let permanent = jsonBool(myState["permanent_muted"]) else { return nil }
+        let category = (myState["read_state"] as? String) == "NOT_APPLICABLE"
+        let available = exactInt(myState["read_state_available"]) == 1 && !category
+        return DirectoryMyState(pinned: pinned, hidden: hidden, muted: muted, permanentMuted: permanent,
+            effectiveLevel: level, readStateAvailable: available ? 1 : 0, indexed: available && (myState["indexed"] as? Bool) == true,
+            readState: category ? "NOT_APPLICABLE" : nil,
+            lastReadMessageID: available ? decimal(myState["last_read_msg_id"]) : nil,
+            unreadCount: available ? count(myState["unread_count"]) : nil,
+            unreadMentionCount: available ? count(myState["unread_mention_count"]) : nil,
+            grantsSend: false, grantsReceiptWrite: false)
+    }
+
+    public static let unavailable = DirectoryMyState(pinned: 0, hidden: 0, muted: 0, permanentMuted: false,
+        effectiveLevel: 0, readStateAvailable: 0, indexed: false, readState: nil, lastReadMessageID: nil,
+        unreadCount: nil, unreadMentionCount: nil, grantsSend: false, grantsReceiptWrite: false)
+
+    private static func bit(_ value: Any?) -> Int? {
+        guard let number = exactInt(value), number == 0 || number == 1 else { return nil }
+        return number
+    }
+    private static func level(_ value: Any?) -> Int? {
+        guard let number = exactInt(value), (0...2).contains(number) else { return nil }
+        return number
+    }
+    private static func jsonBool(_ value: Any?) -> Bool? {
+        guard let number = value as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() else { return nil }
+        return number.boolValue
+    }
+    private static func exactInt(_ value: Any?) -> Int? {
+        guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+              number.doubleValue == Double(number.intValue), number.stringValue == String(number.intValue) else { return nil }
+        return number.intValue
+    }
+    private static func decimal(_ value: Any?) -> String? {
+        if let text = value as? String, !text.isEmpty, text.allSatisfy({ $0.isNumber }) { return text }
+        if let number = value as? Int, number >= 0 { return String(number) }
+        return nil
+    }
+    private static func count(_ value: Any?) -> Int? {
+        if value == nil { return nil }
+        if let number = value as? Int, number >= 0 { return number }
+        return nil
+    }
+}
+
+/// Type 5 history and ack are separate grants. Neither one grants send or receipt write.
+public struct MessageContainerReadHost: Equatable, Sendable {
+    public let container: MessageContainerProjection
+    public let state: DirectoryMyState
+    public let historyGranted: Bool
+    public let ackGranted: Bool
+    public var grantsSend: Bool { false }
+    public var grantsReceiptWrite: Bool { false }
+    public var unreadCount: Int? { historyGranted && state.readStateAvailable == 1 ? state.unreadCount : nil }
+    public init?(container: MessageContainerProjection, state: DirectoryMyState, historyGranted: Bool, ackGranted: Bool) {
+        guard container.conversationType == "5", container.grantsSend == false else { return nil }
+        self.container = container
+        self.state = state
+        self.historyGranted = historyGranted
+        self.ackGranted = ackGranted
     }
 }
