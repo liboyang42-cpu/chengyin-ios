@@ -193,8 +193,9 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
             XCTAssertEqual(waiting, .waitingSource(MerchantSupplyDryRunProjection.deskReceipt))
         }
         XCTAssertEqual(supply.holdCount(originalRequestID: "desk-req-01"), 0)
-        XCTAssertNil(try await supply.recoverFromDeskReceipt(ownerMemberID: 0, requestID: "desk-req-01",
-                                                             receipt: { _, _ in .string("APPLIED") }))
+        let invalidOwner = try await supply.recoverFromDeskReceipt(ownerMemberID: 0, requestID: "desk-req-01",
+                                                                   receipt: { _, _ in .string("APPLIED") })
+        XCTAssertNil(invalidOwner)
         let missing = try await supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-missing",
                                                               receipt: { _, id in
             .object(["requestId": .string(id), "state": .string("NOT_FOUND")])

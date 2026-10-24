@@ -124,9 +124,11 @@ final class EntitlementHoldProjectionTests: XCTestCase {
                                                chapterID: 124, merchantID: 9, validEndExclusive: end,
                                                serverNow: now, listEntitlements: list)
         XCTAssertEqual(held.outcome, .held)
+        XCTAssertNil(held.originalRequestID)
         XCTAssertTrue(held.occupiesCapacity)
         XCTAssertFalse(held.executedReserve)
-        XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-hold-led1"), 1)
+        XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-hold-led1"), 0)
+        XCTAssertEqual(wired.recoverOriginal(originalRequestID: "c07-hold-led1").outcome, .unknown)
         var restarted = EntitlementHoldProjection()
         XCTAssertEqual(try restarted.projectFromLedger(originalRequestID: "c07-hold-led1", registrationID: 78,
                                                        chapterID: 124, merchantID: 9, validEndExclusive: end,

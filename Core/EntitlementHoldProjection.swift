@@ -148,12 +148,15 @@ public struct EntitlementHoldProjection: Equatable {
         }
         let rows = listEntitlements(registrationID)
         guard let chapterID, let match = rows.first(where: { $0.chapterID == chapterID }) else {
-            return recoverOriginal(originalRequestID: originalRequestID ?? "")
+            return Self.unknown(Self.parse(originalRequestID))
         }
         let fact = EntitlementHoldFact(originalRequestID: originalRequestID, registrationID: registrationID,
                                        chapterID: chapterID, merchantID: merchantID, status: match.status,
                                        validEndExclusive: validEndExclusive, invalidReason: match.invalidReason)
-        return project(fact, serverNow: serverNow)
+        let observed = compute(fact, serverNow: serverNow)
+        return EntitlementHoldView(originalRequestID: nil, outcome: observed.outcome,
+                                   occupiesCapacity: observed.occupiesCapacity, executedReserve: false,
+                                   executedRedeem: false, executedAward: false, holdingIsIssuance: false)
     }
     /// Read an existing redemption row. Missing source is WAITING_SOURCE.
     /// A reversed row is not an active original. Does not call redeem.
