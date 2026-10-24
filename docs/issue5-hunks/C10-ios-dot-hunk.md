@@ -90,9 +90,11 @@ ffd1ae718c26968e3a206c168b7e768a929f414418c6cb82e7f3b4d23ea0733d Tests/CoreTests
 f97f467cc9dfa548c39d04d0aeb42a7d6ac276c7eed69b0d67174849de93786e Tests/CoreTests/WorkshopRunServerVerificationTests.swift
 80fa5edf91c9a23fcbd24ecaa725f2b3771ebdfa965b7d6b7cf56ef6a2d53d79 Tests/CoreTests/H5SessionCapabilityGateTests.swift
 a9591984d3bf44e0543c7427ef9922a7b52f3a558ad81c7b32e2af3c0c3e3f18 Tests/CoreTests/H5AnswerProtectionTests.swift
-c152a7f8ebe43e68c1de1971244c967f2b03c9461b70e554a79aca87a4b2416a Tests/ContractChecks/test_c10_workshop_h5.py
+3338dd09a7405fd20dcd7dc5ef8a6cdd5c32da6e295ac781769a9ff0faee8944 Tests/ContractChecks/test_c10_workshop_h5.py
 8dbacf51008ff492ffbe0cfcf4b1ca94c5fa2f30b2d507b56edc42fabb8982a9 Core/WorkshopOriginalInstallConsumer.swift
 09882ca1279c189d8cf22c5185242c6f46b53a04dd4ea4aa612581b78c445ef6 Tests/CoreTests/WorkshopOriginalInstallConsumerTests.swift
+eac33aaaccade3510b44f8672ce3fa4da490f491161e529123477d72b14968cf Core/WorkshopOriginalLedgerSplit.swift
+baa363a42a933b542b80e35435646c5dc6803f3a5533881363238504c29c7b6d Tests/CoreTests/WorkshopOriginalLedgerSplitTests.swift
 
 ## Verification note
 
@@ -107,3 +109,7 @@ No credentials. No real IAP.
 ## Parent addendum 2026-10-23 17:30 America/Los_Angeles
 
 `testUnknownQmodImportOfNeverSeenIdDoesNotOccupyThenUniqueImportApplies`：未见 `c10-import-never-c10` 的 unknownQmod import 抛 WAITING_SOURCE 且 `originalRequestID` 仍为 nil，不占账；后续唯一 metadataManifestV1 import 才是第一笔。未发明 recoverOriginal。XCTest NOT_RUN。Not 100%.
+
+## Parent addendum 2026-10-24 03:40 America/Los_Angeles
+
+Dot 03:28 PDT：原 game-session、advanced play、native artifact 三条链都已供，不能把整组写成后端全缺。`WorkshopOriginalLedgerSplit` 分开读这三本账。`APPLIED` 不授予 H5 server pass。advanced 的 CHOICE / QA_PICK 不是命令回执。原生冻结拒绝 script / javascript / http / file / iframe，不打开 H5。`sdkVersion` 保持 nil。Python 13/0。XCTest NOT_RUN。Not 100%.

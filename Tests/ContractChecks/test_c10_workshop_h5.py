@@ -16,6 +16,7 @@ CORE_FILES = [
     "Core/H5SessionCapabilityGate.swift",
     "Core/H5AnswerProtection.swift",
     "Core/WorkshopOriginalInstallConsumer.swift",
+    "Core/WorkshopOriginalLedgerSplit.swift",
 ]
 TEST_FILES = [
     "Tests/CoreTests/WorkshopModuleImportGateTests.swift",
@@ -25,6 +26,7 @@ TEST_FILES = [
     "Tests/CoreTests/H5SessionCapabilityGateTests.swift",
     "Tests/CoreTests/H5AnswerProtectionTests.swift",
     "Tests/CoreTests/WorkshopOriginalInstallConsumerTests.swift",
+    "Tests/CoreTests/WorkshopOriginalLedgerSplitTests.swift",
 ]
 CONTRACT = "Tests/ContractChecks/test_c10_workshop_h5.py"
 HUNK = "docs/issue5-hunks/C10-ios-dot-hunk.md"
@@ -261,6 +263,17 @@ class C10WorkshopH5Contracts(unittest.TestCase):
         self.assertIn("case requestMismatch", session)
         self.assertIn("guard existingHost == host, admittedCapability == capability else", session)
         self.assertIn("location.once", self.sources["Tests/CoreTests/H5SessionCapabilityGateTests.swift"])
+
+    def test_three_original_ledgers_do_not_mint_a_server_pass(self):
+        split = self.sources["Core/WorkshopOriginalLedgerSplit.swift"]
+        tests = self.sources["Tests/CoreTests/WorkshopOriginalLedgerSplitTests.swift"]
+        self.assertIn("APPLIED only means the command was applied", split)
+        self.assertIn("grantsServerPass: Bool { false }", split)
+        self.assertIn("SDK version identity is not this native registry", split)
+        self.assertIn("testAppliedCommandDoesNotGrantServerPassAndMissingStaysPending", tests)
+        self.assertIn("testAdvancedProvenanceIsNotACommandReceipt", tests)
+        self.assertIn("testNativeFreezeRejectsExecutableTextAndDoesNotAdmitH5", tests)
+        self.assertNotIn("serverPass", self.sources["Core/WorkshopOriginalInstallConsumer.swift"])
 
     def test_linux_xctest_app_ci_are_explicitly_not_run(self):
         self.assertIn("XCTest / App / CI = NOT_RUN", Path(__file__).read_text())
