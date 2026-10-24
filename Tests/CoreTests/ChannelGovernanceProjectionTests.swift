@@ -426,20 +426,71 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
             XCTAssertEqual(channel, 12)
             XCTAssertEqual(cursor, 4)
             XCTAssertEqual(request, requestID)
-            return ["request_id": request, "operation": "ACK", "scope_type": 1, "scope_id": "12",
-                    "status": "APPLIED", "replayed": false]
+            return try json([
+                "request_id": request, "operation": "ACK", "scope_type": 1, "scope_id": "12",
+                "status": "APPLIED", "replayed": false, "must_refresh_state": false, "result_redacted": false
+            ])
         })
         XCTAssertEqual(applied.status, "APPLIED")
+        XCTAssertEqual(applied.resultRedacted, false)
+        XCTAssertEqual(applied.mustRefreshState, false)
         XCTAssertFalse(applied.markedReadOnLoad)
         XCTAssertFalse(applied.grantsSend)
         XCTAssertEqual(writes, 1)
+        XCTAssertEqual(MessageContainerOriginalAck.readPath, "api/im/read")
+        XCTAssertEqual(MessageContainerOriginalAck.receiptPathPrefix, "api/im/notification-requests/")
         let missing = try ack.recover(actor: 70, channelID: 12, requestID: requestID, channelKind: 1,
-                                      sameScope: { _, _ in true }, receipt: { _, request in
-            ["request_id": request, "status": "NOT_FOUND", "outcome": "UNKNOWN", "resume_with_same_request": true]
+                                      originalAccount: { actor, request in actor == 70 && request == requestID },
+                                      receipt: { _, request in
+            try json(["request_id": request, "status": "NOT_FOUND", "outcome": "UNKNOWN",
+                      "resume_with_same_request": true])
         })
         XCTAssertEqual(missing.outcome, "UNKNOWN")
         XCTAssertEqual(missing.requestID, requestID)
         XCTAssertTrue(missing.resumeSameRequest)
+        XCTAssertNil(missing.resultRedacted)
         XCTAssertEqual(writes, 1)
+        var reads = 0
+        let revoked = try ack.recover(actor: 70, channelID: 12, requestID: requestID, channelKind: 1,
+                                      originalAccount: { _, _ in true }, receipt: { _, request in
+            reads += 1
+            return try json([
+                "request_id": request, "operation": "ACK", "scope_type": 1, "scope_id": "12",
+                "status": "APPLIED", "replayed": true, "must_refresh_state": true, "result_redacted": true
+            ])
+        })
+        XCTAssertEqual(reads, 1)
+        XCTAssertEqual(revoked.resultRedacted, true)
+        XCTAssertEqual(revoked.mustRefreshState, true)
+        XCTAssertEqual(revoked.outcome, "APPLIED")
+        XCTAssertThrowsError(try ack.recover(actor: 70, channelID: 12, requestID: requestID, channelKind: 1,
+                                             originalAccount: { _, _ in false }, receipt: { _, _ in
+            reads += 1
+            return [:]
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .notMember) }
+        XCTAssertEqual(reads, 1)
+        XCTAssertThrowsError(try ack.acknowledge(actor: 70, channelID: 12, lastMessageID: 4, requestID: requestID,
+                                                 channelKind: 1, sameScope: { _, _ in true }, writer: { _, _, _, request in
+            try json(["request_id": request, "operation": "ACK", "scope_type": true, "scope_id": "12",
+                      "status": "APPLIED", "replayed": false, "must_refresh_state": false, "result_redacted": false])
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        XCTAssertThrowsError(try ack.recover(actor: 70, channelID: 12, requestID: requestID, channelKind: 1,
+                                             originalAccount: { _, _ in true }, receipt: { _, request in
+            try json(["request_id": request, "status": "NOT_FOUND", "outcome": "UNKNOWN",
+                      "resume_with_same_request": 1])
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        XCTAssertThrowsError(try ack.recover(actor: 70, channelID: 12, requestID: requestID, channelKind: 1,
+                                             originalAccount: { _, _ in true }, receipt: { _, request in
+            try json([
+                "request_id": request, "operation": "ACK", "scope_type": 1, "scope_id": "12",
+                "status": "APPLIED", "replayed": true, "must_refresh_state": true, "result_redacted": true,
+                "result": ["text": "old body"]
+            ])
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+    }
+
+    private func json(_ body: [String: Any]) throws -> [String: Any] {
+        let data = try JSONSerialization.data(withJSONObject: body)
+        return try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: Any])
     }
 }

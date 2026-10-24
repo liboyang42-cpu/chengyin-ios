@@ -350,11 +350,11 @@ public struct DirectoryMyState: Equatable, Sendable {
         guard let number = exactInt(value), (0...2).contains(number) else { return nil }
         return number
     }
-    private static func jsonBool(_ value: Any?) -> Bool? {
+    fileprivate static func jsonBool(_ value: Any?) -> Bool? {
         guard let number = value as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() else { return nil }
         return number.boolValue
     }
-    private static func exactInt(_ value: Any?) -> Int? {
+    fileprivate static func exactInt(_ value: Any?) -> Int? {
         guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
               number.doubleValue == Double(number.intValue), number.stringValue == String(number.intValue) else { return nil }
         return number.intValue
@@ -407,9 +407,16 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
         public let outcome: String
         public let replayed: Bool
         public let resumeSameRequest: Bool
+        public let resultRedacted: Bool?
+        public let mustRefreshState: Bool?
         public var markedReadOnLoad: Bool { false }
         public var grantsSend: Bool { false }
     }
+
+    /// Original write is POST `api/im/read`. Original readback is GET `api/im/notification-requests/{requestId}`.
+    /// This value does not send either call. Page load does not mark read.
+    public static let readPath = "api/im/read"
+    public static let receiptPathPrefix = "api/im/notification-requests/"
 
     public init() {}
 
@@ -419,24 +426,30 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
         try gate(actor: actor, channelID: channelID, requestID: requestID, channelKind: channelKind, sameScope: sameScope)
         guard lastMessageID >= 0 else { throw ChannelAuthorizationError.invalidCatalog }
         let body = try writer(actor, channelID, lastMessageID, requestID)
-        return try applied(body, actor: actor, channelID: channelID, requestID: requestID)
+        return try applied(body, channelID: channelID, requestID: requestID)
     }
 
+    /// Current membership is not this gate. The original account can read a redacted receipt after revoke.
     public func recover(actor: Int64, channelID: Int64, requestID: String, channelKind: Int,
-                        sameScope: (Int64, Int64) -> Bool,
+                        originalAccount: (Int64, String) -> Bool,
                         receipt: (Int64, String) throws -> [String: Any]) throws -> Receipt {
-        try gate(actor: actor, channelID: channelID, requestID: requestID, channelKind: channelKind, sameScope: sameScope)
+        guard actor > 0, channelID > 0, requestOK(requestID), channelKind != 0 else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        guard originalAccount(actor, requestID) else { throw ChannelAuthorizationError.notMember }
         let body = try receipt(actor, requestID)
         if body["status"] as? String == "NOT_FOUND" {
             guard body["request_id"] as? String == requestID,
                   body["outcome"] as? String == "UNKNOWN",
-                  body["resume_with_same_request"] as? Bool == true else {
+                  DirectoryMyState.jsonBool(body["resume_with_same_request"]) == true,
+                  body["result"] == nil else {
                 throw ChannelAuthorizationError.invalidCatalog
             }
             return Receipt(requestID: requestID, operation: nil, scopeType: nil, scopeID: nil,
-                           status: "NOT_FOUND", outcome: "UNKNOWN", replayed: false, resumeSameRequest: true)
+                           status: "NOT_FOUND", outcome: "UNKNOWN", replayed: false, resumeSameRequest: true,
+                           resultRedacted: nil, mustRefreshState: nil)
         }
-        return try applied(body, actor: actor, channelID: channelID, requestID: requestID)
+        return try applied(body, channelID: channelID, requestID: requestID)
     }
 
     private func gate(actor: Int64, channelID: Int64, requestID: String, channelKind: Int,
@@ -446,26 +459,30 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
         guard sameScope(actor, channelID) else { throw ChannelAuthorizationError.notMember }
     }
 
-    private func applied(_ body: [String: Any], actor: Int64, channelID: Int64, requestID: String) throws -> Receipt {
-        _ = actor
+    private func applied(_ body: [String: Any], channelID: Int64, requestID: String) throws -> Receipt {
         guard body["request_id"] as? String == requestID,
               body["operation"] as? String == "ACK",
-              body["scope_type"] as? Int == 1,
+              DirectoryMyState.exactInt(body["scope_type"]) == 1,
               body["scope_id"] as? String == String(channelID),
               let status = body["status"] as? String, status == "APPLIED" || status == "PENDING",
-              let replayed = body["replayed"] as? Bool else {
+              let replayed = DirectoryMyState.jsonBool(body["replayed"]),
+              let refresh = DirectoryMyState.jsonBool(body["must_refresh_state"]), refresh == replayed,
+              let redacted = DirectoryMyState.jsonBool(body["result_redacted"]) else {
             throw ChannelAuthorizationError.invalidCatalog
         }
+        if redacted && body["result"] != nil { throw ChannelAuthorizationError.invalidCatalog }
         if status == "PENDING" {
             guard body["outcome"] as? String == "UNKNOWN",
-                  body["resume_with_same_request"] as? Bool == true else {
+                  DirectoryMyState.jsonBool(body["resume_with_same_request"]) == true else {
                 throw ChannelAuthorizationError.invalidCatalog
             }
             return Receipt(requestID: requestID, operation: "ACK", scopeType: 1, scopeID: String(channelID),
-                           status: "PENDING", outcome: "UNKNOWN", replayed: replayed, resumeSameRequest: true)
+                           status: "PENDING", outcome: "UNKNOWN", replayed: replayed, resumeSameRequest: true,
+                           resultRedacted: redacted, mustRefreshState: refresh)
         }
         return Receipt(requestID: requestID, operation: "ACK", scopeType: 1, scopeID: String(channelID),
-                       status: "APPLIED", outcome: "APPLIED", replayed: replayed, resumeSameRequest: false)
+                       status: "APPLIED", outcome: "APPLIED", replayed: replayed, resumeSameRequest: false,
+                       resultRedacted: redacted, mustRefreshState: refresh)
     }
 
     private func requestOK(_ value: String) -> Bool {
