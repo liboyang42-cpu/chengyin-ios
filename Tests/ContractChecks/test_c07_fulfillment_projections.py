@@ -131,6 +131,9 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn('action == "SKU_SAVE"', supply)
         self.assertIn('targetType == "pms_sku"', supply)
         self.assertIn("skuSaveRestartPayload", supply)
+        self.assertIn("struct MerchantSkuSaveJourney", supply)
+        self.assertIn("MERCHANT_OWNER", supply)
+        self.assertIn("currentForm", tests)
         self.assertIn("SAVE_SKU is not the original writer", tests)
 
     def test_holding_is_not_issuance_and_duplicate_does_not_double_hold(self):

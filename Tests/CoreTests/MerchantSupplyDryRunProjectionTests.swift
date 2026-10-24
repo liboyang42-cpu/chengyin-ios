@@ -224,6 +224,34 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
                                            "action": .string("SKU_SAVE"), "targetType": .string("pms_sku"),
                                            "targetId": .int(44), "storeId": .int(3)]))
         XCTAssertNil(supply.skuSaveRestartPayload(originalRequestID: "desk-req-01"))
+        let owner = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9), "name": .string("synthetic-shop")]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:sku:save")])
+        ]))
+        let staff = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9)]),
+            "roleCode": .string("MERCHANT_CHECKIN"),
+            "permissions": .array([])
+        ]))
+        let journey = MerchantSkuSaveJourney()
+        XCTAssertNil(journey.freeze(access: staff, accountID: 7, productID: 3, skuID: 44,
+                                    requestID: "desk-req-01", payload: "price=1"))
+        let frozen = try XCTUnwrap(journey.freeze(access: owner, accountID: 7, productID: 3, skuID: 44,
+                                                  requestID: "desk-req-01", payload: "price=1"))
+        let body = journey.saveBody(frozen, currentForm: "price=99")
+        XCTAssertEqual(body["action"] as? String, "SKU_SAVE")
+        XCTAssertEqual(body["targetType"] as? String, "pms_sku")
+        XCTAssertEqual(body["targetId"] as? Int64, 44)
+        XCTAssertEqual(body["payload"] as? String, "price=1")
+        XCTAssertNil(body["ownerMemberId"])
+        XCTAssertTrue(journey.detailMatches(44, intent: frozen))
+        let restarted = journey.recover(requestID: "desk-req-01", skuID: 44, currentForm: "price=99")
+        XCTAssertEqual(restarted.outcome, "UNKNOWN")
+        XCTAssertEqual(restarted.requestID, "desk-req-01")
+        XCTAssertNil(restarted.payload)
         let storeUsedAsAccount = try await supply.recoverFromDeskReceipt(
             ownerMemberID: 7, requestID: "desk-req-01", storeID: 7, receipt: { _, _ in .string("APPLIED") })
         XCTAssertNil(storeUsedAsAccount)

@@ -166,6 +166,57 @@ public struct MerchantSupplyDryRunProjection: Equatable {
         _ = Self.parse(originalRequestID)
         return nil
     }
+}
+
+/// Desk product SKU save. `access/me` staff is not the merchant owner.
+/// The frozen intent is the save body. A later form is not the restarted request.
+public struct MerchantSkuSaveJourney: Equatable, Sendable {
+    public struct Intent: Equatable, Sendable {
+        public let requestID: String
+        public let skuID: Int64
+        public let productID: Int64
+        public let payload: String
+    }
+
+    public struct Recovery: Equatable, Sendable {
+        public let requestID: String
+        public let skuID: Int64
+        public let payload: String?
+        public let outcome: String
+    }
+
+    public init() {}
+
+    public func freeze(access: MerchantBusinessAccess, accountID: Int64, productID: Int64,
+                       skuID: Int64, requestID: String, payload: String) -> Intent? {
+        guard access.role == "MERCHANT_OWNER", accountID > 0, accountID != Int64(access.merchantID),
+              productID > 0, skuID > 0, MerchantSupplyDryRunProjection.parse(requestID) != nil,
+              !payload.isEmpty else { return nil }
+        return Intent(requestID: requestID, skuID: skuID, productID: productID, payload: payload)
+    }
+
+    public func saveBody(_ intent: Intent, currentForm: String) -> [String: Any] {
+        _ = currentForm
+        return [
+            "requestId": intent.requestID,
+            "action": "SKU_SAVE",
+            "targetType": "pms_sku",
+            "targetId": intent.skuID,
+            "productId": intent.productID,
+            "payload": intent.payload
+        ]
+    }
+
+    public func detailMatches(_ detailSkuID: Int64, intent: Intent) -> Bool {
+        detailSkuID == intent.skuID
+    }
+
+    public func recover(requestID: String, skuID: Int64, currentForm: String) -> Recovery {
+        _ = currentForm
+        let id = MerchantSupplyDryRunProjection.parse(requestID) ?? requestID
+        return Recovery(requestID: id, skuID: skuID, payload: nil, outcome: "UNKNOWN")
+    }
+}
     private func compute(_ fact: MerchantSupplyDryRunFact?, serverNow: Date?,
                          requestedQty: Int) -> MerchantSupplyDryRunDecision {
         guard let serverNow else {
