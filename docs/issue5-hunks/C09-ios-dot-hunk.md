@@ -177,3 +177,23 @@ Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**
 ## 12. Message action entry
 
 `NativeChannelMessageActionEntry` 把 send / edit / recall(withdraw) / pin 收成一个入口，各自调用已有 producer 端口一次；端口为 nil 时 WAITING_SOURCE。匹配 `[A-Za-z0-9_-]{16,64}` 的 request id 不裁成另一个 id。空白正文是 `invalidMessageContent`。端口返回前结果保持 UNKNOWN，不写本地回执。`message_unavailable=true` 且没有消息 id 的重放有效。搜索仍走既有 NativeChannelMessageEntry，本入口没有第二条搜索链。未改 AppSession / AppCompositionRoot / project.pbxproj。XCTest NOT_RUN on Linux. Not 100%.
+
+## 13. Message page actions
+
+`Core/NativeChannelMessagePageActions.swift` — 现有频道消息页的四个动作调用。`entry.send` / `entry.edit` / `entry.recall` / `entry.pin` 各一次；nil 端口等待；request id 不改写；空白正文无效；结果保持 UNKNOWN；无本地回执库；`appear()` 不发送。不新增搜索。
+
+`Tests/CoreTests/NativeChannelMessagePageActionsTests.swift` — 同上。SwiftPM。XCTest NOT_RUN on Linux. Not 100%.
+
+页面接线在 `docs/issue5-hunks/C09-message-page-actions.hunk`，不应用到 AppSession / AppCompositionRoot / project.pbxproj。
+
+```
+Core/NativeChannelMessagePageActions.swift
+  PBXFileReference 0FA89D803B5E5E9AC7B5A858
+  PBXBuildFile     312C10DEC5985439C33E12D8  fileRef = 0FA89D803B5E5E9AC7B5A858
+
+Tests/CoreTests/NativeChannelMessagePageActionsTests.swift
+  PBXFileReference 5CC3940DF2FCCB13251BCF0A
+  PBXBuildFile     534B1834E420FDCD212E27DD  fileRef = 5CC3940DF2FCCB13251BCF0A
+```
+
+Do not edit pbxproj from this PR. Not 100%.
