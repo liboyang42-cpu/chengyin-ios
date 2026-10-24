@@ -45,3 +45,11 @@ Swift XCTest: authored, **NOT_RUN** on Linux.
 Timer deliveryCount=36 (01:30Z). `MerchantNPCDraftApprovalGateTests.testUnpublishedProjectionDoesNotOccupyPrivateScopesThenUniqueRetainPrivateApplies`: unpublished `playerProjection` does not occupy `privateScopes`; unique `retainPrivate` is the first isolation occupancy. Did not invent recoverOriginal. Python `func test` count on gate tests 9→10.
 
 HEAD `966b8add`. Parent python `Tests.ContractChecks.test_merchant_npc_draft_cannot_price` **9/0**. XCTest NOT_RUN. Not 100%.
+
+## Parent addendum 2026-10-23 19:23 America/Los_Angeles
+
+HEAD `f6127c91` tests. Did not invent recoverOriginal.
+
+`MerchantNPCDraftApprovalGateTests.testUnusedVerifyBeforeIngestDoesNotOccupyThenUniqueIngestThenVerifyApplies`：未见草稿的 `verifyByAuthorizer` 抛 unpublished 且 authorizer 仍空、phase 仍 idle；后续唯一 ingest+verify 才是 authorizerVerified。Python `func test` count on gate tests 10→11.
+
+Parent python `Tests.ContractChecks.test_merchant_npc_draft_cannot_price` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
