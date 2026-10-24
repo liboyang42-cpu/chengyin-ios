@@ -134,3 +134,11 @@ HEAD `34a00334` tests. Did not invent recoverOriginal.
 `DevicePushRegistrationLifecycleTests.testUnusedRevokeOfNeverSeenDoesNotOccupyThenUniqueRegisterApplies`：未见 `dev-revoke-never-c09` 的 `revoke` 抛 `originalMissing` 且 `originalByDeviceID` 仍空；后续唯一 `register` 才是 ACTIVE。
 
 Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
+
+## 7. Parent addendum 2026-10-23 19:13 America/Los_Angeles
+
+HEAD `3f6583aa` tests. Did not invent recoverOriginal.
+
+`AttachmentReviewProducerTests.testUnusedDecideOfNeverSeenDoesNotOccupyThenUniqueSubmitApplies`：未见 `att-decide-never-c09` 的 `decide` 抛 `originalMissing` 且 `originalByRequestID` 仍空；后续唯一 `submit` 才是 PENDING。
+
+Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
