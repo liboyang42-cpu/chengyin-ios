@@ -31,6 +31,10 @@ HUNK = "docs/issue5-hunks/C07-ios-dot-hunk.md"
 WHITELIST = CORE_FILES + TEST_FILES + [
     CONTRACT, HUNK, "Core/MerchantBusinessMutation.swift", "Core/MerchantBusinessProduction.swift",
     "Tests/CoreTests/MerchantBusinessServiceTests.swift",
+    "Core/MerchantBusinessService.swift",
+    "Tests/ContractChecks/test_merchant_operator_invitation_receipt.py",
+    "Tests/ContractChecks/test_merchant_review_draft_return.py",
+    "Tests/ContractChecks/test_merchant_aftercare_evidence_flow.py",
 ]
 FORBIDDEN_TOUCH = [
     "Core/MerchantAftercareEvidenceAdapter.swift",

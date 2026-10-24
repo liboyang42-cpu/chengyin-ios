@@ -4,6 +4,26 @@ import FoundationNetworking
 #endif
 @testable import QuestifyCore
 
+private actor DeskPathTransport: MerchantBusinessTestTransport {
+    var requests: [URLRequest] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        let path = request.url?.path ?? ""
+        let json: String
+        if path.hasSuffix("/access/me") {
+            json = "{\"code\":200,\"data\":\(MerchantBusinessSyntheticFixtures.access)}"
+        } else if path.hasSuffix("/products/detail") {
+            json = #"{"code":200,"data":{"productId":3,"skus":[{"skuId":44,"skuName":"door","price":88,"stock":2,"bookable":false,"slotMinutes":60,"capacityPerSlot":0}]}}"#
+        } else if path.hasSuffix("/sku/save") {
+            json = #"{"code":200,"msg":"Synthetic saved","data":{"skuId":44}}"#
+        } else if path.hasSuffix("/receipt") {
+            json = #"{"code":200,"data":{"requestId":"desk-req-01","state":"APPLIED","action":"SKU_SAVE","targetType":"pms_sku","targetId":44}}"#
+        } else {
+            json = #"{"code":404,"msg":"missing","data":null}"#
+        }
+        return (Data(json.utf8), 200)
+    }
+}
 private actor BusinessRecordingTransport: MerchantBusinessTestTransport {
     var requests: [URLRequest] = []
     let response: String
@@ -89,6 +109,34 @@ final class MerchantBusinessServiceTests: XCTestCase {
         XCTAssertFalse(body.contains("\"action\""))
         XCTAssertTrue(body.contains("\"ruleVersion\":4"))
         XCTAssertTrue(body.contains("\"slotMinutes\":60"))
+    }
+    func testDeskDetailSaveAndReceiptUseTheOriginalPaths() async throws {
+        let transport = DeskPathTransport()
+        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.com/test")!),
+                                                  readTransport: transport, testingMutationTransport: transport)
+        let access = try await service.access(token: "synthetic-token")
+        let journey = MerchantSkuSaveJourney()
+        let detail = try await service.read(XCTUnwrap(journey.detailRequest(productID: 3)), token: "synthetic-token")
+        let frozen = try XCTUnwrap(journey.freeze(access: access, accountID: 7, productID: 3, skuID: 44,
+                                                  requestID: "desk-req-01", skuName: "door", price: "88.00", stock: 2))
+        XCTAssertEqual(journey.readBack(detail: detail, intent: frozen, laterFormPrice: "99.00")?.price, "88.00")
+        _ = try await service.execute(.saveSku(productID: 3, skuID: 44, name: frozen.skuName, price: frozen.price,
+                                               stock: frozen.stock, originalPrice: frozen.originalPrice, pic: frozen.pic,
+                                               bookable: frozen.bookable, slotMinutes: frozen.slotMinutes,
+                                               capacityPerSlot: frozen.capacityPerSlot, ruleVersion: frozen.ruleVersion),
+                                     requestID: frozen.requestID, token: "synthetic-token")
+        let receipt = try await service.read(XCTUnwrap(journey.receiptRequest(requestID: frozen.requestID)), token: "synthetic-token")
+        let recovered = journey.recover(requestID: frozen.requestID, receipt: receipt, currentForm: "price=99.00")
+        XCTAssertEqual(recovered.outcome, "APPLIED")
+        XCTAssertEqual(recovered.skuID, 44)
+        XCTAssertNil(recovered.payload)
+        let paths = await transport.requests.compactMap { $0.url?.path }
+        XCTAssertEqual(paths, [
+            "/test/api/merchant/access/me",
+            "/test/api/merchant/desk/products/detail",
+            "/test/api/merchant/desk/products/sku/save",
+            "/test/api/merchant/desk/receipt"
+        ])
     }
     func testDeskDetailAndReceiptUseOriginalPaths() async throws {
         let fake = BusinessRecordingTransport("{}")

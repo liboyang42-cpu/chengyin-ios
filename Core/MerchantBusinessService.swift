@@ -62,6 +62,11 @@ public struct MerchantBusinessService {
         guard let object = try Self.unwrap(body).object else { throw MerchantBusinessFailure.malformed }
         return try .init(object)
     }
+    /// Existing read transport. Desk detail and receipt use this. It does not save a SKU.
+    public func read(_ descriptor: MerchantBusinessRequest, token: String) async throws -> MerchantBusinessValue {
+        let body = try await envelope(descriptor, token: token, transport: readTransport)
+        return try Self.unwrap(body)
+    }
     public func document(_ query: MerchantBusinessQuery, access: MerchantBusinessAccess, token: String) async throws -> MerchantBusinessDocument {
         try access.require(query.permissions)
         let body = try await envelope(query.request(), token: token, transport: readTransport)
