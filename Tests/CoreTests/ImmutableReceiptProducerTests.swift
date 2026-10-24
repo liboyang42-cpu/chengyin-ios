@@ -303,6 +303,60 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         XCTAssertEqual(unavailable?.outcome, ImmutableReceiptProducer.outcomeUnknown)
     }
 
+    func testEditOriginalCallsTheChannelOnceAndDoesNotStore() throws {
+        let producer = ImmutableReceiptProducer()
+        let edit = ImmutableReceiptProducer.OriginalRequest(
+            requestId: "c09-edit-key-0001", kind: .edit, body: "{\"fp\":1}",
+            outcome: ImmutableReceiptProducer.outcomeAccepted)
+        XCTAssertEqual(waitingReceipt {
+            try producer.editOriginal(edit, actorID: 7, conversationID: 12, messageID: 44,
+                                      content: "hello", expectedVersion: 2)
+        }, .waitingSource(capability: ImmutableReceiptProducer.channelMessageEdit))
+        let reply = ImmutableReceiptProducer.OriginalRequest(
+            requestId: "c09-edit-key-0001", kind: .reply, body: "{\"fp\":1}",
+            outcome: ImmutableReceiptProducer.outcomeAccepted)
+        XCTAssertThrowsError(try producer.editOriginal(
+            reply, actorID: 7, conversationID: 12, messageID: 44, content: "hello", expectedVersion: 2)) { error in
+            XCTAssertEqual(error as? ImmutableReceiptProducer.NotASend, .kind(.reply))
+        }
+        let shortID = ImmutableReceiptProducer.OriginalRequest(
+            requestId: "c09-edit-01", kind: .edit, body: "{\"fp\":1}",
+            outcome: ImmutableReceiptProducer.outcomeAccepted)
+        XCTAssertThrowsError(try producer.editOriginal(
+            shortID, actorID: 7, conversationID: 12, messageID: 44, content: "hello", expectedVersion: 2)) { error in
+            XCTAssertEqual(error as? NotifyFailure, .invalidRequestID)
+        }
+        var calls = 0
+        let sent = try producer.editOriginal(
+            edit, actorID: 7, conversationID: 12, messageID: 44, content: "hello", expectedVersion: 2,
+            channel: { actor, conversation, message, request, content, version, members, roles, everyone in
+                calls += 1
+                XCTAssertEqual(actor, 7)
+                XCTAssertEqual(conversation, 12)
+                XCTAssertEqual(message, 44)
+                XCTAssertEqual(request, "c09-edit-key-0001")
+                XCTAssertEqual(content, "hello")
+                XCTAssertEqual(version, 2)
+                XCTAssertTrue(members.isEmpty)
+                XCTAssertTrue(roles.isEmpty)
+                XCTAssertFalse(everyone)
+                return ["message_id": 44, "version": 3, "changed": true, "replayed": false]
+            })
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(sent.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        XCTAssertEqual(sent.kind, .edit)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        XCTAssertThrowsError(try producer.editOriginal(
+            edit, actorID: 7, conversationID: 12, messageID: 44, content: "hello", expectedVersion: 2,
+            channel: { _, _, _, _, _, _, _, _, _ in
+                calls += 1
+                return ["message_id": 45, "changed": false]
+            })) { error in
+            XCTAssertEqual(error as? NotifyFailure, .fingerprintConflict(requestId: "c09-edit-key-0001"))
+        }
+        XCTAssertEqual(calls, 2)
+    }
+
     private func waiting(_ body: () throws -> Never) -> NotifyFailure? {
         do { try body(); return nil } catch let error as NotifyFailure { return error } catch { return nil }
     }

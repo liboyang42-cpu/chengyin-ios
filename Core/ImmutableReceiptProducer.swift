@@ -19,6 +19,7 @@ public enum NotifyFailure: Error, Equatable {
     case invalidFixtureSigningKey
     case ssrfRejected(String)
     case unsignedSourceRewrite
+    case invalidRequestID
     public var isWaitingSource: Bool {
         if case .waitingSource = self { return true }
         return false
@@ -111,6 +112,7 @@ public struct ImmutableReceiptProducer: Equatable {
     public static let imSendCommand = "im.send.originalCommand"
     public static let imSendWire = "im.send.originalWire"
     public static let channelMessageSend = "channelMessage.send"
+    public static let channelMessageEdit = "channelMessage.edit"
     public static let notASend = "IM_OPERATION_NOT_SEND"
 
     public struct SentMessage: Equatable, Sendable {
@@ -332,6 +334,56 @@ public struct ImmutableReceiptProducer: Equatable {
         if value is NSNull { return ParsedID(invalid: true) }
         guard let map = value as? [String: Any] else { return ParsedID(invalid: true) }
         return channelID(map, "id")
+    }
+
+    /// Original `ChannelMessageService.edit`. SEARCH/WITHDRAW/PIN/SEND do not edit.
+    /// Nil keeps the edit closed. One call, no local receipt store.
+    public typealias ChannelOriginalEdit = (
+        _ actorID: Int64, _ conversationID: Int64, _ messageID: Int64, _ requestID: String,
+        _ content: String, _ expectedVersion: Int64?,
+        _ mentionMemberIDs: [Int64], _ mentionRoleIDs: [Int64], _ mentionEveryone: Bool
+    ) throws -> [String: Any]
+
+    public func editOriginal(
+        _ request: OriginalRequest,
+        actorID: Int64?,
+        conversationID: Int64?,
+        messageID: Int64?,
+        content: String?,
+        expectedVersion: Int64?,
+        mentionMemberIDs: [Int64] = [],
+        mentionRoleIDs: [Int64] = [],
+        mentionEveryone: Bool = false,
+        channel: ChannelOriginalEdit? = nil
+    ) throws -> OriginalReceipt {
+        guard let kind = request.kind else { throw NotASend.missingKind }
+        guard kind == .edit else { throw NotASend.kind(kind) }
+        guard let raw = request.requestId, Self.validSendKey(raw), raw == request.requestId else {
+            throw NotifyFailure.invalidRequestID
+        }
+        let trimmed = content?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let actorID, actorID > 0, let conversationID, conversationID > 0,
+              let messageID, messageID > 0, !trimmed.isEmpty, trimmed != request.body else {
+            throw NotifyFailure.waitingSource(capability: Self.imSendCommand)
+        }
+        if let expectedVersion, expectedVersion <= 0 {
+            throw NotifyFailure.waitingSource(capability: Self.imSendWire)
+        }
+        guard let channel else {
+            throw NotifyFailure.waitingSource(capability: Self.channelMessageEdit)
+        }
+        let sent = try channel(actorID, conversationID, messageID, raw, trimmed, expectedVersion,
+                               mentionMemberIDs, mentionRoleIDs, mentionEveryone)
+        let echoed = channelID(sent, "message_id")
+        guard echoed.present, echoed.value == messageID else {
+            throw NotifyFailure.fingerprintConflict(requestId: raw)
+        }
+        if let echoedRequest = sent["request_id"] as? String, echoedRequest != raw {
+            throw NotifyFailure.fingerprintConflict(requestId: raw)
+        }
+        return OriginalReceipt(requestId: raw, kind: .edit, payloadHash: nil, outcome: Self.outcomeUnknown,
+                               originalBody: nil, currentProjectionClaimsApplied: false, recoveryNote: nil,
+                               mintedNewRequest: false)
     }
 
     /// Read-only original SEND proof. Digest, actor, channel, request, operation, and the
