@@ -132,7 +132,10 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("occupyCountByRequestID", hold)
         self.assertIn("perkLedger.listEntitlements", hold)
         self.assertIn("projectFromLedger", hold)
+        self.assertIn("perkLedger.listRedemptions", hold)
+        self.assertIn("recoverFromRedemptions", hold)
         tests = self.sources["Tests/CoreTests/EntitlementHoldProjectionTests.swift"]
+        self.assertIn("testRecoverFromRedemptionsReadsActiveOriginalWithoutRedeeming", tests)
         self.assertIn("holdingIsIssuance", tests)
         self.assertIn("occupyCount(originalRequestID: \"c07-hold-1\"), 1", tests)
         self.assertIn("testProjectFromLedgerRequiresPerkListAndNewInstanceReadsExistingEntitlement", tests)

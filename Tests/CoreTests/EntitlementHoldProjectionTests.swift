@@ -134,4 +134,34 @@ final class EntitlementHoldProjectionTests: XCTestCase {
         XCTAssertEqual(restarted.recoverOriginal(originalRequestID: "c07-hold-missing").outcome, .unknown)
         XCTAssertEqual(restarted.occupyCount(originalRequestID: "c07-hold-missing"), 0)
     }
+    func testRecoverFromRedemptionsReadsActiveOriginalWithoutRedeeming() throws {
+        var missing = EntitlementHoldProjection()
+        XCTAssertThrowsError(try missing.recoverFromRedemptions(
+            originalRequestID: "c07-rdm-1", registrationID: 78, chapterID: 124,
+            serverNow: now, listRedemptions: nil)) {
+            XCTAssertEqual($0 as? EntitlementHoldFailure,
+                           .waitingSource(capability: EntitlementHoldProjection.perkRedemptions))
+        }
+        XCTAssertEqual(missing.occupyCount(originalRequestID: "c07-rdm-1"), 0)
+        let rows = [
+            LedgerRedemptionRow(chapterID: 124, merchantID: 9, active: false),
+            LedgerRedemptionRow(chapterID: 124, merchantID: 9, active: true)
+        ]
+        let list: (Int64) -> [LedgerRedemptionRow] = { registrationID in
+            registrationID == 78 ? rows : []
+        }
+        var wired = EntitlementHoldProjection()
+        let neverSeen = try wired.recoverFromRedemptions(
+            originalRequestID: "c07-rdm-1", registrationID: 78, chapterID: 999,
+            serverNow: now, listRedemptions: list)
+        XCTAssertEqual(neverSeen.outcome, .unknown)
+        XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-rdm-1"), 0)
+        let redeemed = try wired.recoverFromRedemptions(
+            originalRequestID: "c07-rdm-1", registrationID: 78, chapterID: 124,
+            serverNow: now, listRedemptions: list)
+        XCTAssertEqual(redeemed.outcome, .redeemed)
+        XCTAssertFalse(redeemed.executedRedeem)
+        XCTAssertFalse(redeemed.occupiesCapacity)
+        XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-rdm-1"), 0)
+    }
 }

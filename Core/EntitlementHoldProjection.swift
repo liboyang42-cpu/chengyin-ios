@@ -67,6 +67,17 @@ public enum EntitlementHoldFailure: Error, Equatable {
     case waitingSource(capability: String)
 }
 
+public struct LedgerRedemptionRow: Equatable, Sendable {
+    public let chapterID: Int64
+    public let merchantID: Int64?
+    public let active: Bool
+    public init(chapterID: Int64, merchantID: Int64?, active: Bool) {
+        self.chapterID = chapterID
+        self.merchantID = merchantID
+        self.active = active
+    }
+}
+
 public struct LedgerEntitlementRow: Equatable, Sendable {
     public let chapterID: Int64
     public let status: Int?
@@ -81,6 +92,7 @@ public struct LedgerEntitlementRow: Equatable, Sendable {
 
 public struct EntitlementHoldProjection: Equatable {
     public static let perkList = "perkLedger.listEntitlements"
+    public static let perkRedemptions = "perkLedger.listRedemptions"
     public private(set) var occupyCountByRequestID: [String: Int] = [:]
     public private(set) var originalIntentByRequestID: [String: EntitlementHoldView] = [:]
     public init() {}
@@ -135,6 +147,29 @@ public struct EntitlementHoldProjection: Equatable {
         let fact = EntitlementHoldFact(originalRequestID: originalRequestID, registrationID: registrationID,
                                        chapterID: chapterID, merchantID: merchantID, status: match.status,
                                        validEndExclusive: validEndExclusive, invalidReason: match.invalidReason)
+        return project(fact, serverNow: serverNow)
+    }
+    /// Read an existing redemption row. Missing source is WAITING_SOURCE.
+    /// A reversed row is not an active original. Does not call redeem.
+    public mutating func recoverFromRedemptions(originalRequestID: String?, registrationID: Int64?,
+                                                chapterID: Int64?, serverNow: Date?,
+                                                listRedemptions: ((Int64) -> [LedgerRedemptionRow])?) throws -> EntitlementHoldView {
+        guard let listRedemptions else {
+            throw EntitlementHoldFailure.waitingSource(capability: Self.perkRedemptions)
+        }
+        guard let registrationID, registrationID > 0 else {
+            throw EntitlementHoldFailure.waitingSource(capability: Self.perkRedemptions)
+        }
+        let rows = listRedemptions(registrationID)
+        guard let chapterID,
+              let match = rows.first(where: { $0.chapterID == chapterID && $0.active }),
+              let merchantID = match.merchantID else {
+            return recoverOriginal(originalRequestID: originalRequestID ?? "")
+        }
+        let fact = EntitlementHoldFact(originalRequestID: originalRequestID, registrationID: registrationID,
+                                       chapterID: chapterID, merchantID: merchantID,
+                                       status: EntitlementHoldStatus.redeemed,
+                                       validEndExclusive: nil, invalidReason: nil)
         return project(fact, serverNow: serverNow)
     }
     private func compute(_ fact: EntitlementHoldFact?, serverNow: Date?) -> EntitlementHoldView {
