@@ -162,6 +162,7 @@ class C10WorkshopH5Contracts(unittest.TestCase):
         self.assertIn("func openArbitraryH5(", gate)
         self.assertIn("DiscoveryContracts already bans arbitrary banner H5", gate)
         self.assertIn("testArbitraryH5UnsignedDomainAndVersionMismatchReject", tests)
+        self.assertIn("testRejectedAdmitDoesNotOccupyThenUniqueAdmitApplies", tests)
         discovery = (ROOT / "Core/DiscoveryContracts.swift").read_text()
         self.assertIn("Never open arbitrary H5 URLs from a banner", discovery)
 

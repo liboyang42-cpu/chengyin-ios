@@ -57,6 +57,37 @@ final class H5SessionCapabilityGateTests: XCTestCase {
         XCTAssertEqual(waiting { try gate.consumeH5ContainerOriginal() },
                        .waitingSource(capability: WorkshopModuleSourceInventory.h5ContainerOriginal))
     }
+    func testRejectedAdmitDoesNotOccupyThenUniqueAdmitApplies() throws {
+        var gate = H5SessionCapabilityGate()
+        XCTAssertNil(gate.admittedHost)
+        XCTAssertEqual(gate.phase, .idle)
+        XCTAssertThrowsError(try gate.openArbitraryH5("https://evil.example/game")) { error in
+            XCTAssertEqual(error as? H5SessionFailure, .arbitraryH5Forbidden)
+        }
+        XCTAssertNil(gate.admittedHost)
+        XCTAssertEqual(gate.phase, .idle)
+        XCTAssertThrowsError(try gate.admitDeclaredSurface(host: "evil.example", capability: "camera.scan",
+                                                           sdkVersion: "1.0.0", frozen: try frozen())) { error in
+            XCTAssertEqual(error as? H5SessionFailure, .unsignedDomain)
+        }
+        XCTAssertNil(gate.admittedHost)
+        XCTAssertEqual(gate.phase, .idle)
+        try gate.admitDeclaredSurface(host: "play.chengyin.example", capability: "camera.scan",
+                                      sdkVersion: "1.0.0", frozen: try frozen())
+        XCTAssertEqual(gate.admittedHost, "play.chengyin.example")
+        XCTAssertEqual(gate.admittedCapability, "camera.scan")
+        XCTAssertEqual(gate.phase, .admitted)
+        try gate.admitDeclaredSurface(host: "play.chengyin.example", capability: "camera.scan",
+                                      sdkVersion: "1.0.0", frozen: try frozen())
+        XCTAssertEqual(gate.admittedHost, "play.chengyin.example")
+        XCTAssertThrowsError(try gate.admitDeclaredSurface(host: "play.chengyin.example",
+                                                           capability: "location.once",
+                                                           sdkVersion: "1.0.0", frozen: try frozen())) { error in
+            XCTAssertEqual(error as? H5SessionFailure, .requestMismatch)
+        }
+        XCTAssertEqual(gate.admittedHost, "play.chengyin.example")
+        XCTAssertEqual(gate.admittedCapability, "camera.scan")
+    }
     private func waiting(_ body: () throws -> Never) -> H5SessionFailure? {
         do { try body(); return nil } catch let error as H5SessionFailure { return error } catch { return nil }
     }
