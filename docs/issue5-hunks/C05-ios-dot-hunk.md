@@ -120,3 +120,11 @@ HEAD `bdb0db08` tests. Did not invent recoverOriginal.
 `OfflinePackOperationTests.testUnusedApplyUpdateOfIdleDoesNotOccupyThenUniqueStartFinishThenUpdateApplies`：idle `applyUpdate` 抛 notReady 且 phase 仍 idle、operationID 仍空；后续唯一 startDownload+finishDownload+applyUpdate 才是 updating。与 unused recordFullDisk 的 fullDisk 占账不同。
 
 Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
+
+## Addendum 2026-10-23 19:57 America/Los_Angeles
+
+HEAD `a7050d73` tests. Did not invent recoverOriginal.
+
+`OfflinePackOperationTests.testUnusedFinishUpdateOfIdleDoesNotOccupyThenUniqueUpdateThenFinishApplies`：idle `finishUpdate` 抛 notDownloading 且 phase 仍 idle、operationID 仍空；后续唯一 startDownload+finishDownload+applyUpdate+finishUpdate 才是 v2 ready。与 unused resume 的 v1 ready、unused applyUpdate 的 updating 占账不同。
+
+Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
