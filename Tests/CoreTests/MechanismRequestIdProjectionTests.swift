@@ -199,11 +199,14 @@ final class MechanismRequestIdProjectionTests: XCTestCase {
         XCTAssertNil(binder.existing("c03-route-missing"))
         let row = try binder.recoverFromRouteAction(sessionID: 30, memberID: 7, actionID: "check:1:alarm:tick", selectAction: { session, member, id in
             session == 30 && member == 7 && id == "check:1:alarm:tick"
-                ? RouteActionOriginalRow(actionID: id, responseJSON: "{\"ok\":true}") : nil
+                ? RouteActionOriginalRow(actionID: id, responseJSON: "{\"ok\":true}", sessionID: session, memberID: member) : nil
         })
         XCTAssertEqual(row?.responseJSON, "{\"ok\":true}")
         XCTAssertNil(try binder.recoverFromRouteAction(sessionID: 30, memberID: 7, actionID: "c03-other-action", selectAction: { _, _, _ in
-            RouteActionOriginalRow(actionID: "game:done", responseJSON: "{\"ok\":true}")
+            RouteActionOriginalRow(actionID: "game:done", responseJSON: "{\"ok\":true}", sessionID: 99, memberID: 8)
+        }))
+        XCTAssertNil(try binder.recoverFromRouteAction(sessionID: 30, memberID: 7, actionID: "check:1:alarm:tick", selectAction: { _, _, id in
+            RouteActionOriginalRow(actionID: id, responseJSON: "{\"ok\":true}", sessionID: 99, memberID: 7)
         }))
         XCTAssertNil(binder.existing("check:1:alarm:tick"))
     }

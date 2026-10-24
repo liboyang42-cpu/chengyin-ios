@@ -511,9 +511,13 @@ public enum MechanismFirstJourney {
 public struct RouteActionOriginalRow: Equatable, Sendable {
     public let actionID: String
     public let responseJSON: String?
-    public init(actionID: String, responseJSON: String?) {
+    public let sessionID: Int64?
+    public let memberID: Int64?
+    public init(actionID: String, responseJSON: String?, sessionID: Int64? = nil, memberID: Int64? = nil) {
         self.actionID = actionID
         self.responseJSON = responseJSON
+        self.sessionID = sessionID
+        self.memberID = memberID
     }
 }
 
@@ -568,6 +572,7 @@ public struct MechanismRequestIdProjection: Equatable {
     }
     /// Read an existing route action. Missing closure is WAITING_SOURCE.
     /// A never-seen id returns nil and does not bind. Does not insert.
+    /// The row's session, member, and action id must be this read.
     public func recoverFromRouteAction(
         sessionID: Int64?,
         memberID: Int64?,
@@ -579,7 +584,8 @@ public struct MechanismRequestIdProjection: Equatable {
         guard let selectAction else {
             throw MechanismFailure.waitingSource(capability: Self.selectActionByAction)
         }
-        guard let row = selectAction(sessionID, memberID, trimmed), row.actionID == trimmed else { return nil }
+        guard let row = selectAction(sessionID, memberID, trimmed),
+              row.actionID == trimmed, row.sessionID == sessionID, row.memberID == memberID else { return nil }
         return row
     }
     public mutating func recoverOriginal(_ play: inout MechanismPlay, originalRequestID: String) throws -> MechanismResult {
