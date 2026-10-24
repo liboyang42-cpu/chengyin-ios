@@ -9,12 +9,14 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 CORE_FILES = [
     "Core/OfflinePackOperation.swift",
+    "Core/OfflinePackLifecycleFlow.swift",
     "Core/SideQuestAcceptHold.swift",
     "Core/NavigationDestinationConsent.swift",
     "Core/PresenceProofDistinctFromFog.swift",
 ]
 TEST_FILES = [
     "Tests/CoreTests/OfflinePackOperationTests.swift",
+    "Tests/CoreTests/OfflinePackLifecycleFlowTests.swift",
     "Tests/CoreTests/SideQuestAcceptHoldTests.swift",
     "Tests/CoreTests/NavigationDestinationConsentTests.swift",
     "Tests/CoreTests/PresenceProofDistinctFromFogTests.swift",
@@ -218,6 +220,43 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
         for path in TEST_FILES:
             self.assertIn("@testable import QuestifyCore", self.sources[path])
+
+    def test_offline_pack_lifecycle_is_one_ordered_flow(self):
+        flow = self.sources["Core/OfflinePackLifecycleFlow.swift"]
+        tests = self.sources["Tests/CoreTests/OfflinePackLifecycleFlowTests.swift"]
+        walk = flow.split("static func walk(", 1)[1].split("private static func", 1)[0]
+        order = ["begin", "pause", "resume", "corrupt", "fullDisk", "expire", "deleteExit"]
+        positions = [flow.index(f'"{name}"') for name in order]
+        self.assertEqual(positions, sorted(positions))
+        calls = [
+            "startDownload(",
+            "pause()",
+            "resume(operationID:",
+            "recordCorrupt()",
+            "recordFullDisk()",
+            "expire(at:",
+            "delete()",
+            "finishDownload()",
+            "OfflinePackPayloadConsumer.accept(",
+            "commitOriginalWriter()",
+            "scoreT41()",
+            "resumeViaVol12Writer()",
+        ]
+        call_positions = [walk.index(name) for name in calls]
+        self.assertEqual(call_positions, sorted(call_positions))
+        self.assertIn("WAITING_SOURCE", flow)
+        self.assertIn("OfflinePackSourceInventory.payloadConsumer", flow)
+        self.assertIn("offlinePack.payloadConsumer", self.sources["Core/OfflinePackOperation.swift"])
+        self.assertNotIn("finishDownload(payload:", flow)
+        self.assertNotIn("finishUpdate(", flow)
+        self.assertNotIn("Data(", flow)
+        self.assertNotIn("phase = .ready", flow)
+        self.assertIn("testOrderedLifecycleKeepsMachineOutcomesAndDoesNotInstall", tests)
+        self.assertIn("claimsInstalled", tests)
+        self.assertIn("OfflinePackSourceInventory.payloadConsumer", tests)
+        self.assertIn("qmodFinalOpsContract", tests)
+        self.assertIn("t41ScoringWriter", tests)
+        self.assertIn("vol12ResumeWriter", tests)
 
     def test_sha256_payload_covers_whitelist(self):
         digest = hashlib.sha256()
