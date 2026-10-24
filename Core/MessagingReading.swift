@@ -6,6 +6,15 @@ public struct MessagingReadIdentity: Hashable {
     public init(accountID: Int, epoch: UInt64) { self.accountID = accountID; self.epoch = epoch }
 }
 
+/// Transport and token this reader already holds. Not a new grant and not a history-read lease.
+struct MessagingDirectoryTransportHold {
+    public let configuration: APIConfiguration
+    public let transport: any HTTPTransport
+    public let token: String
+    public let accountID: Int
+    public let epoch: UInt64
+}
+
 /// Do not persist/log. Construct from the live session; epoch changes on logout/expiry
 /// and all login attempts, including relogin to the same account.
 public struct MessagingReadSession: Equatable {
@@ -34,6 +43,10 @@ public final class MessagingSessionReader: MessagingReading {
     private let isAvailable: () -> Bool
     public var isConfigured: Bool { service != nil && isAvailable() }
     public var identity: MessagingReadIdentity? { currentSession()?.identity }
+    func directoryTransportHold() -> MessagingDirectoryTransportHold? {
+        guard let service, let snapshot = currentSession() else { return nil }
+        return service.directoryTransportHold(token: snapshot.token, accountID: snapshot.identity.accountID, epoch: snapshot.identity.epoch)
+    }
     public init(service: MessagingService?, currentSession: @escaping () -> MessagingReadSession?,
                 isAvailable: @escaping () -> Bool = { true },
                 onUnauthorized: @escaping (MessagingReadSession) -> Void = { _ in }) {

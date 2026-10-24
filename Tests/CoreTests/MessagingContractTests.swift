@@ -27,7 +27,35 @@ final class MessagingContractTests: XCTestCase {
         XCTAssertNil(missing.counterparty)
         XCTAssertNil(missing.unread)
         XCTAssertNil(missing.muted)
+        XCTAssertNil(missing.directoryContext)
         XCTAssertEqual(missing.kind, .unknown)
+        XCTAssertNil(row.directoryContext)
+    }
+    func testDirectoryContextUsesOnlyAChannelAndGuildAlreadyOnTheConversation() throws {
+        let carried = try decode(MessagingConversation.self, #"{"conversationId":30,"type":4,"channel_id":"21","guild_kind":1,"guild_id":"12"}"#)
+        XCTAssertEqual(carried.directoryContext?.channelID, 21)
+        XCTAssertEqual(carried.directoryContext?.spaceID, 12)
+        XCTAssertEqual(carried.directoryContext?.kind, 1)
+        XCTAssertNotEqual(carried.directoryContext?.channelID, carried.id)
+        let fromContext = try decode(MessagingConversation.self, #"{"conversationId":30,"type":4,"context":{"channel_id":21,"guild_kind":"3","guild_id":12}}"#)
+        XCTAssertEqual(fromContext.directoryContext?.channelID, 21)
+        XCTAssertEqual(fromContext.directoryContext?.kind, 3)
+        let fromCounterparty = try decode(MessagingConversation.self, #"{"conversationId":30,"type":4,"counterparty":{"bizKey":"club_7","channel_id":21,"guild_kind":3,"guild_id":12}}"#)
+        XCTAssertEqual(fromCounterparty.directoryContext?.channelID, 21)
+        XCTAssertEqual(fromCounterparty.counterparty?.bizKey, "club_7")
+        for json in [
+            #"{"conversationId":30,"type":4,"counterparty":{"id":21,"bizKey":"club_7"}}"#,
+            #"{"conversationId":21,"type":4,"guild_kind":1,"guild_id":12}"#,
+            #"{"conversationId":30,"channel_id":21,"guild_id":12}"#,
+            #"{"conversationId":30,"channel_id":21,"guild_kind":2,"guild_id":12}"#,
+            #"{"conversationId":30,"channel_id":21,"guild_kind":4,"guild_id":12}"#,
+            #"{"conversationId":30,"channel_id":21,"guild_kind":1}"#,
+        ] {
+            XCTAssertNil(try decode(MessagingConversation.self, json).directoryContext, json)
+        }
+        let unmixed = try decode(MessagingConversation.self, #"{"conversationId":30,"channel_id":21,"guild_kind":1,"counterparty":{"guild_id":12,"guild_kind":1,"channel_id":99}}"#)
+        XCTAssertEqual(unmixed.directoryContext?.channelID, 99)
+        XCTAssertNotEqual(unmixed.directoryContext?.channelID, 21)
     }
     func testMutedDoesNotGuessBooleanOrUnknownValue() throws {
         for (value, expected) in [("0", false), ("1", true), (#""0""#, false), (#""1""#, true)] {
