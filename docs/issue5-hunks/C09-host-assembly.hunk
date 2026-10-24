@@ -1,0 +1,103 @@
+# C09 host assembly — exact change, NOT APPLIED
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Public base: origin/cursor/c09-async-command-forward-e504 `138380f70b35334c7b62195e4df2038ee7bfd290`
+Holder: `App/NativeChannelMessageHostBinding.swift`
+Base bytes of that file on the later root: sha256 `b3259c05d5c6d3a867154d87a4cea746bd5d3664568d08873b6eb1e78770a4c1`
+
+The coordinator and journal instances already exist in this file.
+`NativeChannelMessageHostBinding.make` creates one `NativeChannelMessageMutationJournal` and passes that same value into `NativeChannelMessageCoordinator` and into `NativeChannelMessageHostFlow`.
+`NativeChannelMessageHostFlow.makeTextCoordinator` creates one `NativeChannelTextJournal` and one `NativeChannelTextCoordinator`. A later call returns the stored text coordinator and does not construct another pair.
+Those four objects are the arguments of one `NativeChannelMessagePageActions` value stored on the flow.
+Send calls `channelActions.send` once. Edit calls `channelActions.edit` once. Recall calls `channelActions.recall` once. Pin calls `channelActions.pin` once. Those page methods are the existing forwarders: send reaches `NativeChannelTextCoordinator.sendNew` once, and edit, recall, and pin each reach `NativeChannelMessageCoordinator.submit` once.
+`appear()` calls `channelActions?.appear()` only. Appearance does not send.
+A nil page throws the already installed `NativeChannelPageActionFailure.waitingSource`. This hunk adds no type whose only behavior is to wait, and it does not clear a journal.
+Do not call `AppSession.makeNativeChannelTextCoordinator`. That method constructs another text journal and another text coordinator.
+Do not edit `App/AppSession.swift`, `App/AppCompositionRoot.swift`, or `Questify.xcodeproj/project.pbxproj`.
+Do not revert `App/MessagingHistoryView.swift` or `App/ProfileOrdersView.swift`. History async forward is already installed at the later root.
+Do not import `ImmutableReceiptProducer.accept` or `recoverOriginal`. Do not add a search chain. Do not add a second journal or a second coordinator.
+Swift/XCTest NOT_RUN. Not 100%.
+
+## Patch (NOT APPLIED)
+
+diff --git a/App/NativeChannelMessageHostBinding.swift b/App/NativeChannelMessageHostBinding.swift
+--- a/App/NativeChannelMessageHostBinding.swift
++++ b/App/NativeChannelMessageHostBinding.swift
+@@ -14,6 +14,14 @@
+     let reader: MessagingSessionReader
+     let wire: NativeChannelMessageOriginalWireBridge
+     let coordinator: NativeChannelMessageCoordinator
++    let mutationJournal: NativeChannelMessageMutationJournal
++    private var textCommand: NativeChannelTextCoordinator?
++    private var textJournal: NativeChannelTextJournal?
++    private(set) var channelActions: NativeChannelMessagePageActions<
++        NativeChannelTextCoordinator,
++        NativeChannelMessageCoordinator,
++        NativeChannelTextJournal,
++        NativeChannelMessageMutationJournal>?
+     private let context: RuntimeDependencyContext
+     private let storage: any ProjectEditDataStorage
+     private let text: NativeChannelTextTransport?
+@@ -24,10 +32,12 @@
+     var isCurrent: Bool { lifetime.active && current() }
+     fileprivate init(context: RuntimeDependencyContext, storage: any ProjectEditDataStorage,
+                      adapters: NativeChannelMessageOriginalAdapters, history: NativeChannelHistoryModel, reader: MessagingSessionReader,
+-                     coordinator: NativeChannelMessageCoordinator, originalHistory: NativeChannelMessageOriginalHistoryBinding,
++                     coordinator: NativeChannelMessageCoordinator, mutationJournal: NativeChannelMessageMutationJournal,
++                     originalHistory: NativeChannelMessageOriginalHistoryBinding,
+                      lifetime: Lifetime, current: @escaping () -> Bool, unauthorized: @escaping () -> Void) {
+         self.context = context; self.storage = storage; text = adapters.textTransport; wire = adapters.wire
+-        self.history = history; self.reader = reader; self.coordinator = coordinator; self.originalHistory = originalHistory
++        self.history = history; self.reader = reader; self.coordinator = coordinator
++        self.mutationJournal = mutationJournal; self.originalHistory = originalHistory
+         self.lifetime = lifetime; self.current = current; self.unauthorized = unauthorized
+     }
+     func makeTextCoordinator(history selected: NativeChannelHistoryModel) -> NativeChannelTextCoordinator? {
+@@ -35,8 +45,35 @@
+               history.issue == nil, let text,
+               let client = try? NativeChannelTextClient(context: context, conversationID: history.conversation.id,
+                 transport: text, onUnauthorized: { [weak self] _ in guard self?.isCurrent == true else { return }; self?.unauthorized() }) else { return nil }
++        if let textCommand { return textCommand }
+         let journal = NativeChannelTextJournal(storage: storage, scope: client.scope)
+-        return try? NativeChannelTextCoordinator(history: history, client: client, journal: journal)
++        guard let made = try? NativeChannelTextCoordinator(history: history, client: client, journal: journal) else { return nil }
++        textJournal = journal
++        textCommand = made
++        channelActions = NativeChannelMessagePageActions(
++            textCoordinator: made, messageCoordinator: coordinator,
++            textJournal: journal, mutationJournal: mutationJournal)
++        return made
++    }
++    /// Visible. Does not send, edit, recall, or pin.
++    func appear() {
++        channelActions?.appear()
++    }
++    func send(requestID: String?, content: String?) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NativeChannelPageActionFailure.waitingSource(capability: "native-channel-text.sendNew") }
++        return try await channelActions.send(requestID: requestID, content: content)
++    }
++    func edit(command: NativeChannelMessageCommand) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NativeChannelPageActionFailure.waitingSource(capability: "native-channel-message.submit") }
++        return try await channelActions.edit(command: command)
++    }
++    func recall(command: NativeChannelMessageCommand) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NativeChannelPageActionFailure.waitingSource(capability: "native-channel-message.submit") }
++        return try await channelActions.recall(command: command)
++    }
++    func pin(command: NativeChannelMessageCommand) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NativeChannelPageActionFailure.waitingSource(capability: "native-channel-message.submit") }
++        return try await channelActions.pin(command: command)
+     }
+     func retire() {
+         lifetime.active = false; coordinator.retire(); history.stop(); wire.retire()
+@@ -88,7 +125,7 @@
+             refreshOriginalHistory: { try await originalHistory.refresh() })
+         originalHistory.coordinator = coordinator
+         return NativeChannelMessageHostFlow(context: context, storage: storage, adapters: adapters,
+-            history: history, reader: reader, coordinator: coordinator, originalHistory: originalHistory,
+-            lifetime: lifetime, current: current, unauthorized: onUnauthorized)
++            history: history, reader: reader, coordinator: coordinator, mutationJournal: journal,
++            originalHistory: originalHistory, lifetime: lifetime, current: current, unauthorized: onUnauthorized)
+     }
+ }
