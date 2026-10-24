@@ -195,6 +195,9 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("usedSmsIdentityAsPolicy", transfer)
         self.assertIn("testMissingDesignatedRecipientIsWaitingSourceNotSuccess", tests)
         self.assertIn("testSmsIdentityIsNotSoldPolicyEvenWhenVerified", tests)
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueWaitingSourceApplies", tests)
+        self.assertIn("c07-xfer-never-seen", tests)
+        self.assertIn("original intent unknown", tests)
         self.assertIn("usedSmsIdentityAsPolicy: false", transfer)
 
     def test_no_real_payment_refund_redeem_award_or_shared_owners(self):

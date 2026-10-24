@@ -52,4 +52,23 @@ final class TransferSoldPolicyProjectionTests: XCTestCase {
         XCTAssertTrue(object["originalRequestID"] is NSNull)
         XCTAssertFalse((object["originalRequestID"] as? String) == "")
     }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueWaitingSourceApplies() {
+        var gate = TransferSoldPolicyProjection()
+        let neverTransfer = gate.recoverOriginal(originalRequestID: "c07-xfer-never-seen")
+        XCTAssertEqual(neverTransfer.outcome, .waitingSource)
+        XCTAssertEqual(neverTransfer.originalRequestID, "c07-xfer-never-seen")
+        XCTAssertTrue(neverTransfer.reason?.contains("original intent unknown") == true)
+        XCTAssertNil(gate.originalByRequestID["c07-xfer-never-seen"], "未见 recover 不得占账")
+        let firstWrite = gate.evaluate(
+            TransferSoldPolicyFact(originalRequestID: "c07-xfer-never-seen", soldPolicySourceHash: nil,
+                                   designatedRecipientMemberID: 88,
+                                   irrevocableEffectRecorded: true, smsIdentityVerified: true))
+        XCTAssertEqual(firstWrite.outcome, .waitingSource)
+        XCTAssertEqual(firstWrite.originalRequestID, "c07-xfer-never-seen")
+        XCTAssertTrue(firstWrite.reason?.contains("sold-policy") == true
+                      || firstWrite.reason?.contains(TransferSoldPolicyProjection.waitingSource) == true)
+        XCTAssertEqual(gate.recoverOriginal(originalRequestID: "c07-xfer-never-seen").reason, firstWrite.reason)
+        XCTAssertEqual(gate.recoverOriginal(originalRequestID: "c07-xfer-never-seen").outcome, .waitingSource)
+        XCTAssertEqual(gate.originalByRequestID["c07-xfer-never-seen"]?.reason, firstWrite.reason)
+    }
 }
