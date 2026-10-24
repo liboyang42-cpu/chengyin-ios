@@ -429,6 +429,19 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
         return try applied(body, channelID: channelID, requestID: requestID)
     }
 
+    /// Explicit ack only. A late lease does not call the writer. Page load does not use this.
+    public func acknowledgeExplicit(actor: Int64, channelID: Int64, lastMessageID: Int64, requestID: String,
+                                    channelKind: Int, lease: ChannelPageLease, isolation: ChannelRevokeIsolation,
+                                    sameScope: (Int64, Int64) -> Bool,
+                                    writer: (Int64, Int64, Int64, String) throws -> [String: Any]) throws -> Receipt {
+        guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
+            throw ChannelAuthorizationError.account4Mismatch
+        }
+        _ = try isolation.admit(ChannelIsolatedRequest(lease: lease, action: .channelWrite))
+        return try acknowledge(actor: actor, channelID: channelID, lastMessageID: lastMessageID, requestID: requestID,
+                               channelKind: channelKind, sameScope: sameScope, writer: writer)
+    }
+
     /// Current membership is not this gate. The original account can read a redacted receipt after revoke.
     public func recover(actor: Int64, channelID: Int64, requestID: String, channelKind: Int,
                         originalAccount: (Int64, String) -> Bool,
@@ -525,5 +538,52 @@ public struct MessageContainerHistory: Equatable, Sendable {
             throw ChannelAuthorizationError.invalidCatalog
         }
         return page
+    }
+
+    /// A late or revoked lease never reaches `listMessages`. Rows keep the original viewer projection:
+    /// another conversation is dropped, and a non-normal status keeps empty content.
+    public func readIsolated(actor: Int64, channelID: Int64, before: Int64?, after: Int64?, limit: Int,
+                             conversationType: Int, channelKind: Int, lease: ChannelPageLease,
+                             isolation: ChannelRevokeIsolation, canReadHistory: (Int64, Int64) -> Bool,
+                             listMessages: ((Int64, Int64, Int64?, Int, Int64?) -> [String: Any])?) throws -> [String: Any] {
+        guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
+            throw ChannelAuthorizationError.account4Mismatch
+        }
+        _ = try isolation.admit(ChannelIsolatedRequest(lease: lease, action: .channelRead))
+        var page = try read(actor: actor, channelID: channelID, before: before, after: after, limit: limit,
+                            conversationType: conversationType, channelKind: channelKind,
+                            canReadHistory: canReadHistory, listMessages: listMessages)
+        page["list"] = projectList(page["list"], channelID: channelID)
+        return page
+    }
+
+    func projectList(_ raw: Any?, channelID: Int64) -> [[String: Any]] {
+        let channel = String(channelID)
+        guard let rows = raw as? [Any] else { return [] }
+        var projected: [[String: Any]] = []
+        for case let row as [String: Any] in rows {
+            guard let conversation = text(row["conversationId"]), conversation == channel,
+                  text(row["id"]) != nil, row["senderId"] != nil, row["status"] != nil else { continue }
+            var copy = row
+            if !normalStatus(row["status"]) {
+                copy["content"] = ""
+                copy["extraJson"] = NSNull()
+            }
+            projected.append(copy)
+        }
+        return projected
+    }
+
+    private func text(_ value: Any?) -> String? {
+        if let text = value as? String, !text.isEmpty { return text }
+        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() { return number.stringValue }
+        return nil
+    }
+
+    private func normalStatus(_ value: Any?) -> Bool {
+        if let number = value as? Int { return number == 0 }
+        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() { return number.intValue == 0 }
+        if let text = value as? String { return text == "0" }
+        return false
     }
 }
