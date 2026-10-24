@@ -63,4 +63,17 @@ final class WebhookSsrfHopGuardTests: XCTestCase {
             WebhookSsrfHopGuard.publicHop()
         ]).decision, .rejectHopLimit)
     }
+
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenPublicHopAllows() {
+        let blank = guardRail.recoverOriginal(originalRequestID: "  ", hops: [WebhookSsrfHopGuard.publicHop()])
+        XCTAssertTrue(blank.allowed)
+        XCTAssertEqual(blank.decision, .allow)
+        let recovered = guardRail.recoverOriginal(
+            originalRequestID: "evt-ssrf-never-c09", hops: [WebhookSsrfHopGuard.publicHop()])
+        XCTAssertTrue(recovered.allowed)
+        XCTAssertEqual(recovered.decision, .allow)
+        let later = guardRail.inspect(WebhookSsrfHopGuard.publicHop())
+        XCTAssertTrue(later.allowed())
+        XCTAssertEqual(later.decision, .allow)
+    }
 }

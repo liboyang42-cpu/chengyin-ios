@@ -106,8 +106,13 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyLedgerThenAcceptApplies", receipt)
         self.assertIn("evt-recover-never-c09", receipt)
         self.assertIn("testOtherDeviceDoesNotRewriteOriginalRegistration", devices)
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueRegisterApplies", devices)
+        self.assertIn("dev-recover-never-c09", devices)
         self.assertIn("fingerprintConflict(requestId: \"evt-E\")", receipt)
         self.assertIn("dev-other", devices)
+        ssrf = self.sources["Tests/CoreTests/WebhookSsrfHopGuardTests.swift"]
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenPublicHopAllows", ssrf)
+        self.assertIn("evt-ssrf-never-c09", ssrf)
 
     def test_core_isolation_contracts(self):
         kernel = self.sources["Core/ImmutableReceiptProducer.swift"]

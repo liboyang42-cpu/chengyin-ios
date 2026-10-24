@@ -71,4 +71,28 @@ final class DevicePushRegistrationLifecycleTests: XCTestCase {
         XCTAssertEqual(lifecycle.recoverUnknown(
             originalRequestID: "  ", appliedProjection: ImmutableReceiptProducer.projectionApplied).status, "UNKNOWN")
     }
-}
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueRegisterApplies() throws {
+        var lifecycle = DevicePushRegistrationLifecycle()
+        let blank = lifecycle.recoverOriginal(originalRequestID: "  ", appliedProjection: nil)
+        XCTAssertNil(blank.deviceId)
+        XCTAssertEqual(blank.status, "UNKNOWN")
+        XCTAssertTrue(lifecycle.originalByDeviceID.isEmpty)
+        let recovered = lifecycle.recoverOriginal(
+            originalRequestID: "dev-recover-never-c09", appliedProjection: nil)
+        XCTAssertEqual(recovered.deviceId, "dev-recover-never-c09")
+        XCTAssertEqual(recovered.status, "UNKNOWN")
+        XCTAssertNil(lifecycle.originalByDeviceID["dev-recover-never-c09"])
+        XCTAssertTrue(lifecycle.originalByDeviceID.isEmpty)
+        let first = try lifecycle.register(
+            deviceId: "dev-recover-never-c09",
+            environment: DevicePushRegistrationLifecycle.envSandbox,
+            silent: true, fixtureToken: "fixture-token-c09")
+        XCTAssertEqual(first.deviceId, "dev-recover-never-c09")
+        XCTAssertEqual(first.status, DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(lifecycle.originalByDeviceID.count, 1)
+        let replay = lifecycle.recoverOriginal(
+            originalRequestID: "dev-recover-never-c09", appliedProjection: nil)
+        XCTAssertEqual(replay.status, DevicePushRegistrationLifecycle.statusActive)
+        XCTAssertEqual(replay.deviceId, "dev-recover-never-c09")
+        XCTAssertEqual(lifecycle.originalByDeviceID.count, 1)
+    }
