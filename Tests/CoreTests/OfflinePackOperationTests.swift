@@ -95,6 +95,22 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertNil(restarted.operationID)
         XCTAssertEqual(restarted.phase, .idle)
     }
+    func testUnusedDeleteOfIdleDoesNotOccupyThenUniqueStartThenDeleteApplies() throws {
+        var pack = OfflinePackOperation()
+        XCTAssertEqual(pack.phase, .idle)
+        XCTAssertNil(pack.operationID)
+        XCTAssertThrowsError(try pack.delete()) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .invalidManifest)
+        }
+        XCTAssertEqual(pack.phase, .idle, "未见下载 delete 观察不得占 DELETED")
+        XCTAssertNil(pack.operationID)
+        try pack.startDownload(try manifest(operationID: "op-del"))
+        XCTAssertEqual(pack.operationID, "op-del")
+        XCTAssertEqual(pack.phase, .downloading)
+        try pack.delete()
+        XCTAssertEqual(pack.phase, .deleted)
+        XCTAssertEqual(pack.operationID, "op-del")
+    }
     func testAnswersAndHiddenCoordinatesAreNotShipped() throws {
         XCTAssertThrowsError(try OfflinePackOperation.inspect(["answer": "42"])) { error in
             XCTAssertEqual(error as? OfflinePackFailure, .answersOrHiddenCoordinatesForbidden)

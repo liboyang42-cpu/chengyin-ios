@@ -191,6 +191,7 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
         pack = self.sources["Tests/CoreTests/OfflinePackOperationTests.swift"]
         self.assertIn("testOtherOperationIdDoesNotRewriteOriginalDownload", pack)
         self.assertIn("testUnusedResumeDoesNotOccupyThenUniqueStartDownloadApplies", pack)
+        self.assertIn("testUnusedDeleteOfIdleDoesNotOccupyThenUniqueStartThenDeleteApplies", pack)
         self.assertIn('resume(operationID: "")', pack)
         consent = self.sources["Tests/CoreTests/NavigationDestinationConsentTests.swift"]
         self.assertIn("testShareGrantOnCopyDoesNotRewriteOriginalNavigationConsent", consent)
