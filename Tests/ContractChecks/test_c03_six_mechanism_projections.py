@@ -11,6 +11,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 WHITELIST = [
     "Core/MechanismRequestIdProjection.swift",
+    "Core/RouteActionReadbackFlow.swift",
     "Core/ProgressClockMomentumAspectProjection.swift",
     "Core/OathFlashbackProjection.swift",
     "Core/TradeBargainProjection.swift",
@@ -18,6 +19,7 @@ WHITELIST = [
     "Core/RouteCommunityDayProjection.swift",
     "Core/ClueSecretGoalProjection.swift",
     "Tests/CoreTests/MechanismRequestIdProjectionTests.swift",
+    "Tests/CoreTests/RouteActionReadbackFlowTests.swift",
     "Tests/CoreTests/ProgressClockMomentumAspectProjectionTests.swift",
     "Tests/CoreTests/OathFlashbackProjectionTests.swift",
     "Tests/CoreTests/TradeBargainProjectionTests.swift",
@@ -65,6 +67,8 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
 
     def test_first_journey_markers_present(self):
         for path in TEST_FILES:
+            if path.endswith("RouteActionReadbackFlowTests.swift"):
+                continue
             text = self.sources[path]
             self.assertIn("testFirstJourney", text, path)
             self.assertIn("RecoverOriginal", text, path)
@@ -98,6 +102,14 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         clock_tests = self.sources["Tests/CoreTests/ProgressClockMomentumAspectProjectionTests.swift"]
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueTickApplies", clock_tests)
         self.assertIn("c03-clock-never", clock_tests)
+        flow = self.sources["Tests/CoreTests/RouteActionReadbackFlowTests.swift"]
+        self.assertIn("testRequestReadMismatchReturnsNilAndSameIdsRecoverTheSameRow", flow)
+        self.assertIn("different action", flow)
+        self.assertIn("different session", flow)
+        self.assertIn("different member", flow)
+        self.assertIn("missing row", flow)
+        self.assertIn("XCTAssertNil", flow)
+        self.assertIn("absent session keeps the existing check", flow)
         self.assertIn("missingOriginalRequestID", text)
         self.assertNotIn('requestId = ""', text)
         kernel = self.sources["Core/MechanismRequestIdProjection.swift"]
@@ -116,6 +128,14 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
                 self.assertIn("func recoverOriginal(", text, path)
                 self.assertIn("recoverFromRouteAction", text, path)
                 self.assertIn("topicRouteSessionMapper.selectActionByAction", text, path)
+            elif path.endswith("RouteActionReadbackFlow.swift"):
+                self.assertIn("func recover(", text, path)
+                self.assertIn("topicRouteSessionMapper.selectActionByAction", text, path)
+                self.assertIn("row.actionID != trimmed", text, path)
+                self.assertIn("row.sessionID", text, path)
+                self.assertIn("row.memberID", text, path)
+                self.assertNotIn("insertAction", text, path)
+                self.assertNotIn("func bind(", text, path)
             else:
                 self.assertIn("func apply(", text, path)
                 self.assertIn("func recoverOriginal(", text, path)
