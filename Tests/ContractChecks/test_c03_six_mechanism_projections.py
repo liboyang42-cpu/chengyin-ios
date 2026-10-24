@@ -78,6 +78,7 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         self.assertIn("testInProcessRecoverKeepsOriginalAppliedAndUnknown", text)
         self.assertIn("testMissingRequestIDIsRefusedNeverStoredAsEmptyString", text)
         self.assertIn("testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenOneShotApplies", text)
+        self.assertIn("testRecoverFromRouteActionDoesNotBindNeverSeenId", text)
         self.assertIn("c03-never-seen", text)
         trade_tests = self.sources["Tests/CoreTests/TradeBargainProjectionTests.swift"]
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueAcceptApplies", trade_tests)
@@ -113,6 +114,8 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
                 self.assertIn("func oneShot(", text, path)
                 self.assertIn("func recoverUnknown(", text, path)
                 self.assertIn("func recoverOriginal(", text, path)
+                self.assertIn("recoverFromRouteAction", text, path)
+                self.assertIn("topicRouteSessionMapper.selectActionByAction", text, path)
             else:
                 self.assertIn("func apply(", text, path)
                 self.assertIn("func recoverOriginal(", text, path)

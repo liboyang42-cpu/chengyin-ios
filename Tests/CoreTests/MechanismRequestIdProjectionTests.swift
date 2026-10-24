@@ -183,6 +183,27 @@ final class MechanismRequestIdProjectionTests: XCTestCase {
         XCTAssertEqual(waiting { try binder.rewriteUnsignedSource() }, .unsignedSourceRewrite)
         XCTAssertEqual(waiting { try binder.inventLocalDice() }, .diceInvented)
     }
+    func testRecoverFromRouteActionDoesNotBindNeverSeenId() throws {
+        var binder = MechanismRequestIdProjection()
+        XCTAssertNil(try binder.recoverFromRouteAction(sessionID: 0, memberID: 7, actionID: "check:1:alarm:tick", selectAction: { _, _, _ in
+            RouteActionOriginalRow(actionID: "check:1:alarm:tick", responseJSON: "{}")
+        }))
+        do {
+            _ = try binder.recoverFromRouteAction(sessionID: 30, memberID: 7, actionID: "check:1:alarm:tick", selectAction: nil)
+            XCTFail("missing select must WAITING_SOURCE")
+        } catch let error as MechanismFailure {
+            XCTAssertEqual(error, .waitingSource(capability: MechanismRequestIdProjection.selectActionByAction))
+        }
+        XCTAssertNil(binder.existing("check:1:alarm:tick"))
+        XCTAssertNil(try binder.recoverFromRouteAction(sessionID: 30, memberID: 7, actionID: "c03-route-missing", selectAction: { _, _, _ in nil }))
+        XCTAssertNil(binder.existing("c03-route-missing"))
+        let row = try binder.recoverFromRouteAction(sessionID: 30, memberID: 7, actionID: "check:1:alarm:tick", selectAction: { session, member, id in
+            session == 30 && member == 7 && id == "check:1:alarm:tick"
+                ? RouteActionOriginalRow(actionID: id, responseJSON: "{\"ok\":true}") : nil
+        })
+        XCTAssertEqual(row?.responseJSON, "{\"ok\":true}")
+        XCTAssertNil(binder.existing("check:1:alarm:tick"))
+    }
     private func waiting(_ body: () throws -> Never) -> MechanismFailure? {
         do { try body(); return nil } catch let error as MechanismFailure { return error } catch { return nil }
     }

@@ -508,7 +508,17 @@ public enum MechanismFirstJourney {
     }
 }
 
+public struct RouteActionOriginalRow: Equatable, Sendable {
+    public let actionID: String
+    public let responseJSON: String?
+    public init(actionID: String, responseJSON: String?) {
+        self.actionID = actionID
+        self.responseJSON = responseJSON
+    }
+}
+
 public struct MechanismRequestIdProjection: Equatable {
+    public static let selectActionByAction = "topicRouteSessionMapper.selectActionByAction"
     public private(set) var originalActions: [String: MechanismLedgerEntry] = [:]
     public init() {}
     public static func newFreeze() -> MechanismFreeze { MechanismFreeze() }
@@ -555,6 +565,21 @@ public struct MechanismRequestIdProjection: Equatable {
         }
         return MechanismLedgerEntry(requestId: id, mechanism: nil, choice: nil,
                                     status: MechanismStatus.unknown.rawValue)
+    }
+    /// Read an existing route action. Missing closure is WAITING_SOURCE.
+    /// A never-seen id returns nil and does not bind. Does not insert.
+    public func recoverFromRouteAction(
+        sessionID: Int64?,
+        memberID: Int64?,
+        actionID: String?,
+        selectAction: ((Int64, Int64, String) -> RouteActionOriginalRow?)?
+    ) throws -> RouteActionOriginalRow? {
+        let trimmed = actionID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let sessionID, sessionID > 0, let memberID, memberID > 0, !trimmed.isEmpty else { return nil }
+        guard let selectAction else {
+            throw MechanismFailure.waitingSource(capability: Self.selectActionByAction)
+        }
+        return selectAction(sessionID, memberID, trimmed)
     }
     public mutating func recoverOriginal(_ play: inout MechanismPlay, originalRequestID: String) throws -> MechanismResult {
         try recoverUnknown(&play, originalRequestID: originalRequestID)
