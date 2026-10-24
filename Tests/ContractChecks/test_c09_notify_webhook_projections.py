@@ -33,7 +33,16 @@ TEST_FILES = [
 CONTRACT = "Tests/ContractChecks/test_c09_notify_webhook_projections.py"
 HUNK = "docs/issue5-hunks/C09-ios-dot-hunk.md"
 PAGE_HUNK = "docs/issue5-hunks/C09-message-page-actions.hunk"
-WHITELIST = CORE_FILES + TEST_FILES + [CONTRACT, HUNK, PAGE_HUNK]
+HOST_HUNK = "docs/issue5-hunks/C09-host-assembly.hunk"
+HOST_FILE = "App/NativeChannelMessageHostBinding.swift"
+WHITELIST = CORE_FILES + TEST_FILES + [CONTRACT, HUNK, PAGE_HUNK, HOST_HUNK]
+UNTOUCHED_LATER_ROOT = [
+    "App/MessagingHistoryView.swift",
+    "App/ProfileOrdersView.swift",
+    "App/AppSession.swift",
+    "App/AppCompositionRoot.swift",
+    "Questify.xcodeproj/project.pbxproj",
+]
 FORBIDDEN_TOUCH = [
     "App/AppSession.swift",
     "App/AppCompositionRoot.swift",
@@ -310,6 +319,56 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         self.assertNotIn("NativeChannelMessagePageActions", session)
         self.assertNotIn("NativeChannelMessagePageActions", composition)
         self.assertNotIn("NativeChannelMessagePageActions", project)
+
+    def test_host_assembly_reuses_the_existing_instances(self):
+        hunk = (ROOT / HOST_HUNK).read_text()
+        self.assertIn("NOT APPLIED", hunk)
+        self.assertIn("NOT_RUN", hunk)
+        self.assertIn("not 100%", hunk.lower())
+        self.assertIn(HOST_FILE, hunk)
+        self.assertIn("b3259c05d5c6d3a867154d87a4cea746bd5d3664568d08873b6eb1e78770a4c1", hunk)
+        self.assertIn("diff --git a/App/NativeChannelMessageHostBinding.swift", hunk)
+        self.assertNotIn("diff --git a/App/AppSession.swift", hunk)
+        self.assertNotIn("diff --git a/App/AppCompositionRoot.swift", hunk)
+        self.assertNotIn("diff --git a/App/MessagingHistoryView.swift", hunk)
+        self.assertNotIn("diff --git a/App/ProfileOrdersView.swift", hunk)
+        self.assertNotIn("diff --git a/Questify.xcodeproj/project.pbxproj", hunk)
+        plus, minus = [], []
+        for line in hunk.splitlines():
+            if line.startswith("+++") or line.startswith("---") or line.startswith("diff "):
+                continue
+            if line.startswith("+"):
+                plus.append(line[1:])
+            elif line.startswith("-"):
+                minus.append(line[1:])
+        added, removed = "\n".join(plus), "\n".join(minus)
+        self.assertEqual(added.count("NativeChannelMessagePageActions("), 1)
+        self.assertEqual(added.count("NativeChannelTextCoordinator("), 1)
+        self.assertEqual(removed.count("NativeChannelTextCoordinator("), 1)
+        self.assertEqual(added.count("NativeChannelTextJournal("), 0)
+        self.assertEqual(added.count("NativeChannelMessageMutationJournal("), 0)
+        self.assertEqual(added.count("NativeChannelMessageCoordinator("), 0)
+        self.assertIn("if let textCommand { return textCommand }", added)
+        self.assertIn("mutationJournal: journal", added)
+        self.assertEqual(added.count("channelActions.send("), 1)
+        self.assertEqual(added.count("channelActions.edit("), 1)
+        self.assertEqual(added.count("channelActions.recall("), 1)
+        self.assertEqual(added.count("channelActions.pin("), 1)
+        self.assertEqual(added.count("channelActions?.appear()"), 1)
+        appear = added.split("func appear()", 1)[1].split("func send(", 1)[0]
+        self.assertNotIn("sendNew", appear)
+        self.assertNotIn(".submit(", appear)
+        for forbidden in [
+            "struct ", "class ", "enum ", "func search", "searchOriginal",
+            "ImmutableReceiptProducer", "accept(", "recoverOriginal", "settle(",
+            "LinearGradient", "shadow(", "session.token", "credentials:",
+            "makeNativeChannelTextCoordinator",
+        ]:
+            self.assertNotIn(forbidden, added, forbidden)
+        names = git_changed_names()
+        for path in UNTOUCHED_LATER_ROOT + [HOST_FILE]:
+            self.assertNotIn(path, names, path)
+        self.assertIn("Swift/XCTest NOT_RUN", hunk)
 
     def test_sha256_payload_covers_whitelist(self):
         digest = hashlib.sha256()
