@@ -186,6 +186,10 @@ public struct MerchantNPCMessageDraft: Equatable {
     }
     public func abandon() { guard canAbandon else { return }; requestID = nil; displayedRequestID = nil; completedOperation = nil; retryAt = nil; reply = nil; message = nil; failure = nil; onChange?() }
     public func invalidate() { lifecycle = .invalidated; generation += 1; clearConversation(); onChange?() }
+    /// Qualification loss is not a chat retry. Clear display so an old draft cannot serve.
+    public func applyQualificationRevoke(_ revoke: MerchantNPCQualificationRevoke) {
+        guard revoke.allowsServing(scope) else { invalidate(); return }
+    }
     private func clearConversation() {
         transmission?.cancel(); transmission = nil; transmissionID = nil
         storedHistory.clear(); displayedRequestID = nil; completedOperation = nil
@@ -362,5 +366,8 @@ public struct MerchantNPCMessageDraft: Equatable {
         active = false; generation += 1; revokeWriteAuthority(); resources = nil; refreshing = false; failure = nil
         // Never clear the durable journal on close, background, signout or epoch change.
         outcome = hasUnresolvedWrite ? .unknown : .idle; onChange?()
+    }
+    public func applyQualificationRevoke(_ revoke: MerchantNPCQualificationRevoke) {
+        guard revoke.allowsServing(scope) else { invalidate(); return }
     }
 }
