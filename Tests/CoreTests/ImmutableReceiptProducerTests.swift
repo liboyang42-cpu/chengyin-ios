@@ -154,9 +154,17 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         XCTAssertNil(blank.requestId)
         let original = ImmutableReceiptProducer.SentMessage(
             clientMessageId: "c09-im-1", requestHash: "hash-im-1", content: "{\"op\":\"pin\"}")
+        let bare = ImmutableReceiptProducer.SentMessage(
+            clientMessageId: "c09-im-bare", requestHash: nil, content: "visible-without-digest")
         let journal: (Int64, Int64, String) -> ImmutableReceiptProducer.SentMessage? = { _, _, id in
-            id == "c09-im-1" ? original : nil
+            if id == "c09-im-bare" { return bare }
+            return id == "c09-im-1" ? original : nil
         }
+        let noDigest = try producer.recoverFromJournal(memberId: 7, conversationId: 12,
+                                                       clientMessageId: "c09-im-bare", journal: journal)
+        XCTAssertEqual(noDigest.requestId, "c09-im-bare")
+        XCTAssertEqual(noDigest.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        XCTAssertNil(noDigest.originalBody)
         let neverSeen = try producer.recoverFromJournal(memberId: 7, conversationId: 12,
                                                         clientMessageId: "c09-im-missing", journal: journal)
         XCTAssertEqual(neverSeen.requestId, "c09-im-missing")

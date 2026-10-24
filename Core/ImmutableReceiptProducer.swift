@@ -292,13 +292,15 @@ public struct ImmutableReceiptProducer: Equatable {
         guard let journal else {
             throw NotifyFailure.waitingSource(capability: Self.imReadSent)
         }
-        guard let original = journal(memberId ?? 0, conversationId ?? 0, id) else {
+        guard let original = journal(memberId ?? 0, conversationId ?? 0, id),
+              let hash = original.requestHash, !hash.isEmpty,
+              Self.parse(original.clientMessageId) == id else {
             return Self.unknownReceipt(requestId: id, projection: nil)
         }
         return OriginalReceipt(
-            requestId: Self.parse(original.clientMessageId) ?? id,
+            requestId: id,
             kind: nil,
-            payloadHash: original.requestHash,
+            payloadHash: hash,
             outcome: Self.outcomeUnknown,
             originalBody: original.content,
             currentProjectionClaimsApplied: false,
