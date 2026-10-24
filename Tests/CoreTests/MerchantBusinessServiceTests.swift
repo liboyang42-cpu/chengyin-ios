@@ -768,6 +768,29 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         XCTAssertEqual(saves.count, 1)
     }
 
+    func testPublishedDetailDoesNotFreezeOrSave() async throws {
+        let transport = DeskSkuEntryTransport()
+        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.com/test")!),
+                                                  readTransport: transport, testingMutationTransport: transport)
+        let journal = MerchantBusinessMemoryIntentStore()
+        let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
+        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9)]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
+        let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope, currentSession: { session })
+        await transport.setDetailEditable(false)
+        await desk.present(productID: 3, skuID: 44, access: access, accountID: 7, token: "synthetic-token")
+        XCTAssertEqual(desk.phase, .failed(.invalid))
+        let saves = await transport.paths.filter { $0.hasSuffix("/sku/save") }
+        XCTAssertEqual(saves.count, 0)
+        XCTAssertTrue(try journal.intents().isEmpty)
+    }
+
     func testReadUnauthorizedRetiresOnlyTheCapturedSession() async throws {
         let transport = DeskSkuEntryTransport()
         let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.com/test")!),
@@ -885,6 +908,7 @@ private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
     var receiptRequestID = ""
     var saveBody = ""
     var detailRuleVersion = 3
+    var detailEditable = true
     var saveTarget = 44
     var receiptTarget = 44
     var saveStatus = 200
@@ -896,6 +920,7 @@ private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
     func setReceiptApplied(_ value: Bool) { receiptApplied = value }
     func setReceiptRequestID(_ value: String) { receiptRequestID = value }
     func setDetailRuleVersion(_ value: Int) { detailRuleVersion = value }
+    func setDetailEditable(_ value: Bool) { detailEditable = value }
     func setSaveTarget(_ value: Int) { saveTarget = value }
     func setReceiptTarget(_ value: Int) { receiptTarget = value }
     func setSaveStatus(_ value: Int) { saveStatus = value }
@@ -913,7 +938,8 @@ private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
         if path.hasSuffix("/products/detail") {
             if let swapSession { await swapSession() }
             if readUnauthorized { return (Data(#"{"code":401,"msg":"expired","data":null}"#.utf8), 401) }
-            let json = #"{"code":200,"data":{"productId":3,"editable":true,"skus":[{"skuId":44,"skuName":"door","price":88,"originalPrice":"100.00","pic":"media-asset:1","stock":2,"bookable":false,"slotMinutes":30,"capacityPerSlot":2,"ruleVersion":\#(detailRuleVersion)}]}}"#
+            let editable = detailEditable ? "true" : "false"
+            let json = #"{"code":200,"data":{"productId":3,"editable":\#(editable),"skus":[{"skuId":44,"skuName":"door","price":88,"originalPrice":"100.00","pic":"media-asset:1","stock":2,"bookable":false,"slotMinutes":30,"capacityPerSlot":2,"ruleVersion":\#(detailRuleVersion)}]}}"#
             return (Data(json.utf8), 200)
         }
         if path.hasSuffix("/sku/save") {
