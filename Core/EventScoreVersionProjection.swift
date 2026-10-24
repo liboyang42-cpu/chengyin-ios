@@ -232,6 +232,8 @@ public struct EventScoreOriginalLedger: Equatable {
 
     public static let originalRewardRead = "orientation.originalRewardRead"
     public static let scoringReceipt = "orientScoring.receipt"
+    public static let sessionReceipt = "orientSession.receipt"
+    public static let sessionReceiptNotFound = "ORIENT_RECEIPT_NOT_FOUND"
     public static let receiptKinds: Set<String> = ["SETTLE", "APPEAL", "DISPUTE"]
     public struct WaitingSource: Error, Equatable {
         public let capability: String
@@ -270,6 +272,26 @@ public struct EventScoreOriginalLedger: Equatable {
         guard let found = receipt(memberID, kind, sessionID, key) else { return nil }
         if found["state"] == "NOT_FOUND" { return nil }
         return found
+    }
+
+    /// Read IOrientSessionService.receipt. ORIENT_RECEIPT_NOT_FOUND returns nil and does not
+    /// occupy finish keys. Does not start or abandon the session.
+    public func recoverFromSessionReceipt(
+        memberID: Int64?,
+        sessionID: Int64?,
+        idempotencyKey: String?,
+        receipt: ((Int64, Int64, String) throws -> [String: String]?)?
+    ) throws -> [String: String]? {
+        guard let memberID, memberID > 0, let sessionID, sessionID > 0,
+              let key = EventScoreRequestIdentity.parse(idempotencyKey) else { return nil }
+        guard let receipt else {
+            throw WaitingSource(capability: Self.sessionReceipt)
+        }
+        do {
+            return try receipt(memberID, sessionID, key)
+        } catch let missing as WaitingSource where missing.capability == Self.sessionReceiptNotFound {
+            return nil
+        }
     }
 
     private func runMatching(_ start: EventScoreStartPayload) -> Run? {

@@ -459,4 +459,27 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
         XCTAssertEqual(recovered?["state"], "ACCEPTED")
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "scr-rcpt-01").outcome, .notFound)
     }
+    func testRecoverFromSessionReceiptReadsOriginalWithoutOccupyingFinishLedger() throws {
+        var ledger = EventScoreOriginalLedger()
+        XCTAssertNil(try ledger.recoverFromSessionReceipt(
+            memberID: 7, sessionID: 30, idempotencyKey: nil,
+            receipt: { _, _, _ in ["replayed": "true"] }))
+        do {
+            _ = try ledger.recoverFromSessionReceipt(
+                memberID: 7, sessionID: 30, idempotencyKey: "orient-ses-01", receipt: nil)
+            XCTFail("missing session receipt must WAITING_SOURCE")
+        } catch let waiting as EventScoreOriginalLedger.WaitingSource {
+            XCTAssertEqual(waiting.capability, EventScoreOriginalLedger.sessionReceipt)
+        }
+        XCTAssertNil(try ledger.recoverFromSessionReceipt(
+            memberID: 7, sessionID: 30, idempotencyKey: "orient-ses-none",
+            receipt: { _, _, _ in throw EventScoreOriginalLedger.WaitingSource(
+                capability: EventScoreOriginalLedger.sessionReceiptNotFound) }))
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "orient-ses-none").outcome, .notFound)
+        let recovered = try ledger.recoverFromSessionReceipt(
+            memberID: 7, sessionID: 30, idempotencyKey: "orient-ses-01",
+            receipt: { _, _, key in key == "orient-ses-01" ? ["replayed": "true"] : nil })
+        XCTAssertEqual(recovered?["replayed"], "true")
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "orient-ses-01").outcome, .notFound)
+    }
 }
