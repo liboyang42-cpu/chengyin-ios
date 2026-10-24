@@ -394,3 +394,85 @@ public struct MessageContainerReadHost: Equatable, Sendable {
         throw ChannelAuthorizationError.waitingSource
     }
 }
+
+/// Calls the original `ChannelNotificationService.acknowledge` and `receipt`.
+/// Page load does not mark read. A missing receipt stays UNKNOWN on the same request id.
+public struct MessageContainerOriginalAck: Equatable, Sendable {
+    public struct Receipt: Equatable, Sendable {
+        public let requestID: String
+        public let operation: String?
+        public let scopeType: Int?
+        public let scopeID: String?
+        public let status: String
+        public let outcome: String
+        public let replayed: Bool
+        public let resumeSameRequest: Bool
+        public var markedReadOnLoad: Bool { false }
+        public var grantsSend: Bool { false }
+    }
+
+    public init() {}
+
+    public func acknowledge(actor: Int64, channelID: Int64, lastMessageID: Int64, requestID: String,
+                            channelKind: Int, sameScope: (Int64, Int64) -> Bool,
+                            writer: (Int64, Int64, Int64, String) throws -> [String: Any]) throws -> Receipt {
+        try gate(actor: actor, channelID: channelID, requestID: requestID, channelKind: channelKind, sameScope: sameScope)
+        guard lastMessageID >= 0 else { throw ChannelAuthorizationError.invalidCatalog }
+        let body = try writer(actor, channelID, lastMessageID, requestID)
+        return try applied(body, actor: actor, channelID: channelID, requestID: requestID)
+    }
+
+    public func recover(actor: Int64, channelID: Int64, requestID: String, channelKind: Int,
+                        sameScope: (Int64, Int64) -> Bool,
+                        receipt: (Int64, String) throws -> [String: Any]) throws -> Receipt {
+        try gate(actor: actor, channelID: channelID, requestID: requestID, channelKind: channelKind, sameScope: sameScope)
+        let body = try receipt(actor, requestID)
+        if body["status"] as? String == "NOT_FOUND" {
+            guard body["request_id"] as? String == requestID,
+                  body["outcome"] as? String == "UNKNOWN",
+                  body["resume_with_same_request"] as? Bool == true else {
+                throw ChannelAuthorizationError.invalidCatalog
+            }
+            return Receipt(requestID: requestID, operation: nil, scopeType: nil, scopeID: nil,
+                           status: "NOT_FOUND", outcome: "UNKNOWN", replayed: false, resumeSameRequest: true)
+        }
+        return try applied(body, actor: actor, channelID: channelID, requestID: requestID)
+    }
+
+    private func gate(actor: Int64, channelID: Int64, requestID: String, channelKind: Int,
+                      sameScope: (Int64, Int64) -> Bool) throws {
+        guard actor > 0, channelID > 0, requestOK(requestID) else { throw ChannelAuthorizationError.invalidCatalog }
+        guard channelKind != 0 else { throw ChannelAuthorizationError.invalidCatalog }
+        guard sameScope(actor, channelID) else { throw ChannelAuthorizationError.notMember }
+    }
+
+    private func applied(_ body: [String: Any], actor: Int64, channelID: Int64, requestID: String) throws -> Receipt {
+        _ = actor
+        guard body["request_id"] as? String == requestID,
+              body["operation"] as? String == "ACK",
+              body["scope_type"] as? Int == 1,
+              body["scope_id"] as? String == String(channelID),
+              let status = body["status"] as? String, status == "APPLIED" || status == "PENDING",
+              let replayed = body["replayed"] as? Bool else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        if status == "PENDING" {
+            guard body["outcome"] as? String == "UNKNOWN",
+                  body["resume_with_same_request"] as? Bool == true else {
+                throw ChannelAuthorizationError.invalidCatalog
+            }
+            return Receipt(requestID: requestID, operation: "ACK", scopeType: 1, scopeID: String(channelID),
+                           status: "PENDING", outcome: "UNKNOWN", replayed: replayed, resumeSameRequest: true)
+        }
+        return Receipt(requestID: requestID, operation: "ACK", scopeType: 1, scopeID: String(channelID),
+                       status: "APPLIED", outcome: "APPLIED", replayed: replayed, resumeSameRequest: false)
+    }
+
+    private func requestOK(_ value: String) -> Bool {
+        guard (16...96).contains(value.count) else { return false }
+        return value.unicodeScalars.allSatisfy { scalar in
+            (48...57).contains(scalar.value) || (65...90).contains(scalar.value)
+                || (97...122).contains(scalar.value) || scalar.value == 95 || scalar.value == 45
+        }
+    }
+}

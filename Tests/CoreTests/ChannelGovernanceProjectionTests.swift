@@ -401,4 +401,45 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(shown.lastReadVisibleAt, "2026-10-24T09:00:00Z")
         XCTAssertFalse(shown.grantsSend)
     }
+
+    func testOriginalAckUsesSameScopeAndMissingReceiptStaysUnknown() throws {
+        let ack = MessageContainerOriginalAck()
+        let requestID = "ack-request-0001"
+        var writes = 0
+        XCTAssertThrowsError(try ack.acknowledge(actor: 70, channelID: 12, lastMessageID: 4, requestID: requestID,
+                                                 channelKind: 1, sameScope: { _, _ in false }, writer: { _, _, _, _ in
+            writes += 1
+            return [:]
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .notMember) }
+        XCTAssertEqual(writes, 0)
+        XCTAssertThrowsError(try ack.acknowledge(actor: 70, channelID: 12, lastMessageID: 4, requestID: requestID,
+                                                 channelKind: 0, sameScope: { _, _ in true }, writer: { _, _, _, _ in
+            writes += 1
+            return [:]
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        XCTAssertEqual(writes, 0)
+        let applied = try ack.acknowledge(actor: 70, channelID: 12, lastMessageID: 4, requestID: requestID,
+                                          channelKind: 1, sameScope: { actor, channel in actor == 70 && channel == 12 },
+                                          writer: { actor, channel, cursor, request in
+            writes += 1
+            XCTAssertEqual(actor, 70)
+            XCTAssertEqual(channel, 12)
+            XCTAssertEqual(cursor, 4)
+            XCTAssertEqual(request, requestID)
+            return ["request_id": request, "operation": "ACK", "scope_type": 1, "scope_id": "12",
+                    "status": "APPLIED", "replayed": false]
+        })
+        XCTAssertEqual(applied.status, "APPLIED")
+        XCTAssertFalse(applied.markedReadOnLoad)
+        XCTAssertFalse(applied.grantsSend)
+        XCTAssertEqual(writes, 1)
+        let missing = try ack.recover(actor: 70, channelID: 12, requestID: requestID, channelKind: 1,
+                                      sameScope: { _, _ in true }, receipt: { _, request in
+            ["request_id": request, "status": "NOT_FOUND", "outcome": "UNKNOWN", "resume_with_same_request": true]
+        })
+        XCTAssertEqual(missing.outcome, "UNKNOWN")
+        XCTAssertEqual(missing.requestID, requestID)
+        XCTAssertTrue(missing.resumeSameRequest)
+        XCTAssertEqual(writes, 1)
+    }
 }
