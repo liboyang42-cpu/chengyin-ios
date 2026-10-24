@@ -188,15 +188,16 @@ public struct ChannelGovernanceProjection: Equatable, Sendable {
         return try authorizeReadWrite()
     }
 
-    /// Read the existing message page after the group-member gate.
-    /// A non-member does not call listMessages and does not change phase.
-    /// Does not send or mark read.
+    /// Read the existing message page under the current revoke fact, then the group-member gate.
+    /// Revoked or non-member callers do not call listMessages and do not change phase.
+    /// A pure read does not require WRITE. Does not send or mark read.
     public func readMessages(memberID: Int64, cursorID: Int64?, size: Int, afterID: Int64?,
                              isActiveGroupMember: ((Int64, Int64) -> Bool)?,
                              listMessages: ((Int64, Int64, Int64?, Int, Int64?) -> [String: String])?) throws -> [String: String] {
         guard let isActiveGroupMember else { throw ChannelAuthorizationError.waitingSource }
         guard let listMessages else { throw ChannelAuthorizationError.waitingListMessages }
         guard size > 0 else { throw ChannelAuthorizationError.invalidCatalog }
+        try ensureActive()
         guard isActiveGroupMember(memberID, Int64(catalog.conversationID)) else {
             throw ChannelAuthorizationError.notMember
         }

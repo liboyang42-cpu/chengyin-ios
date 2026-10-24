@@ -322,6 +322,37 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(live.generation, 1)
     }
 
+    func testReadMessagesAfterBanOrLeaveDoesNotCallListMessagesWhenMembershipStaysTrue() throws {
+        var reads = 0
+        let listMessages: (Int64, Int64, Int64?, Int, Int64?) -> [String: String] = { _, _, _, _, _ in
+            reads += 1
+            return ["called": "1"]
+        }
+        var banned = try memberReady()
+        try banned.ban()
+        XCTAssertThrowsError(try banned.readMessages(
+            memberID: 70, cursorID: nil, size: 20, afterID: nil,
+            isActiveGroupMember: { _, _ in true }, listMessages: listMessages)) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .revoked)
+        }
+        XCTAssertEqual(reads, 0)
+        XCTAssertEqual(banned.phase, .banned)
+        XCTAssertEqual(banned.role, .none)
+        XCTAssertEqual(banned.revokeReason, .ban)
+
+        var left = try memberReady()
+        try left.leave()
+        XCTAssertThrowsError(try left.readMessages(
+            memberID: 70, cursorID: nil, size: 20, afterID: nil,
+            isActiveGroupMember: { _, _ in true }, listMessages: listMessages)) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .revoked)
+        }
+        XCTAssertEqual(reads, 0)
+        XCTAssertEqual(left.phase, .left)
+        XCTAssertEqual(left.role, .none)
+        XCTAssertEqual(left.revokeReason, .leave)
+    }
+
     private func memberReady() throws -> ChannelGovernanceProjection {
         var journey = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
         try journey.consentToPublishedRules(try admission(try identity()))
