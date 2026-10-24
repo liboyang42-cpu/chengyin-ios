@@ -268,3 +268,23 @@ public struct ChannelGovernanceProjection: Equatable, Sendable {
         }
     }
 }
+
+/// Type 5 stays type 5. Channel kind is not the container type. Missing read state is unknown.
+public struct MessageContainerProjection: Equatable, Sendable {
+    public static let readStateUnknown = "UNKNOWN"
+    public let id: String
+    public let conversationType: String
+    public let kind: String
+    public let guildKind: String
+    public let readState: String
+    public let grantsSend: Bool
+
+    public static func project(id: String, conversationType: Int, kind: Int, guildKind: Int,
+                               readState: String?) -> MessageContainerProjection? {
+        guard conversationType == 5, (1...2).contains(kind), (1...3).contains(guildKind),
+              !id.isEmpty, id.allSatisfy({ $0.isNumber }) else { return nil }
+        return MessageContainerProjection(id: id, conversationType: "5", kind: String(kind),
+                                          guildKind: String(guildKind),
+                                          readState: readState ?? readStateUnknown, grantsSend: false)
+    }
+}
