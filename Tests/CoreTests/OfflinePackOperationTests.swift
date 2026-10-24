@@ -2,11 +2,12 @@ import XCTest
 @testable import QuestifyCore
 
 final class OfflinePackOperationTests: XCTestCase {
-    private let checksum = String(repeating: "ab", count: 32)
+    private let payload = Data((0..<2048).map { UInt8($0 & 0xff) })
+    private var checksum: String { OfflinePackOperation.sha256Hex(payload) }
     private let later = Date(timeIntervalSince1970: 2_000_000_000)
     private func manifest(version: String = "pack-v1", operationID: String = "op-1") throws -> OfflinePackManifest {
         try XCTUnwrap(OfflinePackManifest(
-            packID: "pack-a", operationID: operationID, version: version, byteSize: 2048,
+            packID: "pack-a", operationID: operationID, version: version, byteSize: payload.count,
             checksum: checksum, publicPlaceIDs: [11, 22], expiresAt: later))
     }
     func testDownloadPauseResumeSameOperationIdThenReady() throws {
@@ -22,7 +23,7 @@ final class OfflinePackOperationTests: XCTestCase {
         try pack.resume(operationID: "op-1")
         XCTAssertEqual(pack.phase, .downloading)
         XCTAssertEqual(pack.snapshot?.operationID, "op-1")
-        try pack.finishDownload()
+        try pack.finishDownload(payload: payload)
         XCTAssertEqual(pack.phase, .ready)
     }
     func testCorruptFullDiskExpireDeleteAndKeepOld() throws {
@@ -34,7 +35,7 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(pack.phase, .fullDisk)
         pack = OfflinePackOperation()
         try pack.startDownload(try manifest())
-        try pack.finishDownload()
+        try pack.finishDownload(payload: payload)
         try pack.applyUpdate(try manifest(version: "pack-v2"), keepOld: true)
         XCTAssertEqual(pack.phase, .updating)
         XCTAssertEqual(pack.snapshot?.retainedPriorVersion, "pack-v1")
@@ -42,7 +43,7 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(pack.phase, .ready)
         XCTAssertEqual(pack.manifest?.version, "pack-v1")
         try pack.applyUpdate(try manifest(version: "pack-v2"), keepOld: false)
-        try pack.finishUpdate()
+        try pack.finishUpdate(payload: payload)
         XCTAssertEqual(pack.manifest?.version, "pack-v2")
         XCTAssertNil(pack.snapshot?.retainedPriorVersion)
         try pack.expire(at: later)
@@ -88,7 +89,7 @@ final class OfflinePackOperationTests: XCTestCase {
         }
         XCTAssertEqual(pack.operationID, "op-class")
         try pack.resume(operationID: "op-class")
-        try pack.finishDownload()
+        try pack.finishDownload(payload: payload)
         XCTAssertEqual(pack.operationID, "op-class")
         XCTAssertEqual(pack.phase, .ready)
         let restarted = OfflinePackOperation()
@@ -123,7 +124,11 @@ final class OfflinePackOperationTests: XCTestCase {
         try pack.startDownload(try manifest(operationID: "op-exp"))
         XCTAssertEqual(pack.operationID, "op-exp")
         XCTAssertEqual(pack.phase, .downloading)
-        try pack.expire()
+        XCTAssertThrowsError(try pack.expire()) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .invalidManifest)
+        }
+        XCTAssertEqual(pack.phase, .downloading, "未到期 expire 不得占 EXPIRED")
+        try pack.expire(at: later)
         XCTAssertEqual(pack.phase, .expired)
         XCTAssertEqual(pack.operationID, "op-exp")
     }
@@ -173,7 +178,7 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(pack.phase, .idle, "未见下载 applyUpdate 观察不得占 UPDATING")
         XCTAssertNil(pack.operationID)
         try pack.startDownload(try manifest(operationID: "op-upd"))
-        try pack.finishDownload()
+        try pack.finishDownload(payload: payload)
         XCTAssertEqual(pack.operationID, "op-upd")
         XCTAssertEqual(pack.phase, .ready)
         try pack.applyUpdate(try manifest(version: "pack-v2", operationID: "op-upd"), keepOld: true)
@@ -191,10 +196,10 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(pack.phase, .idle, "未见下载 finishUpdate 观察不得占 READY-after-update")
         XCTAssertNil(pack.operationID)
         try pack.startDownload(try manifest(operationID: "op-fin"))
-        try pack.finishDownload()
+        try pack.finishDownload(payload: payload)
         try pack.applyUpdate(try manifest(version: "pack-v2", operationID: "op-fin"), keepOld: true)
         XCTAssertEqual(pack.phase, .updating)
-        try pack.finishUpdate()
+        try pack.finishUpdate(payload: payload)
         XCTAssertEqual(pack.phase, .ready)
         XCTAssertEqual(pack.operationID, "op-fin")
         XCTAssertEqual(pack.manifest?.version, "pack-v2")

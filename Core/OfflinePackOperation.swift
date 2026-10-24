@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 /// Exclusive offline-pack operation. Inventory first: T41 is an unproven full loop.
 /// Missing qmod / volume-12 final ops contract is WAITING_SOURCE, not a rewrite.
@@ -29,6 +30,7 @@ public enum OfflinePackSourceInventory {
     public static let t41FullLoop = "t41.fullLoopUnproven"
     /// Original play pause/resume writer. Twenty pause ops stay with PlayExperienceCoordinator.
     public static let originalPauseOpsOwner = "PlayExperienceCoordinator.paused"
+    public static let payloadConsumer = "offlinePack.payloadConsumer"
     public static var qmodFinalOpsContractPresent: Bool { false }
     public static var vol12ResumeWriterPresent: Bool { false }
     public static var t41ScoringWriterPresent: Bool { false }
@@ -140,6 +142,11 @@ public struct OfflinePackOperation: Equatable {
     }
     public mutating func finishDownload() throws {
         guard phase == .downloading else { throw fail(.notDownloading) }
+        throw OfflinePackFailure.waitingSource(capability: OfflinePackSourceInventory.payloadConsumer)
+    }
+    public mutating func finishDownload(payload: Data) throws {
+        guard phase == .downloading else { throw fail(.notDownloading) }
+        try verifyPayload(payload)
         phase = .ready
         failure = nil
     }
@@ -177,14 +184,17 @@ public struct OfflinePackOperation: Equatable {
     }
     public mutating func finishUpdate() throws {
         guard phase == .updating else { throw fail(.notDownloading) }
+        throw OfflinePackFailure.waitingSource(capability: OfflinePackSourceInventory.payloadConsumer)
+    }
+    public mutating func finishUpdate(payload: Data) throws {
+        guard phase == .updating else { throw fail(.notDownloading) }
+        try verifyPayload(payload)
         phase = .ready
         failure = nil
     }
     public mutating func expire(at now: Date = Date()) throws {
         guard let manifest else { throw fail(.invalidManifest) }
-        guard now >= manifest.expiresAt || phase == .ready || phase == .paused || phase == .downloading else {
-            throw fail(.invalidManifest)
-        }
+        guard now >= manifest.expiresAt else { throw fail(.invalidManifest) }
         phase = .expired
         failure = .expired
     }
@@ -211,6 +221,17 @@ public struct OfflinePackOperation: Equatable {
     /// Must not dispatch through the twenty original play pause ops.
     public mutating func hijackOriginalPauseOps() throws -> Never {
         throw fail(.pauseOpsReserved)
+    }
+    private mutating func verifyPayload(_ payload: Data) throws {
+        guard let manifest, payload.count == manifest.byteSize,
+              Self.sha256Hex(payload).caseInsensitiveCompare(manifest.checksum) == .orderedSame else {
+            phase = .corrupt
+            failure = .corrupt
+            throw OfflinePackFailure.corrupt
+        }
+    }
+    static func sha256Hex(_ payload: Data) -> String {
+        SHA256.hash(data: payload).map { String(format: "%02x", $0) }.joined()
     }
     private mutating func restorePrior(_ prior: OfflinePackManifest) {
         manifest = prior

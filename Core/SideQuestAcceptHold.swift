@@ -38,11 +38,16 @@ public enum SideQuestTerminal: String, Equatable, Sendable {
 public struct SideQuestProof: Equatable, Sendable {
     public let kind: SideQuestProofKind
     public let attested: Bool
-    public init?(kind: SideQuestProofKind, attested: Bool, simulated: Bool = false, fogTileKey: String? = nil) {
+    public init?(kind: SideQuestProofKind, attested: Bool, simulated: Bool = false, fogTileKey: String? = nil,
+                 approvalAuthority: String? = nil) {
         guard !simulated, fogTileKey == nil else { return nil }
         if kind == .gps { guard attested else { return nil } }
-        guard attested || kind == .approvedAlternative else { return nil }
-        self.kind = kind; self.attested = attested || kind == .approvedAlternative
+        if kind == .approvedAlternative {
+            guard attested, let approvalAuthority, !approvalAuthority.isEmpty else { return nil }
+            self.kind = kind; self.attested = true; return
+        }
+        guard attested else { return nil }
+        self.kind = kind; self.attested = true
     }
 }
 
@@ -74,14 +79,23 @@ public struct SideQuestOriginalRecord: Equatable, Sendable {
     public let proofKind: SideQuestProofKind?
 }
 
-public struct SideQuestAcceptHold: Equatable {
+public protocol SideQuestPlaceCapacitySourcing {
+    func reserve(originalRequestID: String, placeID: Int, seats: Int) -> Bool
+    func release(originalRequestID: String)
+}
+
+public struct SideQuestAcceptHold {
+    public static let placeCapacitySource = "sideQuest.placeCapacitySource"
     public private(set) var phase: SideQuestPhase = .idle
     public private(set) var place: SideQuestPlace?
     public private(set) var hold: SideQuestCapacityHold?
     public private(set) var proof: SideQuestProof?
     public private(set) var original: SideQuestOriginalRecord?
     public private(set) var failure: SideQuestFailure?
-    public init() {}
+    private let capacitySource: (any SideQuestPlaceCapacitySourcing)?
+    public init(capacitySource: (any SideQuestPlaceCapacitySourcing)? = nil) {
+        self.capacitySource = capacitySource
+    }
     public mutating func discover(_ place: SideQuestPlace) throws {
         if original != nil { throw fail(.alreadyTerminal) }
         guard place.compliant else { throw fail(.notCompliant) }
@@ -105,6 +119,12 @@ public struct SideQuestAcceptHold: Equatable {
         guard phase == .discovered, let place else { throw fail(.notCompliant) }
         guard let requestID, !requestID.isEmpty, requestID.count <= 64 else { throw fail(.capacityUnavailable) }
         guard !holdID.isEmpty, holdID.count <= 64, seats > 0, seats <= place.capacity else {
+            throw fail(.capacityUnavailable)
+        }
+        guard let capacitySource else {
+            throw SideQuestFailure.waitingSource(capability: Self.placeCapacitySource)
+        }
+        guard capacitySource.reserve(originalRequestID: requestID, placeID: place.placeID, seats: seats) else {
             throw fail(.capacityUnavailable)
         }
         hold = SideQuestCapacityHold(holdID: holdID, originalRequestID: requestID,
@@ -155,6 +175,7 @@ public struct SideQuestAcceptHold: Equatable {
         }
         original = SideQuestOriginalRecord(originalRequestID: hold.originalRequestID,
                                            terminal: terminal, proofKind: proof?.kind)
+        capacitySource?.release(originalRequestID: hold.originalRequestID)
         switch terminal {
         case .completed: phase = .completed
         case .failed: phase = .failed

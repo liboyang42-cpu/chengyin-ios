@@ -112,6 +112,7 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
         tests = self.sources["Tests/CoreTests/OfflinePackOperationTests.swift"]
         self.assertIn("WAITING_SOURCE", pack)
         self.assertIn("qmod.finalOpsContract", pack)
+        self.assertIn("offlinePack.payloadConsumer", pack)
         self.assertIn("vol12.offlinePackResumeWriter", pack)
         self.assertIn("t41.scoringWriter", pack)
         self.assertIn("t41.fullLoopUnproven", pack)
@@ -149,6 +150,8 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
         quest = self.sources["Core/SideQuestAcceptHold.swift"]
         self.assertIn("fogTileKey: String? = nil", quest)
         self.assertIn("guard !simulated, fogTileKey == nil", quest)
+        self.assertIn("sideQuest.placeCapacitySource", quest)
+        self.assertIn("approvalAuthority", quest)
 
     def test_no_fake_gps_and_no_original_pause_ops(self):
         for forbidden in [
