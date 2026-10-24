@@ -357,6 +357,70 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         XCTAssertEqual(calls, 2)
     }
 
+    func testRecallAndPinCallTheOriginalPortOnce() throws {
+        let producer = ImmutableReceiptProducer()
+        let recall = ImmutableReceiptProducer.OriginalRequest(
+            requestId: "c09-recall-key-001", kind: .withdraw, body: "{\"fp\":1}",
+            outcome: ImmutableReceiptProducer.outcomeAccepted)
+        let pin = ImmutableReceiptProducer.OriginalRequest(
+            requestId: "c09-pin-key-000001", kind: .pin, body: "{\"fp\":1}",
+            outcome: ImmutableReceiptProducer.outcomeAccepted)
+        XCTAssertEqual(waitingReceipt {
+            try producer.recallOriginal(recall, actorID: 7, conversationID: 12, messageID: 44, reason: nil, expectedVersion: 2)
+        }, .waitingSource(capability: ImmutableReceiptProducer.channelMessageRecall))
+        XCTAssertEqual(waitingReceipt {
+            try producer.pinOriginal(pin, actorID: 7, conversationID: 12, messageID: 44, pinned: true)
+        }, .waitingSource(capability: ImmutableReceiptProducer.channelMessagePin))
+        var recalls = 0
+        var pins = 0
+        let recalled = try producer.recallOriginal(
+            recall, actorID: 7, conversationID: 12, messageID: 44, reason: "  duplicate  ", expectedVersion: 2,
+            channel: { actor, conversation, message, request, reason, version in
+                recalls += 1
+                XCTAssertEqual(actor, 7)
+                XCTAssertEqual(conversation, 12)
+                XCTAssertEqual(message, 44)
+                XCTAssertEqual(request, "c09-recall-key-001")
+                XCTAssertEqual(reason, "duplicate")
+                XCTAssertEqual(version, 2)
+                return ["message_id": 44, "status": 1, "changed": true]
+            })
+        XCTAssertEqual(recalls, 1)
+        XCTAssertEqual(recalled.kind, .withdraw)
+        XCTAssertEqual(recalled.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        let pinned = try producer.pinOriginal(
+            pin, actorID: 7, conversationID: 12, messageID: 44, pinned: false,
+            channel: { _, _, message, request, pinned in
+                pins += 1
+                XCTAssertEqual(message, 44)
+                XCTAssertEqual(request, "c09-pin-key-000001")
+                XCTAssertFalse(pinned)
+                return ["message_id": message, "pinned": false, "changed": true]
+            })
+        XCTAssertEqual(pins, 1)
+        XCTAssertEqual(pinned.kind, .pin)
+        XCTAssertEqual(pinned.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        XCTAssertThrowsError(try producer.pinOriginal(
+            pin, actorID: 7, conversationID: 12, messageID: 44, pinned: true,
+            channel: { _, _, _, _, _ in
+                pins += 1
+                return ["message_id": 44, "pinned": false]
+            })) { error in
+            XCTAssertEqual(error as? NotifyFailure, .fingerprintConflict(requestId: "c09-pin-key-000001"))
+        }
+        XCTAssertEqual(pins, 2)
+        XCTAssertEqual(waitingReceipt {
+            try producer.recallOriginal(recall, actorID: 7, conversationID: 12, messageID: 44,
+                                        reason: String(repeating: "a", count: 201), expectedVersion: 2,
+                                        channel: { _, _, _, _, _, _ in
+                                            recalls += 1
+                                            return ["message_id": 44]
+                                        })
+        }, .waitingSource(capability: ImmutableReceiptProducer.imSendWire))
+        XCTAssertEqual(recalls, 1)
+    }
+
     private func waiting(_ body: () throws -> Never) -> NotifyFailure? {
         do { try body(); return nil } catch let error as NotifyFailure { return error } catch { return nil }
     }

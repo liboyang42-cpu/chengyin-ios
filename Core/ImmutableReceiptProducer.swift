@@ -113,6 +113,8 @@ public struct ImmutableReceiptProducer: Equatable {
     public static let imSendWire = "im.send.originalWire"
     public static let channelMessageSend = "channelMessage.send"
     public static let channelMessageEdit = "channelMessage.edit"
+    public static let channelMessageRecall = "channelMessage.recall"
+    public static let channelMessagePin = "channelMessage.pin"
     public static let notASend = "IM_OPERATION_NOT_SEND"
 
     public struct SentMessage: Equatable, Sendable {
@@ -382,6 +384,78 @@ public struct ImmutableReceiptProducer: Equatable {
             throw NotifyFailure.fingerprintConflict(requestId: raw)
         }
         return OriginalReceipt(requestId: raw, kind: .edit, payloadHash: nil, outcome: Self.outcomeUnknown,
+                               originalBody: nil, currentProjectionClaimsApplied: false, recoveryNote: nil,
+                               mintedNewRequest: false)
+    }
+
+    /// Original `ChannelMessageService.recall`. The exclusive kind is withdraw. One call, no local store.
+    public typealias ChannelOriginalRecall = (
+        _ actorID: Int64, _ conversationID: Int64, _ messageID: Int64, _ requestID: String,
+        _ reason: String, _ expectedVersion: Int64?
+    ) throws -> [String: Any]
+
+    public func recallOriginal(
+        _ request: OriginalRequest,
+        actorID: Int64?,
+        conversationID: Int64?,
+        messageID: Int64?,
+        reason: String?,
+        expectedVersion: Int64?,
+        channel: ChannelOriginalRecall? = nil
+    ) throws -> OriginalReceipt {
+        guard let kind = request.kind else { throw NotASend.missingKind }
+        guard kind == .withdraw else { throw NotASend.kind(kind) }
+        guard let raw = request.requestId, Self.validSendKey(raw) else { throw NotifyFailure.invalidRequestID }
+        guard let actorID, actorID > 0, let conversationID, conversationID > 0, let messageID, messageID > 0 else {
+            throw NotifyFailure.waitingSource(capability: Self.imSendCommand)
+        }
+        let trimmedReason = reason?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmedReason.count > 200 || (expectedVersion != nil && expectedVersion! <= 0) {
+            throw NotifyFailure.waitingSource(capability: Self.imSendWire)
+        }
+        guard let channel else { throw NotifyFailure.waitingSource(capability: Self.channelMessageRecall) }
+        let sent = try channel(actorID, conversationID, messageID, raw, trimmedReason, expectedVersion)
+        let echoed = channelID(sent, "message_id")
+        guard echoed.present, echoed.value == messageID else {
+            throw NotifyFailure.fingerprintConflict(requestId: raw)
+        }
+        if let echoedRequest = sent["request_id"] as? String, echoedRequest != raw {
+            throw NotifyFailure.fingerprintConflict(requestId: raw)
+        }
+        return OriginalReceipt(requestId: raw, kind: .withdraw, payloadHash: nil, outcome: Self.outcomeUnknown,
+                               originalBody: nil, currentProjectionClaimsApplied: false, recoveryNote: nil,
+                               mintedNewRequest: false)
+    }
+
+    /// Original `ChannelMessageService.pin`. `pinned` false is unpin. One call, no local store.
+    public typealias ChannelOriginalPin = (
+        _ actorID: Int64, _ conversationID: Int64, _ messageID: Int64, _ requestID: String, _ pinned: Bool
+    ) throws -> [String: Any]
+
+    public func pinOriginal(
+        _ request: OriginalRequest,
+        actorID: Int64?,
+        conversationID: Int64?,
+        messageID: Int64?,
+        pinned: Bool,
+        channel: ChannelOriginalPin? = nil
+    ) throws -> OriginalReceipt {
+        guard let kind = request.kind else { throw NotASend.missingKind }
+        guard kind == .pin else { throw NotASend.kind(kind) }
+        guard let raw = request.requestId, Self.validSendKey(raw) else { throw NotifyFailure.invalidRequestID }
+        guard let actorID, actorID > 0, let conversationID, conversationID > 0, let messageID, messageID > 0 else {
+            throw NotifyFailure.waitingSource(capability: Self.imSendCommand)
+        }
+        guard let channel else { throw NotifyFailure.waitingSource(capability: Self.channelMessagePin) }
+        let sent = try channel(actorID, conversationID, messageID, raw, pinned)
+        let echoed = channelID(sent, "message_id")
+        guard echoed.present, echoed.value == messageID, (sent["pinned"] as? Bool) == pinned else {
+            throw NotifyFailure.fingerprintConflict(requestId: raw)
+        }
+        if let echoedRequest = sent["request_id"] as? String, echoedRequest != raw {
+            throw NotifyFailure.fingerprintConflict(requestId: raw)
+        }
+        return OriginalReceipt(requestId: raw, kind: .pin, payloadHash: nil, outcome: Self.outcomeUnknown,
                                originalBody: nil, currentProjectionClaimsApplied: false, recoveryNote: nil,
                                mintedNewRequest: false)
     }
