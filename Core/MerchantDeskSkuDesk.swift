@@ -208,7 +208,8 @@ import Foundation
         do {
             let fresh = try await service.read(.productDetail(productID: product), access: access, token: capturedSession.token)
             guard identityHolds(started, capturedSession, capturedAuthorization) else { return }
-            guard let row = skuRow(fresh, productID: product, skuID: sku),
+            guard fresh.object?["editable"]?.bool == true,
+                  let row = skuRow(fresh, productID: product, skuID: sku),
                   row["skuName"]?.string == baselineName,
                   row["stock"]?.integer == baselineStock,
                   row["ruleVersion"]?.integer == baselineRuleVersion else {

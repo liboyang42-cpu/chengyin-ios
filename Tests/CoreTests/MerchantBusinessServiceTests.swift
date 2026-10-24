@@ -791,6 +791,35 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         XCTAssertTrue(try journal.intents().isEmpty)
     }
 
+    func testLiveDetailBeforeConfirmDoesNotReserveOrSave() async throws {
+        let transport = DeskSkuEntryTransport()
+        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.com/test")!),
+                                                  readTransport: transport, testingMutationTransport: transport)
+        let journal = MerchantBusinessMemoryIntentStore()
+        let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
+        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9)]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
+        let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope, currentSession: { session })
+        await desk.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2),
+                        access: access, accountID: 7, token: "synthetic-token")
+        guard case .frozen = desk.phase else {
+            XCTFail("frozen")
+            return
+        }
+        await transport.setDetailEditable(false)
+        await desk.confirm(access: access, token: "synthetic-token")
+        XCTAssertEqual(desk.phase, .failed(.conflict))
+        let saves = await transport.paths.filter { $0.hasSuffix("/sku/save") }
+        XCTAssertEqual(saves.count, 0)
+        XCTAssertTrue(try journal.intents().isEmpty)
+    }
+
     func testReadUnauthorizedRetiresOnlyTheCapturedSession() async throws {
         let transport = DeskSkuEntryTransport()
         let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.com/test")!),
