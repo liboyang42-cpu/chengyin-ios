@@ -317,6 +317,31 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("listed.contains(productID)", entry)
         self.assertIn("requestId", entry)
 
+    def test_desk_page_calls_read_entry_and_keeps_save_closed(self):
+        page = (ROOT / "App/MerchantDeskSkuPage.swift").read_text()
+        self.assertIn("var read: MerchantDeskReadEntry?", page)
+        self.assertIn("read.productIDs(access: access, token: token)", page)
+        self.assertIn("listed.contains(productID)", page)
+        self.assertIn("read.detail(productID: productID, access: access, token: token)", page)
+        self.assertIn("detail.object?[\"productId\"]?.integer == productID", page)
+        self.assertIn("read.receipt(requestID: requestID, access: access, token: token)", page)
+        self.assertIn("receipt.object?[\"requestId\"]?.string == trimmed", page)
+        self.assertIn("read.saveStaysClosed(saveProbe(), merchantID: access.merchantID)", page)
+        self.assertIn("if closed { return }", page)
+        self.assertIn("Appearance does not send save.", page)
+        self.assertIn("merchant.desk.sku.freeze", page)
+        self.assertIn("merchant.desk.sku.confirm", page)
+        self.assertIn("merchant.desk.sku.applied", page)
+        self.assertIn("merchant.desk.sku.unknown", page)
+        self.assertIn(".font(.footnote)", page)
+        self.assertNotIn("MerchantBusinessProductionApproval(", page)
+        self.assertNotIn("LinearGradient", page)
+        self.assertNotIn("shadow", page)
+        for marker in ["🔥", "✨", "emoji"]:
+            self.assertNotIn(marker, page)
+        session = (ROOT / "App/AppSession.swift").read_text()
+        self.assertNotIn("MerchantDeskSkuPage", session)
+
     def test_sha256_payload_covers_whitelist(self):
         digest = hashlib.sha256()
         for path in WHITELIST:
