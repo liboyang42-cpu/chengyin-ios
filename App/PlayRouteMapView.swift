@@ -2,12 +2,16 @@ import SwiftUI
 import MapKit
 
 /// One existing route action handed to the route page.
-/// The page reads it through RouteActionPageRead. It does not insert an action.
+/// When a request is present, the page calls OriginalActionReader once with the service result.
+/// It does not insert an action.
 struct RouteActionPageReadRequest {
     var sessionID: Int64?
     var memberID: Int64?
     var actionID: String?
-    var selectAction: ((Int64, Int64, String) -> RouteActionOriginalRow?)?
+    /// Row from RouteActionReadService.read for this session, member, and action.
+    var serviceResult: RouteActionOriginalRow?
+    /// Missing or non-https closes only this read. No host is invented.
+    var apiBaseURL: URL?
 }
 
 /// Supplementary map for the personal orientation runtime. It never requests
@@ -139,26 +143,38 @@ struct RouteActionPageReadRequest {
         .onDisappear { cameraGate.disappear(); cameraPreview = nil; cameraIssue = nil }
     }
     private var actionReadToken: String {
-        "\(actionRead?.sessionID ?? -1)|\(actionRead?.memberID ?? -1)|\(actionRead?.actionID ?? "")"
+        let base = actionRead?.apiBaseURL?.absoluteString ?? ""
+        let result = actionRead?.serviceResult
+        return "\(actionRead?.sessionID ?? -1)|\(actionRead?.memberID ?? -1)|\(actionRead?.actionID ?? "")|\(base)|\(result?.sessionID ?? -1)|\(result?.memberID ?? -1)|\(result?.actionID ?? "")"
     }
     /// Appearance records the route page only. It does not read and does not write.
     private func appearActionRead() {
         actionReadAppeared = true
     }
-    /// One row through RouteActionPageRead. A different session, member, or action is not shown.
+    /// One existing reader call for this request. A closed configuration shows no row.
     private func readThisAction() {
         guard actionReadAppeared, let request = actionRead else {
             shownActionRow = nil
             return
         }
+        guard readConfiguration(request.apiBaseURL) != nil else {
+            shownActionRow = nil
+            return
+        }
+        let trimmed = request.actionID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        var reader = OriginalActionReader(selectActionByAction: { queriedSession, queriedMember, queriedAction in
+            guard queriedSession == request.sessionID,
+                  queriedMember == request.memberID,
+                  queriedAction == trimmed else { return nil }
+            return request.serviceResult
+        })
         var page = RouteActionPageRead()
         do {
             let row = try page.shownRow(
                 sessionID: request.sessionID,
                 memberID: request.memberID,
                 actionID: request.actionID,
-                selectAction: request.selectAction)
-            let trimmed = request.actionID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                selectAction: reader.selectAction)
             guard let row, row.actionID == trimmed else {
                 shownActionRow = nil
                 return
@@ -175,6 +191,13 @@ struct RouteActionPageReadRequest {
         } catch {
             shownActionRow = nil
         }
+    }
+    /// Missing or non-https closes only this read. The supplied URL is kept.
+    private func readConfiguration(_ baseURL: URL?) -> APIConfiguration? {
+        guard let baseURL else { return nil }
+        guard let configuration = try? APIConfiguration(baseURL: baseURL) else { return nil }
+        guard configuration.baseURL.scheme == "https", configuration.baseURL == baseURL else { return nil }
+        return configuration
     }
     private var cameraRead: PlayRouteMapCamera.Read? {
         guard !model.unresolved else { return nil }

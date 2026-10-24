@@ -53,6 +53,20 @@ def _git_names(*args):
     return {line for line in output.splitlines() if line}
 
 
+def _brace_body(source, signature):
+    after = source.split(signature, 1)[1]
+    start = after.index("{")
+    depth = 0
+    for index, char in enumerate(after[start:], start=start):
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return after[start:index + 1]
+    raise AssertionError(signature)
+
+
 def _changed_names():
     names = set()
     for args in (
@@ -321,6 +335,60 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         self.assertIn("892efe6f765a5748065569fd886ee9b00ef71d4b", closed)
         self.assertIn("eea786c064d3c1678c0dff621c9f56f9980ffa68", closed)
         self.assertIn("not 100%", closed.lower())
+
+    def test_route_page_calls_existing_reader_once_with_service_result(self):
+        page = (ROOT / "App/PlayRouteMapView.swift").read_text()
+        reader = self.sources["Core/OriginalActionReader.swift"]
+        closed = (ROOT / "docs/issue5-hunks/C03-original-action-reader.hunk").read_text()
+        self.assertEqual(page.count("OriginalActionReader("), 1)
+        self.assertNotIn("struct OriginalActionReader", page)
+        self.assertEqual(reader.count("struct OriginalActionReader"), 1)
+        self.assertIn("httpPath: String? = nil", reader)
+        self.assertIn("does not send", reader)
+        self.assertNotIn("/api/", reader)
+        self.assertNotIn("insertAction", reader)
+        read = _brace_body(page, "private func readThisAction()")
+        appear = _brace_body(page, "private func appearActionRead()")
+        config = _brace_body(page, "private func readConfiguration(")
+        self.assertLess(read.index("readConfiguration"), read.index("OriginalActionReader("))
+        self.assertIn("return request.serviceResult", read)
+        self.assertIn("reader.selectAction", read)
+        self.assertIn("page.shownRow(", read)
+        self.assertIn("shownActionRow = nil", read)
+        self.assertIn("row.actionID == trimmed", read)
+        self.assertNotIn("OriginalActionReader", appear)
+        self.assertNotIn("serviceResult", appear)
+        self.assertNotIn("readConfiguration", appear)
+        self.assertNotIn("selectAction", appear)
+        self.assertNotIn("shownRow", appear)
+        self.assertIn("APIConfiguration(baseURL: baseURL)", config)
+        self.assertIn('scheme == "https"', config)
+        self.assertIn("configuration.baseURL == baseURL", config)
+        self.assertNotIn("https://", page)
+        self.assertNotIn("http://", page)
+        self.assertNotIn("example.com", page)
+        self.assertNotIn("URLSession", page)
+        self.assertNotIn("gradient", page.lower())
+        self.assertNotIn("glow", page.lower())
+        self.assertIn("RouteActionReadService.read", page)
+        self.assertIn("regionalConfiguration?.apiConfiguration", closed)
+        self.assertIn("apiBaseURL", closed)
+        self.assertIn("does not invent a domain", closed)
+        self.assertIn("RouteActionReadService.read", closed)
+        self.assertIn("Do not apply", closed)
+        self.assertIn("Not applied", closed)
+        self.assertIn("send is stopped", closed)
+        names = _changed_names()
+        for path in (
+            "App/AppSession.swift",
+            "App/AppCompositionRoot.swift",
+            "Questify.xcodeproj/project.pbxproj",
+            "App/MessagingHomeView.swift",
+            "Core/MessagingContracts.swift",
+            "MerchantDeskSkuPage.swift",
+        ):
+            self.assertNotIn(path, names)
+        self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
 
     def test_linux_xctest_is_explicitly_not_run(self):
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
