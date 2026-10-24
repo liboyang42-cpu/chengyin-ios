@@ -34,6 +34,7 @@ WHITELIST = [
     "docs/issue5-hunks/C03-ios-dot-hunk.md",
     "docs/issue5-hunks/C03-route-page-readback.hunk",
     "docs/issue5-hunks/C03-original-action-reader.hunk",
+    "docs/issue5-hunks/C03-route-action-transport.hunk",
     "App/PlayRouteMapView.swift",
 ]
 CORE_FILES = [path for path in WHITELIST if path.startswith("Core/")]
@@ -336,10 +337,11 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         self.assertIn("eea786c064d3c1678c0dff621c9f56f9980ffa68", closed)
         self.assertIn("not 100%", closed.lower())
 
-    def test_route_page_calls_existing_reader_once_with_service_result(self):
+    def test_route_page_sends_installed_get_on_held_https_host(self):
         page = (ROOT / "App/PlayRouteMapView.swift").read_text()
         reader = self.sources["Core/OriginalActionReader.swift"]
         closed = (ROOT / "docs/issue5-hunks/C03-original-action-reader.hunk").read_text()
+        transport = (ROOT / "docs/issue5-hunks/C03-route-action-transport.hunk").read_text()
         self.assertEqual(page.count("OriginalActionReader("), 1)
         self.assertNotIn("struct OriginalActionReader", page)
         self.assertEqual(reader.count("struct OriginalActionReader"), 1)
@@ -350,17 +352,35 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         read = _brace_body(page, "private func readThisAction()")
         appear = _brace_body(page, "private func appearActionRead()")
         config = _brace_body(page, "private func readConfiguration(")
-        self.assertLess(read.index("readConfiguration"), read.index("OriginalActionReader("))
-        self.assertIn("return request.serviceResult", read)
+        decode = _brace_body(page, "private func decodedRouteAction(")
+        self.assertLess(read.index("readConfiguration"), read.index("transport.send"))
+        self.assertLess(read.index("transport.send"), read.index("OriginalActionReader("))
+        self.assertNotIn("return request.serviceResult", page)
+        self.assertNotIn("serviceResult", page)
         self.assertIn("reader.selectAction", read)
         self.assertIn("page.shownRow(", read)
         self.assertIn("shownActionRow = nil", read)
         self.assertIn("row.actionID == trimmed", read)
+        self.assertIn("api/play/route-action", page)
+        self.assertIn('httpMethod = "GET"', read)
+        self.assertIn('URLQueryItem(name: "sessionId"', page)
+        self.assertIn('URLQueryItem(name: "memberId"', page)
+        self.assertIn('URLQueryItem(name: "actionId"', page)
+        self.assertIn('data["sessionId"]', decode)
+        self.assertIn('data["memberId"]', decode)
+        self.assertIn('data["actionId"]', decode)
+        self.assertIn("responseSession == sessionID", decode)
+        self.assertIn("responseMember == memberID", decode)
+        self.assertIn("responseAction == actionID", decode)
+        self.assertIn("accountID != 0", read)
+        self.assertIn("token.isEmpty", read)
+        self.assertIn("does not invent a domain", page)
         self.assertNotIn("OriginalActionReader", appear)
         self.assertNotIn("serviceResult", appear)
         self.assertNotIn("readConfiguration", appear)
         self.assertNotIn("selectAction", appear)
         self.assertNotIn("shownRow", appear)
+        self.assertNotIn("transport.send", appear)
         self.assertIn("APIConfiguration(baseURL: baseURL)", config)
         self.assertIn('scheme == "https"', config)
         self.assertIn("configuration.baseURL == baseURL", config)
@@ -370,7 +390,9 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         self.assertNotIn("URLSession", page)
         self.assertNotIn("gradient", page.lower())
         self.assertNotIn("glow", page.lower())
-        self.assertIn("RouteActionReadService.read", page)
+        self.assertNotIn("insertAction", page)
+        self.assertNotIn(".ultraThinMaterial", page)
+        self.assertIn("RouteActionReadService.read", closed)
         self.assertIn("regionalConfiguration?.apiConfiguration", closed)
         self.assertIn("apiBaseURL", closed)
         self.assertIn("does not invent a domain", closed)
@@ -378,12 +400,27 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         self.assertIn("Do not apply", closed)
         self.assertIn("Not applied", closed)
         self.assertIn("send is stopped", closed)
+        self.assertIn("DO NOT APPLY", transport)
+        self.assertIn("Not applied", transport)
+        self.assertIn("App/AppSession.swift", transport)
+        self.assertIn("App/AppCompositionRoot.swift", transport)
+        self.assertIn("project.pbxproj", transport)
+        self.assertIn("compositionTransport", transport)
+        self.assertIn("GET /api/play/route-action", transport)
+        self.assertIn("does not invent a domain", transport)
+        self.assertIn("serviceResult", transport)
+        self.assertIn("not a network read", transport)
+        self.assertIn("account id 0", transport)
+        self.assertIn("blank token", transport)
+        self.assertIn("NOT_RUN", transport)
+        self.assertIn("not 100%", transport.lower())
         names = _changed_names()
         for path in (
             "App/AppSession.swift",
             "App/AppCompositionRoot.swift",
             "Questify.xcodeproj/project.pbxproj",
             "App/MessagingHomeView.swift",
+            "App/ProfileOrdersView.swift",
             "Core/MessagingContracts.swift",
             "MerchantDeskSkuPage.swift",
         ):

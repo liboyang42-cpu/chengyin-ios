@@ -1,17 +1,20 @@
 import SwiftUI
 import MapKit
+import CoreFoundation
 
-/// One existing route action handed to the route page.
-/// When a request is present, the page calls OriginalActionReader once with the service result.
-/// It does not insert an action.
+/// One existing route action the route page reads with GET /api/play/route-action.
+/// The page sends that GET on the host of the held https APIConfiguration.
+/// A caller-held row is not a network read. This request does not insert an action.
 struct RouteActionPageReadRequest {
     var sessionID: Int64?
     var memberID: Int64?
     var actionID: String?
-    /// Row from RouteActionReadService.read for this session, member, and action.
-    var serviceResult: RouteActionOriginalRow?
     /// Missing or non-https closes only this read. No host is invented.
     var apiBaseURL: URL?
+    var transport: (any HTTPTransport)?
+    var token: String?
+    /// Signed-in account. Zero closes only this read.
+    var accountID: Int?
 }
 
 /// Supplementary map for the personal orientation runtime. It never requests
@@ -107,7 +110,7 @@ struct RouteActionPageReadRequest {
                     Task {
                         await model.load()
                         appearActionRead()
-                        readThisAction()
+                        await readThisAction()
                     }
                 }
                     .disabled(!model.available || model.phase == .loading || model.phase == .submitting)
@@ -137,36 +140,89 @@ struct RouteActionPageReadRequest {
         .onChange(of: cameraRead) { _, _ in resetCamera() }
         .task(id: actionReadToken) {
             appearActionRead()
-            readThisAction()
+            await readThisAction()
         }
         .onAppear { cameraGate.appear(); appearActionRead() }
         .onDisappear { cameraGate.disappear(); cameraPreview = nil; cameraIssue = nil }
     }
     private var actionReadToken: String {
         let base = actionRead?.apiBaseURL?.absoluteString ?? ""
-        let result = actionRead?.serviceResult
-        return "\(actionRead?.sessionID ?? -1)|\(actionRead?.memberID ?? -1)|\(actionRead?.actionID ?? "")|\(base)|\(result?.sessionID ?? -1)|\(result?.memberID ?? -1)|\(result?.actionID ?? "")"
+        let account = actionRead?.accountID ?? 0
+        let tokenMark = actionRead?.token?.utf8.reduce(UInt64(0)) { ($0 &* 131) &+ UInt64($1) } ?? 0
+        let transport = actionRead?.transport == nil ? "0" : "1"
+        return "\(actionRead?.sessionID ?? -1)|\(actionRead?.memberID ?? -1)|\(actionRead?.actionID ?? "")|\(base)|\(account)|\(tokenMark)|\(transport)"
     }
     /// Appearance records the route page only. It does not read and does not write.
     private func appearActionRead() {
         actionReadAppeared = true
     }
-    /// One existing reader call for this request. A closed configuration shows no row.
-    private func readThisAction() {
+    /// Sends GET /api/play/route-action on the held https host.
+    /// A missing configuration, a non-https URL, a blank token, or account id 0
+    /// closes only this read and does not invent a domain.
+    /// A response whose session id, member id, or action id differs shows nothing.
+    private func readThisAction() async {
         guard actionReadAppeared, let request = actionRead else {
             shownActionRow = nil
             return
         }
-        guard readConfiguration(request.apiBaseURL) != nil else {
+        let trimmed = request.actionID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let token = request.token?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let configuration = readConfiguration(request.apiBaseURL) else {
             shownActionRow = nil
             return
         }
-        let trimmed = request.actionID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let transport = request.transport, !token.isEmpty, AuthRequestBuilder.isValidToken(token) else {
+            shownActionRow = nil
+            return
+        }
+        guard let accountID = request.accountID, accountID != 0 else {
+            shownActionRow = nil
+            return
+        }
+        guard let sessionID = request.sessionID, sessionID > 0,
+              let memberID = request.memberID, memberID > 0,
+              memberID == Int64(accountID), !trimmed.isEmpty else {
+            shownActionRow = nil
+            return
+        }
+        guard let url = routeActionURL(configuration, sessionID: sessionID, memberID: memberID, actionID: trimmed) else {
+            shownActionRow = nil
+            return
+        }
+        var wire = URLRequest(url: url)
+        wire.httpMethod = "GET"
+        wire.cachePolicy = .reloadIgnoringLocalCacheData
+        wire.timeoutInterval = 20
+        wire.setValue("application/json", forHTTPHeaderField: "Accept")
+        wire.setValue(token, forHTTPHeaderField: "Authorization")
+        let body: Data
+        let status: Int
+        do {
+            (body, status) = try await transport.send(wire)
+        } catch {
+            shownActionRow = nil
+            return
+        }
+        guard !Task.isCancelled,
+              actionRead?.sessionID == sessionID,
+              actionRead?.memberID == memberID,
+              actionRead?.accountID == accountID else {
+            shownActionRow = nil
+            return
+        }
+        guard (200..<300).contains(status),
+              let decoded = decodedRouteAction(body, sessionID: sessionID, memberID: memberID, actionID: trimmed) else {
+            shownActionRow = nil
+            return
+        }
         var reader = OriginalActionReader(selectActionByAction: { queriedSession, queriedMember, queriedAction in
-            guard queriedSession == request.sessionID,
-                  queriedMember == request.memberID,
+            guard queriedSession == sessionID,
+                  queriedMember == memberID,
                   queriedAction == trimmed else { return nil }
-            return request.serviceResult
+            guard decoded.sessionID == sessionID,
+                  decoded.memberID == memberID,
+                  decoded.actionID == trimmed else { return nil }
+            return decoded
         })
         var page = RouteActionPageRead()
         do {
@@ -193,11 +249,62 @@ struct RouteActionPageReadRequest {
         }
     }
     /// Missing or non-https closes only this read. The supplied URL is kept.
+    /// This read does not invent a domain.
     private func readConfiguration(_ baseURL: URL?) -> APIConfiguration? {
         guard let baseURL else { return nil }
         guard let configuration = try? APIConfiguration(baseURL: baseURL) else { return nil }
         guard configuration.baseURL.scheme == "https", configuration.baseURL == baseURL else { return nil }
         return configuration
+    }
+    /// GET /api/play/route-action on the configuration host.
+    /// The query carries the session id, the current member id, and the action id.
+    private func routeActionURL(_ configuration: APIConfiguration, sessionID: Int64, memberID: Int64, actionID: String) -> URL? {
+        let endpoint = configuration.baseURL.appendingPathComponent("api/play/route-action")
+        guard var parts = URLComponents(url: endpoint, resolvingAgainstBaseURL: false),
+              parts.scheme == "https",
+              let host = parts.host, host == configuration.baseURL.host,
+              parts.user == nil, parts.password == nil, parts.fragment == nil else { return nil }
+        parts.queryItems = [
+            URLQueryItem(name: "sessionId", value: String(sessionID)),
+            URLQueryItem(name: "memberId", value: String(memberID)),
+            URLQueryItem(name: "actionId", value: actionID)
+        ]
+        guard let url = parts.url, url.scheme == "https", url.host == configuration.baseURL.host else { return nil }
+        return url
+    }
+    /// A row exists only when the response session id, member id, and action id equal the request.
+    private func decodedRouteAction(_ body: Data, sessionID: Int64, memberID: Int64, actionID: String) -> RouteActionOriginalRow? {
+        guard let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return nil }
+        guard jsonCode(object["code"]) == 200, let data = object["data"] as? [String: Any] else { return nil }
+        guard let responseSession = jsonInt64(data["sessionId"]), responseSession == sessionID else { return nil }
+        guard let responseMember = jsonInt64(data["memberId"]), responseMember == memberID else { return nil }
+        guard let responseAction = data["actionId"] as? String, responseAction == actionID else { return nil }
+        let responseJSON = data["responseJson"] as? String
+        return RouteActionOriginalRow(
+            actionID: responseAction, responseJSON: responseJSON,
+            sessionID: responseSession, memberID: responseMember)
+    }
+    private func jsonCode(_ value: Any?) -> Int? {
+        if isJSONBool(value) { return nil }
+        if let number = value as? NSNumber { return number.intValue }
+        if let text = value as? String, let code = Int(text), String(code) == text { return code }
+        return nil
+    }
+    private func jsonInt64(_ value: Any?) -> Int64? {
+        if isJSONBool(value) { return nil }
+        if let number = value as? NSNumber {
+            let intValue = number.int64Value
+            guard intValue > 0, Double(intValue) == number.doubleValue else { return nil }
+            return intValue
+        }
+        if let text = value as? String, let intValue = Int64(text), intValue > 0, String(intValue) == text {
+            return intValue
+        }
+        return nil
+    }
+    private func isJSONBool(_ value: Any?) -> Bool {
+        guard let number = value as? NSNumber else { return false }
+        return CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID()
     }
     private var cameraRead: PlayRouteMapCamera.Read? {
         guard !model.unresolved else { return nil }

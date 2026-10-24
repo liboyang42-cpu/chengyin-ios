@@ -1,0 +1,63 @@
+# C03 route action transport — DO NOT APPLY
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Base: cursor/c03-route-page-caller-e504 @ c1d77d7c0f591677dada89e80ca7765fa652cb84
+Branch: cursor/c03-route-action-transport-e504
+
+DO NOT APPLY this hunk. Do not edit App/AppSession.swift, App/AppCompositionRoot.swift, or Questify.xcodeproj/project.pbxproj from this branch.
+
+The installed read is GET /api/play/route-action. It uses the existing current member id and TopicRouteSessionMapper.selectActionByAction. It does not insert a route action.
+
+`App/PlayRouteMapView.swift` sends that GET on the host already present on the held https APIConfiguration. The query carries sessionId, memberId, and actionId. A row is shown only when the response session id, member id, and action id equal the request. A mismatch shows nothing.
+
+A missing configuration, a non-https URL, a blank token, or account id 0 closes only this read and does not invent a domain. The previously held serviceResult is not a network read. This branch does not return it.
+
+## Why the session must pass configuration, transport, token, and member id
+
+`compositionTransport` is private (`App/AppSession.swift` around line 188). `token` is private (around line 3255). `PlayExperienceView` does not hold either of them. `SessionPlayRuntimeView` only has the session. Passing the held `regionalConfiguration?.apiConfiguration`, `compositionTransport`, the raw token, and `account.id` into `PlayRouteMapView.actionRead` can be done only from inside AppSession.
+
+This branch does not add that method. `PlayRouteMapView` is already in the app target. No new PBX file reference is required for the send. Do not edit pbxproj.
+
+## Not applied
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+App/MessagingHomeView.swift
+App/ProfileOrdersView.swift
+MerchantDeskSkuPage.swift
+```
+
+Unapplied method, beside `playExperience(for:)` (around line 363). Do not apply.
+
+```swift
+func routeActionPageRead(sessionID: Int64, actionID: String) -> RouteActionPageReadRequest? {
+    guard let configuration = regionalConfiguration?.apiConfiguration,
+          let account, account.id != 0, let token, AuthRequestBuilder.isValidToken(token) else { return nil }
+    return RouteActionPageReadRequest(
+        sessionID: sessionID,
+        memberID: Int64(account.id),
+        actionID: actionID,
+        apiBaseURL: configuration.baseURL,
+        transport: compositionTransport,
+        token: token,
+        accountID: account.id)
+}
+```
+
+`serviceResult` is not an argument. A caller-held row is not a network read. The page sends GET /api/play/route-action on `configuration.baseURL` and does not invent a domain. Account id 0 and a blank token return nil and close only this read.
+
+Unapplied call, not inserted into `PlayExperienceView` or `SessionPlayRuntimeView`:
+
+```swift
+PlayRouteMapView(
+    model: model,
+    nodeDestination: { AnyView(nodeDestination($0)) },
+    actionRead: session.routeActionPageRead(sessionID: sessionID, actionID: actionID))
+```
+
+`session.routeActionPageRead` does not exist. Do not add it on this branch. Until that attach exists, `actionRead` stays nil: no row and no send. Not a second writer. `AppCompositionRoot` is not edited, so this paste does not open another composition route.
+
+XCTest / App / CI = NOT_RUN. swiftc was not required to land this file. Not 100%.
