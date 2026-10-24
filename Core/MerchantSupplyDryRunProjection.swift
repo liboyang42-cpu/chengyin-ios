@@ -108,17 +108,40 @@ public struct MerchantSupplyDryRunProjection: Equatable {
     }
     /// Read IMerchantDeskService.receipt. NOT_FOUND returns nil and does not hold.
     /// Does not save a SKU.
+    public indirect enum Wire: Equatable, Sendable {
+        case null
+        case bool(Bool)
+        case int(Int64)
+        case string(String)
+        case object([String: Wire])
+    }
+    public enum WireFailure: Error, Equatable {
+        case waitingSource(String)
+        case transport(String)
+        case forbidden(String)
+        case notThisRequest
+    }
     public func recoverFromDeskReceipt(
         ownerMemberID: Int64?,
         requestID: String?,
-        receipt: ((Int64, String) -> [String: String]?)?
-    ) throws -> [String: String]? {
+        receipt: ((Int64, String) async throws -> Wire)?
+    ) async throws -> Wire? {
         guard let ownerMemberID, ownerMemberID > 0, let id = Self.parse(requestID) else { return nil }
         guard let receipt else {
-            throw WaitingSource(capability: Self.deskReceipt)
+            throw WireFailure.waitingSource(Self.deskReceipt)
         }
-        guard let found = receipt(ownerMemberID, id) else { return nil }
-        if found["state"] == "NOT_FOUND" { return nil }
+        let found = try await receipt(ownerMemberID, id)
+        guard case .object(let fields) = found else { throw WireFailure.notThisRequest }
+        guard case .string(let request) = fields["requestId"], request == id else {
+            throw WireFailure.notThisRequest
+        }
+        if case .string(let state) = fields["state"], state == "NOT_FOUND" {
+            return found
+        }
+        guard case .string(let action) = fields["action"], !action.isEmpty,
+              case .int = fields["targetId"] else {
+            throw WireFailure.notThisRequest
+        }
         return found
     }
     private func compute(_ fact: MerchantSupplyDryRunFact?, serverNow: Date?,

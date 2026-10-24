@@ -124,6 +124,9 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("testMissingHoursOnBookableSkuIsUnknownNotAWrite", tests)
         self.assertIn("merchantDesk.receipt", supply)
         self.assertIn("recoverFromDeskReceipt", supply)
+        self.assertIn("async throws", supply)
+        self.assertIn("case int(Int64)", supply)
+        self.assertIn("case transport(String)", supply)
         self.assertIn("testRecoverFromDeskReceiptReadsAppliedWithoutHolding", tests)
 
     def test_holding_is_not_issuance_and_duplicate_does_not_double_hold(self):

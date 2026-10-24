@@ -160,8 +160,28 @@ final class EntitlementHoldProjectionTests: XCTestCase {
             originalRequestID: "c07-rdm-1", registrationID: 78, chapterID: 124,
             serverNow: now, listRedemptions: list)
         XCTAssertEqual(redeemed.outcome, .redeemed)
+        XCTAssertNil(redeemed.originalRequestID)
         XCTAssertFalse(redeemed.executedRedeem)
         XCTAssertFalse(redeemed.occupiesCapacity)
         XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-rdm-1"), 0)
+        XCTAssertEqual(wired.recoverOriginal(originalRequestID: "c07-rdm-1").outcome, .unknown)
+    }
+    func testCurrentFulfillmentFactDoesNotReplaceImmutableOriginalOrCrossScope() {
+        var holds = EntitlementHoldProjection()
+        let held = EntitlementHoldFact(originalRequestID: "c07-hold-live", registrationID: 78, chapterID: 124,
+                                       merchantID: 9, status: EntitlementHoldStatus.held,
+                                       validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(holds.project(held, serverNow: now).outcome, .held)
+        let redeemed = EntitlementHoldFact(originalRequestID: "c07-hold-live", registrationID: 78, chapterID: 124,
+                                           merchantID: 9, status: EntitlementHoldStatus.redeemed,
+                                           validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(holds.project(redeemed, serverNow: now).outcome, .redeemed)
+        XCTAssertEqual(holds.recoverOriginal(originalRequestID: "c07-hold-live").outcome, .held)
+        XCTAssertEqual(holds.occupyCount(originalRequestID: "c07-hold-live"), 1)
+        let other = EntitlementHoldFact(originalRequestID: "c07-hold-live", registrationID: 99, chapterID: 124,
+                                        merchantID: 9, status: EntitlementHoldStatus.held,
+                                        validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(holds.project(other, serverNow: now).outcome, .unknown)
+        XCTAssertEqual(holds.recoverOriginal(originalRequestID: "c07-hold-live").outcome, .held)
     }
 }

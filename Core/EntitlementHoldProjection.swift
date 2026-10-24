@@ -95,6 +95,7 @@ public struct EntitlementHoldProjection: Equatable {
     public static let perkRedemptions = "perkLedger.listRedemptions"
     public private(set) var occupyCountByRequestID: [String: Int] = [:]
     public private(set) var originalIntentByRequestID: [String: EntitlementHoldView] = [:]
+    private var originalFactByRequestID: [String: EntitlementHoldFact] = [:]
     public init() {}
     public static func parse(_ raw: String?) -> String? {
         guard let raw else { return nil }
@@ -103,18 +104,23 @@ public struct EntitlementHoldProjection: Equatable {
         return trimmed
     }
     public mutating func project(_ fact: EntitlementHoldFact?, serverNow: Date?) -> EntitlementHoldView {
-        if let requestID = Self.parse(fact?.originalRequestID),
-           let original = originalIntentByRequestID[requestID] {
-            return original
-        }
-        let view = compute(fact, serverNow: serverNow)
-        if let requestID = view.originalRequestID, view.outcome != .unknown {
-            originalIntentByRequestID[requestID] = view
-            if view.occupiesCapacity, occupyCountByRequestID[requestID] == nil {
-                occupyCountByRequestID[requestID] = 1
+        let current = compute(fact, serverNow: serverNow)
+        let view = current
+        if let requestID = Self.parse(fact?.originalRequestID) {
+            if let stored = originalFactByRequestID[requestID] {
+                if stored.registrationID != fact?.registrationID || stored.chapterID != fact?.chapterID
+                    || stored.merchantID != fact?.merchantID {
+                    return Self.unknown(requestID)
+                }
+            } else if view.outcome != .unknown {
+                originalFactByRequestID[requestID] = fact
+                originalIntentByRequestID[requestID] = view
+                if current.occupiesCapacity, occupyCountByRequestID[requestID] == nil {
+                    occupyCountByRequestID[requestID] = 1
+                }
             }
         }
-        return view
+        return current
     }
     public mutating func requery(_ fact: EntitlementHoldFact?, serverNow: Date?) -> EntitlementHoldView {
         project(fact, serverNow: serverNow)
@@ -161,16 +167,13 @@ public struct EntitlementHoldProjection: Equatable {
             throw EntitlementHoldFailure.waitingSource(capability: Self.perkRedemptions)
         }
         let rows = listRedemptions(registrationID)
-        guard let chapterID,
-              let match = rows.first(where: { $0.chapterID == chapterID && $0.active }),
-              let merchantID = match.merchantID else {
-            return recoverOriginal(originalRequestID: originalRequestID ?? "")
+        guard let chapterID, rows.contains(where: { $0.chapterID == chapterID && $0.active }) else {
+            return Self.unknown(nil)
         }
-        let fact = EntitlementHoldFact(originalRequestID: originalRequestID, registrationID: registrationID,
-                                       chapterID: chapterID, merchantID: merchantID,
-                                       status: EntitlementHoldStatus.redeemed,
-                                       validEndExclusive: nil, invalidReason: nil)
-        return project(fact, serverNow: serverNow)
+        _ = originalRequestID
+        return EntitlementHoldView(originalRequestID: nil, outcome: .redeemed, occupiesCapacity: false,
+                                   executedReserve: false, executedRedeem: false, executedAward: false,
+                                   holdingIsIssuance: false)
     }
     private func compute(_ fact: EntitlementHoldFact?, serverNow: Date?) -> EntitlementHoldView {
         guard let serverNow else { return Self.unknown(Self.parse(fact?.originalRequestID)) }

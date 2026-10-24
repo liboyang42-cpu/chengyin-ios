@@ -184,25 +184,40 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
         XCTAssertEqual(supply.holdCount(originalRequestID: "c07-supply-never-seen"), 1)
         XCTAssertEqual(supply.recoverOriginal(originalRequestID: "c07-supply-never-seen").outcome, .accept)
     }
-    func testRecoverFromDeskReceiptReadsAppliedWithoutHolding() throws {
+    func testRecoverFromDeskReceiptReadsAppliedWithoutHolding() async throws {
         var supply = MerchantSupplyDryRunProjection()
         do {
-            _ = try supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01", receipt: nil)
+            _ = try await supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01", receipt: nil)
             XCTFail("missing desk receipt must WAITING_SOURCE")
-        } catch let waiting as MerchantSupplyDryRunProjection.WaitingSource {
-            XCTAssertEqual(waiting.capability, MerchantSupplyDryRunProjection.deskReceipt)
+        } catch let waiting as MerchantSupplyDryRunProjection.WireFailure {
+            XCTAssertEqual(waiting, .waitingSource(MerchantSupplyDryRunProjection.deskReceipt))
         }
         XCTAssertEqual(supply.holdCount(originalRequestID: "desk-req-01"), 0)
-        XCTAssertNil(try supply.recoverFromDeskReceipt(ownerMemberID: 0, requestID: "desk-req-01",
-                                                       receipt: { _, _ in ["state": "APPLIED"] }))
-        XCTAssertNil(try supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-missing",
-                                                       receipt: { _, _ in ["state": "NOT_FOUND"] }))
-        XCTAssertEqual(supply.holdCount(originalRequestID: "desk-missing"), 0)
-        let recovered = try supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01",
-                                                          receipt: { owner, id in
-            owner == 7 && id == "desk-req-01" ? ["state": "APPLIED", "action": "SAVE_SKU"] : nil
+        XCTAssertNil(try await supply.recoverFromDeskReceipt(ownerMemberID: 0, requestID: "desk-req-01",
+                                                             receipt: { _, _ in .string("APPLIED") }))
+        let missing = try await supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-missing",
+                                                              receipt: { _, id in
+            .object(["requestId": .string(id), "state": .string("NOT_FOUND")])
         })
-        XCTAssertEqual(recovered?["state"], "APPLIED")
+        XCTAssertEqual(missing, .object(["requestId": .string("desk-missing"), "state": .string("NOT_FOUND")]))
+        XCTAssertEqual(supply.holdCount(originalRequestID: "desk-missing"), 0)
+        do {
+            _ = try await supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01",
+                                                        receipt: { _, _ in throw MerchantSupplyDryRunProjection.WireFailure.transport("timeout") })
+            XCTFail("transport must stay thrown")
+        } catch let transport as MerchantSupplyDryRunProjection.WireFailure {
+            XCTAssertEqual(transport, .transport("timeout"))
+        }
+        let recovered = try await supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01",
+                                                                receipt: { owner, id in
+            owner == 7 && id == "desk-req-01"
+                ? .object(["requestId": .string(id), "state": .string("APPLIED"),
+                           "action": .string("SAVE_SKU"), "targetId": .int(44)])
+                : .object(["requestId": .string("other"), "state": .string("APPLIED"),
+                           "action": .string("SAVE_SKU"), "targetId": .int(1)])
+        })
+        XCTAssertEqual(recovered, .object(["requestId": .string("desk-req-01"), "state": .string("APPLIED"),
+                                           "action": .string("SAVE_SKU"), "targetId": .int(44)]))
         XCTAssertEqual(supply.holdCount(originalRequestID: "desk-req-01"), 0)
         XCTAssertEqual(supply.recoverOriginal(originalRequestID: "desk-req-01").outcome, .unknown)
     }
