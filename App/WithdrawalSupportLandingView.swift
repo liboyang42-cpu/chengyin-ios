@@ -1,7 +1,18 @@
 import SwiftUI
 
+/// One order handed to the existing withdrawal support page.
+/// The page calls SupportLookupEntry. It does not own an audit store.
+struct WithdrawalOrderLookupRequest {
+    var orderId: Int64
+    var entry: SupportLookupEntry
+    var currentProjection: SupportCurrentProjection?
+    var withdrawal: WithdrawalSupportSnapshot?
+    var orderRead: OwnedOrderReadRoute?
+}
+
 @MainActor struct WithdrawalSupportLandingView: View {
     let reader: WalletCommerceReader
+    var orderLookup: WithdrawalOrderLookupRequest? = nil
     @Environment(\.bankWithdrawalDestination) private var bankDestination
     @Environment(\.locale) private var locale
     @State private var balance: WithdrawalBalance?
@@ -12,6 +23,8 @@ import SwiftUI
     @State private var showContact = false
     @State private var generation = 0
     @State private var loadedScope: WalletCommerceScope?
+    @State private var orderEntry: SupportLookupEntry?
+    @State private var lookedUpOrderID: Int64?
     var body: some View {
         List {
             Section("withdrawal.support.balance") {
@@ -34,6 +47,12 @@ import SwiftUI
                 } else { Text(LocalizedStringKey(stagesFailed ? "wallet.failed" : "wallet.unavailable")) }
             }
             Section {
+                LabeledContent("profile.orders.number") {
+                    if let lookedUpOrderID { Text(verbatim: String(lookedUpOrderID)) }
+                    else { Text("wallet.unavailable") }
+                }.accessibilityIdentifier("withdrawal.support.orderLookup")
+            }
+            Section {
                 NavigationLink("bank.withdrawal.title") { if let bankDestination { bankDestination() } else { BankWithdrawalView(reader: reader) } }
                     .accessibilityIdentifier("bank.withdrawal.entry")
                 Text("bank.withdrawal.supportAlternative")
@@ -41,7 +60,13 @@ import SwiftUI
                 NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader) }
             }
         }.navigationTitle("withdrawal.support.title")
-            .task(id: reader.scope) { balance = nil; stages = nil; loadedScope = nil; showContact = false; await load() }
+            .task(id: reader.scope) {
+                balance = nil; stages = nil; loadedScope = nil; showContact = false
+                orderEntry = nil; lookedUpOrderID = nil
+                appearOrderLookup()
+                await load()
+            }
+            .onAppear { appearOrderLookup() }
             .refreshable { await load() }
             .onDisappear { generation += 1; loading = false }
             .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
@@ -50,9 +75,50 @@ import SwiftUI
     private func amount(_ value: WalletAmount, currency: String?) -> String {
         value.text + " " + (currency ?? appLocalized("wallet.currencyUnknown", locale: locale))
     }
+    /// Appearance records the entry only. It does not look up and does not send.
+    private func appearOrderLookup() {
+        guard orderEntry == nil, var entry = orderLookup?.entry else { return }
+        entry.appear()
+        orderEntry = entry
+    }
+    /// The request's first ORDER id must equal the requested id.
+    /// A different id is original-missing and is not shown as this order.
+    private func lookupThisOrder() {
+        guard var entry = orderEntry, let requested = orderLookup?.orderId else {
+            lookedUpOrderID = nil
+            return
+        }
+        do {
+            let composition = try entry.lookupByOrderId(
+                requested,
+                currentProjection: orderLookup?.currentProjection,
+                withdrawal: orderLookup?.withdrawal,
+                orderRead: orderLookup?.orderRead)
+            orderEntry = entry
+            guard let composition, composition.located.orderId == requested,
+                  Self.firstOrderID(composition.located.originalEvents) == requested else {
+                lookedUpOrderID = nil
+                return
+            }
+            lookedUpOrderID = requested
+        } catch {
+            orderEntry = entry
+            lookedUpOrderID = nil
+        }
+    }
+    private static func firstOrderID(_ events: [OriginalAuditEvent]) -> Int64? {
+        for event in events {
+            guard event.targetType == "ORDER" else { continue }
+            return event.targetId
+        }
+        return nil
+    }
     private func load() async {
         generation += 1; let ticket = generation; let scope = reader.scope
         balance = nil; stages = nil; balanceFailed = false; stagesFailed = false; loading = true
+        lookedUpOrderID = nil
+        appearOrderLookup()
+        lookupThisOrder()
         defer { if ticket == generation { loading = false } }
         guard let scope else { return }
         do {

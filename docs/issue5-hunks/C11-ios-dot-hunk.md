@@ -133,3 +133,7 @@ Tests/CoreTests/SupportLookupEntryTests.swift
 ```
 
 Swift XCTest for this entry is authored and NOT_RUN on Linux. Not 100%.
+
+## Page call addendum
+
+`App/WithdrawalSupportLandingView.swift` stays the withdrawal support page. Balance (`withdrawal.support.balance`) and stage (`withdrawal.support.notReceived`) sections stay. The page calls `SupportLookupEntry.appear()` and `lookupByOrderId` beside those sections. Appearance calls `appear()` only and does not send. The shown value is the requested order id only when that id equals `located.orderId` and the request's first ORDER id. A different id is original-missing and is not shown as this order. No second audit store, no new support desk, no invented events. This file is already in the app target, so this addendum does not add a PBX file reference. Do not edit pbxproj. App / XCTest / CI = NOT_RUN. Not 100%.
