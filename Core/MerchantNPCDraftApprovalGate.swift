@@ -71,6 +71,15 @@ public struct MerchantNPCOriginalReviewTicket: Equatable {
     }
 }
 
+public struct MerchantNPCDraftReadFact: Equatable, Sendable {
+    public let requestID: String
+    public let state: String
+    public init(requestID: String, state: String) {
+        self.requestID = requestID
+        self.state = state
+    }
+}
+
 public struct MerchantNPCPublishedRevision: Equatable {
     public let revision: UUID
     public let scope: MerchantNPCScope
@@ -105,6 +114,7 @@ enum MerchantNPCDraftDigest {
 }
 
 @MainActor public final class MerchantNPCDraftApprovalGate {
+    public static let aiThemeDraftRead = "AiThemeDraftRequestService.read"
     public let scope: MerchantNPCScope
     private let currentScope: () -> MerchantNPCScope?
     private let publisher: any MerchantNPCOriginalReviewPublishing
@@ -182,6 +192,20 @@ enum MerchantNPCDraftDigest {
         } catch {
             throw fail(.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeDraftHTTP))
         }
+    }
+    /// Read an existing AI theme draft. Missing closure throws WAITING_SOURCE and does not
+    /// change phase, publish state, or private scope. Does not publish or price.
+    public func recoverFromDraftRead(
+        memberID: Int64?,
+        requestID: String?,
+        read: ((Int64, String) -> MerchantNPCDraftReadFact?)?
+    ) throws -> MerchantNPCDraftReadFact? {
+        let trimmed = requestID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let memberID, memberID > 0, !trimmed.isEmpty else { return nil }
+        guard let read else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: Self.aiThemeDraftRead)
+        }
+        return read(memberID, trimmed)
     }
     public func playerConsume() throws -> Data {
         guard qualification.allowsServing(scope) else { throw fail(.qualificationRevoked) }

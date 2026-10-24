@@ -69,6 +69,24 @@ import XCTest
         }
         XCTAssertEqual(MerchantNPCHTTPClient.servedPaths.count, 5)
         XCTAssertFalse(MerchantNPCHTTPClient.servedPaths.contains("/api/merchant/npc/knowledge/publish"))
+        let fresh = gate()
+        do {
+            _ = try fresh.recoverFromDraftRead(memberID: 7, requestID: "c06-draft-1", read: nil)
+            XCTFail()
+        } catch {
+            guard case .waitingSource(let capability) = error as? MerchantNPCDraftGateFailure else { return XCTFail() }
+            XCTAssertEqual(capability, MerchantNPCDraftApprovalGate.aiThemeDraftRead)
+        }
+        XCTAssertEqual(fresh.phase, .idle)
+        XCTAssertNil(fresh.published)
+        XCTAssertNil(try fresh.recoverFromDraftRead(memberID: 7, requestID: "c06-draft-missing", read: { _, _ in nil }))
+        XCTAssertEqual(fresh.phase, .idle)
+        let found = try fresh.recoverFromDraftRead(memberID: 7, requestID: "c06-draft-1", read: { member, id in
+            member == 7 && id == "c06-draft-1" ? MerchantNPCDraftReadFact(requestID: id, state: "READY") : nil
+        })
+        XCTAssertEqual(found?.state, "READY")
+        XCTAssertNil(fresh.published)
+        XCTAssertEqual(fresh.phase, .idle)
     }
 
     func testAuthorizerThenOriginalReviewThenPlayerConsume() async throws {

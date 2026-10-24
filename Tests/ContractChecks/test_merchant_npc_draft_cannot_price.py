@@ -63,6 +63,9 @@ class MerchantNPCDraftCannotPriceContracts(unittest.TestCase):
         self.assertNotIn('knowledge/publish', served)
         self.assertNotIn('AiGateway', served)
         self.assertIn('testMissingReviewAndPublishAPIsAreWaitingSourceNotSuccessfulStubs', self.gate_tests)
+        self.assertIn('AiThemeDraftRequestService.read', self.gate)
+        self.assertIn('recoverFromDraftRead', self.gate)
+        self.assertIn('c06-draft-missing', self.gate_tests)
 
     def test_reuses_existing_merchant_npc_stack_not_a_parallel_one(self):
         self.assertIn('MerchantNPCKnowledgeDraft', self.gate)
