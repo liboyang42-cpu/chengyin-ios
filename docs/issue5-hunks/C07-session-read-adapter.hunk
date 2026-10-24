@@ -1,0 +1,30 @@
+diff --git a/App/AppSession.swift b/App/AppSession.swift
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -2616,4 +2616,26 @@
+     lazy var merchantBusinessJournal = MerchantBusinessFileIntentStore(
+         url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+             .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/MerchantBusiness/intents-v1.json"))
++    /// Ordinary sessionDependencies supplies this read. Not applied to AppSession.
++    /// Configuration, transport, token, and account are the session's. Nil approval stays nil.
++    func merchantDeskSessionRead() -> MerchantDeskSessionReadAdapter? {
++        guard let context = currentRuntimeDependencyContext,
++              let api = regionalConfiguration?.apiConfiguration, api.baseURL == context.baseURL,
++              let account, account.id == context.session.accountID,
++              let token, token.utf8.elementsEqual(context.session.token.utf8) else { return nil }
++        let dependencies = runtimeDependencies
++        return MerchantDeskSessionReadAdapter(
++            configuration: api,
++            transport: scopedTransport(dependencies.transport),
++            token: token,
++            accountID: account.id,
++            approval: dependencies.merchantBusinessApproval,
++            context: { [weak self] in self?.currentRuntimeDependencyContext },
++            current: { [weak self] in
++                guard let self, let live = self.currentRuntimeDependencyContext,
++                      let account = self.account, account.id == live.session.accountID,
++                      let token = self.token, token.utf8.elementsEqual(live.session.token.utf8) else { return nil }
++                return .init(accountID: account.id, token: token)
++            })
++    }
+     private func makeMerchantVerificationService() -> MerchantBusinessService? {
