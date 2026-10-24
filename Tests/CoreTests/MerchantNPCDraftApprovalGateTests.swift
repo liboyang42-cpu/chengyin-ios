@@ -197,6 +197,23 @@ import XCTest
         XCTAssertEqual(try isolation.playerProjection(scope: scope, qualification: qualification), revision.facts)
     }
 
+    func testUnusedVerifyBeforeIngestDoesNotOccupyThenUniqueIngestThenVerifyApplies() throws {
+        let flow = gate()
+        do { try flow.verifyByAuthorizer(authorizer()); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantNPCDraftGateFailure, .unpublished) }
+        XCTAssertEqual(flow.phase, .idle, "未见草稿 verify 观察不得占 phase")
+        XCTAssertNil(flow.authorizer, "未见草稿 verify 观察不得占 authorizer")
+        XCTAssertNil(flow.origin)
+        try flow.ingestAIDraft(draft())
+        XCTAssertEqual(flow.phase, .aiDraft)
+        XCTAssertNil(flow.authorizer)
+        try flow.verifyByAuthorizer(authorizer())
+        XCTAssertEqual(flow.phase, .authorizerVerified)
+        XCTAssertEqual(flow.authorizer?.accountID, scope.accountID)
+        XCTAssertEqual(flow.origin, .ai)
+        XCTAssertNil(flow.published, "核实不得占 published 账")
+    }
+
     @MainActor private final class RecordingPublisher: MerchantNPCOriginalReviewPublishing {
         var submitted = 0, published = 0
         var facts: [UUID: Data] = [:]
