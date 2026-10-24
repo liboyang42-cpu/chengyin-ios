@@ -112,6 +112,8 @@ class OrdinaryCityCourseSelectorContracts(unittest.TestCase):
         self.assertIn("testInProcessRecoverKeepsOriginalFinishedAndNotFoundUnknown", tests)
         self.assertIn("testMissingBlankRequestIDStaysOptionalNoneOrTypedNotFoundNeverEmptyString", tests)
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyLedgerThenUniqueWriteApplies", tests)
+        self.assertIn("testLedgerRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueFinishApplies", tests)
+        self.assertIn("c04-fin-class", tests)
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyLedgerThenUniqueRegisterApplies", eligibility_tests)
         self.assertIn("fin-orig-unk", tests)
         self.assertIn("reg-orig-unk", eligibility_tests)

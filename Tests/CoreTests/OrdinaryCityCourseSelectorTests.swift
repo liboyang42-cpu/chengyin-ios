@@ -339,4 +339,36 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
         XCTAssertEqual(session.teams.recoverOriginal(originalRequestID: "reg-orig-unk").outcome, "TEAM_ELIGIBLE")
         XCTAssertEqual(session.teams.readback("reg-isol-01").originalRequestID, "reg-isol-01")
     }
+    func testLedgerRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueFinishApplies() throws {
+        let catalog = try catalog()
+        let selection = try XCTUnwrap(OrdinaryCityCourseSelector.select(courseID: 1001, from: catalog))
+        let safety = try XCTUnwrap(OrienteeringSafetyVersion.display(selection: selection, now: now))
+        var ledger = EventScoreOriginalLedger()
+        let blank = ledger.recoverOriginal(originalRequestID: nil)
+        XCTAssertNil(blank.originalRequestID)
+        XCTAssertEqual(blank.outcome, .notFound)
+        XCTAssertEqual(blank.mintedNewRequest, false)
+        let neverFinish = ledger.recoverOriginal(originalRequestID: "c04-fin-class")
+        XCTAssertEqual(neverFinish.originalRequestID, "c04-fin-class")
+        XCTAssertEqual(neverFinish.outcome, .notFound)
+        XCTAssertEqual(neverFinish.mintedNewRequest, false)
+        XCTAssertNil(neverFinish.start)
+        XCTAssertNil(neverFinish.terminal)
+        XCTAssertEqual(ledger.readback("c04-fin-class").outcome, .notFound)
+        XCTAssertNil(ledger.readback("c04-fin-class").start)
+
+        let frozen = ledger.freeze(
+            selection: selection, safety: safety, originalRequestID: "c04-start-cl")
+        XCTAssertEqual(frozen.outcome, .running)
+        let start = try XCTUnwrap(frozen.start)
+        let firstFinish = ledger.finish(
+            start: start, resultVersionID: "rule-v3", originalRequestID: "c04-fin-class")
+        XCTAssertEqual(firstFinish.originalRequestID, "c04-fin-class")
+        XCTAssertEqual(firstFinish.outcome, .finished)
+        XCTAssertEqual(firstFinish.mintedNewRequest, false)
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-fin-class").outcome, .finished)
+        XCTAssertEqual(ledger.readback("c04-fin-class").outcome, .finished)
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-fin-never").outcome, .notFound)
+        XCTAssertEqual(ledger.readback("c04-fin-never").outcome, .notFound)
+    }
 }
