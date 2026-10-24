@@ -768,6 +768,39 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(writes, 1)
     }
 
+    func testAdmissionSubmitCallsTheOriginalPortOnce() throws {
+        let gate = try admission(try identity())
+        let catalog = try catalog()
+        XCTAssertThrowsError(try gate.submitOriginal(
+            catalog: catalog, kind: 1, spaceID: 12, inviteID: nil, message: nil, requestID: "c08-join-01")) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingSource)
+        }
+        var calls = 0
+        let sent = try gate.submitOriginal(
+            catalog: catalog, kind: 1, spaceID: 12, inviteID: nil, message: "  hello  ", requestID: "c08-join-01",
+            channel: { actor, kind, space, invite, message, request in
+                calls += 1
+                XCTAssertEqual(actor, 7)
+                XCTAssertEqual(kind, 1)
+                XCTAssertEqual(space, 12)
+                XCTAssertNil(invite)
+                XCTAssertEqual(message, "hello")
+                XCTAssertEqual(request, "c08-join-01")
+                return ["request_id": request, "status": 0, "join_state": "PENDING_REVIEW"]
+            })
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(sent["join_state"] as? String, "PENDING_REVIEW")
+        XCTAssertThrowsError(try gate.submitOriginal(
+            catalog: catalog, kind: 2, spaceID: 12, inviteID: nil, message: nil, requestID: "c08-join-01",
+            channel: { _, _, _, _, _, _ in calls += 1; return [:] }))
+        XCTAssertEqual(calls, 1)
+        let recovered = try gate.recoverOriginal(requestID: "c08-join-01") { actor, request in
+            XCTAssertEqual(actor, 7)
+            return ["request_id": request, "state": "UNKNOWN"]
+        }
+        XCTAssertEqual(recovered["state"] as? String, "UNKNOWN")
+    }
+
     private static func historyPage(after: String?) -> [String: Any] {
         var page: [String: Any] = [
             "list": [] as [Any], "next_cursor": "9", "has_more": NSNumber(value: false), "nextCursor": "9",
