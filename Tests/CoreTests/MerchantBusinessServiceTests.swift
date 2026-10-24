@@ -607,26 +607,26 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         let other = MerchantBusinessMutation.saveSku(productID: 3, skuID: 44, name: "door", price: "99.00", stock: 2,
                                                      originalPrice: "100.00", pic: "media-asset:1", bookable: false,
                                                      slotMinutes: 30, capacityPerSlot: 2, ruleVersion: 3)
+        let reserved = MerchantBusinessIntent(scope: scope, merchantID: 9, target: "sku:44", requestID: "desk-req-0007")
         do {
             _ = try await produced.executeDeskSku(other, requestID: "desk-req-0007", token: token, access: access, scope: scope,
-                                                 detail: detail, check: {})
+                                                 reserved: reserved, detail: detail, authorizationGeneration: UUID(), check: {})
             XCTFail("other price")
         } catch {
-            XCTAssertEqual(error as? MerchantBusinessFailure, .disabled)
+            XCTAssertEqual(error as? MerchantBusinessFailure, .invalid)
         }
         let stillIdle = await wire.requests
         XCTAssertTrue(stillIdle.isEmpty)
-        let receipt = try await produced.executeDeskSku(mutation, requestID: "desk-req-0007", token: token,
-                                                       access: access, scope: scope, detail: detail, check: {})
-        let data = try XCTUnwrap(receipt.data.object)
-        XCTAssertEqual(data["action"], .string("SKU_SAVE"))
-        XCTAssertEqual(data["targetId"]?.integer, 44 as Int?)
-        let sent = await wire.requests
-        XCTAssertEqual(sent.count, 1)
-        XCTAssertEqual(sent.first?.url?.path, "/api/merchant/desk/products/sku/save")
-        let body = String(decoding: try XCTUnwrap(sent.first?.httpBody), as: UTF8.self)
-        XCTAssertTrue(body.contains("\"price\":\"88.00\""))
-        XCTAssertFalse(body.contains("ownerMemberId"))
+        do {
+            _ = try await produced.executeDeskSku(mutation, requestID: "desk-req-0007", token: token,
+                                                 access: access, scope: scope, reserved: reserved, detail: detail,
+                                                 authorizationGeneration: UUID(), check: {})
+            XCTFail("empty detail is not a saved sku")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .invalid)
+        }
+        let afterEmpty = await wire.requests
+        XCTAssertTrue(afterEmpty.isEmpty)
     }
 
     func testDeskConfirmSendsTheFrozenSkuOnTheReviewedTransport() async throws {
@@ -667,15 +667,58 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
             return
         }
         await desk.confirm(access: access, token: token)
+        guard case .failed(.disabled) = desk.phase else {
+            XCTFail("memory journal cannot produce")
+            return
+        }
+        let sent = await wire.requests
+        XCTAssertTrue(sent.isEmpty)
+        XCTAssertTrue(try journal.intents().isEmpty)
+    }
+
+    func testDurableJournalDeskConfirmSendsTheReviewedSave() async throws {
+        let url = URL(string: "https://example.com")!
+        let token = "test-token"
+        let reads = DeskSkuEntryTransport()
+        let readService = try MerchantBusinessService(configuration: .init(baseURL: url), readTransport: reads)
+        let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: token)
+        let ticket = UUID()
+        let context = RuntimeDependencyContext(market: .china, baseURL: url, role: "merchant",
+                                               session: try .init(accountID: 7, epoch: 1, namespace: "merchant-cn", token: token))
+        let mutation = MerchantBusinessMutation.saveSku(productID: 3, skuID: 44, name: "door", price: "88.00", stock: 2,
+                                                        originalPrice: "100.00", pic: "media-asset:1", bookable: false,
+                                                        slotMinutes: 30, capacityPerSlot: 2, ruleVersion: 3)
+        let path = try mutation.request(requestID: "grant-validation").path
+        let approval = try MerchantBusinessProductionApproval(
+            market: .china,
+            endpoints: .init(baseURL: url, namespace: "merchant-cn", accountID: 7, paths: [path]),
+            grants: [try .init(merchantID: 9, mutation: mutation)],
+            reviewedPolicyVersion: "policy-1")
+        let wire = DeskProductionWire()
+        let factory = MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: approval, transport: wire, current: { context })
+        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9)]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let journal = MerchantBusinessFileIntentStore(url: folder.appendingPathComponent("intents.json"))
+        let desk = MerchantDeskSkuDesk(service: readService, journal: journal,
+                                      scope: MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1),
+                                      production: { change, merchantID in
+            factory.service(for: change, merchantID: merchantID)
+        }, currentSession: { session }, authorizationGeneration: { ticket })
+        await desk.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2),
+                        access: access, accountID: 7, token: token)
+        await desk.confirm(access: access, token: token)
         guard case .applied(_, 44) = desk.phase else {
-            XCTFail("applied")
+            XCTFail("durable applied")
             return
         }
         let sent = await wire.requests
         XCTAssertEqual(sent.count, 1)
-        XCTAssertEqual(sent.first?.url?.path, "/api/merchant/desk/products/sku/save")
-        let readPaths = await reads.paths
-        XCTAssertFalse(readPaths.contains { $0.hasSuffix("/sku/save") })
         XCTAssertTrue(try journal.intents().isEmpty)
     }
 }

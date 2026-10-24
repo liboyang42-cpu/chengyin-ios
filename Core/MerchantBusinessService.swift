@@ -84,17 +84,29 @@ public struct MerchantBusinessService {
     /// The synthetic transport stays on the test service and is not a production grant.
     @MainActor func executeDeskSku(_ mutation: MerchantBusinessMutation, requestID: String, token: String,
                                    access: MerchantBusinessAccess, scope: MerchantBusinessScope,
-                                   detail: MerchantBusinessValue,
+                                   reserved: MerchantBusinessIntent, detail: MerchantBusinessValue,
+                                   authorizationGeneration: UUID?,
                                    check: @escaping () throws -> Void) async throws -> MerchantBusinessReceipt {
-        guard case .saveSku = mutation else { throw MerchantBusinessFailure.invalid }
+        guard case .saveSku(let productID, let skuID, let name, _, _, _, _, _, _, _, _) = mutation else {
+            throw MerchantBusinessFailure.invalid
+        }
         guard access.role == "MERCHANT_OWNER" else { throw MerchantBusinessFailure.denied }
         try access.require(mutation.permissions)
-        guard detail.object?["productId"]?.integer != nil else { throw MerchantBusinessFailure.invalid }
+        guard reserved.requestID == requestID, reserved.merchantID == access.merchantID,
+              reserved.target == "sku:\(skuID)" || reserved.target == "sku:\(skuID)|product:\(productID)" else {
+            throw MerchantBusinessFailure.invalid
+        }
+        guard let row = detail.object?["skus"]?.array?.compactMap(\.object).first(where: { $0["skuId"]?.integer == skuID }),
+              detail.object?["productId"]?.integer == productID,
+              row["skuName"]?.string == name else {
+            throw MerchantBusinessFailure.invalid
+        }
         try check()
         if let productionTransport {
+            guard let authorizationGeneration else { throw MerchantBusinessFailure.disabled }
             guard productionTransport.permits(mutation, merchantID: access.merchantID) else { throw MerchantBusinessFailure.disabled }
             let snapshot = MerchantBusinessSnapshot(access: access, document: try MerchantBusinessDocument(query: .overview, payload: detail))
-            let review = MerchantBusinessConfirmation(id: UUID(), authorizationGeneration: nil, journalRealm: scope.realm,
+            let review = MerchantBusinessConfirmation(id: UUID(), authorizationGeneration: authorizationGeneration, journalRealm: scope.realm,
                                                       mutation: mutation, requestID: requestID,
                                                       request: try mutation.request(requestID: requestID), scope: scope, baseline: snapshot)
             let authorization = MerchantBusinessDispatchAuthorization(review, check: check)

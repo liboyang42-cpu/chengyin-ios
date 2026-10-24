@@ -40,6 +40,9 @@ import Foundation
     private let journey = MerchantSkuSaveJourney()
     private let scope: MerchantBusinessScope
     private let production: @MainActor (MerchantBusinessMutation, Int) -> MerchantBusinessService?
+    private let currentSession: @MainActor () -> MerchantBusinessSession?
+    private let authorizationGeneration: @MainActor () -> UUID?
+    private let onUnauthorized: @MainActor (MerchantBusinessSession) -> Void
     private var generation: UInt64 = 0
     @Published public private(set) var phase: Phase = .idle
     /// Detail rule version after a successful receipt. It does not replace the receipt.
@@ -50,15 +53,25 @@ import Foundation
     private var baselineRuleVersion: Int?
 
     public init(service: MerchantBusinessService, journal: any MerchantBusinessIntentStore, scope: MerchantBusinessScope,
-                production: @escaping @MainActor (MerchantBusinessMutation, Int) -> MerchantBusinessService? = { _, _ in nil }) {
+                production: @escaping @MainActor (MerchantBusinessMutation, Int) -> MerchantBusinessService? = { _, _ in nil },
+                currentSession: @escaping @MainActor () -> MerchantBusinessSession? = { nil },
+                authorizationGeneration: @escaping @MainActor () -> UUID? = { nil },
+                onUnauthorized: @escaping @MainActor (MerchantBusinessSession) -> Void = { _ in }) {
         self.service = service
         self.journal = journal
         self.scope = scope
         self.production = production
+        self.currentSession = currentSession
+        self.authorizationGeneration = authorizationGeneration
+        self.onUnauthorized = onUnauthorized
     }
 
-    /// Exit or cancel. A late result from this generation cannot clear the journal.
-    public func retire() { generation &+= 1 }
+    /// Exit or cancel. A late result from this generation cannot clear the journal or reuse the frozen detail.
+    public func retire() {
+        generation &+= 1
+        sourceDetail = nil
+        if case .frozen = phase { phase = .idle }
+    }
 
     public func present(productID: Int, skuID: Int, access: MerchantBusinessAccess, accountID: Int64, token: String) async {
         guard access.role == "MERCHANT_OWNER", accountID > 0, accountID != Int64(access.merchantID),
@@ -90,7 +103,7 @@ import Foundation
             sourceDetail = detail
             baselineName = name
             baselineStock = stock
-            baselineRuleVersion = row["ruleVersion"]?.integer
+            baselineRuleVersion = missing(row, "ruleVersion") ? nil : strictNumber(row["ruleVersion"])
         } catch let error as APIError where error == .unauthorized {
             if same(started) { retire() }
         } catch let error as MerchantBusinessFailure {
@@ -133,13 +146,14 @@ import Foundation
             }
             baselineName = name
             baselineStock = row["stock"]?.integer
-            baselineRuleVersion = row["ruleVersion"]?.integer
+            baselineRuleVersion = missing(row, "ruleVersion") ? nil : strictNumber(row["ruleVersion"])
             let requestID = "desk-" + UUID().uuidString.lowercased()
             guard let intent = journey.freeze(access: access, accountID: accountID, productID: Int64(productID),
                                                skuID: Int64(skuID), requestID: requestID, skuName: edit.skuName,
                                                price: edit.price, stock: edit.stock, originalPrice: kept.originalPrice,
                                                pic: kept.pic, bookable: kept.bookable, slotMinutes: kept.slotMinutes,
-                                               capacityPerSlot: kept.capacityPerSlot, ruleVersion: row["ruleVersion"]?.integer) else {
+                                               capacityPerSlot: kept.capacityPerSlot,
+                                               ruleVersion: missing(row, "ruleVersion") ? nil : strictNumber(row["ruleVersion"])) else {
                 phase = .failed(.invalid)
                 return
             }
@@ -168,6 +182,14 @@ import Foundation
             return
         }
         let writer = reviewed ?? service
+        if reviewed != nil {
+            guard journal.isDurable, currentSession() != nil, authorizationGeneration() != nil else {
+                phase = .failed(.disabled)
+                return
+            }
+        }
+        let capturedSession = currentSession()
+        let capturedAuthorization = authorizationGeneration()
         let stored = storedIntent(intent, merchantID: access.merchantID)
         guard let sku = Int(exactly: intent.skuID), let product = Int(exactly: intent.productID),
               let detail = sourceDetail else {
@@ -209,10 +231,15 @@ import Foundation
         }
         do {
             let receipt = try await writer.executeDeskSku(change, requestID: intent.requestID, token: token,
-                                                           access: access, scope: scope, detail: detail, check: { [started] in
+                                                           access: access, scope: scope, reserved: stored, detail: detail,
+                                                           authorizationGeneration: capturedAuthorization, check: { [started] in
                 guard started == self.generation else { throw MerchantBusinessFailure.stale }
+                if let capturedSession, self.currentSession() != capturedSession { throw MerchantBusinessFailure.stale }
+                if let capturedAuthorization, self.authorizationGeneration() != capturedAuthorization { throw MerchantBusinessFailure.stale }
             })
             guard same(started) else { return }
+            if let capturedSession, currentSession() != capturedSession { return }
+            if let capturedAuthorization, authorizationGeneration() != capturedAuthorization { return }
             guard appliedTarget(receipt.data, requestID: intent.requestID, skuID: intent.skuID) != nil else {
                 phase = .unknown(requestID: intent.requestID)
                 return
@@ -225,10 +252,11 @@ import Foundation
             guard same(started) else { return }
             phase = .applied(requestID: intent.requestID, skuID: intent.skuID)
         } catch let error as APIError where error == .unauthorized {
-            if same(started) {
-                phase = .unknown(requestID: intent.requestID)
-                retire()
+            if let capturedSession, currentSession() == capturedSession {
+                onUnauthorized(capturedSession)
+                if same(started) { retire() }
             }
+            if same(started) { phase = .unknown(requestID: intent.requestID) }
         } catch {
             if same(started) { phase = .unknown(requestID: intent.requestID) }
         }
@@ -330,24 +358,34 @@ import Foundation
     }
 
     private func kept(_ row: MerchantBusinessObject) -> Kept? {
-        let bookable = flag(row["bookable"])
-        let slot = row["slotMinutes"]?.integer
-        let capacity = row["capacityPerSlot"]?.integer
-        let rule = row["ruleVersion"]?.integer
-        if bookable == nil, slot == nil, capacity == nil, rule == nil {
+        let keys = ["bookable", "slotMinutes", "capacityPerSlot", "ruleVersion"]
+        if keys.allSatisfy({ missing(row, $0) }) {
             return Kept(originalPrice: moneyText(row["originalPrice"]), pic: row["pic"]?.string,
                         bookable: false, slotMinutes: 60, capacityPerSlot: 0)
         }
-        guard let bookable, let slot, let capacity else { return nil }
+        guard let bookable = flag(row["bookable"]),
+              let slot = strictNumber(row["slotMinutes"]),
+              let capacity = strictNumber(row["capacityPerSlot"]),
+              strictNumber(row["ruleVersion"]) != nil else { return nil }
         return Kept(originalPrice: moneyText(row["originalPrice"]), pic: row["pic"]?.string,
                     bookable: bookable, slotMinutes: slot, capacityPerSlot: capacity)
     }
 
+    private func missing(_ row: MerchantBusinessObject, _ key: String) -> Bool {
+        row[key] == nil || row[key] == .null
+    }
+
+    private func strictNumber(_ value: MerchantBusinessValue?) -> Int? {
+        guard case .number(let amount) = value else { return nil }
+        let whole = NSDecimalNumber(decimal: amount).intValue
+        guard Decimal(whole) == amount else { return nil }
+        return whole
+    }
+
     private func flag(_ value: MerchantBusinessValue?) -> Bool? {
         if let bool = value?.bool { return bool }
-        if value?.integer == 1 { return true }
-        if value?.integer == 0 { return false }
-        return nil
+        guard let whole = strictNumber(value), whole == 0 || whole == 1 else { return nil }
+        return whole == 1
     }
 
     private func moneyText(_ value: MerchantBusinessValue?) -> String? {
