@@ -115,4 +115,39 @@ final class WebhookSameEventRetryTests: XCTestCase {
         XCTAssertEqual(retry.producer.originalByEventID.count, 1)
         XCTAssertEqual(retried.eventId, "evt-retry-never-c09")
     }
+
+    func testUnusedRetrySameEventOfNeverSeenDoesNotOccupyThenUniqueDeliverApplies() throws {
+        let transport = WebhookDeliveryLogProducer.RecordingTransport(statusCode: 204, body: "ok")
+        var retry = WebhookSameEventRetry(producer: WebhookDeliveryLogProducer(
+            transport: transport, nonceSource: { _ in "nonce-retry-unused" }))
+        let config = WebhookDeliveryLogProducer.fixtureConfig()
+        let hops = [WebhookSsrfHopGuard.publicHop()]
+        XCTAssertThrowsError(try retry.retrySameEvent("evt-retry-unused-c09", config: config, hops: hops)) { error in
+            XCTAssertEqual(error as? NotifyFailure, .originalMissing("evt-retry-unused-c09"))
+        }
+        XCTAssertTrue(retry.producer.originalByEventID.isEmpty, "未见同事件 retrySameEvent 观察不得占账")
+        XCTAssertNil(retry.producer.originalByEventID["evt-retry-unused-c09"])
+        XCTAssertEqual(transport.urls.count, 0)
+        let unused = retry.recoverOriginal(
+            originalRequestID: "evt-retry-unused-c09",
+            appliedProjection: ImmutableReceiptProducer.projectionApplied,
+            config: config, hops: hops)
+        XCTAssertFalse(unused.recovered())
+        XCTAssertEqual(unused.note, WebhookSameEventRetry.unknownNotRecovered)
+        XCTAssertNil(unused.log)
+        XCTAssertTrue(retry.producer.originalByEventID.isEmpty)
+        let first = try retry.producer.deliver(
+            config,
+            event: WebhookDeliveryLogProducer.OriginalEvent(
+                eventId: "evt-retry-unused-c09", kind: "PIN", originalBody: "original-body"),
+            hops: hops)
+        XCTAssertEqual(first.eventId, "evt-retry-unused-c09")
+        XCTAssertEqual(first.status, WebhookDeliveryLogProducer.statusDelivered)
+        XCTAssertEqual(first.attemptCount, 1)
+        XCTAssertEqual(retry.producer.originalByEventID.count, 1)
+        let retried = try retry.retrySameEvent("evt-retry-unused-c09", config: config, hops: hops)
+        XCTAssertTrue(retry.keepsOriginalIds(first, retried))
+        XCTAssertEqual(retried.attemptCount, 2)
+        XCTAssertEqual(retry.producer.originalByEventID.count, 1)
+    }
 }

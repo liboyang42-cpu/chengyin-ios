@@ -125,6 +125,7 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         self.assertIn("evt-dlv-never-c09", delivery)
         retry = self.sources["Tests/CoreTests/WebhookSameEventRetryTests.swift"]
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueDeliverApplies", retry)
+        self.assertIn("testUnusedRetrySameEventOfNeverSeenDoesNotOccupyThenUniqueDeliverApplies", retry)
         self.assertIn("evt-retry-never-c09", retry)
 
     def test_core_isolation_contracts(self):
