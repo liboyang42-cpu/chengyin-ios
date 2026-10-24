@@ -122,14 +122,14 @@ public enum GameReceiptOriginalRecovery {
         memberID: Int64?,
         activityID: Int64?,
         requestID: String?,
-        receipt: ((Int64, Int64, String) -> (outcome: String, replayed: Bool)?)?
+        receipt: ((Int64, Int64, String) -> (requestID: String, outcome: String, replayed: Bool)?)?
     ) throws -> Read? {
         let trimmed = requestID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard let memberID, memberID > 0, let activityID, activityID > 0, !trimmed.isEmpty else { return nil }
         guard let receipt else {
             throw WaitingSource(capability: gameReceipt)
         }
-        guard let found = receipt(memberID, activityID, trimmed) else { return nil }
+        guard let found = receipt(memberID, activityID, trimmed), found.requestID == trimmed else { return nil }
         return Read(requestID: trimmed, outcome: found.outcome, replayed: found.replayed,
                     applied: found.outcome == "APPLIED")
     }

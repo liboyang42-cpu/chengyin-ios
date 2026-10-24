@@ -215,7 +215,7 @@ import FoundationNetworking
     func testRecoverFromGameReceiptReadsPendingWithoutApplying() throws {
         XCTAssertNil(try GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 0, activityID: 11, requestID: "game-req-01",
-            receipt: { _, _, _ in ("APPLIED", true) }))
+            receipt: { _, _, _ in ("game-req-01", "APPLIED", true) }))
         do {
             _ = try GameReceiptOriginalRecovery.recoverFromGameReceipt(
                 memberID: 7, activityID: 11, requestID: "game-req-01", receipt: nil)
@@ -225,14 +225,17 @@ import FoundationNetworking
         }
         let pending = try GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 7, activityID: 11, requestID: "c02-game-missing",
-            receipt: { _, _, _ in ("PENDING", false) })
+            receipt: { _, _, id in (id, "PENDING", false) })
         XCTAssertEqual(pending?.outcome, "PENDING")
         XCTAssertEqual(pending?.applied, false)
         let applied = try GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 7, activityID: 11, requestID: "game-req-01",
-            receipt: { _, _, id in id == "game-req-01" ? ("APPLIED", true) : nil })
+            receipt: { _, _, id in id == "game-req-01" ? (id, "APPLIED", true) : ("other-request", "APPLIED", true) })
         XCTAssertEqual(applied?.applied, true)
         XCTAssertEqual(applied?.replayed, true)
+        XCTAssertNil(try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+            memberID: 7, activityID: 11, requestID: "c02-game-other",
+            receipt: { _, _, _ in ("other-request", "APPLIED", true) }))
     }
 }
 
