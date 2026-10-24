@@ -99,6 +99,7 @@ public struct CompensationEntryProjection {
     public static let frozenTerms = "clubEditionCompensation.requireFrozenTerms"
     public static let extraApprove = "extraApprover.canApproveExtraHours"
     public static let auditTrail = "auditTrail.trail"
+    public static let auditResourceBinding = "auditTrail.resourceBinding"
 
     public protocol FrozenTermsSource {
         func requireFrozenTerms(topicId: Int64) -> FrozenCompensationTerms?
@@ -258,9 +259,6 @@ public struct CompensationEntryProjection {
         guard bizId == authorized.topicId else {
             throw CompensationEntryFailure.denied
         }
-        guard let trail else {
-            throw WaitingSource(capability: Self.auditTrail)
-        }
-        return trail(type, bizId)
+        throw WaitingSource(capability: Self.auditResourceBinding)
     }
 }

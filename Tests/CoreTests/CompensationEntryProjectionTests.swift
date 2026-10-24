@@ -204,18 +204,19 @@ final class CompensationEntryProjectionTests: XCTestCase {
         XCTAssertEqual(reads, 0)
         do {
             _ = try projection.recoverTrail(
-                authorized: authorized, viewer: grant, bizType: "ACTIVITY", bizId: 10, trail: nil)
-            XCTFail("missing trail must WAITING_SOURCE")
+                authorized: authorized, viewer: grant, bizType: "ACTIVITY", bizId: 10, trail: counting)
+            XCTFail("unbound bizType must not read")
         } catch let waiting as CompensationEntryProjection.WaitingSource {
-            XCTAssertEqual(waiting.capability, CompensationEntryProjection.auditTrail)
+            XCTAssertEqual(waiting.capability, CompensationEntryProjection.auditResourceBinding)
         }
-        let rows = try projection.recoverTrail(
-            authorized: authorized, viewer: grant, bizType: " ACTIVITY ", bizId: 10, trail: { type, id in
-                reads += 1
-                return type == "ACTIVITY" && id == 10 ? ["COMPENSATION_FREEZE"] : []
-            })
-        XCTAssertEqual(rows, ["COMPENSATION_FREEZE"])
-        XCTAssertEqual(reads, 1)
+        do {
+            _ = try projection.recoverTrail(
+                authorized: authorized, viewer: grant, bizType: "ORDER", bizId: 10, trail: counting)
+            XCTFail("another bizType with the same id must not read")
+        } catch let waiting as CompensationEntryProjection.WaitingSource {
+            XCTAssertEqual(waiting.capability, CompensationEntryProjection.auditResourceBinding)
+        }
+        XCTAssertEqual(reads, 0)
     }
 
     private func frozenTerms() -> FrozenCompensationTerms {
