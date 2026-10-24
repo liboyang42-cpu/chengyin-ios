@@ -554,6 +554,63 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
             return
         }
     }
+
+    func testProductionDeskSkuUsesTheReviewedTransport() async throws {
+        let url = URL(string: "https://example.com")!
+        let token = "test-token"
+        let context = RuntimeDependencyContext(market: .china, baseURL: url, role: "merchant",
+                                               session: try .init(accountID: 7, epoch: 1, namespace: "merchant-cn", token: token))
+        let mutation = MerchantBusinessMutation.saveSku(productID: 3, skuID: 44, name: "door", price: "88.00", stock: 2,
+                                                        originalPrice: "100.00", pic: "media-asset:1", bookable: false,
+                                                        slotMinutes: 30, capacityPerSlot: 2, ruleVersion: 3)
+        let path = try mutation.request(requestID: "grant-validation").path
+        let approval = try MerchantBusinessProductionApproval(
+            market: .china,
+            endpoints: .init(baseURL: url, namespace: "merchant-cn", accountID: 7, paths: [path]),
+            grants: [try .init(merchantID: 9, mutation: mutation)],
+            reviewedPolicyVersion: "policy-1")
+        let wire = DeskProductionWire()
+        let factory = MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: approval, transport: wire, current: { context })
+        let produced = try XCTUnwrap(factory.service(for: mutation, merchantID: 9))
+        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9)]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
+        do {
+            _ = try await produced.execute(mutation, requestID: "desk-req-0007", token: token)
+            XCTFail("direct execute")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .disabled)
+        }
+        let idle = await wire.requests
+        XCTAssertTrue(idle.isEmpty)
+        let other = MerchantBusinessMutation.saveSku(productID: 3, skuID: 44, name: "door", price: "99.00", stock: 2,
+                                                     originalPrice: "100.00", pic: "media-asset:1", bookable: false,
+                                                     slotMinutes: 30, capacityPerSlot: 2, ruleVersion: 3)
+        do {
+            _ = try await produced.executeDeskSku(other, requestID: "desk-req-0007", token: token, access: access, scope: scope, check: {})
+            XCTFail("other price")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .disabled)
+        }
+        let stillIdle = await wire.requests
+        XCTAssertTrue(stillIdle.isEmpty)
+        let receipt = try await produced.executeDeskSku(mutation, requestID: "desk-req-0007", token: token,
+                                                       access: access, scope: scope, check: {})
+        let data = try XCTUnwrap(receipt.data.object)
+        XCTAssertEqual(data["action"], .string("SKU_SAVE"))
+        XCTAssertEqual(data["targetId"]?.integer, 44 as Int?)
+        let sent = await wire.requests
+        XCTAssertEqual(sent.count, 1)
+        XCTAssertEqual(sent.first?.url?.path, "/api/merchant/desk/products/sku/save")
+        let body = String(decoding: try XCTUnwrap(sent.first?.httpBody), as: UTF8.self)
+        XCTAssertTrue(body.contains("\"price\":\"88.00\""))
+        XCTAssertFalse(body.contains("ownerMemberId"))
+    }
 }
 
 private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
@@ -596,5 +653,16 @@ private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
             return (Data(json.utf8), 200)
         }
         return (Data(#"{"code":404,"msg":"missing","data":null}"#.utf8), 200)
+    }
+}
+
+private actor DeskProductionWire: HTTPTransport {
+    var requests: [URLRequest] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        let fields = try JSONDecoder().decode(MerchantBusinessObject.self, from: request.httpBody ?? Data())
+        let requestID = fields["requestId"]?.string ?? ""
+        let json = #"{"code":200,"data":{"requestId":"\#(requestID)","state":"APPLIED","action":"SKU_SAVE","targetType":"pms_sku","targetId":44}}"#
+        return (Data(json.utf8), 200)
     }
 }
