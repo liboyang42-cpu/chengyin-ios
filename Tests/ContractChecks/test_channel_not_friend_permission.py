@@ -100,6 +100,7 @@ class ChannelNotFriendPermissionContracts(unittest.TestCase):
         self.assertIn('testCatalogedGrantDoesNotOccupyThenUniqueAuthorizeApplies', tests)
         self.assertIn('testUnusedAppealDoesNotOccupyBanThenUniqueBanApplies', tests)
         self.assertIn('testUnusedCatalogedLeaveDoesNotOccupyThenUniqueLeaveApplies', tests)
+        self.assertIn('testUnusedCatalogedInviteDoesNotOccupyApplicantThenUniqueSubmitApplies', tests)
         self.assertIn('testMissingACCOUNT4StaysMismatchNeverEmptyIdentity', tests)
         self.assertIn('account4Mismatch', tests)
         governance = self.read('Core/ChannelGovernanceProjection.swift')
