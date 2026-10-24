@@ -7,7 +7,7 @@ final class WorkshopOriginalLedgerSplitTests: XCTestCase {
 
     func testAppliedCommandDoesNotGrantServerPassAndMissingStaysPending() async throws {
         let source = LedgerRead()
-        source.game = Data(#"{"receiptId":"4","activityId":"9","requestId":"req-1","action":"MOVE","outcome":"APPLIED","replayed":false,"revision":"2"}"#.utf8)
+        source.game = Data(#"{"receiptId":"4","activityId":"9","requestId":"req-1","action":"MOVE","outcome":"APPLIED","replayed":false,"revision":"2","result":{}}"#.utf8)
         let split = WorkshopOriginalLedgerSplit()
         let applied = try await split.readGameSession(activityID: 9, memberID: 3, requestID: "req-1", source: source)
         XCTAssertEqual(applied.outcome, "APPLIED")
@@ -23,8 +23,9 @@ final class WorkshopOriginalLedgerSplitTests: XCTestCase {
 
     func testAdvancedProvenanceIsNotACommandReceipt() async throws {
         let source = LedgerRead()
+        let provenance = #"{"schema":"mod-installation-native-runtime-v1","status":"SUPPORTED","kind":"CHOICE","sourceHash":"\#(hash)","runHash":"\#(runHash)","sessionId":"8","activityId":"1","topicId":"2","nodeId":"5"}"#
         source.advanced = Data("""
-        {"schema":"mod-installation-native-runtime-v1","status":"SUPPORTED","kind":"CHOICE","sourceHash":"\(hash)","runHash":"\(runHash)","sessionId":"8","activityId":"1","topicId":"2","nodeId":"5"}
+        {"sessionId":"8","activityId":"1","topicId":"2","nodeId":"5","status":"RUNNING","modInstallationRuntime":\(provenance)}
         """.utf8)
         let fact = try await WorkshopOriginalLedgerSplit().readAdvanced(sessionID: 8, memberID: 3, source: source)
         XCTAssertFalse(fact.isCommandReceipt)

@@ -267,6 +267,7 @@ class C10WorkshopH5Contracts(unittest.TestCase):
     def test_three_original_ledgers_do_not_mint_a_server_pass(self):
         split = self.sources["Core/WorkshopOriginalLedgerSplit.swift"]
         tests = self.sources["Tests/CoreTests/WorkshopOriginalLedgerSplitTests.swift"]
+        self.assertIn("modInstallationRuntime", split)
         self.assertIn("mod-installation-native-runtime-v1", split)
         self.assertIn("object[\"sessionId\"]", split)
         self.assertIn("APPLIED only means the command was applied", split)

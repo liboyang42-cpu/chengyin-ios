@@ -93,6 +93,7 @@ public struct WorkshopOriginalLedgerSplit: Sendable {
         if outcome == "FAILED" {
             guard let reasonCode, !reasonCode.isEmpty else { throw WorkshopOriginalLedgerError.unknown }
         }
+        guard object["result"] is [String: Any] else { throw WorkshopOriginalLedgerError.unknown }
         return WorkshopGameSessionFact(receiptID: receiptID, activityID: activityID, memberID: memberID,
                                        requestID: requestID, action: action, outcome: outcome!,
                                        reasonCode: reasonCode,
@@ -103,18 +104,24 @@ public struct WorkshopOriginalLedgerSplit: Sendable {
                              source: any WorkshopOriginalLedgerReading) async throws -> WorkshopAdvancedProvenance {
         guard sessionID > 0, memberID > 0 else { throw WorkshopOriginalLedgerError.invalid }
         guard let data = try await source.advancedState(sessionID: sessionID, memberID: memberID),
-              let object = jsonObject(data),
-              !mixes(object, foreign: ["outcome", "requestId", "moduleId", "contentHash", "session", "topic", "node"]) else {
+              let object = jsonObject(data) else { throw WorkshopOriginalLedgerError.unknown }
+        if mixes(object, foreign: ["session", "topic", "node"]) {
             throw WorkshopOriginalLedgerError.mixed
         }
-        guard object["schema"] as? String == "mod-installation-native-runtime-v1",
-              object["status"] as? String == "SUPPORTED",
-              let sourceHash = object["sourceHash"] as? String, WorkshopModuleImportGate.sha256Hex(sourceHash),
-              let runHash = object["runHash"] as? String, WorkshopModuleImportGate.sha256Hex(runHash),
-              exactLong(object["sessionId"]) == sessionID,
-              let topicID = exactLong(object["topicId"]),
-              let nodeID = exactLong(object["nodeId"]),
-              exactLong(object["activityId"]) != nil else {
+        guard exactLong(object["sessionId"]) == sessionID,
+              let runtime = object["modInstallationRuntime"] as? [String: Any] else {
+            throw WorkshopOriginalLedgerError.unknown
+        }
+        guard runtime["schema"] as? String == "mod-installation-native-runtime-v1",
+              runtime["status"] as? String == "SUPPORTED",
+              let sourceHash = runtime["sourceHash"] as? String, WorkshopModuleImportGate.sha256Hex(sourceHash),
+              let runHash = runtime["runHash"] as? String, WorkshopModuleImportGate.sha256Hex(runHash),
+              exactLong(runtime["sessionId"]) == sessionID,
+              let topicID = exactLong(runtime["topicId"]),
+              let nodeID = exactLong(runtime["nodeId"]),
+              exactLong(runtime["activityId"]) == exactLong(object["activityId"]),
+              exactLong(runtime["topicId"]) == exactLong(object["topicId"]),
+              exactLong(runtime["nodeId"]) == exactLong(object["nodeId"]) else {
             throw WorkshopOriginalLedgerError.unknown
         }
         let kind = object["kind"] as? String
