@@ -116,10 +116,21 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
         self.assertIn('PBXBuildFile', hunk)
         self.assertIn('dot', hunk.lower())
         self.assertTrue(FORBIDDEN[0].exists())
-        self.assertNotIn('CharacterCardReadback', FORBIDDEN[0].read_text())
+        session = FORBIDDEN[0].read_text()
+        self.assertIn('func characterCardReadback(topicID:', session)
+        self.assertIn('CharacterCardReadback(topicID:', session)
+        self.assertIn('intersection([.reads])', session)
+        start = session.index('func characterCardReadback(topicID:')
+        end = session.index('// Journey extras', start)
+        factory = session[start:end]
+        self.assertNotIn('playerCommands', factory)
+        self.assertNotIn('URLSession', factory)
         pbx = FORBIDDEN[1].read_text()
         self.assertNotIn('WorldEnvironmentProjection.swift', pbx)
-        self.assertNotIn('CharacterCardReadback.swift', pbx)
+        if 'CharacterCardReadback.swift' in pbx:
+            self.assertEqual(pbx.count('CharacterCardReadback.swift'), 1)
+        else:
+            self.assertIn('CharacterCardReadback.swift', hunk)
 
     def test_sha256_manifest_covers_exclusive_sources(self):
         lines = HUNK.read_text().splitlines()

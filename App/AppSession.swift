@@ -395,6 +395,24 @@ final class AppSession: ObservableObject {
         playExperienceCoordinators[key] = coordinator
         return coordinator
     }
+    /// Read-only character card on the existing play session. Writes stay off.
+    func characterCardReadback(topicID: Int, activityID: Int?, scope: PlaySessionScope) -> CharacterCardReadback? {
+        guard topicID > 0, scope.isValid, let regional = regionalConfiguration,
+              let configuration = regional.apiConfiguration, let storageScope,
+              let factory = playReadDependencyFactory, factory.accepted?.play.contains(.reads) == true,
+              composition.reviewed?.reads.contains(.playNodesAndRouteState) == true,
+              currentPlayReadApprovalKey != nil else { return nil }
+        let current: () -> PlayExperienceSession? = { [weak self] in
+            guard let self, !self.committingAuthenticatedSession, self.currentPlayReadApprovalKey != nil,
+                  let account = self.account, let token = self.token,
+                  let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole) else { return nil }
+            return try? PlayExperienceSession(accountID: account.id, epoch: self.gate.currentStamp,
+                namespace: storageScope.service, token: token, role: role.rawValue)
+        }
+        let api = PlayExperienceService(configuration: configuration, transport: factory.transport,
+            enabled: factory.accepted?.play.intersection([.reads]) ?? [])
+        return CharacterCardReadback(topicID: topicID, activityID: activityID, service: api, currentSession: current)
+    }
     // Journey extras are independent of task completion, advanced games and local dice.
     private var retainedJourneyNarratives: [String: JourneyNarrativeCoordinator] = [:]
     var journeyNarrativeImageReader: (any RetainedPublicImageReading)? { runtimeDependencies.journeyNarrativeImageReader }
