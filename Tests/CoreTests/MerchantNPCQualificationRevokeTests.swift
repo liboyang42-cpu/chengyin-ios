@@ -80,6 +80,32 @@ import XCTest
         XCTAssertNil(qualification.cachedPrivate(scope))
     }
 
+    func testCachedPublicOfNeverSeenScopeDoesNotOccupyThenUniqueRememberPublishedApplies() throws {
+        let qualification = MerchantNPCQualificationRevoke()
+        XCTAssertNil(qualification.cachedPublic(scope), "未见 scope 不得占 public cache")
+        XCTAssertNil(qualification.cachedPrivate(scope))
+        let mismatched = MerchantNPCPublishedRevision(
+            revision: UUID(),
+            scope: MerchantNPCScope(
+                accountID: 999, namespace: scope.namespace, epoch: UUID(),
+                merchantRowID: scope.merchantRowID, accessRevision: UUID()
+            ),
+            facts: try draft().validatedPublicFactsJSON()
+        )
+        qualification.rememberPublished(mismatched, scope: scope)
+        XCTAssertNil(qualification.cachedPublic(scope), "scope 不一致不得占 public cache")
+        let first = MerchantNPCPublishedRevision(
+            revision: UUID(), scope: scope, facts: try draft().validatedPublicFactsJSON()
+        )
+        qualification.rememberPublished(first, scope: scope)
+        XCTAssertEqual(qualification.cachedPublic(scope)?.revision, first.revision)
+        let other = MerchantNPCScope(
+            accountID: 999, namespace: scope.namespace, epoch: UUID(),
+            merchantRowID: scope.merchantRowID, accessRevision: UUID()
+        )
+        XCTAssertNil(qualification.cachedPublic(other), "另一未见 scope 仍不得占账")
+    }
+
     @MainActor private final class RecordingPublisher: MerchantNPCOriginalReviewPublishing {
         var facts: [UUID: Data] = [:]
         func submitForOriginalReview(_ draft: MerchantNPCKnowledgeDraft, requestID: UUID, scope: MerchantNPCScope) async throws -> MerchantNPCOriginalReviewTicket {

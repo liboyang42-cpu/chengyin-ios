@@ -89,6 +89,7 @@ class MerchantNPCDraftCannotPriceContracts(unittest.TestCase):
         self.assertIn('testRevokeClearsCacheSoOldDraftCannotServe', self.revoke_tests)
         self.assertIn('testChatCoordinatorDropsDisplayAfterQualificationRevoke', self.revoke_tests)
         self.assertIn('testOldDraftObjectCannotReenterPublicCacheAfterRevoke', self.revoke_tests)
+        self.assertIn('testCachedPublicOfNeverSeenScopeDoesNotOccupyThenUniqueRememberPublishedApplies', self.revoke_tests)
         self.assertIn('applyQualificationRevoke(qualification)', self.revoke_tests)
         self.assertIn('.qualificationRevoked', self.revoke_tests)
 
@@ -108,7 +109,7 @@ class MerchantNPCDraftCannotPriceContracts(unittest.TestCase):
 
     def test_authored_xctest_count_and_linux_not_run(self):
         self.assertEqual(self.gate_tests.count('func test'), 9)
-        self.assertEqual(self.revoke_tests.count('func test'), 3)
+        self.assertEqual(self.revoke_tests.count('func test'), 4)
         self.assertIn('Linux', Path(__file__).read_text())
         self.assertIn('NOT_RUN', Path(__file__).read_text())
 
