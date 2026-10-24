@@ -1,0 +1,60 @@
+# C11 event-host inject — DO NOT APPLY
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Base: origin/cursor/c11-event-source-inject-e504 db5ff40afe5dc15c56c9d299a18165c74707078b
+Branch: cursor/c11-event-host-inject-e504
+
+DO NOT APPLY this hunk. Do not edit App/AppSession.swift, App/AppCompositionRoot.swift, or Questify.xcodeproj/project.pbxproj from this branch.
+
+`Core/ProfileOrderEventHost.swift` is the real host. `ProfileOrderEventSourceInjection` stays the caller-held row injection and is not rewritten. WithdrawalSupportLandingView balance (`withdrawal.support.balance`) and stages (`withdrawal.support.notReceived`) stay unchanged.
+
+The host posts `api/registration/info` and, only when that info id equals the opened order, `api/registration/original-event`. It maps a returned row into the existing injection only when the first ORDER id equals the opened order. ProfileOrder fields are not OriginalAuditEvent. A mismatch, a transport failure, or an absent body does not invent an event and does not call /business/audit-log.
+
+## Why the session must pass the host
+
+`profileService` is private on AppSession (around line 2428). `SessionOwnedOrdersView` only has the session. The form POST that already serves `api/registration/info` can return response bytes to `ProfileOrderEventHost.open` only from inside AppSession. This branch does not add that method.
+
+## Withheld call site
+
+File: `App/AppSession.swift`, beside `ownedOrderReader` (around line 3106).
+File: `App/OwnedOrderComposition.swift` `SessionOwnedOrdersView`.
+Do not apply.
+
+```swift
+func openOwnedOrderOriginalEvent(_ openedOrderID: Int) async -> Int64? {
+    guard openedOrderID > 0, let token, AuthRequestBuilder.isValidToken(token) else { return nil }
+    var host = ProfileOrderEventHost()
+    return await host.open(openedOrderID) { path, id in
+        // Existing multipart form, field name "id", same signed-in token as registration info.
+        // Return the response body bytes. Do not decode ProfileOrder.
+        // Do not copy title, amount, or member id into OriginalAuditEvent.
+        try await self.postOwnedOrderForm(path: path, id: id, token: token)
+    }
+}
+```
+
+```
+         ProfileOrdersView(reader: session.ownedOrderReader, ticketReader: session.ticketWalletReader)
++            // session.openOwnedOrderOriginalEvent(openedOrderID) supplies the host.
++            // Apply only together with the AppSession method above.
+             .id(session.ownedOrderReader.identity)
+```
+
+`postOwnedOrderForm` is not a member of AppSession or ProfileService. Until that session method exists, the orders page keeps its current quiet lookup and this hunk stays unapplied.
+
+## Xcode ref (generator id only — do not edit pbxproj here)
+
+```
+Core/ProfileOrderEventHost.swift
+  PBXFileReference C7BA648D253BCD7E4FE8CCC4
+  PBXBuildFile     CAF2E94E0388E741B99F46FD  fileRef = C7BA648D253BCD7E4FE8CCC4
+
+Tests/CoreTests/ProfileOrderEventHostTests.swift
+  PBXFileReference 79F1DB25B05FF35FD22A0620
+  PBXBuildFile     374265D140DD0941F37DB4B8  fileRef = 79F1DB25B05FF35FD22A0620
+```
+
+`python3 tools/generate_project.py` emits the Core ids from `ident(path)` / `ident("build:"+path)`. Tests/CoreTests stay SwiftPM-only.
+
+App / XCTest / CI = NOT_RUN. swiftc was not required to land this file. Not 100%.
