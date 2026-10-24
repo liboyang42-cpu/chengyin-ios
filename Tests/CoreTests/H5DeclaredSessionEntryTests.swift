@@ -17,5 +17,12 @@ final class H5DeclaredSessionEntryTests: XCTestCase {
         XCTAssertThrowsError(try entry.gate.openArbitraryH5("https://evil.example")) { error in
             XCTAssertEqual(error as? H5SessionFailure, .arbitraryH5Forbidden)
         }
+        let hash = String(repeating: "ab", count: 32)
+        try entry.compareServerHash(serverFrozenHash: hash, expectedHash: hash, originalRequestID: "h5-answer-0001")
+        XCTAssertEqual(entry.answers.phase, .matched)
+        XCTAssertEqual(entry.answers.originalRequestID, "h5-answer-0001")
+        XCTAssertEqual(entry.rejectClientAnswers(["answer": "hidden"]), .answersMustNotShipInClientPack)
+        XCTAssertEqual(entry.answers.originalRequestID, "h5-answer-0001")
+        XCTAssertEqual(entry.answers.matchedHash, hash)
     }
 }
