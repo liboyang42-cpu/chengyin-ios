@@ -39,6 +39,9 @@ WHITELIST = CORE_FILES + TEST_FILES + [
     "Core/MerchantDeskReadEntry.swift",
     "Tests/CoreTests/MerchantDeskReadEntryTests.swift",
     "docs/issue5-hunks/C07-desk-read.hunk",
+    "Core/MerchantDeskSessionReadAdapter.swift",
+    "Tests/CoreTests/MerchantDeskSessionReadAdapterTests.swift",
+    "docs/issue5-hunks/C07-session-read-adapter.hunk",
 ]
 FORBIDDEN_TOUCH = [
     "Core/MerchantAftercareEvidenceAdapter.swift",
@@ -53,6 +56,8 @@ FORBIDDEN_TOUCH = [
     "Core/OrderPaymentVerifier.swift",
     "App/AppSession.swift",
     "App/AppCompositionRoot.swift",
+    "App/NativeRuntimeDependencies.swift",
+    "Core/OperationAdapterSafety.swift",
     "Questify.xcodeproj/project.pbxproj",
 ]
 
@@ -277,6 +282,40 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("App / CI = NOT_RUN", Path(__file__).read_text())
         for path in TEST_FILES:
             self.assertIn("@testable import QuestifyCore", self.sources[path])
+
+    def test_session_read_adapter_reuses_desk_read_and_blocks_save(self):
+        adapter = (ROOT / "Core/MerchantDeskSessionReadAdapter.swift").read_text()
+        tests = (ROOT / "Tests/CoreTests/MerchantDeskSessionReadAdapterTests.swift").read_text()
+        hunk = (ROOT / "docs/issue5-hunks/C07-session-read-adapter.hunk").read_text()
+        session = (ROOT / "App/AppSession.swift").read_text()
+        composition = (ROOT / "App/AppCompositionRoot.swift").read_text()
+        runtime = (ROOT / "App/NativeRuntimeDependencies.swift").read_text()
+        self.assertIn("MerchantDeskReadEntry(", adapter)
+        self.assertIn("entry.open(", adapter)
+        self.assertIn("guard approval != nil else { return true }", adapter)
+        self.assertNotIn("MerchantBusinessProductionApproval(", adapter)
+        self.assertNotIn("reviewedPolicyVersion", adapter)
+        self.assertNotIn("https://", adapter)
+        self.assertNotIn(".saveSku", adapter)
+        self.assertNotIn("func save(", adapter)
+        self.assertNotIn("namespace", adapter)
+        self.assertIn("sessionDependencies supplies this read", hunk)
+        self.assertIn("dependencies.merchantBusinessApproval", hunk)
+        self.assertIn("MerchantDeskSessionReadAdapter(", hunk)
+        self.assertIn("runtimeDependencies", hunk)
+        self.assertNotIn("merchantDeskSessionRead", session)
+        self.assertNotIn("MerchantDeskSessionReadAdapter", session)
+        self.assertNotIn("MerchantDeskSessionReadAdapter", composition)
+        self.assertNotIn("MerchantDeskSessionReadAdapter", runtime)
+        self.assertIn("testListedIdOpensDetailAndSameRequestReceipt", tests)
+        self.assertIn("testNilApprovalDoesNotCallSave", tests)
+        self.assertIn("testUnlistedProductDoesNotOpenDetail", tests)
+        self.assertIn("testReceiptCarryingAnotherRequestIdIsNotReturned", tests)
+        self.assertIn("testMissingAccountOrTokenIsNotInvented", tests)
+        self.assertIn("/products/sku/save", tests)
+        entry = (ROOT / "Core/MerchantDeskReadEntry.swift").read_text()
+        self.assertIn("listed.contains(productID)", entry)
+        self.assertIn("requestId", entry)
 
     def test_sha256_payload_covers_whitelist(self):
         digest = hashlib.sha256()
