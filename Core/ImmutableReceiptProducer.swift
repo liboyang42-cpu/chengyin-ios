@@ -206,6 +206,36 @@ public struct ImmutableReceiptProducer: Equatable {
         throw NotifyFailure.waitingSource(capability: Self.imSend)
     }
 
+    /// Delegate to the existing send. Routing fields come from the caller.
+    /// A missing field returns nil and does not send. Does not occupy the in-memory store.
+    public func sendOriginal(
+        _ request: OriginalRequest,
+        memberID: Int64?,
+        conversationID: Int64?,
+        targetMemberID: Int64?,
+        msgType: Int?,
+        send: ((Int64, Int64, Int64, Int, String, String) -> SentMessage?)?
+    ) throws -> OriginalReceipt? {
+        _ = try Self.requireRequestID(request.requestId)
+        guard let memberID, memberID > 0, let conversationID, conversationID > 0,
+              let targetMemberID, targetMemberID > 0, let msgType else { return nil }
+        guard let send else {
+            throw NotifyFailure.waitingSource(capability: Self.imSend)
+        }
+        guard let sent = send(memberID, conversationID, targetMemberID, msgType, request.body ?? "", request.requestId) else {
+            return Self.unknownReceipt(requestId: request.requestId, projection: nil)
+        }
+        return OriginalReceipt(
+            requestId: Self.parse(sent.clientMessageId) ?? request.requestId,
+            kind: nil,
+            payloadHash: sent.requestHash,
+            outcome: Self.outcomeUnknown,
+            originalBody: sent.content,
+            currentProjectionClaimsApplied: false,
+            recoveryNote: nil,
+            mintedNewRequest: false)
+    }
+
     public func recoverFromJournal(memberId: Int64?, conversationId: Int64?,
                                    clientMessageId: String?,
                                    journal: ((Int64, Int64, String) -> SentMessage?)?) throws -> OriginalReceipt {

@@ -185,6 +185,34 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         XCTAssertEqual(waiting { try producer.rewriteUnsignedSource() }, .unsignedSourceRewrite)
     }
 
+    func testSendOriginalDelegatesOnlyWhenRoutingFieldsArePresent() throws {
+        var producer = ImmutableReceiptProducer()
+        let request = ImmutableReceiptProducer.OriginalRequest(
+            requestId: "c09-send-01", kind: .reply, body: "hello",
+            outcome: ImmutableReceiptProducer.outcomeAccepted)
+        XCTAssertNil(try producer.sendOriginal(
+            request, memberID: nil, conversationID: 12, targetMemberID: 8, msgType: 1,
+            send: { _, _, _, _, _, _ in
+                XCTFail("missing member must not send")
+                return nil
+            }))
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        XCTAssertEqual(waitingReceipt {
+            try producer.sendOriginal(request, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1, send: nil)
+        }, .waitingSource(capability: ImmutableReceiptProducer.imSend))
+        let sent = ImmutableReceiptProducer.SentMessage(
+            clientMessageId: "c09-send-01", requestHash: "hash-send-01", content: "hello")
+        let receipt = try producer.sendOriginal(
+            request, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
+            send: { member, _, _, _, body, clientID in
+                member == 7 && clientID == "c09-send-01" && body == "hello" ? sent : nil
+            })
+        XCTAssertEqual(receipt?.requestId, "c09-send-01")
+        XCTAssertEqual(receipt?.originalBody, "hello")
+        XCTAssertNil(receipt?.kind)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+    }
+
     private func waiting(_ body: () throws -> Never) -> NotifyFailure? {
         do { try body(); return nil } catch let error as NotifyFailure { return error } catch { return nil }
     }
