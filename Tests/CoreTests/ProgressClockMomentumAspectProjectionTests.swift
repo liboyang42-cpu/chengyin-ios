@@ -62,6 +62,32 @@ final class ProgressClockMomentumAspectProjectionTests: XCTestCase {
         XCTAssertEqual(waiting { try clocks.commitV12Docx() },
                        .waitingSource(capability: MechanismSourceInventory.v12Docx))
     }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueTickApplies() throws {
+        var clocks = ProgressClockMomentumAspectProjection()
+        var unseen = MechanismFirstJourney.seededPlay()
+        unseen.originalAction = nil
+        unseen.playerChoice = nil
+        let recovered = try clocks.recoverOriginal(&unseen, originalRequestID: "c03-clock-never")
+        XCTAssertEqual(recovered.requestId, "c03-clock-never")
+        XCTAssertEqual(recovered.status, MechanismStatus.unknown.rawValue)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertEqual(recovered.replay, false)
+        XCTAssertNil(clocks.binder.existing("c03-clock-never"))
+        unseen.playerChoice = MechanismChoice(mechanism: "progressClock", action: "TICK_CLOCK",
+                                              varName: "counter.alarm")
+        let applied = try clocks.apply(&unseen, originalRequestID: "c03-clock-never")
+        XCTAssertEqual(applied.requestId, "c03-clock-never")
+        XCTAssertEqual(applied.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(applied.value, 1)
+        XCTAssertEqual(applied.replay, false)
+        XCTAssertEqual(applied.mintedNewRequest, false)
+        XCTAssertEqual(clocks.binder.existing("c03-clock-never")?.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(clocks.binder.existing("c03-clock-never")?.requestId, "c03-clock-never")
+        let replay = try clocks.apply(&unseen, originalRequestID: "c03-clock-never")
+        XCTAssertEqual(replay.replay, true)
+        XCTAssertEqual(replay.requestId, "c03-clock-never")
+        XCTAssertEqual(clocks.binder.existing("c03-clock-never")?.status, MechanismStatus.applied.rawValue)
+    }
     private func waiting(_ body: () throws -> Never) -> MechanismFailure? {
         do { try body(); return nil } catch let error as MechanismFailure { return error } catch { return nil }
     }

@@ -69,6 +69,32 @@ final class ClueSecretGoalProjectionTests: XCTestCase {
         try state.apply(MechanismEffect(op: "SET", varName: "clue.h_page", value: 0))
         XCTAssertEqual(state.variables["clue.h_page"], 1)
     }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueGainClueApplies() throws {
+        var clues = ClueSecretGoalProjection()
+        var unseen = MechanismFirstJourney.seededPlay()
+        unseen.originalAction = nil
+        unseen.playerChoice = nil
+        let recovered = try clues.recoverOriginal(&unseen, originalRequestID: "c03-clue-never")
+        XCTAssertEqual(recovered.requestId, "c03-clue-never")
+        XCTAssertEqual(recovered.status, MechanismStatus.unknown.rawValue)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertEqual(recovered.replay, false)
+        XCTAssertNil(clues.binder.existing("c03-clue-never"))
+        unseen.playerChoice = MechanismChoice(mechanism: "clueSecretGoal", action: "GAIN_CLUE",
+                                              varName: "clue.page")
+        let applied = try clues.apply(&unseen, originalRequestID: "c03-clue-never")
+        XCTAssertEqual(applied.requestId, "c03-clue-never")
+        XCTAssertEqual(applied.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(applied.value, 1)
+        XCTAssertEqual(applied.replay, false)
+        XCTAssertEqual(applied.mintedNewRequest, false)
+        XCTAssertEqual(clues.binder.existing("c03-clue-never")?.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(clues.binder.existing("c03-clue-never")?.requestId, "c03-clue-never")
+        let replay = try clues.apply(&unseen, originalRequestID: "c03-clue-never")
+        XCTAssertEqual(replay.replay, true)
+        XCTAssertEqual(replay.requestId, "c03-clue-never")
+        XCTAssertEqual(clues.binder.existing("c03-clue-never")?.status, MechanismStatus.applied.rawValue)
+    }
     private func waiting(_ body: () throws -> Never) -> MechanismFailure? {
         do { try body(); return nil } catch let error as MechanismFailure { return error } catch { return nil }
     }

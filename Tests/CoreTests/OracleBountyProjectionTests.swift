@@ -43,6 +43,32 @@ final class OracleBountyProjectionTests: XCTestCase {
         XCTAssertEqual(waiting { try oracle.commitUnpushedIosSHA() },
                        .waitingSource(capability: MechanismSourceInventory.unpushedIosSHA))
     }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueConsultApplies() throws {
+        var oracle = OracleBountyProjection()
+        var unseen = MechanismFirstJourney.seededPlay()
+        unseen.originalAction = nil
+        unseen.playerChoice = nil
+        let recovered = try oracle.recoverOriginal(&unseen, originalRequestID: "c03-oracle-never")
+        XCTAssertEqual(recovered.requestId, "c03-oracle-never")
+        XCTAssertEqual(recovered.status, MechanismStatus.unknown.rawValue)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertEqual(recovered.replay, false)
+        XCTAssertNil(oracle.binder.existing("c03-oracle-never"))
+        unseen.playerChoice = MechanismChoice(mechanism: "oracleBounty", action: "CONSULT",
+                                              oracleId: "street_lamp")
+        let applied = try oracle.apply(&unseen, originalRequestID: "c03-oracle-never")
+        XCTAssertEqual(applied.requestId, "c03-oracle-never")
+        XCTAssertEqual(applied.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(applied.revelation, "巡夜人换班了")
+        XCTAssertEqual(applied.replay, false)
+        XCTAssertEqual(applied.mintedNewRequest, false)
+        XCTAssertEqual(oracle.binder.existing("c03-oracle-never")?.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(oracle.binder.existing("c03-oracle-never")?.requestId, "c03-oracle-never")
+        let replay = try oracle.apply(&unseen, originalRequestID: "c03-oracle-never")
+        XCTAssertEqual(replay.replay, true)
+        XCTAssertEqual(replay.requestId, "c03-oracle-never")
+        XCTAssertEqual(oracle.binder.existing("c03-oracle-never")?.status, MechanismStatus.applied.rawValue)
+    }
     private func waiting(_ body: () throws -> Never) -> MechanismFailure? {
         do { try body(); return nil } catch let error as MechanismFailure { return error } catch { return nil }
     }

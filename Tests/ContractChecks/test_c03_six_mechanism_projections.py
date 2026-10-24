@@ -82,6 +82,21 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         trade_tests = self.sources["Tests/CoreTests/TradeBargainProjectionTests.swift"]
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueAcceptApplies", trade_tests)
         self.assertIn("c03-bargain-never", trade_tests)
+        oath_tests = self.sources["Tests/CoreTests/OathFlashbackProjectionTests.swift"]
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueSwearApplies", oath_tests)
+        self.assertIn("c03-oath-never", oath_tests)
+        oracle_tests = self.sources["Tests/CoreTests/OracleBountyProjectionTests.swift"]
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueConsultApplies", oracle_tests)
+        self.assertIn("c03-oracle-never", oracle_tests)
+        route_tests = self.sources["Tests/CoreTests/RouteCommunityDayProjectionTests.swift"]
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueTakeSegmentApplies", route_tests)
+        self.assertIn("c03-route-never", route_tests)
+        clue_tests = self.sources["Tests/CoreTests/ClueSecretGoalProjectionTests.swift"]
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueGainClueApplies", clue_tests)
+        self.assertIn("c03-clue-never", clue_tests)
+        clock_tests = self.sources["Tests/CoreTests/ProgressClockMomentumAspectProjectionTests.swift"]
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueTickApplies", clock_tests)
+        self.assertIn("c03-clock-never", clock_tests)
         self.assertIn("missingOriginalRequestID", text)
         self.assertNotIn('requestId = ""', text)
         kernel = self.sources["Core/MechanismRequestIdProjection.swift"]

@@ -55,6 +55,32 @@ final class OathFlashbackProjectionTests: XCTestCase {
         XCTAssertEqual(waiting { try oaths.commitPack232() },
                        .waitingSource(capability: MechanismSourceInventory.pack232))
     }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueSwearApplies() throws {
+        var oaths = OathFlashbackProjection()
+        var unseen = MechanismFirstJourney.seededPlay()
+        unseen.originalAction = nil
+        unseen.playerChoice = nil
+        let recovered = try oaths.recoverOriginal(&unseen, originalRequestID: "c03-oath-never")
+        XCTAssertEqual(recovered.requestId, "c03-oath-never")
+        XCTAssertEqual(recovered.status, MechanismStatus.unknown.rawValue)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertEqual(recovered.replay, false)
+        XCTAssertNil(oaths.binder.existing("c03-oath-never"))
+        unseen.playerChoice = MechanismChoice(mechanism: "oathFlashback", action: "SWEAR",
+                                              oathKey: "keep_silent")
+        let applied = try oaths.apply(&unseen, originalRequestID: "c03-oath-never")
+        XCTAssertEqual(applied.requestId, "c03-oath-never")
+        XCTAssertEqual(applied.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(applied.active, true)
+        XCTAssertEqual(applied.replay, false)
+        XCTAssertEqual(applied.mintedNewRequest, false)
+        XCTAssertEqual(oaths.binder.existing("c03-oath-never")?.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(oaths.binder.existing("c03-oath-never")?.requestId, "c03-oath-never")
+        let replay = try oaths.apply(&unseen, originalRequestID: "c03-oath-never")
+        XCTAssertEqual(replay.replay, true)
+        XCTAssertEqual(replay.requestId, "c03-oath-never")
+        XCTAssertEqual(oaths.binder.existing("c03-oath-never")?.status, MechanismStatus.applied.rawValue)
+    }
     func testUntrustedEmptyPasswordStaysNone() {
         XCTAssertNil(MechanismUntrusted.text(""))
         let row = MechanismFlashbackRow(id: "alley", label: "巷口", restoreKeys: ["clue.page"],

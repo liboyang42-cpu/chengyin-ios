@@ -51,6 +51,33 @@ final class RouteCommunityDayProjectionTests: XCTestCase {
         XCTAssertEqual(waiting { try route.commitV12Docx() },
                        .waitingSource(capability: MechanismSourceInventory.v12Docx))
     }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueTakeSegmentApplies() throws {
+        var route = RouteCommunityDayProjection()
+        var unseen = MechanismFirstJourney.seededPlay()
+        unseen.originalAction = nil
+        unseen.playerChoice = nil
+        let recovered = try route.recoverOriginal(&unseen, originalRequestID: "c03-route-never")
+        XCTAssertEqual(recovered.requestId, "c03-route-never")
+        XCTAssertEqual(recovered.status, MechanismStatus.unknown.rawValue)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertEqual(recovered.replay, false)
+        XCTAssertNil(route.binder.existing("c03-route-never"))
+        unseen.playerChoice = MechanismChoice(mechanism: "routeCommunityDay", action: "TAKE_SEGMENT",
+                                              segmentId: "market")
+        let applied = try route.apply(&unseen, originalRequestID: "c03-route-never")
+        XCTAssertEqual(applied.requestId, "c03-route-never")
+        XCTAssertEqual(applied.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(applied.replay, false)
+        XCTAssertEqual(applied.mintedNewRequest, false)
+        XCTAssertEqual(unseen.state.variables["clue.page"], 1)
+        XCTAssertEqual(route.binder.existing("c03-route-never")?.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(route.binder.existing("c03-route-never")?.requestId, "c03-route-never")
+        let replay = try route.apply(&unseen, originalRequestID: "c03-route-never")
+        XCTAssertEqual(replay.replay, true)
+        XCTAssertEqual(replay.requestId, "c03-route-never")
+        XCTAssertEqual(route.binder.existing("c03-route-never")?.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(unseen.state.variables["clue.page"], 1)
+    }
     private func waiting(_ body: () throws -> Never) -> MechanismFailure? {
         do { try body(); return nil } catch let error as MechanismFailure { return error } catch { return nil }
     }
