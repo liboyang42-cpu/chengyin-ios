@@ -134,3 +134,7 @@ Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**.
 HEAD `8388b9a9`. Aligns with hengyin #580 `03df83ec9` for Dot C05 03:05Z: expire bound by expiresAt; payload SHA-256 finish; approvedAlternative requires attested+authority; PlaceCapacitySourcing missing is WAITING_SOURCE.
 
 Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
+
+## Addendum 2026-10-24 03:45 America/Los_Angeles
+
+Signed lifecycle patch `complete.patch` is 6820 bytes, SHA256 `12b63255598eeb4d686522414855ed27929171e46cea4204a445eab168c0d2e0`. Local before matched `8c6148ba`: Core `7695284f6d5fb9a439bdd8629ed2bb008979c6894d960ed3493c0a67625fa8ac`, tests `3ef2502d72a75afb097db799ed7db3d6ddb12150d3afc6aba941e7f62407b54a`. After matches Core `bf8aa16fe06f270ec5e848ad14a0fd3389393e339e3b556efc5bb808e2d5d267` and tests `1186f86ddaa8e688b9d13b56321eabfba6b2652f906b5451b3036d20f399381c`. `git apply --check` was 0 on the clean owner tree. Clearing a retained prior also clears `priorFileAccepted`. Restore requires the retained pack id to equal the current pack id. Python 13/0. XCTest NOT_RUN. This is not a real file install. `offlinePack.payloadConsumer` stays WAITING_SOURCE. Not 100%.

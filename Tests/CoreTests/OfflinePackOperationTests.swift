@@ -336,6 +336,101 @@ final class OfflinePackOperationTests: XCTestCase {
         }
         XCTAssertEqual(idleSource.reads, 0)
     }
+    func testDeleteAfterKeepOldClearsAcceptanceAndRestoresNewDownload() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        try pack.finishDownload(payload: payload)
+        try pack.applyUpdate(try manifest(version: "pack-v2"), keepOld: true)
+        try pack.delete()
+        let deleted = try roundTripRecord(pack)
+        XCTAssertFalse(deleted.retainedFileAccepted)
+        XCTAssertNil(deleted.retainedVerifiedChecksum)
+        XCTAssertNil(deleted.retainedPackID)
+        let restoredDeleted = try XCTUnwrap(OfflinePackOperation.restored(deleted))
+        XCTAssertEqual(restoredDeleted.phase, .deleted)
+        XCTAssertNil(restoredDeleted.retainedPrior)
+
+        try pack.startDownload(try manifest(version: "pack-v3", operationID: "op-after-delete"))
+        let next = try roundTripRecord(pack)
+        XCTAssertFalse(next.retainedFileAccepted)
+        let restarted = try XCTUnwrap(OfflinePackOperation.restored(next))
+        XCTAssertEqual(restarted.operationID, "op-after-delete")
+        XCTAssertEqual(restarted.phase, .downloading)
+        XCTAssertNil(restarted.retainedPrior)
+    }
+
+    func testNewDownloadAfterKeepOldExpiryClearsAcceptance() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        try pack.finishDownload(payload: payload)
+        try pack.applyUpdate(try manifest(version: "pack-v2"), keepOld: true)
+        try pack.expire(at: later)
+        // A newly published manifest has its own future expiry and operation identity.
+        let nextManifest = try XCTUnwrap(OfflinePackManifest(
+            packID: "pack-a", operationID: "op-after-expiry", version: "pack-v3",
+            byteSize: payload.count, checksum: checksum, publicPlaceIDs: [11, 22],
+            expiresAt: later.addingTimeInterval(3600)))
+        try pack.startDownload(nextManifest, at: later)
+        let next = try roundTripRecord(pack)
+        XCTAssertFalse(next.retainedFileAccepted)
+        XCTAssertNil(next.retainedVerifiedChecksum)
+        XCTAssertNil(next.retainedPackID)
+        let restarted = try XCTUnwrap(OfflinePackOperation.restored(next))
+        XCTAssertEqual(restarted.operationID, "op-after-expiry")
+        XCTAssertEqual(restarted.manifest, nextManifest)
+        XCTAssertEqual(restarted.phase, .downloading)
+        XCTAssertNil(restarted.retainedPrior)
+    }
+
+    func testRestoreRejectsForeignRetainedPackWithoutReplacingOperation() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        try pack.finishDownload(payload: payload)
+        try pack.applyUpdate(try manifest(version: "pack-v2"), keepOld: true)
+        let saved = try roundTripRecord(pack)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(saved)) as? [String: Any])
+        // Keep the current operation, pack, version and checksum unchanged.
+        object["retainedPackID"] = "pack-b"
+        let foreign = try JSONDecoder().decode(OfflinePackOperationRecord.self,
+            from: JSONSerialization.data(withJSONObject: object))
+        XCTAssertNil(OfflinePackOperation.restored(foreign))
+        let before = pack.snapshot
+        XCTAssertThrowsError(try pack.restoreSameOperation(foreign)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .invalidManifest)
+        }
+        XCTAssertEqual(pack.snapshot, before)
+        XCTAssertEqual(pack.retainedPrior?.packID, "pack-a")
+    }
+
+    func testSamePackPriorRoundTripKeepsCorruptAndFullDiskRecovery() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        try pack.finishDownload(payload: payload)
+        try pack.applyUpdate(try manifest(version: "pack-v2"), keepOld: true)
+        let saved = try roundTripRecord(pack)
+        XCTAssertTrue(saved.retainedFileAccepted)
+        XCTAssertEqual(saved.retainedVerifiedChecksum, checksum)
+        var badHash = try XCTUnwrap(OfflinePackOperation.restored(saved))
+        XCTAssertThrowsError(try badHash.finishUpdate(payload: Data(repeating: 0, count: payload.count))) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .corrupt)
+        }
+        XCTAssertEqual(badHash.phase, .ready)
+        XCTAssertEqual(badHash.manifest?.packID, "pack-a")
+        XCTAssertEqual(badHash.manifest?.version, "pack-v1")
+        XCTAssertEqual(badHash.manifest?.checksum, checksum)
+        var fullDisk = try XCTUnwrap(OfflinePackOperation.restored(saved))
+        try fullDisk.recordFullDisk()
+        XCTAssertEqual(fullDisk.phase, .ready)
+        XCTAssertEqual(fullDisk.manifest?.version, "pack-v1")
+        XCTAssertEqual(fullDisk.manifest?.checksum, checksum)
+    }
+
+    // Codable roundtrip only. This does not create, install or prove a retained file.
+    private func roundTripRecord(_ operation: OfflinePackOperation) throws -> OfflinePackOperationRecord {
+        let record = try XCTUnwrap(operation.operationRecord())
+        return try JSONDecoder().decode(OfflinePackOperationRecord.self, from: JSONEncoder().encode(record))
+    }
+
     private func waiting(_ body: () throws -> Never) -> OfflinePackFailure? {
         do { try body(); return nil } catch let error as OfflinePackFailure { return error } catch { return nil }
     }

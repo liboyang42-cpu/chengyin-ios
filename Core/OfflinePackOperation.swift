@@ -133,6 +133,7 @@ public struct OfflinePackOperation: Equatable {
         operationID = manifest.operationID
         self.manifest = manifest
         retainedPrior = nil
+        priorFileAccepted = false
         phase = .downloading
         failure = nil
     }
@@ -212,6 +213,7 @@ public struct OfflinePackOperation: Equatable {
         guard phase != .idle else { throw fail(.invalidManifest) }
         phase = .deleted
         retainedPrior = nil
+        priorFileAccepted = false
         failure = nil
     }
     /// Original scoring / resume writer is not in this public tree.
@@ -283,7 +285,8 @@ public struct OfflinePackOperation: Equatable {
         operation.phase = phase
         operation.manifest = manifest
         if record.retainedFileAccepted {
-            guard let priorID = record.retainedPackID, let priorVersion = record.retainedVersion,
+            guard let priorID = record.retainedPackID, priorID == manifest.packID,
+                  let priorVersion = record.retainedVersion,
                   let priorSize = record.retainedByteSize, let priorChecksum = record.retainedChecksum,
                   let verified = record.retainedVerifiedChecksum,
                   priorChecksum.caseInsensitiveCompare(verified) == .orderedSame,
