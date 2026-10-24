@@ -164,20 +164,58 @@ final class CompensationEntryProjectionTests: XCTestCase {
         let audit = ForbiddenAuditSource()
         let projection = CompensationEntryProjection(
             termsSource: FixedFrozenTerms(terms: frozenTerms()),
-            auditSource: audit)
+            auditSource: RecordingAuditSource(events: [], trail: []))
+        let grant = CompensationViewerGrant(
+            viewerId: 88, existingPermissionCodes: [ExtraApproverGrant.approvePermission])
+        let authorized = try XCTUnwrap(projection.project(
+            requestId: "comp-req-1", topicId: 10, viewer: grant, currentFinal: nil))
+        var reads = 0
+        let counting: (String, Int64) -> [String] = { _, _ in
+            reads += 1
+            return ["written"]
+        }
+        XCTAssertThrowsError(try projection.recoverTrail(
+            authorized: nil, viewer: grant, bizType: "ACTIVITY", bizId: 10, trail: counting)) {
+            XCTAssertEqual(($0 as? CompensationEntryFailure)?.code, CompensationEntryProjection.denied)
+        }
+        XCTAssertThrowsError(try projection.recoverTrail(
+            authorized: authorized,
+            viewer: CompensationViewerGrant(viewerId: 88, existingPermissionCodes: []),
+            bizType: "ACTIVITY", bizId: 10, trail: counting)) {
+            XCTAssertEqual(($0 as? CompensationEntryFailure)?.code, CompensationEntryProjection.denied)
+        }
+        XCTAssertThrowsError(try projection.recoverTrail(
+            authorized: authorized,
+            viewer: CompensationViewerGrant(
+                viewerId: 3, existingPermissionCodes: [ExtraApproverGrant.approvePermission]),
+            bizType: "ACTIVITY", bizId: 10, trail: counting)) {
+            XCTAssertEqual(($0 as? CompensationEntryFailure)?.code, CompensationEntryProjection.denied)
+        }
+        XCTAssertThrowsError(try projection.recoverTrail(
+            authorized: authorized, viewer: grant, bizType: "ACTIVITY", bizId: 99, trail: counting)) {
+            XCTAssertEqual(($0 as? CompensationEntryFailure)?.code, CompensationEntryProjection.denied)
+        }
+        XCTAssertEqual(reads, 0)
+        XCTAssertEqual(audit.reads, 0)
+        XCTAssertNil(try projection.recoverTrail(
+            authorized: authorized, viewer: grant, bizType: "  ", bizId: 10, trail: counting))
+        XCTAssertNil(try projection.recoverTrail(
+            authorized: authorized, viewer: grant, bizType: "ACTIVITY", bizId: 0, trail: counting))
+        XCTAssertEqual(reads, 0)
         do {
-            _ = try projection.recoverTrail(bizType: "ACTIVITY", bizId: 10, trail: nil)
+            _ = try projection.recoverTrail(
+                authorized: authorized, viewer: grant, bizType: "ACTIVITY", bizId: 10, trail: nil)
             XCTFail("missing trail must WAITING_SOURCE")
         } catch let waiting as CompensationEntryProjection.WaitingSource {
             XCTAssertEqual(waiting.capability, CompensationEntryProjection.auditTrail)
         }
-        XCTAssertEqual(audit.reads, 0)
-        XCTAssertNil(try projection.recoverTrail(bizType: "  ", bizId: 10, trail: { _, _ in ["written"] }))
-        XCTAssertNil(try projection.recoverTrail(bizType: "ACTIVITY", bizId: 0, trail: { _, _ in ["written"] }))
-        let rows = try projection.recoverTrail(bizType: " ACTIVITY ", bizId: 10, trail: { type, id in
-            type == "ACTIVITY" && id == 10 ? ["COMPENSATION_FREEZE"] : []
-        })
+        let rows = try projection.recoverTrail(
+            authorized: authorized, viewer: grant, bizType: " ACTIVITY ", bizId: 10, trail: { type, id in
+                reads += 1
+                return type == "ACTIVITY" && id == 10 ? ["COMPENSATION_FREEZE"] : []
+            })
         XCTAssertEqual(rows, ["COMPENSATION_FREEZE"])
+        XCTAssertEqual(reads, 1)
     }
 
     private func frozenTerms() -> FrozenCompensationTerms {

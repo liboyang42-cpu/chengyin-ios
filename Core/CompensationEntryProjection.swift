@@ -237,15 +237,27 @@ public struct CompensationEntryProjection {
             currentFinal: currentFinal)
     }
 
-    /// Read AuditTrailProjectionService.trail. bizType is caller-supplied.
+    /// Read AuditTrailProjectionService.trail only from an already authorized view.
+    /// Rechecks the current grant. No permission, an account switch, or another
+    /// resource does not call the reader. bizType stays caller-supplied.
     /// Missing reader is WAITING_SOURCE. An empty list is a real empty trail.
     public func recoverTrail(
+        authorized: View?,
+        viewer: CompensationViewerGrant?,
         bizType: String?,
         bizId: Int64?,
         trail: ((String, Int64) -> [String])?
     ) throws -> [String]? {
+        guard let authorized, let viewer, let viewerId = viewer.viewerId, viewerId > 0,
+              viewerId == authorized.viewerId,
+              viewer.existingPermissionCodes.contains(ExtraApproverGrant.approvePermission) else {
+            throw CompensationEntryFailure.denied
+        }
         let type = bizType?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !type.isEmpty, let bizId, bizId > 0 else { return nil }
+        guard bizId == authorized.topicId else {
+            throw CompensationEntryFailure.denied
+        }
         guard let trail else {
             throw WaitingSource(capability: Self.auditTrail)
         }
