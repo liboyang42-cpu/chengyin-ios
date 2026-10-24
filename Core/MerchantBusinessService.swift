@@ -7,16 +7,19 @@ import FoundationNetworking
 /// Ordinary construction remains read-only; test transport conformance never enables production.
 public protocol MerchantBusinessTestTransport: HTTPTransport {}
 public enum MerchantDeskRead: Equatable {
+    case products
     case productDetail(productID: Int)
     case receipt(requestID: String)
     public var permissions: [String] {
         switch self {
-        case .productDetail: return ["merchant:project:manage"]
+        case .products, .productDetail: return ["merchant:project:manage"]
         case .receipt: return ["merchant:basic:read"]
         }
     }
     public func request() throws -> MerchantBusinessRequest {
         switch self {
+        case .products:
+            return .empty("api/merchant/desk/products")
         case .productDetail(let productID):
             guard productID > 0 else { throw MerchantBusinessFailure.invalid }
             return .json("api/merchant/desk/products/detail", ["productId": .int(productID)])
