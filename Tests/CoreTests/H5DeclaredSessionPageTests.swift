@@ -18,6 +18,18 @@ final class H5DeclaredSessionPageTests: XCTestCase {
         XCTAssertThrowsError(try page.importMetadata(object.merging(["answer": "secret"]) { _, new in new },
                                                      entry: "mod-2", originalRequestID: "import-req-0002"))
         XCTAssertEqual(page.imports.gate.originalRequestID, "import-req-0001")
-        XCTAssertEqual(page.open(), .waitingSource(capability: "h5.sdk.original"))
+        XCTAssertEqual(page.openShell(launch: nil), .waitingLaunchTicket)
+        let launch = try XCTUnwrap(H5LaunchDescription(
+            parentOrigin: "https://shell.chengyin.test", nonce: "nonce-1", mainToken: nil))
+        XCTAssertNil(H5LaunchDescription(parentOrigin: "https://shell.chengyin.test", nonce: "nonce-1", mainToken: "session-token"))
+        XCTAssertEqual(page.openShell(launch: launch), .shellReady)
+        let request = "fb5e2418-9eb0-4e43-94e6-c8c951a7d1cf"
+        XCTAssertEqual(page.receive(protocolVersion: "1.0", requestID: request, sequence: 1,
+                                    method: "result.submit", payload: ["score": "9"]), .rejected("h5.resultRejected"))
+        XCTAssertEqual(page.receive(protocolVersion: "1.0", requestID: request, sequence: 1,
+                                    method: "result.submit", payload: ["challengeId": "challenge.demo.001"]), .resultSubmitted)
+        XCTAssertFalse(page.host.passed)
+        XCTAssertEqual(page.receive(protocolVersion: "1.0", requestID: request, sequence: 2,
+                                    method: "getToken", payload: [:]), .rejected("h5.methodForbidden"))
     }
 }

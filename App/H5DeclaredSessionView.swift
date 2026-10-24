@@ -7,6 +7,7 @@ import SwiftUI
     let host: String
     let capability: String
     let sdkVersion: String
+    let launch: H5LaunchDescription?
     @State private var page = H5DeclaredSessionPage()
     @State private var requestID = ""
     @State private var moduleID = ""
@@ -28,7 +29,7 @@ import SwiftUI
                 Button("h5.compare") { compare() }
                 Button("h5.rejectAnswers") { rejectAnswers() }
                 Button("h5.importMetadata") { importMetadata() }
-                Button("h5.open") { message = page.open().capabilityText }
+                Button("h5.open") { message = page.openShell(launch: nil).capabilityText }
                     .disabled(page.session.gate.phase != .admitted && page.session.gate.phase != .waitingSource)
             }
             if !message.isEmpty { Text(verbatim: message).font(.footnote) }
