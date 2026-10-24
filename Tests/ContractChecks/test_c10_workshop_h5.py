@@ -231,6 +231,9 @@ class C10WorkshopH5Contracts(unittest.TestCase):
         self.assertIn("case requestMismatch", answers)
         self.assertIn("guard existing == originalRequestID, matchedHash == serverFrozenHash else", answers)
         self.assertIn("req-a-other", self.sources["Tests/CoreTests/H5AnswerProtectionTests.swift"])
+        answers_tests = self.sources["Tests/CoreTests/H5AnswerProtectionTests.swift"]
+        self.assertIn("testHashMismatchOfNeverSeenIdDoesNotOccupyThenUniqueCompareApplies", answers_tests)
+        self.assertIn("req-a-never-c10", answers_tests)
         session = self.sources["Core/H5SessionCapabilityGate.swift"]
         self.assertIn("case requestMismatch", session)
         self.assertIn("guard existingHost == host, admittedCapability == capability else", session)

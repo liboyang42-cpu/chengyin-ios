@@ -42,6 +42,29 @@ final class H5AnswerProtectionTests: XCTestCase {
         XCTAssertEqual(waiting { try protection.consumeH5SDKOriginal() },
                        .waitingSource(capability: WorkshopModuleSourceInventory.h5SdkOriginal))
     }
+    func testHashMismatchOfNeverSeenIdDoesNotOccupyThenUniqueCompareApplies() throws {
+        var protection = H5AnswerProtection()
+        XCTAssertNil(protection.originalRequestID)
+        XCTAssertEqual(protection.phase, .idle)
+        XCTAssertThrowsError(try protection.compareServerFrozenAuthorVersion(
+            serverFrozenHash: hash, expectedHash: other, originalRequestID: "req-a-never-c10")) { error in
+            XCTAssertEqual(error as? H5AnswerProtectionFailure, .hashMismatch)
+        }
+        XCTAssertNil(protection.originalRequestID)
+        XCTAssertEqual(protection.phase, .idle)
+        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: hash, expectedHash: hash,
+                                                        originalRequestID: "req-a-never-c10")
+        XCTAssertEqual(protection.originalRequestID, "req-a-never-c10")
+        XCTAssertEqual(protection.phase, .matched)
+        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: hash, expectedHash: hash,
+                                                        originalRequestID: "req-a-never-c10")
+        XCTAssertEqual(protection.originalRequestID, "req-a-never-c10")
+        XCTAssertThrowsError(try protection.compareServerFrozenAuthorVersion(
+            serverFrozenHash: hash, expectedHash: hash, originalRequestID: "req-a-other")) { error in
+            XCTAssertEqual(error as? H5AnswerProtectionFailure, .requestMismatch)
+        }
+        XCTAssertEqual(protection.originalRequestID, "req-a-never-c10")
+    }
     private func waiting(_ body: () throws -> Never) -> H5AnswerProtectionFailure? {
         do { try body(); return nil } catch let error as H5AnswerProtectionFailure { return error } catch { return nil }
     }
