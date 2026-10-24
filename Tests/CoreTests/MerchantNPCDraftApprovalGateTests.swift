@@ -177,6 +177,26 @@ import XCTest
         XCTAssertEqual(flow.phase, .aiDraft)
     }
 
+    func testUnpublishedProjectionDoesNotOccupyPrivateScopesThenUniqueRetainPrivateApplies() throws {
+        let isolation = MerchantNPCPublicPrivateIsolation()
+        let qualification = MerchantNPCQualificationRevoke()
+        XCTAssertThrowsError(try isolation.playerProjection(scope: scope, qualification: qualification)) {
+            XCTAssertEqual($0 as? MerchantNPCDraftGateFailure, .unpublished)
+        }
+        let revision = MerchantNPCPublishedRevision(
+            revision: UUID(), scope: scope, facts: try draft().validatedPublicFactsJSON()
+        )
+        qualification.rememberPublished(revision, scope: scope)
+        XCTAssertEqual(try isolation.playerProjection(scope: scope, qualification: qualification), revision.facts,
+                       "unpublished 观察不得占 privateScopes")
+        isolation.retainPrivate(draft: draft(), scope: scope)
+        XCTAssertThrowsError(try isolation.playerProjection(scope: scope, qualification: qualification)) {
+            XCTAssertEqual($0 as? MerchantNPCDraftGateFailure, .isolationViolation)
+        }
+        isolation.publish(revision, scope: scope)
+        XCTAssertEqual(try isolation.playerProjection(scope: scope, qualification: qualification), revision.facts)
+    }
+
     @MainActor private final class RecordingPublisher: MerchantNPCOriginalReviewPublishing {
         var submitted = 0, published = 0
         var facts: [UUID: Data] = [:]
