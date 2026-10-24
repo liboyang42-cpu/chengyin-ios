@@ -55,7 +55,7 @@ struct MerchantDeskSkuPage: View {
         }
         .navigationTitle("merchant.desk.sku")
         .task {
-            await desk.reopen(skuID: skuID, access: access, token: token)
+            await desk.reopen(productID: productID, skuID: skuID, access: access, token: token)
             if case .applied = desk.phase {
                 await desk.noteLater(productID: productID, skuID: skuID, access: access, token: token)
             } else if case .idle = desk.phase {
@@ -63,5 +63,6 @@ struct MerchantDeskSkuPage: View {
                 if case .editing(let edit) = desk.phase { draft = edit }
             }
         }
+        .onDisappear { desk.retire() }
     }
 }

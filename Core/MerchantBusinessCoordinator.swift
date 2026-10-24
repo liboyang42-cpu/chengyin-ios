@@ -70,7 +70,7 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
     private let review: MerchantBusinessConfirmation
     private var consumed = false
     private let validity: () throws -> Void
-    fileprivate init(_ review: MerchantBusinessConfirmation, check: @escaping () throws -> Void) { self.review = review; validity = check }
+    init(_ review: MerchantBusinessConfirmation, check: @escaping () throws -> Void) { self.review = review; validity = check }
     func consume(_ review: MerchantBusinessConfirmation) throws {
         guard !consumed, self.review == review else { throw MerchantBusinessFailure.stale }
         consumed = true; try validity()

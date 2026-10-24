@@ -39,6 +39,7 @@ import Foundation
     private let journal: any MerchantBusinessIntentStore
     private let journey = MerchantSkuSaveJourney()
     private let scope: MerchantBusinessScope
+    private var generation: UInt64 = 0
     @Published public private(set) var phase: Phase = .idle
     /// Detail rule version after a successful receipt. It does not replace the receipt.
     @Published public private(set) var laterRuleVersion: Int?
@@ -49,33 +50,42 @@ import Foundation
         self.scope = scope
     }
 
+    /// Exit or cancel. A late result from this generation cannot clear the journal.
+    public func retire() { generation &+= 1 }
+
     public func present(productID: Int, skuID: Int, access: MerchantBusinessAccess, accountID: Int64, token: String) async {
         guard access.role == "MERCHANT_OWNER", accountID > 0, accountID != Int64(access.merchantID),
               Int64(scope.accountID) == accountID else {
             phase = .failed(.denied)
             return
         }
+        let started = generation
         do {
-            if let pending = try matching(skuID: skuID, merchantID: access.merchantID) {
+            if let pending = try matching(skuID: skuID, productID: productID, merchantID: access.merchantID) {
+                guard same(started) else { return }
                 phase = .unknown(requestID: pending.requestID)
                 return
             }
             let detail = try await service.read(.productDetail(productID: productID), access: access, token: token)
-            guard let row = skuRow(detail, productID: productID, skuID: skuID),
+            guard same(started) else { return }
+            guard let product = detail.object, product["editable"]?.bool == true,
+                  let row = skuRow(detail, productID: productID, skuID: skuID),
+                  let kept = kept(row),
                   let name = row["skuName"]?.string, !name.isEmpty,
                   let price = row["price"]?.numberText, !price.isEmpty,
                   let stock = row["stock"]?.integer else {
                 phase = .failed(.invalid)
                 return
             }
-            phase = .editing(Edit(skuName: name, price: price, stock: stock,
-                                  bookable: row["bookable"]?.bool == true || row["bookable"]?.integer == 1,
-                                  slotMinutes: row["slotMinutes"]?.integer ?? 60,
-                                  capacityPerSlot: row["capacityPerSlot"]?.integer ?? 0))
+            phase = .editing(Edit(skuName: name, price: price, stock: stock, originalPrice: kept.originalPrice,
+                                  pic: kept.pic, bookable: kept.bookable, slotMinutes: kept.slotMinutes,
+                                  capacityPerSlot: kept.capacityPerSlot))
+        } catch let error as APIError where error == .unauthorized {
+            if same(started) { retire() }
         } catch let error as MerchantBusinessFailure {
-            phase = .failed(error)
+            if same(started) { phase = .failed(error) }
         } catch {
-            phase = .failed(.unknown)
+            if same(started) { phase = .failed(.unknown) }
         }
     }
 
@@ -85,33 +95,40 @@ import Foundation
             phase = .failed(.denied)
             return
         }
+        let started = generation
         let pendingRow: MerchantBusinessIntent?
-        do { pendingRow = try matching(skuID: skuID, merchantID: access.merchantID) }
-        catch { phase = .failed(.journal); return }
+        do { pendingRow = try matching(skuID: skuID, productID: productID, merchantID: access.merchantID) }
+        catch { if same(started) { phase = .failed(.journal) }; return }
         if let pendingRow {
+            guard same(started) else { return }
             phase = .unknown(requestID: pendingRow.requestID)
             return
         }
         do {
             let detail = try await service.read(.productDetail(productID: productID), access: access, token: token)
-            guard let row = skuRow(detail, productID: productID, skuID: skuID) else {
+            guard same(started) else { return }
+            guard let product = detail.object, product["editable"]?.bool == true,
+                  let row = skuRow(detail, productID: productID, skuID: skuID),
+                  let kept = kept(row) else {
                 phase = .failed(.invalid)
                 return
             }
             let requestID = "desk-" + UUID().uuidString.lowercased()
             guard let intent = journey.freeze(access: access, accountID: accountID, productID: Int64(productID),
                                                skuID: Int64(skuID), requestID: requestID, skuName: edit.skuName,
-                                               price: edit.price, stock: edit.stock, originalPrice: edit.originalPrice,
-                                               pic: edit.pic, bookable: edit.bookable, slotMinutes: edit.slotMinutes,
-                                               capacityPerSlot: edit.capacityPerSlot, ruleVersion: row["ruleVersion"]?.integer) else {
+                                               price: edit.price, stock: edit.stock, originalPrice: kept.originalPrice,
+                                               pic: kept.pic, bookable: kept.bookable, slotMinutes: kept.slotMinutes,
+                                               capacityPerSlot: kept.capacityPerSlot, ruleVersion: row["ruleVersion"]?.integer) else {
                 phase = .failed(.invalid)
                 return
             }
             phase = .frozen(intent)
+        } catch let error as APIError where error == .unauthorized {
+            if same(started) { retire() }
         } catch let error as MerchantBusinessFailure {
-            phase = .failed(error)
+            if same(started) { phase = .failed(error) }
         } catch {
-            phase = .failed(.unknown)
+            if same(started) { phase = .failed(.unknown) }
         }
     }
 
@@ -121,88 +138,117 @@ import Foundation
             phase = .failed(.denied)
             return
         }
-        guard service.canExecuteSyntheticMutation else {
-            phase = .failed(.disabled)
-            return
-        }
+        let started = generation
+        guard same(started) else { return }
         let stored = storedIntent(intent, merchantID: access.merchantID)
-        guard let sku = Int(exactly: intent.skuID) else {
+        guard let sku = Int(exactly: intent.skuID), let product = Int(exactly: intent.productID) else {
             phase = .failed(.invalid)
             return
         }
         do {
-            if try matching(skuID: sku, merchantID: access.merchantID) != nil {
+            if try matching(skuID: sku, productID: product, merchantID: access.merchantID) != nil {
+                guard same(started) else { return }
                 phase = .unknown(requestID: intent.requestID)
                 return
             }
         } catch {
-            phase = .failed(.journal)
+            if same(started) { phase = .failed(.journal) }
             return
         }
         do {
             try journal.reserve(stored)
         } catch {
-            phase = .unknown(requestID: intent.requestID)
+            if same(started) { phase = .unknown(requestID: intent.requestID) }
             return
         }
         do {
-            let receipt = try await service.execute(mutation(intent), requestID: intent.requestID, token: token)
-            guard let skuID = appliedTarget(receipt.data, requestID: intent.requestID) else {
+            let receipt = try await service.executeDeskSku(mutation(intent), requestID: intent.requestID, token: token,
+                                                           access: access, scope: scope, check: { [started] in
+                guard started == self.generation else { throw MerchantBusinessFailure.stale }
+            })
+            guard same(started) else { return }
+            guard appliedTarget(receipt.data, requestID: intent.requestID, skuID: intent.skuID) != nil else {
+                phase = .unknown(requestID: intent.requestID)
+                return
+            }
+            guard stored.merchantID == access.merchantID, stored.target == Self.target(skuID: sku, productID: product) else {
                 phase = .unknown(requestID: intent.requestID)
                 return
             }
             try journal.complete(stored)
-            phase = .applied(requestID: intent.requestID, skuID: skuID)
+            guard same(started) else { return }
+            phase = .applied(requestID: intent.requestID, skuID: intent.skuID)
+        } catch let error as APIError where error == .unauthorized {
+            if same(started) {
+                phase = .unknown(requestID: intent.requestID)
+                retire()
+            }
         } catch {
-            phase = .unknown(requestID: intent.requestID)
+            if same(started) { phase = .unknown(requestID: intent.requestID) }
         }
     }
 
-    public func reopen(skuID: Int, access: MerchantBusinessAccess, token: String) async {
+    public func reopen(productID: Int, skuID: Int, access: MerchantBusinessAccess, token: String) async {
+        let started = generation
         let pending: MerchantBusinessIntent
         do {
-            guard let row = try matching(skuID: skuID, merchantID: access.merchantID) else { return }
+            guard let row = try matching(skuID: skuID, productID: productID, merchantID: access.merchantID) else { return }
             pending = row
         } catch {
-            phase = .failed(.journal)
+            if same(started) { phase = .failed(.journal) }
             return
         }
         do {
             let receipt = try await service.read(.receipt(requestID: pending.requestID), access: access, token: token)
-            guard let target = appliedTarget(receipt, requestID: pending.requestID) else {
+            guard same(started) else { return }
+            guard appliedTarget(receipt, requestID: pending.requestID, skuID: Int64(skuID)) != nil else {
                 phase = .unknown(requestID: pending.requestID)
                 return
             }
             try journal.complete(pending)
-            phase = .applied(requestID: pending.requestID, skuID: target)
+            guard same(started) else { return }
+            phase = .applied(requestID: pending.requestID, skuID: Int64(skuID))
+        } catch let error as APIError where error == .unauthorized {
+            if same(started) { retire() }
         } catch let error as MerchantBusinessFailure {
-            phase = .failed(error)
+            if same(started) { phase = .failed(error) }
         } catch {
-            phase = .unknown(requestID: pending.requestID)
+            if same(started) { phase = .unknown(requestID: pending.requestID) }
         }
     }
 
     /// Reads the current detail after the original receipt. A later version stays a detail fact.
     public func noteLater(productID: Int, skuID: Int, access: MerchantBusinessAccess, token: String) async {
         guard case .applied = phase else { return }
+        let started = generation
         do {
             let detail = try await service.read(.productDetail(productID: productID), access: access, token: token)
+            guard same(started) else { return }
             laterRuleVersion = skuRow(detail, productID: productID, skuID: skuID)?["ruleVersion"]?.integer
+        } catch let error as APIError where error == .unauthorized {
+            if same(started) { retire() }
         } catch {
             return
         }
     }
 
-    private func matching(skuID: Int, merchantID: Int) throws -> MerchantBusinessIntent? {
-        guard skuID > 0 else { return nil }
+    private func same(_ started: UInt64) -> Bool { started == generation }
+
+    private func matching(skuID: Int, productID: Int, merchantID: Int) throws -> MerchantBusinessIntent? {
+        guard skuID > 0, productID > 0 else { return nil }
+        let target = Self.target(skuID: skuID, productID: productID)
         return try journal.intents().first { row in
             row.realm == scope.realm && row.accountID == scope.accountID && row.merchantID == merchantID
-                && row.target == "sku:\(skuID)"
+                && row.target == target
         }
     }
 
+    private static func target(skuID: Int, productID: Int) -> String { "sku:\(skuID)|product:\(productID)" }
+
     private func storedIntent(_ intent: MerchantSkuSaveJourney.Intent, merchantID: Int) -> MerchantBusinessIntent {
-        MerchantBusinessIntent(scope: scope, merchantID: merchantID, target: "sku:\(intent.skuID)", requestID: intent.requestID)
+        MerchantBusinessIntent(scope: scope, merchantID: merchantID,
+                               target: Self.target(skuID: Int(intent.skuID), productID: Int(intent.productID)),
+                               requestID: intent.requestID)
     }
 
     private func mutation(_ intent: MerchantSkuSaveJourney.Intent) -> MerchantBusinessMutation {
@@ -218,13 +264,41 @@ import Foundation
         return skus.compactMap(\.object).first { $0["skuId"]?.integer == skuID }
     }
 
-    private func appliedTarget(_ value: MerchantBusinessValue, requestID: String) -> Int64? {
+    private func appliedTarget(_ value: MerchantBusinessValue, requestID: String, skuID: Int64) -> Int64? {
         guard let object = value.object,
               object["requestId"]?.string == requestID,
               object["state"]?.string == "APPLIED",
               object["action"]?.string == "SKU_SAVE",
               object["targetType"]?.string == "pms_sku",
-              let target = object["targetId"]?.integer, target > 0 else { return nil }
+              let target = object["targetId"]?.integer, Int64(target) == skuID else { return nil }
         return Int64(target)
+    }
+
+    private struct Kept {
+        let originalPrice: String?
+        let pic: String?
+        let bookable: Bool
+        let slotMinutes: Int
+        let capacityPerSlot: Int
+    }
+
+    private func kept(_ row: MerchantBusinessObject) -> Kept? {
+        guard let bookable = flag(row["bookable"]),
+              let slot = row["slotMinutes"]?.integer,
+              let capacity = row["capacityPerSlot"]?.integer else { return nil }
+        return Kept(originalPrice: moneyText(row["originalPrice"]), pic: row["pic"]?.string,
+                    bookable: bookable, slotMinutes: slot, capacityPerSlot: capacity)
+    }
+
+    private func flag(_ value: MerchantBusinessValue?) -> Bool? {
+        if let bool = value?.bool { return bool }
+        if value?.integer == 1 { return true }
+        if value?.integer == 0 { return false }
+        return nil
+    }
+
+    private func moneyText(_ value: MerchantBusinessValue?) -> String? {
+        if value == nil || value == .null { return nil }
+        return value?.numberText
     }
 }

@@ -80,6 +80,36 @@ public struct MerchantBusinessService {
         guard code == 200 else { throw MerchantBusinessFailure.rejected(code, body.mbText("msg")) }
         guard let data = body["data"], data != .null else { throw MerchantBusinessFailure.malformed }; return data
     }
+    /// SKU save only. Production uses the reviewed transport and a one-shot ticket.
+    /// The synthetic transport stays on the test service and is not a production grant.
+    @MainActor func executeDeskSku(_ mutation: MerchantBusinessMutation, requestID: String, token: String,
+                                   access: MerchantBusinessAccess, scope: MerchantBusinessScope,
+                                   check: () throws -> Void) async throws -> MerchantBusinessReceipt {
+        guard case .saveSku = mutation else { throw MerchantBusinessFailure.invalid }
+        guard access.role == "MERCHANT_OWNER" else { throw MerchantBusinessFailure.denied }
+        try access.require(mutation.permissions)
+        try check()
+        if let productionTransport {
+            guard productionTransport.permits(mutation, merchantID: access.merchantID) else { throw MerchantBusinessFailure.disabled }
+            let snapshot = MerchantBusinessSnapshot(access: access, document: try MerchantBusinessDocument(query: .overview, payload: .object([:])))
+            let review = MerchantBusinessConfirmation(id: UUID(), authorizationGeneration: nil, journalRealm: scope.realm,
+                                                      mutation: mutation, requestID: requestID,
+                                                      request: try mutation.request(requestID: requestID), scope: scope, baseline: snapshot)
+            let authorization = MerchantBusinessDispatchAuthorization(review, check: check)
+            try authorization.consume(review)
+            try productionTransport.authorize(authorization)
+            try check()
+            let body = try await envelope(try mutation.request(requestID: requestID), token: token, transport: productionTransport)
+            try check()
+            try authorization.validate(mutation, merchantID: access.merchantID)
+            return try MerchantBusinessReceipt(mutation: mutation, message: body.mbText("msg"), data: Self.unwrap(body))
+        }
+        guard mutationTransport != nil else { throw MerchantBusinessFailure.disabled }
+        let receipt = try await execute(mutation, requestID: requestID, token: token)
+        try check()
+        return receipt
+    }
+
     public func access(token: String) async throws -> MerchantBusinessAccess {
         let body = try await envelope(.empty("api/merchant/access/me"), token: token, transport: readTransport)
         guard let object = try Self.unwrap(body).object else { throw MerchantBusinessFailure.malformed }

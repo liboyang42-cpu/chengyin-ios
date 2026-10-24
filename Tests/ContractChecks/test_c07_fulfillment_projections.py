@@ -32,6 +32,7 @@ WHITELIST = CORE_FILES + TEST_FILES + [
     CONTRACT, HUNK, "Core/MerchantBusinessMutation.swift", "Core/MerchantBusinessProduction.swift",
     "Tests/CoreTests/MerchantBusinessServiceTests.swift",
     "Core/MerchantBusinessService.swift",
+    "Core/MerchantBusinessCoordinator.swift",
     "Core/MerchantDeskSkuDesk.swift",
     "App/MerchantDeskSkuPage.swift",
 ]

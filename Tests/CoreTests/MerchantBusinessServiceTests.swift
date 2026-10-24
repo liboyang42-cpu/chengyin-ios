@@ -434,13 +434,20 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         }
         XCTAssertEqual(shown.skuName, "door")
         XCTAssertEqual(shown.price, "88")
-        XCTAssertEqual(await transport.paths.filter { $0.hasSuffix("/sku/save") }.count, 0)
+        XCTAssertEqual(shown.originalPrice, "100.00")
+        XCTAssertEqual(shown.pic, "media-asset:1")
+        XCTAssertEqual(shown.slotMinutes, 30)
+        let savesAfterPresent = await transport.paths.filter { $0.hasSuffix("/sku/save") }
+        XCTAssertEqual(savesAfterPresent.count, 0)
         await desk.load(productID: 3, skuID: 44, edit: edit, access: access, accountID: 7, token: "synthetic-token")
         guard case .frozen(let intent) = desk.phase else {
             XCTFail("frozen")
             return
         }
         XCTAssertEqual(intent.price, "88.00")
+        XCTAssertEqual(intent.originalPrice, "100.00")
+        XCTAssertEqual(intent.pic, "media-asset:1")
+        XCTAssertEqual(intent.slotMinutes, 30)
         XCTAssertEqual(intent.ruleVersion, 3)
         XCTAssertFalse(intent.requestID.hasPrefix("desk-req"))
         await desk.confirm(access: access, token: "synthetic-token")
@@ -454,6 +461,9 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         XCTAssertEqual(saved.count, 1)
         let body = await transport.saveBody
         XCTAssertTrue(body.contains("\"price\":\"88.00\""))
+        XCTAssertTrue(body.contains("\"originalPrice\":\"100.00\""))
+        XCTAssertTrue(body.contains("\"pic\":\"media-asset:1\""))
+        XCTAssertTrue(body.contains("\"slotMinutes\":30"))
         XCTAssertTrue(body.contains("\"ruleVersion\":3"))
         XCTAssertTrue(body.contains("\"requestId\":\"\(intent.requestID)\""))
         let remaining = try journal.intents()
@@ -462,7 +472,8 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         await desk.noteLater(productID: 3, skuID: 44, access: access, token: "synthetic-token")
         XCTAssertEqual(desk.laterRuleVersion, 5)
         XCTAssertEqual(desk.phase, .applied(requestID: requestID, skuID: 44))
-        XCTAssertEqual(await transport.paths.filter { $0.hasSuffix("/sku/save") }.count, 1)
+        let savesAfterLater = await transport.paths.filter { $0.hasSuffix("/sku/save") }
+        XCTAssertEqual(savesAfterLater.count, 1)
 
         await transport.setReceiptApplied(false)
         let lost = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope)
@@ -478,19 +489,70 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         let savesBeforeReopen = await transport.paths.filter { $0.hasSuffix("/sku/save") }.count
         let readsBeforeSwitch = await transport.paths.filter { $0.hasSuffix("/receipt") }.count
         let switched = MerchantDeskSkuDesk(service: service, journal: journal, scope: MerchantBusinessScope(realm: "desk", accountID: 8, epoch: 1))
-        await switched.reopen(skuID: 44, access: access, token: "synthetic-token")
+        await switched.reopen(productID: 3, skuID: 44, access: access, token: "synthetic-token")
         XCTAssertEqual(switched.phase, .idle)
         XCTAssertEqual(try journal.intents().count, 1)
-        XCTAssertEqual(await transport.paths.filter { $0.hasSuffix("/receipt") }.count, readsBeforeSwitch)
-        await lost.reopen(skuID: 44, access: access, token: "synthetic-token")
+        let readsAfterSwitch = await transport.paths.filter { $0.hasSuffix("/receipt") }
+        XCTAssertEqual(readsAfterSwitch.count, readsBeforeSwitch)
+        await lost.reopen(productID: 3, skuID: 44, access: access, token: "synthetic-token")
         XCTAssertEqual(lost.phase, .unknown(requestID: unknownID))
-        XCTAssertEqual(await transport.paths.filter { $0.hasSuffix("/sku/save") }.count, savesBeforeReopen)
+        let savesAfterUnknown = await transport.paths.filter { $0.hasSuffix("/sku/save") }
+        XCTAssertEqual(savesAfterUnknown.count, savesBeforeReopen)
         await transport.setReceiptApplied(true)
         await transport.setReceiptRequestID(unknownID)
-        await lost.reopen(skuID: 44, access: access, token: "synthetic-token")
+        await lost.reopen(productID: 3, skuID: 44, access: access, token: "synthetic-token")
         XCTAssertEqual(lost.phase, .applied(requestID: unknownID, skuID: 44))
         XCTAssertTrue(try journal.intents().isEmpty)
-        XCTAssertEqual(await transport.paths.filter { $0.hasSuffix("/sku/save") }.count, savesBeforeReopen)
+        let savesAfterApplied = await transport.paths.filter { $0.hasSuffix("/sku/save") }
+        XCTAssertEqual(savesAfterApplied.count, savesBeforeReopen)
+    }
+
+    func testWrongSkuTargetAndUnauthorizedSaveDoNotClearTheJournal() async throws {
+        let transport = DeskSkuEntryTransport()
+        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.com/test")!),
+                                                  readTransport: transport, testingMutationTransport: transport)
+        let journal = MerchantBusinessMemoryIntentStore()
+        let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
+        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9)]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope)
+        await desk.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2),
+                        access: access, accountID: 7, token: "synthetic-token")
+        await transport.setSaveTarget(45)
+        await desk.confirm(access: access, token: "synthetic-token")
+        let afterWrongTarget = try journal.intents()
+        XCTAssertEqual(afterWrongTarget.count, 1)
+        guard case .unknown = desk.phase else {
+            XCTFail("wrong target stays unknown")
+            return
+        }
+        let restarted = MerchantDeskSkuDesk(service: service, journal: journal,
+                                            scope: MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 9))
+        await restarted.reopen(productID: 3, skuID: 44, access: access, token: "synthetic-token")
+        let afterRestart = try journal.intents()
+        XCTAssertEqual(afterRestart.count, 1)
+        guard case .unknown = restarted.phase else {
+            XCTFail("restart stays unknown")
+            return
+        }
+        let deniedJournal = MerchantBusinessMemoryIntentStore()
+        let denied = MerchantDeskSkuDesk(service: service, journal: deniedJournal, scope: scope)
+        await denied.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2),
+                          access: access, accountID: 7, token: "synthetic-token")
+        await transport.setSaveStatus(401)
+        await transport.setSaveTarget(44)
+        await denied.confirm(access: access, token: "synthetic-token")
+        let deniedRows = try deniedJournal.intents()
+        XCTAssertEqual(deniedRows.count, 1)
+        guard case .unknown = denied.phase else {
+            XCTFail("unauthorized stays unknown")
+            return
+        }
     }
 }
 
@@ -501,16 +563,20 @@ private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
     var receiptRequestID = ""
     var saveBody = ""
     var detailRuleVersion = 3
+    var saveTarget = 44
+    var saveStatus = 200
     var paths: [String] { requests.compactMap { $0.url?.path } }
     func setFailSave(_ value: Bool) { failSave = value }
     func setReceiptApplied(_ value: Bool) { receiptApplied = value }
     func setReceiptRequestID(_ value: String) { receiptRequestID = value }
     func setDetailRuleVersion(_ value: Int) { detailRuleVersion = value }
+    func setSaveTarget(_ value: Int) { saveTarget = value }
+    func setSaveStatus(_ value: Int) { saveStatus = value }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         let path = request.url?.path ?? ""
         if path.hasSuffix("/products/detail") {
-            let json = #"{"code":200,"data":{"productId":3,"skus":[{"skuId":44,"skuName":"door","price":88,"stock":2,"bookable":false,"slotMinutes":60,"capacityPerSlot":0,"ruleVersion":\#(detailRuleVersion)}]}}"#
+            let json = #"{"code":200,"data":{"productId":3,"editable":true,"skus":[{"skuId":44,"skuName":"door","price":88,"originalPrice":"100.00","pic":"media-asset:1","stock":2,"bookable":false,"slotMinutes":30,"capacityPerSlot":2,"ruleVersion":\#(detailRuleVersion)}]}}"#
             return (Data(json.utf8), 200)
         }
         if path.hasSuffix("/sku/save") {
@@ -518,8 +584,8 @@ private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
             if failSave { throw URLError(.timedOut) }
             let fields = try JSONDecoder().decode(MerchantBusinessObject.self, from: request.httpBody ?? Data())
             let requestID = fields["requestId"]?.string ?? ""
-            let json = #"{"code":200,"data":{"requestId":"\#(requestID)","state":"APPLIED","action":"SKU_SAVE","targetType":"pms_sku","targetId":44}}"#
-            return (Data(json.utf8), 200)
+            let json = #"{"code":200,"data":{"requestId":"\#(requestID)","state":"APPLIED","action":"SKU_SAVE","targetType":"pms_sku","targetId":\#(saveTarget)}}"#
+            return (Data(json.utf8), saveStatus)
         }
         if path.hasSuffix("/receipt") {
             let fields = try JSONDecoder().decode(MerchantBusinessObject.self, from: request.httpBody ?? Data())
