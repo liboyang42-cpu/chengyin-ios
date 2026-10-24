@@ -110,6 +110,7 @@ public struct ImmutableReceiptProducer: Equatable {
     public static let imSend = "im.send"
     public static let imSendCommand = "im.send.originalCommand"
     public static let imSendWire = "im.send.originalWire"
+    public static let channelMessageSend = "channelMessage.send"
     public static let notASend = "IM_OPERATION_NOT_SEND"
 
     public struct SentMessage: Equatable, Sendable {
@@ -230,44 +231,49 @@ public struct ImmutableReceiptProducer: Equatable {
         }
     }
 
-    /// Only REPLY/MENTION with real content, msgType, extraJson, and identity may send.
+    /// Channel REPLY/MENTION uses ChannelMessageService.send fields, not the legacy direct send.
     /// SEARCH/EDIT/WITHDRAW/PIN do not send. OriginalRequest.body is fingerprint material, not content.
     public func sendOriginal(
         _ request: OriginalRequest,
-        memberID: Int64?,
+        actorID: Int64?,
         conversationID: Int64?,
-        targetMemberID: Int64?,
         msgType: Int?,
         content: String?,
         extraJSON: String?,
-        send: ((Int64, Int64, Int64, Int, String, String, String) -> SentMessage?)?
+        replyToID: Int64?,
+        mentionMemberIDs: [Int64],
+        mentionRoleIDs: [Int64],
+        mentionEveryone: Bool,
+        channelSend: ((Int64, Int64, String, Int, String, String?, Int64?, [Int64], [Int64], Bool) -> [String: String]?)?
     ) throws -> OriginalReceipt? {
         let id = try Self.requireRequestID(request.requestId)
         guard let kind = request.kind else { throw NotASend.missingKind }
         guard kind == .reply || kind == .mention else { throw NotASend.kind(kind) }
         let trimmedContent = content?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let trimmedExtra = extraJSON?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard let memberID, memberID > 0, let conversationID, conversationID > 0,
-              let targetMemberID, targetMemberID > 0, let msgType,
-              !trimmedContent.isEmpty, trimmedContent != request.body,
-              !trimmedExtra.isEmpty else {
+        guard let actorID, actorID > 0, let conversationID, conversationID > 0, let msgType,
+              !trimmedContent.isEmpty, trimmedContent != request.body else {
             throw NotifyFailure.waitingSource(capability: Self.imSendCommand)
         }
-        guard Self.originalWire(kind, trimmedExtra) else {
+        if kind == .reply {
+            guard let replyToID, replyToID > 0 else {
+                throw NotifyFailure.waitingSource(capability: Self.imSendWire)
+            }
+        } else if mentionMemberIDs.isEmpty && mentionRoleIDs.isEmpty && !mentionEveryone {
             throw NotifyFailure.waitingSource(capability: Self.imSendWire)
         }
-        guard let send else {
-            throw NotifyFailure.waitingSource(capability: Self.imSendCommand)
+        guard let channelSend else {
+            throw NotifyFailure.waitingSource(capability: Self.channelMessageSend)
         }
-        guard let sent = send(memberID, conversationID, targetMemberID, msgType, trimmedContent, trimmedExtra, id) else {
+        guard let sent = channelSend(actorID, conversationID, id, msgType, trimmedContent, extraJSON, replyToID,
+                                      mentionMemberIDs, mentionRoleIDs, mentionEveryone) else {
             return Self.unknownReceipt(requestId: id, projection: nil)
         }
         return OriginalReceipt(
-            requestId: Self.parse(sent.clientMessageId) ?? id,
+            requestId: Self.parse(sent["client_message_id"]) ?? id,
             kind: nil,
-            payloadHash: sent.requestHash,
+            payloadHash: sent["request_hash"],
             outcome: Self.outcomeUnknown,
-            originalBody: sent.content,
+            originalBody: sent["content"],
             currentProjectionClaimsApplied: false,
             recoveryNote: nil,
             mintedNewRequest: false)

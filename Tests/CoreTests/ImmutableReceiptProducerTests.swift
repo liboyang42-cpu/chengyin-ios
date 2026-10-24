@@ -188,9 +188,9 @@ final class ImmutableReceiptProducerTests: XCTestCase {
     func testSendOriginalDoesNotSendNonMessageKindsOrFingerprintBody() throws {
         var producer = ImmutableReceiptProducer()
         var calls = 0
-        let refuse: (Int64, Int64, Int64, Int, String, String, String) -> ImmutableReceiptProducer.SentMessage? = { _, _, _, _, _, _, _ in
+        let refuse: (Int64, Int64, String, Int, String, String?, Int64?, [Int64], [Int64], Bool) -> [String: String]? = { _, _, _, _, _, _, _, _, _, _ in
             calls += 1
-            XCTFail("non-send kind must not call send")
+            XCTFail("non-send kind must not call channel send")
             return nil
         }
         for kind in [NotifyKind.search, .edit, .withdraw, .pin] {
@@ -198,8 +198,9 @@ final class ImmutableReceiptProducerTests: XCTestCase {
                 requestId: "c09-op-01", kind: kind, body: "{\"fp\":1}",
                 outcome: ImmutableReceiptProducer.outcomeAccepted)
             XCTAssertThrowsError(try producer.sendOriginal(
-                request, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
-                content: "hello", extraJSON: "{\"mention\":8}", send: refuse)) { error in
+                request, actorID: 7, conversationID: 12, msgType: 1, content: "hello", extraJSON: nil,
+                replyToID: 88120, mentionMemberIDs: [], mentionRoleIDs: [], mentionEveryone: false,
+                channelSend: refuse)) { error in
                 XCTAssertEqual(error as? ImmutableReceiptProducer.NotASend, .kind(kind))
             }
         }
@@ -208,35 +209,40 @@ final class ImmutableReceiptProducerTests: XCTestCase {
             requestId: "c09-send-nil", kind: nil, body: "{\"fp\":1}",
             outcome: ImmutableReceiptProducer.outcomeAccepted)
         XCTAssertThrowsError(try producer.sendOriginal(
-            missingKind, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
-            content: "hello", extraJSON: "{\"reply_to_id\":88120}", send: refuse)) { error in
+            missingKind, actorID: 7, conversationID: 12, msgType: 1, content: "hello", extraJSON: nil,
+            replyToID: 88120, mentionMemberIDs: [], mentionRoleIDs: [], mentionEveryone: false,
+            channelSend: refuse)) { error in
             XCTAssertEqual(error as? ImmutableReceiptProducer.NotASend, .missingKind)
         }
         let reply = ImmutableReceiptProducer.OriginalRequest(
             requestId: "c09-send-01", kind: NotifyKind.reply, body: "{\"fp\":1}",
             outcome: ImmutableReceiptProducer.outcomeAccepted)
         XCTAssertEqual(waitingReceipt {
-            try producer.sendOriginal(reply, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
-                                     content: "{\"fp\":1}", extraJSON: "{\"reply_to_id\":88120}", send: refuse)
+            try producer.sendOriginal(reply, actorID: 7, conversationID: 12, msgType: 1,
+                                     content: "{\"fp\":1}", extraJSON: nil, replyToID: 88120,
+                                     mentionMemberIDs: [], mentionRoleIDs: [], mentionEveryone: false,
+                                     channelSend: refuse)
         }, .waitingSource(capability: ImmutableReceiptProducer.imSendCommand))
         XCTAssertEqual(waitingReceipt {
-            try producer.sendOriginal(reply, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
-                                     content: "hello", extraJSON: nil, send: refuse)
-        }, .waitingSource(capability: ImmutableReceiptProducer.imSendCommand))
-        XCTAssertEqual(waitingReceipt {
-            try producer.sendOriginal(reply, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
-                                     content: "hello", extraJSON: "{\"mention\":8}", send: refuse)
+            try producer.sendOriginal(reply, actorID: 7, conversationID: 12, msgType: 1,
+                                     content: "hello", extraJSON: nil, replyToID: nil,
+                                     mentionMemberIDs: [8], mentionRoleIDs: [], mentionEveryone: false,
+                                     channelSend: refuse)
         }, .waitingSource(capability: ImmutableReceiptProducer.imSendWire))
+        XCTAssertEqual(waitingReceipt {
+            try producer.sendOriginal(reply, actorID: 7, conversationID: 12, msgType: 1,
+                                     content: "hello", extraJSON: nil, replyToID: 88120,
+                                     mentionMemberIDs: [], mentionRoleIDs: [], mentionEveryone: false,
+                                     channelSend: nil)
+        }, .waitingSource(capability: ImmutableReceiptProducer.channelMessageSend))
         XCTAssertEqual(calls, 0)
-        let sent = ImmutableReceiptProducer.SentMessage(
-            clientMessageId: "c09-send-01", requestHash: "hash-send-01", content: "hello")
-        let wire = "{\"reply_to_id\":88120}"
         let receipt = try producer.sendOriginal(
-            reply, memberID: 7, conversationID: 12, targetMemberID: 8, msgType: 1,
-            content: "hello", extraJSON: wire,
-            send: { _, _, _, _, content, extra, clientID in
+            reply, actorID: 7, conversationID: 12, msgType: 1, content: "hello", extraJSON: nil,
+            replyToID: 88120, mentionMemberIDs: [], mentionRoleIDs: [], mentionEveryone: false,
+            channelSend: { actor, conversation, clientID, _, content, _, reply, _, _, _ in
                 calls += 1
-                return content == "hello" && extra == wire && clientID == "c09-send-01" ? sent : nil
+                return actor == 7 && conversation == 12 && content == "hello" && clientID == "c09-send-01" && reply == 88120
+                    ? ["client_message_id": "c09-send-01", "content": "hello", "request_hash": "hash-send-01"] : nil
             })
         XCTAssertEqual(receipt?.originalBody, "hello")
         XCTAssertEqual(calls, 1)
