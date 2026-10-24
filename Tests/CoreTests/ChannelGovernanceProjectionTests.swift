@@ -206,6 +206,20 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(journey.phase, .authorizedReadWrite)
     }
 
+    func testUnusedAppealDoesNotOccupyBanThenUniqueBanApplies() throws {
+        var journey = try joined().0
+        XCTAssertThrowsError(try journey.appeal()) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .revoked)
+        }
+        XCTAssertEqual(journey.phase, .authorizedReadWrite)
+        XCTAssertNotNil(journey.grant, "在籍未封禁申诉不得占 ban")
+        try journey.ban()
+        XCTAssertEqual(journey.phase, .banned)
+        XCTAssertNil(journey.grant)
+        try journey.appeal()
+        XCTAssertEqual(journey.phase, .appealing)
+    }
+
     func testMissingACCOUNT4StaysMismatchNeverEmptyIdentity() {
         XCTAssertThrowsError(try ChannelAccount4Identity(accountID: 0, epoch: 1)) {
             XCTAssertEqual($0 as? ChannelAuthorizationError, .account4Mismatch)

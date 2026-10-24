@@ -98,6 +98,7 @@ class ChannelNotFriendPermissionContracts(unittest.TestCase):
         self.assertIn('testOtherACCOUNT4DoesNotRewriteOriginalGrant', tests)
         self.assertIn('testInProcessRecoverKeepsOriginalGrantAndUnsignedOriginalWaitingSource', tests)
         self.assertIn('testCatalogedGrantDoesNotOccupyThenUniqueAuthorizeApplies', tests)
+        self.assertIn('testUnusedAppealDoesNotOccupyBanThenUniqueBanApplies', tests)
         self.assertIn('testMissingACCOUNT4StaysMismatchNeverEmptyIdentity', tests)
         self.assertIn('account4Mismatch', tests)
         governance = self.read('Core/ChannelGovernanceProjection.swift')
