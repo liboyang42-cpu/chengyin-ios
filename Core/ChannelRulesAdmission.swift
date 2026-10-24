@@ -157,6 +157,29 @@ public struct ChannelRulesAdmission: Equatable, Sendable {
         return sent
     }
 
+    /// Original `ChannelAdmissionService.revokeInvite`. The reason is required and stays within 120 characters.
+    /// One call, no local store. This does not decide who is allowed to revoke.
+    public typealias OriginalAdmissionRevokeInvite = (
+        _ actorID: Int64, _ inviteID: Int64, _ reason: String, _ requestID: String
+    ) throws -> [String: Any]
+
+    public func revokeInviteOriginal(inviteID: Int64, reason: String, requestID: String,
+                                     channel: OriginalAdmissionRevokeInvite? = nil) throws -> [String: Any] {
+        let trimmed = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard inviteID > 0, Self.validRequestID(requestID), !trimmed.isEmpty, trimmed.count <= 120 else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        guard let channel else { throw ChannelAuthorizationError.waitingSource }
+        let sent = try channel(Int64(identity.accountID), inviteID, trimmed, requestID)
+        if let echoed = sent["request_id"] as? String, echoed != requestID {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        guard Self.positiveID(sent["invite_id"]) == inviteID, Self.exactInt(sent["status"]) == 1 else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        return sent
+    }
+
     /// Original `receipt`. It does not submit again. A missing row stays UNKNOWN on the same request id.
     public func recoverOriginal(requestID: String, receipt: (Int64, String) throws -> [String: Any]) throws -> [String: Any] {
         guard Self.validRequestID(requestID) else { throw ChannelAuthorizationError.invalidCatalog }

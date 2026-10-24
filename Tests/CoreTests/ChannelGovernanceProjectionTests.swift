@@ -895,6 +895,29 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(opened["join_paused"] as? Bool, false)
     }
 
+    func testAdmissionRevokeInviteCallsTheOriginalPortOnce() throws {
+        let gate = try admission(try identity())
+        XCTAssertThrowsError(try gate.revokeInviteOriginal(inviteID: 8, reason: " replaced ", requestID: "c08-revoke-01")) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingSource)
+        }
+        var calls = 0
+        XCTAssertThrowsError(try gate.revokeInviteOriginal(
+            inviteID: 8, reason: " ", requestID: "c08-revoke-01",
+            channel: { _, _, _, _ in calls += 1; return [:] }))
+        XCTAssertEqual(calls, 0)
+        let revoked = try gate.revokeInviteOriginal(inviteID: 8, reason: " replaced ", requestID: "c08-revoke-01") {
+            actor, invite, reason, request in
+            calls += 1
+            XCTAssertEqual(actor, 7)
+            XCTAssertEqual(invite, 8)
+            XCTAssertEqual(reason, "replaced")
+            XCTAssertEqual(request, "c08-revoke-01")
+            return ["invite_id": "8", "status": 1]
+        }
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(revoked["status"] as? Int, 1)
+    }
+
     private static func historyPage(after: String?) -> [String: Any] {
         var page: [String: Any] = [
             "list": [] as [Any], "next_cursor": "9", "has_more": NSNumber(value: false), "nextCursor": "9",
