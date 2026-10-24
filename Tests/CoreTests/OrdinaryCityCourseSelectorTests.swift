@@ -371,4 +371,23 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-fin-never").outcome, .notFound)
         XCTAssertEqual(ledger.readback("c04-fin-never").outcome, .notFound)
     }
+    func testLedgerRecoverOriginalOfNeverSeenStartIdDoesNotOccupyThenUniqueFreezeApplies() throws {
+        let catalog = try catalog()
+        let selection = try XCTUnwrap(OrdinaryCityCourseSelector.select(courseID: 1001, from: catalog))
+        let safety = try XCTUnwrap(OrienteeringSafetyVersion.display(selection: selection, now: now))
+        var ledger = EventScoreOriginalLedger()
+        let neverStart = ledger.recoverOriginal(originalRequestID: "c04-sta-class")
+        XCTAssertEqual(neverStart.originalRequestID, "c04-sta-class")
+        XCTAssertEqual(neverStart.outcome, .notFound)
+        XCTAssertEqual(neverStart.mintedNewRequest, false)
+        XCTAssertNil(neverStart.start)
+        XCTAssertEqual(ledger.readback("c04-sta-class").outcome, .notFound)
+        let first = ledger.freeze(
+            selection: selection, safety: safety, originalRequestID: "c04-sta-class")
+        XCTAssertEqual(first.originalRequestID, "c04-sta-class")
+        XCTAssertEqual(first.outcome, .running)
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-sta-class").outcome, .unknown)
+        XCTAssertEqual(ledger.readback("c04-sta-class").start?.courseID, 1001)
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-sta-never").outcome, .notFound)
+    }
 }
