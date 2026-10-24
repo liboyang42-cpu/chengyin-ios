@@ -34,7 +34,10 @@ import SwiftUI
 
     var body: some View {
         Group {
-            if let shellURL, let launch, H5ShellParentFlow.loadRequest(shellURL: shellURL, launch: launch) != nil {
+            if let shellURL, let launch,
+               let parent = H5ShellParentFlow.loadRequest(shellURL: shellURL, launch: launch),
+               let shell = H5ShellLoad.request(shellURL: shellURL, launch: launch),
+               parent.httpMethod == shell.httpMethod, parent.httpBody == shell.httpBody {
                 H5PlatformShellView(shellURL: shellURL, launch: launch, onClose: onClose)
             } else {
                 Text("h5.launchTicket")

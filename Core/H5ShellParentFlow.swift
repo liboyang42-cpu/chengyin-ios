@@ -4,10 +4,10 @@ import FoundationNetworking
 #endif
 
 /// Parent opens the platform shell, then reads the original install receipt for the
-/// same request id. The shell loads only when the shell URL and launch exist and
-/// `H5ShellLoad` accepts them: same HTTPS host, and the body is the nonce.
-/// A different host does not load. A page or JavaScript self-report is not installed.
-/// This type does not invent a domain, a certificate, a zip, or an approval.
+/// same request id. The shell loads only when the shell URL and launch exist and share
+/// the same HTTPS host. The body is the nonce, not a main token. A different host does
+/// not load. A page or JavaScript self-report is not installed. This type does not
+/// invent a domain, a certificate, a zip, or an approval.
 public struct H5ShellParentFlow: Equatable {
     public private(set) var entry: WorkshopInstallRecoverEntry
     public let requestID: String
@@ -21,15 +21,22 @@ public struct H5ShellParentFlow: Equatable {
         self.entry = entry
     }
 
-    /// Request the existing shell loader will post. Nil means do not present or load.
+    /// One-time POST for the platform shell. Nil means do not present or load.
+    /// The body is only the nonce. A different host, a non-HTTPS URL, or a main token is refused.
     public static func loadRequest(shellURL: URL?, launch: H5LaunchDescription?) -> URLRequest? {
         guard let shellURL, let launch,
-              let request = H5ShellLoad.request(shellURL: shellURL, launch: launch),
-              request.httpMethod == "POST",
-              let body = request.httpBody,
-              let text = String(data: body, encoding: .utf8),
-              let encoded = launch.nonce.addingPercentEncoding(withAllowedCharacters: .alphanumerics),
-              text == "nonce=\(encoded)" else { return nil }
+              shellURL.scheme == "https", shellURL.user == nil, shellURL.password == nil,
+              let origin = URL(string: launch.parentOrigin),
+              origin.scheme == "https", origin.host == shellURL.host, origin.port == shellURL.port else { return nil }
+        var request = URLRequest(url: shellURL)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        guard let nonce = launch.nonce.addingPercentEncoding(withAllowedCharacters: .alphanumerics), !nonce.isEmpty else {
+            return nil
+        }
+        request.httpBody = Data("nonce=\(nonce)".utf8)
         return request
     }
 
