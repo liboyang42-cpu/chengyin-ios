@@ -1,12 +1,24 @@
 import SwiftUI
 import MapKit
 
+/// One existing route action handed to the route page.
+/// The page reads it through RouteActionPageRead. It does not insert an action.
+struct RouteActionPageReadRequest {
+    var sessionID: Int64?
+    var memberID: Int64?
+    var actionID: String?
+    var selectAction: ((Int64, Int64, String) -> RouteActionOriginalRow?)?
+}
+
 /// Supplementary map for the personal orientation runtime. It never requests
 /// location, directions or a new capability; all actions use the existing node host.
 @MainActor struct PlayRouteMapView: View {
     @Bindable var model: PlayExperienceCoordinator
     let nodeDestination: (Int) -> AnyView
+    var actionRead: RouteActionPageReadRequest? = nil
     @State private var selected: PlayRouteMapDestination?
+    @State private var actionReadAppeared = false
+    @State private var shownActionRow: RouteActionOriginalRow?
     @State private var showMap = true
     @State private var cameraControlsExpanded = false
     @State private var cameraPosition: MapCameraPosition = .automatic
@@ -72,8 +84,28 @@ import MapKit
                     if model.phase == .loading { ProgressView("playx.loading") }
                 }
             }
+            if actionRead != nil {
+                Section {
+                    if let shownActionRow {
+                        Text(verbatim: shownActionRow.actionID)
+                            .font(.body)
+                            .accessibilityIdentifier("playRoute.actionRead")
+                    } else {
+                        Text("playRoute.unavailable")
+                            .font(.body)
+                            .accessibilityIdentifier("playRoute.actionRead")
+                    }
+                }
+            }
             Section {
-                Button("playx.refresh") { selected = nil; Task { await model.load() } }
+                Button("playx.refresh") {
+                    selected = nil
+                    Task {
+                        await model.load()
+                        appearActionRead()
+                        readThisAction()
+                    }
+                }
                     .disabled(!model.available || model.phase == .loading || model.phase == .submitting)
                     .accessibilityIdentifier("playRoute.refresh")
                 Button("playRoute.back") { selected = nil; dismiss() }
@@ -99,8 +131,50 @@ import MapKit
         .onChange(of: model.snapshot) { _, _ in clearRetiredSelection() }
         .onChange(of: model.phase) { _, _ in clearRetiredSelection() }
         .onChange(of: cameraRead) { _, _ in resetCamera() }
-        .onAppear { cameraGate.appear() }
+        .task(id: actionReadToken) {
+            appearActionRead()
+            readThisAction()
+        }
+        .onAppear { cameraGate.appear(); appearActionRead() }
         .onDisappear { cameraGate.disappear(); cameraPreview = nil; cameraIssue = nil }
+    }
+    private var actionReadToken: String {
+        "\(actionRead?.sessionID ?? -1)|\(actionRead?.memberID ?? -1)|\(actionRead?.actionID ?? "")"
+    }
+    /// Appearance records the route page only. It does not read and does not write.
+    private func appearActionRead() {
+        actionReadAppeared = true
+    }
+    /// One row through RouteActionPageRead. A different session, member, or action is not shown.
+    private func readThisAction() {
+        guard actionReadAppeared, let request = actionRead else {
+            shownActionRow = nil
+            return
+        }
+        var page = RouteActionPageRead()
+        do {
+            let row = try page.shownRow(
+                sessionID: request.sessionID,
+                memberID: request.memberID,
+                actionID: request.actionID,
+                selectAction: request.selectAction)
+            let trimmed = request.actionID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard let row, row.actionID == trimmed else {
+                shownActionRow = nil
+                return
+            }
+            if let rowSession = row.sessionID, rowSession != request.sessionID {
+                shownActionRow = nil
+                return
+            }
+            if let rowMember = row.memberID, rowMember != request.memberID {
+                shownActionRow = nil
+                return
+            }
+            shownActionRow = row
+        } catch {
+            shownActionRow = nil
+        }
     }
     private var cameraRead: PlayRouteMapCamera.Read? {
         guard !model.unresolved else { return nil }
