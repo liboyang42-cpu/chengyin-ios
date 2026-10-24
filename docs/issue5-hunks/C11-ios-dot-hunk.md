@@ -117,3 +117,19 @@ Must run from the chengyin-ios worktree cwd (not `/tmp`). Swift XCTest: authored
 ## Parent addendum 2026-10-23 17:30 America/Los_Angeles
 
 `testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueAuditApplies`：未见 `c11-comp-never` 的 `recoverOriginal` 回读空 audit 且不把 id 写入 keyed ledger；后续唯一 freeze 才是第一笔。空白 / nil requestId 返回 nil，不写成空串。XCTest NOT_RUN。Not 100%.
+
+## Lookup entry addendum
+
+`Core/SupportLookupEntry.swift` wraps `SupportEventLocator`. It does not rewrite the locator, does not replace `WithdrawalSupportLandingView`, and does not add a second audit store. Appearance does not send. D6/dot pastes the Xcode refs; this branch does not edit pbxproj.
+
+```
+Core/SupportLookupEntry.swift
+  PBXFileReference 4DCA08B678552E67253AF4DB
+  PBXBuildFile     8B41EEE1EDF4091A30B84B5D  fileRef = 4DCA08B678552E67253AF4DB
+
+Tests/CoreTests/SupportLookupEntryTests.swift
+  PBXFileReference A0F08BC87ECD10B75F627F43
+  PBXBuildFile     714701BD9DCCF55E2A555A75  fileRef = A0F08BC87ECD10B75F627F43
+```
+
+Swift XCTest for this entry is authored and NOT_RUN on Linux. Not 100%.
