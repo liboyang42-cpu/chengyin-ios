@@ -130,7 +130,7 @@ public struct MerchantSupplyDryRunProjection: Equatable {
         receipt: ((Int64, String) async throws -> Wire)?
     ) async throws -> Wire? {
         guard let ownerMemberID, ownerMemberID > 0, let id = Self.parse(requestID) else { return nil }
-        if let storeID, storeID <= 0 || storeID == ownerMemberID {
+        if let storeID, storeID <= 0 {
             return nil
         }
         guard let receipt else {
@@ -288,7 +288,7 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
                        skuID: Int64, requestID: String, skuName: String, price: String, stock: Int,
                        originalPrice: String? = nil, pic: String? = nil, bookable: Bool = false,
                        slotMinutes: Int = 60, capacityPerSlot: Int = 0, ruleVersion: Int? = nil) -> Intent? {
-        guard access.role == "MERCHANT_OWNER", accountID > 0, accountID != Int64(access.merchantID),
+        guard access.role == "MERCHANT_OWNER", accountID > 0,
               productID > 0, skuID > 0, Int(exactly: productID) != nil, Int(exactly: skuID) != nil,
               MerchantSupplyDryRunProjection.parse(requestID) != nil,
               (1...60).contains(skuName.count), (0...1_000_000).contains(stock),

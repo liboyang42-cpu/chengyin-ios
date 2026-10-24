@@ -219,7 +219,17 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
         try check()
         try journal.reserve(intent)
         try check()
-        let again = try await reader.access(token: token)
+        let again: MerchantBusinessAccess
+        do {
+            again = try await reader.access(token: token)
+            guard again.merchantID == access.merchantID, again.role == access.role else {
+                throw MerchantBusinessFailure.conflict
+            }
+        } catch {
+            // The save has not been sent. Clear only this unsent reservation.
+            try? journal.complete(intent)
+            throw error
+        }
         let latest = MerchantBusinessSnapshot(access: again, document: try MerchantBusinessDocument(query: .overview, payload: detail))
         let authorization = MerchantBusinessDispatchAuthorization(review, check: check)
         do {

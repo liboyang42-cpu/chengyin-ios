@@ -74,7 +74,7 @@ import Foundation
     }
 
     public func present(productID: Int, skuID: Int, access: MerchantBusinessAccess, accountID: Int64, token: String) async {
-        guard access.role == "MERCHANT_OWNER", accountID > 0, accountID != Int64(access.merchantID),
+        guard access.role == "MERCHANT_OWNER", accountID > 0,
               Int64(scope.accountID) == accountID else {
             phase = .failed(.denied)
             return
@@ -118,7 +118,7 @@ import Foundation
     }
 
     public func load(productID: Int, skuID: Int, edit: Edit, access: MerchantBusinessAccess, accountID: Int64, token: String) async {
-        guard access.role == "MERCHANT_OWNER", accountID > 0, accountID != Int64(access.merchantID),
+        guard access.role == "MERCHANT_OWNER", accountID > 0,
               Int64(scope.accountID) == accountID else {
             phase = .failed(.denied)
             return
@@ -177,7 +177,7 @@ import Foundation
 
     public func confirm(access: MerchantBusinessAccess, token: String) async {
         guard case .frozen(let intent) = phase else { return }
-        guard access.role == "MERCHANT_OWNER", Int64(scope.accountID) != Int64(access.merchantID) else {
+        guard access.role == "MERCHANT_OWNER", Int64(scope.accountID) > 0 else {
             phase = .failed(.denied)
             return
         }

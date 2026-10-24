@@ -387,9 +387,29 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
         XCTAssertEqual(applied.skuID, 44)
         XCTAssertNil(applied.payload)
         XCTAssertFalse(String(describing: applied).contains("99"))
-        let storeUsedAsAccount = try await supply.recoverFromDeskReceipt(
-            ownerMemberID: 7, requestID: "desk-req-01", storeID: 7, receipt: { _, _ in .string("APPLIED") })
-        XCTAssertNil(storeUsedAsAccount)
+        var sameNumberCalls = 0
+        let sameNumber = try await supply.recoverFromDeskReceipt(
+            ownerMemberID: 7, requestID: "desk-req-01", storeID: 7, expectedSkuID: 44, receipt: { owner, id in
+                sameNumberCalls += 1
+                return .object(["requestId": .string(id), "state": .string("APPLIED"),
+                                "action": .string("SKU_SAVE"), "targetType": .string("pms_sku"),
+                                "targetId": .int(44), "ownerMemberId": .int(owner), "storeId": .int(7)])
+            })
+        XCTAssertEqual(sameNumberCalls, 1)
+        guard case .object = sameNumber else {
+            XCTFail("account and store may share a number")
+            return
+        }
+        let invalidStore = try await supply.recoverFromDeskReceipt(
+            ownerMemberID: 7, requestID: "desk-req-01", storeID: 0, receipt: { _, _ in .string("APPLIED") })
+        XCTAssertNil(invalidStore)
+        let sameAccount = journey.freeze(access: owner, accountID: 9, productID: 3, skuID: 44,
+                                          requestID: "desk-req-01", skuName: "door", price: "88.00", stock: 2)
+        XCTAssertEqual(sameAccount?.requestID, "desk-req-01")
+        XCTAssertNil(journey.freeze(access: staff, accountID: 9, productID: 3, skuID: 44,
+                                    requestID: "desk-req-01", skuName: "door", price: "88.00", stock: 2))
+        XCTAssertNil(journey.freeze(access: owner, accountID: 0, productID: 3, skuID: 44,
+                                    requestID: "desk-req-01", skuName: "door", price: "88.00", stock: 2))
         do {
             _ = try await supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01",
                                                         expectedSkuID: 44, receipt: { _, id in
