@@ -18,11 +18,14 @@ public struct ProfileOrderEventHost {
     public init() {}
 
     /// Posts the existing registration info form first. The sibling original-event form
-    /// is sent only when that info id equals the opened order. The returned row is mapped
-    /// into the existing injection only when its first ORDER id equals that order.
+    /// is sent only when that info id equals the opened order. Both reads go through
+    /// `ProfileService.postOwnedOrderForm`. The returned row is mapped into the existing
+    /// injection only when its first ORDER id equals that order. A mismatch, a thrown
+    /// transport failure, or an empty body leaves the injection empty.
     public mutating func open(
         _ openedOrderID: Int,
-        post: (_ path: String, _ id: String) async throws -> Data?
+        service: ProfileService,
+        token: String
     ) async -> Int64? {
         calls = []
         injection = ProfileOrderEventSourceInjection(events: nil)
@@ -32,7 +35,7 @@ public struct ProfileOrderEventHost {
         calls.append(info)
         let infoBody: Data?
         do {
-            infoBody = try await post(info.path, info.id)
+            infoBody = try await service.postOwnedOrderForm(path: info.path, id: info.id, token: token)
         } catch {
             return nil
         }
@@ -44,7 +47,7 @@ public struct ProfileOrderEventHost {
         calls.append(event)
         let eventBody: Data?
         do {
-            eventBody = try await post(event.path, event.id)
+            eventBody = try await service.postOwnedOrderForm(path: event.path, id: event.id, token: token)
         } catch {
             return nil
         }

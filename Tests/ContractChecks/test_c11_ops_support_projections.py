@@ -38,6 +38,7 @@ WHITELIST = CORE_FILES + TEST_FILES + [
     HUNK,
     EVENT_SOURCE_HUNK,
     HOST_HUNK,
+    "Core/ProfileService.swift",
     "App/WithdrawalSupportLandingView.swift",
     "App/ProfileOrdersView.swift",
 ]
@@ -424,6 +425,40 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn("recoverOriginal", tests)
         self.assertIn("api/registration/info", tests)
         self.assertIn("api/registration/original-event", tests)
+        self.assertIn("postOwnedOrderForm", tests)
+        self.assertIn("testPostOwnedOrderFormReturnsTheRawBodyAndDoesNotDecodeIt", tests)
+        service = (ROOT / "Core/ProfileService.swift").read_text()
+        self.assertIn(
+            "public func order(id: Int, token: String, expectedAccountID: Int? = nil) async throws -> ProfileOrder",
+            service)
+        self.assertIn("private func form(_ path: String, fields: [String: String], token: String) throws -> URLRequest", service)
+        self.assertIn("private func execute<Value: Decodable>(_ request: URLRequest) async throws -> Value", service)
+        self.assertNotIn("public func form(", service)
+        self.assertNotIn("public func execute", service)
+        self.assertIn(
+            "public func postOwnedOrderForm(path: String, id: String, token: String) async throws -> Data?",
+            service)
+        posted = service.split("public func postOwnedOrderForm", 1)[1].split("public func participants", 1)[0]
+        order = service.split("public func order(id:", 1)[1].split("public func postOwnedOrderForm", 1)[0]
+        self.assertIn('form("api/registration/info", fields: ["id": String(id)], token: token)', order)
+        self.assertIn('form(path, fields: ["id": id], token: token)', posted)
+        self.assertIn("api/registration/info", posted)
+        self.assertIn("api/registration/original-event", posted)
+        self.assertIn("return data.isEmpty ? nil : data", posted)
+        self.assertNotIn("JSONDecoder", posted)
+        self.assertNotIn("JSONSerialization", posted)
+        self.assertNotIn("decode(", posted)
+        self.assertNotIn("ProfileOrder(", posted)
+        self.assertNotIn("OriginalAuditEvent(", posted)
+        self.assertNotIn("execute(", posted)
+        self.assertNotIn("audit-log", posted.lower())
+        first = source.index("service.postOwnedOrderForm(path:")
+        second = source.index("service.postOwnedOrderForm(path:", first + 1)
+        self.assertLess(first, source.index("infoID == openedOrderID"))
+        self.assertLess(source.index("infoID == openedOrderID"), second)
+        self.assertLess(second, source.index("Self.firstOrderID(rows) == Int64(openedOrderID)"))
+        self.assertEqual(source.count("service.postOwnedOrderForm(path:"), 2)
+        self.assertNotIn("postOwnedOrderForm", (ROOT / "App/AppSession.swift").read_text())
         self.assertIn("DO NOT APPLY", hunk)
         self.assertIn("AppSession", hunk)
         self.assertIn("AppCompositionRoot", hunk)
