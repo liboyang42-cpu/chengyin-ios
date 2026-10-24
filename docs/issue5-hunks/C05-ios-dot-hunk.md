@@ -72,3 +72,11 @@ HEAD `a968bdab` tests. Did not invent recoverOriginal.
 `SideQuestAcceptHoldTests.testUnusedSubmitProofBeforeHoldDoesNotOccupyThenUniqueSubmitApplies`：未见预占的 `submitProof` 抛 holdRequired 且 phase 仍 discovered、proof 仍空；后续唯一 acceptHold+submitProof 才是 proofPending。
 
 Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
+
+## Addendum 2026-10-23 19:39 America/Los_Angeles
+
+HEAD `fbbb3da4` tests. Did not invent recoverOriginal.
+
+`SideQuestAcceptHoldTests.testUnusedExitBeforeHoldDoesNotOccupyThenUniqueExitApplies`：未见预占的 `exit` 抛 holdRequired 且 original 仍空；后续唯一 acceptHold+exit 才是 exited 原文（无需 proof）。
+
+Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
