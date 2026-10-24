@@ -6,6 +6,29 @@ import FoundationNetworking
 /// General writes and verification use separate typed production transports and grants.
 /// Ordinary construction remains read-only; test transport conformance never enables production.
 public protocol MerchantBusinessTestTransport: HTTPTransport {}
+public enum MerchantDeskRead: Equatable {
+    case productDetail(productID: Int)
+    case receipt(requestID: String)
+    public var permissions: [String] {
+        switch self {
+        case .productDetail: return ["merchant:project:manage"]
+        case .receipt: return ["merchant:basic:read"]
+        }
+    }
+    public func request() throws -> MerchantBusinessRequest {
+        switch self {
+        case .productDetail(let productID):
+            guard productID > 0 else { throw MerchantBusinessFailure.invalid }
+            return .json("api/merchant/desk/products/detail", ["productId": .int(productID)])
+        case .receipt(let requestID):
+            let key = MerchantSkuSaveJourney.javaTrim(requestID)
+            guard MerchantSkuSaveJourney.whole(key, #"^[A-Za-z0-9_-]{8,64}\z"#) else {
+                throw MerchantBusinessFailure.invalid
+            }
+            return .json("api/merchant/desk/receipt", ["requestId": .string(key)])
+        }
+    }
+}
 public struct MerchantBusinessService {
     private let configuration: APIConfiguration
     private let readTransport: any HTTPTransport
@@ -57,10 +80,48 @@ public struct MerchantBusinessService {
         guard code == 200 else { throw MerchantBusinessFailure.rejected(code, body.mbText("msg")) }
         guard let data = body["data"], data != .null else { throw MerchantBusinessFailure.malformed }; return data
     }
+    /// SKU save for the synthetic service only. A passed intent is the frozen target,
+    /// not a production reservation, and this entry does not mint a dispatch ticket.
+    /// The edited name is the save body. The detail only has to contain that sku.
+    @MainActor func executeDeskSku(_ mutation: MerchantBusinessMutation, requestID: String, token: String,
+                                   access: MerchantBusinessAccess, scope: MerchantBusinessScope,
+                                   reserved: MerchantBusinessIntent, detail: MerchantBusinessValue,
+                                   authorizationGeneration: UUID?,
+                                   check: @escaping () throws -> Void) async throws -> MerchantBusinessReceipt {
+        guard case .saveSku(let productID, let skuID, _, _, _, _, _, _, _, _, _) = mutation else {
+            throw MerchantBusinessFailure.invalid
+        }
+        guard access.role == "MERCHANT_OWNER" else { throw MerchantBusinessFailure.denied }
+        try access.require(mutation.permissions)
+        guard reserved.requestID == requestID, reserved.merchantID == access.merchantID,
+              reserved.target == "sku:\(skuID)" || reserved.target == "sku:\(skuID)|product:\(productID)",
+              detail.object?["productId"]?.integer == productID,
+              detail.object?["skus"]?.array?.contains(where: { $0.object?["skuId"]?.integer == skuID }) == true else {
+            throw MerchantBusinessFailure.invalid
+        }
+        try check()
+        if productionTransport != nil {
+            _ = authorizationGeneration
+            _ = scope
+            throw MerchantBusinessFailure.disabled
+        }
+        guard mutationTransport != nil else { throw MerchantBusinessFailure.disabled }
+        let receipt = try await execute(mutation, requestID: requestID, token: token)
+        try check()
+        return receipt
+    }
+
     public func access(token: String) async throws -> MerchantBusinessAccess {
         let body = try await envelope(.empty("api/merchant/access/me"), token: token, transport: readTransport)
         guard let object = try Self.unwrap(body).object else { throw MerchantBusinessFailure.malformed }
         return try .init(object)
+    }
+    /// Typed desk reads only. A save descriptor cannot be passed here.
+    public func read(_ query: MerchantDeskRead, access: MerchantBusinessAccess, token: String) async throws -> MerchantBusinessValue {
+        guard access.merchantID > 0 else { throw MerchantBusinessFailure.denied }
+        try access.require(query.permissions)
+        let body = try await envelope(try query.request(), token: token, transport: readTransport)
+        return try Self.unwrap(body)
     }
     public func document(_ query: MerchantBusinessQuery, access: MerchantBusinessAccess, token: String) async throws -> MerchantBusinessDocument {
         try access.require(query.permissions)

@@ -1,0 +1,78 @@
+# C07-ios shared hunk for dot
+
+Exclusive owner: Cursor C07-ios (`cursor/c07-ios-fulfillment-projections-e504`).
+Base: `migration/native-ios` @ `76ce1b313af2595f9b7d7ace49040866209c7974`.
+This file is the only shared hunk. Do not treat it as authorization to edit AppSession / AppCompositionRoot / pbxproj / Localizable / OrderLifecycle / BundleBooking / payment verifiers from the Cursor line.
+
+## Why this hunk exists
+
+Issue 5 C07: merchant supply dry-run / entitlement hold / appointment-reschedule / in-store evidence / refund trial / aftercare / four-ledger reread / invoice UNKNOWN / transfer-sold WAITING_SOURCE. New Core types are SwiftPM-visible (`Package.swift` `path: "Core"`). Xcode `check_scaffold.py` still requires every `Core/*.swift` file to be listed in `Questify.xcodeproj/project.pbxproj`. C07 must not edit that project file.
+
+Inventoried, not rewritten:
+
+- `Core/MerchantAftercareEvidenceAdapter.swift` — aftercare upload remains evidence-adjacent owner
+- `Core/OrderLifecycleService.swift` / `OrderLifecycleCoordinator.swift` / `OrderLifecycleProduction.swift`
+- `Core/MerchantSettlementProgress.swift` / `MerchantSettlementEntryPresentation.swift`
+- `Core/MerchantRedemptionContext.swift` / `MerchantRedemptionFilter.swift` / `MerchantRedemptionProgress.swift`
+- `Core/OrderPaymentVerifier.swift` — payment verifier stays with Dot
+- `App/AppSession.swift` / `App/AppCompositionRoot.swift`
+
+## Dot-owned integration (do not apply from this PR)
+
+1. **pbxproj** — from this SHA, run `python3 tools/generate_project.py` so these new sources join the Questify target. Do not edit pbxproj from C07:
+   - `Core/MerchantSupplyDryRunProjection.swift`
+   - `Core/EntitlementHoldProjection.swift`
+   - `Core/FulfillmentEvidenceProjection.swift`
+   - `Core/FourLedgerBillRereadProjection.swift`
+   - `Core/InvoiceHistoryUnknownProjection.swift`
+   - `Core/TransferSoldPolicyProjection.swift`
+   - `Core/MerchantDeskSkuDesk.swift`
+   - `App/MerchantDeskSkuPage.swift`
+   CoreTests are SwiftPM-only (`Tests/CoreTests`); they are not Xcode app-unit sources.
+
+2. **13 / 17 / 28 production, 13 Authority, 17 phone identity** — remain Dot. Exclusive transfer-sold policy is not D4 SMS identity. Do not wire phone-identity as sold-policy.
+
+3. **BundleBookingService** — remain Dot. Supply dry-run never writes `capacity_reserved` / stock. Appointment / reschedule facts keep `originalRequestID`.
+
+4. **Money writers / payment verifiers** — remain Dot. Refund trial is evidence only; no payout. Four-ledger reread does not start a new reconcile. Current projection is not the original receipt.
+
+5. **AppSession / composition** — do not wire C07 into `AppSession` or `AppCompositionRoot` from this candidate.
+
+6. **Localizable.xcstrings** — not edited. iOS 13.0 baseline, do not raise.
+
+## C07 already landed (do not rewrite)
+
+- SKU + validity + hours-capacity dry-run: ACCEPT / REJECT / UNKNOWN; null hours on a bookable SKU = UNKNOWN (not 24h); Asia/Shanghai server clock
+- ACCEPT does not write stock or reservation; duplicate `originalRequestID` does not double-hold; UNKNOWN recover keeps original intent
+- Holding entitlement occupies capacity and is not issuance; no reserve / redeem / award
+- UNKNOWN recover / incomplete observation must not occupy the original ledger; later unique HELD / ACCEPT of that id is still the first write
+- Appointment / reschedule keep the original request; in-store evidence is not a GPS fake
+- Invoice file/history UNKNOWN keeps original intent and does not mint a new requestId; current projection is not original file success
+- Transfer-sold missing designated recipient or missing sold-policy source is typed WAITING_SOURCE
+- Untrusted / missing identity is Optional.none / JSON null, never empty-string coercion
+
+## Verification note
+
+Linux: Python contract `python3 -m unittest Tests.ContractChecks.test_c07_fulfillment_projections` from the iOS worktree cwd.
+Swift XCTest / App / CI: authored isolation tests, **NOT_RUN** on Linux.
+No real payment / refund / redeem / award.
+
+WAITING_SOURCE: transfer-sold policy + designated recipient authorization + irrevocable-effect originals; invoice file storage; 25-App T01–20 / T43–58 not signed as Git objects on this public tree. Not 100% of T01–20.
+
+## Desk SKU page 2026-10-24 05:50 America/Los_Angeles
+
+`MerchantDeskSkuDesk` reads product detail, freezes the intent, and confirm calls original `saveSku` once. A lost response leaves the journal request id. Reopen reads `api/merchant/desk/receipt` and does not save again. `APPLIED` + `SKU_SAVE` + `pms_sku` completes that journal row. `NOT_FOUND` stays unknown. Another account does not read or clear the row.
+
+`App/MerchantDeskSkuPage.swift` is the page. The detail fields can be edited, then freeze. Unedited original price, picture, bookable, slot, and capacity stay on the frozen intent. Confirm calls `executeDeskSku`: production uses the reviewed transport and a one-shot ticket, and the synthetic transport is not a production grant. A receipt target must match the frozen sku and product. Exit retires the generation and does not clear the journal. `MerchantBusinessDispatchAuthorization`'s initializer is internal so that ticket can be minted for this save only. `App/MerchantHomeView.swift` is not edited. Swift was not compiled. XCTest NOT_RUN. Not 100%.
+
+## Parent addendum 2026-10-23 20:40 America/Los_Angeles
+
+`EntitlementHoldProjection.projectFromLedger` 只读既有 `perkLedger.listEntitlements`。缺端口 WAITING_SOURCE。未见 chapter 保持 UNKNOWN，不占容量。不调用 reserve/redeem。XCTest NOT_RUN on Linux. Not 100%。
+
+## Parent addendum 2026-10-24 04:34 America/Los_Angeles
+
+Detail readback uses nested `productId` and `skus` (`skuId`, `skuName`, `price`, `stock`). A later form price is not the saved row. Restart with the same request id reads `api/merchant/desk/receipt`. `NOT_FOUND` stays `UNKNOWN` and the payload stays nil. `APPLIED` requires `SKU_SAVE` and `pms_sku`. Entry and PBX are still not delivered. XCTest NOT_RUN. Not 100%.
+
+Frozen `88.00` matches a JSON number 88 by Decimal compare. The saved price key stays the frozen string. The two read requests are still not sent. XCTest NOT_RUN. Not 100%.
+
+Money is Java-trimmed (code points <= U+0020 only), then matched to the end. U+2028 is rejected. A trailing newline is trimmed. The frozen save also carries originalPrice, bookable, slotMinutes, capacityPerSlot, and ruleVersion. A later form does not replace ruleVersion. XCTest NOT_RUN. Not 100%.
