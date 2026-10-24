@@ -74,4 +74,29 @@ final class AttachmentReviewProducerTests: XCTestCase {
         XCTAssertEqual(replay.requestId, "att-recover-never-c09")
         XCTAssertEqual(producer.originalByRequestID.count, 1)
     }
+
+    func testUnusedDecideOfNeverSeenDoesNotOccupyThenUniqueSubmitApplies() throws {
+        var producer = AttachmentReviewProducer()
+        XCTAssertThrowsError(try producer.decide(
+            originalRequestID: "att-decide-never-c09",
+            decision: AttachmentReviewProducer.statusApproved)) { error in
+            XCTAssertEqual(error as? NotifyFailure, .originalMissing("att-decide-never-c09"))
+        }
+        XCTAssertTrue(producer.originalByRequestID.isEmpty, "未见附件 decide 观察不得占账")
+        XCTAssertNil(producer.originalByRequestID["att-decide-never-c09"])
+        let unused = producer.recoverOriginal(
+            originalRequestID: "att-decide-never-c09", appliedProjectionStatus: "VISIBLE")
+        XCTAssertEqual(unused.requestId, "att-decide-never-c09")
+        XCTAssertEqual(unused.status, AttachmentReviewProducer.statusUnknown)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        let first = try producer.submit(
+            originalRequestID: "att-decide-never-c09", type: .image, originalDigest: "digest-IMAGE")
+        XCTAssertEqual(first.requestId, "att-decide-never-c09")
+        XCTAssertEqual(first.status, AttachmentReviewProducer.statusPending)
+        XCTAssertEqual(producer.originalByRequestID.count, 1)
+        XCTAssertEqual(producer.recoverOriginal(
+            originalRequestID: "att-decide-never-c09", appliedProjectionStatus: "VISIBLE").status,
+                       AttachmentReviewProducer.statusPending)
+        XCTAssertEqual(producer.originalByRequestID.count, 1)
+    }
 }

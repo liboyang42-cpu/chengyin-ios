@@ -116,6 +116,7 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         self.assertIn("evt-ssrf-never-c09", ssrf)
         attachments = self.sources["Tests/CoreTests/AttachmentReviewProducerTests.swift"]
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueSubmitApplies", attachments)
+        self.assertIn("testUnusedDecideOfNeverSeenDoesNotOccupyThenUniqueSubmitApplies", attachments)
         self.assertIn("att-recover-never-c09", attachments)
         delivery = self.sources["Tests/CoreTests/WebhookDeliveryLogProducerTests.swift"]
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueDeliverApplies", delivery)
