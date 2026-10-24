@@ -151,7 +151,11 @@ public struct SupportEventLocator {
               found.targetType == "RUN", found.targetId == runId else {
             throw SupportLocateFailure.originalMissing(requestId: "RUN:\(runId)")
         }
-        return try locateByRequestId(found.requestId, currentProjection: currentProjection)
+        let located = try locateByRequestId(found.requestId, currentProjection: currentProjection)
+        guard located?.runId == runId else {
+            throw SupportLocateFailure.originalMissing(requestId: "RUN:\(runId)")
+        }
+        return located
     }
 
     public func locateByOrderId(
@@ -163,7 +167,11 @@ public struct SupportEventLocator {
               found.targetType == "ORDER", found.targetId == orderId else {
             throw SupportLocateFailure.originalMissing(requestId: "ORDER:\(orderId)")
         }
-        return try locateByRequestId(found.requestId, currentProjection: currentProjection)
+        let located = try locateByRequestId(found.requestId, currentProjection: currentProjection)
+        guard located?.orderId == orderId else {
+            throw SupportLocateFailure.originalMissing(requestId: "ORDER:\(orderId)")
+        }
+        return located
     }
 
     private static func originalOutcome(_ event: OriginalAuditEvent) -> String {

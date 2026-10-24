@@ -149,6 +149,14 @@ final class SupportEventLocatorTests: XCTestCase {
         XCTAssertEqual(byOrder.requestId, "req-same")
         XCTAssertEqual(byRun.runId, 2)
         XCTAssertEqual(byOrder.orderId, 9)
+        let mixed = InMemoryOriginalEventSource()
+            .add(OriginalAuditEvent(requestId: "req-mix", targetType: "RUN", targetId: 2,
+                                    action: "START", afterJson: "PENDING"))
+            .add(OriginalAuditEvent(requestId: "req-mix", targetType: "RUN", targetId: 7,
+                                    action: "START", afterJson: "PENDING"))
+        XCTAssertThrowsError(try SupportEventLocator(originalEvents: mixed).locateByRunId(7, currentProjection: nil)) { error in
+            XCTAssertEqual(error as? SupportLocateFailure, .originalMissing(requestId: "RUN:7"))
+        }
     }
 
     func testLocateByRunRejectsADifferentTarget() {
