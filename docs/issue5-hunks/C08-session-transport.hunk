@@ -1,0 +1,13 @@
+diff --git a/App/MessagingHomeView.swift b/App/MessagingHomeView.swift
+--- a/App/MessagingHomeView.swift
++++ b/App/MessagingHomeView.swift
+@@ -59,6 +59,9 @@ private struct MessagingConversationListView: View {
+                             ForEach(Array(rows.prefix(displayLimit))) { conversation in
+                                 NavigationLink {
+                                     MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded,
++                                        directory: ChannelDirectoryAdmissionRequest(
++                                            configuration: configuration, transport: transport, token: token,
++                                            accountID: accountID, epoch: epoch, channelID: channelID, spaceID: spaceID, kind: kind),
+                                         onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
+                                 } label: { MessagingConversationRow(conversation: conversation) }
+                                 .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
