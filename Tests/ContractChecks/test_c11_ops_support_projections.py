@@ -39,9 +39,12 @@ WHITELIST = CORE_FILES + TEST_FILES + [
     EVENT_SOURCE_HUNK,
     HOST_HUNK,
     "Core/ProfileService.swift",
+    "Core/OwnedOrderRead.swift",
+    "Tests/CoreTests/OwnedOrderReadTests.swift",
     "App/WithdrawalSupportLandingView.swift",
     "App/ProfileOrdersView.swift",
 ]
+ROUTE_PARENT = "984d665fb0cf14ff5769870aa80dbf5578f66cad"
 EVENT_SOURCE_PARENT = "6272cd2d16957959397ebf68b94a8e1447bdf6c0"
 FORBIDDEN_TOUCH = [
     "App/AppSession.swift",
@@ -483,6 +486,75 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn('Section("withdrawal.support.balance")', landing)
         self.assertIn('Section("withdrawal.support.notReceived")', landing)
         self.assertNotIn("ProfileOrderEventHost", landing)
+
+    def test_original_event_route_is_not_an_info_approval(self):
+        """Swift/XCTest is NOT_RUN. This contract does not compile the route tests."""
+        route = (ROOT / "Core/OwnedOrderRead.swift").read_text()
+        tests = (ROOT / "Tests/CoreTests/OwnedOrderReadTests.swift").read_text()
+        body = route.split("public enum OwnedOrderReadRoute", 1)[1].split(
+            "public struct OwnedOrderReadSession", 1)[0]
+        self.assertIn("case list, detail(Int), originalEvent(Int)", body)
+        self.assertIn('appendingPathComponent("api/registration/list")', body)
+        self.assertIn('appendingPathComponent("api/registration/info")', body)
+        self.assertIn('appendingPathComponent("api/registration/original-event")', body)
+        self.assertIn(
+            "else if absolute.utf8.elementsEqual(info.utf8) { self = .detail(id) }",
+            body)
+        self.assertIn(
+            "else if absolute.utf8.elementsEqual(originalEvent.utf8) { self = .originalEvent(id) }",
+            body)
+        info_arm = body.split(
+            "else if absolute.utf8.elementsEqual(info.utf8) { self = .detail(id) }", 1)[0]
+        self.assertNotIn("self = .originalEvent(id)", info_arm)
+        event_arm = body.split(
+            "else if absolute.utf8.elementsEqual(originalEvent.utf8) { self = .originalEvent(id) }", 1)[1]
+        self.assertNotIn(".detail", event_arm)
+        self.assertNotIn("approvalRevision", body)
+        self.assertNotIn("OwnedOrderReadApproval", body)
+        self.assertNotIn("business/audit-log", body)
+        self.assertNotIn("OriginalAuditEvent", body)
+        self.assertNotIn("ProfileOrder", body)
+        self.assertNotIn("postOwnedOrderForm", body)
+        self.assertNotIn(".send(", body)
+        self.assertIn(
+            "A detail approval, an approval revision, or a previously allowed info request does not select it.",
+            route)
+        self.assertIn("does not call /business/audit-log", route)
+        self.assertIn("does not build an OriginalAuditEvent", route)
+        self.assertIn("testInfoApprovalDoesNotCountAsAnOriginalEventSend", tests)
+        self.assertIn("does not count as an original-event send", tests)
+        self.assertIn("previously allowed info request", tests)
+        self.assertIn("Swift/XCTest is NOT_RUN", tests)
+        self.assertIn("XCTAssertEqual(infoApproval, .detail(41))", tests)
+        self.assertIn("XCTAssertNotEqual(infoApproval, .originalEvent(41))", tests)
+        self.assertIn('form("original-event", ["id":"41"])', tests)
+        self.assertIn('form("info", ["id":"41"])', tests)
+        self.assertIn('form("list", ["owner_type":"3"])', tests)
+        self.assertIn('"pay", "pay/app"', tests)
+        self.assertIn("business/audit-log", tests)
+        self.assertIn("api/merchant/chapter-application/audit", tests)
+        self.assertIn("api/merchant/chapter-node/audit", tests)
+        self.assertIn(".originalEvent(41)", tests)
+        self.assertIn(".originalEvent(42)", tests)
+        self.assertIn("approvalRevision", tests)
+        service = (ROOT / "Core/ProfileService.swift").read_text()
+        host = (ROOT / "Core/ProfileOrderEventHost.swift").read_text()
+        self.assertIn(
+            "public func postOwnedOrderForm(path: String, id: String, token: String) async throws -> Data?",
+            service)
+        self.assertEqual(host.count("service.postOwnedOrderForm(path:"), 2)
+        self.assertNotIn("OwnedOrderReadRoute", host)
+        for path in [
+            "App/AppSession.swift",
+            "App/AppCompositionRoot.swift",
+            "Questify.xcodeproj/project.pbxproj",
+            "App/WithdrawalSupportLandingView.swift",
+            "Core/ProfileService.swift",
+            "Core/ProfileOrderEventHost.swift",
+        ]:
+            current = (ROOT / path).read_bytes()
+            original = subprocess.check_output(["git", "show", f"{ROUTE_PARENT}:{path}"], cwd=str(ROOT))
+            self.assertEqual(current, original, path)
 
     def test_sha256_payload_covers_whitelist(self):
         digest = hashlib.sha256()

@@ -46,8 +46,11 @@ import FoundationNetworking
 }
 
 /// Exact unpaginated server subset. There is no member override or client pagination.
+/// `originalEvent` is only POST api/registration/original-event with that request's own positive id.
+/// A detail approval, an approval revision, or a previously allowed info request does not select it.
+/// This case does not call /business/audit-log and does not build an OriginalAuditEvent.
 public enum OwnedOrderReadRoute: Equatable {
-    case list, detail(Int)
+    case list, detail(Int), originalEvent(Int)
     public init?(request: URLRequest, baseURL: URL) {
         guard let url = request.url, url.query == nil, url.fragment == nil,
               request.httpMethod == "POST", request.httpBodyStream == nil,
@@ -57,9 +60,14 @@ public enum OwnedOrderReadRoute: Equatable {
         let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
         guard !boundary.isEmpty, boundary.count <= 70,
               boundary.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }) else { return nil }
+        let list = baseURL.appendingPathComponent("api/registration/list").absoluteString
+        let info = baseURL.appendingPathComponent("api/registration/info").absoluteString
+        let originalEvent = baseURL.appendingPathComponent("api/registration/original-event").absoluteString
+        let absolute = url.absoluteString
         let key: String
-        if url.absoluteString.utf8.elementsEqual(baseURL.appendingPathComponent("api/registration/list").absoluteString.utf8) { key = "owner_type" }
-        else if url.absoluteString.utf8.elementsEqual(baseURL.appendingPathComponent("api/registration/info").absoluteString.utf8) { key = "id" }
+        if absolute.utf8.elementsEqual(list.utf8) { key = "owner_type" }
+        else if absolute.utf8.elementsEqual(info.utf8) { key = "id" }
+        else if absolute.utf8.elementsEqual(originalEvent.utf8) { key = "id" }
         else { return nil }
         let prefix = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n", suffix = "\r\n--\(boundary)--\r\n"
         guard text.hasPrefix(prefix), text.hasSuffix(suffix), text.count > prefix.count + suffix.count else { return nil }
@@ -67,8 +75,10 @@ public enum OwnedOrderReadRoute: Equatable {
         guard let id = Int(value), id > 0, String(id) == value,
               let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: [key:value], token: nil, boundary: boundary),
               canonical.httpBody == body else { return nil }
-        if key == "owner_type" { guard id == 3 else { return nil }; self = .list }
-        else { self = .detail(id) }
+        if absolute.utf8.elementsEqual(list.utf8) { guard id == 3 else { return nil }; self = .list }
+        else if absolute.utf8.elementsEqual(info.utf8) { self = .detail(id) }
+        else if absolute.utf8.elementsEqual(originalEvent.utf8) { self = .originalEvent(id) }
+        else { return nil }
     }
 }
 
