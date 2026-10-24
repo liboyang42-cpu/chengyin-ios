@@ -13,6 +13,7 @@ WHITELIST = [
     "Core/MechanismRequestIdProjection.swift",
     "Core/RouteActionReadbackFlow.swift",
     "Core/RouteActionPageRead.swift",
+    "Core/OriginalActionReader.swift",
     "Core/ProgressClockMomentumAspectProjection.swift",
     "Core/OathFlashbackProjection.swift",
     "Core/TradeBargainProjection.swift",
@@ -22,6 +23,7 @@ WHITELIST = [
     "Tests/CoreTests/MechanismRequestIdProjectionTests.swift",
     "Tests/CoreTests/RouteActionReadbackFlowTests.swift",
     "Tests/CoreTests/RouteActionPageReadTests.swift",
+    "Tests/CoreTests/OriginalActionReaderTests.swift",
     "Tests/CoreTests/ProgressClockMomentumAspectProjectionTests.swift",
     "Tests/CoreTests/OathFlashbackProjectionTests.swift",
     "Tests/CoreTests/TradeBargainProjectionTests.swift",
@@ -31,6 +33,7 @@ WHITELIST = [
     "Tests/ContractChecks/test_c03_six_mechanism_projections.py",
     "docs/issue5-hunks/C03-ios-dot-hunk.md",
     "docs/issue5-hunks/C03-route-page-readback.hunk",
+    "docs/issue5-hunks/C03-original-action-reader.hunk",
     "App/PlayRouteMapView.swift",
 ]
 CORE_FILES = [path for path in WHITELIST if path.startswith("Core/")]
@@ -85,7 +88,7 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
 
     def test_first_journey_markers_present(self):
         for path in TEST_FILES:
-            if path.endswith("RouteActionReadbackFlowTests.swift") or path.endswith("RouteActionPageReadTests.swift"):
+            if path.endswith("RouteActionReadbackFlowTests.swift") or path.endswith("RouteActionPageReadTests.swift") or path.endswith("OriginalActionReaderTests.swift"):
                 continue
             text = self.sources[path]
             self.assertIn("testFirstJourney", text, path)
@@ -164,6 +167,20 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
                 self.assertNotIn("func recover(", text, path)
                 self.assertNotIn("insertAction", text, path)
                 self.assertNotIn("func bind(", text, path)
+            elif path.endswith("OriginalActionReader.swift"):
+                self.assertIn("topicRouteSessionMapper.selectActionByAction", text, path)
+                self.assertIn("does not mint originalRequestID", text, path)
+                self.assertIn("does not send", text, path)
+                self.assertIn("queries += 1", text, path)
+                self.assertIn("row.actionID == trimmed", text, path)
+                self.assertIn("row.sessionID", text, path)
+                self.assertIn("row.memberID", text, path)
+                self.assertIn("let sends = 0", text, path)
+                self.assertIn("httpPath: String? = nil", text, path)
+                self.assertNotIn("/api/", text, path)
+                self.assertNotIn("insertAction", text, path)
+                self.assertNotIn("func bind(", text, path)
+                self.assertNotIn("func recover(", text, path)
             else:
                 self.assertIn("func apply(", text, path)
                 self.assertIn("func recoverOriginal(", text, path)
@@ -266,6 +283,44 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         self.assertIn("Do not apply", closed)
         for path in FORBIDDEN_TOUCH:
             self.assertNotIn(path, _git_names("diff", "--name-only", BASE))
+
+    def test_original_action_reader_asks_once_and_stops_the_send(self):
+        reader = self.sources["Core/OriginalActionReader.swift"]
+        tests = self.sources["Tests/CoreTests/OriginalActionReaderTests.swift"]
+        page = (ROOT / "App/PlayRouteMapView.swift").read_text()
+        flow = self.sources["Core/RouteActionReadbackFlow.swift"]
+        closed = (ROOT / "docs/issue5-hunks/C03-original-action-reader.hunk").read_text()
+        self.assertIn("struct PlayRouteMapView", page)
+        self.assertIn("page.shownRow(", page)
+        self.assertIn("struct OriginalActionReader", reader)
+        self.assertIn("topicRouteSessionMapper.selectActionByAction", reader)
+        self.assertIn("does not send", reader)
+        self.assertIn("queries += 1", reader)
+        self.assertNotIn("/api/", reader)
+        self.assertNotIn("insertAction", reader)
+        self.assertIn("RouteActionPageRead()", tests)
+        self.assertIn("page.shownRow(", tests)
+        self.assertIn("original query once", tests)
+        self.assertIn("appearance does not write", tests)
+        self.assertIn("different action", tests)
+        self.assertIn("different session", tests)
+        self.assertIn("different member", tests)
+        self.assertIn("same ids show the same row", tests)
+        self.assertIn("must not send", tests)
+        self.assertIn("selectActionByAction: nil", tests)
+        self.assertIn("func recover(", flow)
+        self.assertNotIn("struct OriginalActionReader", flow)
+        self.assertNotIn("struct OriginalActionReader", page)
+        self.assertIn("Not applied", closed)
+        self.assertIn("Do not apply", closed)
+        self.assertIn("send is stopped", closed)
+        self.assertIn("App/AppSession.swift", closed)
+        self.assertIn("App/AppCompositionRoot.swift", closed)
+        self.assertIn("project.pbxproj", closed)
+        self.assertIn("0EB8948D75398E750CB57D14", closed)
+        self.assertIn("892efe6f765a5748065569fd886ee9b00ef71d4b", closed)
+        self.assertIn("eea786c064d3c1678c0dff621c9f56f9980ffa68", closed)
+        self.assertIn("not 100%", closed.lower())
 
     def test_linux_xctest_is_explicitly_not_run(self):
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
