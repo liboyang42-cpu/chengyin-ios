@@ -164,6 +164,21 @@ final class SideQuestAcceptHoldTests: XCTestCase {
         XCTAssertEqual(quest.hold?.originalRequestID, "sq-proof-unk")
         XCTAssertNil(quest.original)
     }
+    func testUnusedExitBeforeHoldDoesNotOccupyThenUniqueExitApplies() throws {
+        var quest = SideQuestAcceptHold()
+        try quest.discover(try place())
+        XCTAssertThrowsError(try quest.exit()) { error in
+            XCTAssertEqual(error as? SideQuestFailure, .holdRequired)
+        }
+        XCTAssertNil(quest.original, "未见预占 exit 观察不得占原文")
+        XCTAssertNil(quest.hold)
+        XCTAssertEqual(quest.phase, .discovered)
+        try quest.acceptHold(holdID: "hold-exit", originalRequestID: "sq-exit-unk", seats: 1)
+        try quest.exit()
+        XCTAssertEqual(quest.phase, .exited)
+        XCTAssertEqual(quest.original?.originalRequestID, "sq-exit-unk")
+        XCTAssertEqual(quest.original?.terminal, .exited)
+    }
     func testNonCompliantHiddenCapacityAndFakeGPS() throws {
         var quest = SideQuestAcceptHold()
         XCTAssertThrowsError(try quest.discover(try place(compliant: false))) { error in

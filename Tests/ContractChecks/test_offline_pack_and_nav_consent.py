@@ -185,6 +185,7 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
         self.assertIn("testUnusedAcceptHoldBeforeDiscoverDoesNotOccupyThenUniqueHoldApplies", quest)
         self.assertIn("testUnusedCompleteBeforeHoldDoesNotOccupyThenUniqueCompleteApplies", quest)
         self.assertIn("testUnusedSubmitProofBeforeHoldDoesNotOccupyThenUniqueSubmitApplies", quest)
+        self.assertIn("testUnusedExitBeforeHoldDoesNotOccupyThenUniqueExitApplies", quest)
         self.assertIn("sq-orig-unk", quest)
         self.assertIn("alreadyTerminal", quest)
         pack = self.sources["Tests/CoreTests/OfflinePackOperationTests.swift"]
