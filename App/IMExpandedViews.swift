@@ -104,7 +104,10 @@ struct IMExpandedSubmission: Equatable {
     let readCursor: Int?
     /// Group management entry. Nil closes this open and does not invent a catalog.
     let admission: ChannelAdmissionRoute?
+    let directory: ChannelDirectoryAdmissionRequest?
     let showsAdmissionEntry: Bool
+    @State private var directoryPage: ChannelAdmissionGovernanceView?
+    @State private var directoryFailed = false
     @State private var selectedTopic: TopicSummary?
     @State private var showingTopics = false
     @State private var name = ""
@@ -113,13 +116,14 @@ struct IMExpandedSubmission: Equatable {
     @State private var longitude = ""
     init(coordinator: IMExpandedCoordinator, identity: MessagingReadIdentity?, uploadOwner: IMImageUploadCoordinator? = nil, topicReader: (any TopicReading)? = nil, replyPolicy: IMConversationReplyPolicy? = nil,
          isConversationCurrent: @escaping () -> Bool = { true }, readCursor: Int? = nil,
-         admission: ChannelAdmissionRoute? = nil, showsAdmissionEntry: Bool = false,
+         admission: ChannelAdmissionRoute? = nil, directory: ChannelDirectoryAdmissionRequest? = nil, showsAdmissionEntry: Bool = false,
          onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }, onReceipt: @escaping (IMMutationReceipt) -> Void) {
         _model = StateObject(wrappedValue: IMExpandedViewModel(coordinator)); self.identity = identity; self.uploadOwner = uploadOwner; self.topicReader = topicReader; self.onReceipt = onReceipt
         self.replyPolicy = replyPolicy ?? .init(conversationID: coordinator.scope.conversationID, conversation: nil)
         self.isConversationCurrent = isConversationCurrent
         self.readCursor = readCursor
         self.admission = admission
+        self.directory = directory
         self.showsAdmissionEntry = showsAdmissionEntry
         self.onConversationMutationAccepted = onConversationMutationAccepted
     }
@@ -137,8 +141,22 @@ struct IMExpandedSubmission: Equatable {
             }
             if showsAdmissionEntry {
                 Section("admission.title") {
-                    if let admission, let identity, identity.accountID == admission.accountID, identity.epoch == admission.epoch,
-                       let page = try? admission.page() {
+                    if let directoryPage {
+                        NavigationLink { directoryPage } label: { Text("admission.title") }
+                            .accessibilityIdentifier("admission.entry")
+                    } else if let directory, !directoryFailed {
+                        Button("admission.title") {
+                            Task {
+                                do {
+                                    directoryPage = try await ChannelAdmissionParent.page(
+                                        configuration: directory.configuration, transport: directory.transport,
+                                        token: directory.token, accountID: directory.accountID, epoch: directory.epoch,
+                                        channelID: directory.channelID, spaceID: directory.spaceID, kind: directory.kind)
+                                } catch { directoryFailed = true }
+                            }
+                        }.accessibilityIdentifier("admission.entry")
+                    } else if let admission, let identity, identity.accountID == admission.accountID, identity.epoch == admission.epoch,
+                              let page = try? admission.page() {
                         NavigationLink { page } label: { Text("admission.title") }
                             .accessibilityIdentifier("admission.entry")
                     } else {
