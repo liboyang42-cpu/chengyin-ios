@@ -145,6 +145,8 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         self.assertIn("func recoverOriginal(", kernel)
         self.assertIn("recoverFromJournal", kernel)
         self.assertIn("func projectOriginalSend", kernel)
+        self.assertIn("exactDigest", kernel)
+        self.assertIn("[0-9a-f]{64}", kernel)
         self.assertIn("LEGACY", kernel)
         self.assertIn("WRONG_OPERATION", kernel)
         self.assertIn("ACTOR_MISMATCH", kernel)

@@ -277,15 +277,18 @@ public struct ImmutableReceiptProducer: Equatable {
         public var operation: String?
         public var digest: String?
         public var state: String?
-        public var resultJSON: String?
+        public var resultMessageID: Int64?
+        public var resultClientMessageID: String?
         public init(actorMemberID: Int64? = nil, channelID: Int64? = nil, operation: String? = nil,
-                    digest: String? = nil, state: String? = nil, resultJSON: String? = nil) {
+                    digest: String? = nil, state: String? = nil, resultMessageID: Int64? = nil,
+                    resultClientMessageID: String? = nil) {
             self.actorMemberID = actorMemberID
             self.channelID = channelID
             self.operation = operation
             self.digest = digest
             self.state = state
-            self.resultJSON = resultJSON
+            self.resultMessageID = resultMessageID
+            self.resultClientMessageID = resultClientMessageID
         }
     }
 
@@ -323,21 +326,15 @@ public struct ImmutableReceiptProducer: Equatable {
             return OriginalSendProof(actor: actor, channel: channel, requestId: requestId, operation: row.operation,
                                      digest: nil, messageId: nil, state: "WRONG_OPERATION", outcomeConfirmed: false)
         }
-        let digest = row.digest?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !digest.isEmpty else {
-            return OriginalSendProof(actor: actor, channel: channel, requestId: requestId, operation: row.operation,
-                                     digest: nil, messageId: nil, state: "NOT_FOUND", outcomeConfirmed: false)
-        }
         guard row.state == "APPLIED" else {
             return OriginalSendProof(actor: actor, channel: channel, requestId: requestId, operation: "SEND",
-                                     digest: digest, messageId: nil,
+                                     digest: nil, messageId: nil,
                                      state: row.state == "PENDING" ? "PENDING" : "NOT_FOUND", outcomeConfirmed: false)
         }
-        let messageId = jsonInt(row.resultJSON, key: "message_id")
-        let clientId = jsonString(row.resultJSON, key: "client_message_id")
-        guard let messageId, messageId > 0, clientId == requestId else {
+        guard let digest = exactDigest(row.digest), let messageId = row.resultMessageID, messageId > 0,
+              row.resultClientMessageID == requestId else {
             return OriginalSendProof(actor: actor, channel: channel, requestId: requestId, operation: "SEND",
-                                     digest: digest, messageId: nil, state: "NOT_FOUND", outcomeConfirmed: false)
+                                     digest: nil, messageId: nil, state: "NOT_FOUND", outcomeConfirmed: false)
         }
         return OriginalSendProof(actor: actor, channel: channel, requestId: requestId, operation: "SEND",
                                  digest: digest, messageId: messageId, state: "APPLIED", outcomeConfirmed: true)
@@ -348,28 +345,9 @@ public struct ImmutableReceiptProducer: Equatable {
         return requestId.range(of: "^[A-Za-z0-9_-]{16,64}$", options: .regularExpression) != nil
     }
 
-    private static func jsonString(_ json: String?, key: String) -> String? {
-        guard let json else { return nil }
-        let needle = "\"\(key)\""
-        guard let at = json.range(of: needle) else { return nil }
-        let after = json[at.upperBound...]
-        guard let colon = after.firstIndex(of: ":") else { return nil }
-        var cursor = json.index(after: colon)
-        while cursor < json.endIndex, json[cursor].isWhitespace { cursor = json.index(after: cursor) }
-        guard cursor < json.endIndex else { return nil }
-        if json[cursor] == "\"" {
-            let start = json.index(after: cursor)
-            guard let end = json[start...].firstIndex(of: "\"") else { return nil }
-            return String(json[start..<end])
-        }
-        var end = cursor
-        while end < json.endIndex, json[end].isNumber { end = json.index(after: end) }
-        return end == cursor ? nil : String(json[cursor..<end])
-    }
-
-    private static func jsonInt(_ json: String?, key: String) -> Int64? {
-        guard let raw = jsonString(json, key: key) else { return nil }
-        return Int64(raw)
+    private static func exactDigest(_ value: String?) -> String? {
+        guard let value, value.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil else { return nil }
+        return value
     }
 
     public func recoverFromJournal(memberId: Int64?, conversationId: Int64?,
