@@ -544,11 +544,47 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
                                               canReadHistory: { _, _ in true }, listMessages: nil)) {
             XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingListMessages)
         }
+        var acknowledged = Self.historyPage(after: nil)
+        acknowledged["operation"] = "ACK"
         XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: nil, after: nil, limit: 20,
                                               conversationType: 5, channelKind: 1,
                                               canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
-            ["list": [], "operation": "ACK"]
+            acknowledged
         })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        var nullList = Self.historyPage(after: nil)
+        nullList["list"] = NSNull()
+        XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: nil, after: 0, limit: 20,
+                                              conversationType: 5, channelKind: 1,
+                                              canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, after in
+            XCTAssertEqual(after, 0)
+            return nullList
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        var textFlag = Self.historyPage(after: nil)
+        textFlag["has_more"] = "false"
+        textFlag["hasMore"] = "false"
+        XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: nil, after: nil, limit: 20,
+                                              conversationType: 5, channelKind: 1,
+                                              canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
+            textFlag
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        var conflict = Self.historyPage(after: nil)
+        conflict["has_more"] = true
+        XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: nil, after: nil, limit: 20,
+                                              conversationType: 5, channelKind: 1,
+                                              canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
+            conflict
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        let empty = try history.read(actor: 70, channelID: 12, before: nil, after: 0, limit: 20,
+                                     conversationType: 5, channelKind: 1, canReadHistory: { _, _ in true },
+                                     listMessages: { _, _, _, _, _ in
+            var page = Self.historyPage(after: nil)
+            page["list"] = [] as [Any]
+            page["mutation_cursor"] = 0
+            page["next_after"] = NSNull()
+            page["nextAfter"] = NSNull()
+            return page
+        })
+        XCTAssertEqual((empty["list"] as? [Any])?.count, 0)
     }
 
     func testLateIdentityDoesNotReadHistoryOrAcknowledge() throws {
@@ -610,7 +646,8 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
 
     private static func historyPage(after: String?) -> [String: Any] {
         var page: [String: Any] = [
-            "list": [] as [Any], "next_cursor": "9", "has_more": false, "nextCursor": "9", "hasMore": false,
+            "list": [] as [Any], "next_cursor": "9", "has_more": NSNumber(value: false), "nextCursor": "9",
+            "hasMore": NSNumber(value: false),
             "mutation_cursor": "0", "sync_contract": "VISIBLE_ORDER_PLUS_MUTATIONS_V1",
             "legacy_cache_action": "RELOAD_ON_RESUME"
         ]

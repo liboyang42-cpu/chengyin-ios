@@ -529,15 +529,55 @@ public struct MessageContainerHistory: Equatable, Sendable {
         let page = listMessages(actor, channelID, before, clamped, after)
         guard page["sync_contract"] as? String == "VISIBLE_ORDER_PLUS_MUTATIONS_V1",
               page["legacy_cache_action"] as? String == "RELOAD_ON_RESUME",
-              page["list"] != nil, page["mutation_cursor"] != nil,
-              page["has_more"] != nil || page["hasMore"] != nil,
+              page["list"] is [Any],
+              exactCursor(page["mutation_cursor"]) != nil,
+              exactBool(page["has_more"]) != nil || exactBool(page["hasMore"]) != nil,
+              aliasesAgree(page["has_more"], page["hasMore"], exactBool),
+              aliasesAgree(page["next_cursor"], page["nextCursor"], exactCursor),
+              aliasesAgree(page["next_after"], page["nextAfter"], exactCursor),
               page["operation"] as? String != "ACK" else {
             throw ChannelAuthorizationError.invalidCatalog
         }
-        if after != nil, page["next_after"] == nil, page["nextAfter"] == nil {
-            throw ChannelAuthorizationError.invalidCatalog
-        }
         return page
+    }
+
+    private func exactBool(_ value: Any?) -> Bool? {
+        guard let number = value as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() else { return nil }
+        return number.boolValue
+    }
+
+    private func exactCursor(_ value: Any?) -> String? {
+        if value is NSNull { return nil }
+        if let text = value as? String {
+            guard !text.isEmpty, text.unicodeScalars.allSatisfy({ (48...57).contains($0.value) }) else { return nil }
+            return text
+        }
+        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(), number.intValue >= 0,
+           number.doubleValue == Double(number.intValue) {
+            return number.stringValue
+        }
+        if let number = value as? Int, number >= 0 { return String(number) }
+        return nil
+    }
+
+    private func aliasesAgree(_ left: Any?, _ right: Any?, _ parse: (Any?) -> String?) -> Bool {
+        switch (left, right) {
+        case (nil, nil): return true
+        case (nil, _): return parse(right) != nil || right is NSNull
+        case (_, nil): return parse(left) != nil || left is NSNull
+        default:
+            if left is NSNull && right is NSNull { return true }
+            return parse(left) != nil && parse(left) == parse(right)
+        }
+    }
+
+    private func aliasesAgree(_ left: Any?, _ right: Any?, _ parse: (Any?) -> Bool?) -> Bool {
+        switch (left, right) {
+        case (nil, nil): return true
+        case (nil, _): return parse(right) != nil
+        case (_, nil): return parse(left) != nil
+        default: return parse(left) != nil && parse(left) == parse(right)
+        }
     }
 
     /// A late or revoked lease never reaches `listMessages`. Rows keep the original viewer projection:

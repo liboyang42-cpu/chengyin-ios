@@ -136,6 +136,8 @@ class ChannelNotFriendPermissionContracts(unittest.TestCase):
         self.assertIn('ChannelMessageService.history', governance)
         self.assertIn('before > 0, after != nil', governance)
         self.assertIn('VISIBLE_ORDER_PLUS_MUTATIONS_V1', governance)
+        self.assertIn('func exactBool(', governance)
+        self.assertIn('func exactCursor(', governance)
         self.assertIn('RELOAD_ON_RESUME', governance)
         self.assertIn('testType5HistoryUsesOriginalCursorOrderAndDoesNotAcknowledge', tests)
         self.assertIn('func readIsolated(', governance)
