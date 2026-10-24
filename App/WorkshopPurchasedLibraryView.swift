@@ -126,18 +126,30 @@ struct WorkshopPurchasedAccountLink: View {
 }
 private struct PurchasedFact: View {
     let key: String, value: String
+    @Environment(\.locale) private var locale
     init(_ key: String, _ value: String) { self.key = key; self.value = value }
-    var body: some View { VStack(alignment: .leading, spacing: 4) { purchasedText(key).font(.caption).foregroundStyle(.secondary); Text(verbatim: value) }.fixedSize(horizontal: false, vertical: true) }
+    var body: some View {
+        RevolutInsetRow(title: purchasedLabel(key, locale: locale), value: value)
+            .fixedSize(horizontal: false, vertical: true)
+    }
 }
 private struct PurchasedPolicy: View {
     let key: String, policy: String
+    @Environment(\.locale) private var locale
     init(_ key: String, _ policy: String) { self.key = key; self.policy = policy }
-    var body: some View { VStack(alignment: .leading) { purchasedText(key).font(.caption); purchasedText("policy." + policy) } }
+    var body: some View {
+        RevolutInsetRow(title: purchasedLabel(key, locale: locale), value: purchasedLabel("policy." + policy, locale: locale))
+            .fixedSize(horizontal: false, vertical: true)
+    }
 }
 private struct PurchasedLimit: View {
     let key: String, value: WorkshopPurchasedItem.Limit
+    @Environment(\.locale) private var locale
     init(_ key: String, _ value: WorkshopPurchasedItem.Limit) { self.key = key; self.value = value }
-    var body: some View { VStack(alignment: .leading) { purchasedText(key).font(.caption); if value.unlimited { purchasedText("explicitUnlimited") } else { Text(verbatim: String(value.maximum)) } } }
+    var body: some View {
+        RevolutInsetRow(title: purchasedLabel(key, locale: locale), value: value.unlimited ? purchasedLabel("explicitUnlimited", locale: locale) : String(value.maximum))
+            .fixedSize(horizontal: false, vertical: true)
+    }
 }
 private struct PurchasedUnavailableView: View {
     var body: some View { ContentUnavailableView { Label { purchasedText("unavailable") } icon: { Image(systemName: "icloud.slash") } } description: { purchasedText("unavailableDetail") } }
@@ -147,5 +159,8 @@ private struct PurchasedTitle: ViewModifier {
     @Environment(\.locale) private var locale
     init(_ key: String) { self.key = key }
     func body(content: Content) -> some View { content.navigationTitle(String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopPurchased." + key), table: "WorkshopPurchased", locale: locale))) }
+}
+private func purchasedLabel(_ key: String, locale: Locale) -> String {
+    String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopPurchased." + key), table: "WorkshopPurchased", locale: locale))
 }
 private func purchasedText(_ key: String) -> Text { Text(LocalizedStringKey("workshopPurchased." + key), tableName: "WorkshopPurchased") }

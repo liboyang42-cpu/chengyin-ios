@@ -25,10 +25,7 @@ struct ActivityListCard: View {
                 .font(.title3.weight(.semibold))
             ActivitySummaryMetadata(summary:item)
             Divider()
-            VStack(alignment:.leading,spacing:4) {
-                Text("activity.startingPrice").font(.caption).foregroundStyle(.secondary)
-                AmountLabel(amount:item.minimumAmount).font(.headline)
-            }
+            AmountLabel(amount:item.minimumAmount, captionKey: "activity.startingPrice")
         }
         .foregroundStyle(.primary)
         .fixedSize(horizontal:false,vertical:true)
@@ -92,7 +89,6 @@ struct ActivityTicketCard: View {
                 .font(.headline)
                 .fixedSize(horizontal:false,vertical:true)
             AmountLabel(amount:ticket.price)
-                .font(.title3.weight(.semibold))
                 .accessibilityElement(children:.combine)
                 .accessibilityIdentifier("activity.ticket.price.\(ticket.id)")
             if ticket.isSoldOut {

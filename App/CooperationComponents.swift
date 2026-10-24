@@ -110,28 +110,28 @@ struct CooperationStatus: View {
 struct CooperationField: View {
     let key: String
     let value: String?
+    @Environment(\.locale) private var locale
     var body: some View {
         if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(LocalizedStringKey(key)).font(.caption).foregroundStyle(.secondary)
-                Text(verbatim: value).textSelection(.enabled)
-            }.padding(.vertical, 2).accessibilityElement(children: .combine)
+            RevolutInsetRow(title: appLocalized(String.LocalizationValue(stringLiteral: key), locale: locale), value: value)
+                .textSelection(.enabled)
+                .accessibilityElement(children: .combine)
         }
     }
 }
 struct CooperationTimeField: View {
     let key: String
     let value: CooperationSourceTime?
+    @Environment(\.locale) private var locale
     var body: some View {
         if let value {
             switch value {
             case .text(let text): CooperationField(key: key, value: text)
             case .milliseconds:
                 if let date = value.date {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(key)).font(.caption).foregroundStyle(.secondary)
-                        Text(date, format: .dateTime.year().month().day().hour().minute())
-                    }.accessibilityElement(children: .combine)
+                    RevolutInsetRow(title: appLocalized(String.LocalizationValue(stringLiteral: key), locale: locale),
+                                    value: date.formatted(.dateTime.year().month().day().hour().minute().locale(locale)))
+                        .accessibilityElement(children: .combine)
                 }
             }
         }

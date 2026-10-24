@@ -307,6 +307,7 @@ struct MerchantOperationsEditor: View {
 struct MerchantOperationsConfirmationView: View {
     @ObservedObject var model: MerchantOperationsViewModel
     let confirmation: MerchantOperationsConfirmation
+    @Environment(\.locale) private var locale
     private var isExample: Bool { model.coordinator.reader.isOfflineExample }
     var body: some View {
         NavigationStack {
@@ -348,14 +349,8 @@ struct MerchantOperationsConfirmationView: View {
                             .accessibilityIdentifier("merchant.featuredClear.review")
                     }
                     ForEach(confirmation.draft.reviewLines) { line in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(LocalizedStringKey(line.key)).font(.caption).foregroundStyle(.secondary)
-                            if line.key == "merchant.operations.businessStatus", let raw = Int(line.value), let status = MerchantBusinessStatus(rawValue: raw) {
-                                Text(LocalizedStringKey(status.titleKey))
-                            } else if line.key == "merchant.operations.chargeType", ["0", "1"].contains(line.value) {
-                                Text(LocalizedStringKey(line.value == "0" ? "merchant.operations.charge.free" : "merchant.operations.charge.paid"))
-                            } else { Text(verbatim: line.value.isEmpty ? "—" : line.value).fixedSize(horizontal: false, vertical: true) }
-                        }
+                        RevolutInsetRow(title: appLocalized(String.LocalizationValue(stringLiteral: line.key), locale: locale), value: reviewValue(line))
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     if case .template(let value) = confirmation.draft, let method = value.method { Text(LocalizedStringKey(method.titleKey)) }
                 }
@@ -403,6 +398,15 @@ struct MerchantOperationsConfirmationView: View {
             }
             .appNavigationTitle("merchant.operations.reviewDraft")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.cancel() }.accessibilityIdentifier("merchant.operations.confirm.cancel") } }
+        }
+    }
+    private func reviewValue(_ line: MerchantOperationsReviewLine) -> String {
+        if line.key == "merchant.operations.businessStatus", let raw = Int(line.value), let status = MerchantBusinessStatus(rawValue: raw) {
+            return appLocalized(String.LocalizationValue(stringLiteral: status.titleKey), locale: locale)
+        } else if line.key == "merchant.operations.chargeType", ["0", "1"].contains(line.value) {
+            return appLocalized(String.LocalizationValue(stringLiteral: line.value == "0" ? "merchant.operations.charge.free" : "merchant.operations.charge.paid"), locale: locale)
+        } else {
+            return line.value.isEmpty ? "—" : line.value
         }
     }
 }

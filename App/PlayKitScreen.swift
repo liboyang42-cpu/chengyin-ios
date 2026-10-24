@@ -214,7 +214,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     let payload: [String: PlayWireValue]
     var body: some View {
         ForEach(payload.keys.sorted(), id: \.self) { key in
-            if let value = payload[key] { VStack(alignment: .leading) { Text(verbatim: key).font(.caption).foregroundStyle(.secondary); Text(verbatim: display(value)).textSelection(.enabled) } }
+            if let value = payload[key] { RevolutInsetRow(title: key, value: display(value)).textSelection(.enabled) }
         }
     }
     private func display(_ value: PlayWireValue) -> String {
