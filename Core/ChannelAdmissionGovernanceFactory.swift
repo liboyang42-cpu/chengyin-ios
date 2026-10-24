@@ -1,7 +1,9 @@
 import Foundation
 
-/// Builds the original admission client from an already resolved account.
-/// It does not read AppSession, does not invent an approval, and does not enable writes by itself.
+/// Builds the original admission client from an already resolved account and catalog.
+/// The consented version is the catalog's published rules version. A stale snapshot
+/// is refused. This does not read AppSession, does not invent a version, does not
+/// borrow another domain's permission, and does not send by itself.
 public enum ChannelAdmissionGovernanceFactory {
     public static func client(
         configuration: APIConfiguration,
@@ -9,10 +11,12 @@ public enum ChannelAdmissionGovernanceFactory {
         token: String,
         accountID: Int,
         epoch: UInt64,
-        consentedVersion: Int
+        catalog: ChannelCatalogEntry
     ) throws -> ChannelAdmissionGovernanceClient {
         let identity = try ChannelAccount4Identity(accountID: accountID, epoch: epoch)
-        let admission = try ChannelRulesAdmission(identity: identity, consentedVersion: consentedVersion)
+        let admission = try ChannelRulesAdmission(
+            identity: identity, consentedVersion: catalog.rules.publishedVersion)
+        _ = try admission.admit(identity: identity, catalog: catalog)
         return try ChannelAdmissionGovernanceClient(
             configuration: configuration, transport: transport, token: token, admission: admission)
     }
