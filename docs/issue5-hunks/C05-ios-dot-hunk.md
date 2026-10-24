@@ -88,3 +88,11 @@ HEAD `0dd490ec` tests. Did not invent recoverOriginal.
 `OfflinePackOperationTests.testUnusedDeleteOfIdleDoesNotOccupyThenUniqueStartThenDeleteApplies`：idle `delete` 抛 invalidManifest 且 phase 仍 idle、operationID 仍空；后续唯一 startDownload+delete 才是 deleted。
 
 Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
+
+## Addendum 2026-10-23 19:46 America/Los_Angeles
+
+HEAD `cf876e61` tests. Did not invent recoverOriginal.
+
+`OfflinePackOperationTests.testUnusedExpireOfIdleDoesNotOccupyThenUniqueStartThenExpireApplies`：idle `expire` 抛 invalidManifest 且 phase 仍 idle、operationID 仍空；后续唯一 startDownload+expire 才是 expired。与 unused delete 的 deleted 占账不同。
+
+Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
