@@ -47,10 +47,16 @@ public struct IMOutgoingIntent: Equatable {
 public enum IMMutation: Equatable {
     case start(targetMemberID: Int)
     case read(conversationID: Int)
+    /// Explicit channel ack. The request id stays on this value so a retry does not mint another one.
+    case readCursor(conversationID: Int, lastMessageID: Int, requestID: String)
     case mute(conversationID: Int, muted: Bool)
     case send(IMOutgoingIntent)
     public var conversationID: Int? {
-        switch self { case .start: return nil; case .read(let id), .mute(let id, _): return id; case .send(let intent): return intent.scope.conversationID }
+        switch self {
+        case .start: return nil
+        case .read(let id), .readCursor(let id, _, _), .mute(let id, _): return id
+        case .send(let intent): return intent.scope.conversationID
+        }
     }
 }
 public enum IMMutationReceipt: Equatable { case started(conversationID: Int), read, muted(Bool), sent(MessagingMessage) }

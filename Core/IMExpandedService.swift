@@ -24,6 +24,10 @@ public struct IMExpandedService {
             guard id > 0 else { throw APIError.invalidRequest }; path = "start"; fields = ["target_member_id": String(id)]
         case .read(let id):
             guard id > 0 else { throw APIError.invalidRequest }; path = "read"; fields = ["conversation_id": String(id)]
+        case .readCursor(let id, let last, let requestID):
+            guard id > 0, last >= 0, MessageContainerOriginalAck.isRequestID(requestID) else { throw APIError.invalidRequest }
+            path = "read"
+            fields = ["conversation_id": String(id), "last_message_id": String(last), "request_id": requestID]
         case .mute(let id, let muted):
             guard id > 0 else { throw APIError.invalidRequest }; path = "mute"; fields = ["conversation_id": String(id), "muted": muted ? "1" : "0"]
         case .send(let intent):
@@ -39,6 +43,12 @@ public struct IMExpandedService {
             guard let receipt = try? JSONDecoder().decode(Receipt.self, from: data), receipt.data.conversationId > 0 else { throw APIError.malformedResponse }
             return .started(conversationID: receipt.data.conversationId)
         case .read: return .read
+        case .readCursor(let id, let last, let requestID):
+            let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            guard let payload = object?["data"] as? [String: Any] else { throw APIError.malformedResponse }
+            let receipt = try MessageContainerOriginalAck().receiptFromOriginalBody(payload, channelID: Int64(id), requestID: requestID)
+            guard receipt.status == "APPLIED", !receipt.resumeSameRequest, last >= 0 else { throw IMCapabilityGap.unknownOutcome }
+            return .read
         case .mute(_, let muted): return .muted(muted)
         case .send(let intent):
             struct Receipt: Decodable { let data: MessagingMessage }

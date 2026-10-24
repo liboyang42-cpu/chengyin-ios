@@ -50,6 +50,7 @@ struct MessagingHistoryView: View {
     let sender: MessageActionCoordinator?
     let mediaReader: (any SocialMessageMediaReading)?
     let expanded: IMExpandedNavigationContext?
+    let admission: ChannelAdmissionRoute?
     let onConversationMutationAccepted: (IMScope) -> Void
     @StateObject private var replyAuthority = IMConversationReplyAuthority()
     @State private var history: MessagingHistory
@@ -63,10 +64,17 @@ struct MessagingHistoryView: View {
     @State private var visibleMessageID: Int?
     @State private var showingPollComposer = false
 
-    init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil, onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }) {
+    init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil, admission: ChannelAdmissionRoute? = nil, onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }) {
         self.conversationID = conversationID; self.conversation = conversation; self.reader = reader;self.sender=sender;self.mediaReader=mediaReader;self.expanded=expanded
+        self.admission = admission
         self.onConversationMutationAccepted = onConversationMutationAccepted
         _history = State(initialValue: MessagingHistory(conversationID: conversationID))
+    }
+    /// Type 5 only, and only after this page has loaded. Appearance does not send it.
+    private var channelReadCursor: Int? {
+        guard conversation?.type == 5, currentHistoryReady else { return nil }
+        if let id = history.messages.last?.id, id > 0 { return id }
+        return history.messages.isEmpty ? 0 : nil
     }
     private var replyPolicy: IMConversationReplyPolicy {
         .init(conversationID: conversationID, conversation: conversation)
@@ -129,6 +137,9 @@ struct MessagingHistoryView: View {
                             uploadOwner: replyPolicy.permitsReply ? expanded?.uploadCoordinator(conversationID) : nil,
                             topicReader: expanded?.topicReader, replyPolicy: replyPolicy,
                             isConversationCurrent: { authority.isCurrent(lease) },
+                            readCursor: channelReadCursor,
+                            admission: admission,
+                            showsAdmissionEntry: conversation?.kind == .group,
                             onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
                     } label: { Label("im.full.title", systemImage: "ellipsis.circle") }
                     .accessibilityIdentifier("im.full.controlsEntry")

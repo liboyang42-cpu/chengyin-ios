@@ -20,7 +20,7 @@ private final class IMExpandedFakeTransport: HTTPTransport {
     func perform(_ mutation: IMMutation, expectedIdentity: MessagingReadIdentity) async throws -> IMMutationReceipt {
         mutations.append(mutation); beforeReturn?()
         if fail { throw URLError(.timedOut) }
-        switch mutation { case .read: return .read; case .mute(_, let muted): return .muted(muted); case .start: return .started(conversationID: 9); case .send: throw URLError(.timedOut) }
+        switch mutation { case .read, .readCursor: return .read; case .mute(_, let muted): return .muted(muted); case .start: return .started(conversationID: 9); case .send: throw URLError(.timedOut) }
     }
     func upload(_ selection: IMMediaSelection, consent: IMMediaConsent, expectedIdentity: MessagingReadIdentity) async throws -> URL { throw URLError(.timedOut) }
 }
@@ -34,7 +34,7 @@ final class IMExpandedTests: XCTestCase {
         let transport = IMExpandedFakeTransport()
         let api = try IMExpandedService(configuration: APIConfiguration(baseURL: URL(string: "https://api.example.test/prod-api")!), transport: transport, approvedMediaOrigins: [])
         let intent = try IMOutgoingIntent(scope: scope(), payload: .route(topicID: 11))
-        for mutation in [IMMutation.start(targetMemberID: 42), .read(conversationID: 9), .mute(conversationID: 9, muted: true), .send(intent)] {
+        for mutation in [IMMutation.start(targetMemberID: 42), .read(conversationID: 9), .readCursor(conversationID: 9, lastMessageID: 4, requestID: "ack-cursor-00000001"), .mute(conversationID: 9, muted: true), .send(intent)] {
             do { _ = try await api.perform(mutation, token: "test"); XCTFail("Default must block") } catch { }
         }
         let image = try IMMediaSelection(scope: scope(), bytes: Data([255,216,255]), mimeType: "image/jpeg", fileExtension: "jpg")
@@ -88,7 +88,43 @@ final class IMExpandedTests: XCTestCase {
         XCTAssertTrue(String(data: transport.requests[1].httpBody!, encoding: .utf8)!.contains("\r\n0\r\n"))
         let read = try await api.perform(.read(conversationID: 9), token: "test")
         XCTAssertEqual(read, .read)
+        let plain = String(data: transport.requests[2].httpBody!, encoding: .utf8)!
+        XCTAssertFalse(plain.contains("request_id"))
+        XCTAssertFalse(plain.contains("last_message_id"))
         XCTAssertEqual(transport.requests.map { $0.url!.lastPathComponent }, ["start", "mute", "read"])
+    }
+    func testChannelReadSendsCursorAndKeepsTheSameRequest() async throws {
+        let transport = IMExpandedFakeTransport(); let api = try service(transport)
+        let requestID = "ack-cursor-00000001"
+        let applied: [String: Any] = ["code": 200, "data": [
+            "request_id": requestID, "operation": "ACK", "scope_type": 1, "scope_id": "9",
+            "status": "APPLIED", "replayed": false, "must_refresh_state": false, "result_redacted": false
+        ]]
+        transport.body = String(data: try JSONSerialization.data(withJSONObject: applied), encoding: .utf8)!
+        let receipt = try await api.perform(.readCursor(conversationID: 9, lastMessageID: 44, requestID: requestID), token: "test")
+        XCTAssertEqual(receipt, .read)
+        let sent = String(data: transport.requests[0].httpBody!, encoding: .utf8)!
+        XCTAssertTrue(sent.contains("conversation_id"))
+        XCTAssertTrue(sent.contains("last_message_id"))
+        XCTAssertTrue(sent.contains(requestID))
+        XCTAssertEqual(transport.requests.count, 1)
+        let pending: [String: Any] = ["code": 200, "data": [
+            "request_id": requestID, "operation": "ACK", "scope_type": 1, "scope_id": "9",
+            "status": "PENDING", "outcome": "UNKNOWN", "replayed": false, "must_refresh_state": false,
+            "resume_with_same_request": true, "result_redacted": false
+        ]]
+        transport.body = String(data: try JSONSerialization.data(withJSONObject: pending), encoding: .utf8)!
+        do {
+            _ = try await api.perform(.readCursor(conversationID: 9, lastMessageID: 44, requestID: requestID), token: "test")
+            XCTFail()
+        } catch { XCTAssertEqual(error as? IMCapabilityGap, .unknownOutcome) }
+        XCTAssertEqual(transport.requests.count, 2)
+        transport.requests.removeAll()
+        do {
+            _ = try await api.perform(.readCursor(conversationID: 9, lastMessageID: 44, requestID: " short "), token: "test")
+            XCTFail()
+        } catch {}
+        XCTAssertTrue(transport.requests.isEmpty)
     }
     func testRouteAndLocationWireFieldsAreSourceExact() throws {
         let route = try IMOutgoingPayload.route(topicID: 11).wireFields(approvedOrigins: [])
