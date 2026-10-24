@@ -36,6 +36,9 @@ WHITELIST = CORE_FILES + TEST_FILES + [
     "Core/MerchantBusinessCoordinator.swift",
     "Core/MerchantDeskSkuDesk.swift",
     "App/MerchantDeskSkuPage.swift",
+    "Core/MerchantDeskReadEntry.swift",
+    "Tests/CoreTests/MerchantDeskReadEntryTests.swift",
+    "docs/issue5-hunks/C07-desk-read.hunk",
 ]
 FORBIDDEN_TOUCH = [
     "Core/MerchantAftercareEvidenceAdapter.swift",

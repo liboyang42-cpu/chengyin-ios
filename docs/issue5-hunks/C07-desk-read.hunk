@@ -1,0 +1,20 @@
+diff --git a/App/AppSession.swift b/App/AppSession.swift
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -2613,6 +2613,16 @@
+             guard let self, self.currentMerchantBusinessSession == captured else { return }
+             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+         })
++    /// Ordinary launch keeps merchantBusinessApproval nil. Reads use the existing service. Save is not opened here.
++    func merchantDeskReadEntry() -> MerchantDeskReadEntry? {
++        guard let service = merchantBusinessService,
++              let api = regionalConfiguration?.apiConfiguration else { return nil }
++        let production = MerchantBusinessProductionFactory(
++            api: api, approval: runtimeDependencies.merchantBusinessApproval,
++            transport: runtimeHTTPTransport,
++            current: { [weak self] in self?.currentRuntimeDependencyContext })
++        return MerchantDeskReadEntry(service: service, production: production)
++    }
+     lazy var merchantBusinessJournal = MerchantBusinessFileIntentStore(
+         url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+             .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/MerchantBusiness/intents-v1.json"))
