@@ -220,6 +220,23 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(journey.phase, .appealing)
     }
 
+    func testUnusedCatalogedLeaveDoesNotOccupyThenUniqueLeaveApplies() throws {
+        var journey = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
+        XCTAssertEqual(journey.phase, .cataloged)
+        XCTAssertThrowsError(try journey.leave()) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .roleRequired)
+        }
+        XCTAssertEqual(journey.phase, .cataloged, "cataloged leave 观察不得占 LEFT")
+        XCTAssertNil(journey.grant)
+        try journey.consentToPublishedRules(try admission(try identity()))
+        try journey.submitInviteOrApply()
+        try journey.assignMemberRole(.member)
+        _ = try journey.authorizeReadWrite()
+        try journey.leave()
+        XCTAssertEqual(journey.phase, .left)
+        XCTAssertNil(journey.grant)
+    }
+
     func testMissingACCOUNT4StaysMismatchNeverEmptyIdentity() {
         XCTAssertThrowsError(try ChannelAccount4Identity(accountID: 0, epoch: 1)) {
             XCTAssertEqual($0 as? ChannelAuthorizationError, .account4Mismatch)
