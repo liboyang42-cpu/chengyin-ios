@@ -53,3 +53,11 @@ HEAD `f6127c91` tests. Did not invent recoverOriginal.
 `MerchantNPCDraftApprovalGateTests.testUnusedVerifyBeforeIngestDoesNotOccupyThenUniqueIngestThenVerifyApplies`：未见草稿的 `verifyByAuthorizer` 抛 unpublished 且 authorizer 仍空、phase 仍 idle；后续唯一 ingest+verify 才是 authorizerVerified。Python `func test` count on gate tests 10→11.
 
 Parent python `Tests.ContractChecks.test_merchant_npc_draft_cannot_price` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
+
+## Parent addendum 2026-10-23 19:26 America/Los_Angeles
+
+HEAD `467f25ea` tests. Did not invent recoverOriginal.
+
+`MerchantNPCDraftApprovalGateTests.testUnusedSubmitBeforeAuthorizerDoesNotOccupyThenUniqueSubmitApplies`：未见授权的 `submitOriginalReview` 抛 authorizerRequired 且 reviewTicket 仍空、phase 仍 idle；后续唯一 ingest+verify+submit 才是 originalReviewPending。Python `func test` count on gate tests 11→12.
+
+Parent python `Tests.ContractChecks.test_merchant_npc_draft_cannot_price` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
