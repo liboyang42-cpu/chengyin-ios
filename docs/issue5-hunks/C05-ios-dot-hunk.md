@@ -64,3 +64,11 @@ HEAD `c13aa74c`. Class-level occupancy without inventing `recoverOriginal` on Na
 - `testUnusedResumeDoesNotOccupyThenUniqueStartDownloadApplies` — unused resume of `op-class-never` throws `.notPaused` without occupying `operationID`; unique `startDownload("op-class")` is the first write
 
 Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN. SHA256 digest-length-only; git whitelist unchanged.
+
+## Addendum 2026-10-23 19:36 America/Los_Angeles
+
+HEAD `a968bdab` tests. Did not invent recoverOriginal.
+
+`SideQuestAcceptHoldTests.testUnusedSubmitProofBeforeHoldDoesNotOccupyThenUniqueSubmitApplies`：未见预占的 `submitProof` 抛 holdRequired 且 phase 仍 discovered、proof 仍空；后续唯一 acceptHold+submitProof 才是 proofPending。
+
+Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
