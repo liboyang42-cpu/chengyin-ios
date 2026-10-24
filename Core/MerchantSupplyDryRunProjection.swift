@@ -60,6 +60,10 @@ public struct MerchantSupplyDryRunDecision: Equatable, Sendable {
 }
 
 public struct MerchantSupplyDryRunProjection: Equatable {
+    public static let deskReceipt = "merchantDesk.receipt"
+    public struct WaitingSource: Error, Equatable {
+        public let capability: String
+    }
     public static let shanghaiTimeZone = TimeZone(identifier: "Asia/Shanghai")!
     public private(set) var holdCountByRequestID: [String: Int] = [:]
     public private(set) var originalIntentByRequestID: [String: MerchantSupplyDryRunDecision] = [:]
@@ -101,6 +105,21 @@ public struct MerchantSupplyDryRunProjection: Equatable {
             return original
         }
         return Self.unknown(requestID, "original intent unknown")
+    }
+    /// Read IMerchantDeskService.receipt. NOT_FOUND returns nil and does not hold.
+    /// Does not save a SKU.
+    public func recoverFromDeskReceipt(
+        ownerMemberID: Int64?,
+        requestID: String?,
+        receipt: ((Int64, String) -> [String: String]?)?
+    ) throws -> [String: String]? {
+        guard let ownerMemberID, ownerMemberID > 0, let id = Self.parse(requestID) else { return nil }
+        guard let receipt else {
+            throw WaitingSource(capability: Self.deskReceipt)
+        }
+        guard let found = receipt(ownerMemberID, id) else { return nil }
+        if found["state"] == "NOT_FOUND" { return nil }
+        return found
     }
     private func compute(_ fact: MerchantSupplyDryRunFact?, serverNow: Date?,
                          requestedQty: Int) -> MerchantSupplyDryRunDecision {

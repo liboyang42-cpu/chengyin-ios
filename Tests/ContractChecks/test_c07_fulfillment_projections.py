@@ -122,6 +122,9 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("do not assume 24h", supply)
         self.assertIn("hoursOpen: nil, hoursClose: nil", tests)
         self.assertIn("testMissingHoursOnBookableSkuIsUnknownNotAWrite", tests)
+        self.assertIn("merchantDesk.receipt", supply)
+        self.assertIn("recoverFromDeskReceipt", supply)
+        self.assertIn("testRecoverFromDeskReceiptReadsAppliedWithoutHolding", tests)
 
     def test_holding_is_not_issuance_and_duplicate_does_not_double_hold(self):
         hold = self.sources["Core/EntitlementHoldProjection.swift"]

@@ -184,4 +184,26 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
         XCTAssertEqual(supply.holdCount(originalRequestID: "c07-supply-never-seen"), 1)
         XCTAssertEqual(supply.recoverOriginal(originalRequestID: "c07-supply-never-seen").outcome, .accept)
     }
+    func testRecoverFromDeskReceiptReadsAppliedWithoutHolding() throws {
+        var supply = MerchantSupplyDryRunProjection()
+        do {
+            _ = try supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01", receipt: nil)
+            XCTFail("missing desk receipt must WAITING_SOURCE")
+        } catch let waiting as MerchantSupplyDryRunProjection.WaitingSource {
+            XCTAssertEqual(waiting.capability, MerchantSupplyDryRunProjection.deskReceipt)
+        }
+        XCTAssertEqual(supply.holdCount(originalRequestID: "desk-req-01"), 0)
+        XCTAssertNil(try supply.recoverFromDeskReceipt(ownerMemberID: 0, requestID: "desk-req-01",
+                                                       receipt: { _, _ in ["state": "APPLIED"] }))
+        XCTAssertNil(try supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-missing",
+                                                       receipt: { _, _ in ["state": "NOT_FOUND"] }))
+        XCTAssertEqual(supply.holdCount(originalRequestID: "desk-missing"), 0)
+        let recovered = try supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01",
+                                                          receipt: { owner, id in
+            owner == 7 && id == "desk-req-01" ? ["state": "APPLIED", "action": "SAVE_SKU"] : nil
+        })
+        XCTAssertEqual(recovered?["state"], "APPLIED")
+        XCTAssertEqual(supply.holdCount(originalRequestID: "desk-req-01"), 0)
+        XCTAssertEqual(supply.recoverOriginal(originalRequestID: "desk-req-01").outcome, .unknown)
+    }
 }
