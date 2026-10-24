@@ -230,6 +230,26 @@ public struct EventScoreOriginalLedger: Equatable {
         recoverUnknown(originalRequestID: originalRequestID)
     }
 
+    public static let originalRewardRead = "orientation.originalRewardRead"
+    public struct WaitingSource: Error, Equatable {
+        public let capability: String
+    }
+
+    /// Read-only original reward facts. Caller supplies member/session and the existing
+    /// read closure. Missing source is WAITING_SOURCE. Never-seen returns nil and does
+    /// not occupy freeze/finish keys. Does not copy a private reward writer.
+    public func recoverFromOriginalRewardRead(
+        memberID: Int64?,
+        sessionID: Int64?,
+        read: ((Int64, Int64) -> [String: String]?)?
+    ) throws -> [String: String]? {
+        guard let memberID, memberID > 0, let sessionID, sessionID > 0 else { return nil }
+        guard let read else {
+            throw WaitingSource(capability: Self.originalRewardRead)
+        }
+        return read(memberID, sessionID)
+    }
+
     private func runMatching(_ start: EventScoreStartPayload) -> Run? {
         if let id = start.originalRequestID, let run = runsByStartID[id] { return run }
         return runsByStartID.values.first(where: {

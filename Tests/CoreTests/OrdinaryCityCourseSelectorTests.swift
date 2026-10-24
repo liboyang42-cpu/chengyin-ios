@@ -416,4 +416,25 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-fin-unfrz").outcome, .finished)
         XCTAssertEqual(ledger.readback("c04-fin-unfrz").outcome, .finished)
     }
+    func testRecoverFromOriginalRewardReadDoesNotOccupyThenUniqueFactApplies() throws {
+        var ledger = EventScoreOriginalLedger()
+        XCTAssertNil(try ledger.recoverFromOriginalRewardRead(memberID: 0, sessionID: 30, read: { _, _ in ["state": "AVAILABLE"] }))
+        XCTAssertNil(try ledger.recoverFromOriginalRewardRead(memberID: 7, sessionID: 0, read: { _, _ in ["state": "AVAILABLE"] }))
+        do {
+            _ = try ledger.recoverFromOriginalRewardRead(memberID: 7, sessionID: 30, read: nil)
+            XCTFail("missing original reward read must WAITING_SOURCE")
+        } catch let waiting as EventScoreOriginalLedger.WaitingSource {
+            XCTAssertEqual(waiting.capability, EventScoreOriginalLedger.originalRewardRead)
+        }
+        XCTAssertNil(try ledger.recoverFromOriginalRewardRead(
+            memberID: 7, sessionID: 30, read: { _, _ in nil }))
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-reward-missing").outcome, .notFound)
+        let recovered = try ledger.recoverFromOriginalRewardRead(
+            memberID: 7, sessionID: 30,
+            read: { member, session in
+                member == 7 && session == 30 ? ["state": "PARTIAL", "authority": "ORIGINAL_ISSUANCE"] : nil
+            })
+        XCTAssertEqual(recovered?["state"], "PARTIAL")
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-reward-missing").outcome, .notFound)
+    }
 }
